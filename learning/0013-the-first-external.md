@@ -154,3 +154,20 @@ The paraphrase gap is now three instances. It still does not earn a transcript;
 the Human has refused those twice and the ask is durability of substance. The
 remedy shape remains what `0012` named — the external party authoring into the
 files as itself — and it remains unearned and unrequested.
+
+---
+
+## Note appended at cycle 0015 — 2026-09-19
+
+Three claims in this record overreach and are corrected in
+`learning/0015-what-the-external-cycles-claimed-too-much.md`. The record stands
+as written.
+
+"Two readings, two different instruments" is not observed: the supplier was the
+same, the service chose the model, and what differed observably is the access
+path. That both readings recovered the central idea *from* the filenames, and
+that the titles were therefore the corpus's primary transmission surface, is a
+causal claim the reports cannot support — what was observed is that titles were
+quoted and bodies were not. And the recommendation to open issues does not
+necessarily move knowledge out of the files; it is unearned machinery, which is
+reason enough to decline it without attributing that consequence.

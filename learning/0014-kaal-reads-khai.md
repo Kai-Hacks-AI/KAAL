@@ -132,3 +132,18 @@ The README change is an unfinished test, not a fix. If a later External reading
 still inverts `ORDERS-TO-HUMAN.md`, the announcement was not the missing piece
 and the defect is somewhere neither the file's own opening nor its entry route
 reaches.
+
+---
+
+## Note appended at cycle 0015 — 2026-09-19
+
+The closing conclusion — that the next External should observe behaviour rather
+than documents — prescribes more than this cycle established, and is narrowed in
+`learning/0015-what-the-external-cycles-claimed-too-much.md` to: future contact
+should go beyond self-description and contract surfaces, with the form left
+open. A deeper encounter with content could teach something real without running
+anything.
+
+`0015` also records what this cycle did not read — the architecture, engine and
+composite surfaces that hold the bulk of the repository — and why, under an open
+prompt, that choice is itself evidence rather than an omission to correct.
