@@ -178,6 +178,37 @@ The same restraint governs this repository's own machinery. Bare, AGENTS.md,
 Skill, Script is a ladder, not a march. After each success or failure, ask for
 the least-rightward control strong enough for what was actually learned.
 
+BASS is also an instruction to the Agent and not only a restraint on it. **Human
+-supplied context, cycle 0016.** Guiding the move rightward and earning each step
+is the Agent's job, not the Human's to request, and staying left is not the safe
+default. Refusing to move is the failure that leaves no trace in a diff, so no
+reviewer will catch it for you — this producer drifted left for eleven cycles and
+recorded it in `learning/0016-bass-is-an-instruction-not-a-restraint.md`.
+
+A failure while a control is in force does not name the next rung. It may mean
+the control was misapplied, scoped wrongly, aimed at the wrong capability, or is
+worth removing. What it does establish is that staying put is no longer the
+default: **remaining requires a justification, and so does moving**, and the
+decision is recorded either way — because a decision to stay leaves no other
+trace. Cycle 0016 inflated this into an automatic promotion rule, which is
+corrected in `learning/0017-a-failure-does-not-name-the-next-rung.md`.
+
+Learning from an experience is covered by `skills/learning/SKILL.md`, which
+exists because this file failed at it. That path is supplier-neutral on purpose:
+`.claude/skills/learning/SKILL.md` is an Engine adapter holding this Engine's
+discovery and routing concerns plus a pointer, which is what an adapter is for —
+what it must not hold is the capability as its only home, because a capability
+KAAL holds may not depend on one supplier's discovery path.
+
+For a technical decision — a representation, protocol, format or mechanism —
+work down **URBAN**: **U**se what is already there, **R**ent if nothing suitable
+is, **B**uy if you cannot rent, **A**dapt what you have, and **N**ew only as the
+last exit. **Human-supplied constraint, cycle 0018.** Moving down a step requires
+an explicit reason the one above is insufficient. This is not licence to import
+machinery; it is the opposite — do not reinvent commodity infrastructure when a
+suitable standard exists. The learning skill follows the Agent Skills standard
+under **Use**, recorded in `learning/0018-use-what-is-already-there.md`.
+
 Do not add findings schemas, bug ledgers, roadmap grammars, release machinery,
 evidence formats, review ceremonies or mutation rules because a system like
 this usually acquires them. Let failures earn them. If one of the orders cannot
