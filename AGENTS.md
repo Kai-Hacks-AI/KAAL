@@ -228,3 +228,20 @@ direction; the second counts because the Human said so, not because the orders
 imply it. Exercise both early rather
 than waiting for the engine to look finished, and remember that observing
 something external does not make it KAAL's to own.
+
+KAAL is sometimes the instrument rather than the workplace: an agent is asked to
+use KAAL *on* something rather than to work *in* it. This file is written for the
+second case and says so in its first line, which leaves the first unaddressed.
+**Human-supplied context, cycle 0021** — the Human supplied that distinction and
+the concern behind it. Everything after this sentence is **this repository's
+rendering** of it and carries no more authority than that.
+
+When KAAL is the instrument, it is the discipline you work under and the thing in
+front of you is the subject. Its controls describe how you reach and state
+findings; they are not a design to install in the subject, and the subject has
+not asked for them. That is the boundary — **no unauthorised ownership or
+installation** — and it is not one-way traffic. Findings and recommendations
+about the subject may be exactly what was asked for, and a concept met outside
+may come home as an attributed candidate, scrutinised and architected before it
+becomes KAAL. What neither side gains through contact is authority over the
+other's architecture.
