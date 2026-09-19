@@ -24,6 +24,15 @@ tell restraint from oversight.
 confirmation, not the Agent's own report — the Agent was told the order had been
 carried out and wrote that down.
 
+The configuration in force, as independently read by kaihacksai reviewing
+`a3501c4` and recorded here so a clone does not depend on GitHub for it: ruleset
+`Main`, active, targeting `refs/heads/main`, bypass list empty with
+`current_user_can_bypass: never`, pull request required with one approving
+review, non-fast-forward updates blocked, deletion blocked. Not required: status
+checks, code-owner review, stale-review dismissal, last-push approval, thread
+resolution, extra approval for unattributed changes. That matches the
+realization proposed below, with nothing added.
+
 What the Agent could independently observe, and what it could not: GitHub's
 branch listing reports `main` as protected, which is a read of the hosting
 service's state rather than a claim about the Agent's own work. It establishes
