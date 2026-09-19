@@ -19,6 +19,16 @@ Records are not corrected in place when later experience overturns them. The
 later record says so and points back. The wrong earlier reading is part of what
 there is to learn from.
 
+Read the newest record first. Because nothing is corrected in place, an earlier
+record may state confidently something a later one overturns, and a reader who
+stops early or samples will be misinformed rather than merely under-informed —
+which a cold reader demonstrated on this repository, recorded in
+`0011-embed-the-first-cold-read.md`. The same ordering cuts the other way on
+standing: the newest record is the most accurate about what has been validated
+and the least validated itself, since a validation always attaches to an earlier
+body. Trust the newest record on what the standing is, and least on whether it
+has been judged.
+
 A record may have a clearly marked amendment appended when its own claims about
 what it established were wrong — the standing of its evidence, not its
 conclusions. The original text stays untouched above the amendment, and the
