@@ -195,9 +195,19 @@ corrected in `learning/0017-a-failure-does-not-name-the-next-rung.md`.
 
 Learning from an experience is covered by `skills/learning/SKILL.md`, which
 exists because this file failed at it. That path is supplier-neutral on purpose:
-`.claude/skills/learning/SKILL.md` is an Engine adapter that carries nothing and
-points at it, because a capability KAAL holds may not depend on one supplier's
-discovery path.
+`.claude/skills/learning/SKILL.md` is an Engine adapter holding this Engine's
+discovery and routing concerns plus a pointer, which is what an adapter is for —
+what it must not hold is the capability as its only home, because a capability
+KAAL holds may not depend on one supplier's discovery path.
+
+For a technical decision — a representation, protocol, format or mechanism —
+work down **URBAN**: **U**se what is already there, **R**ent if nothing suitable
+is, **B**uy if you cannot rent, **A**dapt what you have, and **N**ew only as the
+last exit. **Human-supplied constraint, cycle 0018.** Moving down a step requires
+an explicit reason the one above is insufficient. This is not licence to import
+machinery; it is the opposite — do not reinvent commodity infrastructure when a
+suitable standard exists. The learning skill follows the Agent Skills standard
+under **Use**, recorded in `learning/0018-use-what-is-already-there.md`.
 
 Do not add findings schemas, bug ledgers, roadmap grammars, release machinery,
 evidence formats, review ceremonies or mutation rules because a system like

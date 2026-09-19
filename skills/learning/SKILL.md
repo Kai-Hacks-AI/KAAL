@@ -1,6 +1,6 @@
 ---
 name: learning
-description: Use this skill when a cycle has produced an experience and KAAL has to determine what it taught - what the evidence establishes and what it does not, what standing that knowledge has, where the learning belongs under HAPTIC, and which rung it earns under BASS. This is the act of learning, not the act of writing it down; the record is the artefact, and it will faithfully preserve a wrong conclusion. Triggers - a cycle ending, a review finding, an experiment returning, an External or Embed contact, a failure of any kind, or any moment the question is "what did we learn from that".
+description: Use this skill when a cycle has produced an experience and KAAL has to determine what it taught - what the evidence establishes and what it does not, what standing that knowledge has, where the learning belongs under HAPTIC, and which BASS decision it calls for. This is the act of learning, not the act of writing it down; the record is the artefact, and it will faithfully preserve a wrong conclusion. Triggers - a cycle ending, a review finding, an experiment returning, an External or Embed contact, a failure of any kind, or any moment the question is "what did we learn from that".
 ---
 
 # Learning from an experience
@@ -8,6 +8,12 @@ description: Use this skill when a cycle has produced an experience and KAAL has
 BASS defines a Skill as a bounded capability with procedure, evidence standard,
 outputs, stopping conditions and limitations. This file is that, for the
 capability KAAL exercises every cycle and has failed at twelve times.
+
+It follows the **Agent Skills** standard, because an applicable standard already
+existed — **Human-supplied constraint, cycle 0018**, under URBAN. `.claude/skills/learning/`
+is an Engine adapter: it carries this Engine's discovery and routing concerns and
+a pointer here, which is allowed, and must not carry the capability as its only
+home.
 
 **Why this rung exists.** Bare model capability failed at cycle 0001. Guidance
 in `AGENTS.md` was the answer and failed in turn: the line written for this exact
@@ -68,9 +74,10 @@ added since.
 
 ## Outputs
 
-What was learned, what standing it has, where it belongs, and what rung it
-earns. One numbered prose record carries it, with no template beyond what the
-cycle actually has.
+What was learned, what standing it has, where it belongs, and what BASS decision
+it calls for — which may be to stay, move, rescope, or remove, and is recorded
+either way. One numbered prose record carries it, with no template beyond what
+the cycle actually has.
 
 ## Stopping conditions
 
