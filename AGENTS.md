@@ -186,6 +186,11 @@ themselves, and it belongs in `learning/` said plainly.
 Engineering KAAL and embedding it are one loop: what survives separation from
 the context that built it is the real measure of it. Exposure to repositories
 and contexts KAAL did not construct exists because an internally coherent
-learning system can still be wrong about the world. Exercise both early rather
+learning system can still be wrong about the world. External runs both ways:
+KAAL put in front of something it did not construct, and something it did not
+construct put in front of KAAL, are both External and both valid learning.
+**Human-supplied context, cycle 0013** — EEE's wording describes the first
+direction; the second counts because the Human said so, not because the orders
+imply it. Exercise both early rather
 than waiting for the engine to look finished, and remember that observing
 something external does not make it KAAL's to own.
