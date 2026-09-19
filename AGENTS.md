@@ -16,7 +16,7 @@ anything has stopped learning and started decorating.
 Candidate change happens on a branch and crosses into `main` through a pull
 request. The pull request is the observable integration boundary: it is where
 someone other than the change's author can see what crossed, on what evidence,
-and under which controls. A change that never crossed it is not yet experience
+and under which controls, and where they can judge it — see *Who may validate*. A change that never crossed it is not yet experience
 KAAL operates from.
 
 There is no automated gate on that boundary yet. That is a real limitation, not
@@ -29,7 +29,10 @@ Two kinds of evidence, never conflated.
 
 **Tested → Verified.** A program ran an explicit test. Report what that test
 computes, not what you hope it implies. A green test establishes only what that
-test computes, on the inputs it ran.
+test computes, on the inputs it ran. The program computes the same result
+whoever invokes it, so a producer running their own test is not a problem —
+but whether the test tests the right thing is a judgement, and falls under the
+rule below.
 
 **Judged → Validated.** A human or an agent evaluated something that cannot
 honestly be reduced to the test that ran. Say who judged it, and against what.
@@ -38,6 +41,32 @@ If no program ran, the claim is Judged. Do not dress judgement as computation,
 and do not withhold a judgement because it is only a judgement — the failure
 mode is the mislabel, not the judging. Neither kind means universally true.
 Later experience may overturn either.
+
+## Who may validate
+
+A test is separable from whoever ran it; a judgement is not separable from
+whoever made it. That is where the parallel between the two arrows breaks, and
+it decides what completes the second one.
+
+The producer of a change must judge their own work. That judgement is what
+there is to review, and withholding it is worse than making it. But producing a
+judgement does not complete it: Validated is not a property a judgement
+acquires by being written down, and a producer cannot confer it on their own
+claim.
+
+So a claim stands in one of two states, and a record says which:
+
+**Judged, awaiting independent judgement** — the producer has evaluated it and
+nobody else has.
+
+**Judged → Validated** — a judge other than the producer evaluated it and
+accepted it, and the record names that judge and what they judged it against.
+
+This is what MOVE's boundary is for. It is not paperwork around a change; it is
+the place where someone other than the author judges what crossed, which is the
+only operation that moves a claim from the first state to the second. Validated
+still does not mean true. It means a second judgement was made, by a named
+judge, against something they stated — and later experience may overturn it.
 
 ## How a change proceeds
 

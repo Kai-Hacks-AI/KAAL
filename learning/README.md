@@ -18,3 +18,9 @@ failure is what says which structure.
 Records are not corrected in place when later experience overturns them. The
 later record says so and points back. The wrong earlier reading is part of what
 there is to learn from.
+
+A record may have a clearly marked amendment appended when its own claims about
+what it established were wrong — the standing of its evidence, not its
+conclusions. The original text stays untouched above the amendment, and the
+amendment says who found the error and points to the record of that cycle. This
+is the narrow exception; editing a record's body is not.

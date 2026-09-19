@@ -94,3 +94,31 @@ orders are the least tested part of this system while being the most load
 bearing. A later cycle that finds an order unable to perceive a failure should
 say so directly here, and should expect that to be an ordinary outcome rather
 than a crisis.
+
+---
+
+## Amended after review — 2026-09-19
+
+This section was appended after independent review and changes nothing above
+it. Plan, Do and Check stand exactly as the producer wrote them, including what
+review found wrong with them.
+
+Check above says: *"Every claim in this cycle is Judged → Validated, by the
+agent that did the work."* That was wrong by this repository's own vocabulary.
+kaihacksai, reviewing `949a609` and requesting changes, named it: the same agent
+authored the change, authored the record, and then declared the cycle
+validated, while MOVE's boundary is justified precisely because it is where
+someone other than the author sees what crossed. Nothing in the bootstrap
+established that authoring a judgement completes it — the bootstrap used
+"Judged" as both the kind of evidence and the finished disposition, without
+ever saying what performs the arrow or who may.
+
+The accurate standing at the moment Check was written: every claim in this
+cycle was **Judged by the producer and awaiting independent judgement**. None
+was Validated. The first independent judgement of this cycle is the review that
+caught this, which is also the first evidence that the distinction between the
+two kinds of evidence does real work rather than sitting unused in the
+vocabulary.
+
+What changed as a result is in `learning/0002-judged-is-not-validated.md` and
+in the *Who may validate* section of `AGENTS.md`.
