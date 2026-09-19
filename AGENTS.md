@@ -4,10 +4,12 @@ This is the guidance an agent applies when working in KAAL. It exists at BASS
 level two because guidance that lives only in a conversation is lost when the
 conversation ends — not because a repository like this is supposed to have one.
 
-Two kinds of thing are written here: what `ORDERS.md` says, and judgements this
-repository has added because the orders left something open that had to be
-settled in order to act at all. The second kind is marked as such, in the line
-that makes the claim. This is not bookkeeping. An unmarked interpretation
+Three kinds of thing are written here: what `ORDERS.md` says; constraints the
+Human supplied after the orders, which carry the Human's authority but not the
+orders' origin and are dated to the cycle that supplied them; and judgements
+this repository has added because something was left open that had to be settled
+in order to act at all. Each of the last two is marked as such, in the line that
+makes the claim. This is not bookkeeping. An unmarked interpretation
 becomes, a cycle or two later, indistinguishable from the order it was meant to
 serve, and then gets cited with that order's authority — which has already
 happened here, and is recorded in
@@ -30,9 +32,21 @@ what evidence and under which controls, and can judge it — see *Who may
 validate*. A change that never crossed it is not yet experience KAAL operates
 from.
 
-There is no automated gate on that boundary yet. That is a real limitation, not
-an oversight — see `learning/0001-bootstrap.md`. When a failure arrives that a
-program could have caught, that failure earns the gate.
+`main` is protected so that the producer of a change cannot place it there
+alone: no direct pushes, an approving review required, and no bypass for
+administrators. **Human-supplied constraint, cycle 0004.** It was earned by
+behaviour observed on PR #1, not imported — twice the producer settled an
+underspecified semantic in the direction that let its own work close, and
+independent review caught both. The control does not judge whether a review is
+good; it only makes the already-chosen boundary non-bypassable, which is the
+part a Program can do without being asked to judge meaning. What it rests on,
+and what the repository cannot supply for itself, is in
+`learning/0004-the-producer-cannot-install-its-own-constraint.md`.
+
+There is still no automated gate on *what* crosses — nothing computes anything
+about the content of a change. That remains a real limitation rather than an
+oversight, and the first change that should have been stopped and was not is
+what will earn it, and will also say what it should compute.
 
 ## What you may claim
 
@@ -104,6 +118,14 @@ falls short of what the change claims.
 Act by preserving what was learned in `learning/` — including failed
 hypotheses, limitations, corrections and changed interpretations. A cycle that
 produced nothing worth writing down is a cycle worth questioning.
+
+What justifies or corrects accepted experience must survive in a clone of
+`main`. **Human-supplied constraint, cycle 0004.** GitHub may host the pull
+request, the review and the controls, but a later reader holding only the
+repository must be able to recover the material learning that justified what
+crossed and the corrections that shaped it. This is a durability property, not a
+call for a schema or for review transcripts copied in: write the substance into
+the record, in prose, and it is met.
 
 ## Adding control
 
