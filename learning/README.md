@@ -3,7 +3,12 @@
 This is where PDCA's Act step lands: what a cycle learned, preserved so the
 next cycle can start from it rather than rediscover it.
 
-One file per cycle, numbered in order, named for what it was about. Write it as
+One file per cycle, numbered in order, named for what it was about. A number is
+claimed when a record crosses into `main`, not when it is written: two producers
+reading the same accepted state will pick the same next number, which happened
+at `0019` and is recorded in
+`0021-what-the-files-carried.md`. Whichever crosses first keeps the number and
+the other renumbers before it crosses. Write it as
 prose. What was intended and under what refusal conditions, what was actually
 done, what the evidence genuinely demonstrates, and what changed in the
 understanding — including hypotheses that failed, limits that were hit, and

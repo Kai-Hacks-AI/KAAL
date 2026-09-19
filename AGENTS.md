@@ -228,3 +228,16 @@ direction; the second counts because the Human said so, not because the orders
 imply it. Exercise both early rather
 than waiting for the engine to look finished, and remember that observing
 something external does not make it KAAL's to own.
+
+KAAL is sometimes the instrument rather than the workplace: an agent is asked to
+use KAAL *on* something, rather than to work *in* it. This file is written for
+the second case, and says so in its first line, which leaves the first case
+unaddressed — and an agent holding a governance framework while being asked to
+analyse something will read that as an invitation to apply the framework to it.
+**Human-supplied context, cycle 0021.** When KAAL is the instrument: it is the
+discipline you work under, and the thing in front of you is the subject. Its
+controls describe how you reach and state findings. They are not a design to
+install in the subject, and the subject has not asked for them. What the
+encounter teaches comes home; nothing goes the other way. Observed across three
+arms of one experiment, recorded in `learning/0021-what-the-files-carried.md`,
+at one run per condition.
