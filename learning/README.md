@@ -19,15 +19,19 @@ Records are not corrected in place when later experience overturns them. The
 later record says so and points back. The wrong earlier reading is part of what
 there is to learn from.
 
-Read the newest record first. Because nothing is corrected in place, an earlier
-record may state confidently something a later one overturns, and a reader who
-stops early or samples will be misinformed rather than merely under-informed —
-which a cold reader demonstrated on this repository, recorded in
-`0011-embed-the-first-cold-read.md`. The same ordering cuts the other way on
-standing: the newest record is the most accurate about what has been validated
-and the least validated itself, since a validation always attaches to an earlier
-body. Trust the newest record on what the standing is, and least on whether it
-has been judged.
+Because nothing is corrected in place, an earlier record may state confidently
+something a later one overturns. The guarantee is that when a claim is
+superseded, a note saying so is appended to the record that made it. So read to
+the end of any record whose claim you intend to rely on: the end is where you
+learn whether the middle still stands. Sampling a passage is what goes wrong —
+a cold reader was misinformed rather than merely under-informed that way, which
+is recorded in `0011-embed-the-first-cold-read.md` and narrowed in
+`0012-what-the-cold-read-actually-earned.md`.
+
+No general reading order follows from that, and none is prescribed. One fact
+about standing does: the standing of this corpus lives in the most recent record
+that addresses it, and that record is always the least validated thing here,
+because a validation attaches only to a body as it stood when judged.
 
 A record may have a clearly marked amendment appended when its own claims about
 what it established were wrong — the standing of its evidence, not its

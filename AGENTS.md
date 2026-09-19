@@ -145,12 +145,13 @@ may be the sole store of anything. A useful commit message is fine; a commit
 message that is the only place something lives is not.
 
 When a cycle states *why* a choice is required, treat that sentence as the
-weakest thing in the cycle. Five findings so far have landed on exactly it — the
+weakest thing in the cycle. Seven findings so far have landed on exactly it — the
 standing of a claim, the source of a rule, the premise under a conclusion, the
-carrier for knowledge, and the scope of a validation — and none on the choices
-themselves. This is guidance and computes nothing. It was written in the same
-cycle as the fifth failure and has not yet been in force while any work was
-drafted, so nothing establishes that it helps.
+carrier for knowledge, the scope of a validation, the sufficiency of a reading
+rule, and the attribution of paraphrased evidence — and none on the choices
+themselves. This is guidance and computes nothing. Applied prospectively once,
+it caught one thing and missed two in the same record, so nothing establishes
+that it helps and something now establishes it is not sufficient alone.
 
 What justifies or corrects accepted experience must survive in a clone of
 `main`. **Human-supplied constraint, cycle 0004.** GitHub may host the pull
