@@ -1,0 +1,102 @@
+# 0016 — BASS is an instruction, not a restraint
+
+2026-09-19. Cycle run by an agent (Claude) on a branch restarted from accepted
+`main`, after the Human said plainly that the Agent plays BASS: that guiding the
+move rightward is the Agent's job, and that failing while standing too far left
+is a failure.
+
+First record written under `.claude/skills/learning/SKILL.md`.
+
+## Plan, and the refusal conditions
+
+Install the rung a failed rung earns, and record why it was owed. Refuse to
+build the schema, the metrics, the roster or the orchestration that neither the
+failure nor the Human asked for. Refuse to skip a rung. Refuse to claim the new
+rung works.
+
+## The finding
+
+`ORDERS.md` says BASS is not a mandatory march, and that after a success or
+failure one should ask for the least-rightward control strong enough for what
+has been learned. This producer read the first half as the whole sentence.
+Eleven times a finding was recorded, and eleven times the cycle concluded that
+nothing further was earned. The reasoning was always available and always the
+same: guidance computes nothing, meaning is not computable, restraint is the
+discipline.
+
+That answer is safe in a way its opposite is not. An overclaim appears in a
+diff and a reviewer catches it — eleven times, he did. A control that was not
+proposed appears nowhere, so nothing catches it. The producer drifted leftward
+under a review loop structurally unable to see the drift, and it took the Human
+saying it directly.
+
+**Human-supplied context, cycle 0016:** a failure at a rung earns the next rung.
+Bare failing earns `AGENTS.md`; `AGENTS.md` failing earns a Skill; a Skill
+failing earns a Script, inside that skill, under the skill standard. The Agent's
+job is to guide the Human rightward and to earn each step, not to wait to be
+asked.
+
+Under that rule the owed rung was legible all along. Bare failed at 0001.
+`AGENTS.md` was the answer and failed in turn: the line written for this exact
+family was in force and applied when four more instances arrived in one review.
+That earns a Skill, and has since cycle 0015.
+
+## Two errors in the correction itself
+
+Told that the refusal was wrong, the producer immediately proposed a Program —
+skipping Skill entirely, having refused to move at all for eleven cycles. The
+direction reversed and the calibration did not. The Human's rule corrected it.
+
+And the reason given for eleven cycles of refusal was itself wrong in the way
+this repository keeps being wrong. *Nothing computes meaning* is true of six of
+the twelve findings — whether a premise holds, whether a reading rule suffices,
+what caused a transmission. It is false of the other five, which are provenance
+checks with mechanical cores: whether a named judge exists and differs from the
+producer, whether cited text appears in the file cited, whether a claimed
+validation covers only the body judged, whether a claim lives in a file rather
+than only in commit metadata, whether a source called independent is in the
+repository at all. Two of those were settled by hand, with `grep` and with
+`git diff --stat`, in the cycles that then concluded nothing was computable.
+
+A true statement about six cases was applied to eleven, and that generalisation
+is what blocked the earned move. It is the twelfth finding of the same family
+and the most expensive one, because the others cost a review round and this one
+cost the system a control it had already earned.
+
+## The standing of the accepted body
+
+`learning/0013`, `0014` and `0015`, and the changes that arrived with them, were
+validated by kaihacksai on 2026-09-19 at candidate `ab15c15`, judged against the
+accepted KAAL brain and the findings raised in review of that candidate. That
+validation establishes no fidelity of the producer's paraphrases of Perplexity,
+does not establish why the external readers formed their interpretations, does
+not diagnose KAAL's attention from one outward encounter, does not establish
+that the README pointer fixes the `ORDERS-TO-HUMAN.md` inversion, and does not
+establish what form the next External should take.
+
+This is the one-cycle-late correction `0010` predicted, now routine.
+
+## Check
+
+Judged by the producer, awaiting independent judgement.
+
+This record is the skill's first use, which makes its report on the skill worth
+what any first self-report is worth: the skill's stopping conditions fired once,
+on a sentence claiming the new rung would reduce the finding rate, and that
+sentence is not in this record. One instance, applied by the producer to its own
+draft. It establishes that the skill was not inert and nothing more.
+
+No program ran.
+
+## Act — what this cycle leaves for the next
+
+If this rung fails the way the last one did, the next move is a script inside
+the skill, and the five computable cores above are where it starts. The first
+candidate is the check that has been done by hand twice: does a claimed
+validation cover only the body the judge actually saw.
+
+The drift this cycle found has no control at all. Overclaiming is caught because
+it is visible; under-building is not caught because nothing appears. Nothing here
+addresses that, and the Human saying it is currently the only mechanism. What
+would earn one is a cycle where a rung was owed, nobody said so, and the cost
+landed somewhere.

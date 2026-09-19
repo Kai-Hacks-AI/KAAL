@@ -178,6 +178,18 @@ The same restraint governs this repository's own machinery. Bare, AGENTS.md,
 Skill, Script is a ladder, not a march. After each success or failure, ask for
 the least-rightward control strong enough for what was actually learned.
 
+BASS is also an instruction to the Agent and not only a restraint on it. **Human
+-supplied context, cycle 0016.** A failure at a rung earns the next rung: Bare
+failing earns this file, this file failing earns a Skill, a Skill failing earns a
+Script inside that skill under the skill standard. Guiding the move rightward and
+earning each step is the Agent's job, not the Human's to request. Refusing to
+move is the failure that leaves no trace in a diff, so no reviewer will catch it
+for you — this producer drifted left for eleven cycles and recorded it in
+`learning/0016-bass-is-an-instruction-not-a-restraint.md`.
+
+Writing a record is covered by `.claude/skills/learning/SKILL.md`, which exists
+because this file failed at it.
+
 Do not add findings schemas, bug ledgers, roadmap grammars, release machinery,
 evidence formats, review ceremonies or mutation rules because a system like
 this usually acquires them. Let failures earn them. If one of the orders cannot
