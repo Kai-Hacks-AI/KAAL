@@ -100,3 +100,27 @@ it is visible; under-building is not caught because nothing appears. Nothing her
 addresses that, and the Human saying it is currently the only mechanism. What
 would earn one is a cycle where a rung was owed, nobody said so, and the cost
 landed somewhere.
+
+---
+
+## Note appended within this cycle — 2026-09-19
+
+The skill this record installs was first written as a skill for *writing a
+learning record*. The Human pointed out that the capability is the learning
+itself, not the record: the record is an artefact, and it will faithfully
+preserve a wrong conclusion.
+
+That is the same error as the one this record is about, one layer down. Asked to
+install the rung, the producer built a control over the visible surface — the
+prose — rather than over the act that fails. Eleven findings were not writing
+failures. They were conclusions that outran their evidence, and the twelfth was a
+conclusion that nothing was earned. A skill about phrasing would have caught none
+of them.
+
+`SKILL.md` was rewritten before this candidate was reviewed. It now covers
+determining what an experience established, what it did not, where the learning
+belongs under HAPTIC and what rung it earns under BASS — with writing it down as
+the last step rather than the subject. Its stopping conditions now include the
+one that matters for the drift: concluding that nothing further is earned is the
+answer that leaves no trace, so it needs a reason that survives being asked
+twice.
