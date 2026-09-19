@@ -32,9 +32,12 @@ what evidence and under which controls, and can judge it — see *Who may
 validate*. A change that never crossed it is not yet experience KAAL operates
 from.
 
-`main` is protected so that the producer of a change cannot place it there
+`main` must be protected so that the producer of a change cannot place it there
 alone: no direct pushes, an approving review required, and no bypass for
-administrators. **Human-supplied constraint, cycle 0004.** It was earned by
+administrators. **Human-supplied constraint, cycle 0004.** Whether it has
+actually been established is recorded in `ORDERS-TO-HUMAN.md`, which only the
+Human may mark complete — do not assume the protection exists because this line
+describes it. It was earned by
 behaviour observed on PR #1, not imported — twice the producer settled an
 underspecified semantic in the direction that let its own work close, and
 independent review caught both. The control does not judge whether a review is
