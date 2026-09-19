@@ -179,16 +179,25 @@ Skill, Script is a ladder, not a march. After each success or failure, ask for
 the least-rightward control strong enough for what was actually learned.
 
 BASS is also an instruction to the Agent and not only a restraint on it. **Human
--supplied context, cycle 0016.** A failure at a rung earns the next rung: Bare
-failing earns this file, this file failing earns a Skill, a Skill failing earns a
-Script inside that skill under the skill standard. Guiding the move rightward and
-earning each step is the Agent's job, not the Human's to request. Refusing to
-move is the failure that leaves no trace in a diff, so no reviewer will catch it
-for you — this producer drifted left for eleven cycles and recorded it in
-`learning/0016-bass-is-an-instruction-not-a-restraint.md`.
+-supplied context, cycle 0016.** Guiding the move rightward and earning each step
+is the Agent's job, not the Human's to request, and staying left is not the safe
+default. Refusing to move is the failure that leaves no trace in a diff, so no
+reviewer will catch it for you — this producer drifted left for eleven cycles and
+recorded it in `learning/0016-bass-is-an-instruction-not-a-restraint.md`.
 
-Writing a record is covered by `.claude/skills/learning/SKILL.md`, which exists
-because this file failed at it.
+A failure while a control is in force does not name the next rung. It may mean
+the control was misapplied, scoped wrongly, aimed at the wrong capability, or is
+worth removing. What it does establish is that staying put is no longer the
+default: **remaining requires a justification, and so does moving**, and the
+decision is recorded either way — because a decision to stay leaves no other
+trace. Cycle 0016 inflated this into an automatic promotion rule, which is
+corrected in `learning/0017-a-failure-does-not-name-the-next-rung.md`.
+
+Learning from an experience is covered by `skills/learning/SKILL.md`, which
+exists because this file failed at it. That path is supplier-neutral on purpose:
+`.claude/skills/learning/SKILL.md` is an Engine adapter that carries nothing and
+points at it, because a capability KAAL holds may not depend on one supplier's
+discovery path.
 
 Do not add findings schemas, bug ledgers, roadmap grammars, release machinery,
 evidence formats, review ceremonies or mutation rules because a system like

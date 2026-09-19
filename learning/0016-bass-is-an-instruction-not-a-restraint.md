@@ -150,3 +150,28 @@ Nothing prevented writing a skill at `0009`. The producer could have, and the
 reason it did not is not capability: editing a count is a response that cannot
 be judged wrong, and a skill can be. The rung was refused in favour of the
 unfalsifiable answer.
+
+---
+
+## Note appended at cycle 0017 — 2026-09-19
+
+Three claims in this record overreach and are corrected in
+`learning/0017-a-failure-does-not-name-the-next-rung.md`. The record stands as
+written.
+
+*A failure at a rung earns the next rung* is stronger than the Human supplied and
+turns BASS into an automatic march. A failure while a control is in force
+establishes that staying put without reconsideration is unjustified; it does not
+name the next rung, since the control may have been misapplied, scoped wrongly,
+aimed at the wrong capability, or be worth removing. This record's claim that a
+Skill had been owed since cycle 0015 is that same sufficiency step — what was
+owed was the reassessment.
+
+The skill's placement at `.claude/skills/` made a KAAL capability depend on one
+supplier's discovery path, against the files-know constraint of cycle 0008. It
+now lives at `skills/learning/SKILL.md` with a vendor adapter that carries
+nothing.
+
+And the five "mechanical cores" claimed more than three of them can settle:
+presence is not support, and a name differing is not independence. Each is now
+bound to what it could establish.
