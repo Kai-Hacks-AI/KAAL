@@ -122,3 +122,13 @@ vocabulary.
 
 What changed as a result is in `learning/0002-judged-is-not-validated.md` and
 in the *Who may validate* section of `AGENTS.md`.
+
+### Note appended at cycle 0003
+
+The amendment above says "MOVE's boundary is justified precisely because it is
+where someone other than the author sees what crossed." That sentence commits,
+in this repository's own voice, the error 0003 is about: the quoted phrase was
+cycle 0001's own interpretation in `AGENTS.md`, not MOVE's words. MOVE requires
+the boundary and requires it to be observable, and says nothing about to whom.
+The amendment stands as written, with this correction attached rather than
+folded in.

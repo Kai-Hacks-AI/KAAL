@@ -3,8 +3,16 @@
 This is the guidance an agent applies when working in KAAL. It exists at BASS
 level two because guidance that lives only in a conversation is lost when the
 conversation ends — not because a repository like this is supposed to have one.
-Every line below traces to `ORDERS.md`. Anything that cannot trace there does
-not belong here.
+
+Two kinds of thing are written here: what `ORDERS.md` says, and judgements this
+repository has added because the orders left something open that had to be
+settled in order to act at all. The second kind is marked as such, in the line
+that makes the claim. This is not bookkeeping. An unmarked interpretation
+becomes, a cycle or two later, indistinguishable from the order it was meant to
+serve, and then gets cited with that order's authority — which has already
+happened here, and is recorded in
+`learning/0003-an-added-interpretation-is-not-an-order.md`. Nothing belongs here
+that is neither an order nor a marked judgement serving one.
 
 Keep it short. A bootstrap that grows a long rulebook before it has failed at
 anything has stopped learning and started decorating.
@@ -14,10 +22,13 @@ anything has stopped learning and started decorating.
 `main` is accepted experience. You do not develop on it.
 
 Candidate change happens on a branch and crosses into `main` through a pull
-request. The pull request is the observable integration boundary: it is where
-someone other than the change's author can see what crossed, on what evidence,
-and under which controls, and where they can judge it — see *Who may validate*. A change that never crossed it is not yet experience
-KAAL operates from.
+request. MOVE requires that boundary and requires it to be observable. That it
+is the pull request, and that the observer is someone other than the change's
+author, are this repository's judgements and not the order's words. Under them,
+the boundary is where someone other than the author can see what crossed, on
+what evidence and under which controls, and can judge it — see *Who may
+validate*. A change that never crossed it is not yet experience KAAL operates
+from.
 
 There is no automated gate on that boundary yet. That is a real limitation, not
 an oversight — see `learning/0001-bootstrap.md`. When a failure arrives that a
@@ -44,17 +55,26 @@ Later experience may overturn either.
 
 ## Who may validate
 
-A test is separable from whoever ran it; a judgement is not separable from
-whoever made it. That is where the parallel between the two arrows breaks, and
-it decides what completes the second one.
+**`ORDERS.md` does not answer this.** MOVE says a Human or Agent evaluated
+something; it never says the evaluator must differ from the producer. What
+follows is this repository's own judgement — proposed by an Agent in cycle
+0002, relabelled in 0003 after review caught it claiming the orders' authority.
+Until it is overturned it is how this repository operates, and the Human or
+later experience may overturn it.
 
-The producer of a change must judge their own work. That judgement is what
-there is to review, and withholding it is worse than making it. But producing a
-judgement does not complete it: Validated is not a property a judgement
-acquires by being written down, and a producer cannot confer it on their own
-claim.
+One part of it does follow from MOVE. A test is separable from whoever ran it,
+because the Program computes the same result whoever invokes it, while a
+judgement is not separable from whoever made it. So a producer running their own
+test is unremarkable — though whether the test tests the right thing is a
+judgement, and falls under this section.
 
-So a claim stands in one of two states, and a record says which:
+The step from there to *a producer cannot validate their own claim* needs one
+further premise, and that premise is a judgement rather than a reading:
+validation is worth having because it can catch what the producer could not see
+in their own work, and an evaluation by the producer cannot supply that, however
+careful it is. If that premise is wrong, this section is wrong with it.
+
+On that basis a claim stands in one of two states, and a record says which:
 
 **Judged, awaiting independent judgement** — the producer has evaluated it and
 nobody else has.
@@ -62,11 +82,11 @@ nobody else has.
 **Judged → Validated** — a judge other than the producer evaluated it and
 accepted it, and the record names that judge and what they judged it against.
 
-This is what MOVE's boundary is for. It is not paperwork around a change; it is
-the place where someone other than the author judges what crossed, which is the
-only operation that moves a claim from the first state to the second. Validated
-still does not mean true. It means a second judgement was made, by a named
-judge, against something they stated — and later experience may overturn it.
+The producer must still judge their own work: that judgement is what there is to
+review, and withholding it is worse than making it. It simply does not complete
+itself. Validated does not mean true either — it means a second judgement was
+made, by a named judge, against something they stated, and later experience may
+overturn it.
 
 ## How a change proceeds
 

@@ -109,3 +109,34 @@ either direction.
 Embed and External are still unexercised. Cycle 0001 left that as the next
 cycle's obligation; this cycle was consumed by a review it could not defer, so
 it now stands as 0003's, with the excuse used up.
+
+---
+
+## Amended after review — 2026-09-19
+
+Appended after kaihacksai's second review, of `1d85fa7`. Nothing above is
+changed.
+
+Two claims in this record overreached. Both are about the standing of its own
+reasoning rather than about its conclusions, and neither withdraws the rule it
+arrived at.
+
+**First: this record says the independence requirement was *derived* from
+MOVE. It was not.** `ORDERS.md` says only that a Human or Agent evaluated
+something, and never says the evaluator must differ from the producer. The
+phrase this record leant on — "someone other than the change's author" — was
+itself an Agent judgement written into `AGENTS.md` during cycle 0001. Citing it
+as MOVE's meaning promoted the repository's own interpretation into the
+authority of the Human-supplied order. The separability observation stands and
+does follow from MOVE's Program/Judgement distinction; the step from it to a
+requirement of independence carries an unstated premise about what validation is
+for, and that premise is a judgement. The rule is not withdrawn. Its source is
+relabelled, in `learning/0003-an-added-interpretation-is-not-an-order.md` and in
+the rewritten *Who may validate* section of `AGENTS.md`.
+
+**Second: this record says "nothing here is computable: who may judge what is a
+question about meaning, not a predicate."** One instance establishes that this
+cycle's semantic decision required judgement. It does not establish that nothing
+about enforcing the result later is computable. This record's own Act section
+goes on to contemplate a mechanism for exactly that, which should have been the
+tell. Narrowed in 0003.
