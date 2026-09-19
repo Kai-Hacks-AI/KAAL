@@ -19,8 +19,19 @@ tell restraint from oversight.
 
 ## 1 — The producer must not be able to bypass the integration boundary
 
-**Status: PENDING.** Not established as of `6f5b1d5`. To be changed only by the
-Human, naming who confirmed it and when.
+**Status: ESTABLISHED.** Confirmed by Kai (kaihacksai) on 2026-09-19, after
+`5e100e5` and before PR #1 crossed into `main`. This line records the Human's
+confirmation, not the Agent's own report — the Agent was told the order had been
+carried out and wrote that down.
+
+What the Agent could independently observe, and what it could not: GitHub's
+branch listing reports `main` as protected, which is a read of the hosting
+service's state rather than a claim about the Agent's own work. It establishes
+that protection exists. It does not show which rules are in force, so the
+realization below — pull request required, one approving review, no
+administrative bypass — rests on the Human's confirmation and not on anything
+observed. Nothing here verifies the two assumptions in the closing paragraphs;
+those remain substrate.
 
 **Property required (Human-supplied constraint, cycle 0004).** The producer of a
 change must not be able to place that change onto `main` by itself. The

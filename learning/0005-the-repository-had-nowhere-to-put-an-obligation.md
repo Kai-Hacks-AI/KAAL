@@ -77,3 +77,27 @@ Embed and External remain unexercised, now for the fifth consecutive cycle, and
 the reason is unchanged: every cycle since the bootstrap has been consumed by
 review of the bootstrap. The next cycle after this transition should be an Embed
 or External one, or the record should say what displaced it again.
+
+---
+
+## Note appended when the order was carried out — 2026-09-19
+
+Order 1 in `ORDERS-TO-HUMAN.md` is established. Kai confirmed it, and the status
+line there carries the detail; this note exists only so a reader of the records
+is not left with a pending obligation that was in fact discharged.
+
+No cycle 0006 was written for it. Applying 0003's criterion a second time: a
+record saying "the order was carried out" would add nothing the order file
+already says, and the obligation's own file is the durable place for its status.
+The criterion has now been applied twice and declined a record once, which is
+the first evidence that it discriminates rather than merely existing.
+
+One thing is worth carrying into the next cycle. The Agent could observe that
+`main` is protected — a read of the hosting service, and the first evidence in
+this repository that is neither the producer's judgement nor a program this
+repository ran. It could not observe *which* protections are in force. So the
+property the Human required is confirmed by the Human, while the Agent's
+independent view stops one level short of the realization. That gap is not a
+problem to fix; it is the accurate extent of what an Agent can see about the
+substrate it runs on, and cycle 0004's unresolved question about observations
+not fitting either kind of evidence now has a second instance behind it.
