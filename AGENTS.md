@@ -50,12 +50,11 @@ A candidate crosses by squash onto a linear `main`. **Human-supplied context,
 cycle 0007.** A squashed tree already tells a later reader most of what a
 crossing means: with direct pushes blocked, every commit on `main` is a
 crossing; `git show --stat` says which `learning/` records arrived with it; and
-`ORDERS-TO-HUMAN.md` travels in the tree with the control state. Two facts
-cannot come from any tree, because they are facts about a judgement rather than
-about content — which candidate was independently validated, and by whom and
-under what qualification — so the squash commit's message carries those, and
-nothing more. The rehearsal behind this is in
-`learning/0007-what-a-squash-cannot-yield.md`; no crossing has used it yet.
+`ORDERS-TO-HUMAN.md` travels in the tree with the control state. A commit message may
+also carry which candidate was validated and by whom, as a convenience, but
+nothing may depend on it — see the constraint below. The rehearsals behind this
+are in `learning/0007-what-a-squash-cannot-yield.md` and
+`learning/0008-files-know-engines-carry.md`; no crossing has used either yet.
 
 There is still no automated gate on *what* crosses — nothing computes anything
 about the content of a change. That remains a real limitation rather than an
@@ -132,6 +131,19 @@ falls short of what the change claims.
 Act by preserving what was learned in `learning/` — including failed
 hypotheses, limitations, corrections and changed interpretations. A cycle that
 produced nothing worth writing down is a cycle worth questioning.
+
+Files know; Engines carry and enforce. **Human-supplied constraint, cycle
+0008.** Anything KAAL needs as reusable knowledge after an accepted delivery must
+be recoverable from the files alone. Git may version and transport them and
+GitHub may enforce the boundary, but neither commit topology nor commit messages
+may be the sole store of anything. A useful commit message is fine; a commit
+message that is the only place something lives is not.
+
+When a cycle states *why* a choice is required, treat that sentence as the
+weakest thing in the cycle. Four findings so far have landed on exactly it — the
+standing of a claim, the source of a rule, the premise under a conclusion, the
+carrier for knowledge — and none on the choices themselves. This is guidance and
+computes nothing, which is the honest extent of what four instances earn.
 
 What justifies or corrects accepted experience must survive in a clone of
 `main`. **Human-supplied constraint, cycle 0004.** GitHub may host the pull

@@ -119,3 +119,22 @@ instance would be the point at which to ask for one, and the shape of it should
 come from that instance rather than from this observation.
 
 Embed and External remain unexercised, seven cycles deep.
+
+---
+
+## Note appended at cycle 0008 — 2026-09-19
+
+The Tested → Verified result above stands exactly as recorded. The product
+conclusion drawn from it does not.
+
+This record correctly established that implementation chronology is not
+knowledge, and then placed the two remaining facts in commit trailers — the same
+mistake moved from one Engine store to another. The Human has since supplied the
+boundary: knowledge must be recoverable from the files alone, with Git and
+GitHub as Engine that may be swapped. The four-query rehearsal proves the Git
+implementation works and, in using `git log -1 --format=%B`, exhibits the
+coupling it does not escape.
+
+The trailers are not withdrawn; they are demoted to convenience. What knowledge
+this delivery actually contains, and where it now lives, is in
+`learning/0008-files-know-engines-carry.md`.
