@@ -46,20 +46,26 @@ The first draft's most quotable claim was that the arm with no KAAL produced the
 and the Human named the better question: not linguistic quality, but how much of
 what an arm asserts survives checking.
 
-That is computable, and it was computed. Every countable claim the no-KAAL arm
-made about the subject, checked against `67979c7`:
+That is closer to computable, and what could be computed was. The subject's
+countable properties at `67979c7`, measured here and re-measurable by anyone
+holding that commit: 9026 files; 319 cultures in the registry; 119 migrated
+culture packages; 50 `us_*` cultures in the umbrella with Arizona migrated
+separately; 26 Swiss, 16 German and 19 Spanish subnational packages; 151
+`position_language_*.md` files; and its own `AGENTS.md` saying "eleven" gates
+where the guard config and the CI workflow each carry fifteen.
 
-| claim | checked |
-|---|---|
-| 9,026 files | 9026 |
-| 319 cultures | 319 |
-| 119 migrated packages | 119 |
-| 51 US states | 50 `us_*` in the umbrella, plus Arizona migrated |
-| 26 Swiss cantons, 16 German Länder, 19 Spanish regions | 26, 16, 19 |
-| 151 tongue varieties | 151 `position_language_*.md` |
-| its `AGENTS.md` says eleven gates; config and CI have fifteen | "eleven"; 15; 15 |
+Each of those corresponds to something the no-KAAL arm asserted, and **no
+contradiction was found** between what it said and what the subject holds.
 
-Nine of nine held.
+What this does not support is a score. The first draft of this section said
+*nine of nine held*, and that number is not reconstructable from these files: it
+bundled several assertions into single rows, and at least one row — the arm's
+"51 US states" against fifty in the umbrella plus one migrated — is this
+producer's reconstruction of what the arm meant by a state, not an equality the
+arm stated. The arm's exact wording and counting units are not here, so the
+denominator is the producer's and a later reader cannot rebuild it. The durable
+finding is the absence of contradiction, after this producer corrected two of
+its own enumeration mistakes, and nothing more precise than that.
 
 Against that, the arm that read the wrong repository asserted eight directories
 for KAAL — `agents/`, `evals/`, `waivers/`, `retros/`, `plan/`,
@@ -85,8 +91,13 @@ instance, both of them here.
 
 Everything in this section is the producer's account of outputs that are not in
 this repository. One run per condition. Engine, delivery and subject-access
-varied together across the set, so no single cause is isolated. None of it is
-durable KAAL knowledge, and nothing in `AGENTS.md` or the skill rests on it.
+varied together across the set, so no single cause is isolated.
+
+It is durably recorded — it is in this file and will survive in a clone. What it
+lacks is primary evidence a later reader can inspect, so its **standing** is
+weaker than anything measured above, and nothing in `AGENTS.md` or the skill
+rests on it. Durable and established are different properties, and this record
+used one word for both in its first draft.
 
 The no-KAAL arm ran the subject's own instruments, wrote one of its own, stated
 its limits unprompted and closed with a question rather than a backlog. The two
@@ -98,9 +109,9 @@ two runs, this cycle cannot say.
 Three arms of one engine differed in delivery: KAAL fetched and unguided
 produced an operating model for someone else's repository; the same files pasted
 produced standing marks and still recommended; the same files pasted with the
-mode named produced a refusal to propose machinery. That is the observation
-behind this cycle's `AGENTS.md` move. The move itself rests on the Human's
-distinction, not on these three runs, and the paragraph says so.
+mode named produced a refusal to propose machinery. Those observations occasioned
+this cycle's `AGENTS.md` move rather than evidencing it. The move rests on the
+Human's distinction, and the paragraph says so.
 
 ## What was verified before harvesting
 
@@ -204,8 +215,13 @@ for, and a concept met outside may come home as an attributed candidate,
 scrutinised before it becomes KAAL. The boundary is no unauthorised ownership or
 installation, not one-way traffic. Corrected in `AGENTS.md`.
 
-If a later contact under the new paragraph prescribes anyway, the paragraph is
-not the fix and something quieter is wrong.
+What would pressure that paragraph is not a later contact producing
+recommendations — a recommendation may be exactly the deliverable asked for.
+It is a contact in which **authority or architecture crosses the boundary
+without provenance and scrutiny**: KAAL's controls installed in a subject that
+did not ask for them, or a subject's concepts entering KAAL unattributed and
+unexamined. Contamination can happen with no recommendation in sight, and a
+recommendation can be clean.
 
 *Stay:* the learning skill. No failure of it occurred in this cycle, the script
 candidate nearest to hand is wrong every time it fires, and `0020` reached the
