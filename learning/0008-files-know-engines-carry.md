@@ -105,10 +105,30 @@ that standing is the knowledge and the SHA is not, which is once again a claim
 about why an answer is sufficient, and by this cycle's own finding the sentence
 here most likely to be wrong.
 
-The rehearsal for this cycle is a stronger one than 0007's: squash the candidate,
-discard the repository's metadata entirely, and ask whether the required
-knowledge is recoverable from the resulting files. Its result is appended below
-once run, and is deliberately not asserted in advance.
+The rehearsal for this cycle was a stronger one than 0007's: squash the
+candidate, discard the repository's metadata entirely, and ask whether the
+required knowledge is recoverable from the resulting files.
+
+**Tested → Verified**, and the exact claim: the candidate was squashed onto
+`e75eacd` and the resulting tree extracted to a directory holding no repository
+metadata — 13 files, no `.git`, nothing to query. In that directory the standing
+of the accepted claims, the judge, what he judged against, the four things the
+validation explicitly does not establish, and the control state the delivery
+crossed under were all recoverable by reading files. No step required a
+repository, a commit, or a hosting service.
+
+What the test computes and nothing more: that these particular questions are
+answerable from these particular files after a local squash. It does not
+establish that the files answer questions nobody has asked yet, and it does not
+establish that a fresh Agent would *find* them — only that they are there to be
+found, which is the weaker of the two things worth wanting.
+
+One residue the test exposed and did not clear: `ORDERS-TO-HUMAN.md` names a
+commit SHA when recording when the order was confirmed. That is an Engine
+identifier sitting inside a file. It carries nothing on its own — the knowledge
+beside it is prose and survives without it — so it stays as a locator rather
+than being scrubbed, and is noted here so a later cycle that finds locators
+accumulating knows where the first one was.
 
 ## Act — what this cycle leaves for the next
 
