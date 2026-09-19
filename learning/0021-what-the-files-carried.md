@@ -25,63 +25,82 @@ instruction *use KAAL to analyze ChBrain/khai-cultures*:
 Two further runs are void and are recorded as such: one Codex and one Perplexity
 read `ChBrain/KAAL`, a different repository, rather than the one named.
 
-## What the arms established
+## What this record first claimed, and why that was wrong
 
-**Naming a repository does not establish which files loaded, and the
-substitution is invisible.** The void Perplexity run attributed `agents/`,
-`evals/`, `waivers/`, `retros/`, `plan/` and `kaal.config.json` to KAAL. Every
-one is absent from `main` and present in the other repository. Its analysis was
-confident, well-structured and factually accurate about the subject. Nothing in
-the text signalled it; only diffing the claim against the file listing did.
+This record's first draft stated the comparisons below as findings, under
+assertive headings, with a concluding rule about where scaffolding helps. Review
+found that they are this producer's interpretation of eight outputs that are not
+in this repository, at one run per condition, with engine, delivery method and
+subject-access all varying together. A file-only reader cannot inspect any of
+it. Under the provenance discipline of `0012` and `0013` they cannot enter as
+durable knowledge, and the first draft did exactly what those cycles forbid.
 
-**For Claude, the care is native.** The arm with no KAAL ran the house's own
-instruments, invented one of its own — hashing every prose line over eighty
-characters across 6,967 content files, to test whether the corpus was written or
-templated — stated its own limits unprompted, carried a methodology note about
-running on npm 10 with `engine-strict` off, refused to prescribe, and closed with
-a question to the owner rather than a backlog.
+They are not deleted, because the observations are real and the next cycle
+should be able to see what was seen. They are relabelled, confined, and no rule
+is derived from them.
 
-**What KAAL added for that model is narrower than this repository assumed.**
-Against the two bound arms, the difference is standing vocabulary, refusal
-conditions set before reading, a recorded BASS decision including a decision to
-*stay*, an explicit refusal to adopt from the subject, and a record committed to
-a repository rather than terminal output. Legibility, attribution and durability
-— not care.
+## The measurement that replaced a judgement
 
-**For an engine without that discipline, the files supplied it, and the
-delivery mattered.** Three Perplexity arms separate two effects. Fetched and
-unguided, it produced an agent-lanes table, a seven-item backlog and an
-exception-ledger schema for someone else's repository. With the same files
-pasted and no framing, the evidence discipline appeared — standing marked, an
-establishes/does-not-establish split, and the observation that a merged pull
-request demonstrates a merge event and not an independent judgement — and it
-still ended in recommendations. With the files pasted *and* the mode named, it
-produced a BASS decision refusing to propose machinery.
+The first draft's most quotable claim was that the arm with no KAAL produced the
+*best analysis*. That is an aesthetic comparison over outputs not in the brain,
+and the Human named the better question: not linguistic quality, but how much of
+what an arm asserts survives checking.
 
-So the files carry the evidence discipline; the mode framing carries the
-ownership boundary. The line *observing something external does not make it
-KAAL's to own* is in `AGENTS.md` in every one of those arms. It binds only when
-the agent is told it is working under KAAL rather than with it — because absent
-that, holding a governance framework while being asked to analyse something
-reads as an invitation to apply it.
+That is computable, and it was computed. Every countable claim the no-KAAL arm
+made about the subject, checked against `67979c7`:
 
-**The value of the scaffolding is inversely proportional to the model's own
-discipline.** That is the clearest reading across the set, and it is a judgement
-over eight runs with one run per condition.
+| claim | checked |
+|---|---|
+| 9,026 files | 9026 |
+| 319 cultures | 319 |
+| 119 migrated packages | 119 |
+| 51 US states | 50 `us_*` in the umbrella, plus Arizona migrated |
+| 26 Swiss cantons, 16 German Länder, 19 Spanish regions | 26, 16, 19 |
+| 151 tongue varieties | 151 `position_language_*.md` |
+| its `AGENTS.md` says eleven gates; config and CI have fifteen | "eleven"; 15; 15 |
 
-## The cost, stated plainly
+Nine of nine held.
 
-The arm with no KAAL produced the best analysis of the subject in the set: a
-release jammed three weeks behind what it reads as an expired token, with the
-reasoning shown and the confirmation explicitly not available; the tongue queue
-identified as the throughput governor, with the date the queue stopped matching
-the date the entry price rose; and a drift between what `khai-cultures`'
-`AGENTS.md` says about its own gates and what its CI runs.
+Against that, the arm that read the wrong repository asserted eight directories
+for KAAL — `agents/`, `evals/`, `waivers/`, `retros/`, `plan/`,
+`kaal.config.json`, `DESIGN.md`, `SURFACE.md`. All eight are absent from `main`
+and present in the other repository, while that same output's claims about the
+subject held, including a registry size of 1.26 MB against an actual 1,257,979
+bytes.
 
-The bound arms spent effort on standing sections and found less about the
-subject. A discipline that makes claims legible also costs the attention that
-would have produced more of them. Nothing here says that trade is wrong; it says
-it is real and was not previously measured.
+So its failure was not fabrication. It was **substitution**: it read something
+else and reported it faithfully. Nothing in its text marked the swap, and the
+only thing that exposed it was checking a claimed file listing against the real
+one. That is a different failure from hallucination as usually meant, and it is
+the one this experiment actually demonstrated.
+
+Two of the checks above first came out against the arm, and both times the fault
+was this producer's enumeration: counting `khai-cultures-us-*` packages while
+fifty US states sit in the umbrella, and counting language directories while a
+variety is a file. That is the mechanical family `0020` named — an absence or a
+count is only as good as the instrument behind it — now at its third and fourth
+instance, both of them here.
+
+## What this producer observed but cannot carry
+
+Everything in this section is the producer's account of outputs that are not in
+this repository. One run per condition. Engine, delivery and subject-access
+varied together across the set, so no single cause is isolated. None of it is
+durable KAAL knowledge, and nothing in `AGENTS.md` or the skill rests on it.
+
+The no-KAAL arm ran the subject's own instruments, wrote one of its own, stated
+its limits unprompted and closed with a question rather than a backlog. The two
+bound arms did the same and additionally marked standing, set refusal conditions
+before reading, recorded a BASS decision including a decision to stay, and
+committed a record. Whether that difference is what KAAL adds, or an artefact of
+two runs, this cycle cannot say.
+
+Three arms of one engine differed in delivery: KAAL fetched and unguided
+produced an operating model for someone else's repository; the same files pasted
+produced standing marks and still recommended; the same files pasted with the
+mode named produced a refusal to propose machinery. That is the observation
+behind this cycle's `AGENTS.md` move. The move itself rests on the Human's
+distinction, not on these three runs, and the paragraph says so.
 
 ## What was verified before harvesting
 
@@ -125,15 +144,19 @@ one producer was the only case. It is the first structural failure this
 repository has had that no amount of care by a producer could prevent, which is
 a different kind from the eighteen before it.
 
-The resolution comes from MOVE rather than from this cycle: nothing is accepted
-until it crosses, so a number is claimed at crossing and not at writing.
-`0019` keeps its number because it is the record already on this branch; `0020`
-was renumbered here, by this producer, with its body untouched. That penalises
-the session that finished first, and is still right, because under the orders
-writing earns nothing.
+This cycle's first draft answered it with *a number is claimed at crossing, not
+at writing*. Review showed that is not realisable: filenames exist before review,
+two candidates can both be approved carrying the same ordinal, and renumbering
+immediately before a crossing changes the body a judge validated, which `0009`
+forbids. The collision earned a concurrency problem; it did not establish that
+mechanism.
 
-`learning/README.md` now says so. That is a clarification of an existing rule
-under a condition it did not anticipate, not a new mechanism.
+What it did earn, and what `learning/README.md` now says: concurrent producers
+must resolve a duplicate ordinal **before the candidate is judged**, so that what
+was validated is what crosses, and nothing already accepted is ever renumbered.
+Here `0019` kept its number as the record already on this branch and `0020` was
+renumbered by this producer with its body untouched — before any judgement of
+this candidate, which is why it is admissible.
 
 ## Check
 
@@ -167,17 +190,22 @@ below the threshold where a Program would help.
 
 **One move, and one stay, both recorded.**
 
-*Move:* `AGENTS.md` gains a paragraph on being used rather than worked in. The
-evidence is the three Perplexity arms — the ownership line present and not
-binding in two of them, binding in the one where the mode was named — plus the
-same drift in milder form from Codex, which offered a "KAAL integration delta"
-for the subject. This is the least-rightward control that addresses it: the file
-that scopes itself to *working in KAAL* now says what to do when KAAL is the
-instrument. **Human-supplied context, cycle 0021** — the Human named this
-direction, and this repository's rendering of it is its own.
+*Move:* `AGENTS.md` gains a paragraph on being used rather than worked in. Its
+authority is split in the file and here: **the Human supplied the distinction**
+between working in KAAL and using KAAL on a subject, and the contamination
+concern behind it; **the rendering is this repository's**, and the three arms
+that motivated it are producer-paraphrased observation, not evidence the file
+brain carries.
 
-One run per condition. If a later contact under the new paragraph prescribes
-anyway, the paragraph is not the fix and something quieter is wrong.
+The first draft of that paragraph also said *what the encounter teaches comes
+home; nothing goes the other way*. That was wrong and would have disabled the
+thing KAAL exists for. Findings about a subject may be exactly what was asked
+for, and a concept met outside may come home as an attributed candidate,
+scrutinised before it becomes KAAL. The boundary is no unauthorised ownership or
+installation, not one-way traffic. Corrected in `AGENTS.md`.
+
+If a later contact under the new paragraph prescribes anyway, the paragraph is
+not the fix and something quieter is wrong.
 
 *Stay:* the learning skill. No failure of it occurred in this cycle, the script
 candidate nearest to hand is wrong every time it fires, and `0020` reached the
