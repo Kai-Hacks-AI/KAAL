@@ -145,13 +145,16 @@ may be the sole store of anything. A useful commit message is fine; a commit
 message that is the only place something lives is not.
 
 When a cycle states *why* a choice is required, treat that sentence as the
-weakest thing in the cycle. Seven findings so far have landed on exactly it — the
-standing of a claim, the source of a rule, the premise under a conclusion, the
-carrier for knowledge, the scope of a validation, the sufficiency of a reading
-rule, and the attribution of paraphrased evidence — and none on the choices
-themselves. This is guidance and computes nothing. Applied prospectively once,
-it caught one thing and missed two in the same record, so nothing establishes
-that it helps and something now establishes it is not sufficient alone.
+weakest thing in the cycle. Eleven findings so far have landed on exactly it, and
+none on the choices themselves: the standing of a claim, the source of a rule,
+the premise under a conclusion, the carrier for knowledge, the scope of a
+validation, the sufficiency of a reading rule, the attribution of paraphrased
+evidence, the identity of an instrument, the cause of a transmission, the
+consequence of a recommendation, and the sufficiency of a conclusion about what
+comes next. This is guidance and computes nothing. Applied prospectively, it
+caught one thing in its first use, missed two in that same record, and did not
+reduce the rate at all in the cycle that produced the last four. Nothing
+establishes that it helps.
 
 What justifies or corrects accepted experience must survive in a clone of
 `main`. **Human-supplied constraint, cycle 0004.** GitHub may host the pull
@@ -186,6 +189,11 @@ themselves, and it belongs in `learning/` said plainly.
 Engineering KAAL and embedding it are one loop: what survives separation from
 the context that built it is the real measure of it. Exposure to repositories
 and contexts KAAL did not construct exists because an internally coherent
-learning system can still be wrong about the world. Exercise both early rather
+learning system can still be wrong about the world. External runs both ways:
+KAAL put in front of something it did not construct, and something it did not
+construct put in front of KAAL, are both External and both valid learning.
+**Human-supplied context, cycle 0013** — EEE's wording describes the first
+direction; the second counts because the Human said so, not because the orders
+imply it. Exercise both early rather
 than waiting for the engine to look finished, and remember that observing
 something external does not make it KAAL's to own.
