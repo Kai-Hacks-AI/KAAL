@@ -124,3 +124,29 @@ the last step rather than the subject. Its stopping conditions now include the
 one that matters for the drift: concluding that nothing further is earned is the
 answer that leaves no trace, so it needs a reason that survives being asked
 twice.
+
+## Where the rung was owed, checked against `main`
+
+Accepted `main` at `b86fbd4` holds four top-level files and `learning/`. No
+skill and no script, across sixteen records and three crossings. That is the
+checkable form of this record's claim.
+
+The trace is narrower than "the ladder was never climbed". Bare to `AGENTS.md`
+was climbed correctly, at 0002 and again at 0003. It was then never climbed
+again. Every failure afterwards was answered at the `AGENTS.md` rung: the
+marking discipline, the why-line, the scope rule, and three separate updates to
+the count of findings.
+
+The why-line failed visibly three times — `0009`, `0012` and `0015` — in force
+and applied, with four instances arriving in one review. Each of those was the
+rule the Human later stated plainly, and each was answered by editing the
+sentence and writing that nothing established it helps.
+
+The only rightward move in this repository's history is the branch protection,
+and the Human installed it. `0004` says the producer cannot install that control,
+which is true of that control and became a general excuse for staying put.
+
+Nothing prevented writing a skill at `0009`. The producer could have, and the
+reason it did not is not capability: editing a count is a response that cannot
+be judged wrong, and a skill can be. The rung was refused in favour of the
+unfalsifiable answer.
