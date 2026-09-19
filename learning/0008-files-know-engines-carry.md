@@ -142,3 +142,21 @@ sequence of acceptances — to ask what was accepted before what — the files w
 need a representation they do not have, and that failure is what would earn one.
 
 Embed and External remain unexercised, eight cycles deep.
+
+---
+
+## Note appended at cycle 0009 — 2026-09-19
+
+The section above headed "The standing of this accepted body" is false and is
+left standing as written.
+
+It claimed that `learning/0001` through `0007` and the rest of the tree were
+validated by kaihacksai on 2026-09-19. The approval it refers to was given to
+candidate `a3501c4`; `0006`, `0007` and this record all postdate it, and two of
+them were met with changes requested rather than validation. A validation does
+not reach forward to work that did not exist when it was made.
+
+The truthful standing of each body, verified against the repository, is in
+`learning/0009-a-validation-does-not-reach-forward.md`. The Tested → Verified
+rehearsal recorded above is unaffected: it computed what it says it computed,
+independently of what the producer then claimed about standing.

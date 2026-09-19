@@ -109,6 +109,11 @@ nobody else has.
 **Judged → Validated** — a judge other than the producer evaluated it and
 accepted it, and the record names that judge and what they judged it against.
 
+A validation attaches to the body as it stood when it was judged. It reaches
+nothing added afterwards, however small, and a later record may not extend it —
+which is how cycle 0008 went wrong, recorded in
+`learning/0009-a-validation-does-not-reach-forward.md`.
+
 The producer must still judge their own work: that judgement is what there is to
 review, and withholding it is worse than making it. It simply does not complete
 itself. Validated does not mean true either — it means a second judgement was
@@ -140,10 +145,12 @@ may be the sole store of anything. A useful commit message is fine; a commit
 message that is the only place something lives is not.
 
 When a cycle states *why* a choice is required, treat that sentence as the
-weakest thing in the cycle. Four findings so far have landed on exactly it — the
+weakest thing in the cycle. Five findings so far have landed on exactly it — the
 standing of a claim, the source of a rule, the premise under a conclusion, the
-carrier for knowledge — and none on the choices themselves. This is guidance and
-computes nothing, which is the honest extent of what four instances earn.
+carrier for knowledge, and the scope of a validation — and none on the choices
+themselves. This is guidance and computes nothing. It was written in the same
+cycle as the fifth failure and has not yet been in force while any work was
+drafted, so nothing establishes that it helps.
 
 What justifies or corrects accepted experience must survive in a clone of
 `main`. **Human-supplied constraint, cycle 0004.** GitHub may host the pull
