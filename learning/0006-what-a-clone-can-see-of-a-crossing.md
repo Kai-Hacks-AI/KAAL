@@ -130,3 +130,22 @@ described and still unearned.
 Embed and External remain unexercised, now six cycles deep. Every one has been
 spent on the bootstrap crossing its own boundary for the first time. That is
 defensible for exactly as long as the crossing has not happened.
+
+---
+
+## Note appended at cycle 0007 — 2026-09-19
+
+The measurements above stand. The conclusion drawn from them does not.
+
+This record concluded that only a merge commit preserves what a crossing needs.
+That rested on a premise it never examined — that the candidate's engineering
+commit chronology is part of the durable experience MOVE requires. The Human has
+since supplied the operating context that rebase-then-squash is the deliberate
+merge discipline here, and the cycle 0004 constraint was about material learning
+surviving in Git, not about intermediate commits surviving. Under a squash the
+learning records survive as tracked content; what is discarded is the branch's
+implementation chronology, which nothing established as required.
+
+The merge-method numbers remain useful evidence about what each operation does.
+`learning/0007-what-a-squash-cannot-yield.md` carries the corrected conclusion
+and the representation that replaces it.

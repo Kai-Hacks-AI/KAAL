@@ -46,6 +46,17 @@ part a Program can do without being asked to judge meaning. What it rests on,
 and what the repository cannot supply for itself, is in
 `learning/0004-the-producer-cannot-install-its-own-constraint.md`.
 
+A candidate crosses by squash onto a linear `main`. **Human-supplied context,
+cycle 0007.** A squashed tree already tells a later reader most of what a
+crossing means: with direct pushes blocked, every commit on `main` is a
+crossing; `git show --stat` says which `learning/` records arrived with it; and
+`ORDERS-TO-HUMAN.md` travels in the tree with the control state. Two facts
+cannot come from any tree, because they are facts about a judgement rather than
+about content — which candidate was independently validated, and by whom and
+under what qualification — so the squash commit's message carries those, and
+nothing more. The rehearsal behind this is in
+`learning/0007-what-a-squash-cannot-yield.md`; no crossing has used it yet.
+
 There is still no automated gate on *what* crosses — nothing computes anything
 about the content of a change. That remains a real limitation rather than an
 oversight, and the first change that should have been stopped and was not is
