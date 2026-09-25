@@ -36,24 +36,40 @@ export function isSealed(root: string, unit: string): boolean {
   return fs.existsSync(sealPath(root, unit));
 }
 
+/** What a directory entry is, as far as sealing is concerned. */
+export type EntryKind = "file" | "directory" | "symlink" | "special file";
+
 /**
- * Every file in a unit except its seal, by path within the unit, with its hash.
- * Symlinks are listed as such: a seal can only vouch for bytes it holds.
+ * A seal can only vouch for bytes it holds: regular files are hashed and
+ * directories are walked, while symlinks and special files (FIFOs, sockets,
+ * devices) can be neither, so they are named rather than silently skipped.
  */
-function contents(root: string, unit: string): { files: Seal["files"]; symlinks: string[] } {
+export function entryKind(entry: { isFile(): boolean; isDirectory(): boolean; isSymbolicLink(): boolean }): EntryKind {
+  if (entry.isSymbolicLink()) return "symlink";
+  if (entry.isFile()) return "file";
+  if (entry.isDirectory()) return "directory";
+  return "special file";
+}
+
+/** Every file in a unit except its seal, by path within the unit, with its hash; and every entry that cannot be sealed. */
+function contents(
+  root: string,
+  unit: string,
+): { files: Seal["files"]; unsealable: { path: string; kind: EntryKind }[] } {
   const dir = path.join(root, unit);
   const files: Seal["files"] = [];
-  const symlinks: string[] = [];
-  if (!fs.existsSync(dir)) return { files, symlinks };
+  const unsealable: { path: string; kind: EntryKind }[] = [];
+  if (!fs.existsSync(dir)) return { files, unsealable };
   for (const entry of fs.readdirSync(dir, { recursive: true, withFileTypes: true })) {
     const full = path.join(entry.parentPath, entry.name);
     const relative = posix(path.relative(dir, full));
-    if (entry.isSymbolicLink()) symlinks.push(relative);
-    else if (entry.isFile() && relative !== SEAL_FILE)
-      files.push({ path: relative, sha256: sha256(fs.readFileSync(full)) });
+    const kind = entryKind(entry);
+    if (kind === "file") {
+      if (relative !== SEAL_FILE) files.push({ path: relative, sha256: sha256(fs.readFileSync(full)) });
+    } else if (kind !== "directory") unsealable.push({ path: relative, kind });
   }
-  files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
-  return { files, symlinks: symlinks.sort() };
+  const byPath = (a: { path: string }, b: { path: string }) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+  return { files: files.sort(byPath), unsealable: unsealable.sort(byPath) };
 }
 
 function sealHash({ unit, previous, files }: Omit<Seal, "seal">): string {
@@ -111,22 +127,42 @@ function writeHead(root: string, chain: string, head: Head): void {
 }
 
 /**
+ * A unit is a path of portable segments: letters, digits, "_" and "-", with
+ * single dots only between them. This rules out, on every platform, every
+ * spelling that Windows or macOS would resolve to another directory: "." and
+ * "..", trailing dots and spaces, separators, drive and stream colons, and
+ * non-ASCII characters whose normalization differs.
+ */
+const PORTABLE_SEGMENT = /^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$/;
+
+/** Windows reserves these device names, with or without an extension, in any case. */
+const RESERVED = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+
+const UNIT_RULE =
+  'unit must be a relative path of portable segments separated by "/": letters, digits, "_", "-", and dots only between them';
+
+/**
  * Checks the unit list itself before anything is read or written: every unit
  * is a canonical relative path that stays beneath the root without passing
  * through a symlink, and no unit is listed twice or contains another.
  */
 export function unitErrors(root: string, units: string[]): string[] {
   const errors: string[] = [];
-  // Keyed case- and normalization-insensitively: on Windows and macOS, "one"
-  // and "ONE" are the same directory, so they must never count as two units.
+  // Keyed case-insensitively: on Windows and macOS, "one" and "ONE" are the
+  // same directory, so they must never count as two units.
   const seen = new Map<string, string>();
   for (const unit of units) {
     const segments = unit.split("/");
-    if (!/^[^/\\:]+(\/[^/\\:]+)*$/.test(unit) || segments.some((x) => x === "." || x === "..")) {
-      errors.push(`${unit}: unit must be a relative path beneath the root, with "/" separators and no "." or ".."`);
+    if (!segments.every((segment) => PORTABLE_SEGMENT.test(segment))) {
+      errors.push(`${unit}: ${UNIT_RULE}`);
       continue;
     }
-    const key = unit.normalize("NFC").toLowerCase();
+    const reserved = segments.find((segment) => RESERVED.test(segment));
+    if (reserved) {
+      errors.push(`${unit}: unit segment "${reserved}" is reserved on Windows`);
+      continue;
+    }
+    const key = unit.toLowerCase();
     const first = seen.get(key);
     if (first === unit) errors.push(`${unit}: unit listed twice`);
     else if (first !== undefined)
@@ -190,8 +226,8 @@ export function checkChain(root: string, chain: string, units: string[]): string
     if (seal.unit !== unit) errors.push(`${unit}: seal belongs to unit ${seal.unit}`);
     if (seal.seal !== sealHash(seal)) errors.push(`${unit}: seal does not match its own content`);
     if (seal.previous !== previous) errors.push(`${unit}: seal does not chain to the previous seal`);
-    const { files, symlinks } = contents(root, unit);
-    for (const link of symlinks) errors.push(`${unit}/${link}: symlink in sealed unit`);
+    const { files, unsealable } = contents(root, unit);
+    for (const entry of unsealable) errors.push(`${unit}/${entry.path}: ${entry.kind} in sealed unit`);
     const sealed = new Map(seal.files.map((f) => [f.path, f.sha256]));
     const now = new Map(files.map((f) => [f.path, f.sha256]));
     for (const [file, hash] of now) {
@@ -230,7 +266,7 @@ export function checkChain(root: string, chain: string, units: string[]): string
 /**
  * Seals every open unit of a named chain, oldest first, each chained to the seal
  * before it, then moves the chain's head to the newest seal. Refuses a chain whose seals are broken, an empty unit, and a unit
- * holding symlinks. Returns the units it sealed; a fully sealed chain is left
+ * holding symlinks or special files. Returns the units it sealed; a fully sealed chain is left
  * as it is.
  */
 export function sealChain(root: string, chain: string, units: string[]): string[] {
@@ -244,8 +280,11 @@ export function sealChain(root: string, chain: string, units: string[]): string[
       previous = readSeal(root, unit).seal;
       continue;
     }
-    const { files, symlinks } = contents(root, unit);
-    if (symlinks.length) throw new Error(`${unit}: refusing to seal symlinks: ${symlinks.join(", ")}`);
+    const { files, unsealable } = contents(root, unit);
+    if (unsealable.length) {
+      const listed = unsealable.map((e) => `${e.path} (${e.kind})`).join(", ");
+      throw new Error(`${unit}: refusing to seal entries that are not regular files: ${listed}`);
+    }
     if (!files.length) throw new Error(`${unit}: refusing to seal an empty unit`);
     const content = { unit, previous, files };
     const seal: Seal = { ...content, seal: sealHash(content) };

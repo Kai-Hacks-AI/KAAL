@@ -18,8 +18,9 @@ export const RENAMED_UNITS = ["zero", "two"];
 
 /**
  * Unit lists a chain must refuse before reading or writing anything, by name:
- * paths that could leave the root, non-canonical spellings of a unit, a unit
- * listed twice or differing only in case, and a unit nested in another.
+ * paths that could leave the root, spellings Windows would resolve to another
+ * directory (trailing dots and spaces), Windows reserved names, a unit listed
+ * twice or differing only in case, and a unit nested in another.
  */
 export const UNSAFE_UNITS: Record<string, string[]> = {
   traversal: ["../outside"],
@@ -27,6 +28,10 @@ export const UNSAFE_UNITS: Record<string, string[]> = {
   backslash: ["one\\nested"],
   "dot-segment": ["./one"],
   "trailing-slash": ["one/"],
+  "trailing-dot": ["one", "one."],
+  "trailing-space": ["one", "one "],
+  reserved: ["con"],
+  "reserved-with-extension": ["one/NUL.txt"],
   duplicate: ["one", "two", "one"],
   "case-alias": ["one", "ONE"],
   nested: ["one", "one/nested"],
@@ -88,3 +93,14 @@ export function chainWithSymlinkedUnit(): { root: string; outside: string } {
   fs.symlinkSync(outside, path.join(root, "one"), "dir");
   return { root, outside };
 }
+
+/**
+ * A directory entry that is neither a regular file, a directory nor a symlink,
+ * as FIFOs, sockets and device nodes are. A stand-in, because such entries
+ * cannot be committed and do not exist on Windows.
+ */
+export const SPECIAL_ENTRY = {
+  isFile: () => false,
+  isDirectory: () => false,
+  isSymbolicLink: () => false,
+};

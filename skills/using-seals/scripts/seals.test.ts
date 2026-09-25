@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkChain, sealChain } from "./seals.js";
+import { checkChain, entryKind, sealChain } from "./seals.js";
 import {
   CHAIN,
   chainData,
@@ -10,6 +10,7 @@ import {
   INVALID_CHAIN,
   RENAMED_UNITS,
   scratchChain,
+  SPECIAL_ENTRY,
   tree,
   UNITS,
   UNSAFE_UNITS,
@@ -49,9 +50,12 @@ test("refuses to seal an empty unit, and writes no seal for the units before it"
   assert.deepEqual(tree(root), tree(chainData("open")));
 });
 
-test("refuses to seal a unit holding a symlink", () => {
+test("refuses to seal a unit holding a symlink, naming what it is", () => {
   const root = chainWithSymlink("open");
-  assert.throws(() => sealChain(root, CHAIN, UNITS), /one: refusing to seal symlinks: link\.txt/);
+  assert.throws(
+    () => sealChain(root, CHAIN, UNITS),
+    /one: refusing to seal entries that are not regular files: link\.txt \(symlink\)/,
+  );
 });
 
 test("refuses a chain name that is not lowercase kebab-case", () => {
@@ -121,13 +125,18 @@ test("reports a symlink placed in a sealed unit", () => {
 });
 
 test("refuses unit lists that could leave the root, repeat a unit or nest units, reading and writing nothing", () => {
-  const path = 'unit must be a relative path beneath the root, with "/" separators and no "." or ".."';
+  const rule =
+    'unit must be a relative path of portable segments separated by "/": letters, digits, "_", "-", and dots only between them';
   const expected: Record<string, string> = {
-    traversal: `../outside: ${path}`,
-    absolute: `/outside: ${path}`,
-    backslash: `one\\nested: ${path}`,
-    "dot-segment": `./one: ${path}`,
-    "trailing-slash": `one/: ${path}`,
+    traversal: `../outside: ${rule}`,
+    absolute: `/outside: ${rule}`,
+    backslash: `one\\nested: ${rule}`,
+    "dot-segment": `./one: ${rule}`,
+    "trailing-slash": `one/: ${rule}`,
+    "trailing-dot": `one.: ${rule}`,
+    "trailing-space": `one : ${rule}`,
+    reserved: 'con: unit segment "con" is reserved on Windows',
+    "reserved-with-extension": 'one/NUL.txt: unit segment "NUL.txt" is reserved on Windows',
     duplicate: "one: unit listed twice",
     "case-alias": "ONE: unit is the same directory as one on case-insensitive filesystems",
     nested: "one: unit contains unit one/nested",
@@ -159,4 +168,8 @@ test("reports a structurally invalid seal instead of crashing, and keeps checkin
       name,
     );
   }
+});
+
+test("classifies FIFOs, sockets and devices as special files, which cannot be sealed", () => {
+  assert.equal(entryKind(SPECIAL_ENTRY), "special file");
 });
