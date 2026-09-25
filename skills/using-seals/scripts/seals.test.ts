@@ -291,3 +291,23 @@ test("reports a unit path that cannot be probed instead of crashing, and writes 
   );
   assert.deepEqual(tree(root), tree(chainData("open")));
 });
+
+test("removes a seal left partly written by a failed write, leaving the chain as it was", () => {
+  const root = scratchChain("open");
+  assert.throws(
+    () => withFailure("seal-partly-written", () => sealChain(root, CHAIN, UNITS)),
+    /simulated writeFileSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
+  assert.deepEqual(sealChain(root, CHAIN, UNITS), ["one", "two"]);
+});
+
+test("removes a head left partly written by a failed write, leaving the chain as it was", () => {
+  const root = scratchChain("open");
+  assert.throws(
+    () => withFailure("head-partly-written", () => sealChain(root, CHAIN, UNITS)),
+    /simulated writeFileSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
+  assert.deepEqual(sealChain(root, CHAIN, UNITS), ["one", "two"]);
+});

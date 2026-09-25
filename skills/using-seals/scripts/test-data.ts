@@ -153,21 +153,31 @@ export function chainWithSymlinkedSealFile(name: string, which: "seal" | "heads"
 export const FAILURES = {
   "unreadable-file": { operation: "readFileSync", path: "one/a.txt" },
   "unwritable-seal": { operation: "writeFileSync", path: "two/seal.json" },
+  "seal-partly-written": { operation: "writeFileSync", path: "two/seal.json", partial: true },
+  "head-partly-written": { operation: "writeFileSync", path: ".tmp", partial: true },
   "head-not-replaced": { operation: "renameSync", path: "seals.json" },
   "unprobeable-seal": { operation: "lstatSync", path: "one/seal.json" },
   "unprobeable-unit-path": { operation: "lstatSync", path: "one" },
 } as const;
 
-/** Runs `run` while the named failure is in effect, then restores the real operation. */
+/**
+ * Runs `run` while the named failure is in effect, then restores the real
+ * operation. A partial failure writes the start of the data, as a full disk
+ * would, before failing.
+ */
 export function withFailure<T>(name: keyof typeof FAILURES, run: () => T): T {
-  const { operation, path: target } = FAILURES[name];
+  const failure: { operation: keyof typeof io; path: string; partial?: boolean } = FAILURES[name];
+  const { operation, path: target } = failure;
   const real = io[operation] as (...args: unknown[]) => unknown;
   const failing = (...args: unknown[]) => {
     // renameSync fails on its destination; the others on their first argument.
     const file = String(operation === "renameSync" ? args[1] : args[0])
       .split(path.sep)
       .join("/");
-    if (file.endsWith(`/${target}`)) throw new Error(`simulated ${operation} failure`);
+    if (file.endsWith(target.startsWith(".") ? target : `/${target}`)) {
+      if (failure.partial) real(args[0], String(args[1]).slice(0, 10), args[2]);
+      throw new Error(`simulated ${operation} failure`);
+    }
     return real(...args);
   };
   (io as Record<string, unknown>)[operation] = failing;

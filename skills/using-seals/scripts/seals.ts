@@ -162,6 +162,22 @@ export function readHeads(root: string): Map<string, Head> {
   return new Map(Object.entries(heads as Record<string, Head>));
 }
 
+/**
+ * Creates a file that must not exist yet ("wx") and records it in `created`
+ * as soon as it may exist: a write that fails partway, after creating the
+ * file, still leaves it recorded for removal. Only a refusal because the file
+ * already existed leaves it unrecorded, since this call never created it.
+ */
+function writeNew(file: string, data: string, created: string[]): void {
+  try {
+    io.writeFileSync(file, data, { flag: "wx" });
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "EEXIST") created.push(file);
+    throw e;
+  }
+  created.push(file);
+}
+
 function writeHead(root: string, chain: string, head: Head): void {
   const heads = readHeads(root).set(chain, head);
   const sorted = Object.fromEntries([...heads].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
@@ -169,11 +185,12 @@ function writeHead(root: string, chain: string, head: Head): void {
   // path itself and never writes through a link to somewhere else.
   const file = path.join(root, HEADS_FILE);
   const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
-  io.writeFileSync(temporary, `${JSON.stringify(sorted, null, 2)}\n`, { flag: "wx" });
+  const created: string[] = [];
   try {
+    writeNew(temporary, `${JSON.stringify(sorted, null, 2)}\n`, created);
     io.renameSync(temporary, file);
   } catch (e) {
-    fs.rmSync(temporary, { force: true });
+    for (const f of created) fs.rmSync(f, { force: true });
     throw e;
   }
 }
@@ -421,8 +438,7 @@ function sealLocked(root: string, chain: string, units: string[]): string[] {
     for (const seal of seals) {
       const file = sealPath(root, seal.unit);
       // "wx" refuses to overwrite: a seal is as immutable as what it closes.
-      io.writeFileSync(file, `${JSON.stringify(seal, null, 2)}\n`, { flag: "wx" });
-      written.push(file);
+      writeNew(file, `${JSON.stringify(seal, null, 2)}\n`, written);
     }
     const newest = seals.at(-1);
     // The head moves forward only once every new seal is written.
