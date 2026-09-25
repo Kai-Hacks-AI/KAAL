@@ -311,3 +311,13 @@ test("removes a head left partly written by a failed write, leaving the chain as
   assert.deepEqual(tree(root), tree(chainData("open")));
   assert.deepEqual(sealChain(root, CHAIN, UNITS), ["one", "two"]);
 });
+
+test("removes a lock left partly written by a failed write, so a retry can seal", () => {
+  const root = scratchChain("open");
+  assert.throws(
+    () => withFailure("lock-partly-written", () => sealChain(root, CHAIN, UNITS)),
+    /simulated writeFileSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
+  assert.deepEqual(sealChain(root, CHAIN, UNITS), ["one", "two"]);
+});

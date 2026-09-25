@@ -155,6 +155,7 @@ export const FAILURES = {
   "unwritable-seal": { operation: "writeFileSync", path: "two/seal.json" },
   "seal-partly-written": { operation: "writeFileSync", path: "two/seal.json", partial: true },
   "head-partly-written": { operation: "writeFileSync", path: ".tmp", partial: true },
+  "lock-partly-written": { operation: "writeFileSync", path: "seals.json.lock", partial: true },
   "head-not-replaced": { operation: "renameSync", path: "seals.json" },
   "unprobeable-seal": { operation: "lstatSync", path: "one/seal.json" },
   "unprobeable-unit-path": { operation: "lstatSync", path: "one" },

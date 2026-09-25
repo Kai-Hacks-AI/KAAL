@@ -382,10 +382,14 @@ export function checkChain(root: string, chain: string, units: string[]): string
  */
 export function sealChain(root: string, chain: string, units: string[]): string[] {
   const lock = path.join(root, LOCK_FILE);
+  const created: string[] = [];
   try {
     // "wx" refuses an existing lock, even a symlink: only one sealing at a time.
-    io.writeFileSync(lock, `${process.pid}\n`, { flag: "wx" });
+    writeNew(lock, `${process.pid}\n`, created);
   } catch (e) {
+    // A lock this call created but could not finish writing is removed; one
+    // that already existed belongs to another sealing and is left alone.
+    for (const f of created) fs.rmSync(f, { force: true });
     if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
     throw new Error(`${LOCK_FILE}: another sealing holds this root; if none is running, remove the lock`);
   }
