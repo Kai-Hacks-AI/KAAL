@@ -5,8 +5,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkills } from "../skills/using-skills/scripts/skills.js";
 
-// Skills are independent capabilities: none may import another. A using system
-// such as KAAL's Genesis composes them; they never compose each other.
+// No skill imports another; a using system such as KAAL's Genesis composes them.
+// Why: brain/learning/genesis/26/09/25/01/nodes/skill.md
 const SKILLS = fileURLToPath(new URL("../skills/", import.meta.url));
 
 test("no skill imports another skill", () => {
