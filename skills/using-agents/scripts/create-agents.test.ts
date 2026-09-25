@@ -68,6 +68,17 @@ test("a failure publishing AGENTS.md leaves the scope as it was", (t) => {
   assert.deepEqual(fs.readdirSync(scope), []);
 });
 
+test("once AGENTS.md is published the call succeeds, even if its staging file cannot be removed", (t) => {
+  const scope = scratchScope();
+  t.mock.method(fs, "unlinkSync", () => {
+    throw new Error("unlink failed on purpose");
+  });
+  const file = createAgents(scope, guidance("example"));
+  t.mock.restoreAll();
+  assert.equal(file, path.join(scope, "AGENTS.md"));
+  assert.equal(fs.readFileSync(file, "utf8"), guidance("example"));
+});
+
 test("an AGENTS.md put in place while the guidance is written is refused and never touched", (t) => {
   const scope = scratchScope();
   const file = path.join(scope, "AGENTS.md");

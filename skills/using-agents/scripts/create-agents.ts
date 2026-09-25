@@ -11,7 +11,10 @@ import { pathToFileURL } from "node:url";
  * already exists, so an entry point is never overwritten. The guidance is
  * written to a staging file first and published with an exclusive hard link,
  * so `<scope>/AGENTS.md` never exists partly written, and a failure before it
- * is published leaves the scope as it was. Returns its path.
+ * is published leaves the scope as it was. Once published, the call succeeds
+ * and returns its path, so the using system always learns of it: removing the
+ * staging file afterwards is best effort, and one that cannot be removed is
+ * left behind rather than failing the call.
  */
 export function createAgents(scope: string, guidance: string): string {
   const stat = fs.lstatSync(scope, { throwIfNoEntry: false });
@@ -48,7 +51,12 @@ export function createAgents(scope: string, guidance: string): string {
     if (created) fs.rmSync(staged, { force: true });
     throw e;
   }
-  fs.unlinkSync(staged);
+  try {
+    fs.unlinkSync(staged);
+  } catch {
+    // AGENTS.md is published and complete; a leftover staging file never
+    // fails the call, so the caller always receives what was created.
+  }
   return file;
 }
 
