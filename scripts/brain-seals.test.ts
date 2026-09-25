@@ -2,8 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ROOT } from "../skills/using-brain/scripts/brain.js";
 import { validate } from "../skills/using-brain/scripts/validate.js";
-import { brainChains, brainErrors, checkBrain, sealBrain, sealStateChanges } from "./brain-seals.js";
-import { brainData, diffData, scratchBrain, tree, withSealWriteFailure } from "./test-data.js";
+import {
+  brainChains,
+  brainErrors,
+  checkBrain,
+  sealBrain,
+  sealingOutputErrors,
+  sealState,
+  sealStateChanges,
+} from "./brain-seals.js";
+import { brainData, diffData, scratchBrain, sealingDiff, tree, withSealWriteFailure } from "./test-data.js";
 
 test("one chain per lineage, named after it, with its learnings oldest first", () => {
   assert.deepEqual(
@@ -112,4 +120,74 @@ test("refuses a change that adds, modifies or deletes seal state", () => {
   assert.deepEqual(sealStateChanges(diffData("heads-modified")), refused("brain/learning/seals.json", "M"));
   assert.deepEqual(sealStateChanges(diffData("heads-deleted")), refused("brain/learning/seals.json", "D"));
   assert.deepEqual(sealStateChanges(diffData("lock-added")), refused("brain/learning/seals.json.lock", "A"));
+});
+
+test("classifies seal state: each learning's seal, the chain heads and the lock, only under the BRAIN root", () => {
+  assert.equal(sealState("brain/learning/genesis/26/09/25/01/seal.json"), "unit-seal");
+  assert.equal(sealState("brain/learning/seals.json"), "heads");
+  assert.equal(sealState("brain/learning/seals.json.lock"), "lock");
+  assert.equal(sealState("brain/learning/genesis/26/09/25/01/nodes/seal.json"), "misplaced-seal");
+  assert.equal(sealState("brain/learning/seal.json"), "misplaced-seal");
+  assert.equal(sealState("brain/learning/genesis/26/09/25/01/nodes/a.md"), undefined);
+  assert.equal(sealState("brain/learning/stray.txt"), undefined);
+  assert.equal(sealState("brain/AGENTS.md"), undefined);
+  assert.equal(sealState("skills/using-seals/test-data/chains/sealed/one/seal.json"), undefined);
+});
+
+test("the guard also refuses a seal file placed anywhere else under the BRAIN root", () => {
+  assert.deepEqual(sealStateChanges(diffData("misplaced-seal")), [
+    "brain/learning/genesis/26/09/25/01/nodes/seal.json: seal state may only be written by sealing on main (A)",
+  ]);
+  assert.deepEqual(sealStateChanges(diffData("stray-in-brain")), []);
+});
+
+test("accepts exactly what sealing produces: a first sealing, and sealing on top of existing seals", () => {
+  for (const [from, to] of [
+    ["lineages", "sealed"],
+    ["sealed-new-learning", "sealed-extended"],
+  ]) {
+    const diff = sealingDiff(from, to);
+    assert.ok(diff.length, `${from} -> ${to} changes seal state`);
+    assert.deepEqual(sealingOutputErrors(diff), [], `${from} -> ${to}`);
+  }
+});
+
+test("refuses to commit anything sealing does not produce", () => {
+  const refused = (file: string, what: string) => [`${file}: sealing never commits this (${what})`];
+  assert.deepEqual(
+    sealingOutputErrors(diffData("new-learning")),
+    refused("brain/learning/genesis/26/09/26/01/nodes/b.md", "not seal state"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("stray-in-brain")),
+    refused("brain/learning/stray.txt", "not seal state"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("outside-brain")),
+    refused("skills/using-seals/test-data/chains/sealed/one/seal.json", "not seal state"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("sealing-with-node")),
+    refused("brain/learning/genesis/26/09/25/01/nodes/b.md", "not seal state"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("misplaced-seal")),
+    refused("brain/learning/genesis/26/09/25/01/nodes/seal.json", "misplaced-seal added"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("seal-modified")),
+    refused("brain/learning/genesis/26/09/25/01/seal.json", "unit-seal modified"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("seal-deleted")),
+    refused("brain/learning/genesis/26/09/25/01/seal.json", "unit-seal deleted"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("heads-deleted")),
+    refused("brain/learning/seals.json", "heads deleted"),
+  );
+  assert.deepEqual(
+    sealingOutputErrors(diffData("lock-added")),
+    refused("brain/learning/seals.json.lock", "lock added"),
+  );
 });
