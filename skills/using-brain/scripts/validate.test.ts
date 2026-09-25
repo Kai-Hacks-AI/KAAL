@@ -27,3 +27,10 @@ test("rejects edges that cross lineages, even to an earlier learning", () => {
     "other/26/09/25/02/nodes/a.md: target genesis/26/09/25/01/nodes/b.md is in another lineage",
   ]);
 });
+
+test("reports lineages and slugs that would not name the same file on every platform", () => {
+  assert.deepEqual(validate(brainData("unportable-names")), [
+    'Other/26/09/25/01/nodes/a.md: lineage "Other" must be lowercase kebab-case (a-z, 0-9, single hyphens)',
+    'genesis/26/09/25/01/nodes/Upper.md: slug "Upper" must be lowercase kebab-case (a-z, 0-9, single hyphens)',
+  ]);
+});

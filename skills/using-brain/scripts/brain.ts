@@ -29,6 +29,23 @@ export function parseNode(file: string): Frontmatter {
   return data as Frontmatter;
 }
 
+/** Windows reserves these device names as file names, with or without an extension. */
+const RESERVED = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/;
+
+/**
+ * Lineages and slugs are components of a node's path, which is its identity,
+ * so they must resolve to the same file on every supported platform: lowercase
+ * kebab-case rules out case collisions, dots and separators, and Windows
+ * reserved device names are refused outright.
+ */
+export function portableNameError(value: string, label: string): string | undefined {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(value)) {
+    return `${label} "${value}" must be lowercase kebab-case (a-z, 0-9, single hyphens)`;
+  }
+  if (RESERVED.test(value)) return `${label} "${value}" is reserved on Windows`;
+  return undefined;
+}
+
 export function nodeFiles(root = ROOT): string[] {
   if (!fs.existsSync(root)) return [];
   return fs
