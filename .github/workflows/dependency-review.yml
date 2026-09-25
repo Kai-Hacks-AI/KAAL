@@ -1,0 +1,17 @@
+# GitHub's Dependency Review: reports vulnerable dependencies a pull request
+# adds, before they reach the branch it targets.
+name: dependency-review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: dependency-review-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v5
