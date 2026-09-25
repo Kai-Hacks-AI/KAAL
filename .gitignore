@@ -1,1 +1,3 @@
 node_modules/
+# Held only while sealing runs; never committed.
+seals.json.lock

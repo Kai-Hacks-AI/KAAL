@@ -208,7 +208,7 @@ export function readHeads(root: string): Map<string, Head> {
  * file, still leaves it recorded for removal. Only a refusal because the file
  * already existed leaves it unrecorded, since this call never created it.
  */
-function writeNew(file: string, data: string, created: string[]): void {
+function writeNew(file: string, data: string | Buffer, created: string[]): void {
   try {
     io.writeFileSync(file, data, { flag: "wx" });
   } catch (e) {
@@ -218,20 +218,25 @@ function writeNew(file: string, data: string, created: string[]): void {
   created.push(file);
 }
 
-function writeHead(root: string, chain: string, head: Head): void {
-  const heads = readHeads(root).set(chain, head);
-  // Written beside the head file and renamed over it: a rename replaces the
-  // path itself and never writes through a link to somewhere else.
+/**
+ * Replaces the heads file: written beside it and renamed over it, so a rename
+ * replaces the path itself and never writes through a link to somewhere else.
+ */
+function replaceHeads(root: string, data: string | Buffer): void {
   const file = path.join(root, HEADS_FILE);
   const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
   const created: string[] = [];
   try {
-    writeNew(temporary, serializeHeads(heads), created);
+    writeNew(temporary, data, created);
     io.renameSync(temporary, file);
   } catch (e) {
     for (const f of created) fs.rmSync(f, { force: true });
     throw e;
   }
+}
+
+function writeHead(root: string, chain: string, head: Head): void {
+  replaceHeads(root, serializeHeads(readHeads(root).set(chain, head)));
 }
 
 /**
@@ -467,6 +472,16 @@ function checkUnlocked(root: string, chain: string, units: string[]): string[] {
  * as it is.
  */
 export function sealChain(root: string, chain: string, units: string[]): string[] {
+  return sealChains(root, [[chain, units]]);
+}
+
+/**
+ * Seals several named chains under one root, in order, all or nothing: the
+ * root's lock is held across every chain, and if any chain refuses or fails,
+ * the seals written for the chains before it are removed and the heads
+ * restored, leaving the root exactly as it was. Returns the units it sealed.
+ */
+export function sealChains(root: string, chains: [chain: string, units: string[]][]): string[] {
   const lock = path.join(root, LOCK_FILE);
   const created: string[] = [];
   try {
@@ -480,10 +495,31 @@ export function sealChain(root: string, chain: string, units: string[]): string[
     throw new Error(`${LOCK_FILE}: another sealing holds this root; if none is running, remove the lock`);
   }
   try {
-    return sealLocked(root, chain, units);
+    return sealAllLocked(root, chains);
   } finally {
     fs.rmSync(lock, { force: true });
   }
+}
+
+function sealAllLocked(root: string, chains: [string, string[]][]): string[] {
+  const heads = path.join(root, HEADS_FILE);
+  const stat = fs.lstatSync(heads, { throwIfNoEntry: false });
+  // A heads file that is not a regular file is refused by the first check,
+  // before anything is written, so it never needs restoring.
+  const headsBefore = stat?.isFile() ? fs.readFileSync(heads) : undefined;
+  const sealed: string[] = [];
+  try {
+    // Each chain rolls itself back if it fails; the chains before it are rolled back here.
+    for (const [chain, units] of chains) sealed.push(...sealLocked(root, chain, units));
+  } catch (e) {
+    for (const unit of sealed) fs.rmSync(sealPath(root, unit), { force: true });
+    if (sealed.length) {
+      if (headsBefore === undefined) fs.rmSync(heads, { force: true });
+      else replaceHeads(root, headsBefore);
+    }
+    throw e;
+  }
+  return sealed;
 }
 
 function sealLocked(root: string, chain: string, units: string[]): string[] {

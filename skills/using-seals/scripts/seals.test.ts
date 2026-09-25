@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { checkChain, entryKind, sealChain } from "./seals.js";
+import { checkChain, entryKind, sealChain, sealChains } from "./seals.js";
 import {
   CHAIN,
   chainData,
@@ -17,6 +17,7 @@ import {
   RENAMED_UNITS,
   scratchChain,
   SPECIAL_ENTRY,
+  SPLIT_CHAINS,
   tree,
   UNITS,
   UNSAFE_UNITS,
@@ -376,4 +377,32 @@ test("refuses to seal over an earlier unit of another chain whose seal was remov
 test("reports a seal or chain heads file edited without changing what the seal's hash covers", () => {
   assert.deepEqual(check("seal-extra-property"), ["one: seal file edited after sealing"]);
   assert.deepEqual(check("heads-extra-property"), ["seals.json: chain heads edited outside sealing"]);
+});
+
+test("seals several chains under one root together", () => {
+  const root = scratchChain("open");
+  assert.deepEqual(sealChains(root, SPLIT_CHAINS), ["one", "two"]);
+  for (const [chain, units] of SPLIT_CHAINS) assert.deepEqual(checkChain(root, chain, units), [], chain);
+});
+
+test("removes the seals of earlier chains when a later chain fails, leaving the root as it was", () => {
+  const root = scratchChain("open");
+  assert.throws(
+    () => withFailure("unwritable-seal", () => sealChains(root, SPLIT_CHAINS)),
+    /simulated writeFileSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
+});
+
+test("restores the heads when a later chain refuses after an earlier chain moved them", () => {
+  const root = scratchChain("sealed-one");
+  assert.throws(
+    () =>
+      sealChains(root, [
+        [OTHER_CHAIN, ["two"]],
+        [CHAIN, UNITS],
+      ]),
+    /refusing to seal a chain with broken seals:\ntwo: seal does not chain to the previous seal/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("sealed-one")));
 });

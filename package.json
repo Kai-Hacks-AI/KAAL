@@ -7,10 +7,13 @@
     "node": ">=20.12"
   },
   "scripts": {
-    "test": "tsx --test skills/*/scripts/*.test.ts",
+    "test": "tsx --test skills/*/scripts/*.test.ts scripts/*.test.ts",
     "brain:init": "tsx skills/using-brain/scripts/init.ts",
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
+    "seal": "tsx scripts/seal.ts",
+    "seals:check": "tsx scripts/check-seals.ts",
+    "seals:guard": "tsx scripts/seal-guard.ts",
     "typecheck": "tsc -p .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
