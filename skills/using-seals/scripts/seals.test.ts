@@ -18,6 +18,7 @@ import {
   tree,
   UNITS,
   UNSAFE_UNITS,
+  withFailure,
 } from "./test-data.js";
 
 const check = (name: string, units = UNITS) => checkChain(chainData(name), CHAIN, units);
@@ -216,4 +217,30 @@ test("reports a sealed unit replaced by a file instead of crashing, reading and 
     "one/nested: unit path passes through one, which is not a directory",
   ]);
   assert.throws(() => sealChain(root, CHAIN, UNITS), /refusing to seal a chain with broken seals/);
+});
+
+test("reports unreadable unit contents instead of crashing, and keeps checking later units", () => {
+  assert.deepEqual(
+    withFailure("unreadable-file", () => checkChain(chainData("sealed"), CHAIN, UNITS)),
+    ["one: unreadable unit contents (simulated readFileSync failure)"],
+  );
+});
+
+test("removes the seals it wrote when a later seal cannot be written, leaving the chain as it was", () => {
+  const root = scratchChain("open");
+  assert.throws(
+    () => withFailure("unwritable-seal", () => sealChain(root, CHAIN, UNITS)),
+    /simulated writeFileSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
+  assert.deepEqual(sealChain(root, CHAIN, UNITS), ["one", "two"]);
+});
+
+test("removes the seals it wrote when the head cannot be moved, leaving the chain as it was", () => {
+  const root = scratchChain("open");
+  assert.throws(
+    () => withFailure("head-not-replaced", () => sealChain(root, CHAIN, UNITS)),
+    /simulated renameSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
 });

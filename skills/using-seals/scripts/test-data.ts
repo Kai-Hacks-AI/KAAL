@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { io } from "./seals.js";
 
 const DATA = fileURLToPath(new URL("../test-data/", import.meta.url));
 
@@ -125,4 +126,35 @@ export function chainWithSymlinkedSealFile(name: string, which: "seal" | "heads"
   fs.rmSync(file);
   fs.symlinkSync(outside, file);
   return { root, outside };
+}
+
+/**
+ * I/O failures by name: which file operation fails, and for which path in the
+ * chain. Simulated through the io seam, because permissions and full disks
+ * cannot be produced the same way on every platform.
+ */
+export const FAILURES = {
+  "unreadable-file": { operation: "readFileSync", path: "one/a.txt" },
+  "unwritable-seal": { operation: "writeFileSync", path: "two/seal.json" },
+  "head-not-replaced": { operation: "renameSync", path: "seals.json" },
+} as const;
+
+/** Runs `run` while the named failure is in effect, then restores the real operation. */
+export function withFailure<T>(name: keyof typeof FAILURES, run: () => T): T {
+  const { operation, path: target } = FAILURES[name];
+  const real = io[operation] as (...args: unknown[]) => unknown;
+  const failing = (...args: unknown[]) => {
+    // renameSync fails on its destination; the others on their first argument.
+    const file = String(operation === "renameSync" ? args[1] : args[0])
+      .split(path.sep)
+      .join("/");
+    if (file.endsWith(`/${target}`)) throw new Error(`simulated ${operation} failure`);
+    return real(...args);
+  };
+  (io as Record<string, unknown>)[operation] = failing;
+  try {
+    return run();
+  } finally {
+    (io as Record<string, unknown>)[operation] = real;
+  }
 }

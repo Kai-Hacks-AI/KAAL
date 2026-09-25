@@ -17,6 +17,18 @@ export type Seal = {
   seal: string;
 };
 
+/**
+ * The file operations sealing and checking use. Tests replace members to
+ * simulate I/O failures (unreadable files, full disks) that cannot be
+ * produced portably on every platform.
+ */
+export const io = {
+  readFileSync: fs.readFileSync,
+  readdirSync: fs.readdirSync,
+  writeFileSync: fs.writeFileSync,
+  renameSync: fs.renameSync,
+};
+
 export const SEAL_FILE = "seal.json";
 
 /** Kept at the root: for each chain, its last sealed unit and that unit's seal. */
@@ -44,7 +56,7 @@ export function isSealed(root: string, unit: string): boolean {
 function readRegularFile(file: string): string {
   const stat = fs.lstatSync(file);
   if (!stat.isFile()) throw new Error("not a regular file");
-  return fs.readFileSync(file, "utf8");
+  return io.readFileSync(file, "utf8");
 }
 
 /** What a directory entry is, as far as sealing is concerned. */
@@ -71,12 +83,12 @@ function contents(
   const files: Seal["files"] = [];
   const unsealable: { path: string; kind: EntryKind }[] = [];
   if (!fs.existsSync(dir)) return { files, unsealable };
-  for (const entry of fs.readdirSync(dir, { recursive: true, withFileTypes: true })) {
+  for (const entry of io.readdirSync(dir, { recursive: true, withFileTypes: true })) {
     const full = path.join(entry.parentPath, entry.name);
     const relative = posix(path.relative(dir, full));
     const kind = entryKind(entry);
     if (kind === "file") {
-      if (relative !== SEAL_FILE) files.push({ path: relative, sha256: sha256(fs.readFileSync(full)) });
+      if (relative !== SEAL_FILE) files.push({ path: relative, sha256: sha256(io.readFileSync(full)) });
     } else if (kind !== "directory") unsealable.push({ path: relative, kind });
   }
   const byPath = (a: { path: string }, b: { path: string }) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
@@ -138,8 +150,13 @@ function writeHead(root: string, chain: string, head: Head): void {
   // path itself and never writes through a link to somewhere else.
   const file = path.join(root, HEADS_FILE);
   const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
-  fs.writeFileSync(temporary, `${JSON.stringify(sorted, null, 2)}\n`, { flag: "wx" });
-  fs.renameSync(temporary, file);
+  io.writeFileSync(temporary, `${JSON.stringify(sorted, null, 2)}\n`, { flag: "wx" });
+  try {
+    io.renameSync(temporary, file);
+  } catch (e) {
+    fs.rmSync(temporary, { force: true });
+    throw e;
+  }
 }
 
 /**
@@ -249,7 +266,15 @@ export function checkChain(root: string, chain: string, units: string[]): string
     if (seal.unit !== unit) errors.push(`${unit}: seal belongs to unit ${seal.unit}`);
     if (seal.seal !== sealHash(seal)) errors.push(`${unit}: seal does not match its own content`);
     if (seal.previous !== previous) errors.push(`${unit}: seal does not chain to the previous seal`);
-    const { files, unsealable } = contents(root, unit);
+    let inspected: ReturnType<typeof contents>;
+    try {
+      inspected = contents(root, unit);
+    } catch (e) {
+      errors.push(`${unit}: unreadable unit contents (${e instanceof Error ? e.message : String(e)})`);
+      previous = seal.seal;
+      continue;
+    }
+    const { files, unsealable } = inspected;
     for (const entry of unsealable) errors.push(`${unit}/${entry.path}: ${entry.kind} in sealed unit`);
     const sealed = new Map(seal.files.map((f) => [f.path, f.sha256]));
     const now = new Map(files.map((f) => [f.path, f.sha256]));
@@ -327,12 +352,23 @@ export function sealChain(root: string, chain: string, units: string[]): string[
     seals.push(seal);
     previous = seal.seal;
   }
-  for (const seal of seals) {
-    // "wx" refuses to overwrite: a seal is as immutable as what it closes.
-    fs.writeFileSync(sealPath(root, seal.unit), `${JSON.stringify(seal, null, 2)}\n`, { flag: "wx" });
+  // If any write fails, the seals this call wrote are removed again, so a
+  // failure leaves the chain as it was. Every seal is new ("wx"), so nothing
+  // that existed before is ever removed.
+  const written: string[] = [];
+  try {
+    for (const seal of seals) {
+      const file = sealPath(root, seal.unit);
+      // "wx" refuses to overwrite: a seal is as immutable as what it closes.
+      io.writeFileSync(file, `${JSON.stringify(seal, null, 2)}\n`, { flag: "wx" });
+      written.push(file);
+    }
+    const newest = seals.at(-1);
+    // The head moves forward only once every new seal is written.
+    if (newest) writeHead(root, chain, { unit: newest.unit, seal: newest.seal });
+  } catch (e) {
+    for (const file of written) fs.rmSync(file, { force: true });
+    throw e;
   }
-  const newest = seals.at(-1);
-  // The head moves forward only once every new seal is written.
-  if (newest) writeHead(root, chain, { unit: newest.unit, seal: newest.seal });
   return seals.map((s) => s.unit);
 }
