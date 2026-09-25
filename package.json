@@ -1,0 +1,16 @@
+{
+  "name": "kaal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsx --test skills/using-brain/scripts/*.test.ts",
+    "brain:init": "tsx skills/using-brain/scripts/init.ts",
+    "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
+    "brain:validate": "tsx skills/using-brain/scripts/validate.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "yaml": "^2.8.0"
+  }
+}
