@@ -6,8 +6,8 @@
     "node": ">=20.12"
   },
   "scripts": {
-    "test": "tsx --test skills/using-brain/scripts/*.test.ts",
-    "brain:init": "tsx skills/using-brain/scripts/init.ts",
+    "test": "tsx --test skills/*/scripts/*.test.ts scripts/*.test.ts",
+    "genesis": "tsx scripts/genesis.ts",
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
     "typecheck": "tsc -p .",
