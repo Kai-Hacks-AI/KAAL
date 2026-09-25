@@ -33,9 +33,10 @@ export function parseNode(file: string): Frontmatter {
 const RESERVED = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/;
 
 /**
- * Lineages and slugs become path components, so each must name the same file
- * on every platform: lowercase kebab-case rules out case collisions, dots and
- * separators, and Windows reserved device names are refused outright.
+ * Lineages and slugs are components of a node's path, which is its identity,
+ * so they must resolve to the same file on every supported platform: lowercase
+ * kebab-case rules out case collisions, dots and separators, and Windows
+ * reserved device names are refused outright.
  */
 export function portableNameError(value: string, label: string): string | undefined {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(value)) {
