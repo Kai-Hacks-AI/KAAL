@@ -3,7 +3,7 @@ import test from "node:test";
 import { ROOT } from "../skills/using-brain/scripts/brain.js";
 import { validate } from "../skills/using-brain/scripts/validate.js";
 import { brainChains, brainErrors, checkBrain, sealBrain, sealStateChanges } from "./brain-seals.js";
-import { brainData, diffData, scratchBrain, tree } from "./test-data.js";
+import { brainData, diffData, scratchBrain, tree, withSealWriteFailure } from "./test-data.js";
 
 test("one chain per lineage, named after it, with its learnings oldest first", () => {
   assert.deepEqual(
@@ -50,6 +50,19 @@ test("refuses to seal any lineage while another lineage's seals are broken, clos
     /refusing to seal BRAIN:\nother\/26\/09\/25\/01\/nodes\/c\.md: changed after sealing/,
   );
   assert.deepEqual(tree(root), tree(brainData("new-learning-other-broken")));
+});
+
+test("rolls back every lineage when a later lineage fails while sealing, closing nothing", () => {
+  const root = scratchBrain("lineages");
+  assert.throws(() => withSealWriteFailure("other/26/09/25/01", () => sealBrain(root)), /simulated write failure/);
+  assert.deepEqual(tree(root), tree(brainData("lineages")));
+  assert.deepEqual(sealBrain(root), ["genesis/26/09/25/01", "genesis/26/09/26/01", "other/26/09/25/01"]);
+});
+
+test("restores the chain heads when a later lineage fails after an earlier one sealed on top of them", () => {
+  const root = scratchBrain("new-learnings-in-both");
+  assert.throws(() => withSealWriteFailure("other/26/09/26/01", () => sealBrain(root)), /simulated write failure/);
+  assert.deepEqual(tree(root), tree(brainData("new-learnings-in-both")));
 });
 
 test("reports what stops a BRAIN from being sealed: invalid nodes and broken seals", () => {

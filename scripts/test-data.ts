@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { io } from "../skills/using-seals/scripts/seals.js";
 
 const DATA = fileURLToPath(new URL("../test-data/", import.meta.url));
 
@@ -33,4 +34,24 @@ export function tree(root: string): Record<string, string> {
       .sort()
       .map((f) => [path.relative(root, f).split(path.sep).join("/"), fs.readFileSync(f, "utf8")]),
   );
+}
+
+/**
+ * Runs `run` while writing the seal of `unit` (a learning, as a posix path
+ * within the BRAIN) fails, as a full disk would. Simulated through the
+ * using-seals io seam, because such failures cannot be produced the same way
+ * on every platform.
+ */
+export function withSealWriteFailure<T>(unit: string, run: () => T): T {
+  const real = io.writeFileSync;
+  io.writeFileSync = ((file: fs.PathOrFileDescriptor, ...rest: unknown[]) => {
+    if (String(file).split(path.sep).join("/").endsWith(`/${unit}/seal.json`))
+      throw new Error("simulated write failure");
+    return (real as (...args: unknown[]) => void)(file, ...rest);
+  }) as typeof io.writeFileSync;
+  try {
+    return run();
+  } finally {
+    io.writeFileSync = real;
+  }
 }

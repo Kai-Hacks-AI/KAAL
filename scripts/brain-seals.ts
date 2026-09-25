@@ -65,7 +65,21 @@ function chainsToCheck(root: string): Map<string, string[]> {
 export function sealBrain(root = ROOT): string[] {
   const errors = brainErrors(root);
   if (errors.length) throw new Error(`refusing to seal BRAIN:\n${errors.join("\n")}`);
-  return [...brainChains(root)].flatMap(([lineage, units]) => (units.length ? sealChain(root, lineage, units) : []));
+  // A lineage can still fail while sealing (an entry that cannot be sealed, a
+  // failed write). It rolls itself back; the lineages sealed before it are
+  // rolled back here, so BRAIN is sealed all or nothing.
+  const heads = path.join(root, HEADS_FILE);
+  const headsBefore = fs.existsSync(heads) ? fs.readFileSync(heads) : undefined;
+  const sealed: string[] = [];
+  try {
+    for (const [lineage, units] of brainChains(root)) if (units.length) sealed.push(...sealChain(root, lineage, units));
+  } catch (e) {
+    for (const unit of sealed) fs.rmSync(path.join(root, unit, SEAL_FILE), { force: true });
+    if (headsBefore === undefined) fs.rmSync(heads, { force: true });
+    else fs.writeFileSync(heads, headsBefore);
+    throw e;
+  }
+  return sealed;
 }
 
 /** Every broken seal in BRAIN, lineage by lineage. */
