@@ -343,3 +343,18 @@ test("reports a sealing that completed during the check instead of a half-sealed
   );
   assert.deepEqual(checkChain(root, CHAIN, UNITS), []);
 });
+
+test("refuses to seal over another chain's head whose seal was removed, and writes nothing", () => {
+  const containing = scratchChain("nested-seal-removed-by-other-chain");
+  assert.throws(
+    () => sealChain(containing, CHAIN, UNITS),
+    /one: refusing to seal a unit overlapping one\/nested, the head of chain other/,
+  );
+  assert.deepEqual(tree(containing), tree(chainData("nested-seal-removed-by-other-chain")));
+  const inside = scratchChain("head-seal-removed");
+  assert.throws(
+    () => sealChain(inside, OTHER_CHAIN, NESTED_UNITS),
+    /one\/nested: refusing to seal a unit overlapping one, the head of chain chain/,
+  );
+  assert.deepEqual(tree(inside), tree(chainData("head-seal-removed")));
+});

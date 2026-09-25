@@ -446,6 +446,7 @@ function sealLocked(root: string, chain: string, units: string[]): string[] {
   const errors = checkUnlocked(root, chain, units);
   if (errors.length) throw new Error(`refusing to seal a chain with broken seals:\n${errors.join("\n")}`);
   // Every seal is computed before any is written, so a refusal leaves no partly sealed chain.
+  const heads = readHeads(root);
   const seals: Seal[] = [];
   let previous: string | null = null;
   for (const unit of units) {
@@ -465,6 +466,15 @@ function sealLocked(root: string, chain: string, units: string[]): string[] {
     if (inner) {
       const sealedInner = `${unit}/${inner.path.slice(0, -SEAL_FILE.length - 1)}`;
       throw new Error(`${unit}: refusing to seal a unit containing sealed unit ${sealedInner}`);
+    }
+    // Another chain's head records a sealed unit even if its seal file was
+    // removed; sealing over it would leave both chains unrepairable.
+    const key = unit.toLowerCase();
+    for (const [other, head] of heads) {
+      const theirs = head.unit.toLowerCase();
+      if (other !== chain && (theirs === key || theirs.startsWith(`${key}/`) || key.startsWith(`${theirs}/`))) {
+        throw new Error(`${unit}: refusing to seal a unit overlapping ${head.unit}, the head of chain ${other}`);
+      }
     }
     if (unsealable.length) {
       const listed = unsealable.map((e) => `${e.path} (${e.kind})`).join(", ");
