@@ -10,6 +10,13 @@ const DATA = fileURLToPath(new URL("../test-data/", import.meta.url));
 export const CHAIN = "chain";
 export const UNITS = ["one", "two"];
 
+/**
+ * Another chain sharing the same root. test-data/chains/nested-sealed-by-other-chain
+ * holds the open chain with unit "one/nested" sealed by this chain.
+ */
+export const OTHER_CHAIN = "other";
+export const NESTED_UNITS = ["one/nested"];
+
 /** A chain name that is not lowercase kebab-case. */
 export const INVALID_CHAIN = "Not A Chain";
 

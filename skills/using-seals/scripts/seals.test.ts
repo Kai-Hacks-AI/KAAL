@@ -8,6 +8,8 @@ import {
   chainWithSymlink,
   chainWithSymlinkedUnit,
   INVALID_CHAIN,
+  NESTED_UNITS,
+  OTHER_CHAIN,
   RENAMED_UNITS,
   scratchChain,
   SPECIAL_ENTRY,
@@ -172,4 +174,19 @@ test("reports a structurally invalid seal instead of crashing, and keeps checkin
 
 test("classifies FIFOs, sockets and devices as special files, which cannot be sealed", () => {
   assert.equal(entryKind(SPECIAL_ENTRY), "special file");
+});
+
+test("refuses to seal a unit inside a unit another chain has sealed, and writes nothing", () => {
+  const root = scratchChain("sealed");
+  assert.throws(
+    () => sealChain(root, OTHER_CHAIN, NESTED_UNITS),
+    /one\/nested: refusing to seal a unit inside sealed unit one/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("sealed")));
+});
+
+test("refuses to seal a unit containing a unit another chain has sealed, and writes nothing", () => {
+  const root = scratchChain("nested-sealed-by-other-chain");
+  assert.throws(() => sealChain(root, CHAIN, UNITS), /one: refusing to seal a unit containing sealed unit one\/nested/);
+  assert.deepEqual(tree(root), tree(chainData("nested-sealed-by-other-chain")));
 });

@@ -265,7 +265,8 @@ export function checkChain(root: string, chain: string, units: string[]): string
 
 /**
  * Seals every open unit of a named chain, oldest first, each chained to the seal
- * before it, then moves the chain's head to the newest seal. Refuses a chain whose seals are broken, an empty unit, and a unit
+ * before it, then moves the chain's head to the newest seal. Refuses to seal a
+ * unit inside, or containing, a unit already sealed by any chain. Refuses a chain whose seals are broken, an empty unit, and a unit
  * holding symlinks or special files. Returns the units it sealed; a fully sealed chain is left
  * as it is.
  */
@@ -281,6 +282,18 @@ export function sealChain(root: string, chain: string, units: string[]): string[
       continue;
     }
     const { files, unsealable } = contents(root, unit);
+    // Units of different chains must not nest either: a seal written inside
+    // another sealed unit would break that unit's seal.
+    const segments = unit.split("/");
+    for (let i = 1; i < segments.length; i++) {
+      const outer = segments.slice(0, i).join("/");
+      if (isSealed(root, outer)) throw new Error(`${unit}: refusing to seal a unit inside sealed unit ${outer}`);
+    }
+    const inner = files.find((f) => f.path.endsWith(`/${SEAL_FILE}`));
+    if (inner) {
+      const sealedInner = `${unit}/${inner.path.slice(0, -SEAL_FILE.length - 1)}`;
+      throw new Error(`${unit}: refusing to seal a unit containing sealed unit ${sealedInner}`);
+    }
     if (unsealable.length) {
       const listed = unsealable.map((e) => `${e.path} (${e.kind})`).join(", ");
       throw new Error(`${unit}: refusing to seal entries that are not regular files: ${listed}`);
