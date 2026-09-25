@@ -6,7 +6,7 @@
     "node": ">=20.12"
   },
   "scripts": {
-    "test": "tsx --test skills/using-brain/scripts/*.test.ts",
+    "test": "tsx --test skills/*/scripts/*.test.ts",
     "brain:init": "tsx skills/using-brain/scripts/init.ts",
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
