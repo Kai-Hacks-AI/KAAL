@@ -11,6 +11,10 @@ test("a skill with a name and description, or with every optional field, follows
   assert.deepEqual(standardErrors(skill("full")), []);
 });
 
+test("the name may be lowercase letters of any script, as the standard's reference validator allows", () => {
+  assert.deepEqual(standardErrors(skill("données")), []);
+});
+
 test("the name must be lowercase with single hyphens, at most 64 characters, and the skill's directory", () => {
   const shape = "name must be lowercase letters, digits and single hyphens, not starting or ending with a hyphen";
   assert.deepEqual(standardErrors(skill("mismatch")), ['mismatch: name "other" does not match the skill\'s directory']);

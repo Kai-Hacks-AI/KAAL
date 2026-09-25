@@ -7,7 +7,9 @@ import YAML from "yaml";
 /** The frontmatter fields the Agent Skills standard defines; no other field is allowed. */
 const FIELDS = new Set(["name", "description", "license", "compatibility", "metadata", "allowed-tools"]);
 
-const NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+// Letters and digits of any script, as the specification's name rule and its
+// reference validator, skills-ref, allow; lowercase is checked separately.
+const NAME = /^[\p{L}\p{N}]+(-[\p{L}\p{N}]+)*$/u;
 
 /** A skill's SKILL.md frontmatter, parsed; throws when there is none or it is not a YAML mapping. */
 function frontmatter(file: string): Record<string, unknown> {
@@ -38,10 +40,14 @@ export function standardErrors(dir: string): string[] {
   const { name, description, compatibility, metadata } = fields;
   if (typeof name !== "string" || !name) errors.push("name is required");
   else {
-    if (name.length > 64) errors.push("name is longer than 64 characters");
-    if (!NAME.test(name))
+    // Compared as skills-ref does: NFKC, so a name and its directory match however
+    // the file system composes them, and counted in characters, not UTF-16 units.
+    const normalized = name.normalize("NFKC");
+    if ([...normalized].length > 64) errors.push("name is longer than 64 characters");
+    if (!NAME.test(normalized) || normalized !== normalized.toLowerCase())
       errors.push("name must be lowercase letters, digits and single hyphens, not starting or ending with a hyphen");
-    if (name !== skill) errors.push(`name ${JSON.stringify(name)} does not match the skill's directory`);
+    if (normalized !== skill.normalize("NFKC"))
+      errors.push(`name ${JSON.stringify(name)} does not match the skill's directory`);
   }
   if (typeof description !== "string" || !description.trim()) errors.push("description is required");
   else if (description.length > 1024) errors.push("description is longer than 1024 characters");
