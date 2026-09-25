@@ -52,7 +52,8 @@ test("optional fields keep to the standard, and no other field is allowed", () =
 test("a skill needs a SKILL.md that starts with a frontmatter mapping in valid YAML", () => {
   assert.match(standardErrors(skill("invalid-yaml"))[0], /^invalid-yaml: SKILL\.md frontmatter is not valid YAML/);
   assert.match(standardErrors(skill("missing-anchor"))[0], /^missing-anchor: SKILL\.md frontmatter is not valid YAML/);
-  assert.deepEqual(standardErrors(skill("empty")), ["empty: no SKILL.md"]);
+  assert.deepEqual(standardErrors(skill("empty")), ["empty: no SKILL.md as a regular file"]);
+  assert.deepEqual(standardErrors(skill("directory")), ["directory: no SKILL.md as a regular file"]);
   assert.deepEqual(standardErrors(skill("no-frontmatter")), [
     "no-frontmatter: SKILL.md does not start with YAML frontmatter",
   ]);
@@ -71,8 +72,23 @@ test("an init may print as much as it likes", () => {
 
 test("a skill without an init, or whose init writes no SKILL.md when run, is not born from it", () => {
   assert.deepEqual(birthErrors(skill("no-init")), ["no-init: no scripts/init.ts; a skill is born from its own init"]);
-  assert.deepEqual(birthErrors(skill("export-only")), ["export-only: running scripts/init.ts does not write SKILL.md"]);
+  assert.deepEqual(birthErrors(skill("export-only")), [
+    "export-only: running scripts/init.ts does not write SKILL.md as a regular file",
+  ]);
+  assert.deepEqual(birthErrors(skill("writes-directory")), [
+    "writes-directory: running scripts/init.ts does not write SKILL.md as a regular file",
+  ]);
 });
+
+test(
+  "an init that writes SKILL.md as a named pipe is reported, never read",
+  { skip: process.platform === "win32" },
+  () => {
+    assert.deepEqual(birthErrors(skill("writes-pipe")), [
+      "writes-pipe: running scripts/init.ts does not write SKILL.md as a regular file",
+    ]);
+  },
+);
 
 test("an init that fails is reported with its error", () => {
   const [error, ...rest] = birthErrors(skill("failing"));

@@ -38,6 +38,12 @@ function frontmatter(file: string): { doc: YAML.Document; fields: Record<string,
   return { doc, fields };
 }
 
+/**
+ * Whether `file` is a regular file, never a symlink, directory or pipe: only
+ * a regular file can be read without blocking or throwing.
+ */
+const isFile = (file: string) => fs.lstatSync(file, { throwIfNoEntry: false })?.isFile() ?? false;
+
 /** A YAML node with an alias resolved to the node it refers to, keeping that node's type. */
 const resolved = (doc: YAML.Document, node: unknown) => (YAML.isAlias(node) ? node.resolve(doc) : node);
 
@@ -55,7 +61,7 @@ const isString = (doc: YAML.Document, node: unknown) => {
 export function standardErrors(dir: string): string[] {
   const skill = path.basename(dir);
   const file = path.join(dir, "SKILL.md");
-  if (!fs.existsSync(file)) return [`${skill}: no SKILL.md`];
+  if (!isFile(file)) return [`${skill}: no SKILL.md as a regular file`];
   let doc: YAML.Document;
   let fields: Record<string, unknown>;
   try {
@@ -107,9 +113,9 @@ export function standardErrors(dir: string): string[] {
 export function birthErrors(dir: string, timeout = 60_000): string[] {
   const skill = path.basename(dir);
   const committed = path.join(dir, "SKILL.md");
-  if (!fs.existsSync(path.join(dir, "scripts", "init.ts")))
+  if (!isFile(path.join(dir, "scripts", "init.ts")))
     return [`${skill}: no scripts/init.ts; a skill is born from its own init`];
-  if (!fs.existsSync(committed)) return [`${skill}: no SKILL.md; run scripts/init.ts`];
+  if (!isFile(committed)) return [`${skill}: no SKILL.md as a regular file; run scripts/init.ts`];
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "skill-"));
   try {
     const copy = path.join(scratch, skill);
@@ -138,7 +144,7 @@ export function birthErrors(dir: string, timeout = 60_000): string[] {
         `${skill}: running scripts/init.ts failed: ${(fs.readFileSync(log, "utf8").slice(-4000) || String(run.error ?? run.signal)).trim()}`,
       ];
     const born = path.join(copy, "SKILL.md");
-    if (!fs.existsSync(born)) return [`${skill}: running scripts/init.ts does not write SKILL.md`];
+    if (!isFile(born)) return [`${skill}: running scripts/init.ts does not write SKILL.md as a regular file`];
     return fs.readFileSync(committed).equals(fs.readFileSync(born))
       ? []
       : [`${skill}: SKILL.md is not what scripts/init.ts generates; change init and run it, never SKILL.md`];
@@ -147,12 +153,23 @@ export function birthErrors(dir: string, timeout = 60_000): string[] {
   }
 }
 
-/** Every error of every skill in `skillsDir`, where each directory is a skill, in name order. */
+/**
+ * Every error of every skill in `skillsDir`, where each directory is a skill,
+ * in name order. A skill that cannot be checked at all is reported as an
+ * error of that skill; it never stops the others from being checked.
+ */
 export function checkSkills(skillsDir: string): string[] {
   return fs
     .readdirSync(skillsDir, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
     .sort()
-    .flatMap((skill) => [...standardErrors(path.join(skillsDir, skill)), ...birthErrors(path.join(skillsDir, skill))]);
+    .flatMap((skill) => {
+      const dir = path.join(skillsDir, skill);
+      try {
+        return [...standardErrors(dir), ...birthErrors(dir)];
+      } catch (e) {
+        return [`${skill}: could not be checked (${e instanceof Error ? e.message : String(e)})`];
+      }
+    });
 }
