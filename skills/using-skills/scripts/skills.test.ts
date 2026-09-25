@@ -11,8 +11,9 @@ test("a skill with a name and description, or with every optional field, follows
   assert.deepEqual(standardErrors(skill("full")), []);
 });
 
-test("metadata may refer to other strings by YAML alias", () => {
+test("metadata may refer to other strings by YAML alias, even for its own key", () => {
   assert.deepEqual(standardErrors(skill("aliases")), []);
+  assert.deepEqual(standardErrors(skill("aliased-metadata-key")), []);
 });
 
 test("lengths count characters, not UTF-16 units: 1024 emoji are a valid description, 500 a valid compatibility", () => {
@@ -90,10 +91,10 @@ test(
   },
 );
 
-test("an init that fails is reported with its error", () => {
-  const [error, ...rest] = birthErrors(skill("failing"));
-  assert.match(error, /^failing: running scripts\/init\.ts failed: [\s\S]*init failed on purpose/);
-  assert.deepEqual(rest, []);
+test("an init that fails is reported with how to see why", () => {
+  assert.deepEqual(birthErrors(skill("failing")), [
+    "failing: running scripts/init.ts failed (exit code 1); run it to see why",
+  ]);
 });
 
 test("an init that does not finish in time is stopped and reported, even if it ignores SIGTERM", () => {

@@ -90,7 +90,12 @@ export function standardErrors(dir: string): string[] {
   )
     errors.push("compatibility must be 1 to 500 characters");
   if (license !== undefined && typeof license !== "string") errors.push("license must be a string");
-  const meta = resolved(doc, doc.get("metadata", true));
+  // Found by its resolved key, since the key itself may be an alias.
+  const top = (doc.contents as YAML.YAMLMap).items.find((pair) => {
+    const key = resolved(doc, pair.key);
+    return YAML.isScalar(key) && key.value === "metadata";
+  });
+  const meta = resolved(doc, top?.value);
   if (
     metadata !== undefined &&
     !(YAML.isMap(meta) && meta.items.every((pair) => isString(doc, pair.key) && isString(doc, pair.value)))
@@ -108,7 +113,8 @@ export function standardErrors(dir: string): string[] {
  * `scripts/init.ts` writes SKILL.md next to the scripts, exactly as committed.
  * Init runs in a scratch copy of the skill without its SKILL.md, never over
  * the skill, so init must be self-contained, and must finish within
- * `timeout` milliseconds.
+ * `timeout` milliseconds. Init is the skill's own code, run as the caller:
+ * this bounds a stuck init, it is not a sandbox.
  */
 export function birthErrors(dir: string, timeout = 60_000): string[] {
   const skill = path.basename(dir);
@@ -120,28 +126,21 @@ export function birthErrors(dir: string, timeout = 60_000): string[] {
   try {
     const copy = path.join(scratch, skill);
     fs.cpSync(dir, copy, { recursive: true, filter: (source) => source !== committed });
-    // Output goes nowhere and errors to a file, never to a buffer: an init may
-    // print as much as it likes, and only the end of its errors is reported.
-    const log = path.join(scratch, "init.stderr");
-    const stderr = fs.openSync(log, "w");
-    let run;
-    try {
-      run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {
-        cwd: copy,
-        stdio: ["ignore", "ignore", stderr],
-        timeout,
-        // SIGKILL, not the default SIGTERM: an init can ignore SIGTERM and keep
-        // the check waiting forever; SIGKILL cannot be ignored.
-        killSignal: "SIGKILL",
-      });
-    } finally {
-      fs.closeSync(stderr);
-    }
+    // Init's output is never kept, so no amount of it can fill a buffer or a
+    // disk; a failure says how to see why.
+    const run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {
+      cwd: copy,
+      stdio: "ignore",
+      timeout,
+      // SIGKILL, not the default SIGTERM: an init can ignore SIGTERM and keep
+      // the check waiting forever; SIGKILL cannot be ignored.
+      killSignal: "SIGKILL",
+    });
     if ((run.error as NodeJS.ErrnoException | undefined)?.code === "ETIMEDOUT")
       return [`${skill}: running scripts/init.ts did not finish within ${timeout} ms`];
     if (run.status !== 0)
       return [
-        `${skill}: running scripts/init.ts failed: ${(fs.readFileSync(log, "utf8").slice(-4000) || String(run.error ?? run.signal)).trim()}`,
+        `${skill}: running scripts/init.ts failed (${run.status === null ? `signal ${run.signal}` : `exit code ${run.status}`}); run it to see why`,
       ];
     const born = path.join(copy, "SKILL.md");
     if (!isFile(born)) return [`${skill}: running scripts/init.ts does not write SKILL.md as a regular file`];
