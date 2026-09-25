@@ -1,0 +1,5 @@
+# Nodes are immutable: never reformat BRAIN.
+brain/
+# Test data must stay byte-exact (CRLF, missing final newline, whitespace names).
+skills/using-brain/test-data/
+package-lock.json

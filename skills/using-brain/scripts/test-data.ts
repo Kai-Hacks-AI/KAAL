@@ -36,3 +36,17 @@ export function birth(name: string, root: string): CreateNode {
 export function expected(name: string): string {
   return fs.readFileSync(path.join(DATA, "expected", `${name}.md`), "utf8");
 }
+
+/**
+ * An empty BRAIN whose `genesis` lineage is a symlink to a directory outside it.
+ * "resolving" points at an existing directory; "dangling" at one that does not
+ * exist yet. Built at run time because a symlink leaving the repo cannot be
+ * committed as test data.
+ */
+export function symlinkedBrain(kind: "resolving" | "dangling"): { root: string; outside: string } {
+  const root = scratchBrain();
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "brain-outside-"));
+  const target = kind === "resolving" ? outside : path.join(outside, "not-yet");
+  fs.symlinkSync(target, path.join(root, "genesis"), "dir");
+  return { root, outside };
+}
