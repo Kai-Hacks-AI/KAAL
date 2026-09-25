@@ -63,6 +63,23 @@ When KAAL needs knowledge in order to use a skill, that knowledge is initialized
     root,
     lineage: "genesis",
     learning: "26/09/25/01",
+    slug: "using-skills",
+    name: "using-skills",
+    meaning: `# Using Skills
+
+KAAL uses the **using-skills** skill so every skill KAAL keeps can be used by any agent that reads the standard, and has one source for its instructions. KAAL holds its skills to two rules:
+
+A skill follows the Agent Skills standard: https://agentskills.io/specification.
+
+A skill is born from its own init: \`scripts/init.ts\` generates the skill's \`SKILL.md\`. \`SKILL.md\` is never edited by hand, and KAAL's tests prove every committed \`SKILL.md\` is exactly what its init generates.
+
+The skill explains how both rules are checked. This node records why KAAL uses it.
+`,
+  });
+  createNode({
+    root,
+    lineage: "genesis",
+    learning: "26/09/25/01",
     slug: "using-seals",
     name: "using-seals",
     meaning: `# Using Seals
