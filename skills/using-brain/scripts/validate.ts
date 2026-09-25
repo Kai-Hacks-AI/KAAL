@@ -1,5 +1,6 @@
+import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { edgeErrors, learningOf, nodeIndex, parseNode, relativeIdentity, ROOT } from "./brain.js";
+import { edgeErrors, learningOf, nodeIndex, parseNode, portableNameError, relativeIdentity, ROOT } from "./brain.js";
 
 export function validate(root = ROOT): string[] {
   const known = nodeIndex(root);
@@ -14,7 +15,14 @@ export function validate(root = ROOT): string[] {
       errors.push(String(e));
       continue;
     }
-    errors.push(...edgeErrors(root, relativeIdentity(root, file), born, node.edges ?? [], known));
+    const id = relativeIdentity(root, file);
+    for (const error of [
+      portableNameError(born.lineage, "lineage"),
+      portableNameError(path.basename(file, ".md"), "slug"),
+    ]) {
+      if (error) errors.push(`${id}: ${error}`);
+    }
+    errors.push(...edgeErrors(root, id, born, node.edges ?? [], known));
   }
   return errors;
 }

@@ -48,3 +48,14 @@ test("refuses birth when an edge crosses lineages, even to an earlier learning",
   );
   assert.equal(fs.existsSync(path.join(root, "other")), false);
 });
+
+test("rejects lineages and slugs that would not name the same file on every platform", () => {
+  const root = scratchBrain();
+  for (const name of ["uppercase-slug", "dotted-slug", "underscore-slug", "double-hyphen-slug"]) {
+    assert.throws(() => createNode(birth(name, root)), /slug ".*" must be lowercase kebab-case/, name);
+  }
+  assert.throws(() => createNode(birth("uppercase-lineage", root)), /lineage "Genesis" must be lowercase kebab-case/);
+  assert.throws(() => createNode(birth("reserved-slug", root)), /slug "con" is reserved on Windows/);
+  assert.throws(() => createNode(birth("reserved-lineage", root)), /lineage "nul" is reserved on Windows/);
+  assert.deepEqual(fs.readdirSync(root), []);
+});
