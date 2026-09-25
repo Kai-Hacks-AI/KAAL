@@ -56,6 +56,9 @@ test("a skill needs a SKILL.md that starts with a frontmatter mapping in valid Y
   assert.deepEqual(standardErrors(skill("duplicate-metadata-key")), [
     'duplicate-metadata-key: SKILL.md frontmatter has the key "metadata" twice',
   ]);
+  assert.deepEqual(standardErrors(skill("duplicate-metadata-entry")), [
+    'duplicate-metadata-entry: SKILL.md frontmatter has the key "author" twice',
+  ]);
   assert.deepEqual(standardErrors(skill("empty")), ["empty: no SKILL.md as a regular file"]);
   assert.deepEqual(standardErrors(skill("directory")), ["directory: no SKILL.md as a regular file"]);
   assert.deepEqual(standardErrors(skill("no-frontmatter")), [

@@ -32,14 +32,19 @@ function frontmatter(file: string): { doc: YAML.Document; fields: Record<string,
   if (doc.errors.length) throw new Error(`SKILL.md frontmatter is not valid YAML (${doc.errors[0].message})`);
   if (!YAML.isMap(doc.contents)) throw new Error("SKILL.md frontmatter is not a mapping");
   // YAML keys are unique, but the parser only compares keys as written: two
-  // keys that resolve to the same one through an alias are caught here.
-  const keys = new Set<string>();
-  for (const pair of doc.contents.items) {
-    const key = resolved(doc, pair.key);
-    const name = YAML.isScalar(key) ? String(key.value) : String(key);
-    if (keys.has(name)) throw new Error(`SKILL.md frontmatter has the key ${JSON.stringify(name)} twice`);
-    keys.add(name);
-  }
+  // keys of one mapping, at any depth, that resolve to the same key through
+  // an alias are caught here.
+  YAML.visit(doc, {
+    Map(_, map) {
+      const keys = new Set<string>();
+      for (const pair of map.items) {
+        const key = resolved(doc, pair.key);
+        const name = YAML.isScalar(key) ? String(key.value) : String(key);
+        if (keys.has(name)) throw new Error(`SKILL.md frontmatter has the key ${JSON.stringify(name)} twice`);
+        keys.add(name);
+      }
+    },
+  });
   let fields: Record<string, unknown>;
   try {
     // Aliases resolve only here: one that refers to no anchor, or too many, fails here.
