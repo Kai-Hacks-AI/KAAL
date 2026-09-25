@@ -32,8 +32,19 @@ export function sealPath(root: string, unit: string): string {
   return path.join(root, unit, SEAL_FILE);
 }
 
+/** A unit is sealed when anything occupies its seal path, even a dangling symlink: whatever it is gets checked. */
 export function isSealed(root: string, unit: string): boolean {
-  return fs.existsSync(sealPath(root, unit));
+  return fs.lstatSync(sealPath(root, unit), { throwIfNoEntry: false }) !== undefined;
+}
+
+/**
+ * Reads a file only if it is a regular file: a symlink could point anywhere,
+ * and a FIFO or device would block or never end.
+ */
+function readRegularFile(file: string): string {
+  const stat = fs.lstatSync(file);
+  if (!stat.isFile()) throw new Error("not a regular file");
+  return fs.readFileSync(file, "utf8");
 }
 
 /** What a directory entry is, as far as sealing is concerned. */
@@ -98,7 +109,7 @@ function isSeal(value: unknown): value is Seal {
 
 /** Reads a unit's seal, refusing anything that is not structurally a seal. */
 export function readSeal(root: string, unit: string): Seal {
-  const seal: unknown = JSON.parse(fs.readFileSync(sealPath(root, unit), "utf8"));
+  const seal: unknown = JSON.parse(readRegularFile(sealPath(root, unit)));
   if (!isSeal(seal)) throw new Error("not a seal");
   return seal;
 }
@@ -112,8 +123,8 @@ function isHead(value: unknown): value is Head {
 /** Reads every chain's head, refusing anything that is not structurally a set of heads. */
 export function readHeads(root: string): Record<string, Head> {
   const file = path.join(root, HEADS_FILE);
-  if (!fs.existsSync(file)) return {};
-  const heads: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (!fs.lstatSync(file, { throwIfNoEntry: false })) return {};
+  const heads: unknown = JSON.parse(readRegularFile(file));
   if (typeof heads !== "object" || heads === null || Array.isArray(heads) || !Object.values(heads).every(isHead)) {
     throw new Error("not a set of chain heads");
   }
@@ -123,7 +134,12 @@ export function readHeads(root: string): Record<string, Head> {
 function writeHead(root: string, chain: string, head: Head): void {
   const heads = { ...readHeads(root), [chain]: head };
   const sorted = Object.fromEntries(Object.entries(heads).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
-  fs.writeFileSync(path.join(root, HEADS_FILE), `${JSON.stringify(sorted, null, 2)}\n`);
+  // Written beside the head file and renamed over it: a rename replaces the
+  // path itself and never writes through a link to somewhere else.
+  const file = path.join(root, HEADS_FILE);
+  const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(temporary, `${JSON.stringify(sorted, null, 2)}\n`, { flag: "wx" });
+  fs.renameSync(temporary, file);
 }
 
 /**

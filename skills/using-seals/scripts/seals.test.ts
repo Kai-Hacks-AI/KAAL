@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 import { checkChain, entryKind, sealChain } from "./seals.js";
 import {
@@ -6,6 +7,7 @@ import {
   chainData,
   chainWithEmptyUnit,
   chainWithSymlink,
+  chainWithSymlinkedSealFile,
   chainWithSymlinkedUnit,
   INVALID_CHAIN,
   NESTED_UNITS,
@@ -189,4 +191,20 @@ test("refuses to seal a unit containing a unit another chain has sealed, and wri
   const root = scratchChain("nested-sealed-by-other-chain");
   assert.throws(() => sealChain(root, CHAIN, UNITS), /one: refusing to seal a unit containing sealed unit one\/nested/);
   assert.deepEqual(tree(root), tree(chainData("nested-sealed-by-other-chain")));
+});
+
+test("reads a seal only from a regular file, never through a symlink", () => {
+  const { root } = chainWithSymlinkedSealFile("sealed", "seal");
+  assert.deepEqual(checkChain(root, CHAIN, UNITS), [
+    "one: unreadable seal (not a regular file)",
+    "two: seal does not chain to the previous seal",
+  ]);
+});
+
+test("refuses a symlinked chain head, and never writes through it", () => {
+  const { root, outside } = chainWithSymlinkedSealFile("sealed-one", "heads");
+  const before = fs.readFileSync(outside, "utf8");
+  assert.deepEqual(checkChain(root, CHAIN, UNITS), ["seals.json: unreadable chain heads (not a regular file)"]);
+  assert.throws(() => sealChain(root, CHAIN, UNITS), /refusing to seal a chain with broken seals/);
+  assert.equal(fs.readFileSync(outside, "utf8"), before);
 });

@@ -19,6 +19,10 @@ Seal with \`scripts/seal.ts <root> <chain> <unit>...\`: every open unit of the c
 
 Check with \`scripts/check.ts <root> <chain> <unit>...\`. It reports files added, changed or removed after sealing, a seal that no longer matches its own content or belongs to another unit, a seal that does not chain to the one before it, a sealed unit after an open one, symlinks or special files in a sealed unit, a seal that is unreadable or not structurally a seal, a seal removed from a unit up to the head, a seal beyond the head, and a head that is missing, unknown or does not match its unit's seal.
 
+Seals and heads are only ever read from regular files, never through a symlink or from a FIFO or device, and heads are replaced by renaming, never written through a link.
+
+File-based seals catch accidental and piecemeal changes, including removed trailing seals. They cannot stop someone who deletes or rewrites a whole chain together with its head: anything stored beside the units can be removed with them. A using system that needs more keeps seals append-only where it controls history, for example by refusing changes that modify or delete existing seal files.
+
 Seals hash exact bytes. The using system must keep sealed files byte-exact wherever they are checked out, for example by disabling line-ending conversion for them. When to seal and what to seal is the using system's decision; this skill only seals and checks.
 `;
 

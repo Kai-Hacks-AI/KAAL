@@ -111,3 +111,18 @@ export const SPECIAL_ENTRY = {
   isDirectory: () => false,
   isSymbolicLink: () => false,
 };
+
+/**
+ * The given chain with one file replaced by a symlink to a copy of it outside
+ * the root: "seal" replaces one/seal.json, "heads" replaces seals.json. Built
+ * at run time because a symlink cannot be committed portably.
+ */
+export function chainWithSymlinkedSealFile(name: string, which: "seal" | "heads"): { root: string; outside: string } {
+  const root = scratchChain(name);
+  const file = path.join(root, which === "seal" ? "one/seal.json" : "seals.json");
+  const outside = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "seals-outside-")), path.basename(file));
+  fs.copyFileSync(file, outside);
+  fs.rmSync(file);
+  fs.symlinkSync(outside, file);
+  return { root, outside };
+}
