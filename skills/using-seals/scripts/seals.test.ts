@@ -372,3 +372,8 @@ test("refuses to seal over an earlier unit of another chain whose seal was remov
   );
   assert.deepEqual(tree(root), tree(chainData("sealed-after-open")));
 });
+
+test("reports a seal or chain heads file edited without changing what the seal's hash covers", () => {
+  assert.deepEqual(check("seal-extra-property"), ["one: seal file edited after sealing"]);
+  assert.deepEqual(check("heads-extra-property"), ["seals.json: chain heads edited outside sealing"]);
+});

@@ -135,11 +135,29 @@ function isSeal(value: unknown): value is Seal {
   );
 }
 
+/**
+ * The exact bytes sealing writes for a seal. A seal file holding anything
+ * else, even an extra property its hash does not cover, was edited.
+ */
+function serializeSeal({ unit, previous, files, seal }: Seal): string {
+  const content = { unit, previous, files: files.map(({ path, sha256 }) => ({ path, sha256 })), seal };
+  return `${JSON.stringify(content, null, 2)}\n`;
+}
+
+/**
+ * Reads a unit's seal, refusing anything that is not structurally a seal, and
+ * tells whether the file is exactly what sealing writes.
+ */
+function readSealFile(root: string, unit: string): { seal: Seal; canonical: boolean } {
+  const text = readRegularFile(sealPath(root, unit));
+  const seal: unknown = JSON.parse(text);
+  if (!isSeal(seal)) throw new Error("not a seal");
+  return { seal, canonical: text === serializeSeal(seal) };
+}
+
 /** Reads a unit's seal, refusing anything that is not structurally a seal. */
 export function readSeal(root: string, unit: string): Seal {
-  const seal: unknown = JSON.parse(readRegularFile(sealPath(root, unit)));
-  if (!isSeal(seal)) throw new Error("not a seal");
-  return seal;
+  return readSealFile(root, unit).seal;
 }
 
 function isHead(value: unknown): value is Head {
@@ -153,19 +171,35 @@ function isHead(value: unknown): value is Head {
   );
 }
 
+/** The exact bytes sealing writes for a set of chain heads: sorted by chain. */
+function serializeHeads(heads: Map<string, Head>): string {
+  const sorted = [...heads]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([chain, { units, seal }]) => [chain, { units, seal }]);
+  return `${JSON.stringify(Object.fromEntries(sorted), null, 2)}\n`;
+}
+
 /**
  * Reads every chain's head, refusing anything that is not structurally a set
- * of heads. The heads are a Map, so a chain named like an Object property
- * ("constructor") never finds an inherited value as its head.
+ * of heads, and tells whether the file is exactly what sealing writes. The
+ * heads are a Map, so a chain named like an Object property ("constructor")
+ * never finds an inherited value as its head.
  */
-export function readHeads(root: string): Map<string, Head> {
+function readHeadsFile(root: string): { heads: Map<string, Head>; canonical: boolean } {
   const file = path.join(root, HEADS_FILE);
-  if (!fs.lstatSync(file, { throwIfNoEntry: false })) return new Map();
-  const heads: unknown = JSON.parse(readRegularFile(file));
-  if (typeof heads !== "object" || heads === null || Array.isArray(heads) || !Object.values(heads).every(isHead)) {
+  if (!fs.lstatSync(file, { throwIfNoEntry: false })) return { heads: new Map(), canonical: true };
+  const text = readRegularFile(file);
+  const parsed: unknown = JSON.parse(text);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed) || !Object.values(parsed).every(isHead)) {
     throw new Error("not a set of chain heads");
   }
-  return new Map(Object.entries(heads as Record<string, Head>));
+  const heads = new Map(Object.entries(parsed as Record<string, Head>));
+  return { heads, canonical: text === serializeHeads(heads) };
+}
+
+/** Reads every chain's head, refusing anything that is not structurally a set of heads. */
+export function readHeads(root: string): Map<string, Head> {
+  return readHeadsFile(root).heads;
 }
 
 /**
@@ -186,14 +220,13 @@ function writeNew(file: string, data: string, created: string[]): void {
 
 function writeHead(root: string, chain: string, head: Head): void {
   const heads = readHeads(root).set(chain, head);
-  const sorted = Object.fromEntries([...heads].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
   // Written beside the head file and renamed over it: a rename replaces the
   // path itself and never writes through a link to somewhere else.
   const file = path.join(root, HEADS_FILE);
   const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
   const created: string[] = [];
   try {
-    writeNew(temporary, `${JSON.stringify(sorted, null, 2)}\n`, created);
+    writeNew(temporary, serializeHeads(heads), created);
     io.renameSync(temporary, file);
   } catch (e) {
     for (const f of created) fs.rmSync(f, { force: true });
@@ -333,7 +366,9 @@ function checkUnlocked(root: string, chain: string, units: string[]): string[] {
   if (errors.length) return errors;
   let head: Head | undefined;
   try {
-    head = readHeads(root).get(chain);
+    const { heads, canonical } = readHeadsFile(root);
+    if (!canonical) errors.push(`${HEADS_FILE}: chain heads edited outside sealing`);
+    head = heads.get(chain);
   } catch (e) {
     return [`${HEADS_FILE}: unreadable chain heads (${e instanceof Error ? e.message : String(e)})`];
   }
@@ -365,7 +400,9 @@ function checkUnlocked(root: string, chain: string, units: string[]): string[] {
     if (open) errors.push(`${unit}: sealed after open unit ${open}`);
     let seal: Seal;
     try {
-      seal = readSeal(root, unit);
+      const read = readSealFile(root, unit);
+      seal = read.seal;
+      if (!read.canonical) errors.push(`${unit}: seal file edited after sealing`);
     } catch (e) {
       errors.push(`${unit}: unreadable seal (${e instanceof Error ? e.message : String(e)})`);
       continue;
@@ -507,7 +544,7 @@ function sealLocked(root: string, chain: string, units: string[]): string[] {
     for (const seal of seals) {
       const file = sealPath(root, seal.unit);
       // "wx" refuses to overwrite: a seal is as immutable as what it closes.
-      writeNew(file, `${JSON.stringify(seal, null, 2)}\n`, written);
+      writeNew(file, serializeSeal(seal), written);
     }
     const newest = seals.at(-1);
     // The head moves forward only once every new seal is written.
