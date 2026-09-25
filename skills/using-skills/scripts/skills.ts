@@ -139,7 +139,9 @@ export function birthErrors(dir: string, timeout = 60_000): string[] {
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "skill-"));
   try {
     const copy = path.join(scratch, skill);
-    fs.cpSync(dir, copy, { recursive: true, filter: (source) => source !== committed });
+    // Symlinks are copied as they are: resolved, a relative link would point
+    // back into the skill, letting init read or write the original.
+    fs.cpSync(dir, copy, { recursive: true, verbatimSymlinks: true, filter: (source) => source !== committed });
     // Init's output is never kept, so no amount of it can fill a buffer or a
     // disk; a failure says how to see why.
     const run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {

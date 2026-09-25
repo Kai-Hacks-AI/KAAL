@@ -97,6 +97,16 @@ test(
   },
 );
 
+test(
+  "the scratch copy keeps symlinks as they are, never pointing back into the skill",
+  { skip: process.platform === "win32" },
+  () => {
+    assert.deepEqual(birthErrors(skill("linked")), [
+      "linked: running scripts/init.ts failed (exit code 1); run it to see why",
+    ]);
+  },
+);
+
 test("an init that fails is reported with how to see why", () => {
   assert.deepEqual(birthErrors(skill("failing")), [
     "failing: running scripts/init.ts failed (exit code 1); run it to see why",
