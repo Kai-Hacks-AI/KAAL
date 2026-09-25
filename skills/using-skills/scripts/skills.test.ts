@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { birthErrors, checkSkills, standardErrors } from "./skills.js";
-import { skill, SKILLS } from "./test-data.js";
+import { skill, SKILLS, stuckSkill } from "./test-data.js";
 
 const LONG = "a".repeat(65);
 
@@ -41,10 +41,12 @@ test("optional fields keep to the standard, and no other field is allowed", () =
     "bad-optional: metadata must map strings to strings",
     "bad-optional: allowed-tools must be a string",
   ]);
+  assert.deepEqual(standardErrors(skill("number-key")), ["number-key: metadata must map strings to strings"]);
   assert.deepEqual(standardErrors(skill("unknown-field")), ['unknown-field: "version" is not a field of the standard']);
 });
 
-test("a skill needs a SKILL.md that starts with frontmatter", () => {
+test("a skill needs a SKILL.md that starts with a frontmatter mapping in valid YAML", () => {
+  assert.match(standardErrors(skill("invalid-yaml"))[0], /^invalid-yaml: SKILL\.md frontmatter is not valid YAML/);
   assert.deepEqual(standardErrors(skill("empty")), ["empty: no SKILL.md"]);
   assert.deepEqual(standardErrors(skill("no-frontmatter")), [
     "no-frontmatter: SKILL.md does not start with YAML frontmatter",
@@ -67,6 +69,12 @@ test("an init that fails is reported with its error", () => {
   const [error, ...rest] = birthErrors(skill("failing"));
   assert.match(error, /^failing: running scripts\/init\.ts failed: [\s\S]*init failed on purpose/);
   assert.deepEqual(rest, []);
+});
+
+test("an init that does not finish in time is stopped and reported", () => {
+  assert.deepEqual(birthErrors(stuckSkill("never-finishes"), 1000), [
+    "never-finishes: running scripts/init.ts did not finish within 1000 ms",
+  ]);
 });
 
 test("checking runs init in a scratch copy, never over the skill", () => {

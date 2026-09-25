@@ -11,3 +11,8 @@ export const SKILLS = path.join(DATA, "skills");
 export function skill(name: string): string {
   return path.join(SKILLS, name);
 }
+
+/** An example skill whose init never finishes, kept apart so checking every example skill stays fast. */
+export function stuckSkill(name: string): string {
+  return path.join(DATA, "stuck", name);
+}

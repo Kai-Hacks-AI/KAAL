@@ -7,25 +7,32 @@ import YAML from "yaml";
 /** The frontmatter fields the Agent Skills standard defines; no other field is allowed. */
 const FIELDS = new Set(["name", "description", "license", "compatibility", "metadata", "allowed-tools"]);
 
-// Letters and digits of any script, as the specification's name rule and its
-// reference validator, skills-ref, allow; lowercase is checked separately.
 /** Length in characters (code points), as the standard counts, not UTF-16 units. */
 const chars = (s: string) => [...s].length;
 
 /** tsx, which runs a skill's TypeScript init the way `tsx scripts/init.ts` does. */
 const TSX = import.meta.resolve("tsx");
 
+// Letters and digits of any script, as the specification's name rule and its
+// reference validator, skills-ref, allow; lowercase is checked separately.
 const NAME = /^[\p{L}\p{N}]+(-[\p{L}\p{N}]+)*$/u;
 
-/** A skill's SKILL.md frontmatter, parsed; throws when there is none or it is not a YAML mapping. */
-function frontmatter(file: string): Record<string, unknown> {
+/**
+ * A skill's SKILL.md frontmatter, as a YAML document, which keeps each key's
+ * YAML type; throws when there is none, it is not valid YAML, or it is not a
+ * mapping.
+ */
+function frontmatter(file: string): YAML.Document {
   const match = /^---\r?\n([\s\S]*?)\r?\n---(\r?\n|$)/.exec(fs.readFileSync(file, "utf8"));
   if (!match) throw new Error("SKILL.md does not start with YAML frontmatter");
-  const data: unknown = YAML.parse(match[1]);
-  if (!data || typeof data !== "object" || Array.isArray(data))
-    throw new Error("SKILL.md frontmatter is not a mapping");
-  return data as Record<string, unknown>;
+  const doc = YAML.parseDocument(match[1]);
+  if (doc.errors.length) throw new Error(`SKILL.md frontmatter is not valid YAML (${doc.errors[0].message})`);
+  if (!YAML.isMap(doc.contents)) throw new Error("SKILL.md frontmatter is not a mapping");
+  return doc;
 }
+
+/** Whether a YAML node is a string scalar, as written, not as a JavaScript key would coerce it. */
+const isString = (node: unknown) => YAML.isScalar(node) && typeof node.value === "string";
 
 /**
  * Every way the skill at `dir` breaks the Agent Skills standard
@@ -36,12 +43,13 @@ export function standardErrors(dir: string): string[] {
   const skill = path.basename(dir);
   const file = path.join(dir, "SKILL.md");
   if (!fs.existsSync(file)) return [`${skill}: no SKILL.md`];
-  let fields: Record<string, unknown>;
+  let doc: YAML.Document;
   try {
-    fields = frontmatter(file);
+    doc = frontmatter(file);
   } catch (e) {
     return [`${skill}: ${e instanceof Error ? e.message : String(e)}`];
   }
+  const fields = doc.toJS() as Record<string, unknown>;
   const errors: string[] = [];
   const { name, description, license, compatibility, metadata } = fields;
   if (typeof name !== "string" || !name) errors.push("name is required");
@@ -63,12 +71,10 @@ export function standardErrors(dir: string): string[] {
   )
     errors.push("compatibility must be 1 to 500 characters");
   if (license !== undefined && typeof license !== "string") errors.push("license must be a string");
+  const meta = doc.get("metadata", true);
   if (
     metadata !== undefined &&
-    (!metadata ||
-      typeof metadata !== "object" ||
-      Array.isArray(metadata) ||
-      Object.values(metadata).some((v) => typeof v !== "string"))
+    !(YAML.isMap(meta) && meta.items.every((pair) => isString(pair.key) && isString(pair.value)))
   )
     errors.push("metadata must map strings to strings");
   if (fields["allowed-tools"] !== undefined && typeof fields["allowed-tools"] !== "string")
@@ -82,9 +88,10 @@ export function standardErrors(dir: string): string[] {
  * Whether the skill at `dir` is born from its own init: running its
  * `scripts/init.ts` writes SKILL.md next to the scripts, exactly as committed.
  * Init runs in a scratch copy of the skill without its SKILL.md, never over
- * the skill, so init must be self-contained.
+ * the skill, so init must be self-contained, and must finish within
+ * `timeout` milliseconds.
  */
-export function birthErrors(dir: string): string[] {
+export function birthErrors(dir: string, timeout = 60_000): string[] {
   const skill = path.basename(dir);
   const committed = path.join(dir, "SKILL.md");
   if (!fs.existsSync(path.join(dir, "scripts", "init.ts")))
@@ -97,7 +104,10 @@ export function birthErrors(dir: string): string[] {
     const run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {
       cwd: copy,
       encoding: "utf8",
+      timeout,
     });
+    if ((run.error as NodeJS.ErrnoException | undefined)?.code === "ETIMEDOUT")
+      return [`${skill}: running scripts/init.ts did not finish within ${timeout} ms`];
     if (run.status !== 0)
       return [`${skill}: running scripts/init.ts failed: ${(run.stderr || String(run.error ?? run.signal)).trim()}`];
     const born = path.join(copy, "SKILL.md");
