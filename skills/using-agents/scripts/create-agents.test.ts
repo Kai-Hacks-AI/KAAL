@@ -58,6 +58,23 @@ test("a failure after AGENTS.md was created removes it and reports the failure",
   assert.deepEqual(fs.readdirSync(scope), []);
 });
 
+test("a failure after AGENTS.md was replaced meanwhile never removes the replacement", (t) => {
+  const scope = scratchScope();
+  const file = path.join(scope, "AGENTS.md");
+  const write = fs.writeFileSync;
+  // Fault injection: another process moves this call's file away and puts its
+  // own AGENTS.md in place, then this call's write fails.
+  t.mock.method(fs, "writeFileSync", (target: fs.PathOrFileDescriptor, data: string) => {
+    if (typeof target !== "number") return write(target, data);
+    fs.renameSync(file, path.join(scope, "moved"));
+    write(file, guidance("crlf"));
+    throw new Error("write failed on purpose");
+  });
+  assert.throws(() => createAgents(scope, guidance("example")), /write failed on purpose/);
+  t.mock.restoreAll();
+  assert.equal(fs.readFileSync(file, "utf8"), guidance("crlf"));
+});
+
 test("a failing call never removes or changes an AGENTS.md that existed before it", (t) => {
   const scope = scratchScope();
   const file = path.join(scope, "AGENTS.md");

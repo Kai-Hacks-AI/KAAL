@@ -9,7 +9,8 @@ import { pathToFileURL } from "node:url";
  * existing directory, when the guidance is empty, and when `<scope>/AGENTS.md`
  * already exists, so an entry point is never overwritten. A failure after
  * creating `<scope>/AGENTS.md` removes it again, so a failed call leaves the
- * scope as it was. Returns its path.
+ * scope as it was; only the file this call created is ever removed, never one
+ * put in its place meanwhile. Returns its path.
  */
 export function createAgents(scope: string, guidance: string): string {
   const stat = fs.lstatSync(scope, { throwIfNoEntry: false });
@@ -25,18 +26,22 @@ export function createAgents(scope: string, guidance: string): string {
       throw new Error(`${file}: already exists; refusing to overwrite it`);
     throw e;
   }
+  // The identity of the file this call created, to recognise it on failure.
+  let created: fs.BigIntStats | undefined;
   try {
+    created = fs.fstatSync(fd, { bigint: true });
     fs.writeFileSync(fd, guidance);
     fs.closeSync(fd);
   } catch (e) {
-    // The file is this call's own: close it (Windows cannot remove an open
-    // file) and remove it, then report the failure.
+    // Close it (Windows cannot remove an open file), then remove it only if
+    // the path still names this call's own file.
     try {
       fs.closeSync(fd);
     } catch {
       // Already closed, or closing is what failed.
     }
-    fs.rmSync(file, { force: true });
+    const now = fs.lstatSync(file, { bigint: true, throwIfNoEntry: false });
+    if (created && now && now.dev === created.dev && now.ino === created.ino) fs.rmSync(file);
     throw e;
   }
   return file;
