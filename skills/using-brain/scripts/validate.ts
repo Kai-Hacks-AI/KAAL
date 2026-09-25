@@ -1,5 +1,5 @@
 import { pathToFileURL } from "node:url";
-import { edgeErrors, learningKey, nodeIndex, parseNode, relativeIdentity, ROOT } from "./brain.js";
+import { edgeErrors, learningOf, nodeIndex, parseNode, relativeIdentity, ROOT } from "./brain.js";
 
 export function validate(root = ROOT): string[] {
   const known = nodeIndex(root);
@@ -9,7 +9,7 @@ export function validate(root = ROOT): string[] {
     let born;
     try {
       node = parseNode(file);
-      born = learningKey(root, file);
+      born = learningOf(root, file);
     } catch (e) {
       errors.push(String(e));
       continue;

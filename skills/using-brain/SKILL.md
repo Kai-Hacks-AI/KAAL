@@ -13,8 +13,8 @@ An edge is directional knowledge written on the node that knows it:
 
 `A -relation-> B`
 
-The relation and target must already exist before A is born. A relation is itself a node, so its semantics are preserved in the BRAIN version A uses. The pointed-at node does not gain reciprocal knowledge.
+The relation and target must already exist before A is born, in the same lineage as A. Knowledge does not cross lineages: that would need semantics of its own, which have to be learned explicitly rather than assumed. A relation is itself a node, so its semantics are preserved in the BRAIN version A uses. The pointed-at node does not gain reciprocal knowledge.
 
-Create every node through `scripts/create-node.ts`; pass each edge as `--edge <relation>=<target>`, using node identities (paths relative to the BRAIN root). Birth is refused if an edge's relation or target does not already exist in an earlier learning. Validate BRAIN with `scripts/validate.ts`.
+Create every node through `scripts/create-node.ts`; pass each edge as `--edge <relation>=<target>`, using node identities (paths relative to the BRAIN root). Birth is refused if an edge's relation or target does not already exist in an earlier learning of the same lineage. Validate BRAIN with `scripts/validate.ts`.
 
 Genesis is the bootstrap: `scripts/init.ts` creates the first BRAIN by using the same node-creation mechanics. KAAL-specific reasons for using this skill belong in BRAIN nodes, not here; this skill is KAAL-independent.

@@ -36,3 +36,12 @@ test("refuses birth when an edge's relation or target is missing or not born ear
   );
   assert.equal(fs.existsSync(path.join(root, "genesis/26/09/25/01/nodes/a.md")), false);
 });
+
+test("refuses birth when an edge crosses lineages, even to an earlier learning", () => {
+  const root = scratchBrain("relation-and-target");
+  assert.throws(
+    () => createNode(birth("edge-across-lineages", root)),
+    (e: Error) => /relation .* is in another lineage/.test(e.message) && /target .* is in another lineage/.test(e.message),
+  );
+  assert.equal(fs.existsSync(path.join(root, "other")), false);
+});

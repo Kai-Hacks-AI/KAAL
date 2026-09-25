@@ -30,7 +30,7 @@ export function createNode(input: CreateNode): string {
   const dir = path.join(root, input.lineage, input.learning, "nodes");
   const file = path.join(dir, `${input.slug}.md`);
   const edges = input.edges ?? [];
-  const errors = edgeErrors(root, relativeIdentity(root, file), input.learning, edges);
+  const errors = edgeErrors(root, relativeIdentity(root, file), { lineage: input.lineage, key: input.learning }, edges);
   if (errors.length) throw new Error(errors.join("\n"));
   fs.mkdirSync(dir, { recursive: true });
   const fm = edges.length ? { name: input.name, edges } : { name: input.name };

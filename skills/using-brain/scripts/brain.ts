@@ -42,14 +42,21 @@ export function relativeIdentity(root: string, file: string): string {
   return path.relative(root, file).split(path.sep).join("/");
 }
 
-export function learningKey(root: string, file: string): string {
+/** Where a node was born: its lineage and its YY/MM/DD/CC learning within that lineage. */
+export type Learning = { lineage: string; key: string };
+
+export function learningOf(root: string, file: string): Learning {
   const parts = relativeIdentity(root, file).split("/");
   if (parts.length !== 7 || parts[5] !== "nodes") throw new Error(`${file}: invalid learning path`);
   const [lineage, yy, mm, dd, cc] = parts;
   if (!lineage || ![yy, mm, dd, cc].every((x) => /^\d{2}$/.test(x))) {
     throw new Error(`${file}: invalid learning path`);
   }
-  return [yy, mm, dd, cc].join("/");
+  return { lineage, key: [yy, mm, dd, cc].join("/") };
+}
+
+export function learningKey(root: string, file: string): string {
+  return learningOf(root, file).key;
 }
 
 export function nodeIndex(root = ROOT): Map<string, string> {
@@ -57,13 +64,15 @@ export function nodeIndex(root = ROOT): Map<string, string> {
 }
 
 /**
- * Checks that every edge's relation and target already exist and were born in
- * an earlier learning than `born`. Shared by node birth and validation.
+ * Checks that every edge's relation and target already exist, belong to the
+ * same lineage as `born`, and were born in an earlier learning of that lineage.
+ * Crossing lineages has no established semantics yet, so it is refused.
+ * Shared by node birth and validation.
  */
 export function edgeErrors(
   root: string,
   self: string,
-  born: string,
+  born: Learning,
   edges: Edge[],
   known = nodeIndex(root),
 ): string[] {
@@ -76,7 +85,9 @@ export function edgeErrors(
         continue;
       }
       try {
-        if (learningKey(root, file) >= born) errors.push(`${self}: ${kind} ${id} was not born earlier`);
+        const theirs = learningOf(root, file);
+        if (theirs.lineage !== born.lineage) errors.push(`${self}: ${kind} ${id} is in another lineage`);
+        else if (theirs.key >= born.key) errors.push(`${self}: ${kind} ${id} was not born earlier`);
       } catch (e) {
         errors.push(String(e));
       }

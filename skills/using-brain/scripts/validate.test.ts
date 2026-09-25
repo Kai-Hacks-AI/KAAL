@@ -20,3 +20,10 @@ test("reports malformed frontmatter as file-prefixed errors instead of crashing"
   assert.match(errors[0], /empty\.md: frontmatter must be a mapping/);
   assert.match(errors[1], /null-edge\.md: each edge needs string relation and to/);
 });
+
+test("rejects edges that cross lineages, even to an earlier learning", () => {
+  assert.deepEqual(validate(brainData("across-lineages")), [
+    "other/26/09/25/02/nodes/a.md: relation genesis/26/09/25/01/nodes/relation.md is in another lineage",
+    "other/26/09/25/02/nodes/a.md: target genesis/26/09/25/01/nodes/b.md is in another lineage",
+  ]);
+});
