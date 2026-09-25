@@ -159,8 +159,9 @@ const UNIT_RULE =
 
 /**
  * Checks the unit list itself before anything is read or written: every unit
- * is a canonical relative path that stays beneath the root without passing
- * through a symlink, and no unit is listed twice or contains another.
+ * is a canonical relative path that stays beneath the root, passing only
+ * through directories (never a symlink or a file), and no unit is listed twice
+ * or contains another.
  */
 export function unitErrors(root: string, units: string[]): string[] {
   const errors: string[] = [];
@@ -191,6 +192,12 @@ export function unitErrors(root: string, units: string[]): string[] {
       if (!stat) break;
       if (stat.isSymbolicLink()) {
         errors.push(`${unit}: unit path passes through a symlink`);
+        break;
+      }
+      if (!stat.isDirectory()) {
+        errors.push(
+          `${unit}: unit path passes through ${path.relative(root, current).split(path.sep).join("/")}, which is not a directory`,
+        );
         break;
       }
     }

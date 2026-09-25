@@ -208,3 +208,12 @@ test("refuses a symlinked chain head, and never writes through it", () => {
   assert.throws(() => sealChain(root, CHAIN, UNITS), /refusing to seal a chain with broken seals/);
   assert.equal(fs.readFileSync(outside, "utf8"), before);
 });
+
+test("reports a sealed unit replaced by a file instead of crashing, reading and writing nothing", () => {
+  const root = scratchChain("unit-replaced-by-file");
+  assert.deepEqual(checkChain(root, CHAIN, UNITS), ["one: unit path passes through one, which is not a directory"]);
+  assert.deepEqual(checkChain(root, OTHER_CHAIN, NESTED_UNITS), [
+    "one/nested: unit path passes through one, which is not a directory",
+  ]);
+  assert.throws(() => sealChain(root, CHAIN, UNITS), /refusing to seal a chain with broken seals/);
+});
