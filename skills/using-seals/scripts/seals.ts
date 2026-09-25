@@ -4,9 +4,11 @@ import path from "node:path";
 
 /**
  * A seal closes a unit: a directory whose files must not change once sealed.
- * Units form a chain in an order the using system decides; each seal records
- * the bytes of every file in its unit and the previous seal of the chain, so
- * changing any sealed unit breaks its own seal and every seal after it.
+ * Units form a named chain in an order the using system decides; each seal
+ * records the bytes of every file in its unit and the previous seal of the
+ * chain, so changing any sealed unit breaks its own seal and every seal after
+ * it. The chain's head, kept at the root, records how far the chain is sealed,
+ * so removing trailing seals is noticed too.
  */
 export type Seal = {
   unit: string;
@@ -16,6 +18,11 @@ export type Seal = {
 };
 
 export const SEAL_FILE = "seal.json";
+
+/** Kept at the root: for each chain, its last sealed unit and that unit's seal. */
+export const HEADS_FILE = "seals.json";
+
+export type Head = { unit: string; seal: string };
 
 const sha256 = (data: string | Buffer) => crypto.createHash("sha256").update(data).digest("hex");
 
@@ -80,6 +87,29 @@ export function readSeal(root: string, unit: string): Seal {
   return seal;
 }
 
+function isHead(value: unknown): value is Head {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const head = value as Record<string, unknown>;
+  return typeof head.unit === "string" && isHash(head.seal);
+}
+
+/** Reads every chain's head, refusing anything that is not structurally a set of heads. */
+export function readHeads(root: string): Record<string, Head> {
+  const file = path.join(root, HEADS_FILE);
+  if (!fs.existsSync(file)) return {};
+  const heads: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (typeof heads !== "object" || heads === null || Array.isArray(heads) || !Object.values(heads).every(isHead)) {
+    throw new Error("not a set of chain heads");
+  }
+  return heads as Record<string, Head>;
+}
+
+function writeHead(root: string, chain: string, head: Head): void {
+  const heads = { ...readHeads(root), [chain]: head };
+  const sorted = Object.fromEntries(Object.entries(heads).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  fs.writeFileSync(path.join(root, HEADS_FILE), `${JSON.stringify(sorted, null, 2)}\n`);
+}
+
 /**
  * Checks the unit list itself before anything is read or written: every unit
  * is a canonical relative path that stays beneath the root without passing
@@ -87,15 +117,21 @@ export function readSeal(root: string, unit: string): Seal {
  */
 export function unitErrors(root: string, units: string[]): string[] {
   const errors: string[] = [];
-  const seen = new Set<string>();
+  // Keyed case- and normalization-insensitively: on Windows and macOS, "one"
+  // and "ONE" are the same directory, so they must never count as two units.
+  const seen = new Map<string, string>();
   for (const unit of units) {
     const segments = unit.split("/");
     if (!/^[^/\\:]+(\/[^/\\:]+)*$/.test(unit) || segments.some((x) => x === "." || x === "..")) {
       errors.push(`${unit}: unit must be a relative path beneath the root, with "/" separators and no "." or ".."`);
       continue;
     }
-    if (seen.has(unit)) errors.push(`${unit}: unit listed twice`);
-    seen.add(unit);
+    const key = unit.normalize("NFC").toLowerCase();
+    const first = seen.get(key);
+    if (first === unit) errors.push(`${unit}: unit listed twice`);
+    else if (first !== undefined)
+      errors.push(`${unit}: unit is the same directory as ${first} on case-insensitive filesystems`);
+    else seen.set(key, unit);
     let current = path.resolve(root);
     for (const segment of segments) {
       current = path.join(current, segment);
@@ -107,25 +143,35 @@ export function unitErrors(root: string, units: string[]): string[] {
       }
     }
   }
-  const canonical = [...seen];
-  for (const outer of canonical) {
-    for (const inner of canonical) {
-      if (inner.startsWith(`${outer}/`)) errors.push(`${outer}: unit contains unit ${inner}`);
+  for (const [outerKey, outer] of seen) {
+    for (const [innerKey, inner] of seen) {
+      if (innerKey.startsWith(`${outerKey}/`)) errors.push(`${outer}: unit contains unit ${inner}`);
     }
   }
   return errors;
 }
 
 /**
- * Checks a chain of units, oldest first. The unit list must be safe first (see
- * unitErrors); then every sealed unit still holds exactly
- * the files it was sealed with, every seal matches its own content and chains
- * to the seal before it, and no open unit precedes a sealed one.
+ * Checks a named chain of units, oldest first. The unit list must be safe first
+ * (see unitErrors); then every sealed unit still holds exactly the files it was
+ * sealed with, every seal matches its own content and chains to the seal
+ * before it, no open unit precedes a sealed one, and the chain's head agrees:
+ * every unit up to the head is still sealed, none beyond it is, and the head's
+ * seal is the one its unit holds.
  */
-export function checkChain(root: string, units: string[]): string[] {
+export function checkChain(root: string, chain: string, units: string[]): string[] {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(chain)) {
+    return [`${chain}: chain name must be lowercase kebab-case (a-z, 0-9, single hyphens)`];
+  }
   // An unsafe unit list is reported on its own: nothing under it is read.
   const errors = unitErrors(root, units);
   if (errors.length) return errors;
+  let head: Head | undefined;
+  try {
+    head = readHeads(root)[chain];
+  } catch (e) {
+    return [`${HEADS_FILE}: unreadable chain heads (${e instanceof Error ? e.message : String(e)})`];
+  }
   let previous: string | null = null;
   let open: string | undefined;
   for (const unit of units) {
@@ -157,17 +203,38 @@ export function checkChain(root: string, units: string[]): string[] {
     }
     previous = seal.seal;
   }
+  const sealed = units.filter((unit) => isSealed(root, unit));
+  if (!head) {
+    if (sealed.length) errors.push(`${chain}: chain has seals but no head in ${HEADS_FILE}`);
+    return errors;
+  }
+  const last = units.indexOf(head.unit);
+  if (last < 0) {
+    errors.push(`${chain}: head names unit ${head.unit}, which is not in the chain`);
+    return errors;
+  }
+  units.forEach((unit, i) => {
+    if (i <= last && !isSealed(root, unit)) errors.push(`${unit}: seal removed after sealing`);
+    if (i > last && isSealed(root, unit)) errors.push(`${unit}: sealed beyond the chain's head`);
+  });
+  try {
+    if (isSealed(root, head.unit) && readSeal(root, head.unit).seal !== head.seal) {
+      errors.push(`${chain}: head does not match the seal of ${head.unit}`);
+    }
+  } catch {
+    // An unreadable seal is already reported above.
+  }
   return errors;
 }
 
 /**
- * Seals every open unit of a chain, oldest first, each chained to the seal
- * before it. Refuses a chain whose seals are broken, an empty unit, and a unit
+ * Seals every open unit of a named chain, oldest first, each chained to the seal
+ * before it, then moves the chain's head to the newest seal. Refuses a chain whose seals are broken, an empty unit, and a unit
  * holding symlinks. Returns the units it sealed; a fully sealed chain is left
  * as it is.
  */
-export function sealChain(root: string, units: string[]): string[] {
-  const errors = checkChain(root, units);
+export function sealChain(root: string, chain: string, units: string[]): string[] {
+  const errors = checkChain(root, chain, units);
   if (errors.length) throw new Error(`refusing to seal a chain with broken seals:\n${errors.join("\n")}`);
   // Every seal is computed before any is written, so a refusal leaves no partly sealed chain.
   const seals: Seal[] = [];
@@ -189,5 +256,8 @@ export function sealChain(root: string, units: string[]): string[] {
     // "wx" refuses to overwrite: a seal is as immutable as what it closes.
     fs.writeFileSync(sealPath(root, seal.unit), `${JSON.stringify(seal, null, 2)}\n`, { flag: "wx" });
   }
+  const newest = seals.at(-1);
+  // The head moves forward only once every new seal is written.
+  if (newest) writeHead(root, chain, { unit: newest.unit, seal: newest.seal });
   return seals.map((s) => s.unit);
 }

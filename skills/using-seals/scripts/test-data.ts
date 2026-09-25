@@ -6,8 +6,12 @@ import { fileURLToPath } from "node:url";
 
 const DATA = fileURLToPath(new URL("../test-data/", import.meta.url));
 
-/** The units of every chain in test-data/chains, oldest first. */
+/** The name and units of every chain in test-data/chains, oldest first. */
+export const CHAIN = "chain";
 export const UNITS = ["one", "two"];
+
+/** A chain name that is not lowercase kebab-case. */
+export const INVALID_CHAIN = "Not A Chain";
 
 /** The units of test-data/chains/unit-renamed: unit "one" renamed to "zero" after sealing. */
 export const RENAMED_UNITS = ["zero", "two"];
@@ -15,7 +19,7 @@ export const RENAMED_UNITS = ["zero", "two"];
 /**
  * Unit lists a chain must refuse before reading or writing anything, by name:
  * paths that could leave the root, non-canonical spellings of a unit, a unit
- * listed twice, and a unit nested in another.
+ * listed twice or differing only in case, and a unit nested in another.
  */
 export const UNSAFE_UNITS: Record<string, string[]> = {
   traversal: ["../outside"],
@@ -24,6 +28,7 @@ export const UNSAFE_UNITS: Record<string, string[]> = {
   "dot-segment": ["./one"],
   "trailing-slash": ["one/"],
   duplicate: ["one", "two", "one"],
+  "case-alias": ["one", "ONE"],
   nested: ["one", "one/nested"],
 };
 
