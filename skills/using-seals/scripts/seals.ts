@@ -270,6 +270,41 @@ export function unitErrors(root: string, units: string[]): string[] {
 }
 
 /**
+ * What sealing may be changing under a root: whether the lock is held, and
+ * the chain heads' bytes. Read without following links or opening anything
+ * but a regular file, so taking it never blocks.
+ */
+function sealingState(root: string): string {
+  const describe = (file: string) => {
+    try {
+      const stat = fs.lstatSync(file, { throwIfNoEntry: false });
+      if (!stat) return "absent";
+      return stat.isFile() ? fs.readFileSync(file, "utf8") : `${entryKind(stat)} ${stat.mtimeMs}`;
+    } catch (e) {
+      // Reported by the check itself when it reads the heads.
+      return `unreadable ${e instanceof Error ? e.message : String(e)}`;
+    }
+  };
+  return JSON.stringify([describe(path.join(root, LOCK_FILE)), describe(path.join(root, HEADS_FILE))]);
+}
+
+/**
+ * Checks a named chain of units, oldest first, as checkUnlocked describes. A
+ * sealing writes seals before it moves the head, so a check that overlaps one
+ * could see a half-sealed chain; when the lock is held before or after the
+ * check, or the heads changed during it, the check reports that a sealing is
+ * in progress instead of reporting a chain it could not see whole.
+ */
+export function checkChain(root: string, chain: string, units: string[]): string[] {
+  const unsettled = [`${LOCK_FILE}: a sealing is in progress under this root; check again once it has finished`];
+  const before = sealingState(root);
+  const errors = checkUnlocked(root, chain, units);
+  const after = sealingState(root);
+  if (before !== after || JSON.parse(before)[0] !== "absent") return unsettled;
+  return errors;
+}
+
+/**
  * Checks a named chain of units, oldest first. The unit list must be safe first
  * (see unitErrors); then every sealed unit still holds exactly the files it was
  * sealed with, every seal matches its own content and chains to the seal
@@ -277,7 +312,7 @@ export function unitErrors(root: string, units: string[]): string[] {
  * every unit up to the head is still sealed, none beyond it is, and the head's
  * seal is the one its unit holds.
  */
-export function checkChain(root: string, chain: string, units: string[]): string[] {
+function checkUnlocked(root: string, chain: string, units: string[]): string[] {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(chain)) {
     return [`${chain}: chain name must be lowercase kebab-case (a-z, 0-9, single hyphens)`];
   }
@@ -401,7 +436,8 @@ export function sealChain(root: string, chain: string, units: string[]): string[
 }
 
 function sealLocked(root: string, chain: string, units: string[]): string[] {
-  const errors = checkChain(root, chain, units);
+  // The lock is held, so nothing else is sealing: check without waiting on it.
+  const errors = checkUnlocked(root, chain, units);
   if (errors.length) throw new Error(`refusing to seal a chain with broken seals:\n${errors.join("\n")}`);
   // Every seal is computed before any is written, so a refusal leaves no partly sealed chain.
   const seals: Seal[] = [];

@@ -188,3 +188,24 @@ export function withFailure<T>(name: keyof typeof FAILURES, run: () => T): T {
     (io as Record<string, unknown>)[operation] = real;
   }
 }
+
+/**
+ * Runs `run`, and the first time it probes `target` (a posix path within the
+ * root) runs `interleave` there, as a process working beside it would: for
+ * example, a sealing that completes in the middle of a check.
+ */
+export function during<T>(target: string, interleave: () => void, run: () => T): T {
+  const real = io.lstatSync;
+  (io as Record<string, unknown>).lstatSync = (...args: unknown[]) => {
+    if (String(args[0]).split(path.sep).join("/").endsWith(`/${target}`)) {
+      io.lstatSync = real;
+      interleave();
+    }
+    return (real as (...a: unknown[]) => unknown)(...args);
+  };
+  try {
+    return run();
+  } finally {
+    io.lstatSync = real;
+  }
+}

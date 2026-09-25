@@ -20,6 +20,7 @@ import {
   tree,
   UNITS,
   UNSAFE_UNITS,
+  during,
   withFailure,
 } from "./test-data.js";
 
@@ -320,4 +321,23 @@ test("removes a lock left partly written by a failed write, so a retry can seal"
   );
   assert.deepEqual(tree(root), tree(chainData("open")));
   assert.deepEqual(sealChain(root, CHAIN, UNITS), ["one", "two"]);
+});
+
+test("reports a sealing in progress instead of a half-sealed chain", () => {
+  assert.deepEqual(check("sealing-in-progress"), [
+    "seals.json.lock: a sealing is in progress under this root; check again once it has finished",
+  ]);
+});
+
+test("reports a sealing that completed during the check instead of a half-sealed chain", () => {
+  const root = scratchChain("sealed-one");
+  assert.deepEqual(
+    during(
+      "two/seal.json",
+      () => sealChain(root, CHAIN, UNITS),
+      () => checkChain(root, CHAIN, UNITS),
+    ),
+    ["seals.json.lock: a sealing is in progress under this root; check again once it has finished"],
+  );
+  assert.deepEqual(checkChain(root, CHAIN, UNITS), []);
 });
