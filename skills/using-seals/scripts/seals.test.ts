@@ -137,7 +137,9 @@ test("reports a chain whose head is missing, mismatched, behind its seals, unkno
   assert.deepEqual(check("head-missing"), ["chain: chain has seals but no head in seals.json"]);
   assert.deepEqual(check("head-mismatch"), ["chain: head does not match the seal of two"]);
   assert.deepEqual(check("sealed-beyond-head"), ["two: sealed beyond the chain's head"]);
-  assert.deepEqual(check("head-unknown-unit"), ["chain: head names unit three, which is not in the chain"]);
+  assert.deepEqual(check("head-unknown-unit"), [
+    "chain: head records units one, two, three, which do not begin the chain",
+  ]);
   assert.deepEqual(check("heads-malformed"), ["seals.json: unreadable chain heads (not a set of chain heads)"]);
 });
 
@@ -145,12 +147,15 @@ test("reports units checked in a different order than they were sealed", () => {
   assert.deepEqual(check("sealed", ["two", "one"]), [
     "two: seal does not chain to the previous seal",
     "one: seal does not chain to the previous seal",
-    "one: sealed beyond the chain's head",
+    "chain: head records units one, two, which do not begin the chain",
   ]);
 });
 
 test("reports a sealed unit whose directory was renamed after sealing", () => {
-  assert.deepEqual(check("unit-renamed", RENAMED_UNITS), ["zero: seal belongs to unit one"]);
+  assert.deepEqual(check("unit-renamed", RENAMED_UNITS), [
+    "zero: seal belongs to unit one",
+    "chain: head records units one, two, which do not begin the chain",
+  ]);
 });
 
 test("reports a symlink placed in a sealed unit", () => {
@@ -344,17 +349,26 @@ test("reports a sealing that completed during the check instead of a half-sealed
   assert.deepEqual(checkChain(root, CHAIN, UNITS), []);
 });
 
-test("refuses to seal over another chain's head whose seal was removed, and writes nothing", () => {
+test("refuses to seal over another chain's newest unit whose seal was removed, and writes nothing", () => {
   const containing = scratchChain("nested-seal-removed-by-other-chain");
   assert.throws(
     () => sealChain(containing, CHAIN, UNITS),
-    /one: refusing to seal a unit overlapping one\/nested, the head of chain other/,
+    /one: refusing to seal a unit overlapping one\/nested, sealed by chain other/,
   );
   assert.deepEqual(tree(containing), tree(chainData("nested-seal-removed-by-other-chain")));
   const inside = scratchChain("head-seal-removed");
   assert.throws(
     () => sealChain(inside, OTHER_CHAIN, NESTED_UNITS),
-    /one\/nested: refusing to seal a unit overlapping one, the head of chain chain/,
+    /one\/nested: refusing to seal a unit overlapping one, sealed by chain chain/,
   );
   assert.deepEqual(tree(inside), tree(chainData("head-seal-removed")));
+});
+
+test("refuses to seal over an earlier unit of another chain whose seal was removed, and writes nothing", () => {
+  const root = scratchChain("sealed-after-open");
+  assert.throws(
+    () => sealChain(root, OTHER_CHAIN, NESTED_UNITS),
+    /one\/nested: refusing to seal a unit overlapping one, sealed by chain chain/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("sealed-after-open")));
 });

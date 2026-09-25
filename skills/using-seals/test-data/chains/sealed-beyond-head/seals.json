@@ -1,6 +1,8 @@
 {
   "chain": {
-    "unit": "one",
+    "units": [
+      "one"
+    ],
     "seal": "0a969161c504a1ed38a0f22ec7226c6fa3388774bfd373a64218b4b038365654"
   }
 }

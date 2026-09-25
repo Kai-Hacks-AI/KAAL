@@ -7,8 +7,9 @@ import path from "node:path";
  * Units form a named chain in an order the using system decides; each seal
  * records the bytes of every file in its unit and the previous seal of the
  * chain, so changing any sealed unit breaks its own seal and every seal after
- * it. The chain's head, kept at the root, records how far the chain is sealed,
- * so removing trailing seals is noticed too.
+ * it. The chain's head, kept at the root, records every sealed unit in order
+ * and the newest seal, so removing trailing seals is noticed too, and no other
+ * chain can seal over a unit this one has sealed.
  */
 export type Seal = {
   unit: string;
@@ -43,7 +44,7 @@ export const HEADS_FILE = "seals.json";
  */
 export const LOCK_FILE = "seals.json.lock";
 
-export type Head = { unit: string; seal: string };
+export type Head = { units: string[]; seal: string };
 
 const sha256 = (data: string | Buffer) => crypto.createHash("sha256").update(data).digest("hex");
 
@@ -144,7 +145,12 @@ export function readSeal(root: string, unit: string): Seal {
 function isHead(value: unknown): value is Head {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
   const head = value as Record<string, unknown>;
-  return typeof head.unit === "string" && isHash(head.seal);
+  return (
+    Array.isArray(head.units) &&
+    head.units.length > 0 &&
+    head.units.every((u) => typeof u === "string") &&
+    isHash(head.seal)
+  );
 }
 
 /**
@@ -393,19 +399,21 @@ function checkUnlocked(root: string, chain: string, units: string[]): string[] {
     if (sealed.size) errors.push(`${chain}: chain has seals but no head in ${HEADS_FILE}`);
     return errors;
   }
-  const last = units.indexOf(head.unit);
-  if (last < 0) {
-    errors.push(`${chain}: head names unit ${head.unit}, which is not in the chain`);
+  // The head records every sealed unit in order: they must begin the chain.
+  if (!head.units.every((unit, i) => units[i] === unit)) {
+    errors.push(`${chain}: head records units ${head.units.join(", ")}, which do not begin the chain`);
     return errors;
   }
+  const last = head.units.length - 1;
+  const newest = units[last];
   units.forEach((unit, i) => {
     if (unknown.has(unit)) return;
     if (i <= last && !sealed.has(unit)) errors.push(`${unit}: seal removed after sealing`);
     if (i > last && sealed.has(unit)) errors.push(`${unit}: sealed beyond the chain's head`);
   });
   try {
-    if (sealed.has(head.unit) && readSeal(root, head.unit).seal !== head.seal) {
-      errors.push(`${chain}: head does not match the seal of ${head.unit}`);
+    if (sealed.has(newest) && readSeal(root, newest).seal !== head.seal) {
+      errors.push(`${chain}: head does not match the seal of ${newest}`);
     }
   } catch {
     // An unreadable seal is already reported above.
@@ -467,13 +475,18 @@ function sealLocked(root: string, chain: string, units: string[]): string[] {
       const sealedInner = `${unit}/${inner.path.slice(0, -SEAL_FILE.length - 1)}`;
       throw new Error(`${unit}: refusing to seal a unit containing sealed unit ${sealedInner}`);
     }
-    // Another chain's head records a sealed unit even if its seal file was
-    // removed; sealing over it would leave both chains unrepairable.
+    // Every other chain's head records the units it sealed, even ones whose
+    // seal file was removed; sealing over any of them would leave both chains
+    // unrepairable.
     const key = unit.toLowerCase();
     for (const [other, head] of heads) {
-      const theirs = head.unit.toLowerCase();
-      if (other !== chain && (theirs === key || theirs.startsWith(`${key}/`) || key.startsWith(`${theirs}/`))) {
-        throw new Error(`${unit}: refusing to seal a unit overlapping ${head.unit}, the head of chain ${other}`);
+      if (other === chain) continue;
+      const overlapping = head.units.find((theirs) => {
+        const t = theirs.toLowerCase();
+        return t === key || t.startsWith(`${key}/`) || key.startsWith(`${t}/`);
+      });
+      if (overlapping !== undefined) {
+        throw new Error(`${unit}: refusing to seal a unit overlapping ${overlapping}, sealed by chain ${other}`);
       }
     }
     if (unsealable.length) {
@@ -498,7 +511,7 @@ function sealLocked(root: string, chain: string, units: string[]): string[] {
     }
     const newest = seals.at(-1);
     // The head moves forward only once every new seal is written.
-    if (newest) writeHead(root, chain, { unit: newest.unit, seal: newest.seal });
+    if (newest) writeHead(root, chain, { units: units.slice(0, units.indexOf(newest.unit) + 1), seal: newest.seal });
   } catch (e) {
     for (const file of written) fs.rmSync(file, { force: true });
     throw e;
