@@ -16,6 +16,7 @@ test("rejects traversal in lineage and slug", () => {
   const root = scratchBrain();
   assert.throws(() => createNode(birth("traversal-lineage", root)), /lineage/);
   assert.throws(() => createNode(birth("traversal-slug", root)), /slug/);
+  assert.throws(() => createNode(birth("traversal-backslash", root)), /slug/);
 });
 test("rejects an empty name", () => {
   assert.throws(() => createNode(birth("empty-name", scratchBrain())), /name is required/);
