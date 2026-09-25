@@ -3,7 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import YAML from "yaml";
-import { type Edge, edgeErrors, relativeIdentity, ROOT } from "./brain.js";
+import { type Edge, edgeErrors, portableNameError, relativeIdentity, ROOT } from "./brain.js";
 
 export type CreateNode = {
   root?: string;
@@ -15,10 +15,9 @@ export type CreateNode = {
   edges?: Edge[];
 };
 
-function component(v: string, label: string): void {
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(v) || v === "." || v === "..") {
-    throw new Error(`${label} must be one path component`);
-  }
+function component(value: string, label: string): void {
+  const error = portableNameError(value, label);
+  if (error) throw new Error(error);
 }
 
 /**
