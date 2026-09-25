@@ -3,8 +3,9 @@ brain/** -text
 skills/using-brain/test-data/** -text
 skills/using-seals/test-data/** -text
 skills/using-agents/test-data/** -text
+skills/using-skills/test-data/** -text
 test-data/** -text
-# Skills are born from init: SKILL.md must stay byte-exact to what init generates.
+# Skills are born from init: SKILL.md must stay byte-exact to what init generates (using-skills checks it).
 skills/*/SKILL.md -text
 # Agent entry points are created by using-agents: they must stay byte-exact to what Genesis produces.
 AGENTS.md -text

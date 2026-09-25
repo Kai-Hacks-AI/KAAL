@@ -6,6 +6,8 @@ skills/using-brain/test-data/
 skills/using-seals/test-data/
 # Guidance fixtures keep exact bytes (CRLF, blank guidance).
 skills/using-agents/test-data/
+# Example skills keep exact bytes: using-skills compares SKILL.md to what init generates.
+skills/using-skills/test-data/
 # KAAL's seal fixtures: same reason.
 test-data/
 package-lock.json

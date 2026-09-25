@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { checkSkills } from "../skills/using-skills/scripts/skills.js";
 
 // Skills are independent capabilities: none may import another. A using system
 // such as KAAL's Genesis composes them; they never compose each other.
@@ -24,4 +25,10 @@ test("no skill imports another skill", () => {
     }
   }
   assert.deepEqual(crossing, []);
+});
+
+// KAAL uses using-skills: every skill follows the Agent Skills standard and is
+// born from its own init. Why: brain/learning/genesis/26/09/25/01/nodes/using-skills.md
+test("every skill follows the Agent Skills standard and is born from its own init", async () => {
+  assert.deepEqual(await checkSkills(SKILLS), []);
 });
