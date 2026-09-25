@@ -7,7 +7,7 @@ description: Create and validate immutable BRAIN nodes whose mechanics are YAML 
 
 BRAIN contains nodes. A node is an immutable Markdown file: YAML frontmatter holds mechanics; the Markdown body holds meaning.
 
-A node has a stable `name`. Its path is its identity. Nodes with the same name may be born later as understanding changes; earlier nodes are not changed.
+A node has a stable `name`. Its path is its identity. Lineages and slugs are path components, so they must be portable: lowercase kebab-case (`a-z`, `0-9`, single hyphens) and never a Windows reserved device name such as `con` or `nul`. Portable path components keep a node's path, which is its identity, the same on every supported platform. Nodes with the same name may be born later as understanding changes; earlier nodes are not changed.
 
 An edge is directional knowledge written on the node that knows it:
 
