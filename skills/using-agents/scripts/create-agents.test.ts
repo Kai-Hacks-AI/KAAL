@@ -40,3 +40,34 @@ test("refuses empty guidance, creating nothing", () => {
   assert.throws(() => createAgents(scope, guidance("blank")), /guidance is empty/);
   assert.deepEqual(fs.readdirSync(scope), []);
 });
+
+test("a failure after AGENTS.md was created removes it and reports the failure", (t) => {
+  const scope = scratchScope();
+  const file = path.join(scope, "AGENTS.md");
+  const write = fs.writeFileSync;
+  let createdBeforeFailure = false;
+  // Fault injection: the write to the created file starts, then fails.
+  t.mock.method(fs, "writeFileSync", (target: fs.PathOrFileDescriptor, data: string) => {
+    if (typeof target !== "number") return write(target, data);
+    write(target, data.slice(0, 3));
+    createdBeforeFailure = fs.existsSync(file);
+    throw new Error("write failed on purpose");
+  });
+  assert.throws(() => createAgents(scope, guidance("example")), /write failed on purpose/);
+  assert.equal(createdBeforeFailure, true);
+  assert.deepEqual(fs.readdirSync(scope), []);
+});
+
+test("a failing call never removes or changes an AGENTS.md that existed before it", (t) => {
+  const scope = scratchScope();
+  const file = path.join(scope, "AGENTS.md");
+  fs.writeFileSync(file, guidance("crlf"));
+  // Even with every write failing, the existing entry point is refused, not touched.
+  t.mock.method(fs, "writeFileSync", () => {
+    throw new Error("write failed on purpose");
+  });
+  assert.throws(() => createAgents(scope, guidance("example")));
+  t.mock.restoreAll();
+  assert.equal(fs.readFileSync(file, "utf8"), guidance("crlf"));
+  assert.deepEqual(fs.readdirSync(scope), ["AGENTS.md"]);
+});

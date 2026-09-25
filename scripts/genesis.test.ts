@@ -71,3 +71,21 @@ test("Genesis refuses when the repository already has an Agent entry point, leav
   assert.deepEqual(files(repo), before);
   assert.equal(fs.existsSync(path.join(repo, "brain")), false);
 });
+
+test("Genesis whose Agent entry point fails after it was created leaves the repository exactly as it was", (t) => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-genesis-"));
+  fs.writeFileSync(path.join(repo, "README.md"), "# Existing\n");
+  const before = files(repo);
+  const write = fs.writeFileSync;
+  // Fault injection: using-agents' write to the AGENTS.md it created fails partway.
+  t.mock.method(fs, "writeFileSync", (target: fs.PathOrFileDescriptor, data: string, options?: fs.WriteFileOptions) => {
+    if (typeof target !== "number") return write(target, data, options);
+    write(target, data.slice(0, 3));
+    throw new Error("write failed on purpose");
+  });
+  assert.throws(() => genesis(repo), /write failed on purpose/);
+  t.mock.restoreAll();
+  assert.deepEqual(files(repo), before);
+  assert.equal(fs.existsSync(path.join(repo, "brain")), false);
+  assert.equal(fs.existsSync(path.join(repo, "AGENTS.md")), false);
+});
