@@ -60,6 +60,10 @@ test("a skill is born when running its init writes exactly its committed SKILL.m
   ]);
 });
 
+test("an init may print as much as it likes", () => {
+  assert.deepEqual(birthErrors(skill("verbose")), []);
+});
+
 test("a skill without an init, or whose init writes no SKILL.md when run, is not born from it", () => {
   assert.deepEqual(birthErrors(skill("no-init")), ["no-init: no scripts/init.ts; a skill is born from its own init"]);
   assert.deepEqual(birthErrors(skill("export-only")), ["export-only: running scripts/init.ts does not write SKILL.md"]);

@@ -101,18 +101,29 @@ export function birthErrors(dir: string, timeout = 60_000): string[] {
   try {
     const copy = path.join(scratch, skill);
     fs.cpSync(dir, copy, { recursive: true, filter: (source) => source !== committed });
-    const run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {
-      cwd: copy,
-      encoding: "utf8",
-      timeout,
-      // SIGKILL, not the default SIGTERM: an init can ignore SIGTERM and keep
-      // the check waiting forever; SIGKILL cannot be ignored.
-      killSignal: "SIGKILL",
-    });
+    // Output goes nowhere and errors to a file, never to a buffer: an init may
+    // print as much as it likes, and only the end of its errors is reported.
+    const log = path.join(scratch, "init.stderr");
+    const stderr = fs.openSync(log, "w");
+    let run;
+    try {
+      run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {
+        cwd: copy,
+        stdio: ["ignore", "ignore", stderr],
+        timeout,
+        // SIGKILL, not the default SIGTERM: an init can ignore SIGTERM and keep
+        // the check waiting forever; SIGKILL cannot be ignored.
+        killSignal: "SIGKILL",
+      });
+    } finally {
+      fs.closeSync(stderr);
+    }
     if ((run.error as NodeJS.ErrnoException | undefined)?.code === "ETIMEDOUT")
       return [`${skill}: running scripts/init.ts did not finish within ${timeout} ms`];
     if (run.status !== 0)
-      return [`${skill}: running scripts/init.ts failed: ${(run.stderr || String(run.error ?? run.signal)).trim()}`];
+      return [
+        `${skill}: running scripts/init.ts failed: ${(fs.readFileSync(log, "utf8").slice(-4000) || String(run.error ?? run.signal)).trim()}`,
+      ];
     const born = path.join(copy, "SKILL.md");
     if (!fs.existsSync(born)) return [`${skill}: running scripts/init.ts does not write SKILL.md`];
     return fs.readFileSync(committed).equals(fs.readFileSync(born))
