@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "tsx --test skills/*/scripts/*.test.ts scripts/*.test.ts",
-    "brain:init": "tsx skills/using-brain/scripts/init.ts",
+    "genesis": "tsx scripts/genesis.ts",
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
     "seal": "tsx scripts/seal.ts",

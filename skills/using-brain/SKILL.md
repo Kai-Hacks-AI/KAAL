@@ -17,4 +17,4 @@ The relation and target must already exist before A is born, in the same lineage
 
 Create every node through `scripts/create-node.ts`; pass each edge as `--edge <relation>=<target>`, using node identities (paths relative to the BRAIN root). Birth is refused if an edge's relation or target does not already exist in an earlier learning of the same lineage. Validate BRAIN with `scripts/validate.ts`.
 
-Genesis is the bootstrap: `scripts/init.ts` creates the first BRAIN by using the same node-creation mechanics. KAAL-specific reasons for using this skill belong in BRAIN nodes, not here; this skill is KAAL-independent.
+A using system bootstraps its BRAIN by birthing its first nodes through the same mechanism as any other node. Its reasons for using this skill belong in those nodes, not here: this skill is independent of any using system.
