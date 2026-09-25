@@ -92,13 +92,19 @@ function contents(
   const files: Seal["files"] = [];
   const unsealable: { path: string; kind: EntryKind }[] = [];
   if (!fs.existsSync(dir)) return { files, unsealable };
-  for (const entry of io.readdirSync(dir, { recursive: true, withFileTypes: true })) {
-    const full = path.join(entry.parentPath, entry.name);
-    const relative = posix(path.relative(dir, full));
-    const kind = entryKind(entry);
-    if (kind === "file") {
-      if (relative !== SEAL_FILE) files.push({ path: relative, sha256: sha256(io.readFileSync(full)) });
-    } else if (kind !== "directory") unsealable.push({ path: relative, kind });
+  // Walked one directory at a time: a recursive readdir would follow a
+  // directory symlink out of the unit before it could be refused.
+  const pending = [dir];
+  for (let current = pending.pop(); current !== undefined; current = pending.pop()) {
+    for (const entry of io.readdirSync(current, { withFileTypes: true })) {
+      const full = path.join(current, entry.name);
+      const relative = posix(path.relative(dir, full));
+      const kind = entryKind(entry);
+      if (kind === "file") {
+        if (relative !== SEAL_FILE) files.push({ path: relative, sha256: sha256(io.readFileSync(full)) });
+      } else if (kind === "directory") pending.push(full);
+      else unsealable.push({ path: relative, kind });
+    }
   }
   const byPath = (a: { path: string }, b: { path: string }) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
   return { files: files.sort(byPath), unsealable: unsealable.sort(byPath) };

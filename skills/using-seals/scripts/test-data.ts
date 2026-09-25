@@ -80,6 +80,20 @@ export function chainWithSymlink(name: string): string {
   return root;
 }
 
+/**
+ * The given chain with a symlink inside unit "one" to a directory outside the
+ * root that holds a file. Built at run time because a symlink cannot be
+ * committed portably.
+ */
+export function chainWithDirectorySymlink(name: string): string {
+  const root = scratchChain(name);
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "seals-outside-"));
+  fs.mkdirSync(path.join(outside, "deep"));
+  fs.writeFileSync(path.join(outside, "deep", "outside.txt"), "outside\n");
+  fs.symlinkSync(outside, path.join(root, "one", "link"), "dir");
+  return root;
+}
+
 /** Every file under a root by posix path, with its contents, for byte-for-byte comparison. */
 export function tree(root: string): Record<string, string> {
   return Object.fromEntries(

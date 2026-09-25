@@ -5,6 +5,7 @@ import { checkChain, entryKind, sealChain } from "./seals.js";
 import {
   CHAIN,
   chainData,
+  chainWithDirectorySymlink,
   chainWithEmptyUnit,
   chainWithSymlink,
   chainWithSymlinkedSealFile,
@@ -75,6 +76,18 @@ test("refuses to seal while another sealing holds the root's lock, and writes no
   const root = scratchChain("sealing-in-progress");
   assert.throws(() => sealChain(root, CHAIN, UNITS), /seals\.json\.lock: another sealing holds this root/);
   assert.deepEqual(tree(root), tree(chainData("sealing-in-progress")));
+});
+
+test("refuses to seal a unit holding a directory symlink, without following it", () => {
+  const root = chainWithDirectorySymlink("open");
+  assert.throws(
+    () => sealChain(root, CHAIN, UNITS),
+    /one: refusing to seal entries that are not regular files: link \(symlink\)$/,
+  );
+});
+
+test("reports a directory symlink placed in a sealed unit, without following it", () => {
+  assert.deepEqual(checkChain(chainWithDirectorySymlink("sealed"), CHAIN, UNITS), ["one/link: symlink in sealed unit"]);
 });
 
 test("refuses a chain name that is not lowercase kebab-case", () => {
