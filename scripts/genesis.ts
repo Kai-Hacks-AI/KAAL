@@ -1,13 +1,38 @@
+import fs from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { ROOT } from "../skills/using-brain/scripts/brain.js";
+import { createAgents } from "../skills/using-agents/scripts/create-agents.js";
+import { BRAIN_DIR, createBrain } from "../skills/using-brain/scripts/create-brain.js";
 import { createNode } from "../skills/using-brain/scripts/create-node.js";
 
+/** KAAL's repository entry point: KAAL's guidance, placed by using-agents. */
+export const ROOT_GUIDANCE = "# KAAL\n\nUse BRAIN for KAAL context, including why KAAL uses its skills.\n";
+
 /**
- * KAAL's Genesis: births KAAL's first knowledge into BRAIN, in order, through
- * the using-brain birth path. KAAL's meaning lives here and in BRAIN, never in
- * the skills, so the skills stay reusable by systems that are not KAAL.
+ * KAAL's Genesis: KAAL is born by composing the capabilities it chooses.
+ * using-brain creates BRAIN, using-agents creates the repository's Agent entry
+ * point from KAAL's guidance, and using-brain's birth path then births KAAL's
+ * first knowledge into BRAIN, in order. KAAL's meaning lives here and in BRAIN,
+ * never in the skills, so the skills stay reusable by systems that are not
+ * KAAL. Genesis creates no directory and writes no file itself. It is all
+ * or nothing: if any step refuses or fails, what the steps before it created
+ * is removed again, so a failed Genesis leaves the repository as it was.
  */
-export function genesis(root = ROOT): void {
+export function genesis(repo = "."): void {
+  const created: string[] = [];
+  try {
+    const root = createBrain(path.join(repo, BRAIN_DIR));
+    created.push(path.dirname(root));
+    created.push(createAgents(repo, ROOT_GUIDANCE));
+    birth(root);
+  } catch (e) {
+    for (const item of created) fs.rmSync(item, { recursive: true, force: true });
+    throw e;
+  }
+}
+
+/** KAAL's Genesis knowledge, born in order into the BRAIN at `root`. */
+function birth(root: string): void {
   createNode({
     root,
     lineage: "genesis",

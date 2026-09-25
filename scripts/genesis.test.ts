@@ -3,22 +3,71 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { nodeFiles, relativeIdentity, ROOT } from "../skills/using-brain/scripts/brain.js";
+import { fileURLToPath } from "node:url";
 import { validate } from "../skills/using-brain/scripts/validate.js";
 import { genesis } from "./genesis.js";
 
-const GENESIS = "genesis/26/09/25/01";
+// The committed repository is the expected result: this proves KAAL's initial
+// structure is exactly what Genesis produces through its capabilities, not
+// something placed by hand.
+const REPO = fileURLToPath(new URL("../", import.meta.url));
+const GENESIS = "brain/learning/genesis/26/09/25/01/nodes";
 
-// The committed Genesis learning is the expected result: this proves it is
-// exactly what the birth path produces, not something placed by hand.
-const learning = (root: string) =>
-  Object.fromEntries(
-    nodeFiles(path.join(root, GENESIS)).map((f) => [relativeIdentity(root, f), fs.readFileSync(f, "utf8")]),
+/** Every file under `dir`, by posix path relative to `from`, with its bytes. */
+function files(from: string, dir = from): Record<string, string> {
+  return Object.fromEntries(
+    fs
+      .readdirSync(dir, { recursive: true, withFileTypes: true })
+      .filter((e) => e.isFile())
+      .map((e) => path.join(e.parentPath, e.name))
+      .sort()
+      .map((f) => [path.relative(from, f).split(path.sep).join("/"), fs.readFileSync(f, "utf8")]),
   );
+}
 
-test("Genesis births exactly the committed Genesis learning through create-node", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-genesis-"));
-  genesis(root);
-  assert.deepEqual(learning(root), learning(ROOT));
-  assert.deepEqual(validate(root), []);
+function born(): string {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-genesis-"));
+  genesis(repo);
+  return repo;
+}
+
+test("Genesis produces exactly the root AGENTS.md, brain/AGENTS.md and the Genesis learning, nothing else", () => {
+  assert.deepEqual(Object.keys(files(born())), [
+    "AGENTS.md",
+    "brain/AGENTS.md",
+    ...Object.keys(files(REPO, path.join(REPO, GENESIS))),
+  ]);
+});
+
+test("everything Genesis produces is byte-identical to what is committed", () => {
+  const produced = files(born());
+  const committed = Object.fromEntries(
+    Object.keys(produced).map((file) => [file, fs.readFileSync(path.join(REPO, file), "utf8")]),
+  );
+  assert.deepEqual(produced, committed);
+});
+
+test("the committed Genesis learning holds exactly the nodes Genesis births", () => {
+  const repo = born();
+  assert.deepEqual(files(repo, path.join(repo, GENESIS)), files(REPO, path.join(REPO, GENESIS)));
+});
+
+test("the BRAIN Genesis produces is valid", () => {
+  assert.deepEqual(validate(path.join(born(), "brain/learning")), []);
+});
+
+test("Genesis refuses to run over an existing KAAL, changing nothing", () => {
+  const repo = born();
+  const before = files(repo);
+  assert.throws(() => genesis(repo), /already exists/);
+  assert.deepEqual(files(repo), before);
+});
+
+test("Genesis refuses when the repository already has an Agent entry point, leaving it as it was", () => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-genesis-"));
+  fs.cpSync(path.join(REPO, "AGENTS.md"), path.join(repo, "AGENTS.md"));
+  const before = files(repo);
+  assert.throws(() => genesis(repo), /AGENTS\.md: already exists/);
+  assert.deepEqual(files(repo), before);
+  assert.equal(fs.existsSync(path.join(repo, "brain")), false);
 });
