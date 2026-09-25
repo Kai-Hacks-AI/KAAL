@@ -53,17 +53,79 @@ function sealHash({ unit, previous, files }: Omit<Seal, "seal">): string {
   return sha256(JSON.stringify({ unit, previous, files }));
 }
 
+const isHash = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f]{64}$/.test(v);
+
+function isSeal(value: unknown): value is Seal {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const seal = value as Record<string, unknown>;
+  return (
+    typeof seal.unit === "string" &&
+    (seal.previous === null || isHash(seal.previous)) &&
+    isHash(seal.seal) &&
+    Array.isArray(seal.files) &&
+    seal.files.every(
+      (f: unknown) =>
+        typeof f === "object" &&
+        f !== null &&
+        typeof (f as Record<string, unknown>).path === "string" &&
+        isHash((f as Record<string, unknown>).sha256),
+    )
+  );
+}
+
+/** Reads a unit's seal, refusing anything that is not structurally a seal. */
 export function readSeal(root: string, unit: string): Seal {
-  return JSON.parse(fs.readFileSync(sealPath(root, unit), "utf8")) as Seal;
+  const seal: unknown = JSON.parse(fs.readFileSync(sealPath(root, unit), "utf8"));
+  if (!isSeal(seal)) throw new Error("not a seal");
+  return seal;
 }
 
 /**
- * Checks a chain of units, oldest first: every sealed unit still holds exactly
+ * Checks the unit list itself before anything is read or written: every unit
+ * is a canonical relative path that stays beneath the root without passing
+ * through a symlink, and no unit is listed twice or contains another.
+ */
+export function unitErrors(root: string, units: string[]): string[] {
+  const errors: string[] = [];
+  const seen = new Set<string>();
+  for (const unit of units) {
+    const segments = unit.split("/");
+    if (!/^[^/\\:]+(\/[^/\\:]+)*$/.test(unit) || segments.some((x) => x === "." || x === "..")) {
+      errors.push(`${unit}: unit must be a relative path beneath the root, with "/" separators and no "." or ".."`);
+      continue;
+    }
+    if (seen.has(unit)) errors.push(`${unit}: unit listed twice`);
+    seen.add(unit);
+    let current = path.resolve(root);
+    for (const segment of segments) {
+      current = path.join(current, segment);
+      const stat = fs.lstatSync(current, { throwIfNoEntry: false });
+      if (!stat) break;
+      if (stat.isSymbolicLink()) {
+        errors.push(`${unit}: unit path passes through a symlink`);
+        break;
+      }
+    }
+  }
+  const canonical = [...seen];
+  for (const outer of canonical) {
+    for (const inner of canonical) {
+      if (inner.startsWith(`${outer}/`)) errors.push(`${outer}: unit contains unit ${inner}`);
+    }
+  }
+  return errors;
+}
+
+/**
+ * Checks a chain of units, oldest first. The unit list must be safe first (see
+ * unitErrors); then every sealed unit still holds exactly
  * the files it was sealed with, every seal matches its own content and chains
  * to the seal before it, and no open unit precedes a sealed one.
  */
 export function checkChain(root: string, units: string[]): string[] {
-  const errors: string[] = [];
+  // An unsafe unit list is reported on its own: nothing under it is read.
+  const errors = unitErrors(root, units);
+  if (errors.length) return errors;
   let previous: string | null = null;
   let open: string | undefined;
   for (const unit of units) {
@@ -76,7 +138,7 @@ export function checkChain(root: string, units: string[]): string[] {
     try {
       seal = readSeal(root, unit);
     } catch (e) {
-      errors.push(`${unit}: unreadable seal: ${String(e)}`);
+      errors.push(`${unit}: unreadable seal (${e instanceof Error ? e.message : String(e)})`);
       continue;
     }
     if (seal.unit !== unit) errors.push(`${unit}: seal belongs to unit ${seal.unit}`);

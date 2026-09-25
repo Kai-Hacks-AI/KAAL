@@ -5,10 +5,12 @@ import {
   chainData,
   chainWithEmptyUnit,
   chainWithSymlink,
+  chainWithSymlinkedUnit,
   RENAMED_UNITS,
   scratchChain,
   tree,
   UNITS,
+  UNSAFE_UNITS,
 } from "./test-data.js";
 
 test("seals every open unit oldest first, each chained to the one before", () => {
@@ -89,4 +91,44 @@ test("reports a sealed unit whose directory was renamed after sealing", () => {
 
 test("reports a symlink placed in a sealed unit", () => {
   assert.deepEqual(checkChain(chainWithSymlink("sealed"), UNITS), ["one/link.txt: symlink in sealed unit"]);
+});
+
+test("refuses unit lists that could leave the root, repeat a unit or nest units, reading and writing nothing", () => {
+  const path = 'unit must be a relative path beneath the root, with "/" separators and no "." or ".."';
+  const expected: Record<string, string> = {
+    traversal: `../outside: ${path}`,
+    absolute: `/outside: ${path}`,
+    backslash: `one\\nested: ${path}`,
+    "dot-segment": `./one: ${path}`,
+    "trailing-slash": `one/: ${path}`,
+    duplicate: "one: unit listed twice",
+    nested: "one: unit contains unit one/nested",
+  };
+  for (const [name, units] of Object.entries(UNSAFE_UNITS)) {
+    const root = scratchChain("open");
+    assert.deepEqual(checkChain(root, units), [expected[name]], name);
+    assert.throws(() => sealChain(root, units), /refusing to seal a chain with broken seals/, name);
+    assert.deepEqual(tree(root), tree(chainData("open")), name);
+  }
+});
+
+test("reports an unsafe unit list on its own, without reading the units", () => {
+  assert.deepEqual(checkChain(chainData("sealed"), UNSAFE_UNITS.duplicate), ["one: unit listed twice"]);
+});
+
+test("refuses a unit whose directory is a symlink, and writes nothing through it", () => {
+  const { root, outside } = chainWithSymlinkedUnit();
+  assert.deepEqual(checkChain(root, UNITS), ["one: unit path passes through a symlink"]);
+  assert.throws(() => sealChain(root, UNITS), /one: unit path passes through a symlink/);
+  assert.deepEqual(Object.keys(tree(outside)), ["a.txt", "nested/b.txt"]);
+});
+
+test("reports a structurally invalid seal instead of crashing, and keeps checking later units", () => {
+  for (const name of ["seal-malformed-empty", "seal-malformed-files"]) {
+    assert.deepEqual(
+      checkChain(chainData(name), UNITS),
+      ["one: unreadable seal (not a seal)", "two: seal does not chain to the previous seal"],
+      name,
+    );
+  }
 });
