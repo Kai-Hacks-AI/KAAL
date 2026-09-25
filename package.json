@@ -1,15 +1,19 @@
 {
   "name": "kaal",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "engines": {
     "node": ">=20.12"
   },
   "scripts": {
-    "test": "tsx --test skills/using-brain/scripts/*.test.ts",
-    "brain:init": "tsx skills/using-brain/scripts/init.ts",
+    "test": "tsx --test skills/*/scripts/*.test.ts scripts/*.test.ts",
+    "genesis": "tsx scripts/genesis.ts",
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
+    "seal": "tsx scripts/seal.ts",
+    "seals:check": "tsx scripts/check-seals.ts",
+    "seals:guard": "tsx scripts/seal-guard.ts",
     "typecheck": "tsc -p .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

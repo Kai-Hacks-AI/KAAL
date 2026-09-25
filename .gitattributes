@@ -1,1 +1,7 @@
+# BRAIN is sealed: its bytes must be identical wherever it is checked out.
+brain/** -text
 skills/using-brain/test-data/** -text
+skills/using-seals/test-data/** -text
+test-data/** -text
+# Skills are born from init: SKILL.md must stay byte-exact to what init generates.
+skills/*/SKILL.md -text

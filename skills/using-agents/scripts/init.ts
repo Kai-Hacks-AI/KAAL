@@ -1,25 +1,27 @@
-import { pathToFileURL } from "node:url";
-import { createNode } from "../../using-brain/scripts/create-node.js";
-import { ROOT } from "../../using-brain/scripts/brain.js";
+import fs from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-export function init(root = ROOT): void {
-  createNode({ root, lineage: "genesis", learning: "26/09/25/01", slug: "using-agents", name: "using-agents", meaning: `# Using Agents
+const SKILL = fileURLToPath(new URL("../SKILL.md", import.meta.url));
 
-KAAL uses the **using-agents** skill so agent guidance stays scoped and concise while KAAL-specific context and reasons remain in BRAIN.
+/** This skill's SKILL.md. The skill is born from init: SKILL.md is generated from here, never edited by hand. */
+export const SKILL_MD = `---
+name: using-agents
+description: Use scoped AGENTS.md files as concise agent entry points that route repository work to authoritative context and capabilities.
+---
 
-The skill explains the generic mechanics of AGENTS.md. This node records why KAAL uses it.
-` });
-  createNode({ root, lineage: "genesis", learning: "26/09/25/01", slug: "bass", name: "bass", meaning: `# BASS
+# Using Agents
 
-KAAL uses BASS as a structured ladder:
+Use \`AGENTS.md\` to give an agent the minimum scoped guidance needed to enter a repository or directory correctly.
 
-\`Bare < Agent < Skill < Script\`
+Keep \`AGENTS.md\` concise. It should route the agent to authoritative context or a capability rather than duplicate the meaning, rationale, or mechanics owned elsewhere.
 
-Forward, KAAL uses what it has: move toward the most deterministic capability available for the work.
+Narrower \`AGENTS.md\` files provide guidance for their scope. When a skill owns a capability, point to the skill instead of reproducing its instructions.
+`;
 
-When something fails, that failure gives direction for improvement. Move back toward understanding far enough to find the responsible level, improve it, then use the ladder forward again.
-
-BASS is KAAL's understanding. Skills remain independent of BASS and can be reused by systems that organize agents differently.
-` });
+/** Generates this skill's SKILL.md at `target` (by default, next to this skill's scripts). */
+export function init(target = SKILL): string {
+  fs.writeFileSync(target, SKILL_MD);
+  return target;
 }
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) init();
