@@ -63,6 +63,17 @@ When KAAL needs knowledge in order to use a skill, that knowledge is initialized
     root,
     lineage: "genesis",
     learning: "26/09/25/01",
+    slug: "skill-engineering",
+    name: "skill-engineering",
+    meaning: `# Skill engineering
+
+A skill is born from its own init: \`scripts/init.ts\` generates the skill's \`SKILL.md\`. \`SKILL.md\` is never edited by hand, and a test proves the committed \`SKILL.md\` is exactly what init generates.
+`,
+  });
+  createNode({
+    root,
+    lineage: "genesis",
+    learning: "26/09/25/01",
     slug: "using-seals",
     name: "using-seals",
     meaning: `# Using Seals
