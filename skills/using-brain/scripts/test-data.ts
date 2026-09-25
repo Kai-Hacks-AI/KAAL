@@ -50,3 +50,15 @@ export function symlinkedBrain(kind: "resolving" | "dangling"): { root: string; 
   fs.symlinkSync(target, path.join(root, "genesis"), "dir");
   return { root, outside };
 }
+
+/** Every file under a BRAIN by identity, with its contents, for comparing whole BRAINs byte for byte. */
+export function brainTree(root: string): Record<string, string> {
+  return Object.fromEntries(
+    fs
+      .readdirSync(root, { recursive: true, withFileTypes: true })
+      .filter((e) => e.isFile())
+      .map((e) => path.join(e.parentPath, e.name))
+      .sort()
+      .map((f) => [path.relative(root, f).split(path.sep).join("/"), fs.readFileSync(f, "utf8")]),
+  );
+}

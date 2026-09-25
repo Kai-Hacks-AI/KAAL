@@ -1,5 +1,6 @@
 import { pathToFileURL } from "node:url";
 import { edgeErrors, learningOf, nodeIndex, parseNode, relativeIdentity, ROOT } from "./brain.js";
+import { sealErrors } from "./seals.js";
 
 export function validate(root = ROOT): string[] {
   const known = nodeIndex(root);
@@ -16,6 +17,7 @@ export function validate(root = ROOT): string[] {
     }
     errors.push(...edgeErrors(root, relativeIdentity(root, file), born, node.edges ?? [], known));
   }
+  errors.push(...sealErrors(root));
   return errors;
 }
 

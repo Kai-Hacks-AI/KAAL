@@ -1,1 +1,3 @@
 skills/using-brain/test-data/** -text
+# Seals hash raw bytes: BRAIN must check out byte-exact on every platform.
+brain/** -text

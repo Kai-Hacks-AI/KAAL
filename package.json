@@ -10,6 +10,7 @@
     "brain:init": "tsx skills/using-brain/scripts/init.ts",
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
+    "brain:seal": "tsx skills/using-brain/scripts/seal.ts",
     "typecheck": "tsc -p .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

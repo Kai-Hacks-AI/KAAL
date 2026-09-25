@@ -17,4 +17,6 @@ The relation and target must already exist before A is born, in the same lineage
 
 Create every node through `scripts/create-node.ts`; pass each edge as `--edge <relation>=<target>`, using node identities (paths relative to the BRAIN root). Birth is refused if an edge's relation or target does not already exist in an earlier learning of the same lineage. Validate BRAIN with `scripts/validate.ts`.
 
+A learning is open until it is sealed. `scripts/seal.ts` seals every open learning, oldest first within each lineage, and refuses a BRAIN that does not validate. Each seal is a `seal.json` inside its learning: it records the hash of every node the learning holds and chains to the previous seal of the same lineage. Once sealed, a learning is closed: no node is born into it, and validation reports any node added, changed or removed after sealing, and any seal that no longer matches or chains. When to seal is the using system's decision; the skill only provides the mechanism.
+
 Genesis is the bootstrap: `scripts/init.ts` creates the first BRAIN by using the same node-creation mechanics. KAAL-specific reasons for using this skill belong in BRAIN nodes, not here; this skill is KAAL-independent.

@@ -1,0 +1,12 @@
+{
+  "lineage": "genesis",
+  "learning": "26/09/25/02",
+  "previous": "56d241aecdee61c2dfe9024259e3f8e14d45ae6f56d7e41f59e9c88b3a45b103",
+  "nodes": [
+    {
+      "id": "genesis/26/09/25/02/nodes/a.md",
+      "sha256": "6f8c1370343d97b6a54a57462a96c15cf21f50370865eff660877a789861ccf7"
+    }
+  ],
+  "seal": "d1b5fa29f058a28c502358d06a281eedbf0b27571239cf44344bddbc84df2291"
+}

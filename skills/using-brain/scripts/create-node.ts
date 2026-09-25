@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import YAML from "yaml";
 import { type Edge, edgeErrors, relativeIdentity, ROOT } from "./brain.js";
+import { isSealed } from "./seals.js";
 
 export type CreateNode = {
   root?: string;
@@ -50,6 +51,9 @@ export function createNode(input: CreateNode): string {
   const file = path.join(dir, `${input.slug}.md`);
   const edges = input.edges ?? [];
   rejectSymlinkedAncestors(root, file);
+  if (isSealed(root, input.lineage, input.learning)) {
+    throw new Error(`${input.lineage}/${input.learning}: learning is sealed; birth into a new learning`);
+  }
   const errors = edgeErrors(root, relativeIdentity(root, file), { lineage: input.lineage, key: input.learning }, edges);
   if (errors.length) throw new Error(errors.join("\n"));
   fs.mkdirSync(dir, { recursive: true });
