@@ -5,6 +5,8 @@ example-changed:
   { lineage: genesis, learning: 26/09/25/01, slug: example, name: example, meaning: changed }
 traversal-lineage:
   { lineage: ../outside, learning: 26/09/25/01, slug: x, name: x, meaning: x }
+traversal-backslash:
+  { lineage: genesis, learning: 26/09/25/01, slug: "..\\outside", name: x, meaning: x }
 traversal-slug:
   { lineage: genesis, learning: 26/09/25/01, slug: ../outside, name: x, meaning: x }
 empty-name:
