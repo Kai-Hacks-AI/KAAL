@@ -13,6 +13,7 @@
     "brain:create-node": "tsx skills/using-brain/scripts/create-node.ts",
     "brain:validate": "tsx skills/using-brain/scripts/validate.ts",
     "agents:create": "tsx skills/using-agents/scripts/create-agents.ts",
+    "skills:check": "tsx skills/using-skills/scripts/check.ts skills",
     "seal": "tsx scripts/seal.ts",
     "seals:check": "tsx scripts/check-seals.ts",
     "seals:guard": "tsx scripts/seal-guard.ts",
