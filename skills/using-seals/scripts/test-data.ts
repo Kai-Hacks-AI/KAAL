@@ -21,6 +21,12 @@ export const NESTED_UNITS = ["one/nested"];
 /** A valid chain name that is also a property every JavaScript object inherits. */
 export const PROTOTYPE_CHAIN = "constructor";
 
+/** The open chain's units split into two chains, sealed together: "one" in CHAIN, "two" in OTHER_CHAIN. */
+export const SPLIT_CHAINS: [string, string[]][] = [
+  [CHAIN, ["one"]],
+  [OTHER_CHAIN, ["two"]],
+];
+
 /** A chain name that is not lowercase kebab-case. */
 export const INVALID_CHAIN = "Not A Chain";
 

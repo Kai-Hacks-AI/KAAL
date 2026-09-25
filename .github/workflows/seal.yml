@@ -7,10 +7,18 @@
 # code that check the change come from the target branch, never from the
 # change, so a change cannot weaken the checks that judge it. The change is
 # only ever read as data; none of its code runs, and no token is kept in it.
+#
+# A pull_request_target run belongs to the target branch's commit, so the
+# result is published as the seal-linux commit status on the pull request's
+# head commit, where required checks look. Push runs only on main, the
+# default branch, and is limited by the trigger rather than a job condition:
+# a skipped job still reports a check, and a skipped check counts as passing,
+# so a change's own branch must never produce a seal-linux run at all.
 name: seal
 
 on:
   push:
+    branches: [main]
   pull_request_target:
 
 permissions:
@@ -20,7 +28,16 @@ jobs:
   seal:
     name: seal-linux
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      STATUS_URL: repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
+      - if: github.event_name == 'pull_request_target'
+        run: gh api "$STATUS_URL" -f state=pending -f context=seal-linux -f target_url="$RUN_URL" -f description="Checking BRAIN's seals"
       - run: git config --global core.autocrlf true
       # The pushed commit on push; the target branch on a pull request.
       - uses: actions/checkout@v7
@@ -50,3 +67,5 @@ jobs:
       - if: github.event_name == 'pull_request_target'
         run: npm run seals:guard -- "origin/${{ github.base_ref }}" ../change
         working-directory: trusted
+      - if: always() && github.event_name == 'pull_request_target'
+        run: gh api "$STATUS_URL" -f state="${{ job.status == 'success' && 'success' || 'failure' }}" -f context=seal-linux -f target_url="$RUN_URL" -f description="BRAIN's seals ${{ job.status == 'success' && 'hold' || 'are broken or the change touches seal state' }}"
