@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT } from "../skills/using-brain/scripts/brain.js";
+import { validate } from "../skills/using-brain/scripts/validate.js";
 import {
   checkChain,
   HEADS_FILE,
@@ -55,8 +56,15 @@ function chainsToCheck(root: string): Map<string, string[]> {
   return chains;
 }
 
-/** Seals every learning not yet sealed, lineage by lineage. Returns the learnings it sealed. */
+/**
+ * Seals every learning not yet sealed, lineage by lineage. Returns the
+ * learnings it sealed. A sealed learning can never be fixed, so sealing first
+ * requires the whole BRAIN to be valid and every existing seal intact, and
+ * refuses before writing anything, never leaving BRAIN partly closed.
+ */
 export function sealBrain(root = ROOT): string[] {
+  const errors = brainErrors(root);
+  if (errors.length) throw new Error(`refusing to seal BRAIN:\n${errors.join("\n")}`);
   return [...brainChains(root)].flatMap(([lineage, units]) => (units.length ? sealChain(root, lineage, units) : []));
 }
 
@@ -91,4 +99,9 @@ export function sealStateChanges(nameStatus: string, root = ROOT): string[] {
       const sealState = state.has(inRoot) || inRoot === SEAL_FILE || inRoot.endsWith(`/${SEAL_FILE}`);
       return sealState ? [`${file}: seal state may only be written by sealing on main (${status})`] : [];
     });
+}
+
+/** Everything that stops a BRAIN from being sealed: invalid nodes and broken seals. */
+export function brainErrors(root = ROOT): string[] {
+  return [...validate(root), ...checkBrain(root)];
 }

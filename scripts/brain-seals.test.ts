@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ROOT } from "../skills/using-brain/scripts/brain.js";
 import { validate } from "../skills/using-brain/scripts/validate.js";
-import { brainChains, checkBrain, sealBrain, sealStateChanges } from "./brain-seals.js";
+import { brainChains, brainErrors, checkBrain, sealBrain, sealStateChanges } from "./brain-seals.js";
 import { brainData, diffData, scratchBrain, tree } from "./test-data.js";
 
 test("one chain per lineage, named after it, with its learnings oldest first", () => {
@@ -34,6 +34,31 @@ test("seals leave BRAIN valid", () => {
   assert.deepEqual(validate(brainData("sealed")), []);
 });
 
+test("refuses to seal an invalid BRAIN, closing nothing", () => {
+  const root = scratchBrain("invalid-learning");
+  assert.throws(
+    () => sealBrain(root),
+    /refusing to seal BRAIN:\ngenesis\/26\/09\/26\/01\/nodes\/e\.md: missing relation/,
+  );
+  assert.deepEqual(tree(root), tree(brainData("invalid-learning")));
+});
+
+test("refuses to seal any lineage while another lineage's seals are broken, closing nothing", () => {
+  const root = scratchBrain("new-learning-other-broken");
+  assert.throws(
+    () => sealBrain(root),
+    /refusing to seal BRAIN:\nother\/26\/09\/25\/01\/nodes\/c\.md: changed after sealing/,
+  );
+  assert.deepEqual(tree(root), tree(brainData("new-learning-other-broken")));
+});
+
+test("reports what stops a BRAIN from being sealed: invalid nodes and broken seals", () => {
+  assert.deepEqual(brainErrors(brainData("invalid-learning")), [
+    "genesis/26/09/26/01/nodes/e.md: missing relation genesis/26/09/25/01/nodes/missing.md",
+  ]);
+  assert.deepEqual(brainErrors(brainData("sealed")), []);
+});
+
 test("reports a node changed in a sealed learning", () => {
   assert.deepEqual(checkBrain(brainData("sealed-node-changed")), [
     "genesis/26/09/25/01/nodes/a.md: changed after sealing",
@@ -46,8 +71,8 @@ test("reports a sealed lineage removed with its learnings", () => {
   ]);
 });
 
-test("the committed BRAIN's seals are intact", () => {
-  assert.deepEqual(checkBrain(ROOT), []);
+test("the committed BRAIN is valid and its seals are intact", () => {
+  assert.deepEqual(brainErrors(ROOT), []);
 });
 
 test("allows a change that only adds learnings or touches files outside BRAIN", () => {
