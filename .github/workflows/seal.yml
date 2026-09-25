@@ -3,12 +3,14 @@
 # sealing on main, so the target branch is the history a change is checked
 # against.
 #
-# On a pull request this runs as pull_request_target: the workflow and the
-# code that check the change come from the target branch, never from the
-# change, so a change cannot weaken the checks that judge it. The change is
-# only ever read as data; none of its code runs, and no token is kept in it.
+# On a pull request this runs as pull_request_target: GitHub takes the
+# workflow and the checked-out code from the default branch, main, never
+# from the change, so a change cannot weaken the checks that judge it. The
+# change is only ever read as data; none of its code runs, and no token is
+# kept in it. The gate therefore applies to pull requests into every branch
+# once this workflow is on main, and to none before.
 #
-# A pull_request_target run belongs to the target branch's commit, so the
+# A pull_request_target run belongs to main's latest commit, so the
 # result is published as the seal-linux commit status on the pull request's
 # head commit, where required checks look. Push runs only on main, the
 # default branch, and is limited by the trigger rather than a job condition:
@@ -39,7 +41,7 @@ jobs:
       - if: github.event_name == 'pull_request_target'
         run: gh api "$STATUS_URL" -f state=pending -f context=seal-linux -f target_url="$RUN_URL" -f description="Checking BRAIN's seals"
       - run: git config --global core.autocrlf true
-      # The pushed commit on push; the target branch on a pull request.
+      # The pushed commit on push; main's latest commit on a pull request.
       - uses: actions/checkout@v7
         with:
           path: trusted
