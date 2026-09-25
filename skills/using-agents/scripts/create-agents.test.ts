@@ -41,38 +41,46 @@ test("refuses empty guidance, creating nothing", () => {
   assert.deepEqual(fs.readdirSync(scope), []);
 });
 
-test("a failure after AGENTS.md was created removes it and reports the failure", (t) => {
+test("a failure while writing the guidance leaves the scope as it was", (t) => {
   const scope = scratchScope();
-  const file = path.join(scope, "AGENTS.md");
   const write = fs.writeFileSync;
-  let createdBeforeFailure = false;
-  // Fault injection: the write to the created file starts, then fails.
+  let staged: string[] = [];
+  // Fault injection: writing the guidance starts, then fails.
   t.mock.method(fs, "writeFileSync", (target: fs.PathOrFileDescriptor, data: string) => {
     if (typeof target !== "number") return write(target, data);
     write(target, data.slice(0, 3));
-    createdBeforeFailure = fs.existsSync(file);
+    staged = fs.readdirSync(scope);
     throw new Error("write failed on purpose");
   });
   assert.throws(() => createAgents(scope, guidance("example")), /write failed on purpose/);
-  assert.equal(createdBeforeFailure, true);
+  // Creation had begun, in a staging file; AGENTS.md itself never existed.
+  assert.equal(staged.length, 1);
+  assert.notEqual(staged[0], "AGENTS.md");
   assert.deepEqual(fs.readdirSync(scope), []);
 });
 
-test("a failure after AGENTS.md was replaced meanwhile never removes the replacement", (t) => {
+test("a failure publishing AGENTS.md leaves the scope as it was", (t) => {
+  const scope = scratchScope();
+  t.mock.method(fs, "linkSync", () => {
+    throw new Error("link failed on purpose");
+  });
+  assert.throws(() => createAgents(scope, guidance("example")), /link failed on purpose/);
+  assert.deepEqual(fs.readdirSync(scope), []);
+});
+
+test("an AGENTS.md put in place while the guidance is written is refused and never touched", (t) => {
   const scope = scratchScope();
   const file = path.join(scope, "AGENTS.md");
   const write = fs.writeFileSync;
-  // Fault injection: another process moves this call's file away and puts its
-  // own AGENTS.md in place, then this call's write fails.
+  // Another process creates AGENTS.md after this call's check, before it publishes.
   t.mock.method(fs, "writeFileSync", (target: fs.PathOrFileDescriptor, data: string) => {
-    if (typeof target !== "number") return write(target, data);
-    fs.renameSync(file, path.join(scope, "moved"));
-    write(file, guidance("crlf"));
-    throw new Error("write failed on purpose");
+    if (typeof target === "number") write(file, guidance("crlf"));
+    return write(target, data);
   });
-  assert.throws(() => createAgents(scope, guidance("example")), /write failed on purpose/);
+  assert.throws(() => createAgents(scope, guidance("example")), /AGENTS\.md: already exists; refusing to overwrite it/);
   t.mock.restoreAll();
   assert.equal(fs.readFileSync(file, "utf8"), guidance("crlf"));
+  assert.deepEqual(fs.readdirSync(scope), ["AGENTS.md"]);
 });
 
 test("a failing call never removes or changes an AGENTS.md that existed before it", (t) => {

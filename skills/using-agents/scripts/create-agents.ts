@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -7,43 +8,47 @@ import { pathToFileURL } from "node:url";
  * exactly the guidance the using system supplies. This skill knows nothing of
  * what the guidance says; it only places it. Refuses when `scope` is not an
  * existing directory, when the guidance is empty, and when `<scope>/AGENTS.md`
- * already exists, so an entry point is never overwritten. A failure after
- * creating `<scope>/AGENTS.md` removes it again, so a failed call leaves the
- * scope as it was; only the file this call created is ever removed, never one
- * put in its place meanwhile. Returns its path.
+ * already exists, so an entry point is never overwritten. The guidance is
+ * written to a staging file first and published with an exclusive hard link,
+ * so `<scope>/AGENTS.md` never exists partly written, and a failure before it
+ * is published leaves the scope as it was. Returns its path.
  */
 export function createAgents(scope: string, guidance: string): string {
   const stat = fs.lstatSync(scope, { throwIfNoEntry: false });
   if (!stat?.isDirectory()) throw new Error(`${scope}: scope must be an existing directory`);
   if (!guidance.trim()) throw new Error(`${scope}: guidance is empty`);
   const file = path.join(scope, "AGENTS.md");
-  let fd: number;
+  const refusal = () => new Error(`${file}: already exists; refusing to overwrite it`);
+  if (fs.lstatSync(file, { throwIfNoEntry: false })) throw refusal();
+  const staged = path.join(scope, `.AGENTS.md.${randomUUID()}.tmp`);
+  let created = false;
+  let fd: number | undefined;
   try {
-    // Exclusive: only a file this call creates is ever opened for writing.
-    fd = fs.openSync(file, "wx");
-  } catch (e) {
-    if ((e as NodeJS.ErrnoException).code === "EEXIST")
-      throw new Error(`${file}: already exists; refusing to overwrite it`);
-    throw e;
-  }
-  // The identity of the file this call created, to recognise it on failure.
-  let created: fs.BigIntStats | undefined;
-  try {
-    created = fs.fstatSync(fd, { bigint: true });
+    fd = fs.openSync(staged, "wx");
+    created = true;
     fs.writeFileSync(fd, guidance);
     fs.closeSync(fd);
-  } catch (e) {
-    // Close it (Windows cannot remove an open file), then remove it only if
-    // the path still names this call's own file.
+    fd = undefined;
     try {
-      fs.closeSync(fd);
-    } catch {
-      // Already closed, or closing is what failed.
+      // Atomic and exclusive: fails if AGENTS.md exists, never replaces it.
+      fs.linkSync(staged, file);
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === "EEXIST") throw refusal();
+      throw e;
     }
-    const now = fs.lstatSync(file, { bigint: true, throwIfNoEntry: false });
-    if (created && now && now.dev === created.dev && now.ino === created.ino) fs.rmSync(file);
+  } catch (e) {
+    // Only the staging file is this call's to remove; AGENTS.md is never touched.
+    if (fd !== undefined) {
+      try {
+        fs.closeSync(fd);
+      } catch {
+        // Already closed, or closing is what failed.
+      }
+    }
+    if (created) fs.rmSync(staged, { force: true });
     throw e;
   }
+  fs.unlinkSync(staged);
   return file;
 }
 
