@@ -22,7 +22,7 @@ export function validate(root = ROOT): string[] {
     ]) {
       if (error) errors.push(`${id}: ${error}`);
     }
-    errors.push(...edgeErrors(root, id, born, node.edges ?? [], known));
+    errors.push(...edgeErrors(root, relativeIdentity(root, file), born, node.edges ?? [], known));
   }
   return errors;
 }
