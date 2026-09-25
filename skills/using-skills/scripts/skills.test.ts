@@ -11,6 +11,10 @@ test("a skill with a name and description, or with every optional field, follows
   assert.deepEqual(standardErrors(skill("full")), []);
 });
 
+test("metadata may refer to other strings by YAML alias", () => {
+  assert.deepEqual(standardErrors(skill("aliases")), []);
+});
+
 test("lengths count characters, not UTF-16 units: 1024 emoji are a valid description, 500 a valid compatibility", () => {
   assert.deepEqual(standardErrors(skill("emoji")), []);
 });

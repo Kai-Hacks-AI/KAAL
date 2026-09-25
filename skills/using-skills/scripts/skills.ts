@@ -31,8 +31,14 @@ function frontmatter(file: string): YAML.Document {
   return doc;
 }
 
-/** Whether a YAML node is a string scalar, as written, not as a JavaScript key would coerce it. */
-const isString = (node: unknown) => YAML.isScalar(node) && typeof node.value === "string";
+/** A YAML node with an alias resolved to the node it refers to, keeping that node's type. */
+const resolved = (doc: YAML.Document, node: unknown) => (YAML.isAlias(node) ? node.resolve(doc) : node);
+
+/** Whether a YAML node is a string scalar, not as a JavaScript key would coerce it; aliases count as what they refer to. */
+const isString = (doc: YAML.Document, node: unknown) => {
+  const target = resolved(doc, node);
+  return YAML.isScalar(target) && typeof target.value === "string";
+};
 
 /**
  * Every way the skill at `dir` breaks the Agent Skills standard
@@ -71,10 +77,10 @@ export function standardErrors(dir: string): string[] {
   )
     errors.push("compatibility must be 1 to 500 characters");
   if (license !== undefined && typeof license !== "string") errors.push("license must be a string");
-  const meta = doc.get("metadata", true);
+  const meta = resolved(doc, doc.get("metadata", true));
   if (
     metadata !== undefined &&
-    !(YAML.isMap(meta) && meta.items.every((pair) => isString(pair.key) && isString(pair.value)))
+    !(YAML.isMap(meta) && meta.items.every((pair) => isString(doc, pair.key) && isString(doc, pair.value)))
   )
     errors.push("metadata must map strings to strings");
   if (fields["allowed-tools"] !== undefined && typeof fields["allowed-tools"] !== "string")
