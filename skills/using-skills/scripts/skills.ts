@@ -22,13 +22,20 @@ const NAME = /^[\p{L}\p{N}]+(-[\p{L}\p{N}]+)*$/u;
  * YAML type; throws when there is none, it is not valid YAML, or it is not a
  * mapping.
  */
-function frontmatter(file: string): YAML.Document {
+function frontmatter(file: string): { doc: YAML.Document; fields: Record<string, unknown> } {
   const match = /^---\r?\n([\s\S]*?)\r?\n---(\r?\n|$)/.exec(fs.readFileSync(file, "utf8"));
   if (!match) throw new Error("SKILL.md does not start with YAML frontmatter");
   const doc = YAML.parseDocument(match[1]);
   if (doc.errors.length) throw new Error(`SKILL.md frontmatter is not valid YAML (${doc.errors[0].message})`);
   if (!YAML.isMap(doc.contents)) throw new Error("SKILL.md frontmatter is not a mapping");
-  return doc;
+  let fields: Record<string, unknown>;
+  try {
+    // Aliases resolve only here: one that refers to no anchor, or too many, fails here.
+    fields = doc.toJS() as Record<string, unknown>;
+  } catch (e) {
+    throw new Error(`SKILL.md frontmatter is not valid YAML (${e instanceof Error ? e.message : String(e)})`);
+  }
+  return { doc, fields };
 }
 
 /** A YAML node with an alias resolved to the node it refers to, keeping that node's type. */
@@ -50,12 +57,12 @@ export function standardErrors(dir: string): string[] {
   const file = path.join(dir, "SKILL.md");
   if (!fs.existsSync(file)) return [`${skill}: no SKILL.md`];
   let doc: YAML.Document;
+  let fields: Record<string, unknown>;
   try {
-    doc = frontmatter(file);
+    ({ doc, fields } = frontmatter(file));
   } catch (e) {
     return [`${skill}: ${e instanceof Error ? e.message : String(e)}`];
   }
-  const fields = doc.toJS() as Record<string, unknown>;
   const errors: string[] = [];
   const { name, description, license, compatibility, metadata } = fields;
   if (typeof name !== "string" || !name) errors.push("name is required");
