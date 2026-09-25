@@ -53,6 +53,9 @@ test("optional fields keep to the standard, and no other field is allowed", () =
 test("a skill needs a SKILL.md that starts with a frontmatter mapping in valid YAML", () => {
   assert.match(standardErrors(skill("invalid-yaml"))[0], /^invalid-yaml: SKILL\.md frontmatter is not valid YAML/);
   assert.match(standardErrors(skill("missing-anchor"))[0], /^missing-anchor: SKILL\.md frontmatter is not valid YAML/);
+  assert.deepEqual(standardErrors(skill("duplicate-metadata-key")), [
+    'duplicate-metadata-key: SKILL.md frontmatter has the key "metadata" twice',
+  ]);
   assert.deepEqual(standardErrors(skill("empty")), ["empty: no SKILL.md as a regular file"]);
   assert.deepEqual(standardErrors(skill("directory")), ["directory: no SKILL.md as a regular file"]);
   assert.deepEqual(standardErrors(skill("no-frontmatter")), [

@@ -17,6 +17,9 @@ const TSX = import.meta.resolve("tsx");
 // reference validator, skills-ref, allow; lowercase is checked separately.
 const NAME = /^[\p{L}\p{N}]+(-[\p{L}\p{N}]+)*$/u;
 
+/** A YAML node with an alias resolved to the node it refers to, keeping that node's type. */
+const resolved = (doc: YAML.Document, node: unknown) => (YAML.isAlias(node) ? node.resolve(doc) : node);
+
 /**
  * A skill's SKILL.md frontmatter, as a YAML document, which keeps each key's
  * YAML type; throws when there is none, it is not valid YAML, or it is not a
@@ -28,6 +31,15 @@ function frontmatter(file: string): { doc: YAML.Document; fields: Record<string,
   const doc = YAML.parseDocument(match[1]);
   if (doc.errors.length) throw new Error(`SKILL.md frontmatter is not valid YAML (${doc.errors[0].message})`);
   if (!YAML.isMap(doc.contents)) throw new Error("SKILL.md frontmatter is not a mapping");
+  // YAML keys are unique, but the parser only compares keys as written: two
+  // keys that resolve to the same one through an alias are caught here.
+  const keys = new Set<string>();
+  for (const pair of doc.contents.items) {
+    const key = resolved(doc, pair.key);
+    const name = YAML.isScalar(key) ? String(key.value) : String(key);
+    if (keys.has(name)) throw new Error(`SKILL.md frontmatter has the key ${JSON.stringify(name)} twice`);
+    keys.add(name);
+  }
   let fields: Record<string, unknown>;
   try {
     // Aliases resolve only here: one that refers to no anchor, or too many, fails here.
@@ -43,9 +55,6 @@ function frontmatter(file: string): { doc: YAML.Document; fields: Record<string,
  * a regular file can be read without blocking or throwing.
  */
 const isFile = (file: string) => fs.lstatSync(file, { throwIfNoEntry: false })?.isFile() ?? false;
-
-/** A YAML node with an alias resolved to the node it refers to, keeping that node's type. */
-const resolved = (doc: YAML.Document, node: unknown) => (YAML.isAlias(node) ? node.resolve(doc) : node);
 
 /** Whether a YAML node is a string scalar, not as a JavaScript key would coerce it; aliases count as what they refer to. */
 const isString = (doc: YAML.Document, node: unknown) => {
