@@ -18,6 +18,9 @@ export const UNITS = ["one", "two"];
 export const OTHER_CHAIN = "other";
 export const NESTED_UNITS = ["one/nested"];
 
+/** A valid chain name that is also a property every JavaScript object inherits. */
+export const PROTOTYPE_CHAIN = "constructor";
+
 /** A chain name that is not lowercase kebab-case. */
 export const INVALID_CHAIN = "Not A Chain";
 
@@ -137,6 +140,8 @@ export const FAILURES = {
   "unreadable-file": { operation: "readFileSync", path: "one/a.txt" },
   "unwritable-seal": { operation: "writeFileSync", path: "two/seal.json" },
   "head-not-replaced": { operation: "renameSync", path: "seals.json" },
+  "unprobeable-seal": { operation: "lstatSync", path: "one/seal.json" },
+  "unprobeable-unit-path": { operation: "lstatSync", path: "one" },
 } as const;
 
 /** Runs `run` while the named failure is in effect, then restores the real operation. */

@@ -23,6 +23,7 @@ export type Seal = {
  * produced portably on every platform.
  */
 export const io = {
+  lstatSync: fs.lstatSync,
   readFileSync: fs.readFileSync,
   readdirSync: fs.readdirSync,
   writeFileSync: fs.writeFileSync,
@@ -33,6 +34,14 @@ export const SEAL_FILE = "seal.json";
 
 /** Kept at the root: for each chain, its last sealed unit and that unit's seal. */
 export const HEADS_FILE = "seals.json";
+
+/**
+ * Held at the root while a chain is sealed. Every chain's head shares one
+ * file, so two sealings under the same root at once would each rewrite it
+ * from the same old state and one head would be lost; the lock refuses the
+ * second instead.
+ */
+export const LOCK_FILE = "seals.json.lock";
 
 export type Head = { unit: string; seal: string };
 
@@ -46,7 +55,7 @@ export function sealPath(root: string, unit: string): string {
 
 /** A unit is sealed when anything occupies its seal path, even a dangling symlink: whatever it is gets checked. */
 export function isSealed(root: string, unit: string): boolean {
-  return fs.lstatSync(sealPath(root, unit), { throwIfNoEntry: false }) !== undefined;
+  return io.lstatSync(sealPath(root, unit), { throwIfNoEntry: false }) !== undefined;
 }
 
 /**
@@ -132,20 +141,24 @@ function isHead(value: unknown): value is Head {
   return typeof head.unit === "string" && isHash(head.seal);
 }
 
-/** Reads every chain's head, refusing anything that is not structurally a set of heads. */
-export function readHeads(root: string): Record<string, Head> {
+/**
+ * Reads every chain's head, refusing anything that is not structurally a set
+ * of heads. The heads are a Map, so a chain named like an Object property
+ * ("constructor") never finds an inherited value as its head.
+ */
+export function readHeads(root: string): Map<string, Head> {
   const file = path.join(root, HEADS_FILE);
-  if (!fs.lstatSync(file, { throwIfNoEntry: false })) return {};
+  if (!fs.lstatSync(file, { throwIfNoEntry: false })) return new Map();
   const heads: unknown = JSON.parse(readRegularFile(file));
   if (typeof heads !== "object" || heads === null || Array.isArray(heads) || !Object.values(heads).every(isHead)) {
     throw new Error("not a set of chain heads");
   }
-  return heads as Record<string, Head>;
+  return new Map(Object.entries(heads as Record<string, Head>));
 }
 
 function writeHead(root: string, chain: string, head: Head): void {
-  const heads = { ...readHeads(root), [chain]: head };
-  const sorted = Object.fromEntries(Object.entries(heads).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  const heads = readHeads(root).set(chain, head);
+  const sorted = Object.fromEntries([...heads].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
   // Written beside the head file and renamed over it: a rename replaces the
   // path itself and never writes through a link to somewhere else.
   const file = path.join(root, HEADS_FILE);
@@ -205,7 +218,13 @@ export function unitErrors(root: string, units: string[]): string[] {
     let current = path.resolve(root);
     for (const segment of segments) {
       current = path.join(current, segment);
-      const stat = fs.lstatSync(current, { throwIfNoEntry: false });
+      let stat: fs.Stats | undefined;
+      try {
+        stat = io.lstatSync(current, { throwIfNoEntry: false });
+      } catch (e) {
+        errors.push(`${unit}: unreadable unit path (${e instanceof Error ? e.message : String(e)})`);
+        break;
+      }
       if (!stat) break;
       if (stat.isSymbolicLink()) {
         errors.push(`${unit}: unit path passes through a symlink`);
@@ -244,14 +263,32 @@ export function checkChain(root: string, chain: string, units: string[]): string
   if (errors.length) return errors;
   let head: Head | undefined;
   try {
-    head = readHeads(root)[chain];
+    head = readHeads(root).get(chain);
   } catch (e) {
     return [`${HEADS_FILE}: unreadable chain heads (${e instanceof Error ? e.message : String(e)})`];
   }
-  let previous: string | null = null;
+  // Whether each unit is sealed, probed once. A unit that cannot be probed is
+  // reported and then left out: neither sealed nor open.
+  const sealed = new Set<string>();
+  const unknown = new Set<string>();
+  for (const unit of units) {
+    try {
+      if (isSealed(root, unit)) sealed.add(unit);
+    } catch (e) {
+      errors.push(`${unit}: unreadable unit (${e instanceof Error ? e.message : String(e)})`);
+      unknown.add(unit);
+    }
+  }
+  // The seal the next sealed unit must chain to; undefined after a unit that
+  // could not be probed, whose seal is unknown.
+  let previous: string | null | undefined = null;
   let open: string | undefined;
   for (const unit of units) {
-    if (!isSealed(root, unit)) {
+    if (unknown.has(unit)) {
+      previous = undefined;
+      continue;
+    }
+    if (!sealed.has(unit)) {
       open ??= unit;
       continue;
     }
@@ -265,7 +302,8 @@ export function checkChain(root: string, chain: string, units: string[]): string
     }
     if (seal.unit !== unit) errors.push(`${unit}: seal belongs to unit ${seal.unit}`);
     if (seal.seal !== sealHash(seal)) errors.push(`${unit}: seal does not match its own content`);
-    if (seal.previous !== previous) errors.push(`${unit}: seal does not chain to the previous seal`);
+    if (previous !== undefined && seal.previous !== previous)
+      errors.push(`${unit}: seal does not chain to the previous seal`);
     let inspected: ReturnType<typeof contents>;
     try {
       inspected = contents(root, unit);
@@ -276,20 +314,19 @@ export function checkChain(root: string, chain: string, units: string[]): string
     }
     const { files, unsealable } = inspected;
     for (const entry of unsealable) errors.push(`${unit}/${entry.path}: ${entry.kind} in sealed unit`);
-    const sealed = new Map(seal.files.map((f) => [f.path, f.sha256]));
+    const recorded = new Map(seal.files.map((f) => [f.path, f.sha256]));
     const now = new Map(files.map((f) => [f.path, f.sha256]));
     for (const [file, hash] of now) {
-      if (!sealed.has(file)) errors.push(`${unit}/${file}: added after sealing`);
-      else if (sealed.get(file) !== hash) errors.push(`${unit}/${file}: changed after sealing`);
+      if (!recorded.has(file)) errors.push(`${unit}/${file}: added after sealing`);
+      else if (recorded.get(file) !== hash) errors.push(`${unit}/${file}: changed after sealing`);
     }
-    for (const file of sealed.keys()) {
+    for (const file of recorded.keys()) {
       if (!now.has(file)) errors.push(`${unit}/${file}: removed after sealing`);
     }
     previous = seal.seal;
   }
-  const sealed = units.filter((unit) => isSealed(root, unit));
   if (!head) {
-    if (sealed.length) errors.push(`${chain}: chain has seals but no head in ${HEADS_FILE}`);
+    if (sealed.size) errors.push(`${chain}: chain has seals but no head in ${HEADS_FILE}`);
     return errors;
   }
   const last = units.indexOf(head.unit);
@@ -298,11 +335,12 @@ export function checkChain(root: string, chain: string, units: string[]): string
     return errors;
   }
   units.forEach((unit, i) => {
-    if (i <= last && !isSealed(root, unit)) errors.push(`${unit}: seal removed after sealing`);
-    if (i > last && isSealed(root, unit)) errors.push(`${unit}: sealed beyond the chain's head`);
+    if (unknown.has(unit)) return;
+    if (i <= last && !sealed.has(unit)) errors.push(`${unit}: seal removed after sealing`);
+    if (i > last && sealed.has(unit)) errors.push(`${unit}: sealed beyond the chain's head`);
   });
   try {
-    if (isSealed(root, head.unit) && readSeal(root, head.unit).seal !== head.seal) {
+    if (sealed.has(head.unit) && readSeal(root, head.unit).seal !== head.seal) {
       errors.push(`${chain}: head does not match the seal of ${head.unit}`);
     }
   } catch {
@@ -315,10 +353,27 @@ export function checkChain(root: string, chain: string, units: string[]): string
  * Seals every open unit of a named chain, oldest first, each chained to the seal
  * before it, then moves the chain's head to the newest seal. Refuses to seal a
  * unit inside, or containing, a unit already sealed by any chain. Refuses a chain whose seals are broken, an empty unit, and a unit
- * holding symlinks or special files. Returns the units it sealed; a fully sealed chain is left
+ * holding symlinks or special files, and sealing while another sealing holds
+ * the root's lock. Returns the units it sealed; a fully sealed chain is left
  * as it is.
  */
 export function sealChain(root: string, chain: string, units: string[]): string[] {
+  const lock = path.join(root, LOCK_FILE);
+  try {
+    // "wx" refuses an existing lock, even a symlink: only one sealing at a time.
+    io.writeFileSync(lock, `${process.pid}\n`, { flag: "wx" });
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+    throw new Error(`${LOCK_FILE}: another sealing holds this root; if none is running, remove the lock`);
+  }
+  try {
+    return sealLocked(root, chain, units);
+  } finally {
+    fs.rmSync(lock, { force: true });
+  }
+}
+
+function sealLocked(root: string, chain: string, units: string[]): string[] {
   const errors = checkChain(root, chain, units);
   if (errors.length) throw new Error(`refusing to seal a chain with broken seals:\n${errors.join("\n")}`);
   // Every seal is computed before any is written, so a refusal leaves no partly sealed chain.

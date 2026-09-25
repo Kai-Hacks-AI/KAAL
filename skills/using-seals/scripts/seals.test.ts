@@ -12,6 +12,7 @@ import {
   INVALID_CHAIN,
   NESTED_UNITS,
   OTHER_CHAIN,
+  PROTOTYPE_CHAIN,
   RENAMED_UNITS,
   scratchChain,
   SPECIAL_ENTRY,
@@ -61,6 +62,19 @@ test("refuses to seal a unit holding a symlink, naming what it is", () => {
     () => sealChain(root, CHAIN, UNITS),
     /one: refusing to seal entries that are not regular files: link\.txt \(symlink\)/,
   );
+});
+
+test("seals and checks a chain named like an inherited object property", () => {
+  const root = scratchChain("open");
+  assert.deepEqual(checkChain(root, PROTOTYPE_CHAIN, UNITS), []);
+  assert.deepEqual(sealChain(root, PROTOTYPE_CHAIN, UNITS), ["one", "two"]);
+  assert.deepEqual(checkChain(root, PROTOTYPE_CHAIN, UNITS), []);
+});
+
+test("refuses to seal while another sealing holds the root's lock, and writes nothing", () => {
+  const root = scratchChain("sealing-in-progress");
+  assert.throws(() => sealChain(root, CHAIN, UNITS), /seals\.json\.lock: another sealing holds this root/);
+  assert.deepEqual(tree(root), tree(chainData("sealing-in-progress")));
 });
 
 test("refuses a chain name that is not lowercase kebab-case", () => {
@@ -241,6 +255,26 @@ test("removes the seals it wrote when the head cannot be moved, leaving the chai
   assert.throws(
     () => withFailure("head-not-replaced", () => sealChain(root, CHAIN, UNITS)),
     /simulated renameSync failure/,
+  );
+  assert.deepEqual(tree(root), tree(chainData("open")));
+});
+
+test("reports a unit whose seal cannot be probed instead of crashing, and keeps checking later units", () => {
+  assert.deepEqual(
+    withFailure("unprobeable-seal", () => checkChain(chainData("sealed"), CHAIN, UNITS)),
+    ["one: unreadable unit (simulated lstatSync failure)"],
+  );
+});
+
+test("reports a unit path that cannot be probed instead of crashing, and writes nothing", () => {
+  const root = scratchChain("open");
+  assert.deepEqual(
+    withFailure("unprobeable-unit-path", () => checkChain(root, CHAIN, UNITS)),
+    ["one: unreadable unit path (simulated lstatSync failure)"],
+  );
+  assert.throws(
+    () => withFailure("unprobeable-unit-path", () => sealChain(root, CHAIN, UNITS)),
+    /refusing to seal a chain with broken seals/,
   );
   assert.deepEqual(tree(root), tree(chainData("open")));
 });
