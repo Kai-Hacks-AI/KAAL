@@ -105,6 +105,9 @@ export function birthErrors(dir: string, timeout = 60_000): string[] {
       cwd: copy,
       encoding: "utf8",
       timeout,
+      // SIGKILL, not the default SIGTERM: an init can ignore SIGTERM and keep
+      // the check waiting forever; SIGKILL cannot be ignored.
+      killSignal: "SIGKILL",
     });
     if ((run.error as NodeJS.ErrnoException | undefined)?.code === "ETIMEDOUT")
       return [`${skill}: running scripts/init.ts did not finish within ${timeout} ms`];

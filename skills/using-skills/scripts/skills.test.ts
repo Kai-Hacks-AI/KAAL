@@ -71,9 +71,12 @@ test("an init that fails is reported with its error", () => {
   assert.deepEqual(rest, []);
 });
 
-test("an init that does not finish in time is stopped and reported", () => {
+test("an init that does not finish in time is stopped and reported, even if it ignores SIGTERM", () => {
   assert.deepEqual(birthErrors(stuckSkill("never-finishes"), 1000), [
     "never-finishes: running scripts/init.ts did not finish within 1000 ms",
+  ]);
+  assert.deepEqual(birthErrors(stuckSkill("ignores-sigterm"), 1000), [
+    "ignores-sigterm: running scripts/init.ts did not finish within 1000 ms",
   ]);
 });
 
