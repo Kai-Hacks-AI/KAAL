@@ -232,6 +232,12 @@ export function unitErrors(root: string, units: string[]): string[] {
       errors.push(`${unit}: unit segment "${reserved}" is reserved on Windows`);
       continue;
     }
+    // The root holds the chain heads, their temporary files and the lock, all
+    // named after HEADS_FILE; a unit there would be taken for one of them.
+    if (segments[0].toLowerCase().startsWith(HEADS_FILE)) {
+      errors.push(`${unit}: unit "${segments[0]}" is reserved for the chain heads and lock at the root`);
+      continue;
+    }
     const key = unit.toLowerCase();
     const first = seen.get(key);
     if (first === unit) errors.push(`${unit}: unit listed twice`);

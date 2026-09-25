@@ -30,7 +30,8 @@ export const RENAMED_UNITS = ["zero", "two"];
 /**
  * Unit lists a chain must refuse before reading or writing anything, by name:
  * paths that could leave the root, spellings Windows would resolve to another
- * directory (trailing dots and spaces), Windows reserved names, a unit listed
+ * directory (trailing dots and spaces), Windows reserved names, the root's own
+ * files (the chain heads and the lock), a unit listed
  * twice or differing only in case, and a unit nested in another.
  */
 export const UNSAFE_UNITS: Record<string, string[]> = {
@@ -43,6 +44,8 @@ export const UNSAFE_UNITS: Record<string, string[]> = {
   "trailing-space": ["one", "one "],
   reserved: ["con"],
   "reserved-with-extension": ["one/NUL.txt"],
+  "heads-file": ["seals.json"],
+  "lock-file": ["Seals.json.lock"],
   duplicate: ["one", "two", "one"],
   "case-alias": ["one", "ONE"],
   nested: ["one", "one/nested"],
