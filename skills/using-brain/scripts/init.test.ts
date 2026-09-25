@@ -1,14 +1,20 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { nodeFiles, relativeIdentity } from "./brain.js";
 import { init } from "./init.js";
+import { brainData, scratchBrain } from "./test-data.js";
 import { validate } from "./validate.js";
 
 test("Genesis creates the first BRAIN through create-node mechanics", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "brain-"));
+  const root = scratchBrain();
   init(root);
-  assert.ok(fs.existsSync(path.join(root, "genesis/26/09/25/01/nodes/using-brain.md")));
+  const want = brainData("genesis");
+  const ids = (r: string) => nodeFiles(r).map((f) => relativeIdentity(r, f));
+  assert.deepEqual(ids(root), ids(want));
+  for (const id of ids(want)) {
+    assert.equal(fs.readFileSync(path.join(root, id), "utf8"), fs.readFileSync(path.join(want, id), "utf8"));
+  }
   assert.deepEqual(validate(root), []);
 });

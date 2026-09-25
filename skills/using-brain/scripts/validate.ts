@@ -1,4 +1,28 @@
 import { pathToFileURL } from "node:url";
-import { learningKey,nodeFiles,parseNode,relativeIdentity } from "./brain.js";
-export function validate(root="brain/learning"):string[]{const files=nodeFiles(root),byId=new Map(files.map(f=>[relativeIdentity(root,f),f])),errors:string[]=[];for(const file of files){let node;try{node=parseNode(file)}catch(e){errors.push(String(e));continue}let born;try{born=learningKey(root,file)}catch(e){errors.push(String(e));continue}for(const edge of node.edges??[])for(const [kind,id] of [["relation",edge.relation],["target",edge.to]] as const){const known=byId.get(id);if(!known){errors.push(`${relativeIdentity(root,file)}: missing ${kind} ${id}`);continue}try{if(learningKey(root,known)>=born)errors.push(`${relativeIdentity(root,file)}: ${kind} ${id} was not born earlier`)}catch(e){errors.push(String(e))}}}return errors;}
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){const errors=validate();if(errors.length){console.error(errors.join("\n"));process.exitCode=1;}}
+import { edgeErrors, learningOf, nodeIndex, parseNode, relativeIdentity, ROOT } from "./brain.js";
+
+export function validate(root = ROOT): string[] {
+  const known = nodeIndex(root);
+  const errors: string[] = [];
+  for (const file of known.values()) {
+    let node;
+    let born;
+    try {
+      node = parseNode(file);
+      born = learningOf(root, file);
+    } catch (e) {
+      errors.push(String(e));
+      continue;
+    }
+    errors.push(...edgeErrors(root, relativeIdentity(root, file), born, node.edges ?? [], known));
+  }
+  return errors;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const errors = validate();
+  if (errors.length) {
+    console.error(errors.join("\n"));
+    process.exitCode = 1;
+  }
+}
