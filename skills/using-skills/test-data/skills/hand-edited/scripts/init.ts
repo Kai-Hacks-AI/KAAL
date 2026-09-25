@@ -1,5 +1,7 @@
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
-export function init(target: string): void {
-  fs.writeFileSync(target, "---\nname: hand-edited\ndescription: What init generates.\n---\n\n# Body\n");
-}
+fs.writeFileSync(
+  fileURLToPath(new URL("../SKILL.md", import.meta.url)),
+  "---\nname: hand-edited\ndescription: What init generates.\n---\n\n# Body\n",
+);

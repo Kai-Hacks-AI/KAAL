@@ -1,7 +1,7 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import YAML from "yaml";
 
 /** The frontmatter fields the Agent Skills standard defines; no other field is allowed. */
@@ -9,6 +9,12 @@ const FIELDS = new Set(["name", "description", "license", "compatibility", "meta
 
 // Letters and digits of any script, as the specification's name rule and its
 // reference validator, skills-ref, allow; lowercase is checked separately.
+/** Length in characters (code points), as the standard counts, not UTF-16 units. */
+const chars = (s: string) => [...s].length;
+
+/** tsx, which runs a skill's TypeScript init the way `tsx scripts/init.ts` does. */
+const TSX = import.meta.resolve("tsx");
+
 const NAME = /^[\p{L}\p{N}]+(-[\p{L}\p{N}]+)*$/u;
 
 /** A skill's SKILL.md frontmatter, parsed; throws when there is none or it is not a YAML mapping. */
@@ -37,25 +43,26 @@ export function standardErrors(dir: string): string[] {
     return [`${skill}: ${e instanceof Error ? e.message : String(e)}`];
   }
   const errors: string[] = [];
-  const { name, description, compatibility, metadata } = fields;
+  const { name, description, license, compatibility, metadata } = fields;
   if (typeof name !== "string" || !name) errors.push("name is required");
   else {
     // Compared as skills-ref does: NFKC, so a name and its directory match however
     // the file system composes them, and counted in characters, not UTF-16 units.
     const normalized = name.normalize("NFKC");
-    if ([...normalized].length > 64) errors.push("name is longer than 64 characters");
+    if (chars(normalized) > 64) errors.push("name is longer than 64 characters");
     if (!NAME.test(normalized) || normalized !== normalized.toLowerCase())
       errors.push("name must be lowercase letters, digits and single hyphens, not starting or ending with a hyphen");
     if (normalized !== skill.normalize("NFKC"))
       errors.push(`name ${JSON.stringify(name)} does not match the skill's directory`);
   }
   if (typeof description !== "string" || !description.trim()) errors.push("description is required");
-  else if (description.length > 1024) errors.push("description is longer than 1024 characters");
+  else if (chars(description) > 1024) errors.push("description is longer than 1024 characters");
   if (
     compatibility !== undefined &&
-    (typeof compatibility !== "string" || !compatibility || compatibility.length > 500)
+    (typeof compatibility !== "string" || !compatibility || chars(compatibility) > 500)
   )
     errors.push("compatibility must be 1 to 500 characters");
+  if (license !== undefined && typeof license !== "string") errors.push("license must be a string");
   if (
     metadata !== undefined &&
     (!metadata ||
@@ -64,46 +71,51 @@ export function standardErrors(dir: string): string[] {
       Object.values(metadata).some((v) => typeof v !== "string"))
   )
     errors.push("metadata must map strings to strings");
+  if (fields["allowed-tools"] !== undefined && typeof fields["allowed-tools"] !== "string")
+    errors.push("allowed-tools must be a string");
   for (const field of Object.keys(fields).filter((f) => !FIELDS.has(f)))
     errors.push(`${JSON.stringify(field)} is not a field of the standard`);
   return errors.map((error) => `${skill}: ${error}`);
 }
 
 /**
- * Whether the skill at `dir` is born from its own init: its `scripts/init.ts`
- * exports `init(target)`, and the committed SKILL.md is exactly the bytes
- * init generates. Runs init into a scratch file, never over the skill.
+ * Whether the skill at `dir` is born from its own init: running its
+ * `scripts/init.ts` writes SKILL.md next to the scripts, exactly as committed.
+ * Init runs in a scratch copy of the skill without its SKILL.md, never over
+ * the skill, so init must be self-contained.
  */
-export async function birthErrors(dir: string): Promise<string[]> {
+export function birthErrors(dir: string): string[] {
   const skill = path.basename(dir);
-  const script = path.join(dir, "scripts", "init.ts");
-  if (!fs.existsSync(script)) return [`${skill}: no scripts/init.ts; a skill is born from its own init`];
-  const { init } = (await import(pathToFileURL(script).href)) as { init?: unknown };
-  if (typeof init !== "function") return [`${skill}: scripts/init.ts does not export init(target)`];
-  const target = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "skill-")), "SKILL.md");
+  const committed = path.join(dir, "SKILL.md");
+  if (!fs.existsSync(path.join(dir, "scripts", "init.ts")))
+    return [`${skill}: no scripts/init.ts; a skill is born from its own init`];
+  if (!fs.existsSync(committed)) return [`${skill}: no SKILL.md; run scripts/init.ts`];
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "skill-"));
   try {
-    init(target);
-    const committed = path.join(dir, "SKILL.md");
-    if (!fs.existsSync(committed)) return [`${skill}: no SKILL.md; run scripts/init.ts`];
-    return fs.readFileSync(committed).equals(fs.readFileSync(target))
+    const copy = path.join(scratch, skill);
+    fs.cpSync(dir, copy, { recursive: true, filter: (source) => source !== committed });
+    const run = spawnSync(process.execPath, ["--import", TSX, path.join(copy, "scripts", "init.ts")], {
+      cwd: copy,
+      encoding: "utf8",
+    });
+    if (run.status !== 0)
+      return [`${skill}: running scripts/init.ts failed: ${(run.stderr || String(run.error ?? run.signal)).trim()}`];
+    const born = path.join(copy, "SKILL.md");
+    if (!fs.existsSync(born)) return [`${skill}: running scripts/init.ts does not write SKILL.md`];
+    return fs.readFileSync(committed).equals(fs.readFileSync(born))
       ? []
       : [`${skill}: SKILL.md is not what scripts/init.ts generates; change init and run it, never SKILL.md`];
   } finally {
-    fs.rmSync(path.dirname(target), { recursive: true, force: true });
+    fs.rmSync(scratch, { recursive: true, force: true });
   }
 }
 
 /** Every error of every skill in `skillsDir`, where each directory is a skill, in name order. */
-export async function checkSkills(skillsDir: string): Promise<string[]> {
-  const errors: string[] = [];
-  const skills = fs
+export function checkSkills(skillsDir: string): string[] {
+  return fs
     .readdirSync(skillsDir, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
-    .sort();
-  for (const skill of skills) {
-    const dir = path.join(skillsDir, skill);
-    errors.push(...standardErrors(dir), ...(await birthErrors(dir)));
-  }
-  return errors;
+    .sort()
+    .flatMap((skill) => [...standardErrors(path.join(skillsDir, skill)), ...birthErrors(path.join(skillsDir, skill))]);
 }

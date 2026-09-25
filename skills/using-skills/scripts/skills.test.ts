@@ -11,6 +11,10 @@ test("a skill with a name and description, or with every optional field, follows
   assert.deepEqual(standardErrors(skill("full")), []);
 });
 
+test("lengths count characters, not UTF-16 units: 1024 emoji are a valid description, 500 a valid compatibility", () => {
+  assert.deepEqual(standardErrors(skill("emoji")), []);
+});
+
 test("the name may be lowercase letters of any script, as the standard's reference validator allows", () => {
   assert.deepEqual(standardErrors(skill("données")), []);
 });
@@ -33,7 +37,9 @@ test("the description is required and at most 1024 characters", () => {
 test("optional fields keep to the standard, and no other field is allowed", () => {
   assert.deepEqual(standardErrors(skill("bad-optional")), [
     "bad-optional: compatibility must be 1 to 500 characters",
+    "bad-optional: license must be a string",
     "bad-optional: metadata must map strings to strings",
+    "bad-optional: allowed-tools must be a string",
   ]);
   assert.deepEqual(standardErrors(skill("unknown-field")), ['unknown-field: "version" is not a field of the standard']);
 });
@@ -45,28 +51,32 @@ test("a skill needs a SKILL.md that starts with frontmatter", () => {
   ]);
 });
 
-test("a skill is born when its SKILL.md is exactly what its init generates", async () => {
-  assert.deepEqual(await birthErrors(skill("born")), []);
-  assert.deepEqual(await birthErrors(skill("hand-edited")), [
+test("a skill is born when running its init writes exactly its committed SKILL.md", () => {
+  assert.deepEqual(birthErrors(skill("born")), []);
+  assert.deepEqual(birthErrors(skill("hand-edited")), [
     "hand-edited: SKILL.md is not what scripts/init.ts generates; change init and run it, never SKILL.md",
   ]);
 });
 
-test("a skill without an init, or whose init exports no init(target), is not born from it", async () => {
-  assert.deepEqual(await birthErrors(skill("no-init")), [
-    "no-init: no scripts/init.ts; a skill is born from its own init",
-  ]);
-  assert.deepEqual(await birthErrors(skill("no-export")), ["no-export: scripts/init.ts does not export init(target)"]);
+test("a skill without an init, or whose init writes no SKILL.md when run, is not born from it", () => {
+  assert.deepEqual(birthErrors(skill("no-init")), ["no-init: no scripts/init.ts; a skill is born from its own init"]);
+  assert.deepEqual(birthErrors(skill("export-only")), ["export-only: running scripts/init.ts does not write SKILL.md"]);
 });
 
-test("checking runs init into a scratch file, never over the skill", async () => {
+test("an init that fails is reported with its error", () => {
+  const [error, ...rest] = birthErrors(skill("failing"));
+  assert.match(error, /^failing: running scripts\/init\.ts failed: [\s\S]*init failed on purpose/);
+  assert.deepEqual(rest, []);
+});
+
+test("checking runs init in a scratch copy, never over the skill", () => {
   const before = fs.readFileSync(`${skill("hand-edited")}/SKILL.md`);
-  await birthErrors(skill("hand-edited"));
+  birthErrors(skill("hand-edited"));
   assert.deepEqual(fs.readFileSync(`${skill("hand-edited")}/SKILL.md`), before);
 });
 
-test("checkSkills reports every skill in the directory, in name order", async () => {
-  const errors = await checkSkills(SKILLS);
+test("checkSkills reports every skill in the directory, in name order", () => {
+  const errors = checkSkills(SKILLS);
   const skills = [...new Set(errors.map((e) => e.slice(0, e.indexOf(":"))))];
   assert.deepEqual(skills, [...skills].sort());
   assert.equal(errors.filter((e) => e.startsWith("born:")).length, 0);

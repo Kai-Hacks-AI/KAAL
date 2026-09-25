@@ -7,7 +7,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error("usage: check.ts <skills-dir>");
     process.exitCode = 2;
   } else {
-    const errors = await checkSkills(skillsDir);
+    const errors = checkSkills(skillsDir);
     if (errors.length) {
       console.error(errors.join("\n"));
       process.exitCode = 1;

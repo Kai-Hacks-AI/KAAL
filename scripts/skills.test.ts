@@ -29,6 +29,6 @@ test("no skill imports another skill", () => {
 
 // KAAL uses using-skills: every skill follows the Agent Skills standard and is
 // born from its own init. Why: brain/learning/genesis/26/09/25/01/nodes/using-skills.md
-test("every skill follows the Agent Skills standard and is born from its own init", async () => {
-  assert.deepEqual(await checkSkills(SKILLS), []);
+test("every skill follows the Agent Skills standard and is born from its own init", () => {
+  assert.deepEqual(checkSkills(SKILLS), []);
 });
