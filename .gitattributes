@@ -1,10 +1,11 @@
-# BRAIN is sealed: its bytes must be identical wherever it is checked out.
+# Why: brain/learning/genesis/26/09/25/01/nodes/using-seals.md
 brain/** -text
+# Why: the tests reading these fixtures compare them byte for byte.
 skills/using-brain/test-data/** -text
 skills/using-seals/test-data/** -text
 skills/using-agents/test-data/** -text
 test-data/** -text
-# Skills are born from init: SKILL.md must stay byte-exact to what init generates.
+# Why: skills/*/scripts/init.test.ts
 skills/*/SKILL.md -text
-# Agent entry points are created by using-agents: they must stay byte-exact to what Genesis produces.
+# Why: scripts/genesis.test.ts
 AGENTS.md -text
