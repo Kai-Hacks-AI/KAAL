@@ -84,6 +84,38 @@ export function checkBrain(root = ROOT): string[] {
   return [...chains].flatMap(([lineage, units]) => checkChain(root, lineage, units));
 }
 
+/** What a path is to KAAL's seal state. */
+export type SealState = "unit-seal" | "misplaced-seal" | "heads" | "lock";
+
+/**
+ * The one definition of which paths are seal state. `file` is a posix path
+ * relative to the repository; seal state lives only under the BRAIN root:
+ * each learning's seal (`<lineage>/YY/MM/DD/CC/seal.json`), the chain heads
+ * and the sealing lock. A seal file anywhere else under the root is still
+ * seal state, but never one sealing writes. Anything else is not seal state.
+ */
+export function sealState(file: string, root = ROOT): SealState | undefined {
+  const prefix = `${root.split(path.sep).join("/")}/`;
+  if (!file.startsWith(prefix)) return undefined;
+  const inRoot = file.slice(prefix.length);
+  if (inRoot === HEADS_FILE) return "heads";
+  if (inRoot === LOCK_FILE) return "lock";
+  if (inRoot !== SEAL_FILE && !inRoot.endsWith(`/${SEAL_FILE}`)) return undefined;
+  const unit = inRoot.split("/").slice(0, -1);
+  return unit.length === 5 && unit.slice(1).every((part) => LEARNING.test(part)) ? "unit-seal" : "misplaced-seal";
+}
+
+/** Each entry of `git diff --name-status --no-renames` output: its status letter and path. */
+function entries(nameStatus: string): { status: string; file: string }[] {
+  return nameStatus
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => {
+      const [status = "", file = ""] = line.split("\t");
+      return { status, file };
+    });
+}
+
 /**
  * Seal state is written only by sealing on main, never by a change: a change
  * that adds, modifies or deletes a seal, the chain heads or the lock would let
@@ -92,18 +124,30 @@ export function checkBrain(root = ROOT): string[] {
  * seal-state path it touches.
  */
 export function sealStateChanges(nameStatus: string, root = ROOT): string[] {
-  const state = new Set([HEADS_FILE, LOCK_FILE]);
-  const prefix = `${root.split(path.sep).join("/")}/`;
-  return nameStatus
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .flatMap((line) => {
-      const [status, file] = line.split("\t");
-      if (!file?.startsWith(prefix)) return [];
-      const inRoot = file.slice(prefix.length);
-      const sealState = state.has(inRoot) || inRoot === SEAL_FILE || inRoot.endsWith(`/${SEAL_FILE}`);
-      return sealState ? [`${file}: seal state may only be written by sealing on main (${status})`] : [];
-    });
+  return entries(nameStatus)
+    .filter(({ file }) => sealState(file, root))
+    .map(({ status, file }) => `${file}: seal state may only be written by sealing on main (${status})`);
+}
+
+/**
+ * The other side of the same boundary: what sealing on main may commit. It
+ * adds a seal to each newly sealed learning and adds or updates the chain
+ * heads; it never changes or removes existing seal state, never commits the
+ * lock, and never commits anything that is not seal state. Takes
+ * `git diff --cached --name-status --no-renames` output for everything staged
+ * and returns one error per entry sealing could not have produced.
+ */
+export function sealingOutputErrors(nameStatus: string, root = ROOT): string[] {
+  return entries(nameStatus).flatMap(({ status, file }) => {
+    const kind = sealState(file, root);
+    if (kind === "unit-seal" && status === "A") return [];
+    if (kind === "heads" && (status === "A" || status === "M")) return [];
+    const what =
+      kind === undefined
+        ? "not seal state"
+        : `${kind} ${status === "A" ? "added" : status === "M" ? "modified" : status === "D" ? "deleted" : status}`;
+    return [`${file}: sealing never commits this (${what})`];
+  });
 }
 
 /** Everything that stops a BRAIN from being sealed: invalid nodes and broken seals. */

@@ -3,6 +3,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ROOT } from "../skills/using-brain/scripts/brain.js";
+import { sealBrain } from "./brain-seals.js";
 import { io } from "../skills/using-seals/scripts/seals.js";
 
 const DATA = fileURLToPath(new URL("../test-data/", import.meta.url));
@@ -54,4 +56,22 @@ export function withSealWriteFailure<T>(unit: string, run: () => T): T {
   } finally {
     io.writeFileSync = real;
   }
+}
+
+/**
+ * What sealing changes, as `git diff --name-status` for a BRAIN at the default
+ * root: `from` sealed with the real sealBrain, compared with `from` itself.
+ * `to` names the committed result it must match.
+ */
+export function sealingDiff(from: string, to: string): string {
+  const root = scratchBrain(from);
+  sealBrain(root);
+  const before = tree(brainData(from));
+  const after = tree(root);
+  if (JSON.stringify(after) !== JSON.stringify(tree(brainData(to))))
+    throw new Error(`sealing ${from} did not produce ${to}`);
+  return Object.keys(after)
+    .filter((file) => before[file] !== after[file])
+    .map((file) => `${file in before ? "M" : "A"}\t${ROOT}/${file}`)
+    .join("\n");
 }

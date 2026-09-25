@@ -1,13 +1,9 @@
-# Sealing on main: every push to main closes the BRAIN learnings it brought,
-# by running KAAL's sealing (npm run seal, which seals through using-seals)
-# and committing the new seal state back to main. This is the only writer of
-# seal state; every change is refused if it writes seal state itself.
+# KAAL's sealing policy: brain/learning/genesis/26/09/25/01/nodes/using-seals.md
 #
-# Only the pushed branch's own, already reviewed code runs here. Runs are
-# serialized so two sealings never overlap. Sealing refuses, writing nothing,
-# when BRAIN is invalid or a seal is broken; the run then fails and main stays
-# unsealed until a fix lands. The commit is pushed with the workflow token,
-# which starts no further workflow runs.
+# Runs `npm run seal` after every push to main and commits what it wrote back
+# to main. Before anything is committed, `npm run seals:sealing-check` refuses
+# any staged change that sealing could not have produced; the workflow only
+# asks Git what is staged and never decides that itself.
 name: sealing
 
 on:
@@ -17,6 +13,8 @@ on:
 permissions:
   contents: read
 
+# Runs are queued, never cancelled, so two runs never write main at once and
+# a queued run still seals what was pushed before it.
 concurrency:
   group: sealing-main
   cancel-in-progress: false
@@ -30,31 +28,29 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Seal main as it is now, not the commit that triggered this run:
-          # a queued run then seals everything pushed before it.
+          # main as it is now, not the commit that triggered this run.
           ref: main
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run seal
-      - name: Commit the new seal state
+      # The list of sealed learnings is kept outside the checkout, so it is
+      # never staged. A redirect, not a pipe: the default shell has no
+      # pipefail, so a pipe would hide a failed sealing.
+      - run: |
+          npm run -s seal > "$RUNNER_TEMP/sealed.txt"
+          cat "$RUNNER_TEMP/sealed.txt"
+      - name: Commit what sealing wrote
         run: |
-          git add -- brain/learning
+          git add -A
           if git diff --cached --quiet; then
             echo "Nothing new to seal."
             exit 0
           fi
-          # Sealing writes only seal.json files and the chain heads; anything
-          # else staged here means something is wrong, so nothing is pushed.
-          unexpected=$(git diff --cached --name-only | grep -vE '(^|/)seal\.json$|^brain/learning/seals\.json$' || true)
-          if [ -n "$unexpected" ]; then
-            echo "Refusing to commit files that are not seal state:"
-            echo "$unexpected"
-            exit 1
-          fi
+          npm run -s seals:sealing-check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Seal BRAIN learnings" -m "$(git diff --cached --name-only | sed -n 's|^brain/learning/\(.*\)/seal\.json$|Sealed \1|p')"
+          git commit -m "Seal BRAIN learnings" -m "$(cat "$RUNNER_TEMP/sealed.txt")"
+          # Pushed with the workflow token, which starts no further workflow runs.
           git push origin HEAD:main

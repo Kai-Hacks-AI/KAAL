@@ -1,7 +1,7 @@
-# BRAIN's seals: BRAIN is valid, every sealed learning is intact, and a
-# change never writes seal state itself. Seal state is written only by
-# sealing on main, so the target branch is the history a change is checked
-# against.
+# KAAL's sealing policy: brain/learning/genesis/26/09/25/01/nodes/using-seals.md
+#
+# Runs `npm run seals:check` and, on a pull request, `npm run seals:guard`
+# against the target branch; both decide what counts, not this workflow.
 #
 # On a pull request this runs as pull_request_target: GitHub takes the
 # workflow and the checked-out code from the default branch, main, never
