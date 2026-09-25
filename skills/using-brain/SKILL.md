@@ -17,4 +17,6 @@ The relation and target must already exist before A is born, in the same lineage
 
 Create every node through `scripts/create-node.ts`; pass each edge as `--edge <relation>=<target>`, using node identities (paths relative to the BRAIN root). Birth is refused if an edge's relation or target does not already exist in an earlier learning of the same lineage. Validate BRAIN with `scripts/validate.ts`.
 
-A using system bootstraps its BRAIN by birthing its first nodes through the same mechanism as any other node. Its reasons for using this skill belong in those nodes, not here: this skill is independent of any using system.
+Create a BRAIN with `scripts/create-brain.ts [dir]` (by default `brain`, whose learning is the default BRAIN root `brain/learning`). It creates `<dir>/AGENTS.md`, which routes agents working in BRAIN to this skill, and an empty `<dir>/learning/`, where nodes are born, and refuses when `<dir>` already exists.
+
+A using system bootstraps its BRAIN by creating it and then birthing its first nodes through the same mechanism as any other node. Its reasons for using this skill belong in those nodes, not here: this skill is independent of any using system.
