@@ -1,7 +1,8 @@
 import { pathToFileURL } from "node:url";
+import { ROOT } from "./brain.js";
 import { createNode } from "./create-node.js";
 
-export function init(root = "brain/learning"): void {
+export function init(root = ROOT): void {
   createNode({
     root,
     lineage: "genesis",

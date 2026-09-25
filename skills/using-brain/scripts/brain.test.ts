@@ -33,3 +33,13 @@ test("discovers markdown nodes and derives identity and learning relative to roo
   assert.equal(relativeIdentity(root, file), "genesis/26/09/25/01/nodes/a.md");
   assert.equal(learningKey(root, file), "26/09/25/01");
 });
+
+test("accepts CRLF line endings and frontmatter at end of file", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "brain-"));
+  const crlf = path.join(root, "crlf.md");
+  const eof = path.join(root, "eof.md");
+  fs.writeFileSync(crlf, "---\r\nname: A\r\n---\r\n\r\nMeaning\r\n");
+  fs.writeFileSync(eof, "---\nname: B\n---");
+  assert.deepEqual(parseNode(crlf), { name: "A" });
+  assert.deepEqual(parseNode(eof), { name: "B" });
+});
