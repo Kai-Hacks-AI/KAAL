@@ -96,8 +96,20 @@ function testArgs(repo: string): string[] {
 export function unreplayable(repo: string): string | undefined {
   const scripts = (JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")) as { scripts?: object })
     .scripts;
-  const hooks = ["pretest", "posttest"].filter((hook) => scripts && hook in scripts);
-  if (hooks.length) return `main's npm test runs ${hooks.join(" and ")}, which its cases' replay would not`;
+  // Every script npm ci or npm test would run besides the test itself; the replay runs none of them.
+  const lifecycle = [
+    "preinstall",
+    "install",
+    "postinstall",
+    "prepublish",
+    "preprepare",
+    "prepare",
+    "postprepare",
+    "pretest",
+    "posttest",
+  ];
+  const hooks = lifecycle.filter((hook) => scripts && hook in scripts);
+  if (hooks.length) return `main's npm ci or npm test runs ${hooks.join(", ")}, which its cases' replay would not`;
   const [runner, flag, ...rest] = testArgs(repo);
   // Only plain paths and globs: anything a shell could expand ($, `, ~, braces) might name other files on another platform.
   const extra = rest.filter((arg) => !/^[\w.*][\w./*-]*\.test\.ts$/.test(arg));
@@ -305,7 +317,12 @@ function runFiles(code: string, files: string[]): Result[] {
   spawnSync(process.execPath, [TSX, "--test", `--test-reporter=${REPORTER}`, ...files], {
     cwd: code,
     // A run started from within another test run would report to that run instead.
-    env: { ...process.env, NODE_TEST_CONTEXT: undefined, KAAL_REGRESSION_RESULTS: out },
+    // No npm_* variable either: they describe whichever package's script started this run, not the one replayed.
+    env: {
+      ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toLowerCase().startsWith("npm_"))),
+      NODE_TEST_CONTEXT: undefined,
+      KAAL_REGRESSION_RESULTS: out,
+    },
     stdio: "ignore",
   });
   return fs

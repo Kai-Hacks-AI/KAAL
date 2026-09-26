@@ -208,6 +208,20 @@ test("a replacement is proven only when every candidate case pointing at it pass
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("cases are replayed without the npm variables of whatever started the check", () => {
+  const before = process.env.npm_package_name;
+  process.env.npm_package_name = "kaal";
+  try {
+    assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("npm-aware"), BASE), [
+      'as the next main, scripts/cases.test.ts: "knows no package" fails when main replays it',
+    ]);
+  } finally {
+    if (before === undefined) delete process.env.npm_package_name;
+    else process.env.npm_package_name = before;
+  }
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a candidate whose code ends the run early proves none of the cases in that file", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("exits"), BASE), [
     'as the next main, scripts/cases.test.ts: "adds" is named but does not run',
@@ -271,7 +285,10 @@ test("a candidate that could not judge the next change once merged is refused be
     'as the next main, npm test is not "tsx --test" with case files only ("tsx --test $npm_package_name.test.ts scripts/*.test.ts"), so its cases cannot be run as main runs them',
   ]);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("hooked"), BASE).slice(0, 1), [
-    "as the next main, npm test runs pretest, which its cases' replay would not",
+    "as the next main, npm ci or npm test runs pretest, which its cases' replay would not",
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("prepared"), BASE).slice(0, 1), [
+    "as the next main, npm ci or npm test runs prepare, which its cases' replay would not",
   ]);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("fails-own"), BASE), [
     'as the next main, scripts/cases.test.ts: "fails" fails when main replays it',
