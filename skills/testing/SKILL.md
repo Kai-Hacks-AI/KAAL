@@ -7,7 +7,9 @@ description: Write tests that state claims, keep their test data apart from the 
 
 A test proves a claim about what the tested thing does, and can be run again to prove it again.
 
-State the claim. Each test case states one claim about behaviour its user relies on, as a sentence that is true when the test passes, and asserts what that claim says. A failing case then names the claim that broke.
+State the claim. A test case is one claim about behaviour its user relies on, stated as a sentence that is true when the test passes, together with the proof of that claim. The claim, not its inputs, makes the case: more evidence for the same claim belongs to that case, and a new claim is a new case. State what is promised, not how it is done today, so the case outlives a change of mechanism. The claim says nothing about where or how the case is run.
+
+Prove all of it. The proof covers exactly what the claim says: an exact result where the claim is exact, every entry where it speaks of a whole, everywhere a second one could be where it says there is only one. A case that would still pass with its claim broken proves nothing, so check that breaking the promise makes it fail. A failing case then names the claim that broke.
 
 Keep test data apart from test cases. The inputs and expected results a case uses are its test data. Keeping them apart from the case lets the claim be read without its data in the way, and lets the same data serve several claims. Where test data is kept and how it is organised is the using system's decision.
 
