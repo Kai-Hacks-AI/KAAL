@@ -207,6 +207,10 @@ test("a replacement is proven only when every candidate case pointing at it pass
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a candidate whose code ends the run early proves none of the cases in that file", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("exits"), BASE), [
+    'as the next main, scripts/cases.test.ts: "adds" is named but does not run',
+    'as the next main, scripts/cases.test.ts: "greets" is named but does not run',
+    'as the next main, scripts/cases.test.ts: "adds as its fixture says" is named but does not run',
+    "as the next main, scripts/cases.test.ts: does not run as a whole",
     'scripts/cases.test.ts: "adds" did not run as a whole',
     'scripts/cases.test.ts: "greets" did not run as a whole',
     'scripts/cases.test.ts: "adds as its fixture says" did not run as a whole',
@@ -241,7 +245,7 @@ test("a main whose npm test runs no case it can name judges nothing, so every ca
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
-test("a candidate that could not judge the next change once merged is refused before it becomes main", () => {
+test("a candidate that could not judge the next change once merged is refused before it becomes main: every case it runs must be one it names", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("preloaded"), BASE).slice(0, 1), [
     'as the next main, npm test is not "tsx --test" with case files only ("tsx --import ./scripts/setup.ts --test scripts/*.test.ts"), so its cases cannot be run as main runs them',
   ]);
@@ -251,6 +255,14 @@ test("a candidate that could not judge the next change once merged is refused be
   ]);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("unnamed"), BASE), [
     "as the next main, it would run a case it cannot name, at scripts/cases.test.ts:24",
+    'as the next main, scripts/cases.test.ts: "adds 1 to nothing" runs but is not named',
+    'as the next main, scripts/cases.test.ts: "adds 2 to nothing" runs but is not named',
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("ghost"), BASE), [
+    'as the next main, scripts/cases.test.ts: "ghost" is named but does not run',
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("aliased"), BASE), [
+    'as the next main, scripts/cases.test.ts: "adds zero" runs but is not named',
   ]);
 });
 

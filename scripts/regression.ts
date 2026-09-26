@@ -330,15 +330,47 @@ export function runTrusted(trusted: string, candidate: string): Result[] {
 }
 
 /**
- * Runs the candidate's own cases that point at a commitment replacing one of
- * main's: the candidate's cases are what prove a replacement, so each of them
- * must pass, run by the trusted runner; one that is skipped proves nothing.
+ * The candidate's own cases, run by the trusted runner and reporter. They
+ * prove what the candidate replaces, and they show which cases it really
+ * runs, so the next main can name every one of them.
  */
-function replacementErrors(candidate: string, successors: Set<string>): string[] {
-  const proving = repoCases(candidate).filter((c) => c.places.some((p) => successors.has(p)));
-  if (!proving.length) return [];
-  const results = runFiles(scratchCopy(candidate, true), [...new Set(proving.map((c) => c.file))]);
-  return judge(proving, results, new Set()).map((error) => `replacement not proven: ${error}`);
+function runCandidate(candidate: string): Result[] {
+  const files = caseFiles(candidate);
+  return files.length ? runFiles(scratchCopy(candidate, true), files) : [];
+}
+
+/**
+ * The cases a candidate's source names, checked against what its run did, one
+ * to one: a named case that did not run (such as one inside a comment), or a
+ * case that ran without being named (such as one registered through `it` or
+ * built in a loop), would leave the next main unable to tell when it goes missing.
+ */
+export function unmatchedCases(cases: Case[], results: Result[]): string[] {
+  const left = [...results];
+  const ghosts = cases.flatMap((c) => {
+    const i = left.findIndex((r) => r.file === c.file && r.name === c.title);
+    if (i >= 0) {
+      left.splice(i, 1);
+      return [];
+    }
+    return [`${c.file}: "${c.title}" is named but does not run`];
+  });
+  const unnamed = left.map((r) =>
+    r.name.split("\\").join("/") === r.file
+      ? `${r.file}: does not run as a whole`
+      : `${r.file}: "${r.name}" runs but is not named`,
+  );
+  return [...ghosts, ...unnamed];
+}
+
+/** The candidate's cases that point at a commitment replacing one of main's must each pass: a skip proves nothing. */
+function replacementErrors(cases: Case[], results: Result[], successors: Set<string>): string[] {
+  const proving = cases.filter((c) => c.places.some((p) => successors.has(p)));
+  return judge(
+    proving,
+    results.filter((r) => proving.some((c) => c.file === r.file)),
+    new Set(),
+  ).map((error) => `replacement not proven: ${error}`);
 }
 
 /** Everything that stops a candidate from being accepted over the trusted regression at `base`. */
@@ -356,12 +388,15 @@ export function regressionErrors(trusted: string, candidate: string, base: strin
     ...(repoCases(candidate).length ? [] : ["as the next main, its npm test would run no case it can name"]),
     ...unnamedCases(candidate).map((at) => `as the next main, it would run a case it cannot name, at ${at}`),
   ];
+  const candidateCases = repoCases(candidate);
+  const candidateResults = runCandidate(candidate);
+  successor.push(...unmatchedCases(candidateCases, candidateResults).map((error) => `as the next main, ${error}`));
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
   return [
     ...successor,
     ...errors,
-    ...replacementErrors(candidate, new Set(replaced.values())),
+    ...replacementErrors(candidateCases, candidateResults, new Set(replaced.values())),
     ...judge(repoCases(trusted), runTrusted(trusted, candidate), superseded),
   ];
 }
