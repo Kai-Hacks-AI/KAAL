@@ -79,7 +79,11 @@ export function caseFiles(repo: string): string[] {
   const script = (
     JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")) as { scripts?: { test?: string } }
   ).scripts?.test;
-  const globs = script?.split(/\s+/).filter((arg) => arg.endsWith(".ts")) ?? [];
+  const globs =
+    script
+      ?.split(/\s+/)
+      .map((arg) => arg.replace(/^(["'])(.*)\1$/, "$2"))
+      .filter((arg) => arg.endsWith(".ts")) ?? [];
   return [...new Set(globs.flatMap((glob) => fs.globSync(glob, { cwd: repo })))]
     .map((file) => file.split(path.sep).join("/"))
     .sort();
@@ -270,6 +274,8 @@ function replacementErrors(candidate: string, successors: Set<string>): string[]
 
 /** Everything that stops a candidate from being accepted over the trusted regression at `base`. */
 export function regressionErrors(trusted: string, candidate: string, base: string): string[] {
+  // No trusted case would judge nothing and accept everything, so that is refused.
+  if (!caseFiles(trusted).length) return ["main's npm test runs no case files, so nothing could judge the candidate"];
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
   return [

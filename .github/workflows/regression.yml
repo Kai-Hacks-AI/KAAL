@@ -13,16 +13,43 @@
 # that runs in a job that holds no write permission, no secret and no
 # dependency cache; the jobs that write the regression-linux commit status
 # never check the change out.
+#
+# A result holds only for the main it was judged by. When main moves, every
+# open pull request's regression-linux status is set to failure, and a
+# success is only published if main has not moved while the change was
+# judged: the change must be derived from the new main, and pushing that
+# runs this again.
 name: regression
 
 on:
+  push:
+    branches: [main]
   pull_request_target:
 
 permissions: {}
 
 jobs:
+  invalidate:
+    name: regression-invalidate-linux
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      statuses: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      MAIN: ${{ github.sha }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - run: |
+          for head in $(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" --jq '.[].head.sha'); do
+            gh api "repos/$REPO/statuses/$head" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main moved to ${MAIN:0:12}: derive the change from it"
+          done
+
   start:
     name: regression-start-linux
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -39,6 +66,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      main: ${{ steps.main.outputs.sha }}
     steps:
       - run: git config --global core.autocrlf true
       # main's latest commit, named explicitly: the regression that judges the
@@ -48,6 +77,8 @@ jobs:
           ref: main
           path: trusted
           persist-credentials: false
+      - id: main
+        run: echo "sha=$(git -C trusted rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
@@ -66,7 +97,7 @@ jobs:
   report:
     name: regression-report-linux
     needs: run
-    if: always()
+    if: always() && github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -75,9 +106,13 @@ jobs:
       STATUS_URL: repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       RESULT: ${{ needs.run.result }}
+      JUDGED_BY: ${{ needs.run.outputs.main }}
+      REPO: ${{ github.repository }}
     steps:
       - run: |
-          if [ "$RESULT" = success ]; then
+          if [ "$RESULT" = success ] && [ "$(gh api "repos/$REPO/commits/main" --jq .sha)" != "$JUDGED_BY" ]; then
+            gh api "$STATUS_URL" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main moved while the change was judged: derive it from main again"
+          elif [ "$RESULT" = success ]; then
             gh api "$STATUS_URL" -f state=success -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression holds"
           else
             gh api "$STATUS_URL" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression does not hold for the change"

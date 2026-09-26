@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   type Case,
+  caseFiles,
   classify,
   fileCases,
   judge,
@@ -175,6 +176,19 @@ test("a candidate whose code ends the run early proves none of the cases in that
 test("a candidate that withdraws or replaces a commitment through BRAIN is not held to its old cases", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("withdrawn"), BASE), []);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("replaced"), BASE), []);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("main's cases are the files its npm test runs, whether its globs are quoted or not", () => {
+  assert.deepEqual(caseFiles(regressionTrusted()), ["scripts/cases.test.ts"]);
+  assert.deepEqual(caseFiles(regressionCandidate("quoted-globs")), ["scripts/cases.test.ts"]);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("a main whose npm test runs no case files judges nothing, so every candidate is refused", () => {
+  assert.deepEqual(regressionErrors(regressionCandidate("no-cases"), regressionCandidate("kept"), BASE), [
+    "main's npm test runs no case files, so nothing could judge the candidate",
+  ]);
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
