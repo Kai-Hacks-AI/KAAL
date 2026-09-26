@@ -38,6 +38,17 @@ export function tree(root: string): Record<string, string> {
   );
 }
 
+/** Every entry under a root by posix path, with its kind, so links and special files are seen too. */
+export function entries(root: string): string[] {
+  return fs
+    .readdirSync(root, { recursive: true, withFileTypes: true })
+    .map((e) => {
+      const kind = e.isFile() ? "file" : e.isDirectory() ? "directory" : e.isSymbolicLink() ? "symlink" : "other";
+      return `${path.relative(root, path.join(e.parentPath, e.name)).split(path.sep).join("/")} (${kind})`;
+    })
+    .sort();
+}
+
 /**
  * Runs `run` while writing the seal of `unit` (a learning, as a posix path
  * within the BRAIN) fails, as a full disk would. Simulated through the
