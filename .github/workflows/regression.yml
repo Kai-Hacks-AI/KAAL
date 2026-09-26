@@ -55,6 +55,9 @@ jobs:
     steps:
       - run: |
           for head in $(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" --jq '.[].head.sha'); do
+            # A result already judged against this main is not stale.
+            current=$(gh api "repos/$REPO/commits/$head/status" --jq '.statuses[] | select(.context == "regression-linux") | .description')
+            case "$current" in *"main ${MAIN:0:12}"*) continue ;; esac
             gh api "repos/$REPO/statuses/$head" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main moved to ${MAIN:0:12}: derive the change from it"
           done
 
@@ -128,7 +131,7 @@ jobs:
             gh api "$STATUS_URL" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression does not hold for the change"
             exit 0
           fi
-          gh api "$STATUS_URL" -f state=success -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression holds"
+          gh api "$STATUS_URL" -f state=success -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression holds (main ${JUDGED_BY:0:12})"
           if [ "$(gh api "repos/$REPO/commits/main" --jq .sha)" != "$JUDGED_BY" ]; then
             gh api "$STATUS_URL" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main moved while the change was judged: derive it from main again"
           fi

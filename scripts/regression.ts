@@ -94,6 +94,10 @@ function testArgs(repo: string): string[] {
  * under other conditions than main's own run.
  */
 export function unreplayable(repo: string): string | undefined {
+  const scripts = (JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")) as { scripts?: object })
+    .scripts;
+  const hooks = ["pretest", "posttest"].filter((hook) => scripts && hook in scripts);
+  if (hooks.length) return `main's npm test runs ${hooks.join(" and ")}, which its cases' replay would not`;
   const [runner, flag, ...rest] = testArgs(repo);
   // Only plain paths and globs: anything a shell could expand ($, `, ~, braces) might name other files on another platform.
   const extra = rest.filter((arg) => !/^[\w.*][\w./*-]*\.test\.ts$/.test(arg));
