@@ -7,15 +7,16 @@ import { fileURLToPath } from "node:url";
 import { ANCHOR_AGENTS_MD, ANCHOR_DIR, createAnchor } from "../skills/testing/scripts/create-anchor.js";
 import { entries, tree } from "./test-data.js";
 
-// KAAL's testing has one anchor, test/, created by the testing skill and never
-// placed by hand. Tests and their data stay where they are; test/ only routes.
+// KAAL's testing has one anchor, test/, whose entry point is created by the
+// testing skill and never placed by hand. Besides it, test/ holds only KAAL's
+// Regression Plan; tests and their data stay where they are.
 const REPO = fileURLToPath(new URL("../", import.meta.url));
 
-test("KAAL's test/ is exactly the anchor the testing skill creates, nothing added", () => {
+test("KAAL's test/ holds exactly the entry point the testing skill creates and KAAL's Regression Plan", () => {
   const created = createAnchor(path.join(fs.mkdtempSync(path.join(os.tmpdir(), "kaal-anchor-")), ANCHOR_DIR));
   const committed = path.join(REPO, ANCHOR_DIR);
-  assert.deepEqual(entries(committed), entries(created));
-  assert.deepEqual(tree(committed), tree(created));
+  assert.deepEqual(entries(committed), [...entries(created), "regression-plan.md (file)"].sort());
+  assert.equal(tree(committed)["AGENTS.md"], tree(created)["AGENTS.md"]);
 });
 
 /** Every AGENTS.md in the repository, by posix path, outside dependencies and Git's own files. */
