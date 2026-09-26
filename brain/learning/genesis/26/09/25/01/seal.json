@@ -1,0 +1,31 @@
+{
+  "unit": "genesis/26/09/25/01",
+  "previous": null,
+  "files": [
+    {
+      "path": "nodes/bass.md",
+      "sha256": "c02465653840260c6dc17f3f49175d6bb14b761524a820306682c573efc61c06"
+    },
+    {
+      "path": "nodes/skill.md",
+      "sha256": "c09cac0eb52cc0426139887989ad0ecd7f543df390ff2c3c0c832741b834f0e6"
+    },
+    {
+      "path": "nodes/using-agents.md",
+      "sha256": "9ce19d4d7721af4c2f952a2ef502205f34d06208459d2dced993c12a3712d9c6"
+    },
+    {
+      "path": "nodes/using-brain.md",
+      "sha256": "186b6498bd27afd97402996d616ad11a200acd27d8a7fa34dbb15bf403d4c09e"
+    },
+    {
+      "path": "nodes/using-seals.md",
+      "sha256": "2938a919e36426fc6435b295258fff285971208976764c90cc482199f3f310e0"
+    },
+    {
+      "path": "nodes/using-skills.md",
+      "sha256": "eeba53f07d74ced1a2fd0ce7d497c6ad001ff4f9a429974c2cc5ab25c58b986a"
+    }
+  ],
+  "seal": "ccbdb92d3e9ba8abcd69cb7391e4f2267ad97b324018d43500ad2a9ccb56c6f3"
+}
