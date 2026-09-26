@@ -13,6 +13,7 @@ import {
   planCommitments,
   planLedger,
   regressionErrors,
+  unreplayable,
   type Result,
 } from "./regression.js";
 import { regressionCandidate, regressionTrusted } from "./test-data.js";
@@ -225,6 +226,13 @@ test("main's cases are the case files its npm test names, quoted or not, and not
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("a main whose npm test is more than tsx --test with case files cannot be replayed, so every candidate is refused", () => {
+  assert.deepEqual(regressionErrors(regressionCandidate("preloaded"), regressionCandidate("kept"), BASE), [
+    'main\'s npm test is not "tsx --test" with case files only ("tsx --import ./scripts/setup.ts --test scripts/*.test.ts"), so its cases cannot be run as main runs them',
+  ]);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a main whose npm test runs no case it can name judges nothing, so every candidate is refused", () => {
   assert.deepEqual(regressionErrors(regressionCandidate("no-cases"), regressionCandidate("kept"), BASE), [
     "main's npm test runs no case it can name, so nothing could judge the candidate",
@@ -232,10 +240,11 @@ test("a main whose npm test runs no case it can name judges nothing, so every ca
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
-test("KAAL's own plan states a place for every commitment and the main it was derived from", () => {
+test("KAAL's own plan states a place for every commitment and the main it was derived from, and its npm test can be replayed", () => {
   const plan = fs.readFileSync(path.join(REPO, PLAN), "utf8");
   assert.equal(planCommitments(plan).length, [...plan.matchAll(/^\d+\. /gm)].length);
   assert.match(planLedger(plan).base ?? "", /^[0-9a-f]{40}$/);
+  assert.equal(unreplayable(REPO), undefined);
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
@@ -250,4 +259,5 @@ test("a case's commitments are the Why: lines directly above it, and only those"
       { file: "x.test.ts", title: "none", places: [] },
     ],
   );
+  assert.deepEqual(fileCases("x.test.ts", 'test("escaped \\x41", () => {});\n'), []);
 });

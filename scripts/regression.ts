@@ -61,7 +61,12 @@ export function fileCases(file: string, source: string): Case[] {
   const lines = source.split(/\r?\n/);
   const text = lines.join("\n");
   for (const m of text.matchAll(/^test\(\s*"((?:[^"\\]|\\.)*)"/gm)) {
-    const title = JSON.parse(`"${m[1]}"`) as string;
+    let title: string;
+    try {
+      title = JSON.parse(`"${m[1]}"`) as string;
+    } catch {
+      continue; // an escape JSON does not know: a title that cannot be read, like one built at run time
+    }
     const places: string[] = [];
     let line = text.slice(0, m.index).split("\n").length - 2;
     for (; line >= 0; line--) {
@@ -74,20 +79,34 @@ export function fileCases(file: string, source: string): Case[] {
   return cases;
 }
 
+/** The arguments of a repository's own `npm test` script, unquoted. */
+function testArgs(repo: string): string[] {
+  const script = (
+    JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")) as { scripts?: { test?: string } }
+  ).scripts?.test;
+  return (script?.split(/\s+/) ?? []).filter(Boolean).map((arg) => arg.replace(/^(["'])(.*)\1$/, "$2"));
+}
+
+/**
+ * Why main's `npm test` cannot be replayed faithfully, if it cannot: trusted
+ * regression runs main's case files with its own `tsx --test`, so a script
+ * that is anything more, such as one that preloads a module, would be judged
+ * under other conditions than main's own run.
+ */
+export function unreplayable(repo: string): string | undefined {
+  const [runner, flag, ...rest] = testArgs(repo);
+  const extra = rest.filter((arg) => !arg.endsWith(".test.ts"));
+  if (runner === "tsx" && flag === "--test" && !extra.length) return undefined;
+  return `main's npm test is not "tsx --test" with case files only ("${testArgs(repo).join(" ")}"), so its cases cannot be run as main runs them`;
+}
+
 /**
  * The case files a repository's own `npm test` runs, by posix path relative to
  * it. KAAL names every case file `*.test.ts`, so only such arguments count:
  * anything else the script names, such as a module it preloads, is not a case.
  */
 export function caseFiles(repo: string): string[] {
-  const script = (
-    JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")) as { scripts?: { test?: string } }
-  ).scripts?.test;
-  const globs =
-    script
-      ?.split(/\s+/)
-      .map((arg) => arg.replace(/^(["'])(.*)\1$/, "$2"))
-      .filter((arg) => arg.endsWith(".test.ts")) ?? [];
+  const globs = testArgs(repo).filter((arg) => arg.endsWith(".test.ts"));
   return [...new Set(globs.flatMap((glob) => fs.globSync(glob, { cwd: repo })))]
     .map((file) => file.split(path.sep).join("/"))
     .sort();
@@ -304,6 +323,8 @@ function replacementErrors(candidate: string, successors: Set<string>): string[]
 /** Everything that stops a candidate from being accepted over the trusted regression at `base`. */
 export function regressionErrors(trusted: string, candidate: string, base: string): string[] {
   // No trusted case would judge nothing and accept everything, so that is refused.
+  const unfaithful = unreplayable(trusted);
+  if (unfaithful) return [unfaithful];
   if (!repoCases(trusted).length)
     return ["main's npm test runs no case it can name, so nothing could judge the candidate"];
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
