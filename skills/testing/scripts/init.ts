@@ -6,7 +6,7 @@ const SKILL = fileURLToPath(new URL("../SKILL.md", import.meta.url));
 /** This skill's SKILL.md. The skill is born from init: SKILL.md is generated from here, never edited by hand. */
 export const SKILL_MD = `---
 name: testing
-description: Write tests that state claims, keep their test data apart from the test cases, and give the same result every time they run. Use when adding, changing or reviewing tests, or creating a testing anchor.
+description: Write test cases that state claims and prove all of them, keep their test data apart, group cases by the commitments they prove together, know what a test run proved, and state test plans. Use when adding, changing or reviewing tests, test suites, test runs or test plans, or creating a testing anchor.
 ---
 
 # Testing
