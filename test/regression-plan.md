@@ -1,10 +1,10 @@
 # KAAL Regression Plan
 
-`main` accepts a change only when this plan has been demonstrated for it. A change to this file is a change to what KAAL's testing promises, and is reviewed as one.
+This is KAAL's regression plan, as the `testing` skill defines one (`skills/testing/SKILL.md`). It protects `main`: `main` accepts a change only when this plan has been shown for it.
 
 ## Commitments
 
-Each commitment is stated once, where it is owned. Cases that prove it may be split, merged, replaced or moved without changing this plan; changing what a commitment says changes this plan.
+Each commitment is named where it is owned.
 
 1. Genesis is all or nothing: if any step refuses or fails, what the steps before it created is removed again. Stated in `scripts/genesis.ts`.
 2. KAAL's initial structure is exactly what Genesis produces through its capabilities. Stated in `scripts/genesis.test.ts`.
@@ -21,13 +21,13 @@ Each commitment is stated once, where it is owned. Cases that prove it may be sp
 
 ## Conditions
 
-- Every case is run on Linux and on Windows, with Node 22, in a checkout made with `core.autocrlf=true`. A result holds only for the conditions it was observed in.
+- Every case is run on Linux and on Windows, with Node 22, in a checkout made with `core.autocrlf=true`.
 - Seal checks run on Linux.
 
 ## Which checks judge a change
 
-- The change's own cases, typecheck and format check run against the change: they prove what the change adds.
-- The seal checks run from `main`'s own code against the change: the change cannot alter them.
+- The change's own: its cases, typecheck and format check.
+- From `main`, which the change cannot alter: the seal checks.
 
 ## Known gaps
 
