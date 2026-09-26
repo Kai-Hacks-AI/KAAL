@@ -55,7 +55,7 @@ test("the committed Genesis learning holds exactly the nodes Genesis births", ()
   assert.deepEqual(files(repo, path.join(repo, GENESIS)), files(REPO, path.join(REPO, GENESIS)));
 });
 
-// Why: brain/learning/genesis/26/09/25/01/nodes/using-brain.md
+// Why: scripts/brain-seals.ts
 test("the BRAIN Genesis produces is valid", () => {
   assert.deepEqual(validate(path.join(born(), "brain/learning")), []);
 });

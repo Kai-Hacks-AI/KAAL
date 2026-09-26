@@ -13,7 +13,7 @@ Each commitment is owned by one capability of KAAL and stated in one place, wher
 5. One skill never depends on another. Owned by KAAL, for every skill it keeps; stated in `brain/learning/genesis/26/09/25/01/nodes/skill.md`.
 6. KAAL's testing has one anchor, `test/`, whose entry point is created by the testing skill. Owned by KAAL's use of `testing`; stated in `scripts/test-anchor.test.ts`.
 7. Every script of every skill KAAL keeps does what its skill's `SKILL.md` says it does. Owned by each skill; stated in each `skills/*/SKILL.md`; the guidance a `SKILL.md` gives agents is not a commitment here.
-8. KAAL's BRAIN is valid, so every learning in it can be sealed. Owned by KAAL's use of `using-brain`; stated in `brain/learning/genesis/26/09/25/01/nodes/using-brain.md`.
+8. KAAL's BRAIN is valid: a sealed learning can never be fixed, so sealing requires every node to be valid. Owned by KAAL's sealing policy; stated in `scripts/brain-seals.ts`.
 
 ## How a commitment's cases are found
 
@@ -41,8 +41,9 @@ Some commitments rest on others: Genesis (1, 2) composes skills whose own creati
 ## Known gaps
 
 - Trusted regression is not yet carried out: commitments 1, 2, 4, 5, 6 and 7 are proven only by the change's own cases, and a change can also move or remove the `Why:` lines that link its cases. A change that weakens their cases is caught by review, not by a check the change cannot alter.
+- Validity is not all that sealing requires: a learning holding a symlink or a special file is valid, and no check sees it before sealing on `main` refuses it.
 - Nothing checks the links: that every case outside the skills has a `Why:` line, that each names a commitment this plan states, or that every commitment has a case.
-- Commitments 2 and 6 are stated only in the file of the cases that prove them. Commitment 6 is KAAL's own decision about its testing; its meaning belongs in BRAIN's `testing` node, which is sealed and was learned before `test/` existed.
+- Commitments 2 and 6 are stated only in the file of the cases that prove them, and commitment 8 only in code. Commitment 6 is KAAL's own decision about its testing; its meaning belongs in BRAIN's `testing` node, which is sealed and was learned before `test/` existed.
 - Commitment 7 is known to be proven only in part: the skills' command-line entry points, such as `create-node.ts`'s `--edge` parsing, have no cases. Their cases call the scripts' exported functions, not the command lines their `SKILL.md` promises.
 - Some proofs are weaker than their claims. Commitment 5's case sees only `from "…"` imports, so a side-effect or dynamic import of another skill passes it. Some cases still hold data inline.
 - `package.json` allows Node 22 and later, but only Node 22 is run, so no commitment is proven on a later Node.

@@ -41,12 +41,12 @@ test("sealing again seals only new learnings, exactly as sealing everything at o
   assert.deepEqual(sealBrain(root), []);
 });
 
-// Why: brain/learning/genesis/26/09/25/01/nodes/using-brain.md
+// Why: scripts/brain-seals.ts
 test("seals leave BRAIN valid", () => {
   assert.deepEqual(validate(brainData("sealed")), []);
 });
 
-// Why: brain/learning/genesis/26/09/25/01/nodes/using-brain.md
+// Why: scripts/brain-seals.ts
 test("refuses to seal an invalid BRAIN, closing nothing", () => {
   const root = scratchBrain("invalid-learning");
   assert.throws(
@@ -82,7 +82,7 @@ test("restores the chain heads when a later lineage fails after an earlier one s
 });
 
 // Why: brain/learning/genesis/26/09/25/01/nodes/using-seals.md
-// Why: brain/learning/genesis/26/09/25/01/nodes/using-brain.md
+// Why: scripts/brain-seals.ts
 test("reports what stops a BRAIN from being sealed: invalid nodes and broken seals", () => {
   assert.deepEqual(brainErrors(brainData("invalid-learning")), [
     "genesis/26/09/26/01/nodes/e.md: missing relation genesis/26/09/25/01/nodes/missing.md",
@@ -104,7 +104,7 @@ test("reports a sealed lineage removed with its learnings", () => {
   ]);
 });
 
-// Why: brain/learning/genesis/26/09/25/01/nodes/using-brain.md
+// Why: scripts/brain-seals.ts
 test("the committed BRAIN is valid", () => {
   assert.deepEqual(validate(ROOT), []);
 });
