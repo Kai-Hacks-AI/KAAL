@@ -29,7 +29,7 @@ Plan what must be shown. A test plan states intended testing: which subjects mus
 
 Anchor the testing. A using system's testing has one anchor: a directory, \`test/\` by default, where agents working with tests enter. Create it with \`scripts/create-anchor.ts [dir]\`. It creates \`<dir>/AGENTS.md\`, which routes agents working with tests to this skill, and nothing else, and refuses when \`<dir>\` already exists. The anchor is an entry point, not a container: tests and their data stay wherever the using system keeps them.
 
-What to test, where and when to run it, and which tests to keep are the using system's decisions, stated in its plans; this skill says how a test is written and creates the anchor.
+What to test, and where and when to run it, are the using system's decisions, stated in its plans; which cases to keep follows from the commitments they help prove. This skill says how a test is written and creates the anchor.
 `;
 
 /** Generates this skill's SKILL.md at `target` (by default, next to this skill's scripts). */
