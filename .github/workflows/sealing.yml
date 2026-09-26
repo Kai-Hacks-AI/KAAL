@@ -1,0 +1,76 @@
+# KAAL's sealing policy: brain/learning/genesis/26/09/25/01/nodes/using-seals.md
+#
+# Runs `npm run seal` after every push to main and commits what it wrote back
+# to main. Before anything is committed, `npm run seals:sealing-check` refuses
+# any staged change that sealing could not have produced; the workflow only
+# asks Git what is staged and never decides that itself.
+#
+# main's ruleset admits no direct push, and the workflow token cannot bypass
+# rulesets, so the sealing commit is pushed as the sealing GitHub App: the
+# ruleset's only bypass actor. Its client ID is the SEALING_APP_CLIENT_ID
+# variable and its private key the SEALING_APP_PRIVATE_KEY secret.
+name: sealing
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Runs are queued, never cancelled, so two runs never write main at once and
+# a queued run still seals what was pushed before it.
+concurrency:
+  group: sealing-main
+  cancel-in-progress: false
+
+jobs:
+  sealing:
+    name: sealing-linux
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # main as it is now, not the commit that triggered this run.
+          ref: main
+          # Nothing that runs before the push needs a credential.
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The list of sealed learnings is kept outside the checkout, so it is
+      # never staged. A redirect, not a pipe: the default shell has no
+      # pipefail, so a pipe would hide a failed sealing.
+      - run: |
+          npm run -s seal > "$RUNNER_TEMP/sealed.txt"
+          cat "$RUNNER_TEMP/sealed.txt"
+      # Minted only now, and only to write contents: the one credential that
+      # can write main exists for the commit and the push alone.
+      - uses: actions/create-github-app-token@v3
+        id: app
+        with:
+          client-id: ${{ vars.SEALING_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SEALING_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - name: Commit what sealing wrote
+        env:
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing new to seal."
+            exit 0
+          fi
+          npm run -s seals:sealing-check
+          user_id="$(GH_TOKEN="$APP_TOKEN" gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git commit -m "Seal BRAIN learnings" -m "$(cat "$RUNNER_TEMP/sealed.txt")"
+          # A push by the app starts workflows again, as any push does; this
+          # workflow then finds nothing new to seal and stops.
+          git push "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main

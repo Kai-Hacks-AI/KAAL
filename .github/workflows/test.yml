@@ -1,0 +1,41 @@
+# Runs the full suite, typecheck and format check on Linux and Windows. Which
+# cases run where is a Test Run concern; deciding it selectively would need a
+# Test Plan, not yet needed.
+#
+# Job names are <what>-<where> and unique across all workflows: required
+# status checks select by job name alone, so they must never be ambiguous
+# and must not change when a runner image does.
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test-${{ matrix.where }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - where: linux
+            os: ubuntu-latest
+          - where: windows
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Check out the way Git for Windows does by default, on every OS, so
+      # line-ending conversion is always exercised and never assumed away.
+      - run: git config --global core.autocrlf true
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run format:check
