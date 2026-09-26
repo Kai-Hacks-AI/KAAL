@@ -74,7 +74,11 @@ export function fileCases(file: string, source: string): Case[] {
   return cases;
 }
 
-/** The files a repository's own `npm test` runs, by posix path relative to it. */
+/**
+ * The case files a repository's own `npm test` runs, by posix path relative to
+ * it. KAAL names every case file `*.test.ts`, so only such arguments count:
+ * anything else the script names, such as a module it preloads, is not a case.
+ */
 export function caseFiles(repo: string): string[] {
   const script = (
     JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")) as { scripts?: { test?: string } }
@@ -83,7 +87,7 @@ export function caseFiles(repo: string): string[] {
     script
       ?.split(/\s+/)
       .map((arg) => arg.replace(/^(["'])(.*)\1$/, "$2"))
-      .filter((arg) => arg.endsWith(".ts")) ?? [];
+      .filter((arg) => arg.endsWith(".test.ts")) ?? [];
   return [...new Set(globs.flatMap((glob) => fs.globSync(glob, { cwd: repo })))]
     .map((file) => file.split(path.sep).join("/"))
     .sort();
@@ -186,16 +190,21 @@ export function judge(cases: Case[], results: Result[], superseded: Set<string>)
   // A file that does not run as a whole reports one result, named by the path it was run as.
   const isFile = (r: Result) => r.name.split("\\").join("/") === r.file;
   const broken = new Set(results.filter(isFile).map((r) => r.file));
+  // Results are matched to cases one to one, in order, so two cases with the same title need two results.
+  const left = [...results];
+  const take = (c: Case) => {
+    const i = left.findIndex((r) => r.file === c.file && r.name === c.title);
+    return i < 0 ? undefined : left.splice(i, 1)[0];
+  };
   const expected = cases.flatMap((c) => {
-    const result = results.find((r) => r.file === c.file && r.name === c.title);
+    const result = take(c);
     const outcome = broken.has(c.file) ? "did not run as a whole" : !result ? "not run" : result.outcome;
     if (outcome === "pass") return [];
     if (c.places.length && c.places.every((p) => superseded.has(p))) return [];
     return [`${c.file}: "${c.title}" ${outcome === "fail" ? "failed" : outcome === "skip" ? "was skipped" : outcome}`];
   });
-  const unaccounted = results.flatMap((r) => {
-    if (cases.some((c) => c.file === r.file && (c.title === r.name || isFile(r)))) return [];
-    if (isFile(r)) return [`${r.file}: did not run as a whole`];
+  const unaccounted = left.flatMap((r) => {
+    if (isFile(r)) return cases.some((c) => c.file === r.file) ? [] : [`${r.file}: did not run as a whole`];
     if (r.outcome === "pass") return [];
     return [`${r.file}: "${r.name}" ${r.outcome === "fail" ? "failed" : "was skipped"}, and points at nothing`];
   });
@@ -206,15 +215,24 @@ const TSX = fileURLToPath(import.meta.resolve("tsx/cli"));
 // A URL, not a path: a Windows path such as D:\\… would be read as a URL with the scheme "d:".
 const REPORTER = new URL("./regression-reporter.ts", import.meta.url).href;
 
-/** Whether `file`, a posix path, is test data or a test-data loader, which travel with the cases. */
-const isData = (file: string) => file.split("/").includes("test-data") || path.posix.basename(file) === "test-data.ts";
+/**
+ * Whether `file`, a posix path, is test data, which travels with the cases: a
+ * test-data directory or loader, or any file but code where cases are kept
+ * (under `scripts/` or `skills/<skill>/scripts/`), such as a fixture beside them.
+ */
+function isData(file: string, directory: boolean): boolean {
+  const parts = file.split("/");
+  if (parts.includes("test-data") || parts.at(-1) === "test-data.ts") return true;
+  const inCases = parts[0] === "scripts" || (parts[0] === "skills" && parts[2] === "scripts");
+  return !directory && inCases && !/\.(ts|js|mjs|cjs|mts|cts)$/.test(file);
+}
 
 /** The test data and test-data loaders of a repository, outside its dependencies and Git's own files. */
 function dataOf(repo: string, dir = ""): string[] {
   return fs.readdirSync(path.join(repo, dir), { withFileTypes: true }).flatMap((e) => {
     const rel = dir ? `${dir}/${e.name}` : e.name;
     if (rel === "node_modules" || rel === ".git") return [];
-    if (isData(rel)) return [rel];
+    if (isData(rel, e.isDirectory())) return [rel];
     return e.isDirectory() ? dataOf(repo, rel) : [];
   });
 }
@@ -227,7 +245,7 @@ function scratchCopy(repo: string, data: boolean): string {
     verbatimSymlinks: true,
     filter: (src) => {
       const rel = path.relative(repo, src).split(path.sep).join("/");
-      return rel !== ".git" && rel !== "node_modules" && (data || !isData(rel));
+      return rel !== ".git" && rel !== "node_modules" && (data || !isData(rel, fs.lstatSync(src).isDirectory()));
     },
   });
   if (fs.existsSync(path.join(repo, "node_modules")))
@@ -265,6 +283,7 @@ export function runTrusted(trusted: string, candidate: string): Result[] {
   const files = caseFiles(trusted);
   for (const rel of [...files, ...dataOf(trusted)]) {
     fs.rmSync(path.join(code, rel), { recursive: true, force: true });
+    fs.mkdirSync(path.dirname(path.join(code, rel)), { recursive: true });
     fs.cpSync(path.join(trusted, rel), path.join(code, rel), { recursive: true, verbatimSymlinks: true });
   }
   return runFiles(code, files);

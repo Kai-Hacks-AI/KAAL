@@ -54,6 +54,7 @@ Some commitments rest on others: Genesis (1, 2) composes skills whose own creati
 - `regression-linux` judges a change only once its workflow is on `main`. Until this candidate is merged, `main` has neither the workflow nor a plan; the candidate is judged by its own cases, and by `main`'s cases only when run by hand.
 - A commitment stated outside BRAIN (1, 2, 7 and 8) has no succession, so it can only be retained: changing what one promises needs its meaning born in BRAIN first. For commitment 7, that means a skill cannot yet change what its scripts do in a way `main`'s cases would notice.
 - The change's code runs in the same process as `main`'s cases, so code written to subvert them could; review guards against that, not a check.
+- `main`'s cases are the `*.test.ts` files its `npm test` names, run with `main`'s test data: everything under a `test-data/` directory, every `test-data.ts`, and every file but code beside the cases. Data a case takes from any other module, such as a `.ts` file that is not a `test-data.ts`, is the change's own.
 - `main`'s cases are run on Linux only, with Node 22.
 - A case of `main` whose title is not a plain double-quoted string, such as one built in a loop, is not expected by its title: if it fails it is held, but if it never runs, nothing notices.
 - Nothing checks that each `Why:` line names a commitment the plan states, or that every commitment has a case. A case of `main` that points at nothing is always held.
