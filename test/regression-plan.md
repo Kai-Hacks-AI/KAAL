@@ -12,7 +12,7 @@ Each commitment is named where it is owned.
 4. Every committed `SKILL.md` is exactly what its skill's init generates. Stated in `brain/learning/genesis/26/09/25/01/nodes/using-skills.md`.
 5. One skill never depends on another. Stated in `brain/learning/genesis/26/09/25/01/nodes/skill.md`.
 6. KAAL's testing has one anchor, `test/`, whose entry point is created by the testing skill. Stated in `scripts/test-anchor.test.ts`.
-7. Every skill KAAL keeps holds the promises its `SKILL.md` makes. Stated in each `skills/*/SKILL.md`.
+7. Every script of every skill KAAL keeps does what its skill's `SKILL.md` says it does. Stated in each `skills/*/SKILL.md`; the guidance a `SKILL.md` gives agents is not a commitment here.
 
 ## What must be shown
 
