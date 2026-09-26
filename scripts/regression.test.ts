@@ -134,12 +134,12 @@ test("a trusted case that does not pass is excused only when every commitment it
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a trusted file that does not run as a whole proves none of its cases, even if it reports a pass", () => {
-  const cases: Case[] = [{ file: "a.test.ts", title: "holds", places: ["kept.md"] }];
+  const cases: Case[] = [{ file: "scripts/a.test.ts", title: "holds", places: ["kept.md"] }];
   const results: Result[] = [
-    { file: "a.test.ts", name: "holds", outcome: "pass" },
-    { file: "a.test.ts", name: "a.test.ts", outcome: "pass" },
+    { file: "scripts/a.test.ts", name: "holds", outcome: "pass" },
+    { file: "scripts/a.test.ts", name: "scripts\\a.test.ts", outcome: "pass" },
   ];
-  assert.deepEqual(judge(cases, results, new Set()), ['a.test.ts: "holds" did not run as a whole']);
+  assert.deepEqual(judge(cases, results, new Set()), ['scripts/a.test.ts: "holds" did not run as a whole']);
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
@@ -153,6 +153,14 @@ test("a candidate cannot weaken a retained commitment by weakening its own cases
 test("a candidate cannot relabel a retained commitment's case away: main's links choose what judges it", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("relabeled"), BASE), [
     'scripts/cases.test.ts: "adds" failed',
+  ]);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("a candidate whose code ends the run early proves none of the cases in that file", () => {
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("exits"), BASE), [
+    'scripts/cases.test.ts: "adds" did not run as a whole',
+    'scripts/cases.test.ts: "greets" did not run as a whole',
   ]);
 });
 

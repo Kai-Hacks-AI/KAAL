@@ -177,7 +177,8 @@ export type Result = { file: string; name: string; outcome: "pass" | "fail" | "s
  * withdrawn; a case that points at nothing is never excused.
  */
 export function judge(cases: Case[], results: Result[], superseded: Set<string>): string[] {
-  const broken = new Set(results.filter((r) => r.name === path.posix.basename(r.file)).map((r) => r.file));
+  // A file that does not run as a whole reports one result, named by the path it was run as.
+  const broken = new Set(results.filter((r) => r.name.split("\\").join("/") === r.file).map((r) => r.file));
   return cases.flatMap((c) => {
     const result = results.find((r) => r.file === c.file && r.name === c.title);
     const outcome = broken.has(c.file) ? "did not run as a whole" : !result ? "not run" : result.outcome;
@@ -188,7 +189,8 @@ export function judge(cases: Case[], results: Result[], superseded: Set<string>)
 }
 
 const TSX = fileURLToPath(import.meta.resolve("tsx/cli"));
-const REPORTER = fileURLToPath(new URL("./regression-reporter.ts", import.meta.url));
+// A URL, not a path: a Windows path such as D:\\… would be read as a URL with the scheme "d:".
+const REPORTER = new URL("./regression-reporter.ts", import.meta.url).href;
 
 /** Whether `file`, a posix path, is test data or a test-data loader, which travel with the cases. */
 const isData = (file: string) => file.split("/").includes("test-data") || path.posix.basename(file) === "test-data.ts";
