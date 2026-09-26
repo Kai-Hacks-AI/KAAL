@@ -31,7 +31,8 @@ Each commitment is named where it is owned.
 ## Known gaps
 
 - Commitments 1, 2, 4, 5, 6 and 7 are proven only by the change's own cases. A change that weakens their cases is caught by review, not by a check the change cannot alter.
-- Nothing yet links each commitment to the cases that prove it. Every case is run, so every commitment's cases are reached, but which case proves which commitment is not recorded.
+- Nothing yet links each commitment to the cases that prove it. Every case is run, so every commitment's cases are reached, but which case proves which commitment is not recorded, so how much of each commitment is proven is not known.
+- Commitment 7 is known to be proven only in part: the skills' command-line entry points, such as `create-node.ts`'s `--edge` parsing, have no cases.
 - On Windows, two cases are not run (a named pipe, and symlinks kept verbatim), so their claims are proven on Linux only.
 - Which checks `main` requires is set in the repository's ruleset, outside the repository. It should require what this plan names; the repository cannot show that it does.
 
