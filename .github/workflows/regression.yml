@@ -32,6 +32,13 @@ on:
 
 permissions: {}
 
+# One judgement per pull request at a time: a newer run, such as one after
+# a retarget, cancels the older, and a cancelled run publishes nothing. An
+# edit that does not change the base judges nothing, so it cancels nothing.
+concurrency:
+  group: regression-${{ (github.event.action == 'edited' && !github.event.changes.base) && github.run_id || github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   invalidate:
     name: regression-invalidate-linux
@@ -101,7 +108,7 @@ jobs:
   report:
     name: regression-report-linux
     needs: run
-    if: always() && github.event_name == 'pull_request_target' && (github.event.action != 'edited' || github.event.changes.base)
+    if: ${{ !cancelled() && github.event_name == 'pull_request_target' && (github.event.action != 'edited' || github.event.changes.base) }}
     runs-on: ubuntu-latest
     permissions:
       statuses: write

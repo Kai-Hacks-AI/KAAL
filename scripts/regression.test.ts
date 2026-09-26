@@ -13,6 +13,7 @@ import {
   planCommitments,
   planLedger,
   regressionErrors,
+  unnamedCases,
   unreplayable,
   type Result,
 } from "./regression.js";
@@ -244,17 +245,22 @@ test("a candidate that could not judge the next change once merged is refused be
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("preloaded"), BASE).slice(0, 1), [
     'as the next main, npm test is not "tsx --test" with case files only ("tsx --import ./scripts/setup.ts --test scripts/*.test.ts"), so its cases cannot be run as main runs them',
   ]);
-  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("no-cases"), BASE).slice(0, 1), [
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("no-cases"), BASE).slice(0, 2), [
     "as the next main, its npm test would run no case it can name",
+    "as the next main, it would run a case it cannot name, at scripts/unnamed.test.ts:3",
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("unnamed"), BASE), [
+    "as the next main, it would run a case it cannot name, at scripts/cases.test.ts:24",
   ]);
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
-test("KAAL's own plan states a place for every commitment and the main it was derived from, and its npm test can be replayed", () => {
+test("KAAL's own plan states a place for every commitment and the main it was derived from, and its npm test can be replayed and names every case", () => {
   const plan = fs.readFileSync(path.join(REPO, PLAN), "utf8");
   assert.equal(planCommitments(plan).length, [...plan.matchAll(/^\d+\. /gm)].length);
   assert.match(planLedger(plan).base ?? "", /^[0-9a-f]{40}$/);
   assert.equal(unreplayable(REPO), undefined);
+  assert.deepEqual(unnamedCases(REPO), []);
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md

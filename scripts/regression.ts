@@ -101,6 +101,27 @@ export function unreplayable(repo: string): string | undefined {
 }
 
 /**
+ * Every case a repository runs whose title cannot be read, so a later run
+ * could not tell that it went missing: a case not at the top of its file, or
+ * whose title is not a plain double-quoted string, as `file:line`.
+ */
+export function unnamedCases(repo: string): string[] {
+  return caseFiles(repo).flatMap((file) => {
+    const text = fs.readFileSync(path.join(repo, file), "utf8").replace(/\r\n/g, "\n");
+    return [...text.matchAll(/^([ \t]*)test\(\s*/gm)].flatMap((m) => {
+      const literal = /^"((?:[^"\\]|\\.)*)"/.exec(text.slice(m.index + m[0].length));
+      let readable = !m[1] && !!literal;
+      try {
+        if (literal) JSON.parse(`"${literal[1]}"`);
+      } catch {
+        readable = false;
+      }
+      return readable ? [] : [`${file}:${text.slice(0, m.index).split("\n").length}`];
+    });
+  });
+}
+
+/**
  * The case files a repository's own `npm test` runs, by posix path relative to
  * it. KAAL names every case file `*.test.ts`, so only such arguments count:
  * anything else the script names, such as a module it preloads, is not a case.
@@ -333,6 +354,7 @@ export function regressionErrors(trusted: string, candidate: string, base: strin
       .filter((e) => e !== undefined)
       .map((e) => `as the next main, ${e.slice("main's ".length)}`),
     ...(repoCases(candidate).length ? [] : ["as the next main, its npm test would run no case it can name"]),
+    ...unnamedCases(candidate).map((at) => `as the next main, it would run a case it cannot name, at ${at}`),
   ];
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
