@@ -95,7 +95,8 @@ function testArgs(repo: string): string[] {
  */
 export function unreplayable(repo: string): string | undefined {
   const [runner, flag, ...rest] = testArgs(repo);
-  const extra = rest.filter((arg) => arg.startsWith("-") || !arg.endsWith(".test.ts"));
+  // Only plain paths and globs: anything a shell could expand ($, `, ~, braces) might name other files on another platform.
+  const extra = rest.filter((arg) => !/^[\w.*][\w./*-]*\.test\.ts$/.test(arg));
   if (runner === "tsx" && flag === "--test" && !extra.length) return undefined;
   return `main's npm test is not "tsx --test" with case files only ("${testArgs(repo).join(" ")}"), so its cases cannot be run as main runs them`;
 }

@@ -267,6 +267,9 @@ test("a candidate that could not judge the next change once merged is refused be
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("option-shaped"), BASE).slice(0, 1), [
     'as the next main, npm test is not "tsx --test" with case files only ("tsx --test --test-name-pattern=never.test.ts scripts/*.test.ts"), so its cases cannot be run as main runs them',
   ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("shell-expanded"), BASE).slice(0, 1), [
+    'as the next main, npm test is not "tsx --test" with case files only ("tsx --test $npm_package_name.test.ts scripts/*.test.ts"), so its cases cannot be run as main runs them',
+  ]);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("fails-own"), BASE), [
     'as the next main, scripts/cases.test.ts: "fails" fails when main replays it',
   ]);
