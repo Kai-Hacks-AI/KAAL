@@ -4,16 +4,24 @@ This is KAAL's regression plan, as the `testing` skill defines one (`skills/test
 
 ## Commitments
 
-Each commitment is owned by one capability of KAAL and stated in one place, where its meaning lives. That place is also its identity: its cases point to it.
+Each commitment is owned by one capability of KAAL and stated in one place, where its meaning lives. That place is also its identity: its cases point to it. This plan names each commitment by that place and does not restate it.
 
-1. Genesis is all or nothing: if any step refuses or fails, what the steps before it created is removed again. Owned by Genesis; stated in `scripts/genesis.ts`.
-2. KAAL's initial structure is exactly what Genesis produces through its capabilities. Owned by Genesis; stated in `scripts/genesis.test.ts`.
-3. A learning, once closed, cannot change unnoticed. Owned by KAAL's use of `using-seals`; stated in `brain/learning/genesis/26/09/25/01/nodes/using-seals.md`.
-4. Every skill KAAL keeps follows the Agent Skills standard and is born from its own init: every committed `SKILL.md` is exactly what its init generates. Owned by KAAL's use of `using-skills`; stated in `brain/learning/genesis/26/09/25/01/nodes/using-skills.md`.
-5. One skill never depends on another. Owned by KAAL, for every skill it keeps; stated in `brain/learning/genesis/26/09/25/01/nodes/skill.md`.
-6. KAAL's testing has one anchor, `test/`, whose entry point is created by the testing skill. Owned by KAAL's use of `testing`; stated in `scripts/test-anchor.test.ts`.
-7. Every script of every skill KAAL keeps does what its skill's `SKILL.md` says it does. Owned by each skill; stated in each `skills/*/SKILL.md`; the guidance a `SKILL.md` gives agents is not a commitment here.
-8. KAAL's BRAIN is valid: a sealed learning can never be fixed, so sealing requires every node to be valid. Owned by KAAL's sealing policy; stated in `scripts/brain-seals.ts`.
+1. Genesis's atomicity. Owned by Genesis; stated in `scripts/genesis.ts`.
+2. Genesis's output. Owned by Genesis; stated in `scripts/genesis.test.ts`.
+3. Closed learnings. Owned by KAAL's use of `using-seals`; stated in `brain/learning/genesis/26/09/25/01/nodes/using-seals.md`.
+4. The skills' standard and birth. Owned by KAAL's use of `using-skills`; stated in `brain/learning/genesis/26/09/25/01/nodes/using-skills.md`.
+5. The skills' independence. Owned by KAAL, for every skill it keeps; stated in `brain/learning/genesis/26/09/25/01/nodes/skill.md`.
+6. The testing anchor. Owned by KAAL's use of `testing`; stated in `brain/learning/genesis/26/09/26/02/nodes/testing.md`.
+7. The skills' scripts. Owned by each skill; stated in each `skills/*/SKILL.md`, as far as it says what the skill's scripts do; the guidance a `SKILL.md` gives agents is not a commitment here.
+8. BRAIN's validity. Owned by KAAL's sealing policy; stated in `scripts/brain-seals.ts`.
+
+## What this candidate changes in `main`'s regression
+
+How a candidate replaces or withdraws a commitment is stated in `brain/learning/genesis/26/09/26/02/nodes/testing.md`. On `main`, this section is empty; on a candidate, it names what the candidate does not retain, and every commitment of `main` it does not name is retained.
+
+- Replaces: nothing.
+- Withdraws: nothing.
+- Adds: commitment 6. `main` has no regression plan yet: its cases already prove commitments 1 to 5, 7 and 8, which this candidate names for the first time, and every one of `main`'s cases passes on this candidate.
 
 ## How a commitment's cases are found
 
@@ -40,10 +48,11 @@ Some commitments rest on others: Genesis (1, 2) composes skills whose own creati
 
 ## Known gaps
 
-- Trusted regression is not yet carried out: commitments 1, 2, 4, 5, 6 and 7 are proven only by the change's own cases, and a change can also move or remove the `Why:` lines that link its cases. A change that weakens their cases is caught by review, not by a check the change cannot alter.
+- Trusted regression is not yet carried out: commitments 1, 2, 4, 5, 6 and 7 are proven only by the change's own cases, a change can move or remove the `Why:` lines that link its cases, and what a candidate retains of `main` is stated only by its own plan. A change that weakens any of these is caught by review, not by a check the change cannot alter.
 - Validity is not all that sealing requires: a learning holding a symlink or a special file is valid, and no check sees it before sealing on `main` refuses it.
 - Nothing checks the links: that every case outside the skills has a `Why:` line, that each names a commitment this plan states, or that every commitment has a case.
-- Commitments 2 and 6 are stated only in the file of the cases that prove them, and commitment 8 only in code. Commitment 6 is KAAL's own decision about its testing; its meaning belongs in BRAIN's `testing` node, which is sealed and was learned before `test/` existed.
+- Commitments 1, 2, 7 and 8 are stated in files that can change in place, so a change to one of them is seen only in the diff of its statement, and nothing yet compares that statement with `main`'s. Commitment 2 is also stated only in the file of the cases that prove it.
+- Nothing checks the section on what this candidate changes: that every commitment of `main` missing here, or stated differently, is named as replaced or withdrawn.
 - Commitment 7 is known to be proven only in part: the skills' command-line entry points, such as `create-node.ts`'s `--edge` parsing, have no cases. Their cases call the scripts' exported functions, not the command lines their `SKILL.md` promises.
 - Some proofs are weaker than their claims. Commitment 5's case sees only `from "…"` imports, so a side-effect or dynamic import of another skill passes it. Some cases still hold data inline.
 - `package.json` allows Node 22 and later, but only Node 22 is run, so no commitment is proven on a later Node.

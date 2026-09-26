@@ -5,7 +5,6 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkills } from "../skills/using-skills/scripts/skills.js";
 
-// No skill imports another; a using system such as KAAL's Genesis composes them.
 const SKILLS = fileURLToPath(new URL("../skills/", import.meta.url));
 
 // Why: brain/learning/genesis/26/09/25/01/nodes/skill.md
@@ -27,8 +26,6 @@ test("no skill imports another skill", () => {
   assert.deepEqual(crossing, []);
 });
 
-// KAAL uses using-skills: every skill follows the Agent Skills standard and is
-// born from its own init.
 // Why: brain/learning/genesis/26/09/25/01/nodes/using-skills.md
 test("every skill follows the Agent Skills standard and is born from its own init", () => {
   assert.deepEqual(checkSkills(SKILLS), []);
