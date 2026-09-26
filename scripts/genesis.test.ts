@@ -31,6 +31,7 @@ function born(): string {
   return repo;
 }
 
+// Why: scripts/genesis.test.ts
 test("Genesis produces exactly the root AGENTS.md, brain/AGENTS.md and the Genesis learning, nothing else", () => {
   assert.deepEqual(Object.keys(files(born())), [
     "AGENTS.md",
@@ -39,6 +40,7 @@ test("Genesis produces exactly the root AGENTS.md, brain/AGENTS.md and the Genes
   ]);
 });
 
+// Why: scripts/genesis.test.ts
 test("everything Genesis produces is byte-identical to what is committed", () => {
   const produced = files(born());
   const committed = Object.fromEntries(
@@ -47,15 +49,18 @@ test("everything Genesis produces is byte-identical to what is committed", () =>
   assert.deepEqual(produced, committed);
 });
 
+// Why: scripts/genesis.test.ts
 test("the committed Genesis learning holds exactly the nodes Genesis births", () => {
   const repo = born();
   assert.deepEqual(files(repo, path.join(repo, GENESIS)), files(REPO, path.join(REPO, GENESIS)));
 });
 
+// Why: scripts/brain-seals.ts
 test("the BRAIN Genesis produces is valid", () => {
   assert.deepEqual(validate(path.join(born(), "brain/learning")), []);
 });
 
+// Why: scripts/genesis.ts
 test("Genesis refuses to run over an existing KAAL, changing nothing", () => {
   const repo = born();
   const before = files(repo);
@@ -63,6 +68,7 @@ test("Genesis refuses to run over an existing KAAL, changing nothing", () => {
   assert.deepEqual(files(repo), before);
 });
 
+// Why: scripts/genesis.ts
 test("Genesis refuses when the repository already has an Agent entry point, leaving it as it was", () => {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-genesis-"));
   fs.cpSync(path.join(REPO, "AGENTS.md"), path.join(repo, "AGENTS.md"));
@@ -72,6 +78,7 @@ test("Genesis refuses when the repository already has an Agent entry point, leav
   assert.equal(fs.existsSync(path.join(repo, "brain")), false);
 });
 
+// Why: scripts/genesis.ts
 test("Genesis whose Agent entry point fails while being written leaves the repository exactly as it was", (t) => {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-genesis-"));
   fs.writeFileSync(path.join(repo, "README.md"), "# Existing\n");
