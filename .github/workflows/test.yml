@@ -1,6 +1,7 @@
-# Runs the full suite, typecheck and format check on Linux and Windows. Which
-# cases run where is a Test Run concern; deciding it selectively would need a
-# Test Plan, not yet needed.
+# Runs the full suite, typecheck and format check on Linux and Windows. Each
+# job's `npm test` is one Test Run: what it proves holds for that OS and this
+# checkout, and a case it skips is not proven there. Deciding which cases
+# should run where would need a Test Plan, not yet needed.
 #
 # Job names are <what>-<where> and unique across all workflows: required
 # status checks select by job name alone, so they must never be ambiguous
