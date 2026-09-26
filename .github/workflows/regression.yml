@@ -1,0 +1,82 @@
+# Carries out the trusted part of KAAL's Regression Plan: test/regression-plan.md
+#
+# Runs `npm run regression:check` from main against a pull request: main's
+# cases, chosen by main's links, run against the change's code with main's
+# test runner, and every commitment of main the change does not retain must be
+# superseded in BRAIN. The script decides what counts, not this workflow.
+#
+# On a pull request this runs as pull_request_target: GitHub takes the
+# workflow and main's checkout from the default branch, never from the change,
+# so a change cannot weaken the checks that judge it. The gate therefore
+# applies to pull requests into every branch once this workflow is on main,
+# and to none before. Unlike the seal checks, this runs the change's code, so
+# that runs in a job that holds no write permission, no secret and no
+# dependency cache; the jobs that write the regression-linux commit status
+# never check the change out.
+name: regression
+
+on:
+  pull_request_target:
+
+permissions: {}
+
+jobs:
+  start:
+    name: regression-start-linux
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      STATUS_URL: repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - run: gh api "$STATUS_URL" -f state=pending -f context=regression-linux -f target_url="$RUN_URL" -f description="Judging the change by main's regression"
+
+  run:
+    name: regression-run-linux
+    needs: start
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - run: git config --global core.autocrlf true
+      # main's latest commit: the regression that judges the change.
+      - uses: actions/checkout@v7
+        with:
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: change
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+        working-directory: trusted
+      - run: npm ci --ignore-scripts
+        working-directory: change
+      - run: npm run regression:check -- ../change
+        working-directory: trusted
+
+  report:
+    name: regression-report-linux
+    needs: run
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      STATUS_URL: repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      RESULT: ${{ needs.run.result }}
+    steps:
+      - run: |
+          if [ "$RESULT" = success ]; then
+            gh api "$STATUS_URL" -f state=success -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression holds"
+          else
+            gh api "$STATUS_URL" -f state=failure -f context=regression-linux -f target_url="$RUN_URL" -f description="main's regression does not hold for the change"
+          fi
