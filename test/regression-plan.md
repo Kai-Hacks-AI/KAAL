@@ -63,7 +63,7 @@ Some commitments rest on others: Genesis (1, 2) composes skills whose own creati
 - Some proofs are weaker than their claims. Commitment 5's case sees only `from "…"` imports, so a side-effect or dynamic import of another skill passes it. Some cases still hold data inline.
 - `package.json` allows Node 22 and later, but only Node 22 is run, so no commitment is proven on a later Node.
 - On Windows, two cases are not run (a named pipe, and symlinks kept verbatim), so their claims are proven on Linux only.
-- Nothing checks that the workflows carry out what this plan names. Which checks `main` requires is set in the repository's ruleset, outside the repository. It should require what this plan names; the repository cannot show that it does.
+- Nothing checks that the workflows carry out what this plan names. Which checks `main` requires is set in the repository's ruleset, outside the repository. It should require what this plan names; the repository cannot show that it does. For `regression-linux` that means every branch a pull request can target requires it, with branches kept up to date before merging, since a moved base changes what is merged without re-running it. A commit status is also written by whatever workflow a branch runs on a push, so a required status can be forged from a branch's own workflow; that holds for `seal-linux` as much as for `regression-linux`.
 - A run reports cases, not commitments, and each workflow runs on both a push and a pull request, so a change is often run twice.
 
 ## Carried out by

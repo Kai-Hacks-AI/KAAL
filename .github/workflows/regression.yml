@@ -18,13 +18,17 @@
 # open pull request's regression-linux status is set to failure, and a
 # success is only published if main has not moved while the change was
 # judged: the change must be derived from the new main, and pushing that
-# runs this again.
+# runs this again. A pull request retargeted to another base is judged
+# again. When a base other than main moves, only the ruleset's "require
+# branches to be up to date" makes the change be judged again.
 name: regression
 
 on:
   push:
     branches: [main]
+  # edited: a pull request retargeted to another base is judged again.
   pull_request_target:
+    types: [opened, synchronize, reopened, edited]
 
 permissions: {}
 
@@ -49,7 +53,7 @@ jobs:
 
   start:
     name: regression-start-linux
-    if: github.event_name == 'pull_request_target'
+    if: github.event_name == 'pull_request_target' && (github.event.action != 'edited' || github.event.changes.base)
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -97,7 +101,7 @@ jobs:
   report:
     name: regression-report-linux
     needs: run
-    if: always() && github.event_name == 'pull_request_target'
+    if: always() && github.event_name == 'pull_request_target' && (github.event.action != 'edited' || github.event.changes.base)
     runs-on: ubuntu-latest
     permissions:
       statuses: write
