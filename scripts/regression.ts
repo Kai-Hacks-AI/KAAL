@@ -327,9 +327,17 @@ export function regressionErrors(trusted: string, candidate: string, base: strin
   if (unfaithful) return [unfaithful];
   if (!repoCases(trusted).length)
     return ["main's npm test runs no case it can name, so nothing could judge the candidate"];
+  // Once merged, the candidate is the regression that judges the next change, so it must be one that can.
+  const successor = [
+    ...[unreplayable(candidate)]
+      .filter((e) => e !== undefined)
+      .map((e) => `as the next main, ${e.slice("main's ".length)}`),
+    ...(repoCases(candidate).length ? [] : ["as the next main, its npm test would run no case it can name"]),
+  ];
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
   return [
+    ...successor,
     ...errors,
     ...replacementErrors(candidate, new Set(replaced.values())),
     ...judge(repoCases(trusted), runTrusted(trusted, candidate), superseded),

@@ -240,6 +240,16 @@ test("a main whose npm test runs no case it can name judges nothing, so every ca
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("a candidate that could not judge the next change once merged is refused before it becomes main", () => {
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("preloaded"), BASE).slice(0, 1), [
+    'as the next main, npm test is not "tsx --test" with case files only ("tsx --import ./scripts/setup.ts --test scripts/*.test.ts"), so its cases cannot be run as main runs them',
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("no-cases"), BASE).slice(0, 1), [
+    "as the next main, its npm test would run no case it can name",
+  ]);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("KAAL's own plan states a place for every commitment and the main it was derived from, and its npm test can be replayed", () => {
   const plan = fs.readFileSync(path.join(REPO, PLAN), "utf8");
   assert.equal(planCommitments(plan).length, [...plan.matchAll(/^\d+\. /gm)].length);
