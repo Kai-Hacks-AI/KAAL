@@ -6,7 +6,7 @@ const SKILL = fileURLToPath(new URL("../SKILL.md", import.meta.url));
 /** This skill's SKILL.md. The skill is born from init: SKILL.md is generated from here, never edited by hand. */
 export const SKILL_MD = `---
 name: testing
-description: Write test cases that state claims and prove all of them, keep their test data apart, group cases by the commitments they prove together, know what a test run proved, and state test plans, including regression plans. Use when adding, changing or reviewing tests, test suites, test runs, test plans or regression plans, or creating a testing anchor.
+description: Write test cases that state claims and prove all of them, keep their test data apart, group cases by the commitments they prove together, know what a test run proved, and state test plans, including regression plans, under a test strategy. Use when adding, changing or reviewing tests, test suites, test runs, test plans, regression plans or a test strategy, or creating a testing anchor.
 ---
 
 # Testing
@@ -29,9 +29,13 @@ Plan what must be shown. A test plan states intended testing: which subjects mus
 
 Keep what was promised. A regression plan is a test plan whose purpose is that what is already promised stays true as changes are accepted: it names the commitments that must keep holding, and a change is accepted only once they are shown again for it. Because it protects what already exists, it needs checks the change cannot alter as well as the change's own, and where a commitment has only the change's own checks, the plan says so. A using system's regression plan says which commitments, conditions and checks are its own, and points back here for what a regression plan is.
 
+Decide what testing preserves. A test strategy is the lasting set of decisions every plan follows: what testing must preserve, what a change must prove, and how what one change proves becomes what later changes must preserve. It outlives its plans and shapes many of them: a regression plan for what is already accepted, and a plan for each change in progress, which must show that the regression still holds and prove what the change adds. The same cases and suites can serve both. When a change is accepted, the commitments its plan proved join the regression the next change must keep. Checks the change cannot alter judge every commitment the change leaves in place; a commitment the change replaces or withdraws is named as superseded in its plan, because the checks that protected it would otherwise reject the change, and the change's own checks prove what takes its place.
+
+Decide how testing learns. The strategy also says how coverage is chosen, such as proving a claim in every environment the tested thing supports wherever the environment can change the result, and saying where it is not proven. It says how failures are learned from: a failure found by review or use becomes a case that fails before the fix and passes after it, and when the same kind of failure keeps being found, the mechanism that lets it happen is changed instead of adding another case.
+
 Anchor the testing. A using system's testing has one anchor: a directory, \`test/\` by default, where agents working with tests enter. Create it with \`scripts/create-anchor.ts [dir]\`. It creates \`<dir>/AGENTS.md\`, which routes agents working with tests to this skill, and nothing else, and refuses when \`<dir>\` already exists. The anchor is an entry point, not a container: tests and their data stay wherever the using system keeps them.
 
-What to test, and where and when to run it, are the using system's decisions, stated in its plans; which cases to keep follows from the commitments they help prove. This skill says how a test is written and creates the anchor.
+What to test, and where and when to run it, are the using system's decisions, stated in its strategy and plans; which cases to keep follows from the commitments they help prove. This skill says how a test is written and creates the anchor.
 `;
 
 /** Generates this skill's SKILL.md at `target` (by default, next to this skill's scripts). */
