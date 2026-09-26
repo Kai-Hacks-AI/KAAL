@@ -157,6 +157,13 @@ test("a candidate cannot relabel a retained commitment's case away: main's links
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("a replacement is proven only when every candidate case pointing at it passes; a skipped one proves nothing", () => {
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("replaced-skipped"), BASE), [
+    'replacement not proven: scripts/cases.test.ts: "greets with hi" was skipped',
+  ]);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a candidate whose code ends the run early proves none of the cases in that file", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("exits"), BASE), [
     'scripts/cases.test.ts: "adds" did not run as a whole',

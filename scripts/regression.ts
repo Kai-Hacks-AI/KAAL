@@ -205,30 +205,25 @@ function dataOf(repo: string, dir = ""): string[] {
   });
 }
 
-/**
- * Runs the trusted cases, with the trusted test data, against a copy of the
- * candidate's code, using the trusted test runner and reporter, never the
- * candidate's. Returns what each case did.
- */
-export function runTrusted(trusted: string, candidate: string): Result[] {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "kaal-regression-"));
-  const code = path.join(scratch, "candidate");
-  fs.cpSync(candidate, code, {
+/** A scratch copy of a checkout to run cases in, sharing its dependencies; without its test data unless `data`. */
+function scratchCopy(repo: string, data: boolean): string {
+  const code = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "kaal-regression-")), "repo");
+  fs.cpSync(repo, code, {
     recursive: true,
     verbatimSymlinks: true,
     filter: (src) => {
-      const rel = path.relative(candidate, src).split(path.sep).join("/");
-      return rel !== ".git" && rel !== "node_modules" && !isData(rel);
+      const rel = path.relative(repo, src).split(path.sep).join("/");
+      return rel !== ".git" && rel !== "node_modules" && (data || !isData(rel));
     },
   });
-  if (fs.existsSync(path.join(candidate, "node_modules")))
-    fs.symlinkSync(path.join(candidate, "node_modules"), path.join(code, "node_modules"), "junction");
-  const files = caseFiles(trusted);
-  for (const rel of [...files, ...dataOf(trusted)]) {
-    fs.rmSync(path.join(code, rel), { recursive: true, force: true });
-    fs.cpSync(path.join(trusted, rel), path.join(code, rel), { recursive: true, verbatimSymlinks: true });
-  }
-  const out = path.join(scratch, "results.jsonl");
+  if (fs.existsSync(path.join(repo, "node_modules")))
+    fs.symlinkSync(path.join(repo, "node_modules"), path.join(code, "node_modules"), "junction");
+  return code;
+}
+
+/** Runs `files` in `code` with the trusted test runner and reporter, never the checkout's own. */
+function runFiles(code: string, files: string[]): Result[] {
+  const out = path.join(path.dirname(code), "results.jsonl");
   fs.writeFileSync(out, "");
   spawnSync(process.execPath, [TSX, "--test", `--test-reporter=${REPORTER}`, ...files], {
     cwd: code,
@@ -246,9 +241,40 @@ export function runTrusted(trusted: string, candidate: string): Result[] {
     });
 }
 
+/**
+ * Runs the trusted cases, with the trusted test data, against a copy of the
+ * candidate's code, using the trusted test runner and reporter, never the
+ * candidate's. Returns what each case did.
+ */
+export function runTrusted(trusted: string, candidate: string): Result[] {
+  const code = scratchCopy(candidate, false);
+  const files = caseFiles(trusted);
+  for (const rel of [...files, ...dataOf(trusted)]) {
+    fs.rmSync(path.join(code, rel), { recursive: true, force: true });
+    fs.cpSync(path.join(trusted, rel), path.join(code, rel), { recursive: true, verbatimSymlinks: true });
+  }
+  return runFiles(code, files);
+}
+
+/**
+ * Runs the candidate's own cases that point at a commitment replacing one of
+ * main's: the candidate's cases are what prove a replacement, so each of them
+ * must pass, run by the trusted runner; one that is skipped proves nothing.
+ */
+function replacementErrors(candidate: string, successors: Set<string>): string[] {
+  const proving = repoCases(candidate).filter((c) => c.places.some((p) => successors.has(p)));
+  if (!proving.length) return [];
+  const results = runFiles(scratchCopy(candidate, true), [...new Set(proving.map((c) => c.file))]);
+  return judge(proving, results, new Set()).map((error) => `replacement not proven: ${error}`);
+}
+
 /** Everything that stops a candidate from being accepted over the trusted regression at `base`. */
 export function regressionErrors(trusted: string, candidate: string, base: string): string[] {
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
-  return [...errors, ...judge(repoCases(trusted), runTrusted(trusted, candidate), superseded)];
+  return [
+    ...errors,
+    ...replacementErrors(candidate, new Set(replaced.values())),
+    ...judge(repoCases(trusted), runTrusted(trusted, candidate), superseded),
+  ];
 }

@@ -41,9 +41,11 @@ jobs:
       contents: read
     steps:
       - run: git config --global core.autocrlf true
-      # main's latest commit: the regression that judges the change.
+      # main's latest commit, named explicitly: the regression that judges the
+      # change, whatever branch the pull request targets.
       - uses: actions/checkout@v7
         with:
+          ref: main
           path: trusted
           persist-credentials: false
       - uses: actions/checkout@v7
