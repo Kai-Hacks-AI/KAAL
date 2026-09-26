@@ -114,6 +114,8 @@ jobs:
     if: ${{ !cancelled() && github.event_name == 'pull_request_target' && (github.event.action != 'edited' || github.event.changes.base) }}
     runs-on: ubuntu-latest
     permissions:
+      # contents: read, to read main's head again before and after publishing.
+      contents: read
       statuses: write
     env:
       GH_TOKEN: ${{ github.token }}
