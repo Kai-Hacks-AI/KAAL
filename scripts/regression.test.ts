@@ -184,6 +184,7 @@ test("a candidate cannot weaken a retained commitment by weakening its own cases
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a candidate cannot change the data main's cases read, even beside them: main's data judges it", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("refixtured"), BASE), [
+    'as the next main, scripts/cases.test.ts: "adds" fails when main replays it',
     'scripts/cases.test.ts: "adds" failed',
     'scripts/cases.test.ts: "adds as its fixture says" failed',
   ]);
@@ -192,6 +193,7 @@ test("a candidate cannot change the data main's cases read, even beside them: ma
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a candidate cannot relabel a retained commitment's case away: main's links choose what judges it", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("relabeled"), BASE), [
+    'as the next main, scripts/cases.test.ts: "adds" fails when main replays it',
     'scripts/cases.test.ts: "adds" failed',
     'scripts/cases.test.ts: "adds as its fixture says" failed',
   ]);
@@ -200,6 +202,7 @@ test("a candidate cannot relabel a retained commitment's case away: main's links
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a replacement is proven only when every candidate case pointing at it passes; a skipped one proves nothing", () => {
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("replaced-skipped"), BASE), [
+    'as the next main, scripts/cases.test.ts: "greets with hi" is skipped when main replays it',
     'replacement not proven: scripts/cases.test.ts: "greets with hi" was skipped',
   ]);
 });
@@ -260,6 +263,12 @@ test("a candidate that could not judge the next change once merged is refused be
   ]);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("ghost"), BASE), [
     'as the next main, scripts/cases.test.ts: "ghost" is named but does not run',
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("option-shaped"), BASE).slice(0, 1), [
+    'as the next main, npm test is not "tsx --test" with case files only ("tsx --test --test-name-pattern=never.test.ts scripts/*.test.ts"), so its cases cannot be run as main runs them',
+  ]);
+  assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("fails-own"), BASE), [
+    'as the next main, scripts/cases.test.ts: "fails" fails when main replays it',
   ]);
   assert.deepEqual(regressionErrors(regressionTrusted(), regressionCandidate("aliased"), BASE), [
     'as the next main, scripts/cases.test.ts: "adds zero" runs but is not named',

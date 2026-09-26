@@ -95,7 +95,7 @@ function testArgs(repo: string): string[] {
  */
 export function unreplayable(repo: string): string | undefined {
   const [runner, flag, ...rest] = testArgs(repo);
-  const extra = rest.filter((arg) => !arg.endsWith(".test.ts"));
+  const extra = rest.filter((arg) => arg.startsWith("-") || !arg.endsWith(".test.ts"));
   if (runner === "tsx" && flag === "--test" && !extra.length) return undefined;
   return `main's npm test is not "tsx --test" with case files only ("${testArgs(repo).join(" ")}"), so its cases cannot be run as main runs them`;
 }
@@ -390,7 +390,16 @@ export function regressionErrors(trusted: string, candidate: string, base: strin
   ];
   const candidateCases = repoCases(candidate);
   const candidateResults = runCandidate(candidate);
-  successor.push(...unmatchedCases(candidateCases, candidateResults).map((error) => `as the next main, ${error}`));
+  successor.push(
+    ...unmatchedCases(candidateCases, candidateResults).map((error) => `as the next main, ${error}`),
+    // As main, its cases are replayed by this runner, so each must pass under it, whatever its own npm test did.
+    ...candidateResults
+      .filter((r) => r.outcome !== "pass" && r.name.split("\\").join("/") !== r.file)
+      .map(
+        (r) =>
+          `as the next main, ${r.file}: "${r.name}" ${r.outcome === "fail" ? "fails" : "is skipped"} when main replays it`,
+      ),
+  );
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
   return [
