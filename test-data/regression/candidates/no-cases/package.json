@@ -1,4 +1,4 @@
 {
   "type": "module",
-  "scripts": { "test": "echo no tests" }
+  "scripts": { "test": "tsx --test src/add.ts" }
 }

@@ -55,7 +55,7 @@ Some commitments rest on others: Genesis (1, 2) composes skills whose own creati
 - A commitment stated outside BRAIN (1, 2, 7 and 8) has no succession, so it can only be retained: changing what one promises needs its meaning born in BRAIN first. For commitment 7, that means a skill cannot yet change what its scripts do in a way `main`'s cases would notice.
 - The change's code runs in the same process as `main`'s cases, so code written to subvert them could; review guards against that, not a check.
 - `main`'s cases are run on Linux only, with Node 22.
-- A case of `main` whose title is not a plain string, such as one built in a loop, is not expected by its title, so if it never runs, nothing notices.
+- A case of `main` whose title is not a plain double-quoted string, such as one built in a loop, is not expected by its title: if it fails it is held, but if it never runs, nothing notices.
 - Nothing checks that each `Why:` line names a commitment the plan states, or that every commitment has a case. A case of `main` that points at nothing is always held.
 - Validity is not all that sealing requires: a learning holding a symlink or a special file is valid, and no check sees it before sealing on `main` refuses it.
 - Commitment 7 is known to be proven only in part: the skills' command-line entry points, such as `create-node.ts`'s `--edge` parsing, have no cases. Their cases call the scripts' exported functions, not the command lines their `SKILL.md` promises.

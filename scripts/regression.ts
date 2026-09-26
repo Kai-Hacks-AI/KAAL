@@ -178,18 +178,28 @@ export type Result = { file: string; name: string; outcome: "pass" | "fail" | "s
  * Judges the trusted cases' results against the candidate. A case that did not
  * pass (it failed, was skipped, never reported, or its file did not run as a
  * whole) is excused only when every commitment it points at was replaced or
- * withdrawn; a case that points at nothing is never excused.
+ * withdrawn; a case that points at nothing is never excused. A result no
+ * expected case accounts for, such as a case whose title could not be read,
+ * points at nothing: it is held too.
  */
 export function judge(cases: Case[], results: Result[], superseded: Set<string>): string[] {
   // A file that does not run as a whole reports one result, named by the path it was run as.
-  const broken = new Set(results.filter((r) => r.name.split("\\").join("/") === r.file).map((r) => r.file));
-  return cases.flatMap((c) => {
+  const isFile = (r: Result) => r.name.split("\\").join("/") === r.file;
+  const broken = new Set(results.filter(isFile).map((r) => r.file));
+  const expected = cases.flatMap((c) => {
     const result = results.find((r) => r.file === c.file && r.name === c.title);
     const outcome = broken.has(c.file) ? "did not run as a whole" : !result ? "not run" : result.outcome;
     if (outcome === "pass") return [];
     if (c.places.length && c.places.every((p) => superseded.has(p))) return [];
     return [`${c.file}: "${c.title}" ${outcome === "fail" ? "failed" : outcome === "skip" ? "was skipped" : outcome}`];
   });
+  const unaccounted = results.flatMap((r) => {
+    if (cases.some((c) => c.file === r.file && (c.title === r.name || isFile(r)))) return [];
+    if (isFile(r)) return [`${r.file}: did not run as a whole`];
+    if (r.outcome === "pass") return [];
+    return [`${r.file}: "${r.name}" ${r.outcome === "fail" ? "failed" : "was skipped"}, and points at nothing`];
+  });
+  return [...expected, ...unaccounted];
 }
 
 const TSX = fileURLToPath(import.meta.resolve("tsx/cli"));
@@ -275,7 +285,8 @@ function replacementErrors(candidate: string, successors: Set<string>): string[]
 /** Everything that stops a candidate from being accepted over the trusted regression at `base`. */
 export function regressionErrors(trusted: string, candidate: string, base: string): string[] {
   // No trusted case would judge nothing and accept everything, so that is refused.
-  if (!caseFiles(trusted).length) return ["main's npm test runs no case files, so nothing could judge the candidate"];
+  if (!repoCases(trusted).length)
+    return ["main's npm test runs no case it can name, so nothing could judge the candidate"];
   const { replaced, withdrawn, errors } = classify(trusted, candidate, base);
   const superseded = new Set([...replaced.keys(), ...withdrawn.keys()]);
   return [

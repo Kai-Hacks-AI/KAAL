@@ -134,6 +134,21 @@ test("a trusted case that does not pass is excused only when every commitment it
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
+test("a trusted result no expected case accounts for is held: it points at nothing", () => {
+  const cases: Case[] = [{ file: "scripts/a.test.ts", title: "named", places: ["kept.md"] }];
+  const results: Result[] = [
+    { file: "scripts/a.test.ts", name: "named", outcome: "pass" },
+    { file: "scripts/a.test.ts", name: "unreadable title", outcome: "fail" },
+    { file: "scripts/a.test.ts", name: "unreadable but passing", outcome: "pass" },
+    { file: "scripts/b.test.ts", name: "scripts/b.test.ts", outcome: "pass" },
+  ];
+  assert.deepEqual(judge(cases, results, new Set(["kept.md"])), [
+    'scripts/a.test.ts: "unreadable title" failed, and points at nothing',
+    "scripts/b.test.ts: did not run as a whole",
+  ]);
+});
+
+// Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
 test("a trusted file that does not run as a whole proves none of its cases, even if it reports a pass", () => {
   const cases: Case[] = [{ file: "scripts/a.test.ts", title: "holds", places: ["kept.md"] }];
   const results: Result[] = [
@@ -185,9 +200,9 @@ test("main's cases are the files its npm test runs, whether its globs are quoted
 });
 
 // Why: brain/learning/genesis/26/09/26/02/nodes/testing.md
-test("a main whose npm test runs no case files judges nothing, so every candidate is refused", () => {
+test("a main whose npm test runs no case it can name judges nothing, so every candidate is refused", () => {
   assert.deepEqual(regressionErrors(regressionCandidate("no-cases"), regressionCandidate("kept"), BASE), [
-    "main's npm test runs no case files, so nothing could judge the candidate",
+    "main's npm test runs no case it can name, so nothing could judge the candidate",
   ]);
 });
 
