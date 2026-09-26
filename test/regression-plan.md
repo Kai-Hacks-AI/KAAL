@@ -17,7 +17,7 @@ Each commitment is owned by one capability of KAAL and stated in one place, wher
 
 ## How this regression differs from the one it was derived from
 
-Derived from: `main` at `f359663`.
+Derived from: `main` at `f3596634e2ab78d6d2e70c561079a6bc82676dc7`. That commit is not an ancestor of this candidate: its one change, the TypeScript bump (#25), reached this candidate as #33.
 
 This section names the regression a plan was derived from and what the plan does not retain of it; every commitment of that regression it does not name is retained. On a candidate, the base must be `main` as it is now; once the candidate is merged, the section stays as the record of how this regression came to be, and the next candidate replaces it with its own. Changes made within a candidate before it is merged are not changes to the regression. How a commitment is replaced or withdrawn is stated in `brain/learning/genesis/26/09/26/02/nodes/testing.md`.
 
