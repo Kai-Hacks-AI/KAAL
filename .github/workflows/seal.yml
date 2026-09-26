@@ -1,4 +1,5 @@
 # KAAL's sealing policy: brain/learning/genesis/26/09/25/01/nodes/using-seals.md
+# Carries out the trusted part of KAAL's Regression Plan: test/regression-plan.md
 #
 # Runs `npm run seals:check` and, on a pull request, `npm run seals:guard`
 # against the target branch; both decide what counts, not this workflow.
