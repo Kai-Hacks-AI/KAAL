@@ -6,22 +6,18 @@ const SKILL = fileURLToPath(new URL("../SKILL.md", import.meta.url));
 /** This skill's SKILL.md. The skill is born from init: SKILL.md is generated from here, never edited by hand. */
 export const SKILL_MD = `---
 name: testing
-description: Write tests that state claims, keep test data apart from test cases, and run the same way wherever the tested thing runs. Use when adding, changing or reviewing tests.
+description: Write tests that state claims, keep their test data apart from the test cases, and give the same result every time they run. Use when adding, changing or reviewing tests.
 ---
 
 # Testing
 
-A test proves a claim about what the tested thing does. Write it so the claim is visible, the evidence is separate from the proof, and the proof holds every time it is run.
+A test proves a claim about what the tested thing does, and can be run again to prove it again.
 
-State the claim. A test case's name is one claim about behaviour its user relies on, written as a sentence that is true when the test passes: "refuses to overwrite an existing file", not "test overwrite". When a claim needs "and", it is either one behaviour with several observable parts or two cases. A case asserts what the claim says and no more, so a failing case names the claim that broke.
+State the claim. Each test case states one claim about behaviour its user relies on, as a sentence that is true when the test passes, and asserts what that claim says. A failing case then names the claim that broke.
 
-Keep test data apart from test cases. Test data is the inputs and expected results a case uses: files, directory trees, recorded outputs. It lives in a \`test-data/\` directory beside the tests, named for what each item shows (\`file-removed\`, \`header-malformed\`), and a small loader next to the tests (\`test-data.ts\`) gives cases access to it by name. A case holds no data itself, so the same data can serve several claims and a claim can be read without its data in the way. Data a case compares byte for byte stays byte-exact wherever it is checked out: the using system keeps it out of line-ending conversion and formatting.
+Keep test data apart from test cases. The inputs and expected results a case uses are its test data. Keeping them apart from the case lets the claim be read without its data in the way, and lets the same data serve several claims. Where test data is kept and how it is organised is the using system's decision.
 
-Never test over the data. A case that changes anything works on a fresh scratch copy of its data, in a temporary directory, never on the committed data or on another case's copy, so cases do not depend on order or on what an earlier run left behind.
-
-Run the same way everywhere. Tests are run repeatedly, locally and in CI, on every platform the tested thing supports, and a test that passes on one platform and fails on another has found a real difference. A failure that cannot be produced the same way on every platform, such as a full disk or an unreadable file, is simulated through a narrow seam in the tested code, named as a simulation in the case, and the case then claims what the failure leaves behind.
-
-Learn from failures. Every failure found by review, probing or use becomes a test case stating the claim it broke, before or with its fix. When the same kind of failure keeps being found, change the mechanism that lets it happen instead of adding another case.
+Make it repeatable. A test gives the same result every time it is run: it does not depend on the order tests run in or on anything an earlier run left behind.
 
 What to test, where and when to run it, and which tests to keep are the using system's decisions; this skill says how a test is written.
 `;
