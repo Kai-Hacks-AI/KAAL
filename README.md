@@ -15,10 +15,10 @@ To add a package, create `packages/<name>/` with its own `package.json` and `tsc
 
 ## kaal-core
 
-`packages/kaal-core` produces the KAAL Kernel, deployed into `root/.kaal`. The smallest valid Kernel is one file, `.kaal/kernel.json`:
+`packages/kaal-core` produces the KAAL Kernel payload, which belongs in `root/.kaal`. The payload is one file, `kernel.json`:
 
 ```json
-{ "kaal": "kernel", "format": 1 }
+{ "kaal": "kernel" }
 ```
 
-`deploy(root)` writes it, `isKernel(root)` checks for it, `payload()` returns it as data.
+`payload()` returns it as data, keyed by path relative to `.kaal`. Installing it is not kaal-core's concern.
