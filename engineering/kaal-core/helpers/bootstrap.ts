@@ -12,7 +12,7 @@ const KERNEL_PATH = "core/KERNEL.md";
 /** The Kernel's genesis seal: a control seal kept outside the payload's seals/. */
 const GENESIS_SEAL = new URL("../../kernel.sha256", import.meta.url);
 /** The Nodes whose IDs other Nodes carry. */
-const NAMES = ["Node", "Edge", "Component Of", "KAAL Definition", "CASE"];
+const NAMES = ["Node", "Edge", "KAAL Definition", "CASE"];
 /** Core's record of the sealed Node IDs, deployed as one marker `seals/<ID>` each. */
 const SEALS_SOURCE = new URL("../../../../packages/kaal-core/src/seals.ts", import.meta.url);
 
@@ -38,7 +38,7 @@ export function sealBootstrap(): void {
   const record = (name: string): string => JSON.stringify(found.find((n) => n.name === name)?.id);
   writeFileSync(
     SEALS_SOURCE,
-    `// Written by seal-kaal-bootstrap. Never edited by hand.\nimport type { Ids } from "./nodes.js";\nexport const IDS: Ids = { ${NAMES.map((n) => `${JSON.stringify(n)}: ${record(n)}`).join(", ")}, "Kernel": ${JSON.stringify(sha256(payload()[KERNEL_PATH]))} };\nexport const SEALED: string[] = [${ids.map((id) => JSON.stringify(id)).join(", ")}];\n`,
+    `// Written by seal-kaal-bootstrap. Never edited by hand.\nimport type { Ids } from "./nodes.js";\nexport const IDS: Ids = { ${NAMES.map((n) => `${JSON.stringify(n)}: ${record(n)}`).join(", ")} };\nexport const SEALED: string[] = [${ids.map((id) => JSON.stringify(id)).join(", ")}];\n`,
   );
   writeFileSync(GENESIS_SEAL, sha256(payload()[KERNEL_PATH]) + "\n");
 }

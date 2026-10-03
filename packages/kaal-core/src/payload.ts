@@ -1,7 +1,7 @@
 import { KERNEL_PATH, kernelMarkdown } from "./kernel.js";
 import {
-  CASE_PATH, COMPONENT_OF_PATH, CORE_PATH, EDGE_PATH, KAAL_DEFINITION_PATH, NODE_PATH,
-  caseMarkdown, componentOfMarkdown, coreMarkdown, edgeMarkdown, kaalDefinitionMarkdown, nodeMarkdown,
+  CASE_PATH, CORE_PATH, EDGE_PATH, KAAL_DEFINITION_PATH, NODE_PATH,
+  caseMarkdown, coreMarkdown, edgeMarkdown, kaalDefinitionMarkdown, nodeMarkdown,
 } from "./nodes.js";
 import { IDS, SEALED } from "./seals.js";
 
@@ -15,7 +15,6 @@ export function payload(): Record<string, string> {
     [KERNEL_PATH]: kernelMarkdown(),
     [NODE_PATH]: nodeMarkdown(),
     [EDGE_PATH]: edgeMarkdown(IDS),
-    [COMPONENT_OF_PATH]: componentOfMarkdown(IDS),
     [KAAL_DEFINITION_PATH]: kaalDefinitionMarkdown(IDS),
     [CASE_PATH]: caseMarkdown(IDS),
     [CORE_PATH]: coreMarkdown(IDS),
