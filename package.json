@@ -4,7 +4,10 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present && npm run test:kaal-core",
+    "test:kaal-core": "npm test --prefix engineering/kaal-core",
+    "check-kaal-seals": "npm run check-kaal-seals --prefix engineering/kaal-core",
+    "seal-kaal-artifact": "npm run seal-kaal-artifact --prefix engineering/kaal-core --",
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {

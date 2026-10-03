@@ -1,1 +1,1 @@
-export const name = "kaal-core";
+export { payload } from "./payload.js";
