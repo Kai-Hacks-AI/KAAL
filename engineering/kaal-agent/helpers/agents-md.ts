@@ -9,11 +9,13 @@ export const BEGIN = "<!-- kaal:begin -->";
 export const END = "<!-- kaal:end -->";
 export const DEFAULT_AGENTS_FILE = "AGENTS.md";
 /** `.kaal` is only the default name of the KAAL directory. */
+/** The KAAL-side entrypoint the wiring points to: host AGENTS.md -> <kaal>/AGENT.md -> KAAL Nodes. */
+export const ENTRYPOINT = "AGENT.md";
 export const DEFAULT_KAAL_DIR = ".kaal";
 
 /** The KAAL-owned fragment. `kaalDir` is relative to the directory holding AGENTS.md. */
 export function fragment(kaalDir: string): string {
-  return `${BEGIN}\nKAAL is present in \`${kaalDir}/\`. Load its agent instructions from there.\n${END}`;
+  return `${BEGIN}\nKAAL is available at \`${kaalDir}/\`. Read \`${kaalDir}/AGENT.md\` to use it.\n${END}`;
 }
 
 type Located = { start: number; end: number } | undefined | Error;

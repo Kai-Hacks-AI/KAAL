@@ -18,6 +18,7 @@ function checkout(): { dir: string; agents: string; wire: (...a: string[]) => nu
     writeFileSync(join(dir, ".kaal", path), content);
   }
   const run = (script: string) => (...args: string[]) => spawnSync("node", [join(helpers, script), ...args], { cwd: dir, env: { ...process.env, INIT_CWD: dir } }).status!;
+  writeFileSync(join(dir, ".kaal", "AGENT.md"), "# Agent\n"); // stand-in: the KAAL-side entrypoint is authored in kaal-core, not here
   return { dir, agents: join(dir, "AGENTS.md"), wire: run("wire-kaal-agent.js"), check: run("check-kaal-agent.js") };
 }
 const withCheckout = (fn: (c: ReturnType<typeof checkout>) => void) => () => {
@@ -31,7 +32,7 @@ test("without AGENTS.md the check fails and does not repair; wire creates the mi
   assert.throws(() => read(c.agents), "check created nothing");
   assert.equal(c.wire(), 0);
   assert.equal(c.check(), 0);
-  assert.match(read(c.agents), /^<!-- kaal:begin -->\nKAAL is present in `\.kaal\/`\. Load its agent instructions from there\.\n<!-- kaal:end -->\n$/);
+  assert.match(read(c.agents), /^<!-- kaal:begin -->\nKAAL is available at `\.kaal\/`\. Read `\.kaal\/AGENT\.md` to use it\.\n<!-- kaal:end -->\n$/);
 }));
 
 test("wire is idempotent: wire, wire gives the same bytes", withCheckout((c) => {
@@ -60,14 +61,14 @@ test("check fails without wiring, on a changed fragment and on a missing KAAL di
   assert.equal(read(c.agents), "# Rules\n");
   c.wire();
   const wired = read(c.agents);
-  writeFileSync(c.agents, wired.replace("Load its", "Ignore its"));
+  writeFileSync(c.agents, wired.replace("Read", "Ignore"));
   assert.equal(c.check(), 1);
-  assert.ok(read(c.agents).includes("Ignore its"), "check left the file as found");
+  assert.ok(read(c.agents).includes("Ignore"), "check left the file as found");
   writeFileSync(c.agents, wired);
   assert.equal(c.check(), 0);
   assert.equal(c.check("--kaal", ".other"), 1, "wiring to .kaal is not wiring to .other");
-  rmSync(join(c.dir, ".kaal", "core", "KERNEL.md"));
-  assert.equal(c.check(), 1, "the wiring points at a directory that is not KAAL");
+  rmSync(join(c.dir, ".kaal", "AGENT.md"));
+  assert.equal(c.check(), 1, "the wiring points at an AGENT.md that does not exist");
 }));
 
 test("wire can name another AGENTS.md and KAAL directory; wiring a new directory replaces the old fragment", withCheckout((c) => {
