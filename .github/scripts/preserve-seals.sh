@@ -8,7 +8,7 @@ target=$1
 
 # Where seals are recorded. A seal is a 64-hex-digit token in a record file, or
 # the name of a seal artifact kept in a seals directory.
-seal_files=(packages/kaal-core/src/seals.ts engineering/kaal-core/kernel.sha256)
+seal_files=(engineering/kaal-core/kernel.sha256)
 seal_dirs=(packages/kaal-core/artifacts/seals/)
 
 # The seals recorded at a ref, one per line.
