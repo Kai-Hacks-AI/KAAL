@@ -1,0 +1,28 @@
+name: kaal-core controls
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  controls:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: origin/${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: check-kaal-seals
+        run: npm run check-kaal-seals
+      - name: preserve existing seals
+        if: ${{ !cancelled() }}
+        run: .github/scripts/preserve-seals.sh "$TARGET"
+      - name: isolate kaal-core
+        if: ${{ !cancelled() }}
+        run: .github/scripts/isolate-kaal-core.sh "$TARGET"

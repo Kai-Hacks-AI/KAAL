@@ -8,6 +8,7 @@
     "test:kaal-core": "npm test --prefix engineering/kaal-core",
     "check-kaal-seals": "npm run check-kaal-seals --prefix engineering/kaal-core",
     "seal-kaal-artifact": "npm run seal-kaal-artifact --prefix engineering/kaal-core --",
+    "prepare": "git config core.hooksPath .githooks || true",
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {
