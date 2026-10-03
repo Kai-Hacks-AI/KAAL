@@ -26,7 +26,7 @@ test("only Form, a sealed genesis and a resolving type make a Node", (t) => {
   write("UnknownId.md", typed("Unknown", { name: "Edge", id: "f".repeat(64) }));
   assert.deepEqual(readNodes(dir).map((n) => n.id), nodes.map((n) => n.id), "none of those is a Node");
   write("Typed.md", typed("Typed", { name: "Edge", id: edge.id }));
-  assert.equal(readNodes(dir).length, 3, "a Node typed by an admitted Node is a Node");
+  assert.equal(readNodes(dir).length, nodes.length + 1, "a Node typed by an admitted Node is a Node");
 });
 
 test("a Node's ID is its bytes, not where it is stored or what the KAAL directory is called", (t) => {

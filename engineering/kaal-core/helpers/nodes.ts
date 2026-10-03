@@ -78,3 +78,8 @@ export function resolve(nodes: FoundNode[], ref: Ref): FoundNode {
   if (node.name !== ref.name) throw new Error(`ID ${ref.id} is named ${node.name}, not ${ref.name}`);
   return node;
 }
+
+/** The Nodes whose type is exactly this reference: Node type is the whole query. */
+export function typedBy(nodes: FoundNode[], ref: Ref): FoundNode[] {
+  return nodes.filter((n) => n.type?.id === ref.id && n.type.name === ref.name);
+}
