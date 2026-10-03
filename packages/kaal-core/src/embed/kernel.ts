@@ -1,4 +1,4 @@
-/** Path of the Kernel, relative to the `.kaal` directory it belongs in. */
+/** Path of the Kernel, relative to the KAAL directory it belongs in. */
 export const KERNEL_PATH = "core/KERNEL.md";
 
 /**
@@ -14,7 +14,7 @@ This file is a Node. It defines what a Node is, so it must be one, and it is the
 
 A Node is a Markdown file. Its Markdown carries its meaning. A Node that points to other Nodes declares those Edge occurrences in YAML frontmatter under \`edges\`. A Node with none needs no frontmatter, as this one has none.
 
-A Node is referred to by its path relative to the \`.kaal\` directory.
+A Node is referred to by its path relative to the KAAL directory, the directory that holds \`core/\`.
 
 ## Edge
 
@@ -31,7 +31,7 @@ Once born, a Node never changes. A new Node declares its own outgoing Edges, poi
 `;
 }
 
-/** The Kernel payload as files, keyed by path relative to `.kaal`. */
+/** The Kernel payload as files, keyed by path relative to the KAAL directory. */
 export function payload(): Record<string, string> {
   return { [KERNEL_PATH]: kernelMarkdown() };
 }

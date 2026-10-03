@@ -1,8 +1,9 @@
 import { KERNEL_PATH } from "../embed/kernel.js";
 
 /**
- * The bootstrap contract. Returns the ways `markdown` fails to be the Kernel;
- * empty means it is. The one verification that tests, hook and CI all use.
+ * Inner (birth) verification, not the semantic authority: the ways `markdown`
+ * fails to be the Kernel it was written to be; empty means none. The sealed
+ * Kernel itself is the authority, consumed by the outer loop in `acceptance/`.
  */
 export function verifyKernel(markdown: string): string[] {
   const problems: string[] = [];
@@ -18,7 +19,8 @@ export function verifyKernel(markdown: string): string[] {
   const node = section("Node");
   need(node !== "", "must define Node");
   need(node.includes("`edges`") && node.includes("frontmatter"), "Node must say where Edge occurrences are declared");
-  need(node.includes("relative to the `.kaal` directory"), "Node must say how Nodes are referred to");
+  need(node.includes("relative to the KAAL directory"), "Node must say how Nodes are referred to");
+  need(!markdown.includes(".kaal"), "must not freeze the default directory name into the semantics");
   const edge = section("Edge");
   need(edge !== "", "must define Edge");
   need(edge.includes("`edge`") && edge.includes("`to`"), "Edge must distinguish the defining Node from the targets");

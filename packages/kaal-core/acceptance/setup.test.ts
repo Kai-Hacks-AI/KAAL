@@ -1,0 +1,39 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { existsSync, readdirSync, writeFileSync } from "node:fs";
+import { basename } from "node:path";
+import { assertSealed, deployKernel } from "./setup.js";
+
+test("deploys the Kernel at root/.kaal/core/KERNEL.md by default", async () => {
+  const deployed = await deployKernel();
+  try {
+    assert.equal(basename(deployed.dir), ".kaal");
+    assert.deepEqual(readdirSync(deployed.root), [".kaal"]);
+    assert.ok(deployed.kernelPath.endsWith("/.kaal/core/KERNEL.md"));
+    assert.ok(existsSync(deployed.kernelPath));
+  } finally {
+    deployed.cleanup();
+  }
+});
+
+test("can deploy under another KAAL directory name", async () => {
+  const deployed = await deployKernel({ name: "my-kaal" });
+  try {
+    assert.deepEqual(readdirSync(deployed.root), ["my-kaal"]);
+    assert.ok(existsSync(deployed.kernelPath));
+  } finally {
+    deployed.cleanup();
+  }
+});
+
+test("refuses a deployed Kernel that does not match the seal", async () => {
+  const deployed = await deployKernel();
+  try {
+    const seal = "0".repeat(64);
+    assert.throws(() => assertSealed(deployed.kernelPath, seal), /does not match the Kernel seal/);
+    writeFileSync(deployed.kernelPath, "tampered\n");
+    assert.throws(() => assertSealed(deployed.kernelPath, seal), /does not match/);
+  } finally {
+    deployed.cleanup();
+  }
+});
