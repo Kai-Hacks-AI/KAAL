@@ -51,6 +51,8 @@ export function verifyKernel(markdown: string): string[] {
   need(markdown.endsWith("\n"), "must end with a newline");
   need(!markdown.startsWith("---"), "must have no frontmatter: the Kernel declares no Edge occurrences");
   need(markdown.includes(`\`${KERNEL_PATH}\``), "must name itself by its own path");
+  need(markdown.includes("This file is a Node."), "must declare that it is itself a Node");
+  need(!markdown.includes("is not a Node"), "must not deny that it is itself a Node");
   const node = section("Node");
   need(node !== "", "must define Node");
   need(node.includes("`edges`") && node.includes("frontmatter"), "Node must say where Edge occurrences are declared");

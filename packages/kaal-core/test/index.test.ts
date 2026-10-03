@@ -24,6 +24,7 @@ test("the contract rejects a Kernel that has been altered", () => {
     "occurrence defines itself": k.replace("does not define its own meaning", "defines its own meaning"),
     "mutable": k.replace("never changes", "may change"),
     "no self-reference": k.replaceAll("`core/KERNEL.md`", "this file"),
+    "denies being a Node": k.replace("This file is a Node.", "This file is not a Node."),
     "frontmatter added": "---\nedges: []\n---\n" + k,
     "no trailing newline": k.trimEnd(),
   };

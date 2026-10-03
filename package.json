@@ -5,9 +5,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present",
-    "check-kaal-kernel": "npm run check-kaal-kernel -w kaal-core",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
