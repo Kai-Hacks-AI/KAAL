@@ -1,15 +1,7 @@
-// The foundation Nodes. Paths are deployment locations only: a Node's bytes
-// say nothing about where it is stored. Each Node refers to the Nodes it
-// depends on by name and ID, so they are born in dependency order and the IDs
-// are recorded by seal-kaal-bootstrap (seals.ts).
-
-/** What a Node's text may refer to: the recorded IDs of the Nodes already born. */
-export interface Ids {
-  Node: string;
-  Edge: string;
-  "KAAL Definition": string;
-  CASE: string;
-}
+// The foundation Nodes, each written once, in birth order. A Node refers only
+// to Nodes already sealed, by name and the literal ID that sealing gave them,
+// so no Node is ever generated from a record of seals. Paths are deployment
+// locations only: a Node's bytes say nothing about where it is stored.
 
 /** Where Node 1, `Node`, is deployed, relative to the KAAL directory. */
 export const NODE_PATH = "core/Node.md";
@@ -36,13 +28,13 @@ Once sealed, a Node never changes. Its ID is the SHA-256 of its exact bytes, so 
 `;
 }
 
-/** Node 2 is typed by Node 1, so it carries Node 1's ID, frozen. */
-export function edgeMarkdown(ids: Ids): string {
+/** Node 2 is typed by Node 1, so it carries Node 1's sealed ID. */
+export function edgeMarkdown(): string {
   return `---
 name: Edge
 type:
   name: Node
-  id: ${ids.Node}
+  id: f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca
 ---
 
 # Edge
@@ -52,12 +44,12 @@ An Edge is a pointer from one Node to others. The Node that declares it is the s
 }
 
 /** A Node typed directly by Node: the vocabulary KAAL gives independent meaning. */
-export function kaalDefinitionMarkdown(ids: Ids): string {
+export function kaalDefinitionMarkdown(): string {
   return `---
 name: KAAL Definition
 type:
   name: Node
-  id: ${ids.Node}
+  id: f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca
 ---
 
 # KAAL Definition
@@ -69,12 +61,12 @@ A Node is a KAAL Definition exactly when its type refers, by name and ID, to thi
 }
 
 /** A KAAL Definition, so typed by KAAL Definition. */
-export function caseMarkdown(ids: Ids): string {
+export function caseMarkdown(): string {
   return `---
 name: CASE
 type:
   name: KAAL Definition
-  id: ${ids["KAAL Definition"]}
+  id: 17bf407006223729ebcfa04476cb1ef9f0012a9f352d6a14ad37c43fde73f53a
 ---
 
 # CASE
@@ -101,17 +93,17 @@ The contract of each dimension is left to its own KAAL Definition, where one exi
 `;
 }
 
-/** A KAAL Definition that refers to CASE, so born after it. */
-export function coreMarkdown(ids: Ids): string {
+/** A KAAL Definition that refers to the sealed CASE, so born after it. */
+export function coreMarkdown(): string {
   return `---
 name: Core
 type:
   name: KAAL Definition
-  id: ${ids["KAAL Definition"]}
+  id: 17bf407006223729ebcfa04476cb1ef9f0012a9f352d6a14ad37c43fde73f53a
 ---
 
 # Core
 
-Core is the foundational dimension of CASE ${ids.CASE}. It establishes KAAL and its shared semantics, and enables the other dimensions: it provides the semantics and the means that Agent instructions and the registration of Skills and Extensions rely on. Their contracts belong to their own definitions. Core says nothing of how it is implemented or delivered.
+Core is the foundational dimension of CASE 6cffa01b750f77878b45ffc568824518711a1da10a579e8650b6847f357ebf60. It establishes KAAL and its shared semantics, and enables the other dimensions: it provides the semantics and the means that Agent instructions and the registration of Skills and Extensions rely on. Their contracts belong to their own definitions. Core says nothing of how it is implemented or delivered.
 `;
 }

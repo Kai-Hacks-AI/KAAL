@@ -7,7 +7,7 @@ import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { payload } from "kaal-core";
 import { checkBootstrap } from "../helpers/bootstrap.js";
-import { readNodes, resolve, typedBy } from "../helpers/nodes.js";
+import { candidates, readNodes, resolve, typedBy } from "../helpers/nodes.js";
 import { deploy } from "./setup.js";
 
 const referencedCase = (markdown: string) => ({ name: "CASE", id: /CASE ([0-9a-f]{64})/.exec(markdown)![1] });
@@ -44,7 +44,7 @@ test("moving stored Nodes without changing their bytes changes neither identity 
   assert.equal(resolve(after, referencedCase(after.find((n) => n.name === "Core")!.markdown)).name, "CASE");
 });
 
-test("changing CASE makes a new Node and never retargets Core's reference", (t) => {
+test("changing CASE makes another Node; Core still refers to the exact CASE it was born against", (t) => {
   const { dir, cleanup } = deploy();
   t.after(cleanup);
   const before = readNodes(dir);
@@ -53,8 +53,8 @@ test("changing CASE makes a new Node and never retargets Core's reference", (t) 
   const changed = readFileSync(path, "utf8") + "\n";
   writeFileSync(path, changed);
   const after = readNodes(dir);
-  assert.notEqual(after.find((n) => n.name === "CASE")!.id, oldCase.id, "a changed CASE has a new identity");
-  assert.throws(() => resolve(after, referencedCase(after.find((n) => n.name === "Core")!.markdown)), /no Node has ID/, "Core still names the old CASE");
+  assert.notEqual(after.find((n) => n.name === "CASE")!.id, oldCase.id, "changed bytes are another Node");
+  assert.throws(() => resolve(after, referencedCase(after.find((n) => n.name === "Core")!.markdown)), /no Node has ID/, "the changed bytes are not the CASE Core names");
   assert.notEqual(checkBootstrap({ ...payload(), "core/CASE.md": changed }).length, 0, "the changed CASE is not admitted until sealed");
 });
 
@@ -65,4 +65,12 @@ test("the graph holds exactly the sealed Nodes born so far, none containing its 
   assert.deepEqual(nodes.map((n) => n.name).sort(), ["CASE", "Core", "Edge", "KAAL Definition", "Node"]);
   assert.deepEqual(checkBootstrap(), []);
   for (const n of nodes) assert.ok(!n.markdown.includes(n.id), n.name);
+});
+
+test("birth is dependency ordered: every Node refers only to Nodes born before it", () => {
+  const born = candidates(payload());
+  born.forEach((n, i) => {
+    const refs = [...n.markdown.matchAll(/[0-9a-f]{64}/g)].map((m) => m[0]);
+    for (const id of refs) assert.ok(born.slice(0, i).some((b) => b.id === id), `${n.name} refers to ${id}, which is not an earlier Node`);
+  });
 });

@@ -11,8 +11,6 @@ import { checkBytes, sha256 } from "./seal.js";
 const KERNEL_PATH = "core/KERNEL.md";
 /** The Kernel's genesis seal: a control seal kept outside the payload's seals/. */
 const GENESIS_SEAL = new URL("../../kernel.sha256", import.meta.url);
-/** The Nodes whose IDs other Nodes carry. */
-const NAMES = ["Node", "Edge", "KAAL Definition", "CASE"];
 /** Core's record of the sealed Node IDs, deployed as one marker `seals/<ID>` each. */
 const SEALS_SOURCE = new URL("../../../../packages/kaal-core/src/seals.ts", import.meta.url);
 
@@ -28,17 +26,16 @@ export function checkBootstrap(files: Record<string, string> = payload()): strin
 }
 
 /**
- * Record the Nodes' seals. A Node carries the IDs of the Nodes it refers to, so
- * each pass fixes one more level of the dependency order: run it until it
- * changes nothing (npm run seal-kaal-bootstrap does).
+ * Seal the Nodes: record the ID of each Node as written, in birth order. One
+ * pass over fixed bytes. A later Node carries an earlier Node's ID as a literal,
+ * so the record is a consequence of birth and is never input to it.
  */
 export function sealBootstrap(): void {
   const found = candidates(payload());
-  const ids = found.map((n) => n.id);
-  const record = (name: string): string => JSON.stringify(found.find((n) => n.name === name)?.id);
   writeFileSync(
     SEALS_SOURCE,
-    `// Written by seal-kaal-bootstrap. Never edited by hand.\nimport type { Ids } from "./nodes.js";\nexport const IDS: Ids = { ${NAMES.map((n) => `${JSON.stringify(n)}: ${record(n)}`).join(", ")} };\nexport const SEALED: string[] = [${ids.map((id) => JSON.stringify(id)).join(", ")}];\n`,
+    `// Written by seal-kaal-bootstrap: the record of sealed Nodes, in birth order. Never edited by hand, and never read to produce a Node.\nexport const SEALED: string[] = [${found.map((n) => JSON.stringify(n.id)).join(", ")}];\n`,
   );
   writeFileSync(GENESIS_SEAL, sha256(payload()[KERNEL_PATH]) + "\n");
+  for (const n of found) console.log(`${n.name} ${n.id}`);
 }

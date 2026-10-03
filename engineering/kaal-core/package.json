@@ -8,7 +8,7 @@
     "test": "npm run clean && npm run build && node --test dist/test/*.test.js dist/acceptance/*.test.js",
     "clean": "rm -rf dist",
     "seal-kaal-artifact": "npm run build && node dist/helpers/seal-kaal-artifact.js",
-    "seal-kaal-bootstrap": "for i in 1 2 3 4; do npm run build && node dist/helpers/seal-kaal-bootstrap.js || exit 1; done",
+    "seal-kaal-bootstrap": "npm run build && node dist/helpers/seal-kaal-bootstrap.js",
     "check-kaal-seals": "npm run build && node dist/helpers/check-kaal-seals.js"
   }
 }
