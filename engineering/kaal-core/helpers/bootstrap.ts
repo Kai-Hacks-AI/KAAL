@@ -1,11 +1,11 @@
-// PROVISIONAL, BIRTH-ONLY bootstrap policy: the Kernel's genesis seal, and the
-// recording of the Nodes' seals into the Embedding. The mechanisms are
+// PROVISIONAL, BIRTH-ONLY bootstrap policy: checking the Kernel's genesis seal,
+// and recording each newly born Node's seal into the Embedding. The mechanisms are
 // seal.ts (bytes) and nodes.ts (admission). Remove with the bootstrap once
 // the graph Skill seals Nodes itself.
 import { readFileSync, writeFileSync } from "node:fs";
 import { payload } from "kaal-core";
 import { admit, candidates } from "./nodes.js";
-import { checkBytes, sha256 } from "./seal.js";
+import { checkBytes } from "./seal.js";
 
 /** The Kernel is genesis, deployed here relative to the KAAL directory. It is not a Node. */
 const KERNEL_PATH = "core/KERNEL.md";
@@ -26,16 +26,27 @@ export function checkBootstrap(files: Record<string, string> = payload()): strin
 }
 
 /**
- * Seal the Nodes: record the ID of each Node as written, in birth order. One
- * pass over fixed bytes. A later Node carries an earlier Node's ID as a literal,
- * so the record is a consequence of birth and is never input to it.
+ * Seal one newly born Node: record its ID in the seal record, and touch no
+ * other seal. It must be a Node of this payload whose type and Node references are already sealed
+ * (birth is dependency ordered), and sealing it again changes nothing. A seal
+ * recorded for bytes no Node carries any more is a revised draft and is dropped:
+ * Git, not this record, makes an accepted seal durable (preserve-seals).
+ * Returns the sealed ID.
  */
-export function sealBootstrap(): void {
-  const found = candidates(payload());
+export function sealNode(name: string): string {
+  const files = payload();
+  const found = candidates(files);
+  const node = found.find((n) => n.name === name);
+  if (!node) throw new Error(`no Node named ${name} is born`);
+  const recorded = Object.keys(files).filter((p) => p.startsWith("seals/")).map((p) => p.slice("seals/".length));
+  const refs = [...(node.type ? [node.type] : [])];
+  for (const other of found) for (const m of node.markdown.matchAll(new RegExp(`${other.name} ([0-9a-f]{64})`, "g"))) refs.push({ name: other.name, id: m[1] });
+  for (const ref of refs) if (!recorded.includes(ref.id)) throw new Error(`${name} refers to ${ref.name}, which is not sealed: seal it first`);
+  const live = recorded.filter((id) => found.some((n) => n.id === id));
+  const sealed = live.includes(node.id) ? live : [...live, node.id];
   writeFileSync(
     SEALS_SOURCE,
-    `// Written by seal-kaal-bootstrap: the record of sealed Nodes, in birth order. Never edited by hand, and never read to produce a Node.\nexport const SEALED: string[] = [${found.map((n) => JSON.stringify(n.id)).join(", ")}];\n`,
+    `// Written by seal-kaal-bootstrap: the record of sealed Nodes, in birth order. Never edited by hand, and never read to produce a Node.\nexport const SEALED: string[] = [${sealed.map((id) => JSON.stringify(id)).join(", ")}];\n`,
   );
-  writeFileSync(GENESIS_SEAL, sha256(payload()[KERNEL_PATH]) + "\n");
-  for (const n of found) console.log(`${n.name} ${n.id}`);
+  return node.id;
 }
