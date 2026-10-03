@@ -24,7 +24,7 @@ seals_at() {
 status=0
 now=$(seals_at HEAD)
 for seal in $(seals_at "$target" | sort -u); do
-  if ! grep -q "$seal" <<<"$now"; then
+  if ! grep -Fxq "$seal" <<<"$now"; then
     echo "seal $seal is recorded on $target but is missing here" >&2
     status=1
   fi
