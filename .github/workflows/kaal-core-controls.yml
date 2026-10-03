@@ -18,11 +18,16 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - name: check-kaal-seals
+      # KAAL controls: portable, they work without Git.
+      - name: "KAAL: npm test (semantic correctness)"
+        run: npm test
+      - name: "KAAL: check-kaal-seals (current seal integrity)"
+        if: ${{ !cancelled() }}
         run: npm run check-kaal-seals
-      - name: preserve existing seals
+      # Git controls: history and change-set policy around Core.
+      - name: "Git: preserve existing seals (historical seals)"
         if: ${{ !cancelled() }}
         run: .github/scripts/preserve-seals.sh "$TARGET"
-      - name: isolate kaal-core
+      - name: "Git: isolate kaal-core (change-set policy)"
         if: ${{ !cancelled() }}
         run: .github/scripts/isolate-kaal-core.sh "$TARGET"
