@@ -24,28 +24,33 @@ export interface FoundNode {
   markdown: string;
 }
 
-/** The bootstrap Form, exactly: frontmatter of `name`, then `type` as a `{name, id}` pair. Nothing else is a Form. */
+/** The bootstrap Form, exactly: frontmatter of `name`, then optionally `type` as a `{name, id}` pair. Nothing else is a Form. */
 const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
 
-/** Only the genesis Node, `Node`, which the Kernel names, may omit `type`. */
 export function parseForm(markdown: string): { name: string; type?: Ref } | undefined {
   const form = FORM.exec(markdown);
   if (!form) return undefined;
   const [, name, typeName, typeId] = form;
-  if (typeName) return { name, type: { name: typeName, id: typeId } };
-  return name === "Node" ? { name } : undefined;
+  return typeName ? { name, type: { name: typeName, id: typeId } } : { name };
 }
 
-/** The Nodes in `dir`: files that declare themselves Nodes by Form. Other files, and `seals/`, are ignored. */
+/**
+ * The Nodes in `dir`: files whose Form declares them Nodes. Other files, and
+ * `seals/`, are ignored. A file with no `type` is the genesis exception only
+ * by identity: its exact ID must be the one a typed Node already refers to
+ * (with the same name), never merely a file that calls itself `Node`.
+ */
 export function readNodes(dir: string): FoundNode[] {
-  const found: FoundNode[] = [];
+  const candidates: FoundNode[] = [];
   for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" }).sort()) {
     if (path === "seals" || path.startsWith("seals/") || !statSync(join(dir, path)).isFile()) continue;
     const bytes = readFileSync(join(dir, path));
     const form = parseForm(bytes.toString("utf8"));
-    if (form) found.push({ id: createHash("sha256").update(bytes).digest("hex"), path, markdown: bytes.toString("utf8"), ...form });
+    if (form) candidates.push({ id: createHash("sha256").update(bytes).digest("hex"), path, markdown: bytes.toString("utf8"), ...form });
   }
-  return found;
+  const typed = candidates.filter((n) => n.type);
+  const genesis = candidates.filter((n) => !n.type && typed.some((t) => t.type?.id === n.id && t.type.name === n.name));
+  return candidates.filter((n) => typed.includes(n) || genesis.includes(n));
 }
 
 /** The Node with this exact ID, whose declared name must be the reference's name. */
