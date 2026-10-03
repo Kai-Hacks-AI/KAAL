@@ -24,15 +24,16 @@ export interface FoundNode {
   markdown: string;
 }
 
-/** The bootstrap Form: YAML frontmatter with `name` and `type` as a `{name, id}` pair; only the genesis Node omits `type`. */
+/** The bootstrap Form, exactly: frontmatter of `name`, then `type` as a `{name, id}` pair. Nothing else is a Form. */
+const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+
+/** Only the genesis Node, `Node`, which the Kernel names, may omit `type`. */
 export function parseForm(markdown: string): { name: string; type?: Ref } | undefined {
-  const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(markdown)?.[1];
-  const name = frontmatter && /^name: (.+)$/m.exec(frontmatter)?.[1];
-  if (!frontmatter || !name) return undefined;
-  const type = /^type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})$/m.exec(frontmatter);
-  if (type) return { name, type: { name: type[1], id: type[2] } };
-  // No valid type: only Node 1, `Node`, the genesis exception the Kernel names, may omit it.
-  return name === "Node" && !/^type:/m.test(frontmatter) ? { name } : undefined;
+  const form = FORM.exec(markdown);
+  if (!form) return undefined;
+  const [, name, typeName, typeId] = form;
+  if (typeName) return { name, type: { name: typeName, id: typeId } };
+  return name === "Node" ? { name } : undefined;
 }
 
 /** The Nodes in `dir`: files that declare themselves Nodes by Form. Other files, and `seals/`, are ignored. */

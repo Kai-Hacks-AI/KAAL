@@ -35,6 +35,7 @@ test("Nodes are recognised by Form, wherever they live; files without a valid Fo
     renameSync(join(deployed.dir, deployed.nodes[0].path), join(deployed.dir, "elsewhere", "moved.md"));
     writeFileSync(join(deployed.dir, "core", "Stray.md"), "# Stray\n\nNot a Node.\n");
     writeFileSync(join(deployed.dir, "core", "Typeless.md"), "---\nname: Stray\n---\n\n# Stray\n");
+    writeFileSync(join(deployed.dir, "core", "Odd.md"), "---\nname: Node\ntype : nope\n---\n");
     writeFileSync(join(deployed.dir, "core", "Malformed.md"), "---\nname: Stray\ntype:\n  name: Node\n  id: nope\n---\n");
     assert.deepEqual(deployed.discover().map((n) => n.id).sort(), ids);
   } finally {
