@@ -1,5 +1,5 @@
 // Acceptance of Agent's first adapter, through the commands as an agent or CI
-// would run them, on a throwaway checkout holding a deployed KAAL directory.
+// would run them, on a throwaway checkout holding the KAAL directory deployed from the real kaal-core payload (AGENT.md included).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -18,7 +18,6 @@ function checkout(): { dir: string; agents: string; wire: (...a: string[]) => nu
     writeFileSync(join(dir, ".kaal", path), content);
   }
   const run = (script: string) => (...args: string[]) => spawnSync("node", [join(helpers, script), ...args], { cwd: dir, env: { ...process.env, INIT_CWD: dir } }).status!;
-  writeFileSync(join(dir, ".kaal", "AGENT.md"), "# Agent\n"); // stand-in: the KAAL-side entrypoint is authored in kaal-core, not here
   return { dir, agents: join(dir, "AGENTS.md"), wire: run("wire-kaal-agent.js"), check: run("check-kaal-agent.js") };
 }
 const withCheckout = (fn: (c: ReturnType<typeof checkout>) => void) => () => {
