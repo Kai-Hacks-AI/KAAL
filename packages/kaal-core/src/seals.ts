@@ -1,2 +1,0 @@
-// Written by seal-kaal-bootstrap: the record of sealed Nodes, in birth order. Never edited by hand, and never read to produce a Node.
-export const SEALED: string[] = ["f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca", "889dd762698cdfd18d495798a0d30a22bcbec10ae0bedfad7f529c88d7f6a139", "17bf407006223729ebcfa04476cb1ef9f0012a9f352d6a14ad37c43fde73f53a", "6cffa01b750f77878b45ffc568824518711a1da10a579e8650b6847f357ebf60", "03829c6d4c30f7c08b0313d0da651d54bc7d6d3bf9a4edc50d6917a45bb701ae"];

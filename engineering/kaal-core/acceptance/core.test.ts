@@ -67,12 +67,14 @@ test("the graph holds exactly the sealed Nodes born so far, none containing its 
   for (const n of nodes) assert.ok(!n.markdown.includes(n.id), n.name);
 });
 
-test("birth is dependency ordered: every Node's type and explicit Node references name Nodes born before it", () => {
-  const born = candidates(payload());
-  born.forEach((n, i) => {
-    const earlier = born.slice(0, i);
+test("every Node's type and explicit Node references resolve, by exact ID with the name checked, to another carried Node", () => {
+  const nodes = candidates(payload());
+  for (const n of nodes) {
     const refs = [...(n.type ? [n.type] : [])];
-    for (const other of born) for (const m of n.markdown.matchAll(new RegExp(`${other.name} ([0-9a-f]{64})`, "g"))) refs.push({ name: other.name, id: m[1] });
-    for (const ref of refs) assert.ok(earlier.some((b) => b.id === ref.id && b.name === ref.name), `${n.name} refers to ${ref.name}, which is not an earlier Node`);
-  });
+    for (const other of nodes) for (const m of n.markdown.matchAll(new RegExp(`${other.name} ([0-9a-f]{64})`, "g"))) refs.push({ name: other.name, id: m[1] });
+    for (const ref of refs) {
+      assert.notEqual(ref.id, n.id, `${n.name} does not refer to itself`);
+      assert.equal(resolve(nodes, ref).name, ref.name);
+    }
+  }
 });

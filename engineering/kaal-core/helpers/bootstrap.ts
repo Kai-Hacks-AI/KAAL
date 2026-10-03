@@ -2,17 +2,18 @@
 // and recording each newly born Node's seal into the Embedding. The mechanisms are
 // seal.ts (bytes) and nodes.ts (admission). Remove with the bootstrap once
 // the graph Skill seals Nodes itself.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { payload } from "kaal-core";
 import { admit, candidates } from "./nodes.js";
-import { checkBytes } from "./seal.js";
+import { checkBytes, writeSeal } from "./seal.js";
 
 /** The Kernel is genesis, deployed here relative to the KAAL directory. It is not a Node. */
 const KERNEL_PATH = "core/KERNEL.md";
 /** The Kernel's genesis seal: a control seal kept outside the payload's seals/. */
 const GENESIS_SEAL = new URL("../../kernel.sha256", import.meta.url);
-/** Core's record of the sealed Node IDs, deployed as one marker `seals/<ID>` each. */
-const SEALS_SOURCE = new URL("../../../../packages/kaal-core/src/seals.ts", import.meta.url);
+/** Core's carried artifacts, where the sealed Nodes' admission markers `seals/<ID>` are kept. */
+const ARTIFACTS = new URL("../../../../packages/kaal-core/artifacts/", import.meta.url);
 
 /** The problems with a payload's seals; empty means none. */
 export function checkBootstrap(files: Record<string, string> = payload()): string[] {
@@ -26,12 +27,12 @@ export function checkBootstrap(files: Record<string, string> = payload()): strin
 }
 
 /**
- * Seal one newly born Node: record its ID in the seal record, and touch no
- * other seal. It must be a Node of this payload whose type and Node references are already sealed
- * (birth is dependency ordered), and sealing it again changes nothing: the
- * existing seals, plus this Node's ID if absent. Removing a revised draft's
- * seal is a separate act; after merge, Git (preserve-seals) makes an accepted
- * seal durable. Returns the sealed ID.
+ * Seal one newly born Node: add its admission marker `seals/<ID>` beside the
+ * Nodes, and touch no other seal. It must be a Node of this payload whose type
+ * and Node references are already sealed (birth is dependency ordered), and
+ * sealing it again changes nothing. Removing a revised draft's seal is a
+ * separate act; after merge, Git (preserve-seals) makes an accepted seal
+ * durable. Returns the sealed ID.
  */
 export function sealNode(name: string): string {
   const files = payload();
@@ -42,10 +43,5 @@ export function sealNode(name: string): string {
   const refs = [...(node.type ? [node.type] : [])];
   for (const other of found) for (const m of node.markdown.matchAll(new RegExp(`${other.name} ([0-9a-f]{64})`, "g"))) refs.push({ name: other.name, id: m[1] });
   for (const ref of refs) if (!recorded.includes(ref.id)) throw new Error(`${name} refers to ${ref.name}, which is not sealed: seal it first`);
-  const sealed = recorded.includes(node.id) ? recorded : [...recorded, node.id];
-  writeFileSync(
-    SEALS_SOURCE,
-    `// Written by seal-kaal-bootstrap: the record of sealed Nodes, in birth order. Never edited by hand, and never read to produce a Node.\nexport const SEALED: string[] = [${sealed.map((id) => JSON.stringify(id)).join(", ")}];\n`,
-  );
-  return node.id;
+  return writeSeal(fileURLToPath(new URL(node.path, ARTIFACTS)), fileURLToPath(new URL("seals/", ARTIFACTS)));
 }
