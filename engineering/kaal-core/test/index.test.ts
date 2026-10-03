@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import * as embedding from "kaal-core";
 import { checkBootstrap } from "../helpers/bootstrap.js";
 
-test("the public API is exactly payload()", () => {
-  assert.deepEqual(Object.keys(embedding), ["payload"]);
+test("the public API is exactly payload() and registerSkill()", () => {
+  assert.deepEqual(Object.keys(embedding), ["payload", "registerSkill"]);
 });
 
 test("the recorded seals match the Kernel and the Nodes", () => {
