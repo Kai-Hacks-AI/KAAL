@@ -1,19 +1,39 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { kernel, name, payload } from "../src/index.js";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { KERNEL_PATH, kernelMarkdown, name, payload, verifyKernel } from "../src/index.js";
 
 test("exports the package name", () => {
   assert.equal(name, "kaal-core");
 });
 
-test("kernel identifies itself as a KAAL Kernel", () => {
-  assert.deepEqual(kernel(), { kaal: "kernel" });
+test("payload is exactly core/KERNEL.md, as produced by kernelMarkdown()", () => {
+  assert.deepEqual(payload(), { "core/KERNEL.md": kernelMarkdown() });
+  assert.equal(KERNEL_PATH, "core/KERNEL.md");
 });
 
-test("payload is exactly one file, kernel.json", () => {
-  assert.deepEqual(Object.keys(payload()), ["kernel.json"]);
+test("the generated Kernel satisfies the bootstrap contract", () => {
+  assert.deepEqual(verifyKernel(kernelMarkdown()), []);
 });
 
-test("kernel.json parses back to the Kernel", () => {
-  assert.deepEqual(JSON.parse(payload()["kernel.json"]), kernel());
+test("the contract rejects a Kernel that has been altered", () => {
+  const k = kernelMarkdown();
+  const altered = {
+    "no edge semantics": k.replace("## Edge", "## Link"),
+    "occurrence defines itself": k.replace("does not define its own meaning", "defines its own meaning"),
+    "mutable": k.replace("never changes", "may change"),
+    "no self-reference": k.replaceAll("`core/KERNEL.md`", "this file"),
+    "frontmatter added": "---\nedges: []\n---\n" + k,
+    "no trailing newline": k.trimEnd(),
+  };
+  for (const [why, md] of Object.entries(altered)) {
+    assert.notDeepEqual(verifyKernel(md), [], why);
+  }
+});
+
+test("the generated Kernel matches its seal", () => {
+  const seal = readFileSync(new URL("../../kernel.sha256", import.meta.url), "utf8").trim();
+  const actual = createHash("sha256").update(kernelMarkdown()).digest("hex");
+  assert.equal(actual, seal, `Kernel changed. If intended, set kernel.sha256 to ${actual}`);
 });

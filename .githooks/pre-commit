@@ -1,0 +1,3 @@
+#!/bin/sh
+# Same verification as CI: the kaal-core tests, which check the generated Kernel.
+exec npm test --silent
