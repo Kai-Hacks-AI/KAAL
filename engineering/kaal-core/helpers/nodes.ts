@@ -1,14 +1,19 @@
 // PROVISIONAL bootstrap tooling. This manages Nodes rather than defining or
 // proving the Core substrate, so it lives here, not in the Embedding package.
 // It is a candidate to move to the future managing-KAAL-graph Skill, and is
-// not kaal-core API. Form, identity and admission are Core's (`admit`,
-// `candidates`); only the queries over admitted Nodes live here.
+// not kaal-core API. Form, identity and admission are one implementation,
+// shared with Core's registration but not part of Core's public API: it is
+// reached in the built package, not through the public surface. Only the
+// queries over admitted Nodes live here.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { admit, candidates, type FoundNode, type Ref } from "kaal-core";
 
-export { admit, candidates };
-export type { FoundNode, Ref };
+// The types resolve from this file's location, the module from the built file's.
+type Machinery = typeof import("../../../packages/kaal-core/dist/nodes.js");
+const machinery: Machinery = await import(new URL("../../../../packages/kaal-core/dist/nodes.js", import.meta.url).href);
+export const { admit, candidates } = machinery;
+export type FoundNode = import("../../../packages/kaal-core/dist/nodes.js").FoundNode;
+export type Ref = import("../../../packages/kaal-core/dist/nodes.js").Ref;
 
 type Files = Record<string, string | Uint8Array>;
 
