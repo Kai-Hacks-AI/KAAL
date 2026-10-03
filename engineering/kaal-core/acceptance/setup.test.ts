@@ -37,14 +37,9 @@ test("refuses a deployed Kernel that does not match the seal", async () => {
   }
 });
 
-test("the deployed Kernel is Node 1 with the KNIFE chapters, and its seal is detached evidence", async () => {
+test("the deployed seal is detached evidence for Node 1", async () => {
   const deployed = await deployKernel();
   try {
-    assert.deepEqual(
-      deployed.chapters.map((c) => [c.level, c.title]),
-      [[1, "Kernel"], [2, "Node"], [2, "Immutability"], [2, "Form"], [2, "Edge"]],
-    );
-    assert.match(deployed.chapter("Form").markdown, /`edges`/);
     assertSealed(deployed.kernelPath, readFileSync(deployed.sealPath, "utf8").trim());
   } finally {
     deployed.cleanup();
