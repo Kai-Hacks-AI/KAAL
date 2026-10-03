@@ -1,8 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { KERNEL_PATH, kernelMarkdown, name, payload, verifyKernel } from "../src/index.js";
+import { KERNEL_PATH, kernelMarkdown, kernelSeal, name, payload, verifyKernel } from "../src/index.js";
 
 test("exports the package name", () => {
   assert.equal(name, "kaal-core");
@@ -35,6 +34,5 @@ test("the contract rejects a Kernel that has been altered", () => {
 
 test("the generated Kernel matches its seal", () => {
   const seal = readFileSync(new URL("../../kernel.sha256", import.meta.url), "utf8").trim();
-  const actual = createHash("sha256").update(kernelMarkdown()).digest("hex");
-  assert.equal(actual, seal, `Kernel changed. If intended, set kernel.sha256 to ${actual}`);
+  assert.equal(kernelSeal(), seal, "Kernel changed. If intended, run seal-kaal-kernel.");
 });

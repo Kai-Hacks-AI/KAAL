@@ -10,11 +10,15 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "!dist/seal.*"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p test/tsconfig.json && node --test dist-test/test/*.test.js",
     "clean": "rm -rf dist dist-test",
-    "check-kaal-kernel": "npm test"
+    "check-kaal-kernel": "npm test",
+    "seal-kaal-kernel": "tsc -p tsconfig.json && node dist/seal.js"
   }
 }

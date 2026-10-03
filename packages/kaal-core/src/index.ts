@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export const name = "kaal-core";
 
 /** Path of the Kernel, relative to the `.kaal` directory it belongs in. */
@@ -36,6 +38,11 @@ Once born, a Node never changes. A new Node declares its own outgoing Edges, poi
 /** The Kernel payload as files, keyed by path relative to `.kaal`. */
 export function payload(): Record<string, string> {
   return { [KERNEL_PATH]: kernelMarkdown() };
+}
+
+/** SHA-256 of the Kernel bytes Core produces. `kernel.sha256` holds this value. */
+export function kernelSeal(): string {
+  return createHash("sha256").update(kernelMarkdown()).digest("hex");
 }
 
 /**
