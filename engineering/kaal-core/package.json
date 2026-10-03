@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build-embedding": "npm run build --prefix ../../packages/kaal-core",
-    "test": "npm run build-embedding && tsc -p tsconfig.json && node --test dist/test/*.test.js && tsc -p acceptance/tsconfig.json && node --test dist/acceptance/*.test.js",
+    "test": "npm run clean && npm run build-embedding && tsc -p tsconfig.json && node --test dist/test/*.test.js && tsc -p acceptance/tsconfig.json && node --test dist/acceptance/*.test.js",
     "clean": "rm -rf dist",
     "check-kaal-kernel": "npm test",
     "seal-kaal-kernel": "npm run build-embedding && tsc -p tsconfig.json && node dist/src/write-seal.js"
