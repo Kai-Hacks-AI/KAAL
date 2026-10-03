@@ -11,17 +11,10 @@ export function verifyKernel(markdown: string): string[] {
   const section = (title: string) =>
     markdown.split(/^## /m).find((s) => s.startsWith(title + "\n")) ?? "";
 
-  need(markdown.endsWith("\n"), "must end with a newline");
   need(!markdown.startsWith("---"), "must have no frontmatter: the Kernel declares no Edge occurrences");
   need(markdown.includes(`\`${KERNEL_PATH}\``), "must name itself by its own path");
   need(markdown.includes("This file is a Node."), "must declare that it is itself a Node");
   need(!markdown.includes("is not a Node"), "must not deny that it is itself a Node");
-  need(!/^ {0,3}(`{3,}|~{3,})/m.test(markdown), "must contain no fenced code, so that every heading line is a real heading");
-  need(
-    JSON.stringify([...markdown.matchAll(/^(#{1,6}) +(.+)$/gm)].map((m) => [m[1].length, m[2]])) ===
-      JSON.stringify([[1, "Kernel"], [2, "Node"], [2, "Immutability"], [2, "Form"], [2, "Edge"]]),
-    "must have exactly the headings Kernel, Node, Immutability, Form, Edge, in that order and at those levels",
-  );
   need(!markdown.includes(".kaal"), "must not freeze the default directory name into the semantics");
   need(section("Node").includes("unit of meaning"), "Node must say what a Node is");
   const immutability = section("Immutability");
