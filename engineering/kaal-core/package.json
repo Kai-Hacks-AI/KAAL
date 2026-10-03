@@ -4,10 +4,11 @@
   "type": "module",
   "scripts": {
     "build-embedding": "npm run build --prefix ../../packages/kaal-core",
-    "test": "npm run clean && npm run build-embedding && tsc -p tsconfig.json && node --test dist/test/*.test.js && tsc -p acceptance/tsconfig.json && node --test dist/acceptance/*.test.js",
+    "build": "npm run build-embedding && tsc",
+    "test": "npm run clean && npm run build && node --test dist/test/*.test.js dist/acceptance/*.test.js",
     "clean": "rm -rf dist",
-    "seal-kaal-artifact": "npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/seal-kaal-artifact.js",
-    "seal-kaal-bootstrap": "npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/seal-kaal-bootstrap.js && npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/seal-kaal-bootstrap.js",
-    "check-kaal-seals": "npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/check-kaal-seals.js"
+    "seal-kaal-artifact": "npm run build && node dist/helpers/seal-kaal-artifact.js",
+    "seal-kaal-bootstrap": "npm run build && node dist/helpers/seal-kaal-bootstrap.js && npm run build && node dist/helpers/seal-kaal-bootstrap.js",
+    "check-kaal-seals": "npm run build && node dist/helpers/check-kaal-seals.js"
   }
 }

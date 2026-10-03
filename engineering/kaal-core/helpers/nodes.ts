@@ -1,11 +1,10 @@
-// PROVISIONAL bootstrap tooling. This manages Nodes in a directory tree rather
-// than defining or proving the Core substrate, so it lives here, not in src/ or
-// the Embedding package. It is a candidate to move to the future
-// managing-KAAL-graph Skill, and is not kaal-core API. It reads exactly the
-// bootstrap Form's frontmatter and nothing more.
-import { createHash } from "node:crypto";
+// PROVISIONAL bootstrap tooling. This manages Nodes rather than defining or
+// proving the Core substrate, so it lives here, not in the Embedding package.
+// It is a candidate to move to the future managing-KAAL-graph Skill, and is
+// not kaal-core API. It reads exactly the bootstrap Form's frontmatter.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { sha256 } from "./seal.js";
 
 /** A reference to a Node: the id is the identity, the name is checked by resolving it. */
 export interface Ref {
@@ -16,7 +15,7 @@ export interface Ref {
 export interface FoundNode {
   /** SHA-256 of the exact bytes. */
   id: string;
-  /** Where this tree happens to store it; not part of the Node. */
+  /** Where the files happen to store it; not part of the Node. */
   path: string;
   name: string;
   /** Absent only for the genesis Node. */
@@ -24,42 +23,52 @@ export interface FoundNode {
   markdown: string;
 }
 
+type Files = Record<string, string | Uint8Array>;
+
 /** The bootstrap Form, exactly: frontmatter of `name`, then optionally `type` as a `{name, id}` pair. Nothing else is a Form. */
 const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
 
-export function parseForm(markdown: string): { name: string; type?: Ref } | undefined {
-  const form = FORM.exec(markdown);
-  if (!form) return undefined;
-  const [, name, typeName, typeId] = form;
-  return typeName ? { name, type: { name: typeName, id: typeId } } : { name };
+/** The files that declare themselves Nodes by Form. Sealed or not, admitted or not: only candidates. */
+export function candidates(files: Files): FoundNode[] {
+  const found: FoundNode[] = [];
+  for (const [path, bytes] of Object.entries(files)) {
+    if (path.startsWith("seals/")) continue;
+    const markdown = Buffer.from(bytes).toString("utf8");
+    const form = FORM.exec(markdown);
+    if (!form) continue;
+    const [, name, typeName, typeId] = form;
+    found.push({ id: sha256(bytes), path, name, ...(typeName ? { type: { name: typeName, id: typeId } } : {}), markdown });
+  }
+  return found;
 }
 
 /**
- * The Nodes in `dir`: files whose Form declares them Nodes. Other files are
- * ignored. Admission is anchored at a sealed genesis: a file with no `type` is
- * the genesis Node only if its exact ID is recorded under `seals/`; every other
- * Node must have a `type` that resolves, by ID with the name checked, to a Node
- * already admitted. A self-referencing pair of files admits neither.
+ * The Nodes in `files` (path to bytes; the `seals/<ID>` markers are the seals).
+ * Form declares candidates. A candidate with no `type` starts the type chain
+ * only if its exact ID is sealed. Every other Node's `type` must resolve, by
+ * ID with the name checked, to a Node already admitted.
  */
-export function readNodes(dir: string): FoundNode[] {
-  const sealed = new Set(readdirSync(join(dir, "seals")));
-  const candidates: FoundNode[] = [];
-  for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" }).sort()) {
-    if (path === "seals" || path.startsWith("seals/") || !statSync(join(dir, path)).isFile()) continue;
-    const bytes = readFileSync(join(dir, path));
-    const form = parseForm(bytes.toString("utf8"));
-    if (form) candidates.push({ id: createHash("sha256").update(bytes).digest("hex"), path, markdown: bytes.toString("utf8"), ...form });
-  }
-  const admitted = candidates.filter((n) => !n.type && sealed.has(n.id));
+export function admit(files: Files): FoundNode[] {
+  const sealed = new Set(Object.keys(files).filter((p) => p.startsWith("seals/")).map((p) => p.slice("seals/".length)));
+  const rest = candidates(files);
+  const admitted = rest.filter((n) => !n.type && sealed.has(n.id));
   for (let grew = true; grew; ) {
     grew = false;
-    for (const n of candidates) {
-      if (admitted.includes(n) || !n.type) continue;
+    for (const n of rest) {
       const type = n.type;
-      if (admitted.some((a) => a.id === type.id && a.name === type.name)) (admitted.push(n), (grew = true));
+      if (type && !admitted.includes(n) && admitted.some((a) => a.id === type.id && a.name === type.name)) (admitted.push(n), (grew = true));
     }
   }
-  return candidates.filter((n) => admitted.includes(n));
+  return rest.filter((n) => admitted.includes(n));
+}
+
+/** The Nodes in a directory tree. */
+export function readNodes(dir: string): FoundNode[] {
+  const files: Files = {};
+  for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" }).sort()) {
+    if (statSync(join(dir, path)).isFile()) files[path] = readFileSync(join(dir, path));
+  }
+  return admit(files);
 }
 
 /** The Node with this exact ID, whose declared name must be the reference's name. */

@@ -4,9 +4,5 @@
     "rootDir": ".",
     "outDir": "dist"
   },
-  "include": [
-    "src",
-    "test",
-    "helpers"
-  ]
+  "include": ["acceptance", "test", "helpers"]
 }
