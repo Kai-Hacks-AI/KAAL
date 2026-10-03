@@ -1,0 +1,33 @@
+name: kaal-core controls
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  controls:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: origin/${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      # KAAL controls: portable, they work without Git.
+      - name: "KAAL: npm test (semantic correctness)"
+        run: npm test
+      - name: "KAAL: check-kaal-seals (current seal integrity)"
+        if: ${{ !cancelled() }}
+        run: npm run check-kaal-seals
+      # Git controls: history and change-set policy around Core.
+      - name: "Git: preserve existing seals (historical seals)"
+        if: ${{ !cancelled() }}
+        run: .github/scripts/preserve-seals.sh "$TARGET"
+      - name: "Git: isolate kaal-core (change-set policy)"
+        if: ${{ !cancelled() }}
+        run: .github/scripts/isolate-kaal-core.sh "$TARGET"
