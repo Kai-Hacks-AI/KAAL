@@ -28,10 +28,10 @@ export function checkBootstrap(files: Record<string, string> = payload()): strin
 /**
  * Seal one newly born Node: record its ID in the seal record, and touch no
  * other seal. It must be a Node of this payload whose type and Node references are already sealed
- * (birth is dependency ordered), and sealing it again changes nothing. A seal
- * recorded for bytes no Node carries any more is a revised draft and is dropped:
- * Git, not this record, makes an accepted seal durable (preserve-seals).
- * Returns the sealed ID.
+ * (birth is dependency ordered), and sealing it again changes nothing: the
+ * existing seals, plus this Node's ID if absent. Removing a revised draft's
+ * seal is a separate act; after merge, Git (preserve-seals) makes an accepted
+ * seal durable. Returns the sealed ID.
  */
 export function sealNode(name: string): string {
   const files = payload();
@@ -42,8 +42,7 @@ export function sealNode(name: string): string {
   const refs = [...(node.type ? [node.type] : [])];
   for (const other of found) for (const m of node.markdown.matchAll(new RegExp(`${other.name} ([0-9a-f]{64})`, "g"))) refs.push({ name: other.name, id: m[1] });
   for (const ref of refs) if (!recorded.includes(ref.id)) throw new Error(`${name} refers to ${ref.name}, which is not sealed: seal it first`);
-  const live = recorded.filter((id) => found.some((n) => n.id === id));
-  const sealed = live.includes(node.id) ? live : [...live, node.id];
+  const sealed = recorded.includes(node.id) ? recorded : [...recorded, node.id];
   writeFileSync(
     SEALS_SOURCE,
     `// Written by seal-kaal-bootstrap: the record of sealed Nodes, in birth order. Never edited by hand, and never read to produce a Node.\nexport const SEALED: string[] = [${sealed.map((id) => JSON.stringify(id)).join(", ")}];\n`,
