@@ -4,10 +4,13 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present && npm run test:kaal-core",
+    "test": "npm run test --workspaces --if-present && npm run test:kaal-core && npm run test:kaal-agent",
     "test:kaal-core": "npm test --prefix engineering/kaal-core",
+    "test:kaal-agent": "npm test --prefix engineering/kaal-agent",
     "check-kaal-seals": "npm run check-kaal-seals --prefix engineering/kaal-core",
     "seal-kaal-artifact": "npm run seal-kaal-artifact --prefix engineering/kaal-core --",
+    "wire-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/wire-kaal-agent.js",
+    "check-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/check-kaal-agent.js",
     "prepare": "git config core.hooksPath .githooks || true",
     "clean": "npm run clean --workspaces --if-present"
   },
