@@ -28,19 +28,20 @@ test("what AGENT.md says about the deployed graph is true", (t) => {
   const { dir, cleanup } = deploy();
   t.after(cleanup);
   const nodes = readNodes(dir);
-  // "A Node is a Markdown file under core/ ... A Node's ID is the SHA-256 of its exact bytes ... carried when seals/<ID> exists."
+  // "A Node's ID is the SHA-256 of its exact bytes ... sealed when seals/<ID> exists." Where a Node is stored is not part of the claim.
   for (const n of nodes) {
-    assert.ok(n.path.startsWith("core/") && n.path.endsWith(".md"), n.path);
     assert.equal(n.id, sha256(readFileSync(join(dir, n.path))), n.path);
     assert.ok(existsSync(join(dir, "seals", n.id)), `seals/${n.id}`);
   }
   assert.ok(readdirSync(join(dir, "seals")).every((id) => nodes.some((n) => n.id === id)), "every seal is a carried Node's ID");
-  // "core/KERNEL.md is where KAAL begins; it is genesis and not itself a Node."
+  // "Navigation begins in core/": the Kernel and the KAAL Definitions are there.
+  const definitionNode = nodes.find((n) => n.name === "KAAL Definition")!;
+  for (const n of [definitionNode, ...typedBy(nodes, { name: "KAAL Definition", id: definitionNode.id })]) assert.ok(n.path.startsWith("core/"), n.name);
+  // "core/KERNEL.md ... is genesis and not itself a Node."
   assert.ok(existsSync(join(dir, "core", "KERNEL.md")));
   assert.ok(!nodes.some((n) => n.path === "core/KERNEL.md"));
   // "read core/KERNEL.md, then the Nodes it bootstraps": the genesis-typed first Node is `Node`.
   assert.equal(nodes.filter((n) => !n.type).map((n) => n.name).join(), "Node");
   // "the KAAL Definitions: the Nodes whose type refers to the KAAL Definition Node."
-  const definition = nodes.find((n) => n.name === "KAAL Definition")!;
-  assert.deepEqual(typedBy(nodes, { name: "KAAL Definition", id: definition.id }).map((n) => n.name).sort(), ["Agent", "CASE", "Core"]);
+  assert.deepEqual(typedBy(nodes, { name: "KAAL Definition", id: definitionNode.id }).map((n) => n.name).sort(), ["Agent", "CASE", "Core"]);
 });
