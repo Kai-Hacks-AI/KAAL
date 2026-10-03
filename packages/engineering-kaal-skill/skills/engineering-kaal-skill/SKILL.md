@@ -26,7 +26,7 @@ engineering/<capability>/ the machinery that proves the package: tests, acceptan
 
 1. **Find the `Skill` Node** in the installed KAAL: the Node named `Skill`, sealed. Its ID is the SHA-256 of its exact bytes. You need it for the type.
 2. **Write the Skill Node** in `kaal/`: front matter with `name`, and `type` as the pair `name: Skill` and that `id`, then a short statement of what the capability means to KAAL, and its scope. Mention no file paths, no commands and no implementation. See `references/REFERENCE.md` for the exact form.
-3. **Seal it once its text is final**: `node scripts/seal-node.mjs kaal/<Node file> kaal/seals`. A sealed Node never changes. Changed bytes are another Node; to revise a draft, edit it and seal again, and delete the draft's old marker by hand.
+3. **Seal it once, when its text is final.** Edit freely before sealing. Then, from the repository root, use the repository's sealing helper: `npm run seal-kaal-artifact -- packages/<capability>/kaal/<Node file> packages/<capability>/kaal/seals/`. The trailing slash makes the seal an empty marker named by the Node's ID, the SHA-256 of its exact bytes. Do not write a seal any other way.
 4. **Write the Agent Skill** in `skills/<capability>/SKILL.md`, conforming to the Agent Skills standard. It is the agent-facing realization: do not define the capability in it again, point to the Node. Add `references/` for detail an agent needs only sometimes, and `scripts/` only where a deterministic procedure beats agent judgement.
 5. **Engineer the proof** in `engineering/<capability>/`: acceptance that deploys the real packages and shows the capability working, not generic tests of tools.
 6. **Check conventions**: `node scripts/check-skill.mjs <repo-root> <capability>`. It reports layout, Agent Skills conformance and seal problems, and repairs nothing.
@@ -35,13 +35,12 @@ engineering/<capability>/ the machinery that proves the package: tests, acceptan
 ## Rules
 
 - Registration is Core's. Never write into a KAAL directory by hand, add a registry, or change Core to admit a Skill. Core is the door: a capability joins without becoming Core.
-- Never edit a sealed Node's bytes, and never reuse another Node's seal.
+- A sealed Node's bytes never change: changed bytes are another Node, with its own ID and its own seal. Never edit a sealed Node, never delete or replace a seal, and never reuse another Node's seal.
 - Do not put a Skill's Node or seal in `kaal-core`.
 - Keep `SKILL.md` under 500 lines and its references one level deep.
 - If a check fails, fix the cause. Do not weaken the check or the Node to pass.
 
 ## Scripts
 
-- `scripts/seal-node.mjs <node-file> <seals-dir>`: seals a Node by its bytes and prints its ID.
-- `scripts/check-skill.mjs <repo-root> <capability>`: checks layout, Agent Skills conformance and seals; exit 0 or 1.
+- `scripts/check-skill.mjs <repo-root> <capability>`: checks layout, Agent Skills conformance and that every Node is sealed; exit 0 or 1. It does not seal.
 - `scripts/register-skill.mjs [--check] <kaal-dir> <capability> <contribution-dir>`: registers through kaal-core's `registerSkill`.

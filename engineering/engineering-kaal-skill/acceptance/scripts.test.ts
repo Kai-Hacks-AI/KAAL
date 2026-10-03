@@ -4,8 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { payload } from "engineering-kaal-skill";
 import { CAPABILITY, PACKAGE, REPO, SCRIPTS, deployKaal, read, repoCopy, scratch } from "../helpers/setup.js";
@@ -14,7 +13,6 @@ const run = (script: string, ...args: string[]) => {
   const r = spawnSync("node", [join(SCRIPTS, `${script}.mjs`), ...args], { encoding: "utf8" });
   return { code: r.status, out: r.stdout.trim(), err: r.stderr };
 };
-const sha256 = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const { kaal } = payload();
 const manifestOf = (root: string) => join(root, "packages", CAPABILITY, "skills", CAPABILITY, "SKILL.md");
 
@@ -48,19 +46,6 @@ test("check-skill refuses what the conventions forbid, and repairs nothing", asy
   }
   assert.equal(run("check-skill", REPO, "Bad Name").code, 1, "a name Agent Skills forbids");
   assert.equal(run("check-skill").code, 2, "usage");
-});
-
-test("seal-node seals by bytes: the marker is named by the SHA-256 of the exact bytes, and sealing again changes nothing", (t) => {
-  const dir = scratch(t);
-  writeFileSync(join(dir, "N.md"), "any bytes\n");
-  const first = run("seal-node", join(dir, "N.md"), join(dir, "seals"));
-  assert.equal(first.out, sha256("any bytes\n"));
-  assert.deepEqual(readdirSync(join(dir, "seals")), [first.out]);
-  assert.equal(readFileSync(join(dir, "seals", first.out), "utf8"), "");
-  assert.equal(run("seal-node", join(dir, "N.md"), join(dir, "seals")).out, first.out);
-  assert.deepEqual(readdirSync(join(dir, "seals")), [first.out]);
-  assert.equal(run("seal-node", join(PACKAGE, "kaal", "Engineering-Skill.md"), join(dir, "other")).out, sha256(kaal["Engineering-Skill.md"]), "the shipped seal is reproducible");
-  assert.equal(run("seal-node", join(dir, "N.md")).code, 2, "usage");
 });
 
 test("register-skill --check decides through Core and writes nothing; without --check it registers", (t) => {

@@ -56,8 +56,9 @@ test("SKILL.md realizes the capability without defining it again: it points to t
   for (const id of [sha256(kaal[nodeFile])]) assert.ok(!manifest.includes(id), "carries no ID of its own Node");
 });
 
-test("the scripts it carries are the only executable procedure, and sit in the skill", () => {
+test("the scripts it carries are the only executable procedure, and it carries no sealing of its own", () => {
   const scripts = Object.keys(skills).filter((p) => p.includes("/scripts/")).sort();
-  assert.deepEqual(scripts, ["check-skill.mjs", "register-skill.mjs", "seal-node.mjs"].map((s) => `${CAPABILITY}/scripts/${s}`));
-  for (const name of ["seal-node", "check-skill", "register-skill"]) assert.ok(skills[`${CAPABILITY}/SKILL.md`].includes(`scripts/${name}.mjs`), name);
+  assert.deepEqual(scripts, ["check-skill.mjs", "register-skill.mjs"].map((s) => `${CAPABILITY}/scripts/${s}`));
+  assert.ok(!Object.keys(skills).some((p) => /seal/i.test(p.split("/").pop()!)), "sealing is the repository's helper, not reimplemented here");
+  for (const name of ["check-skill", "register-skill"]) assert.ok(skills[`${CAPABILITY}/SKILL.md`].includes(`scripts/${name}.mjs`), name);
 });
