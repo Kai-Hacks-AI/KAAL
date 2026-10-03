@@ -16,17 +16,21 @@ export function verifyKernel(markdown: string): string[] {
   need(markdown.includes(`\`${KERNEL_PATH}\``), "must name itself by its own path");
   need(markdown.includes("This file is a Node."), "must declare that it is itself a Node");
   need(!markdown.includes("is not a Node"), "must not deny that it is itself a Node");
-  const node = section("Node");
-  need(node !== "", "must define Node");
-  need(node.includes("`edges`") && node.includes("frontmatter"), "Node must say where Edge occurrences are declared");
-  need(node.includes("relative to the KAAL directory"), "Node must say how Nodes are referred to");
+  need(
+    JSON.stringify([...markdown.matchAll(/^## (.+)$/gm)].map((m) => m[1])) ===
+      JSON.stringify(["Node", "Immutability", "Form", "Edge"]),
+    "must have the chapters Node, Immutability, Form, Edge, in that order",
+  );
   need(!markdown.includes(".kaal"), "must not freeze the default directory name into the semantics");
-  const edge = section("Edge");
-  need(edge !== "", "must define Edge");
-  need(edge.includes("`edge`") && edge.includes("`to`"), "Edge must distinguish the defining Node from the targets");
-  need(edge.includes("does not define its own meaning"), "Edge occurrence must not define its own meaning");
+  need(section("Node").includes("unit of meaning"), "Node must say what a Node is");
   const immutability = section("Immutability");
-  need(immutability !== "", "must define Immutability");
   need(immutability.includes("never changes"), "Immutability must say a Node never changes");
+  const form = section("Form");
+  need(form.includes("`edges`") && form.includes("frontmatter"), "Form must say where Edge occurrences are declared");
+  need(form.includes("`edge`") && form.includes("`to`"), "Form must say how an occurrence names its defining Node and its targets");
+  need(form.includes("relative to the KAAL directory"), "Form must say how Nodes are referred to");
+  const edge = section("Edge");
+  need(edge.includes("defines what the Edge means") && edge.includes("points to"), "Edge must distinguish the defining Node from the targets");
+  need(edge.includes("does not define its own meaning"), "Edge occurrence must not define its own meaning");
   return problems;
 }

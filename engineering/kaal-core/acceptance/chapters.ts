@@ -1,9 +1,9 @@
-// Splits Markdown into chapters at its ATX headings (`#` to `######`, indented
-// at most three spaces), ignoring headings inside fenced code (CommonMark
-// fences: three or more backticks or tildes, indented at most three spaces,
-// closed by the same character at least as long). It restates nothing about the Kernel:
-// the chapters of the sealed Kernel are whatever its own headings are, and
-// they are the seams from which outer-loop suites are organized.
+// Splits Markdown into chapters at its ATX headings (`#` to `######`),
+// ignoring headings inside fenced code (CommonMark fences: three or more
+// backticks or tildes, indented at most three spaces, closed by the same
+// character at least as long). It restates nothing about the Kernel: the
+// chapters of the sealed Kernel are whatever its own headings are, and they
+// are the seams from which outer-loop suites are organized.
 
 export interface Chapter {
   /** Heading level, 1 to 6; 0 for text before the first heading. */
@@ -24,7 +24,7 @@ export function chapters(markdown: string): Chapter[] {
     } else if (marks && marks[1][0] === fence[0] && marks[1].length >= fence.length && marks[2].trim() === "") {
       fence = null;
     }
-    const heading = fence === null && !marks ? /^ {0,3}(#{1,6}) +(\S.*?)\s*$/.exec(line) : null;
+    const heading = fence === null && !marks ? /^(#{1,6}) +(\S.*?)\s*$/.exec(line) : null;
     if (heading) out.push({ level: heading[1].length, title: heading[2], markdown: line });
     else if (out.length === 0) out.push({ level: 0, title: "", markdown: line });
     else out[out.length - 1].markdown += line;

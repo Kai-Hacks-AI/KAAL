@@ -25,7 +25,6 @@ test("fences follow CommonMark: indented, tilde, longer closers; four spaces is 
   assert.deepEqual(titles("# A\n````\n```\n# x\n````\n# B\n"), ["A", "B"]);
   assert.deepEqual(titles("# A\n```\n# x\n~~~\n# y\n```\n# B\n"), ["A", "B"]);
   assert.deepEqual(titles("# A\n    ```\n# B\n"), ["A", "B"]);
-  assert.deepEqual(titles("# A\n  ## B\n    ## not a heading\n"), ["A", "B"]);
   const unclosed = "# A\n```\n# x\n";
   assert.equal(chapters(unclosed).map((c) => c.markdown).join(""), unclosed);
 });

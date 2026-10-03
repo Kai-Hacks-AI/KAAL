@@ -27,6 +27,7 @@ test("the contract rejects a Kernel that has been altered", () => {
     "mutable": k.replace("never changes", "may change"),
     "no self-reference": k.replaceAll("`core/KERNEL.md`", "this file"),
     "freezes the default directory name": k.replace("KAAL directory, the directory that holds `core/`", ".kaal directory"),
+    "chapters out of order": k.replace("## Form", "## Edge2").replace("## Edge\n", "## Form\n").replace("## Edge2", "## Edge"),
     "denies being a Node": k.replace("This file is a Node.", "This file is not a Node."),
     "frontmatter added": "---\nedges: []\n---\n" + k,
     "no trailing newline": k.trimEnd(),
