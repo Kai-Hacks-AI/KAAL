@@ -1,10 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { KERNEL_PATH, kernelMarkdown, kernelSeal, name, payload, verifyKernel } from "../src/index.js";
+import * as embedding from "../src/embed/index.js";
+import { KERNEL_PATH, kernelMarkdown, payload } from "../src/embed/kernel.js";
+import { kernelSeal } from "../src/engineering/seal.js";
+import { verifyKernel } from "../src/engineering/verify.js";
 
-test("exports the package name", () => {
-  assert.equal(name, "kaal-core");
+test("the public API is exactly payload()", () => {
+  assert.deepEqual(Object.keys(embedding), ["payload"]);
+  assert.equal(embedding.payload, payload);
 });
 
 test("payload is exactly core/KERNEL.md, as produced by kernelMarkdown()", () => {

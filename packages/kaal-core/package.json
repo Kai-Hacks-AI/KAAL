@@ -11,14 +11,13 @@
     }
   },
   "files": [
-    "dist",
-    "!dist/seal.*"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p test/tsconfig.json && node --test dist-test/test/*.test.js",
     "clean": "rm -rf dist dist-test",
     "check-kaal-kernel": "npm test",
-    "seal-kaal-kernel": "tsc -p tsconfig.json && node dist/seal.js"
+    "seal-kaal-kernel": "tsc -p test/tsconfig.json && node dist-test/src/engineering/write-seal.js"
   }
 }
