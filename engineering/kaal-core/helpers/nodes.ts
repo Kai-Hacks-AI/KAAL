@@ -24,13 +24,15 @@ export interface FoundNode {
   markdown: string;
 }
 
-/** The bootstrap Form: YAML frontmatter with `name`, and optionally `type` as a `{name, id}` pair. */
+/** The bootstrap Form: YAML frontmatter with `name` and `type` as a `{name, id}` pair; only the genesis Node omits `type`. */
 export function parseForm(markdown: string): { name: string; type?: Ref } | undefined {
   const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(markdown)?.[1];
   const name = frontmatter && /^name: (.+)$/m.exec(frontmatter)?.[1];
   if (!frontmatter || !name) return undefined;
   const type = /^type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})$/m.exec(frontmatter);
-  return type ? { name, type: { name: type[1], id: type[2] } } : { name };
+  if (type) return { name, type: { name: type[1], id: type[2] } };
+  // No valid type: only Node 1, `Node`, the genesis exception the Kernel names, may omit it.
+  return name === "Node" && !/^type:/m.test(frontmatter) ? { name } : undefined;
 }
 
 /** The Nodes in `dir`: files that declare themselves Nodes by Form. Other files, and `seals/`, are ignored. */

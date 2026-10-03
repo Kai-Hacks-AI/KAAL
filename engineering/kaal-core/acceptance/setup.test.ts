@@ -27,13 +27,15 @@ test("refuses a Kernel that does not match its genesis seal", async () => {
   }
 });
 
-test("Nodes are recognised by Form, wherever they live; other files are not Nodes", async () => {
+test("Nodes are recognised by Form, wherever they live; files without a valid Form, including type-less ones other than the genesis Node, are not Nodes", async () => {
   const deployed = await deploy();
   try {
     const ids = deployed.nodes.map((n) => n.id).sort();
     mkdirSync(join(deployed.dir, "elsewhere"));
     renameSync(join(deployed.dir, deployed.nodes[0].path), join(deployed.dir, "elsewhere", "moved.md"));
     writeFileSync(join(deployed.dir, "core", "Stray.md"), "# Stray\n\nNot a Node.\n");
+    writeFileSync(join(deployed.dir, "core", "Typeless.md"), "---\nname: Stray\n---\n\n# Stray\n");
+    writeFileSync(join(deployed.dir, "core", "Malformed.md"), "---\nname: Stray\ntype:\n  name: Node\n  id: nope\n---\n");
     assert.deepEqual(deployed.discover().map((n) => n.id).sort(), ids);
   } finally {
     deployed.cleanup();
