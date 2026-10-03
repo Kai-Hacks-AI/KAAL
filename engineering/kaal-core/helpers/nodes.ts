@@ -44,14 +44,15 @@ export function candidates(files: Files): FoundNode[] {
 
 /**
  * The Nodes in `files` (path to bytes; the `seals/<ID>` markers are the seals).
- * Form declares candidates. A candidate with no `type` starts the type chain
- * only if its exact ID is sealed. Every other Node's `type` must resolve, by
- * ID with the name checked, to a Node already admitted.
+ * Form declares candidates. Admission requires the candidate's own exact ID to
+ * be sealed. A candidate with no `type` then starts the type chain; every other
+ * Node's `type` must also resolve, by ID with the name checked, to a Node
+ * already admitted.
  */
 export function admit(files: Files): FoundNode[] {
   const sealed = new Set(Object.keys(files).filter((p) => p.startsWith("seals/")).map((p) => p.slice("seals/".length)));
-  const rest = candidates(files);
-  const admitted = rest.filter((n) => !n.type && sealed.has(n.id));
+  const rest = candidates(files).filter((n) => sealed.has(n.id));
+  const admitted = rest.filter((n) => !n.type);
   for (let grew = true; grew; ) {
     grew = false;
     for (const n of rest) {
