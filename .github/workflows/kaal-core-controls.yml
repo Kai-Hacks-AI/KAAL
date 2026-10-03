@@ -43,6 +43,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Test the isolation script
+        run: .github/scripts/isolate-kaal-core.test.sh
       - run: .github/scripts/isolate-kaal-core.sh "$TARGET"
 
   preserve-seals:
