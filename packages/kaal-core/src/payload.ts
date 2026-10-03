@@ -1,6 +1,6 @@
 import { KERNEL_PATH, kernelMarkdown } from "./kernel.js";
 import { EDGE_PATH, NODE_PATH, edgeMarkdown, nodeMarkdown } from "./nodes.js";
-import { SEALED } from "./seals.js";
+import { NODE_ID, SEALED } from "./seals.js";
 
 /**
  * The payload as files, keyed by path relative to the KAAL directory: the
@@ -11,7 +11,7 @@ export function payload(): Record<string, string> {
   const files: Record<string, string> = {
     [KERNEL_PATH]: kernelMarkdown(),
     [NODE_PATH]: nodeMarkdown(),
-    [EDGE_PATH]: edgeMarkdown(),
+    [EDGE_PATH]: edgeMarkdown(NODE_ID),
   };
   for (const id of SEALED) files[`seals/${id}`] = "";
   return files;

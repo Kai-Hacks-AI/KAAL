@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { assertSealed, deploy, discoverNodes } from "./setup.js";
+import { assertSealed, deploy } from "./setup.js";
 
 test("deploys at root/.kaal by default and under another KAAL directory name", async () => {
   const byDefault = await deploy();
@@ -27,20 +27,14 @@ test("refuses a Kernel that does not match its genesis seal", async () => {
   }
 });
 
-test("a file is a Node only if its hash is sealed, wherever it lives", async () => {
+test("Nodes are recognised by Form, wherever they live; other files are not Nodes", async () => {
   const deployed = await deploy();
   try {
-    const ids = deployed.nodes.map((n) => n.id);
+    const ids = deployed.nodes.map((n) => n.id).sort();
     mkdirSync(join(deployed.dir, "elsewhere"));
     renameSync(join(deployed.dir, deployed.nodes[0].path), join(deployed.dir, "elsewhere", "moved.md"));
-    assert.deepEqual(discoverNodes(deployed.dir).map((n) => n.id).sort(), [...ids].sort());
-
-    writeFileSync(join(deployed.dir, "core", "Stray.md"), "# Stray\n");
-    assert.throws(() => discoverNodes(deployed.dir), /neither the Kernel nor a sealed Node/);
-    rmSync(join(deployed.dir, "core", "Stray.md"));
-
-    rmSync(join(deployed.dir, "elsewhere", "moved.md"));
-    assert.throws(() => discoverNodes(deployed.dir), /matches no deployed file/);
+    writeFileSync(join(deployed.dir, "core", "Stray.md"), "# Stray\n\nNot a Node.\n");
+    assert.deepEqual(deployed.discover().map((n) => n.id).sort(), ids);
   } finally {
     deployed.cleanup();
   }

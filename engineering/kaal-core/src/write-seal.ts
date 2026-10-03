@@ -5,11 +5,12 @@ import { sealNode } from "./seal.js";
 
 const files = payload();
 
-// Seal the bootstrap's Nodes: Core records their IDs and deploys a marker each.
-const ids = NODE_PATHS.map((path) => JSON.stringify(sealNode(files[path])));
+// Seal the bootstrap's Nodes. Node 2 carries Node 1's ID, so one pass records
+// Node 1's ID and the next records Node 2's: run it twice (seal-kaal-kernel).
+const ids = NODE_PATHS.map((path) => sealNode(files[path]));
 writeFileSync(
   new URL("../../../../packages/kaal-core/src/seals.ts", import.meta.url),
-  `// Written by seal-kaal-kernel. Never edited by hand.\nexport const SEALED: string[] = [${ids.join(", ")}];\n`,
+  `// Written by seal-kaal-kernel. Never edited by hand.\nexport const NODE_ID = ${JSON.stringify(ids[0])};\nexport const SEALED: string[] = [${ids.map((id) => JSON.stringify(id)).join(", ")}];\n`,
 );
 
 // The Kernel's genesis seal: not a Node ID, and kept outside the payload's seals/.
