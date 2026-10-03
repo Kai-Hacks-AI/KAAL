@@ -62,9 +62,9 @@ type:
 
 # KAAL Definition
 
-A KAAL Definition is a Node that gives one concept of KAAL's own vocabulary a meaning of its own, so that requirements, architecture, tests and agents can all mean the same thing by it. A Node is a KAAL Definition exactly when its type refers, by name and ID, to this Node. So "what are KAAL's definitions?" is answered by Node type alone: they are the Nodes typed directly by this Node.
+A KAAL Definition is a Node that gives one concept of KAAL's own vocabulary a shared meaning, so that humans and agents can mean the same thing by it.
 
-A KAAL Definition states meaning, not implementation. This Node classifies nothing further.
+A Node is a KAAL Definition exactly when its type refers, by name and ID, to this Node, so KAAL's definitions are found by Node type alone. A KAAL Definition states meaning, not implementation.
 `;
 }
 
@@ -97,7 +97,7 @@ Skills provides the registration through which KAAL Skills can join without beco
 
 Extensions provides the registration through which KAAL Extensions can join without becoming Core.
 
-A dimension becomes a KAAL Definition of its own when it is worked on, and its contract belongs to that definition; until then it is named here only.
+The contract of each dimension is left to its own KAAL Definition, where one exists.
 `;
 }
 
