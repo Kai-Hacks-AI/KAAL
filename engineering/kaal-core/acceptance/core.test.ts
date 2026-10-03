@@ -75,7 +75,7 @@ test("the graph holds exactly the sealed Nodes born so far, none containing its 
   const { dir, cleanup } = deploy();
   t.after(cleanup);
   const nodes = readNodes(dir);
-  assert.deepEqual(nodes.map((n) => n.name).sort(), ["Agent", "CASE", "Core", "Edge", "Engineering Skill", "KAAL Definition", "Node", "Skill"]);
+  assert.deepEqual(nodes.map((n) => n.name).sort(), ["Agent", "CASE", "Core", "Edge", "KAAL Definition", "Node", "Skill"]);
   assert.deepEqual(checkBootstrap(), []);
   for (const n of nodes) assert.ok(!n.markdown.includes(n.id), n.name);
 });
