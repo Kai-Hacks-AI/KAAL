@@ -1,3 +1,2 @@
 #!/bin/sh
-# Same verification as CI: only kaal-core's tests, which check the generated Kernel.
-exec npm test -w kaal-core --silent
+exec npm run check-kaal-kernel --silent
