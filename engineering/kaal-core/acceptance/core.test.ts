@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { payload } from "kaal-core";
 import { checkBootstrap } from "../helpers/bootstrap.js";
 import { candidates, readNodes, resolve, typedBy } from "../helpers/nodes.js";
+import { sha256 } from "../helpers/seal.js";
 import { deploy } from "./setup.js";
 
 const referencedCase = (markdown: string) => ({ name: "CASE", id: /CASE ([0-9a-f]{64})/.exec(markdown)![1] });
@@ -52,6 +53,8 @@ test("changing CASE makes another Node; Core still refers to the exact CASE it w
   const path = join(dir, "core", "CASE.md");
   const changed = readFileSync(path, "utf8") + "\n";
   writeFileSync(path, changed);
+  assert.equal(readNodes(dir).find((n) => n.name === "CASE"), undefined, "changed bytes are not admitted until sealed");
+  writeFileSync(join(dir, "seals", sha256(changed)), "");
   const after = readNodes(dir);
   assert.notEqual(after.find((n) => n.name === "CASE")!.id, oldCase.id, "changed bytes are another Node");
   assert.throws(() => resolve(after, referencedCase(after.find((n) => n.name === "Core")!.markdown)), /no Node has ID/, "the changed bytes are not the CASE Core names");

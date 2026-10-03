@@ -1,6 +1,7 @@
 // The admission rules, tested directly on a deployed tree:
-// Form declares candidates; only a sealed genesis starts the chain; every later
-// Node's {name,id} type must resolve to an admitted Node; IDs are identity.
+// Form declares candidates; a Node must carry its own seal; only a sealed genesis
+// starts the chain; every later Node's {name,id} type must resolve to an admitted
+// Node; IDs are identity.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
@@ -11,7 +12,7 @@ import { deploy } from "./setup.js";
 
 const typed = (name: string, type: { name: string; id: string }) => `---\nname: ${name}\ntype:\n  name: ${type.name}\n  id: ${type.id}\n---\n`;
 
-test("only Form, a sealed genesis and a resolving type make a Node", (t) => {
+test("only Form, its own seal and a resolving type make a Node", (t) => {
   const { dir, cleanup } = deploy();
   t.after(cleanup);
   const nodes = readNodes(dir);
@@ -25,8 +26,11 @@ test("only Form, a sealed genesis and a resolving type make a Node", (t) => {
   write("WrongName.md", typed("Wrong", { name: "Wrong", id: edge.id }));
   write("UnknownId.md", typed("Unknown", { name: "Edge", id: "f".repeat(64) }));
   assert.deepEqual(readNodes(dir).map((n) => n.id), nodes.map((n) => n.id), "none of those is a Node");
-  write("Typed.md", typed("Typed", { name: "Edge", id: edge.id }));
-  assert.equal(readNodes(dir).length, nodes.length + 1, "a Node typed by an admitted Node is a Node");
+  const text = typed("Typed", { name: "Edge", id: edge.id });
+  write("Typed.md", text);
+  assert.deepEqual(readNodes(dir).map((n) => n.id), nodes.map((n) => n.id), "a typed Node without its own seal is not admitted");
+  writeFileSync(join(dir, "seals", sha256(text)), "");
+  assert.equal(readNodes(dir).length, nodes.length + 1, "a sealed Node typed by an admitted Node is a Node");
 });
 
 test("a Node's ID is its bytes, not where it is stored or what the KAAL directory is called", (t) => {
