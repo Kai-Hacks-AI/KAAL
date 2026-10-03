@@ -30,7 +30,7 @@ function locate(text: string): Located {
   return { start: begins[0], end: ends[0] + END.length };
 }
 
-/** Problems with the wiring in `agentsFile`; empty means wired as Agent requires. Never repairs. */
+/** Problems with the wiring in `agentsFile`; empty means the expected KAAL wiring is present. Never repairs. */
 export function checkWiring(agentsFile: string, text: string | undefined, kaalDir: string): string[] {
   if (text === undefined) return [`${agentsFile} does not exist`];
   const found = locate(text);

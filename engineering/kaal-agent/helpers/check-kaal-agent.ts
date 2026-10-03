@@ -1,5 +1,5 @@
 // check-kaal-agent [--agents <file>] [--kaal <dir>]
-// Is this agent surface wired to KAAL as Agent requires? Exit 0: yes. Exit 1: no.
+// Does this AGENTS.md have the expected KAAL wiring? Exit 0: yes. Exit 1: no.
 // It never repairs anything; wire-kaal-agent establishes the wiring.
 import { existsSync, readFileSync } from "node:fs";
 import { checkWiring } from "./agents-md.js";
