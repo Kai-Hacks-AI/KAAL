@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# isolate-kaal-core <target-ref>
+# isolate-boundaries <target-ref>
 # Change-set policy: a change that touches a protected boundary may change
 # nothing outside that boundary. Boundaries are kaal-core (packages and
 # engineering) and .github, which holds the machinery that judges everything

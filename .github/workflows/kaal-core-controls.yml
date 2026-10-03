@@ -7,7 +7,7 @@ permissions:
 
 # One job per control. The job id is also the job's display name, and the
 # display name is the check name GitHub reports. Branch protection requires
-# these names: test-kaal, check-kaal-seals, isolate-kaal-core.
+# these names: test-kaal, check-kaal-seals, isolate-boundaries.
 # preserve-seals is reported too but is not (yet) a required check.
 jobs:
   # KAAL controls: portable, they work without Git.
@@ -34,8 +34,8 @@ jobs:
       - run: npm run check-kaal-seals
 
   # Git controls: history and change-set policy around Core.
-  isolate-kaal-core:
-    name: isolate-kaal-core
+  isolate-boundaries:
+    name: isolate-boundaries
     runs-on: ubuntu-latest
     env:
       TARGET: origin/${{ github.base_ref }}
@@ -44,8 +44,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Test the isolation script
-        run: .github/scripts/isolate-kaal-core.test.sh
-      - run: .github/scripts/isolate-kaal-core.sh "$TARGET"
+        run: .github/scripts/isolate-boundaries.test.sh
+      - run: .github/scripts/isolate-boundaries.sh "$TARGET"
 
   preserve-seals:
     name: preserve-seals

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Negative and positive tests for isolate-kaal-core.sh, on a throwaway repo.
+# Negative and positive tests for isolate-boundaries.sh, on a throwaway repo.
 set -euo pipefail
-script=$(cd "$(dirname "$0")" && pwd)/isolate-kaal-core.sh
+script=$(cd "$(dirname "$0")" && pwd)/isolate-boundaries.sh
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 cd "$tmp"
