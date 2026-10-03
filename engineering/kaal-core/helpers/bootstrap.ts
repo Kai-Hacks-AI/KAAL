@@ -30,6 +30,8 @@ export function checkBootstrap(): string[] {
   const problems = [checkBytes(files[KERNEL_PATH], readFileSync(GENESIS_SEAL, "utf8").trim(), KERNEL_PATH)];
   const sealed = sealedIds(files);
   NODE_PATHS.forEach((path, i) => problems.push(checkBytes(files[path], sealed[i] ?? "none recorded", path)));
+  // Edge freezes Node 1's identity as its type: the claimed ID must be Node 1's actual ID.
+  if (!files[NODE_PATHS[1]].includes(`\n  id: ${sealNode(files[NODE_PATHS[0]])}\n`)) problems.push(`${NODE_PATHS[1]} does not name Node 1's exact ID as its type`);
   if (sealed.length !== NODE_PATHS.length) problems.push(`${sealed.length} sealed IDs recorded for ${NODE_PATHS.length} Nodes`);
   return problems.filter((p): p is string => p !== undefined);
 }
