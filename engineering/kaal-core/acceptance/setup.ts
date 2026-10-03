@@ -2,11 +2,13 @@
 // (rootDir is this folder). It consumes the built package through its public
 // surface, `import("kaal-core")`, and independently checks the deployed
 // Kernel bytes against the committed seal. Future outer-loop tests receive
-// only the deployed artifact.
+// only the deployed artifact and its Markdown chapters, the seams from which
+// outer-loop suites are organized.
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { type Chapter, chapters } from "./chapters.js";
 
 export const DEFAULT_NAME = ".kaal";
 const KERNEL_PATH = "core/KERNEL.md";
@@ -21,6 +23,10 @@ export interface DeployedKernel {
   dir: string;
   /** `root/[name]/core/KERNEL.md`. */
   kernelPath: string;
+  /** The sealed Kernel's chapters, in document order, from its own headings. */
+  chapters: Chapter[];
+  /** The first chapter with this heading text; throws if there is none. */
+  chapter: (title: string) => Chapter;
   cleanup: () => void;
 }
 
@@ -50,5 +56,19 @@ export async function deployKernel(options: { name?: string } = {}): Promise<Dep
     rmSync(root, { recursive: true, force: true });
     throw error;
   }
-  return { root, name, dir, kernelPath, cleanup: () => rmSync(root, { recursive: true, force: true }) };
+  const kernelChapters = chapters(readFileSync(kernelPath, "utf8"));
+  const chapter = (title: string): Chapter => {
+    const found = kernelChapters.find((c) => c.title === title);
+    if (!found) throw new Error(`The sealed Kernel has no chapter "${title}"`);
+    return found;
+  };
+  return {
+    root,
+    name,
+    dir,
+    kernelPath,
+    chapters: kernelChapters,
+    chapter,
+    cleanup: () => rmSync(root, { recursive: true, force: true }),
+  };
 }
