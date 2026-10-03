@@ -18,4 +18,4 @@ Agents play BASS: Bare < Agent < Skill < Script. BASS is an escalation ladder of
 - **Skill** specifies desired behaviour for a particular capability or kind of work.
 - **Script** encodes desired behaviour as an executable procedure, the most prescribed step.
 
-A Skill may use a Script, but a Script need not be inside a Skill.
+A Script is preferably used through a Skill, which gives the executable procedure its capability context.
