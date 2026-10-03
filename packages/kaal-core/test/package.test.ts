@@ -5,18 +5,18 @@ import * as core from "kaal-core";
 // Resolves "kaal-core" through its own package.json `exports`, so this runs
 // against the built package surface, not against src.
 
-test("the public API is exactly payload()", () => {
-  assert.deepEqual(Object.keys(core), ["payload"]);
+test("the public API is exactly payload() and registerSkill()", () => {
+  assert.deepEqual(Object.keys(core), ["payload", "registerSkill"]);
 });
 
 test("payload() returns the Kernel, the foundation Nodes and their seal markers", () => {
   const files = core.payload();
-  for (const path of ["core/KERNEL.md", "core/Node.md", "core/Edge.md", "core/KAAL-Definition.md", "core/CASE.md", "core/Core.md", "core/Agent.md", "AGENT.md"]) {
+  for (const path of ["core/KERNEL.md", "core/Node.md", "core/Edge.md", "core/KAAL-Definition.md", "core/CASE.md", "core/Core.md", "core/Agent.md", "core/Skill.md", "AGENT.md"]) {
     assert.equal(typeof files[path], "string", path);
     assert.notEqual(files[path], "", path);
   }
   const markers = Object.keys(files).filter((p) => p.startsWith("seals/"));
-  assert.equal(markers.length, 6);
+  assert.equal(markers.length, 7);
   for (const path of markers) assert.equal(files[path], "", path);
 });
 
