@@ -35,12 +35,14 @@ export function parseForm(markdown: string): { name: string; type?: Ref } | unde
 }
 
 /**
- * The Nodes in `dir`: files whose Form declares them Nodes. Other files, and
- * `seals/`, are ignored. A file with no `type` is the genesis exception only
- * by identity: its exact ID must be the one a typed Node already refers to
- * (with the same name), never merely a file that calls itself `Node`.
+ * The Nodes in `dir`: files whose Form declares them Nodes. Other files are
+ * ignored. Admission is anchored at a sealed genesis: a file with no `type` is
+ * the genesis Node only if its exact ID is recorded under `seals/`; every other
+ * Node must have a `type` that resolves, by ID with the name checked, to a Node
+ * already admitted. A self-referencing pair of files admits neither.
  */
 export function readNodes(dir: string): FoundNode[] {
+  const sealed = new Set(readdirSync(join(dir, "seals")));
   const candidates: FoundNode[] = [];
   for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" }).sort()) {
     if (path === "seals" || path.startsWith("seals/") || !statSync(join(dir, path)).isFile()) continue;
@@ -48,9 +50,16 @@ export function readNodes(dir: string): FoundNode[] {
     const form = parseForm(bytes.toString("utf8"));
     if (form) candidates.push({ id: createHash("sha256").update(bytes).digest("hex"), path, markdown: bytes.toString("utf8"), ...form });
   }
-  const typed = candidates.filter((n) => n.type);
-  const genesis = candidates.filter((n) => !n.type && typed.some((t) => t.type?.id === n.id && t.type.name === n.name));
-  return candidates.filter((n) => typed.includes(n) || genesis.includes(n));
+  const admitted = candidates.filter((n) => !n.type && sealed.has(n.id));
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const n of candidates) {
+      if (admitted.includes(n) || !n.type) continue;
+      const type = n.type;
+      if (admitted.some((a) => a.id === type.id && a.name === type.name)) (admitted.push(n), (grew = true));
+    }
+  }
+  return candidates.filter((n) => admitted.includes(n));
 }
 
 /** The Node with this exact ID, whose declared name must be the reference's name. */

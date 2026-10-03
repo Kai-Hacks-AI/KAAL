@@ -7,7 +7,7 @@
     "test": "npm run clean && npm run build-embedding && tsc -p tsconfig.json && node --test dist/test/*.test.js && tsc -p acceptance/tsconfig.json && node --test dist/acceptance/*.test.js",
     "clean": "rm -rf dist",
     "check-kaal-seal": "npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/check-kaal-seal.js",
-    "seal-kaal-artifact": "tsc -p tsconfig.json && node dist/helpers/seal-kaal-artifact.js",
+    "seal-kaal-artifact": "npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/seal-kaal-artifact.js",
     "seal-kaal-bootstrap": "npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/seal-kaal-bootstrap.js && npm run build-embedding && tsc -p tsconfig.json && node dist/helpers/seal-kaal-bootstrap.js"
   }
 }
