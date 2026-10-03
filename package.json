@@ -4,9 +4,10 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present && npm run test:kaal-core && npm run test:kaal-agent",
+    "test": "npm run test --workspaces --if-present && npm run test:kaal-core && npm run test:kaal-agent && npm run test:engineering-kaal-skill",
     "test:kaal-core": "npm test --prefix engineering/kaal-core",
     "test:kaal-agent": "npm test --prefix engineering/kaal-agent",
+    "test:engineering-kaal-skill": "npm test --prefix engineering/engineering-kaal-skill",
     "check-kaal-seals": "npm run check-kaal-seals --prefix engineering/kaal-core",
     "seal-kaal-artifact": "npm run seal-kaal-artifact --prefix engineering/kaal-core --",
     "wire-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/wire-kaal-agent.js",
