@@ -38,7 +38,7 @@ export function checkWiring(agentsFile: string, text: string | undefined, kaalDi
   if (found instanceof Error) return [`${agentsFile}: ${found.message}`];
   const problems: string[] = [];
   if (text.slice(found.start, found.end) !== fragment(kaalDir)) problems.push(`${agentsFile}: the KAAL fragment is not the expected wiring to ${kaalDir}/`);
-  if (!existsSync(join(dirname(agentsFile), kaalDir, "core", "KERNEL.md"))) problems.push(`${kaalDir}/ is not a KAAL directory next to ${agentsFile}`);
+  if (!existsSync(join(dirname(agentsFile), kaalDir, ENTRYPOINT))) problems.push(`${kaalDir}/${ENTRYPOINT} does not exist next to ${agentsFile}`);
   return problems;
 }
 
