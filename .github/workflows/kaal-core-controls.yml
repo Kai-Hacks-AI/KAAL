@@ -5,8 +5,37 @@ on: pull_request
 permissions:
   contents: read
 
+# One job per control. The job id is also the job's display name, and the
+# display name is the check name GitHub reports. Branch protection requires
+# these names: test, check-kaal-seals, isolate-kaal-core.
+# preserve-seals is reported too but is not (yet) a required check.
 jobs:
-  controls:
+  # KAAL controls: portable, they work without Git.
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+
+  check-kaal-seals:
+    name: check-kaal-seals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run check-kaal-seals
+
+  # Git controls: history and change-set policy around Core.
+  isolate-kaal-core:
+    name: isolate-kaal-core
     runs-on: ubuntu-latest
     env:
       TARGET: origin/${{ github.base_ref }}
@@ -14,20 +43,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - run: .github/scripts/isolate-kaal-core.sh "$TARGET"
+
+  preserve-seals:
+    name: preserve-seals
+    runs-on: ubuntu-latest
+    env:
+      TARGET: origin/${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v4
         with:
-          node-version: 22
-      - run: npm ci
-      # KAAL controls: portable, they work without Git.
-      - name: "KAAL: npm test (semantic correctness)"
-        run: npm test
-      - name: "KAAL: check-kaal-seals (current seal integrity)"
-        if: ${{ !cancelled() }}
-        run: npm run check-kaal-seals
-      # Git controls: history and change-set policy around Core.
-      - name: "Git: preserve existing seals (historical seals)"
-        if: ${{ !cancelled() }}
-        run: .github/scripts/preserve-seals.sh "$TARGET"
-      - name: "Git: isolate kaal-core (change-set policy)"
-        if: ${{ !cancelled() }}
-        run: .github/scripts/isolate-kaal-core.sh "$TARGET"
+          fetch-depth: 0
+      - run: .github/scripts/preserve-seals.sh "$TARGET"
