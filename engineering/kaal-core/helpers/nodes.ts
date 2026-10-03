@@ -78,3 +78,27 @@ export function resolve(nodes: FoundNode[], ref: Ref): FoundNode {
   if (node.name !== ref.name) throw new Error(`ID ${ref.id} is named ${node.name}, not ${ref.name}`);
   return node;
 }
+
+/** The Nodes whose type is exactly this reference: Node type is the whole query. */
+export function typedBy(nodes: FoundNode[], ref: Ref): FoundNode[] {
+  return nodes.filter((n) => n.type?.id === ref.id && n.type.name === ref.name);
+}
+
+/** A relationship line: a name and ID for the Edge, then a name and ID for the target. */
+const RELATIONSHIP = /^(.+?) ([0-9a-f]{64}) -> (.+?) ([0-9a-f]{64})$/gm;
+
+/**
+ * The relationships a Node declares as source. Each must name an Edge-typed
+ * Node and an admitted target by exact ID with the name checked; anything
+ * that does not resolve throws, so a target is never silently retargeted.
+ */
+export function relationships(nodes: FoundNode[], source: FoundNode): { edge: FoundNode; target: FoundNode }[] {
+  const out: { edge: FoundNode; target: FoundNode }[] = [];
+  for (const [, edgeName, edgeId, targetName, targetId] of source.markdown.matchAll(RELATIONSHIP)) {
+    const edge = resolve(nodes, { name: edgeName, id: edgeId });
+    const kind = edge.type && resolve(nodes, edge.type);
+    if (kind?.name !== "Edge") throw new Error(`${edge.name} is not typed by Edge`);
+    out.push({ edge, target: resolve(nodes, { name: targetName, id: targetId }) });
+  }
+  return out;
+}

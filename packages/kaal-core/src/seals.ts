@@ -1,3 +1,4 @@
 // Written by seal-kaal-bootstrap. Never edited by hand.
-export const NODE_ID = "f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca";
-export const SEALED: string[] = ["f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca", "889dd762698cdfd18d495798a0d30a22bcbec10ae0bedfad7f529c88d7f6a139"];
+import type { Ids } from "./nodes.js";
+export const IDS: Ids = { "Node": "f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca", "Edge": "889dd762698cdfd18d495798a0d30a22bcbec10ae0bedfad7f529c88d7f6a139", "Component Of": "40c62c4142b6c2a3c9cabf279139d0b55dbdc70a4e55f6b376ccbed7c3fb51b3", "KAAL Definition": "110794fd16121f1270dc653f98a87336e2b9d9b2dab79761d07408ad7b8f0882", "CASE": "259b1e0424cada3d1e39fc8fcf1791fba88eedebd730a909ef2fa0371ae898fc", "Kernel": "2bf7192cbfc1345ee9828d6c4f68b4986d51a4c5a5052471efce07e0c57bcbae" };
+export const SEALED: string[] = ["f1146d78698d82a2934e5e58f623723bf22db6e92f8c6959fbc07f36c52a5eca", "889dd762698cdfd18d495798a0d30a22bcbec10ae0bedfad7f529c88d7f6a139", "40c62c4142b6c2a3c9cabf279139d0b55dbdc70a4e55f6b376ccbed7c3fb51b3", "110794fd16121f1270dc653f98a87336e2b9d9b2dab79761d07408ad7b8f0882", "259b1e0424cada3d1e39fc8fcf1791fba88eedebd730a909ef2fa0371ae898fc", "1d48a0558da46d4d6ab9348258941946db7d002698e33adc62384b28df6680ff"];

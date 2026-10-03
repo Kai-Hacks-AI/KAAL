@@ -21,7 +21,7 @@ test("a bootstrap Node without its seal marker is detected", () => {
 
 test("changing the Kernel, or a sealed Node by a single byte, is detected", () => {
   const files = embedding.payload();
-  for (const path of ["core/KERNEL.md", "core/Node.md", "core/Edge.md"]) {
+  for (const path of Object.keys(files).filter((p) => p.startsWith("core/"))) {
     assert.notEqual(checkBootstrap({ ...files, [path]: files[path] + " " }).length, 0, path);
   }
 });
