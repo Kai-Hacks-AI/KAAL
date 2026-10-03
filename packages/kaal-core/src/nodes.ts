@@ -79,14 +79,25 @@ type:
 
 # CASE
 
-CASE is the architecture of KAAL. It distinguishes four dimensions:
+CASE is the architecture of kaal-core, not of KAAL generally. It distinguishes four dimensions, each with its own responsibility. CASE defines those responsibilities and boundaries, not how any of them is implemented.
 
-- Core bootstraps KAAL.
-- Agent connects KAAL to agents.
-- Skills enable KAAL Skills.
-- Extensions enable KAAL Extensions.
+## Core
 
-CASE defines the shared architectural meaning of these dimensions, not how any of them is implemented. A dimension becomes a KAAL Definition of its own when it is worked on; until then it is named here only.
+Core establishes KAAL and its shared semantics. It is the foundation for the other dimensions.
+
+## Agent
+
+Agent provides the instruction wiring that connects KAAL to agents.
+
+## Skills
+
+Skills provides the registration through which KAAL Skills can join without becoming Core.
+
+## Extensions
+
+Extensions provides the registration through which KAAL Extensions can join without becoming Core.
+
+A dimension becomes a KAAL Definition of its own when it is worked on, and its contract belongs to that definition; until then it is named here only.
 `;
 }
 
@@ -101,6 +112,6 @@ type:
 
 # Core
 
-Core is the bootstrapping dimension of CASE ${ids.CASE}. It provides the minimum semantics from which KAAL can establish itself, and nothing that belongs to another dimension. It says nothing of how it is implemented or delivered.
+Core is the foundational dimension of CASE ${ids.CASE}. It establishes KAAL and its shared semantics, and enables the other dimensions: it provides the semantics and the means that Agent instructions and the registration of Skills and Extensions rely on. Their contracts belong to their own definitions. Core says nothing of how it is implemented or delivered.
 `;
 }
