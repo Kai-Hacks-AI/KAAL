@@ -1,46 +1,46 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { basename } from "node:path";
-import { assertSealed, deployKernel } from "./setup.js";
+import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
+import { assertSealed, deploy, discoverNodes } from "./setup.js";
 
-test("deploys the Kernel at root/.kaal/core/KERNEL.md by default", async () => {
-  const deployed = await deployKernel();
+test("deploys at root/.kaal by default and under another KAAL directory name", async () => {
+  const byDefault = await deploy();
+  const named = await deploy({ name: "my-kaal" });
   try {
-    assert.equal(basename(deployed.dir), ".kaal");
-    assert.ok(deployed.kernelPath.endsWith("/.kaal/core/KERNEL.md"));
-    assert.ok(existsSync(deployed.kernelPath));
-    assert.ok(deployed.sealPath.endsWith("/.kaal/seals/core/KERNEL.md.sha256"));
-    assert.deepEqual(readdirSync(deployed.dir).sort(), ["core", "seals"]);
+    assert.equal(basename(byDefault.dir), ".kaal");
+    assert.equal(basename(named.dir), "my-kaal");
+    assert.ok(existsSync(byDefault.kernelPath) && existsSync(named.kernelPath));
+    assert.equal(byDefault.nodes.length, 2);
+  } finally {
+    byDefault.cleanup();
+    named.cleanup();
+  }
+});
+
+test("refuses a Kernel that does not match its genesis seal", async () => {
+  const deployed = await deploy();
+  try {
+    assert.throws(() => assertSealed(deployed.kernelPath, "0".repeat(64)), /does not match its seal/);
   } finally {
     deployed.cleanup();
   }
 });
 
-test("can deploy under another KAAL directory name", async () => {
-  const deployed = await deployKernel({ name: "my-kaal" });
+test("a file is a Node only if its hash is sealed, wherever it lives", async () => {
+  const deployed = await deploy();
   try {
-    assert.equal(basename(deployed.dir), "my-kaal");
-    assert.ok(existsSync(deployed.kernelPath));
-  } finally {
-    deployed.cleanup();
-  }
-});
+    const ids = deployed.nodes.map((n) => n.id);
+    mkdirSync(join(deployed.dir, "elsewhere"));
+    renameSync(join(deployed.dir, deployed.nodes[0].path), join(deployed.dir, "elsewhere", "moved.md"));
+    assert.deepEqual(discoverNodes(deployed.dir).map((n) => n.id).sort(), [...ids].sort());
 
-test("refuses a deployed Kernel that does not match the seal", async () => {
-  const deployed = await deployKernel();
-  try {
-    const seal = "0".repeat(64);
-    assert.throws(() => assertSealed(deployed.kernelPath, seal), /does not match its seal/);
-  } finally {
-    deployed.cleanup();
-  }
-});
+    writeFileSync(join(deployed.dir, "core", "Stray.md"), "# Stray\n");
+    assert.throws(() => discoverNodes(deployed.dir), /neither the Kernel nor a sealed Node/);
+    rmSync(join(deployed.dir, "core", "Stray.md"));
 
-test("the deployed seal is detached evidence for Node 1", async () => {
-  const deployed = await deployKernel();
-  try {
-    assertSealed(deployed.kernelPath, readFileSync(deployed.sealPath, "utf8").trim());
+    rmSync(join(deployed.dir, "elsewhere", "moved.md"));
+    assert.throws(() => discoverNodes(deployed.dir), /matches no deployed file/);
   } finally {
     deployed.cleanup();
   }

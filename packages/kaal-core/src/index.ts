@@ -1,1 +1,1 @@
-export { payload } from "./kernel.js";
+export { payload } from "./payload.js";

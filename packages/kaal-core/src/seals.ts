@@ -1,4 +1,2 @@
 // Written by seal-kaal-kernel. Never edited by hand.
-export const SEALS: Record<string, string> = {
-  "core/KERNEL.md": "c2336b0378ec3eaf5ff6da628ea7a90a55e2d2a31d5dfb634a4442b6e0d7eaf0",
-};
+export const SEALED: string[] = ["9b7496be75ed15d484e4fedbc59f9d3d304ae9a0844f4eb0ed43c124a7bca6b3", "e55162b2479b57970d728bc22dfd60ea4ab59092444eaab6e52635c0b484a32d"];

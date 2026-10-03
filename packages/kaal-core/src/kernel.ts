@@ -1,53 +1,29 @@
-import { SEALS } from "./seals.js";
-
 /** Path of the Kernel, relative to the KAAL directory it belongs in. */
 export const KERNEL_PATH = "core/KERNEL.md";
 
 /**
- * The Kernel: the first Node. TypeScript here is its only authority; the
+ * The Kernel: genesis, not a Node. TypeScript here is its only authority; the
  * Markdown is produced, never maintained by hand.
  */
 export function kernelMarkdown(): string {
   return `# Kernel
 
-This file is a Node. It defines what a Node is, so it must be one, and it is the first. It is \`${KERNEL_PATH}\`.
+This file is the genesis of KAAL. It is not a Node. It is the minimum needed to bring the first Nodes into being, in this order, and it fixes no schema a Node may not later outgrow.
 
 ## Node
 
-A Node is a unit of meaning. It may point to other Nodes through Edges. Every Node has the same form, this one included.
+Node 1 is \`Node\`, handcrafted. A Node is a unit of meaning in one Markdown file. It knows nothing of where it is stored.
 
 ## Immutability
 
-Once born, a Node never changes. A new Node declares its own outgoing Edges, pointing at Nodes that already exist. Nothing is edited to record that it was pointed at. To change a meaning, birth a new Node.
+Seal Node 1. To seal a Node is to take the SHA-256 of its exact bytes: that hash is the Node's ID. A sealed Node never changes; to change a meaning, birth a new Node.
 
 ## Form
 
-A Node is a Markdown file. Its Markdown carries its meaning.
-
-Edge occurrences are declared in YAML frontmatter under \`edges\`. A Node with none needs no frontmatter, as this one has none. Each occurrence is a mapping with two keys: \`edge\`, a reference to the Node that defines what the Edge means, and \`to\`, a list of references to the Nodes the Edge points to.
-
-A Node is referred to by its path relative to the KAAL directory, the directory that holds \`core/\`.
+Form is how the next Node is handcrafted: one Markdown file, a level-1 heading that names it, no mention of its own location or ID, and references to other Nodes by ID only. Later Nodes may supersede this Form; the Kernel does not.
 
 ## Edge
 
-An Edge occurrence in a Node has two parts: the Node that defines what the Edge means, and the Nodes it points to.
-
-An occurrence does not define its own meaning. The Node it names does, and that Node is an ordinary Node.
+Node 2 is \`Edge\`, handcrafted through Form, then sealed. With both sealed, the bootstrap is complete.
 `;
-}
-
-/** Where the seal of the Node at `nodePath` is deployed, relative to the KAAL directory. */
-function sealPath(nodePath: string): string {
-  return `seals/${nodePath}.sha256`;
-}
-
-/**
- * The payload as files, keyed by path relative to the KAAL directory: each Node
- * and, beside it under `seals/`, its detached seal. Seals are evidence, not Nodes.
- */
-export function payload(): Record<string, string> {
-  const nodes: Record<string, string> = { [KERNEL_PATH]: kernelMarkdown() };
-  const files: Record<string, string> = { ...nodes };
-  for (const path of Object.keys(nodes)) files[sealPath(path)] = `${SEALS[path]}\n`;
-  return files;
 }

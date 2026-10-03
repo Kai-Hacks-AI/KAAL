@@ -1,45 +1,82 @@
 // Outer-loop Test Setup. It may not read src/**: the compiler enforces that
 // (rootDir is this folder). It consumes the built package through its public
-// surface, `import("kaal-core")`, and independently checks the deployed
-// Node bytes against the seal deployed beside them. Future outer-loop tests receive
-// only the deployed artifact and its Markdown chapters, the seams from which
-// outer-loop suites are organized.
+// surface, `import("kaal-core")`, deploys the payload at `root/[name]`, checks
+// the Kernel against its genesis seal, and admits Nodes by hash: a file is a
+// Node only if its SHA-256 has a marker under `seals/`. Future outer-loop
+// tests receive the deployed Nodes and their Markdown chapters, the seams
+// from which suites are born.
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { type Chapter, chapters } from "./chapters.js";
 
 export const DEFAULT_NAME = ".kaal";
 const KERNEL_PATH = "core/KERNEL.md";
-const SEAL_PATH = `seals/${KERNEL_PATH}.sha256`;
+const GENESIS_SEAL = new URL("../../kernel.sha256", import.meta.url);
 
-export interface DeployedKernel {
+const sha256 = (bytes: Uint8Array | string): string => createHash("sha256").update(bytes).digest("hex");
+
+export interface DeployedNode {
+  /** SHA-256 of the exact bytes: the Node's identity. */
+  id: string;
+  /** Where this deployment happens to store it; not part of the Node. */
+  path: string;
+  markdown: string;
+  /** The Node's Markdown chapters, in document order. */
+  chapters: Chapter[];
+  /** The Node's name: its level-1 heading. */
+  name: string;
+}
+
+export interface Deployed {
   /** Temporary KAAL root, the parent of `[name]`. */
   root: string;
   /** The KAAL directory name; `.kaal` is only the default. */
   name: string;
   /** `root/[name]`. */
   dir: string;
-  /** `root/[name]/core/KERNEL.md`. */
+  /** `root/[name]/core/KERNEL.md`: genesis, not a Node. */
   kernelPath: string;
-  /** `root/[name]/seals/core/KERNEL.md.sha256`: evidence for Node 1, not a Node. */
-  sealPath: string;
-  /** The sealed Kernel's chapters, in document order, from its own headings. */
+  /** The Kernel's chapters, in document order. */
   chapters: Chapter[];
-  /** The first chapter with this heading text; throws if there is none. */
-  chapter: (title: string) => Chapter;
+  /** The deployed Nodes, admitted by their seal markers. */
+  nodes: DeployedNode[];
   cleanup: () => void;
 }
 
 /** Throws unless the bytes of `file` hash to `seal` (SHA-256, hex). */
 export function assertSealed(file: string, seal: string): void {
-  const actual = createHash("sha256").update(readFileSync(file)).digest("hex");
-  if (actual !== seal) throw new Error(`${file} does not match its seal`);
+  if (sha256(readFileSync(file)) !== seal) throw new Error(`${file} does not match its seal`);
 }
 
-/** Materialize the package's payload at `root/[name]/...` and check Node 1 against its deployed seal. */
-export async function deployKernel(options: { name?: string } = {}): Promise<DeployedKernel> {
+/**
+ * The Nodes deployed in `dir`: every file other than the Kernel and the seal
+ * markers must hash to a sealed ID, and every sealed ID must match a file.
+ * Where a file lives does not matter.
+ */
+export function discoverNodes(dir: string): DeployedNode[] {
+  const sealed = new Set(readdirSync(join(dir, "seals")));
+  const nodes: DeployedNode[] = [];
+  for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" }).sort()) {
+    if (path === KERNEL_PATH || path === "seals" || path.startsWith("seals/")) continue;
+    const file = join(dir, path);
+    if (!statSync(file).isFile()) continue;
+    const bytes = readFileSync(file);
+    const id = sha256(bytes);
+    if (!sealed.has(id)) throw new Error(`${path} is neither the Kernel nor a sealed Node`);
+    const markdown = bytes.toString("utf8");
+    const parts = chapters(markdown);
+    nodes.push({ id, path, markdown, chapters: parts, name: parts[0].level === 1 ? parts[0].title : "" });
+  }
+  for (const id of sealed) {
+    if (!nodes.some((n) => n.id === id)) throw new Error(`sealed ID ${id} matches no deployed file`);
+  }
+  return nodes;
+}
+
+/** Materialize the package's payload at `root/[name]/...`, check genesis, admit the Nodes. */
+export async function deploy(options: { name?: string } = {}): Promise<Deployed> {
   const name = options.name ?? DEFAULT_NAME;
   const spec = "kaal-core";
   const embedding = (await import(spec)) as { payload: () => Record<string, string> };
@@ -52,27 +89,20 @@ export async function deployKernel(options: { name?: string } = {}): Promise<Dep
     writeFileSync(file, content);
   }
   const kernelPath = join(dir, KERNEL_PATH);
-  const sealPath = join(dir, SEAL_PATH);
   try {
-    assertSealed(kernelPath, readFileSync(sealPath, "utf8").trim());
+    assertSealed(kernelPath, readFileSync(GENESIS_SEAL, "utf8").trim());
+    const nodes = discoverNodes(dir);
+    return {
+      root,
+      name,
+      dir,
+      kernelPath,
+      chapters: chapters(readFileSync(kernelPath, "utf8")),
+      nodes,
+      cleanup: () => rmSync(root, { recursive: true, force: true }),
+    };
   } catch (error) {
     rmSync(root, { recursive: true, force: true });
     throw error;
   }
-  const kernelChapters = chapters(readFileSync(kernelPath, "utf8"));
-  const chapter = (title: string): Chapter => {
-    const found = kernelChapters.find((c) => c.title === title);
-    if (!found) throw new Error(`The sealed Kernel has no chapter "${title}"`);
-    return found;
-  };
-  return {
-    root,
-    name,
-    dir,
-    kernelPath,
-    sealPath,
-    chapters: kernelChapters,
-    chapter,
-    cleanup: () => rmSync(root, { recursive: true, force: true }),
-  };
 }
