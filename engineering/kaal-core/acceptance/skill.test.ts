@@ -70,6 +70,8 @@ test("registering refuses what is not a sealed Skill contribution, and writes no
   const agent = readNodes(dir).find((n) => n.name === "Agent")!;
   const good = node("Reviewing", "Skill", sid);
   const [path, md] = Object.entries(good)[0];
+  const bareMd = "---\nname: Bare\n---\n\n# Bare\n";
+  const bare = { "Bare.md": bareMd, [`seals/${sha256(bareMd)}`]: "" };
   const cases: [string, string, Record<string, string>][] = [
     ["no seal", "reviewing", { [path]: md }],
     ["another Node's seal", "reviewing", { [path]: md, [`seals/${agent.id}`]: "" }],
@@ -77,7 +79,8 @@ test("registering refuses what is not a sealed Skill contribution, and writes no
     ["typed by another Node", "reviewing", node("Reviewing", "Agent", agent.id)],
     ["typed by an unknown Skill", "reviewing", node("Reviewing", "Skill", "0".repeat(64))],
     ["no Node typed by Skill", "reviewing", node("Reviewing", "KAAL Definition", readNodes(dir).find((n) => n.name === "KAAL Definition")!.id)],
-    ["refers to an unsealed Node", "reviewing", node("Reviewing", "Skill", sid, ` See ${"1".repeat(64)}.`)],
+    ["the right ID under the wrong name", "reviewing", node("Reviewing", "Wrong", sid)],
+    ["a genesis Node smuggled in", "reviewing", { ...good, ...bare }],
     ["not a Node", "reviewing", { "x.md": "# x\n", [`seals/${sha256("# x\n")}`]: "" }],
     ["a path outside the capability", "reviewing", { ...good, "../escape.md": "x" }],
     ["a bad capability name", "Reviewing", good],

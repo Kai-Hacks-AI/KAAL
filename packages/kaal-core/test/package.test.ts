@@ -5,8 +5,8 @@ import * as core from "kaal-core";
 // Resolves "kaal-core" through its own package.json `exports`, so this runs
 // against the built package surface, not against src.
 
-test("the public API is exactly payload() and registerSkill()", () => {
-  assert.deepEqual(Object.keys(core), ["payload", "registerSkill"]);
+test("the public API is exactly payload(), registerSkill() and the Node machinery it uses", () => {
+  assert.deepEqual(Object.keys(core), ["admit", "candidates", "payload", "registerSkill"]);
 });
 
 test("payload() returns the Kernel, the foundation Nodes and their seal markers", () => {
