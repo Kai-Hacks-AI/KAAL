@@ -1,7 +1,7 @@
 // Outer-loop Test Setup. It may not read src/**: the compiler enforces that
 // (rootDir is this folder). It consumes the built package through its public
 // surface, `import("kaal-core")`, and independently checks the deployed
-// Kernel bytes against the committed seal. Future outer-loop tests receive
+// Node bytes against the seal deployed beside them. Future outer-loop tests receive
 // only the deployed artifact and its Markdown chapters, the seams from which
 // outer-loop suites are organized.
 import { createHash } from "node:crypto";
@@ -12,7 +12,7 @@ import { type Chapter, chapters } from "./chapters.js";
 
 export const DEFAULT_NAME = ".kaal";
 const KERNEL_PATH = "core/KERNEL.md";
-const SEAL_FILE = new URL("../../kernel.sha256", import.meta.url);
+const SEAL_PATH = `seals/${KERNEL_PATH}.sha256`;
 
 export interface DeployedKernel {
   /** Temporary KAAL root, the parent of `[name]`. */
@@ -23,6 +23,8 @@ export interface DeployedKernel {
   dir: string;
   /** `root/[name]/core/KERNEL.md`. */
   kernelPath: string;
+  /** `root/[name]/seals/core/KERNEL.md.sha256`: evidence for Node 1, not a Node. */
+  sealPath: string;
   /** The sealed Kernel's chapters, in document order, from its own headings. */
   chapters: Chapter[];
   /** The first chapter with this heading text; throws if there is none. */
@@ -33,10 +35,10 @@ export interface DeployedKernel {
 /** Throws unless the bytes of `file` hash to `seal` (SHA-256, hex). */
 export function assertSealed(file: string, seal: string): void {
   const actual = createHash("sha256").update(readFileSync(file)).digest("hex");
-  if (actual !== seal) throw new Error(`${file} does not match the Kernel seal`);
+  if (actual !== seal) throw new Error(`${file} does not match its seal`);
 }
 
-/** Materialize the package's payload at `root/[name]/...` and check the seal. */
+/** Materialize the package's payload at `root/[name]/...` and check Node 1 against its deployed seal. */
 export async function deployKernel(options: { name?: string } = {}): Promise<DeployedKernel> {
   const name = options.name ?? DEFAULT_NAME;
   const spec = "kaal-core";
@@ -50,8 +52,9 @@ export async function deployKernel(options: { name?: string } = {}): Promise<Dep
     writeFileSync(file, content);
   }
   const kernelPath = join(dir, KERNEL_PATH);
+  const sealPath = join(dir, SEAL_PATH);
   try {
-    assertSealed(kernelPath, readFileSync(SEAL_FILE, "utf8").trim());
+    assertSealed(kernelPath, readFileSync(sealPath, "utf8").trim());
   } catch (error) {
     rmSync(root, { recursive: true, force: true });
     throw error;
@@ -67,6 +70,7 @@ export async function deployKernel(options: { name?: string } = {}): Promise<Dep
     name,
     dir,
     kernelPath,
+    sealPath,
     chapters: kernelChapters,
     chapter,
     cleanup: () => rmSync(root, { recursive: true, force: true }),

@@ -1,18 +1,25 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import * as embedding from "kaal-core";
 import { KERNEL_PATH, kernelMarkdown } from "../src/kernel.js";
-import { kernelSeal } from "../src/seal.js";
+import { nodePaths, sealNode, sealPath } from "../src/seal.js";
 import { verifyKernel } from "../src/verify.js";
 
 test("the public API is exactly payload()", () => {
   assert.deepEqual(Object.keys(embedding), ["payload"]);
 });
 
-test("payload is exactly core/KERNEL.md", () => {
-  assert.deepEqual(Object.keys(embedding.payload()), [KERNEL_PATH]);
+test("payload is Node 1 and its detached seal", () => {
   assert.equal(KERNEL_PATH, "core/KERNEL.md");
+  assert.deepEqual(Object.keys(embedding.payload()), [KERNEL_PATH, "seals/core/KERNEL.md.sha256"]);
+  assert.deepEqual(nodePaths(embedding.payload()), [KERNEL_PATH]);
+  assert.equal(sealPath(KERNEL_PATH), "seals/core/KERNEL.md.sha256");
+});
+
+test("sealNode hashes exact bytes", () => {
+  assert.equal(sealNode(""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+  assert.notEqual(sealNode("a\n"), sealNode("a\r\n"));
+  assert.equal(sealNode("é"), sealNode(new TextEncoder().encode("é")));
 });
 
 test("the generated Kernel satisfies the bootstrap contract", () => {
@@ -42,7 +49,13 @@ test("the contract rejects a Kernel that has been altered", () => {
   }
 });
 
-test("the generated Kernel matches its seal", () => {
-  const seal = readFileSync(new URL("../../kernel.sha256", import.meta.url), "utf8").trim();
-  assert.equal(kernelSeal(), seal, "Kernel changed. If intended, run seal-kaal-kernel.");
+test("every Node's deployed seal is the seal of its bytes", () => {
+  const files = embedding.payload();
+  for (const path of nodePaths(files)) {
+    assert.equal(
+      files[sealPath(path)],
+      sealNode(files[path]) + "\n",
+      `${path} changed. If intended, run seal-kaal-kernel.`,
+    );
+  }
 });

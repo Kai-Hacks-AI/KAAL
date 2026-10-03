@@ -1,3 +1,5 @@
+import { SEALS } from "./seals.js";
+
 /** Path of the Kernel, relative to the KAAL directory it belongs in. */
 export const KERNEL_PATH = "core/KERNEL.md";
 
@@ -34,7 +36,18 @@ An occurrence does not define its own meaning. The Node it names does, and that 
 `;
 }
 
-/** The Kernel payload as files, keyed by path relative to the KAAL directory. */
+/** Where the seal of the Node at `nodePath` is deployed, relative to the KAAL directory. */
+function sealPath(nodePath: string): string {
+  return `seals/${nodePath}.sha256`;
+}
+
+/**
+ * The payload as files, keyed by path relative to the KAAL directory: each Node
+ * and, beside it under `seals/`, its detached seal. Seals are evidence, not Nodes.
+ */
 export function payload(): Record<string, string> {
-  return { [KERNEL_PATH]: kernelMarkdown() };
+  const nodes: Record<string, string> = { [KERNEL_PATH]: kernelMarkdown() };
+  const files: Record<string, string> = { ...nodes };
+  for (const path of Object.keys(nodes)) files[sealPath(path)] = `${SEALS[path]}\n`;
+  return files;
 }
