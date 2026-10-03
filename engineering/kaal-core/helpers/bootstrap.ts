@@ -17,9 +17,11 @@ const SEALS_SOURCE = new URL("../../../../packages/kaal-core/src/seals.ts", impo
 /** The problems with a payload's seals; empty means none. */
 export function checkBootstrap(files: Record<string, string> = payload()): string[] {
   const admitted = new Set(admit(files).map((n) => n.id));
+  const sealed = new Set(Object.keys(files).filter((p) => p.startsWith("seals/")).map((p) => p.slice("seals/".length)));
   const problems = [checkBytes(files[KERNEL_PATH], readFileSync(GENESIS_SEAL, "utf8").trim(), KERNEL_PATH)];
   for (const n of candidates(files)) if (!admitted.has(n.id)) problems.push(`${n.path} is not an admitted Node: it is not a sealed genesis, nor typed by an admitted Node`);
-  for (const path of Object.keys(files)) if (path.startsWith("seals/") && !admitted.has(path.slice("seals/".length))) problems.push(`${path} seals no admitted Node`);
+  for (const n of candidates(files)) if (!sealed.has(n.id)) problems.push(`${n.path} is a bootstrap Node with no seal recorded`);
+  for (const id of sealed) if (!admitted.has(id)) problems.push(`seals/${id} seals no admitted Node`);
   return problems.filter((p): p is string => p !== undefined);
 }
 
