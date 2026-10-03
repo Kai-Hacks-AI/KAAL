@@ -31,6 +31,8 @@ test("the contract rejects a Kernel that has been altered", () => {
     "Kernel title renamed": k.replace("# Kernel\n", "# Core\n"),
     "extra H3 chapter": k.replace("## Form\n", "### Detail\n\n## Form\n"),
     "extra H1 chapter": k + "\n# Appendix\n",
+    "heading hidden in a code fence": k.replace("## Node\n", "```\n## Node\n```\n"),
+    "heading hidden in an indented tilde fence": k.replace("## Node\n", "  ~~~\n## Node\n  ~~~\n"),
     "denies being a Node": k.replace("This file is a Node.", "This file is not a Node."),
     "frontmatter added": "---\nedges: []\n---\n" + k,
     "no trailing newline": k.trimEnd(),

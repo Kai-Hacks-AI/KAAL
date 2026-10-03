@@ -16,6 +16,7 @@ export function verifyKernel(markdown: string): string[] {
   need(markdown.includes(`\`${KERNEL_PATH}\``), "must name itself by its own path");
   need(markdown.includes("This file is a Node."), "must declare that it is itself a Node");
   need(!markdown.includes("is not a Node"), "must not deny that it is itself a Node");
+  need(!/^ {0,3}(`{3,}|~{3,})/m.test(markdown), "must contain no fenced code, so that every heading line is a real heading");
   need(
     JSON.stringify([...markdown.matchAll(/^(#{1,6}) +(.+)$/gm)].map((m) => [m[1].length, m[2]])) ===
       JSON.stringify([[1, "Kernel"], [2, "Node"], [2, "Immutability"], [2, "Form"], [2, "Edge"]]),
