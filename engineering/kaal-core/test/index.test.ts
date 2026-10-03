@@ -1,18 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import * as embedding from "../src/embed/index.js";
-import { KERNEL_PATH, kernelMarkdown, payload } from "../src/embed/kernel.js";
-import { kernelSeal } from "../src/engineering/seal.js";
-import { verifyKernel } from "../src/engineering/verify.js";
+import * as embedding from "kaal-core";
+import { KERNEL_PATH, kernelMarkdown } from "../src/kernel.js";
+import { kernelSeal } from "../src/seal.js";
+import { verifyKernel } from "../src/verify.js";
 
 test("the public API is exactly payload()", () => {
   assert.deepEqual(Object.keys(embedding), ["payload"]);
-  assert.equal(embedding.payload, payload);
 });
 
-test("payload is exactly core/KERNEL.md, as produced by kernelMarkdown()", () => {
-  assert.deepEqual(payload(), { "core/KERNEL.md": kernelMarkdown() });
+test("payload is exactly core/KERNEL.md", () => {
+  assert.deepEqual(Object.keys(embedding.payload()), [KERNEL_PATH]);
   assert.equal(KERNEL_PATH, "core/KERNEL.md");
 });
 

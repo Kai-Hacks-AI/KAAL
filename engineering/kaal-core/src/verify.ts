@@ -1,4 +1,4 @@
-import { KERNEL_PATH } from "../embed/kernel.js";
+import { KERNEL_PATH } from "./kernel.js";
 
 /**
  * Inner (birth) verification, not the semantic authority: the ways `markdown`
