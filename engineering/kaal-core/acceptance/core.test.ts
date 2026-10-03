@@ -13,13 +13,13 @@ import { deploy } from "./setup.js";
 
 const referencedCase = (markdown: string) => ({ name: "CASE", id: /CASE ([0-9a-f]{64})/.exec(markdown)![1] });
 
-test("KAAL's definitions are found by Node type: CASE and Core, and no other Node", (t) => {
+test("KAAL's definitions are found by Node type: Agent, CASE and Core, and no other Node", (t) => {
   const { dir, cleanup } = deploy();
   t.after(cleanup);
   const nodes = readNodes(dir);
   const definition = nodes.find((n) => n.name === "KAAL Definition")!;
   assert.equal(definition.type?.name, "Node", "KAAL Definition is itself typed by Node");
-  assert.deepEqual(typedBy(nodes, { name: "KAAL Definition", id: definition.id }).map((n) => n.name).sort(), ["CASE", "Core"]);
+  assert.deepEqual(typedBy(nodes, { name: "KAAL Definition", id: definition.id }).map((n) => n.name).sort(), ["Agent", "CASE", "Core"]);
   assert.deepEqual(typedBy(nodes, { name: "Wrong", id: definition.id }), [], "the name is checked with the ID");
 });
 
@@ -31,6 +31,16 @@ test("Core refers to the exact CASE it belongs to", (t) => {
   const caseNode = nodes.find((n) => n.name === "CASE")!;
   assert.equal(resolve(nodes, referencedCase(core.markdown)), caseNode);
   assert.ok(!caseNode.markdown.includes(core.id), "CASE does not refer to Core: Core does not redefine CASE");
+});
+
+test("Agent refers to the exact CASE it belongs to", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  const nodes = readNodes(dir);
+  const agent = nodes.find((n) => n.name === "Agent")!;
+  const caseNode = nodes.find((n) => n.name === "CASE")!;
+  assert.equal(resolve(nodes, referencedCase(agent.markdown)), caseNode);
+  assert.ok(!caseNode.markdown.includes(agent.id), "CASE does not refer to Agent");
 });
 
 test("moving stored Nodes without changing their bytes changes neither identity nor reference", (t) => {
@@ -65,7 +75,7 @@ test("the graph holds exactly the sealed Nodes born so far, none containing its 
   const { dir, cleanup } = deploy();
   t.after(cleanup);
   const nodes = readNodes(dir);
-  assert.deepEqual(nodes.map((n) => n.name).sort(), ["CASE", "Core", "Edge", "KAAL Definition", "Node"]);
+  assert.deepEqual(nodes.map((n) => n.name).sort(), ["Agent", "CASE", "Core", "Edge", "KAAL Definition", "Node"]);
   assert.deepEqual(checkBootstrap(), []);
   for (const n of nodes) assert.ok(!n.markdown.includes(n.id), n.name);
 });
