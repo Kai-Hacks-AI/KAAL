@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { admit, candidates } from "./nodes.js";
+import { admit, candidates, type Ref } from "./nodes.js";
 
 const SKILL = "Skill";
 const CAPABILITY = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -12,6 +12,24 @@ function read(kaal: string): Record<string, Uint8Array> {
     if (statSync(join(kaal, path)).isFile()) files[path.split("\\").join("/")] = readFileSync(join(kaal, path));
   }
   return files;
+}
+
+/**
+ * The Skills installed in a KAAL directory: the admitted Nodes whose type is
+ * exactly `{ name: Skill, id }` for the ID of the installed KAAL's admitted
+ * `Skill` Node, as `{ name, id }` references in name then ID order. This is
+ * the same typing registration is, so nothing is looked up: no registry, no
+ * path, no package layout is consulted, and a Node is found wherever its
+ * files store it. A KAAL without the `Skill` Node has no Skills.
+ */
+export function installedSkills(kaal: string): Ref[] {
+  const admitted = admit(read(kaal));
+  const skill = admitted.find((n) => n.name === SKILL);
+  if (!skill) return [];
+  return admitted
+    .filter((n) => n.type?.name === SKILL && n.type.id === skill.id)
+    .map(({ name, id }) => ({ name, id }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : a.id < b.id ? -1 : 1));
 }
 
 /**

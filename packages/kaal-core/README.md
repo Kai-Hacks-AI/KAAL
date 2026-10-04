@@ -1,6 +1,6 @@
 # kaal-core
 
-KAAL Core as an npm package. It carries KAAL's artifacts as files, in `artifacts/`, laid out as they deploy: the Kernel, the Nodes and one empty seal `seals/<ID>` per sealed Node. The files are the authority. Its public API is `payload()`, which returns them as files keyed by path relative to the KAAL directory, and `registerSkill()`, which registers a capability's KAAL Skill contribution (Nodes and their own seals) with an installed KAAL directory under `skills/<capability>/`. Core carries the `Skill` type and this registration, never a Skill; registration uses the Node machinery internally, which is not part of the public API.
+KAAL Core as an npm package. It carries KAAL's artifacts as files, in `artifacts/`, laid out as they deploy: the Kernel, the Nodes and one empty seal `seals/<ID>` per sealed Node. The files are the authority. Its public API is `payload()`, which returns them as files keyed by path relative to the KAAL directory, `registerSkill()`, which registers a capability's KAAL Skill contribution (Nodes and their own seals) with an installed KAAL directory under `skills/<capability>/`, and `installedSkills()`, which answers which Skills an installed KAAL directory holds: the admitted Nodes typed, by name and ID, by its admitted `Skill` Node, as `{ name, id }` references. Core carries the `Skill` type and this registration, never a Skill; registration uses the Node machinery internally, which is not part of the public API.
 
 Build and test from this directory alone: `npm ci && npm test`.
 
