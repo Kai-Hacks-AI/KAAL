@@ -66,7 +66,7 @@ test("check fails without wiring, on a changed fragment and on a missing KAAL di
   writeFileSync(c.agents, wired);
   assert.equal(c.check(), 0);
   assert.equal(c.check("--kaal", ".other"), 1, "wiring to .kaal is not wiring to .other");
-  rmSync(join(c.dir, ".kaal", "AGENT.md"));
+  for (const name of ["AGENT.md", "AGENTS.md"]) rmSync(join(c.dir, ".kaal", name), { force: true });
   assert.equal(c.check(), 1, "the wiring points at an AGENT.md that does not exist");
 }));
 
