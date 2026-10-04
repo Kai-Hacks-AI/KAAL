@@ -1,0 +1,31 @@
+version: 2
+
+# Ordinary version maintenance only. Security updates are governed by the
+# repository setting and are not configured here.
+#
+# npm: the root workspace and each self-contained package keep their own
+# lockfile, so each is a directory of this one entry. The engineering
+# packages declare no dependencies and have nothing to update.
+updates:
+  - package-ecosystem: npm
+    directories:
+      - "/"
+      - "/packages/*"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      npm-routine:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  # Keeps pinned action SHAs (and their version comments) from silently aging.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      actions-routine:
+        applies-to: version-updates
+        patterns: ["*"]
