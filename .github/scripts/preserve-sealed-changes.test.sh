@@ -45,5 +45,9 @@ expect fail 'delete directory and seal'    "git rm -rq $one .kaal/seals/changes/
 expect fail 'substitute another seal'      "git rm -q .kaal/seals/changes/$seal; mkdir -p .kaal/seals/changes; : >.kaal/seals/changes/$(printf 'x' | sha256sum | cut -d' ' -f1)"
 expect fail 'edit and reseal the Change'   "echo more >>$one/retro.md; node '$root/engineering/change-seal/dist/helpers/cli.js' seal .kaal changes/genesis/26/10/04/01 >/dev/null; git rm -q .kaal/seals/changes/$seal"
 expect fail 'edit and reseal, keeping the old seal' "echo more >>$one/retro.md; node '$root/engineering/change-seal/dist/helpers/cli.js' seal .kaal changes/genesis/26/10/04/01 >/dev/null"
-expect fail 'move the Change to another address' "mkdir -p .kaal/changes/genesis/26/10/05; git mv $one .kaal/changes/genesis/26/10/05/01"
+expect pass 'move the whole Change to another address' "mkdir -p .kaal/changes/genesis/26/10/05; git mv $one .kaal/changes/genesis/26/10/05/01"
+expect pass 'rename the whole Change to another name' "mkdir -p .kaal/changes/other/26/10/04; git mv $one .kaal/changes/other/26/10/04/07"
+expect fail 'move the Change, then edit it' "mkdir -p .kaal/changes/genesis/26/10/05; git mv $one .kaal/changes/genesis/26/10/05/01; echo x >.kaal/changes/genesis/26/10/05/01/foo.md"
+expect fail 'move the Change but drop its seal' "mkdir -p .kaal/changes/genesis/26/10/05; git mv $one .kaal/changes/genesis/26/10/05/01; git rm -q .kaal/seals/changes/$seal"
+expect fail 'move the Change out of any valid address' "git mv $one .kaal/elsewhere"
 exit $fail
