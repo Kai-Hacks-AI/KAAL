@@ -1,0 +1,10 @@
+{
+  "name": "change-seal-engineering",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run clean && npm run build && node --test dist/acceptance/*.test.js",
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  }
+}

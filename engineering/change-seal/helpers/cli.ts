@@ -1,0 +1,22 @@
+// The commands over changes.ts; each is a thin entry that prints and sets an exit code.
+import { checkChanges, closedChanges, sealChange } from "./changes.js";
+
+const [command, kaalDir, change, ...extra] = process.argv.slice(2);
+const usage = "usage: change-seal seal <kaal-dir> <change> | closed <kaal-dir> | check <kaal-dir>";
+try {
+  if (command === "seal" && kaalDir && change && extra.length === 0) {
+    console.log(sealChange(kaalDir, change));
+  } else if (command === "closed" && kaalDir && !change) {
+    for (const c of closedChanges(kaalDir)) console.log(`${c.path} ${c.id}`);
+  } else if (command === "check" && kaalDir && !change) {
+    const problems = checkChanges(kaalDir);
+    for (const p of problems) console.error(p);
+    process.exitCode = problems.length === 0 ? 0 : 1;
+  } else {
+    console.error(usage);
+    process.exitCode = 2;
+  }
+} catch (error) {
+  console.error((error as Error).message);
+  process.exitCode = 1;
+}

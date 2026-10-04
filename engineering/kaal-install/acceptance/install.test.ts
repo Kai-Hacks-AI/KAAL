@@ -163,6 +163,17 @@ test("changes, the genuine installed state, survive installing and are outside t
   assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
 });
 
+test("Change seals, seals/changes/, are installed state too, while a stray Node-level seal is still refused", async (t) => {
+  const dir = await full(t);
+  const id = "a".repeat(64);
+  put(join(dir, KAAL_DIR, "seals", "changes", id), "");
+  await installed(dir);
+  assert.ok(existsSync(join(dir, KAAL_DIR, "seals", "changes", id)), "installing leaves it");
+  assert.deepEqual(await problems(dir), [], "the check does not judge Change seals");
+  put(join(dir, KAAL_DIR, "seals", id), "");
+  assert.deepEqual(await problems(dir), [`${KAAL_DIR}/seals/${id} is not delivered by any package`], "a bare seal is a Node seal and nothing delivers it");
+});
+
 test("the commands: check (exit 1, never repairs), install Core, register, install again, check; the installer takes no names", async (t) => {
   const dir = checkout(t);
   assert.equal(run("check-kaal-install", dir).code, 1, "no Core installed");

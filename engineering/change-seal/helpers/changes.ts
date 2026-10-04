@@ -1,0 +1,61 @@
+// PROVISIONAL, Change lifecycle over a KAAL directory: find the Changes, seal
+// one, and answer which are closed. Identity is change-id.ts alone. A Change is
+// closed exactly when the ID of its current tree has a seal; there is no status.
+// The seal is an empty marker named by the ID, outside the tree it seals.
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { changeId } from "./change-id.js";
+
+/** Where Change seals live, relative to the KAAL directory; Node seals (seals/<ID>) are not touched. */
+export const SEALS = "seals/changes";
+
+const dirs = (path: string): string[] => (existsSync(path) ? readdirSync(path, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : []);
+
+/** Every Change directory, changes/<name>/YY/MM/DD/CC/, relative to the KAAL directory, in order. */
+export function changes(kaalDir: string): string[] {
+  const found: string[] = [];
+  const base = join(kaalDir, "changes");
+  for (const name of dirs(base).filter((n) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(n)))
+    for (const yy of dirs(join(base, name)).filter((n) => /^\d{2}$/.test(n)))
+      for (const mm of dirs(join(base, name, yy)).filter((n) => /^\d{2}$/.test(n)))
+        for (const dd of dirs(join(base, name, yy, mm)).filter((n) => /^\d{2}$/.test(n)))
+          for (const cc of dirs(join(base, name, yy, mm, dd)).filter((n) => /^(0[1-9]|[1-9]\d)$/.test(n))) found.push(`changes/${name}/${yy}/${mm}/${dd}/${cc}`);
+  return found;
+}
+
+/** The IDs sealed in this KAAL directory. */
+export function sealedIds(kaalDir: string): string[] {
+  const dir = join(kaalDir, SEALS);
+  return existsSync(dir) ? readdirSync(dir).filter((n) => /^[0-9a-f]{64}$/.test(n)).sort() : [];
+}
+
+/** Seal one Change: record the ID of its complete current tree. Returns the ID; sealing again changes nothing. */
+export function sealChange(kaalDir: string, change: string): string {
+  if (!changes(kaalDir).includes(change.replace(/\/$/, ""))) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
+  const id = changeId(join(kaalDir, change));
+  mkdirSync(join(kaalDir, SEALS), { recursive: true });
+  writeFileSync(join(kaalDir, SEALS, id), "");
+  return id;
+}
+
+/** The closed Changes: each Change whose current tree has a seal, as {path, id}. Open or unreadable Changes are not closed. */
+export function closedChanges(kaalDir: string): { path: string; id: string }[] {
+  const sealed = new Set(sealedIds(kaalDir));
+  const closed: { path: string; id: string }[] = [];
+  for (const path of changes(kaalDir)) {
+    let id: string;
+    try {
+      id = changeId(join(kaalDir, path));
+    } catch {
+      continue;
+    }
+    if (sealed.has(id)) closed.push({ path, id });
+  }
+  return closed;
+}
+
+/** The problems with this KAAL directory's Change seals; empty means none. A seal that no Change currently matches means a sealed Change was altered or removed. */
+export function checkChanges(kaalDir: string): string[] {
+  const live = new Set(closedChanges(kaalDir).map((c) => c.id));
+  return sealedIds(kaalDir).filter((id) => !live.has(id)).map((id) => `${SEALS}/${id} matches no Change: a sealed Change was altered or removed`);
+}
