@@ -2,7 +2,7 @@
 
 The capability for managing changes to KAAL, as an npm package. One capability, delivered in two parts:
 
-- `kaal/`: its KAAL contribution, the sealed Node `Changing KAAL` (typed by `Skill`) and its seal. It is registered with an installed KAAL through `kaal-core`'s `registerSkill()`, which places it under `skills/changing-kaal/` of the KAAL directory.
+- `kaal/`: its KAAL contribution, sealed Nodes and their seals: `Changing KAAL` as first born (`Changing-KAAL.md`), its successor that uses `RATIFICATION` as the architecture of its change process (`Changing-KAAL-RATIFICATION.md`), both typed by `Skill`, and the KAAL Definition `RATIFICATION`. Sealed bytes never change, so the successor is another Node delivered beside the first. They are registered with an installed KAAL through `kaal-core`'s `registerSkill()`, which places them under `skills/changing-kaal/` of the KAAL directory.
 - `skills/changing-kaal/`: its Agent Skills realization (`SKILL.md`, `references/`, `scripts/`), installed under the host's `skills/`.
 
 The Node carries what the capability means to KAAL; the Agent Skill is the agent-facing form of it and does not define it again. The realization establishes the change record, `changes/<name>/YY/MM/DD/CC/` inside the installed KAAL directory, with `scripts/next-change.mjs` allocating `CC`, and its first immutable artifact, `retro.md`: the participating agent's own 4L retrospective.

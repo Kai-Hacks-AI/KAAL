@@ -9,10 +9,11 @@ test("the public API is exactly payload()", () => {
   assert.deepEqual(Object.keys(capability), ["payload"]);
 });
 
-test("payload() carries one Node with its seal, and one Agent Skill", () => {
+test("payload() carries its Nodes, each with its seal, and one Agent Skill", () => {
   const { kaal, skills } = capability.payload();
-  assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")), ["Changing-KAAL.md"]);
-  assert.equal(Object.keys(kaal).filter((p) => p.startsWith("seals/")).length, 1);
+  const nodes = Object.keys(kaal).filter((p) => !p.startsWith("seals/"));
+  assert.deepEqual(nodes, ["Changing-KAAL-RATIFICATION.md", "Changing-KAAL.md", "RATIFICATION.md"]);
+  assert.equal(Object.keys(kaal).filter((p) => p.startsWith("seals/")).length, nodes.length);
   assert.ok(skills["changing-kaal/SKILL.md"]);
   assert.ok(Object.keys(skills).every((p) => p.startsWith("changing-kaal/")), "exactly one skill");
 });
