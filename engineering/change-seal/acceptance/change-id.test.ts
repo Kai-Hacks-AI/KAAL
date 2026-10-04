@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { TestContext } from "node:test";
-import { changeId } from "../helpers/change-id.js";
+import { changeId, workId } from "../helpers/change-id.js";
 
 const tree = (t: TestContext, files: Record<string, string | Buffer>, order = Object.keys(files)): string => {
   const dir = mkdtempSync(join(tmpdir(), "change-"));
@@ -92,4 +92,24 @@ test("unsupported objects and ambiguous names are refused, not hashed", (t) => {
   assert.throws(() => changeId(tree(t, { "a.md": "1", "A.md": "2" })), /only by case/);
   assert.throws(() => changeId(tree(t, { "a\\b.md": "1" })), /backslash/);
   assert.throws(() => changeId(tree(t, { "a\nb.md": "1" })), /control/);
+});
+
+test("a Work's ID is the same stream under its own tag, over paths relative to the Work root", (t) => {
+  const files = { "a": "a", "b/c": "c" };
+  const h = createHash("sha256").update("KAAL Work v1\n").update(be(2));
+  for (const [p, c] of [["a", "a"], ["b/c", "c"]]) h.update(be(Buffer.byteLength(p))).update(p).update(be(Buffer.byteLength(c))).update(c);
+  const dir = tree(t, files);
+  assert.equal(workId(dir), h.digest("hex"));
+  assert.notEqual(workId(dir), changeId(dir), "a Work and a Change of the same bytes never share an ID");
+});
+
+test("a Work's location is not identity: the same tree anywhere, however built, has one ID", (t) => {
+  const files = { "a": "a", "b/c": "c" };
+  const here = tree(t, files);
+  const there = tree(t, files, ["b/c", "a"]);
+  assert.equal(workId(here), workId(there));
+  assert.notEqual(workId(tree(t, { "a": "a", "b/d": "c" })), workId(here), "an inner rename is another Work");
+  assert.notEqual(workId(tree(t, { "a": "a", "b/c": "c", "e": "e" })), workId(here), "an addition is another Work");
+  assert.notEqual(workId(tree(t, { "a": "a" })), workId(here), "a deletion is another Work");
+  assert.notEqual(workId(tree(t, { "a": "a", "b/c": "C" })), workId(here), "an edit is another Work");
 });

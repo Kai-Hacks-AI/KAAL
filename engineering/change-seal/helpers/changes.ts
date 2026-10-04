@@ -2,12 +2,17 @@
 // one, and answer which are closed. Identity is change-id.ts alone. A Change is
 // closed exactly when the ID of its current tree has a seal; there is no status.
 // The seal is an empty marker named by the ID, outside the tree it seals.
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { changeId } from "./change-id.js";
+import { changeId, workId } from "./change-id.js";
 
 /** Where Change seals live, relative to the KAAL directory; Node seals (seals/<ID>) are not touched. */
 export const SEALS = "seals/changes";
+/** Where Work seals live, beside Change seals and likewise outside the tree they seal. */
+export const WORK_SEALS = "seals/work";
+/** The Work of a Change is its directory work/, and its retrospective is retro.md. */
+export const WORK = "work";
+export const RETRO = "retro.md";
 
 const dirs = (path: string): string[] => (existsSync(path) ? readdirSync(path, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : []);
 
@@ -23,15 +28,41 @@ export function changes(kaalDir: string): string[] {
   return found;
 }
 
-/** The IDs sealed in this KAAL directory. */
-export function sealedIds(kaalDir: string): string[] {
-  const dir = join(kaalDir, SEALS);
-  return existsSync(dir) ? readdirSync(dir).filter((n) => /^[0-9a-f]{64}$/.test(n)).sort() : [];
+const markers = (dir: string): string[] => (existsSync(dir) ? readdirSync(dir).filter((n) => /^[0-9a-f]{64}$/.test(n)).sort() : []);
+
+/** The Change IDs sealed in this KAAL directory. */
+export const sealedIds = (kaalDir: string): string[] => markers(join(kaalDir, SEALS));
+
+/** The Work IDs sealed in this KAAL directory. */
+export const sealedWorkIds = (kaalDir: string): string[] => markers(join(kaalDir, WORK_SEALS));
+
+const isChange = (kaalDir: string, change: string): boolean => changes(kaalDir).includes(change.replace(/\/$/, ""));
+
+/** The Work ID of a Change's current work/, or undefined when it has none or none can be identified. */
+export function currentWorkId(kaalDir: string, change: string): string | undefined {
+  const work = join(kaalDir, change, WORK);
+  if (!existsSync(work) || !lstatSync(work).isDirectory()) return undefined;
+  try {
+    return workId(work);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Seal the Work of one Change: record the ID of its current work/ tree. Returns the ID; sealing again changes nothing. */
+export function sealWork(kaalDir: string, change: string): string {
+  if (!isChange(kaalDir, change)) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
+  const work = join(kaalDir, change, WORK);
+  if (!existsSync(work)) throw new Error(`${change} has no ${WORK}/`);
+  const id = workId(work);
+  mkdirSync(join(kaalDir, WORK_SEALS), { recursive: true });
+  writeFileSync(join(kaalDir, WORK_SEALS, id), "");
+  return id;
 }
 
 /** Seal one Change: record the ID of its complete current tree. Returns the ID; sealing again changes nothing. */
 export function sealChange(kaalDir: string, change: string): string {
-  if (!changes(kaalDir).includes(change.replace(/\/$/, ""))) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
+  if (!isChange(kaalDir, change)) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
   const id = changeId(join(kaalDir, change));
   mkdirSync(join(kaalDir, SEALS), { recursive: true });
   writeFileSync(join(kaalDir, SEALS, id), "");
@@ -54,8 +85,23 @@ export function closedChanges(kaalDir: string): { path: string; id: string }[] {
   return closed;
 }
 
-/** The problems with this KAAL directory's Change seals; empty means none. A seal that no Change currently matches means a sealed Change was altered or removed. */
+/**
+ * The problems with this KAAL directory's Change and Work seals; empty means
+ * none. A seal that no Change (or Change's work/) currently matches means
+ * sealed history was altered or removed; a closed Change that has a work/ whose
+ * seal is gone means the same.
+ */
 export function checkChanges(kaalDir: string): string[] {
-  const live = new Set(closedChanges(kaalDir).map((c) => c.id));
-  return sealedIds(kaalDir).filter((id) => !live.has(id)).map((id) => `${SEALS}/${id} matches no Change: a sealed Change was altered or removed`);
+  const closed = closedChanges(kaalDir);
+  const live = new Set(closed.map((c) => c.id));
+  const problems = sealedIds(kaalDir).filter((id) => !live.has(id)).map((id) => `${SEALS}/${id} matches no Change: a sealed Change was altered or removed`);
+  const works = changes(kaalDir).map((c) => ({ change: c, id: currentWorkId(kaalDir, c) }));
+  const sealedWork = new Set(sealedWorkIds(kaalDir));
+  const present = new Set(works.map((w) => w.id));
+  for (const id of sealedWork) if (!present.has(id)) problems.push(`${WORK_SEALS}/${id} matches no Work: sealed work was altered or removed`);
+  for (const c of closed) {
+    const w = works.find((x) => x.change === c.path);
+    if (w && existsSync(join(kaalDir, w.change, WORK)) && !(w.id && sealedWork.has(w.id))) problems.push(`${c.path} is closed but its ${WORK}/ is not sealed`);
+  }
+  return problems;
 }

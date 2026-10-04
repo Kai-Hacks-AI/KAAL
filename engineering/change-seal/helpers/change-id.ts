@@ -1,13 +1,18 @@
-// PROVISIONAL, the one definition of a Change's identity. Generic by design: it
-// knows a directory tree of regular files and SHA-256, never Git, GitHub, CI or
-// where seals are kept. A candidate to move to a future sealing Skill; not
-// kaal-core API. Nothing else may hash a Change.
+// PROVISIONAL, the one definition of a directory tree's identity, and so of a
+// Change's and a Work's. Generic by design: it knows a directory tree of regular
+// files, a domain tag and SHA-256, never Git, GitHub, CI or where seals are
+// kept. A candidate to move to a future sealing Skill; not kaal-core API.
+// Nothing else may hash a Change or a Work.
 //
 // A Change is the directory changes/<name>/YY/MM/DD/CC/, and its identity covers
 // the whole tree under it, relative paths included (unlike a Node, whose
-// identity is its bytes alone). The tree's canonical stream is:
+// identity is its bytes alone). A Work is the directory work/ of a Change, and
+// its identity covers the tree under work/ alone, paths relative to it, so
+// where the Work lies is not part of it. The two differ only in their domain
+// tag, so a Change and a Work of the same bytes never share an ID. The tree's
+// canonical stream is:
 //
-//   "KAAL Change v1\n"                       domain tag, 15 bytes
+//   domain tag, "KAAL Change v1\n" (15 bytes) or "KAAL Work v1\n" (13 bytes)
 //   uint64 BE  number of files
 //   for each file, by bytewise order of its UTF-8 relative path:
 //     uint64 BE  path length in bytes,  path (UTF-8)
@@ -21,7 +26,8 @@ import { createHash } from "node:crypto";
 import { lstatSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const TAG = Buffer.from("KAAL Change v1\n", "utf8");
+const CHANGE_TAG = "KAAL Change v1\n";
+const WORK_TAG = "KAAL Work v1\n";
 
 const u64 = (n: number): Buffer => {
   const b = Buffer.alloc(8);
@@ -29,11 +35,11 @@ const u64 = (n: number): Buffer => {
   return b;
 };
 
-/** A Change tree that cannot be given an identity. */
+/** A tree that cannot be given an identity. */
 export class ChangeTreeError extends Error {}
 
 /** The relative path of every regular file under `dir`, in canonical order; throws ChangeTreeError for anything unsupported. */
-export function changeFiles(dir: string): string[] {
+export function treeFiles(dir: string): string[] {
   const found: string[] = [];
   const walk = (rel: string): void => {
     const abs = rel === "" ? dir : join(dir, rel);
@@ -68,11 +74,10 @@ function problemWithName(name: string, path: string): void {
   if (Buffer.from(name, "utf8").toString("utf8") !== name) throw new ChangeTreeError(`${path} is not valid UTF-8`);
 }
 
-/** The Change ID of the tree at `dir`: SHA-256, hex, of its canonical stream. */
-export function changeId(dir: string): string {
-  const files = changeFiles(dir);
-  if (files.length === 0) throw new ChangeTreeError("a Change with no files has no identity");
-  const hash = createHash("sha256").update(TAG).update(u64(files.length));
+function treeId(dir: string, tag: string, what: string): string {
+  const files = treeFiles(dir);
+  if (files.length === 0) throw new ChangeTreeError(`a ${what} with no files has no identity`);
+  const hash = createHash("sha256").update(Buffer.from(tag, "utf8")).update(u64(files.length));
   for (const path of files) {
     const name = Buffer.from(path, "utf8");
     const bytes = readFileSync(join(dir, path));
@@ -80,3 +85,9 @@ export function changeId(dir: string): string {
   }
   return hash.digest("hex");
 }
+
+/** The Change ID of the tree at `dir`: SHA-256, hex, of its canonical stream. */
+export const changeId = (dir: string): string => treeId(dir, CHANGE_TAG, "Change");
+
+/** The Work ID of the tree at `dir`, the Work root: the same stream under the Work tag, so the Work's own address is no part of it. */
+export const workId = (dir: string): string => treeId(dir, WORK_TAG, "Work");
