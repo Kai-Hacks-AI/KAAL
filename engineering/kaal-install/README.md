@@ -6,25 +6,25 @@ The machinery by which this repository is itself an installed KAAL. It is not pa
 
 ```
 .kaal/AGENT.md, core/, seals/    from packages/kaal-core, its payload()
-.kaal/skills/<capability>/       from packages/<capability>/kaal, registered through Core's registerSkill()
-.kaal/seals/                     Core's seals, and each capability Node's own seal
-skills/<capability>/             from packages/<capability>/skills, the Agent Skills
+.kaal/skills/<capability>/       from the delivering package's kaal/, registered through Core's registerSkill()
+.kaal/seals/                     Core's seals, and each registered Node's own seal
+skills/<capability>/             from the delivering package's skills/, the Agent Skills
 AGENTS.md                        wired to .kaal/AGENT.md by wire-kaal-agent
 .kaal/changes/                   genuine installed state: not derived, not touched here
 ```
 
-Every package under `packages/` other than `kaal-core` is a capability. Nothing under `.kaal/` (except `changes/`) or under the capabilities' `skills/` is written by hand, and the committed bytes are never the authority for package-derived state: the packages are.
+Which Skills are installed is Core's answer, `installedSkills()`, derived from the admitted graph of the installed KAAL: no package layout, package name or list decides it. The packages supply only bytes: the package that delivers an installed Skill is the one carrying a Node with that exact ID (a package is any directory under `packages/` whose built `payload()` returns `{ kaal, skills }`). Nothing under `.kaal/` (except `changes/`) or under a delivered capability's `skills/` is written by hand, and the committed bytes are never the authority for package-derived state: the packages are. A package that exists but whose Skill is not installed is not installed; adding a capability is a visible change to `.kaal`.
 
 ## Commands
 
-- `npm run install-kaal [-- --into <dir>]` makes a checkout hold the delivery. Core's payload is deployed into a throwaway KAAL directory, each capability is registered into it through Core, and the result is projected into the checkout. It is idempotent. Sealed material is append-only: if an installed Node, seal or Core file would take other bytes, it refuses and writes nothing, as Core's registration does. The unsealed derived files, `.kaal/AGENT.md` and the Agent Skills of the delivered capabilities, are made to match the packages. `.kaal/changes` is never read or written.
-- `npm run check-kaal-install [-- --into <dir>]` exits 0 if the checkout holds exactly what the packages currently deliver, otherwise 1, naming each file that is missing, differs, or is not delivered by any package, and each installed Node that is not admitted. It never repairs.
+- `npm run install-kaal [-- --into <dir>] [--skill <Node name>]...` makes a checkout hold the delivery. Core's payload is deployed into a throwaway KAAL directory, each delivering package's contribution is registered into it through Core, and the result is projected into the checkout. The Skills delivered are those the checkout already has installed plus any named with `--skill` (needed only the first time, since a fresh checkout has none; a name no package delivers is refused). It is idempotent. Sealed material is append-only: if an installed Node, seal or Core file would take other bytes, it refuses and writes nothing, as Core's registration does. The unsealed derived files, `.kaal/AGENT.md` and the Agent Skills of the delivered capabilities, are made to match the packages. `.kaal/changes` is never read or written.
+- `npm run check-kaal-install [-- --into <dir>]` exits 0 if the checkout holds exactly what the packages currently deliver for its installed Skills, otherwise 1, naming each file that is missing, differs, or is not delivered by any package, each installed Skill that no package delivers, and each installed Node that is not admitted. It never repairs.
 
 Both default to the current directory. `--into` names another checkout; the packages are always this repository's.
 
 ## Acceptance
 
-`npm test` here runs on what the packages actually deliver: install into an empty checkout and show Core's installed state equals Core's delivery, that Engineering KAAL Skill and Changing KAAL are registered Skills with their Nodes under `.kaal/skills/<capability>/` and their seals in `.kaal/seals/`, that the Agent Skills appear under `skills/`, and that the Agent entrypoint is wired by the existing `wire-kaal-agent`. It shows the check names damage and repairs nothing, that sealed material is not rewritten, and that `.kaal/changes` survives installing and is outside the check. The last tests hold this repository to the same, including that its change records are allocated in sequence and each is closed with a four-heading `retro.md`.
+`npm test` here runs on what the packages actually deliver: install into an empty checkout (Core only, with no installed Skills), then register the two Skills by name, and show Core's installed state equals Core's delivery, that Engineering KAAL Skill and Changing KAAL are registered Skills with their Nodes under `.kaal/skills/<capability>/` and their seals in `.kaal/seals/`, that the Agent Skills appear under `skills/`, and that what is delivered follows the installed Skills and not the existence of packages, that an installed Skill no package delivers is named, and that the Agent entrypoint is wired by the existing `wire-kaal-agent`. It shows the check names damage and repairs nothing, that sealed material is not rewritten, and that `.kaal/changes` survives installing and is outside the check. The last tests hold this repository to the same, including that its change records are allocated in sequence and each is closed with a four-heading `retro.md`.
 
 ## Not here
 

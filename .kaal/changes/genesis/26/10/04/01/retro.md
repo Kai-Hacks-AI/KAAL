@@ -2,7 +2,7 @@
 
 ## Learned
 
-Registering a capability into a KAAL directory does not care what else lives there. I expected `.kaal/changes` to need an exemption somewhere, but a retro has no Form, so Core's admission never sees it, and installed history and delivered capabilities coexist without any rule being added for it. The only line I had to draw was between sealed files, which are append-only, and the two unsealed derived kinds, `AGENT.md` and the host's Agent Skills, which may be made to match their packages.
+Where a fact already lives in KAAL's graph, a convention of mine in code is a second source of truth. I decided that every package except `kaal-core` is a capability; the review showed that which Skills are installed is Core's to answer from the admitted Nodes, and that even Core's anchor must be an identity, not a name. Registering a capability also does not care what else lives in the KAAL directory: a retro has no Form, so `.kaal/changes` needed no exemption anywhere.
 
 ## Liked
 
@@ -10,7 +10,7 @@ The allocator from the previous change did its job the first time I used it as a
 
 ## Lacked
 
-Anything in the repository that says which packages are capabilities. I decided, in code, that every package except `kaal-core` is one, and I check that each carries a `payload()` and one Agent Skill named as its package, but that convention is written down only in the code that enforces it.
+A way for a fresh checkout to learn which Skills it should have. Once discovery came from the installed Nodes, there was nothing installed to discover from on a first install, so I added `--skill <Node name>` as the first-time registration and could not settle in the repository whether that is the intended answer.
 
 ## Longed
 

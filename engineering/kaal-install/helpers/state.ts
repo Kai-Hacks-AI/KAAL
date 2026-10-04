@@ -6,13 +6,7 @@
 // installed state: it is neither read nor written here.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { pathToFileURL } from "node:url";
-import { CHANGES, Delivery, HOST_SKILLS, KAAL_DIR, SOURCE, read } from "./delivery.js";
-
-type Files = Record<string, string>;
-type Nodes = { candidates(files: Files): unknown[]; admit(files: Files): { name: string }[] };
-// Admission is judged by the one implementation Core's registration uses, in the built package and not through its public API.
-const nodes = (await import(pathToFileURL(join(SOURCE, "packages", "kaal-core", "dist", "nodes.js")).href)) as Nodes;
+import { CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./delivery.js";
 
 /** The one derived file of the KAAL directory that is not sealed. */
 const UNSEALED = "AGENT.md";
@@ -30,7 +24,7 @@ function installed(target: string, d: Delivery): { kaal: Files; skills: Files } 
 
 /** What differs between `target` and the delivery; empty means it holds the delivery. Never repairs. */
 export function check(target: string, d: Delivery): string[] {
-  const problems: string[] = [];
+  const problems: string[] = d.unresolved.map((s) => `the installed Skill ${s.name} (${s.id}) is delivered by no package`);
   const have = installed(target, d);
   const compare = (label: string, expected: Files, found: Files) => {
     for (const [path, bytes] of Object.entries(expected)) {
@@ -45,7 +39,6 @@ export function check(target: string, d: Delivery): string[] {
     const found = nodes.candidates(have.kaal).length;
     const admitted = nodes.admit(have.kaal);
     if (admitted.length !== found) problems.push(`${KAAL_DIR} holds ${found - admitted.length} Node(s) that are not admitted`);
-    if (!admitted.some((n) => n.name === "Skill")) problems.push(`${KAAL_DIR} admits no Skill Node`);
   }
   return problems;
 }

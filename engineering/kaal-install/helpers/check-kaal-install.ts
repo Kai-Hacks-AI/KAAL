@@ -8,6 +8,6 @@ import { parse } from "./args.js";
 import { check } from "./state.js";
 
 const { target } = parse(process.argv.slice(2), "usage: check-kaal-install [--into <dir>]");
-const problems = check(target, await delivery());
+const problems = check(target, await delivery(target));
 for (const problem of problems) console.error(problem);
 process.exit(problems.length === 0 ? 0 : 1);
