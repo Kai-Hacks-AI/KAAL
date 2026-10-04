@@ -1,0 +1,10 @@
+{
+  "name": "changing-kaal-engineering",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run clean && npm run build && node --test dist/acceptance/*.test.js",
+    "build": "npm run build --prefix ../../packages/kaal-core && npm run build --prefix ../../packages/changing-kaal && tsc",
+    "clean": "rm -rf dist"
+  }
+}
