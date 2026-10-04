@@ -3,10 +3,10 @@
 // Checks a KAAL Skill capability against the conventions that bytes and
 // layout can decide: one capability per package, packages/<capability>/ with
 // engineering/<capability>/, an Agent Skills-conformant skill in the package,
-// and a seal for every KAAL file of the capability. Exits 0 if all hold, 1
-// otherwise, and never repairs. Whether the Node is a valid Skill Node of an
-// installed KAAL is Core's to decide: use register-skill --check.
-import { createHash } from "node:crypto";
+// and a kaal/ contribution. Exits 0 if all hold, 1 otherwise, and never
+// repairs. It decides nothing about seals or Nodes: whether a Node is sealed
+// by its own bytes, and whether it is a valid Skill Node of an installed KAAL,
+// is Core's to decide through registration: use register-skill --check.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -33,7 +33,7 @@ if (!existsSync(manifest)) problems.push(`skills/${capability}/SKILL.md is missi
 else checkManifest(readFileSync(manifest, "utf8"));
 
 if (!existsSync(kaalDir)) problems.push("kaal/ is missing: the capability's KAAL contribution");
-else checkSeals();
+else checkContribution();
 
 for (const problem of problems) console.error(problem);
 process.exit(problems.length === 0 ? 0 : 1);
@@ -58,17 +58,7 @@ function checkManifest(text) {
   if (text.split("\n").length > 500) problems.push("SKILL.md is under 500 lines: move detail to references/");
 }
 
-function checkSeals() {
-  const files = [];
-  const sealed = [];
-  for (const path of readdirSync(kaalDir, { recursive: true, encoding: "utf8" })) {
-    if (!statSync(join(kaalDir, path)).isFile()) continue;
-    const normal = path.split("\\").join("/");
-    if (normal.startsWith("seals/")) sealed.push(normal.slice("seals/".length));
-    else files.push(normal);
-  }
-  if (files.length === 0) problems.push("kaal/ carries at least one Node");
-  const ids = files.map((f) => createHash("sha256").update(readFileSync(join(kaalDir, f))).digest("hex"));
-  files.forEach((f, i) => { if (!sealed.includes(ids[i])) problems.push(`kaal/${f} is not sealed: its ID ${ids[i]} has no marker`); });
-  for (const id of sealed) if (!ids.includes(id)) problems.push(`kaal/seals/${id} seals no file of kaal/`);
+function checkContribution() {
+  const nodes = readdirSync(kaalDir, { recursive: true, encoding: "utf8" }).filter((p) => statSync(join(kaalDir, p)).isFile() && !p.split("\\").join("/").startsWith("seals/"));
+  if (nodes.length === 0) problems.push("kaal/ carries at least one Node");
 }

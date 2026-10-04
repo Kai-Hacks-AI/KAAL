@@ -15,7 +15,7 @@ type:
 <What the capability means to KAAL, and its scope.>
 ```
 
-Exactly this front matter: `name`, then `type` as an indented `name` and `id` pair. The ID is lowercase hex, 64 characters, the SHA-256 of the sealed `Skill` Node's exact bytes. A Node is a KAAL Skill exactly when its type refers, by name and ID, to the `Skill` Node.
+Exactly this front matter: `name`, then `type` as an indented `name` and `id` pair. The ID is lowercase hex, 64 characters, the SHA-256 of Core's `Skill` Node's exact bytes. A Node is a KAAL Skill exactly when its type refers, by name and ID, to Core's `Skill` Node: the Node deployed as `core/Skill.md`, whose ID is the SHA-256 of that file's exact bytes. Another Node named `Skill` is not it.
 
 A capability may carry more than one Node in `kaal/`; at least one must be typed by `Skill`. Every Node needs its own seal, `kaal/seals/<ID>`, an empty file named by the Node's own ID.
 

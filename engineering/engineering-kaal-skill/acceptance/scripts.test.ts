@@ -29,8 +29,6 @@ test("check-skill refuses what the conventions forbid, and repairs nothing", asy
     ["an unknown frontmatter field", (r) => writeFileSync(manifestOf(r), readFileSync(manifestOf(r), "utf8").replace("license: MIT", "license: MIT\nowner: me")), /owner is not in the Agent Skills standard/],
     ["a description over 1024 characters", (r) => writeFileSync(manifestOf(r), readFileSync(manifestOf(r), "utf8").replace(/description: .*/, `description: ${"x".repeat(1025)}`)), /at most 1024/],
     ["no description", (r) => writeFileSync(manifestOf(r), readFileSync(manifestOf(r), "utf8").replace(/description: .*\n/, "")), /has a description/],
-    ["a Node changed after it was sealed", (r) => writeFileSync(join(r, "packages", CAPABILITY, "kaal", "Engineering-Skill.md"), kaal["Engineering-Skill.md"] + " "), /is not sealed/],
-    ["a seal that seals nothing", (r) => writeFileSync(join(r, "packages", CAPABILITY, "kaal", "seals", "0".repeat(64)), ""), /seals no file/],
     ["no kaal contribution", (r) => rmSync(join(r, "packages", CAPABILITY, "kaal"), { recursive: true }), /kaal\/ is missing/],
   ];
   for (const [what, damage, expected] of cases) {
@@ -46,6 +44,22 @@ test("check-skill refuses what the conventions forbid, and repairs nothing", asy
   }
   assert.equal(run("check-skill", REPO, "Bad Name").code, 1, "a name Agent Skills forbids");
   assert.equal(run("check-skill").code, 2, "usage");
+});
+
+test("check-skill decides nothing about seals: that is Core's, through registration", (t) => {
+  const changed = (r: string) => writeFileSync(join(r, "packages", CAPABILITY, "kaal", "Engineering-Skill.md"), kaal["Engineering-Skill.md"] + " ");
+  const orphan = (r: string) => writeFileSync(join(r, "packages", CAPABILITY, "kaal", "seals", "0".repeat(64)), "");
+  for (const [what, damage, refusal] of [
+    ["a Node changed after it was sealed", changed, /not an empty seal of a carried Node|is not admitted/],
+    ["a seal that seals nothing", orphan, /not an empty seal of a carried Node/],
+  ] as const) {
+    const root = repoCopy(t);
+    damage(root);
+    assert.equal(run("check-skill", root, CAPABILITY).code, 0, `${what}: layout and conformance are all check-skill judges`);
+    const r = run("register-skill", "--check", deployKaal(t), CAPABILITY, join(root, "packages", CAPABILITY, "kaal"));
+    assert.equal(r.code, 1, what);
+    assert.match(r.err, refusal, `${what}: refused by Core's registration`);
+  }
 });
 
 test("register-skill --check decides through Core and writes nothing; without --check it registers", (t) => {
