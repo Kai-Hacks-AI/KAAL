@@ -9,15 +9,13 @@ export const BEGIN = "<!-- kaal:begin -->";
 export const END = "<!-- kaal:end -->";
 export const DEFAULT_AGENTS_FILE = "AGENTS.md";
 /** `.kaal` is only the default name of the KAAL directory. */
-/** The KAAL-side entrypoint the wiring points to: host AGENTS.md -> <kaal>/AGENT.md -> KAAL Nodes. */
-export const ENTRYPOINT = "AGENT.md";
-/** Bridge: while kaal-core renames its entrypoint to AGENTS.md, the check accepts whichever name the deployed KAAL directory carries. Removed once the wiring switches to AGENTS.md. */
-const CARRIED = [ENTRYPOINT, "AGENTS.md"];
+/** The KAAL-side entrypoint the wiring points to: host AGENTS.md -> <kaal>/AGENTS.md -> KAAL Nodes. */
+export const ENTRYPOINT = "AGENTS.md";
 export const DEFAULT_KAAL_DIR = ".kaal";
 
 /** The KAAL-owned fragment. `kaalDir` is relative to the directory holding AGENTS.md. */
 export function fragment(kaalDir: string): string {
-  return `${BEGIN}\nKAAL is available at \`${kaalDir}/\`. Read \`${kaalDir}/AGENT.md\` to use it.\n${END}`;
+  return `${BEGIN}\nKAAL is available at \`${kaalDir}/\`. Read \`${kaalDir}/AGENTS.md\` to use it.\n${END}`;
 }
 
 type Located = { start: number; end: number } | undefined | Error;
@@ -40,7 +38,7 @@ export function checkWiring(agentsFile: string, text: string | undefined, kaalDi
   if (found instanceof Error) return [`${agentsFile}: ${found.message}`];
   const problems: string[] = [];
   if (text.slice(found.start, found.end) !== fragment(kaalDir)) problems.push(`${agentsFile}: the KAAL fragment is not the expected wiring to ${kaalDir}/`);
-  if (!CARRIED.some((name) => existsSync(join(dirname(agentsFile), kaalDir, name)))) problems.push(`${kaalDir}/${ENTRYPOINT} does not exist next to ${agentsFile}`);
+  if (!existsSync(join(dirname(agentsFile), kaalDir, ENTRYPOINT))) problems.push(`${kaalDir}/${ENTRYPOINT} does not exist next to ${agentsFile}`);
   return problems;
 }
 
