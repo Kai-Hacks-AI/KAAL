@@ -13,8 +13,15 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../helpers/delivery.js";
 import { check, install } from "../helpers/state.js";
+import * as changing from "changing-kaal";
+import * as engineering from "engineering-kaal-skill";
 
 const SKILLS = ["Changing KAAL", "Engineering Skill"];
+// Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
+const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
+  ["engineering-kaal-skill", engineering.payload],
+  ["changing-kaal", changing.payload],
+];
 const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
@@ -25,16 +32,21 @@ function checkout(t: After): string {
   return dir;
 }
 /** What the packages deliver for the checkout as it is now. */
-const deliver = (dir: string, ...skills: string[]) => delivery(dir, skills);
-/** Install the delivery, naming Skills only where the checkout has none yet. */
-const installed = async (dir: string, ...skills: string[]) => install(dir, await deliver(dir, ...skills));
+const deliver = (dir: string) => delivery(dir);
+/** Install the delivery: Core, and the packages' bytes for whatever Skills the checkout has installed. */
+const installed = async (dir: string) => install(dir, await deliver(dir));
 const problems = async (dir: string) => check(dir, await deliver(dir));
-/** A checkout with both capabilities registered. */
-async function full(t: After): Promise<string> {
-  const dir = checkout(t);
-  await installed(dir, ...SKILLS);
-  return dir;
+/** A checkout bootstrapped as genesis is: Core installed, both capabilities registered through Core, then projected. */
+async function bootstrapped(dir: string, only = bootstrap): Promise<void> {
+  await installed(dir);
+  for (const [capability, payload] of only) core.registerSkill(join(dir, KAAL_DIR), capability, payload().kaal);
+  await installed(dir);
 }
+const full = async (t: After): Promise<string> => {
+  const dir = checkout(t);
+  await bootstrapped(dir);
+  return dir;
+};
 const both = (dir: string) => JSON.stringify([read(join(dir, KAAL_DIR)), existsSync(join(dir, HOST_SKILLS)) ? read(join(dir, HOST_SKILLS)) : {}]);
 const run = (command: string, dir: string, ...args: string[]) => {
   const r = spawnSync("node", [join(SOURCE, "engineering", "kaal-install", "dist", "helpers", `${command}.js`), ...args], { env: { ...process.env, INIT_CWD: dir }, encoding: "utf8" });
@@ -54,7 +66,7 @@ test("a fresh checkout is delivered Core only: with no installed Skills, no pack
   assert.ok(!existsSync(join(dir, HOST_SKILLS)), "no Agent Skills without installed Skills");
 });
 
-test("naming Skills registers them through Core: Nodes under skills/<capability>/, seals in seals/, Agent Skills under the host's skills/", async (t) => {
+test("registered through Core, the capabilities are installed Skills: Nodes under skills/<capability>/, seals in seals/, Agent Skills under the host's skills/", async (t) => {
   const dir = await full(t);
   assert.deepEqual(await problems(dir), []);
   const kaal = read(join(dir, KAAL_DIR));
@@ -73,17 +85,11 @@ test("naming Skills registers them through Core: Nodes under skills/<capability>
 
 test("what is delivered follows the installed Skills: install one and only it is delivered, whatever other packages exist", async (t) => {
   const dir = checkout(t);
-  await installed(dir, "Changing KAAL");
+  await bootstrapped(dir, bootstrap.filter(([c]) => c === "changing-kaal"));
   assert.deepEqual((await deliver(dir)).capabilities, ["changing-kaal"]);
   assert.deepEqual(await problems(dir), []);
   assert.ok(!existsSync(join(dir, HOST_SKILLS, "engineering-kaal-skill")), "a package that exists is not thereby installed");
   assert.ok(!Object.keys(read(join(dir, KAAL_DIR))).some((p) => p.startsWith("skills/engineering-kaal-skill/")));
-});
-
-test("a Skill named that no package delivers is refused, and nothing is written", async (t) => {
-  const dir = checkout(t);
-  await assert.rejects(() => deliver(dir, "No Such Skill"), /no package delivers a Skill named No Such Skill/);
-  assert.ok(!existsSync(join(dir, KAAL_DIR)));
 });
 
 test("an installed Skill that no package delivers is named by the check", async (t) => {
@@ -118,7 +124,7 @@ test("the check names what differs from the delivery, and repairs nothing", asyn
   for (const [what, harm, expected] of damage) {
     rmSync(join(dir, KAAL_DIR), { recursive: true, force: true });
     rmSync(join(dir, HOST_SKILLS), { recursive: true, force: true });
-    await installed(dir, ...SKILLS);
+    await bootstrapped(dir);
     harm();
     const before = both(dir);
     assert.match((await problems(dir)).join("\n"), expected, what);
@@ -157,17 +163,18 @@ test("changes, the genuine installed state, survive installing and are outside t
   assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
 });
 
-test("the commands: check (exit 1, never repairs), install naming Skills, check, install again", async (t) => {
+test("the commands: check (exit 1, never repairs), install Core, register, install again, check; the installer takes no names", async (t) => {
   const dir = checkout(t);
   assert.equal(run("check-kaal-install", dir).code, 1, "no Core installed");
   assert.ok(!existsSync(join(dir, KAAL_DIR)), "check created nothing");
-  assert.equal(run("install-kaal", dir, "--skill", "Changing KAAL", "--skill", "Engineering Skill").code, 0);
+  assert.equal(run("install-kaal", dir).code, 0, "a fresh checkout is installed Core only");
   assert.equal(run("check-kaal-install", dir).code, 0);
-  assert.equal(run("install-kaal", dir).code, 0, "installing again needs no names: Core knows what is installed");
+  for (const [capability, payload] of bootstrap) core.registerSkill(join(dir, KAAL_DIR), capability, payload().kaal);
+  assert.equal(run("check-kaal-install", dir).code, 1, "registered Skills are not yet projected to the host's skills/");
+  assert.equal(run("install-kaal", dir).code, 0, "Core knows what is installed: no names");
   assert.equal(run("check-kaal-install", dir).code, 0);
   assert.equal(run("check-kaal-install", dir, "--bogus", "x").code, 2);
-  assert.equal(run("check-kaal-install", dir, "--skill", "Changing KAAL").code, 2, "check takes no names");
-  assert.equal(run("install-kaal", dir, "--skill", "No Such Skill").code, 1);
+  assert.equal(run("install-kaal", dir, "--skill", "Changing KAAL").code, 2, "no name-based selection exists");
   writeFileSync(join(dir, KAAL_DIR, "core", "Core.md"), "x");
   const r = run("install-kaal", dir);
   assert.equal(r.code, 1);

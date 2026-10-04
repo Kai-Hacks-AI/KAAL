@@ -10,7 +10,7 @@ The allocator from the previous change did its job the first time I used it as a
 
 ## Lacked
 
-A way for a fresh checkout to learn which Skills it should have. Once discovery came from the installed Nodes, there was nothing installed to discover from on a first install, so I added `--skill <Node name>` as the first-time registration and could not settle in the repository whether that is the intended answer.
+A settled way for a first Skill to reach a fresh checkout. Once discovery came from the installed Nodes there was nothing installed to discover from on a first install, and the flag I added to fill that gap selected by name where KAAL identity is name and ID. It was refused, and the question stays open for a later design.
 
 ## Longed
 

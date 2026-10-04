@@ -81,11 +81,12 @@ async function packages(): Promise<Package[]> {
 }
 
 /**
- * What the packages deliver for `target`: the Skills already installed in its
- * KAAL directory, plus the Skills named in `requested`. Core's payload is
- * always delivered.
+ * What the packages deliver for `target`: for the Skills already installed in
+ * its KAAL directory, as Core reports them. Core's payload is always
+ * delivered. A Skill enters the installed KAAL by being registered through
+ * Core, never by being named here.
  */
-export async function delivery(target: string, requested: string[] = []): Promise<Delivery> {
+export async function delivery(target: string): Promise<Delivery> {
   const dir = join(target, KAAL_DIR);
   const installed = existsSync(dir) ? core.installedSkills(dir) : [];
   const all = await packages();
@@ -95,11 +96,6 @@ export async function delivery(target: string, requested: string[] = []): Promis
     const pkg = all.find((p) => p.nodes.some((n) => n.id === skill.id));
     if (pkg) wanted.add(pkg);
     else unresolved.push(skill);
-  }
-  for (const name of requested) {
-    const pkg = all.find((p) => p.nodes.some((n) => n.name === name && n.type?.name === "Skill"));
-    if (!pkg) throw new Error(`no package delivers a Skill named ${name}`);
-    wanted.add(pkg);
   }
   const scratch = mkdtempSync(join(tmpdir(), "kaal-delivery-"));
   try {
