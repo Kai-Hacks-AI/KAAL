@@ -14,6 +14,7 @@ import { admit, CAPABILITY, deployKaal, read } from "../helpers/setup.js";
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 const { kaal, skills } = payload();
 const nodeFile = "Changing-KAAL.md";
+const ratificationFile = "RATIFICATION.md";
 const manifest = skills[`${CAPABILITY}/SKILL.md`];
 
 test("Core carries no Changing KAAL: a capability joins without becoming Core", () => {
@@ -21,26 +22,51 @@ test("Core carries no Changing KAAL: a capability joins without becoming Core", 
   assert.ok(!Object.keys(core()).some((p) => p.startsWith("skills/")));
 });
 
-test("registering through Core admits the Changing KAAL Node, typed by the sealed Skill Node, and nothing else changes", (t) => {
+test("registering through Core admits the Changing KAAL Skill and the RATIFICATION definition, and nothing else changes", (t) => {
   const dir = deployKaal(t);
   const before = admit(read(dir));
   const skill = before.find((n) => n.name === "Skill")!;
+  const definition = before.find((n) => n.name === "KAAL Definition")!;
   const sealsBefore = readdirSync(join(dir, "seals"));
   const ids = registerSkill(dir, CAPABILITY, kaal);
   const after = admit(read(dir));
   assert.deepEqual(ids, [sha256(kaal[nodeFile])], "the Skill's identity is the SHA-256 of the shipped bytes");
-  assert.equal(after.length, before.length + 1);
+  assert.equal(after.length, before.length + 2);
   const found = after.filter((n) => n.type?.name === "Skill" && n.type.id === skill.id);
-  assert.deepEqual(found.map((n) => n.name), ["Changing KAAL"], "found by Node type alone");
-  assert.equal(readFileSync(join(dir, "skills", CAPABILITY, nodeFile), "utf8"), kaal[nodeFile], "bytes kept exactly");
-  assert.deepEqual(readdirSync(join(dir, "seals")).filter((id) => !sealsBefore.includes(id)), ids, "exactly one seal is added");
+  assert.deepEqual(found.map((n) => n.name), ["Changing KAAL"], "exactly one Skill, found by Node type alone");
+  const defined = after.filter((n) => n.type?.name === "KAAL Definition" && n.type.id === definition.id && !before.some((b) => b.id === n.id));
+  assert.deepEqual(defined.map((n) => [n.name, n.id]), [["RATIFICATION", sha256(kaal[ratificationFile])]], "admitted as the KAAL Definition it is typed by");
+  for (const file of [nodeFile, ratificationFile]) assert.equal(readFileSync(join(dir, "skills", CAPABILITY, file), "utf8"), kaal[file], `${file}: bytes kept exactly`);
+  assert.deepEqual(readdirSync(join(dir, "seals")).filter((id) => !sealsBefore.includes(id)).sort(), [sha256(kaal[nodeFile]), sha256(kaal[ratificationFile])].sort(), "exactly one seal per Node is added");
 });
 
-test("the capability is one Skill Node whose meaning is narrow, and the shipped seal is its own", () => {
-  const nodes = Object.keys(kaal).filter((p) => !p.startsWith("seals/"));
-  assert.deepEqual(nodes, [nodeFile]);
-  assert.equal(kaal[`seals/${sha256(kaal[nodeFile])}`], "");
+test("the Skill's meaning is narrow, each Node is sealed by its own bytes, and Changing KAAL knows nothing of RATIFICATION", () => {
+  const nodes = Object.keys(kaal).filter((p) => !p.startsWith("seals/")).sort();
+  assert.deepEqual(nodes, [nodeFile, ratificationFile]);
+  for (const file of nodes) assert.equal(kaal[`seals/${sha256(kaal[file])}`], "", file);
+  assert.equal(Object.keys(kaal).length, nodes.length * 2);
   assert.match(kaal[nodeFile], /managing changes to KAAL through KAAL's change process/);
+  assert.ok(!kaal[nodeFile].includes("RATIFICATION") && !kaal[nodeFile].includes(sha256(kaal[ratificationFile])), "no relationship is asserted");
+});
+
+test("RATIFICATION is a Node typed by the exact KAAL Definition Node and claims no relationship", (t) => {
+  const dir = deployKaal(t);
+  const definition = admit(read(dir)).find((n) => n.name === "KAAL Definition")!;
+  registerSkill(dir, CAPABILITY, kaal);
+  const ratification = admit(read(dir)).find((n) => n.name === "RATIFICATION");
+  assert.ok(ratification, "admitted");
+  assert.deepEqual(ratification.type, { name: "KAAL Definition", id: definition.id });
+  assert.ok(!kaal[ratificationFile].split("---\n").pop()!.includes("Changing KAAL"));
+});
+
+test("RATIFICATION is meaning alone: no Git, GitHub or enforcement vocabulary, no mechanism", () => {
+  const meaning = kaal[ratificationFile].split("---\n").pop()!;
+  for (const word of [/\bgit\b/i, /github/i, /\bbranch/i, /\bcommit/i, /pull request/i, /\bmerge/i, /\bCI\b/, /actions/i, /ruleset/i, /status check/i, /\bhook/i, /\bseal/i, /\bhash/i, /\bnpm\b/, /\.mjs/, /changes\//]) assert.doesNotMatch(meaning, word);
+  for (const word of ["Requirements", "Architecture", "Intend", "Formalized", "Implement", "Code", "And", "Test", "Its", "Outcome", "Neat"]) assert.match(meaning, new RegExp(`\\b${word}\\b`), word);
+});
+
+test("no Core change is needed: Core carries neither RATIFICATION nor Changing KAAL", () => {
+  assert.ok(!admit(core()).some((n) => n.name === "RATIFICATION" || n.name === "Changing KAAL"));
 });
 
 test("the Node defines no GitHub, PR, directory format, retrospective, command or implementation", () => {
