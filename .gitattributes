@@ -1,0 +1,2 @@
+# Change records are hashed as raw bytes: never convert line endings or content.
+.kaal/changes/** -text
