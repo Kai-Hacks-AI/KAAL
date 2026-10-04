@@ -92,7 +92,7 @@ test("identical copies elsewhere read as closed: the address is not identity", (
 });
 
 test("this repository's genesis Change 01 is closed, and every Change seal still matches a Change", () => {
-  const repo = new URL("../../../.kaal", import.meta.url).pathname;
+  const repo = new URL("../../../../.kaal", import.meta.url).pathname;
   const closed = run("closed", repo).out.split("\n");
   assert.ok(closed.some((l) => l.startsWith("changes/genesis/26/10/04/01 ")), "01 is sealed");
   assert.equal(run("check", repo).code, 0);
