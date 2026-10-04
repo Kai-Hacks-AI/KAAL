@@ -5,9 +5,9 @@
 // identities are unchanged.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { payload, registerSkill } from "kaal-core";
+import { installedSkills, payload, registerSkill } from "kaal-core";
 import { readNodes, typedBy } from "../helpers/nodes.js";
 import { sha256 } from "../helpers/seal.js";
 import { deploy } from "./setup.js";
@@ -112,4 +112,96 @@ test("a failure while writing removes what was written", (t) => {
   const before = tree(dir);
   assert.throws(() => registerSkill(dir, "broken", contribution));
   assert.equal(tree(dir), before, "no partial registration is left");
+});
+
+test("the installed Skills are the admitted Nodes typed, by name and ID, by the admitted Skill Node", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  assert.deepEqual(installedSkills(dir), [], "Core carries no Skill");
+  const sid = skillId(dir);
+  const b = node("Brewing", "Skill", sid);
+  const a = node("Auditing", "Skill", sid);
+  // A Node of a capability that is not itself a Skill: typed by the capability's Skill, not by Skill.
+  const notes = node("Brewing Notes", "Brewing", sha256(b["Brewing.md"]));
+  registerSkill(dir, "brewing", { ...b, ...notes });
+  registerSkill(dir, "auditing", a);
+  const ref = (name: string, files: Record<string, string>) => ({ name, id: sha256(files[`${name}.md`]) });
+  assert.deepEqual(installedSkills(dir), [ref("Auditing", a), ref("Brewing", b)], "name order; the Notes Node is not a Skill");
+  assert.deepEqual(installedSkills(dir), typedBy(readNodes(dir), { name: "Skill", id: sid }).map(({ name, id }) => ({ name, id })).sort((x, y) => (x.name < y.name ? -1 : 1)), "the same typing registration is");
+});
+
+test("installed Skills are found by typing alone: not by path, not unsealed, not by name, not by the wrong ID", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  const sid = skillId(dir);
+  const elsewhere = node("Elsewhere", "Skill", sid);
+  mkdirSync(join(dir, "anywhere", "at", "all"), { recursive: true });
+  writeFileSync(join(dir, "anywhere", "at", "all", "Elsewhere.md"), elsewhere["Elsewhere.md"]);
+  for (const [p, c] of Object.entries(elsewhere)) if (p.startsWith("seals/")) writeFileSync(join(dir, p), c);
+  const unsealed = node("Unsealed", "Skill", sid);
+  writeFileSync(join(dir, "Unsealed.md"), unsealed["Unsealed.md"]);
+  for (const [name, typeName, typeId] of [["Wrong ID", "Skill", "0".repeat(64)], ["Wrong name", "Agent", sid]] as const) {
+    const n = node(name, typeName, typeId);
+    for (const [p, c] of Object.entries(n)) writeFileSync(join(dir, p), c);
+  }
+  assert.deepEqual(installedSkills(dir), [{ name: "Elsewhere", id: sha256(elsewhere["Elsewhere.md"]) }]);
+});
+
+test("installed Skills do not depend on what else the KAAL directory holds, such as changes", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  registerSkill(dir, "brewing", node("Brewing", "Skill", skillId(dir)));
+  const before = installedSkills(dir);
+  mkdirSync(join(dir, "changes", "genesis", "26", "10", "04", "01"), { recursive: true });
+  writeFileSync(join(dir, "changes", "genesis", "26", "10", "04", "01", "retro.md"), "# Retro\n");
+  assert.deepEqual(installedSkills(dir), before);
+});
+
+test("installedSkills reads and writes nothing, and a directory without the Skill Node has no Skills", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  registerSkill(dir, "brewing", node("Brewing", "Skill", skillId(dir)));
+  const before = tree(dir);
+  installedSkills(dir);
+  assert.equal(tree(dir), before);
+  rmSync(join(dir, "core", "Skill.md"));
+  assert.deepEqual(installedSkills(dir), [], "no Skill Node, no Skills");
+});
+
+test("another admitted Node named Skill cannot become the anchor: Skill typing is Core's exact Skill Node", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  const nodes = readNodes(dir);
+  const real = skillId(dir);
+  // A sealed, admitted Node also named Skill, stored where it comes first in file order.
+  const definition = nodes.find((n) => n.name === "KAAL Definition")!;
+  const impostor = node("Skill", "KAAL Definition", definition.id, " An impostor.");
+  const impostorMd = impostor["Skill.md"];
+  const impostorId = sha256(impostorMd);
+  mkdirSync(join(dir, "aaa"));
+  writeFileSync(join(dir, "aaa", "Skill.md"), impostorMd);
+  writeFileSync(join(dir, "seals", impostorId), "");
+  assert.deepEqual(readNodes(dir).filter((n) => n.name === "Skill").map((n) => n.id).sort(), [real, impostorId].sort(), "two admitted Nodes are named Skill");
+  assert.ok(readNodes(dir).findIndex((n) => n.id === impostorId) < readNodes(dir).findIndex((n) => n.id === real), "the impostor comes first");
+
+  // A Node typed by the impostor is not a Skill, installed or registrable.
+  const fake = node("Fake", "Skill", impostorId);
+  writeFileSync(join(dir, "Fake.md"), fake["Fake.md"]);
+  for (const [p, c] of Object.entries(fake)) if (p.startsWith("seals/")) writeFileSync(join(dir, p), c);
+  assert.deepEqual(installedSkills(dir), [], "typed by a Node named Skill, not by Core's Skill");
+  const before = tree(dir);
+  assert.throws(() => registerSkill(dir, "fake", node("Fake Two", "Skill", impostorId)), Error);
+  assert.equal(tree(dir), before);
+
+  // Core's own Skill still anchors: a real Skill registers and is found.
+  const good = node("Brewing", "Skill", real);
+  registerSkill(dir, "brewing", good);
+  assert.deepEqual(installedSkills(dir), [{ name: "Brewing", id: sha256(good["Brewing.md"]) }]);
+});
+
+test("the anchor is the SHA-256 of the exact bytes Core carries for Skill", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  const good = node("Brewing", "Skill", sha256(payload()["core/Skill.md"]));
+  assert.deepEqual(registerSkill(dir, "brewing", good), [sha256(good["Brewing.md"])]);
 });
