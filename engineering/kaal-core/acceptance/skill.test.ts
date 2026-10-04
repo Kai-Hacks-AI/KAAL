@@ -167,3 +167,41 @@ test("installedSkills reads and writes nothing, and a directory without the Skil
   rmSync(join(dir, "core", "Skill.md"));
   assert.deepEqual(installedSkills(dir), [], "no Skill Node, no Skills");
 });
+
+test("another admitted Node named Skill cannot become the anchor: Skill typing is Core's exact Skill Node", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  const nodes = readNodes(dir);
+  const real = skillId(dir);
+  // A sealed, admitted Node also named Skill, stored where it comes first in file order.
+  const definition = nodes.find((n) => n.name === "KAAL Definition")!;
+  const impostor = node("Skill", "KAAL Definition", definition.id, " An impostor.");
+  const impostorMd = impostor["Skill.md"];
+  const impostorId = sha256(impostorMd);
+  mkdirSync(join(dir, "aaa"));
+  writeFileSync(join(dir, "aaa", "Skill.md"), impostorMd);
+  writeFileSync(join(dir, "seals", impostorId), "");
+  assert.deepEqual(readNodes(dir).filter((n) => n.name === "Skill").map((n) => n.id).sort(), [real, impostorId].sort(), "two admitted Nodes are named Skill");
+  assert.ok(readNodes(dir).findIndex((n) => n.id === impostorId) < readNodes(dir).findIndex((n) => n.id === real), "the impostor comes first");
+
+  // A Node typed by the impostor is not a Skill, installed or registrable.
+  const fake = node("Fake", "Skill", impostorId);
+  writeFileSync(join(dir, "Fake.md"), fake["Fake.md"]);
+  for (const [p, c] of Object.entries(fake)) if (p.startsWith("seals/")) writeFileSync(join(dir, p), c);
+  assert.deepEqual(installedSkills(dir), [], "typed by a Node named Skill, not by Core's Skill");
+  const before = tree(dir);
+  assert.throws(() => registerSkill(dir, "fake", node("Fake Two", "Skill", impostorId)), Error);
+  assert.equal(tree(dir), before);
+
+  // Core's own Skill still anchors: a real Skill registers and is found.
+  const good = node("Brewing", "Skill", real);
+  registerSkill(dir, "brewing", good);
+  assert.deepEqual(installedSkills(dir), [{ name: "Brewing", id: sha256(good["Brewing.md"]) }]);
+});
+
+test("the anchor is the SHA-256 of the exact bytes Core carries for Skill", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  const good = node("Brewing", "Skill", sha256(payload()["core/Skill.md"]));
+  assert.deepEqual(registerSkill(dir, "brewing", good), [sha256(good["Brewing.md"])]);
+});

@@ -1,8 +1,17 @@
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { admit, candidates, type Ref } from "./nodes.js";
+import { payload } from "./payload.js";
 
 const SKILL = "Skill";
+/**
+ * The identity of Core's own `Skill` Node: the SHA-256 of the exact bytes this
+ * package carries for it. A Node named `Skill` is not that Node; only these
+ * bytes are, so the anchor of Skill typing is Core's and nothing admitted
+ * alongside it can take its place.
+ */
+const SKILL_ID = createHash("sha256").update(payload()["core/Skill.md"]).digest("hex");
 const CAPABILITY = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /** The files of an installed KAAL, keyed by path relative to its directory. */
@@ -16,18 +25,15 @@ function read(kaal: string): Record<string, Uint8Array> {
 
 /**
  * The Skills installed in a KAAL directory: the admitted Nodes whose type is
- * exactly `{ name: Skill, id }` for the ID of the installed KAAL's admitted
- * `Skill` Node, as `{ name, id }` references in name then ID order. This is
- * the same typing registration is, so nothing is looked up: no registry, no
- * path, no package layout is consulted, and a Node is found wherever its
- * files store it. A KAAL without the `Skill` Node has no Skills.
+ * exactly `{ name: Skill, id: <Core's Skill ID> }`, as `{ name, id }`
+ * references in name then ID order. This is the same typing registration is,
+ * so nothing is looked up: no registry, no path, no package layout is
+ * consulted, and a Node is found wherever its files store it. A KAAL in which
+ * Core's `Skill` Node is not admitted has no Skills.
  */
 export function installedSkills(kaal: string): Ref[] {
-  const admitted = admit(read(kaal));
-  const skill = admitted.find((n) => n.name === SKILL);
-  if (!skill) return [];
-  return admitted
-    .filter((n) => n.type?.name === SKILL && n.type.id === skill.id)
+  return admit(read(kaal))
+    .filter((n) => n.type?.name === SKILL && n.type.id === SKILL_ID)
     .map(({ name, id }) => ({ name, id }))
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : a.id < b.id ? -1 : 1));
 }
@@ -70,7 +76,7 @@ export function registerSkill(kaal: string, capability: string, contribution: Re
 
   const target = (path: string): string => `skills/${capability}/${path}`;
   const installed = read(kaal);
-  const skill = admit(installed).find((n) => n.name === SKILL);
+  const skill = admit(installed).find((n) => n.id === SKILL_ID);
   const admitted = new Set(
     admit({
       ...installed,
