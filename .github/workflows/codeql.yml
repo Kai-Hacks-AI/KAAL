@@ -1,0 +1,37 @@
+name: codeql
+
+on:
+  pull_request:
+    branches: ["kaal/**"]
+  push:
+    branches: ["kaal/**"]
+
+# Static security analysis. Separate from the KAAL controls on purpose: it
+# answers a different question and has its own results (Security > Code
+# scanning). The failure threshold lives in repository settings, not here.
+# Actions are pinned by commit SHA; the comment names the release.
+permissions:
+  contents: read
+
+jobs:
+  codeql:
+    name: codeql (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # JavaScript/TypeScript is the code; "actions" is the workflows.
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          category: "/language:${{ matrix.language }}"
