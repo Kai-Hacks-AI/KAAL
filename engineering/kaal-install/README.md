@@ -5,11 +5,11 @@ The machinery by which this repository is itself an installed KAAL. It is not pa
 ## What is installed, and from where
 
 ```
-.kaal/AGENT.md, core/, seals/    from packages/kaal-core, its payload()
+.kaal/AGENTS.md, core/, seals/    from packages/kaal-core, its payload()
 .kaal/skills/<capability>/       from the delivering package's kaal/, registered through Core's registerSkill()
 .kaal/seals/                     Core's seals, and each registered Node's own seal
 skills/<capability>/             from the delivering package's skills/, the Agent Skills
-AGENTS.md                        wired to .kaal/AGENT.md by wire-kaal-agent
+AGENTS.md                        wired to .kaal/AGENTS.md by wire-kaal-agent
 .kaal/changes/                   genuine installed state: not derived, not touched here
 ```
 
@@ -19,7 +19,7 @@ Genesis was bootstrapped explicitly: deploy Core, register Engineering KAAL Skil
 
 ## Commands
 
-- `npm run install-kaal [-- --into <dir>]` makes a checkout hold the delivery. Core's payload is deployed into a throwaway KAAL directory, each delivering package's contribution is registered into it through Core, and the result is projected into the checkout. The Skills delivered are those the checkout has installed, as Core reports them; a fresh checkout is installed Core only, and there is no way to select a Skill by name. A Skill enters the installed KAAL by being registered through Core (`registerSkill()`), after which Core discovers it and this command projects it. It is idempotent. Sealed material is append-only: if an installed Node, seal or Core file would take other bytes, it refuses and writes nothing, as Core's registration does. The unsealed derived files, `.kaal/AGENT.md` and the Agent Skills of the delivered capabilities, are made to match the packages. `.kaal/changes` is never read or written.
+- `npm run install-kaal [-- --into <dir>]` makes a checkout hold the delivery. Core's payload is deployed into a throwaway KAAL directory, each delivering package's contribution is registered into it through Core, and the result is projected into the checkout. The Skills delivered are those the checkout has installed, as Core reports them; a fresh checkout is installed Core only, and there is no way to select a Skill by name. A Skill enters the installed KAAL by being registered through Core (`registerSkill()`), after which Core discovers it and this command projects it. It is idempotent. Sealed material is append-only: if an installed Node, seal or Core file would take other bytes, it refuses and writes nothing, as Core's registration does. The unsealed derived files, `.kaal/AGENTS.md` and the Agent Skills of the delivered capabilities, are made to match the packages. `.kaal/changes` is never read or written.
 - `npm run check-kaal-install [-- --into <dir>]` exits 0 if the checkout holds exactly what the packages currently deliver for its installed Skills, otherwise 1, naming each file that is missing, differs, or is not delivered by any package, each installed Skill that no package delivers, and each installed Node that is not admitted. It never repairs.
 
 Both default to the current directory. `--into` names another checkout; the packages are always this repository's.

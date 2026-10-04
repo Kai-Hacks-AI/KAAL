@@ -134,18 +134,18 @@ test("the check names what differs from the delivery, and repairs nothing", asyn
 
 test("an unsealed derived file is made to match; sealed material with other bytes is refused and nothing is written", async (t) => {
   const dir = await full(t);
-  writeFileSync(join(dir, KAAL_DIR, "AGENT.md"), "stale");
+  writeFileSync(join(dir, KAAL_DIR, "AGENTS.md"), "stale");
   writeFileSync(join(dir, HOST_SKILLS, "changing-kaal", "SKILL.md"), "stale");
   put(join(dir, HOST_SKILLS, "changing-kaal", "old.md"), "gone from the package");
   put(join(dir, HOST_SKILLS, "not-ours", "SKILL.md"), "some other host skill");
   await installed(dir);
-  assert.deepEqual(await problems(dir), [], "AGENT.md and the Agent Skill match again; the stale file is gone");
+  assert.deepEqual(await problems(dir), [], "AGENTS.md and the Agent Skill match again; the stale file is gone");
   assert.equal(readFileSync(join(dir, HOST_SKILLS, "not-ours", "SKILL.md"), "utf8"), "some other host skill", "a skill that is not a delivered capability is not ours to touch");
 
   writeFileSync(join(dir, KAAL_DIR, "core", "Core.md"), "other bytes");
-  writeFileSync(join(dir, KAAL_DIR, "AGENT.md"), "stale again");
+  writeFileSync(join(dir, KAAL_DIR, "AGENTS.md"), "stale again");
   await assert.rejects(() => installed(dir), /other bytes: changed bytes are another Node/);
-  assert.equal(readFileSync(join(dir, KAAL_DIR, "AGENT.md"), "utf8"), "stale again", "refused before writing anything");
+  assert.equal(readFileSync(join(dir, KAAL_DIR, "AGENTS.md"), "utf8"), "stale again", "refused before writing anything");
 });
 
 test("changes, the genuine installed state, survive installing and are outside the check", async (t) => {
@@ -186,7 +186,7 @@ test("the Agent entrypoint is wired by the existing KAAL Agent machinery", async
   const agent = (command: string) => spawnSync("node", [join(SOURCE, "engineering", "kaal-agent", "dist", "helpers", `${command}.js`)], { cwd: dir, env: { ...process.env, INIT_CWD: dir } }).status;
   assert.equal(agent("check-kaal-agent"), 1);
   assert.equal(agent("wire-kaal-agent"), 0);
-  assert.equal(agent("check-kaal-agent"), 0, "AGENTS.md points to the installed .kaal/AGENT.md");
+  assert.equal(agent("check-kaal-agent"), 0, "AGENTS.md points to the installed .kaal/AGENTS.md");
 });
 
 // This repository, held to the same.

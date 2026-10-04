@@ -1,5 +1,5 @@
 // Acceptance of Agent's first adapter, through the commands as an agent or CI
-// would run them, on a throwaway checkout holding the KAAL directory deployed from the real kaal-core payload (AGENT.md included).
+// would run them, on a throwaway checkout holding the KAAL directory deployed from the real kaal-core payload (AGENTS.md included).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -31,7 +31,7 @@ test("without AGENTS.md the check fails and does not repair; wire creates the mi
   assert.throws(() => read(c.agents), "check created nothing");
   assert.equal(c.wire(), 0);
   assert.equal(c.check(), 0);
-  assert.match(read(c.agents), /^<!-- kaal:begin -->\nKAAL is available at `\.kaal\/`\. Read `\.kaal\/AGENT\.md` to use it\.\n<!-- kaal:end -->\n$/);
+  assert.match(read(c.agents), /^<!-- kaal:begin -->\nKAAL is available at `\.kaal\/`\. Read `\.kaal\/AGENTS\.md` to use it\.\n<!-- kaal:end -->\n$/);
 }));
 
 test("wire is idempotent: wire, wire gives the same bytes", withCheckout((c) => {
@@ -66,8 +66,8 @@ test("check fails without wiring, on a changed fragment and on a missing KAAL di
   writeFileSync(c.agents, wired);
   assert.equal(c.check(), 0);
   assert.equal(c.check("--kaal", ".other"), 1, "wiring to .kaal is not wiring to .other");
-  rmSync(join(c.dir, ".kaal", "AGENT.md"));
-  assert.equal(c.check(), 1, "the wiring points at an AGENT.md that does not exist");
+  rmSync(join(c.dir, ".kaal", "AGENTS.md"));
+  assert.equal(c.check(), 1, "the wiring points at an AGENTS.md that does not exist");
 }));
 
 test("wire can name another AGENTS.md and KAAL directory; wiring a new directory replaces the old fragment", withCheckout((c) => {

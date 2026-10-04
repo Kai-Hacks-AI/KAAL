@@ -1,7 +1,7 @@
 // Installing the delivery into a checkout, and checking that a checkout holds
-// it. Sealed material (everything in the KAAL directory except AGENT.md) is
+// it. Sealed material (everything in the KAAL directory except AGENTS.md) is
 // append-only: an installed file with other bytes is refused, as Core's
-// registration refuses it. Unsealed derived files (AGENT.md and the host's
+// registration refuses it. Unsealed derived files (AGENTS.md and the host's
 // Agent Skills) are made to match the packages. `changes/` is genuine
 // installed state: it is neither read nor written here.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -9,7 +9,7 @@ import { dirname, join } from "node:path";
 import { CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./delivery.js";
 
 /** The one derived file of the KAAL directory that is not sealed. */
-const UNSEALED = "AGENT.md";
+const UNSEALED = "AGENTS.md";
 
 const underChanges = (path: string) => path === CHANGES || path.startsWith(`${CHANGES}/`);
 
