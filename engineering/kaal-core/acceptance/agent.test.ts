@@ -18,6 +18,13 @@ test("payload() carries AGENT.md and it deploys to the root of the KAAL director
   assert.equal(readFileSync(join(dir, "AGENT.md"), "utf8"), payload()["AGENT.md"]);
 });
 
+test("payload() also carries AGENTS.md, the same entrypoint, and it deploys to the root of the KAAL directory", (t) => {
+  const { dir, cleanup } = deploy();
+  t.after(cleanup);
+  assert.equal(payload()["AGENTS.md"], payload()["AGENT.md"]);
+  assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), payload()["AGENTS.md"]);
+});
+
 test("AGENT.md is not a Node and carries no host or implementation wiring", () => {
   const text = payload()["AGENT.md"];
   assert.ok(!candidates({ "AGENT.md": text }).length, "no Form, so it is not a Node candidate");
