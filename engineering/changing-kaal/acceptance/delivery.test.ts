@@ -61,10 +61,10 @@ test("SKILL.md realizes the capability without defining it again: it points to t
 });
 
 test("the change record convention is stated once, with the retro form in its reference", () => {
-  assert.match(manifest, /changes\/<name>\/YY\/MM\/DD\/CC\//);
-  assert.match(manifest, /references\/RETRO\.md/);
-  const retro = skills[`${CAPABILITY}/references/RETRO.md`];
-  assert.match(retro, /^# Reference: RETRO\.md/);
+  assert.match(manifest, /<kaal-dir>\/changes\/<name>\/YY\/MM\/DD\/CC\//);
+  assert.match(manifest, /references\/retro\.md/);
+  const retro = skills[`${CAPABILITY}/references/retro.md`];
+  assert.match(retro, /^# Reference: retro\.md/);
   for (const heading of ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"]) assert.ok(retro.includes(`${heading}\n`), heading);
   for (const rule of [/own seat/, /does not infer what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/]) assert.match(retro, rule);
 });

@@ -1,6 +1,6 @@
-# Reference: RETRO.md
+# Reference: retro.md
 
-`RETRO.md` is the one artifact that closes a change. Its form is exactly this, and nothing else:
+`retro.md` is the one artifact that closes a change. Its form is exactly this, and nothing else:
 
 ```
 # Retro
