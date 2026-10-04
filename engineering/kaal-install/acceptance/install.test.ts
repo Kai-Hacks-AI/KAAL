@@ -16,8 +16,7 @@ import { check, install } from "../helpers/state.js";
 import * as changing from "changing-kaal";
 import * as engineering from "engineering-kaal-skill";
 
-// Changing KAAL is two Nodes: the one it was born as, and its successor that refers to RATIFICATION.
-const SKILLS = ["Changing KAAL", "Changing KAAL", "Engineering Skill"];
+const SKILLS = ["Changing KAAL", "Engineering Skill"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
   ["engineering-kaal-skill", engineering.payload],
@@ -116,7 +115,7 @@ test("the check names what differs from the delivery, and repairs nothing", asyn
   const skill = join(dir, HOST_SKILLS, "changing-kaal", "SKILL.md");
   const damage: [string, () => void, RegExp][] = [
     ["a missing Core file", () => rmSync(join(dir, KAAL_DIR, "core", "Core.md")), /core\/Core\.md is missing/],
-    ["a changed Node", () => writeFileSync(node, readFileSync(node, "utf8") + " "), /Changing-KAAL\.md differs from what the packages deliver[\s\S]*1 Node\(s\) that are not admitted/],
+    ["a changed Node", () => writeFileSync(node, readFileSync(node, "utf8") + " "), /Changing-KAAL\.md is not delivered by any package[\s\S]*1 Node\(s\) that are not admitted/],
     ["a missing seal", () => rmSync(join(dir, KAAL_DIR, "seals", readdirSync(join(dir, KAAL_DIR, "seals"))[0])), /is missing|is not delivered/],
     ["a changed Agent Skill", () => writeFileSync(skill, "changed"), /changing-kaal\/SKILL\.md differs/],
     ["a file no package delivers in the KAAL directory", () => put(join(dir, KAAL_DIR, "skills", "other", "X.md"), "x"), /skills\/other\/X\.md is not delivered/],

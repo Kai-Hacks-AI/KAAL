@@ -7,9 +7,9 @@ type:
 
 # RATIFICATION
 
-RATIFICATION is the architecture of Changing KAAL: the shared vocabulary for the disciplined motion by which an intended change is formalized, implemented, tested against what was formalized, and brought to an outcome. It is not a Change, and it is not a Skill. It is the meaning a Skill that changes KAAL uses to understand disciplined change. It states meaning, not how that motion is realized.
+RATIFICATION is a mnemonic: a name by which a human or an agent can recover, in one word, the distinctions of a disciplined change, from what is intended to the outcome that is observed. It is vocabulary only. It states meaning, not how that motion is realized, and it claims no relationship to any other Node.
 
-Its name is a working mnemonic, still being explored, and its words are read as given:
+The mnemonic is a working one, still being explored, and its words are read as given:
 
 ```
 R  Requirements
