@@ -11,7 +11,7 @@ test("the public API is exactly payload(), registerSkill() and installedSkills()
 
 test("payload() returns the Kernel, the foundation Nodes and their seal markers", () => {
   const files = core.payload();
-  for (const path of ["core/KERNEL.md", "core/Node.md", "core/Edge.md", "core/KAAL-Definition.md", "core/CASE.md", "core/Core.md", "core/Agent.md", "core/Skill.md", "AGENT.md"]) {
+  for (const path of ["core/KERNEL.md", "core/Node.md", "core/Edge.md", "core/KAAL-Definition.md", "core/CASE.md", "core/Core.md", "core/Agent.md", "core/Skill.md", "AGENTS.md"]) {
     assert.equal(typeof files[path], "string", path);
     assert.notEqual(files[path], "", path);
   }
