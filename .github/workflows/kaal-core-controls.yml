@@ -57,3 +57,21 @@ jobs:
         with:
           fetch-depth: 0
       - run: .github/scripts/preserve-seals.sh "$TARGET"
+
+  # Closed Changes stay closed: asks the repository's own command which are sealed.
+  preserve-sealed-changes:
+    name: preserve-sealed-changes
+    runs-on: ubuntu-latest
+    env:
+      TARGET: origin/${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Test the control
+        run: .github/scripts/preserve-sealed-changes.test.sh
+      - run: .github/scripts/preserve-sealed-changes.sh "$TARGET"
