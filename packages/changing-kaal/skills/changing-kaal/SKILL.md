@@ -46,14 +46,14 @@ Where a change is in the process is never written down. Ask `npm run state-kaal-
 2. **Work.** Do the change, and keep its Change-local support and evidence under `work/`. Pay attention to your own experience of it; your retro is written from that. `work/` may change freely while it is open.
 3. **Seal work.** When the work is complete, seal `work/`: `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`. Treat `work/` as immutable from then on. Do this before any retro begins, so that what you reflect on cannot be revised afterwards. If it refuses or `state-kaal-change` reports a problem, resolve it; do not bypass it.
 4. **Retro, from inside the Work.** Only now the worker who performed the change writes `retro-work.md` in the change directory, as described in `references/retro.md`. Writing it does not disturb the seal on `work/`.
-5. **Retro, from outside the Work.** Only after `retro-work.md` exists, the observer (whoever reviews the completed change, not the worker) reads `work/` and `retro-work.md` and writes `retro-observe.md`, as described in `references/retro.md`.
+5. **Retro, from outside the Work.** Only after `retro-work.md` exists, an observer from outside the Work reads the sealed `work/` and `retro-work.md`, then writes `retro-observe.md` from that observer's own seat, as described in `references/retro.md`.
 6. **Close.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. The Change's seal covers `work/` and both retros together; there is no separate seal for either retro.
 
 ## Rules
 
 - Do not write a retro before the work is sealed, do not write `retro-observe.md` before `retro-work.md` exists, and do not go back and alter sealed work to make the history cleaner. If you find something while writing a retro, it belongs in the retro.
 - A change record is immutable once closed: never edit a sealed `work/`, a retro once written, or a closed change, and never reuse or renumber a change directory.
-- Each retro is its writer's own. Do not write what the user, a reviewer or a team thought, and do not write what you believe is wanted.
+- Each retro is its writer's own. Do not write what the user, anyone else or a team thought, and do not write what you believe is wanted.
 - Do not add metadata that says what phase a change is in. Other meaningful artifacts may join a change record where a capability or process calls for them; they do not replace or reorder the steps above.
 - Changes closed before work was sealed (genesis `01`) or with the single historical `retro.md` (`05/01`) are valid as they are; do not alter them to fit this process. `retro.md` is not written in a new change.
 
