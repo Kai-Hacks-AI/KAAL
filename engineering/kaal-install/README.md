@@ -10,6 +10,7 @@ The machinery by which this repository is itself an installed KAAL. It is not pa
 .kaal/seals/                     Core's seals, and each registered Node's own seal
 skills/<capability>/             from the delivering package's skills/, the Agent Skills
 AGENTS.md                        wired to .kaal/AGENTS.md by wire-kaal-agent
+.kaal/core/config                born from Core's delivery, then instance-owned: written only when absent, never overwritten, edits are not drift
 .kaal/changes/                   genuine installed state: not derived, not touched here
 ```
 
