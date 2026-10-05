@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 
 /** The KAAL artifacts this package carries, laid out as they deploy: the files are the authority. */
-const ARTIFACTS = new URL("../artifacts/", import.meta.url);
+export const ARTIFACTS = new URL("../artifacts/", import.meta.url);
 
 /**
  * The payload as files, keyed by path relative to the KAAL directory: the
