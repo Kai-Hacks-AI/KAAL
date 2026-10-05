@@ -1,13 +1,15 @@
-// Core's PRIVATE sealing: only what Core needs to bring itself into existence
-// and to birth the first Skills, before any Skill, Sealing included, can be
-// installed. It checks and records the seals of Core's own bootstrap artifacts
-// (the Kernel's genesis seal, and the Nodes Core carries) and nothing else. It
-// is not exported from the package and it is not a general sealing capability:
-// post-bootstrap sealing of KAAL artifacts belongs to the Sealing Skill, which
-// Core never depends on. Where the same mechanic exists in Sealing, the
-// duplication is intentional, since sharing it would make Core depend on a
-// Skill that depends on Core. Used by engineering's bootstrap helpers, reached
-// in the built package and not through the public API.
+// Core's PRIVATE sealing: only what Core needs to bring itself into existence,
+// before any Skill, Sealing included, can be installed. `checkBootstrap` and
+// `sealNode` work on Core's own bootstrap artifacts alone (the Kernel's genesis
+// seal and the Nodes Core carries in `payload()`) and cannot seal or verify
+// anything outside them, such as a Skill's Node. It is not exported from the
+// package and it is not a general sealing capability: sealing KAAL artifacts
+// after bootstrap belongs to the Sealing Skill, which Core never depends on.
+// Where the same mechanic exists in Sealing, the duplication is intentional,
+// since sharing it would make Core depend on a Skill that depends on Core. The
+// birth of a Skill's own first Node is a separate, explicit bootstrap act outside
+// this file and outside Sealing. Used by engineering's bootstrap helpers,
+// reached in the built package and not through the public API.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
