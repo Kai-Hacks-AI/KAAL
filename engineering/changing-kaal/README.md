@@ -5,7 +5,7 @@ The machinery that proves the delivery of `packages/changing-kaal`, the capabili
 `npm test` here is acceptance, run on what the package actually ships:
 
 - **Delivery.** Deploy `kaal-core`'s payload, register the capability's Node through Core's `registerSkill()`, and show that Core carried no such Skill before, that exactly two Nodes and their seals are added, that the one Skill is found by its type alone, that `RATIFICATION` is typed by the exact `KAAL Definition` and asserts no relationship, that Changing KAAL is unchanged, that its bytes and identity are the ones sealed, and that it states no mechanism.
-- **Realization.** The Agent Skill is one skill, named as its directory, points to the Nodes rather than defining the capability again, and carries the change record convention, the process through it, and the form and perspective of `retro.md`.
+- **Realization.** The Agent Skill is one skill, named as its directory, points to the Nodes rather than defining the capability again, and carries the change record convention, the process through it, and the form and the two perspectives of the retrospective (`retro-work.md` from inside the Work, `retro-observe.md` from outside it, in that order).
 - **Allocation.** `next-change` is run as an agent would run it: the next number after the highest, no reuse of gaps, refusal at 99, nothing written but the directory.
 - **Conventions.** The capability passes the checks Engineering KAAL Skill carries, run from that capability, and its contribution passes `register-skill --check`.
 

@@ -90,17 +90,18 @@ test("the change record convention is stated once, with the retro form in its re
   assert.match(manifest, /<kaal-dir>\/changes\/<name>\/YY\/MM\/DD\/CC\//);
   assert.match(manifest, /references\/retro\.md/);
   const retro = skills[`${CAPABILITY}/references/retro.md`];
-  assert.match(retro, /^# Reference: retro\.md/);
+  assert.match(retro, /^# Reference: retro-work\.md and retro-observe\.md/);
   for (const heading of ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"]) assert.ok(retro.includes(`${heading}\n`), heading);
-  for (const rule of [/own seat/, /does not infer what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/]) assert.match(retro, rule);
+  for (const rule of [/own seat/, /Neither infers what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/]) assert.match(retro, rule);
 });
 
-test("the realization pulls the agent through work, seal work, retro, close, by the repository's own commands", () => {
-  assert.ok(manifest.includes("allocate → work → seal work → retro → seal Change (closed)"), "the sequence, exactly");
+test("the realization pulls the agent through work, seal work, both retros, close, by the repository's own commands", () => {
+  assert.ok(manifest.includes("allocate → work → seal work → retro-work → retro-observe → seal Change (closed)"), "the sequence, exactly");
   assert.ok(manifest.includes("scripts/next-change.mjs"), "the allocator stays the existing allocator");
   for (const command of ["state-kaal-change", "seal-kaal-work", "close-kaal-change"]) assert.ok(manifest.includes(command), command);
   assert.ok(manifest.indexOf("seal-kaal-work") < manifest.indexOf("references/retro.md"), "work is sealed before the retro is written");
-  assert.match(manifest, /Do not write `retro\.md` before the work is sealed/);
+  assert.match(manifest, /Do not write a retro before the work is sealed, do not write `retro-observe\.md` before `retro-work\.md` exists/);
+  assert.ok(manifest.indexOf("`retro-work.md` in the change directory") < manifest.indexOf("`retro-observe.md`, as described"), "the worker's retro comes before the observer's");
   assert.match(skills[`${CAPABILITY}/references/retro.md`], /only after the change's `work\/` is sealed/);
 });
 

@@ -1,6 +1,6 @@
 ---
 name: changing-kaal
-description: Record a change to KAAL under changes/<name>/YY/MM/DD/CC/ through work, a seal on the work, a retro.md (the participating agent's own 4L retrospective: Learned, Liked, Lacked, Longed) and a seal on the Change. Use when starting a change to KAAL, when its work is complete and must be sealed, or when you are to write its retro and close it.
+description: Record a change to KAAL under changes/<name>/YY/MM/DD/CC/ through work, a seal on the work, retro-work.md (the worker's own 4L retrospective: Learned, Liked, Lacked, Longed), retro-observe.md (the observer's, written after reading the work and retro-work.md) and a seal on the Change. Use when starting a change to KAAL, when its work is complete and must be sealed, or when you are to write either retro and close it.
 license: MIT
 compatibility: Needs Node.js 20 or later. Written for a KAAL directory, by default .kaal/, whose changes/ holds the change records.
 ---
@@ -24,15 +24,16 @@ A change has its own identity, which is not a PR number. Its record is a directo
 A change goes through exactly this, in this order:
 
 ```
-allocate → work → seal work → retro → seal Change (closed)
+allocate → work → seal work → retro-work → retro-observe → seal Change (closed)
 ```
 
-The current process requires `work/` and `retro.md` in the record (it does not say these are all a record may hold):
+The current process requires `work/`, `retro-work.md` and `retro-observe.md` in the record (it does not say these are all a record may hold):
 
 ```
 <kaal-dir>/changes/<name>/YY/MM/DD/CC/
-├── work/       Change-local material, support and evidence, frozen before the retro
-└── retro.md
+├── work/              Change-local material, support and evidence, frozen before the retros
+├── retro-work.md      written by the worker, from inside the Work
+└── retro-observe.md   written by the observer, from outside the Work
 ```
 
 `work/` is the current convention for what is frozen before reflection, a deliberately simple boundary we are learning from. It is not a KAAL artifact type and says nothing lasting about what work is. The actual implementation lives wherever it belongs (packages, engineering, and so on), not necessarily inside `work/`; keep in `work/` the support and evidence you want the retro to reflect on, and do not invent file names or structure for it beyond need. `RATIFICATION` (a Node of the installed KAAL) may guide how you think while working; it is vocabulary, not files or phases.
@@ -42,18 +43,19 @@ Where a change is in the process is never written down. Ask `npm run state-kaal-
 ## Steps
 
 1. **Allocate.** `node scripts/next-change.mjs <kaal-dir> <name>` takes the number after the highest existing `CC` for that name and date, never reuses a gap, refuses when `99` is exhausted, creates the directory and prints its path relative to the KAAL directory. Do not choose a number by hand.
-2. **Work.** Do the change, and keep its Change-local support and evidence under `work/`. Pay attention to your own experience of it; the retro is written from that. `work/` may change freely while it is open.
-3. **Seal work.** When the work is complete, seal `work/`: `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`. Treat `work/` as immutable from then on. Do this before you begin the retro, so that what you reflect on cannot be revised afterwards. If it refuses or `state-kaal-change` reports a problem, resolve it; do not bypass it.
-4. **Retro.** Only now write `retro.md` in the change directory, as described in `references/retro.md`. Writing it does not disturb the seal on `work/`.
-5. **Close.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. The Change's seal covers `work/` and `retro.md` together; there is no separate seal for the retro.
+2. **Work.** Do the change, and keep its Change-local support and evidence under `work/`. Pay attention to your own experience of it; your retro is written from that. `work/` may change freely while it is open.
+3. **Seal work.** When the work is complete, seal `work/`: `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`. Treat `work/` as immutable from then on. Do this before any retro begins, so that what you reflect on cannot be revised afterwards. If it refuses or `state-kaal-change` reports a problem, resolve it; do not bypass it.
+4. **Retro, from inside the Work.** Only now the worker who performed the change writes `retro-work.md` in the change directory, as described in `references/retro.md`. Writing it does not disturb the seal on `work/`.
+5. **Retro, from outside the Work.** Only after `retro-work.md` exists, the observer (whoever reviews the completed change, not the worker) reads `work/` and `retro-work.md` and writes `retro-observe.md`, as described in `references/retro.md`.
+6. **Close.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. The Change's seal covers `work/` and both retros together; there is no separate seal for either retro.
 
 ## Rules
 
-- Do not write `retro.md` before the work is sealed, and do not go back and alter sealed work to make the history cleaner. If you find something while writing the retro, it belongs in the retro.
-- A change record is immutable once closed: never edit a sealed `work/`, a `retro.md` once written, or a closed change, and never reuse or renumber a change directory.
-- The retro is your own. Do not write what the user, a reviewer or a team thought, and do not write what you believe is wanted.
+- Do not write a retro before the work is sealed, do not write `retro-observe.md` before `retro-work.md` exists, and do not go back and alter sealed work to make the history cleaner. If you find something while writing a retro, it belongs in the retro.
+- A change record is immutable once closed: never edit a sealed `work/`, a retro once written, or a closed change, and never reuse or renumber a change directory.
+- Each retro is its writer's own. Do not write what the user, a reviewer or a team thought, and do not write what you believe is wanted.
 - Do not add metadata that says what phase a change is in. Other meaningful artifacts may join a change record where a capability or process calls for them; they do not replace or reorder the steps above.
-- Changes closed before work was sealed (genesis `01`) are valid as they are; do not alter them to fit this process.
+- Changes closed before work was sealed (genesis `01`) or with the single historical `retro.md` (`05/01`) are valid as they are; do not alter them to fit this process. `retro.md` is not written in a new change.
 
 ## Scripts and helpers
 

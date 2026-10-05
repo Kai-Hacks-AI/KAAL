@@ -217,11 +217,11 @@ test("this repository's AGENTS.md is wired to its installed .kaal", () => {
   assert.equal(r.status, 0, r.stderr);
 });
 
-test("this repository's change records are well formed: allocated in sequence, work/ and retro.md only where the process puts them, each retro the 4L form", () => {
+test("this repository's change records are well formed: allocated in sequence, work/ and retros only where the process puts them, each retro the 4L form", () => {
   const changes = read(join(SOURCE, KAAL_DIR, "changes"));
   const paths = Object.keys(changes);
   assert.ok(paths.length > 0, "the self-install change is recorded");
-  for (const path of paths) assert.match(path, /^[a-z0-9]+(-[a-z0-9]+)*\/\d\d\/\d\d\/\d\d\/(0[1-9]|[1-9]\d)\/(retro\.md|work\/.+)$/, path);
+  for (const path of paths) assert.match(path, /^[a-z0-9]+(-[a-z0-9]+)*\/\d\d\/\d\d\/\d\d\/(0[1-9]|[1-9]\d)\/(retro(-work|-observe)?\.md|work\/.+)$/, path);
   const days = new Map<string, Set<number>>();
   for (const path of paths) {
     const [name, yy, mm, dd, cc] = path.split("/");
@@ -230,7 +230,7 @@ test("this repository's change records are well formed: allocated in sequence, w
   }
   for (const [day, sequence] of days) assert.deepEqual([...sequence].sort((a, b) => a - b), [...sequence].map((_, i) => i + 1), `${day}: 01.. with no gap`);
   assert.ok(days.has("genesis/26/10/04") && changes["genesis/26/10/04/01/retro.md"], "the self-install change is genesis 26/10/04 01");
-  for (const [path, text] of Object.entries(changes).filter(([p]) => p.endsWith("/retro.md"))) {
+  for (const [path, text] of Object.entries(changes).filter(([p]) => /\/retro(-work|-observe)?\.md$/.test(p))) {
     const headings = text.split("\n").filter((l) => l.startsWith("#"));
     assert.deepEqual(headings, ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"], `${path}: the 4L form and nothing else`);
     for (const section of text.split(/^## /m).slice(1)) assert.ok(section.split("\n").slice(1).join("").trim().length > 0, `${path}: ${section.split("\n")[0]} says something`);
