@@ -31,28 +31,21 @@ The record holds `work/` and `retro.md`:
 
 ```
 <kaal-dir>/changes/<name>/YY/MM/DD/CC/
-├── work/       whatever the work produces or evidences; its contents are yours to decide
+├── work/       Change-local material, support and evidence, frozen before the retro
 └── retro.md
 ```
 
-Where a change is in the process is never written down. It is read from the record and its seals, by the repository's helper for this (below), which also answers what is allowed next:
+`work/` is the current convention for what is frozen before reflection, a deliberately simple boundary we are learning from. It is not a KAAL artifact type and says nothing lasting about what work is. The actual implementation lives wherever it belongs (packages, engineering, and so on), not necessarily inside `work/`; keep in `work/` the support and evidence you want the retro to reflect on, and do not invent file names or structure for it beyond need. `RATIFICATION` (a Node of the installed KAAL) may guide how you think while working; it is vocabulary, not files or phases.
 
-| the helper says | what is next |
-|---|---|
-| `WORK OPEN` | complete the work in `work/`, then seal it |
-| `WORK SEALED` | write `retro.md` |
-| `RETRO PRESENT` | seal the Change |
-| `CHANGE CLOSED` | nothing; the record is immutable |
+Where a change is in the process is never written down. Ask `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC`: it answers where the change is, what is valid next and what is wrong, and you do not reconstruct that yourself.
 
 ## Steps
 
 1. **Allocate.** `node scripts/next-change.mjs <kaal-dir> <name>` takes the number after the highest existing `CC` for that name and date, never reuses a gap, refuses when `99` is exhausted, creates the directory and prints its path relative to the KAAL directory. Do not choose a number by hand.
-2. **Work.** Do the change, keeping what it produces and evidences under `work/`. Pay attention to your own experience of it; the retro is written from that. `work/` may change freely while it is open.
-3. **Seal work.** When the work is complete, seal `work/`: `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`. After this `work/` is immutable: any edit, addition, deletion, rename or move inside it, or renaming `work/` itself, is detected. Do this before you begin the retro, so that what you reflect on cannot be revised afterwards. It is refused if a `retro.md` already exists.
+2. **Work.** Do the change, and keep its Change-local support and evidence under `work/`. Pay attention to your own experience of it; the retro is written from that. `work/` may change freely while it is open.
+3. **Seal work.** When the work is complete, seal `work/`: `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`. Treat `work/` as immutable from then on. Do this before you begin the retro, so that what you reflect on cannot be revised afterwards. If it refuses or `state-kaal-change` reports a problem, resolve it; do not bypass it.
 4. **Retro.** Only now write `retro.md` in the change directory, as described in `references/retro.md`. Writing it does not disturb the seal on `work/`.
-5. **Seal the Change.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. It is refused unless the work is sealed and `retro.md` is present. The Change's seal covers `work/` and `retro.md` together.
-
-To see where a change is at any point: `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC`.
+5. **Close.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. The Change's seal covers `work/` and `retro.md` together; there is no separate seal for the retro.
 
 ## Rules
 
