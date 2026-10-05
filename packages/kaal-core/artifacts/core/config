@@ -1,0 +1,11 @@
+# KAAL Core configuration.
+#
+# This file belongs to this KAAL instance and is meant to be edited by hand.
+# A setting that is commented out, or missing, means Core's default applies.
+# Remove the leading "#" to override it for this instance.
+#
+# Changing a setting renames and repairs nothing. check-kaal-config reports
+# what no longer conforms, and any migration is a separate, explicit act.
+
+# Prefix used for KAAL capability delivery names.
+# capability-prefix = kaal-

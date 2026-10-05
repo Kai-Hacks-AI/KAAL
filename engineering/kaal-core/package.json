@@ -9,6 +9,7 @@
     "clean": "rm -rf dist",
     "seal-kaal-artifact": "npm run build && node dist/helpers/seal-kaal-artifact.js",
     "seal-kaal-bootstrap": "npm run build && node dist/helpers/seal-kaal-bootstrap.js",
-    "check-kaal-seals": "npm run build && node dist/helpers/check-kaal-seals.js"
+    "check-kaal-seals": "npm run build && node dist/helpers/check-kaal-seals.js",
+    "check-kaal-config": "npm run build && node dist/helpers/check-kaal-config.js"
   }
 }
