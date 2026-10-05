@@ -11,13 +11,13 @@
 //   parent and location are excluded, so A/work/ moved to B/work/ keeps its
 //   identity and work/ renamed to evidence/ does not. The first consumer is a
 //   Change's work/.
-import { tree } from "./sealing.js";
+import { identity } from "./sealing.js";
 
 /** A tree that cannot be given an identity. */
-export const ChangeTreeError = tree.TreeError;
+export const ChangeTreeError = identity.IdentityError;
 
 /** The Change ID of the tree at `dir`. */
-export const changeId = (dir: string): string => tree.treeId(dir, { domain: "KAAL Change v1" });
+export const changeId = (dir: string): string => identity.artifactId(dir, { domain: "KAAL Change v1" });
 
 /** The ID of the named tree at `dir`: its root name (the last segment of `dir`), relative paths and exact bytes; where `dir` lies is no part of it. */
-export const namedTreeId = (dir: string): string => tree.treeId(dir, { domain: "KAAL Tree v1", named: true });
+export const namedTreeId = (dir: string): string => identity.artifactId(dir, { domain: "KAAL Tree v1", named: true });

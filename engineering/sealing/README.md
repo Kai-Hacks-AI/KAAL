@@ -6,7 +6,7 @@ The machinery that proves the delivery of `packages/sealing`, the capability for
 
 - **Delivery.** Deploy `kaal-core`'s payload, register the capability's Node through Core's `registerSkill()`, and show that Core carried no such Skill before, that exactly one Node and its seal are added, that the Skill is found by its type alone, that its bytes and identity are the ones sealed, and that its Node says what Sealing means without deciding what an artifact's identity is and without any mechanism.
 - **Realization.** The Agent Skill is one skill, named as its directory, points to the Nodes rather than defining the capability again, and ships exactly two scripts, neither knowing of Git or GitHub.
-- **Tree identity.** `tree-id` is challenged from outside: expected IDs are built here from the written format and from pinned literals, including the sealed identity of genesis Change `01`, which Sealing did not define. The named-tree rule (root name in, parent and location out) and everything that must be refused are shown.
+- **Artifact identity.** `artifact-id` (the 2x2 grammar of file or directory, unnamed or named) is challenged from outside: expected IDs are built here from the written format and from pinned literals, including the sealed identity of genesis Change `01`, which Sealing did not define. The named-tree rule (root name in, parent and location out) and everything that must be refused are shown.
 - **Seals.** `seal` writes, checks and lists empty markers named by an ID, never computes an ID and has no way to remove a seal.
 - **Conventions.** The capability passes the checks Engineering KAAL Skill carries, and its contribution passes `register-skill --check`.
 

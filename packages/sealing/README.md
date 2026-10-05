@@ -5,7 +5,7 @@ The capability for establishing and verifying the immutable identity of a KAAL a
 - `kaal/`: its KAAL contribution, the sealed Node `Sealing` (typed by `Skill`) and its seal. It is registered with an installed KAAL through `kaal-core`'s `registerSkill()`, which places it under `skills/sealing/` of the KAAL directory.
 - `skills/sealing/`: its Agent Skills realization (`SKILL.md`, `scripts/`), installed under the host's `skills/`.
 
-Sealing does not decide what constitutes an artifact's identity; each kind of artifact does. It carries the one definition of a directory tree's canonical identity (`scripts/tree-id.mjs`, parameterised by the domain and by whether the tree's own name is identity) and the mechanics of a seal marker (`scripts/seal.mjs`). Node identity stays Core's, which must exist before any Skill; the Change and `work/` identities are Changing KAAL's, expressed as parameters of the tree identity.
+Sealing does not decide what constitutes an artifact's identity; each kind of artifact does. It carries the one definition of canonical identity for files and directories, a 2x2 grammar of {file, directory} by {unnamed, named} with the parent and location always excluded (`scripts/artifact-id.mjs`; the domain chooses the form and separates kinds) and the mechanics of a seal marker (`scripts/seal.mjs`). Node identity stays Core's, which must exist before any Skill; the Change and `work/` identities are Changing KAAL's, expressed as the form and domain they choose.
 
 The package is not part of `kaal-core`: Core provides the `Skill` type and the registration, and this capability joins through them.
 

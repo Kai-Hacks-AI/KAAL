@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { TestContext } from "node:test";
@@ -39,7 +39,7 @@ const expected = (domain: string, files: [string, string][], root?: string) => {
   for (const [p, c] of files) h.update(be(Buffer.byteLength(p))).update(p).update(be(Buffer.byteLength(c))).update(c);
   return h.digest("hex");
 };
-const id = (domain: string, dir: string, named = false) => run("tree-id", ...(named ? ["--named"] : []), domain, dir).out;
+const id = (domain: string, dir: string, named = false) => run("artifact-id", ...(named ? ["--named"] : []), "--domain", domain, dir).out;
 
 test("a tree's ID is the written format; a pinned literal keeps it from drifting", (t) => {
   const dir = tree(t, "01", { "retro.md": "# Retro\n" });
@@ -55,6 +55,41 @@ test("a named tree adds its root name, and its parent and creation order are no 
   assert.notEqual(id(TREE, tree(t, "evidence", files), true), expectedId, "another root name");
   assert.equal(id(CHANGE, tree(t, "work", files)), id(CHANGE, tree(t, "evidence", files)), "unnamed: the root name is not identity");
   assert.notEqual(id(CHANGE, tree(t, "work", files)), id(TREE, tree(t, "work", files)), "domains never share an ID");
+});
+
+test("a file has the same grammar: bare bytes are a Node's identity, and a domain makes the other forms", (t) => {
+  const parent = mkdtempSync(join(tmpdir(), "sealing-file-"));
+  t.after(() => rmSync(parent, { recursive: true, force: true }));
+  const write = (rel: string, bytes: string) => {
+    mkdirSync(dirname(join(parent, rel)), { recursive: true });
+    writeFileSync(join(parent, rel), bytes);
+    return join(parent, rel);
+  };
+  const a = write("one/Note.md", "# Note\n");
+  const b = write("two/Note.md", "# Note\n");
+  const renamed = write("two/Other.md", "# Note\n");
+  const bytes = (domain: string, content: string, name?: string) => {
+    const h = createHash("sha256").update(`${domain}\n`);
+    if (name !== undefined) h.update(be(Buffer.byteLength(name))).update(name);
+    return h.update(be(Buffer.byteLength(content))).update(content).digest("hex");
+  };
+  const bare = createHash("sha256").update("# Note\n").digest("hex");
+  assert.equal(run("artifact-id", a).out, bare, "unnamed, no domain: exact bytes, which is a Node's identity");
+  assert.equal(run("artifact-id", "--domain", "Memo v1", a).out, bytes("Memo v1", "# Note\n"));
+  assert.equal(run("artifact-id", "--named", "--domain", "Memo v1", a).out, bytes("Memo v1", "# Note\n", "Note.md"));
+  assert.equal(run("artifact-id", "--named", "--domain", "Memo v1", b).out, run("artifact-id", "--named", "--domain", "Memo v1", a).out, "the parent is no part of it");
+  assert.equal(run("artifact-id", "--domain", "Memo v1", renamed).out, run("artifact-id", "--domain", "Memo v1", a).out, "unnamed: the file's own name is not identity");
+  assert.notEqual(run("artifact-id", "--named", "--domain", "Memo v1", renamed).out, run("artifact-id", "--named", "--domain", "Memo v1", a).out, "named: it is");
+  assert.equal(run("artifact-id", "--named", a).code, 1, "a named file needs a domain");
+  assert.equal(run("artifact-id", "--domain", "Memo v1", a, b).code, 2);
+});
+
+test("it reproduces Core's own Node IDs for the bare-bytes form, which it did not define", () => {
+  const core = join(REPO, "packages", "kaal-core", "artifacts", "core", "Skill.md");
+  assert.equal(run("artifact-id", core).out, "2389ba68e2c2afacea8655b1e23f6dc4c485c89c67ac0d655bb55d3c5a90096b");
+  const own = join(REPO, "packages", "sealing", "kaal", "Sealing.md");
+  assert.equal(run("artifact-id", own).out, createHash("sha256").update(readFileSync(own)).digest("hex"), "Sealing's own Node ID is its bytes' hash");
+  assert.ok(run("artifact-id", own).out.startsWith("e15f370c"));
 });
 
 test("every identity-bearing part of a tree changes its ID", (t) => {
@@ -79,12 +114,12 @@ test("what it could not state the same everywhere is refused, not normalised", (
   const empty = mkdtempSync(join(tmpdir(), "empty-"));
   t.after(() => rmSync(empty, { recursive: true, force: true }));
   for (const [what, dir, why] of [["symlink", link, /symlinks/], ["empty directory", hollow, /empty directory/], ["empty tree", empty, /empty directory/], ["case collision", tree(t, "w", { A: "1", a: "2" }), /differ only by case/], ["backslash", tree(t, "w", { "a\\b": "1" }), /backslash/], ["non-NFC", tree(t, "w", { "é": "1" }), /NFC/]] as [string, string, RegExp][]) {
-    const r = run("tree-id", CHANGE, dir);
+    const r = run("artifact-id", "--domain", CHANGE, dir);
     assert.equal(r.code, 1, what);
     assert.match(r.err, why, what);
   }
-  assert.equal(run("tree-id", "two\nlines", link).code, 1, "a domain is one line");
-  assert.equal(run("tree-id", CHANGE).code, 2);
+  assert.equal(run("artifact-id", "--domain", "two\nlines", link).code, 1, "a domain is one line");
+  assert.equal(run("artifact-id", "--domain", CHANGE).code, 2);
 });
 
 test("it reproduces the sealed identity of this repository's genesis Change 01, which it did not define", () => {

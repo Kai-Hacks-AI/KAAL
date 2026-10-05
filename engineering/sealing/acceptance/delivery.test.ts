@@ -58,7 +58,7 @@ test("the Agent Skill is one skill, named as its capability, pointing to the Nod
 });
 
 test("the shipped scripts are exactly the tree identity and the seal marker, and nothing of Git or GitHub", () => {
-  assert.deepEqual(Object.keys(skills).filter((p) => p.includes("/scripts/")).sort(), [`${CAPABILITY}/scripts/seal.mjs`, `${CAPABILITY}/scripts/tree-id.mjs`]);
+  assert.deepEqual(Object.keys(skills).filter((p) => p.includes("/scripts/")).sort(), [`${CAPABILITY}/scripts/artifact-id.mjs`, `${CAPABILITY}/scripts/seal.mjs`]);
   for (const path of Object.keys(skills).filter((p) => p.includes("/scripts/"))) assert.doesNotMatch(skills[path], /github|\bgit\b|pull request/i, path);
 });
 
