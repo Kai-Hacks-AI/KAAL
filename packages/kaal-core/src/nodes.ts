@@ -19,6 +19,11 @@ export interface FoundNode {
 
 type Files = Record<string, string | Uint8Array>;
 
+/** SHA-256, hex, of exact bytes, no normalization: a Node's identity, and the way the Kernel's genesis seal is checked. */
+export function sha256(bytes: string | Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
 /** The bootstrap Form, exactly: frontmatter of `name`, then optionally `type` as a `{name, id}` pair. Nothing else is a Form. */
 const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
 
@@ -31,7 +36,7 @@ export function candidates(files: Files): FoundNode[] {
     const form = FORM.exec(markdown);
     if (!form) continue;
     const [, name, typeName, typeId] = form;
-    found.push({ id: createHash("sha256").update(bytes).digest("hex"), path, name, ...(typeName ? { type: { name: typeName, id: typeId } } : {}), markdown });
+    found.push({ id: sha256(bytes), path, name, ...(typeName ? { type: { name: typeName, id: typeId } } : {}), markdown });
   }
   return found;
 }
