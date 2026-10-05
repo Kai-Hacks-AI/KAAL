@@ -118,7 +118,8 @@ test("core/config is instance-owned: written when absent, then never overwritten
   assert.equal(readFileSync(file, "utf8"), "capability-prefix = acme-\n", "installing never overwrites it");
   rmSync(file);
   assert.match(check(dir, withConfig).join("\n"), /core\/config is missing/, "a delivered file that is absent is named");
-  assert.deepEqual(check(dir, d).filter((p) => /config/.test(p)), [], "before Core delivers one, nothing is expected");
+  const { "core/config": _, ...without } = d.kaal;
+  assert.deepEqual(check(dir, { ...d, kaal: without }).filter((p) => /config/.test(p)), [], "a delivery that carries none expects none, whether or not Core delivers one");
 });
 
 test("installing twice changes nothing", async (t) => {
