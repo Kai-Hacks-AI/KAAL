@@ -2,9 +2,10 @@
 // one, and answer which are closed. Identity is change-id.ts alone. A Change is
 // closed exactly when the ID of its current tree has a seal; there is no status.
 // The seal is an empty marker named by the ID, outside the tree it seals.
-import { existsSync, lstatSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { changeId, namedTreeId } from "./change-id.js";
+import { markers } from "./sealing.js";
 
 /** Where Change seals live, relative to the KAAL directory; Node seals (seals/<ID>) are not touched. */
 export const SEALS = "seals/changes";
@@ -28,13 +29,11 @@ export function changes(kaalDir: string): string[] {
   return found;
 }
 
-const markers = (dir: string): string[] => (existsSync(dir) ? readdirSync(dir).filter((n) => /^[0-9a-f]{64}$/.test(n)).sort() : []);
-
 /** The Change IDs sealed in this KAAL directory. */
-export const sealedIds = (kaalDir: string): string[] => markers(join(kaalDir, SEALS));
+export const sealedIds = (kaalDir: string): string[] => markers.sealed(join(kaalDir, SEALS));
 
 /** The named-tree IDs sealed in this KAAL directory. */
-export const sealedTreeIds = (kaalDir: string): string[] => markers(join(kaalDir, TREE_SEALS));
+export const sealedTreeIds = (kaalDir: string): string[] => markers.sealed(join(kaalDir, TREE_SEALS));
 
 const isChange = (kaalDir: string, change: string): boolean => changes(kaalDir).includes(change.replace(/\/$/, ""));
 
@@ -55,8 +54,7 @@ export function sealWork(kaalDir: string, change: string): string {
   const work = join(kaalDir, change, WORK);
   if (!existsSync(work)) throw new Error(`${change} has no ${WORK}/`);
   const id = namedTreeId(work);
-  mkdirSync(join(kaalDir, TREE_SEALS), { recursive: true });
-  writeFileSync(join(kaalDir, TREE_SEALS, id), "");
+  markers.seal(join(kaalDir, TREE_SEALS), id);
   return id;
 }
 
@@ -64,8 +62,7 @@ export function sealWork(kaalDir: string, change: string): string {
 export function sealChange(kaalDir: string, change: string): string {
   if (!isChange(kaalDir, change)) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
   const id = changeId(join(kaalDir, change));
-  mkdirSync(join(kaalDir, SEALS), { recursive: true });
-  writeFileSync(join(kaalDir, SEALS, id), "");
+  markers.seal(join(kaalDir, SEALS), id);
   return id;
 }
 
