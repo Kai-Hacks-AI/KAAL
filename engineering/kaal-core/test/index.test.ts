@@ -21,7 +21,8 @@ test("a bootstrap Node without its seal marker is detected", () => {
 
 test("changing the Kernel, or a sealed Node by a single byte, is detected", () => {
   const files = embedding.payload();
-  for (const path of Object.keys(files).filter((p) => p.startsWith("core/"))) {
+  // core/config is the instance's own, unsealed, human-editable file: no byte of it is sealed.
+  for (const path of Object.keys(files).filter((p) => p.startsWith("core/") && p !== "core/config")) {
     assert.notEqual(checkBootstrap({ ...files, [path]: files[path] + " " }).length, 0, path);
   }
 });
