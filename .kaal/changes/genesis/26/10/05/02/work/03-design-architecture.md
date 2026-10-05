@@ -1,6 +1,6 @@
 # Core configuration: one property
 
-Design for the smallest useful Core configuration experiment. Nothing here is implemented.
+Architecture of the smallest useful Core configuration experiment.
 
 ## Rule
 
@@ -31,12 +31,10 @@ Configuration governs only what sealed identity leaves free. A delivery director
 
 Independent, hand-written KAAL directories: default (no file, and commented file) with `kaal-x` green and `x-kaal` red; `acme-` override changes the verdict with nothing renamed; unknown key, repeated key, invalid value and bad line reported; the checker reads the target instance, not the package; a directory rename leaves Node IDs unchanged.
 
-## PR graph and merge order
+## Carriers
 
-0. This PR: allocate the Change with this design. Draft until Sealing Change `05/01` has sealed its Work, written its retro and sealed the Change.
-1. A, `engineering/kaal-install` only: `core/config` is instance-owned (written if absent, never overwritten, edits are not drift). Independent of B.
-2. B, Core alone: the default `config`, the private checker, a CLI helper and fixtures; adjusts the one Core test that expects any byte edit under `core/` to be detected.
-3. C, ordinary: root `check-kaal-config` script, the installed `.kaal/core/config` projection, README. Not in `npm test` until D, so the legacy names are red by design without blocking the required checks.
-4. D, ordinary: rename `changing-kaal` and `engineering-kaal-skill` (packages, host skills, engineering) to `kaal-changing` and `kaal-engineering`, regenerate `.kaal`, put the checker in `npm test`; Node bytes, IDs and seals unchanged.
+Core ships the default `core/config` in its payload, so a realization is born with it. The installer writes it only when absent and never overwrites it, so a human edit survives installing and is not drift. The command that runs the checker is `check-kaal-config`; making it a repository control is outside Core and outside this Change.
 
-Making the checker a repository control is `.github` work and a later step.
+## Naming migration
+
+`changing-kaal` and `engineering-kaal-skill` are renamed to `kaal-changing` and `kaal-engineering` wherever the capability delivery identifier appears (package, Agent Skill and engineering directories, the installed projection, tests and docs). The red under the default is kept long enough to prove the checker, then migrated explicitly. The semantic Nodes `Changing KAAL`, `Engineering Skill` and `Sealing` keep their bytes, IDs and seals.

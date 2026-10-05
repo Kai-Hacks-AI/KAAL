@@ -10,6 +10,7 @@ The machinery by which this repository is itself an installed KAAL. It is not pa
 .kaal/seals/                     Core's seals, and each registered Node's own seal
 skills/<capability>/             from the delivering package's skills/, the Agent Skills
 AGENTS.md                        wired to .kaal/AGENTS.md by wire-kaal-agent
+.kaal/core/config                born from Core's delivery, then instance-owned: written only when absent, never overwritten, edits are not drift
 .kaal/changes/                   genuine installed state: not derived, not touched here
 ```
 
@@ -26,7 +27,7 @@ Both default to the current directory. `--into` names another checkout; the pack
 
 ## Acceptance
 
-`npm test` here runs on what the packages actually deliver: install into an empty checkout (Core only, with no installed Skills), then bootstrap as genesis was (register the two contributions through Core), and show Core's installed state equals Core's delivery, that Engineering KAAL Skill and Changing KAAL are registered Skills with their Nodes under `.kaal/skills/<capability>/` and their seals in `.kaal/seals/`, that the Agent Skills appear under `skills/`, and that what is delivered follows the installed Skills and not the existence of packages, that an installed Skill no package delivers is named, and that the Agent entrypoint is wired by the existing `wire-kaal-agent`. It shows the check names damage and repairs nothing, that sealed material is not rewritten, and that `.kaal/changes` survives installing and is outside the check. The last tests hold this repository to the same, including that its change records are allocated in sequence and each is closed with a four-heading `retro.md`.
+`npm test` here runs on what the packages actually deliver: install into an empty checkout (Core only, with no installed Skills), then bootstrap as genesis was (register the two contributions through Core), and show Core's installed state equals Core's delivery, that Engineering KAAL Skill and Changing KAAL are registered Skills with their Nodes under `.kaal/skills/<capability>/` and their seals in `.kaal/seals/`, that the Agent Skills appear under `skills/`, and that what is delivered follows the installed Skills and not the existence of packages, that an installed Skill no package delivers is named, and that the Agent entrypoint is wired by the existing `wire-kaal-agent`. It shows the check names damage and repairs nothing, that sealed material is not rewritten, and that `.kaal/changes` survives installing and is outside the check. The last tests hold this repository to the same, including that its change records are allocated in sequence and each is closed with four-heading retros (the historical single `retro.md`, or `retro-work.md` and `retro-observe.md`).
 
 ## Not here
 
