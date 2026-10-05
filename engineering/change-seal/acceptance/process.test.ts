@@ -48,7 +48,7 @@ test("a newly allocated Change is open; open Work may evolve and has a determini
 test("sealing Work freezes its exact tree by identity, and the seal sits outside it", (t) => {
   const dir = sealedWork(t);
   assert.equal(stage(dir), "WORK SEALED\nnext: write retro.md");
-  assert.equal(readdirSync(join(dir, "seals", "work")).length, 1);
+  assert.equal(readdirSync(join(dir, "seals", "trees")).length, 1);
   assert.deepEqual(readdirSync(join(dir, C)), ["work"]);
   assert.equal(run("check", dir).code, 0);
 });
@@ -82,6 +82,13 @@ test("Work's outer location is not identity: the whole work/ moved unchanged sti
   renameSync(join(dir, C, "work"), join(dir, other, "work"));
   assert.equal(run("check", dir).code, 0);
   assert.equal(stage(dir, other), "WORK SEALED\nnext: write retro.md");
+});
+
+test("work/ renamed, even whole, is not the sealed Work: its name is part of its identity", (t) => {
+  const dir = sealedWork(t);
+  renameSync(join(dir, C, "work"), join(dir, C, "evidence"));
+  assert.equal(run("check", dir).code, 1);
+  assert.equal(stage(dir).split("\n")[0], "WORK OPEN");
 });
 
 test("retro is not a valid step before Work is sealed, and sealing Work after it is refused", (t) => {
@@ -119,7 +126,7 @@ test("closing seals Work + retro into the Change's identity, once", (t) => {
   writeFileSync(join(dir, C, "work", "a"), "tampered");
   assert.equal(run("closed", dir).out, "", "the Change identity covers the Work");
   writeFileSync(join(dir, C, "work", "a"), "a");
-  rmSync(join(dir, "seals", "work"), { recursive: true });
+  rmSync(join(dir, "seals", "trees"), { recursive: true });
   assert.equal(run("check", dir).code, 1, "a closed Change whose Work seal is gone is reported");
 });
 

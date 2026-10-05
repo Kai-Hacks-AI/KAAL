@@ -163,15 +163,15 @@ test("changes, the genuine installed state, survive installing and are outside t
   assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
 });
 
-test("Change and Work seals, seals/changes/ and seals/work/, are installed state too, while a stray Node-level seal is still refused", async (t) => {
+test("Change and named-tree seals, seals/changes/ and seals/trees/, are installed state too, while a stray Node-level seal is still refused", async (t) => {
   const dir = await full(t);
   const id = "a".repeat(64);
   put(join(dir, KAAL_DIR, "seals", "changes", id), "");
-  put(join(dir, KAAL_DIR, "seals", "work", id), "");
+  put(join(dir, KAAL_DIR, "seals", "trees", id), "");
   await installed(dir);
   assert.ok(existsSync(join(dir, KAAL_DIR, "seals", "changes", id)), "installing leaves it");
-  assert.ok(existsSync(join(dir, KAAL_DIR, "seals", "work", id)), "and a Work seal");
-  assert.deepEqual(await problems(dir), [], "the check does not judge Change or Work seals");
+  assert.ok(existsSync(join(dir, KAAL_DIR, "seals", "trees", id)), "and a named-tree seal");
+  assert.deepEqual(await problems(dir), [], "the check does not judge Change or named-tree seals");
   put(join(dir, KAAL_DIR, "seals", id), "");
   assert.deepEqual(await problems(dir), [`${KAAL_DIR}/seals/${id} is not delivered by any package`], "a bare seal is a Node seal and nothing delivers it");
 });

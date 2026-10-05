@@ -16,7 +16,7 @@ changes/<name>/YY/MM/DD/CC/
 └── retro.md   written only after work/ is sealed
 ```
 
-The Work is the tree under `work/`. Its ID is the same canonical stream as a Change's under its own domain tag (`KAAL Work v1`), over paths relative to `work/`, so where `work/` lies is not identity: the complete tree moved unchanged still matches its seal, and any edit, addition, deletion or inner move does not. A Work seal is the empty marker `seals/work/<Work-ID>`, outside what it seals. `retro.md` sits outside `work/`, so adding it never disturbs the Work seal, and the final Change seal covers both. There is no Retro seal and no status metadata: where a Change is, is derived from `work/`, `retro.md` and the seals (`helpers/process.ts`, the one evaluator):
+`work/` is scaffolding for learning this boundary, not a permanent KAAL concept; it is the first consumer of a **named tree**. A named tree's ID (`KAAL Tree v1`, `helpers/change-id.ts`) is the SHA-256 of a canonical stream over its own root name, its relative paths and exact bytes. Its parent and location are excluded: `A/work/` moved to `B/work/` keeps its identity, `work/` renamed to `evidence/` does not, and any edit, addition, deletion or inner move changes it. Its seal is the empty marker `seals/trees/<ID>`, outside what it seals. The Change identity (`KAAL Change v1`) is deliberately unchanged: it excludes the Change's own name, exactly as genesis `01` was sealed. `retro.md` sits outside `work/`, so adding it never disturbs the Work seal, and the final Change seal covers both. There is no Retro seal and no status metadata: where a Change is, is derived from `work/`, `retro.md` and the seals (`helpers/process.ts`, the one evaluator):
 
 - `WORK OPEN`, next: complete and seal work (a `retro.md` here is reported as an invalid step)
 - `WORK SEALED`, next: write `retro.md`
@@ -36,6 +36,6 @@ The primitives beneath them are unchanged:
 
 - `npm run seal-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal one Change of `.kaal`, with no regard for the process.
 - `npm run list-sealed-changes -- <kaal-dir>`: print `<path> <id>` for each closed Change.
-- `npm run check-kaal-changes`: exit 1 if a Change or Work seal matches nothing (sealed history was altered or removed), or a closed Change's Work is no longer sealed.
+- `npm run check-kaal-changes`: exit 1 if a Change or named-tree seal matches nothing (sealed history was altered or removed), or a closed Change's Work is no longer sealed.
 
 This knows nothing of Git, GitHub, CI, branches, commits or pull requests. Repository controls consume `list-sealed-changes`; they do not hash anything themselves.

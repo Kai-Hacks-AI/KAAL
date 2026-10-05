@@ -4,12 +4,12 @@
 // The seal is an empty marker named by the ID, outside the tree it seals.
 import { existsSync, lstatSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { changeId, workId } from "./change-id.js";
+import { changeId, namedTreeId } from "./change-id.js";
 
 /** Where Change seals live, relative to the KAAL directory; Node seals (seals/<ID>) are not touched. */
 export const SEALS = "seals/changes";
-/** Where Work seals live, beside Change seals and likewise outside the tree they seal. */
-export const WORK_SEALS = "seals/work";
+/** Where named-tree seals live, beside Change seals and likewise outside the tree they seal. */
+export const TREE_SEALS = "seals/trees";
 /** The Work of a Change is its directory work/, and its retrospective is retro.md. */
 export const WORK = "work";
 export const RETRO = "retro.md";
@@ -33,17 +33,17 @@ const markers = (dir: string): string[] => (existsSync(dir) ? readdirSync(dir).f
 /** The Change IDs sealed in this KAAL directory. */
 export const sealedIds = (kaalDir: string): string[] => markers(join(kaalDir, SEALS));
 
-/** The Work IDs sealed in this KAAL directory. */
-export const sealedWorkIds = (kaalDir: string): string[] => markers(join(kaalDir, WORK_SEALS));
+/** The named-tree IDs sealed in this KAAL directory. */
+export const sealedTreeIds = (kaalDir: string): string[] => markers(join(kaalDir, TREE_SEALS));
 
 const isChange = (kaalDir: string, change: string): boolean => changes(kaalDir).includes(change.replace(/\/$/, ""));
 
-/** The Work ID of a Change's current work/, or undefined when it has none or none can be identified. */
+/** The named-tree ID of a Change's current work/, or undefined when it has none or none can be identified. */
 export function currentWorkId(kaalDir: string, change: string): string | undefined {
   const work = join(kaalDir, change, WORK);
   if (!existsSync(work) || !lstatSync(work).isDirectory()) return undefined;
   try {
-    return workId(work);
+    return namedTreeId(work);
   } catch {
     return undefined;
   }
@@ -54,9 +54,9 @@ export function sealWork(kaalDir: string, change: string): string {
   if (!isChange(kaalDir, change)) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
   const work = join(kaalDir, change, WORK);
   if (!existsSync(work)) throw new Error(`${change} has no ${WORK}/`);
-  const id = workId(work);
-  mkdirSync(join(kaalDir, WORK_SEALS), { recursive: true });
-  writeFileSync(join(kaalDir, WORK_SEALS, id), "");
+  const id = namedTreeId(work);
+  mkdirSync(join(kaalDir, TREE_SEALS), { recursive: true });
+  writeFileSync(join(kaalDir, TREE_SEALS, id), "");
   return id;
 }
 
@@ -96,9 +96,9 @@ export function checkChanges(kaalDir: string): string[] {
   const live = new Set(closed.map((c) => c.id));
   const problems = sealedIds(kaalDir).filter((id) => !live.has(id)).map((id) => `${SEALS}/${id} matches no Change: a sealed Change was altered or removed`);
   const works = changes(kaalDir).map((c) => ({ change: c, id: currentWorkId(kaalDir, c) }));
-  const sealedWork = new Set(sealedWorkIds(kaalDir));
+  const sealedWork = new Set(sealedTreeIds(kaalDir));
   const present = new Set(works.map((w) => w.id));
-  for (const id of sealedWork) if (!present.has(id)) problems.push(`${WORK_SEALS}/${id} matches no Work: sealed work was altered or removed`);
+  for (const id of sealedWork) if (!present.has(id)) problems.push(`${TREE_SEALS}/${id} matches no work/: sealed work was altered or removed`);
   for (const c of closed) {
     const w = works.find((x) => x.change === c.path);
     if (w && existsSync(join(kaalDir, w.change, WORK)) && !(w.id && sealedWork.has(w.id))) problems.push(`${c.path} is closed but its ${WORK}/ is not sealed`);

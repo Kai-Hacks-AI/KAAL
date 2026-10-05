@@ -8,7 +8,7 @@
 import { existsSync, lstatSync } from "node:fs";
 import { join } from "node:path";
 import { changeId } from "./change-id.js";
-import { changes, checkChanges, currentWorkId, RETRO, sealChange, sealedIds, sealedWorkIds, sealWork, WORK } from "./changes.js";
+import { changes, checkChanges, currentWorkId, RETRO, sealChange, sealedIds, sealedTreeIds, sealWork, WORK } from "./changes.js";
 
 export type Stage = "WORK OPEN" | "WORK SEALED" | "RETRO PRESENT" | "CHANGE CLOSED";
 
@@ -40,7 +40,7 @@ export function stateOf(kaalDir: string, change: string): State {
   if (closed) return { stage: "CHANGE CLOSED", next: "none", problems };
   const id = currentWorkId(kaalDir, path);
   const retro = retroPresent(kaalDir, path);
-  if (id === undefined || !sealedWorkIds(kaalDir).includes(id)) {
+  if (id === undefined || !sealedTreeIds(kaalDir).includes(id)) {
     if (retro) problems.push(`${RETRO} exists before the Work is sealed, so it is not a valid step`);
     const next = id === undefined ? `do the work in ${WORK}/, then seal it` : "complete and seal work";
     return { stage: "WORK OPEN", next: retro ? `remove ${RETRO}, then ${next}` : next, problems };

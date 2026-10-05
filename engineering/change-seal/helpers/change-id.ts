@@ -1,18 +1,23 @@
-// PROVISIONAL, the one definition of a directory tree's identity, and so of a
-// Change's and a Work's. Generic by design: it knows a directory tree of regular
-// files, a domain tag and SHA-256, never Git, GitHub, CI or where seals are
-// kept. A candidate to move to a future sealing Skill; not kaal-core API.
-// Nothing else may hash a Change or a Work.
+// PROVISIONAL, the one definition of a directory tree's identity. Generic by
+// design: it knows a directory tree of regular files, a domain tag and SHA-256,
+// never Git, GitHub, CI or where seals are kept. A candidate to move to a future
+// sealing Skill; not kaal-core API. Nothing else may hash a tree.
 //
-// A Change is the directory changes/<name>/YY/MM/DD/CC/, and its identity covers
-// the whole tree under it, relative paths included (unlike a Node, whose
-// identity is its bytes alone). A Work is the directory work/ of a Change, and
-// its identity covers the tree under work/ alone, paths relative to it, so
-// where the Work lies is not part of it. The two differ only in their domain
-// tag, so a Change and a Work of the same bytes never share an ID. The tree's
-// canonical stream is:
+// Two identities share one stream:
 //
-//   domain tag, "KAAL Change v1\n" (15 bytes) or "KAAL Work v1\n" (13 bytes)
+// * A Change, changes/<name>/YY/MM/DD/CC/, is `KAAL Change v1`: the whole tree
+//   under it, relative paths included, the Change's own name and address
+//   excluded (unlike a Node, whose identity is its bytes alone). v1 is kept
+//   exactly as sealed in genesis 01.
+// * A named tree is `KAAL Tree v1`: the same, plus the tree's own root name. Its
+//   parent and location are excluded, so A/work/ moved to B/work/ keeps its
+//   identity and work/ renamed to evidence/ does not. The first consumer is a
+//   Change's work/; nothing here is Work-specific.
+//
+// The canonical stream is:
+//
+//   domain tag, "KAAL Change v1\n" or "KAAL Tree v1\n"
+//   (named tree only) uint64 BE  root name length in bytes,  root name (UTF-8)
 //   uint64 BE  number of files
 //   for each file, by bytewise order of its UTF-8 relative path:
 //     uint64 BE  path length in bytes,  path (UTF-8)
@@ -24,10 +29,10 @@
 // state unambiguously on every platform is refused, not normalised.
 import { createHash } from "node:crypto";
 import { lstatSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join, resolve } from "node:path";
 
 const CHANGE_TAG = "KAAL Change v1\n";
-const WORK_TAG = "KAAL Work v1\n";
+const TREE_TAG = "KAAL Tree v1\n";
 
 const u64 = (n: number): Buffer => {
   const b = Buffer.alloc(8);
@@ -74,10 +79,15 @@ function problemWithName(name: string, path: string): void {
   if (Buffer.from(name, "utf8").toString("utf8") !== name) throw new ChangeTreeError(`${path} is not valid UTF-8`);
 }
 
-function treeId(dir: string, tag: string, what: string): string {
+function treeId(dir: string, tag: string, rootName?: string): string {
   const files = treeFiles(dir);
-  if (files.length === 0) throw new ChangeTreeError(`a ${what} with no files has no identity`);
-  const hash = createHash("sha256").update(Buffer.from(tag, "utf8")).update(u64(files.length));
+  if (files.length === 0) throw new ChangeTreeError("a tree with no files has no identity");
+  const hash = createHash("sha256").update(Buffer.from(tag, "utf8"));
+  if (rootName !== undefined) {
+    const name = Buffer.from(rootName, "utf8");
+    hash.update(u64(name.length)).update(name);
+  }
+  hash.update(u64(files.length));
   for (const path of files) {
     const name = Buffer.from(path, "utf8");
     const bytes = readFileSync(join(dir, path));
@@ -87,7 +97,11 @@ function treeId(dir: string, tag: string, what: string): string {
 }
 
 /** The Change ID of the tree at `dir`: SHA-256, hex, of its canonical stream. */
-export const changeId = (dir: string): string => treeId(dir, CHANGE_TAG, "Change");
+export const changeId = (dir: string): string => treeId(dir, CHANGE_TAG);
 
-/** The Work ID of the tree at `dir`, the Work root: the same stream under the Work tag, so the Work's own address is no part of it. */
-export const workId = (dir: string): string => treeId(dir, WORK_TAG, "Work");
+/** The ID of the named tree at `dir`: its root name (the last segment of `dir`), relative paths and exact bytes under `KAAL Tree v1`; where `dir` lies is no part of it. */
+export function namedTreeId(dir: string): string {
+  const root = basename(resolve(dir));
+  problemWithName(root, root);
+  return treeId(dir, TREE_TAG, root);
+}

@@ -4,7 +4,7 @@
 // registration refuses it. Unsealed derived files (AGENTS.md and the host's
 // Agent Skills) are made to match the packages. `changes/` is genuine
 // installed state: it is neither read nor written here, and neither are the
-// seals of Changes and of their Work, `seals/changes/` and `seals/work/`, which
+// seals of Changes and of named trees, `seals/changes/` and `seals/trees/`, which
 // belong to it. The bare `seals/<ID>`
 // markers remain Node seals and are still judged.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -14,7 +14,7 @@ import { CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./
 /** The one derived file of the KAAL directory that is not sealed. */
 const UNSEALED = "AGENTS.md";
 
-const CHANGE_SEALS = ["seals/changes", "seals/work"];
+const CHANGE_SEALS = ["seals/changes", "seals/trees"];
 const underChanges = (path: string) => [CHANGES, ...CHANGE_SEALS].some((dir) => path === dir || path.startsWith(`${dir}/`));
 
 /** The derived files installed in the KAAL directory of `target`, and its host skills of the delivered capabilities. */
