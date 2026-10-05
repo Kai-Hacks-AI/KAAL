@@ -1,7 +1,6 @@
-import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { admit, candidates, type Ref } from "./nodes.js";
+import { admit, candidates, sha256, type Ref } from "./nodes.js";
 import { payload } from "./payload.js";
 
 const SKILL = "Skill";
@@ -11,7 +10,7 @@ const SKILL = "Skill";
  * bytes are, so the anchor of Skill typing is Core's and nothing admitted
  * alongside it can take its place.
  */
-const SKILL_ID = createHash("sha256").update(payload()["core/Skill.md"]).digest("hex");
+const SKILL_ID = sha256(payload()["core/Skill.md"]);
 const CAPABILITY = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /** The files of an installed KAAL, keyed by path relative to its directory. */
