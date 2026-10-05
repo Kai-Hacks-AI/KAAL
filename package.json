@@ -21,6 +21,7 @@
     "close-kaal-change": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js close .kaal",
     "check-kaal-changes": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js check .kaal",
     "check-kaal-seals": "npm run check-kaal-seals --prefix engineering/kaal-core",
+    "check-kaal-config": "npm run --silent check-kaal-config --prefix engineering/kaal-core --",
     "seal-kaal-artifact": "npm run seal-kaal-artifact --prefix engineering/kaal-core --",
     "wire-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/wire-kaal-agent.js",
     "check-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/check-kaal-agent.js",
