@@ -36,7 +36,7 @@ Independent, hand-written KAAL directories: default (no file, and commented file
 0. This PR: allocate the Change with this design. Draft until Sealing Change `05/01` has sealed its Work, written its retro and sealed the Change.
 1. A, `engineering/kaal-install` only: `core/config` is instance-owned (written if absent, never overwritten, edits are not drift). Independent of B.
 2. B, Core alone: the default `config`, the private checker, a CLI helper and fixtures; adjusts the one Core test that expects any byte edit under `core/` to be detected.
-3. C, ordinary: root `check-kaal-standards` script, the installed `.kaal/core/config` projection, README. Not in `npm test` until D, so the legacy names are red by design without blocking the required checks.
+3. C, ordinary: root `check-kaal-config` script, the installed `.kaal/core/config` projection, README. Not in `npm test` until D, so the legacy names are red by design without blocking the required checks.
 4. D, ordinary: rename `changing-kaal` and `engineering-kaal-skill` (packages, host skills, engineering) to `kaal-changing` and `kaal-engineering`, regenerate `.kaal`, put the checker in `npm test`; Node bytes, IDs and seals unchanged.
 
 Making the checker a repository control is `.github` work and a later step.
