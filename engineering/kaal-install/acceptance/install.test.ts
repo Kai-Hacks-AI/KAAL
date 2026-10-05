@@ -104,6 +104,23 @@ test("an installed Skill that no package delivers is named by the check", async 
   assert.match(found, new RegExp(`the installed Skill Foreign \\(${sha256(md)}\\) is delivered by no package`));
 });
 
+test("core/config is instance-owned: written when absent, then never overwritten, and a human edit is not drift", async (t) => {
+  const dir = checkout(t);
+  const d = await deliver(dir);
+  const withConfig = { ...d, kaal: { ...d.kaal, "core/config": "# default\n" } };
+  install(dir, withConfig);
+  const file = join(dir, KAAL_DIR, "core", "config");
+  assert.equal(readFileSync(file, "utf8"), "# default\n", "born from what Core delivers");
+  assert.deepEqual(check(dir, withConfig), []);
+  writeFileSync(file, "capability-prefix = acme-\n");
+  assert.deepEqual(check(dir, withConfig), [], "an edit is not drift");
+  install(dir, withConfig);
+  assert.equal(readFileSync(file, "utf8"), "capability-prefix = acme-\n", "installing never overwrites it");
+  rmSync(file);
+  assert.match(check(dir, withConfig).join("\n"), /core\/config is missing/, "a delivered file that is absent is named");
+  assert.deepEqual(check(dir, d).filter((p) => /config/.test(p)), [], "before Core delivers one, nothing is expected");
+});
+
 test("installing twice changes nothing", async (t) => {
   const dir = await full(t);
   const once = both(dir);

@@ -14,6 +14,9 @@ import { CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./
 /** The one derived file of the KAAL directory that is not sealed. */
 const UNSEALED = "AGENTS.md";
 
+/** Files Core delivers as defaults and the KAAL instance then owns: human-editable, never sealed. */
+const INSTANCE = ["core/config"];
+
 const CHANGE_SEALS = ["seals/changes", "seals/trees"];
 const underChanges = (path: string) => [CHANGES, ...CHANGE_SEALS].some((dir) => path === dir || path.startsWith(`${dir}/`));
 
@@ -33,9 +36,9 @@ export function check(target: string, d: Delivery): string[] {
   const compare = (label: string, expected: Files, found: Files) => {
     for (const [path, bytes] of Object.entries(expected)) {
       if (!(path in found)) problems.push(`${label}/${path} is missing`);
-      else if (found[path] !== bytes) problems.push(`${label}/${path} differs from what the packages deliver`);
+      else if (found[path] !== bytes && !(label === KAAL_DIR && INSTANCE.includes(path))) problems.push(`${label}/${path} differs from what the packages deliver`);
     }
-    for (const path of Object.keys(found)) if (!(path in expected)) problems.push(`${label}/${path} is not delivered by any package`);
+    for (const path of Object.keys(found)) if (!(path in expected) && !(label === KAAL_DIR && INSTANCE.includes(path))) problems.push(`${label}/${path} is not delivered by any package`);
   };
   compare(KAAL_DIR, d.kaal, have.kaal);
   compare(HOST_SKILLS, d.skills, have.skills);
@@ -52,14 +55,14 @@ export function install(target: string, d: Delivery): void {
   const dir = join(target, KAAL_DIR);
   for (const [path, bytes] of Object.entries(d.kaal)) {
     const file = join(dir, path);
-    if (path !== UNSEALED && existsSync(file) && readFileSync(file, "utf8") !== bytes) throw new Error(`${KAAL_DIR}/${path} exists with other bytes: changed bytes are another Node`);
+    if (path !== UNSEALED && !INSTANCE.includes(path) && existsSync(file) && readFileSync(file, "utf8") !== bytes) throw new Error(`${KAAL_DIR}/${path} exists with other bytes: changed bytes are another Node`);
   }
   const put = (file: string, bytes: string) => {
     if (existsSync(file) && readFileSync(file, "utf8") === bytes) return;
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, bytes);
   };
-  for (const [path, bytes] of Object.entries(d.kaal)) put(join(dir, path), bytes);
+  for (const [path, bytes] of Object.entries(d.kaal)) if (!INSTANCE.includes(path) || !existsSync(join(dir, path))) put(join(dir, path), bytes);
   const host = join(target, HOST_SKILLS);
   for (const path of Object.keys(installed(target, d).skills)) if (!(path in d.skills)) rmSync(join(host, path));
   for (const [path, bytes] of Object.entries(d.skills)) put(join(host, path), bytes);
