@@ -8,11 +8,22 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { TestContext } from "node:test";
-import { changeId } from "../helpers/change-id.js";
+import { changeId, namedTreeId } from "../helpers/change-id.js";
 
 const tree = (t: TestContext, files: Record<string, string | Buffer>, order = Object.keys(files)): string => {
   const dir = mkdtempSync(join(tmpdir(), "change-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
+  for (const path of order) {
+    mkdirSync(dirname(join(dir, path)), { recursive: true });
+    writeFileSync(join(dir, path), files[path]);
+  }
+  return dir;
+};
+/** A tree whose root directory is called `name`, under a fresh parent. */
+const namedTree = (t: TestContext, name: string, files: Record<string, string>, order = Object.keys(files)): string => {
+  const parent = mkdtempSync(join(tmpdir(), "named-"));
+  t.after(() => rmSync(parent, { recursive: true, force: true }));
+  const dir = join(parent, name);
   for (const path of order) {
     mkdirSync(dirname(join(dir, path)), { recursive: true });
     writeFileSync(join(dir, path), files[path]);
@@ -92,4 +103,30 @@ test("unsupported objects and ambiguous names are refused, not hashed", (t) => {
   assert.throws(() => changeId(tree(t, { "a.md": "1", "A.md": "2" })), /only by case/);
   assert.throws(() => changeId(tree(t, { "a\\b.md": "1" })), /backslash/);
   assert.throws(() => changeId(tree(t, { "a\nb.md": "1" })), /control/);
+});
+
+test("a named tree's ID is the written format: its root name, then relative paths and bytes", (t) => {
+  const dir = namedTree(t, "work", { "a": "a", "b/c": "c" });
+  const h = createHash("sha256").update("KAAL Tree v1\n").update(be(4)).update("work").update(be(2));
+  for (const [p, c] of [["a", "a"], ["b/c", "c"]]) h.update(be(Buffer.byteLength(p))).update(p).update(be(Buffer.byteLength(c))).update(c);
+  assert.equal(namedTreeId(dir), h.digest("hex"));
+  assert.notEqual(namedTreeId(dir), changeId(dir), "a named tree and a Change of the same bytes never share an ID");
+});
+
+test("a named tree keeps its identity wherever its parent is, and loses it if its own name, content or inner paths change", (t) => {
+  const files = { "a": "a", "b/c": "c" };
+  const here = namedTreeId(namedTree(t, "work", files));
+  assert.equal(namedTreeId(namedTree(t, "work", files, ["b/c", "a"])), here, "another parent, another creation order: A/work and B/work agree");
+  assert.notEqual(namedTreeId(namedTree(t, "evidence", files)), here, "work/ renamed to evidence/ is another tree");
+  assert.notEqual(namedTreeId(namedTree(t, "work", { "a": "a", "b/d": "c" })), here, "an inner rename");
+  assert.notEqual(namedTreeId(namedTree(t, "work", { "a": "a", "b/c": "c", "e": "e" })), here, "an addition");
+  assert.notEqual(namedTreeId(namedTree(t, "work", { "a": "a" })), here, "a deletion");
+  assert.notEqual(namedTreeId(namedTree(t, "work", { "a": "a", "b/c": "C" })), here, "an edit");
+  assert.notEqual(namedTreeId(namedTree(t, "work", { "a": "a", "b/c": "c" })), namedTreeId(namedTree(t, "wor", { "ka": "a", "b/c": "c" })), "name and paths cannot be traded against each other");
+});
+
+test("Change v1 is untouched by the named-tree rule: its ID still excludes the root name", (t) => {
+  const files = { "retro.md": "# Retro\n" };
+  assert.equal(changeId(namedTree(t, "01", files)), changeId(namedTree(t, "02", files)));
+  assert.equal(changeId(namedTree(t, "01", files)), "98ac581a6d9a37547b5df936422b6c5dd7e7a55644443331c5b3858f564a892f");
 });
