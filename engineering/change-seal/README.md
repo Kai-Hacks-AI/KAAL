@@ -8,28 +8,32 @@ A Change is **closed** when the ID of its current tree has a seal, the empty mar
 
 ## The process
 
-A Change is taken through exactly: work, seal work, retro, seal Change.
+A Change is taken through exactly: work, seal work, retro-work, retro-observe, seal Change.
 
 ```
 changes/<name>/YY/MM/DD/CC/
-├── work/      open while it evolves; sealed once complete
-└── retro.md   written only after work/ is sealed
+├── work/              open while it evolves; sealed once complete
+├── retro-work.md      from inside the Work, by the worker, after work/ is sealed
+└── retro-observe.md   from outside the Work, by the observer, after reading work/ and retro-work.md
 ```
 
-`work/` is scaffolding for learning this boundary, not a permanent KAAL concept; it is the first consumer of a **named tree**. A named tree's ID (`KAAL Tree v1`, Sealing's `artifact-id.mjs --named`) is the SHA-256 of a canonical stream over its own root name, its relative paths and exact bytes. Its parent and location are excluded: `A/work/` moved to `B/work/` keeps its identity, `work/` renamed to `evidence/` does not, and any edit, addition, deletion or inner move changes it. Its seal is the empty marker `seals/trees/<ID>`, outside what it seals. The Change identity (`KAAL Change v1`) is deliberately unchanged: it excludes the Change's own name, exactly as genesis `01` was sealed. `retro.md` sits outside `work/`, so adding it never disturbs the Work seal, and the final Change seal covers both. There is no Retro seal and no status metadata: where a Change is, is derived from `work/`, `retro.md` and the seals (`helpers/process.ts`, the one evaluator):
+`work/` is scaffolding for learning this boundary, not a permanent KAAL concept; it is the first consumer of a **named tree**. A named tree's ID (`KAAL Tree v1`, Sealing's `artifact-id.mjs --named`) is the SHA-256 of a canonical stream over its own root name, its relative paths and exact bytes. Its parent and location are excluded: `A/work/` moved to `B/work/` keeps its identity, `work/` renamed to `evidence/` does not, and any edit, addition, deletion or inner move changes it. Its seal is the empty marker `seals/trees/<ID>`, outside what it seals. The Change identity (`KAAL Change v1`) is deliberately unchanged: it excludes the Change's own name, exactly as genesis `01` was sealed. The retros sit outside `work/`, so adding them never disturbs the Work seal, and the final Change seal covers all of it. There is no Retro seal, no role or writer-identity metadata and no status metadata: where a Change is, is derived from `work/`, the two retros and the seals (`helpers/process.ts`, the one evaluator):
 
-- `WORK OPEN`, next: complete and seal work (a `retro.md` here is reported as an invalid step)
-- `WORK SEALED`, next: write `retro.md`
-- `RETRO PRESENT`, next: seal Change
+- `WORK OPEN`, next: complete and seal work (any retro here is reported as an invalid step)
+- `WORK SEALED`, next: write `retro-work.md`
+- `RETRO-WORK PRESENT`, next: the observer reads the Work and `retro-work.md`, then writes `retro-observe.md`
+- `RETRO-OBSERVE PRESENT`, next: seal Change
 - `CHANGE CLOSED`
 
-A Change that predates Work, such as genesis `01`, is closed by its own seal and is judged as it always was.
+The order is evidence, not metadata: `retro-observe.md` without `retro-work.md` is reported as an invalid step, so the worker perspective exists before the observer sees it. Presence cannot show who wrote a file; that stays a convention of Changing KAAL.
+
+**The historical `retro.md`.** Changes closed before the two perspectives (genesis `01`, and `05/01`) hold one `retro.md`. They stay valid exactly as sealed: a closed Change is judged by its own seal, whatever files it holds, and nothing is rewritten. `retro.md` is not a step of an open Change: it is reported as a problem there and never stands in for the two, so no new Change can close with it.
 
 ## Commands (from the repository root)
 
 - `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC`: print the stage, what is next, and any problem (exit 1 when there is a problem).
-- `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`: seal the Work; refused if there is a `retro.md` or the Work is already sealed.
-- `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal the Change; refused unless the Work is sealed and `retro.md` is present.
+- `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`: seal the Work; refused if any retro exists or the Work is already sealed.
+- `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal the Change; refused unless the Work is sealed and both `retro-work.md` and `retro-observe.md` are present.
 
 The primitives beneath them are unchanged:
 

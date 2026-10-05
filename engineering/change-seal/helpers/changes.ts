@@ -11,8 +11,11 @@ import { markers } from "./sealing.js";
 export const SEALS = "seals/changes";
 /** Where named-tree seals live, beside Change seals and likewise outside the tree they seal. */
 export const TREE_SEALS = "seals/trees";
-/** The Work of a Change is its directory work/, and its retrospective is retro.md. */
+/** The Work of a Change is its directory work/, and its retrospectives are retro-work.md (from inside the Work) and retro-observe.md
+ * (from outside it). retro.md is the historical single retrospective of Changes closed before them. */
 export const WORK = "work";
+export const RETRO_WORK = "retro-work.md";
+export const RETRO_OBSERVE = "retro-observe.md";
 export const RETRO = "retro.md";
 
 const dirs = (path: string): string[] => (existsSync(path) ? readdirSync(path, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : []);
