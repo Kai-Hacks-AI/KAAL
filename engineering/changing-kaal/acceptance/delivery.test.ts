@@ -95,6 +95,29 @@ test("the change record convention is stated once, with the retro form in its re
   for (const rule of [/own seat/, /does not infer what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/]) assert.match(retro, rule);
 });
 
+test("the realization pulls the agent through work, seal work, retro, close, by the repository's own commands", () => {
+  assert.ok(manifest.includes("allocate → work → seal work → retro → seal Change (closed)"), "the sequence, exactly");
+  assert.ok(manifest.includes("scripts/next-change.mjs"), "the allocator stays the existing allocator");
+  for (const command of ["state-kaal-change", "seal-kaal-work", "close-kaal-change"]) assert.ok(manifest.includes(command), command);
+  assert.ok(manifest.indexOf("seal-kaal-work") < manifest.indexOf("references/retro.md"), "work is sealed before the retro is written");
+  assert.match(manifest, /Do not write `retro\.md` before the work is sealed/);
+  assert.match(skills[`${CAPABILITY}/references/retro.md`], /only after the change's `work\/` is sealed/);
+});
+
+test("the process adds no second implementation, no retro seal, no phase state and no new KAAL artifact", () => {
+  assert.doesNotMatch(manifest, /seal retro/i);
+  assert.doesNotMatch(manifest, /\b(status|phase):/);
+  assert.doesNotMatch(manifest, /\b(git|github|branch|commit|pull request|CI)\b/i);
+  assert.ok(!Object.keys(skills).some((p) => /seal|state/i.test(p.split("/").pop()!)), "no sealing or state script is shipped");
+  assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")).sort(), [nodeFile, ratificationFile], "no Work Node or other definition");
+  assert.ok(!/requirements\.md|architecture\.md|test\.md|intend\.md/.test(manifest), "RATIFICATION is not turned into files");
+});
+
+test("the Changing KAAL Node and RATIFICATION are byte-for-byte what they were sealed as", () => {
+  assert.equal(sha256(kaal[nodeFile]), "7b2470732033e9ca6e916cf1ff7d73629bd203737aaf1894a9d621b517e896c2");
+  assert.equal(sha256(kaal[ratificationFile]), "ff114bfe71e7780df04c290e142c002fe985046d2635b46c78ff3d1e464b9a77");
+});
+
 test("the only executable procedure is the allocator, and it carries no sealing of its own", () => {
   const scripts = Object.keys(skills).filter((p) => p.includes("/scripts/"));
   assert.deepEqual(scripts, [`${CAPABILITY}/scripts/next-change.mjs`]);
