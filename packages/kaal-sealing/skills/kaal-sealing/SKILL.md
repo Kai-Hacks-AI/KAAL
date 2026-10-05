@@ -1,5 +1,5 @@
 ---
-name: sealing
+name: kaal-sealing
 description: Establish and verify the seal of a KAAL artifact, given the identity its own domain defines. Computes the canonical identity of a file or a directory, in the form and domain its own kind defines, and writes, checks and lists seal markers in a seals directory. Use when something must be sealed or a seal checked, or when a file's or a directory's identity is needed.
 license: MIT
 compatibility: Needs Node.js 20 or later. Works on any directory and seals directory; it needs no other package.

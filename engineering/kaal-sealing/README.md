@@ -1,6 +1,6 @@
-# sealing (engineering)
+# kaal-sealing (engineering)
 
-The machinery that proves the delivery of `packages/sealing`, the capability for establishing and verifying the immutable identity of a KAAL artifact. It is not shipped, and it is not part of `kaal-core`.
+The machinery that proves the delivery of `packages/kaal-sealing`, the capability for establishing and verifying the immutable identity of a KAAL artifact. It is not shipped, and it is not part of `kaal-core`.
 
 `npm test` here is acceptance, run on what the package actually ships:
 

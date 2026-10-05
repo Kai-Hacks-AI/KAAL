@@ -3,7 +3,7 @@
 // API): the one definition of an artifact's identity and of a seal marker. Nothing in
 // this directory computes either; it only says which tree is a Change or a
 // named tree, and where each kind of seal is kept.
-const SCRIPTS = new URL("../../../../packages/sealing/skills/sealing/scripts/", import.meta.url);
+const SCRIPTS = new URL("../../../../packages/kaal-sealing/skills/kaal-sealing/scripts/", import.meta.url);
 
 export interface ArtifactIdentity {
   artifactId(path: string, options?: { domain?: string; named?: boolean }): string;

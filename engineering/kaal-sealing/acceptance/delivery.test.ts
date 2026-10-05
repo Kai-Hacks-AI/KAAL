@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { payload as core, registerSkill } from "kaal-core";
-import { payload } from "sealing";
+import { payload } from "kaal-sealing";
 import { admit, CAPABILITY, PACKAGE, REPO, deployKaal, read } from "../helpers/setup.js";
 
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
@@ -72,5 +72,5 @@ test("registering is Core's: the shipped contribution passes register-skill --ch
   const registrar = join(REPO, "packages", "engineering-kaal-skill", "skills", "engineering-kaal-skill", "scripts", "register-skill.mjs");
   const r = spawnSync("node", [registrar, "--check", deployKaal(t), CAPABILITY, join(PACKAGE, "kaal")], { encoding: "utf8" });
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /can register sealing: [0-9a-f]{64}/);
+  assert.match(r.stdout, /can register kaal-sealing: [0-9a-f]{64}/);
 });

@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import * as capability from "sealing";
+import * as capability from "kaal-sealing";
 
-// Resolves "sealing" through its own package.json `exports`, so this
+// Resolves "kaal-sealing" through its own package.json `exports`, so this
 // runs against the built package surface, not against src.
 
 test("the public API is exactly payload()", () => {
@@ -14,8 +14,8 @@ test("payload() carries its Nodes, each with its seal, and one Agent Skill", () 
   const nodes = Object.keys(kaal).filter((p) => !p.startsWith("seals/"));
   assert.deepEqual(nodes, ["Sealing.md"]);
   assert.equal(Object.keys(kaal).filter((p) => p.startsWith("seals/")).length, nodes.length);
-  assert.ok(skills["sealing/SKILL.md"]);
-  assert.ok(Object.keys(skills).every((p) => p.startsWith("sealing/")), "exactly one skill");
+  assert.ok(skills["kaal-sealing/SKILL.md"]);
+  assert.ok(Object.keys(skills).every((p) => p.startsWith("kaal-sealing/")), "exactly one skill");
 });
 
 test("payload() is deterministic", () => {

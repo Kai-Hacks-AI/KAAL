@@ -15,7 +15,7 @@ export const { admit } = machinery;
 
 /** The repository root, and the capability's package within it. */
 export const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
-export const CAPABILITY = "sealing";
+export const CAPABILITY = "kaal-sealing";
 export const PACKAGE = join(REPO, "packages", CAPABILITY);
 export const SCRIPTS = join(PACKAGE, "skills", CAPABILITY, "scripts");
 

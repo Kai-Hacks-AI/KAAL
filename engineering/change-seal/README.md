@@ -1,8 +1,8 @@
 # change-seal
 
-Provisional engineering machinery that seals the Work of a KAAL Change and closes the Change. It is not shipped, and it is not a Skill; it decides which directory is a Change and which is a named tree. How any directory tree is given an identity, and what a seal marker is, are the Sealing capability's (`packages/sealing`), which these helpers consume and never reimplement.
+Provisional engineering machinery that seals the Work of a KAAL Change and closes the Change. It is not shipped, and it is not a Skill; it decides which directory is a Change and which is a named tree. How any directory tree is given an identity, and what a seal marker is, are the Sealing capability's (`packages/kaal-sealing`), which these helpers consume and never reimplement.
 
-A Change is the directory `changes/<name>/YY/MM/DD/CC/` of a KAAL directory. Its ID is the SHA-256 of a canonical stream over the whole tree (`packages/sealing/skills/sealing/scripts/artifact-id.mjs` states the format; `helpers/change-id.ts` only says which tree is a Change): relative paths are identity-bearing, only regular files participate, and anything ambiguous (symlinks, empty directories, non-NFC or case-colliding paths, backslashes, control characters) is refused. A Node's identity is unchanged: its bytes alone.
+A Change is the directory `changes/<name>/YY/MM/DD/CC/` of a KAAL directory. Its ID is the SHA-256 of a canonical stream over the whole tree (`packages/kaal-sealing/skills/kaal-sealing/scripts/artifact-id.mjs` states the format; `helpers/change-id.ts` only says which tree is a Change): relative paths are identity-bearing, only regular files participate, and anything ambiguous (symlinks, empty directories, non-NFC or case-colliding paths, backslashes, control characters) is refused. A Node's identity is unchanged: its bytes alone.
 
 A Change is **closed** when the ID of its current tree has a seal, the empty marker `seals/changes/<Change-ID>` in the KAAL directory, outside the tree it seals. There is no status metadata. Bare `seals/<ID>` markers remain Node seals.
 

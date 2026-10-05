@@ -87,7 +87,7 @@ test("a file has the same grammar: bare bytes are a Node's identity, and a domai
 test("it reproduces Core's own Node IDs for the bare-bytes form, which it did not define", () => {
   const core = join(REPO, "packages", "kaal-core", "artifacts", "core", "Skill.md");
   assert.equal(run("artifact-id", core).out, "2389ba68e2c2afacea8655b1e23f6dc4c485c89c67ac0d655bb55d3c5a90096b");
-  const own = join(REPO, "packages", "sealing", "kaal", "Sealing.md");
+  const own = join(REPO, "packages", "kaal-sealing", "kaal", "Sealing.md");
   assert.equal(run("artifact-id", own).out, createHash("sha256").update(readFileSync(own)).digest("hex"), "Sealing's own Node ID is its bytes' hash");
   assert.ok(run("artifact-id", own).out.startsWith("e15f370c"));
 });

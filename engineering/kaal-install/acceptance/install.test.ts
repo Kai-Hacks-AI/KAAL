@@ -15,16 +15,16 @@ import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../h
 import { check, install } from "../helpers/state.js";
 import * as changing from "changing-kaal";
 import * as engineering from "engineering-kaal-skill";
-import * as sealing from "sealing";
+import * as sealing from "kaal-sealing";
 
 const SKILLS = ["Changing KAAL", "Engineering Skill", "Sealing"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
   ["engineering-kaal-skill", engineering.payload],
   ["changing-kaal", changing.payload],
-  ["sealing", sealing.payload],
+  ["kaal-sealing", sealing.payload],
 ];
-const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill", "sealing"];
+const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill", "kaal-sealing"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
 type After = { after: (fn: () => void) => void };

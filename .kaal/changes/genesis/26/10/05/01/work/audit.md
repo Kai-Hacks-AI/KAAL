@@ -21,7 +21,7 @@ The bootstrap minimum is therefore: SHA-256 of bytes, an empty marker named by i
 | piece | where | owner | outcome |
 |---|---|---|---|
 | What a Change is, and its identity parameters (`KAAL Change v1`, root name excluded) | `engineering/change-seal/helpers/change-id.ts` | Changing KAAL (domain) | stays decided there, now only as parameters |
-| How a directory is hashed | the same file, before this Change | Sealing | moved: `packages/sealing/skills/sealing/scripts/artifact-id.mjs` is the one definition, covering all four forms |
+| How a directory is hashed | the same file, before this Change | Sealing | moved: `packages/kaal-sealing/skills/kaal-sealing/scripts/artifact-id.mjs` is the one definition, covering all four forms |
 | Seal marker mechanics | `changes.ts` (`mkdir`, empty file, listing) | Sealing | moved: `seal.mjs` |
 | Where Change seals live: `seals/changes/<ID>` | `changes.ts` | Changing KAAL | unchanged |
 | Closure, when a Change must be sealed | `process.ts`, `seal-kaal-work`, `close-kaal-change` | Changing KAAL | stays in `engineering/change-seal` (see below) |
