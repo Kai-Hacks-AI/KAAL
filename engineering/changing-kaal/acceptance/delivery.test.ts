@@ -95,6 +95,17 @@ test("the change record convention is stated once, with the retro form in its re
   for (const rule of [/own seat/, /does not infer what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/]) assert.match(retro, rule);
 });
 
+test("the realization pulls the agent through work, seal work, retro, seal Change, and writes no phase state", () => {
+  assert.ok(manifest.includes("allocate → work → seal work → retro → seal Change (closed)"), "the sequence, exactly");
+  for (const command of ["seal-kaal-work", "state-kaal-change", "close-kaal-change"]) assert.ok(manifest.includes(command), command);
+  assert.match(manifest, /Do not write `retro\.md` before the work is sealed/);
+  assert.match(manifest, /never written down/);
+  assert.doesNotMatch(manifest, /\b(status|phase):/);
+  for (const phase of [/\bplan\b.*seal/i, /\bdo\/check\b/i, /\bact\b.*seal/i]) assert.doesNotMatch(manifest, phase);
+  assert.ok(!/requirements\.md|architecture\.md|test\.md|intend\.md/.test(manifest), "RATIFICATION is not turned into structure");
+  assert.match(skills[`${CAPABILITY}/references/retro.md`], /only after the change's `work\/` is sealed/);
+});
+
 test("the only executable procedure is the allocator, and it carries no sealing of its own", () => {
   const scripts = Object.keys(skills).filter((p) => p.includes("/scripts/"));
   assert.deepEqual(scripts, [`${CAPABILITY}/scripts/next-change.mjs`]);

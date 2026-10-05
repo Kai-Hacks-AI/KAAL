@@ -1,6 +1,6 @@
 # Reference: retro.md
 
-`retro.md` is the one artifact that closes a change. Its form is exactly this, and nothing else:
+`retro.md` is the retrospective of a change. It is written only after the change's `work/` is sealed, and the Change is sealed after it. Its form is exactly this, and nothing else:
 
 ```
 # Retro
