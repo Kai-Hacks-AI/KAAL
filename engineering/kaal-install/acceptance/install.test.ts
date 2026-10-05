@@ -15,14 +15,16 @@ import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../h
 import { check, install } from "../helpers/state.js";
 import * as changing from "changing-kaal";
 import * as engineering from "engineering-kaal-skill";
+import * as sealing from "sealing";
 
-const SKILLS = ["Changing KAAL", "Engineering Skill"];
+const SKILLS = ["Changing KAAL", "Engineering Skill", "Sealing"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
   ["engineering-kaal-skill", engineering.payload],
   ["changing-kaal", changing.payload],
+  ["sealing", sealing.payload],
 ];
-const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill"];
+const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill", "sealing"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
 type After = { after: (fn: () => void) => void };
@@ -75,7 +77,7 @@ test("registered through Core, the capabilities are installed Skills: Nodes unde
   assert.deepEqual(kaal, d.kaal, "the installed KAAL is exactly the delivery");
   for (const [path, content] of Object.entries(core.payload())) assert.equal(kaal[path], content, `Core installed: ${path}`);
   const skills = core.installedSkills(join(dir, KAAL_DIR));
-  assert.deepEqual(skills.map((s) => s.name), SKILLS, "both are registered Skills");
+  assert.deepEqual(skills.map((s) => s.name), SKILLS, "all are registered Skills");
   for (const skill of skills) assert.ok(skill.id in Object.fromEntries(Object.keys(kaal).filter((p) => p.startsWith("seals/")).map((p) => [p.slice(6), 1])), `${skill.name} is sealed in seals/`);
   for (const cap of CAPABILITIES) {
     assert.ok(Object.keys(kaal).some((p) => p.startsWith(`skills/${cap}/`) && p.endsWith(".md")), `${cap}'s Node is under skills/${cap}/`);
@@ -206,7 +208,7 @@ test("the Agent entrypoint is wired by the existing KAAL Agent machinery", async
 
 test("this repository holds what its packages deliver for its installed Skills, derived and not authored", async () => {
   assert.deepEqual(await problems(SOURCE), []);
-  assert.deepEqual(core.installedSkills(join(SOURCE, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill and Changing KAAL are installed Skills");
+  assert.deepEqual(core.installedSkills(join(SOURCE, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL and Sealing are installed Skills");
   assert.deepEqual((await deliver(SOURCE)).capabilities, CAPABILITIES);
 });
 
@@ -215,19 +217,20 @@ test("this repository's AGENTS.md is wired to its installed .kaal", () => {
   assert.equal(r.status, 0, r.stderr);
 });
 
-test("this repository's change records are well formed: allocated in sequence, each closed with a 4L retro.md", () => {
+test("this repository's change records are well formed: allocated in sequence, work/ and retro.md only where the process puts them, each retro the 4L form", () => {
   const changes = read(join(SOURCE, KAAL_DIR, "changes"));
   const paths = Object.keys(changes);
   assert.ok(paths.length > 0, "the self-install change is recorded");
-  for (const path of paths) assert.match(path, /^[a-z0-9]+(-[a-z0-9]+)*\/\d\d\/\d\d\/\d\d\/(0[1-9]|[1-9]\d)\/retro\.md$/, path);
-  const days = new Map<string, number[]>();
+  for (const path of paths) assert.match(path, /^[a-z0-9]+(-[a-z0-9]+)*\/\d\d\/\d\d\/\d\d\/(0[1-9]|[1-9]\d)\/(retro\.md|work\/.+)$/, path);
+  const days = new Map<string, Set<number>>();
   for (const path of paths) {
     const [name, yy, mm, dd, cc] = path.split("/");
-    days.set(`${name}/${yy}/${mm}/${dd}`, [...(days.get(`${name}/${yy}/${mm}/${dd}`) ?? []), Number(cc)]);
+    const day = `${name}/${yy}/${mm}/${dd}`;
+    days.set(day, (days.get(day) ?? new Set()).add(Number(cc)));
   }
-  for (const [day, sequence] of days) assert.deepEqual(sequence.sort((a, b) => a - b), sequence.map((_, i) => i + 1), `${day}: 01.. with no gap`);
+  for (const [day, sequence] of days) assert.deepEqual([...sequence].sort((a, b) => a - b), [...sequence].map((_, i) => i + 1), `${day}: 01.. with no gap`);
   assert.ok(days.has("genesis/26/10/04") && changes["genesis/26/10/04/01/retro.md"], "the self-install change is genesis 26/10/04 01");
-  for (const [path, text] of Object.entries(changes)) {
+  for (const [path, text] of Object.entries(changes).filter(([p]) => p.endsWith("/retro.md"))) {
     const headings = text.split("\n").filter((l) => l.startsWith("#"));
     assert.deepEqual(headings, ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"], `${path}: the 4L form and nothing else`);
     for (const section of text.split(/^## /m).slice(1)) assert.ok(section.split("\n").slice(1).join("").trim().length > 0, `${path}: ${section.split("\n")[0]} says something`);
