@@ -27,7 +27,7 @@ A change goes through exactly this, in this order:
 allocate → work → seal work → retro → seal Change (closed)
 ```
 
-The record holds `work/` and `retro.md`:
+The current process requires `work/` and `retro.md` in the record (it does not say these are all a record may hold):
 
 ```
 <kaal-dir>/changes/<name>/YY/MM/DD/CC/
@@ -52,7 +52,7 @@ Where a change is in the process is never written down. Ask `npm run state-kaal-
 - Do not write `retro.md` before the work is sealed, and do not go back and alter sealed work to make the history cleaner. If you find something while writing the retro, it belongs in the retro.
 - A change record is immutable once closed: never edit a sealed `work/`, a `retro.md` once written, or a closed change, and never reuse or renumber a change directory.
 - The retro is your own. Do not write what the user, a reviewer or a team thought, and do not write what you believe is wanted.
-- Do not add metadata that says what phase a change is in, and do not add anything to the record beyond `work/` and `retro.md`.
+- Do not add metadata that says what phase a change is in. Other meaningful artifacts may join a change record where a capability or process calls for them; they do not replace or reorder the steps above.
 - Changes closed before work was sealed (genesis `01`) are valid as they are; do not alter them to fit this process.
 
 ## Scripts and helpers
