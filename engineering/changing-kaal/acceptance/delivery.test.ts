@@ -101,7 +101,7 @@ test("the realization pulls the agent through work, seal work, both retros, clos
   for (const command of ["state-kaal-change", "seal-kaal-work", "close-kaal-change"]) assert.ok(manifest.includes(command), command);
   assert.ok(manifest.indexOf("seal-kaal-work") < manifest.indexOf("references/retro.md"), "work is sealed before the retro is written");
   assert.match(manifest, /Do not write a retro before the work is sealed, do not write `retro-observe\.md` before `retro-work\.md` exists/);
-  assert.ok(manifest.indexOf("`retro-work.md` in the change directory") < manifest.indexOf("`retro-observe.md`, as described"), "the worker's retro comes before the observer's");
+  assert.ok(manifest.indexOf("`retro-work.md` in the change directory") < manifest.indexOf("then writes `retro-observe.md`"), "the worker's retro comes before the observer's");
   assert.match(skills[`${CAPABILITY}/references/retro.md`], /only after the change's `work\/` is sealed/);
 });
 
