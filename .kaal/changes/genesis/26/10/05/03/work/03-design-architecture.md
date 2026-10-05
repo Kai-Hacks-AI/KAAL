@@ -10,19 +10,17 @@ One deterministic predicate over two KAAL directories:
 admit(baseline, candidate) → admitted | refused (reasons)
 ```
 
-Let `closed(X)` be the identities of the Changes closed in X (what `list-sealed-changes` already reports) and `changes(X)` the Change directories of X.
+A Change of the candidate is **new** when the baseline holds neither a Change at its address nor a closed Change of its identity. Let `closed(X)` be the identities of the Changes closed in X (what `list-sealed-changes` already reports).
 
 ```
-new      = closed(candidate) − closed(baseline)
-carried  = Changes of the candidate present, by address, in the baseline
-loose    = changes(candidate) − carried − (the Changes whose identity is in new)
-
-admitted  ⇔  |new| = 1  ∧  loose = ∅  ∧  state(c) = CHANGE CLOSED, no problems, for the new Change c
-              ∧  the existing history control passes for (baseline, candidate)
+admitted  ⇔  exactly one new Change c
+              ∧  state(c) = CHANGE CLOSED, no problems
+              ∧  every Change closed in the baseline is still closed here with the same identity
 ```
 
-- `|new| = 0` is the no-Change case (R5). `|new| > 1` is the multi-Change case (R3). A non-empty `loose` is an incomplete or unsealed Change (R4). Each refusal says which.
-- `carried` Changes are judged by what already judges them: a closed one must keep its identity (the existing control), an open one that is already in the baseline stays free. That second clause exists only for Changes already in flight and becomes empty by itself.
+- Zero new Changes is the no-Change case (R5), more than one is the multi-Change case (R3), and a new Change that is not closed is the incomplete or unsealed case (R4). Each refusal says which.
+- Previously admitted history is what the existing history control already protects; the predicate only asks it.
+- Nothing is said about Changes that were already in the baseline and are not closed. The predicate judges what an admission introduces, and has no exception for anything. Coming into force after the Changes still in flight have finished is a matter of when the control is switched on.
 - Identification is by identity, so a closed Change moved as a whole to another address is not new, and a staged Change renumbered before closing is simply allocated again.
 
 ## Composition, nothing new beneath
@@ -61,13 +59,13 @@ step · step · step      (staging; open Change; not lineage)
 
 Closure already requires `retro-work.md` and then `retro-observe.md` (the evaluator's order), so the two-perspective model is an existing property of closure and admission inherits it as a fact about a closed Change. Writing either retro after admission is impossible by construction: a closed Change cannot change, and an unclosed one cannot be admitted. The observer's seat is a convention of Changing KAAL; the predicate cannot see who wrote a file.
 
-## Boundary isolation (open)
+## Boundary isolation (decided)
 
-A protected boundary must change alone, and every admission carries a Change (R8). The proposed resolution is that the Change record under `changes/` may accompany an isolated boundary and nothing else may. That is a narrow edit to the isolation control, which itself must travel alone. The alternative is a Change-less class for isolated boundaries, which gives up R5; it is not proposed.
+A protected boundary must change alone, and every admission carries a Change. The sealed Change record under `changes/` may accompany an isolated boundary, and nothing else may. That is a narrow edit to the isolation control, which itself must travel alone, and is a later step.
 
 ## Consequences for Changes in several steps
 
-A Change that needs a bridge, a protected-boundary step and a bridge removal is still staged on a non-lineage line and admitted whole only if its isolated parts may share a Change record (above). If the isolation rule stays absolute, such work is several admissions, each a closed Change in its own right and each leaving the lineage green: a design Change, then one Change per consistent state. This Change takes that second reading for itself: it is design only, admitted when closed, and an implementation is a Change of its own.
+A Change that needs a bridge, a protected-boundary step and a bridge removal is staged on a non-lineage line and admitted whole; its isolated parts may share one Change record with it (above). This Change is design only: it is admitted when closed, and an implementation is a Change of its own.
 
 ## What the design does not do
 

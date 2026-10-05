@@ -10,17 +10,17 @@ A Change is admissible exactly when it is closed: the one process evaluator repo
 
 The Change an admission admits is found from content alone: the closed Change in the candidate whose identity is not closed in the baseline. No title, label, number, name or any other declaration says which Change is meant.
 
-## R3. One Change per admission
+## R3. Exactly one new Change per admission
 
-Exactly one new Change is admitted at a time. Zero is refused (R5); more than one is refused, so that the correspondence between an admission, a Change and its retrospectives is one to one and mechanical.
+A Change is **new** when the baseline holds neither a Change at its address nor a closed Change of its identity. Every admission introduces exactly one new Change. None is refused (R5), and more than one is refused, so that the correspondence between an admission, a Change and its retrospectives is one to one and mechanical.
 
-## R4. An incomplete or unsealed Change is refused
+## R4. An incomplete or unsealed new Change is refused
 
-Any Change in the candidate that is neither in the baseline nor closed makes the candidate inadmissible, and the refusal names the Change, its stage and what the evaluator says is next. A Change open in the baseline is judged as before, which keeps a Change already in flight finishing under its own rules; this clause admits nothing once no open Change remains in the baseline, so it needs no list and no end date.
+The new Change must evaluate `CHANGE CLOSED` with its required seals valid. If it does not, the admission is refused and names the Change, its stage and what the evaluator says is next. There is no exception for any Change and no list of them: the predicate judges what an admission introduces, and a collection that accumulated before the lineage rule applies is outside it. How a Change already in flight finishes is a matter of when the control comes into force, not a clause of the rule.
 
 ## R5. A candidate with no new Change is refused
 
-Everything that joins the lineage is a Change to KAAL and has its record. There is no Change-less class of admission, and no list of exempt paths.
+Everything that joins the lineage is a Change to KAAL and has its record. There is no Change-less class of admission, and no list of exempt paths. (Decided by Kai on review.) Automated dependency updates may need separate treatment; that is left aside and must not weaken this rule.
 
 ## R6. Evidence precedes the crossing
 
@@ -30,9 +30,9 @@ The Change seal is part of the candidate. Nothing the admission relies on can be
 
 Implementation of a Change may take any number of steps. They happen on a line of work that is not the lineage, where nothing is judged as admitted and the Change is simply open. Only the finished candidate crosses, as one admission. Any state a step leaves behind is not the lineage's concern.
 
-## R8. A boundary that must not mix with a Change record
+## R8. A boundary and its Change record
 
-Protected machinery boundaries must keep travelling alone, and a Change is also the record of changes to that machinery (R5). The two requirements are reconciled by treating the Change record, which is sealed text under `changes/` that no machinery reads, as the one thing that may accompany an isolated boundary. This is the single place where the design touches an existing control, and it is held as an open question rather than a decision.
+Protected machinery boundaries keep travelling alone, and every admission carries a Change (R5). The sealed Change record, which is text under `changes/` that no machinery reads, is therefore the one thing allowed to accompany an isolated boundary; no Change-less exemption is created instead. (Decided by Kai on review.) The edit to the isolation control is a later, separate step.
 
 ## R9. Deterministic, and no host concepts
 
