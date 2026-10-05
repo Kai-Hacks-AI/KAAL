@@ -13,18 +13,18 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../helpers/delivery.js";
 import { check, install } from "../helpers/state.js";
-import * as changing from "changing-kaal";
-import * as engineering from "engineering-kaal-skill";
+import * as changing from "kaal-changing";
+import * as engineering from "kaal-engineering";
 import * as sealing from "kaal-sealing";
 
 const SKILLS = ["Changing KAAL", "Engineering Skill", "Sealing"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
-  ["engineering-kaal-skill", engineering.payload],
-  ["changing-kaal", changing.payload],
+  ["kaal-engineering", engineering.payload],
+  ["kaal-changing", changing.payload],
   ["kaal-sealing", sealing.payload],
 ];
-const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill", "kaal-sealing"];
+const CAPABILITIES = ["kaal-changing", "kaal-engineering", "kaal-sealing"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
 type After = { after: (fn: () => void) => void };
@@ -87,11 +87,11 @@ test("registered through Core, the capabilities are installed Skills: Nodes unde
 
 test("what is delivered follows the installed Skills: install one and only it is delivered, whatever other packages exist", async (t) => {
   const dir = checkout(t);
-  await bootstrapped(dir, bootstrap.filter(([c]) => c === "changing-kaal"));
-  assert.deepEqual((await deliver(dir)).capabilities, ["changing-kaal"]);
+  await bootstrapped(dir, bootstrap.filter(([c]) => c === "kaal-changing"));
+  assert.deepEqual((await deliver(dir)).capabilities, ["kaal-changing"]);
   assert.deepEqual(await problems(dir), []);
-  assert.ok(!existsSync(join(dir, HOST_SKILLS, "engineering-kaal-skill")), "a package that exists is not thereby installed");
-  assert.ok(!Object.keys(read(join(dir, KAAL_DIR))).some((p) => p.startsWith("skills/engineering-kaal-skill/")));
+  assert.ok(!existsSync(join(dir, HOST_SKILLS, "kaal-engineering")), "a package that exists is not thereby installed");
+  assert.ok(!Object.keys(read(join(dir, KAAL_DIR))).some((p) => p.startsWith("skills/kaal-engineering/")));
 });
 
 test("an installed Skill that no package delivers is named by the check", async (t) => {
@@ -131,15 +131,15 @@ test("installing twice changes nothing", async (t) => {
 
 test("the check names what differs from the delivery, and repairs nothing", async (t) => {
   const dir = await full(t);
-  const node = join(dir, KAAL_DIR, "skills", "changing-kaal", "Changing-KAAL.md");
-  const skill = join(dir, HOST_SKILLS, "changing-kaal", "SKILL.md");
+  const node = join(dir, KAAL_DIR, "skills", "kaal-changing", "Changing-KAAL.md");
+  const skill = join(dir, HOST_SKILLS, "kaal-changing", "SKILL.md");
   const damage: [string, () => void, RegExp][] = [
     ["a missing Core file", () => rmSync(join(dir, KAAL_DIR, "core", "Core.md")), /core\/Core\.md is missing/],
     ["a changed Node", () => writeFileSync(node, readFileSync(node, "utf8") + " "), /Changing-KAAL\.md is not delivered by any package[\s\S]*1 Node\(s\) that are not admitted/],
     ["a missing seal", () => rmSync(join(dir, KAAL_DIR, "seals", readdirSync(join(dir, KAAL_DIR, "seals"))[0])), /is missing|is not delivered/],
-    ["a changed Agent Skill", () => writeFileSync(skill, "changed"), /changing-kaal\/SKILL\.md differs/],
+    ["a changed Agent Skill", () => writeFileSync(skill, "changed"), /kaal-changing\/SKILL\.md differs/],
     ["a file no package delivers in the KAAL directory", () => put(join(dir, KAAL_DIR, "skills", "other", "X.md"), "x"), /skills\/other\/X\.md is not delivered/],
-    ["a file no package delivers in a delivered Agent Skill", () => put(join(dir, HOST_SKILLS, "changing-kaal", "extra.md"), "x"), /extra\.md is not delivered/],
+    ["a file no package delivers in a delivered Agent Skill", () => put(join(dir, HOST_SKILLS, "kaal-changing", "extra.md"), "x"), /extra\.md is not delivered/],
   ];
   for (const [what, harm, expected] of damage) {
     rmSync(join(dir, KAAL_DIR), { recursive: true, force: true });
@@ -155,8 +155,8 @@ test("the check names what differs from the delivery, and repairs nothing", asyn
 test("an unsealed derived file is made to match; sealed material with other bytes is refused and nothing is written", async (t) => {
   const dir = await full(t);
   writeFileSync(join(dir, KAAL_DIR, "AGENTS.md"), "stale");
-  writeFileSync(join(dir, HOST_SKILLS, "changing-kaal", "SKILL.md"), "stale");
-  put(join(dir, HOST_SKILLS, "changing-kaal", "old.md"), "gone from the package");
+  writeFileSync(join(dir, HOST_SKILLS, "kaal-changing", "SKILL.md"), "stale");
+  put(join(dir, HOST_SKILLS, "kaal-changing", "old.md"), "gone from the package");
   put(join(dir, HOST_SKILLS, "not-ours", "SKILL.md"), "some other host skill");
   await installed(dir);
   assert.deepEqual(await problems(dir), [], "AGENTS.md and the Agent Skill match again; the stale file is gone");
@@ -253,4 +253,24 @@ test("this repository's change records are well formed: allocated in sequence, w
     assert.deepEqual(headings, ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"], `${path}: the 4L form and nothing else`);
     for (const section of text.split(/^## /m).slice(1)) assert.ok(section.split("\n").slice(1).join("").trim().length > 0, `${path}: ${section.split("\n")[0]} says something`);
   }
+});
+
+// Delivery names are configuration, not identity: the capability directories were renamed to the Core
+// capability-prefix, and the semantic Nodes are the very bytes they were born as, still sealed.
+test("this repository's delivery names changed and no Node identity did", () => {
+  const born: Record<string, [string, string][]> = {
+    "kaal-changing": [
+      ["Changing-KAAL.md", "7b2470732033e9ca6e916cf1ff7d73629bd203737aaf1894a9d621b517e896c2"],
+      ["RATIFICATION.md", "ff114bfe71e7780df04c290e142c002fe985046d2635b46c78ff3d1e464b9a77"],
+    ],
+    "kaal-engineering": [["Engineering-Skill.md", "fa393cb5ac37237c944e62874b8b8cc328d3ef93450a18a79421761d8e2de200"]],
+  };
+  for (const [capability, files] of Object.entries(born)) {
+    for (const [file, id] of files) {
+      const path = join(SOURCE, KAAL_DIR, "skills", capability, file);
+      assert.equal(sha256(readFileSync(path, "utf8")), id, `${capability}/${file} keeps its bytes`);
+      assert.ok(existsSync(join(SOURCE, KAAL_DIR, "seals", id)), `${capability}/${file} keeps its seal`);
+    }
+  }
+  assert.deepEqual(readdirSync(join(SOURCE, KAAL_DIR, "skills")).sort(), CAPABILITIES);
 });
