@@ -31,7 +31,7 @@ function installed(target: string, d: Delivery): { kaal: Files; skills: Files } 
 
 /** What differs between `target` and the delivery; empty means it holds the delivery. Never repairs. */
 export function check(target: string, d: Delivery): string[] {
-  const problems: string[] = d.unresolved.map((s) => `the installed Skill ${s.name} (${s.id}) is delivered by no package`);
+  const problems: string[] = d.unresolved.map((s) => `the installed ${s.kind} ${s.name} (${s.id}) is delivered by no package`);
   const have = installed(target, d);
   const compare = (label: string, expected: Files, found: Files) => {
     for (const [path, bytes] of Object.entries(expected)) {
