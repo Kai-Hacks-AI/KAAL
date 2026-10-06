@@ -18,10 +18,19 @@ a=changes/genesis/26/10/06/01 b=changes/genesis/26/10/06/02 c=changes/genesis/26
 change() {
   mkdir -p ".kaal/$1/work"; echo "evidence $1" >".kaal/$1/work/e.md"
   [ "$2" != work ] || return 0
+  # Where the evaluator prints the identity of work/ (work: <id>), review is a step and a converged round must name it;
+  # an evaluator that does not print it has no review. Either way the Change below is taken through the process it has.
+  id=$($cli state .kaal "$1" | sed -n 's/^work: //p' || true)
+  if [ -n "$id" ]; then
+    mkdir -p ".kaal/$1/review"
+    printf '# Review\n\nWork: %s\nResult: converged\n\n## Findings\n\nNone.\n' "$id" >".kaal/$1/review/01.md"
+  fi
   $cli seal-work .kaal "$1" >/dev/null
   [ "$2" != sealed-work ] || return 0
   echo '# Retro' >".kaal/$1/retro-work.md"
   [ "$2" != retro-work ] || return 0
+  # The three perspectives: the Worker's, the Reviewer's and the Owner's. An evaluator with two takes the surplus file as nothing.
+  echo '# Retro' >".kaal/$1/retro-review.md"
   echo '# Retro' >".kaal/$1/retro-observe.md"
   [ "$2" != retro-observe ] || return 0
   $cli close .kaal "$1" >/dev/null
