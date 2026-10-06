@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// Fast local feedback only; CI is authoritative. Git runs it from the root of
+// the repository: it asks KAAL whether the seals are intact, and passes the answer on.
+import { spawnSync } from "node:child_process";
+
+const r = spawnSync("npm", ["run", "--silent", "check-kaal-seals"], { stdio: "inherit" });
+process.exitCode = r.status ?? 1;
