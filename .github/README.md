@@ -17,6 +17,10 @@ They supply memory and policy around Core and know only paths and diffs, never w
 - `preserve-seals`: `scripts/preserve-seals.sh` keeps every seal present on the target branch (new seals may be added). A seal is a token in a seal-record file or the name of a seal artifact in a seals directory; both forms are read.
 - `preserve-sealed-changes`: `scripts/preserve-sealed-changes.sh` keeps every Change that is validly sealed on the target branch present here as a validly sealed Change with the same identity, seal in place. A seal freezes the Change's tree and nothing else, so the Change may move or be renamed as a whole, but nothing inside it may change. It asks the repository's own `npm run list-sealed-changes` which Changes are closed in the target's `.kaal` and in this checkout's, and compares the identities; it never hashes anything. Open and new Changes are free. `scripts/preserve-sealed-changes.test.sh` challenges it on a throwaway repository (edit, rename, move or add inside it, delete a file, the directory or the seal, substitute a seal, reseal) and proves a whole-Change move passes and runs first in the same job. It is separate from `preserve-seals`, which protects Node seals.
 
+- `admit-lineage`: `scripts/admit-lineage.sh` is admission into the lineage. A pull request into a `kaal/*` branch is an admission, not an integration: the target branch's `.kaal` is the baseline, this checkout's is the candidate, and the repository's own `npm run check-kaal-admission` decides. It admits only a candidate that introduces exactly one new Change which is closed (work sealed, both retrospectives, Change sealed) and keeps every Change that is closed on the target; none, several, an incomplete Change, or altered or removed closed history are each refused with the reason. The script supplies the two directories and passes on the exit code; it decides nothing about what a Change or its identity is. The job runs only when the pull request's base is a `kaal/*` branch, so work staged on any other branch is not judged, and steps of a Change that are not yet admitted live there. `scripts/admit-lineage.test.sh` challenges it on a throwaway repository and runs first in the same job.
+
+`isolate-boundaries` lets the record of a Change accompany an isolated boundary: the Change directory under `.kaal/changes/` and the seals under `.kaal/seals/changes/` and `.kaal/seals/trees/`. Every admission carries a Change, so a protected boundary could not otherwise be admitted. Nothing else may accompany it.
+
 ## Static security analysis
 
 `workflows/codeql.yml` runs GitHub CodeQL on pull requests into, and pushes to, `kaal/**` branches. It scans `javascript-typescript` (the code) and `actions` (the workflows), needs no build, and is the only workflow with `security-events: write`. Alerts appear under Security > Code scanning; the failure threshold is a repository setting, not configured here. It uses an advanced-setup workflow, so GitHub's default setup for code scanning must stay off. Its actions are pinned by commit SHA.
@@ -27,7 +31,7 @@ They supply memory and policy around Core and know only paths and diffs, never w
 
 ## Branch protection
 
-`lineage/kaal/*` requires `test-kaal`, `check-kaal-seals` and `isolate-boundaries`. `preserve-seals` reports but is not required.
+The ruleset `lineage` on `kaal/*` requires `test-kaal`, `check-kaal-seals`, `isolate-boundaries`, `preserve-seals`, `preserve-sealed-changes`, `codeql (javascript-typescript)` and `codeql (actions)`. `admit-lineage` is the control that makes admission mechanical; it is added to that list by hand once this lands.
 
 ## Pre-commit hook
 

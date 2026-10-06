@@ -7,7 +7,7 @@ trap 'rm -rf "$tmp"' EXIT
 cd "$tmp"
 git init -q -b main
 git config user.email t@t; git config user.name t
-mkdir -p packages/kaal-core engineering/kaal-core .github/workflows docs
+mkdir -p packages/kaal-core engineering/kaal-core .github/workflows docs .kaal/changes/genesis/26/10/06/01 .kaal/seals/changes .kaal/seals/trees .kaal/seals/node
 for f in packages/kaal-core/a engineering/kaal-core/a .github/workflows/w README docs/d; do echo 0 >"$f"; done
 git add -A; git commit -qm base
 
@@ -30,4 +30,11 @@ expect fail 'core + ordinary'          packages/kaal-core/a README
 expect fail '.github + ordinary'       .github/workflows/w README
 expect fail 'core + .github'           packages/kaal-core/a .github/workflows/w
 expect fail 'new file under .github + ordinary' .github/new.yml docs/d
+expect pass 'a Change record only'     .kaal/changes/genesis/26/10/06/01/work/a .kaal/seals/changes/x .kaal/seals/trees/x
+expect pass 'core + its Change record' packages/kaal-core/a .kaal/changes/genesis/26/10/06/01/work/a .kaal/seals/changes/x
+expect pass '.github + its Change record' .github/workflows/w .kaal/changes/genesis/26/10/06/01/retro-work.md .kaal/seals/trees/x
+expect fail 'core + record + ordinary' packages/kaal-core/a .kaal/changes/genesis/26/10/06/01/work/a README
+expect fail '.github + a Node seal'    .github/workflows/w .kaal/seals/node/z
+expect fail '.github + other .kaal'    .github/workflows/w .kaal/core/x
+expect fail 'core + .github + record'  packages/kaal-core/a .github/workflows/w .kaal/changes/genesis/26/10/06/01/work/a
 exit $fail
