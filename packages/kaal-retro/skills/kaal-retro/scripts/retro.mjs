@@ -14,16 +14,26 @@
 //   ...
 //
 // in that order, each text non-empty, newlines as "\n", one final newline, no
-// other heading, nothing before or after. `write` creates the file and never
-// replaces one; `check` exits 0 only for exactly this form. Whose retrospective
-// it is, when one is owed and what it is about are decided by whatever asks for
-// it, not here. A text given as `@path` is read from that file.
+// other heading, nothing before or after. The texts are arbitrary: a text may
+// itself quote or discuss headings. So that the four parts stay recoverable,
+// a text line that Markdown would read as a heading (up to three spaces, then
+// '#') is written with one more backslash before its '#', which Markdown shows
+// as the literal text; `check` and `parse` take that backslash away again, so
+// what was given is what is read back. That is serialization and is no rule
+// about what may be said. `write` creates the file and never replaces one;
+// `check` exits 0 only for exactly this form. Whose retrospective it is, when
+// one is owed and what it is about are decided by whatever asks for it, not
+// here. A text given as `@path` is read from that file.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 export const PARTS = ["Learned", "Liked", "Lacked", "Longed"];
 
-const clean = (text) => text.replace(/\r\n?/g, "\n").trim();
+// The edges of a text are not part of it: the blank lines before it and the white space after it.
+const clean = (text) => text.replace(/\r\n?/g, "\n").replace(/^(\s*\n)+/, "").trimEnd();
+// A line Markdown would read as a heading is escaped, once more for each escape it already has.
+const escape = (line) => line.replace(/^( {0,3})(\\*)#/, "$1\\$2#");
+const unescape = (line) => line.replace(/^( {0,3})\\(\\*)#/, "$1$2#");
 
 /** The canonical form of a retrospective whose four parts are `texts`, in the order of PARTS. */
 export function render(texts) {
@@ -31,28 +41,28 @@ export function render(texts) {
   const body = texts.map((raw, i) => {
     const text = clean(String(raw));
     if (text === "") throw new Error(`${PARTS[i]} is empty: say plainly that there is nothing honest to say, rather than leave it blank`);
-    if (/^#/m.test(text)) throw new Error(`${PARTS[i]} has a line starting with '#': a retrospective has no headings of its own besides its parts`);
-    return `## ${PARTS[i]}\n\n${text}\n`;
+    return `## ${PARTS[i]}\n\n${text.split("\n").map(escape).join("\n")}\n`;
   });
   return `# Retro\n\n${body.join("\n")}`;
 }
 
 /** The four texts of a retrospective in canonical form, or undefined for anything else. */
 export function parse(content) {
-  const head = "# Retro\n\n";
-  if (!content.startsWith(head)) return undefined;
+  const lines = content.split("\n");
+  if (lines.pop() !== "" || lines[0] !== "# Retro" || lines[1] !== "") return undefined;
   const texts = [];
-  let rest = content.slice(head.length);
+  let from = 2;
   for (const [i, part] of PARTS.entries()) {
-    const mark = `## ${part}\n\n`;
-    if (!rest.startsWith(mark)) return undefined;
-    rest = rest.slice(mark.length);
-    const next = i + 1 < PARTS.length ? rest.indexOf(`\n## ${PARTS[i + 1]}\n\n`) : rest.length;
+    if (lines[from] !== `## ${part}` || lines[from + 1] !== "") return undefined;
+    const start = from + 2;
+    // The next part begins at the first unescaped line that names it, after one blank line.
+    const next = i + 1 < PARTS.length ? lines.indexOf(`## ${PARTS[i + 1]}`, start) : lines.length + 1;
     if (next < 0) return undefined;
-    texts.push(rest.slice(0, next).replace(/\n$/, ""));
-    rest = rest.slice(next + (i + 1 < PARTS.length ? 1 : 0));
+    const end = i + 1 < PARTS.length ? next - 1 : lines.length;
+    if (end < start || (i + 1 < PARTS.length && lines[end] !== "")) return undefined;
+    texts.push(lines.slice(start, end).map(unescape).join("\n"));
+    from = next;
   }
-  if (rest !== "") return undefined;
   try {
     return render(texts) === content ? texts : undefined;
   } catch {
