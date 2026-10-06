@@ -19,6 +19,8 @@
     "list-sealed-changes": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js closed",
     "seal-kaal-work": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js seal-work .kaal",
     "state-kaal-change": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js state .kaal",
+    "preserve-kaal-changes": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js preserve-changes",
+    "preserve-kaal-seals": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js preserve-seals",
     "check-kaal-admission": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js admit",
     "close-kaal-change": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js close .kaal",
     "check-kaal-changes": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js check .kaal",
