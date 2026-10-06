@@ -2,8 +2,8 @@
 
 A change has two retrospectives, from two perspectives. Both are written only after the change's `work/` is sealed, and the Change is sealed after both.
 
-- `retro-work.md` is written from inside the Work, by the worker that performed it.
-- `retro-observe.md` is written from outside the Work, by an observer, after reading the sealed `work/` and `retro-work.md`. Who the observer is (another agent, a human, or otherwise) is not decided here.
+- `retro-work.md` is written from inside the Work, by the worker that performed it. The worker then stops: that is the handoff.
+- `retro-observe.md` is written from outside the Work, by an independent observer, after reading the sealed `work/` and `retro-work.md`. The observer must not have participated in the Work or in the worker's execution. It may be another agent, a human, or otherwise, and its model or provider does not matter; how it comes to occupy the seat is outside KAAL. A fresh sub-agent started by the worker is not independent.
 
 The worker's retro comes first, so that it is not merely a response to the observer. Each is the writer's own: they are different seats, not a draft and a correction.
 
@@ -37,7 +37,7 @@ No metadata, scores, action items, owners, identity of the writer, role labels o
 
 `retro-work.md` is written from the worker's own seat and reports the worker's own experience of performing the change.
 
-`retro-observe.md` is written from the observer's own seat and reports the observer's own experience of reading the sealed work and `retro-work.md`: what the observer learned, liked, lacked and longed for from outside. It does not restate or answer `retro-work.md`, and it does not speak for the worker.
+`retro-observe.md` is written, unchanged in substance once incorporated, from the observer's own seat and reports the observer's own experience of reading the sealed work and `retro-work.md`: what the observer learned, liked, lacked and longed for from outside. It does not restate or answer `retro-work.md`, and it does not speak for the worker.
 
 Neither infers what the user thought, speaks for anyone else, invents anyone's sentiment, or says what is expected to be welcome. Where the writer has nothing honest to say for a dimension, it says so plainly rather than filling the space.
 

@@ -21,11 +21,11 @@ changes/<name>/YY/MM/DD/CC/
 
 - `WORK OPEN`, next: complete and seal work (any retro here is reported as an invalid step)
 - `WORK SEALED`, next: write `retro-work.md`
-- `RETRO-WORK PRESENT`, next: the observer reads the Work and `retro-work.md`, then writes `retro-observe.md`
+- `RETRO-WORK PRESENT`, next: handoff, the worker stops; the next independent actor in the observer seat reads the Work and `retro-work.md`, then writes `retro-observe.md`
 - `RETRO-OBSERVE PRESENT`, next: seal Change
 - `CHANGE CLOSED`
 
-The order is evidence, not metadata: `retro-observe.md` without `retro-work.md` is reported as an invalid step, so the worker perspective exists before the observer sees it. Presence cannot show who wrote a file; that stays a convention of Changing KAAL.
+The order is evidence, not metadata: `retro-observe.md` without `retro-work.md` is reported as an invalid step, so the worker perspective exists before the observer sees it. `RETRO-WORK PRESENT` is the handoff state: the worker stops there. Presence cannot show who wrote a file or that the observer is independent; that stays a requirement of Changing KAAL's process, not something the evaluator proves.
 
 **The historical `retro.md`.** Changes closed before the two perspectives (genesis `01`, and `05/01`) hold one `retro.md`. They stay valid exactly as sealed: a closed Change is judged by its own seal, whatever files it holds, and nothing is rewritten. `retro.md` is not a step of an open Change: it is reported as a problem there and never stands in for the two, so no new Change can close with it.
 

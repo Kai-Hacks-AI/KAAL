@@ -111,7 +111,7 @@ test("once Work is sealed, the worker's retro is next, then the observer's, and 
   const dir = sealedWork(t);
   assert.equal(run("close", dir, C).code, 1, "a Change with no retro cannot be sealed");
   retro(dir, "retro-work.md");
-  assert.match(stage(dir), /^RETRO-WORK PRESENT\nnext: the observer reads the Work and retro-work\.md, then writes retro-observe\.md$/);
+  assert.match(stage(dir), /^RETRO-WORK PRESENT\nnext: handoff, the worker stops; the next independent actor in the observer seat reads the Work and retro-work\.md, then writes retro-observe\.md$/);
   assert.equal(run("close", dir, C).code, 1, "the worker's retro alone does not close a Change");
   assert.equal(run("check", dir).code, 0, "the Work seal still matches");
   retro(dir, "retro-observe.md");

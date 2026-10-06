@@ -1,6 +1,6 @@
 # Two-agent retrospective independence: intent
 
-Make the two retrospectives of a Change genuinely two perspectives, and be exact about how much of that KAAL can establish and how much the way a Change is carried out must ensure. This Change is design only: it states intent, requirements and architecture, and implements nothing.
+Make the two retrospectives of a Change genuinely two perspectives, and be exact about how much of that KAAL can establish and how much the way a Change is carried out must ensure. This Change designs the sharpening and then makes it: the wording of Changing KAAL's Skill and retro reference and the evaluator's next-step message, and nothing more. It is one coherent Change, closed once, with the implementation living where it belongs (packages and engineering) and this Work holding the design and the evidence.
 
 ## Observation
 
@@ -31,9 +31,9 @@ work → seal Work → worker writes retro-work → HANDOFF
      → observer text incorporated, unchanged in substance → seal Change → admission
 ```
 
-The observer is chosen outside the worker's execution context, by someone or something other than the worker, and is told what its role, input and output are. Only after its contribution is incorporated may the Change be sealed. The process must actively guide this sequence; requiring two files in order does not.
+KAAL establishes the state and the requirement. At the handoff the worker stops. The next actor to occupy the observer seat must be independent: it must not have participated in the Work or in the worker's execution. It is given the observer's role, input and output. How an actor comes to occupy that seat is outside KAAL. Only after the observer's contribution is incorporated may the Change be sealed. The process must actively guide this sequence; requiring two files in order does not.
 
-A counterexample sets the bar: a worker that, before any handoff, spawns its own fresh sub-agent to fill `retro-observe.md`, and closes the Change itself. The sub-agent has a clean context, but it was selected, briefed and bounded by the worker, and the Change never reached a boundary where anyone else could take it. The observation was produced inside the worker's own execution, so it is not the outside view. A fresh context is necessary and not sufficient.
+A counterexample sets the bar: a worker that, before any handoff, spawns its own fresh sub-agent to fill `retro-observe.md`, and closes the Change itself. The sub-agent has a clean context, but it came out of the worker's own execution, and the Change never stopped at the handoff. The observation was produced inside the worker's execution, so it is not the outside view. A fresh context is necessary and not sufficient.
 
 ## Stance
 
@@ -45,7 +45,6 @@ A counterexample sets the bar: a worker that, before any handoff, spawns its own
 
 ## Out of scope
 
-- Implementing anything.
 - Which work to do next or how it is selected.
 - Whether and when a Change is admitted into the lineage, and any rule of admission.
 - Changes already closed, which stay valid as sealed.

@@ -4,14 +4,14 @@ Independence of the observer is established by how the Change is carried out, us
 
 ## Roles are Agent instructions, not identities
 
-An Agent in KAAL is a Bare agent steered through instructions, and a Skill specifies desired behaviour for a kind of work. The worker and the observer are therefore not two new kinds of thing. They are the same kind of Agent, steered by two different steps of the Changing KAAL Skill, in two contexts. Nothing identifies the actors, because nothing needs to: the instructions create the seat, the handoff creates the separation, and the second seat is occupied by an agent selected outside the first.
+An Agent in KAAL is a Bare agent steered through instructions, and a Skill specifies desired behaviour for a kind of work. The worker and the observer are therefore not two new kinds of thing. They are the same kind of Agent, steered by two different steps of the Changing KAAL Skill, in two contexts. Nothing identifies the actors, because nothing needs to: the instructions create the seat, the handoff creates the separation, and the second seat must be occupied by an agent independent of the first. How it comes to occupy it is outside KAAL.
 
 ## The handoff is a state KAAL already derives
 
-The evaluator's stage "retro-work present" is exactly the handoff state: Work sealed, `retro-work.md` present, no `retro-observe.md`. No new stage, seal or metadata is needed to name it. What is missing is not the state but the instruction to stop in it and the instruction for whoever takes the Change from it.
+The evaluator's stage "retro-work present" is exactly the handoff state: Work sealed, `retro-work.md` present, no `retro-observe.md`. No new stage, seal or metadata is needed to name it. What is missing is not the state but the instruction to stop in it and the instruction for the next actor in the observer seat.
 
 ```
-worker                          handoff                       observer (selected outside the worker)
+worker                          handoff                       observer (independent of the worker)
 ──────                          ───────                       ────────
 do the Work
 seal Work
@@ -24,9 +24,9 @@ STOP                      exactly retro-work        reads sealed Work + retro-wo
 
 ## The protocol (operational)
 
-1. **Worker.** Does the Work, seals it, writes `retro-work.md`, and stops. It does not write, spawn, brief or select the writer of `retro-observe.md`, and it does not seal the Change. The Skill's worker steps end at `retro-work.md` with an explicit stop, not with the closing steps.
-2. **Handoff.** The Change is now in one exact state and leaves the worker's execution. Whoever receives it, a person or an orchestration other than the worker, selects the observer.
-3. **Observer.** A separate execution context that took no part in the Work. It is told by the process that it is the observer, not the approver; that its input is the sealed Work and `retro-work.md`; that its output is exactly `retro-observe.md` in the retro form; and that it changes nothing else. It reads, then writes from its own seat, without restating or answering the worker.
+1. **Worker.** Does the Work, seals it, writes `retro-work.md`, and stops. It does not write `retro-observe.md`, does not produce it through anything of its own execution, and does not seal the Change. The Skill's worker steps end at `retro-work.md` with an explicit stop, not with the closing steps.
+2. **Handoff.** The Change is now in one exact state. The next actor to occupy the observer seat must be independent: it must not have participated in the Work or in the worker's execution. How it comes to occupy the seat is outside KAAL.
+3. **Observer.** An independent actor, in a context that took no part in the Work or in the worker's execution. It is told by the process that it is the observer, not the approver; that its input is the sealed Work and `retro-work.md`; that its output is exactly `retro-observe.md` in the retro form; and that it changes nothing else. It reads, then writes from its own seat, without restating or answering the worker.
 4. **Incorporation.** The observer's text is placed in the Change unchanged in substance. Placing and formatting are not editing; adding, softening, answering or removing are.
 5. **Closure.** Only then is the Change sealed. The Change seal is the single moment at which both retros become unalterable.
 6. **Defect found.** Recorded in `retro-observe.md`; it does not reopen the Change (below).
@@ -35,7 +35,7 @@ The Skill gives two instructions where today it gives one ordering: to the worke
 
 ## The counterexample
 
-A worker that, before any handoff, spawns its own fresh sub-agent to write `retro-observe.md`, and closes the Change itself, passes every deterministic check and leaves the Change with a clean-context observer. It still fails: the observer was selected, briefed and bounded by the worker; nothing ever crossed a boundary; and the observation lives inside the worker's execution. The protocol rules it out by construction, because the worker stops at the handoff and the selection of the observer is not the worker's act. The Skill names this case as what not to do.
+A worker that, before any handoff, spawns its own fresh sub-agent to write `retro-observe.md`, and closes the Change itself, passes every deterministic check and leaves the Change with a clean-context observer. It still fails: the observer came out of the worker's own execution, the Change never stopped at the handoff, and the observation lives inside the worker's execution. The protocol rules it out because the worker stops at the handoff and the observer must be independent of the worker's execution. The Skill names this case as what not to do.
 
 What this leaves unproven is worth saying: from a closed Change alone, KAAL cannot tell a properly handed-off Change from this one. That is the operational limit (R11), and what makes the difference visible is the process around the Change, not its bytes.
 
@@ -68,14 +68,14 @@ Recommended A: B buys detection of one edit, not independence. If B is wanted, i
 | the handoff state is Work sealed plus exactly `retro-work.md` | deterministic | the evaluator's existing stage; named, not added |
 | the observer did not alter the Work | deterministic | Work seal |
 | the worker stops at the handoff | operational | Changing KAAL's Skill, worker steps |
-| the observer is selected outside the worker's execution context | operational | the handoff, Changing KAAL's Skill |
+| the observer occupying the seat is independent of the worker's execution | operational | the requirement in Changing KAAL's Skill; how the seat is filled is outside KAAL |
 | the observer did not alter `retro-work.md` | operational | the observer's stated output: exactly one file |
-| the observer is another context that took no part in the Work | operational | Changing KAAL's Skill and whoever receives the handoff |
+| the observer is another context that took no part in the Work | operational | Changing KAAL's Skill, stated as the requirement on the next actor |
 | the observer knows its role, input and output | operational | the instruction given at the handoff |
 | the observer's text is incorporated unchanged in substance | operational | Changing KAAL's Skill, closing step |
 | the observer is not the approver | by definition | Changing KAAL's retro reference |
 | independence is not a vendor property | by definition | stated in the same reference |
 
-## Smallest sharpening, for a later Change
+## The sharpening, made in this same Change
 
-Wording only, in Changing KAAL's Skill and retro reference: the worker's steps end at `retro-work.md` with a stop at the handoff; the observer's instruction (role, input, output); that the observer is selected outside the worker's execution context; incorporation unchanged in substance before sealing; the defect rule; the statement that this is operational; and the worker-spawned observer as the named counterexample. The evaluator's message for the observer step is reworded to match, and its stage for the handoff state is described as the handoff. No Node, no Core change, no new seal, no new metadata, no change to the retro form, and no change to closure.
+Wording only, in Changing KAAL's Skill and retro reference: the worker's steps end at `retro-work.md` with a stop at the handoff; the observer's instruction (role, input, output); that the next actor in the observer seat must be independent, with how it comes to occupy the seat outside KAAL; incorporation unchanged in substance before sealing; the defect rule; the statement that this is operational; and the worker-spawned observer as the named counterexample. The evaluator's message for the observer step is reworded to match, and its stage for the handoff state is described as the handoff. No Node, no Core change, no new seal, no new metadata, no change to the retro form, and no change to closure.

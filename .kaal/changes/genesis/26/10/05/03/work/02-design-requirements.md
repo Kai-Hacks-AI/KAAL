@@ -4,7 +4,7 @@ Vocabulary: the **worker** is the agent that performed the Change; the **observe
 
 ## R1. Two seats, one occupant each, never the same
 
-The worker and the observer are different agents. An agent that took part in the Work, in any context, does not write `retro-observe.md`. "Different" means an agent that did not participate in the Work and did not see the worker's reasoning: a separate execution context that was never part of it, and that was selected outside the worker's execution context (R12). A fresh context the worker itself creates is not enough. It does not mean a different provider, vendor or model; the same model in a fresh context that has not seen the Work being done can observe, and a different vendor that took part in the Work cannot. The working assumption that one agent in two files is unacceptable is held.
+The worker and the observer are different agents. An agent that took part in the Work, in any context, does not write `retro-observe.md`. "Different" means an agent that did not participate in the Work and did not see the worker's reasoning: a separate execution context that was never part of it, and never part of the worker's execution (R12). A fresh context that comes out of the worker's own execution is not enough. It does not mean a different provider, vendor or model; the same model in a fresh context that has not seen the Work being done can observe, and a different vendor that took part in the Work cannot. The working assumption that one agent in two files is unacceptable is held.
 
 ## R2. The observer is not the approver
 
@@ -35,7 +35,7 @@ A defect or gap the observer finds is evidence and belongs in `retro-observe.md`
 Every guarantee is classified as one or the other:
 
 - **Deterministic**: a verdict computable from the Change's own artifacts and seals by existing machinery. It may only claim what bytes can show.
-- **Operational**: a rule of how the Change is carried out, put in the instructions of the capability that owns the process, and obeyed by the agents and whoever orchestrates them.
+- **Operational**: a rule of how the Change is carried out, put in the instructions of the capability that owns the process, and obeyed by the agents who carry it out.
 
 No deterministic check may be described, or named, as proving independence unless it can. Independence of the observer is operational unless an identity attestation is added, and R9 says why one is not.
 
@@ -53,7 +53,7 @@ KAAL can prove that two retros exist beside a sealed Work and that the sealed wh
 
 ## R12. The handoff
 
-The worker stops at a defined state, the handoff: Work sealed, and exactly `retro-work.md` present, with no `retro-observe.md`. The worker does not write the observer's retro, does not spawn, brief or select its writer, and does not seal the Change. The observer is selected outside the worker's execution context: by whoever or whatever receives the Change at the handoff, never by the worker. The process must tell the worker to stop at that state, not leave it to inference, and the handoff must be a point at which the Change can be taken up by someone other than the worker.
+The worker stops at a defined state, the handoff: Work sealed, and exactly `retro-work.md` present, with no `retro-observe.md`. The worker does not write the observer's retro, does not produce it through anything of its own execution, and does not seal the Change. The next actor to occupy the observer seat must be independent: it must not have participated in the Work or in the worker's execution. How an actor comes to occupy that seat is outside KAAL, which establishes only the state and the requirement. The process must tell the worker to stop at that state, not leave it to inference.
 
 ## R13. The observer is told its role
 
@@ -65,4 +65,4 @@ The observer's text is incorporated into the Change unchanged in substance. Plac
 
 ## R15. A worker-spawned observer is insufficient
 
-A Change whose `retro-observe.md` was produced by a sub-agent the worker spawned and briefed, before any handoff, does not meet R1 or R12, however clean that sub-agent's context. The process says so explicitly and gives this as the example of what not to do.
+A Change whose `retro-observe.md` was produced by a sub-agent that came out of the worker's own execution, before any handoff, does not meet R1 or R12, however clean that sub-agent's context. The process says so explicitly and gives this as the example of what not to do.

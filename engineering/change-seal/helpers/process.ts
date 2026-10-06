@@ -54,7 +54,7 @@ export function stateOf(kaalDir: string, change: string): State {
   }
   if (legacy) return { stage: "WORK SEALED", next: `remove ${RETRO}, then write ${RETRO_WORK}`, problems };
   if (!worker) return { stage: "WORK SEALED", next: `write ${RETRO_WORK}`, problems };
-  if (!observer) return { stage: "RETRO-WORK PRESENT", next: `the observer reads the Work and ${RETRO_WORK}, then writes ${RETRO_OBSERVE}`, problems };
+  if (!observer) return { stage: "RETRO-WORK PRESENT", next: `handoff, the worker stops; the next independent actor in the observer seat reads the Work and ${RETRO_WORK}, then writes ${RETRO_OBSERVE}`, problems };
   return { stage: "RETRO-OBSERVE PRESENT", next: "seal Change", problems };
 }
 

@@ -101,8 +101,26 @@ test("the realization pulls the agent through work, seal work, both retros, clos
   for (const command of ["state-kaal-change", "seal-kaal-work", "close-kaal-change"]) assert.ok(manifest.includes(command), command);
   assert.ok(manifest.indexOf("seal-kaal-work") < manifest.indexOf("references/retro.md"), "work is sealed before the retro is written");
   assert.match(manifest, /Do not write a retro before the work is sealed, do not write `retro-observe\.md` before `retro-work\.md` exists/);
-  assert.ok(manifest.indexOf("`retro-work.md` in the change directory") < manifest.indexOf("then writes `retro-observe.md`"), "the worker's retro comes before the observer's");
+  assert.ok(manifest.indexOf("`retro-work.md` in the change directory") < manifest.indexOf("## If you are the observer"), "the worker's retro comes before the observer's");
   assert.match(skills[`${CAPABILITY}/references/retro.md`], /only after the change's `work\/` is sealed/);
+});
+
+test("the process stops the worker at the handoff and gives the observer its role, input and output", () => {
+  assert.match(manifest, /The handoff is a state, and it is the one `state-kaal-change` calls `RETRO-WORK PRESENT`/);
+  assert.match(manifest, /\*\*Then the worker stops\.\*\*/);
+  assert.match(manifest, /The worker does not write `retro-observe\.md`, does not produce it through a sub-agent or any other part of its own execution, and does not close the change/);
+  assert.match(manifest, /must not have participated in the work or in the worker's execution/);
+  assert.match(manifest, /How an actor comes to occupy that seat is outside KAAL/);
+  const observer = manifest.slice(manifest.indexOf("## If you are the observer"), manifest.indexOf("## Rules"));
+  for (const part of [/not the worker, and not an approver/, /\*\*Input:\*\*/, /\*\*Output:\*\*/, /exactly one file, `retro-observe\.md`/, /Change nothing else/, /does not reopen the change/]) assert.match(observer, part);
+  assert.match(manifest, /unchanged in substance/);
+  assert.match(manifest, /A fresh context is not an independent observer/);
+  assert.match(manifest, /KAAL's checks cannot prove/);
+  assert.match(manifest, /does not depend on which model or provider/);
+});
+
+test("the observer is described as a requirement on the seat, never as selection or orchestration", () => {
+  for (const text of [manifest, skills[`${CAPABILITY}/references/retro.md`]]) assert.doesNotMatch(text, /\b(selected|selects|orchestrat\w*|assigned|spawns? the observer)\b/i);
 });
 
 test("the process adds no second implementation, no retro seal, no phase state and no new KAAL artifact", () => {
