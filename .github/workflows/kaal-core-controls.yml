@@ -7,8 +7,9 @@ permissions:
 
 # One job per control. The job id is also the job's display name, and the
 # display name is the check name GitHub reports. Branch protection requires
-# these names: test-kaal, check-kaal-seals, isolate-boundaries, preserve-sealed-changes
-# and admit-lineage (the lineage branches kaal/* only).
+# these names: test-kaal, check-kaal-seals, isolate-boundaries, preserve-sealed-changes.
+# admit-lineage (kaal/* proposals only) is reported too, and becomes required when
+# the owner adds it to the ruleset.
 # preserve-seals is reported too but is not (yet) a required check.
 jobs:
   # KAAL controls: portable, they work without Git.

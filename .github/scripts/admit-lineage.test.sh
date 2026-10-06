@@ -48,4 +48,11 @@ expect fail 'a new Change with sealed Work'   'change "$b" sealed-work'
 expect fail 'a new Change with both retros but not sealed' 'change "$b" retro-observe'
 expect fail 'closed history altered'          'change "$b" closed; echo x >>".kaal/$a/work/e.md"'
 expect fail 'closed history removed'          'change "$b" closed; rm -r ".kaal/$a"'
+# A target branch with no .kaal at all: the baseline is empty, so one closed Change is admitted.
+git checkout -q -B bare main
+git rm -rq .kaal; git commit -qm bare
+git checkout -q -B t main
+git add -A; git commit -q --allow-empty -m t
+if "$script" bare >/dev/null 2>&1; then got=pass; else got=fail; fi
+if [ "$got" = pass ]; then echo "ok   an empty baseline admits one closed Change"; else echo "FAIL an empty baseline admits one closed Change"; fail=1; fi
 exit $fail
