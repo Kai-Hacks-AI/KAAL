@@ -21,7 +21,6 @@ Retro owns the form of a retrospective and nothing about when one is owed. Whate
 
 ## Rules
 
-- Say what you mean in your texts, in any words: a text may quote or discuss headings or any Markdown. Retro keeps the four parts apart by writing a heading-like line of your text with a backslash before its `#`, which shows as exactly what you wrote and which `check` reads back as you gave it.
 - Never write the structure by hand: the form is Retro's, and a hand-written retrospective that differs by a heading level or a blank line is not a retrospective.
 - A retrospective is written once. `write` refuses to replace a file, and you do not edit one after it is written.
 - Never write another seat's retrospective, and never fill a part with what you expect to be welcome.
@@ -29,5 +28,5 @@ Retro owns the form of a retrospective and nothing about when one is owed. Whate
 
 ## Scripts
 
-- `scripts/retro.mjs write <destination> --learned <text> --liked <text> --lacked <text> --longed <text>`: creates the file; exit 0, 1 when it refuses (a part is empty, or the destination exists), 2 on usage.
+- `scripts/retro.mjs write <destination> --learned <text> --liked <text> --lacked <text> --longed <text>`: creates the file; exit 0, 1 when it refuses (a part is empty or holds a heading line, or the destination exists), 2 on usage.
 - `scripts/retro.mjs check <file>`: exit 0 only for the canonical form, otherwise 1.

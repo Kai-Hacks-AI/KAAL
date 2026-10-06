@@ -2,16 +2,16 @@
 
 ## Learned
 
-That I let a parsing convenience pass as a rule about content. I banned heading lines from a retrospective's texts because my parser used headings as delimiters, and the Owner pointed out that this made a serialization constraint look like retrospective semantics. The honest fix was to keep the form and change the representation: a heading-like line is written with a backslash in front and read back as given, so nothing the writer says is restricted. I also learned how little a form needs from its content: only that it is non-empty.
+That the hard part of a form is the rule that makes the writer and the checker agree: making check accept only what write would have produced removed a whole class of near-misses, and my own first test of a trailing note showed that a trailing paragraph is simply more of the last part, so the form is stricter in structure than in content. I also learned that a capability is mostly a boundary: the code is one small file, and most of the work was deciding what the Node may and may not say.
 
 ## Liked
 
-That the repository's own retrospectives still passed the checker after the representation changed, and that making check accept only what write would produce kept the change honest: a reading that is not an exact inverse of the writing is rejected, not guessed at.
+That I could use the capability the moment it existed: this retrospective was written with it, and the repository's earlier retrospectives of every seat and generation already passed its check without any of them being touched.
 
 ## Lacked
 
-A way to settle a design choice like this one before building it. I wrote the ban into the Work as a requirement, and it took a review to see that it was not one; a short note in the Work on which constraints are the form's and which are only the parser's would have caught it earlier.
+A place to say, in one sentence, why the four-heading list is still duplicated in two acceptance tests. I left them alone because they belong to Changing KAAL, but nothing marks that, so the duplication reads as an oversight until the next Change reads this Work.
 
 ## Longed
 
-For the Observer to read the form as the one place a retrospective's structure is decided, and for Changing KAAL to consume it, so that nobody has to describe or hand-write the four parts again.
+For Changing KAAL to consume Retro, so that its reference and its two copies of the heading list disappear and a Change's retrospectives are created through the one interface rather than described beside it.

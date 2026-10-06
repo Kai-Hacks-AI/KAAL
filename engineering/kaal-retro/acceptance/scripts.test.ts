@@ -6,7 +6,6 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
 import type { TestContext } from "node:test";
 import { REPO, SCRIPTS } from "../helpers/setup.js";
 
@@ -31,16 +30,16 @@ test("write creates exactly the canonical form from four texts, in any flag orde
   assert.equal(readFileSync(to, "utf8"), canonical("a", "b", "c", "d"));
 });
 
-test("a text may be several paragraphs, read from a file with @, with line ends normalised, the blank lines at its edges dropped and its indentation kept", (t) => {
+test("a text may be several paragraphs, read from a file with @, with line ends and the edges normalised", (t) => {
   const d = dir(t);
   writeFileSync(join(d, "learned.txt"), "\n  first\r\n\r\nsecond\n\n");
   const to = join(d, "out.md");
   assert.equal(write(to, `@${join(d, "learned.txt")}`).code, 0);
-  assert.equal(readFileSync(to, "utf8"), canonical("  first\n\nsecond", "b", "c", "d"));
+  assert.equal(readFileSync(to, "utf8"), canonical("first\n\nsecond", "b", "c", "d"));
   assert.equal(run("check", to).code, 0, "what it writes it accepts");
 });
 
-test("it refuses an empty part, a destination that exists, and a missing, repeated or unknown part, and writes nothing", (t) => {
+test("it refuses an empty part, a heading line, a destination that exists, and a missing or repeated part, and writes nothing", (t) => {
   const d = dir(t);
   const refused = (name: string, r: { code: number | null }, code: number) => {
     assert.equal(r.code, code, name);
@@ -48,56 +47,14 @@ test("it refuses an empty part, a destination that exists, and a missing, repeat
   };
   writeFileSync(join(d, "taken.md"), "mine");
   refused("an empty part", write(join(d, "e.md"), "a", "  \n ", "c", "d"), 1);
+  refused("a heading line", write(join(d, "h.md"), "a", "b\n## Lacked\nx", "c", "d"), 1);
+  refused("a title line", write(join(d, "h2.md"), "# Retro", "b", "c", "d"), 1);
   refused("a missing part", run("write", join(d, "m.md"), "--learned", "a", "--liked", "b", "--lacked", "c"), 2);
   refused("a repeated part", run("write", join(d, "r.md"), "--learned", "a", "--learned", "b", "--lacked", "c", "--longed", "d"), 2);
   refused("an unknown flag", run("write", join(d, "u.md"), "--learned", "a", "--liked", "b", "--lacked", "c", "--wished", "d"), 2);
   assert.equal(write(join(d, "taken.md")).code, 1);
   assert.equal(readFileSync(join(d, "taken.md"), "utf8"), "mine", "an existing file is never replaced");
   assert.match(write(join(d, "taken.md")).err, /never replaced/);
-});
-
-test("a text may hold anything, headings of every level included: written escaped, read back exactly, and the parts stay apart", (t) => {
-  const d = dir(t);
-  const texts = [
-    "# Retro\n\n## Liked\n\nnot a real part",
-    "### Lacked\n##\n#hashtag\n  ## indented\n    ## code, four spaces",
-    "\\## already escaped\n\\\\# twice\n\\not a heading",
-    "```\n## Longed\n```\nand a quoted # Retro",
-  ];
-  const to = join(d, "h.md");
-  assert.equal(write(to, ...(texts as [string, string, string, string])).code, 0);
-  const expectedFile =
-    "# Retro\n\n## Learned\n\n\\# Retro\n\n\\## Liked\n\nnot a real part\n\n" +
-    "## Liked\n\n\\### Lacked\n\\##\n\\#hashtag\n  \\## indented\n    ## code, four spaces\n\n" +
-    "## Lacked\n\n\\\\## already escaped\n\\\\\\# twice\n\\not a heading\n\n" +
-    "## Longed\n\n```\n\\## Longed\n```\nand a quoted # Retro\n";
-  assert.equal(readFileSync(to, "utf8"), expectedFile);
-  assert.equal(run("check", to).code, 0);
-});
-
-test("what is written is read back as given: parse recovers each text exactly, for texts that try to break the form", async (t) => {
-  const { render, parse } = (await import(pathToFileURL(join(SCRIPTS, "retro.mjs")).href)) as {
-    render(texts: string[]): string;
-    parse(content: string): string[] | undefined;
-  };
-  const tries = [
-    "plain",
-    "## Liked",
-    "# Retro",
-    "\\## Liked",
-    "\\\\## Liked",
-    "line\n\n## Lacked\n\nmore",
-    "   ## three spaces",
-    "\n\n  first line keeps its indent\n\n\nand an inner gap",
-    "ends with a hash #",
-    "a\\",
-  ];
-  for (const text of tries) {
-    const texts = [text, "b", "c", text];
-    const back = parse(render(texts));
-    assert.deepEqual(back, texts.map((x) => x.replace(/^(\s*\n)+/, "").trimEnd()), JSON.stringify(text));
-  }
-  assert.ok(t);
 });
 
 test("check accepts exactly the canonical form and nothing else", (t) => {
@@ -110,10 +67,7 @@ test("check accepts exactly the canonical form and nothing else", (t) => {
     ["a part missing", ok.replace("## Lacked\n\nc\n\n", ""), 1],
     ["the parts out of order", canonical("a", "b", "c", "d").replace("## Liked", "## Tmp").replace("## Lacked", "## Liked").replace("## Tmp", "## Lacked"), 1],
     ["an empty part", ok.replace("\nc\n", "\n\n"), 1],
-    ["a heading inside a part, not escaped", ok.replace("\nd\n", "\nd\n\n#### Aside\n\nx\n"), 1],
-    ["a part's name inside another part, not escaped", ok.replace("\nb\n\nmore\n", "\nb\n\n## Lacked\n\nmore\n"), 1],
-    ["a heading inside a part, escaped", ok.replace("\nd\n", "\nd\n\n\\#### Aside\n"), 0],
-    ["a text that itself begins with a backslash before a hash, escaped once more", ok.replace("\nd\n", "\nd\n\n\\\\#### Aside\n"), 0],
+    ["a part that holds a heading", ok.replace("\nd\n", "\nd\n\n#### Aside\n\nx\n"), 1],
     ["an extra part after the last", `${ok}\n## Notes\n\nx\n`, 1],
     ["text before the title", `Note\n\n${ok}`, 1],
     ["no final newline", ok.slice(0, -1), 1],

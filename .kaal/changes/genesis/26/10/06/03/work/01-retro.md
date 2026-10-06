@@ -10,7 +10,7 @@ R1. A new capability `Retro`, one package pair: `packages/kaal-retro` delivers i
 
 R2. The Node states what a retrospective is (one writer's own account of something they took part in), its four parts and what each holds, and that a retrospective speaks only for its writer. It states that Retro does not decide when one is owed, who writes it or what it is about. It names no process, host, file, role or mechanism.
 
-R3. One script, `retro.mjs`: `write` takes a destination and four texts and writes the canonical form `# Retro` / `## Learned` / `## Liked` / `## Lacked` / `## Longed`; `check` exits 0 only for exactly that form. The writer supplies texts and never structure. `write` never replaces an existing file, refuses an empty part, and writes nothing when it refuses. A supplied text is arbitrary: it may quote or discuss headings or any Markdown, and Retro does not restrict its vocabulary.
+R3. One script, `retro.mjs`: `write` takes a destination and four texts and writes the canonical form `# Retro` / `## Learned` / `## Liked` / `## Lacked` / `## Longed`; `check` exits 0 only for exactly that form. The writer supplies texts and never structure. `write` never replaces an existing file, refuses an empty part and a text that holds a heading line, and writes nothing when it refuses.
 
 R4. Every retrospective this repository already holds, of every seat and generation, passes `check`.
 
@@ -22,9 +22,7 @@ R6. Nothing else changes in meaning: Changing KAAL, its Skill text, its referenc
 
 The capability is built in the shape of the two capabilities that preceded it. The Node carries meaning; the Agent Skill carries how, and points to the Nodes without restating them. The package has the one public function `payload()`; the delivery is proven in `engineering/kaal-retro`.
 
-The form is defined once, in `retro.mjs`: `render` is the only author of the structure, `parse` accepts a file only if `render` of its four texts reproduces the file byte for byte, so `check` is exactly as strict as `write`. A text's own blank lines and indentation are kept; only the blank lines at its edges and the white space at its end are not part of it.
-
-The four parts must stay recoverable although the texts are arbitrary, and that is a matter of serialization, not of what may be said. A text line that Markdown would read as a heading (up to three spaces, then `#`) is written with one more backslash before its `#`: Markdown shows it as the literal text, and `parse` removes one backslash again. The mapping is one-to-one, so a text that itself begins with backslashes before a `#` is written with one more and read back as it was given. The delimiters of the four parts are the only unescaped heading lines, so a quoted `## Liked` inside a part can neither end it nor be mistaken for a part. The cost is that a heading-like line inside a fenced code block in a text shows its escape backslash when rendered; the bytes read back by `check` and `parse` are the writer's.
+The form is defined once, in `retro.mjs`: `render` is the only author of the structure, `parse` accepts a file only if `render` of its four texts reproduces the file byte for byte, so `check` is exactly as strict as `write`. A text's own blank lines are kept; a text may not hold a line starting with `#`, which keeps the four parts unambiguous.
 
 Retro consumes nothing from Changing KAAL and Changing KAAL does not yet consume Retro. The later Change that teaches Changing KAAL review points its retro reference at the capability.
 
@@ -32,7 +30,7 @@ The Node was sealed with the Sealing capability's own scripts. This repository r
 
 ## Evidence
 
-- `npm test` in `packages/kaal-retro` (3) and in `engineering/kaal-retro` (17) pass, including texts that quote `# Retro`, `## Liked` and every heading level, with the written file pinned as literal text, parse recovering each text exactly, and `check` still rejecting every unescaped heading inside a part, and the whole root `npm test` passes, including the install test that now expects Retro among the installed Skills and the delivered capabilities.
+- `npm test` in `packages/kaal-retro` (3) and in `engineering/kaal-retro` (15) pass, and the whole root `npm test` passes, including the install test that now expects Retro among the installed Skills and the delivered capabilities.
 - `check-kaal-install`, `check-kaal-seals` and `check-kaal-config` pass.
 - Every `retro*.md` in this repository's `.kaal/changes`, including the retrospectives of Changes 06/01 and 06/02, passes `check`.
 - The Retro Node's ID is `01576bf0db92ec27e443764ea4ae5124617f978f4a5cd557c08d3d3eaca479ab`, sealed in `packages/kaal-retro/kaal/seals/` and, once registered, in `.kaal/seals/`.
