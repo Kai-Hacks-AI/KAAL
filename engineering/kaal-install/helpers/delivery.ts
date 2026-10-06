@@ -112,7 +112,7 @@ export async function delivery(target: string, root: string = join(SOURCE, "pack
   for (const node of installed) {
     const pkg = all.find((p) => p.nodes.some((n) => n.id === node.id));
     if (!pkg) unresolved.push(node);
-    else if (wanted.get(pkg) && wanted.get(pkg) !== node.kind) throw new Error(`packages: ${pkg.capability} is installed as both a Skill and an Extension; a capability is one or the other`);
+    else if (wanted.get(pkg) && wanted.get(pkg) !== node.kind) throw new Error(`packages: ${pkg.capability} is installed as both a Skill and an Extension; a package delivers one kind of contribution, so a capability that needs both is two independently selectable packages`);
     else wanted.set(pkg, node.kind);
   }
   const scratch = mkdtempSync(join(tmpdir(), "kaal-delivery-"));

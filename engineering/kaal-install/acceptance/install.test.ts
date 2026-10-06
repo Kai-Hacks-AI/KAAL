@@ -310,7 +310,7 @@ test("Skills and Extensions are delivered side by side, each by its own registra
   assert.ok(!Object.keys(own.kaal).some((p) => p.startsWith("extensions/")), "an Extension no package here delivers adds nothing");
 });
 
-test("a package is delivered as a Skill or as an Extension, never both", async (t) => {
+test("package delivery rule: a package delivers a Skill contribution or an Extension contribution, never both", async (t) => {
   const hosting = extensionNode("Hosting");
   const skillMd = `---\nname: Both\ntype:\n  name: Skill\n  id: ${sha256(core.payload()["core/Skill.md"])}\n---\n\n# Both\n`;
   const files = { ...hosting.files, "Both.md": skillMd, [`seals/${sha256(skillMd)}`]: "" };
@@ -319,7 +319,7 @@ test("a package is delivered as a Skill or as an Extension, never both", async (
   await installed(dir);
   core.registerExtension(join(dir, KAAL_DIR), "kaal-both", files);
   core.registerSkill(join(dir, KAAL_DIR), "kaal-both", files);
-  await assert.rejects(delivery(dir, root), /both a Skill and an Extension/);
+  await assert.rejects(delivery(dir, root), /both a Skill and an Extension.*two independently selectable packages/);
 });
 
 // This repository, held to the same.
