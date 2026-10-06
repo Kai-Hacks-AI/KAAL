@@ -31,7 +31,8 @@ change() {
   [ "$2" != retro-work ] || return 0
   # The three perspectives: the Worker's, the Reviewer's and the Owner's. An evaluator with two takes the surplus file as nothing.
   echo '# Retro' >".kaal/$1/retro-review.md"
-  echo '# Retro' >".kaal/$1/retro-observe.md"
+  # The last one is the Owner's where the evaluator has review as a step (it reports work: <id>), the observer's where it does not.
+  if [ -n "$id" ]; then echo '# Retro' >".kaal/$1/retro-owner.md"; else echo '# Retro' >".kaal/$1/retro-observe.md"; fi
   [ "$2" != retro-observe ] || return 0
   $cli close .kaal "$1" >/dev/null
 }
