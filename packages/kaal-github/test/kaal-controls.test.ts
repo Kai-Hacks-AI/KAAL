@@ -21,6 +21,8 @@ const run = (cwd: string, cmd: string, ...args: string[]) => {
   assert.equal(r.status, 0, r.stderr);
   return r.stdout;
 };
+// the controls reach KAAL through its root commands, which build what they run; this file runs the same helper directly, so build it first
+run(KAAL_ROOT, "npm", "run", "-s", "build", "--prefix", "engineering/change-seal");
 const closed = run(KAAL_ROOT, "node", "engineering/change-seal/dist/helpers/cli.js", "closed", ".kaal")
   .split("\n").filter(Boolean).map((l) => l.split(" ") as [string, string]);
 const [firstPath, firstId] = closed[0];
