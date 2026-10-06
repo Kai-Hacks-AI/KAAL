@@ -42,12 +42,16 @@ Where a change is in the process is never written down. Ask `npm run state-kaal-
 
 ## Steps
 
-1. **Allocate.** `node scripts/next-change.mjs <kaal-dir> <name>` takes the number after the highest existing `CC` for that name and date, never reuses a gap, refuses when `99` is exhausted, creates the directory and prints its path relative to the KAAL directory. Do not choose a number by hand.
+1. **Allocate.** `node scripts/next-change.mjs <kaal-dir> <name>` takes the number after the highest existing `CC` for that name and date, never reuses a gap, refuses when `99` is exhausted, creates the directory and prints its path relative to the KAAL directory. Do not choose a number by hand. Allocation is optimistic: the next free `CC` is the next one visible in the lineage you are working from, with no reservation, lock or registry. Concurrent work may take the same number, and that race is acceptable. It is settled at admission: if another Change has taken the address by the time you refresh against the lineage, allocate again before you seal the Work and close, and the staged Change moves there as a whole (its address is not part of its identity). Staging may race; the lineage cannot.
 2. **Work.** Do the change, and keep its Change-local support and evidence under `work/`. Pay attention to your own experience of it; your retro is written from that. `work/` may change freely while it is open.
 3. **Seal work.** When the work is complete, seal `work/`: `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`. Treat `work/` as immutable from then on. Do this before any retro begins, so that what you reflect on cannot be revised afterwards. If it refuses or `state-kaal-change` reports a problem, resolve it; do not bypass it.
 4. **Retro, from inside the Work.** Only now the worker who performed the change writes `retro-work.md` in the change directory, as described in `references/retro.md`. Writing it does not disturb the seal on `work/`.
 5. **Retro, from outside the Work.** Only after `retro-work.md` exists, an observer from outside the Work reads the sealed `work/` and `retro-work.md`, then writes `retro-observe.md` from that observer's own seat, as described in `references/retro.md`.
 6. **Close.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. The Change's seal covers `work/` and both retros together; there is no separate seal for either retro.
+
+## Admission
+
+A Change joins the admitted KAAL only closed. Many steps may go into doing it, and they happen wherever work is staged; the Change is open there and its `work/` may change freely. What is proposed for admission is the finished state: one new Change, closed, with everything it changed. A partial Change is not proposed, and one admission carries exactly one new Change. `npm run check-kaal-admission -- <baseline-kaal-dir> <candidate-kaal-dir>` answers whether a candidate may be admitted (it is the repository's provisional helper, like the others; it refuses what is not closed, and does not judge whether the Change describes the rest of the candidate faithfully). Seal before you propose, not after: nothing is added to a Change once it is admitted.
 
 ## Rules
 
