@@ -236,7 +236,9 @@ function packageRoot(t: After, packages: Record<string, { kaal: Record<string, s
     const dist = join(root, name, "dist");
     mkdirSync(dist, { recursive: true });
     writeFileSync(join(root, name, "package.json"), '{ "type": "module" }');
-    writeFileSync(join(dist, "index.js"), `export const payload = () => (${JSON.stringify(payload)});`);
+    // The payload is data, read back as data: no code is constructed from it.
+    writeFileSync(join(dist, "payload.json"), JSON.stringify(payload));
+    writeFileSync(join(dist, "index.js"), 'import { readFileSync } from "node:fs";\nconst data = JSON.parse(readFileSync(new URL("./payload.json", import.meta.url), "utf8"));\nexport const payload = () => data;\n');
   }
   return root;
 }
