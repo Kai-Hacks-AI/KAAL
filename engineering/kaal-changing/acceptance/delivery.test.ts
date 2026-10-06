@@ -109,13 +109,13 @@ test("the change record convention is stated once, with the retro form in its re
   assert.match(manifest, /<kaal-dir>\/changes\/<name>\/YY\/MM\/DD\/CC\//);
   assert.match(manifest, /references\/retro\.md/);
   const retro = skills[`${CAPABILITY}/references/retro.md`];
-  assert.match(retro, /^# Reference: retro-work\.md and retro-review\.md/);
+  assert.match(retro, /^# Reference: retro-work\.md, retro-review\.md and retro-observe\.md/);
   for (const heading of ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"]) assert.ok(retro.includes(`${heading}\n`), heading);
-  for (const rule of [/own seat/, /Neither infers what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/, /A retrospective is not the review/, /never a verdict/]) assert.match(retro, rule);
+  for (const rule of [/own seat/, /Neither infers what the user thought/, /Do not take one observation and write it four ways/, /not a restatement of something Lacked/, /A retrospective is not the review, and the Owner's retrospective is not the Owner's decision/, /never a verdict/]) assert.match(retro, rule);
 });
 
 test("the realization pulls the agent through work, review, seal work, both retros, close, by the repository's own commands", () => {
-  assert.ok(manifest.includes("allocate → work ⇄ review → seal work → retro-work and retro-review → seal Change (closed)"), "the sequence, exactly");
+  assert.ok(manifest.includes("allocate → work ⇄ review → seal work → retro-work, retro-review and retro-observe → seal Change (closed)"), "the sequence, exactly");
   assert.ok(manifest.includes("scripts/next-change.mjs"), "the allocator stays the existing allocator");
   for (const command of ["state-kaal-change", "seal-kaal-work", "close-kaal-change"]) assert.ok(manifest.includes(command), command);
   assert.ok(manifest.indexOf("`review/NN.md`") < manifest.indexOf("seal-kaal-work"), "review comes before the work is sealed");
@@ -131,6 +131,17 @@ test("ROWING, the roles and the review rounds are stated once, in their referenc
   for (const role of ["**Owner.**", "**Worker.**", "**Reviewer.**"]) assert.ok(rowing.includes(role), role);
   for (const rule of [/not a number of actors, models or contexts/, /nothing here forbids one actor from holding several roles/, /Deterministic checks are evidence for the review, never the review/, /Do not edit the Work/, /A review that approves can still have a critical retro, and a retro never approves/, /does not show that the realization outside `work\/` is what the Work describes/, /Work: <identity of work\/ as reviewed>/, /Result: findings \| converged/]) assert.match(rowing, rule);
   assert.ok(manifest.includes("one actor may hold several roles") || /One actor may hold several roles/.test(manifest));
+});
+
+test("the process has three perspectives, two that row and one that steers, and ROWING is not that topology", () => {
+  const rowing = skills[`${CAPABILITY}/references/rowing.md`];
+  const retro = skills[`${CAPABILITY}/references/retro.md`];
+  for (const rule of [/ROWING is the discipline between realized Work and its review, and it stays that if the process around it gains other roles/, /not what ROWING means/, /WORKER ⇄ REVIEWER/, /Reflection and decision are two acts/, /the retrospective is not approval/]) assert.match(rowing, rule);
+  for (const file of ["retro-work.md", "retro-review.md", "retro-observe.md"]) assert.ok(manifest.includes(file) && retro.includes(file), file);
+  assert.match(manifest, /only then does the Owner decide, and that decision is not an artifact of the record/);
+  assert.match(manifest, /`retro-observe\.md` is the first and never the second/);
+  const meaning = kaal[rowingFile].split("---\n").pop()!;
+  for (const word of [/\bOwner\b/, /\bWorker\b/, /retro-/, /helm|steer/i]) assert.doesNotMatch(meaning, word, "the Node does not define the topology");
 });
 
 test("the Agent Skill, its references and its Nodes speak of no host, provider or person, and mandate no number of agents", () => {

@@ -2,9 +2,23 @@
 
 `ROWING` (a Node of the installed KAAL, a KAAL Definition) names the discipline: Review Observed Work, Intelligent Not Generalized. Read it there; this file only says how a change is reviewed and who does what. It describes roles of a process, not a number of actors, models or contexts. What a role may and may not do is said of the actor while it is acting in that role; nothing here forbids one actor from holding several roles.
 
+ROWING is the discipline between realized Work and its review, and it stays that if the process around it gains other roles. The three roles below, and the shape they make, explain how Changing KAAL currently uses it; they are not what ROWING means.
+
 ## The roles
 
-- **Owner.** Owns the Intent. Establishes what the change is to achieve, and finally decides whether the completed and reviewed change realizes it. The Owner is not in the inner loop of work and review, and does not redo the Reviewer's work. The Owner's decision is the decision to admit the closed change; it is not an artifact of the record.
+```
+             TARGET / INTENT
+                   ↑
+                 OWNER           steers: holds the target, observes from the helm
+                   │
+          WORKER ⇄ REVIEWER      row: Work and review go round inside
+             ROWING
+```
+
+Three perspectives follow from it, one retrospective each: the Work's (`retro-work.md`), the review's (`retro-review.md`) and the outer one (`retro-observe.md`).
+
+
+- **Owner.** Owns the Intent. Establishes what the change is to achieve, stays out of the inner loop of work and review and does not redo the Reviewer's work, observes the Change from outside and writes `retro-observe.md` once the Work is sealed, and, only after the Change is sealed, decides whether the completed and reviewed change realizes the Intent. Reflection and decision are two acts: the retrospective is not approval, and the decision is the decision to admit the closed change, not an artifact of the record.
 - **Worker.** Performs the Work, keeps `work/` (Intent as given, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md`. While acting as Worker it does not write rounds.
 - **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`. While acting as Reviewer it does not change `work/`, and it does not own the Intent.
 
@@ -49,6 +63,6 @@ Work → Review ─ findings → Work continues → Review again
 ## Separation: required, recommended, and unprovable
 
 - **What KAAL's checks require**: the structure and order above. Nothing about who.
-- **What the process requires and no check can show**: while acting as Reviewer, an actor writes only rounds and `retro-review.md` and does not change `work/`; each retro is from its own seat, its writer's own. A single actor who holds both seats keeps the process valid and weakens what it shows.
-- **Recommended**: Worker and Reviewer in separate contexts; the Owner other than the Worker; neither retro read before writing one's own.
-- **Beyond the record**: how a realization comes to hold these roles, how the closed change is handed on and accepted, and whether a given review was independent or good are operational, outside what a closed change proves. A closed change shows that review ended on a converged round naming exactly the sealed Work, and that both retrospectives exist; it does not show that the realization outside `work/` is what the Work describes.
+- **What the process requires and no check can show**: while acting as Reviewer, an actor writes only rounds and `retro-review.md` and does not change `work/`; each of the three retros is from its own seat, its writer's own. A single actor who holds several seats keeps the process valid and weakens what it shows.
+- **Recommended**: Worker and Reviewer in separate contexts; the Owner other than the Worker; no retro read before writing one's own.
+- **Beyond the record**: how a realization comes to hold these roles, how the closed change is handed on and accepted, and whether a given review was independent or good are operational, outside what a closed change proves. A closed change shows that review ended on a converged round naming exactly the sealed Work, and that all three retrospectives exist; it does not show that the realization outside `work/` is what the Work describes.

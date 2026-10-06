@@ -1,5 +1,5 @@
 // PROVISIONAL, where a Change is in the process work <-> review -> seal work ->
-// retrospectives -> seal Change, and what may happen next. State is derived from
+// the three retrospectives -> seal Change, and what may happen next. State is derived from
 // the artifacts and their seals alone; nothing is written to say a phase has been
 // reached. Review is rounds in review/NN.md, each naming the identity of the
 // Work it reviewed and its result; the review has converged exactly when the
@@ -17,8 +17,6 @@ export type Stage =
   | "WORK OPEN"
   | "REVIEW CONVERGED"
   | "WORK SEALED"
-  | "RETRO-WORK PRESENT"
-  | "RETRO-REVIEW PRESENT"
   | "RETROS PRESENT"
   | "CHANGE CLOSED";
 
@@ -87,15 +85,14 @@ export function stateOf(kaalDir: string, change: string): State {
   const reviewer = present(kaalDir, path, RETRO_REVIEW);
   const review = rounds(kaalDir, path);
   problems.push(...review.problems);
-  // retro.md and retro-observe.md are the historical forms of Changes closed before the present ones; an open Change takes retro-work.md and retro-review.md.
-  if (legacy) problems.push(`${RETRO} is the historical form, valid only in a closed Change; an open Change takes ${RETRO_WORK} and ${RETRO_REVIEW}`);
-  if (observe) problems.push(`${RETRO_OBSERVE} is the historical form, valid only in a closed Change; an open Change takes ${RETRO_WORK} and ${RETRO_REVIEW}`);
+  // retro.md is the historical single retrospective of Changes closed before the perspectives; an open Change takes retro-work.md, retro-review.md and retro-observe.md.
+  if (legacy) problems.push(`${RETRO} is the historical form, valid only in a closed Change; an open Change takes ${RETRO_WORK}, ${RETRO_REVIEW} and ${RETRO_OBSERVE}`);
   const latest = review.rounds[review.rounds.length - 1];
   const converged = latest !== undefined && id !== undefined && latest.work === id && latest.result === "converged";
   const sealed = id !== undefined && sealedTreeIds(kaalDir).includes(id);
-  const stray = [legacy && RETRO, observe && RETRO_OBSERVE, worker && RETRO_WORK, reviewer && RETRO_REVIEW].filter((n): n is string => !!n);
+  const stray = [legacy && RETRO, worker && RETRO_WORK, reviewer && RETRO_REVIEW, observe && RETRO_OBSERVE].filter((n): n is string => !!n);
   if (!sealed) {
-    for (const n of [worker && RETRO_WORK, reviewer && RETRO_REVIEW].filter((n): n is string => !!n)) problems.push(`${n} exists before the Work is sealed, so it is not a valid step`);
+    for (const n of [worker && RETRO_WORK, reviewer && RETRO_REVIEW, observe && RETRO_OBSERVE].filter((n): n is string => !!n)) problems.push(`${n} exists before the Work is sealed, so it is not a valid step`);
     const remove = stray.length > 0 ? `remove ${stray.join(", ")}, then ` : "";
     if (converged) return { stage: "REVIEW CONVERGED", next: `${remove}seal work`, problems, ...base };
     const number = String(review.rounds.length + 1).padStart(2, "0");
@@ -107,11 +104,15 @@ export function stateOf(kaalDir: string, change: string): State {
     return { stage: "WORK OPEN", next: `${remove}${next}`, problems, ...base };
   }
   if (!converged) problems.push(`${WORK}/ is sealed without a converged review of exactly it: ${REVIEW}/ must end with a round that says converged and names work ${id}`);
-  if (legacy || observe) return { stage: "WORK SEALED", next: `remove ${[legacy && RETRO, observe && RETRO_OBSERVE].filter(Boolean).join(", ")}, then write ${RETRO_WORK} and ${RETRO_REVIEW}`, problems, ...base };
-  if (worker && reviewer) return { stage: "RETROS PRESENT", next: "seal Change", problems, ...base };
-  if (worker) return { stage: "RETRO-WORK PRESENT", next: `write ${RETRO_REVIEW}, from the review's seat`, problems, ...base };
-  if (reviewer) return { stage: "RETRO-REVIEW PRESENT", next: `write ${RETRO_WORK}, from the Work's seat`, problems, ...base };
-  return { stage: "WORK SEALED", next: `write ${RETRO_WORK} (the Work's seat) and ${RETRO_REVIEW} (the review's seat), each its writer's own, in either order`, problems, ...base };
+  if (legacy) return { stage: "WORK SEALED", next: `remove ${RETRO}, then write ${RETRO_WORK}, ${RETRO_REVIEW} and ${RETRO_OBSERVE}`, problems, ...base };
+  const missing = [
+    !worker && `${RETRO_WORK} (the Work's seat)`,
+    !reviewer && `${RETRO_REVIEW} (the review's seat)`,
+    !observe && `${RETRO_OBSERVE} (the outer seat)`,
+  ].filter((n): n is string => !!n);
+  if (missing.length === 0) return { stage: "RETROS PRESENT", next: "seal Change", problems, ...base };
+  const all = missing.length === 3;
+  return { stage: "WORK SEALED", next: `write ${missing.join(", ")}${all ? ", each its writer's own, in any order" : ""}`, problems, ...base };
 }
 
 /** The step "seal work": allowed only once review has converged on the Work as it now stands and no retrospective exists. Returns the Work ID. */
@@ -119,14 +120,14 @@ export function sealWorkStep(kaalDir: string, change: string): string {
   const { stage, next, problems } = stateOf(kaalDir, change);
   if (stage !== "WORK OPEN" && stage !== "REVIEW CONVERGED") throw new Error(`${change} is ${stage}: its work is already sealed or closed`);
   const path = change.replace(/\/$/, "");
-  const early = [RETRO, RETRO_OBSERVE, RETRO_WORK, RETRO_REVIEW].filter((n) => present(kaalDir, path, n));
+  const early = [RETRO, RETRO_WORK, RETRO_REVIEW, RETRO_OBSERVE].filter((n) => present(kaalDir, path, n));
   if (early.length > 0) throw new Error(`${change} has ${early.join(", ")} already: the retrospectives follow a sealed Work, so remove them first`);
   if (stage === "WORK OPEN") throw new Error(`${change} is ${stage}: ${next} before sealing the work`);
   if (problems.length > 0) throw new Error(problems.join("; "));
   return sealWork(kaalDir, change);
 }
 
-/** The step "seal Change": allowed only once the Work is sealed on a converged review and both retro-work.md and retro-review.md are present; closing a closed Change changes nothing. Returns the Change ID. */
+/** The step "seal Change": allowed only once the Work is sealed on a converged review and retro-work.md, retro-review.md and retro-observe.md are all present; closing a closed Change changes nothing. Returns the Change ID. */
 export function closeStep(kaalDir: string, change: string): string {
   const { stage, next, problems } = stateOf(kaalDir, change);
   if (stage !== "RETROS PRESENT" && stage !== "CHANGE CLOSED") throw new Error(`${change} is ${stage}: ${next} before sealing the Change`);
