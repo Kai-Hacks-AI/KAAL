@@ -2,16 +2,16 @@
 
 ## Learned
 
-That the parked work from the first attempt could be picked up whole, because the KAAL Change left the support engine nothing to couple to: it applied to the refreshed lineage without a conflict, and what I added was the Work around it. I learned that the isolation adjustment cannot honour "the record of the Change that mutates the boundary" by itself: it matches paths, so the guarantee that the record is the right one comes from admission admitting exactly one Change per proposal, and I had to say that in the Work and the documentation instead of letting the pattern imply it. I also learned that a squash merge leaves my working branch looking unmerged even though its tree is identical to the lineage, so the restart had to be a deliberate reset to the lineage and not a fast-forward.
+That the name I gave the control claimed more than the control does. Calling it admission put the semantics in the host, when the semantics live in KAAL's predicate and the host only establishes that the proposal contains exactly one new closed Change while closed history stays intact. Renaming it forced me to write the plain-English meaning once and carry it into the script, the documentation and the Work, and to say in each what the control does not judge. I also learned that the isolation control should not grow to count records: the case it cannot see, several records beside a boundary on a branch that is not the lineage, is better stated as a limit of how the two controls compose than closed by repeating the rule in a second place.
 
 ## Liked
 
-That the control is only a seam: two directories in, an exit code out, in the same shape as the existing control for closed Changes, so the Work could be short and the script is under twenty lines. That its test builds Changes with the repository's own commands on a throwaway repository, so nothing in the test knows what closure means. And that the proposal for this Change will be judged by the very control it introduces, which makes the first real run an honest check.
+That the rename was mechanical everywhere except the sentences that gave the control its meaning, so the work was mostly in those sentences, which is where the review pointed. That the empty-baseline case, which the requirements promised and the test lacked, went in as one more line beside the others. That the Work can be reopened before admission by replacing its seal and rewriting the retro, because the correction touched sealed wording and I did not have to leave the Work inaccurate to avoid it.
 
 ## Lacked
 
-A way to run the job's condition locally: whether the control is skipped for a proposal into a non-lineage branch is decided in the workflow, and I could test the script and the isolation rule but not that condition. I also lacked, for a while, a name for what this Change's own relationship to the KAAL Change is; the Work now says it plainly, but I had to arrive at the wording from the review of the earlier attempt.
+A sentence, in the first pass, that said what the control does not decide. I wrote what it passes on and omitted what it leaves to review, so a reader could take it for a judge of the Change's quality; the correction added that limit. I also lacked a check on my own workflow header, which said the control was required while the documentation said it was not yet, and I only saw the disagreement when it was pointed out.
 
 ## Longed
 
-For the list of checks a lineage branch requires to live beside the controls that produce them, so that adding a control and requiring it are one reviewable act instead of a control landing and the owner then setting the requirement by hand in a separate place.
+For the names of host controls to be checked against the verb they perform before they are written down in a workflow, so that a name which overclaims is caught while it is still one word in one file and not in a job, a script, a test, a document and a sealed Work together.

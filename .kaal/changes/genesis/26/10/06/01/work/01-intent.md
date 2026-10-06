@@ -8,7 +8,7 @@ A proposal into a lineage branch is an admission. After this Change the support 
 
 ## What changes
 
-- A control, `admit-lineage`, that supplies the predicate with the two states it compares (the lineage branch's `.kaal` and the proposal's) and passes on its verdict, only for proposals into a lineage branch.
+- A control, `contain-change`, that supplies the predicate with the two states it compares (the lineage branch's `.kaal` and the proposal's) and passes on its verdict, only for proposals into a lineage branch. What it establishes, in plain words: the candidate contains exactly one new closed Change, and previously admitted closed history remains intact. Admission semantics stay KAAL's; the control owns only that containment, and does not judge whether the Change is good or faithful to its intent, which is for review.
 - The isolation control, `isolate-boundaries`, lets the sealed record of a Change accompany a protected boundary. Every admission carries a Change, so a boundary that must change alone would otherwise never be admissible. Only the record of the Change that mutates the boundary may accompany it; nothing else may.
 - The support engine's own documentation.
 

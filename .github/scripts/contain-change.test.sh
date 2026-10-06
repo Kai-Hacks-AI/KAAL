@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Negative and positive tests for admit-lineage.sh, on a throwaway repo whose
+# Negative and positive tests for contain-change.sh, on a throwaway repo whose
 # .kaal on the target branch holds one closed Change. Changes are made and
 # closed by the repository's own commands, never by this test.
 set -euo pipefail
-script=$(cd "$(dirname "$0")" && pwd)/admit-lineage.sh
+script=$(cd "$(dirname "$0")" && pwd)/contain-change.sh
 root=$(cd "$(dirname "$0")/../.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

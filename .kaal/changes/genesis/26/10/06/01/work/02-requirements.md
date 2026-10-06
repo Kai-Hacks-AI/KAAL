@@ -14,7 +14,7 @@ The control applies only to a proposal into a lineage branch. Work staged on any
 
 ## E4. A control that is itself challenged
 
-The control has a test that runs it on a throwaway repository and is run first in the same job: one new closed Change passes; none, two, a new Change at each open stage, and altered or removed closed history fail.
+The control has a test that runs it on a throwaway repository and is run first in the same job: one new closed Change passes, also against an empty baseline; none, two, a new Change at each open stage, and altered or removed closed history fail.
 
 ## E5. Boundaries keep travelling alone
 
@@ -26,4 +26,4 @@ The control asks the predicate and the existing history control (closed Changes 
 
 ## E7. Honest limits
 
-The control makes admission mechanical for what the predicate judges. It is required only when the owner adds it to the ruleset, by hand, after this lands; until then it reports and does not block. It does not prove a Change describes its diff faithfully, and an automated update that carries no Change is outside it, left for separate treatment.
+The control, named `contain-change`, makes containment of exactly one new closed Change mechanical, and keeps admitted closed history intact; it does not own admission semantics. It is required only when the owner adds it to the ruleset, by hand, after this lands; until then it reports and does not block. It does not prove a Change describes its diff faithfully, and an automated update that carries no Change is outside it, left for separate treatment.
