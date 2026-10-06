@@ -7,7 +7,8 @@ permissions:
 
 # One job per control. The job id is also the job's display name, and the
 # display name is the check name GitHub reports. Branch protection requires
-# these names: test-kaal, check-kaal-seals, isolate-boundaries.
+# these names: test-kaal, check-kaal-seals, isolate-boundaries, preserve-sealed-changes
+# and admit-lineage (the lineage branches kaal/* only).
 # preserve-seals is reported too but is not (yet) a required check.
 jobs:
   # KAAL controls: portable, they work without Git.
@@ -75,3 +76,23 @@ jobs:
       - name: Test the control
         run: .github/scripts/preserve-sealed-changes.test.sh
       - run: .github/scripts/preserve-sealed-changes.sh "$TARGET"
+
+  # Admission: a pull request into a lineage branch introduces exactly one new Change, and it is closed.
+  # Other branches are staging, where nothing is admitted, so the job is skipped there.
+  admit-lineage:
+    name: admit-lineage
+    if: startsWith(github.base_ref, 'kaal/')
+    runs-on: ubuntu-latest
+    env:
+      TARGET: origin/${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Test the control
+        run: .github/scripts/admit-lineage.test.sh
+      - run: .github/scripts/admit-lineage.sh "$TARGET"

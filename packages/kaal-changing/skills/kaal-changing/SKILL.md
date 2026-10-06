@@ -49,6 +49,10 @@ Where a change is in the process is never written down. Ask `npm run state-kaal-
 5. **Retro, from outside the Work.** Only after `retro-work.md` exists, an observer from outside the Work reads the sealed `work/` and `retro-work.md`, then writes `retro-observe.md` from that observer's own seat, as described in `references/retro.md`.
 6. **Close.** `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`. The Change's seal covers `work/` and both retros together; there is no separate seal for either retro.
 
+## Admission
+
+A Change joins the admitted KAAL only closed. Many steps may go into doing it, and they happen wherever work is staged; the Change is open there and its `work/` may change freely. What is proposed for admission is the finished state: one new Change, closed, with everything it changed. A partial Change is not proposed, and one admission carries exactly one new Change. `npm run check-kaal-admission -- <baseline-kaal-dir> <candidate-kaal-dir>` answers whether a candidate may be admitted (it is the repository's provisional helper, like the others; it refuses what is not closed, and does not judge whether the Change describes the rest of the candidate faithfully). Seal before you propose, not after: nothing is added to a Change once it is admitted.
+
 ## Rules
 
 - Do not write a retro before the work is sealed, do not write `retro-observe.md` before `retro-work.md` exists, and do not go back and alter sealed work to make the history cleaner. If you find something while writing a retro, it belongs in the retro.

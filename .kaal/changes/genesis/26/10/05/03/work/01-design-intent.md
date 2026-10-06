@@ -29,6 +29,6 @@ This Change introduces the rule it is itself subject to, so it is a bootstrap: i
 
 ## Out of scope
 
-- Whatever hosts the lineage: extracting the two states, running the predicate and making its verdict required belongs to the host and is not part of this Change's Work. Everything KAAL itself must do to decide is in this Change.
+- Describing whatever hosts the lineage. The host's controls (extracting the two states, running the predicate, making its verdict required, letting a Change record accompany an isolated boundary) are delivered by this Change in the host's own place, under the host's own documentation, and are not described in Work. Everything KAAL itself must do to decide is in the predicate.
 - Any Change already in flight; it finishes under the rules it started with.
 - Anything about how the host stages work. Staging is whatever is not the lineage.

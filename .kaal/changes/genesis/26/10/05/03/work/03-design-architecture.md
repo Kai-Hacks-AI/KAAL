@@ -69,7 +69,7 @@ A Change that needs a bridge, a protected-boundary step and a bridge removal is 
 
 ## What this Change carries
 
-`helpers/admission.ts` in the Change-sealing engineering machinery, with the command `check-kaal-admission <baseline-kaal-dir> <candidate-kaal-dir>` (exit 0 admitted, 1 refused with reasons, 2 usage), acceptance tests that run the command against hand-written KAAL directories (one new closed Change admitted; none, two, and each open stage refused; closed history altered or removed refused; a closed Change moved whole is not new; Changes already in the baseline and not closed are not judged), and the engineering README. Nothing in Core, in a Node, or in any sealed file changes.
+`helpers/admission.ts` in the Change-sealing engineering machinery, with the command `check-kaal-admission <baseline-kaal-dir> <candidate-kaal-dir>` (exit 0 admitted, 1 refused with reasons, 2 usage), acceptance tests that run the command against hand-written KAAL directories (one new closed Change admitted; none, two, and each open stage refused; closed history altered or removed refused; a closed Change moved whole is not new; Changes already in the baseline and not closed are not judged), the engineering README, and the Changing KAAL skill's wording. Alongside, and outside what Work describes, the host's own controls consume the command and let the Change record accompany an isolated boundary. Nothing in Core, in a Node, or in any sealed file changes.
 
 ## What the design does not do
 
