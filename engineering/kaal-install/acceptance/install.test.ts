@@ -8,7 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../helpers/delivery.js";
@@ -226,10 +226,50 @@ test("the Agent entrypoint is wired by the existing KAAL Agent machinery", async
 
 // This repository, held to the same.
 
-test("this repository holds what its packages deliver for its installed Skills, derived and not authored", async () => {
-  assert.deepEqual(await problems(SOURCE), []);
-  assert.deepEqual(core.installedSkills(join(SOURCE, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Retro and Sealing are installed Skills");
-  assert.deepEqual((await deliver(SOURCE)).capabilities, CAPABILITIES);
+/**
+ * A scratch copy of this repository's checked-in projection and host delivery:
+ * the installed KAAL and the host's Agent Skills, without the installed
+ * history (`changes` and the seals that belong to it), which the check does
+ * not judge. The checked-in files themselves are never touched.
+ */
+function scratchProjection(t: After, remove: (scratch: string) => void = () => {}): string {
+  const dir = checkout(t);
+  const history = [CHANGES_DIR, join("seals", "changes"), join("seals", "trees")].map((p) => join(SOURCE, KAAL_DIR, p));
+  cpSync(join(SOURCE, KAAL_DIR), join(dir, KAAL_DIR), { recursive: true, filter: (src) => !history.includes(src) });
+  if (existsSync(join(SOURCE, HOST_SKILLS))) cpSync(join(SOURCE, HOST_SKILLS), join(dir, HOST_SKILLS), { recursive: true });
+  remove(dir);
+  return dir;
+}
+const CHANGES_DIR = "changes";
+
+// The candidate packages are always this repository's, so the question the
+// repository is held to is not whether the checked-in projection happens to
+// be current (a change confined to a package cannot also update `.kaal`) but
+// whether the candidate's delivery can be installed over it, legally and
+// completely: installing must succeed, which refuses any sealed byte that
+// would change, and the full check must then hold, with no exceptions.
+test("this repository's candidate delivery installs over its checked-in projection, completely and without changing sealed material", async (t) => {
+  const dir = scratchProjection(t);
+  await installed(dir);
+  assert.deepEqual(await problems(dir), []);
+  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Retro and Sealing are installed Skills");
+  assert.deepEqual((await deliver(dir)).capabilities, CAPABILITIES);
+});
+
+test("the candidate-installation check advances a projection that lags the packages, and still refuses what it must", async (t) => {
+  // A projection that lacks something the packages now deliver (a Core Node and its seal, as when a Core change precedes its installation) is advanced by installing, and the full check then holds.
+  const lagging = scratchProjection(t, (scratch) => {
+    const node = readdirSync(join(scratch, KAAL_DIR, "core")).find((n) => n === "Skill.md")!;
+    const id = sha256(readFileSync(join(scratch, KAAL_DIR, "core", node), "utf8"));
+    rmSync(join(scratch, KAAL_DIR, "core", node));
+    rmSync(join(scratch, KAAL_DIR, "seals", id));
+  });
+  assert.match((await problems(lagging)).join("\n"), /core\/Skill\.md is missing/, "it is stale before installing");
+  await installed(lagging);
+  assert.deepEqual(await problems(lagging), [], "installing completes it, and the full check holds");
+  // A projection whose sealed bytes disagree with the packages cannot be advanced: installing refuses, and nothing is excused.
+  const altered = scratchProjection(t, (scratch) => writeFileSync(join(scratch, KAAL_DIR, "core", "Core.md"), "x"));
+  await assert.rejects(installed(altered), /changed bytes are another Node/);
 });
 
 test("this repository's AGENTS.md is wired to its installed .kaal", () => {
