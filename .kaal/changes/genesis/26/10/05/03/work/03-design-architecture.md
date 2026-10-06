@@ -59,17 +59,17 @@ step · step · step      (staging; open Change; not lineage)
 
 Closure already requires `retro-work.md` and then `retro-observe.md` (the evaluator's order), so the two-perspective model is an existing property of closure and admission inherits it as a fact about a closed Change. Writing either retro after admission is impossible by construction: a closed Change cannot change, and an unclosed one cannot be admitted. The observer's seat is a convention of Changing KAAL; the predicate cannot see who wrote a file.
 
-## Boundary isolation (decided)
+## Two Changes, in sequence (decided)
 
-A protected boundary must change alone, and every admission carries a Change. The sealed Change record under `changes/` may accompany an isolated boundary, and nothing else may. That is a narrow edit to a host control and is not part of what KAAL decides.
+This Change defines the semantics; a following Change realizes them in the support engine that hosts the lineage. A protected boundary changes alone, accompanied only by the sealed record of the Change that mutates it. The support engine's Change takes its own number, carries its own evidence, retrospectives and seal, and starts only after this one is admitted.
 
 ## Consequences for Changes in several steps
 
-A Change that needs a bridge, a protected-boundary step and a bridge removal is staged on a non-lineage line and admitted whole; its isolated parts may share one Change record with it (above). This Change itself is one such Change: its steps (design, the predicate, its tests, the documentation) were staged together and it is proposed once, closed.
+A Change's steps are staged on a non-lineage line and admitted whole. A piece of work that crosses a protected boundary and also changes what that boundary judges is two Changes: the semantics first, then the machinery that enforces them. This Change is the first kind: its steps (design, the predicate, its tests, the guidance) were staged together and it is proposed once, closed.
 
 ## What this Change carries
 
-`helpers/admission.ts` in the Change-sealing engineering machinery, with the command `check-kaal-admission <baseline-kaal-dir> <candidate-kaal-dir>` (exit 0 admitted, 1 refused with reasons, 2 usage), acceptance tests that run the command against hand-written KAAL directories (one new closed Change admitted; none, two, and each open stage refused; closed history altered or removed refused; a closed Change moved whole is not new; Changes already in the baseline and not closed are not judged), the engineering README, and the Changing KAAL skill's wording. Alongside, and outside what Work describes, the host's own controls consume the command and let the Change record accompany an isolated boundary. Nothing in Core, in a Node, or in any sealed file changes.
+`helpers/admission.ts` in the Change-sealing engineering machinery, with the command `check-kaal-admission <baseline-kaal-dir> <candidate-kaal-dir>` (exit 0 admitted, 1 refused with reasons, 2 usage), acceptance tests that run the command against hand-written KAAL directories (one new closed Change admitted; none, two, and each open stage refused; closed history altered or removed refused; a closed Change moved whole is not new; Changes already in the baseline and not closed are not judged), the engineering README, and the Changing KAAL skill's wording. Realizing the rule in the host is the next Change's, not this one's. Nothing in Core, in a Node, or in any sealed file changes.
 
 ## What the design does not do
 

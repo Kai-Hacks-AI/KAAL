@@ -30,9 +30,9 @@ The Change seal is part of the candidate. Nothing the admission relies on can be
 
 Implementation of a Change may take any number of steps. They happen on a line of work that is not the lineage, where nothing is judged as admitted and the Change is simply open. Only the finished candidate crosses, as one admission. Any state a step leaves behind is not the lineage's concern.
 
-## R8. A boundary and its Change record
+## R8. Two Changes, in sequence
 
-Protected machinery boundaries keep travelling alone, and every admission carries a Change (R5). The sealed Change record, which is text under `changes/` that no machinery reads, is therefore the one thing allowed to accompany an isolated boundary; no Change-less exemption is created instead. (Decided by Kai on review.) The edit to the isolation control is the host's, not the predicate's.
+Defining the admission semantics and realizing them in the support engine that hosts the lineage are different Changes, each with its own allocation, evidence, retrospectives and seal, in that order. This Change is the first: the KAAL-native predicate, its tests and the guidance. The support engine's Change follows, and consumes a rule that already exists; it does not define the rule by changing itself. A protected boundary keeps travelling alone, and the only thing that may accompany it is the sealed record of the Change that mutates it. A KAAL semantic Change and a support-engine mutation are never collapsed into one Change. (Decided by Kai on review.)
 
 ## R9. Deterministic, and no host concepts
 
