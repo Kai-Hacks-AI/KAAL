@@ -61,11 +61,15 @@ Closure already requires `retro-work.md` and then `retro-observe.md` (the evalua
 
 ## Boundary isolation (decided)
 
-A protected boundary must change alone, and every admission carries a Change. The sealed Change record under `changes/` may accompany an isolated boundary, and nothing else may. That is a narrow edit to the isolation control, which itself must travel alone, and is a later step.
+A protected boundary must change alone, and every admission carries a Change. The sealed Change record under `changes/` may accompany an isolated boundary, and nothing else may. That is a narrow edit to a host control and is not part of what KAAL decides.
 
 ## Consequences for Changes in several steps
 
-A Change that needs a bridge, a protected-boundary step and a bridge removal is staged on a non-lineage line and admitted whole; its isolated parts may share one Change record with it (above). This Change is design only: it is admitted when closed, and an implementation is a Change of its own.
+A Change that needs a bridge, a protected-boundary step and a bridge removal is staged on a non-lineage line and admitted whole; its isolated parts may share one Change record with it (above). This Change itself is one such Change: its steps (design, the predicate, its tests, the documentation) were staged together and it is proposed once, closed.
+
+## What this Change carries
+
+`helpers/admission.ts` in the Change-sealing engineering machinery, with the command `check-kaal-admission <baseline-kaal-dir> <candidate-kaal-dir>` (exit 0 admitted, 1 refused with reasons, 2 usage), acceptance tests that run the command against hand-written KAAL directories (one new closed Change admitted; none, two, and each open stage refused; closed history altered or removed refused; a closed Change moved whole is not new; Changes already in the baseline and not closed are not judged), and the engineering README. Nothing in Core, in a Node, or in any sealed file changes.
 
 ## What the design does not do
 

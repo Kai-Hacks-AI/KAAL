@@ -32,7 +32,7 @@ Implementation of a Change may take any number of steps. They happen on a line o
 
 ## R8. A boundary and its Change record
 
-Protected machinery boundaries keep travelling alone, and every admission carries a Change (R5). The sealed Change record, which is text under `changes/` that no machinery reads, is therefore the one thing allowed to accompany an isolated boundary; no Change-less exemption is created instead. (Decided by Kai on review.) The edit to the isolation control is a later, separate step.
+Protected machinery boundaries keep travelling alone, and every admission carries a Change (R5). The sealed Change record, which is text under `changes/` that no machinery reads, is therefore the one thing allowed to accompany an isolated boundary; no Change-less exemption is created instead. (Decided by Kai on review.) The edit to the isolation control is the host's, not the predicate's.
 
 ## R9. Deterministic, and no host concepts
 
