@@ -21,6 +21,20 @@ I did the work   ≠   I independently observed the work
 
 What matters is independence of perspective, not the number of documents. The observer is not the approver: observation produces evidence, and whether a Change is admitted is another decision.
 
+## The process this intends
+
+The Change reaches the observer in one exact state: Work sealed, and exactly `retro-work.md` written by the worker. That is the handoff. The worker stops there. It does not write `retro-observe.md`, and it does not arrange for it to be written.
+
+```
+work → seal Work → worker writes retro-work → HANDOFF
+     → independent observer reads sealed Work + retro-work, writes retro-observe
+     → observer text incorporated, unchanged in substance → seal Change → admission
+```
+
+The observer is chosen outside the worker's execution context, by someone or something other than the worker, and is told what its role, input and output are. Only after its contribution is incorporated may the Change be sealed. The process must actively guide this sequence; requiring two files in order does not.
+
+A counterexample sets the bar: a worker that, before any handoff, spawns its own fresh sub-agent to fill `retro-observe.md`, and closes the Change itself. The sub-agent has a clean context, but it was selected, briefed and bounded by the worker, and the Change never reached a boundary where anyone else could take it. The observation was produced inside the worker's own execution, so it is not the outside view. A fresh context is necessary and not sufficient.
+
 ## Stance
 
 - Use what KAAL already has: the Work seal, the Change seal, the two retros, the process evaluator, the Agent and its instructions, and the Skill that carries them. Add identity or role machinery only if a requirement cannot be met without it.

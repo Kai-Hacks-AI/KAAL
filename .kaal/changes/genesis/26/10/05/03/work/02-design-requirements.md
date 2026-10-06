@@ -4,7 +4,7 @@ Vocabulary: the **worker** is the agent that performed the Change; the **observe
 
 ## R1. Two seats, one occupant each, never the same
 
-The worker and the observer are different agents. An agent that took part in the Work, in any context, does not write `retro-observe.md`. "Different" means an agent that did not participate in the Work and did not see the worker's reasoning: a separate execution context that was never part of it. It does not mean a different provider, vendor or model; the same model in a fresh context that has not seen the Work being done can observe, and a different vendor that took part in the Work cannot. The working assumption that one agent in two files is unacceptable is held.
+The worker and the observer are different agents. An agent that took part in the Work, in any context, does not write `retro-observe.md`. "Different" means an agent that did not participate in the Work and did not see the worker's reasoning: a separate execution context that was never part of it, and that was selected outside the worker's execution context (R12). A fresh context the worker itself creates is not enough. It does not mean a different provider, vendor or model; the same model in a fresh context that has not seen the Work being done can observe, and a different vendor that took part in the Work cannot. The working assumption that one agent in two files is unacceptable is held.
 
 ## R2. The observer is not the approver
 
@@ -12,7 +12,7 @@ The observer's output is retrospective evidence only. It carries no verdict, gat
 
 ## R3. The observer's inputs
 
-The observer receives exactly: the sealed Work, and the means to write `retro-observe.md`. Whether it also receives `retro-work.md` before writing is a design question (Q1); the requirement is that the observer's first view is its own.
+The observer receives exactly: the sealed Work, `retro-work.md`, and the means to write `retro-observe.md`, together with a statement of its role, input and output (R13). It reads the worker's retro, and writes from its own seat: it does not restate or answer it, and it does not speak for the worker.
 
 ## R4. The observer cannot alter what it observes
 
@@ -20,11 +20,11 @@ The observer must not be able to change the Work, and should not be able to chan
 
 ## R5. The worker finishes before the observer starts, and cannot revise after
 
-`retro-work.md` is complete before the observer begins, so it is not a response to the observer. After the observer has begun, neither the Work nor `retro-work.md` changes. Nothing may be altered to make the history tidier.
+`retro-work.md` is complete before the observer begins, so it is not a response to the observer, and the Change then waits at the handoff (R12). After the observer has begun, neither the Work nor `retro-work.md` changes. Nothing may be altered to make the history tidier.
 
 ## R6. Freezing points
 
-`work/` is frozen when sealed, before either retro. Each retro must be unalterable from the moment its writer finishes until the Change is sealed, and the Change seal covers both. Whether this needs a deterministic point of its own, or can be a rule of carrying out the Change, is Q2.
+`work/` is frozen when sealed, before either retro. Each retro must be unalterable from the moment its writer finishes until the Change is sealed, and the Change seal covers both. Whether this needs a deterministic point of its own, or can be a rule of carrying out the Change, is Q1.
 
 ## R7. A defect found by observation
 
@@ -50,3 +50,19 @@ The order work, seal work, `retro-work.md`, `retro-observe.md`, seal Change stay
 ## R11. Honest limit
 
 KAAL can prove that two retros exist beside a sealed Work and that the sealed whole has not been altered. It cannot prove that two different minds wrote them. What stands in for that proof is stated plainly in the instructions that govern the process, so that nobody reads a closed Change as having proved more.
+
+## R12. The handoff
+
+The worker stops at a defined state, the handoff: Work sealed, and exactly `retro-work.md` present, with no `retro-observe.md`. The worker does not write the observer's retro, does not spawn, brief or select its writer, and does not seal the Change. The observer is selected outside the worker's execution context: by whoever or whatever receives the Change at the handoff, never by the worker. The process must tell the worker to stop at that state, not leave it to inference, and the handoff must be a point at which the Change can be taken up by someone other than the worker.
+
+## R13. The observer is told its role
+
+At the handoff the observer is told, by the process and not by the worker's own choice of words: that it is the observer and not the worker, not the approver and not a reviewer of the code; that its input is the sealed Work and `retro-work.md`; that its output is exactly `retro-observe.md`, in the retro form; and that it changes nothing else.
+
+## R14. Incorporation, then closure
+
+The observer's text is incorporated into the Change unchanged in substance. Placing it, fixing formatting or fitting the retro form is not editing it; adding to it, softening it, answering it or removing from it is. Only after it is incorporated is the Change sealed. The worker may place the text and seal, but neither gives the worker authorship of it.
+
+## R15. A worker-spawned observer is insufficient
+
+A Change whose `retro-observe.md` was produced by a sub-agent the worker spawned and briefed, before any handoff, does not meet R1 or R12, however clean that sub-agent's context. The process says so explicitly and gives this as the example of what not to do.
