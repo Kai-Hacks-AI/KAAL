@@ -4,10 +4,11 @@
 // is closed in the process's own sense, and every Change closed in the baseline
 // is still closed here with the same identity. It adds no rule of completeness
 // of its own: closure is stateOf's verdict, identity is changes.ts's, history
-// is the same identities preserve-sealed-changes compares. It knows nothing of
+// is preservation.ts's preserveChanges. It knows nothing of
 // Git, GitHub, branches, PRs or CI; whatever hosts the lineage supplies the two
 // directories and enforces the verdict.
 import { changes, closedChanges } from "./changes.js";
+import { preserveChanges } from "./preservation.js";
 import { stateOf } from "./process.js";
 
 export interface Verdict {
@@ -28,9 +29,7 @@ export function newChanges(baseline: string, candidate: string): string[] {
 
 export function admit(baseline: string, candidate: string): Verdict {
   const reasons: string[] = [];
-  const now = new Set(closedChanges(candidate).map((c) => c.id));
-  for (const { path, id } of closedChanges(baseline))
-    if (!now.has(id)) reasons.push(`the Change ${path} is closed in the baseline as ${id}, but no closed Change with that identity is in the candidate`);
+  reasons.push(...preserveChanges(baseline, candidate));
   const fresh = newChanges(baseline, candidate);
   if (fresh.length === 0) reasons.push("the candidate introduces no new Change: everything that joins the lineage is a Change");
   if (fresh.length > 1) reasons.push(`the candidate introduces ${fresh.length} new Changes (${fresh.join(", ")}): an admission is exactly one`);

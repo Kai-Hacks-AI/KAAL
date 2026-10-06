@@ -1,10 +1,11 @@
 // The commands over changes.ts; each is a thin entry that prints and sets an exit code.
 import { admit } from "./admission.js";
 import { checkChanges, closedChanges, sealChange } from "./changes.js";
+import { preserveChanges, preserveSeals } from "./preservation.js";
 import { closeStep, sealWorkStep, stateOf } from "./process.js";
 
 const [command, kaalDir, change, ...extra] = process.argv.slice(2);
-const usage = "usage: change-seal seal <kaal-dir> <change> | seal-work <kaal-dir> <change> | state <kaal-dir> <change> | close <kaal-dir> <change> | closed <kaal-dir> | check <kaal-dir> | admit <baseline-kaal-dir> <candidate-kaal-dir>";
+const usage = "usage: change-seal seal <kaal-dir> <change> | seal-work <kaal-dir> <change> | state <kaal-dir> <change> | close <kaal-dir> <change> | closed <kaal-dir> | check <kaal-dir> | admit <baseline-kaal-dir> <candidate-kaal-dir> | preserve-changes <baseline-kaal-dir> <candidate-kaal-dir> | preserve-seals <baseline-kaal-dir> <candidate-kaal-dir>";
 try {
   if (command === "seal" && kaalDir && change && extra.length === 0) {
     console.log(sealChange(kaalDir, change));
@@ -29,6 +30,11 @@ try {
     if (verdict.admitted) console.log(`admitted: ${verdict.change}`);
     for (const r of verdict.reasons) console.error(r);
     process.exitCode = verdict.admitted ? 0 : 1;
+  } else if ((command === "preserve-changes" || command === "preserve-seals") && kaalDir && change && extra.length === 0) {
+    const reasons = (command === "preserve-changes" ? preserveChanges : preserveSeals)(kaalDir, change);
+    if (reasons.length === 0) console.log("preserved");
+    for (const r of reasons) console.error(r);
+    process.exitCode = reasons.length === 0 ? 0 : 1;
   } else {
     console.error(usage);
     process.exitCode = 2;
