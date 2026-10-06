@@ -15,16 +15,18 @@ import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../h
 import { check, install } from "../helpers/state.js";
 import * as changing from "kaal-changing";
 import * as engineering from "kaal-engineering";
+import * as retro from "kaal-retro";
 import * as sealing from "kaal-sealing";
 
-const SKILLS = ["Changing KAAL", "Engineering Skill", "Sealing"];
+const SKILLS = ["Changing KAAL", "Engineering Skill", "Retro", "Sealing"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
   ["kaal-engineering", engineering.payload],
   ["kaal-changing", changing.payload],
+  ["kaal-retro", retro.payload],
   ["kaal-sealing", sealing.payload],
 ];
-const CAPABILITIES = ["kaal-changing", "kaal-engineering", "kaal-sealing"];
+const CAPABILITIES = ["kaal-changing", "kaal-engineering", "kaal-retro", "kaal-sealing"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
 type After = { after: (fn: () => void) => void };
@@ -226,7 +228,7 @@ test("the Agent entrypoint is wired by the existing KAAL Agent machinery", async
 
 test("this repository holds what its packages deliver for its installed Skills, derived and not authored", async () => {
   assert.deepEqual(await problems(SOURCE), []);
-  assert.deepEqual(core.installedSkills(join(SOURCE, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL and Sealing are installed Skills");
+  assert.deepEqual(core.installedSkills(join(SOURCE, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Retro and Sealing are installed Skills");
   assert.deepEqual((await deliver(SOURCE)).capabilities, CAPABILITIES);
 });
 
