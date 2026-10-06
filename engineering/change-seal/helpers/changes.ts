@@ -12,13 +12,14 @@ export const SEALS = "seals/changes";
 /** Where named-tree seals live, beside Change seals and likewise outside the tree they seal. */
 export const TREE_SEALS = "seals/trees";
 /** The Work of a Change is its directory work/, its review is the rounds in review/, and its retrospectives are retro-work.md (from the
- * Work's seat), retro-review.md (from the review's seat) and retro-observe.md (from the outer seat, the Owner's). retro.md is the
- * historical single retrospective of Changes closed before the perspectives; Changes closed before review hold retro-work.md and
- * retro-observe.md only, and stay valid as sealed. */
+ * Work's seat), retro-review.md (from the review's seat) and retro-owner.md (from the Owner's, the outer seat). Two historical forms
+ * exist and are valid only in Changes closed before them: retro.md, the single retrospective before the perspectives, and
+ * retro-observe.md, the outer perspective as it was named when it was thought of as an Observer, which never became a role. */
 export const WORK = "work";
 export const REVIEW = "review";
 export const RETRO_WORK = "retro-work.md";
 export const RETRO_REVIEW = "retro-review.md";
+export const RETRO_OWNER = "retro-owner.md";
 export const RETRO_OBSERVE = "retro-observe.md";
 export const RETRO = "retro.md";
 

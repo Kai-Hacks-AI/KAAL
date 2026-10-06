@@ -26,7 +26,7 @@ const file = (dir: string, path: string, text: string) => {
   writeFileSync(join(dir, path), text);
 };
 /** Take a Change through the process to its end, or only part of the way. */
-const change = (dir: string, c: string, upTo: "work" | "converged" | "sealed work" | "retro-work" | "retro-observe" | "closed" = "closed") => {
+const change = (dir: string, c: string, upTo: "work" | "converged" | "sealed work" | "retro-work" | "retro-owner" | "closed" = "closed") => {
   file(dir, `${c}/work/audit.md`, `evidence of ${c}\n`);
   if (upTo === "work") return;
   const id = /^work: ([0-9a-f]{64})$/m.exec(run("state", dir, c).out)![1];
@@ -37,8 +37,8 @@ const change = (dir: string, c: string, upTo: "work" | "converged" | "sealed wor
   file(dir, `${c}/retro-work.md`, "# Retro\n");
   if (upTo === "retro-work") return;
   file(dir, `${c}/retro-review.md`, "# Retro\n");
-  file(dir, `${c}/retro-observe.md`, "# Retro\n");
-  if (upTo === "retro-observe") return;
+  file(dir, `${c}/retro-owner.md`, "# Retro\n");
+  if (upTo === "retro-owner") return;
   assert.equal(run("close", dir, c).code, 0);
 };
 const empty = (t: TestContext) => kaal(t);
@@ -93,7 +93,7 @@ test("more than one new Change is refused, even when both are closed", (t) => {
 });
 
 test("a new Change that is not closed is refused at every stage, naming the stage and the next step", (t) => {
-  const stages = { work: /WORK OPEN/, converged: /REVIEW CONVERGED/, "sealed work": /WORK SEALED/, "retro-work": /WORK SEALED/, "retro-observe": /RETROS PRESENT/ } as const;
+  const stages = { work: /WORK OPEN/, converged: /REVIEW CONVERGED/, "sealed work": /WORK SEALED/, "retro-work": /WORK SEALED/, "retro-owner": /RETROS PRESENT/ } as const;
   for (const [upTo, expected] of Object.entries(stages)) {
     const { baseline, candidate } = pair(t);
     change(candidate, B, upTo as keyof typeof stages);

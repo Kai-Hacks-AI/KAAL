@@ -15,10 +15,10 @@ ROWING is the discipline between realized Work and its review, and it stays that
              ROWING
 ```
 
-Three perspectives follow from it, one retrospective each: the Work's (`retro-work.md`), the review's (`retro-review.md`) and the outer one (`retro-observe.md`).
+Three perspectives follow from it, one retrospective each: the Work's (`retro-work.md`), the review's (`retro-review.md`) and the Owner's (`retro-owner.md`).
 
 
-- **Owner.** Owns the Intent. Establishes what the change is to achieve, stays out of the inner loop of work and review and does not redo the Reviewer's work, observes the Change from outside and writes `retro-observe.md` once the Work is sealed, and, only after the Change is sealed, decides whether the completed and reviewed change realizes the Intent. Reflection and decision are two acts: the retrospective is not approval, and the decision is the decision to admit the closed change, not an artifact of the record.
+- **Owner.** Owns the Intent. Establishes what the change is to achieve, stays out of the inner loop of work and review and does not redo the Reviewer's work, observes the Change from outside and writes `retro-owner.md` once the Work is sealed, and, only after the Change is sealed, decides whether the completed and reviewed change realizes the Intent. Reflection and decision are two acts: the retrospective is not approval, and the decision is the decision to admit the closed change, not an artifact of the record.
 - **Worker.** Performs the Work, keeps `work/` (Intent as given, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md`. While acting as Worker it does not write rounds.
 - **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`. While acting as Reviewer it does not change `work/`, and it does not own the Intent.
 

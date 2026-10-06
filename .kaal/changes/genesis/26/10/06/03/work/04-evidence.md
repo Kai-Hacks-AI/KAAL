@@ -5,7 +5,7 @@ What this Change realized, and where a Reviewer can read it. The realization liv
 ## Realized
 
 - `packages/kaal-changing/kaal/ROWING.md` and its seal: a KAAL Definition typed by the `KAAL Definition` Node, delivered beside `RATIFICATION`. The Changing KAAL Node, RATIFICATION, Core and every existing seal are byte-for-byte as they were.
-- `packages/kaal-changing/skills/kaal-changing/`: `SKILL.md` (process with review, steps, rules), `references/rowing.md` (new: the 2+1 roles, what ROWING asks of a round, the form of a round, iteration, separation) and `references/retro.md` (the three retrospectives, `retro-work.md`, `retro-review.md` and `retro-observe.md`, and the historical forms). The installed projection under `skills/` and `.kaal/skills/` is derived by the installer.
+- `packages/kaal-changing/skills/kaal-changing/`: `SKILL.md` (process with review, steps, rules), `references/rowing.md` (new: the 2+1 roles, what ROWING asks of a round, the form of a round, iteration, separation) and `references/retro.md` (the three retrospectives, `retro-work.md`, `retro-review.md` and `retro-owner.md`, and the historical forms). The installed projection under `skills/` and `.kaal/skills/` is derived by the installer.
 - `engineering/change-seal/helpers/process.ts` (the one evaluator), with `changes.ts` and `cli.ts`: rounds, the new stages, the sealing and closing preconditions (a converged review of the sealed Work and all three retrospectives), the historical forms, and the `work:` line that `state` prints.
 - Acceptance: `engineering/change-seal/acceptance/process.test.ts`, `engineering/kaal-changing/acceptance/delivery.test.ts`, `engineering/kaal-install/acceptance/install.test.ts`, `packages/kaal-changing/test/package.test.ts`, and the READMEs of the three engineering directories and the package.
 
@@ -19,9 +19,9 @@ What this Change realized, and where a Reviewer can read it. The realization liv
 ## Choices a Reviewer may test
 
 - The Worker stops with `work/` open, not sealed: sealed Work cannot take findings, and sealing follows convergence. The architecture gives the reasons.
-- This Change was allocated `06/01`, lost the number to another Change admitted first, and was reallocated to `06/02` before closure; the staged Change moved whole.
+- This Change was allocated `06/01`, lost the number to another Change admitted first, and was reallocated to `06/02`, and then to `06/03` because the bridge Change it depends on, known in advance, takes `06/02`; the staged Change moved whole each time.
 - The Worker's own state when it stops is `WORK OPEN`, next: have it reviewed, naming the identity the Reviewer must write in round `01`.
-- `retro-observe.md` stays the Owner's retrospective and keeps its name: the outer perspective is not renamed away, and the historical `retro-observe.md` of earlier Changes means what it meant.
+- The Owner's retrospective is `retro-owner.md`, named for the role. `retro-observe.md` is historical terminology from before the outer seat was understood to be the Owner's; it is kept in closed Changes exactly as sealed and is reported, not accepted, in an open one, so no Observer role is implied.
 
 ## Not shown
 

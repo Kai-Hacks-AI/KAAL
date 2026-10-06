@@ -14,15 +14,15 @@ R6. **The Reviewer does not change Work.** The Reviewer writes only review round
 
 R7. **Review and retrospective stay distinct.** The Reviewer's result is in the rounds. The Reviewer's retrospective is the 4L retrospective of the review seat, `retro-review.md`, and carries no verdict.
 
-R8. **Three perspectives, honestly named.** `retro-work.md` is the Worker's, `retro-review.md` the Reviewer's and `retro-observe.md` the Owner's, from the outer seat. Each is written after the Work is sealed, from its own seat, in any order. Each is its own seat's perspective; that none is read before writing another is recommended, not required, and not provable.
+R8. **Three perspectives, honestly named.** `retro-work.md` is the Worker's, `retro-review.md` the Reviewer's and `retro-owner.md` the Owner's, from the Owner's seat. Each is written after the Work is sealed, from its own seat, in any order. Each is its own seat's perspective; that none is read before writing another is recommended, not required, and not provable.
 
 R9. **Roles are roles.** Owner, Worker and Reviewer are defined as process roles in the capability's Agent Skill. They are not Nodes, are not identified in any artifact, and one actor may hold several. What is recommended and what KAAL's checks can and cannot show are stated separately.
 
-R10. **Owner reflection is not Owner decision.** The Owner's reflection is `retro-observe.md`, written after the Work is sealed and part of the Change. The Owner's decision comes only after the Change is sealed, is the decision to admit it, and is not an artifact inside it; the retrospective is not approval.
+R10. **Owner reflection is not Owner decision.** The Owner's reflection is `retro-owner.md`, written after the Work is sealed and part of the Change. The Owner's decision comes only after the Change is sealed, is the decision to admit it, and is not an artifact inside it; the retrospective is not approval.
 
 R11. **State stays derived.** The evaluator derives the stage and what is next from `work/`, `review/`, the retrospectives and the seals only. No status file, no phase metadata, no role or writer identity.
 
-R12. **History is preserved.** Changes closed before this one stay valid exactly as sealed: the single `retro.md`, `retro-work.md` with `retro-observe.md`, and no `review/`. They are judged by their own seals. In an open Change `retro.md` is reported, never accepted; `retro-observe.md` is not historical, it is the Owner's retrospective.
+R12. **History is preserved.** Changes closed before this one stay valid exactly as sealed: the single `retro.md`, `retro-work.md` with `retro-observe.md`, and no `review/`. They are judged by their own seals. In an open Change `retro.md` and `retro-observe.md` are reported, never accepted: `retro-observe.md` is the historical name of the outer perspective from before it was understood to be the Owner's, and no Observer role exists, so the old name is not carried forward.
 
 R13. **No host in KAAL.** Nothing this Change adds to `.kaal`, the Node, the Agent Skill or its reference speaks of any hosting, tooling or provider concept, or of any person. Work files of this Change likewise.
 
