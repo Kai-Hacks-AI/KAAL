@@ -72,12 +72,11 @@ test("a candidate with no new Change is refused", (t) => {
 
 test("a closed Change moved whole is not new, so it is not an admission either", (t) => {
   const { baseline, candidate } = pair(t);
-  mkdirSync(join(candidate, "changes/genesis/26/10/06/03"), { recursive: true });
-  renameSync(join(candidate, A), join(candidate, "changes/genesis/26/10/06/03/moved"));
-  rmSync(join(candidate, "changes/genesis/26/10/06/03"), { recursive: true });
+  mkdirSync(join(candidate, "changes/genesis/26/10/06/03/.."), { recursive: true });
+  renameSync(join(candidate, A), join(candidate, "changes/genesis/26/10/06/03"));
   const r = admit(baseline, candidate);
   assert.equal(r.code, 1);
-  assert.match(r.err, /no closed Change with that identity|no new Change/);
+  assert.equal(r.err, "the candidate introduces no new Change: everything that joins the lineage is a Change");
 });
 
 test("more than one new Change is refused, even when both are closed", (t) => {
