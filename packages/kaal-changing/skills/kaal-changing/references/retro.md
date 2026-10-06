@@ -5,7 +5,7 @@ A change has two retrospectives, from two perspectives. Both are written only af
 - `retro-work.md` is written from the Work's seat, by the Worker that performed it.
 - `retro-review.md` is written from the review's seat, by the Reviewer that reviewed it (`rowing.md`).
 
-They are written in either order. Each is the writer's own: they are different seats, not a draft and a correction, and neither is written in response to the other, so neither writer reads the other's before writing its own.
+They are written in either order. Each is the writer's own: they are different seats, not a draft and a correction, and each should stand as its own seat's perspective rather than a response to the other. It is recommended that neither writer reads the other's before writing its own; that is not something KAAL's checks can show, and it is not required.
 
 A retrospective is not the review. The review's result is in the rounds in `review/`: findings to resolve, or convergence. A retro carries what its writer learned, liked, lacked and longed for, and never a verdict, an approval or a finding that exists nowhere else.
 

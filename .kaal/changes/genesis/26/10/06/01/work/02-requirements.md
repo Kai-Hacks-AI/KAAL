@@ -14,7 +14,7 @@ R6. **The Reviewer does not change Work.** The Reviewer writes only review round
 
 R7. **Review and retrospective stay distinct.** The Reviewer's result is in the rounds. The Reviewer's retrospective is the 4L retrospective of the review seat, `retro-review.md`, and carries no verdict.
 
-R8. **Two perspectives, honestly named.** The second retrospective is the Reviewer's. `retro-work.md` and `retro-review.md` are each written after the Work is sealed, each from its own seat, in either order; neither is written in response to the other.
+R8. **Two perspectives, honestly named.** The second retrospective is the Reviewer's. `retro-work.md` and `retro-review.md` are each written after the Work is sealed, each from its own seat, in either order. Each is its own seat's perspective; that neither is read before writing the other is recommended, not required, and not provable.
 
 R9. **Roles are roles.** Owner, Worker and Reviewer are defined as process roles in the capability's Agent Skill. They are not Nodes, are not identified in any artifact, and one actor may hold several. What is recommended and what KAAL's checks can and cannot show are stated separately.
 

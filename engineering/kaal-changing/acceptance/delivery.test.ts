@@ -129,7 +129,7 @@ test("ROWING, the roles and the review rounds are stated once, in their referenc
   const rowing = skills[`${CAPABILITY}/references/rowing.md`];
   for (const heading of ["## The roles", "## What ROWING asks of a round", "## A round", "## Iterating", "## Separation: required, recommended, and unprovable"]) assert.ok(rowing.includes(`${heading}\n`), heading);
   for (const role of ["**Owner.**", "**Worker.**", "**Reviewer.**"]) assert.ok(rowing.includes(role), role);
-  for (const rule of [/not a number of actors, models or contexts/, /one actor may hold several/, /Deterministic checks are evidence for the review, never the review/, /Do not edit the Work/, /A review that approves can still have a critical retro, and a retro never approves/, /does not show that the realization outside `work\/` is what the Work describes/, /Work: <identity of work\/ as reviewed>/, /Result: findings \| converged/]) assert.match(rowing, rule);
+  for (const rule of [/not a number of actors, models or contexts/, /nothing here forbids one actor from holding several roles/, /Deterministic checks are evidence for the review, never the review/, /Do not edit the Work/, /A review that approves can still have a critical retro, and a retro never approves/, /does not show that the realization outside `work\/` is what the Work describes/, /Work: <identity of work\/ as reviewed>/, /Result: findings \| converged/]) assert.match(rowing, rule);
   assert.ok(manifest.includes("one actor may hold several roles") || /One actor may hold several roles/.test(manifest));
 });
 
