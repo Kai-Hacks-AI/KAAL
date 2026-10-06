@@ -39,6 +39,8 @@ The retros may come in either order: each is written after the Work is sealed, f
 - `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`: seal the Work; refused unless review has converged on it, if any retro exists, or the Work is already sealed.
 - `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal the Change; refused unless the Work is sealed on a converged review and both `retro-work.md` and `retro-review.md` are present.
 
+- `npm run check-kaal-admission -- <baseline-kaal-dir> <candidate-kaal-dir>`: admission into the lineage, below.
+
 The primitives beneath them are unchanged:
 
 
@@ -47,3 +49,15 @@ The primitives beneath them are unchanged:
 - `npm run check-kaal-changes`: exit 1 if a Change or named-tree seal matches nothing (sealed history was altered or removed), or a closed Change's Work is no longer sealed.
 
 This knows nothing of Git, GitHub, CI, branches, commits or pull requests. Repository controls consume `list-sealed-changes`; they do not hash anything themselves.
+
+## Admission
+
+`helpers/admission.ts` is one predicate over two KAAL directories: the **baseline** (already admitted) and the **candidate** (proposed). It admits exactly when
+
+- the candidate introduces exactly one **new** Change, one for which the baseline has neither a Change at its address nor a closed Change of its identity;
+- that Change is `CHANGE CLOSED` with no problems, as the one evaluator in `process.ts` says (Work sealed, both retrospectives, Change sealed); and
+- every Change closed in the baseline is still closed in the candidate with the same identity.
+
+Zero new Changes, more than one, a new Change that is not closed, and any closed history altered or removed are each refused, with the reason on stderr. The new Change is found by content alone. Changes that are in the baseline and not closed are not judged: the predicate judges what an admission introduces and makes no exception for anything. Closure is the evaluator's verdict, identity is `changes.ts`'s, and nothing here hashes or decides either. Like everything in this directory it knows nothing of Git, GitHub, branches, PRs or CI: whatever hosts the lineage extracts the two directories, runs the command and enforces the exit code (0 admitted, 1 refused, 2 usage). `preserve-sealed-changes` remains the host's history control and consumes the same identities.
+
+Change numbering stays optimistic: a new Change takes the next free `CC` visible in the lineage it was staged from, and nothing reserves it. Two staged Changes may take the same address; the collision is resolved at admission, when the later one refreshes against the lineage and allocates the next free number before its Work is sealed. Admission is the serialization point.

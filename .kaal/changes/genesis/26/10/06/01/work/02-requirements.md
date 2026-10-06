@@ -1,29 +1,29 @@
-# Requirements
+# Enforcing admission: requirements
 
-R1. **ROWING is named.** The meaning of ROWING is delivered by Changing KAAL's capability as a sealed KAAL Definition, in the pattern of RATIFICATION. It states the mnemonic and what it restricts; it states no mechanism and names no host concept.
+## E1. The predicate decides
 
-R2. **Review is a step.** The process is: allocate, work, review until converged, seal work, the two retrospectives, seal Change. A Change cannot be closed without a review that converged on exactly the Work that was sealed.
+The control runs the repository's own `check-kaal-admission` and relays its verdict as pass or fail, with the reasons the predicate gives. It does not hash anything, evaluate a Change's stage, or restate a rule the predicate owns.
 
-R3. **Review is recorded as rounds.** A round is one review of the Work as it then stood, written by the Reviewer, never edited afterwards. It binds itself to the identity of the Work it reviewed and states one result: findings or converged. Findings are the concrete matters to resolve, stated in the round.
+## E2. The two states
 
-R4. **Convergence is derived.** A Change's review has converged exactly when its latest round says converged and names the identity of the Work as it now stands. Nothing else records it; changing the Work afterwards makes it not converged again.
+The baseline is the `.kaal` of the lineage branch the proposal targets (an empty one if the branch has none). The candidate is the `.kaal` of the proposal as checked out. Nothing else is read.
 
-R5. **Review may iterate inside the Change.** Findings are resolved in the Work, which stays open until review converges. Another round follows. No further Change is needed.
+## E3. Only the lineage is judged
 
-R6. **The Reviewer does not change Work.** The Reviewer writes only review rounds and its own retrospective.
+The control applies only to a proposal into a lineage branch. Work staged on any other branch is not an admission and is not asked; that is where the steps of a Change live until it is finished.
 
-R7. **Review and retrospective stay distinct.** The Reviewer's result is in the rounds. The Reviewer's retrospective is the 4L retrospective of the review seat, `retro-review.md`, and carries no verdict.
+## E4. A control that is itself challenged
 
-R8. **Two perspectives, honestly named.** The second retrospective is the Reviewer's. `retro-work.md` and `retro-review.md` are each written after the Work is sealed, each from its own seat, in either order. Each is its own seat's perspective; that neither is read before writing the other is recommended, not required, and not provable.
+The control has a test that runs it on a throwaway repository and is run first in the same job: one new closed Change passes, also against an empty baseline; none, two, a new Change at each open stage, and altered or removed closed history fail.
 
-R9. **Roles are roles.** Owner, Worker and Reviewer are defined as process roles in the capability's Agent Skill. They are not Nodes, are not identified in any artifact, and one actor may hold several. What is recommended and what KAAL's checks can and cannot show are stated separately.
+## E5. Boundaries keep travelling alone
 
-R10. **Owner approval is outside the Change record.** Closure is the evidence presented to the Owner; the Owner's decision is the decision to admit the Change, not an artifact inside it.
+A protected boundary changes alone. The one thing that may accompany it is a Change record: the Change directory and the seals of the Change and of its Work. Every other path beside a boundary is still refused, including a Node seal and any other part of the KAAL directory. The isolation test challenges each of these.
 
-R11. **State stays derived.** The evaluator derives the stage and what is next from `work/`, `review/`, the retrospectives and the seals only. No status file, no phase metadata, no role or writer identity.
+## E6. No parallel enforcement
 
-R12. **History is preserved.** Changes closed before this one stay valid exactly as sealed: the single `retro.md`, `retro-work.md` with `retro-observe.md`, and no `review/`. They are judged by their own seals. In an open Change the historical forms are reported, never accepted.
+The control asks the predicate and the existing history control (closed Changes stay closed) independently; it does not merge them or create a second place where closure is defined.
 
-R13. **No host in KAAL.** Nothing this Change adds to `.kaal`, the Node, the Agent Skill or its reference speaks of any hosting, tooling or provider concept, or of any person. Work files of this Change likewise.
+## E7. Honest limits
 
-R14. **Smallest implementation.** One new Node (ROWING) with its seal; the Agent Skill and its retro reference revised and one reference added; the one evaluator extended; acceptance for each. No change to Core, the Changing KAAL Node, RATIFICATION, any seal or any host control.
+The control, named `contain-change`, makes containment of exactly one new closed Change mechanical, and keeps admitted closed history intact; it does not own admission semantics. It is required only when the owner adds it to the ruleset, by hand, after this lands; until then it reports and does not block. It does not prove a Change describes its diff faithfully, and an automated update that carries no Change is outside it, left for separate treatment.

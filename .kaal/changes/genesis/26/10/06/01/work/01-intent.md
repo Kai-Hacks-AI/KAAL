@@ -1,43 +1,23 @@
-# Intent
+# Enforcing admission: intent
 
-Make Review an explicit part of the Change process, and name the discipline of that review ROWING:
+Realize, in the support engine that hosts the lineage, the admission semantics that the KAAL Change `genesis/26/10/05/03` already defines and delivered as `check-kaal-admission`. This is the second of two Changes, in sequence: the semantics first, the machinery that enforces them second. It consumes a rule that exists; it does not define it.
 
-```
-R  Review
-O  Observed
-W  Work
-I  Intelligent
-N  Not
-G  Generalized
-```
+## Intent
 
-Carry this as one coherent Change through intent, requirements, architecture and implementation, then through the review it introduces, both retrospectives and closure. ROWING lands by being ROWED: the review discipline this Change introduces is the one used to review it.
+A proposal into a lineage branch is an admission. After this Change the support engine asks the KAAL-native predicate whether the proposal introduces exactly one new closed Change, and refuses it otherwise, so that a partial Change cannot join the lineage.
 
-## Why
+## What changes
 
-Change `genesis/26/10/05/02` showed two things. Requiring a second retrospective does not create a second perspective: nothing in the process stopped the worker from supplying the observer's retrospective itself. And observation and review are different activities. Observing is looking; reviewing is judging the realized Work against what it was meant to realize. The second perspective of a Change is properly the Reviewer's, and a Reviewer's judgment is not a retrospective.
+- A control, `contain-change`, that supplies the predicate with the two states it compares (the lineage branch's `.kaal` and the proposal's) and passes on its verdict, only for proposals into a lineage branch. What it establishes, in plain words: the candidate contains exactly one new closed Change, and previously admitted closed history remains intact. Admission semantics stay KAAL's; the control owns only that containment, and does not judge whether the Change is good or faithful to its intent, which is for review.
+- The isolation control, `isolate-boundaries`, lets the sealed record of a Change accompany a protected boundary. Every admission carries a Change, so a boundary that must change alone would otherwise never be admissible. Only the record of the Change that mutates the boundary may accompany it; nothing else may.
+- The support engine's own documentation.
 
-## What the owner wants
+## What does not change
 
-Changing KAAL describes process roles and responsibilities, not a number of agents, models, providers, humans or execution contexts. The generic process is:
+- No KAAL semantics, Node, Core or sealed artifact. The predicate is consumed, not edited.
+- No other control is weakened. No waiver, bypass or exemption is added: Changes are never exempt from admission.
+- The ruleset that makes the control required is set by hand by the owner after this lands; it is not part of this Change.
 
-```
-Intent → Work → Review → Retrospective evidence → Final decision
-```
+## Stance
 
-Three roles: the Owner owns the Intent and finally decides whether the completed, reviewed Change realizes it; the Worker performs the Work and writes the Work's inside view; the Reviewer judges the realized Work and writes its own view of having done so. These are roles, not necessarily separate actors. A realization may separate them strongly or not at all, and that choice is outside KAAL.
-
-Review is anchored to Intent, Requirements, Architecture, the realized Work and its evidence. A Reviewer does not redesign the system, expand the Change or put a generalized preferred solution in place of the Change that was intended. Broader consequences are retrospective evidence or future Changes.
-
-A review result (does the observed Work satisfy the Change, or what must be resolved) and a reviewer retrospective (what the Reviewer learned by reviewing) are different artifacts and stay so. Findings are actionable work. Review may iterate until it converges; only then does the Change move to its retrospectives and closure.
-
-## Not wanted
-
-- Roles, Owners, Workers or Reviewers as Nodes, unless the need is independently shown.
-- A workflow engine, a ticket system, status files, or phase metadata. State is derived.
-- Any provider, tool, host or hosting concept in what KAAL says. A host may observe KAAL's derived state and map it onto its own mechanisms; KAAL does not know it.
-- A change to Core, or to any sealed Change, Node or seal.
-
-## Done when
-
-ROWING is a sealed vocabulary of Changing KAAL's capability; the Change process includes review rounds, derived convergence and the Reviewer's retrospective; the evaluator derives state from those artifacts; historical Changes remain valid exactly as sealed; and this Change has itself been through ROWING.
+Small and deterministic. The control decides nothing about what a Change is, whether it is closed, or what its identity is; it only hands over two directories and the exit code. The Change record that accompanies a boundary is sealed text that no machinery reads.
