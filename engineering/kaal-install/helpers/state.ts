@@ -31,7 +31,7 @@ function installed(target: string, d: Delivery): { kaal: Files; skills: Files } 
 
 /** What differs between `target` and the delivery; empty means it holds the delivery. Never repairs. */
 export function check(target: string, d: Delivery): string[] {
-  const problems: string[] = d.unresolved.map((s) => `the installed ${s.kind} ${s.name} (${s.id}) is delivered by no package`);
+  const problems: string[] = [...d.unresolved.map((s) => `the installed ${s.kind} ${s.name} (${s.id}) is delivered by no package`), ...d.unmet];
   const have = installed(target, d);
   const compare = (label: string, expected: Files, found: Files) => {
     for (const [path, bytes] of Object.entries(expected)) {
@@ -52,6 +52,7 @@ export function check(target: string, d: Delivery): string[] {
 
 /** Make `target` hold the delivery. Refuses, writing nothing, if sealed material would take other bytes. */
 export function install(target: string, d: Delivery): void {
+  if (d.unmet.length > 0) throw new Error(`${d.unmet.join("\n")}\nnothing was written: an installation that cannot work is not an installation`);
   const dir = join(target, KAAL_DIR);
   for (const [path, bytes] of Object.entries(d.kaal)) {
     const file = join(dir, path);

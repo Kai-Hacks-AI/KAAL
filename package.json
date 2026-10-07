@@ -14,6 +14,7 @@
     "test:kaal-sealing": "npm test --prefix engineering/kaal-sealing",
     "test:kaal-retro": "npm test --prefix engineering/kaal-retro",
     "install-kaal": "npm run build --prefix engineering/kaal-install && node engineering/kaal-install/dist/helpers/install-kaal.js",
+    "list-kaal-capabilities": "npm run build --prefix engineering/kaal-install > /dev/null && node engineering/kaal-install/dist/helpers/list-kaal-capabilities.js",
     "check-kaal-install": "npm run build --prefix engineering/kaal-install && node engineering/kaal-install/dist/helpers/check-kaal-install.js",
     "seal-kaal-change": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js seal .kaal",
     "list-sealed-changes": "npm run build --prefix engineering/change-seal && node engineering/change-seal/dist/helpers/cli.js closed",

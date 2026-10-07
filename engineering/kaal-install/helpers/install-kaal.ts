@@ -9,9 +9,9 @@ import { delivery } from "./delivery.js";
 import { parse } from "./args.js";
 import { install } from "./state.js";
 
-const { target } = parse(process.argv.slice(2), "usage: install-kaal [--into <dir>]");
+const { target, select } = parse(process.argv.slice(2), "usage: install-kaal [--into <dir>] [--select <Node ID>]...", true);
 try {
-  install(target, await delivery(target));
+  install(target, await delivery(target, undefined, select));
 } catch (e) {
   console.error((e as Error).message);
   process.exit(1);
