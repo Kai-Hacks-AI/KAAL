@@ -118,6 +118,18 @@ test("it never writes through a link: a linked carrier directory, dated director
   assert.equal(write(core).code, 1);
   assert.match(write(core).err, /not a KAAL directory/);
   assert.deepEqual(target(), []);
+  // The KAAL directory itself may not be a link, with or without a trailing slash.
+  const home = mkdtempSync(join(tmpdir(), "request-home-"));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  mkdirSync(join(home, "real/core"), { recursive: true });
+  symlinkSync(join(home, "real"), join(home, "link"));
+  for (const via of [join(home, "link"), join(home, "link") + "/"]) {
+    const l = write(via, "a", "b", "--date", "2026-10-07");
+    assert.equal(l.code, 1, via);
+    assert.match(l.err, /not a KAAL directory/);
+  }
+  assert.deepEqual(readdirSync(join(home, "real")), ["core"], "nothing lands behind the link");
+  assert.equal(write(join(home, "real") + "/", "a", "b", "--date", "2026-10-07").code, 0, "a real directory is fine with a trailing slash");
 });
 
 test("check accepts exactly the canonical form and nothing else", (t) => {

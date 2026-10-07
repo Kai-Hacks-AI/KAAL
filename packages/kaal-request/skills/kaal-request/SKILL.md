@@ -2,7 +2,7 @@
 name: kaal-request
 description: Record a request addressed to KAAL, something the client wants from KAAL that is not presently available or sufficient, as a carrier kept locally beside its embedded KAAL, and check that a file is one. Use only when the client deliberately addresses a request to KAAL; it is not for the client's own requests or backlog.
 license: MIT
-compatibility: Needs Node.js 20 or later. Writes into the KAAL directory, by default .kaal/. It needs no other package.
+compatibility: Needs Node.js 20 or later. Writes into the KAAL directory it is given, usually .kaal/. It needs no other package.
 ---
 
 # KAAL Request
@@ -16,8 +16,8 @@ Making a carrier with this capability is what addresses it to KAAL. Whatever you
 ## Steps
 
 1. **Write your two texts yourself**, in your own words: wanted, being what you want from KAAL, and missing, being what KAAL does not provide, or provides insufficiently, for it. Say only what you know; do not name particular clients, and do not write one statement twice.
-2. **Make the carrier.** `node scripts/request.mjs write <kaal-dir> --wanted <text> --missing <text>`. A text given as `@path` is read from that file. `<kaal-dir>` is your KAAL directory, by default `.kaal`. It prints the carrier's path relative to `<kaal-dir>`, `requests/YY/MM/DD/CC.md`, where `YY/MM/DD` is today's date in UTC (`--date YYYY-MM-DD` names another) and `CC` is the next free number of that day, `01` to `99`.
-3. **Leave it there.** The carrier stays in the KAAL directory, where KAAL can later collect it. Commit it with the rest of your repository if you keep the KAAL directory in version control. Do not edit it or move it.
+2. **Make the carrier.** `node scripts/request.mjs write <kaal-dir> --wanted <text> --missing <text>`. A text given as `@path` is read from that file. `<kaal-dir>` is your KAAL directory, usually `.kaal`; it is always given. It prints the carrier's path relative to `<kaal-dir>`, `requests/YY/MM/DD/CC.md`, where `YY/MM/DD` is today's date in UTC (`--date YYYY-MM-DD` names another) and `CC` is the next free number of that day, `01` to `99`.
+3. **Leave it there.** The carrier stays in the KAAL directory, where KAAL can later collect it. Do not edit it or move it. What becomes of it beyond the KAAL directory is for you to decide; this capability decides nothing about it.
 4. **Check one.** `node scripts/request.mjs check <file>` exits 0 only if the file is exactly a carrier in canonical form.
 
 ## Rules

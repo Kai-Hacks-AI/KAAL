@@ -21,7 +21,7 @@
 // exactly this form. Whether, how or when a carrier leaves the client is not
 // decided here. A text given as `@path` is read from that file.
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const TITLE = "KAAL Incident";
@@ -81,8 +81,10 @@ function day(date) {
 }
 
 /** Create the next carrier in `kaalDir`; returns its path relative to it. Refuses to replace anything. */
-export function write(kaalDir, texts, date) {
-  if (!isDirectory(join(kaalDir, "core"))) throw new Error(`${kaalDir} is not a KAAL directory: it has no core/`);
+export function write(given, texts, date) {
+  const kaalDir = resolve(given);
+  if (!isDirectory(kaalDir)) throw new Error(`${given} is not a KAAL directory: it is not a directory of its own (a link, or not a directory)`);
+  if (!isDirectory(join(kaalDir, "core"))) throw new Error(`${given} is not a KAAL directory: it has no core/`);
   const content = render(texts);
   const parts = [DIRECTORY, ...day(date)];
   const relative = join(...parts);

@@ -61,6 +61,7 @@ test("the Agent Skill is one skill, named as its capability, pointing to the Nod
   assert.ok(!manifest.includes(kaal[nodeFile].split("\n").filter((l) => l.startsWith("KAAL Incident is the capability"))[0]));
   assert.ok(!manifest.includes(sha256(kaal[nodeFile])), "carries no ID of its own Node");
   assert.doesNotMatch(manifest, /^compatibility:.*kaal-/m, "declares no sibling it needs");
+  assert.doesNotMatch(manifest, /\bcommit|version control|\bpush|publish|submit/i, "no instruction about what becomes of a carrier beyond the KAAL directory");
 });
 
 test("the shipped script is exactly incident.mjs, and knows nothing of Git, GitHub, a network, a process or any client", () => {
