@@ -1,3 +1,0 @@
-#!/bin/sh
-# Fast local feedback only; CI is authoritative. Enabled by `npm install` (prepare).
-exec npm run --silent check-kaal-seals

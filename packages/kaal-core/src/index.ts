@@ -1,2 +1,2 @@
 export { payload } from "./payload.js";
-export { installedSkills, registerSkill } from "./register.js";
+export { installedExtensions, installedSkills, registerExtension, registerSkill } from "./register.js";

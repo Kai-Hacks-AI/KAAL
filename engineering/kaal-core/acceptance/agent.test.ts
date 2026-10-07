@@ -43,5 +43,5 @@ test("what AGENTS.md says about the deployed graph is true", (t) => {
   // "read core/KERNEL.md, then the Nodes it bootstraps": the genesis-typed first Node is `Node`.
   assert.equal(nodes.filter((n) => !n.type).map((n) => n.name).join(), "Node");
   // "the KAAL Definitions: the Nodes whose type refers to the KAAL Definition Node."
-  assert.deepEqual(typedBy(nodes, { name: "KAAL Definition", id: definitionNode.id }).map((n) => n.name).sort(), ["Agent", "CASE", "Core", "Skill"]);
+  assert.deepEqual(typedBy(nodes, { name: "KAAL Definition", id: definitionNode.id }).map((n) => n.name).sort(), ["Agent", "CASE", "Core", "Extension", "Skill"]);
 });

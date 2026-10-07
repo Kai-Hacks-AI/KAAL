@@ -40,6 +40,7 @@ The retros may come in any order: each is written after the Work is sealed, from
 - `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal the Change; refused unless the Work is sealed on a converged review and `retro-work.md`, `retro-review.md` and `retro-owner.md` are all present.
 
 - `npm run check-kaal-admission -- <baseline-kaal-dir> <candidate-kaal-dir>`: admission into the lineage, below.
+- `npm run preserve-kaal-changes -- <baseline-kaal-dir> <candidate-kaal-dir>` and `npm run preserve-kaal-seals -- <baseline-kaal-dir> <candidate-kaal-dir>`: preservation, below.
 
 The primitives beneath them are unchanged:
 
@@ -61,3 +62,12 @@ This knows nothing of Git, GitHub, CI, branches, commits or pull requests. Repos
 Zero new Changes, more than one, a new Change that is not closed, and any closed history altered or removed are each refused, with the reason on stderr. The new Change is found by content alone. Changes that are in the baseline and not closed are not judged: the predicate judges what an admission introduces and makes no exception for anything. Closure is the evaluator's verdict, identity is `changes.ts`'s, and nothing here hashes or decides either. Like everything in this directory it knows nothing of Git, GitHub, branches, PRs or CI: whatever hosts the lineage extracts the two directories, runs the command and enforces the exit code (0 admitted, 1 refused, 2 usage). `preserve-sealed-changes` remains the host's history control and consumes the same identities.
 
 Change numbering stays optimistic: a new Change takes the next free `CC` visible in the lineage it was staged from, and nothing reserves it. Two staged Changes may take the same address; the collision is resolved at admission, when the later one refreshes against the lineage and allocates the next free number before its Work is sealed. Admission is the serialization point.
+
+## Preservation
+
+What a candidate KAAL directory must keep of a baseline one that was already admitted. Two operations over two KAAL directories (`helpers/preservation.ts`), each exiting 0 and printing `preserved`, or exiting 1 and printing every reason:
+
+- `preserve-changes`: every Change closed in the baseline is still closed in the candidate with the same identity. Where a Change lies is free, so one moved whole is preserved; any edit, addition, removal or substitution of its seal is not. `admit` uses the same function for the history half of its verdict.
+- `preserve-seals`: every Node seal of the baseline (`seals/<ID>`, an empty marker) is still a seal of the candidate, and the Kernel (`core/KERNEL.md`) has the identity of its exact bytes in the baseline. A candidate may add seals and Nodes. A baseline with no Kernel has none to keep.
+
+They are expressed over KAAL itself and know no repository layout, package, Git, GitHub, branch, PR or CI; whatever hosts the lineage supplies the two directories and enforces the verdict. Preservation protects every installed Node seal, so it covers the capabilities' Nodes and not only Core's. Pushed tree and Change seals are not looked at beyond Change closure; making a pushed seal of any kind unremovable and immutable is a distinct hardening and is not done here.
