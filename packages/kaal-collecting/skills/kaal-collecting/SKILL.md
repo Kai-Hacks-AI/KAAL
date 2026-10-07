@@ -17,7 +17,7 @@ Collecting writes the record of what you tried and what you brought in. It does 
 
 1. **Decide which clients to attempt.** That is yours, from what you know and what your means show you. A name you give a client is yours: lowercase letters, digits and single hyphens, stable across collections, never a URL or a path.
 2. **Open a collection.** `node scripts/collect.mjs begin <kaal-dir>` creates `<kaal-dir>/collections/YY/MM/DD/CC/` and prints it. One collection is one run.
-3. **Reach each client with your own means** and have it show you only what the client exposes to KAAL: the KAAL-addressed carriers it carries within its embedded KAAL, by default the `carriers/` directory of its KAAL directory. Put what you are shown in a plain directory. Do not read, list or copy anything else of the client, and do not stretch an access you were given for other purposes.
+3. **Reach each client with your own means** and have it show you only what the client exposes to KAAL: the KAAL-addressed carriers it carries within its embedded KAAL, by default the `carriers/` directory of its KAAL directory (an assumption: where carriers are carried is decided by whatever creates them, so use their location when it differs). Put what you are shown in a plain directory. Record an empty exposure only if you saw the client's embedded KAAL and it carries nothing for KAAL there. If you could not see whether it does, the attempt did not reach what matters: record `unreached` and say what you could and could not see. Do not read, list or copy anything else of the client, and do not stretch an access you were given for other purposes.
 4. **Record each attempt**, whichever way it ended:
    - `node scripts/collect.mjs reached <kaal-dir> <collection> --client <name> --adapter <text> --from <dir>`: copies the exposure exactly, with each carrier's SHA-256. An empty `<dir>` is a real result: reached, nothing carried for KAAL.
    - `node scripts/collect.mjs unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>`: records that you tried and why it did not work. A client you could not reach is still a client you knew.
@@ -33,7 +33,7 @@ Collecting writes the record of what you tried and what you brought in. It does 
 
 ## Scripts
 
-- `scripts/collect.mjs begin <kaal-dir>`: creates and prints the next collection; exit 0, or 1 when it refuses (including at `99` for the day), 2 on usage.
-- `scripts/collect.mjs reached <kaal-dir> <collection> --client <name> --adapter <text> --from <dir>`: records a reached client and copies its exposure; exit 0, 1 when it refuses (a symlink or non-file under `<dir>`, a client already recorded in this collection, an invalid name, an unknown collection), 2 on usage. Nothing is written when it refuses.
+- `scripts/collect.mjs begin <kaal-dir> [--date YYYY-MM-DD]`: creates and prints the next collection, dated today in UTC unless `--date` gives a real date from 2000 to 2099; exit 0, or 1 when it refuses (including at `99` for the day), 2 on usage.
+- `scripts/collect.mjs reached <kaal-dir> <collection> --client <name> --adapter <text> --from <dir>`: records a reached client and copies its exposure; exit 0, 1 when it refuses (a symlink or non-file under `<dir>`, a name Git cannot carry such as `.git` or `.gitignore`, a client already recorded in this collection, an invalid name, an unknown collection), 2 on usage. Nothing is written when it refuses.
 - `scripts/collect.mjs unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>`: records an attempt that did not reach; exit codes as above.
 - `scripts/collect.mjs check <kaal-dir> <collection>`: exit 0 only if every carrier matches; otherwise 1.

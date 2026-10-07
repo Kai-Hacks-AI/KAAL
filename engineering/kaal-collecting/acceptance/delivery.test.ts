@@ -40,7 +40,7 @@ test("the capability is one Skill Node, sealed by its own bytes, and it is the N
   assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")), [nodeFile]);
   assert.equal(kaal[`seals/${sha256(kaal[nodeFile])}`], "");
   assert.equal(Object.keys(kaal).length, 2);
-  assert.equal(sha256(kaal[nodeFile]), "c3e7cef2576e62752e90702d1fc0af9b447c17e2688056d4d5f14433337a7779");
+  assert.equal(sha256(kaal[nodeFile]), "d938e5310a9139c66ec503c9dcb7d37a3f0ca50b2c1b9effec020746a1e66230");
 });
 
 test("the Node keeps known, reachable and all clients apart, and defines no mechanism", () => {

@@ -3,9 +3,9 @@
 // directory it is given, and never replaces what it wrote.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { read, SCRIPTS, scratch } from "../helpers/setup.js";
 
@@ -160,4 +160,61 @@ test("check catches an altered, a missing and an unrecorded carrier, and a recor
 test("the script itself reaches nothing: it makes no network access and starts no process", () => {
   const source = readFileSync(SCRIPT, "utf8");
   assert.doesNotMatch(source, /from "node:(net|http|https|http2|dns|tls|child_process|dgram)"|\bfetch\(|\brequire\(/);
+});
+
+test("begin refuses impossible and out-of-range dates and creates nothing", (t) => {
+  const { kaal } = setup(t);
+  for (const date of ["2026-02-31", "1999-01-01", "2100-01-01", "26-10-07", "2026-13-01"]) assert.equal(run("begin", kaal, "--date", date).status, 1, date);
+  assert.ok(!existsSync(join(kaal, "collections")));
+});
+
+test("concurrent collections never share a number", async (t) => {
+  const { kaal } = setup(t);
+  const runs = await Promise.all(Array.from({ length: 6 }, () => new Promise<string>((resolve) => {
+    const child = spawn("node", [SCRIPT, "begin", kaal, "--date", "2026-10-07"]);
+    let out = "";
+    child.stdout.on("data", (d) => (out += d));
+    child.on("close", () => resolve(out.trim()));
+  })));
+  assert.equal(new Set(runs).size, 6);
+  assert.deepEqual(readdirSync(join(kaal, "collections/26/10/07")).sort(), ["01", "02", "03", "04", "05", "06"]);
+});
+
+test("a refused attempt on an existing client never removes that client's record", (t) => {
+  const { kaal, exposed } = setup(t, { "a.md": "one" });
+  const c = begin(kaal);
+  run("reached", kaal, c, "--client", "same", "--adapter", "a", "--from", exposed);
+  const before = read(join(kaal, c));
+  assert.equal(run("unreached", kaal, c, "--client", "same", "--adapter", "b", "--reason", "r").status, 1);
+  assert.deepEqual(read(join(kaal, c)), before);
+});
+
+test("names Git cannot carry faithfully are refused", (t) => {
+  for (const name of [".git/config", ".gitignore", "sub/.gitattributes"]) {
+    const { kaal, exposed } = setup(t, { [name]: "x" });
+    const c = begin(kaal);
+    const r = run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed);
+    assert.equal(r.status, 1, name);
+    assert.deepEqual(readdirSync(join(kaal, c)), []);
+  }
+});
+
+test("check refuses a symlinked carrier, a stray file, and a carrier recorded twice", (t) => {
+  const { kaal, exposed, root } = setup(t, { "a.md": "one" });
+  const c = begin(kaal);
+  run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed);
+  const base = join(kaal, c, "cl");
+  writeFileSync(join(base, "stray.md"), "x");
+  assert.match(run("check", kaal, c).stderr, /stray\.md is not part of the record/);
+  rmSync(join(base, "stray.md"));
+  writeFileSync(join(root, "outside"), "one");
+  rmSync(join(base, "carriers/a.md"));
+  symlinkSync(join(root, "outside"), join(base, "carriers/a.md"));
+  assert.match(run("check", kaal, c).stderr, /not a plain file|recorded but missing/);
+  rmSync(join(base, "carriers/a.md"));
+  writeFileSync(join(base, "carriers/a.md"), "one");
+  const record = join(base, "reach.md");
+  const line = `${sha256("one")}  a.md\n`;
+  writeFileSync(record, readFileSync(record, "utf8") + line);
+  assert.match(run("check", kaal, c).stderr, /recorded twice|not in the form/);
 });

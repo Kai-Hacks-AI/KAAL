@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// collect begin <kaal-dir> [--date YYYY-MM-DD]
+// collect begin <kaal-dir> [--date YYYY-MM-DD]   (today in UTC unless given)
 // collect reached <kaal-dir> <collection> --client <name> --adapter <text> --from <dir>
 // collect unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>
 // collect check <kaal-dir> <collection>
@@ -61,16 +61,25 @@ function begin() {
   const { flags, rest } = parse(args, ["date"]);
   if (rest.length !== 1) usage();
   const date = flags.date ?? new Date().toISOString().slice(0, 10);
-  if (!/^\d{4}-\d\d-\d\d$/.test(date) || Number.isNaN(Date.parse(date))) usage();
+  const parsed = /^\d{4}-\d\d-\d\d$/.test(date) ? new Date(`${date}T00:00:00Z`) : undefined;
+  if (!parsed || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date || date < "2000-01-01" || date > "2099-12-31") fail("--date is a real date from 2000-01-01 to 2099-12-31, as YYYY-MM-DD");
   const [y, m, d] = date.split("-");
   const day = join(rest[0], "collections", y.slice(2), m, d);
-  const taken = existsSync(day) ? readdirSync(day).filter((n) => /^\d\d$/.test(n)).map(Number) : [];
-  const next = Math.max(0, ...taken) + 1;
-  if (next > 99) fail(`no collection number is left for ${date}: 99 is the highest`);
-  const cc = String(next).padStart(2, "0");
   mkdirSync(day, { recursive: true });
-  mkdirSync(join(day, cc));
-  console.log(`collections/${y.slice(2)}/${m}/${d}/${cc}`);
+  for (;;) {
+    const taken = readdirSync(day).filter((n) => /^\d\d$/.test(n)).map(Number);
+    const next = Math.max(0, ...taken) + 1;
+    if (next > 99) fail(`no collection number is left for ${date}: 99 is the highest`);
+    const cc = String(next).padStart(2, "0");
+    try {
+      mkdirSync(join(day, cc));
+    } catch (error) {
+      if (error.code === "EEXIST") continue; // another collection took it first: take the next, never reuse
+      throw error;
+    }
+    console.log(`collections/${y.slice(2)}/${m}/${d}/${cc}`);
+    return;
+  }
 }
 
 /** The collection directory, which must already exist. */
@@ -99,10 +108,15 @@ function render(client, outcome, adapter, reason, carriers) {
 function write(target, record, files) {
   try {
     mkdirSync(target);
-    writeFileSync(join(target, "reach.md"), record);
+  } catch (error) {
+    fail(error.code === "EEXIST" ? `${target.split("/").pop()} is already recorded in this collection, and a record is never replaced` : `nothing was recorded: ${error.message}`);
+  }
+  // From here the directory is this attempt's own, so undoing it removes only what it wrote.
+  try {
+    writeFileSync(join(target, "reach.md"), record, { flag: "wx" });
     for (const [path, bytes] of files) {
       mkdirSync(dirname(join(target, "carriers", path)), { recursive: true });
-      writeFileSync(join(target, "carriers", path), bytes);
+      writeFileSync(join(target, "carriers", path), bytes, { flag: "wx" });
     }
   } catch (error) {
     rmSync(target, { recursive: true, force: true });
@@ -125,6 +139,7 @@ function reached() {
       const full = join(directory, entry);
       const kind = lstatSync(full);
       if (/[\\\u0000-\u001f\u007f]/.test(entry) || entry !== entry.normalize("NFC")) fail(`refused: ${path} has a name that is not stated the same on every platform`);
+      if (/^\.git/i.test(entry)) fail(`refused: ${path} is a name Git cannot carry faithfully, so the collection could not be kept as recorded`);
       if (seen.has(path.toLowerCase())) fail(`refused: ${path} differs only by case from another exposed path`);
       seen.add(path.toLowerCase());
       if (kind.isDirectory()) walk(full, path);
@@ -155,7 +170,7 @@ function check() {
   for (const client of clients) {
     const base = join(dir, client);
     const record = join(base, "reach.md");
-    if (!NAME.test(client) || !lstatSync(base).isDirectory() || !existsSync(record)) {
+    if (!NAME.test(client) || !lstatSync(base).isDirectory() || !existsSync(record) || !lstatSync(record).isFile()) {
       problems.push(`${client}: is not the record of an attempt`);
       continue;
     }
@@ -170,13 +185,21 @@ function check() {
       continue;
     }
     const listed = new Map(carriers.map(([sha, path]) => [path, sha]));
+    if (listed.size !== carriers.length) problems.push(`${client}: a carrier is recorded twice`);
+    for (const entry of readdirSync(base)) if (entry !== "reach.md" && entry !== "carriers") problems.push(`${client}: ${entry} is not part of the record`);
+    if (existsSync(join(base, "carriers")) && !lstatSync(join(base, "carriers")).isDirectory()) {
+      problems.push(`${client}: carriers is not a directory`);
+      continue;
+    }
     const present = [];
     const walk = (directory, prefix) => {
       if (!existsSync(directory)) return;
       for (const entry of readdirSync(directory)) {
         const path = prefix === "" ? entry : `${prefix}/${entry}`;
-        if (lstatSync(join(directory, entry)).isDirectory()) walk(join(directory, entry), path);
-        else present.push(path);
+        const kind = lstatSync(join(directory, entry));
+        if (kind.isDirectory()) walk(join(directory, entry), path);
+        else if (kind.isFile()) present.push(path);
+        else problems.push(`${client}: ${path} is not a plain file`);
       }
     };
     walk(join(base, "carriers"), "");
