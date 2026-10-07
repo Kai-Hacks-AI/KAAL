@@ -18,9 +18,9 @@ What was run and what it showed, on the Work as it now stands.
 
 A real collection under `.kaal/collections/` made `check-kaal-install` fail ("is not delivered by any package"), because the installer treated every file in the KAAL directory outside `changes/` and the Change and tree seals as something a package must deliver. A KAAL that has collected anything would have been reported as not holding its delivery. `collections/` is now installed state beside `changes/`, neither read nor written by installing nor judged by the check (`engineering/kaal-install`, with its own acceptance test and the existing counts of installed Skills raised by one). `.gitattributes` keeps `.kaal/collections/**` from text conversion, so a collected carrier keeps its bytes through Git. No Core, `.github`, Sealing or Changing change.
 
-## Review round 01
+## Worker-side probe (not review)
 
-Its findings were resolved in `work/` and the Node was reworded (so re-sealed in this branch, before any admission): a refused or racing attempt no longer removes another attempt's record, `begin` takes the next number if one is taken and refuses impossible dates, `.git*` names are refused, `check` no longer follows symlinks or ignores stray files, the Skill says the `carriers/` default is an assumption and that an unseen exposure is `unreached`, and the Node no longer says Collecting itself takes from the client.
+A Worker-spawned agent probed the Work adversarially and its findings were resolved in `work/`. That is the Worker's own testing and is not ROWING review: the Reviewer must come through the independently established review side, and no round exists. The findings, resolved, were: a refused or racing attempt could remove another attempt's record, `begin` accepted impossible dates, `.git*` names were not refused, `check` followed symlinks and ignored stray files, the Skill did not say the `carriers/` default is an assumption nor what to record for an unseen exposure, and the Node said Collecting itself takes from the client. The Node was reworded and so re-sealed in this branch, before any admission.
 
 ## Whole suite
 
