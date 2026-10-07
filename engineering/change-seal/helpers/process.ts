@@ -16,7 +16,7 @@ import { changes, checkChanges, currentWorkId, RETRO, RETRO_OBSERVE, RETRO_OWNER
 export type Stage =
   | "WORK OPEN"
   | "REVIEW CONVERGED"
-  | "WORK SEALED"
+  | "RETROS INCOMPLETE"
   | "RETROS PRESENT"
   | "CHANGE CLOSED";
 
@@ -106,7 +106,7 @@ export function stateOf(kaalDir: string, change: string): State {
     return { stage: "WORK OPEN", next: `${remove}${next}`, problems, ...base };
   }
   if (!converged) problems.push(`${WORK}/ is sealed without a converged review of exactly it: ${REVIEW}/ must end with a round that says converged and names work ${id}`);
-  if (legacy || observe) return { stage: "WORK SEALED", next: `remove ${[legacy && RETRO, observe && RETRO_OBSERVE].filter(Boolean).join(", ")}, then write ${RETRO_WORK}, ${RETRO_REVIEW} and ${RETRO_OWNER}`, problems, ...base };
+  if (legacy || observe) return { stage: "RETROS INCOMPLETE", next: `remove ${[legacy && RETRO, observe && RETRO_OBSERVE].filter(Boolean).join(", ")}, then write ${RETRO_WORK}, ${RETRO_REVIEW} and ${RETRO_OWNER}`, problems, ...base };
   const missing = [
     !worker && `${RETRO_WORK} (the Work's seat)`,
     !reviewer && `${RETRO_REVIEW} (the review's seat)`,
@@ -114,7 +114,7 @@ export function stateOf(kaalDir: string, change: string): State {
   ].filter((n): n is string => !!n);
   if (missing.length === 0) return { stage: "RETROS PRESENT", next: "seal Change", problems, ...base };
   const all = missing.length === 3;
-  return { stage: "WORK SEALED", next: `write ${missing.join(", ")}${all ? ", each its writer's own, in any order" : ""}`, problems, ...base };
+  return { stage: "RETROS INCOMPLETE", next: `write ${missing.join(", ")}${all ? ", each its writer's own, in any order" : ""}`, problems, ...base };
 }
 
 /** The step "seal work": allowed only once review has converged on the Work as it now stands and no retrospective exists. Returns the Work ID. */

@@ -23,6 +23,13 @@ What this Change realized, and where a Reviewer can read it. The realization liv
 - The Worker's own state when it stops is `WORK OPEN`, next: have it reviewed, naming the identity the Reviewer must write in round `01`.
 - The Owner's retrospective is `retro-owner.md`, named for the role. `retro-observe.md` is historical terminology from before the outer seat was understood to be the Owner's; it is kept in closed Changes exactly as sealed and is reported, not accepted, in an open one, so no Observer role is implied.
 
+## Review round 01
+
+`review/01.md` (findings, against Work `fdd24ead…`) raised two findings, resolved in the Work and its realization:
+
+1. **The Intent is the fixed target.** Intent (new section "The outer loop"), R5 and R16, Architecture (the outer loop in "The process"; Q12), `references/rowing.md` (roles, iterating) and `SKILL.md` (the Worker step and a rule) now say that neither the Worker, the Reviewer nor the Owner inside the loop revises the Intent, that an undeliverable Intent leaves the Change unconverged as a success, and that what the Owner then does is outside the Change. Tested in `engineering/kaal-changing/acceptance/delivery.test.ts`.
+2. **Retro state is symmetric.** The stale stage names `RETRO-WORK PRESENT` / `RETRO-REVIEW PRESENT` are gone from the table. The evaluator already derived any combination of the three retros without privileging one (every subset is tested in `process.test.ts`); its stage after the Work seal is now named `RETROS INCOMPLETE` instead of `WORK SEALED`, with next naming whichever of the three are missing, then `RETROS PRESENT`.
+
 ## Not shown
 
 - That the Reviewer is independent of the Worker, or that the review is good: no check can.

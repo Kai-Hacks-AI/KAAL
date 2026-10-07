@@ -146,6 +146,13 @@ test("the process has three perspectives, two that row and one that steers, and 
   for (const word of [/\bOwner\b/, /\bWorker\b/, /retro-/, /helm|steer/i]) assert.doesNotMatch(meaning, word, "the Node does not define the topology");
 });
 
+test("the Intent is the fixed target: review does not renegotiate it and the Owner's acceptance is outside the change", () => {
+  const rowing = skills[`${CAPABILITY}/references/rowing.md`];
+  for (const rule of [/Intent → \[ work ⇄ review → sealed, closed \] → accept the Work Result/, /The Intent is the fixed target and is not renegotiated in review/, /cannot converge as a successful realization, and it is not resolved by editing the Intent in the same change/, /including establishing a different Intent in another change, is outside the change/]) assert.match(rowing, rule);
+  assert.match(manifest, /The Intent is the fixed target of a change: neither the Worker, the Reviewer nor the Owner inside the loop revises it/);
+  for (const text of [rowing, manifest]) assert.doesNotMatch(text, /Owner either revises the Intent|revises the Intent in `work\/`/, "no path revises the Intent inside the change");
+});
+
 test("the Agent Skill, its references and its Nodes speak of no host, provider or person, and mandate no number of agents", () => {
   for (const [path, text] of [...Object.entries(skills), ...Object.entries(kaal)].filter(([p]) => /\.md$/.test(p))) {
     for (const word of [/\bgit\b/i, /github/i, /\bbranch/i, /\bcommit/i, /pull request/i, /\bmerge[ds]?\b/i, /\bCI\b/, /ruleset/i, /chatgpt/i, /\bclaude\b/i, /\bkai\b/i, /anthropic|openai/i, /three agents|two agents/i]) assert.doesNotMatch(text, word, `${path}: ${word}`);

@@ -31,9 +31,17 @@ Three roles: the Owner owns the Intent, observes the Change from outside once it
 
 ROWING is not that topology. It is the durable discipline between realized Work and its review, and it must stay workable if the process around it later gains other roles; the three roles explain how Changing KAAL currently uses it.
 
-Review is anchored to Intent, Requirements, Architecture, the realized Work and its evidence. A Reviewer does not redesign the system, expand the Change or put a generalized preferred solution in place of the Change that was intended. Broader consequences are retrospective evidence or future Changes.
+Review is anchored to the fixed Intent, and to Requirements, Architecture, the realized Work and its evidence. A Reviewer does not redesign the system, expand the Change or put a generalized preferred solution in place of the Change that was intended. Broader consequences are retrospective evidence or future Changes.
 
 A review result (does the observed Work satisfy the Change, or what must be resolved) and a reviewer retrospective (what the Reviewer learned by reviewing) are different artifacts and stay so. Findings are actionable work. Review may iterate until it converges; only then does the Change move to its retrospectives and closure.
+
+## The outer loop
+
+```
+Intent → [ Work ⇄ Review → sealed, closed Work Result ] → Accept Work Result
+```
+
+The Owner gives the Intent; Worker and Reviewer row against that target; the closed Change is returned to the Owner; only then does the Owner accept or reject the Work Result. The Intent is the fixed target of the Change. Review judges the realization against the Intent: it does not challenge, redesign or renegotiate it. Neither the Worker nor the Reviewer changes the Intent, and the Owner does not enter the inner loop to revise it. A review may establish that the Intent cannot be delivered as stated; then the Change cannot converge as a successful realization, and it is not resolved by editing the Intent inside the same Change. What the Owner does with an undeliverable or unsuccessful result, including establishing a different Intent in another Change, is outside the Change. The Change realizes the target; it does not negotiate the target.
 
 ## Not wanted
 

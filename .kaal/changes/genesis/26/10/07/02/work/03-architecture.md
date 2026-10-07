@@ -2,6 +2,14 @@
 
 ## The process
 
+The outer loop is the Owner's and lies outside the Change:
+
+```
+Intent → [ the Change: work ⇄ review → sealed, closed ] → accept the Work Result
+```
+
+Inside the Change:
+
 ```
 allocate
   → work  ⇄  review (rounds)        the Work stays open while review has findings
@@ -51,8 +59,7 @@ From `work/`, `review/`, the three retrospectives and the seals:
 | --- | --- | --- |
 | `WORK OPEN` | no round, or the latest round has findings, or the Work changed since the latest round | complete the Work, or resolve the findings, then have it reviewed (write the next round) |
 | `REVIEW CONVERGED` | the latest round says converged and names the Work as it now stands | seal work |
-| `WORK SEALED` | the Work is sealed (and a converged round names it) and a retrospective is missing | write the missing ones of `retro-work.md`, `retro-review.md`, `retro-owner.md` |
-| `RETRO-WORK PRESENT` / `RETRO-REVIEW PRESENT` | one of them exists | write the other |
+| `RETROS INCOMPLETE` | the Work is sealed (and a converged round names it) and at least one of the three retrospectives is missing, whichever it is | write whichever of `retro-work.md`, `retro-review.md`, `retro-owner.md` are missing, in any order |
 | `RETROS PRESENT` | all three exist | seal Change |
 | `CHANGE CLOSED` | the Change's identity is sealed | none |
 
@@ -81,12 +88,12 @@ Problems the evaluator reports: a round that is malformed or out of sequence; an
 9. **Worker with findings.** It resolves them by changing the open Work, or states in the Work why a finding should not stand, and stops for the next round. It writes no round and records no convergence.
 10. **Reviewer after resolution.** It writes the next round on the Work as it now stands, saying whether each earlier finding stands, and any new finding in what changed. It stays anchored to the same Change.
 11. **May the Reviewer modify Work?** No. If it did, the identity named by its own round would no longer be the Work's, and it would not converge. The structure makes the prohibition self-evident, though not who did it.
-12. **Review challenges Intent, Requirements or Architecture.** A finding may say so. Requirements and Architecture are Work: the Worker revises them and review goes on. The Intent is the Owner's. If review shows the Intent itself is wrong, the Worker cannot resolve it; the Change does not converge, and the Owner either revises the Intent in the Work, or begins another Change. Nothing is deleted.
+12. **Review challenges Intent, Requirements or Architecture.** A finding may say so. Requirements and Architecture are Work: the Worker revises them and review goes on. The Intent is the fixed target of the Change and is not the Worker's, the Reviewer's or, inside the loop, the Owner's to revise. If review shows the Intent cannot be delivered as stated, the Change cannot converge as a successful realization, and it is not resolved by editing the Intent in the same Change. What the Owner does with that result, including establishing a different Intent in another Change, is outside the Change. Nothing is deleted.
 13. **Review result versus reviewer retro.** The result says whether the Work satisfies the Change, and is actionable. The retro says what the Reviewer learned by reviewing, and is not. A Reviewer may converge the Work and write a critical retro; a retro never approves, and a finding never lives only in a retro.
 14. **`retro-observe.md` or `retro-review.md`?** Neither name is kept for the outer seat. Observation and review are different activities; the Reviewer's perspective is `retro-review.md`, which holds `review/` and the activity. The outer perspective is the Owner's, and it is named for the role, `retro-owner.md`: `retro-observe.md` is historical terminology from when that perspective was thought of as an Observer, and carrying it forward would imply a fourth Observer role. `retro-work.md` stays. Three perspectives, one retrospective each, named by role: the Work's (oar), the review's (oar), the Owner's (helm).
 15. **Historical Changes.** A closed Change is judged by its own seal and is never re-evaluated. `retro.md`, and `retro-work.md` with `retro-observe.md`, and a Change with no `review/`, stay valid as sealed. An open Change reports `retro.md` and `retro-observe.md` as historical forms, a sealed Work with no converged review, and fewer than three retrospectives as not closed. Nothing historical is migrated.
 16. **Worker retro.** After the Work is sealed, which is after review converged.
-17. **Reviewer and Owner retros.** Also after the Work is sealed. The Reviewer's activity ended with convergence; the Owner's observation is of the sealed Work and the review. The three come in any order.
+17. **Reviewer and Owner retros.** Also after the Work is sealed. The Reviewer's activity ended with convergence; the Owner's observation is of the sealed Work and the review. The three come in any order, and the derived state does not privilege any of them: it is `RETROS INCOMPLETE` while any is missing and names whichever are, then `RETROS PRESENT`.
 18. **Should either see the other first?** Recommended not. Each is its writer's own; the Reviewer's has no need of the Worker's, and the Worker's already has the findings. Not enforceable and not enforced; the order between them is free.
 19. **What closure proves.** The Work and the Change are sealed by identity; review ended on a converged round naming exactly the sealed Work; rounds are contiguous; all three retrospectives exist; nothing historical was altered.
 20. **What remains operational.** Who wrote what and whether the Reviewer was independent of the Worker; whether the review was good; whether the realization outside `work/` is what the Work describes; whether a retrospective is honest; the Owner's decision.

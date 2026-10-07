@@ -93,7 +93,7 @@ test("more than one new Change is refused, even when both are closed", (t) => {
 });
 
 test("a new Change that is not closed is refused at every stage, naming the stage and the next step", (t) => {
-  const stages = { work: /WORK OPEN/, converged: /REVIEW CONVERGED/, "sealed work": /WORK SEALED/, "retro-work": /WORK SEALED/, "retro-owner": /RETROS PRESENT/ } as const;
+  const stages = { work: /WORK OPEN/, converged: /REVIEW CONVERGED/, "sealed work": /RETROS INCOMPLETE/, "retro-work": /RETROS INCOMPLETE/, "retro-owner": /RETROS PRESENT/ } as const;
   for (const [upTo, expected] of Object.entries(stages)) {
     const { baseline, candidate } = pair(t);
     change(candidate, B, upTo as keyof typeof stages);

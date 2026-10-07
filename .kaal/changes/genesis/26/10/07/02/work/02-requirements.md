@@ -8,7 +8,7 @@ R3. **Review is recorded as rounds.** A round is one review of the Work as it th
 
 R4. **Convergence is derived.** A Change's review has converged exactly when its latest round says converged and names the identity of the Work as it now stands. Nothing else records it; changing the Work afterwards makes it not converged again.
 
-R5. **Review may iterate inside the Change.** Findings are resolved in the Work, which stays open until review converges. Another round follows. No further Change is needed.
+R5. **Review may iterate inside the Change.** Findings are resolved in the Work (its Requirements, Architecture and evidence, never its Intent), which stays open until review converges. Another round follows. No further Change is needed.
 
 R6. **The Reviewer does not change Work.** The Reviewer writes only review rounds and its own retrospective.
 
@@ -29,3 +29,5 @@ R13. **No host in KAAL.** Nothing this Change adds to `.kaal`, the Node, the Age
 R14. **ROWING is not the topology.** The Node defines the discipline between realized Work and its review and names no role. The three roles and their shape are in the Agent Skill as how Changing KAAL currently uses it, so that later roles change the Skill and not ROWING.
 
 R15. **Smallest implementation.** One new Node (ROWING) with its seal; the Agent Skill and its retro reference revised and one reference added; the one evaluator extended; acceptance for each. No change to Core, the Changing KAAL Node, RATIFICATION, any seal or any host control.
+
+R16. **The Intent is the fixed target.** Inside the Change the Intent is not revised by the Worker, by the Reviewer or by the Owner entering the Worker-Reviewer loop; review judges the realization against it and does not renegotiate it. A review that finds the Intent cannot be delivered as stated leaves the Change unconverged as a successful realization; it is not resolved by editing the Intent in the same Change. What the Owner does with such a result is outside the Change. The outer loop is Intent to acceptance of the Work Result: the Owner gives the Intent, the closed Change is returned, and only then does the Owner accept or reject it.

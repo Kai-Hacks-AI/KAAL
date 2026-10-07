@@ -23,7 +23,7 @@ changes/<name>/YY/MM/DD/CC/
 
 - `WORK OPEN`, next: complete the work or resolve the findings of the latest round, then have it reviewed (any retro here is reported as an invalid step)
 - `REVIEW CONVERGED`, next: seal work
-- `WORK SEALED`, next: write whichever of `retro-work.md`, `retro-review.md` and `retro-owner.md` is missing
+- `RETROS INCOMPLETE`, next: write whichever of `retro-work.md`, `retro-review.md` and `retro-owner.md` is missing
 - `RETROS PRESENT` (all three), next: seal Change
 - `CHANGE CLOSED`
 

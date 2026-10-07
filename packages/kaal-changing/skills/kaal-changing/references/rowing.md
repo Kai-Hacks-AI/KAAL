@@ -6,6 +6,8 @@ ROWING is the discipline between realized Work and its review, and it stays that
 
 ## The roles
 
+The outer loop is the Owner's and lies outside the change: `Intent → [ work ⇄ review → sealed, closed ] → accept the Work Result`. The Owner gives the Intent; the closed change is returned; only then does the Owner accept or reject it.
+
 ```
              TARGET / INTENT
                    ↑
@@ -18,9 +20,9 @@ ROWING is the discipline between realized Work and its review, and it stays that
 Three perspectives follow from it, one retrospective each: the Work's (`retro-work.md`), the review's (`retro-review.md`) and the Owner's (`retro-owner.md`).
 
 
-- **Owner.** Owns the Intent. Establishes what the change is to achieve, stays out of the inner loop of work and review and does not redo the Reviewer's work, observes the Change from outside and writes `retro-owner.md` once the Work is sealed, and, only after the Change is sealed, decides whether the completed and reviewed change realizes the Intent. Reflection and decision are two acts: the retrospective is not approval, and the decision is the decision to admit the closed change, not an artifact of the record.
-- **Worker.** Performs the Work, keeps `work/` (Intent as given, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md`. While acting as Worker it does not write rounds.
-- **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`. While acting as Reviewer it does not change `work/`, and it does not own the Intent.
+- **Owner.** Owns the Intent. Establishes what the change is to achieve, and the Intent is then the fixed target of the change: the Owner stays out of the inner loop of work and review, does not redo the Reviewer's work and does not revise the Intent inside it, observes the Change from outside and writes `retro-owner.md` once the Work is sealed, and, only after the Change is sealed, decides whether the completed and reviewed change realizes the Intent. Reflection and decision are two acts: the retrospective is not approval, and the decision is the decision to admit the closed change, not an artifact of the record.
+- **Worker.** Performs the Work, keeps `work/` (Intent as given and never changed by the Worker, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md`. While acting as Worker it does not write rounds.
+- **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`. While acting as Reviewer it does not change `work/`, and it neither owns nor changes the Intent.
 
 Reviewer and Owner differ even when one actor holds both: the Reviewer judges whether the observed Work conforms to the change as intended; the Owner judges whether the intended change was what was wanted.
 
@@ -57,7 +59,7 @@ Work → Review ─ findings → Work continues → Review again
 
 - Findings are resolved by changing `work/`, which stays open until a round converges. If the Worker disagrees with a finding, it says why in `work/`; the next round, not the Worker, decides whether the finding stands. Nothing is deleted, and no further change is allocated.
 - A round converges when the Reviewer judges the Work satisfies the change sufficiently to proceed. Review has converged exactly when the latest round says so and names the Work as it now stands: change the Work afterwards and it has not.
-- If review shows the Requirements or Architecture are wrong, they are Work: the Worker revises them and review continues. If it shows the Intent itself is wrong, the Worker cannot resolve it: the change does not converge, and the Owner either revises the Intent in `work/` or leaves the change and begins another.
+- If review shows the Requirements or Architecture are wrong, they are Work: the Worker revises them and review continues. The Intent is the fixed target and is not renegotiated in review. If review shows the Intent cannot be delivered as stated, the change cannot converge as a successful realization, and it is not resolved by editing the Intent in the same change. What the Owner does with that result, including establishing a different Intent in another change, is outside the change.
 - A review that approves can still have a critical retro, and a retro never approves. A finding that exists only in a retro is not a finding.
 
 ## Separation: required, recommended, and unprovable
