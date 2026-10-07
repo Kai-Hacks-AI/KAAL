@@ -12,7 +12,7 @@ test("the public API is exactly payload()", () => {
 test("payload() carries its Nodes, each with its seal, and one Agent Skill", () => {
   const { kaal, skills } = capability.payload();
   const nodes = Object.keys(kaal).filter((p) => !p.startsWith("seals/"));
-  assert.deepEqual(nodes, ["Changing-KAAL.md", "RATIFICATION.md"]);
+  assert.deepEqual(nodes, ["Changing-KAAL.md", "RATIFICATION.md", "ROWING.md", "WORK.md"]);
   assert.equal(Object.keys(kaal).filter((p) => p.startsWith("seals/")).length, nodes.length);
   assert.ok(skills["kaal-changing/SKILL.md"]);
   assert.ok(Object.keys(skills).every((p) => p.startsWith("kaal-changing/")), "exactly one skill");

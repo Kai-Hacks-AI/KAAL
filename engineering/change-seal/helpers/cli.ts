@@ -17,6 +17,7 @@ try {
     const state = stateOf(kaalDir, change);
     console.log(state.stage);
     console.log(`next: ${state.next}`);
+    if (state.work !== undefined && state.stage !== "CHANGE CLOSED") console.log(`work: ${state.work}`);
     for (const p of state.problems) console.log(`problem: ${p}`);
     process.exitCode = state.problems.length === 0 ? 0 : 1;
   } else if (command === "closed" && kaalDir && !change) {
