@@ -1,0 +1,26 @@
+name: kaal lineage
+
+# Projection currency: the checked-in `.kaal` and `skills/` must be what the
+# packages deliver. This is a lineage signal, not a pull-request gate: a change
+# confined to a package cannot also update the projection, so the repair travels
+# as its own pull request and must not be blocked by this check. It is reported
+# on pushes to a lineage branch and on demand, and is not a required check.
+on:
+  push:
+    branches: ['kaal/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-kaal-install:
+    name: check-kaal-install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run check-kaal-install
