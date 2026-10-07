@@ -35,7 +35,8 @@ jobs:
       - run: npm ci
       - run: npm run check-kaal-seals
 
-  # Git controls: history and change-set policy around Core.
+  # Git controls: history and change-set policy around Core. The workflow only
+  # invokes the kaal-github Extension; it knows no process semantics.
   isolate-boundaries:
     name: isolate-boundaries
     runs-on: ubuntu-latest
@@ -45,9 +46,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Test the isolation script
-        run: .github/scripts/isolate-boundaries.test.sh
-      - run: .github/scripts/isolate-boundaries.sh "$TARGET"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build --prefix packages/kaal-github
+      - run: node packages/kaal-github/dist/cli.js isolate-boundaries "$TARGET"
 
   preserve-seals:
     name: preserve-seals
@@ -58,9 +62,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: .github/scripts/preserve-seals.sh "$TARGET"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build --prefix packages/kaal-github
+      - run: node packages/kaal-github/dist/cli.js preserve-seals "$TARGET"
 
-  # Closed Changes stay closed: asks the repository's own command which are sealed.
+  # Closed Changes stay closed.
   preserve-sealed-changes:
     name: preserve-sealed-changes
     runs-on: ubuntu-latest
@@ -74,9 +83,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - name: Test the control
-        run: .github/scripts/preserve-sealed-changes.test.sh
-      - run: .github/scripts/preserve-sealed-changes.sh "$TARGET"
+      - run: npm run build --prefix packages/kaal-github
+      - run: node packages/kaal-github/dist/cli.js preserve-sealed-changes "$TARGET"
 
   # Containment: the proposal into a lineage branch contains exactly one new closed Change and keeps closed history intact.
   # Other branches are staging, where nothing is admitted, so the job is skipped there.
@@ -94,6 +102,5 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - name: Test the control
-        run: .github/scripts/contain-change.test.sh
-      - run: .github/scripts/contain-change.sh "$TARGET"
+      - run: npm run build --prefix packages/kaal-github
+      - run: node packages/kaal-github/dist/cli.js contain-change "$TARGET"
