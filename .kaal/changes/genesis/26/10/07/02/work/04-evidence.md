@@ -48,6 +48,10 @@ Kai's answer to the design question, treated as a finding and design resolution 
 - **Acceptance**: the payload and admission tests count and seal WORK; a new test shows it typed by the exact KAAL Definition Node and free of host, filename, stage and relationship text.
 - Not done, as instructed: Work sealed, retrospectives, converged round.
 
+## Review round 04
+
+`review/03.md` (Kai numbered it round 04, since his round 03 was the design resolution above, which has no review file; findings, against Work `a15c8408…`) has one narrow wording finding: R17 said the evaluator's stages "name no seat as privileged but follow the order", residue of the abandoned symmetric model. Resolved in R17 alone: it now states that the evaluator derives and enforces the ordered WORK progression, names the next perspective, rejects a later retrospective when an earlier one is missing, and closes only when all three have accumulated into Knowledge. Nothing else changed.
+
 ## Not shown
 
 - That the Reviewer is independent of the Worker, or that the review is good: no check can.
