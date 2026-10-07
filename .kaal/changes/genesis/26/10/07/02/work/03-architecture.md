@@ -106,7 +106,7 @@ Problems the evaluator reports: a round that is malformed or out of sequence; an
 22. **One actor, several roles.** Valid. Roles are told apart by artifact, not by identity: rounds are the review seat's, `retro-work.md` the work seat's. The guarantee is weaker, not different.
 23. **Required versus recommended.** Required by meaning, unprovable: while acting as Reviewer an actor writes only rounds and its retrospective and does not change the Work; each retrospective is from its own seat. Recommended: Worker and Reviewer in separate contexts, the Owner other than the Worker, each later retrospective written with the earlier ones read. Required by KAAL's checks: structure and order only, including the order of the three retrospectives.
 24. **How a host consumes it.** It runs the state command and sees a stage, and the closed Change's identity. KAAL says nothing about how those are realized or enforced. No host word appears in KAAL.
-25. **Smallest implementation.** ROWING and its seal; Agent Skill steps and two references; the evaluator extended by rounds, stages and the three retrospectives in the order of WORK; acceptance; this Change's own record.
+25. **Smallest implementation.** ROWING and WORK, each a KAAL Definition with its seal (WORK states the ordered perspectives alone; the Skill states their realization); Agent Skill steps and two references; the evaluator extended by rounds, stages and the three retrospectives in the order of WORK; acceptance; this Change's own record.
 
 ## Limits
 

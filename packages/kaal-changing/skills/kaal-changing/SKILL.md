@@ -42,7 +42,7 @@ Work and review go round until a review round converges on the work as it then s
 
 Where a change is in the process is never written down. Ask `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC`: it answers where the change is, what is valid next and what is wrong, and prints the identity of `work/` as it now stands, which a round names. You do not reconstruct that yourself.
 
-Three roles take part: the Owner, the Worker and the Reviewer, two that row and one that steers. ROWING is the discipline of the mutable inner loop up to the Work seal; **WORK** (Worker, Owner, Reviewer, Knowledge) is the ordered retrospective discipline after it. They are roles of the process, not necessarily three actors; see `references/rowing.md` for what each does and may not do, for the form of a round, and for what KAAL's checks can and cannot show.
+Three roles take part: the Owner, the Worker and the Reviewer, two that row and one that steers. ROWING is the discipline of the mutable inner loop up to the Work seal; **WORK** (Worker, Owner, Reviewer, Knowledge; its meaning is the sealed KAAL Definition `WORK` beside `ROWING`, which this Skill does not redefine) is the ordered retrospective discipline after it; the sequence below is how this process realizes it. They are roles of the process, not necessarily three actors; see `references/rowing.md` for what each does and may not do, for the form of a round, and for what KAAL's checks can and cannot show.
 
 ## Steps
 

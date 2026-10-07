@@ -16,6 +16,7 @@ const { kaal, skills } = payload();
 const nodeFile = "Changing-KAAL.md";
 const ratificationFile = "RATIFICATION.md";
 const rowingFile = "ROWING.md";
+const workFile = "WORK.md";
 const manifest = skills[`${CAPABILITY}/SKILL.md`];
 
 test("Core carries no Changing KAAL: a capability joins without becoming Core", () => {
@@ -23,7 +24,7 @@ test("Core carries no Changing KAAL: a capability joins without becoming Core", 
   assert.ok(!Object.keys(core()).some((p) => p.startsWith("skills/")));
 });
 
-test("registering through Core admits the Changing KAAL Skill and the RATIFICATION and ROWING definitions, and nothing else changes", (t) => {
+test("registering through Core admits the Changing KAAL Skill and the RATIFICATION, ROWING and WORK definitions, and nothing else changes", (t) => {
   const dir = deployKaal(t);
   const before = admit(read(dir));
   const skill = before.find((n) => n.name === "Skill")!;
@@ -32,22 +33,22 @@ test("registering through Core admits the Changing KAAL Skill and the RATIFICATI
   const ids = registerSkill(dir, CAPABILITY, kaal);
   const after = admit(read(dir));
   assert.deepEqual(ids, [sha256(kaal[nodeFile])], "the Skill's identity is the SHA-256 of the shipped bytes");
-  assert.equal(after.length, before.length + 3);
+  assert.equal(after.length, before.length + 4);
   const found = after.filter((n) => n.type?.name === "Skill" && n.type.id === skill.id);
   assert.deepEqual(found.map((n) => n.name), ["Changing KAAL"], "exactly one Skill, found by Node type alone");
   const defined = after.filter((n) => n.type?.name === "KAAL Definition" && n.type.id === definition.id && !before.some((b) => b.id === n.id));
-  assert.deepEqual(defined.map((n) => [n.name, n.id]).sort(), [["RATIFICATION", sha256(kaal[ratificationFile])], ["ROWING", sha256(kaal[rowingFile])]].sort(), "admitted as the KAAL Definitions they are typed by");
-  for (const file of [nodeFile, ratificationFile, rowingFile]) assert.equal(readFileSync(join(dir, "skills", CAPABILITY, file), "utf8"), kaal[file], `${file}: bytes kept exactly`);
-  assert.deepEqual(readdirSync(join(dir, "seals")).filter((id) => !sealsBefore.includes(id)).sort(), [sha256(kaal[nodeFile]), sha256(kaal[ratificationFile]), sha256(kaal[rowingFile])].sort(), "exactly one seal per Node is added");
+  assert.deepEqual(defined.map((n) => [n.name, n.id]).sort(), [["RATIFICATION", sha256(kaal[ratificationFile])], ["ROWING", sha256(kaal[rowingFile])], ["WORK", sha256(kaal[workFile])]].sort(), "admitted as the KAAL Definitions they are typed by");
+  for (const file of [nodeFile, ratificationFile, rowingFile, workFile]) assert.equal(readFileSync(join(dir, "skills", CAPABILITY, file), "utf8"), kaal[file], `${file}: bytes kept exactly`);
+  assert.deepEqual(readdirSync(join(dir, "seals")).filter((id) => !sealsBefore.includes(id)).sort(), [sha256(kaal[nodeFile]), sha256(kaal[ratificationFile]), sha256(kaal[rowingFile]), sha256(kaal[workFile])].sort(), "exactly one seal per Node is added");
 });
 
-test("the Skill's meaning is narrow, each Node is sealed by its own bytes, and Changing KAAL knows nothing of RATIFICATION or ROWING", () => {
+test("the Skill's meaning is narrow, each Node is sealed by its own bytes, and Changing KAAL knows nothing of RATIFICATION, ROWING or WORK", () => {
   const nodes = Object.keys(kaal).filter((p) => !p.startsWith("seals/")).sort();
-  assert.deepEqual(nodes, [nodeFile, ratificationFile, rowingFile].sort());
+  assert.deepEqual(nodes, [nodeFile, ratificationFile, rowingFile, workFile].sort());
   for (const file of nodes) assert.equal(kaal[`seals/${sha256(kaal[file])}`], "", file);
   assert.equal(Object.keys(kaal).length, nodes.length * 2);
   assert.match(kaal[nodeFile], /managing changes to KAAL through KAAL's change process/);
-  for (const other of [ratificationFile, rowingFile]) assert.ok(!kaal[nodeFile].includes(other.replace(".md", "")) && !kaal[nodeFile].includes(sha256(kaal[other])), `no relationship to ${other} is asserted`);
+  for (const other of [ratificationFile, rowingFile, workFile]) assert.ok(!kaal[nodeFile].includes(other.replace(".md", "")) && !kaal[nodeFile].includes(sha256(kaal[other])), `no relationship to ${other} is asserted`);
 });
 
 test("RATIFICATION is a Node typed by the exact KAAL Definition Node and claims no relationship", (t) => {
@@ -164,7 +165,7 @@ test("the process adds no second implementation, no retro seal, no phase state a
   assert.doesNotMatch(manifest, /\b(status|phase):/);
   assert.doesNotMatch(manifest, /\b(git|github|branch|commit|pull request|CI)\b/i);
   assert.ok(!Object.keys(skills).some((p) => /seal|state/i.test(p.split("/").pop()!)), "no sealing or state script is shipped");
-  assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")).sort(), [nodeFile, ratificationFile, rowingFile].sort(), "no Work, Role or other Node: only the Skill and two definitions");
+  assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")).sort(), [nodeFile, ratificationFile, rowingFile, workFile].sort(), "no Work, Role or other Node: only the Skill and three definitions");
   assert.ok(!/requirements\.md|architecture\.md|test\.md|intend\.md/.test(manifest), "RATIFICATION is not turned into files");
 });
 
@@ -190,4 +191,15 @@ test("WORK orders the retrospectives after the Work seal, Worker then Owner then
   assert.match(manifest, /retro-work, retro-owner, retro-review \(WORK\)/);
   assert.doesNotMatch(retro + rowing + manifest, /in any order|no retro read before writing one's own|none be read before/, "no retro is asked to avoid the earlier ones, and none is in any order");
   assert.ok(manifest.indexOf("Retro, from the Work's seat") < manifest.indexOf("Retro, from the Owner's seat") && manifest.indexOf("Retro, from the Owner's seat") < manifest.indexOf("Retro, from the review's seat"), "the steps follow WORK");
+});
+
+test("WORK is a KAAL Definition: the mnemonic and its ordered, non-approving knowledge, with no host, file, stage or procedure", (t) => {
+  const dir = deployKaal(t);
+  registerSkill(dir, CAPABILITY, kaal);
+  const definition = admit(read(dir)).find((n) => n.name === "KAAL Definition")!;
+  const work = admit(read(dir)).find((n) => n.name === "WORK")!;
+  assert.equal(work.type?.id, definition.id, "typed by the exact KAAL Definition Node");
+  const meaning = kaal[workFile].split("---\n").pop()!;
+  for (const word of ["Worker", "Owner", "Reviewer", "Knowledge"]) assert.ok(meaning.includes(word), word);
+  assert.ok(!/GitHub|account|\bCI\b|pull request|retro-|\.md|WORK SEALED|RETROS PRESENT|ROWING|Changing KAAL/.test(meaning), "no host, filename, evaluator stage or relationship");
 });

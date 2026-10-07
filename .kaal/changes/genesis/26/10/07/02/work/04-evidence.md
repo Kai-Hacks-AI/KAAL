@@ -34,10 +34,19 @@ What this Change realized, and where a Reviewer can read it. The realization liv
 
 `review/02.md` (findings, against Work `5ce0e92b…`) says round 01's fixed-Intent correction stands and corrects the any-order retrospective instruction: after the Work is sealed, retrospective learning is ordered, and a later retro may read the earlier ones. Resolved in the Work and its realization:
 
-- **WORK** names that ordered discipline beside ROWING: `Worker → Owner → Reviewer → Knowledge`, in Intent (new section "ROWING and WORK"), R2, R8, R10 and new R17, Architecture (the lifecycle, record, stage table, Q4, Q16 to Q19, Q21, Q23, Q25), the Skill (`SKILL.md` steps 5 to 7, `references/rowing.md`, `references/retro.md`) and the READMEs. WORK is vocabulary of the Agent Skill: no new Node, role or status file.
+- **WORK** names that ordered discipline beside ROWING: `Worker → Owner → Reviewer → Knowledge`, in Intent (new section "ROWING and WORK"), R2, R8, R10 and new R17, Architecture (the lifecycle, record, stage table, Q4, Q16 to Q19, Q21, Q23, Q25), the Skill (`SKILL.md` steps 5 to 7, `references/rowing.md`, `references/retro.md`) and the READMEs. Round 03 then birthed WORK as a Node (below); there is no role or status file.
 - **The evaluator** (`engineering/change-seal/helpers/process.ts`) requires `retro-work.md`, then `retro-owner.md`, then `retro-review.md`: stages `WORK SEALED`, `RETRO-WORK PRESENT`, `RETRO-OWNER PRESENT`, `RETROS PRESENT`; the next step is the first missing one in order; a retro present before an earlier one is a reported problem; closing needs all three. Tested in `process.test.ts` and `admission.test.ts`.
 - **The Owner's judgment** against the fixed Intent happens after the Work seal and the Worker's retro, is no artifact, and encodes no approval or verdict anywhere; `retro-owner.md` follows it and carries none. A host's authorization or admission of the closed Change is outside KAAL and not mentioned beyond saying so.
 - The Intent stays fixed (round 01). Historical forms are unchanged.
+
+## Review round 03
+
+Kai's answer to the design question, treated as a finding and design resolution while the Work is mutable (not convergence, no review round file yet): WORK is the same semantic class as ROWING and RATIFICATION, so it is born as a sealed KAAL Definition in `packages/kaal-changing/kaal/`, minimal as ROWING is.
+
+- **`WORK.md`** (typed by KAAL Definition, sealed by its own bytes `dc41786d…`, delivered beside the others, installed under `.kaal/skills/kaal-changing/`): the mnemonic W Worker, O Owner, R Reviewer, K Knowledge, and the durable constraint that sealed Work becomes Knowledge through perspectives in that fixed order, each later one drawing on the earlier, none revising the Work or the Intent, Knowledge not being approval. No filename, evaluator stage, host, GitHub, account or CI.
+- **The Skill** keeps describing how the current process realizes it and does not redefine it.
+- **Acceptance**: the payload and admission tests count and seal WORK; a new test shows it typed by the exact KAAL Definition Node and free of host, filename, stage and relationship text.
+- Not done, as instructed: Work sealed, retrospectives, converged round.
 
 ## Not shown
 
