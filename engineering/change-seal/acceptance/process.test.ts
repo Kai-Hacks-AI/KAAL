@@ -122,7 +122,7 @@ test("review rounds must be well formed, numbered without a gap, and alone in re
 
 test("sealing Work freezes its exact tree by identity, and the seal sits outside it", (t) => {
   const dir = sealedWork(t);
-  assert.match(stage(dir), /^RETROS INCOMPLETE\nnext: write retro-work\.md \(the Work's seat\), retro-review\.md \(the review's seat\), retro-owner\.md \(the Owner's seat\), each its writer's own, in any order$/);
+  assert.match(stage(dir), /^WORK SEALED\nnext: the Worker writes retro-work\.md \(the Work's seat\), first$/);
   assert.equal(readdirSync(join(dir, "seals", "trees")).length, 1);
   assert.deepEqual(readdirSync(join(dir, C)).sort(), ["review", "work"]);
   assert.equal(run("check", dir).code, 0);
@@ -171,7 +171,7 @@ test("Work's outer location is not identity: the whole work/ moved unchanged sti
   mkdirSync(join(dir, other));
   renameSync(join(dir, C, "work"), join(dir, other, "work"));
   assert.equal(run("check", dir).code, 0);
-  assert.match(stage(dir, other), /^RETROS INCOMPLETE\n/);
+  assert.match(stage(dir, other), /^WORK SEALED\n/);
 });
 
 test("work/ renamed, even whole, is not the sealed Work: its name is part of its identity", (t) => {
@@ -195,38 +195,51 @@ test("a retrospective is not a valid step before Work is sealed, and sealing Wor
   }
 });
 
-test("once Work is sealed, the three retrospectives follow in any order, and none disturbs the Work seal", (t) => {
-  const seats = { "retro-work.md": "retro-work.md (the Work's seat)", "retro-review.md": "retro-review.md (the review's seat)", "retro-owner.md": "retro-owner.md (the Owner's seat)" } as const;
-  const orders = [
-    ["retro-work.md", "retro-review.md", "retro-owner.md"],
-    ["retro-owner.md", "retro-work.md", "retro-review.md"],
-    ["retro-review.md", "retro-owner.md", "retro-work.md"],
+test("once Work is sealed, the retrospectives follow in order, Worker then Owner then Reviewer, and none disturbs the Work seal", (t) => {
+  const dir = sealedWork(t);
+  assert.equal(run("close", dir, C).code, 1, "a Change with no retro cannot be sealed");
+  const steps = [
+    ["retro-work.md", "RETRO-WORK PRESENT\nnext: the Owner judges the sealed Work against the Intent, a judgment that is no artifact, then writes retro-owner.md (the Owner's seat)"],
+    ["retro-owner.md", "RETRO-OWNER PRESENT\nnext: the Reviewer writes retro-review.md (the review's seat), last, with the Worker's and the Owner's retrospectives to hand"],
+    ["retro-review.md", "RETROS PRESENT\nnext: seal Change"],
   ] as const;
-  for (const order of orders) {
-    const dir = sealedWork(t);
-    assert.equal(run("close", dir, C).code, 1, "a Change with no retro cannot be sealed");
-    for (const [i, name] of order.entries()) {
-      if (i > 0) {
-        const missing = order.slice(i).sort((a, b) => ["retro-work.md", "retro-review.md", "retro-owner.md"].indexOf(a) - ["retro-work.md", "retro-review.md", "retro-owner.md"].indexOf(b));
-        assert.equal(stage(dir), `RETROS INCOMPLETE\nnext: write ${missing.map((m) => seats[m]).join(", ")}`);
-        assert.equal(run("close", dir, C).code, 1, "fewer than three retrospectives do not close a Change");
-        assert.equal(run("check", dir).code, 0, "the Work seal still matches");
-      }
-      retro(dir, name);
-    }
-    assert.equal(stage(dir), "RETROS PRESENT\nnext: seal Change");
-    assert.equal(run("check", dir).code, 0);
-    assert.equal(run("seal-work", dir, C).code, 1, "work is no longer open");
-    assert.equal(run("close", dir, C).code, 0);
+  for (const [name, expected] of steps) {
+    retro(dir, name);
+    assert.equal(stage(dir), expected);
+    assert.equal(run("check", dir).code, 0, "the Work seal still matches");
+    if (name !== "retro-review.md") assert.equal(run("close", dir, C).code, 1, "fewer than three retrospectives do not close a Change");
   }
+  assert.equal(run("seal-work", dir, C).code, 1, "work is no longer open");
+  assert.equal(run("close", dir, C).code, 0);
+});
+
+test("a retrospective written before the one it follows is out of order, and a Change with one cannot be closed", (t) => {
+  const outOfOrder: [string[], RegExp][] = [
+    [["retro-owner.md"], /problem: retro-owner\.md exists before retro-work\.md/],
+    [["retro-review.md"], /problem: retro-review\.md exists before retro-work\.md/],
+    [["retro-work.md", "retro-review.md"], /problem: retro-review\.md exists before retro-owner\.md/],
+    [["retro-owner.md", "retro-review.md"], /problem: retro-owner\.md exists before retro-work\.md/],
+  ];
+  for (const [names, problem] of outOfOrder) {
+    const dir = sealedWork(t);
+    retro(dir, ...names);
+    const state = run("state", dir, C);
+    assert.match(state.out, problem, names.join());
+    assert.equal(state.code, 1, names.join());
+    assert.equal(run("close", dir, C).code, 1, names.join());
+  }
+  const dir = sealedWork(t);
+  retro(dir, "retro-owner.md");
+  assert.match(stage(dir), /^WORK SEALED\nnext: the Worker writes retro-work\.md/, "the next step is the first missing one in order");
 });
 
 test("each of the three retrospectives is needed to close, and the Owner's is not the others'", (t) => {
-  for (const missing of ["retro-work.md", "retro-review.md", "retro-owner.md"]) {
+  const names = ["retro-work.md", "retro-owner.md", "retro-review.md"];
+  for (const [k, missing] of names.entries()) {
     const dir = sealedWork(t);
-    retro(dir, ...["retro-work.md", "retro-review.md", "retro-owner.md"].filter((n) => n !== missing));
-    assert.match(stage(dir), new RegExp(`^RETROS INCOMPLETE\\nnext: write ${missing.replace(".", "\\.")} \\(`), missing);
+    retro(dir, ...names.filter((n) => n !== missing));
     assert.equal(run("close", dir, C).code, 1, `without ${missing}`);
+    if (k === names.length - 1) assert.match(stage(dir), /^RETRO-OWNER PRESENT\nnext: the Reviewer writes retro-review\.md/, missing);
   }
 });
 
@@ -234,7 +247,7 @@ test("retro.md, the single historical retrospective, is not a step of an open Ch
   const dir = sealedWork(t);
   retro(dir, "retro.md");
   const state = run("state", dir, C);
-  assert.match(state.out, /^RETROS INCOMPLETE\nnext: remove retro\.md, then write retro-work\.md, retro-review\.md and retro-owner\.md/);
+  assert.match(state.out, /^WORK SEALED\nnext: remove retro\.md, then write retro-work\.md, retro-owner\.md and retro-review\.md, in that order/);
   assert.match(state.out, /problem: retro\.md is the historical form, valid only in a closed Change/);
   assert.equal(state.code, 1);
   assert.equal(run("close", dir, C).code, 1);
@@ -244,9 +257,9 @@ test("retro.md, the single historical retrospective, is not a step of an open Ch
 
 test("retro-observe.md, the outer perspective as it was once named, is historical: reported in an open Change, never standing in for the Owner's retro-owner.md", (t) => {
   const dir = sealedWork(t);
-  retro(dir, "retro-work.md", "retro-review.md", "retro-observe.md");
+  retro(dir, "retro-work.md", "retro-observe.md");
   const state = run("state", dir, C);
-  assert.match(state.out, /^RETROS INCOMPLETE\nnext: remove retro-observe\.md, then write retro-work\.md, retro-review\.md and retro-owner\.md/);
+  assert.match(state.out, /^WORK SEALED\nnext: remove retro-observe\.md, then write retro-work\.md, retro-owner\.md and retro-review\.md, in that order/);
   assert.match(state.out, /problem: retro-observe\.md is the historical form, valid only in a closed Change/);
   assert.equal(state.code, 1);
   assert.equal(run("close", dir, C).code, 1);

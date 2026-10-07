@@ -16,7 +16,9 @@ import { changes, checkChanges, currentWorkId, RETRO, RETRO_OBSERVE, RETRO_OWNER
 export type Stage =
   | "WORK OPEN"
   | "REVIEW CONVERGED"
-  | "RETROS INCOMPLETE"
+  | "WORK SEALED"
+  | "RETRO-WORK PRESENT"
+  | "RETRO-OWNER PRESENT"
   | "RETROS PRESENT"
   | "CHANGE CLOSED";
 
@@ -106,15 +108,23 @@ export function stateOf(kaalDir: string, change: string): State {
     return { stage: "WORK OPEN", next: `${remove}${next}`, problems, ...base };
   }
   if (!converged) problems.push(`${WORK}/ is sealed without a converged review of exactly it: ${REVIEW}/ must end with a round that says converged and names work ${id}`);
-  if (legacy || observe) return { stage: "RETROS INCOMPLETE", next: `remove ${[legacy && RETRO, observe && RETRO_OBSERVE].filter(Boolean).join(", ")}, then write ${RETRO_WORK}, ${RETRO_REVIEW} and ${RETRO_OWNER}`, problems, ...base };
-  const missing = [
-    !worker && `${RETRO_WORK} (the Work's seat)`,
-    !reviewer && `${RETRO_REVIEW} (the review's seat)`,
-    !owner && `${RETRO_OWNER} (the Owner's seat)`,
-  ].filter((n): n is string => !!n);
-  if (missing.length === 0) return { stage: "RETROS PRESENT", next: "seal Change", problems, ...base };
-  const all = missing.length === 3;
-  return { stage: "RETROS INCOMPLETE", next: `write ${missing.join(", ")}${all ? ", each its writer's own, in any order" : ""}`, problems, ...base };
+  // After the Work is sealed the retrospectives are ordered, because knowledge accumulates: the Worker's, then the Owner's (written after the Owner's judgment of the sealed Work against the Intent, which is no artifact), then the Reviewer's.
+  if (legacy || observe) return { stage: "WORK SEALED", next: `remove ${[legacy && RETRO, observe && RETRO_OBSERVE].filter(Boolean).join(", ")}, then write ${RETRO_WORK}, ${RETRO_OWNER} and ${RETRO_REVIEW}, in that order`, problems, ...base };
+  const order = [[RETRO_WORK, worker], [RETRO_OWNER, owner], [RETRO_REVIEW, reviewer]] as const;
+  let done = 0;
+  while (done < order.length && order[done]![1]) done++;
+  order.forEach(([name, here], k) => {
+    if (here && k > done) problems.push(`${name} exists before ${order[done]![0]}: the retrospectives follow the order ${order.map(([n]) => n).join(", ")}`);
+  });
+  if (done === 3) return { stage: "RETROS PRESENT", next: "seal Change", problems, ...base };
+  const stages = ["WORK SEALED", "RETRO-WORK PRESENT", "RETRO-OWNER PRESENT", "RETROS PRESENT"] as const;
+  const nexts = [
+    `the Worker writes ${RETRO_WORK} (the Work's seat), first`,
+    `the Owner judges the sealed Work against the Intent, a judgment that is no artifact, then writes ${RETRO_OWNER} (the Owner's seat)`,
+    `the Reviewer writes ${RETRO_REVIEW} (the review's seat), last, with the Worker's and the Owner's retrospectives to hand`,
+    "seal Change",
+  ];
+  return { stage: stages[done]!, next: nexts[done]!, problems, ...base };
 }
 
 /** The step "seal work": allowed only once review has converged on the Work as it now stands and no retrospective exists. Returns the Work ID. */
@@ -129,7 +139,7 @@ export function sealWorkStep(kaalDir: string, change: string): string {
   return sealWork(kaalDir, change);
 }
 
-/** The step "seal Change": allowed only once the Work is sealed on a converged review and retro-work.md, retro-review.md and retro-owner.md are all present; closing a closed Change changes nothing. Returns the Change ID. */
+/** The step "seal Change": allowed only once the Work is sealed on a converged review and retro-work.md, retro-owner.md and retro-review.md are all present, in that order; closing a closed Change changes nothing. Returns the Change ID. */
 export function closeStep(kaalDir: string, change: string): string {
   const { stage, next, problems } = stateOf(kaalDir, change);
   if (stage !== "RETROS PRESENT" && stage !== "CHANGE CLOSED") throw new Error(`${change} is ${stage}: ${next} before sealing the Change`);

@@ -28,7 +28,16 @@ What this Change realized, and where a Reviewer can read it. The realization liv
 `review/01.md` (findings, against Work `fdd24ead…`) raised two findings, resolved in the Work and its realization:
 
 1. **The Intent is the fixed target.** Intent (new section "The outer loop"), R5 and R16, Architecture (the outer loop in "The process"; Q12), `references/rowing.md` (roles, iterating) and `SKILL.md` (the Worker step and a rule) now say that neither the Worker, the Reviewer nor the Owner inside the loop revises the Intent, that an undeliverable Intent leaves the Change unconverged as a success, and that what the Owner then does is outside the Change. Tested in `engineering/kaal-changing/acceptance/delivery.test.ts`.
-2. **Retro state is symmetric.** The stale stage names `RETRO-WORK PRESENT` / `RETRO-REVIEW PRESENT` are gone from the table. The evaluator already derived any combination of the three retros without privileging one (every subset is tested in `process.test.ts`); its stage after the Work seal is now named `RETROS INCOMPLETE` instead of `WORK SEALED`, with next naming whichever of the three are missing, then `RETROS PRESENT`.
+2. **Retro state is not tied to a privileged seat.** Resolved as an any-order, symmetric state `RETROS INCOMPLETE`; round 02 corrected that instruction (below), so that model is gone and the stages follow the order of WORK.
+
+## Review round 02
+
+`review/02.md` (findings, against Work `5ce0e92b…`) says round 01's fixed-Intent correction stands and corrects the any-order retrospective instruction: after the Work is sealed, retrospective learning is ordered, and a later retro may read the earlier ones. Resolved in the Work and its realization:
+
+- **WORK** names that ordered discipline beside ROWING: `Worker → Owner → Reviewer → Knowledge`, in Intent (new section "ROWING and WORK"), R2, R8, R10 and new R17, Architecture (the lifecycle, record, stage table, Q4, Q16 to Q19, Q21, Q23, Q25), the Skill (`SKILL.md` steps 5 to 7, `references/rowing.md`, `references/retro.md`) and the READMEs. WORK is vocabulary of the Agent Skill: no new Node, role or status file.
+- **The evaluator** (`engineering/change-seal/helpers/process.ts`) requires `retro-work.md`, then `retro-owner.md`, then `retro-review.md`: stages `WORK SEALED`, `RETRO-WORK PRESENT`, `RETRO-OWNER PRESENT`, `RETROS PRESENT`; the next step is the first missing one in order; a retro present before an earlier one is a reported problem; closing needs all three. Tested in `process.test.ts` and `admission.test.ts`.
+- **The Owner's judgment** against the fixed Intent happens after the Work seal and the Worker's retro, is no artifact, and encodes no approval or verdict anywhere; `retro-owner.md` follows it and carries none. A host's authorization or admission of the closed Change is outside KAAL and not mentioned beyond saying so.
+- The Intent stays fixed (round 01). Historical forms are unchanged.
 
 ## Not shown
 

@@ -24,10 +24,10 @@ The ordering defect has since repeated: across Changes `06/03` to `06/09` and `0
 Changing KAAL describes process roles and responsibilities, not a number of agents, models, providers, humans or execution contexts. The generic process is:
 
 ```
-Intent → Work → Review → Retrospective evidence → Final decision
+Intent → Work ⇄ ROWING → seal Work → WORK → seal Change → host and admission mechanics outside KAAL
 ```
 
-Three roles: the Owner owns the Intent, observes the Change from outside once its Work is sealed, and, only after the Change is sealed, decides whether the completed, reviewed Change realizes it; the Worker performs the Work and writes the Work's inside view; the Reviewer judges the realized Work and writes its own view of having done so. Two row and one steers: Worker and Reviewer go round with Work and review; the Owner holds the target and steers from the helm. Three perspectives follow, each with a retrospective: the Work's, the review's and the outer one. The Owner's reflection and the Owner's decision are two acts, and the first is not the second. These are roles, not necessarily separate actors. A realization may separate them strongly or not at all, and that choice is outside KAAL.
+Three roles: the Owner owns the Intent and, once the Work is sealed, judges whether the sealed Work answers it; the Worker performs the Work and writes the Work's inside view; the Reviewer judges the realized Work and writes its own view of having done so. Two row and one steers: Worker and Reviewer go round with Work and review; the Owner holds the target and steers from the helm. Three perspectives follow, each with a retrospective: the Work's, the Owner's and the review's, in that order. The Owner's judgment of the Work against the Intent and the Owner's retrospective are two acts, and the first is no artifact. These are roles, not necessarily separate actors. A realization may separate them strongly or not at all, and that choice is outside KAAL.
 
 ROWING is not that topology. It is the durable discipline between realized Work and its review, and it must stay workable if the process around it later gains other roles; the three roles explain how Changing KAAL currently uses it.
 
@@ -38,10 +38,23 @@ A review result (does the observed Work satisfy the Change, or what must be reso
 ## The outer loop
 
 ```
-Intent → [ Work ⇄ Review → sealed, closed Work Result ] → Accept Work Result
+Intent → [ Work ⇄ Review → sealed Work ] → Owner's judgment against the Intent
 ```
 
-The Owner gives the Intent; Worker and Reviewer row against that target; the closed Change is returned to the Owner; only then does the Owner accept or reject the Work Result. The Intent is the fixed target of the Change. Review judges the realization against the Intent: it does not challenge, redesign or renegotiate it. Neither the Worker nor the Reviewer changes the Intent, and the Owner does not enter the inner loop to revise it. A review may establish that the Intent cannot be delivered as stated; then the Change cannot converge as a successful realization, and it is not resolved by editing the Intent inside the same Change. What the Owner does with an undeliverable or unsuccessful result, including establishing a different Intent in another Change, is outside the Change. The Change realizes the target; it does not negotiate the target.
+The Owner gives the Intent; Worker and Reviewer row against that target; once the Work is sealed the Owner judges whether it answers the Intent. The Intent is the fixed target of the Change. Review judges the realization against the Intent: it does not challenge, redesign or renegotiate it. Neither the Worker nor the Reviewer changes the Intent, and the Owner does not enter the inner loop to revise it. A review may establish that the Intent cannot be delivered as stated; then the Change cannot converge as a successful realization, and it is not resolved by editing the Intent inside the same Change. What the Owner does with an undeliverable or unsuccessful result, including establishing a different Intent in another Change, is outside the Change. The Change realizes the target; it does not negotiate the target.
+
+## ROWING and WORK
+
+Two disciplines divide the lifecycle at the Work seal. **ROWING** governs the mutable inner loop: `Work ⇄ Review → convergence → seal Work`. **WORK** governs retrospective learning after the Work is fixed:
+
+```
+W  Worker      retro-work.md, first: the inside experience of performing the sealed Work
+O  Owner       judges the sealed Work against the fixed Intent (no artifact, no approval metadata), then retro-owner.md
+R  Reviewer    retro-review.md, last, with the earlier perspectives available
+K  Knowledge   the accumulated result; then the Change can be sealed
+```
+
+The three retrospectives are not interchangeable and their order is meaningful, because knowledge accumulates: a later one may read the earlier ones. The Owner's retrospective is written after the judgment, so it carries no approval or verdict; it is deliberately shaped by the Owner's position, what the Work as it stands taught the Owner about the product and the Intent. That may inform a future Intent and cannot revise this Change's. Host admission mechanics, such as accounts, approvals and checks, stay entirely outside KAAL; the Owner's process judgment is distinct from whatever a host uses to authorize or admit the closed Change.
 
 ## Not wanted
 
@@ -52,4 +65,4 @@ The Owner gives the Intent; Worker and Reviewer row against that target; the clo
 
 ## Done when
 
-ROWING is a sealed vocabulary of Changing KAAL's capability; the Change process includes review rounds, derived convergence and three retrospectives (the Worker's, the Reviewer's and the Owner's); the evaluator derives state from those artifacts; historical Changes remain valid exactly as sealed; and this Change has itself been through ROWING.
+ROWING is a sealed vocabulary of Changing KAAL's capability; the Change process includes review rounds, derived convergence and three retrospectives in the order of WORK (the Worker's, the Owner's and the Reviewer's); the evaluator derives state from those artifacts; historical Changes remain valid exactly as sealed; and this Change has itself been through ROWING.

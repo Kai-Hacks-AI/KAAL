@@ -6,7 +6,7 @@ ROWING is the discipline between realized Work and its review, and it stays that
 
 ## The roles
 
-The outer loop is the Owner's and lies outside the change: `Intent → [ work ⇄ review → sealed, closed ] → accept the Work Result`. The Owner gives the Intent; the closed change is returned; only then does the Owner accept or reject it.
+The whole lifecycle is compact: `Intent → work ⇄ ROWING → seal work → WORK → seal Change → host and admission mechanics outside KAAL`. ROWING governs the mutable inner loop of work and review up to the Work seal. **WORK** governs what comes after it: the ordered retrospectives, Worker, Owner, Reviewer, then Knowledge (`references/retro.md`). The Owner gives the fixed Intent, stays out of the inner loop, and after the Work is sealed judges whether it answers that Intent; how a host authorizes or admits the closed change is outside KAAL.
 
 ```
              TARGET / INTENT
@@ -17,12 +17,12 @@ The outer loop is the Owner's and lies outside the change: `Intent → [ work �
              ROWING
 ```
 
-Three perspectives follow from it, one retrospective each: the Work's (`retro-work.md`), the review's (`retro-review.md`) and the Owner's (`retro-owner.md`).
+Three perspectives follow from it, one retrospective each, written in this order after the Work is sealed: the Work's (`retro-work.md`), the Owner's (`retro-owner.md`) and the review's (`retro-review.md`).
 
 
-- **Owner.** Owns the Intent. Establishes what the change is to achieve, and the Intent is then the fixed target of the change: the Owner stays out of the inner loop of work and review, does not redo the Reviewer's work and does not revise the Intent inside it, observes the Change from outside and writes `retro-owner.md` once the Work is sealed, and, only after the Change is sealed, decides whether the completed and reviewed change realizes the Intent. Reflection and decision are two acts: the retrospective is not approval, and the decision is the decision to admit the closed change, not an artifact of the record.
-- **Worker.** Performs the Work, keeps `work/` (Intent as given and never changed by the Worker, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md`. While acting as Worker it does not write rounds.
-- **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`. While acting as Reviewer it does not change `work/`, and it neither owns nor changes the Intent.
+- **Owner.** Owns the Intent. Establishes what the change is to achieve, and the Intent is then the fixed target of the change: the Owner stays out of the inner loop of work and review, does not redo the Reviewer's work and does not revise the Intent inside it. Once the Work is sealed and the Worker has written `retro-work.md`, the Owner judges whether the sealed Work answers the Intent, which is a judgment and no artifact, and then writes `retro-owner.md`, which carries no approval or verdict. Judgment and retrospective are two acts, and the retrospective is not approval. Host admission mechanics are outside KAAL.
+- **Worker.** Performs the Work, keeps `work/` (Intent as given and never changed by the Worker, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md` first. While acting as Worker it does not write rounds.
+- **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`, last. While acting as Reviewer it does not change `work/`, and it neither owns nor changes the Intent.
 
 Reviewer and Owner differ even when one actor holds both: the Reviewer judges whether the observed Work conforms to the change as intended; the Owner judges whether the intended change was what was wanted.
 
@@ -64,7 +64,7 @@ Work → Review ─ findings → Work continues → Review again
 
 ## Separation: required, recommended, and unprovable
 
-- **What KAAL's checks require**: the structure and order above. Nothing about who.
-- **What the process requires and no check can show**: while acting as Reviewer, an actor writes only rounds and `retro-review.md` and does not change `work/`; each of the three retros is from its own seat, its writer's own. A single actor who holds several seats keeps the process valid and weakens what it shows.
-- **Recommended**: Worker and Reviewer in separate contexts; the Owner other than the Worker; no retro read before writing one's own.
-- **Beyond the record**: how a realization comes to hold these roles, how the closed change is handed on and accepted, and whether a given review was independent or good are operational, outside what a closed change proves. A closed change shows that review ended on a converged round naming exactly the sealed Work, and that all three retrospectives exist; it does not show that the realization outside `work/` is what the Work describes.
+- **What KAAL's checks require**: the structure and order above, including the order of the three retros. Nothing about who.
+- **What the process requires and no check can show**: while acting as Reviewer, an actor writes only rounds and `retro-review.md` and does not change `work/`; each of the three retros is from its own seat, its writer's own, and they follow the order Worker, Owner, Reviewer. A single actor who holds several seats keeps the process valid and weakens what it shows.
+- **Recommended**: Worker and Reviewer in separate contexts; the Owner other than the Worker; and each later retro written with the earlier ones read.
+- **Beyond the record**: how a realization comes to hold these roles, how the closed change is handed on and authorized or admitted by a host, and whether a given review was independent or good are operational, outside what a closed change proves. A closed change shows that review ended on a converged round naming exactly the sealed Work, and that all three retrospectives exist; it does not show that the realization outside `work/` is what the Work describes.

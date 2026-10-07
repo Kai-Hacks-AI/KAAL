@@ -2,7 +2,7 @@
 
 R1. **ROWING is named.** The meaning of ROWING is delivered by Changing KAAL's capability as a sealed KAAL Definition, in the pattern of RATIFICATION. It states the mnemonic and what it restricts; it states no mechanism and names no host concept.
 
-R2. **Review is a step.** The process is: allocate, work, review until converged, seal work, the three retrospectives, seal Change. A Change cannot be closed without a review that converged on exactly the Work that was sealed and all three retrospectives.
+R2. **Review is a step.** The process is: allocate, work, review until converged, seal work, the three retrospectives in order, seal Change. A Change cannot be closed without a review that converged on exactly the Work that was sealed and all three retrospectives.
 
 R3. **Review is recorded as rounds.** A round is one review of the Work as it then stood, written by the Reviewer, never edited afterwards. It binds itself to the identity of the Work it reviewed and states one result: findings or converged. Findings are the concrete matters to resolve, stated in the round.
 
@@ -14,11 +14,11 @@ R6. **The Reviewer does not change Work.** The Reviewer writes only review round
 
 R7. **Review and retrospective stay distinct.** The Reviewer's result is in the rounds. The Reviewer's retrospective is the 4L retrospective of the review seat, `retro-review.md`, and carries no verdict.
 
-R8. **Three perspectives, honestly named.** `retro-work.md` is the Worker's, `retro-review.md` the Reviewer's and `retro-owner.md` the Owner's, from the Owner's seat. Each is written after the Work is sealed, from its own seat, in any order. Each is its own seat's perspective; that none is read before writing another is recommended, not required, and not provable.
+R8. **Three perspectives, ordered, honestly named.** `retro-work.md` is the Worker's, `retro-owner.md` the Owner's, from the Owner's seat, and `retro-review.md` the Reviewer's. Each is written after the Work is sealed, from its own seat, in that order: Worker, Owner, Reviewer (WORK), because knowledge accumulates. A later retrospective may read the earlier ones. The order is derived from the artifacts present; who wrote a file is not provable and not asked of the check.
 
 R9. **Roles are roles.** Owner, Worker and Reviewer are defined as process roles in the capability's Agent Skill. They are not Nodes, are not identified in any artifact, and one actor may hold several. What is recommended and what KAAL's checks can and cannot show are stated separately.
 
-R10. **Owner reflection is not Owner decision.** The Owner's reflection is `retro-owner.md`, written after the Work is sealed and part of the Change. The Owner's decision comes only after the Change is sealed, is the decision to admit it, and is not an artifact inside it; the retrospective is not approval.
+R10. **Owner judgment is not an artifact and the Owner's retro carries no approval.** After the Work is sealed and the Worker's retrospective exists, the Owner judges, against the fixed Intent, whether the sealed Work answers it. That judgment is a process act: KAAL records no approval, verdict or approval metadata. `retro-owner.md` is written after it and carries no approval or verdict; it reports what the Work as it stands taught the Owner about the product and the Intent, may inform a future Intent, and cannot revise this Change's. How a host authorizes or admits the closed Change, with its accounts, approvals and checks, is outside KAAL.
 
 R11. **State stays derived.** The evaluator derives the stage and what is next from `work/`, `review/`, the retrospectives and the seals only. No status file, no phase metadata, no role or writer identity.
 
@@ -30,4 +30,6 @@ R14. **ROWING is not the topology.** The Node defines the discipline between rea
 
 R15. **Smallest implementation.** One new Node (ROWING) with its seal; the Agent Skill and its retro reference revised and one reference added; the one evaluator extended; acceptance for each. No change to Core, the Changing KAAL Node, RATIFICATION, any seal or any host control.
 
-R16. **The Intent is the fixed target.** Inside the Change the Intent is not revised by the Worker, by the Reviewer or by the Owner entering the Worker-Reviewer loop; review judges the realization against it and does not renegotiate it. A review that finds the Intent cannot be delivered as stated leaves the Change unconverged as a successful realization; it is not resolved by editing the Intent in the same Change. What the Owner does with such a result is outside the Change. The outer loop is Intent to acceptance of the Work Result: the Owner gives the Intent, the closed Change is returned, and only then does the Owner accept or reject it.
+R16. **The Intent is the fixed target.** Inside the Change the Intent is not revised by the Worker, by the Reviewer or by the Owner entering the Worker-Reviewer loop; review judges the realization against it and does not renegotiate it. A review that finds the Intent cannot be delivered as stated leaves the Change unconverged as a successful realization; it is not resolved by editing the Intent in the same Change. What the Owner does with such a result is outside the Change.
+
+R17. **ROWING and WORK divide the lifecycle at the Work seal.** ROWING governs `Work ⇄ Review → convergence → seal Work`; WORK governs the retrospectives after it, `Worker → Owner → Reviewer → Knowledge`. The evaluator requires the order `WORK SEALED → retro-work → retro-owner → retro-review → RETROS PRESENT → seal Change`: its stages name no seat as privileged but follow the order, the next step is the first missing retrospective in order, a retrospective present while an earlier one is missing is reported as out of order, and closing needs all three. WORK is vocabulary of the Agent Skill, not a Node, a role or a status file.
