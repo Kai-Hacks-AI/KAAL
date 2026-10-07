@@ -57,11 +57,11 @@ Three roles take part: the Owner, the Worker and the Reviewer, two that row and 
 
 ## Handoff and continuation
 
-The Owner and the actor who will do the Work describe the Intent together. That described Intent, held as `work/01-intent.md`, handed to the Worker, is the authority to work; it is not a separate artifact and no file says "go". From there:
+The human and the Owner describe the Intent together. That described Intent, handed to the Worker, is the authority to work. Once handed off, the Worker does not own or revise it. The Work record represents the described Intent; no particular file or file shape is what makes the handoff authoritative, and no file says "go". From there:
 
 - **A transition is not a permission.** When the process makes a next act legal and you hold its role, do it. The end of a stage, a converged round or a sealed Work is not a reason to ask again.
 - **Real stops are few.** Review when the process requires it; a decision that is genuinely the Owner's and unresolved; host admission, which is outside KAAL. Where Review belongs among the stages is not fixed: it is learned from ordinary Changes, not encoded here.
-- **The Owner's acts stay the Owner's.** The Intent, the judgment of the sealed Work against it and the text of `retro-owner.md` are never written, inferred or supplied by anyone else, and a handoff, a green check or silence is not that judgment. Carrying the Owner's own text verbatim into `retro-owner.md` is not authoring it.
+- **The Owner's acts stay the Owner's.** The judgment of the sealed Work against the Intent, and the text of `retro-owner.md`, are never written, inferred or supplied by anyone else, and a handoff, a green check or silence is not that judgment. Describing the Intent is co-work and is not solely the Owner's act; after the handoff, what becomes of an Intent that cannot be delivered as stated is the Owner's to decide. Carrying the Owner's own text verbatim into `retro-owner.md` is not authoring it.
 - **Roles are not actors, and independence is asked only where it means something.** One actor may hold several roles and several actors may share one Change. Role boundaries order whose perspective an act comes from and what it may draw on; they are knowledge boundaries, not requests for permission. Do not switch actors merely to look independent.
 - **After the Owner's act** the actor holding the Reviewer role may write `retro-review.md`, close the Change and put it forward for host admission without the Owner relaying anything.
 

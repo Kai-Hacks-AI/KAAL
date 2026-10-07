@@ -8,7 +8,7 @@ Only the Agent Skill of Changing KAAL, in `packages/kaal-changing/skills/kaal-ch
 
 - R1, R2, R3: step 2 no longer ends in "the Worker stops: the next step is not the Worker's". It names the progression the Worker carries (Intent described, Requirements defined, Architecture designed, code developed, done, defects detected) and the two real stops. Handoff and continuation states that a transition is not a permission. Step 3 no longer has the Worker "stop again" after resolving findings.
 - R4: the section and `rowing.md` say role boundaries are ordered knowledge boundaries, that one actor may hold several roles, and that actors are not switched to look independent.
-- R5, R7: the section lists the Owner's acts (Intent, judgment, text of `retro-owner.md`) as never written, inferred or supplied by another actor, and says a handoff, a green check or silence is not that judgment. Step 6 says carrying the Owner's own text verbatim is moving it, not writing it.
+- R5, R7: the section lists the Owner's acts (judgment, text of `retro-owner.md`; describing the Intent is stated as co-work, not solely the Owner's) as never written, inferred or supplied by another actor, and says a handoff, a green check or silence is not that judgment. Step 6 says carrying the Owner's own text verbatim is moving it, not writing it.
 - R6: steps 5 and 7 and the section name what is carried without another go: sealing and `retro-work.md` once a round converges; `retro-review.md`, closing and putting the Change forward after the Owner's act.
 - R8: the section ends continuation at host admission, which stays outside KAAL.
 - R11: see the walk-through below.

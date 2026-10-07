@@ -24,7 +24,7 @@ Three perspectives follow from it, one retrospective each, written in this order
 - **Worker.** Performs the Work, keeps `work/` (Intent as given and never changed by the Worker, Requirements, Architecture, evidence), resolves findings, and writes `retro-work.md` first. While acting as Worker it does not write rounds.
 - **Reviewer.** Reviews the Work as realized and writes rounds in `review/`, and `retro-review.md`, last. While acting as Reviewer it does not change `work/`, and it neither owns nor changes the Intent.
 
-Role boundaries are ordered knowledge boundaries: they say whose perspective an act comes from and what it may draw on, not whom to ask. A legal next act is not a permission request, and the Owner is asked only for the Owner's own acts (the Intent, the judgment of the sealed Work, the text of `retro-owner.md`). Everything else the process makes legal may be carried forward by the actor holding the role, through closure.
+Role boundaries are ordered knowledge boundaries: they say whose perspective an act comes from and what it may draw on, not whom to ask. A legal next act is not a permission request, and the Owner is asked only for the Owner's own acts (the judgment of the sealed Work, the text of `retro-owner.md`, and what to do with an Intent that cannot be delivered as stated). Describing the Intent is co-work between the human and the Owner; once it is handed to the Worker, the Worker neither owns nor revises it. Everything else the process makes legal may be carried forward by the actor holding the role, through closure.
 
 Reviewer and Owner differ even when one actor holds both: the Reviewer judges whether the observed Work conforms to the change as intended; the Owner judges whether the intended change was what was wanted.
 

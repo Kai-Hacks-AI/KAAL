@@ -8,9 +8,9 @@ The friction was not a missing step. The process already orders every act. What 
 
 The smallest thing is a statement, not machinery: the Agent Skill of Changing KAAL says what the handoff is, what a transition is not, where the real boundaries are, and what may be carried after each. No Node, artifact, evaluator change or metadata is added (R9).
 
-- The **handoff** is the described Intent itself, held as `work/01-intent.md`. It is not a second artifact: an Intent the Owner has described and given to the Worker is the authority to work.
+- The **handoff** is the described Intent itself, given to the Worker. It is not a second artifact and not bound to any file: the Work record represents the Intent, and whether a stage is one file, a directory of artifacts or another adequate representation is left open. The described Intent, handed to the Worker, is what is authoritative.
 - **Continuation** is stated per role in the Skill's steps. The Worker's step no longer ends in a stop; it ends where Review is actually needed. The steps after the Owner's act name what the remaining holder of the Reviewer role does through closure.
-- **Boundaries** are three, stated once: Owner decisions (Intent, judgment of the Work, `retro-owner.md`), Review when the process requires it, and host admission. Where Review falls within the progression is deliberately left open; the Skill states only that a finished stage is not a handoff.
+- **Boundaries** are three, stated once: Owner decisions (judgment of the Work, `retro-owner.md`, what to do with an undeliverable Intent), Review when the process requires it, and host admission. Where Review falls within the progression is deliberately left open; the Skill states only that a finished stage is not a handoff.
 - `references/rowing.md` carries the same distinction in its roles section: boundaries are ordered knowledge boundaries, not permission requests.
 
 ## Considered and not chosen
