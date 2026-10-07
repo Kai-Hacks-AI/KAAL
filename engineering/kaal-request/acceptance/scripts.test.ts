@@ -183,6 +183,27 @@ test("a link is seen before a later .. can erase it, and ordinary .. through rea
   assert.equal(here("..").code, 1, "the parent of the working directory is not a KAAL directory");
 });
 
+test("a missing or non-directory component is refused before a later .. can erase it", (t) => {
+  const home = mkdtempSync(join(tmpdir(), "request-bad-"));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  mkdirSync(join(home, ".kaal/core"), { recursive: true });
+  mkdirSync(join(home, "real"));
+  writeFileSync(join(home, "plain-file"), "x");
+  const here = (kaalDir: string) => {
+    const r = spawnSync("node", [join(SCRIPTS, "request.mjs"), "write", kaalDir, "--wanted", "a", "--missing", "b", "--date", "2026-10-07"], { encoding: "utf8", cwd: home });
+    return { code: r.status, err: r.stderr.trim() };
+  };
+  for (const dir of ["missing/../.kaal", "plain-file/../.kaal", "./missing/../.kaal/", join(home, "missing") + "/../.kaal", join(home, "plain-file") + "/../.kaal/", "real/missing/../../.kaal", "plain-file", "missing"]) {
+    const r = here(dir);
+    assert.equal(r.code, 1, dir);
+    assert.match(r.err, /not a KAAL directory/, dir);
+  }
+  assert.deepEqual(readdirSync(join(home, ".kaal")), ["core"], "no carrier directory was made");
+  assert.deepEqual(readdirSync(home).sort(), [".kaal", "plain-file", "real"], "and nothing else was");
+  assert.equal(here("real/../.kaal").code, 0, ".. through real directories is still ordinary navigation");
+  assert.ok(existsSync(join(home, ".kaal/requests/26/10/07/01.md")));
+});
+
 test("check accepts exactly the canonical form and nothing else", (t) => {
   const d = kaal(t);
   const ok = canonical("a", "b\n\nmore");

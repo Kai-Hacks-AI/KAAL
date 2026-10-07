@@ -75,8 +75,9 @@ const isDirectory = (path) => existsSync(path) && lstatSync(path).isDirectory();
 /**
  * The absolute directory a path names, found component by component, so that a
  * symbolic link is seen before any later `..` could hide it: the path is never
- * normalised first. A `..` after only real directories is the plain parent.
- * Returns the directory, or the first component that is a symbolic link.
+ * normalised first. Every component must exist and be a real directory before
+ * the next is applied, so a `..` only ever follows real directories and is then
+ * the plain parent. Returns the directory, or why the path is not one.
  */
 function locate(given) {
   const path = isAbsolute(given) ? given : process.cwd() + sep + given;
@@ -89,7 +90,10 @@ function locate(given) {
       continue;
     }
     current = join(current, part);
-    if (lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) return { link: current };
+    const found = lstatSync(current, { throwIfNoEntry: false });
+    if (!found) return { refused: `${current} does not exist` };
+    if (found.isSymbolicLink()) return { refused: `${current} is a symbolic link, and nothing is written through a link` };
+    if (!found.isDirectory()) return { refused: `${current} is not a directory` };
   }
   return { directory: current };
 }
@@ -104,8 +108,8 @@ function day(date) {
 
 /** Create the next carrier in `kaalDir`; returns its path relative to it. Refuses to replace anything. */
 export function write(given, texts, date) {
-  const { directory: kaalDir, link } = locate(given);
-  if (link) throw new Error(`${given} is not a KAAL directory: ${link} is a symbolic link, and nothing is written through a link`);
+  const { directory: kaalDir, refused } = locate(given);
+  if (refused) throw new Error(`${given} is not a KAAL directory: ${refused}`);
   if (!isDirectory(kaalDir)) throw new Error(`${given} is not a KAAL directory: it is not a directory of its own (a link, or not a directory)`);
   if (!isDirectory(join(kaalDir, "core"))) throw new Error(`${given} is not a KAAL directory: it has no core/`);
   const content = render(texts);
