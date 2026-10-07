@@ -21,7 +21,7 @@ export type Stage =
   | "RETRO-OWNER PRESENT"
   | "RETROS PRESENT"
   | "CHANGE CLOSED"
-  | "CHANGE MISSING";
+  | "SEALED HISTORY DAMAGED";
 
 export interface State {
   stage: Stage;
@@ -74,10 +74,10 @@ export function stateOf(kaalDir: string, change: string): State {
   try {
     state = derive(kaalDir, change);
   } catch (error) {
-    // A Change directory removed whole leaves its seals behind: that is a sealed record removed, not an address that never existed. An address nothing sealed is still an error.
+    // The seals exclude a Change's address, so a sealed record that is gone cannot be tied to the address asked about. All that is known is that the requested Change cannot be resolved while sealed history is damaged; the error itself is kept, so an address that never existed is not hidden.
     const broken = checkChanges(kaalDir).filter((p) => p.endsWith("was altered or removed"));
     if (broken.length === 0) throw error;
-    return { stage: "CHANGE MISSING", next: restore, problems: broken };
+    return { stage: "SEALED HISTORY DAMAGED", next: `${change} cannot be resolved while sealed history is damaged: ${restore}`, problems: [(error as Error).message, ...broken] };
   }
   if (!state.problems.some((p) => p.endsWith("was altered or removed"))) return state;
   return { ...state, next: restore };
