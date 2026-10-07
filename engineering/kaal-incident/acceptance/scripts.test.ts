@@ -159,6 +159,30 @@ test("it never writes through a link in an ancestor of the KAAL directory either
   assert.equal(here(home, "outside/.kaal").code, 0, "the same directory by its real path is fine");
 });
 
+test("a link is seen before a later .. can erase it, and ordinary .. through real directories still works", (t) => {
+  const home = mkdtempSync(join(tmpdir(), "incident-dots-"));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  mkdirSync(join(home, "outside/deeper"), { recursive: true });
+  mkdirSync(join(home, "outside/.kaal/core"), { recursive: true });
+  mkdirSync(join(home, ".kaal/core"), { recursive: true });
+  symlinkSync(join(home, "outside/deeper"), join(home, "alias"));
+  const here = (kaalDir: string) => {
+    const r = spawnSync("node", [join(SCRIPTS, "incident.mjs"), "write", kaalDir, "--happened", "a", "--expected", "b", "--date", "2026-10-07"], { encoding: "utf8", cwd: home });
+    return { code: r.status, err: r.stderr.trim() };
+  };
+  for (const dir of ["alias/../.kaal", "alias/../.kaal/", "./alias/../.kaal", join(home, "alias") + "/../.kaal", join(home, "alias") + "/../.kaal/"]) {
+    const r = here(dir);
+    assert.equal(r.code, 1, dir);
+    assert.match(r.err, /not a KAAL directory/, dir);
+  }
+  assert.deepEqual(readdirSync(join(home, ".kaal")), ["core"], "nothing lands in the other instance");
+  assert.deepEqual(readdirSync(join(home, "outside/.kaal")), ["core"], "nor in the one the link would reach");
+  assert.equal(here("outside/deeper/../.kaal").code, 0, ".. through real directories is ordinary navigation");
+  assert.deepEqual(readdirSync(join(home, "outside/.kaal")).sort(), ["core", "incidents"], "and it names the directory the system does");
+  assert.deepEqual(readdirSync(join(home, ".kaal")), ["core"]);
+  assert.equal(here("..").code, 1, "the parent of the working directory is not a KAAL directory");
+});
+
 test("check accepts exactly the canonical form and nothing else", (t) => {
   const d = kaal(t);
   const ok = canonical("a", "b\n\nmore");

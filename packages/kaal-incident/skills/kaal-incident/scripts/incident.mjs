@@ -21,7 +21,7 @@
 // exactly this form. Whether, how or when a carrier leaves the client is not
 // decided here. A text given as `@path` is read from that file.
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join, parse as parsePath, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, parse as parsePath, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const TITLE = "KAAL Incident";
@@ -72,15 +72,26 @@ export const isCarrier = (content) => parse(content) !== undefined;
 /** A real directory: a symbolic link is not one, so nothing is ever written through a link. */
 const isDirectory = (path) => existsSync(path) && lstatSync(path).isDirectory();
 
-/** The first component of an absolute path that is a symbolic link, if any: the root, and every ancestor, is checked. */
-function linkIn(path) {
+/**
+ * The absolute directory a path names, found component by component, so that a
+ * symbolic link is seen before any later `..` could hide it: the path is never
+ * normalised first. A `..` after only real directories is the plain parent.
+ * Returns the directory, or the first component that is a symbolic link.
+ */
+function locate(given) {
+  const path = isAbsolute(given) ? given : process.cwd() + sep + given;
   const { root } = parsePath(path);
   let current = root;
-  for (const part of path.slice(root.length).split(sep).filter(Boolean)) {
+  for (const part of path.slice(root.length).split(sep === "\\" ? /[\\/]+/ : sep)) {
+    if (part === "" || part === ".") continue;
+    if (part === "..") {
+      current = dirname(current);
+      continue;
+    }
     current = join(current, part);
-    if (lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) return current;
+    if (lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) return { link: current };
   }
-  return undefined;
+  return { directory: current };
 }
 
 /** Today in UTC, or `date` if given, as [YY, MM, DD]. */
@@ -93,8 +104,7 @@ function day(date) {
 
 /** Create the next carrier in `kaalDir`; returns its path relative to it. Refuses to replace anything. */
 export function write(given, texts, date) {
-  const kaalDir = resolve(given);
-  const link = linkIn(kaalDir);
+  const { directory: kaalDir, link } = locate(given);
   if (link) throw new Error(`${given} is not a KAAL directory: ${link} is a symbolic link, and nothing is written through a link`);
   if (!isDirectory(kaalDir)) throw new Error(`${given} is not a KAAL directory: it is not a directory of its own (a link, or not a directory)`);
   if (!isDirectory(join(kaalDir, "core"))) throw new Error(`${given} is not a KAAL directory: it has no core/`);
