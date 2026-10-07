@@ -132,6 +132,33 @@ test("it never writes through a link: a linked carrier directory, dated director
   assert.equal(write(join(home, "real") + "/", "a", "b", "--date", "2026-10-07").code, 0, "a real directory is fine with a trailing slash");
 });
 
+test("it never writes through a link in an ancestor of the KAAL directory either, however the path is spelled", (t) => {
+  const home = mkdtempSync(join(tmpdir(), "request-anc-"));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  mkdirSync(join(home, "outside/.kaal/core"), { recursive: true });
+  mkdirSync(join(home, "outside/deeper/.kaal/core"), { recursive: true });
+  symlinkSync(join(home, "outside"), join(home, "alias"));
+  const args = ["--wanted", "a", "--missing", "b", "--date", "2026-10-07"];
+  const here = (cwd: string, kaalDir: string) => {
+    const r = spawnSync("node", [join(SCRIPTS, "request.mjs"), "write", kaalDir, ...args], { encoding: "utf8", cwd });
+    return { code: r.status, err: r.stderr.trim() };
+  };
+  for (const [name, cwd, dir] of [
+    ["absolute", home, join(home, "alias/.kaal")],
+    ["absolute with a trailing slash", home, join(home, "alias/.kaal") + "/"],
+    ["relative", home, "alias/.kaal"],
+    ["relative with a dot", home, "./alias/./.kaal/"],
+    ["a link further up", home, join(home, "alias/deeper/.kaal")],
+  ] as const) {
+    const r = here(cwd, dir);
+    assert.equal(r.code, 1, name);
+    assert.match(r.err, /not a KAAL directory/, name);
+  }
+  assert.deepEqual(readdirSync(join(home, "outside/.kaal")), ["core"], "nothing lands behind the link");
+  assert.deepEqual(readdirSync(join(home, "outside/deeper/.kaal")), ["core"]);
+  assert.equal(here(home, "outside/.kaal").code, 0, "the same directory by its real path is fine");
+});
+
 test("check accepts exactly the canonical form and nothing else", (t) => {
   const d = kaal(t);
   const ok = canonical("a", "b\n\nmore");

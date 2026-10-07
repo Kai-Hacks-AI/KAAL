@@ -25,17 +25,27 @@ The install check reported a carrier in `.kaal/` as "not delivered by any packag
 
 Nothing was pushed to any other repository and no external client was involved.
 
-## Review round 01
+## Review provenance (corrected after the Worker's disclosure on the PR)
 
-One finding: `write` followed symbolic links, so a linked `incidents/` could take a carrier outside the KAAL directory. Resolved in both scripts (same code): `core/` and every existing component of `<carrier dir>/YY/MM/DD` must be a real directory, checked with `lstat`, or `write` refuses with nothing written; acceptance covers a linked carrier directory, a linked dated directory, a dangling link and a linked `core/`.
+Rounds `review/01.md` to `review/04.md` were written by subagents the Worker started and briefed (round 01 and 02 by one subagent, resumed; 03 and 04 by freshly started ones, also posted as PR comment reviews). They are Worker-side probes, not the independently supplied Reviewer, and nothing below counts them as Reviewer evidence. They are kept as written and are not edited or removed. What they found is real work that was resolved, listed here for the record:
 
-## Review round 03 and the Codex review
+- Round 01: `write` followed symbolic links below the KAAL directory. Resolved: `core/` and every existing component of `<carrier dir>/YY/MM/DD` must be a real directory (`lstat`).
+- Rounds 03 and 04: no findings.
 
-Round 03 (a freshly started Reviewer subagent, no earlier round context; same model and GitHub identity as the Worker) converged. A Codex review on the PR (commit `00a24fc`) then raised two P2 findings, both real and resolved in both packages:
+## Codex review of `00a24fc` (not appointed by the Worker)
 
-1. A symbolic link as the KAAL directory itself was accepted: `write` now resolves the given path (a trailing slash no longer hides a link), refuses unless the KAAL directory is itself a real directory, then applies the existing `core/` and path-component checks. Acceptance covers the link with and without a trailing slash and that nothing lands behind it.
-2. Each `SKILL.md` told the agent to commit the carrier when the KAAL directory is version-controlled, importing repository policy into a capability whose scope ends at local carriage. The instruction is removed; what becomes of a carrier beyond the KAAL directory is stated to be the client's. Acceptance holds each manifest free of instructions to commit, push, publish or submit.
+Two P2 findings, both real, resolved in both packages in `fd6fd07`:
 
-Also corrected: `SKILL.md` said the KAAL directory is "by default `.kaal`" although the script requires it to be given; it now says it is always given, usually `.kaal`.
+1. A symbolic link as the KAAL directory itself was accepted.
+2. Each `SKILL.md` told the agent to commit the carrier, importing repository policy into a capability whose scope ends at local carriage. The instruction is removed; what becomes of a carrier beyond the KAAL directory is stated to be the client's, and acceptance holds each manifest free of instructions to commit, push, publish or submit.
 
-Acceptance is now 21 tests per capability in `engineering/kaal-incident` and `engineering/kaal-request`.
+Also corrected then: `SKILL.md` said the KAAL directory is "by default `.kaal`" although the script requires it to be given; it now says it is always given, usually `.kaal`.
+
+## Review round 05 (the Reviewer supplied by the Owner: a ChatGPT/Codex session directed by Kai, separate from the Worker session)
+
+Two findings against the Work at `be5d15d0…`:
+
+1. Both writers still wrote through a symbolic link in an *ancestor* of the KAAL directory (`alias/.kaal` with `alias` a link), because `lstat` covered only the final component and below. Resolved in both scripts: every component of the resolved absolute path of the KAAL directory, from the root, is checked, and a symbolic link anywhere refuses with nothing written. Acceptance covers the link as an ancestor, further up, absolute, absolute with a trailing slash, relative and relative with dot segments, asserts no carrier appears behind it, and that the same directory by its real path is accepted. A relative path spelled from inside a linked working directory cannot be detected, because the operating system reports the working directory by its real path; that case already is the real path.
+2. This evidence presented round 03 as a converged Reviewer pass. Corrected above.
+
+Acceptance is now 22 tests per capability in `engineering/kaal-incident` and `engineering/kaal-request`. The Change's process state, as `change-state` prints it, reads "converged" from round 04; per the Owner's account of the review, that answer comes from a withdrawn Worker-side round and is not evidence of independent convergence. No independent round has yet converged on the Work as it now stands.
