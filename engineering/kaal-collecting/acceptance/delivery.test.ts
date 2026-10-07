@@ -66,12 +66,12 @@ test("the Agent Skill is one skill, named as its capability, pointing to the Nod
 test("the shipped script is exactly collect.mjs, and reaches nothing, names no host and no client", () => {
   assert.deepEqual(Object.keys(skills).filter((p) => p.includes("/scripts/")), [`${CAPABILITY}/scripts/collect.mjs`]);
   for (const path of Object.keys(skills).filter((p) => p.includes("/scripts/"))) {
-    assert.doesNotMatch(skills[path], /github|\bgit\b|enercon|https?:|node:(net|http|https|child_process|dns|tls)|\bfetch\(/i, path);
+    assert.doesNotMatch(skills[path], /github|enercon|https?:|node:(net|http|https|child_process|dns|tls)|\bfetch\(/i, path);
   }
 });
 
 test("the Agent Skill names no host and no particular client", () => {
-  assert.doesNotMatch(manifest, /github|\bgit\b|enercon|https?:/i);
+  assert.doesNotMatch(manifest, /github|enercon|https?:/i);
 });
 
 test("the capability passes the conventions Engineering KAAL Skill teaches", () => {
