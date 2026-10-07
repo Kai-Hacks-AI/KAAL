@@ -50,9 +50,9 @@ const sealedWork = (t: TestContext) => {
 
 test("a newly allocated Change is open; open Work may evolve and has a deterministic identity", (t) => {
   const dir = kaal(t);
-  assert.equal(stage(dir), "WORK OPEN\nnext: do the work in work/, then have it reviewed");
+  assert.equal(stage(dir), "WORK OPEN\nnext: the Worker does the work in work/, then it is reviewed");
   work(dir);
-  assert.match(stage(dir), /^WORK OPEN\nnext: complete the work, then have it reviewed: the Reviewer writes review\/01\.md naming work [0-9a-f]{64}$/);
+  assert.match(stage(dir), /^WORK OPEN\nnext: the Worker completes the work, then it is reviewed: the Reviewer writes review\/01\.md naming work [0-9a-f]{64}$/);
   const before = workId(dir);
   assert.equal(workId(dir), before, "the identity is deterministic");
   writeFileSync(join(dir, C, "work", "a"), "evolved");
@@ -65,12 +65,12 @@ test("review is rounds: findings keep the Work open, a change after a round call
   const dir = kaal(t);
   work(dir);
   round(dir, "01", "findings");
-  assert.match(stage(dir), /^WORK OPEN\nnext: resolve the findings of review\/01\.md in work\/, then have it reviewed again: the Reviewer writes review\/02\.md$/);
+  assert.match(stage(dir), /^WORK OPEN\nnext: the Worker resolves the findings of review\/01\.md in work\/, then it is reviewed again: the Reviewer writes review\/02\.md$/);
   assert.equal(run("seal-work", dir, C).code, 1, "findings stand: the Work is not sealed");
   writeFileSync(join(dir, C, "work", "a"), "resolved");
-  assert.match(stage(dir), /^WORK OPEN\nnext: the work changed since review\/01\.md: have it reviewed again, the Reviewer writes review\/02\.md naming work [0-9a-f]{64}$/);
+  assert.match(stage(dir), /^WORK OPEN\nnext: the work changed since review\/01\.md: it is reviewed again, the Reviewer writes review\/02\.md naming work [0-9a-f]{64}$/);
   round(dir, "02", "converged");
-  assert.equal(stage(dir), "REVIEW CONVERGED\nnext: seal work");
+  assert.equal(stage(dir), "REVIEW CONVERGED\nnext: the Worker seals work");
   assert.equal(run("state", dir, C).code, 0);
   writeFileSync(join(dir, C, "work", "a"), "changed after convergence");
   assert.match(stage(dir), /^WORK OPEN\nnext: the work changed since review\/02\.md/, "changing the Work after convergence undoes convergence");
@@ -91,7 +91,7 @@ test("only the latest round decides: a later round with findings reopens what an
   work(dir);
   round(dir, "01", "converged");
   round(dir, "02", "findings");
-  assert.match(stage(dir), /^WORK OPEN\nnext: resolve the findings of review\/02\.md/);
+  assert.match(stage(dir), /^WORK OPEN\nnext: the Worker resolves the findings of review\/02\.md/);
   assert.equal(run("seal-work", dir, C).code, 1);
 });
 
@@ -147,6 +147,7 @@ test("any mutation of sealed Work is detected, and cannot be laundered by sealin
     const state = run("state", dir, C);
     assert.equal(state.out.split("\n")[0], "WORK OPEN", `${what}: no longer sealed`);
     assert.equal(state.code, 1, `${what}: with a problem`);
+    assert.match(state.out, /\nnext: restore the altered or removed sealed record/, `${what}: next says to restore, not to proceed`);
     assert.equal(run("seal-work", dir, C).code, 1, `${what}: sealing again is refused, review having named other Work`);
   }
 });
@@ -187,7 +188,7 @@ test("a retrospective is not a valid step before Work is sealed, and sealing Wor
     retro(dir, name);
     const state = run("state", dir, C);
     assert.equal(state.out.split("\n")[0], "REVIEW CONVERGED");
-    assert.match(state.out, new RegExp(`next: remove ${name.replace(".", "\\.")}, then seal work`));
+    assert.match(state.out, new RegExp(`next: remove ${name.replace(".", "\\.")}, then the Worker seals work`));
     assert.equal(state.code, 1, name);
     assert.equal(run("seal-work", dir, C).code, 1);
     assert.equal(run("close", dir, C).code, 1);
@@ -201,7 +202,7 @@ test("once Work is sealed, the retrospectives follow in order, Worker then Owner
   const steps = [
     ["retro-work.md", "RETRO-WORK PRESENT\nnext: the Owner judges the sealed Work against the Intent, a judgment that is no artifact, then writes retro-owner.md (the Owner's seat)"],
     ["retro-owner.md", "RETRO-OWNER PRESENT\nnext: the Reviewer writes retro-review.md (the review's seat), last, with the Worker's and the Owner's retrospectives to hand"],
-    ["retro-review.md", "RETROS PRESENT\nnext: seal Change"],
+    ["retro-review.md", "RETROS PRESENT\nnext: the Reviewer seals Change"],
   ] as const;
   for (const [name, expected] of steps) {
     retro(dir, name);
