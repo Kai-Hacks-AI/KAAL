@@ -13,6 +13,8 @@ New tests, each on a host that is not this repository (a README and an AGENTS.md
 
 Review round 02 (two P2 findings) added: the same declaration as a folded scalar, a literal scalar, a quoted scalar and over several lines cannot bypass composition (install refuses with nothing written; with both IDs the unmet set is empty); and a declared need whose delivery is unavailable (its package absent, or present without a built payload) stays unmet, is refused before any write and is named by `check`, with a message saying that no exact Node ID exists to select. A declaration naming only Core's package, or nothing, needs nothing (`kaal-engineering`, `kaal-retro`).
 
+Review round 03 (one P2 finding) added: the decoded value is read, not the source lines. An escape-spelled dependency (`kaal\\u002dsealing`), an anchor, a tag and a flow collection are refused before any write with the reason stated; a comment outside the scalar invents no need; a doubled single quote, a block scalar's `#` and a trailing comment are read as the strings they decode to.
+
 One existing test installed `kaal-changing` alone to show that only installed Skills are delivered; it now uses `kaal-retro`, which needs no sibling.
 
 ## Scratch clone of Kai-Hacks-AI/Enercon (not pushed; its remote was removed from the scratch copy)

@@ -563,3 +563,34 @@ test("a declaration naming Core's own package, or nothing, needs nothing", async
   assert.deepEqual((await delivery(dir, join(SOURCE, "packages"), [await nodeId("kaal-engineering")])).unmet, []);
   assert.deepEqual((await delivery(dir, join(SOURCE, "packages"), [await nodeId("kaal-retro")])).unmet, []);
 });
+
+test("the declaration is read as its decoded value: an escape cannot hide a need, a comment cannot invent one, and what cannot be read reliably is refused", async (t) => {
+  const sealingSkills = (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+  const root = (to: (v: string) => string) => packageRoot(t, changingIn(declaration(changingSkills, to), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: sealingSkills } }));
+  const id = await nodeId("kaal-changing");
+  // Refused before any write, naming that the declaration cannot be read: the same string spelled with an escape, an anchor, a tag, a flow collection.
+  for (const to of [
+    (v: string) => `compatibility: "${v.replace("kaal-sealing", "kaal\\u002dsealing")}"`,
+    (v: string) => `compatibility: &needs ${v}`,
+    (v: string) => `compatibility: !!str ${v}`,
+    (v: string) => `compatibility: [${v}]`,
+  ]) {
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, root(to), [id]);
+    assert.equal(d.unmet.length, 1, d.unmet.join("\n"));
+    assert.match(d.unmet[0], /compatibility declaration is .* which cannot be read reliably here/);
+    assert.throws(() => install(dir, d), /nothing was written/);
+    assert.equal(whole(dir), before);
+  }
+  // Read as the string they decode to: a comment outside the scalar is not part of it, a doubled single quote is one quote, a block scalar keeps its '#'.
+  const dir = host(t);
+  const reads: [(v: string) => string, number][] = [
+    [(v) => `compatibility: Needs Node.js 20 or later. # ${v.slice(v.indexOf("kaal-sealing"))}`, 0],
+    [(v) => `compatibility: 'It''s needed: ${v}'`, 1],
+    [(v) => `compatibility: >-\n  ${v}`, 1],
+    [(v) => `compatibility: |\n  Needs Node.js. # ${v}`, 1],
+    [(v) => `compatibility: ${v} # a comment`, 1],
+  ];
+  for (const [to, expected] of reads) assert.equal((await delivery(dir, root(to), [id])).unmet.length, expected, to("kaal-sealing").slice(0, 60));
+});
