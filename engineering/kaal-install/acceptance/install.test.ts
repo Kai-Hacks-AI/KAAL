@@ -14,19 +14,21 @@ import { dirname, join } from "node:path";
 import { contributions, core, delivery, nodes, packages, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../helpers/delivery.js";
 import { check, install } from "../helpers/state.js";
 import * as changing from "kaal-changing";
+import * as collecting from "kaal-collecting";
 import * as engineering from "kaal-engineering";
 import * as retro from "kaal-retro";
 import * as sealing from "kaal-sealing";
 
-const SKILLS = ["Changing KAAL", "Engineering Skill", "Retro", "Sealing"];
+const SKILLS = ["Changing KAAL", "Collecting KAAL", "Engineering Skill", "Retro", "Sealing"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
   ["kaal-engineering", engineering.payload],
   ["kaal-changing", changing.payload],
+  ["kaal-collecting", collecting.payload],
   ["kaal-retro", retro.payload],
   ["kaal-sealing", sealing.payload],
 ];
-const CAPABILITIES = ["kaal-changing", "kaal-engineering", "kaal-retro", "kaal-sealing"];
+const CAPABILITIES = ["kaal-changing", "kaal-collecting", "kaal-engineering", "kaal-retro", "kaal-sealing"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
 type After = { after: (fn: () => void) => void };
@@ -278,6 +280,19 @@ test("changes, the genuine installed state, survive installing and are outside t
   assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
 });
 
+test("collections, what this KAAL collected from its clients, are installed state too: they survive installing and are outside the check", async (t) => {
+  const dir = await full(t);
+  const carrier = join(dir, KAAL_DIR, "collections", "26", "10", "07", "01", "some-client", "carriers", "a.md");
+  put(carrier, "one");
+  await installed(dir);
+  assert.equal(readFileSync(carrier, "utf8"), "one");
+  assert.deepEqual(await problems(dir), [], "collections are not a package's delivery");
+  writeFileSync(carrier, "edited");
+  assert.deepEqual(await problems(dir), [], "the check does not judge collected evidence");
+  assert.equal(readFileSync(carrier, "utf8"), "edited");
+  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
+});
+
 test("Change and named-tree seals, seals/changes/ and seals/trees/, are installed state too, while a stray Node-level seal is still refused", async (t) => {
   const dir = await full(t);
   const id = "a".repeat(64);
@@ -397,7 +412,7 @@ test("Skills and Extensions are delivered side by side, each by its own registra
   const dir = await full(t);
   core.registerExtension(join(dir, KAAL_DIR), "kaal-hosting", hosting.files);
   const d = await delivery(dir, root);
-  assert.deepEqual(d.unresolved.map((u) => u.kind), ["Skill", "Skill", "Skill", "Skill"], "the repository's own packages are not at this root, so its installed Skills are unresolved there");
+  assert.deepEqual(d.unresolved.map((u) => u.kind), ["Skill", "Skill", "Skill", "Skill", "Skill"], "the repository's own packages are not at this root, so its installed Skills are unresolved there");
   const own = await delivery(dir);
   assert.deepEqual(own.capabilities, CAPABILITIES, "with this repository's packages, the Skills are delivered as before");
   assert.ok(!Object.keys(own.kaal).some((p) => p.startsWith("extensions/")), "an Extension no package here delivers adds nothing");
@@ -425,7 +440,7 @@ test("package delivery rule: a package delivers a Skill contribution or an Exten
  */
 function scratchProjection(t: After, remove: (scratch: string) => void = () => {}): string {
   const dir = checkout(t);
-  const history = [CHANGES_DIR, join("seals", "changes"), join("seals", "trees")].map((p) => join(SOURCE, KAAL_DIR, p));
+  const history = [CHANGES_DIR, "collections", join("seals", "changes"), join("seals", "trees")].map((p) => join(SOURCE, KAAL_DIR, p));
   cpSync(join(SOURCE, KAAL_DIR), join(dir, KAAL_DIR), { recursive: true, filter: (src) => !history.includes(src) });
   if (existsSync(join(SOURCE, HOST_SKILLS))) cpSync(join(SOURCE, HOST_SKILLS), join(dir, HOST_SKILLS), { recursive: true });
   remove(dir);
@@ -443,7 +458,7 @@ test("this repository's candidate delivery installs over its checked-in projecti
   const dir = scratchProjection(t);
   await installed(dir);
   assert.deepEqual(await problems(dir), []);
-  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Retro and Sealing are installed Skills");
+  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Collecting KAAL, Retro and Sealing are installed Skills");
   assert.deepEqual(core.installedExtensions(join(dir, KAAL_DIR)).map((e) => e.name), ["GitHub"], "GitHub is an installed Extension");
   assert.deepEqual((await deliver(dir)).capabilities, [...CAPABILITIES, "kaal-github"].sort(), "Skills and the Extension are delivered together");
 });

@@ -1,2 +1,3 @@
-# Change records are hashed as raw bytes: never convert line endings or content.
+# Change records and collected carriers are hashed as raw bytes: never convert line endings or content.
 .kaal/changes/** -text
+.kaal/collections/** -text
