@@ -20,7 +20,8 @@ export type Stage =
   | "RETRO-WORK PRESENT"
   | "RETRO-OWNER PRESENT"
   | "RETROS PRESENT"
-  | "CHANGE CLOSED";
+  | "CHANGE CLOSED"
+  | "SEALED HISTORY DAMAGED";
 
 export interface State {
   stage: Stage;
@@ -66,8 +67,23 @@ function rounds(kaalDir: string, change: string): { rounds: Round[]; problems: s
   return { rounds: found, problems };
 }
 
-/** Where this Change is, and what is allowed next. */
+/** Where this Change is, and what is allowed next. A sealed record that was altered or removed is the one thing that overrides the order: nothing is valid next until it is restored, whatever stage the rest of the tree resembles. */
 export function stateOf(kaalDir: string, change: string): State {
+  const restore = "restore the altered or removed sealed record, as it was sealed; nothing else is valid until then";
+  let state: State;
+  try {
+    state = derive(kaalDir, change);
+  } catch (error) {
+    // The seals exclude a Change's address, so a sealed record that is gone cannot be tied to the address asked about. All that is known is that the requested Change cannot be resolved while sealed history is damaged; the error itself is kept, so an address that never existed is not hidden.
+    const broken = checkChanges(kaalDir).filter((p) => p.endsWith("was altered or removed"));
+    if (broken.length === 0) throw error;
+    return { stage: "SEALED HISTORY DAMAGED", next: `${change} cannot be resolved while sealed history is damaged: ${restore}`, problems: [(error as Error).message, ...broken] };
+  }
+  if (!state.problems.some((p) => p.endsWith("was altered or removed"))) return state;
+  return { ...state, next: restore };
+}
+
+function derive(kaalDir: string, change: string): State {
   const path = change.replace(/\/$/, "");
   if (!changes(kaalDir).includes(path)) throw new Error(`${change} is not a Change directory of ${kaalDir}`);
   // Sealed Work or Change history that was altered or removed is reported with whatever state results.
@@ -98,13 +114,13 @@ export function stateOf(kaalDir: string, change: string): State {
   if (!sealed) {
     for (const n of [worker && RETRO_WORK, reviewer && RETRO_REVIEW, owner && RETRO_OWNER].filter((n): n is string => !!n)) problems.push(`${n} exists before the Work is sealed, so it is not a valid step`);
     const remove = stray.length > 0 ? `remove ${stray.join(", ")}, then ` : "";
-    if (converged) return { stage: "REVIEW CONVERGED", next: `${remove}seal work`, problems, ...base };
+    if (converged) return { stage: "REVIEW CONVERGED", next: `${remove}the Worker seals work`, problems, ...base };
     const number = String(review.rounds.length + 1).padStart(2, "0");
     let next: string;
-    if (id === undefined) next = `do the work in ${WORK}/, then have it reviewed`;
-    else if (latest === undefined) next = `complete the work, then have it reviewed: the Reviewer writes ${REVIEW}/${number}.md naming work ${id}`;
-    else if (latest.work !== id) next = `the work changed since ${REVIEW}/${latest.name}: have it reviewed again, the Reviewer writes ${REVIEW}/${number}.md naming work ${id}`;
-    else next = `resolve the findings of ${REVIEW}/${latest.name} in ${WORK}/, then have it reviewed again: the Reviewer writes ${REVIEW}/${number}.md`;
+    if (id === undefined) next = `the Worker does the work in ${WORK}/, then it is reviewed`;
+    else if (latest === undefined) next = `the Worker completes the work, then it is reviewed: the Reviewer writes ${REVIEW}/${number}.md naming work ${id}`;
+    else if (latest.work !== id) next = `the work changed since ${REVIEW}/${latest.name}: it is reviewed again, the Reviewer writes ${REVIEW}/${number}.md naming work ${id}`;
+    else next = `the Worker resolves the findings of ${REVIEW}/${latest.name} in ${WORK}/, then it is reviewed again: the Reviewer writes ${REVIEW}/${number}.md`;
     return { stage: "WORK OPEN", next: `${remove}${next}`, problems, ...base };
   }
   if (!converged) problems.push(`${WORK}/ is sealed without a converged review of exactly it: ${REVIEW}/ must end with a round that says converged and names work ${id}`);
@@ -116,13 +132,13 @@ export function stateOf(kaalDir: string, change: string): State {
   order.forEach(([name, here], k) => {
     if (here && k > done) problems.push(`${name} exists before ${order[done]![0]}: the retrospectives follow the order ${order.map(([n]) => n).join(", ")}`);
   });
-  if (done === 3) return { stage: "RETROS PRESENT", next: "seal Change", problems, ...base };
+  if (done === 3) return { stage: "RETROS PRESENT", next: "the Reviewer seals Change", problems, ...base };
   const stages = ["WORK SEALED", "RETRO-WORK PRESENT", "RETRO-OWNER PRESENT", "RETROS PRESENT"] as const;
   const nexts = [
     `the Worker writes ${RETRO_WORK} (the Work's seat), first`,
     `the Owner judges the sealed Work against the Intent, a judgment that is no artifact, then writes ${RETRO_OWNER} (the Owner's seat)`,
     `the Reviewer writes ${RETRO_REVIEW} (the review's seat), last, with the Worker's and the Owner's retrospectives to hand`,
-    "seal Change",
+    "the Reviewer seals Change",
   ];
   return { stage: stages[done]!, next: nexts[done]!, problems, ...base };
 }
@@ -139,7 +155,7 @@ export function sealWorkStep(kaalDir: string, change: string): string {
   return sealWork(kaalDir, change);
 }
 
-/** The step "seal Change": allowed only once the Work is sealed on a converged review and retro-work.md, retro-owner.md and retro-review.md are all present, in that order; closing a closed Change changes nothing. Returns the Change ID. */
+/** The step "the Reviewer seals Change": allowed only once the Work is sealed on a converged review and retro-work.md, retro-owner.md and retro-review.md are all present, in that order; closing a closed Change changes nothing. Returns the Change ID. */
 export function closeStep(kaalDir: string, change: string): string {
   const { stage, next, problems } = stateOf(kaalDir, change);
   if (stage !== "RETROS PRESENT" && stage !== "CHANGE CLOSED") throw new Error(`${change} is ${stage}: ${next} before sealing the Change`);

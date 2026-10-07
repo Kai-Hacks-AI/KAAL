@@ -21,12 +21,12 @@ changes/<name>/YY/MM/DD/CC/
 
 `work/` is scaffolding for learning this boundary, not a permanent KAAL concept; it is the first consumer of a **named tree**. A named tree's ID (`KAAL Tree v1`, Sealing's `artifact-id.mjs --named`) is the SHA-256 of a canonical stream over its own root name, its relative paths and exact bytes. Its parent and location are excluded: `A/work/` moved to `B/work/` keeps its identity, `work/` renamed to `evidence/` does not, and any edit, addition, deletion or inner move changes it. Its seal is the empty marker `seals/trees/<ID>`, outside what it seals. The Change identity (`KAAL Change v1`) is deliberately unchanged: it excludes the Change's own name, exactly as genesis `01` was sealed. `review/` and the retros sit outside `work/`, so adding them never disturbs the Work seal, and the final Change seal covers all of it. There is no round seal, no Retro seal, no role or writer-identity metadata and no status metadata: where a Change is, is derived from `work/`, `review/`, the three retros and the seals (`helpers/process.ts`, the one evaluator):
 
-- `WORK OPEN`, next: complete the work or resolve the findings of the latest round, then have it reviewed (any retro here is reported as an invalid step)
-- `REVIEW CONVERGED`, next: seal work
+- `WORK OPEN`, next: the Worker completes the work or resolves the findings of the latest round, then it is reviewed (any retro here is reported as an invalid step)
+- `REVIEW CONVERGED`, next: the Worker seals work
 - `WORK SEALED`, next: the Worker writes `retro-work.md`
 - `RETRO-WORK PRESENT`, next: the Owner judges the sealed Work against the Intent (no artifact), then writes `retro-owner.md`
 - `RETRO-OWNER PRESENT`, next: the Reviewer writes `retro-review.md`
-- `RETROS PRESENT` (all three, in that order), next: seal Change
+- `RETROS PRESENT` (all three, in that order), next: the Reviewer seals Change
 - `CHANGE CLOSED`
 
 **Review.** A round is the file `review/NN.md`, numbered `01`, `02`, … without a gap. The evaluator reads two of its lines, `Work: <identity>` and `Result: findings` or `Result: converged`, and nothing else; whether the findings are good is not its business. Review has converged exactly when the latest round says `converged` and names the identity of `work/` as it now stands, which `state` prints as `work:` while `work/` is open. Changing `work/` after a round therefore undoes convergence by itself, and a Reviewer who edits the Work invalidates its own round. Sealing Work is refused unless review has converged, and a sealed Work without a converged round naming exactly it is reported as a problem. "Work ready for review" is not derived: nothing in the artifacts tells finished Work from Work being written, and no file is added to say so.
@@ -37,6 +37,7 @@ The retros follow a fixed order, Worker, Owner, Reviewer, because knowledge accu
 
 ## Commands (from the repository root)
 
+- A sealed record that was altered or removed overrides the order in `next`: nothing is valid until it is restored, and the problem lines name it. When a sealed Change directory is removed whole, the seals (which exclude an address) cannot say which address it held, so any address asked about answers `SEALED HISTORY DAMAGED` with the same instruction, its own "not a Change directory" error kept among the problems; in an undamaged KAAL such an address is still an error.
 - `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC`: print the stage, what is next, the identity of `work/` as it now stands (`work:`, while the Change is not closed) and any problem (exit 1 when there is a problem).
 - `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`: seal the Work; refused unless review has converged on it, if any retro exists, or the Work is already sealed.
 - `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal the Change; refused unless the Work is sealed on a converged review and `retro-work.md`, `retro-owner.md` and `retro-review.md` are all present, in that order.
