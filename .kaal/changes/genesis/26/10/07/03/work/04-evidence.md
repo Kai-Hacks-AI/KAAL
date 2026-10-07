@@ -15,7 +15,7 @@ Only the Agent Skill of Changing KAAL, in `packages/kaal-changing/skills/kaal-ch
 
 ## The test, walked through the Skill
 
-The test is: after the Owner's one act, can the collaborating actor take the Change from that handoff through the remaining legal process without the Owner as a message router? Read literally, step 6 leaves the Owner two acts (judge, supply the text of `retro-owner.md`). Step 7 then says nothing between there and closing is the Owner's and the Reviewer-role holder writes `retro-review.md`; step 8 closes; Handoff and continuation says that actor may put the closed Change forward. Between those acts the Skill contains no stop and no request for a go. Where the answer is still no, it is stated: the Owner's own acts, Review by another actor when independence is wanted, and host admission.
+The test is: after the Owner's one act, can the collaborating actor take the Change from that handoff through the remaining legal process without the Owner as a message router? Read literally, step 6 leaves the Owner two acts (judge, supply the text of `retro-owner.md`). Step 7 then says nothing between there and closing is the Owner's and the Reviewer-role holder writes `retro-review.md`; step 8 closes; Handoff and continuation says that actor may put the closed Change forward. Between those acts the Skill contains no stop and no request for a go. Where the answer is still no, it is stated: the Owner's own acts, Review when the process requires it, and host admission. Placement of Review among the stages is left to be learned.
 
 ## Checks run
 

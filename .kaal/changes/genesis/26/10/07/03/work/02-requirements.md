@@ -4,7 +4,7 @@ R1. **The handoff is the authority to work.** The Owner describes the Intent wit
 
 R2. **A transition is not a permission.** Where the process says a next act is legal, and the actor holds the role of that act, the actor does it. Neither the order of acts nor the end of one of them calls for another "go".
 
-R3. **The Worker stops only at a boundary that is real.** There are two: a decision that is genuinely the Owner's and unresolved, and the Work being ready for Review by a Reviewer who is another actor. Nothing else is a stop.
+R3. **The Worker stops only at a boundary that is real.** The Worker continues until the process requires Review or a genuine authority boundary is met, which is a decision that is genuinely the Owner's and unresolved. Completion of a stage is not, by itself, a handoff. Where Review falls within the progression is not settled by this Change: boundaries that add value and those that are ceremony are learned from ordinary Changes. Nothing else is a stop.
 
 R4. **Roles are not actors.** One actor may hold several roles and several actors may share one Change. Role boundaries are ordered knowledge boundaries: they fix whose perspective an act comes from and what it may draw on, not who must be asked. The process asks for independence of the Reviewer; it does not make an actor switch merely to look independent, and it names no number of actors.
 
