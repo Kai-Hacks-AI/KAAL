@@ -16,7 +16,21 @@ AGENTS.md                        wired to .kaal/AGENTS.md by wire-kaal-agent
 
 Which Skills are installed is Core's answer, `installedSkills()`, and which Extensions are, `installedExtensions()`, derived from the admitted graph of the installed KAAL: no package layout, package name or list decides it. The packages supply only bytes: the package that delivers an installed Skill is the one carrying a Node with that exact ID (a package is any directory under `packages/` whose built `payload()` returns `{ kaal, skills }`). Nothing under `.kaal/` (except `changes/`) or under a delivered capability's `skills/` is written by hand, and the committed bytes are never the authority for package-derived state: the packages are. An Extension is delivered the same way, registered through Core's `registerExtension()` under `.kaal/extensions/<capability>/`; its package may carry no Agent Skill (its `payload()` is `{ kaal }`) and registers under its own directory name, and one package delivers one kind of KAAL contribution, a Skill or an Extension, never both. That is a package delivery rule, not a claim of CASE about what a capability may involve: CASE keeps Skill and Extension distinct, each package is independently selectable by an instance, and a capability that needs agent-facing Skill behaviour and an Extension is two packages. A package that exists but whose Skill or Extension is not installed is not installed; adding a capability is a visible change to `.kaal`.
 
-Genesis was bootstrapped explicitly: deploy Core, register Engineering KAAL Skill's contribution through Core, register Changing KAAL's the same way, then `install-kaal`. From then on `installedSkills()` is the truth. How a first Skill is selected on a generic fresh checkout is not designed here.
+Genesis was bootstrapped explicitly: deploy Core, register Engineering KAAL Skill's contribution through Core, register Changing KAAL's the same way, then `install-kaal`. From then on `installedSkills()` is the truth.
+
+## Installing into a repository that holds no KAAL
+
+A first Skill is selected on a fresh checkout by the exact ID of its Node, with `install-kaal --select <Node ID>` (repeatable). `list-kaal-capabilities` lists what the packages can deliver, each with its Node's ID, and whether the checkout has it; it selects nothing. Nothing is selected by name, and a name or an unknown ID is refused. A selected Node is registered through Core like any other, so Core's admission decides, and from then on it is installed state: `install-kaal` with no selection reproduces the installation, and no list, lock file or registry remembers the selection. The Agent entrypoint is wired by the existing `wire-kaal-agent`, which stays a separate step, and the checks (`check-kaal-install`, `check-kaal-agent`, `check-kaal-config`) are separate commands.
+
+```
+npm run list-kaal-capabilities
+npm run install-kaal -- --into <host> --select <Node ID> --select <Node ID>
+npm run wire-kaal-agent -- --agents <host>/AGENTS.md
+npm run check-kaal-install -- --into <host>
+npm run check-kaal-agent -- --agents <host>/AGENTS.md
+```
+
+Composition is explicit, never automatic. An Agent Skill may declare in its `compatibility` (the Agent Skills standard's free-text field) that it needs a sibling capability beside it (`kaal-changing` needs `kaal-sealing`). If a delivered Skill names a capability the packages can deliver and the KAAL does not have installed, `install-kaal` refuses and writes nothing, naming the exact Node ID that would select the missing one, and `check-kaal-install` reports it as a problem. Selecting a dependency is the caller's act, by its ID. This reads a declaration; it adds no machine-readable need and no dependency resolution, and Core does not know of it.
 
 ## Commands
 

@@ -8,6 +8,7 @@
 // contribution is registered through Core's registerSkill() into a throwaway
 // KAAL directory. The installed files are a projection of this, never its
 // source.
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -54,6 +55,8 @@ export interface Delivery {
   capabilities: string[];
   /** Installed Skills and Extensions that no package delivers. */
   unresolved: (Ref & { kind: Kind })[];
+  /** Capabilities a delivered Agent Skill declares it needs beside it that the KAAL does not have installed, with the exact Node ID that would select each. */
+  unmet: string[];
 }
 
 /** Files under a directory, keyed by path relative to it. */
@@ -65,7 +68,7 @@ export function read(dir: string): Files {
   return files;
 }
 
-interface Package {
+export interface Package {
   /** The name its contribution registers under: the Agent Skill the package realizes, or, for a package with none, the package's own directory. */
   capability: string;
   kaal: Files;
@@ -79,7 +82,7 @@ interface Package {
  * realizes exactly one; a package with none (an Extension's) registers under
  * its own directory name.
  */
-async function packages(root: string): Promise<Package[]> {
+export async function packages(root: string): Promise<Package[]> {
   const found: Package[] = [];
   for (const dir of readdirSync(root).sort()) {
     if (!existsSync(join(root, dir, "dist", "index.js"))) continue;
@@ -94,19 +97,51 @@ async function packages(root: string): Promise<Package[]> {
   return found;
 }
 
+const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
+/** The exact IDs of Core's Skill and Extension Nodes: what a Node's type must refer to for it to be one. */
+const KIND_ID: Record<Kind, string> = { Skill: sha256(core.payload()["core/Skill.md"]), Extension: sha256(core.payload()["core/Extension.md"]) };
+
+/** The Skill or Extension Nodes a package carries, by what their type refers to in Core and not by name. */
+export function contributions(pkg: Package): (Ref & { kind: Kind })[] {
+  const out: (Ref & { kind: Kind })[] = [];
+  for (const n of pkg.nodes) for (const kind of ["Skill", "Extension"] as const) if (n.type?.id === KIND_ID[kind]) out.push({ name: n.name, id: n.id, kind });
+  return out;
+}
+
+/** The `compatibility` an Agent Skill declares, in its SKILL.md frontmatter (the Agent Skills standard's free text). */
+function compatibility(pkg: Package): string {
+  const skill = pkg.skills[`${pkg.capability}/SKILL.md`] ?? "";
+  const front = skill.startsWith("---\n") ? skill.slice(4, skill.indexOf("\n---", 4)) : "";
+  return front.split("\n").find((l) => l.startsWith("compatibility:"))?.slice("compatibility:".length) ?? "";
+}
+
 /**
  * What the packages deliver for `target`: for the Skills and Extensions
  * already installed in its KAAL directory, as Core reports them. Core's
  * payload is always delivered. A Skill or an Extension enters the installed
- * KAAL by being registered through Core, never by being named here. `root` is
- * where the packages are; this repository's own by default.
+ * KAAL by being registered through Core, never by being named here. `select`
+ * is the one way a Skill or Extension that is not installed yet is chosen: by
+ * the exact ID of its Node, never by name; it is registered into the delivery
+ * through Core like any other, and Core's admission decides whether it is
+ * valid. `root` is where the packages are; this repository's own by default.
  */
-export async function delivery(target: string, root: string = join(SOURCE, "packages")): Promise<Delivery> {
+export async function delivery(target: string, root: string = join(SOURCE, "packages"), select: string[] = []): Promise<Delivery> {
   const dir = join(target, KAAL_DIR);
   const installed: (Ref & { kind: Kind })[] = existsSync(dir)
     ? [...core.installedSkills(dir).map((r) => ({ ...r, kind: "Skill" as const })), ...core.installedExtensions(dir).map((r) => ({ ...r, kind: "Extension" as const }))]
     : [];
   const all = await packages(root);
+  const have = new Set(installed.map((n) => n.id));
+  for (const id of select) {
+    if (have.has(id)) continue;
+    const node = all.flatMap((p) => contributions(p)).find((c) => c.id === id);
+    if (!node) {
+      const known = all.some((p) => p.nodes.some((n) => n.id === id));
+      throw new Error(known ? `select: ${id} is a Node of a package, but not a Skill or Extension Node` : `select: no package carries a Node with the exact ID ${id}`);
+    }
+    installed.push(node);
+    have.add(id);
+  }
   const wanted = new Map<Package, Kind>();
   const unresolved: (Ref & { kind: Kind })[] = [];
   for (const node of installed) {
@@ -129,7 +164,16 @@ export async function delivery(target: string, root: string = join(SOURCE, "pack
       Object.assign(skills, pkg.skills);
       capabilities.push(pkg.capability);
     }
-    return { kaal: read(expected), skills, capabilities, unresolved };
+    const unmet: string[] = [];
+    for (const pkg of wanted.keys()) {
+      const text = compatibility(pkg);
+      for (const other of all) {
+        if (other === pkg || wanted.has(other) || !new RegExp(`(?<![\\w-])${other.capability}(?![\\w-])`).test(text)) continue;
+        const ids = contributions(other).map((c) => `${c.name} ${c.id}`).join(", ");
+        unmet.push(`${pkg.capability} declares that it needs ${other.capability} beside it, which is not installed: select its Node by exact ID (${ids || "no Skill or Extension Node"})`);
+      }
+    }
+    return { kaal: read(expected), skills, capabilities, unresolved, unmet };
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }

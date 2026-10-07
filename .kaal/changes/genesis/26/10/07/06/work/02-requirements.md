@@ -21,15 +21,17 @@ So the transition works today, but only when someone writes the registration ste
 6. **Host-agnostic.** The mechanism has no knowledge of this repository's `.kaal/changes/genesis`, of Enercon, of Git, GitHub, CI, branches or accounts. It writes only the KAAL directory, the host's `skills/` entries of the capabilities it delivers, and the Agent wiring fragment. It does not assume the host has `package.json`, workspaces, TypeScript or Node tooling of its own.
 7. **Agent entrypoint is wired.** The fresh host ends with `AGENTS.md` wired to `.kaal/AGENTS.md` by the existing `wire-kaal-agent`, with the host's other `AGENTS.md` content untouched, and `check-kaal-agent` holds.
 8. **Append-only and idempotent.** Selection and installation refuse, writing nothing, rather than change sealed bytes; repeating them is a no-op. `.kaal/changes` is never touched.
-9. **Composed, not merely installed.** What a delivered Skill says it needs beside it (`kaal-changing` needs `kaal-sealing`) is visible before the host is left in a state where the Skill cannot work: either the dependency is part of the selection, or the result names the unmet need. Which of the two is Kai's call (see Not decided).
+9. **Composed, never merely installed.** `non-KAAL repository → installed, composed KAAL` is only reached when what a delivered Skill declares it needs beside it is installed too. The dependency is selected explicitly, by its own exact Node ID; there is no automatic dependency selection. When it is absent, the installer refuses and writes nothing, and the refusal names the exact Node ID that would select the missing capability. A warning alone, or an incomplete result, never counts as a successful installation or as acceptance. `check-kaal-install` likewise reports an installed KAAL that lacks a declared sibling. Acceptance proves the missing-dependency case as well as the composed success case.
 10. **Core, Changing, Sealing and CASE are unchanged.** No `kaal-core` change and no `.github` change; if either turns out to be necessary the Change stops and says so on the PR.
 11. **Proof on an external host.** Acceptance in `engineering/kaal-install` runs the transition on a copy of a host that is not this repository, and a recorded run against a scratch clone of `Kai-Hacks-AI/Enercon` shows `non-KAAL repository → installed, composed KAAL` ending in `check-kaal-install`, `check-kaal-agent` and `check-kaal-config` all holding. Nothing is pushed to Enercon and none of its settings are changed without Kai's explicit word on the PR.
 
+## Decided (Owner, review round 01)
+
+- Dependencies are explicit: the caller gives each dependency's exact Node ID (requirement 9). No automatic selection.
+- The command is repeatable `install-kaal --select <Node ID>`.
+- Installation, Agent wiring and the checks stay separate commands.
+- This Change uses this repository's packages; published delivery is deferred.
+
 ## Not decided
 
-Raised on the PR for the Owner, not settled in the Requirements:
-
-- **Dependencies (requirement 9).** Should selecting `kaal-changing` also select `kaal-sealing` automatically, or should the command refuse or warn until both IDs are given? A package can only say what it needs in prose today (its SKILL.md `compatibility`), so automatic selection would need a machine-readable need, which would be a new meaning.
-- **Where the one command lives.** `install-kaal --select <Node ID>` (repeatable) extends the existing command, or a separate command does the registration and `install-kaal` stays as it is.
-- **One command for the whole transition.** Whether the fresh-host path is the three existing steps (`install-kaal --select`, `wire-kaal-agent`, the checks) or one composed command that also wires the Agent entrypoint.
-- **The source of packages.** The installer projects from this repository's packages (`--into` names the host). Whether that is enough for an arbitrary repository, or a published delivery must also be possible, is not decided here.
+- How a Skill states what it needs, beyond what exists. Today the only declaration is the Agent Skills `compatibility` text, which the installer reads for the names of capabilities the packages deliver; a machine-readable need would be a new meaning and is not introduced here.
