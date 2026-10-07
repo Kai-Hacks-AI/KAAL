@@ -50,7 +50,7 @@ Result: findings | converged
 ...
 ```
 
-`Work` is the identity `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC` prints as `work:` while `work/` is open; name exactly that. `Result` is `findings` or `converged`. Under Findings, each finding is concrete and resolvable by the Worker without asking the Reviewer what it meant. A converged round says `None.`. After findings were resolved, the next round says whether each earlier finding stands. The evaluator reads the `Work` and `Result` lines and does not judge the rest.
+`Work` is the identity `node scripts/change-state.mjs <kaal-dir> changes/<name>/YY/MM/DD/CC` prints as `work:` while `work/` is open; name exactly that. `Result` is `findings` or `converged`. Under Findings, each finding is concrete and resolvable by the Worker without asking the Reviewer what it meant. A converged round says `None.`. After findings were resolved, the next round says whether each earlier finding stands. The evaluator reads the `Work` and `Result` lines and does not judge the rest.
 
 ## Iterating
 

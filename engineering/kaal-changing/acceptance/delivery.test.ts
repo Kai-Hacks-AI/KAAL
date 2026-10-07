@@ -164,7 +164,8 @@ test("the process adds no second implementation, no retro seal, no phase state a
   assert.doesNotMatch(manifest, /seal retro/i);
   assert.doesNotMatch(manifest, /\b(status|phase):/);
   assert.doesNotMatch(manifest, /\b(git|github|branch|commit|pull request|CI)\b/i);
-  assert.ok(!Object.keys(skills).some((p) => /seal|state/i.test(p.split("/").pop()!)), "no sealing or state script is shipped");
+  assert.ok(!Object.keys(skills).some((p) => /seal/i.test(p.split("/").pop()!)), "no sealing script is shipped");
+  assert.deepEqual(Object.keys(skills).filter((p) => /state/i.test(p.split("/").pop()!)), [`${CAPABILITY}/scripts/change-state.mjs`], "the one state script is the compass, which keeps no state: it derives it");
   assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")).sort(), [nodeFile, ratificationFile, rowingFile, workFile].sort(), "no Work, Role or other Node: only the Skill and three definitions");
   assert.ok(!/requirements\.md|architecture\.md|test\.md|intend\.md/.test(manifest), "RATIFICATION is not turned into files");
 });
@@ -174,10 +175,11 @@ test("the Changing KAAL Node and RATIFICATION are byte-for-byte what they were s
   assert.equal(sha256(kaal[ratificationFile]), "ff114bfe71e7780df04c290e142c002fe985046d2635b46c78ff3d1e464b9a77");
 });
 
-test("the only executable procedure is the allocator, and it carries no sealing of its own", () => {
+test("the executable procedures are the allocator and the process compass, and neither carries sealing of its own", () => {
   const scripts = Object.keys(skills).filter((p) => p.includes("/scripts/"));
-  assert.deepEqual(scripts, [`${CAPABILITY}/scripts/next-change.mjs`]);
+  assert.deepEqual(scripts, [`${CAPABILITY}/scripts/change-state.mjs`, `${CAPABILITY}/scripts/next-change.mjs`]);
   assert.ok(manifest.includes("scripts/next-change.mjs"));
+  assert.ok(manifest.includes("scripts/change-state.mjs"));
   assert.ok(!Object.keys(skills).some((p) => /seal/i.test(p.split("/").pop()!)));
 });
 
