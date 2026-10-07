@@ -29,7 +29,7 @@
     "seal-kaal-artifact": "npm run seal-kaal-artifact --prefix engineering/kaal-core --",
     "wire-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/wire-kaal-agent.js",
     "check-kaal-agent": "npm run build --prefix engineering/kaal-agent && node engineering/kaal-agent/dist/helpers/check-kaal-agent.js",
-    "prepare": "git config core.hooksPath .githooks || true",
+    "prepare": "git config core.hooksPath packages/kaal-github/hooks || true",
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {

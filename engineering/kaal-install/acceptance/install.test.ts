@@ -351,7 +351,8 @@ test("this repository's candidate delivery installs over its checked-in projecti
   await installed(dir);
   assert.deepEqual(await problems(dir), []);
   assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Retro and Sealing are installed Skills");
-  assert.deepEqual((await deliver(dir)).capabilities, CAPABILITIES);
+  assert.deepEqual(core.installedExtensions(join(dir, KAAL_DIR)).map((e) => e.name), ["GitHub"], "GitHub is an installed Extension");
+  assert.deepEqual((await deliver(dir)).capabilities, [...CAPABILITIES, "kaal-github"].sort(), "Skills and the Extension are delivered together");
 });
 
 test("the candidate-installation check advances a projection that lags the packages, and still refuses what it must", async (t) => {
