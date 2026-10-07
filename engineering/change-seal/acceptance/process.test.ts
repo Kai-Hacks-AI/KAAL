@@ -372,6 +372,21 @@ test("a Work needs files: an empty work/ has no identity and cannot be sealed", 
 });
 
 test("the evaluator and its messages speak of no host", () => {
-  const source = readFileSync(new URL("../../../../engineering/change-seal/helpers/process.ts", import.meta.url), "utf8").replace(/^\/\/ This is the one evaluator[\s\S]*?\n(?=\/\/ Changing)/m, "");
+  const source = readFileSync(new URL("../../../../packages/kaal-changing/skills/kaal-changing/scripts/change-state.mjs", import.meta.url), "utf8").replace(/^(#!.*\n)?(\/\/.*\n)+/, "");
   for (const word of [/github/i, /pull request/i, /\bPRs?\b/, /\bbranch/i, /\bCI\b/, /ruleset/i]) assert.doesNotMatch(source, word);
+});
+
+test("the repository's state command and the delivered change-state answer alike for every Change of this repository", () => {
+  const root = new URL("../../../../", import.meta.url).pathname;
+  const repo = join(root, ".kaal");
+  const delivered = join(root, "skills/kaal-changing/scripts/change-state.mjs");
+  const changes = readdirSync(join(repo, "changes"), { recursive: true, encoding: "utf8" }).filter((p) => /^[a-z0-9-]+\/\d{2}\/\d{2}\/\d{2}\/\d{2}$/.test(p.split("\\").join("/")));
+  assert.ok(changes.length > 0);
+  for (const path of changes) {
+    const change = `changes/${path}`;
+    const there = spawnSync("node", [delivered, repo, change], { encoding: "utf8" });
+    const here = run("state", repo, change);
+    assert.equal(there.stdout.trim(), here.out, change);
+    assert.equal(there.status, here.code, change);
+  }
 });

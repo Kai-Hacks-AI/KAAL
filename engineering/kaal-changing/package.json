@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "npm run clean && npm run build && node --test dist/acceptance/*.test.js",
-    "build": "npm run build --prefix ../../packages/kaal-core && npm run build --prefix ../../packages/kaal-changing && tsc",
+    "build": "npm run build --prefix ../../packages/kaal-core && npm run build --prefix ../../packages/kaal-changing && npm run build --prefix ../../packages/kaal-sealing && tsc",
     "clean": "rm -rf dist"
   }
 }
