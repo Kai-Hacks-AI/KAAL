@@ -594,3 +594,39 @@ test("the declaration is read as its decoded value: an escape cannot hide a need
   ];
   for (const [to, expected] of reads) assert.equal((await delivery(dir, root(to), [id])).unmet.length, expected, to("kaal-sealing").slice(0, 60));
 });
+
+test("indentation does not bypass the declaration's decoding or refusal: a value below an empty or comment-only key line is read as one on the key's line", async (t) => {
+  const sealingSkills = (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+  const root = (to: (v: string) => string) => packageRoot(t, changingIn(declaration(changingSkills, to), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: sealingSkills } }));
+  const id = await nodeId("kaal-changing");
+  const heads = ["compatibility:", "compatibility: # a comment about it"];
+  const refused: ((v: string) => string)[] = [
+    (v) => `\n  "${v.replace("kaal-sealing", "kaal\\u002dsealing")}"`,
+    (v) => `\n  &needs ${v}`,
+    (v) => `\n  !!str ${v}`,
+    (v) => `\n  [${v}]`,
+  ];
+  for (const head of heads) {
+    for (const body of refused) {
+      const dir = host(t);
+      const before = whole(dir);
+      const d = await delivery(dir, root((v) => head + body(v)), [id]);
+      assert.equal(d.unmet.length, 1, d.unmet.join("\n"));
+      assert.match(d.unmet[0], /compatibility declaration is .* which cannot be read reliably here/);
+      assert.throws(() => install(dir, d), /nothing was written/);
+      assert.equal(whole(dir), before);
+      // Registered by hand into a KAAL that holds Core, the check reports it too.
+      await installed(dir);
+      core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+      assert.match((check(dir, await delivery(dir, root((v) => head + body(v))))).join("\n"), /cannot be read reliably here/);
+    }
+    // Read as the string they decode to, the dependency is found, and what is not a dependency is not invented.
+    const dir = host(t);
+    assert.match((await delivery(dir, root((v) => `${head}\n  ${v}`), [id])).unmet.join(), /needs kaal-sealing/);
+    assert.match((await delivery(dir, root((v) => `${head}\n\n  # a note\n  "${v}"`), [id])).unmet.join(), /needs kaal-sealing/);
+    assert.deepEqual((await delivery(dir, root(() => `${head}\n  Needs Node.js 20 or later. # kaal-sealing`), [id])).unmet, []);
+  }
+  // A key written in another form is refused, not skipped.
+  const d = await delivery(host(t), root((v) => `"compatibility": ${v}`), [id]);
+  assert.match(d.unmet.join(), /a key written in a form other than a single plain `compatibility:`/);
+});

@@ -122,16 +122,24 @@ export function compatibility(skill: string): { value: string } | { unreadable: 
   if (!text.startsWith("---\n")) return { value: "" };
   const end = text.indexOf("\n---", 4);
   const front = (end < 0 ? text.slice(4) : text.slice(4, end)).split("\n");
+  const keys = front.filter((l) => /^["']?compatibility["']?\s*:/.test(l));
+  if (keys.length > 1 || (keys.length === 1 && !keys[0].startsWith("compatibility:"))) return { unreadable: "a key written in a form other than a single plain `compatibility:`" };
   const at = front.findIndex((l) => l.startsWith("compatibility:"));
   if (at < 0) return { value: "" };
-  const first = front[at].slice("compatibility:".length).trim();
-  const rest: string[] = [];
+  let first = front[at].slice("compatibility:".length).trim();
+  let rest: string[] = [];
   for (const l of front.slice(at + 1)) {
     if (l.trim() !== "" && !/^\s/.test(l)) break;
     rest.push(l);
   }
   const comment = /(^|\s)#/;
-  if (first === "" || first.startsWith("#")) return rest.length === 0 ? { value: "" } : plain(rest, comment);
+  // The value may start on a following line, below an empty or comment-only key line: it is then decoded exactly as one on the key's line.
+  if (first === "" || first.startsWith("#")) {
+    const i = rest.findIndex((l) => l.trim() !== "" && !l.trim().startsWith("#"));
+    if (i < 0) return { value: "" };
+    first = rest[i].trim();
+    rest = rest.slice(i + 1);
+  }
   if (/^[>|]/.test(first)) return { value: rest.map((l) => l.trim()).join("\n") };
   if (first.startsWith('"') || first.startsWith("'")) {
     const quote = first[0];

@@ -15,6 +15,8 @@ Review round 02 (two P2 findings) added: the same declaration as a folded scalar
 
 Review round 03 (one P2 finding) added: the decoded value is read, not the source lines. An escape-spelled dependency (`kaal\\u002dsealing`), an anchor, a tag and a flow collection are refused before any write with the reason stated; a comment outside the scalar invents no need; a doubled single quote, a block scalar's `#` and a trailing comment are read as the strings they decode to.
 
+Review round 04 (one P2 finding) added: a value below an empty or a comment-only key line goes through the same decoding and refusal as one on the key's line. The escape, anchor, tag and flow forms are refused before any write and reported for a hand-registered host, under both key-line heads; a plain or quoted value there is read and its dependency found; a comment-only line before the value and a `# kaal-sealing` comment invent or hide nothing; a quoted or repeated key is refused, not skipped.
+
 One existing test installed `kaal-changing` alone to show that only installed Skills are delivered; it now uses `kaal-retro`, which needs no sibling.
 
 ## Scratch clone of Kai-Hacks-AI/Enercon (not pushed; its remote was removed from the scratch copy)
