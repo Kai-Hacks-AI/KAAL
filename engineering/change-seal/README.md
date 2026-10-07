@@ -37,7 +37,7 @@ The retros follow a fixed order, Worker, Owner, Reviewer, because knowledge accu
 
 ## Commands (from the repository root)
 
-- A sealed record that was altered or removed overrides the order in `next`: nothing is valid until it is restored, and the problem lines name it.
+- A sealed record that was altered or removed overrides the order in `next`: nothing is valid until it is restored, and the problem lines name it. A Change directory removed whole while its seals remain is `CHANGE MISSING` with the same instruction; an address nothing sealed is still an error.
 - `npm run state-kaal-change -- changes/<name>/YY/MM/DD/CC`: print the stage, what is next, the identity of `work/` as it now stands (`work:`, while the Change is not closed) and any problem (exit 1 when there is a problem).
 - `npm run seal-kaal-work -- changes/<name>/YY/MM/DD/CC`: seal the Work; refused unless review has converged on it, if any retro exists, or the Work is already sealed.
 - `npm run close-kaal-change -- changes/<name>/YY/MM/DD/CC`: seal the Change; refused unless the Work is sealed on a converged review and `retro-work.md`, `retro-owner.md` and `retro-review.md` are all present, in that order.

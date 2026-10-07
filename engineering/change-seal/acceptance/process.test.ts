@@ -294,6 +294,21 @@ test("closing seals Work, review and the three retros into the Change's identity
   assert.equal(run("check", dir).code, 1, "a closed Change whose Work seal is gone is reported");
 });
 
+test("a sealed Change removed whole is a sealed record removed: state says to restore it and fails, while an address nothing sealed is still an error", (t) => {
+  const dir = sealedWork(t);
+  retro(dir, "retro-work.md", "retro-review.md", "retro-owner.md");
+  assert.equal(run("close", dir, C).code, 0);
+  rmSync(join(dir, C), { recursive: true });
+  const state = run("state", dir, C);
+  assert.equal(state.code, 1);
+  assert.match(state.out, /^CHANGE MISSING\nnext: restore the altered or removed sealed record/);
+  assert.match(state.out, /problem: seals\/changes\/[0-9a-f]{64} matches no Change/);
+  const other = run("state", kaal(t), "changes/genesis/26/10/05/02");
+  assert.equal(other.code, 1);
+  assert.match(other.err, /is not a Change directory/);
+  assert.equal(other.out, "", "a KAAL with nothing sealed missing does not report one");
+});
+
 test("the existing Change seal command is the unchanged primitive, and Node seals are untouched", (t) => {
   const dir = kaal(t);
   writeFileSync(join(dir, C, "retro.md"), "# Retro\n");

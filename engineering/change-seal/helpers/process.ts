@@ -20,7 +20,8 @@ export type Stage =
   | "RETRO-WORK PRESENT"
   | "RETRO-OWNER PRESENT"
   | "RETROS PRESENT"
-  | "CHANGE CLOSED";
+  | "CHANGE CLOSED"
+  | "CHANGE MISSING";
 
 export interface State {
   stage: Stage;
@@ -68,10 +69,18 @@ function rounds(kaalDir: string, change: string): { rounds: Round[]; problems: s
 
 /** Where this Change is, and what is allowed next. A sealed record that was altered or removed is the one thing that overrides the order: nothing is valid next until it is restored, whatever stage the rest of the tree resembles. */
 export function stateOf(kaalDir: string, change: string): State {
-  const state = derive(kaalDir, change);
-  const broken = state.problems.filter((p) => p.endsWith("was altered or removed"));
-  if (broken.length === 0) return state;
-  return { ...state, next: "restore the altered or removed sealed record, as it was sealed; nothing else is valid until then" };
+  const restore = "restore the altered or removed sealed record, as it was sealed; nothing else is valid until then";
+  let state: State;
+  try {
+    state = derive(kaalDir, change);
+  } catch (error) {
+    // A Change directory removed whole leaves its seals behind: that is a sealed record removed, not an address that never existed. An address nothing sealed is still an error.
+    const broken = checkChanges(kaalDir).filter((p) => p.endsWith("was altered or removed"));
+    if (broken.length === 0) throw error;
+    return { stage: "CHANGE MISSING", next: restore, problems: broken };
+  }
+  if (!state.problems.some((p) => p.endsWith("was altered or removed"))) return state;
+  return { ...state, next: restore };
 }
 
 function derive(kaalDir: string, change: string): State {

@@ -66,3 +66,5 @@ problem: retro-owner.md exists before the Work is sealed, so it is not a valid s
 ```
 
 Acceptance: `npm test --prefix engineering/change-seal` passes (64 tests), including the new assertion that every tampering mutation of sealed Work reports `next: restore the altered or removed sealed record`.
+
+Review round 02 found that deleting a whole sealed Change made `state` throw instead of instructing restoration. Reproduced and fixed: acceptance case "a sealed Change removed whole is a sealed record removed" asserts `CHANGE MISSING`, the restore `next`, the `seals/changes/<id> matches no Change` problem and exit 1, and that an address nothing sealed in a clean KAAL is still an error. `npm test --prefix engineering/change-seal` passes (65).
