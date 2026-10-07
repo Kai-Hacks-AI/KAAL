@@ -154,6 +154,16 @@ test("the Intent is the fixed target: review does not renegotiate it, and what t
   for (const text of [rowing, manifest]) assert.doesNotMatch(text, /Owner either revises the Intent|revises the Intent in `work\/`/, "no path revises the Intent inside the change");
 });
 
+test("the Reviewer seat is assigned under the Owner's authority, never inferred from capability, and an empty seat stops the process", () => {
+  const rowing = skills[`${CAPABILITY}/references/rowing.md`];
+  for (const rule of [/Process determines the turn\. Authority assigns the seat\. Provider capability executes the work\./, /never inferred from what a provider, tool, session or account can do/, /Delegation reaches only as far as it was explicitly granted/, /does not hold the Worker and the Reviewer seats of the same change merely because it can do both jobs/, /orchestration does not erase the separation of judgment/, /is part of the Worker unless the Owner's authority assigned it to the Reviewer seat/, /The process stops and names the missing seat\. It does not substitute another actor/, /under whose authority the Reviewer occupies the seat/, /does not write `converged`/, /one realization of this and no part of what KAAL requires/]) assert.match(rowing, rule);
+  for (const rule of [/Process determines the turn\. Authority assigns the seat\. Provider capability executes the work\./, /the process stops here: the Worker says that the Reviewer seat is empty/, /never inferred from what a provider, tool, session or account can do/, /never by the Worker/]) assert.match(manifest, rule);
+  for (const text of [rowing, manifest]) {
+    assert.doesNotMatch(text, /with weaker independence|separation is only weaker|Do not switch actors merely to look independent|Worker and Reviewer in separate contexts/);
+    assert.doesNotMatch(text, /subscription|vendor/i, "no operating setup is a definition");
+  }
+});
+
 test("the Agent Skill, its references and its Nodes speak of no host, provider or person, and mandate no number of agents", () => {
   for (const [path, text] of [...Object.entries(skills), ...Object.entries(kaal)].filter(([p]) => /\.md$/.test(p))) {
     for (const word of [/\bgit\b/i, /github/i, /\bbranch/i, /\bcommit/i, /pull request/i, /\bmerge[ds]?\b/i, /\bCI\b/, /ruleset/i, /chatgpt/i, /\bclaude\b/i, /\bkai\b/i, /anthropic|openai/i, /three agents|two agents/i]) assert.doesNotMatch(text, word, `${path}: ${word}`);
