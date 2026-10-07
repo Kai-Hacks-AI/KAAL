@@ -2,14 +2,14 @@
 
 ## What changed
 
-Only the Agent Skill of Changing KAAL, in `packages/kaal-changing/skills/kaal-changing/` and its projection in `skills/kaal-changing/`: `SKILL.md` (steps 2, 3, 5, 6, 7 reworded; a new section, Handoff and continuation) and `references/rowing.md` (one paragraph in the roles section). No Node, evaluator, seal, Core file or sealed Change was touched (R9, R10).
+Only the Agent Skill of Changing KAAL, in `packages/kaal-changing/skills/kaal-changing/` and its projection in `skills/kaal-changing/`: `SKILL.md` (steps 2, 3, 4, 5, 6, 7 reworded; a new section, Handoff and continuation), `references/rowing.md` (one paragraph in the roles section) and `references/retro.md` (a pointer on carrying the Owner's text). No Node, evaluator, seal, Core file or sealed Change was touched (R9, R10).
 
 ## Requirements, one by one
 
 - R1, R2, R3: step 2 no longer ends in "the Worker stops: the next step is not the Worker's". It names the progression the Worker carries (Intent described, Requirements defined, Architecture designed, code developed, done, defects detected) and the two real stops. Handoff and continuation states that a transition is not a permission. Step 3 no longer has the Worker "stop again" after resolving findings.
 - R4: the section and `rowing.md` say role boundaries are ordered knowledge boundaries, that one actor may hold several roles, and that actors are not switched to look independent.
 - R5, R7: the section lists the Owner's acts (judgment, text of `retro-owner.md`; describing the Intent is stated as co-work, not solely the Owner's) as never written, inferred or supplied by another actor, and says a handoff, a green check or silence is not that judgment. Step 6 says carrying the Owner's own text verbatim is moving it, not writing it.
-- R6: steps 5 and 7 and the section name what is carried without another go: sealing and `retro-work.md` once a round converges; `retro-review.md`, closing and putting the Change forward after the Owner's act.
+- R6: steps 3, 4, 5 and 7 and the section name what is carried without another go: a converged round hands the Change to the Worker role for sealing and `retro-work.md`, whoever the actors are; `retro-review.md`, closing and putting the Change forward follow once the Owner's own text is present. The Owner having judged is known only from that text, so step 6 is the one stop until it arrives.
 - R8: the section ends continuation at host admission, which stays outside KAAL.
 - R11: see the walk-through below.
 

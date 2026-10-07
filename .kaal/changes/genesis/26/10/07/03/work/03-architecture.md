@@ -23,8 +23,8 @@ The smallest thing is a statement, not machinery: the Agent Skill of Changing KA
 
 ## Where it lands
 
-Only the Agent Skill of `packages/kaal-changing`: `SKILL.md` (steps 2, 3, 5, 6, 7, 8 and a short section on handoff and continuation) and `references/rowing.md` (roles). The host projection under `skills/` follows through the repository's installer. Nothing under Core and no sealed file is touched.
+Only the Agent Skill of `packages/kaal-changing`: `SKILL.md` (steps 2, 3, 4, 5, 6, 7 and a section on handoff and continuation) and `references/rowing.md` (roles) and `references/retro.md` (a pointer on carrying the Owner's text). The host projection under `skills/` follows through the repository's installer. Nothing under Core and no sealed file is touched.
 
-## Open to Review
+## Resolved in Review round 01
 
-Whether the Skill wording is enough to carry the test, or whether one more explicit thing is needed (the Owner's authority has no artifact by design, so continuation after it rests on the Owner's text being present, not on a record of a go).
+The Owner's judgment has no artifact by design, so an actor can know the Owner has acted only from the Owner's own text, `retro-owner.md`, being present. Step 6 is the one stop until it arrives, and continuation rests on it. A converged round hands the Change onward to the Worker role for sealing and `retro-work.md`, whoever the actors are.
