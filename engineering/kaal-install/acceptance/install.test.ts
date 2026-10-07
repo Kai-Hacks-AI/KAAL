@@ -509,3 +509,57 @@ test("this repository's delivery names changed and no Node identity did", () => 
   }
   assert.deepEqual(readdirSync(join(SOURCE, KAAL_DIR, "skills")).sort(), CAPABILITIES);
 });
+
+// The declaration is read as the scalar it is, and a need that cannot be satisfied stays a need.
+const changingIn = (skills: Record<string, string>, extra: Record<string, { kaal: Record<string, string>; skills?: Record<string, string> }> = {}) => ({
+  "kaal-changing": { kaal: changing.payload().kaal, skills },
+  ...extra,
+});
+const declaration = (skills: Record<string, string>, to: (line: string) => string) =>
+  Object.fromEntries(Object.entries(skills).map(([p, b]) => [p, p === "kaal-changing/SKILL.md" ? b.replace(/^compatibility: (.*)$/m, (_, v) => to(v)) : b]));
+const changingSkills = (changing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+
+for (const [label, to] of [
+  ["folded scalar", (v: string) => `compatibility: >-\n  ${v}`],
+  ["literal scalar", (v: string) => `compatibility: |\n  ${v}`],
+  ["quoted scalar", (v: string) => `compatibility: "${v.replace(/"/g, "'")}"`],
+  ["scalar over several lines", (v: string) => `compatibility: ${v.slice(0, 20)}\n  ${v.slice(20)}`],
+] as [string, (v: string) => string][]) {
+  test(`composition cannot be bypassed by the same declaration written as a ${label}`, async (t) => {
+    const root = packageRoot(t, changingIn(declaration(changingSkills, to), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills } }));
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, root, [await nodeId("kaal-changing")]);
+    assert.equal(d.unmet.length, 1, d.unmet.join("\n"));
+    assert.match(d.unmet[0], /kaal-changing declares that it needs kaal-sealing/);
+    assert.throws(() => install(dir, d), /nothing was written/);
+    assert.equal(whole(dir), before);
+    const both = await delivery(dir, root, [await nodeId("kaal-changing"), await nodeId("kaal-sealing")]);
+    assert.deepEqual(both.unmet, []);
+  });
+}
+
+test("a declared need whose delivery is unavailable stays unmet: refused before any write, and named by the check", async (t) => {
+  for (const sibling of [{}, { "kaal-sealing": null }]) {
+    const root = packageRoot(t, changingIn(changingSkills));
+    // A sibling directory with no built payload is skipped by the package scan, as an absent one is.
+    if ("kaal-sealing" in sibling) mkdirSync(join(root, "kaal-sealing"), { recursive: true });
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, root, [await nodeId("kaal-changing")]);
+    assert.equal(d.unmet.length, 1);
+    assert.match(d.unmet[0], /needs kaal-sealing beside it, which is not installed, and no package of this delivery carries a Skill or Extension Node for it: there is no exact Node ID to select/);
+    assert.throws(() => install(dir, d), /nothing was written/);
+    assert.equal(whole(dir), before);
+    // Registered by hand into a KAAL that holds Core, the check still names it.
+    await installed(dir);
+    core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+    assert.match((check(dir, await delivery(dir, root))).join("\n"), /needs kaal-sealing beside it/);
+  }
+});
+
+test("a declaration naming Core's own package, or nothing, needs nothing", async (t) => {
+  const dir = host(t);
+  assert.deepEqual((await delivery(dir, join(SOURCE, "packages"), [await nodeId("kaal-engineering")])).unmet, []);
+  assert.deepEqual((await delivery(dir, join(SOURCE, "packages"), [await nodeId("kaal-retro")])).unmet, []);
+});

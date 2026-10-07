@@ -108,11 +108,38 @@ export function contributions(pkg: Package): (Ref & { kind: Kind })[] {
   return out;
 }
 
-/** The `compatibility` an Agent Skill declares, in its SKILL.md frontmatter (the Agent Skills standard's free text). */
+/**
+ * The `compatibility` an Agent Skill declares, in its SKILL.md frontmatter
+ * (the Agent Skills standard's free text): the whole scalar, whatever its
+ * representation (plain, folded `>`, literal `|`, quoted, over several lines),
+ * which is the key's line and the indented lines that continue it. Nothing of
+ * it is interpreted here but the names it mentions.
+ */
 function compatibility(pkg: Package): string {
   const skill = pkg.skills[`${pkg.capability}/SKILL.md`] ?? "";
-  const front = skill.startsWith("---\n") ? skill.slice(4, skill.indexOf("\n---", 4)) : "";
-  return front.split("\n").find((l) => l.startsWith("compatibility:"))?.slice("compatibility:".length) ?? "";
+  const front = skill.startsWith("---\n") ? skill.slice(4, skill.indexOf("\n---", 4)).split("\n") : [];
+  const at = front.findIndex((l) => l.startsWith("compatibility:"));
+  if (at < 0) return "";
+  const text = [front[at].slice("compatibility:".length)];
+  for (const l of front.slice(at + 1)) {
+    if (l.trim() !== "" && !/^\s/.test(l)) break;
+    text.push(l);
+  }
+  return text.join("\n");
+}
+
+/** The capability-name prefix of the KAAL in `kaalDir`: its instance's `capability-prefix`, else Core's default. */
+function prefix(kaalDir: string): string {
+  const file = join(kaalDir, "core", "config");
+  const text = existsSync(file) ? readFileSync(file, "utf8") : core.payload()["core/config"] ?? "";
+  return /^capability-prefix\s*=\s*(\S+)\s*$/m.exec(text)?.[1] ?? "kaal-";
+}
+
+/** The capability names a declaration mentions: whole words that begin with the prefix. Core's own package is not a capability. */
+function named(text: string, pre: string): string[] {
+  const esc = pre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const found = text.match(new RegExp(`(?<![\\w-])${esc}[a-z0-9]+(?:-[a-z0-9]+)*`, "g")) ?? [];
+  return [...new Set(found)].filter((n) => n !== "kaal-core");
 }
 
 /**
@@ -165,12 +192,18 @@ export async function delivery(target: string, root: string = join(SOURCE, "pack
       capabilities.push(pkg.capability);
     }
     const unmet: string[] = [];
+    const pre = prefix(dir);
+    const present = new Set([...wanted.keys()].map((p) => p.capability));
     for (const pkg of wanted.keys()) {
-      const text = compatibility(pkg);
-      for (const other of all) {
-        if (other === pkg || wanted.has(other) || !new RegExp(`(?<![\\w-])${other.capability}(?![\\w-])`).test(text)) continue;
-        const ids = contributions(other).map((c) => `${c.name} ${c.id}`).join(", ");
-        unmet.push(`${pkg.capability} declares that it needs ${other.capability} beside it, which is not installed: select its Node by exact ID (${ids || "no Skill or Extension Node"})`);
+      for (const need of named(compatibility(pkg), pre)) {
+        if (need === pkg.capability || present.has(need)) continue;
+        const other = all.find((p) => p.capability === need);
+        const ids = other ? contributions(other).map((c) => `${c.name} ${c.id}`).join(", ") : "";
+        unmet.push(
+          ids
+            ? `${pkg.capability} declares that it needs ${need} beside it, which is not installed: select its Node by exact ID (${ids})`
+            : `${pkg.capability} declares that it needs ${need} beside it, which is not installed, and no package of this delivery carries a Skill or Extension Node for it: there is no exact Node ID to select`,
+        );
       }
     }
     return { kaal: read(expected), skills, capabilities, unresolved, unmet };

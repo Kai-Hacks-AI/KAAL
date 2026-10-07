@@ -11,6 +11,8 @@ New tests, each on a host that is not this repository (a README and an AGENTS.md
 - a name, an unknown ID and a Node that is not a Skill are refused, writing nothing;
 - `list-kaal-capabilities` lists exact IDs and selects nothing.
 
+Review round 02 (two P2 findings) added: the same declaration as a folded scalar, a literal scalar, a quoted scalar and over several lines cannot bypass composition (install refuses with nothing written; with both IDs the unmet set is empty); and a declared need whose delivery is unavailable (its package absent, or present without a built payload) stays unmet, is refused before any write and is named by `check`, with a message saying that no exact Node ID exists to select. A declaration naming only Core's package, or nothing, needs nothing (`kaal-engineering`, `kaal-retro`).
+
 One existing test installed `kaal-changing` alone to show that only installed Skills are delivered; it now uses `kaal-retro`, which needs no sibling.
 
 ## Scratch clone of Kai-Hacks-AI/Enercon (not pushed; its remote was removed from the scratch copy)
