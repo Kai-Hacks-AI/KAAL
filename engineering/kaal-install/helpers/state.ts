@@ -2,14 +2,15 @@
 // it. Sealed material (everything in the KAAL directory except AGENTS.md) is
 // append-only: an installed file with other bytes is refused, as Core's
 // registration refuses it. Unsealed derived files (AGENTS.md and the host's
-// Agent Skills) are made to match the packages. `changes/` is genuine
-// installed state: it is neither read nor written here, and neither are the
+// Agent Skills) are made to match the packages. `changes/`, and the carriers
+// a client addresses to KAAL (`incidents/`, `requests/`), are genuine
+// installed state: they are neither read nor written here, and neither are the
 // seals of Changes and of named trees, `seals/changes/` and `seals/trees/`, which
 // belong to it. The bare `seals/<ID>`
 // markers remain Node seals and are still judged.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./delivery.js";
+import { CARRIERS, CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./delivery.js";
 
 /** The one derived file of the KAAL directory that is not sealed. */
 const UNSEALED = "AGENTS.md";
@@ -18,7 +19,7 @@ const UNSEALED = "AGENTS.md";
 const INSTANCE = ["core/config"];
 
 const CHANGE_SEALS = ["seals/changes", "seals/trees"];
-const underChanges = (path: string) => [CHANGES, ...CHANGE_SEALS].some((dir) => path === dir || path.startsWith(`${dir}/`));
+const underChanges = (path: string) => [CHANGES, ...CARRIERS, ...CHANGE_SEALS].some((dir) => path === dir || path.startsWith(`${dir}/`));
 
 /** The derived files installed in the KAAL directory of `target`, and its host skills of the delivered capabilities. */
 function installed(target: string, d: Delivery): { kaal: Files; skills: Files } {

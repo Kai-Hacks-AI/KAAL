@@ -22,6 +22,8 @@ export const KAAL_DIR = ".kaal";
 export const HOST_SKILLS = "skills";
 /** Genuine installed state: never derived from a package, never touched by installing. */
 export const CHANGES = "changes";
+/** Genuine installed state of the same kind: the carriers a client addresses to KAAL (KAAL Incident, KAAL Request), kept beside the embedded KAAL for later collection. */
+export const CARRIERS = ["incidents", "requests"];
 
 export type Files = Record<string, string>;
 export interface Ref {
