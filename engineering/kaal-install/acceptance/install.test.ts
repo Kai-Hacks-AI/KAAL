@@ -626,7 +626,43 @@ test("indentation does not bypass the declaration's decoding or refusal: a value
     assert.match((await delivery(dir, root((v) => `${head}\n\n  # a note\n  "${v}"`), [id])).unmet.join(), /needs kaal-sealing/);
     assert.deepEqual((await delivery(dir, root(() => `${head}\n  Needs Node.js 20 or later. # kaal-sealing`), [id])).unmet, []);
   }
-  // A key written in another form is refused, not skipped.
+  // A key written in another form is outside the supported shape: refused, not skipped.
   const d = await delivery(host(t), root((v) => `"compatibility": ${v}`), [id]);
-  assert.match(d.unmet.join(), /a key written in a form other than a single plain `compatibility:`/);
+  assert.match(d.unmet.join(), /a frontmatter outside the supported shape/);
+});
+
+test("the frontmatter is held to one bounded shape: whatever is outside it is refused, never read as no declaration", async (t) => {
+  const sealingSkills = (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+  const id = await nodeId("kaal-changing");
+  const whole_ = (rewrite: (skill: string) => string) => packageRoot(t, changingIn(Object.fromEntries(Object.entries(changingSkills).map(([p, b]) => [p, p === "kaal-changing/SKILL.md" ? rewrite(b) : b])), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: sealingSkills } }));
+  const front = (skill: string) => {
+    const end = skill.indexOf("\n---", 4);
+    return { head: skill.slice(0, 4), body: skill.slice(4, end), tail: skill.slice(end) };
+  };
+  const variants: [string, (skill: string) => string][] = [
+    ["every mapping line indented", (s) => { const f = front(s); return f.head + f.body.split("\n").map((l) => `  ${l}`).join("\n") + f.tail; }],
+    ["an escaped quoted key", (s) => s.replace(/^compatibility:/m, '"compatibilit\\u0079":')],
+    ["a quoted key", (s) => s.replace(/^compatibility:/m, '"compatibility":')],
+    ["a space before the colon", (s) => s.replace(/^compatibility:/m, "compatibility :")],
+    ["a repeated key", (s) => s.replace(/^compatibility: (.*)$/m, "compatibility: $1\ncompatibility: $1")],
+    ["a flow mapping", (s) => { const f = front(s); return `---\n{ ${f.body.split("\n").join(", ")} }${f.tail}`; }],
+    ["a tab-indented continuation", (s) => s.replace(/^compatibility: (.*)$/m, "compatibility:\n\t$1")],
+    ["no closing delimiter", (s) => s.replace("\n---", "\n--")],
+    ["no frontmatter", (s) => s.replace(/^---\n[\s\S]*?\n---\n/, "")],
+  ];
+  for (const [label, rewrite] of variants) {
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, whole_(rewrite), [id]);
+    assert.equal(d.unmet.length, 1, `${label}: ${d.unmet.join("\n")}`);
+    assert.match(d.unmet[0], /cannot be read reliably here|compatibility declaration is/, label);
+    assert.throws(() => install(dir, d), /nothing was written/, label);
+    assert.equal(whole(dir), before, label);
+    await installed(dir);
+    core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+    assert.match((check(dir, await delivery(dir, whole_(rewrite)))).join("\n"), /cannot be read reliably here/, label);
+  }
+  // The shape the real Agent Skills have is inside it, comments included.
+  const dir = host(t);
+  assert.match((await delivery(dir, whole_((s) => s.replace("---\n", "---\n# a comment\n")), [id])).unmet.join(), /needs kaal-sealing/);
 });

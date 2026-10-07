@@ -118,12 +118,21 @@ export function contributions(pkg: Package): (Ref & { kind: Kind })[] {
  * and the installation is then refused, as an unmet need is.
  */
 export function compatibility(skill: string): { value: string } | { unreadable: string } {
-  const text = skill.replace(/\r\n/g, "\n");
-  if (!text.startsWith("---\n")) return { value: "" };
-  const end = text.indexOf("\n---", 4);
-  const front = (end < 0 ? text.slice(4) : text.slice(4, end)).split("\n");
-  const keys = front.filter((l) => /^["']?compatibility["']?\s*:/.test(l));
-  if (keys.length > 1 || (keys.length === 1 && !keys[0].startsWith("compatibility:"))) return { unreadable: "a key written in a form other than a single plain `compatibility:`" };
+  const lines = skill.replace(/\r\n/g, "\n").split("\n");
+  if (skill === "") return { value: "" };
+  // The frontmatter is held to one bounded shape, and anything outside it is refused, never read as "no declaration": it starts the file, is closed by a line of `---`, and holds only blank lines, comment lines, plain `key:` lines at column 0 and space-indented lines that continue the key above.
+  const shape = "a frontmatter outside the supported shape (plain `key:` lines at column 0, space-indented continuation lines, comment lines)";
+  const close = lines.indexOf("---", 1);
+  if (lines[0] !== "---" || close < 0) return { unreadable: shape };
+  const front = lines.slice(1, close);
+  let keyed = false;
+  for (const l of front) {
+    if (l.trim() === "" || l.startsWith("#")) continue;
+    if (/^[A-Za-z][A-Za-z0-9_-]*:(\s|$)/.test(l)) keyed = true;
+    else if (!(keyed && /^ +\S/.test(l))) return { unreadable: shape };
+  }
+  const keys = front.filter((l) => l.startsWith("compatibility:"));
+  if (keys.length > 1) return { unreadable: "a frontmatter that repeats the key `compatibility`" };
   const at = front.findIndex((l) => l.startsWith("compatibility:"));
   if (at < 0) return { value: "" };
   let first = front[at].slice("compatibility:".length).trim();
