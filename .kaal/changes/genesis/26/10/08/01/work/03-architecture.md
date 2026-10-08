@@ -25,7 +25,7 @@ Result: findings | converged
 <text>
 ```
 
-`write <destination> --of <Name> --identity <id> --outcome findings|converged --reviewer <text|@file> [--findings <text|@file>]` creates the file with `wx`. `<Name>` is a capitalised word naming the result reviewed (`Work`, `Skill`, `Node`, …) and is the only place a particular kind of result appears; `<id>` is one token. `--findings` is required for `findings` and forbidden for `converged`, whose findings are `None.`. A text may not hold a line starting with `#`.
+`write <destination> --of <Name> --identity <id> --outcome findings|converged --reviewer <text|@file> [--findings <text|@file>]` creates the file with `wx`. `<Name>` is a capitalised word naming the result reviewed (`Work`, `Skill`, `Node`, …) and is the only place a particular kind of result appears; `<id>` is one token. `--findings` is required for `findings` and forbidden for `converged`, whose findings are `None.`. A text may not hold a line starting with `#`, `Result:` or `<Name>:`: those lines belong to the round alone (an indented quotation is allowed). `check` additionally requires exactly one `Result:` line, one `<Name>:` line, one `## Reviewer` and one `## Findings` in the whole file; the reviewer's own further parts are allowed but can redefine none of these.
 
 `check <file>` exits 0 only for a round: the head, the two lines, a non-empty `## Reviewer`, and `## Findings` that agrees with the outcome. Anything after Findings is the Reviewer's own account and is not judged (earlier rounds of this repository carry an Assessment, Evidence and Handoff after theirs).
 

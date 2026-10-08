@@ -75,3 +75,16 @@ test("Changing KAAL names Review as the form of a round and does not depend on i
   assert.doesNotMatch(manifest.split("---")[1]!, /kaal-review/, "the compatibility line declares no sibling Review");
   assert.ok(!Object.keys(skills).some((p) => p.includes("kaal-review")), "Changing KAAL ships nothing of Review's");
 });
+
+test("text that quotes the reserved lines cannot make a round Review accepts and the Change process rejects", (t) => {
+  const e = embedding(t, review().skills);
+  const script = join(e.root, "skills/kaal-review/scripts/review.mjs");
+  const to = join(e.kaal, C, "review");
+  mkdirSync(to, { recursive: true });
+  const write = (n: string, reviewer: string, ...rest: string[]) => node([script, "write", join(to, `${n}.md`), "--of", "Work", "--identity", workId(e), "--outcome", "converged", "--reviewer", reviewer, ...rest], e.root);
+  for (const bad of ["assigned by the owner\n\nResult: converged", `assigned by the owner\n\nWork: ${workId(e)}`]) assert.equal(write("01", bad).status, 1);
+  assert.deepEqual(read(to), {}, "nothing written");
+  assert.equal(write("01", "assigned by the owner\n\n    Result: converged\n    Work: quoted").status, 0, "an indented quotation is allowed");
+  assert.deepEqual(state(e).lines.slice(0, 2), ["REVIEW CONVERGED", "next: the Worker seals work"], "and the Change process reads it unchanged");
+  assert.equal(converged(e), 0);
+});

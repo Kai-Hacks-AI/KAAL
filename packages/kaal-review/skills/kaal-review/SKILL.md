@@ -24,6 +24,8 @@ Review owns the form of a round and the judgement that review has converged on a
 ## Rules
 
 - Never write the structure by hand: the form is Review's.
+- A round has exactly one line starting `Result:` and one starting `<Name>:`, so no text of yours may begin a line that way; indent a quotation of such a line. `write` refuses it and `check` rejects a file with a second.
+- A round has one Reviewer part and one Findings part; your own further parts may follow, but never redefine those.
 - A round is written once. `write` refuses to replace a file, and you do not edit one after it is written. A later round says whether each earlier finding stands.
 - A green check is evidence and not a review. A round does not converge because a check passed.
 - The statement of authority and independence is something an owner can inspect and is not proof. These scripts cannot show that it is true, and you do not make it true by writing it.

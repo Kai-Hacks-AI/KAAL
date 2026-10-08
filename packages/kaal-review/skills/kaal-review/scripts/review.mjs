@@ -22,7 +22,9 @@
 // one token naming it exactly as it stood. A converged round's findings are
 // "None."; a round with findings states them, and they are never "None.". The
 // Reviewer part comes first and the Findings part follows; any other part the
-// reviewer adds, between or after, is the reviewer's own account and is not judged.
+// reviewer adds, between or after, is the reviewer's own account and is not
+// judged, but it cannot redefine either reserved part, and no text may hold a
+// line starting with "Result:" or "<Name>:" (a round has exactly one of each).
 // `write` creates the file and never replaces one; `check` exits 0 only for a
 // round; `converged` exits 0 only when the rounds NN.md in a directory, from 01
 // without a gap, end with a round that says converged and names the identity.
@@ -40,10 +42,13 @@ export const NONE = "None.";
 const clean = (text) => text.replace(/\r\n?/g, "\n").trim();
 const NAME = /^[A-Z][A-Za-z]*$/;
 const IDENTITY = /^\S+$/;
+/** The lines that belong to the round alone: its result and the line naming what was reviewed. A round has exactly one of each. */
+const reserved = (of) => new RegExp(`^(Result|${of}):`, "m");
 
-function part(label, raw) {
+function part(label, raw, of) {
   const text = clean(String(raw ?? ""));
   if (text === "") throw new Error(`${label} is empty`);
+  if (reserved(of).test(text)) throw new Error(`${label} has a line starting with 'Result:' or '${of}:': those lines belong to the round alone, so a reader of the round finds exactly one of each; indent it or quote it`);
   if (/^#/m.test(text)) throw new Error(`${label} has a line starting with '#': a round has no headings of its own besides its parts`);
   return text;
 }
@@ -53,14 +58,14 @@ export function render({ of, identity, outcome, reviewer, findings }) {
   if (typeof of !== "string" || !NAME.test(of) || of === "Result") throw new Error("--of names the result reviewed: one capitalised word, such as Work");
   if (typeof identity !== "string" || !IDENTITY.test(identity)) throw new Error("--identity is the exact identity of the result as reviewed: one token, no spaces");
   if (!OUTCOMES.includes(outcome)) throw new Error(`--outcome is ${OUTCOMES.join(" or ")}`);
-  const who = part("the Reviewer statement (under whose authority, in what independence)", reviewer);
+  const who = part("the Reviewer statement (under whose authority, in what independence)", reviewer, of);
   let body;
   if (outcome === "converged") {
     if (findings !== undefined) throw new Error("a converged round has no findings: its findings are 'None.'");
     body = NONE;
   } else {
     if (findings === undefined) throw new Error("a round with findings states them: --findings");
-    body = part("the findings", findings);
+    body = part("the findings", findings, of);
     if (body === NONE) throw new Error("a round with findings cannot say 'None.': say converged instead");
   }
   return `# Review\n\n${of}: ${identity}\nResult: ${outcome}\n\n## Reviewer\n\n${who}\n\n## Findings\n\n${body}\n`;
@@ -71,11 +76,16 @@ export function parse(content) {
   const m = /^# Review\n\n([A-Z][A-Za-z]*): (\S+)\nResult: (findings|converged)\n\n(## Reviewer\n\n[\s\S]*\n)$/.exec(content);
   if (!m || m[1] === "Result") return undefined;
   const [, of, identity, outcome, rest] = m;
+  const lines = content.split("\n");
+  if (lines.filter((l) => l.startsWith("Result:")).length !== 1 || lines.filter((l) => l.startsWith(`${of}:`)).length !== 1) return undefined;
   const parts = new Map();
   for (const section of rest.split(/\n(?=## )/)) {
     const h = /^## (.+)\n\n([\s\S]*)$/.exec(section);
     if (!h) return undefined;
-    if (!parts.has(h[1])) parts.set(h[1], h[2].replace(/\n+$/, ""));
+    if (h[1] === "Reviewer" || h[1] === "Findings") {
+      if (parts.has(h[1])) return undefined; // the reserved parts occur once and cannot be redefined
+      parts.set(h[1], h[2].replace(/\n+$/, ""));
+    }
   }
   const reviewer = parts.get("Reviewer");
   const findings = parts.get("Findings");
