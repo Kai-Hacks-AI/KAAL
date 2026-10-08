@@ -1,44 +1,45 @@
-# Architecture (draft, with the genuine forks)
+# Architecture (draft, reduced)
 
-`collect.mjs trace` from the first proposal is withdrawn as the solution. It stays at most a reader over whatever model is chosen.
+`trace`, a sibling capability, nonce identities and reconciliation are all withdrawn. What remains is Collection persisting what it already observes, one level further.
 
-## The shape
+## Tree
+
+Under a repository-owned records directory the collector names (by default none, so today's behaviour is unchanged), beside but outside `.kaal/`:
 
 ```
- client's KAAL dir ─(adapter, any)─► collections/YY/MM/DD/CC/<name>/   observation, written once  (exists)
-                                              │ reach.md: outcome, adapter, sha + path
-                                              ▼   explicit, recorded act (new)
-                      clients/<client>        who it is        ◄── mapping: attempt → client
-                      incidents/<comm>        what was sent    ◄── client + carrier sha (+ kind)
-                      requests/<comm>
+clients/<name>/sightings/YY/MM/DD/CC.md      one per attempt that reached or failed to reach it, written once
+incidents/<name>/<sha256>.md                 the carrier bytes exactly, once per (client, hash)
+requests/<name>/<sha256>.md
 ```
 
-- A **client** record is written the first time a collector decides an attempt shows a client it has no record of. Its ID is the SHA-256 of its own bytes; the bytes include a collector-chosen nonce, so two collectors minting for the same real client get two IDs and need no coordination (R7). The collector's name for it is an attribute, not identity.
-- An **attempt-to-client mapping** is its own write-once record naming the collection address, the name used there and the client `{name, id}`. It is the one place the judgement "this attempt saw that client" lives (R5). `reach.md` is never touched (R4).
-- A **communication** record (in `incidents/` or `requests/`, by the carrier's place of origin) refers to its client `{name, id}` and to the carrier's SHA-256. Its bytes are fully determined by those, so its ID is too: the same client and the same bytes always give the same communication, whoever writes it, and other bytes or another client give another one (R8). The path and date are provenance in the observation, not identity.
-- **Sightings** (which collections saw a communication) are derived from observations plus mappings, not stored. They are a read.
-- **Reconciliation** of two client IDs found to be one is a further write-once record referring to both.
+`<name>` is the collector's stable name (existing grammar). A client exists exactly when it has a sighting; no `client.md`, no list, nothing that could be read as "all clients".
 
-## What existing Collection functions are reused
+A sighting is the same form `reach.md` already has (outcome, adapter, then `<sha>  <path>` per carrier) plus one line naming the collection it came from. It is the explicit mapping: attempt, client, carriers seen and the source path each was carried at. The date is the collection's declared date, in the file's own address.
 
-`begin`, `reached`, `unreached` and the whole collection layout unchanged; the SHA-256 and client-name grammar; the strict `reach.md` reading inside `check` (to be offered as one shared reader instead of a second parser, R12); `check`'s carrier verification, which every read here runs first.
+## One example (Enercon, real data)
 
-## Minimum new mechanism
+```
+collections/26/10/08/01/enercon/…                 raw observation, unchanged
+clients/enercon/sightings/26/10/08/01.md          collection 26/10/08/01; reached; b30c8bba… incidents/26/10/08/01.md ; 047bf093… requests/26/10/08/01.md
+incidents/enercon/b30c8bba…66bb.md                the carrier
+requests/enercon/047bf093…a831.md
+```
+A second collection that sees the same bytes writes `clients/enercon/sightings/26/10/09/01.md` and finds both stored copies already present and equal, so writes nothing else. A collection that finds other bytes at the same path stores a new communication and lists the path again in its sighting. A client seen under another spelling is another client; nothing links them.
 
-1. Write the three kinds of record above, each write-once, refusing to replace.
-2. One check across them: every mapping names an existing attempt, every communication's carrier exists in some mapped collection with that hash, nothing dangles.
-3. One read: for a client, a communication or a carrier hash, list what is known and whether it rests on a mapping.
+## Reuse of existing Collection mechanics
 
-Nothing else: no registry, no list of all clients, no inference, no transport field.
+`begin`, `reached`, `unreached` and the collection layout unchanged; the name grammar; SHA-256; the carrier walk and its refusals (symlinks, non-files, Git names, case clashes); the write-then-undo discipline; `reach.md` rendering, reused for the sighting form; `check`'s strict reading, extended to the records. The act is one more step inside `reached` and `unreached` when the records argument is given, so the persistence is part of recording the attempt, not a second tool.
 
-## Genuine forks for the Owner
+## Sealed Node finding
 
-**F1. Where the three entities live.** You agreed root-level `clients/`, `requests/`, `incidents/`. Consequences to accept: they are outside `.kaal/`, so `contain-change` and `preserve-sealed-changes` do not see them and nothing protects write-once until a later `.github` Change (which must travel alone); each directory needs its own README and boundary; the names `incidents/` and `requests/` also mean the client-side carrier places in a client's KAAL directory, so docs must keep "carried by a client" and "recorded by KAAL" apart. Alternative: inside `.kaal/` (protected by existing controls, but it is instance state). Recommendation: root-level as agreed, with a stated follow-up for protection.
+`Collecting KAAL` is sealed and says Collecting "keeps no list of clients, so that what is visible is never mistaken for what exists". A `clients/` tree of clients sighted is not a list of clients that exist, but it is the nearest thing to one, and the Node cannot be edited (and the installer has no supersession for a registered Skill Node). Reading: a client directory is only the place its sightings are kept, claims nothing about absent clients, and says so in its own README. This is the concrete point where the Node's text and the Owner's model touch, and it is the Owner's to accept.
 
-**F2. Client identity.** (a) KAAL-minted record with nonce, reconciled by explicit record (recommended); (b) a token the client declares in its own KAAL, which cannot be required and which a fork or copy duplicates, so at most supporting evidence; (c) the collector's name only, which is today's weakness.
+## Honest limits
 
-**F3. Which capability holds this.** The sealed Node `Collecting KAAL` says Collecting does not interpret, and deciding that an attempt shows a given client is interpretation. So either a new sibling capability (new Skill Node, own package, consuming collections; `kaal-collecting` gains at most a shared reader), or `kaal-collecting` is evolved and a new Node is born beside the sealed one. The fixed Intent says "evolve kaal-collecting"; the Node's scope suggests the sibling. Recommendation: sibling capability, with the collecting change limited to the shared reader.
+A different spelling of a name is a different client, and two sightings under one name are one client only because the collector asserted it. Carrier bytes exist twice (observation and stored record). Records are unprotected until a later `.github` Change.
 
-**F4. Stored or derived communications.** Your model has them stored. I recommend stored with ID fully determined by client and carrier hash, sightings derived. The alternative is derived only, which would make `incidents/` and `requests/` views, not entities.
+## Remaining forks
 
-**F5. When it was observed.** The collection's address, as the collector declared it, stated plainly as a declaration. An instant would mean a second `reach.md` form and is still the collector's clock. Recommendation: no instant in this Change.
+**A.** Accept the reading of the sealed Node above, or require a new Node (blocked on supersession).
+**B.** Refuse an existing client name without an assertion flag (recommended), or accept the name silently as today.
+**C.** Records directory passed per command, or a convention rooted at the repository: the first leaves the engine-versus-repository transition undecided, which fits your instruction.
