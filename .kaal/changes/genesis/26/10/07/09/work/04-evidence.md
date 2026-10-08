@@ -28,7 +28,11 @@ A Worker-spawned agent probed the Work adversarially and its findings were resol
 
 ## Whole suite
 
-`npm test` passes, as do `check-kaal-install`, `check-kaal-seals`, `check-kaal-config`, `check-kaal-agent` and `check-kaal-changes`.
+At the head that carries these edits, run locally: `npm test` exits 1 with one failing test of the 38 in `engineering/kaal-install`, the change-records test, which sees `07/01..07, 09` where it expects `01..08`. That is the dependency on the concurrent Change at `07/08`, not yet on `kaal/genesis`; I have neither taken that number nor waived the test. Because `npm test` chains its suites, the suites after `kaal-install` do not run when it stops. Run directly: the package's own tests (3) and `engineering/kaal-collecting` acceptance (28) pass, and `check-kaal-install`, `check-kaal-seals`, `check-kaal-config`, `check-kaal-agent` and `check-kaal-changes` exit 0. The full-suite outcome with the concurrent Change admitted is to be recorded once it is.
+
+## Review round 01 (independent)
+
+F1: `check` followed links through `existsSync`, so a dangling `carriers` link passed. It now inspects the entry itself, and acceptance covers an empty reached record, an unreached one and one holding carriers. F2: Requirements R10 and the Architecture are reconciled with the narrow installer integration actually shipped, and no longer claim collections are never read. F3: this section.
 
 ## What this does not show
 

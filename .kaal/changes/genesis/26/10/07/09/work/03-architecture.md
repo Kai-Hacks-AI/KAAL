@@ -1,6 +1,6 @@
 # Architecture
 
-One capability, `kaal-collecting`, shaped as the capabilities before it: a sealed Node `Collecting KAAL` typed by `Skill`, one Agent Skill with one script, and acceptance in `engineering/kaal-collecting`. No Core, `.github`, Sealing, Changing or installer change.
+One capability, `kaal-collecting`, shaped as the capabilities before it: a sealed Node `Collecting KAAL` typed by `Skill`, one Agent Skill with one script, and acceptance in `engineering/kaal-collecting`. No Core, `.github`, Sealing or Changing change. The installer gets one narrow integration: `collections/` is local instance-owned state beside `changes/` and the carriers, which installing preserves and the installation check excludes from its comparison with the packages' delivery. The installer still enumerates the installed files and then filters this directory out; "not judged" is what it guarantees, not "never listed".
 
 ## The relationship
 
@@ -57,7 +57,7 @@ A carrier's identity is the SHA-256 of its exact bytes; it is its file name's co
 - `unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>` records an attempt that did not reach.
 - `check <kaal-dir> <collection>` recomputes each carrier's identity against `reach.md` and exits 0 only if every one still matches, nothing is recorded twice, and nothing else (a symlink, a stray file) is in the record.
 
-A client KAAL directory that holds no carrier is a legitimate result when the agent saw that the client carries none: reached, and nothing carried for KAAL. An exposure the agent could not see is `unreached`, never an empty one. Collection performs no network access and names no transport. It keeps collected evidence in `collections/` of the KAAL directory, local instance-owned state beside `changes/` and the carriers: not a delivery of any package, not read or written by installing, and with no sealing requirement and no general state framework. Fetching is the agent's, through whatever it has.
+A client KAAL directory that holds no carrier is a legitimate result when the agent saw that the client carries none: reached, and nothing carried for KAAL. An exposure the agent could not see is `unreached`, never an empty one. Collection performs no network access and names no transport. It keeps collected evidence in `collections/` of the KAAL directory, local instance-owned state beside `changes/` and the carriers: not a delivery of any package, preserved by installing and excluded from the check, and with no sealing requirement and no general state framework. Fetching is the agent's, through whatever it has.
 
 ## The carriers as admitted (R11)
 

@@ -249,3 +249,23 @@ test("a client's KAAL directory carrying nothing addressed to KAAL is recorded a
   assert.equal(run("reached", kaal, c, "--client", "bare", "--adapter", "a", "--from", exposed).status, 0);
   assert.equal(readFileSync(join(kaal, c, "bare/reach.md"), "utf8"), "# bare\n\nreached\nadapter: a\n");
 });
+
+test("check rejects a dangling carriers link, whether the attempt is reached empty, unreached, or holds carriers", (t) => {
+  const { kaal, exposed, root } = setup(t, { "incidents/a.md": "one" });
+  const c = begin(kaal);
+  assert.equal(run("reached", kaal, c, "--client", "empty", "--adapter", "a", "--from", join(root, "none-here")).status, 1);
+  const bare = join(root, "bare");
+  mkdirSync(bare);
+  run("reached", kaal, c, "--client", "empty", "--adapter", "a", "--from", bare);
+  run("unreached", kaal, c, "--client", "far", "--adapter", "a", "--reason", "r");
+  run("reached", kaal, c, "--client", "full", "--adapter", "a", "--from", exposed);
+  assert.equal(run("check", kaal, c).status, 0);
+  for (const client of ["empty", "far"]) symlinkSync(join(root, "nowhere"), join(kaal, c, client, "carriers"));
+  const r = run("check", kaal, c);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /empty: carriers is not a directory/);
+  assert.match(r.stderr, /far: carriers is not a directory/);
+  rmSync(join(kaal, c, "full/carriers"), { recursive: true });
+  symlinkSync(join(root, "nowhere"), join(kaal, c, "full/carriers"));
+  assert.match(run("check", kaal, c).stderr, /full: carriers is not a directory/);
+});

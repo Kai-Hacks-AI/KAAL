@@ -23,6 +23,6 @@ What the Work must make true, from the Intent. Each is checkable on what ships.
 
 **R9. Honest about the run.** A collection records the attempts it made and says nothing about clients it did not attempt. An empty exposure (reached, nothing carried) is recorded as exactly that, apart from unreached.
 
-**R10. Smallest.** One Node, one Agent Skill, one script. No daemon, no schedule, no polling, no registry, no new Core meaning, no change to Sealing, Changing or the installer.
+**R10. Smallest.** One Node, one Agent Skill, one script. No daemon, no schedule, no polling, no registry, no new Core meaning, no change to Sealing or Changing. The one integration outside the capability is narrow and necessary: `collections/` is local instance-owned state that installing preserves and that the installation check excludes from its comparison with what packages deliver, as `changes/` and the carriers are (`engineering/kaal-install`, with its own acceptance; `.gitattributes` keeps collected bytes from text conversion). It is not a general state framework and does not require sealing.
 
 **R11. Consumes the carriers as admitted.** KAAL Incident and KAAL Request carry their carriers as `incidents/YY/MM/DD/CC.md` and `requests/YY/MM/DD/CC.md` within the client's KAAL directory. Collection consumes exactly that location and keeps each carrier's source path, and needs nothing of their form but that they are plain files.

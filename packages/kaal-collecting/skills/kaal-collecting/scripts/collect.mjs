@@ -28,9 +28,11 @@ const CARRIED_AT = ["incidents", "requests"];
 const NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const COLLECTION = /^collections\/\d\d\/\d\d\/\d\d\/\d\d$/;
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
-const isLink = (path) => {
+/** Whether anything is at `path`, a dangling link included; `existsSync` follows links and says no. */
+const anythingAt = (path) => {
   try {
-    return lstatSync(path).isSymbolicLink();
+    lstatSync(path);
+    return true;
   } catch {
     return false;
   }
@@ -162,7 +164,7 @@ function reached() {
   };
   for (const place of CARRIED_AT) {
     const full = join(flags.from, place);
-    if (!existsSync(full) && !isLink(full)) continue;
+    if (!anythingAt(full)) continue;
     if (!lstatSync(full).isDirectory()) fail(`refused: ${place} is not a plain directory`);
     walk(full, place);
   }
@@ -205,13 +207,13 @@ function check() {
     const listed = new Map(carriers.map(([sha, path]) => [path, sha]));
     if (listed.size !== carriers.length) problems.push(`${client}: a carrier is recorded twice`);
     for (const entry of readdirSync(base)) if (entry !== "reach.md" && entry !== "carriers") problems.push(`${client}: ${entry} is not part of the record`);
-    if (existsSync(join(base, "carriers")) && !lstatSync(join(base, "carriers")).isDirectory()) {
+    if (anythingAt(join(base, "carriers")) && !lstatSync(join(base, "carriers")).isDirectory()) {
       problems.push(`${client}: carriers is not a directory`);
       continue;
     }
     const present = [];
     const walk = (directory, prefix) => {
-      if (!existsSync(directory)) return;
+      if (!anythingAt(directory)) return;
       for (const entry of readdirSync(directory)) {
         const path = prefix === "" ? entry : `${prefix}/${entry}`;
         const kind = lstatSync(join(directory, entry));
@@ -226,7 +228,7 @@ function check() {
       if (!present.includes(path)) problems.push(`${client}: ${path} is recorded but missing`);
       else if (sha256(readFileSync(join(base, "carriers", path))) !== sha) problems.push(`${client}: ${path} no longer matches its recorded identity`);
     }
-    if (outcome === "unreached" && existsSync(join(base, "carriers"))) problems.push(`${client}: is unreached but holds carriers`);
+    if (outcome === "unreached" && anythingAt(join(base, "carriers"))) problems.push(`${client}: is unreached but holds carriers`);
   }
   for (const problem of problems) console.error(problem);
   if (problems.length > 0) process.exit(1);
