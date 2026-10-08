@@ -1,0 +1,21 @@
+# Requirements
+
+Scope: one capability, a Skill by KAAL's existing meaning (one package, a Node typed by Core's `Skill` Node, an Agent Skill, acceptance in `engineering/`), following the shape of `kaal-retro`. Nothing here needs a new Core meaning.
+
+1. **One Skill.** `kaal-review` (Node `Review`), one package, independently selectable. Its Node says what the capability means to KAAL and nothing of mechanism: to examine a result, report findings and establish convergence. It says plainly that Review is a capability and not a role, that any role may use it, and that the actor using it must hold the authority and the independence the situation needs.
+2. **Optional, never automatic.** Not Core, not needed for a valid embedding, not installed by embedding KAAL. It joins an installed KAAL only by being selected by the exact ID of its Node, as for any capability. It declares no sibling.
+3. **Any result, any viewpoint.** What is reviewed is only "a result", named by the one asking and identified by an exact identity. Nothing in the Node, the Agent Skill or the script is specific to Work, a Change, a Skill, a Node or any other particular result.
+4. **What Review owns, and what it does not.** Review owns the form of one round of review and the judgement that review has converged. It does not decide when review is owed, which actor reviews, how a seat is assigned, what is done with findings, or what happens next; whatever asks for a review decides that. It is not ROWING (the interaction of Work and Review in a Change), not Changing KAAL (the lifecycle), not Retro (learning afterwards). It introduces no role Skill.
+5. **Authority and independence are stated, never shown.** A round states, in plain words, under whose authority the reviewing actor holds the seat and in what independence of the one whose result it is. The script refuses a round without that statement and refuses `converged` without it. It cannot establish that the statement is true, and says so; that remains a matter for the process and the Owner.
+6. **The round.** One file in one canonical form, defined once in the script and never written by hand: `# Review`; one line naming the result and its exact identity (`<Result>: <identity>`); `Result: findings | converged`; a `## Reviewer` part; a `## Findings` part. A converged round's findings are `None.`; a round with findings states them. The form is the form `references/rowing.md` already describes, so rounds written with it are the rounds Changing KAAL already reads.
+7. **Convergence.** One command answers whether the rounds in a directory (`NN.md`, from `01`, without gap, each a round) end with a round that says `converged` and names a given identity: change the result afterwards and review has not converged. It writes nothing.
+8. **No knowledge of any process.** The script knows nothing of Git, GitHub, a Change, ROWING, Work, seals or any client. It writes a round once and never replaces one.
+9. **Changing KAAL consumes it where appropriate.** Changing KAAL's Skill text names Review as the capability that writes and checks a round, with the result named Work, and keeps for itself the lifecycle, the seats, the stop at an empty seat and the order after convergence. Its evaluator (`change-state`) is not changed and still reads the two lines it reads today; a round written with Review is accepted by it unchanged. Nothing makes Changing KAAL need Review to work.
+10. **Unchanged.** Core, `.github`, sealed Nodes (ROWING, WORK, RATIFICATION, Changing KAAL, Skill), the installer, the evaluator, and every closed Change.
+11. **Proof.** Acceptance on what ships: delivery through Core, realization, the form through the command an agent runs, convergence, rounds written by it read unchanged by `change-state`, and on a repository that is not KAAL (not installed unless selected).
+
+## Not decided
+
+- Whether `change-state` should ask Review for convergence (a declared sibling, as it asks `kaal-sealing` for identities) rather than read the two lines itself. Today the two lines are read in two places.
+- Whether a round should carry a seal.
+- Whether rounds of reviews that are not within a Change should live anywhere in particular: Review decides no location.
