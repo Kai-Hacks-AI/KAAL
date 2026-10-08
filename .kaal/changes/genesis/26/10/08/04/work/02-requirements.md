@@ -1,0 +1,54 @@
+# Requirements
+
+What must hold for `01-intent.md` to be answered. They say what, not how; the how is `03-architecture.md`. Terms: **Learning** is a Node that states understanding established from experience; **BRAIN** is the set of Learnings a reader has been given; **evidence** is what experience left behind (a Change and its retrospectives and review rounds, an Incident or Request carrier, a test result); **Engine**, **Record** and **Subject** are as Change `genesis/26/10/08/03` uses them.
+
+## BRAIN: location, identity, integrity
+
+- **R1 Explicit location.** A BRAIN is always named by whoever uses it, at the moment of use. Its location is not derived from where the Engine is installed, from the Change being worked, or from the repository being worked on.
+- **R2 No universal place.** No directory name, registry, configuration key or remembered selection makes one BRAIN "the" BRAIN. Nothing is synchronised with a remote.
+- **R3 More than one.** An instance can consult several BRAINs at once, including one held outside its own repository, and can say which BRAIN each Learning it returns came from.
+- **R4 Location is not identity.** A Learning's identity and meaning do not depend on where its BRAIN is held. The same bytes are the same Learning in every BRAIN that holds them, and moving or copying a BRAIN changes no identity.
+- **R5 Identity is Core's.** A Learning's identity is the Node identity Core already defines: the SHA-256 of its exact bytes. No second identity, version or path identity is introduced.
+- **R6 Integrity is Sealing's.** A Learning is protected by a seal made and checked by Sealing, and by nothing else. From a BRAIN alone it can be told that a Learning's bytes still are what was sealed, that a seal has its Node, and that a Node has its seal. KAAL claims no more than that: that a whole sealed Learning has not been removed is for whatever holds the BRAIN's history (R24).
+- **R7 Written once, grown by addition.** An established Learning is never edited, replaced, re-sealed or removed. Understanding that grows or is corrected is another Learning that refers to the earlier by name and ID.
+- **R8 Combining BRAINs loses nothing.** Two BRAINs can be combined without any renaming, renumbering or conflict resolution; what each held is still held, unchanged.
+
+## Learning: what it is
+
+- **R9 Existing Node semantics suffice, or the gap is named.** A Learning is a Node as Core defines Nodes (Form, type by reference, refers to Nodes only by name and ID). Whether it needs a type of its own is decided and justified. Core, its sealed Nodes and its public API are not changed.
+- **R10 Found by type alone.** The Learnings in a BRAIN can be recognised without consulting a list, a registry or a path convention, as KAAL's definitions and Skills are.
+- **R11 Understanding, not experience.** A Learning states understanding that is reusable beyond the occasion it came from and says in which situation it applies. A retrospective, a review round or an incident stays evidence; it is never a Learning by being kept.
+- **R12 Evidence by identity.** A Learning names what it was established from by the identity of that evidence, not by where it is kept, and never by a PR number, branch, commit or check. One Learning can rest on several pieces of evidence, and one piece of evidence can support several Learnings. Evidence can be resolved by anyone who holds the evidence, and a Learning whose evidence cannot be resolved is reported as such, not silently accepted.
+- **R13 Relationships only if they earn it.** Relationships between Learnings are introduced only where a reader's decision depends on them and Core's existing semantics cannot express it. The original BRAIN's graph model (lineages, relation Nodes, same-lineage edges) is not recreated by default.
+- **R14 No status.** A Learning carries no state (current, superseded, applied, approved). Such judgements belong to whoever reads it and to the later Learnings and Work that refer to it.
+
+## `kaal-learning`: the Skill
+
+- **R15 Independent and optional.** `kaal-learning` is a KAAL Skill joined through Core's registration. It is not Core, a valid embedding does not need it, and embedding KAAL does not install it. It depends on no other Skill except Sealing, for identity and seals, and says so.
+- **R16 Not a gate.** Changing KAAL, Review, Retro, Intent, Incident, Request and Collecting are unchanged and require nothing of Learning. A Change closes without a Learning; a Learning does not wait on a Change.
+- **R17 No new authority.** No role, approval, owner, quorum or status is introduced. Who may establish a Learning is whoever may write to the BRAIN; whether a BRAIN accepts it is for whatever governs that BRAIN's host, outside KAAL, as admission of a Change is.
+- **R18 Establishing from evidence.** The Skill helps an agent decide what was learned, separate reusable understanding from observation, decide whether it is already held, and establish a Learning in a named BRAIN. Whether something is understanding is judgement, and no script makes it. What is mechanical is checked: Form, type, evidence form and resolution, that every Node the text refers to resolves, and that nothing is written before every check has passed.
+- **R19 Not every finding.** Nothing turns a retrospective, a review round or a finding into a Learning automatically. The Skill makes "this is not a Learning" a normal outcome, and names the other homes for an observation (it stays evidence; it becomes a Request, an Incident or an Intent; it is carried into the instruction of the capability that owns the practice).
+- **R20 Discovery before establishing.** Before establishing, an agent can list the Learnings of the BRAINs it has been given, with the situation each applies to and which later Learnings refer to it, and can read one in full. Establishing a Learning that restates one already held is avoided by this, not by a rule that refuses it.
+- **R21 Use.** A Learning can be found and used by later Work without a registry and without any process requiring it. A Work that applies a Learning can say so by referring to it by name and ID, and it can be asked which Records refer to a Learning. A Learning that nothing refers to is not thereby shown unused.
+
+## Placement and operation
+
+- **R22 Engine, Record, Subject and BRAIN are four places.** None implies another's location, and any of them may coincide with another when its user chooses. In Engineer, Embed and External operation the Skill behaves identically; only the named locations differ.
+- **R23 Portable.** A BRAIN is readable without the Engine that wrote it (it is Markdown and empty marker files), and can be checked wherever an Engine holds the Learning's type. It needs no network, no checkout of KAAL's engineering repository and nothing installed in the Subject.
+- **R24 A BRAIN in a repository.** A BRAIN held in a governed repository can be protected by the same identity-based preservation that protects closed Changes, so that the repository's controls need only be told which place to judge. That control is not part of this Change.
+- **R25 Smallest.** What already exists is reused as it is. What is genuinely missing is named, and nothing is added for convenience: no index, cache, configuration, status, relation vocabulary or new seal domain unless a requirement above cannot be met without it.
+
+## The exercise
+
+- **R26 Evidence from real Changes.** The six themes of the Intent are examined against the retrospectives and review rounds of the Changes behind PRs #62 to #71. Each is given a disposition (a Learning, not a Learning, deferred) with its reason, and the evidence cited is resolvable by identity.
+- **R27 Shown, not argued.** At least the candidate Learnings are written out in the form the Architecture proposes, checked against Core's own admission, and found, cited and refused (tampered, renamed, unsealed, unresolved type) with the tools that exist, without adding anything to the repository's packages or seals.
+
+## Constraints
+
+- **R28 Architecture only.** This Change establishes no Node, seal, package or script, and creates no BRAIN. Implementation, the first Learnings and any control are separate Changes after the direction is reviewed.
+- **R29 Isolation.** Nothing here touches `packages/kaal-core`, `.github/**` or any sealed artifact; anything that would is named as a separate Change that travels alone.
+
+## What these requirements do not decide
+
+The name of a directory for this repository's own BRAIN, whether file names in a BRAIN are readable, which of the candidate Learnings are established first, and how a control protecting a BRAIN is built. `03-architecture.md` recommends and puts the forks to the Owner.
