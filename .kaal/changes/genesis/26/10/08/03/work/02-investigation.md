@@ -1,5 +1,7 @@
 # Investigation: what depends on `.kaal/changes/`
 
+> Revised after the Owner clarification on PR #71 (see `03-requirements.md`): root-level `changes/` is a **candidate implementation**, not the Intent. Sections 1 to 4 are findings and stand. Sections 5 and 6 describe that one candidate and are superseded as the model by `04-architecture.md`; they are kept so the candidate stays inspectable. Nothing here is a decision.
+
 Against `kaal/genesis` at 1679d40. Investigation only; nothing is moved or implemented. Terms: the **KAAL dir** is the installed engine (`.kaal/`); the **repository root** is what the repository owns. ("Work" is avoided as a directory term because `work/` already names a tree inside a Change.)
 
 ## 1. What relocation cannot touch: identity
@@ -45,14 +47,14 @@ Also: `contain-change` requires exactly one new closed Change per proposal into 
 - **Embed** (Enercon): `origin/main` at 1dbf356 holds Core only (`.kaal/AGENTS.md`, `core/`, `seals/`), the root `AGENTS.md` pointer and `.gitattributes`. It has no Changing KAAL, no Sealing, no Changes: nothing to migrate. What the model must settle before Enercon installs Changing KAAL: a root `changes/` is a host-owned directory (a host may already use that name), and the host's `.gitattributes` would need a `-text` guard for it that the installer does not emit.
 - **External KAAL** (my reading, to confirm: the KAAL dir is not inside the repository whose Work it governs, e.g. a shared install, a path outside the checkout): today every script would write Changes to a place that is not in the repository. This is the case that forces the answer to the seal question. Change seals must travel with the Changes, in the repository; if they stayed in the engine dir, a clone of the repository could not show which Changes are closed, and no repository control could check it.
 
-## 5. Model (proposal)
+## 5. Candidate C1: root-level `changes/` (superseded as the model)
 
 - The **KAAL dir** holds what KAAL is: Core, Nodes and their seals `seals/<ID>`, installed Skills and Extensions, the instance's `core/config`. Derived from packages, plus instance state.
 - The **repository root** holds what the repository does under KAAL: `changes/<name>/YY/MM/DD/CC/`, and the seals that attest those Changes, beside them.
 - A Change's seal is outside the tree it seals (unchanged) and names an ID that excludes the address (unchanged), so a Change can be addressed by `changes/<name>/YY/MM/DD/CC` relative to the repository root in all three topologies; only the location of the KAAL dir differs.
 - Every script that today takes `<kaal-dir>` for Changes takes the repository root for Changes and seals, and the KAAL dir only where it needs Nodes. In Engineer and Embed the KAAL dir is `<root>/.kaal`; in External it is elsewhere.
 
-## 6. Smallest safe transition (each step green, in this order)
+## 6. Transition for C1 (each step green, in this order; not authorized)
 
 1. **Controls bridge** (`packages/kaal-github` + its installed projection; not Core, not `.github/`): `withBaseline` also extracts the repository's `changes/` and seal directories from the target, and the controls hand KAAL one assembled directory of the shape the machinery already reads (the scratch experiment in 1). `RECORD` accepts both places. While nothing has moved, behaviour is unchanged. This alone makes the old and the new location both pass `preserve-sealed-changes` and `admit`, because both judge by identity.
 2. **Consumer bridge** (`packages/kaal-changing` scripts, `engineering/change-seal`, root npm scripts, installer treatment, `.gitattributes`): Changes and seals are read from the repository root, falling back to `.kaal` where the old location still holds them; a Change or a seal present in both places is refused. `next-change` allocates in the new place. Skill text describes the new place. Installed projection refreshed.
@@ -71,4 +73,4 @@ Steps 1 and 2 may be one PR if neither touches `.github/` or Core; they should n
 
 ## 8. Open questions
 
-See the pull request description (Q1 to Q6).
+See the pull request description.
