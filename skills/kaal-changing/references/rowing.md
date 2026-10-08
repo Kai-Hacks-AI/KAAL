@@ -67,6 +67,8 @@ Under whose authority this Reviewer occupies the seat, in plain words.
 ...
 ```
 
+The form of a round is not Changing KAAL's: it is the form of Review (the optional `kaal-review` Skill, Node `Review`), which any result may be reviewed in, and a Change names its result `Work`. Where `kaal-review` is installed, `review.mjs write … --of Work --identity <work id> …` writes a round in exactly this form and `review.mjs converged review <work id>` says whether the rounds end with one that converged on exactly that identity; a Change needs neither, and `change-state` reads the same two lines whoever wrote the round. What this reference adds is the seats, the stop at an empty seat and the order that follows.
+
 `Work` is the identity `node scripts/change-state.mjs <kaal-dir> changes/<name>/YY/MM/DD/CC` prints as `work:` while `work/` is open; name exactly that. `Result` is `findings` or `converged`. Under Findings, each finding is concrete and resolvable by the Worker without asking the Reviewer what it meant. A converged round says `None.`. After findings were resolved, the next round says whether each earlier finding stands. `Reviewer` states the grant in the Reviewer's own words. The evaluator reads the `Work` and `Result` lines and does not judge the rest.
 
 ## Iterating
