@@ -9,13 +9,24 @@
              \______ none derives the others' location; each is named when used ______________/
 ```
 
-The machinery that decides what a Change is already takes the Record as one directory argument and reads `changes/<name>/YY/MM/DD/CC/` and `seals/{changes,trees}` inside it (`change-state.mjs`, `engineering/change-seal`, `next-change.mjs`). It never looks at the engine. Two things bind the Record to the engine today, and only these: the **defaults** (`.kaal` written into the root npm scripts, the Skill text and the installer) and the **controls** in `packages/kaal-github` (`KAAL_DIR = ".kaal"`, `RECORD` regex, baseline extraction). So the principle needs a **Record locator** that is explicit, not a new layout.
+The machinery that decides what a Change is already takes the Record as one directory argument (for one revision) and reads `changes/<name>/YY/MM/DD/CC/` and `seals/{changes,trees}` inside it (`change-state.mjs`, `engineering/change-seal`, `next-change.mjs`). It never looks at the engine. Two things bind the Record to the engine today, and only these: the **defaults** (`.kaal` written into the root npm scripts, the Skill text and the installer) and the **controls** in `packages/kaal-github` (`KAAL_DIR = ".kaal"`, `RECORD` regex, baseline extraction). So the principle needs a **Record locator** that is explicit, not a new layout.
 
 ## What was demonstrated (scratch, existing commands, no code changed)
 
 - The same Change tree sealed in two different Record directories, one outside any repository and one in an arbitrary subdirectory of a repository, has the identical Change ID (`72c9211d...`) in both and is listed `closed` in both. Allocation (`next-change`) and `state` run unchanged against either. A neighbouring Subject directory containing one unrelated file was never read or written.
 - Earlier finding (investigation, section 1): copying all 24 real Changes and their seals into a directory of that shape reproduces all 24 IDs and `check` passes.
-- Not demonstrated, and not claimed: the full lifecycle in a non-`.kaal` Record dir (acceptance covers it only for `.kaal`-shaped dirs), and the git controls against any Record other than `.kaal` (they cannot today: that is the one real gap).
+- **Relocation boundary, scratch Git repository holding the real 24 Changes and 47 seal markers** (prototype assembly, not product code; the predicate is the existing `preserve-changes`):
+
+| Baseline read from | Candidate | Result |
+|---|---|---|
+| target revision, locations `.kaal` and `records` | intact relocation to `records/` | preserved |
+| target revision, locations `.kaal` and `records` | relocation omitting closed Change `05/03` | refused, `05/03` named |
+| one locator `records` for both revisions | the omitting relocation | **preserved (wrong)**: the baseline is empty |
+| one locator `.kaal` for both revisions | the intact relocation | **refused (wrong)**: the candidate is empty |
+| a location the candidate chose (none) | the omitting relocation | **preserved (wrong)**: the candidate hid the baseline |
+
+  The first two rows are the design; the last three show why the locator cannot be one parameter and why the baseline locator cannot come from the candidate.
+- Not demonstrated, and not claimed: the full lifecycle in a non-`.kaal` Record dir (acceptance covers it only for `.kaal`-shaped dirs), and the product controls themselves (`withBaseline` still reads `.kaal` only; the rows above use a scratch assembly in front of the existing predicate).
 
 ## How the three modes hold
 
@@ -33,9 +44,17 @@ One explicit input, `record dir`, supplied wherever a Record is read or written:
 
 Seals: Change and tree seals are part of the Record (R4), so they live in the Record dir beside the Changes. Node seals stay in the engine. This is what makes External possible without an engine inside the Subject, and it keeps the Record self-contained.
 
-## Controls
+## Controls: baseline and candidate Records are resolved independently
 
-`withBaseline` and the controls currently extract `.kaal` from the target branch and compare it with `.kaal` of the candidate. To follow the Record (R9) they take the Record dir as a parameter and compare baseline Record with candidate Record, plus (for Node seals) baseline engine with candidate engine. They already judge by identity, so a Record that is moved whole between two locations passes. For External, the same controls run in the Record store's repository; there is nothing to run in the Subject.
+Owner review of `0f87e2b` (P2) found that a single Record parameter is wrong. `withBaseline` extracts the given path from the target revision; with one locator for both revisions, moving Records from `.kaal` to `records` either empties the baseline (select `records`: nothing is preserved) or empties the candidate (select `.kaal`: the intact move is rejected). Corrected design:
+
+1. **Two resolutions, two sources.** The *baseline Record* is assembled from the **target revision** using the Record locations **that target revision declares**. The *candidate Record* is assembled from the **candidate checkout** using the locations the candidate declares. Each revision's Record is the complete set of its declared locations: Change directories and Change/tree seals, merged into one view of the shape the machinery already reads. A Change (or seal) present at the same address in two locations of one revision is refused as ambiguous.
+2. **The candidate cannot choose the baseline.** The baseline locations are read from the target revision by Git (`git show`/`git archive` of the target), never from the checkout under test. A candidate that edits its own locator changes only its candidate Record. If its locator hides history, the candidate Record lacks Changes that the baseline Record has, and preservation refuses, because the comparison is "every Change closed in the baseline is closed in the candidate, by identity".
+3. **A bridge lists both places.** While a relocation is in flight, the target revision declares both the old and the new location, so baseline and candidate are both assembled from both. An intact relocation passes (same IDs, different place); a relocation that omits a closed Change is refused. Dropping the old location from the declaration is itself judged by the same rule: it passes only once the history is no longer held there.
+4. **First introduction.** A target revision with no declaration has the default location (today `.kaal`), which keeps the existing behaviour, including "a target without `.kaal` has nothing to preserve".
+5. **Known limit, unchanged.** The control code runs from the candidate checkout. A candidate that rewrites the controls is protected by the boundary rules and review, as today, not by this design.
+
+For External, the same controls run in the Record store's repository, with its own target and candidate; there is nothing to run in the Subject.
 
 ## What stays out
 
