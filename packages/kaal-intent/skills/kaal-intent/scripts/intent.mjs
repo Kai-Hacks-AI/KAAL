@@ -29,7 +29,7 @@ export function problem(bytes) {
   if (text.includes("\r")) return "has a carriage return: an Intent's line ends are \\n, so its identity is the same wherever it is kept";
   if (!text.endsWith("\n")) return "does not end with a newline";
   const [head, ...rest] = text.split("\n");
-  if (!/^# Intent(\s.*)?$/.test(head)) return "does not begin with the line '# Intent'";
+  if (!/^# Intent( .+)?$/.test(head)) return "does not begin with the line '# Intent'";
   if (rest.join("\n").trim() === "") return "says nothing after its head";
   return undefined;
 }
