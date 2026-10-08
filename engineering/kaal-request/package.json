@@ -1,0 +1,10 @@
+{
+  "name": "kaal-request-engineering",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run clean && npm run build && node --test dist/acceptance/*.test.js",
+    "build": "npm run build --prefix ../kaal-install && tsc",
+    "clean": "rm -rf dist"
+  }
+}
