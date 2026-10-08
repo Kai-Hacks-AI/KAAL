@@ -1,28 +1,21 @@
 # Requirements
 
-What the Work must make true, from the Intent. Each is checkable on what ships.
+Scope: two capabilities, each a Skill by KAAL's existing meaning (one package, a Node typed by Core's `Skill` Node, an Agent Skill, acceptance in `engineering/`), following the shape of `kaal-retro`. Nothing here needs a new Core meaning.
 
-**R1. Collection is a capability, not Core.** It joins an installed KAAL as a Skill through Core's existing registration, as any capability does. Core carries nothing of it, and it is not installed merely because KAAL is installed.
+1. **Two Skills, named by the instance prefix.** `kaal-incident` (Node `KAAL Incident`) and `kaal-request` (Node `KAAL Request`), one package each, independently selectable. Each Node says what the capability means to KAAL and nothing of mechanism, and says plainly that it is optional.
+2. **Optional, never automatic.** Neither is Core, neither is needed for a valid embedding, neither is installed by embedding KAAL. They join an installed KAAL only by being selected by the exact ID of their Node (`install-kaal --select <Node ID>`), as for any capability. Selecting one does not install the other, and neither declares the other or any sibling it needs.
+3. **Addressed to KAAL by use.** A carrier is addressed to KAAL by having been made with the capability. The capability neither replaces nor governs the client's own incident, defect, backlog, idea or request mechanisms, and says the client is responsible for telling its own from what it addresses to KAAL. Nothing about a client's own mechanisms is modelled.
+4. **Creation.** An agent can create a carrier through one command that takes the KAAL directory and the carrier's two statements, and produces a file in a canonical form it alone defines. The form is the smallest that distinguishes the two kinds and says what each is for: an Incident states what Happened and what was Expected of KAAL; a Request states what is Wanted and what is Missing.
+5. **Local carriage.** The carrier is a plain file inside the client's KAAL directory (`incidents/YY/MM/DD/CC.md`, `requests/YY/MM/DD/CC.md`), so it stays with the embedded KAAL and is available for later collection by KAAL. It is written once and never replaced; numbers within a day are one after the highest, no gap reused, 99 at most. A command that finds a way to write somewhere else, including through a symbolic link in the KAAL directory or in any of its ancestors, or to a directory that is not a KAAL directory, refuses and writes nothing.
+6. **Later harvestable.** A reader that knows only the form and the place can find every carrier and tell a carrier from anything else (`check`). Nothing else holds a copy, a queue or an index.
+7. **No transport and no service model.** No transport, synchronization, GitHub Issues, automatic submission, central backlog, harvesting protocol, status, priority, identity of the sender, severity, assignee or lifecycle. The scripts know nothing of Git, GitHub, a network, or any client.
+8. **No client encoded.** Nothing names Enercon or any particular client.
+9. **The installer keeps its promise.** A carrier made in an installed KAAL is genuine installed state like `.kaal/changes`: installing again does not disturb it and `check-kaal-install` does not report it as drift.
+10. **Core, Changing, Sealing, CASE and `.github` unchanged.** If any turns out to be necessary the Change stops and says so on the PR.
+11. **Proof.** Acceptance for each capability on what ships (delivery through Core, realization, the form through the command an agent runs, conventions) and on a repository that is not KAAL (not installed unless selected, installed when selected, a carrier made there survives and is found).
 
-**R2. Three things stay three.** The Work gives *known*, *reachable* and *all* each a different home, and no artifact stands for more than one of them:
-- *known*: a client someone can name. Collection stores no list of them.
-- *reachable*: a fact about one attempt in one environment, never about a client. An attempt ends reached or unreached, and an unreached one keeps its reason.
-- *all*: never asserted. Nothing counts, totals or declares a population, and no record can be read as saying a client is absent because it was not attempted.
+## Not decided
 
-**R3. No registry.** There is no file, Node or directory that is the set of clients. Knowing, discovering and reaching clients are not collapsed into one place.
-
-**R4. Transport is an adapter's.** The capability's meaning and its script name no host, no transport, no protocol and no particular client. Whatever lets the collecting agent see what a client exposes is an adapter, and the capability meets it only as a directory that adapter produced.
-
-**R5. The client decides what it exposes.** Collection reads only the KAAL-addressed carriers a client carries with its embedded KAAL, as the adapter was given them to see. It never reads, lists or copies anything else of the client, and it refuses anything under that boundary that is not a plain file.
-
-**R6. Identity is preserved, and not mistaken for a locator.** Each collected carrier keeps its exact bytes, the identity of those bytes (their SHA-256) and the path at which the client carried it. Each carrier stays attached to the client it came from, named by the collector's own name for that client, which is a name and not a location. The adapter and how the client was reached are recorded as evidence and are not identity.
-
-**R7. Evidence only.** Collecting produces records and copies. It creates no Issue, Change, backlog entry, priority, verdict or decision, and it does not interpret a carrier. It does not read what a carrier says.
-
-**R8. Nothing is lost or rewritten.** A collection is written once. A client already recorded in a collection is never replaced, and a collected carrier is never changed after it is written. A later attempt is another collection.
-
-**R9. Honest about the run.** A collection records the attempts it made and says nothing about clients it did not attempt. An empty exposure (reached, nothing carried) is recorded as exactly that, apart from unreached.
-
-**R10. Smallest.** One Node, one Agent Skill, one script. No daemon, no schedule, no polling, no registry, no new Core meaning, no change to Sealing, Changing or the installer.
-
-**R11. Depends only on what lands.** The carriers (KAAL Incident, KAAL Request) are created by a concurrent Change. Collection treats a carrier as a file carried with the client's embedded KAAL, and needs nothing of their form but that. The one location it must assume is stated in the Architecture and is a single default that is replaced the moment the carriers' own location lands.
+- Whether carriers should be sealed, and by what identity. Nothing here seals them; collection may want an identity, and that is for the separate problem.
+- Whether the installer should know the carrier directories by name (as done here, the smallest step) or reserve one directory for all capability-owned installed state.
+- Whether a carrier should state which Core it was made against. A collector can learn that from the KAAL directory the carrier was found in.

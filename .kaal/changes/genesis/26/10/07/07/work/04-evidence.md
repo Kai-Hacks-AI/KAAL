@@ -1,31 +1,59 @@
 # Evidence
 
-What was run and what it showed, on the Work as it now stands.
+## Acceptance (`engineering/kaal-incident`, `engineering/kaal-request`, `npm test`; 21 tests each)
 
-## Acceptance
+- **Delivery.** Core carries no such Skill; registering through Core's `registerSkill()` adds exactly one Node and its seal, found by its type alone; bytes and identity are the sealed ones (`KAAL Incident` `ae64416e…cd97e`, `KAAL Request` `1f7c0632…48a0`); the Node says what a carrier is, that it is addressed to KAAL, kept locally with the embedded KAAL, optional, and that transport, submission and collection are other problems, and names no mechanism, Git, GitHub, network, process or client; the Agent Skill is one skill, points at the Nodes and declares no sibling; the one script knows nothing of Git, GitHub, a network, a process or any client; both pass `check-skill` and `register-skill --check`.
+- **The form.** Canonical bytes written out as literal text; any flag order; `@file` for several paragraphs; dated path `incidents/26/10/07/01.md` relative to the KAAL directory; numbering one after the highest, no gap reused, 99 refused, another day starts at 01; today in UTC by default; empty part, heading line, bad date, a directory with no `core/` or with `core/` a link (nothing made in it), a carrier directory or dated directory that is a symbolic link, dangling or not (nothing lands at the link's target), missing, repeated and unknown flags refused with nothing written; `check` accepts exactly the form and rejects fifteen near forms, including the other kind's title; no verb but `write` and `check`.
+- **On a host** (a repository with a README, not KAAL): `install-kaal` alone leaves Core only and no `skills/`; a name selects nothing; `--select <Node ID>` installs the capability and projects its Agent Skill, not the other capability; `check-kaal-install` holds; a carrier made there is a plain file under `.kaal/incidents/` (`requests/`) and nowhere else, `check` accepts it, `check-kaal-install` does not report it, and installing again, with or without `--select`, changes nothing.
+- Existing acceptance in `engineering/kaal-install` (37) and all others still pass; root `npm test` is green, and `check-kaal-seals`, `check-kaal-config` and `check-kaal-install` exit 0.
 
-`engineering/kaal-collecting` (19 tests) and the package's own (3) pass. They show, on the shipped bytes:
+## A run on a scratch repository that is not KAAL
 
-- Core carries no Collecting KAAL; registering through `registerSkill()` adds exactly one Node and its seal, found by type alone, with the sealed identity `d938e5310a9139c66ec503c9dcb7d37a3f0ca50b2c1b9effec020746a1e66230`.
-- The Node says known, reachable and all clients are different, that no list of clients is kept, that a client is a name and not a location, that only KAAL-addressed carriers are in scope, and that a collection is evidence only; it names no host, transport, client or mechanism.
-- The script and the Agent Skill name no host, no client and no URL, and the script imports nothing that reaches a network or starts a process.
-- Reached with carriers, reached with nothing, and unreached are three different records, and a client not attempted leaves no trace anywhere. Carriers are byte-for-byte copies recorded with their SHA-256 and the path they were carried at.
-- Symlinks, non-files, backslash, control-character and non-NFC names, `.git*` names, case collisions, an existing client record, a bad client name or collection and bad usage are refused, and a refused attempt writes nothing.
-- `check` catches an altered, a missing, an unrecorded and a symlinked carrier, a carrier recorded twice, a stray file in the record and a record not in the form the script writes.
-- Allocation of collections follows Changes: highest plus one, no gap reuse, refused at 99.
+```
+$ npm run list-kaal-capabilities -- --into <host>
+Skill	kaal-incident	KAAL Incident	ae64416e366aaaab8ca71fbde9586ca099fb9d9393186eb3aab5b6e9bd2cd97e	not installed
+Skill	kaal-request	KAAL Request	1f7c06321c96b72fb4f37cc8a5034f4da4d7d0a52fbf7256402c8d7ed49248a0	not installed
+$ install-kaal --into <host> --select <KAAL Incident id>        exit 0
+$ node <host>/skills/kaal-incident/scripts/incident.mjs write <host>/.kaal --happened … --expected …
+incidents/26/10/07/01.md
+$ check-kaal-install --into <host>                               exit 0
+```
 
-## A finding the Work had to resolve
+## What the Work found
 
-A real collection under `.kaal/collections/` made `check-kaal-install` fail ("is not delivered by any package"), because the installer treated every file in the KAAL directory outside `changes/` and the Change and tree seals as something a package must deliver. A KAAL that has collected anything would have been reported as not holding its delivery. `collections/` is now installed state beside `changes/`, neither read nor written by installing nor judged by the check (`engineering/kaal-install`, with its own acceptance test and the existing counts of installed Skills raised by one). `.gitattributes` keeps `.kaal/collections/**` from text conversion, so a collected carrier keeps its bytes through Git. No Core, `.github`, Sealing or Changing change.
+The install check reported a carrier in `.kaal/` as "not delivered by any package". The installer therefore has to know that carriers are installed state, as it knows `changes/`; that is the one change outside the two capabilities (`engineering/kaal-install`, repository engineering, not shipped).
 
-## Worker-side probe (not review)
+Nothing was pushed to any other repository and no external client was involved.
 
-A Worker-spawned agent probed the Work adversarially and its findings were resolved in `work/`. That is the Worker's own testing and is not ROWING review: the Reviewer must come through the independently established review side, and no round exists. The findings, resolved, were: a refused or racing attempt could remove another attempt's record, `begin` accepted impossible dates, `.git*` names were not refused, `check` followed symlinks and ignored stray files, the Skill did not say the `carriers/` default is an assumption nor what to record for an unseen exposure, and the Node said Collecting itself takes from the client. The Node was reworded and so re-sealed in this branch, before any admission.
+## Review provenance (corrected after the Worker's disclosure on the PR)
 
-## Whole suite
+Rounds `review/01.md` to `review/04.md` were written by subagents the Worker started and briefed (round 01 and 02 by one subagent, resumed; 03 and 04 by freshly started ones, also posted as PR comment reviews). They are Worker-side probes, not the independently supplied Reviewer, and nothing below counts them as Reviewer evidence. They are kept as written and are not edited or removed. What they found is real work that was resolved, listed here for the record:
 
-`npm test` passes, as do `check-kaal-install`, `check-kaal-seals`, `check-kaal-config`, `check-kaal-agent` and `check-kaal-changes`.
+- Round 01: `write` followed symbolic links below the KAAL directory. Resolved: `core/` and every existing component of `<carrier dir>/YY/MM/DD` must be a real directory (`lstat`).
+- Rounds 03 and 04: no findings.
 
-## What this does not show
+## Codex review of `00a24fc` (not appointed by the Worker)
 
-No carrier of a real Incident or Request existed to collect: the carriers are created by a concurrent Change, and the `carriers/` default is an assumption to be replaced by their own location (Architecture, the one assumption). Nothing was collected from any real client, and nothing was run against Enercon.
+Two P2 findings, both real, resolved in both packages in `fd6fd07`:
+
+1. A symbolic link as the KAAL directory itself was accepted.
+2. Each `SKILL.md` told the agent to commit the carrier, importing repository policy into a capability whose scope ends at local carriage. The instruction is removed; what becomes of a carrier beyond the KAAL directory is stated to be the client's, and acceptance holds each manifest free of instructions to commit, push, publish or submit.
+
+Also corrected then: `SKILL.md` said the KAAL directory is "by default `.kaal`" although the script requires it to be given; it now says it is always given, usually `.kaal`.
+
+## Review round 05 (the Reviewer supplied by the Owner: a ChatGPT/Codex session directed by Kai, separate from the Worker session)
+
+Two findings against the Work at `be5d15d0…`:
+
+1. Both writers still wrote through a symbolic link in an *ancestor* of the KAAL directory (`alias/.kaal` with `alias` a link), because `lstat` covered only the final component and below. Resolved in both scripts: every component of the resolved absolute path of the KAAL directory, from the root, is checked, and a symbolic link anywhere refuses with nothing written. Acceptance covers the link as an ancestor, further up, absolute, absolute with a trailing slash, relative and relative with dot segments, asserts no carrier appears behind it, and that the same directory by its real path is accepted. A relative path spelled from inside a linked working directory cannot be detected, because the operating system reports the working directory by its real path; that case already is the real path.
+2. This evidence presented round 03 as a converged Reviewer pass. Corrected above.
+
+Acceptance was then 22 tests per capability in `engineering/kaal-incident` and `engineering/kaal-request`. The Change's process state, as `change-state` prints it, reads "converged" from round 04; per the Owner's account of the review, that answer comes from a withdrawn Worker-side round and is not evidence of independent convergence. No independent round has yet converged on the Work as it now stands.
+
+## Review round 06 (the Owner-supplied Reviewer)
+
+One finding against the Work at `70b7ea66…`: `resolve(given)` collapsed `segment/..` before the link check saw it, so `alias/../.kaal` (with `alias` a link to `outside/deeper`) named `outside/.kaal` to the operating system but was written as `./.kaal`, a different KAAL instance. Reproduced in both writers. Resolved: the supplied path is never normalised first. Both writers walk it component by component from the root (the working directory for a relative path), look at each component with `lstat` before the next is applied, and refuse the first symbolic link; a `..` after only real directories is the plain parent. Acceptance (23 tests per capability at that point) covers relative, `./`, absolute and trailing-slash spellings of `alias/../.kaal`, asserts no carrier in either instance, shows `outside/deeper/../.kaal` through real directories still names `outside/.kaal` and writes there, and that `..` alone is refused as not a KAAL directory.
+
+## Review round 07 (the Owner-supplied Reviewer)
+
+One finding against the Work at `672b2fe6…`: the walker rejected only symbolic links, so a missing component (`missing/../.kaal`, ENOENT to the operating system) or a regular file used as a directory (`plain-file/../.kaal`, ENOTDIR) was silently erased by the following `..`, and the carrier was written into the surviving `.kaal`. Reproduced in both writers. Resolved: the walker now requires every ordinary component to exist, not be a symbolic link and be a real directory before the next component or `..` is applied, and refuses otherwise with the reason (`does not exist`, `is a symbolic link`, `is not a directory`), before any carrier directory or file is created. Acceptance (24 tests per capability now) covers missing and regular-file components followed by `..` in relative, `./`, absolute and trailing-slash spellings, a missing component deeper in, the bare missing and regular-file paths, asserts exit 1 with no carrier directory made and nothing else created, and that `real/../.kaal` through a real directory still works.

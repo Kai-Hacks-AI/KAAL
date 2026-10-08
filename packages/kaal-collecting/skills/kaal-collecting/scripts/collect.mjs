@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // collect begin <kaal-dir> [--date YYYY-MM-DD]   (today in UTC unless given)
-// collect reached <kaal-dir> <collection> --client <name> --adapter <text> --from <dir>
+// collect reached <kaal-dir> <collection> --client <name> --adapter <text> --from <client-kaal-dir>
 // collect unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>
 // collect check <kaal-dir> <collection>
 // The record of what an agent collected from KAAL clients, and of what it
@@ -8,20 +8,33 @@
 // with one directory per attempted client:
 //
 //   <client>/reach.md             the attempt's outcome and evidence
-//   <client>/carriers/<path>      the exposed carriers, byte for byte (reached only)
+//   <client>/carriers/<path>      the exposed carriers, byte for byte, at the path
+//                                 they were carried at within the client's KAAL directory
+//                                 (reached only)
 //
 // The script reaches nothing. What a client exposes is shown to the agent by
 // whatever means it has, which this script never sees, and the agent gives it
-// the directory those files are in. It reads only that directory, refuses
-// anything in it that is not a plain file, interprets nothing it copies, keeps
-// no list of clients, and never replaces what it has written.
+// the directory it made of the client's KAAL directory. Of that directory the
+// script reads only the places where clients carry what they address to KAAL
+// (CARRIED_AT) and nothing else of it, refuses anything there that is not a
+// plain file, interprets nothing it copies, keeps no list of clients, and never
+// replaces what it has written.
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
+/** Where, within a client's KAAL directory, communication addressed to KAAL is carried. */
+const CARRIED_AT = ["incidents", "requests"];
 const NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const COLLECTION = /^collections\/\d\d\/\d\d\/\d\d\/\d\d$/;
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const isLink = (path) => {
+  try {
+    return lstatSync(path).isSymbolicLink();
+  } catch {
+    return false;
+  }
+};
 const usage = () => fail("usage: collect begin|reached|unreached|check <kaal-dir> ...", 2);
 
 function fail(message, code = 1) {
@@ -130,12 +143,12 @@ function reached() {
   const dir = collection(rest[0], rest[1]);
   const target = clientDir(dir, flags.client);
   const adapter = oneLine("--adapter", flags.adapter);
-  if (!existsSync(flags.from) || !lstatSync(flags.from).isDirectory()) fail("--from must be a directory holding what the client exposes");
+  if (!existsSync(flags.from) || !lstatSync(flags.from).isDirectory()) fail("--from must be the directory made of the client's KAAL directory");
   const found = [];
   const seen = new Set();
   const walk = (directory, prefix) => {
     for (const entry of readdirSync(directory).sort()) {
-      const path = prefix === "" ? entry : `${prefix}/${entry}`;
+      const path = `${prefix}/${entry}`;
       const full = join(directory, entry);
       const kind = lstatSync(full);
       if (/[\\\u0000-\u001f\u007f]/.test(entry) || entry !== entry.normalize("NFC")) fail(`refused: ${path} has a name that is not stated the same on every platform`);
@@ -147,7 +160,12 @@ function reached() {
       else fail(`refused: ${path} is not a plain file, and only plain files are collected`);
     }
   };
-  walk(flags.from, "");
+  for (const place of CARRIED_AT) {
+    const full = join(flags.from, place);
+    if (!existsSync(full) && !isLink(full)) continue;
+    if (!lstatSync(full).isDirectory()) fail(`refused: ${place} is not a plain directory`);
+    walk(full, place);
+  }
   const carriers = found.map(([path, bytes]) => [sha256(bytes), path]);
   write(target, render(flags.client, "reached", adapter, "", carriers), found);
   console.log(`${flags.client}: reached, ${found.length} carrier${found.length === 1 ? "" : "s"}`);

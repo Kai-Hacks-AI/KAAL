@@ -1,29 +1,15 @@
 # Intent
 
-Enable KAAL to collect KAAL-addressed communication from KAAL clients it can reach.
+Establish two optional KAAL Skills through which a KAAL client can deliberately communicate experience back toward KAAL:
 
-KAAL clients may carry communication intended for KAAL, such as KAAL Incidents and KAAL Requests. Collection is the KAAL-side capability that finds and brings those carriers into KAAL when an available connection to the client permits it.
+* KAAL Incident — record that something involving the client's embedded KAAL happened that should not have happened or that expected KAAL behaviour failed.
+* KAAL Request — record something the client wants from KAAL that is not presently available or sufficient.
 
-Do not assume that KAAL can see every client.
-
-A client may be known but unreachable, reachable through one environment but not another, or discoverable through an adapter available to the collecting agent. The collection model must preserve that distinction rather than treating the visible set of clients as the complete population of KAAL installations.
-
-Transport and host access are adapter concerns. GitHub may provide one way to reach a client repository; another host or environment may provide another. Collection should use available adapters rather than make a particular transport part of the meaning of a KAAL client or its communication carriers.
-
-A client remains in control of what it exposes to KAAL. Collection concerns KAAL-addressed carriers available through the client's embedded KAAL boundary; it must not imply permission to inspect arbitrary client content.
-
-Preserve the identity of the originating client and each collected carrier.
-
-Do not turn collected communication directly into GitHub Issues, Changes, backlog entries or decisions. Collection brings evidence to KAAL; interpretation, prioritization and action remain separate concerns.
-
-Do not encode Enercon or GitHub as the universal client or transport model.
-
-The result should support the relationship:
-
-`KAAL client → available adapter → exposed KAAL carriers → collection by KAAL`
-
-while remaining truthful about partial visibility:
-
-`known clients ≠ reachable clients ≠ all KAAL clients`
-
-Let the Work determine the smallest useful mechanism for knowing, discovering or reaching clients without collapsing those concepts into one registry.
+These Skills are recommended capabilities for clients that want a structured communication channel with KAAL. They are not Core, are not required for a valid KAAL embedding, and must not be installed automatically merely because KAAL is embedded.
+A client remains responsible for distinguishing its own Incidents and Requests from those it deliberately addresses to KAAL. Using these Skills means the carrier is addressed to KAAL; they do not replace or govern the client's own incident, defect, backlog, idea or request mechanisms.
+The Skills shall record their carriers locally with the client's embedded KAAL so that the communication remains available for later collection by KAAL.
+Do not establish transport, synchronization, GitHub Issues, automatic submission, central backlog behaviour, or a harvesting protocol in this Change. Creation and local carriage are the concern here; collection is a separate problem.
+Do not encode Enercon or any other particular client into the capabilities.
+The result should make this relationship possible:
+`KAAL client → KAAL Incident / KAAL Request → locally carried with embedded KAAL → later harvestable by KAAL`
+Let the Work determine the smallest forms and machinery necessary to establish those two capabilities without inventing a larger service-management model.

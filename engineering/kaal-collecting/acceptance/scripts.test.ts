@@ -43,7 +43,7 @@ test("begin allocates collections/YY/MM/DD/CC as Changes are allocated: highest 
 });
 
 test("a reached client keeps each carrier byte for byte, with its identity and the path it was carried at", (t) => {
-  const bytes = { "a.md": "first\n", "sub/b.md": "second \r\né" };
+  const bytes = { "incidents/26/10/07/01.md": "first\n", "requests/26/10/07/01.md": "second \r\né" };
   const { kaal, exposed } = setup(t, bytes);
   const c = begin(kaal);
   const r = run("reached", kaal, c, "--client", "some-client", "--adapter", "a local checkout", "--from", exposed);
@@ -52,7 +52,7 @@ test("a reached client keeps each carrier byte for byte, with its identity and t
   assert.deepEqual(read(join(dir, "carriers")), bytes);
   assert.equal(
     readFileSync(join(dir, "reach.md"), "utf8"),
-    `# some-client\n\nreached\nadapter: a local checkout\n\n${sha256(bytes["a.md"])}  a.md\n${sha256(bytes["sub/b.md"])}  sub/b.md\n`,
+    `# some-client\n\nreached\nadapter: a local checkout\n\n${sha256(bytes["incidents/26/10/07/01.md"])}  incidents/26/10/07/01.md\n${sha256(bytes["requests/26/10/07/01.md"])}  requests/26/10/07/01.md\n`,
   );
   assert.equal(run("check", kaal, c).status, 0);
 });
@@ -70,30 +70,30 @@ test("reached with nothing carried, unreached, and never attempted are three dif
 });
 
 test("nothing is written outside the collection, and no file other than the carriers is read", (t) => {
-  const { kaal, exposed, root } = setup(t, { "x.md": "x" });
+  const { kaal, exposed, root } = setup(t, { "incidents/x.md": "x", "core/Node.md": "not exposed", "changes/genesis/r.md": "not exposed", "skills/s/SKILL.md": "not exposed" });
   writeFileSync(join(root, "outside.md"), "not exposed");
   const c = begin(kaal);
   run("reached", kaal, c, "--client", "one", "--adapter", "a", "--from", exposed);
   assert.deepEqual(readdirSync(kaal), ["collections"]);
-  assert.deepEqual(Object.keys(read(join(kaal, c))).sort(), ["one/carriers/x.md", "one/reach.md"]);
+  assert.deepEqual(Object.keys(read(join(kaal, c))).sort(), ["one/carriers/incidents/x.md", "one/reach.md"]);
 });
 
 test("it refuses what it must not collect, and then writes nothing", (t) => {
-  const { kaal, exposed, root } = setup(t, { "ok.md": "fine" });
+  const { kaal, exposed, root } = setup(t, { "incidents/ok.md": "fine" });
   const c = begin(kaal);
   writeFileSync(join(root, "target"), "secret");
-  symlinkSync(join(root, "target"), join(exposed, "link.md"));
+  symlinkSync(join(root, "target"), join(exposed, "incidents/link.md"));
   const link = run("reached", kaal, c, "--client", "linked", "--adapter", "a", "--from", exposed);
   assert.equal(link.status, 1);
   assert.match(link.stderr, /not a plain file/);
-  mkdirSync(join(exposed, "d"));
-  symlinkSync(root, join(exposed, "d", "up"));
+  mkdirSync(join(exposed, "incidents/d"));
+  symlinkSync(root, join(exposed, "incidents/d", "up"));
   assert.equal(run("reached", kaal, c, "--client", "linked", "--adapter", "a", "--from", exposed).status, 1);
   assert.deepEqual(readdirSync(join(kaal, c)), [], "a refused attempt leaves no record");
 });
 
 test("it refuses names that are not stated the same on every platform, and case collisions", (t) => {
-  const { kaal, exposed } = setup(t, { "A.md": "1", "a.md": "2" });
+  const { kaal, exposed } = setup(t, { "incidents/A.md": "1", "incidents/a.md": "2" });
   const c = begin(kaal);
   const r = run("reached", kaal, c, "--client", "case", "--adapter", "a", "--from", exposed);
   assert.equal(r.status, 1);
@@ -102,11 +102,11 @@ test("it refuses names that are not stated the same on every platform, and case 
 });
 
 test("a client already recorded in a collection is never replaced; a later attempt is a new collection", (t) => {
-  const { kaal, exposed } = setup(t, { "a.md": "one" });
+  const { kaal, exposed } = setup(t, { "incidents/a.md": "one" });
   const c = begin(kaal);
   assert.equal(run("reached", kaal, c, "--client", "same", "--adapter", "a", "--from", exposed).status, 0);
   const before = read(join(kaal, c));
-  writeFileSync(join(exposed, "a.md"), "changed");
+  writeFileSync(join(exposed, "incidents/a.md"), "changed");
   for (const args of [
     ["reached", kaal, c, "--client", "same", "--adapter", "b", "--from", exposed],
     ["unreached", kaal, c, "--client", "same", "--adapter", "b", "--reason", "r"],
@@ -138,17 +138,17 @@ test("a client name is a name: it cannot be a path or a location, and the usage 
 });
 
 test("check catches an altered, a missing and an unrecorded carrier, and a record that is not in its form", (t) => {
-  const { kaal, exposed } = setup(t, { "a.md": "one", "b.md": "two" });
+  const { kaal, exposed } = setup(t, { "incidents/a.md": "one", "incidents/b.md": "two" });
   const c = begin(kaal);
   run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed);
   const carriers = join(kaal, c, "cl/carriers");
   assert.equal(run("check", kaal, c).status, 0);
-  writeFileSync(join(carriers, "a.md"), "altered");
+  writeFileSync(join(carriers, "incidents/a.md"), "altered");
   assert.match(run("check", kaal, c).stderr, /no longer matches/);
-  writeFileSync(join(carriers, "a.md"), "one");
-  writeFileSync(join(carriers, "extra.md"), "x");
+  writeFileSync(join(carriers, "incidents/a.md"), "one");
+  writeFileSync(join(carriers, "incidents/extra.md"), "x");
   assert.match(run("check", kaal, c).stderr, /collected but not recorded/);
-  writeFileSync(join(carriers, "extra.md"), "x");
+  writeFileSync(join(carriers, "incidents/extra.md"), "x");
   const record = join(kaal, c, "cl/reach.md");
   const text = readFileSync(record, "utf8");
   writeFileSync(record, text.replace("reached", "reached\n"));
@@ -181,7 +181,7 @@ test("concurrent collections never share a number", async (t) => {
 });
 
 test("a refused attempt on an existing client never removes that client's record", (t) => {
-  const { kaal, exposed } = setup(t, { "a.md": "one" });
+  const { kaal, exposed } = setup(t, { "incidents/a.md": "one" });
   const c = begin(kaal);
   run("reached", kaal, c, "--client", "same", "--adapter", "a", "--from", exposed);
   const before = read(join(kaal, c));
@@ -190,7 +190,7 @@ test("a refused attempt on an existing client never removes that client's record
 });
 
 test("names Git cannot carry faithfully are refused", (t) => {
-  for (const name of [".git/config", ".gitignore", "sub/.gitattributes"]) {
+  for (const name of ["incidents/.git/config", "incidents/.gitignore", "requests/sub/.gitattributes"]) {
     const { kaal, exposed } = setup(t, { [name]: "x" });
     const c = begin(kaal);
     const r = run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed);
@@ -200,7 +200,7 @@ test("names Git cannot carry faithfully are refused", (t) => {
 });
 
 test("check refuses a symlinked carrier, a stray file, and a carrier recorded twice", (t) => {
-  const { kaal, exposed, root } = setup(t, { "a.md": "one" });
+  const { kaal, exposed, root } = setup(t, { "incidents/a.md": "one" });
   const c = begin(kaal);
   run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed);
   const base = join(kaal, c, "cl");
@@ -208,13 +208,44 @@ test("check refuses a symlinked carrier, a stray file, and a carrier recorded tw
   assert.match(run("check", kaal, c).stderr, /stray\.md is not part of the record/);
   rmSync(join(base, "stray.md"));
   writeFileSync(join(root, "outside"), "one");
-  rmSync(join(base, "carriers/a.md"));
-  symlinkSync(join(root, "outside"), join(base, "carriers/a.md"));
+  rmSync(join(base, "carriers/incidents/a.md"));
+  symlinkSync(join(root, "outside"), join(base, "carriers/incidents/a.md"));
   assert.match(run("check", kaal, c).stderr, /not a plain file|recorded but missing/);
-  rmSync(join(base, "carriers/a.md"));
-  writeFileSync(join(base, "carriers/a.md"), "one");
+  rmSync(join(base, "carriers/incidents/a.md"));
+  writeFileSync(join(base, "carriers/incidents/a.md"), "one");
   const record = join(base, "reach.md");
-  const line = `${sha256("one")}  a.md\n`;
+  const line = `${sha256("one")}  incidents/a.md\n`;
   writeFileSync(record, readFileSync(record, "utf8") + line);
   assert.match(run("check", kaal, c).stderr, /recorded twice|not in the form/);
+});
+
+test("only incidents/ and requests/ are read: anything else of the client's KAAL directory is neither read nor refused", (t) => {
+  const { kaal, exposed, root } = setup(t, { "incidents/a.md": "one" });
+  writeFileSync(join(root, "target"), "x");
+  symlinkSync(join(root, "target"), join(exposed, "unrelated-link"));
+  mkdirSync(join(exposed, "core"));
+  symlinkSync(join(root, "target"), join(exposed, "core/linked"));
+  const c = begin(kaal);
+  const r = run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed);
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(Object.keys(read(join(kaal, c, "cl/carriers"))), ["incidents/a.md"]);
+});
+
+test("a carried place that is itself a link or a file is refused", (t) => {
+  const { kaal, exposed, root } = setup(t);
+  writeFileSync(join(root, "target"), "x");
+  symlinkSync(root, join(exposed, "incidents"));
+  writeFileSync(join(exposed, "requests"), "a file");
+  const c = begin(kaal);
+  assert.equal(run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed).status, 1);
+  rmSync(join(exposed, "incidents"));
+  assert.equal(run("reached", kaal, c, "--client", "cl", "--adapter", "a", "--from", exposed).status, 1);
+  assert.deepEqual(readdirSync(join(kaal, c)), []);
+});
+
+test("a client's KAAL directory carrying nothing addressed to KAAL is recorded as reached with nothing", (t) => {
+  const { kaal, exposed } = setup(t, { "core/Node.md": "not exposed" });
+  const c = begin(kaal);
+  assert.equal(run("reached", kaal, c, "--client", "bare", "--adapter", "a", "--from", exposed).status, 0);
+  assert.equal(readFileSync(join(kaal, c, "bare/reach.md"), "utf8"), "# bare\n\nreached\nadapter: a\n");
 });

@@ -1,68 +1,29 @@
 # Architecture
 
-One capability, `kaal-collecting`, shaped as the capabilities before it: a sealed Node `Collecting KAAL` typed by `Skill`, one Agent Skill with one script, and acceptance in `engineering/kaal-collecting`. No Core, `.github`, Sealing, Changing or installer change.
+Two packages built from one shape, `kaal-retro`'s. No `kaal-core`, no `.github`, no existing Node, no sealed byte is changed.
 
-## The relationship
+**Each package** `packages/kaal-incident`, `packages/kaal-request`:
 
-```
-KAAL client → available adapter → exposed KAAL carriers → collection by KAAL
-```
+- `kaal/`: one Node (`KAAL-Incident.md`, `KAAL-Request.md`; names `KAAL Incident`, `KAAL Request`), typed by Core's `Skill` Node by exact ID, and its own seal, written with the Sealing capability's scripts.
+- `skills/<capability>/`: an Agent Skill (`SKILL.md`, which points at the Nodes and does not restate them, and says which of the client's own mechanisms it does not govern) and exactly one script, `incident.mjs` / `request.mjs`, offering `write` and `check` only.
+- `src/index.ts` with `payload()` only, `test/`, README, MIT licence, its own lockfile, as `kaal-retro`.
 
-- **Client**: another installation of KAAL, which may carry communication addressed to KAAL.
-- **Exposure**: what the client has put within its embedded KAAL for KAAL to take. That is the client's decision and the only thing collection may read of it.
-- **Adapter**: anything available to the collecting agent that shows it a client's exposure: a checkout it already has, a host's file interface, an archive somebody handed over. It is not part of collection. It is the agent's means, and is named in the record only as evidence.
-- **Collection**: the dated KAAL-side record of one run, holding for each client it attempted either the exposure it brought in or the reason it could not.
-
-## Where the three things live
-
-| | lives in | stored by collection |
-|---|---|---|
-| known client | the collecting agent's knowledge and whatever adapters it has | nothing |
-| reachable client | one attempt's outcome, `reached` or `unreached` plus a reason | the attempt |
-| all clients | nowhere | nothing, ever |
-
-There is no list of clients, so "visible" cannot be mistaken for "all". A client appears in KAAL only because an attempt on it was recorded, and a client absent from every collection is simply not known to have been tried.
-
-## The record
+**The carrier.** Canonical form, defined once in the script, never written by hand:
 
 ```
-<kaal-dir>/collections/YY/MM/DD/CC/        one collection (a run), allocated as Changes are
-└── <client>/                              one attempted client, the collector's name for it
-    ├── reach.md                           the attempt's outcome and evidence
-    └── carriers/<path as carried>         verbatim bytes of each exposed carrier (reached only)
+# KAAL Incident          # KAAL Request
+## Happened              ## Wanted
+<text>                   <text>
+## Expected              ## Missing
+<text>                   <text>
 ```
 
-`reach.md` is plain and written by the script, never by hand:
+`write <kaal-dir> --happened <text|@file> --expected <text|@file> [--date YYYY-MM-DD]` refuses a directory with no `core/` (so a mistyped path creates nothing), allocates the next free `CC` of the UTC day exactly as `next-change` allocates Changes (after the highest, no gap reused, refuse at 99), and creates `<kaal-dir>/incidents/YY/MM/DD/CC.md` with `wx`, so nothing is ever replaced. It prints the path relative to the KAAL directory. `check <file>` exits 0 only for exactly the canonical form. The two scripts are the same code with different words; packages are independent, so each carries its own copy.
 
-```
-# <client>
+**Why two texts and these directories.** An Incident differs from a Request in what is asked of the writer: what went wrong against what was expected; what is wanted against what is not there. The kind is stated by the title and by the directory, so a reader never needs the file's name or location to know it. Dated numbering is the convention a KAAL client already knows from changes, and needs no registry.
 
-reached | unreached
-adapter: <free text, how the collector reached or tried>
-reason: <unreached only>
+**Selection and installation** are unchanged: the capability is found by its Node's exact ID and registered through Core's `registerSkill()`. Neither declares a sibling, so neither pulls anything in.
 
-<sha-256>  <path as carried>      one line per carrier, reached only
-```
+**Installer (engineering only).** `engineering/kaal-install` treats `incidents/` and `requests/` of the KAAL directory as genuine installed state, as it already treats `changes/`: not derived, not read, not touched, not reported. This is the one change outside the two capabilities.
 
-`<client>` is a lowercase name of letters, digits and single hyphens. It is the collector's own name for the client: stable across runs, never a URL or a path, so the same client reached by two different adapters keeps one name, and the record never depends on a transport. Naming a client is a claim by the collector that collection records and cannot verify.
-
-A carrier's identity is the SHA-256 of its exact bytes; it is its file name's companion in `reach.md`, so the pair *(client, carrier identity)* names where it came from and what it is. `YY/MM/DD/CC` gives when, and an agent allocates the next `CC` with the same rule as a Change (highest plus one, no reused gap, refused at 99).
-
-## The script
-
-`collect.mjs`, the only script, with three acts and a check:
-
-- `begin <kaal-dir> [--date YYYY-MM-DD]` creates the next collection directory (today in UTC unless a real date from 2000 to 2099 is given) and prints its path. Two concurrent runs never share a number: the one that finds it taken takes the next.
-- `reached <kaal-dir> <collection> --client <name> --adapter <text> --from <dir>` records a reached client. `<dir>` is the directory the adapter made of the client's exposure. The script copies the regular files under it, verbatim, refuses symlinks and anything that is not a plain file, refuses to replace a client already in that collection (a refused or racing attempt removes only what it wrote itself), refuses names Git cannot carry faithfully (`.git*`), and reads nothing outside `<dir>`.
-- `unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>` records an attempt that did not reach.
-- `check <kaal-dir> <collection>` recomputes each carrier's identity against `reach.md` and exits 0 only if every one still matches, nothing is recorded twice, and nothing else (a symlink, a stray file) is in the record.
-
-`--from` is the exposure boundary the adapter produced, and an empty directory is a legitimate exposure: the client was reached and carries nothing for KAAL. Collection performs no network access and names no transport. Fetching is the agent's, through whatever it has.
-
-## The one assumption (R11)
-
-Carriers are not yet defined; a concurrent Change creates them. This Work assumes only that a client carries KAAL-addressed carriers as plain files inside a single directory of its embedded KAAL, and that the collecting agent can have that directory shown to it. The Skill names `carriers/` of the client's KAAL directory as the default boundary the agent asks its adapter for, says it is an assumption, and says that an exposure the agent could not see is `unreached`, never an empty one. It is only a default for the agent's attention, the script takes whatever directory it is given, so replacing it with the carriers' own location changes one line of prose and no code. Nothing here depends on the carriers' file form or content.
-
-## What this does not do
-
-It does not discover clients, enumerate a population, schedule or repeat collection, deduplicate across runs, interpret or sort carriers, seal a collection, or open Issues, Changes or backlog entries. Sealing a collection is possible later with the Sealing capability's tree identity, and is a separate decision. Interpretation, prioritization and action are other concerns, each for its own Change.
+**Engineering.** `engineering/kaal-incident` and `engineering/kaal-request` hold acceptance (delivery, script, host), wired into the root `npm test` by one line each.
