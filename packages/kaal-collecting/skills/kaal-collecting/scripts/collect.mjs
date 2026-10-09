@@ -3,6 +3,8 @@
 // collect reached <kaal-dir> <collection> --client <name> --adapter <text> --from <client-kaal-dir>
 // collect unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>
 // collect check <kaal-dir> <collection>
+// collect reached|unreached ... --keep [--continues]   also keep the attempt as a sighting and its carriers
+// collect check-record <kaal-dir>                       check the kept sightings and stored carriers
 // The record of what an agent collected from KAAL clients, and of what it
 // tried and could not reach. A collection is <kaal-dir>/collections/YY/MM/DD/CC/
 // with one directory per attempted client:
@@ -19,6 +21,17 @@
 // (CARRIED_AT) and nothing else of it, refuses anything there that is not a
 // plain file, interprets nothing it copies, keeps no list of clients, and never
 // replaces what it has written.
+//
+// With --keep an attempt is also kept in the same directory, beside collections/:
+//
+//   clients/<client>/sightings/YY/MM/DD/CC.md   the attempt, naming its collection
+//   incidents|requests/<client>/<sha256>.md     each carrier, byte for byte, once per client and hash
+//
+// A client exists there exactly when it has a sighting. The first sighting of a
+// name is its founding one; a later one is refused unless --continues asserts it
+// is the same client, and is then marked `continues: asserted`. The assertion is
+// the collector's and is not proof of identity. Equal bytes are stored once; that
+// says nothing about whether they came from one communication or several.
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -45,15 +58,20 @@ function fail(message, code = 1) {
 }
 
 /** Flags `--name value`, each at most once, and the positionals that remain. */
-function parse(args, allowed) {
+function parse(args, allowed, switches = []) {
   const flags = {};
   const rest = [];
   for (let i = 0; i < args.length; i++) {
     if (!args[i].startsWith("--")) rest.push(args[i]);
     else {
       const name = args[i].slice(2);
-      if (!allowed.includes(name) || name in flags || i + 1 >= args.length) usage();
-      flags[name] = args[++i];
+      if (switches.includes(name)) {
+        if (name in flags) usage();
+        flags[name] = true;
+      } else {
+        if (!allowed.includes(name) || name in flags || i + 1 >= args.length) usage();
+        flags[name] = args[++i];
+      }
     }
   }
   return { flags, rest };
@@ -70,6 +88,7 @@ if (command === "begin") begin();
 else if (command === "reached") reached();
 else if (command === "unreached") unreached();
 else if (command === "check") check();
+else if (command === "check-record") checkRecord();
 else usage();
 
 function begin() {
@@ -120,6 +139,81 @@ function render(client, outcome, adapter, reason, carriers) {
   return `${lines.join("\n")}\n`;
 }
 
+/** The attempt a record states, or undefined when it is not in the one form this capability writes. */
+function readAttempt(client, text) {
+  const lines = text.split("\n");
+  const outcome = lines[2];
+  const adapter = /^adapter: (.+)$/.exec(lines[3] ?? "")?.[1];
+  const reason = outcome === "unreached" ? /^reason: (.+)$/.exec(lines[4] ?? "")?.[1] : "";
+  const carriers = outcome === "reached" ? lines.slice(5, -1).map((line) => /^([0-9a-f]{64})  (.+)$/.exec(line)?.slice(1)) : [];
+  if ((outcome !== "reached" && outcome !== "unreached") || adapter === undefined || reason === undefined || carriers.some((c) => !c) || render(client, outcome, adapter, reason, carriers) !== text) return undefined;
+  return { outcome, adapter, reason, carriers };
+}
+
+/** A sighting: the attempt in its one form, naming its collection, and whether continuity was asserted. */
+function renderSighting(collection, client, outcome, adapter, reason, carriers, continues) {
+  const lines = render(client, outcome, adapter, reason, carriers).split("\n");
+  lines.splice(2, 0, `collection: ${collection}`);
+  if (continues) lines.splice(outcome === "unreached" ? 6 : 5, 0, "continues: asserted");
+  return lines.join("\n");
+}
+
+function readSighting(client, text) {
+  const lines = text.split("\n");
+  const collection = /^collection: (collections\/\d\d\/\d\d\/\d\d\/\d\d)$/.exec(lines[2] ?? "")?.[1];
+  if (!collection) return undefined;
+  lines.splice(2, 1);
+  const at = lines[2] === "unreached" ? 5 : 4;
+  const continues = lines[at] === "continues: asserted";
+  if (continues) lines.splice(at, 1);
+  const attempt = readAttempt(client, lines.join("\n"));
+  if (!attempt) return undefined;
+  const { outcome, adapter, reason, carriers } = attempt;
+  if (renderSighting(collection, client, outcome, adapter, reason, carriers, continues) !== text) return undefined;
+  return { collection, continues, ...attempt };
+}
+
+/** Whether the client has any sighting in this record. */
+function hasSighting(root, client) {
+  const dir = join(root, "clients", client, "sightings");
+  if (!anythingAt(dir)) return false;
+  return readdirSync(dir, { recursive: true }).some((entry) => lstatSync(join(dir, entry)).isFile());
+}
+
+/** Everything --keep would write for this attempt, after refusing, before writing anything, what it must not. */
+function planKeep(root, collection, client, flags, text, found) {
+  if (flags.continues && !flags.keep) fail("--continues applies only with --keep", 2);
+  if (!flags.keep) return undefined;
+  const known = hasSighting(root, client);
+  if (known && !flags.continues) fail(`${client} already has sightings in this record: pass --continues to assert that it is the same client, which is an assertion and not proof`);
+  if (!known && flags.continues) fail(`--continues asserts continuity with a client already recorded, and ${client} has no sighting in this record`);
+  const sighting = join(root, "clients", client, "sightings", `${collection.slice("collections/".length)}.md`);
+  if (anythingAt(sighting)) fail(`refused: ${client} already has a sighting for ${collection}`);
+  const stored = [];
+  for (const [path, bytes] of found) {
+    const target = join(root, path.split("/")[0], client, `${sha256(bytes)}.md`);
+    if (anythingAt(target)) {
+      if (!lstatSync(target).isFile() || !readFileSync(target).equals(bytes)) fail(`refused: the stored carrier for ${path} is not the bytes it is named for`);
+    } else if (!stored.some(([t]) => t === target)) stored.push([target, bytes]);
+  }
+  return { sighting, text, stored };
+}
+
+function keep(plan, collectionClient) {
+  const made = [];
+  try {
+    for (const [target, bytes] of [[plan.sighting, plan.text], ...plan.stored]) {
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, bytes, { flag: "wx" });
+      made.push(target);
+    }
+  } catch (error) {
+    for (const target of made) rmSync(target, { force: true });
+    rmSync(collectionClient, { recursive: true, force: true });
+    fail(`nothing was recorded: ${error.message}`);
+  }
+}
+
 function write(target, record, files) {
   try {
     mkdirSync(target);
@@ -140,7 +234,7 @@ function write(target, record, files) {
 }
 
 function reached() {
-  const { flags, rest } = parse(args, ["client", "adapter", "from"]);
+  const { flags, rest } = parse(args, ["client", "adapter", "from"], ["keep", "continues"]);
   if (rest.length !== 2 || !flags.from) usage();
   const dir = collection(rest[0], rest[1]);
   const target = clientDir(dir, flags.client);
@@ -169,17 +263,23 @@ function reached() {
     walk(full, place);
   }
   const carriers = found.map(([path, bytes]) => [sha256(bytes), path]);
+  const plan = planKeep(rest[0], rest[1], flags.client, flags, renderSighting(rest[1], flags.client, "reached", adapter, "", carriers, flags.continues), found);
   write(target, render(flags.client, "reached", adapter, "", carriers), found);
-  console.log(`${flags.client}: reached, ${found.length} carrier${found.length === 1 ? "" : "s"}`);
+  if (plan) keep(plan, target);
+  console.log(`${flags.client}: reached, ${found.length} carrier${found.length === 1 ? "" : "s"}${plan ? `, kept as a sighting with ${plan.stored.length} new stored` : ""}`);
 }
 
 function unreached() {
-  const { flags, rest } = parse(args, ["client", "adapter", "reason"]);
+  const { flags, rest } = parse(args, ["client", "adapter", "reason"], ["keep", "continues"]);
   if (rest.length !== 2) usage();
   const dir = collection(rest[0], rest[1]);
   const target = clientDir(dir, flags.client);
-  write(target, render(flags.client, "unreached", oneLine("--adapter", flags.adapter), oneLine("--reason", flags.reason), []), []);
-  console.log(`${flags.client}: unreached`);
+  const adapter = oneLine("--adapter", flags.adapter);
+  const reason = oneLine("--reason", flags.reason);
+  const plan = planKeep(rest[0], rest[1], flags.client, flags, renderSighting(rest[1], flags.client, "unreached", adapter, reason, [], flags.continues), []);
+  write(target, render(flags.client, "unreached", adapter, reason, []), []);
+  if (plan) keep(plan, target);
+  console.log(`${flags.client}: unreached${plan ? ", kept as a sighting" : ""}`);
 }
 
 function check() {
@@ -194,16 +294,12 @@ function check() {
       problems.push(`${client}: is not the record of an attempt`);
       continue;
     }
-    const text = readFileSync(record, "utf8");
-    const lines = text.split("\n");
-    const outcome = lines[2];
-    const adapter = /^adapter: (.+)$/.exec(lines[3] ?? "")?.[1];
-    const reason = outcome === "unreached" ? /^reason: (.+)$/.exec(lines[4] ?? "")?.[1] : "";
-    const carriers = outcome === "reached" ? lines.slice(5, -1).map((line) => /^([0-9a-f]{64})  (.+)$/.exec(line)?.slice(1)) : [];
-    if ((outcome !== "reached" && outcome !== "unreached") || adapter === undefined || reason === undefined || carriers.some((c) => !c) || render(client, outcome, adapter, reason, carriers) !== text) {
+    const attempt = readAttempt(client, readFileSync(record, "utf8"));
+    if (!attempt) {
       problems.push(`${client}: reach.md is not in the form this capability writes`);
       continue;
     }
+    const { outcome, carriers } = attempt;
     const listed = new Map(carriers.map(([sha, path]) => [path, sha]));
     if (listed.size !== carriers.length) problems.push(`${client}: a carrier is recorded twice`);
     for (const entry of readdirSync(base)) if (entry !== "reach.md" && entry !== "carriers") problems.push(`${client}: ${entry} is not part of the record`);
@@ -233,4 +329,73 @@ function check() {
   for (const problem of problems) console.error(problem);
   if (problems.length > 0) process.exit(1);
   console.log(`${clients.length} attempt${clients.length === 1 ? "" : "s"}, every carrier matches`);
+}
+
+function checkRecord() {
+  if (args.length !== 1) usage();
+  const root = args[0];
+  const problems = [];
+  const clientsDir = join(root, "clients");
+  const clients = anythingAt(clientsDir) ? readdirSync(clientsDir).sort() : [];
+  const referenced = new Set();
+  let sightings = 0;
+  for (const client of clients) {
+    const base = join(clientsDir, client);
+    if (!NAME.test(client) || !lstatSync(base).isDirectory()) {
+      problems.push(`${client}: is not the record of a client`);
+      continue;
+    }
+    for (const entry of readdirSync(base)) if (entry !== "sightings") problems.push(`${client}: ${entry} is not part of the record`);
+    const files = [];
+    const walk = (directory, prefix) => {
+      if (!anythingAt(directory)) return;
+      for (const entry of readdirSync(directory)) {
+        const path = prefix === "" ? entry : `${prefix}/${entry}`;
+        const kind = lstatSync(join(directory, entry));
+        if (kind.isDirectory()) walk(join(directory, entry), path);
+        else if (kind.isFile()) files.push(path);
+        else problems.push(`${client}: sightings/${path} is not a plain file`);
+      }
+    };
+    walk(join(base, "sightings"), "");
+    let founding = 0;
+    for (const path of files.sort()) {
+      const address = /^(\d\d)\/(\d\d)\/(\d\d)\/(\d\d)\.md$/.exec(path);
+      if (!address) {
+        problems.push(`${client}: sightings/${path} is not a sighting address`);
+        continue;
+      }
+      sightings++;
+      const named = `collections/${address[1]}/${address[2]}/${address[3]}/${address[4]}`;
+      const text = readFileSync(join(base, "sightings", path), "utf8");
+      const sighting = readSighting(client, text);
+      if (!sighting || sighting.collection !== named) {
+        problems.push(`${client}: sightings/${path} is not in the form this capability writes`);
+        continue;
+      }
+      if (!sighting.continues) founding++;
+      const reach = join(root, named, client, "reach.md");
+      const attempt = anythingAt(reach) && lstatSync(reach).isFile() ? readAttempt(client, readFileSync(reach, "utf8")) : undefined;
+      if (!attempt) problems.push(`${client}: sightings/${path} names ${named}, which holds no record of this attempt`);
+      else if (renderSighting(named, client, attempt.outcome, attempt.adapter, attempt.reason, attempt.carriers, sighting.continues) !== text) problems.push(`${client}: sightings/${path} does not match the attempt it names`);
+      for (const [sha, carried] of sighting.carriers) {
+        const key = `${carried.split("/")[0]}/${client}/${sha}.md`;
+        referenced.add(key);
+        const stored = join(root, key);
+        if (!anythingAt(stored) || !lstatSync(stored).isFile()) problems.push(`${client}: ${carried} (sightings/${path}) has no stored carrier`);
+        else if (sha256(readFileSync(stored)) !== sha) problems.push(`${client}: ${key} no longer matches its name`);
+      }
+    }
+    if (files.length > 0 && founding !== 1) problems.push(`${client}: has ${founding} founding sightings, and exactly one is required`);
+  }
+  for (const place of CARRIED_AT) {
+    for (const client of clients) {
+      const dir = join(root, place, client);
+      if (!NAME.test(client) || !anythingAt(dir) || !lstatSync(dir).isDirectory()) continue;
+      for (const entry of readdirSync(dir)) if (!referenced.has(`${place}/${client}/${entry}`)) problems.push(`${client}: ${place}/${client}/${entry} is stored but no sighting lists it`);
+    }
+  }
+  for (const problem of new Set(problems)) console.error(problem);
+  if (problems.length > 0) process.exit(1);
+  console.log(`${clients.length} client record${clients.length === 1 ? "" : "s"}, ${sightings} sighting${sightings === 1 ? "" : "s"}, every stored carrier matches`);
 }
