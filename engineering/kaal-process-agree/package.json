@@ -1,0 +1,10 @@
+{
+  "name": "kaal-process-agree-engineering",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run clean && npm run build && node --test dist/acceptance/*.test.js",
+    "build": "npm run build --prefix ../../packages/kaal-core && npm run build --prefix ../../packages/kaal-review && npm run build --prefix ../../packages/kaal-intent && npm run build --prefix ../../packages/kaal-process-agree && npm run build --prefix ../../packages/kaal-changing && npm run build --prefix ../../packages/kaal-sealing && npm run build --prefix ../kaal-install && tsc",
+    "clean": "rm -rf dist"
+  }
+}

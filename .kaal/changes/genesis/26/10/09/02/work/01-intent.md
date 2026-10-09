@@ -1,61 +1,60 @@
-KAAL — Briefing: HOW ARE WE DOING? and TOGETHER WE CAN GO FAR
-Intent
-Investigate and establish the relevant meanings of HOW ARE WE DOING? and TOGETHER WE CAN GO FAR within `kaal-review`.
-Both concepts originated as Ideas in the historical `KAAL-genesis` repository. Their meaning should be examined against current KAAL's established Review capability and given a suitable home without importing the historical implementation.
-Review owns these concepts, not Core or an individual Process.
-Historical context
-HOW ARE WE DOING?
-Historical reference: `Kai-Hacks-AI/KAAL-genesis`, PR #65.
+# Intent — Inner Loop and HOW Escalation
 
-* HOW — Human Observes Work
-* ARE — Agents Review Each-other
-* WE — With Experience
-* DOING — Durable Observations Inform Next Goals
+KAAL — Briefing: Inner Loop and HOW Escalation
 
-The concept describes how Work is observed, independently reviewed, informed by experience and used to improve future Work.
-In particular:
-HOW concerns human-observed Review. Agents may assist or act as communication bridges, but human participation remains the defining characteristic.
-ARE concerns independent Agent-to-Agent Review, potentially operating autonomously.
-These interaction patterns must not be defined by GitHub accounts, Agent products or communication channels.
-TOGETHER WE CAN GO FAR
-Historical reference: `Kai-Hacks-AI/KAAL-genesis`, PR #72.
-TOGETHER — The Owner Gets Enhanced Through Holistic Experience Reviews.
-Investigate the complete historical Idea, including the expansion of WE CAN GO FAR, rather than reconstructing its meaning from the acronym.
-The concept expresses the value of collaborative Review, accumulated experience and improvement.
-Architectural requirements
+## Intent
 
-1. Ownership: `kaal-review` is the proposed home for these meanings.
-2. Independent definitions: Investigate whether the concepts warrant KAAL Definition Nodes, additions to the Review Skill's Way of Working, or a combination. Do not assume one Node per acronym.
-3. Preserve Review's responsibility: Review examines Work and provides findings or convergence. It does not automatically acquire authority to approve, establish or execute Work.
-4. Process independence: Processes may compose Review and determine when autonomous review or HOW is required. They do not redefine HOW or ARE.
-5. Environment independence: Neither concept depends on Claude, Codex, GitHub, account identity or a particular communication mechanism.
-6. Evidence and Learning: Distinguish transient review observations from durable knowledge. Relevant experience should be established through the appropriate existing KAAL capability, not a new generic observation store.
-7. Historical provenance: Use the old Ideas as evidence and inspiration, not as authoritative definitions to migrate unchanged.
+Establish a reusable Process pattern in which an Agent performs Work through an autonomous inner loop with targeted independent Agent review, seeking agreement before proceeding.
+When the inner loop fails defined criteria, the Process escalates to HOW — Human Observes Work.
+The Agent must not independently determine its authority to continue, conclude or escalate. Those decisions belong to deterministic Process mechanisms.
+Initial application: Describe Intent
 
-Investigation
-Examine the established `kaal-review` Skill and its Nodes.
-Determine:
+1. A Worker Agent describes or revises an Intent using `kaal-intent`.
+2. The Worker invokes `@codex review` with targeted instructions, using the Intent and its established Way of Working as the review standard.
+3. The Worker receives findings, addresses them and requests another targeted review where necessary.
+4. The inner loop repeats until agreement is reached or a defined escalation condition occurs.
+5. If escalation is required, the Process presents the unresolved Work and evidence to HOW.
+6. Human direction can return the Work to the inner loop.
 
-* What is already covered by Review's current meaning?
-* What is genuinely missing?
-* Whether HOW and ARE require independently discoverable definitions.
-* How WE and DOING relate to existing Review, Retro, Learning and BRAIN capabilities.
-* Whether TOGETHER WE CAN GO FAR adds distinct meaning or expresses a broader principle already covered.
-* How the concepts can be discovered by a fresh Agent without expanding its initial instructions.
+## Architectural requirements
 
-Preserve the boundaries between Review, Processes, Learning and Core.
-Initial acceptance test
-A fresh Agent receives only:
-HOW Review of PR75 please
-The Agent should be able to discover the applicable KAAL meaning and Review capability, understand that the human is participating in the Review, and support the Work through the established protocol.
-No Owner explanation of HOW, Review or repository conventions should be necessary.
-A second test should exercise ARE, where an Agent independently reviews another Agent's Work without routine human intervention.
-Scope
-This is a governed architectural investigation with a possible minimal realization within `kaal-review`.
-Do not modify Core, redefine CASE, introduce new Process authority or alter PR #75 merely to accommodate these concepts.
-Do not establish historical Ideas wholesale or create unnecessary ontology.
-For KAAL 0.0.1, prioritize the smallest independently discoverable and usable meanings.
-Expected outcome
-Recommend and, subject to the established Change and review process, realize the minimum additions to `kaal-review` that make HOW and ARE understandable and usable by fresh Agents.
-Explain the appropriate treatment of WE, DOING and TOGETHER WE CAN GO FAR, including anything deliberately deferred.
-Success means KAAL can explain and support human-observed and independent Agent review through its own established knowledge and capabilities, without the Owner having to reconstruct the concepts manually.
+* The inner loop operates without routine human intervention.
+* The reviewer remains independent of the Worker.
+* Review instructions identify the subject, standard and expected examination.
+* Agreement must be recognizable through explicit evidence.
+* The Process determines continuation, convergence and escalation.
+* Escalation criteria must be deterministic, inspectable and testable.
+* HOW may involve Agents assisting the human; human participation is the defining distinction.
+* Review history and escalation reasons remain traceable.
+* The pattern must be reusable beyond Intent without coupling individual Skills to each other.
+
+## Investigation
+
+Determine the smallest mechanism needed to answer:
+
+* What constitutes agreement between Worker and Reviewer?
+* What constitutes failure of the inner loop?
+* How is progress distinguished from stagnation or oscillation?
+* Which conditions require escalation to HOW?
+* How does human direction return authority to the inner loop?
+* How can deterministic Process scripts consume review evidence without interpreting free-form Agent judgments as authority?
+* What can be reused from `kaal-review`, `kaal-intent` and the Process architecture established by PR #73?
+
+Do not assume that a fixed review-round limit alone establishes convergence or failure.
+
+## Scope for 0.0.1
+
+Demonstrate the smallest working Process using Describe Intent ↔ Review Intent.
+Show three outcomes:
+
+1. Autonomous convergence without human intervention.
+2. Continued autonomous iteration after review findings.
+3. Escalation to HOW when an established failure criterion is met.
+
+Do not implement D2 or create a general-purpose orchestration framework merely to demonstrate this pattern.
+
+## Acceptance criterion
+
+A fresh Agent can discover and execute the Process, invoke targeted Codex review, respond to findings and continue autonomously while authorized.
+When the inner loop fails its defined criteria, the Process deterministically requires HOW rather than allowing the Agent to continue indefinitely or invent its own authority.
+The result must be demonstrable without the Owner reconstructing the procedure manually.
