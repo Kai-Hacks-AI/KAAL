@@ -25,7 +25,8 @@ A host that holds only Core (Enercon) cannot list or add a capability: the comma
 
 - A capability is identified by its Node, not by its package, delivery directory, Agent Skill name or source location. Core establishes capability identity. Sources provide bytes. Installation makes capabilities available. The operating mode determines where KAAL acts.
 - Installed capability discovery, source discovery, acquisition and installation are four responsibilities. They are not collapsed into one registry, package manifest or CLI concept.
-- Packaging (a future `kaal-packaging` Skill that asks Core what is available and produces a distributable package) is complementary and is not implemented here. It does not become an authority for capability meaning.
+- Packaging (a future `kaal-packaging` Skill) is the delivery capability for obtaining the Engine, capabilities and their dependency bytes. npm packages are its first candidate source, not a KAAL identity and not a permanent mechanism; other sources may follow. Packaging asks Core what is available and does not become an authority for capability meaning. Package names, versions and npm dependency metadata are never a capability's identity. Packaging is not implemented here.
+- Composition (this Change) chooses capabilities by exact Node ID, resolves what the target Engine must hold, and verifies that the resulting composition is valid, without refusing less than the installer does today and without duplicating npm's dependency machinery.
 - Offline operation: an embedded KAAL works with what it holds, with no network, central registry, access to KAAL's engineering repository or particular LLM provider. Acquiring more is a separate operation. The smallest useful source mechanism comes first; remote acquisition is not a prerequisite unless shown necessary.
 - The Engine / Record / Subject separation settled by Change `genesis/26/10/08/03` is respected. The Subject does not acquire KAAL artifacts because KAAL operates on it.
 - Core is not extended merely to simplify packaging or a CLI. No registry, new Core semantics or general distribution framework without demonstrated necessity.
@@ -37,4 +38,4 @@ KAAL can determine which capabilities it holds, discover additional capabilities
 
 ## Origin
 
-The Owner's comments and briefing on PR #69 (2026-10-08 and 2026-10-09). This Intent states the outcome; Requirements and Architecture investigate how.
+The Owner's comments and briefing on PR #69 (2026-10-08 and 2026-10-09), including the direction on Packaging and dependency handling. This Intent states the outcome; Requirements and Architecture investigate how.

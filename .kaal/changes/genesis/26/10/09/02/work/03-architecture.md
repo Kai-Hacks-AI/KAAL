@@ -1,148 +1,142 @@
 # Architecture
 
-An investigation against `02-requirements.md`, read from `kaal/genesis` at 752db5e (Change `08/03`, the Engine / Record / Subject work, is merged). Nothing is built. Recommendations are mine; the Owner may overrule.
+An investigation against `02-requirements.md`, read from `kaal/genesis` after Changes `08/03` (Engine / Record / Subject) and `09/01` merged. Nothing is built. Recommendations are mine; the genuine forks are in the last section.
+
+Revised on the Owner's direction (2026-10-09): composition, packaging, source adapters and installation are separate things; the current dependency refusal is preserved, not weakened; and 0.0.1 shows, from a requested set of exact Node IDs, an Engine established and verified, with a Skill and an Extension.
 
 ## Responsibility map
 
-| Responsibility | Owner | Question it answers | Identity it uses | Exists today? |
-|---|---|---|---|---|
-| Installed capability discovery | **Core** | What does this instance hold? | Node `{name, id}` | Yes: `installedSkills()`, `installedExtensions()` |
-| Source discovery | a **source adapter** | What does this source offer? | none of its own; asks Core (below) | No (the installer reads this repo's `packages/`) |
-| Acquisition | a **source adapter** | How do I get the chosen capability's bytes? | the exact Node ID asked for | No |
-| Installation | **Core admission**, then a **host projection** | Are the bytes admissible, and where do they land? | Node ID; placement name is separate | Yes, bound to this repo: `engineering/kaal-install` over Core's `registerSkill()` / `registerExtension()` |
-| Packaging (future) | a future `kaal-packaging` Skill | Produce a distributable package of what an instance holds | asks Core; adds none | No, and not here |
-| Operating mode | the instance's configuration | Where do Engine, Record and Subject live? | not an identity | Partly: Change `08/03` |
+| Layer | Owns | Does not own | Exists today? |
+|---|---|---|---|
+| **Core** | Typed Skill and Extension identity (`{name, id}`), admission, held-capability discovery (`installedSkills()`, `installedExtensions()`), registration | where bytes come from; what a package is called | Yes |
+| **Composition** (#69) | Choosing capabilities by exact Node ID; working out what the target Engine must hold; verifying the resulting composition is valid; refusing otherwise, whole | obtaining bytes; npm; a second identity or dependency registry | No, except inside `engineering/kaal-install` over this repo's `packages/` |
+| **Packaging** (future `kaal-packaging`) | Distributing the Engine, capabilities and their dependency bytes; package names, versions, npm metadata | capability identity; whether a composition is valid | No, and not built here |
+| **Source adapters** | Obtaining a package from a source and presenting it as a directory of packages; initially a local directory, and npm populating one | meaning, identity, validity | No |
+| **Installation** | Establishing the selected capabilities in the explicitly supplied Engine location, and projecting Agent Skills to a supplied directory | choosing; the Subject | Yes, bound to this repo's `packages/` |
+| **Operating mode** | Where Engine, Record and Subject live (`08/03`) | what a capability is | Settled in `08/03` |
 
-Nothing in the table is a registry. Core is the only row that says what a capability is.
+Nothing in the table is a registry. Core is the only layer that says what a capability is; package names and versions never do.
 
-## Is Core's enumeration sufficient? (question 1)
+## Three kinds of dependency, kept apart
 
-Yes for what an instance holds. `installedSkills(kaalDir)` and `installedExtensions(kaalDir)` return the admitted Nodes typed, by exact name and ID, by Core's own `Skill` or `Extension` Node, as `{name, id}`. They do not look at paths, packages or names, and they find a Node wherever its files are stored. Both are public Core calls; nothing needs adding for enumeration.
+1. **Package dependencies** (what npm resolves for a package). Packaging's. Composition neither resolves nor reads them as KAAL meaning. The capability packages in this repository need no npm runtime dependency beyond Node itself, so there is almost nothing to resolve.
+2. **Capability needs** (a Skill that works only with another, declared in its Agent Skill's `compatibility` text, for example `kaal-changing` needs `kaal-sealing`). Composition's. Preserved, below.
+3. **Node references** (a Node refers by `{name, id}` only to Nodes born before it). Core's admission. Unchanged.
 
-For an offer, the same calls give the same answer without Core growing, by **stage and ask**: put the offer's bytes into a throwaway copy of the KAAL through `registerSkill()` / `registerExtension()` (Core's admission decides whether it is a capability at all), then call the two calls on the copy. `engineering/kaal-install` already stages this way to decide what it projects. "Held" is then a comparison of two Core answers. The one precondition is that the tool's `kaal-core` carries the same `Skill` and `Extension` Node bytes as the instance, because registration anchors on those exact IDs; a mismatch fails at admission and the tool should say so.
+## Preserving the capability-need refusal
 
-## How a source describes its offers (question 2)
+Today `engineering/kaal-install` reads the declaration (a bounded frontmatter shape, the decoded value of `compatibility`, refusing escapes, anchors, aliases, tags and flow collections it cannot read reliably), takes the capability names it mentions by the instance's `capability-prefix`, and refuses with nothing written if a named capability is neither installed nor selected, naming the exact Node ID that would meet it, or saying there is none. That is a real guarantee, and the name-based reading is the declaration's own format: the Agent Skills standard makes `compatibility` free text.
 
-A source offers packages as bytes, and may attach a label for human reading. It has no authority over identity. Any `{name, id}` a source asserts is a hint: the identity that counts is the one Core returns after staging, and acquisition is refused unless it equals the ID asked for. This keeps the source a supplier of bytes, as the Owner's direction requires.
+The separation that keeps the guarantee and removes the name from identity is to treat the name in a declaration as **a reference to a delivery slot**, which #43 already defines as placement, never identity, and to decide met or unmet on **Core's answer**:
 
-## The minimum mapping from Node identity to bytes (question 3)
+- A need named `N` is **met** iff, in the Engine that would result (existing contents plus the requested composition), the delivery slot `N` (`skills/N/` or `extensions/N/`) holds a Node that Core reports held.
+- It is **unmet** otherwise, and the refusal names, from the offered packages, the exact Node ID(s) of the package whose delivery name is `N`, or says there is no exact ID.
+- Unreadable declarations are refused exactly as now.
 
-Core's Nodes never name a package or location, so no Node can say where its bytes are. The smallest mechanism that can map an ID to bytes is therefore one the source supplies:
+Nothing new is trusted: the name locates a slot, Core says what is in it. No second registry, no npm metadata, and the refusals are the installer's. This is intended to be behaviour-identical, and the acceptance runs the installer's own refusal cases against it as the check (unmet need, unreadable declaration shapes, a need that no package carries). If any case differs, the design is wrong, not the case.
 
-- **First realization, no index:** the source is a local directory of packages (this repository's `packages/`, a vendored folder, an unpacked archive). Offers are found by staging each package and asking Core. Fetching the ID is choosing the package whose staged answer contains it. Nothing is stored; nothing can disagree with Core.
-- **Later, only if shown necessary:** a source that cannot be scanned (a remote one) needs an index from ID to package. That index would be advisory, never authoritative, and is verified after fetch exactly as above. It is a convenience for finding bytes, not a registry of capabilities.
+A machine-readable need by Node ID would be cleaner, but it changes what a Skill declares and is a later Change.
 
-## Are the package and the CLI still justified? (question 4)
+## What Core answers, and stage and ask
 
-**New semantics: no.** The first draft considered Core Nodes about an "install surface" and the tool deriving what an offer carries itself. Both are withdrawn: the first is unnecessary, the second was a second answer.
+`installedSkills(kaalDir)` and `installedExtensions(kaalDir)` return the admitted Nodes typed by Core's `Skill` or `Extension` Node, as `{name, id}`, wherever files are stored. They are sufficient for held capabilities and need no change.
 
-**A shipped package: yes, and for two reasons.** `engineering/` is never shipped, so a host without the source repository has no pipeline. And External operation needs an Engine that is obtained and run where KAAL operates, not inside the Subject; a package is how an Engine is obtained. The package holds the pipeline as a library (stage and ask, select by exact ID, install through Core, verify) and the source adapters.
+An offer is described by the same calls. **Stage and ask:** put the offer's bytes into a throwaway copy of the Engine through `registerSkill()` or `registerExtension()` (Core's admission decides whether it is a capability), then ask the two calls on the copy. The same step builds the resulting composition for the need check and for verification. `kaal-install` already stages this way. Precondition: the tool's `kaal-core` carries the same `Skill` and `Extension` Node bytes as the Engine, because registration anchors on those exact IDs; a mismatch fails at admission and must be reported plainly.
 
-**A CLI: one interface over the library, optional.** It adds no semantics. Nothing in the requirements needs it to live in Core; a CLI in Core would still need adapters and projection, which are not Core's. I recommend no CLI in Core, and treat a thin CLI in the package as a convenience that can follow the library.
+## Sources and npm
 
-## Relation to `kaal-install` (question 5)
+A source adapter turns a source into **a directory of packages**, each shaped like this repository's `packages/<name>/` (its `payload()` returns `{ kaal, skills? }`). Composition reads only such directories.
 
-`engineering/kaal-install` is today Engineer mode's projection: it deploys Core, registers the packages under `packages/`, and projects the result into this repository. It is the proof that the pipeline works. The composition mechanism is that same pipeline with its one hard-wired input, the packages under `packages/`, supplied by a source adapter. The directory-of-packages adapter pointed at `packages/` reproduces today's behaviour. I recommend a first Change that adds the package without touching `kaal-install`, and a later Change that makes `kaal-install` a caller of it. Two implementations would drift.
+- **Local directory**: the directory itself. Needs no tool and no network.
+- **npm**: the adapter runs npm to populate a staging directory from specs the caller gives (a registry name, a local tarball from `npm pack`, a local path), and the staging directory is then a local directory source. npm resolves package dependencies into it; composition does not. With tarballs or paths no network is needed. Package names and versions are used only to tell npm what to fetch; after that, identity is Core's answer.
 
-Reconciled with Change `genesis/26/10/05/04` (PR #43), two of the installer's three derivations are settled and one is not:
+The caller supplies sources and, separately, the exact IDs. Knowing which ID to ask for is the trust decision: it comes from the Owner, a reviewed Change or a pinned note, not from a source.
 
-1. **Delivery name from the package's `skills/` directory: acceptable, as placement.** #43 says the delivery name arrives with the deliverable as a placement input and is never identity. The pipeline may take it from the deliverable, as the installer does, provided nothing then treats it as a capability's name.
-2. **`compatibility` needs matched by prefix-plus-name: still cuts against the one answer.** #43 does not settle it, because a need is written in free text as a name. See decision D2.
-3. **Reach into Core's internal `candidates()`: replaced** by stage and ask, which uses only Core's public calls.
+## The Engine
 
-## Which source adapters are necessary first (question 6)
+The Engine is established in an explicitly supplied location. Its seed is Core's `payload()` from the tool's own `kaal-core` dependency (fork F2), deployed if the location holds no Engine, or checked to match if it does (Core's files are append-only). Capabilities are then registered through Core. The Engine is verified through Core: `held` returns exactly the requested set plus whatever it already held, and an independent re-admission of the Engine's files accepts them.
 
-One: a **local directory** of packages. It serves Engineer (`packages/`), Embed (a folder or unpacked archive carried to the host) and External (the same, on the Engine's side). An archive reader is a small later addition. A remote adapter is not a prerequisite and is not recommended until a case shows a local one cannot serve.
+## Whole refusal (no partial installation)
 
-## Verification versus trust (question 7)
+The whole composition is built and checked in a throwaway copy before the Engine location is touched: seed, register each requested capability, check needs, ask Core what is held, compare with the request. Only if everything holds is the result written to the Engine location, then read back and compared. If any member fails, nothing is written and the location is byte-identical to before. Registration is already all-or-nothing per capability; the plan-then-commit step makes it so for the set.
 
-Two different things, kept apart:
+## Skills, Extensions and delivery
 
-- **Verification** (what this design provides): the staged bytes yield exactly the Node ID that was asked for, Core's admission accepts them (typed, sealed, references resolve), and after installing the instance can compare what it holds with what it acquired. All of it is checkable offline.
-- **Trust** (what it does not provide): that the ID is the capability the caller meant, and that the source is who it claims to be. A Node's seal is an empty marker file named by the ID; it proves the bytes were sealed in the lineage's sense, not who sealed them. So selecting an ID is itself the trust decision, and it belongs to the caller. Where the ID comes from (the Owner, a reviewed Change, a pinned note) is the trust root.
+A package delivers one kind of contribution (a Skill with Agent Skills, or an Extension alone). The pipeline carries both through the same stage and ask. Agent Skills are projected only for Skills, to a directory supplied by the caller. The delivery name is the one the deliverable carries (its Agent Skill directory, else the package directory), passed to registration as placement, as #43 describes; prefix conformance stays #43's checker. For the demonstration, `kaal-github` is the existing Extension package, and `kaal-changing` with `kaal-sealing` are the Skills whose need is real.
 
-I recommend adding no signature or authentication mechanism now. If a remote source is ever added, authenticating it is a decision for that Change, with this section as its starting point.
-
-## The three operating modes (question 8)
+## The three operating modes
 
 ```
  Engine (Core, Nodes, node seals, Skills)     Record (Change dirs + seals)        Subject (what the Work is about)
- where KAAL is installed                      where KAAL keeps what it governed   repository / change / PR acted upon
 ```
 
 | Mode | Engine | Record | Subject | Where composition acts |
 |---|---|---|---|---|
-| Engineer | `.kaal/` of this repository | this repository, at the location it declares | this repository | this repository's Engine; source: `packages/` |
-| Embed | `.kaal/` in the host | the host repository, at a location the host chooses | the host repository | the host's Engine; source: whatever the host is given |
-| External | an Engine wherever the operator keeps it, not inside the Subject | a Record store the operator holds | a repository with no KAAL artifact | the operator's Engine; **never the Subject** |
+| Engineer | `.kaal/` of this repository | this repository, where it declares | this repository | this repository's Engine; sources: `packages/`, or a staging directory |
+| Embed | `.kaal/` in the host | the host, where it chooses | the host repository | the host's Engine; sources: whatever the host is given |
+| External | an Engine the operator holds, not in the Subject | a Record store the operator holds | a repository with no KAAL artifact | the operator's Engine; **never the Subject** |
 
-In all three the same Core answer says what an Engine holds and the same pipeline obtains and installs more. What differs is where the Engine is, which source it is given, and where the projection lands. Because composition acts on an Engine, External requires no KAAL installation in the Subject, and nothing here writes a KAAL artifact into one. The locations are not derived from each other, as Change `08/03` settled.
-
-## What KAAL already provides, and what is missing
-
-Already provided: Core's enumeration; Core's admission and registration, which take bytes and never see their origin; the Engine / Record / Subject separation as design; the pipeline in `engineering/kaal-install`; `compatibility` refusal; the install check.
-
-Genuinely missing, and only this:
-
-1. The pipeline taking its packages from a **source adapter** instead of `packages/`, with a local-directory adapter.
-2. **Stage and ask** exposed as an operation on an offer (a thin use of Core's existing calls), with a refusal when acquired bytes do not yield the requested ID.
-3. That pipeline **shipped**, so a host or an Engine outside the Subject has it.
-4. A way to run the installer against **an Engine location it is given**, not only the current directory, so External can compose its Engine without touching the Subject. `kaal-install` already accepts `--into`.
-
-Not missing, and not to be added: a registry, a new Core concept or API, a distribution framework, remote acquisition, signing, or Packaging.
-
-## Risks and open points
-
-- The tool's `kaal-core` must match the instance's Skill and Extension Node bytes; a mismatch must be reported plainly.
-- The name-based `compatibility` check is the one inherited derivation not settled by #43 (D2).
-- How a host that keeps Agent Skills elsewhere is served is not settled.
-- Extensions are delivered one kind per package; the pipeline must carry both kinds.
-- The first acquisition of the pipeline itself needs some source, once; a local copy suffices.
+Same Core answer, same pipeline, same refusals in all three. They differ only in where the Engine is and which source is given. Locations are arguments, never derived from each other.
 
 ## Reconciliation with #43
 
-Both Changes keep their own Intent. This Change does not edit #43's, and #43 does not decide this Change's. Where they meet:
+Both Intents stay separate; neither Change edits the other.
 
-| Concern | Established by | Where it lives | This Change's use of it |
-|---|---|---|---|
-| Capability identity | **Core**: the Skill or Extension Node, `{name, id}` | sealed | asked from Core, never derived; selection is by exact ID |
-| Package or source identity | the **source**: what carries a capability's bytes at that source | the adapter, never a Node | a supplier of bytes; proved by hashing, never by its name |
-| Verification | **Core admission** plus **hash against the requested ID** | at install time | the check that an acquired offer is the identity asked for |
-| Delivery name and placement | the **instance** (`capability-prefix`) and the **deliverable's layout** | `skills/<name>/`, `extensions/<name>/`; unsealed | passed to registration as the placement it already is; checked by #43's rules, not by this Change |
-| Installed capability discovery | **Core**: `installedSkills()`, `installedExtensions()` | the admitted graph | the one answer for "held", before and after install |
+| Concern | Established by | Where it lives |
+|---|---|---|
+| Capability identity | Core: the Skill or Extension Node, `{name, id}` | sealed |
+| Package or source identity | the source; proved by hashing, never by name or version | the adapter, never a Node |
+| Verification | Core admission plus the hash against the requested ID | at install |
+| Delivery naming and placement | the instance (`capability-prefix`) and the deliverable's layout | `skills/<name>/`, `extensions/<name>/`, unsealed |
+| Installed capability discovery | Core's `installedSkills()` and `installedExtensions()` | the admitted graph |
 
-Two small differences of wording, for the Owner to note and #43 to correct if it wants: #43 writes `offers()` as returning `{name, id}`; here a source returns packages as bytes and the `{name, id}` is Core's answer after staging, so a source cannot assert identity. And #43's open question on which namespace `capability-prefix` protects is not this Change's to settle; the pipeline places whatever name the deliverable carries and leaves conformance to the checker.
+The one place a name carries weight here is the need declaration, where it locates a delivery slot and Core says what is in it. #43's open points (which namespace the prefix protects, `extensions/`) are not decided here.
 
 ## Minimum viable 0.0.1
 
-One end-to-end behaviour, demonstrable offline, over what already exists:
+A shipped package (working name `kaal-compose`, acceptance under `engineering/`) with a library and a thin CLI:
 
 ```
-kaal-compose held   --kaal <engine-dir>                                   Core's answer: {name, id} per Skill and Extension
-kaal-compose offers <source-dir> --kaal <engine-dir>                      each package in the directory: Core's {name, id}, and held or not
-kaal-compose install <source-dir> --kaal <engine-dir> --select <Node ID>  stage, verify the ID, register through Core, project Agent Skills
+held    --kaal <engine>
+offers  --source <dir> ...  [--npm <spec> ...]  [--kaal <engine>]
+install --source <dir> ...  [--npm <spec> ...]  --kaal <engine>  --skills <dir>  --select <Node ID> ...
 ```
 
-(`kaal-compose` is a working name; see D1.) `source-dir` is a directory of packages shaped like this repository's `packages/`. `engine-dir` is the KAAL directory to compose, given explicitly, never derived. Agent Skills are projected to a directory given explicitly. Nothing is remembered between calls.
+All locations explicit; nothing remembered. `held` is Core's answer. `offers` stages each package and prints Core's `{name, id}` and whether held, writing nothing. `install` composes exactly the selected IDs.
 
-The demonstration, and the acceptance an implementing Change would write first:
+Acceptance, written first, over copies of this repository's real packages, offline (local directory and `npm pack` tarballs):
 
-1. A host holding only Core: `held` lists nothing; no network, source or engineering checkout is touched.
-2. `offers` over a copy of this repository's `packages/` lists real capabilities (for example `kaal-review`) with Core's `{name, id}`, writes nothing, and shows none as held.
-3. `install --select <ID>` registers it; `held` now lists exactly that `{name, id}`, equal to the one `offers` showed.
-4. Installing again changes nothing.
-5. A package whose bytes do not yield the selected ID is refused with nothing written.
-6. A name, or an ID not offered, is refused.
-7. External: with a Subject directory beside the Engine, install into the Engine leaves the Subject byte-identical.
+1. A new Engine location is established from Core's payload; `held` lists nothing.
+2. Selecting the Skills of `kaal-sealing` and `kaal-changing` and the Extension of `kaal-github` by exact ID establishes the Engine; `held` equals exactly those three `{name, id}`, equal to what `offers` showed; Agent Skills land in the supplied directory.
+3. Selecting `kaal-changing` alone is refused, naming the exact ID of `kaal-sealing`'s Skill; the Engine location is byte-identical to before (absent stays absent).
+4. The installer's own refusal cases (an unreadable `compatibility` declaration, a need no package carries) are refused by the new tool with the same outcomes.
+5. A package whose bytes do not yield the selected ID is refused with nothing written; a name, or an ID not offered, is refused.
+6. Installing again changes nothing.
+7. The same through the npm adapter from local tarballs, with no network.
+8. External: with a Subject directory beside the Engine, the Subject is byte-identical afterwards.
 
-Out of 0.0.1: remote or archive sources, authentication, the `compatibility` check (D2), `kaal-install` becoming a caller, wiring the agent entrypoint (stays `wire-kaal-agent`), Packaging, and any Core change.
+Out of 0.0.1: a registry, remote authentication, an archive format beyond npm tarballs, adding needs automatically, `kaal-install` as a caller, agent wiring (stays `wire-kaal-agent`), `kaal-packaging`, any Core or sealed-Node change.
 
-## Decisions requiring the Owner's judgment before implementation
+## What exists and what is missing
 
-- **D1. Name and place.** A shipped package under `packages/` with its acceptance under `engineering/`. Working name `kaal-compose`. `kaal-install` is taken by engineering. Name it as you wish.
-- **D2. `compatibility` in 0.0.1.** The installer refuses a capability whose declared sibling need is not held, matching names in free text. That is name-based identity. I recommend omitting it from 0.0.1 and saying so plainly in the package, rather than carrying a name-based identity into a new package; the cost is that 0.0.1 can install `kaal-changing` without `kaal-sealing`. Or carry it unchanged and accept the derivation until a machine-readable need exists.
-- **D3. Delivery name in 0.0.1.** Taken from the deliverable (the Agent Skill directory, else the package directory) as a placement input, as #43 describes, with registration's own grammar check and no prefix enforcement in this tool. Agree?
-- **D4. Skills and Extensions.** Both are listed and installed through the same stage and ask; the Agent Skill projection applies to Skills. Demonstrating Skills only is enough for 0.0.1. Agree?
-- **D5. Locations.** `--kaal` and the Agent Skill projection directory are explicit arguments with no defaults, in line with Change `08/03`'s rule that no location is derived. A default for Embed is left to a later step.
-- **D6. CLI.** A thin CLI over the library in the same package, for the end-to-end demonstration. No CLI in Core.
-- **D7. Trust.** Selection by exact ID, hash verification and Core admission only; no authentication. Agree for 0.0.1?
+Exists: Core's enumeration, admission and registration; the stage-and-register pipeline and the need check in `engineering/kaal-install`; the Engine / Record / Subject design; an Extension package (`kaal-github`) and Skills with a real need.
+
+Missing, and only this: that pipeline shipped and reading its packages from a directory a source adapter supplies; the need check expressed on Core's answer for the resulting Engine, with parity to the installer's refusals; plan-then-commit across a set of capabilities; the Engine seeded and verified in a supplied location; a local-directory adapter and an npm-populates-a-directory adapter. Not missing and not to be added: a registry, a Core concept or API, npm dependency resolution of our own, authentication, Packaging.
+
+## Genuine forks for the Owner
+
+- **F1. Needs: explicit or closure?** Recommended: explicit. A need that is not requested is refused naming the exact ID (today's guarantee: composition is never automatic). The alternative is an opt-in that adds needs to the request; I would not do that in 0.0.1.
+- **F2. Engine seed.** Recommended: Core's payload from the tool's own `kaal-core` dependency, so the Engine and the tool cannot disagree. The alternative takes Core from a source, which can mismatch the tool's anchor IDs.
+- **F3. Are adapters KAAL Extensions?** Recommended: plain modules in 0.0.1. Making a source adapter an Extension (a Node, a birth) keeps generic Skills and Processes from coupling to a vendor, but needs its own birth and is not needed to show the behaviour. The interface is shaped so it can become one.
+- **F4. How a need is met.** Recommended: delivery slot named by the declaration holds a Node Core reports held (above). The alternative, a machine-readable need by Node ID, is cleaner but changes what Skills declare and belongs to a later Change.
+- **F5. npm.** Recommended: shell out to the `npm` CLI inside the npm adapter only; the local-directory adapter needs no tool. Accept that the npm adapter needs `npm` present.
+- **F6. Name, place, CLI.** Working name `kaal-compose`, a shipped package under `packages/`, acceptance under `engineering/`, a thin CLI over the library, none in Core.
+- **F7. Trust.** Exact-ID selection, hash verification and Core admission only; no authentication, since no remote source is in 0.0.1.
+
+## Risks and open points
+
+- Parity with the installer's refusals is claimed by design and checked by running its cases; an unforeseen difference would make F4 the wrong answer.
+- Two implementations of the declaration reader (the installer's and the new package's) would drift; the new package should own it and `kaal-install` become its caller in a later Change.
+- The tool's `kaal-core` must match the Engine's anchor Node bytes; a mismatch must be reported plainly.
+- How a host that keeps Agent Skills elsewhere is served is not settled.
+- Name-based reading of a declaration remains until a machine-readable need exists.

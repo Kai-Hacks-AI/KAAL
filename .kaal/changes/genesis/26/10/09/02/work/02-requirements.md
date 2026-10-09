@@ -50,15 +50,29 @@ What must hold for `01-intent.md` to be answered. They say what, not how; the ho
 ## Constraints
 
 - R25. A new Core concept or API is added only if a requirement above cannot be met without it, and the smallest missing mechanism is shown first.
-- R26. Packaging is not implemented here. A future packaging capability asks Core what is available; package identity, capability identity, delivery naming and Agent Skill naming stay distinct.
+- R26. Packaging is not implemented here. A future packaging capability distributes the Engine, capabilities and dependency bytes and asks Core what is available; package identity, capability identity, delivery naming and Agent Skill naming stay distinct. Package names, versions and npm dependency metadata are never capability identity.
 - R27. Core's sealed Nodes, seals and public API are not changed by this Change. If Core must change, that is its own Change and travels alone.
 - R28. Enercon is not modified.
 
+## Dependencies and compatibility
+
+- R29. Composition does not refuse less than the installer does today. A capability whose declared sibling need is not met, or whose declaration cannot be read reliably, is refused, naming what is missing and, where one exists, the exact Node ID that would meet it. This holds for Skills and for Extensions.
+- R30. A need is met or unmet by what Core reports held in the Engine that would result, not by a package name, a version or npm metadata.
+- R31. Refusal is whole: if any member of a requested composition is refused, nothing is written to the Engine, and the Engine is byte-identical to before.
+- R32. Package-level dependency bytes (what npm resolves for a package) are the packaging layer's. Composition does not duplicate npm's resolution, keep a second dependency registry, or read npm metadata as KAAL meaning.
+- R33. Composition is explicit: a need that is not requested is refused, not silently added. Whether an opt-in to add needs is offered is for the Owner.
+
+## Packaging and sources
+
+- R34. Obtaining packages from a source is an adapter's work. Adapters are replaceable, and no generic Skill or Process is coupled to a vendor. The first sources are a local directory and npm, where npm only populates a directory and composition reads that directory.
+- R35. The Engine is obtained and established in an explicitly supplied location, with Core's own Nodes and seals, and is verified through Core.
+
 ## 0.0.1
 
-- R29. The first realization is the minimum that shows, offline and end to end, listing what is held, listing what a local directory of packages offers, and installing one chosen capability by its exact Node ID, with the refusals in R14, R16 and R17, and with the Subject untouched in External.
-- R30. It prefers a demonstrable minimum over a comprehensive implementation, and reports decisions that need the Owner before implementation.
-- R31. It keeps this Change's Intent and Change `05/04`'s separate: capability identity is Core's, package or source identity is the source's and proved by hashing, and delivery naming and placement are the instance's.
+- R36. The first realization is the minimum end to end: from a requested set of exact Node IDs, obtain the Engine and the needed packages, establish a valid Engine, verify the held capabilities through Core, refuse missing or incompatible needs without partial installation, and exercise at least one Skill and one Extension.
+- R37. It runs offline and locally when its sources are local, and keeps the Engineer / Embed / External boundary: in External the Subject is byte-identical.
+- R38. It prefers a demonstrable minimum over a comprehensive implementation, and reports Owner forks before implementation.
+- R39. It keeps this Change's Intent and Change `05/04`'s separate: capability identity is Core's, package or source identity is the source's and proved by hashing, delivery naming and placement are the instance's.
 
 ## What these requirements do not decide
 
