@@ -355,7 +355,7 @@ So from a Skill an Agent reaches the Learnings that qualify it, from a Learning 
 
 ## 7. Prototype source
 
-Each script is published once, exactly as run for sections 5, 6 and 10 (revised after rounds 01, 02 and 03); the earlier forms are superseded and not kept. Both are checked from this file by extracting the fenced blocks verbatim (see section 11).
+Each script is published once, exactly as run for sections 11 and 12 (revised after rounds 01, 02 and 03 and the Owner's Fork 4 decision; sections 5, 6 and 10 were run with the earlier forms, which are not kept); the earlier forms are superseded and not kept. Both are checked from this file by extracting the fenced blocks verbatim (see section 11).
 
 `learning.mjs`. Run in the host described in section 5 as `node learning.mjs check|establish --engine .kaal --brain <dir> [--record <dir>]… [<draft>]`.
 
@@ -365,7 +365,7 @@ Each script is published once, exactly as run for sections 5, 6 and 10 (revised 
 // node builtins, the kaal-sealing scripts beside it, and kaal-core's PUBLIC API
 // (registerSkill) resolved as a package. It does not import Core's source.
 //   learning.mjs check     --engine <kaal-dir> --brain <dir>... [--record <kaal-dir>...]
-//   learning.mjs establish --engine <kaal-dir> --brain <dir> --record <kaal-dir>... <draft>
+//   learning.mjs establish --engine <kaal-dir> --brain <dir> --record <kaal-dir>... --path <relative .md path in the BRAIN> <draft>
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, lstatSync, realpathSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
@@ -383,16 +383,20 @@ const sha = (b) => createHash("sha256").update(b).digest("hex");
 const isSealed = (dir, id) => { try { execFileSync("node", [join(SEALING, "seal.mjs"), "check", dir, id], { stdio: "ignore" }); return true; } catch { return false; } };
 const sealing = (script, ...a) => execFileSync("node", [join(SEALING, script), ...a], { encoding: "utf8" }).trim();
 
-function walk(dir) {
-  const out = {};
-  for (const p of readdirSync(dir, { recursive: true, encoding: "utf8" })) if (statSync(join(dir, p)).isFile()) out[p.split("\\").join("/")] = readFileSync(join(dir, p));
+/** The regular files under a directory, by relative path. Links are never followed: a BRAIN is regular files and directories. */
+function walk(dir, rel = "", out = {}) {
+  for (const n of readdirSync(join(dir, rel))) {
+    const p = rel ? `${rel}/${n}` : n, st = lstatSync(join(dir, p));
+    if (st.isDirectory()) walk(dir, p, out);
+    else if (st.isFile()) out[p] = readFileSync(join(dir, p));
+  }
   return out;
 }
 /** id -> { name, sealed, path } for every Node-form file in a directory whose seals are in <dir>/seals. */
-function index(dir, base = dir) {
+function index(dir, base = dir, skipChanges = false) {
   const files = walk(dir), idx = new Map();
   for (const [p, b] of Object.entries(files)) {
-    if (p.startsWith("seals/") || p.startsWith("changes/")) continue;
+    if (p.startsWith("seals/") || (skipChanges && p.startsWith("changes/")) || !p.endsWith(".md")) continue;
     const m = FORM.exec(b.toString("utf8"));
     if (m) idx.set(sha(b), { name: m[1], type: m[3], sealed: isSealed(join(base, "seals"), sha(b)), path: p });
   }
@@ -400,11 +404,12 @@ function index(dir, base = dir) {
 }
 
 function parseArgs(argv) {
-  const o = { engine: undefined, brain: [], record: [], rest: [] };
+  const o = { engine: undefined, brain: [], record: [], path: undefined, rest: [] };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--engine") o.engine = argv[++i];
     else if (argv[i] === "--brain") o.brain.push(argv[++i]);
     else if (argv[i] === "--record") o.record.push(argv[++i]);
+    else if (argv[i] === "--path") o.path = argv[++i];
     else o.rest.push(argv[i]);
   }
   return o;
@@ -489,7 +494,7 @@ function structure(text) {
 const args = parseArgs(process.argv.slice(3));
 const cmd = process.argv[2];
 if (!["check", "establish"].includes(cmd) || !args.engine || !args.brain.length) { console.error("usage: see header"); process.exit(2); }
-const engine = resolve(args.engine), eidx = index(engine);
+const engine = resolve(args.engine), eidx = index(engine, engine, true);
 const learningType = [...eidx.entries()].find(([, n]) => n.name === "Learning" && n.sealed)?.[0];
 const brains = args.brain.map((b) => resolve(b));
 const graph = new Map(eidx);
@@ -513,42 +518,56 @@ if (cmd === "check") {
   let bad = 0;
   for (const b of brains) {
     const files = walk(b);
+    const held = new Set(), at = new Map(); let plain = 0;
     for (const [p, bytes] of Object.entries(files)) {
-      if (p.startsWith("seals/")) continue;
+      if (p.startsWith("seals/") || !p.endsWith(".md")) continue;
+      if (!FORM.test(bytes.toString("utf8"))) { plain++; continue; } // Markdown without Form (a README, say) is not a candidate Node
       const id = sha(bytes), probs = [];
-      if (p !== `${id}.md`) probs.push(`file is not named by its ID ${id.slice(0, 12)}`);
+      held.add(id);
+      if (at.has(id)) { console.log(`${id.slice(0, 12)} is also held at ${p} (same bytes, same Learning)`); continue; }
+      at.set(id, p);
       probs.push(...(await problemsOf(bytes, id, isSealed(join(b, "seals"), id))));
-      console.log(`${id.slice(0, 12)} ${probs.length ? "REFUSED: " + probs.join("; ") : "ok"}`);
+      console.log(`${id.slice(0, 12)} ${p} ${probs.length ? "REFUSED: " + probs.join("; ") : "ok"}`);
       if (probs.length) bad++;
     }
+    if (plain) console.log(`${plain} Markdown file(s) without Form ignored`);
     if (existsSync(join(b, "seals"))) for (const n of readdirSync(join(b, "seals"))) {
       if (!isSealed(join(b, "seals"), n)) { console.log(`seals/${n.slice(0, 12)} is not a seal (an empty regular file named by an ID)`); bad++; }
-      else if (!files[`${n}.md`]) { console.log(`seal ${n.slice(0, 12)} has no Learning`); bad++; }
+      else if (!held.has(n)) { console.log(`seal ${n.slice(0, 12)} has no Learning`); bad++; }
     }
   }
   if (!changes) console.log("evidence unverified: no --record given");
   process.exit(bad ? 1 : 0);
 }
 
-// establish
+// establish: the establisher chooses the name and the place (--path, relative to the BRAIN); identity never depends on it.
 const [draft, ...extra] = args.rest;
-if (!draft || extra.length || brains.length !== 1 || !args.record.length) { console.error("establish needs exactly one --brain, at least one --record and one draft"); process.exit(2); }
-const bytes = readFileSync(draft), id = sealing("artifact-id.mjs", draft);
-const dest = join(brains[0], `${id}.md`), seal = join(brains[0], "seals", id);
-if (existsSync(dest)) {
-  if (!readFileSync(dest).equals(bytes)) { console.error("refused: the file exists with other bytes"); process.exit(1); }
-  if (isSealed(join(brains[0], "seals"), id)) { console.log(`already held ${id.slice(0, 12)}; nothing written`); process.exit(0); }
-}
+if (!draft || extra.length || brains.length !== 1 || !args.record.length || !args.path) { console.error("establish needs exactly one --brain, at least one --record, --path <relative .md path> and one draft"); process.exit(2); }
+const bytes = readFileSync(draft), id = sealing("artifact-id.mjs", draft), brain = brains[0], sealsDir = join(brain, "seals");
+const rel = args.path;
+if (isAbsolute(rel) || rel.split(/[\\/]/).includes("..") || !rel.endsWith(".md") || rel.split(/[\\/]/)[0] === "seals") { console.error("refused, nothing written: --path must be a relative .md path inside the BRAIN, not under seals/ and without .."); process.exit(1); }
+const dest = join(brain, rel);
+// already held: the same bytes at any path of this BRAIN are the same Learning
+const heldAt = existsSync(brain) ? Object.entries(walk(brain)).find(([p, b]) => !p.startsWith("seals/") && p.endsWith(".md") && sha(b) === id)?.[0] : undefined;
+if (heldAt && isSealed(sealsDir, id)) { console.log(`already held ${id.slice(0, 12)} at ${heldAt}; nothing written`); process.exit(0); }
+if (existsSync(dest) && !heldAt) { console.error("refused, nothing written: a file already exists at that path with other bytes (establishing never replaces a file)"); process.exit(1); }
+const top = existsSync(brain) ? realpathSync(brain) : undefined;
+let near = dest; while (!existsSync(near)) near = dirname(near);
+if (top && !realpathSync(near).startsWith(top)) { console.error("refused, nothing written: --path resolves outside the BRAIN"); process.exit(1); }
 const probs = await problemsOf(bytes, id, true); // the prospective seal is supplied in memory only
 if (probs.length) { console.error(`refused, nothing written: ${probs.join("; ")}`); process.exit(1); }
-const made = [];
+let created;
 try {
-  mkdirSync(join(brains[0], "seals"), { recursive: true });
-  if (!existsSync(dest)) { writeFileSync(`${dest}.tmp`, bytes); renameSync(`${dest}.tmp`, dest); made.push(dest); }
-  sealing("seal.mjs", "write", join(brains[0], "seals"), id);
-  if (!isSealed(join(brains[0], "seals"), id)) throw new Error("the marker at seals/<ID> is not a valid seal (Sealing refuses it)");
-  console.log(`established ${id}`);
-} catch (e) { for (const f of made) rmSync(f, { force: true }); console.error(`failed, rolled back: ${e.message}`); process.exit(1); }
+  mkdirSync(sealsDir, { recursive: true });
+  if (!heldAt) {
+    let d = dirname(dest); while (!existsSync(d)) { created = d; d = dirname(d); }
+    mkdirSync(dirname(dest), { recursive: true });
+    writeFileSync(`${dest}.tmp`, bytes); renameSync(`${dest}.tmp`, dest);
+  }
+  sealing("seal.mjs", "write", sealsDir, id);
+  if (!isSealed(sealsDir, id)) throw new Error("the marker at seals/<ID> is not a valid seal (Sealing refuses it)");
+  console.log(`established ${id} at ${heldAt ?? rel}`);
+} catch (e) { if (!heldAt) { rmSync(`${dest}.tmp`, { force: true }); rmSync(dest, { force: true }); if (created) rmSync(created, { recursive: true, force: true }); } console.error(`failed, rolled back: ${e.message}`); process.exit(1); }
 ````
 
 `discover.mjs`, same host: `node discover.mjs find|near|show --engine .kaal --skills skills --record record --brain brain [--limit N] [--budget B] [--after K] [--from O] [--bytes N] <term…|id>`.
@@ -562,7 +581,7 @@ try {
 //   discover.mjs show --engine E --record R... --brain B... [--from O] [--bytes N] <id>
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -573,7 +592,15 @@ const HEX = /(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])/g;
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const isSealed = (dir, id) => { try { execFileSync("node", [join(SEALING, "seal.mjs"), "check", dir, id], { stdio: "ignore" }); return true; } catch { return false; } };
 const changeId = (dir) => execFileSync("node", [join(SEALING, "artifact-id.mjs"), "--domain", "KAAL Change v1", dir], { encoding: "utf8" }).trim();
-const files = (d) => Object.fromEntries(readdirSync(d, { recursive: true, encoding: "utf8" }).filter((p) => statSync(join(d, p)).isFile()).map((p) => [p.split("\\").join("/"), readFileSync(join(d, p), "utf8")]));
+/** The regular files under a directory, by relative path. Links are never followed. */
+const files = (d, rel = "", out = {}) => {
+  for (const n of readdirSync(join(d, rel))) {
+    const p = rel ? `${rel}/${n}` : n, st = lstatSync(join(d, p));
+    if (st.isDirectory()) files(d, p, out);
+    else if (st.isFile()) out[p] = readFileSync(join(d, p), "utf8");
+  }
+  return out;
+};
 /** Every cited ID with the name written beside it ("<name> <ID>"), for IDs that are known. */
 const citing = (text, known) => [...new Set([...text.matchAll(HEX)].filter((m) => known.has(m[0]) && text.slice(Math.max(0, m.index - known.get(m[0]).length - 1), m.index) === `${known.get(m[0])} `).map((m) => m[0]))];
 
@@ -606,11 +633,13 @@ for (const [p, t] of Object.entries(eng)) {
 // Anything else in a BRAIN is a candidate that is not admitted; it is counted, never shown as a Learning.
 const learnings = []; let notAdmitted = 0;
 for (const b of o.brain) for (const [p, t] of Object.entries(files(b))) {
-  if (p.startsWith("seals/")) continue;
+  if (p.startsWith("seals/") || !p.endsWith(".md")) continue;
   const m = FORM.exec(t), id = sha(t);
-  if (!m || !learningTypeId || m[2] !== "Learning" || m[3] !== learningTypeId || p !== `${id}.md` || !isSealed(join(b, "seals"), id)) { notAdmitted++; continue; }
+  if (!m) continue; // Markdown without Form (a README, say) is not a candidate Node
+  if (!m || !learningTypeId || m[2] !== "Learning" || m[3] !== learningTypeId || !isSealed(join(b, "seals"), id)) { notAdmitted++; continue; }
   const ap = (t.split("## Applies when")[1] ?? "").split("##")[0].trim();
-  learnings.push({ kind: "Learning", id, name: m[1], card: ap, text: t, body: t.replace(FORM, "").split("\n## Evidence")[0],
+  if (learnings.some((x) => x.id === id)) continue; // the same bytes at another path are the same Learning
+  learnings.push({ kind: "Learning", id, at: `${b.split("/").pop()}/${p}`, name: m[1], card: ap, text: t, body: t.replace(FORM, "").split("\n## Evidence")[0],
     evidence: [...(t.split("## Evidence")[1] ?? "").matchAll(/^([0-9a-f]{64})  (\S+)$/gm)].map((e) => e[1]) });
 }
 const changes = [];
@@ -641,7 +670,7 @@ const note = (s) => { lines.push(s); used += Buffer.byteLength(s) + 1; }; // con
 const label = (x) => `${clip(x.kind === "Change" ? x.name + (x.closed ? "" : " (open)") : x.name, 60)} [${x.id.slice(0, 12)}]`;
 /** One whole card or none: returns whether it was printed. */
 const card = (x, extra) => {
-  const a = `  ${label(x)}${extra ?? ""}`, b = `    ${x.kind === "Learning" ? "applies when: " : ""}${clip(x.card, 110)}`;
+  const a = `  ${label(x)}${x.at ? ` @ ${clip(x.at, 50)}` : ""}${extra ?? ""}`, b = `    ${x.kind === "Learning" ? "applies when: " : ""}${clip(x.card, 110)}`;
   if (!fits(Buffer.byteLength(a) + Buffer.byteLength(b) + 2)) return false;
   say(a); say(b); return true;
 };
@@ -746,3 +775,17 @@ Round 03 (`review/03.md`) accepted F5, F6, F7 and F9, kept F8 open in two parts,
 **F8, continuation of neighbours.** Fifteen Changes cite `Refines the dependency one 7ac26854…` (the one from section 10 and fourteen further synthetic sealed Changes). `near 7ac268547471 --limit 3` with `--after 0`, `--after 3` and `--after 12` printed 912, 569 and 480 bytes with different Changes each time (`…/09/01, 02, 03`; `04, 05, 06`; `13, 14, 15`), each ending `N more of "Changes that cite it…"; continue with --after K` where more remain. With `--limit 10 --budget 700` the output was 562 bytes: one card, then `14 more … continue with --after 1` for the list the budget cut, and the same note for the lists it never reached. `find` continues the same way (`--limit 20 bulkprobe` printed 1,548 bytes and `32 more … continue with --after 8`).
 
 **What this does not show.** Continuation of `near` is a single `--after` for all lists of one call, which suits one large list at a time (the common case) and is clumsy for several. Learnings that cite a Learning were not run again at fifteen (the Changes list exercised the same code). The scripts are prototypes in a scratch host; nothing here is a package.
+
+## 12. Disposition of the Owner's decision on Fork 4 (free names and organisation)
+
+The Owner decided (PR comment, 2026-10-09) that `<ID>.md` file names are not required: Markdown Nodes are a shared human and agent workspace, so readable names and organisation matter, while identity stays content-based and references resolve by ID. Sections 5, 6 and 10 were produced with the earlier flat layout and are kept as the record of those runs; the scripts of section 7 are the revised ones (the previous forms are not kept). The cases below were run with `cases4.sh`-style steps in a scratch copy of the host (`p3`), from the revised scripts, with a BRAIN of five Learnings reorganised by a script into folders with readable names, plus a `README.md`.
+
+- **A reorganised BRAIN.** The five Learnings were moved to `process/…` and `testing/…` under names made from their titles, and a `README.md` added. `check` printed each as `<id12> <path> ok`, `1 Markdown file(s) without Form ignored`, exit 0. `find` and `near` over the moved files gave the same cards, each now with `@ <path>`; the citation of `Sealing e15f370c…` from `One meaning has one definition` still resolved.
+- **Establishing with a chosen place.** `--path process/new-topic/a-readable-name.md` created the folder and the file and printed `established 7ac26854… at process/new-topic/a-readable-name.md`. The same bytes with `--path elsewhere/copy.md` printed `already held 7ac268547471 at process/new-topic/a-readable-name.md; nothing written`, and no `elsewhere/` appeared. A draft whose bytes were already in the BRAIN under a different name (a Learning moved earlier) was reported at its current path.
+- **Path refusals, each exit 1 with nothing written.** `../outside.md`, `/abs/x.md`, `notmd.txt`, `seals/x.md`, `process/../../x.md`. An existing file at the path with other bytes: `a file already exists at that path with other bytes (establishing never replaces a file)`; the BRAIN's files were unchanged by hash. A symlinked folder pointing out of the BRAIN: `--path resolves outside the BRAIN`, nothing written there; `check` still exit 0 because links are not followed (the first version of `walk` followed them and crashed on a loop; it now uses `lstat`). A refused draft aimed at a new folder `brand/new/dir/` left no `brand/`.
+- **Validity.** Appending a line to a moved Learning: `check` printed `a418e38496fd … REFUSED: not sealed; evidence line is not "<ID>  <path>": x` and `seal 72562db3cebe has no Learning`, exit 1: edited bytes are another Node, wherever the file is. Restoring the bytes restored exit 0.
+- **Preservation.** Deleting a Learning nothing cites, together with its seal, left `check` at exit 0: a whole, smaller BRAIN, which only a baseline can see (#71). Deleting one that another Learning cites made `check` exit 1 with `7ac268547471 … REFUSED: cites 4111e444126c, which no given Engine or BRAIN holds`: the disappearance showed only through the dependent. No path was compared in either case.
+
+**What this does not show.** The identity-based baseline control itself (it follows the Record locator Change); that two different Learnings at one path in two BRAINs combine, which the Architecture states is a matter of filing; names with unusual characters or very long paths beyond the clipping in cards; a Windows file system. The Fork 3 names are still the working ones.
+
+**Regression and extraction.** Both scripts were extracted from this file's section 7 blocks verbatim, compared byte for byte with the files the cases ran from (identical) and checked with `node --check`; the steps above, and the F5 to F9 cases of sections 10 and 11 that touch the same code (non-empty marker, escaping evidence with `--path`, the 100,011-character name at `--limit 1`, `near --after`, the unsealed mismatch file), were rerun from the extracted copies with the same results (`find boundprobe --limit 1` now 385 bytes with the added `@ <path>` hint).
