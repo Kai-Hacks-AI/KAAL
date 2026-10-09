@@ -35,7 +35,16 @@ Tests: `engineering/kaal-collecting` 40 of 40 pass (28 existing, 12 new); `packa
 
 ## Disclosures
 
-- Round 01 and R8 speak of "the README of the records". I did not write a file into the caller's Record: the limitation is stated in `SKILL.md` and the package `README.md`. If a README must sit in the Record, that is a further small step.
-- `check-record` treats `incidents/<name>/` and `requests/<name>/` as stored carriers only for names that have a client record. In a directory that is also a client's own KAAL directory, its own dated carriers (`incidents/26/…`) are therefore not read as stored carriers unless a client happens to be named `26`.
+- The limitation is stated in `SKILL.md` and the package `README.md`; no file is written into the caller's Record, and R8 and the architecture now say so (round 02 asked for them to be aligned). If a README must sit in the Record, that is a further small step.
+- A directory directly under `incidents/` or `requests/` is read as stored carriers when it holds a `<sha256>.md` file or has a client record. A Record that also holds locally authored dated carriers (`incidents/26/10/07/01.md`) is told apart by layout; a client record named like a date part (`26`) would see those carriers reported as unlisted.
 - A refused reuse leaves the begun, empty collection in place, as every refusal of `reached` already does.
 - A Record is checked by `check-record`; whether the raw carriers of each collection still match is still `check`, run per collection.
+
+## Round 02 (`review/02.md`), resolved
+
+Both findings reproduced and fixed in `collect.mjs` (projection regenerated, identical bytes):
+
+1. **Links.** Before anything is written, every existing component of the sighting and stored-carrier destinations must be a plain directory of the Record, else the command is refused. Test: `clients`, `incidents`, `requests`, `incidents/<client>` and `clients/<client>/sightings` each replaced by a link to a directory outside; every case exits 1, the outside directory stays empty, and no raw attempt, sighting or stored carrier is left.
+2. **Check scope.** `check-record` now finds stored carriers by what they are (`<sha256>.md` files directly below a name under `incidents/` or `requests/`, or any name with a client record), independently of surviving client records, and enforces the founding requirement for every present client directory, empty ones included. Tests: removing `clients/<name>` is reported ("no record of this client"), an empty `clients/<name>/sightings` is reported as 0 founding sightings, and a Record that also holds dated local carriers passes while a stray hash-named file is still reported.
+
+`engineering/kaal-collecting` 43 of 43 pass (28 existing, 15 new); `check-kaal-install` exits 0.

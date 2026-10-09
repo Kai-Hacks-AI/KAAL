@@ -56,7 +56,7 @@ A Request writer called twice with the same texts gives `requests/26/10/09/01.md
 
 ## Sealed Node
 
-`Collecting KAAL` says Collecting "keeps no list of clients, so that what is visible is never mistaken for what exists". Its meaning is unchanged. A client directory records sightings only; it is not a claim that KAAL knows all clients, stated in `SKILL.md` and in the README of the records. The Owner accepted this reading on PR #70.
+`Collecting KAAL` says Collecting "keeps no list of clients, so that what is visible is never mistaken for what exists". Its meaning is unchanged. A client directory records sightings only; it is not a claim that KAAL knows all clients, stated in `SKILL.md` and in the package README; no file is written into the caller's Record. The Owner accepted this reading on PR #70.
 
 ## Honest limits
 
