@@ -30,10 +30,10 @@ test("a round the Process records is a round Review checks and Review's converge
   assert.equal(a("submit", "loop", "d.md").status, 0);
   const id = node(root, "kaal-intent/scripts/intent.mjs", "identity", "loop/log/01-subject.md").stdout.trim();
   writeFileSync(join(root, "saw.md"), readFileSync(join(root, "d.md")));
-  assert.equal(a("relay", "loop", "--result", "converged", "--actor", "r", "--saw", "saw.md", "--source", "comment 1").status, 0);
+  assert.equal(a("relay", "loop", "--result", "converged", "--actor", "r", "--saw", "saw.md", "--source-kind", "comment", "--source-id", "1", "--commit", "abc").status, 0);
   assert.equal(node(root, "kaal-review/scripts/review.mjs", "check", "loop/log/02-round.md").status, 0, "Review reads it as a round");
   assert.match(readFileSync(join(root, "loop/log/02-round.md"), "utf8"), new RegExp(`^# Review\\n\\nIntent: ${id}\\nResult: converged\\n\\n## Reviewer\\n\\nActor: r\\n`));
-  assert.equal(a("state", "loop").stdout.split("\n")[0], "AGREED");
+  assert.equal(a("state", "loop").stdout.split("\n")[0], "REPORTED");
 });
 
 test("Intent and Review work as they did without the Process, and neither is changed to be composed", (t) => {

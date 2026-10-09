@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // agree begin <loop> --worker <actor> --reviewer <actor> --rounds <n> --words <text|@file>
-// agree state <loop>
+// agree state <loop> [--host <records.json> --owner <login>]
 // agree request <loop> [--standard <SKILL.md of kaal-intent>]
 // agree submit <loop> <file>
-// agree relay <loop> --result findings|converged --actor <actor> --saw <file> --source <text> [--findings <text|@file>]
+// agree relay <loop> --result findings|converged --actor <actor> --saw <file> --source-kind review|comment|reaction --source-id <id> --commit <sha> [--findings <text|@file>]
 // agree direct <loop> --reason <code> --direction continue|stop [--rounds <n>] --words <text|@file>
 //
 // The Agreement process for describing an Intent: a Worker puts versions of an
@@ -15,8 +15,10 @@
 // it) and Intent owns what an Intent is and its identity; this file owns only
 // the relation between them. Of a round it reads the outcome, the subject
 // identity, its place and one `Actor:` line, and nothing inside the findings.
-// It cannot see who runs it; the grant, the actor line and the provenance in a
-// round are for an owner to inspect, not proof.
+// It cannot see who runs it. What a round, a grant or a direction claims about
+// who made it is therefore only *reported*; it becomes *verified* only against
+// records of the host (`state --host`), supplied by someone outside the Worker's
+// control. Until then the most a record can reach is REPORTED, never AGREED.
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -43,6 +45,7 @@ export const REASONS = {
   grant: "no valid grant of authority from the Owner",
   seat: "a report is not the granted Reviewer's",
   evidence: "the record is not a loop of this process",
+  provenance: "the host's records do not show that the Owner and the Reviewer made what is claimed in their names",
   contradiction: "the record says both converged and findings about one subject",
   unrevised: "review was asked again with the subject unchanged",
   oscillation: "an earlier subject has come back",
@@ -71,11 +74,13 @@ function listLog(loop) {
   const dir = join(loop, "log");
   const events = [];
   const problems = [];
-  if (!existsSync(dir) || !lstatSync(dir).isDirectory()) return { events, problems: [`${dir} is not a directory`] };
-  const names = readdirSync(dir).sort();
-  names.forEach((name, i) => {
-    const m = /^(\d\d)-(subject|round|how)\.md$/.exec(name);
-    if (!m || Number(m[1]) !== i + 1) return void problems.push(`${name} is not the next event: the log is 01-…, 02-… without a gap and with nothing else`);
+  if (!existsSync(dir)) return { events, problems }; // a loop with a grant and no log yet is an empty loop
+  if (!lstatSync(dir).isDirectory()) return { events, problems: [`${dir} is not a directory`] };
+  const names = readdirSync(dir)
+    .map((name) => ({ name, m: /^(\d{2,})-(subject|round|how)\.md$/.exec(name) }))
+    .sort((a, b) => (a.m && b.m ? Number(a.m[1]) - Number(b.m[1]) : a.name < b.name ? -1 : 1));
+  names.forEach(({ name, m }, i) => {
+    if (!m || Number(m[1]) !== i + 1 || m[1] !== String(i + 1).padStart(2, "0")) return void problems.push(`${name} is not the next event: the log is 01-…, 02-… without a gap and with nothing else`);
     if (!lstatSync(join(dir, name)).isFile()) return void problems.push(`${name} is not a file`);
     events.push({ n: m[1], kind: m[2], name, path: join(dir, name) });
   });
@@ -95,15 +100,17 @@ export function parseDirection(content) {
 // ---------- state, derived ----------
 
 /** Replay the record. Returns the state and every fact the brief shows. */
-export async function derive(loop) {
+export async function derive(loop, host) {
   const review = await sibling("kaal-review", "review.mjs");
   const g = readGrant(loop);
   const out = { state: undefined, reason: undefined, detail: undefined, events: [], ignored: [], subject: undefined, used: 0, rounds: g.rounds, grant: g };
   const { events, problems } = listLog(loop);
   out.events = events;
   const fire = (reason, detail) => ((out.state = "HOW"), (out.reason = reason), (out.detail = detail));
-  if (!g.ok) return fire("grant", g.why), out;
-  if (problems.length) return fire("evidence", problems.join("; ")), out;
+  // These two cannot be answered by a direction: the record must first be a record
+  // (a grant is the Owner's to write; a log is repaired by restoring it).
+  if (!g.ok) return fire("grant", g.why), (out.preflight = true), out;
+  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), out;
   const subject = await sibling(SUBJECTS[g.subject].sibling, SUBJECTS[g.subject].script);
 
   let latest; // { name, identity } of the latest applied subject
@@ -113,15 +120,18 @@ export async function derive(loop) {
   let stopped = false;
   let window = { seen: [], findings: 0, budget: g.rounds };
   const results = new Map(); // identity -> outcomes recorded about it
+  const counted = []; // rounds attributed to the granted Reviewer
+  const hows = []; // directions that were applied
   let pendingRound; // a round that fired a condition but is counted once a direction continues
 
-  for (const [i, e] of events.entries()) {
+  for (const e of events) {
     if (stopped) { out.ignored.push(`${e.name} (the loop was stopped)`); continue; }
-    if (out.state === "HOW" && e.kind !== "how") { out.ignored.push(...events.slice(i).map((x) => `${x.name} (after HOW was required)`)); break; }
+    if (out.state === "HOW" && e.kind !== "how") { out.ignored.push(`${e.name} (after HOW was required)`); continue; }
     if (e.kind === "how") {
       const d = parseDirection(text(e.path));
       if (out.state !== "HOW") { fire("evidence", `${e.name} is a direction with no HOW to answer`); continue; }
       if (!d || d.reason !== out.reason) { out.ignored.push(`${e.name} (not a direction answering '${out.reason}')`); continue; }
+      hows.push(e);
       e.answers = d.reason;
       e.direction = d.direction;
       if (d.direction === "stop") { out.state = "STOPPED"; out.reason = undefined; stopped = true; continue; }
@@ -156,7 +166,9 @@ export async function derive(loop) {
     e.identity = round.identity; e.outcome = round.outcome;
     const actor = /^Actor: (.+)$/m.exec(round.reviewer.split("\n")[0] ?? "")?.[1];
     e.actor = actor;
+    e.source = /^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(round.reviewer) && ((m) => ({ kind: m[1], id: m[2], commit: m[3] }))(/^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(round.reviewer));
     if (actor === undefined || actor !== g.reviewer || actor === g.worker) { fire("seat", `${e.name} is attributed to ${actor === undefined ? "no actor" : `'${actor}'`}, and the grant names '${g.reviewer}' as the Reviewer and '${g.worker}' as the Worker`); continue; }
+    counted.push(e);
     const before = results.get(round.identity) ?? new Set();
     results.set(round.identity, before.add(round.outcome));
     if ([...before].some((o) => o !== round.outcome)) { fire("contradiction", `${e.name} says ${round.outcome} about ${short(round.identity)}, which was also reported as ${[...before].find((o) => o !== round.outcome)}`); continue; }
@@ -169,16 +181,42 @@ export async function derive(loop) {
 
   out.used = window.findings; out.rounds = window.budget;
   out.subject = latest && { path: join(loop, "log", latest.name), identity: latest.identity };
+  out.provenance = host ? "verified against the host's records" : "reported, not verified";
+  if (host) {
+    const bad = provenance(g, loop, counted, hows, host);
+    if (bad.length) { out.provenance = "contradicted or not shown by the host's records"; fire("provenance", bad.join("; ")); return out; }
+  }
   if (out.state === "HOW" || out.state === "STOPPED") return out;
-  out.state = agreed ? "AGREED" : awaiting ? "REVIEW" : last === "findings" ? "REVISE" : "DESCRIBE";
+  out.state = agreed ? (host ? "AGREED" : "REPORTED") : awaiting ? "REVIEW" : last === "findings" ? "REVISE" : "DESCRIBE";
   return out;
 }
 
+/** What the host's records must show for the record to be trusted: who made the grant, each direction and each counted report. */
+function provenance(g, loop, counted, hows, host) {
+  const bad = [];
+  const records = host.records;
+  const authored = (path, bytes) => records.some((r) => r.kind === "authored" && r.path === path && r.sha256 === sha256(bytes) && r.login === host.owner);
+  if (!authored("grant.md", readFileSync(join(loop, "grant.md")))) bad.push(`grant.md is not shown to be authored by the Owner '${host.owner}'`);
+  for (const h of hows) if (!authored(`log/${h.name}`, readFileSync(h.path))) bad.push(`${h.name} is not shown to be authored by the Owner '${host.owner}'`);
+  for (const r of counted) {
+    const s = r.source;
+    if (!s) { bad.push(`${r.name} names no source at the host`); continue; }
+    const rec = records.find((x) => x.kind === s.kind && String(x.id) === s.id);
+    if (!rec) { bad.push(`${r.name}: the host shows no ${s.kind} ${s.id}`); continue; }
+    if (rec.login !== g.reviewer) bad.push(`${r.name}: ${s.kind} ${s.id} was made by '${rec.login}', not by the Reviewer '${g.reviewer}'`);
+    if (rec.commit !== undefined && !(rec.commit.startsWith(s.commit) || s.commit.startsWith(rec.commit))) bad.push(`${r.name}: ${s.kind} ${s.id} is of commit ${rec.commit}, not ${s.commit}`);
+    const implied = s.kind === "review" ? "findings" : s.kind === "comment" ? (/^No findings/.test(rec.body ?? "") ? "converged" : undefined) : rec.content === "+1" ? "converged" : undefined;
+    if (implied !== r.outcome) bad.push(`${r.name}: the host's ${s.kind} ${s.id} implies ${implied ?? "neither result"}, the round says ${r.outcome}`);
+  }
+  return bad;
+}
+
 const NEXT = {
+  REPORTED: "none for the Worker: the Reviewer's convergence is only reported; someone outside the Worker's control verifies it against the host (state --host … --owner …), and the Worker stops revising",
   DESCRIBE: "the Worker describes the Intent and submits it",
   REVIEW: "the Worker requests a targeted review of the subject, then records the Reviewer's report",
   REVISE: "the Worker revises the Intent in answer to the findings and submits it",
-  AGREED: "none: the Reviewer the Owner named reported convergence on exactly this subject; the Worker stops revising, and establishing the Intent is the Owner's",
+  AGREED: "none: the host's records show the Reviewer the Owner named reported convergence on exactly this subject; the Worker stops revising, and establishing the Intent is the Owner's",
   STOPPED: "none: a human ended the loop; no agreement is claimed",
 };
 
@@ -191,10 +229,12 @@ export function brief(d, loop) {
     lines.push(`detail: ${d.detail}`);
   } else lines.push(`next: ${NEXT[d.state]}`);
   if (d.subject) lines.push(`subject: ${d.subject.path} ${d.subject.identity}`);
+  if (d.provenance) lines.push(`provenance: ${d.provenance}`);
   if (d.grant.ok) lines.push(`rounds: ${d.used} of ${d.rounds} used in this window; worker: ${d.grant.worker}; reviewer: ${d.grant.reviewer}`);
   for (const e of d.events) lines.push(`${e.n} ${e.kind}${e.outcome ? ` ${e.outcome}` : ""}${e.direction ? ` ${e.direction} (answers ${e.answers})` : ""}${e.actor ? ` by ${e.actor}` : ""}${e.identity ? ` ${short(e.identity)}` : ""}${e.kind === "round" ? ` (${e.path})` : ""}`);
   for (const x of d.ignored) lines.push(`ignored: ${x}`);
-  if (d.state === "HOW") lines.push(`direct with: agree.mjs direct ${loop} --reason ${d.reason} --direction continue --rounds <n> --words <text|@file>  (or --direction stop)`);
+  if (d.state === "HOW" && d.preflight) lines.push(d.reason === "grant" ? "repair: a direction cannot answer this; the Owner writes a valid grant.md, then ask state again" : "repair: a direction cannot answer this; restore the log to a gapless sequence of events, then ask state again");
+  else if (d.state === "HOW") lines.push(`direct with: agree.mjs direct ${loop} --reason ${d.reason} --direction continue --rounds <n> --words <text|@file>  (or --direction stop)`);
   return lines;
 }
 
@@ -206,6 +246,7 @@ const refuse = (message) => { throw Object.assign(new Error(message), { refused:
 
 function append(loop, kind, content) {
   const dir = join(loop, "log");
+  mkdirSync(dir, { recursive: true });
   const n = String(readdirSync(dir).length + 1).padStart(2, "0");
   const path = join(dir, `${n}-${kind}.md`);
   writeFileSync(path, content, { flag: "wx" });
@@ -253,11 +294,15 @@ export async function relay(loop, a) {
   const d = await derive(loop);
   if (d.state !== "REVIEW") refuse(`the state is ${d.state}: a report is recorded only while a subject waits for one`);
   const actor = oneLine("--actor", a["--actor"]);
-  const source = oneLine("--source", a["--source"]);
+  const kind = a["--source-kind"];
+  if (!["review", "comment", "reaction"].includes(kind)) refuse("--source-kind is review, comment or reaction");
+  const sourceId = oneLine("--source-id", a["--source-id"]);
+  const commit = oneLine("--commit", a["--commit"]);
+  if (/\s/.test(sourceId + commit)) refuse("--source-id and --commit are single tokens");
   const seen = sha256(readFileSync(a["--saw"] ?? refuse("--saw is the subject as the Reviewer saw it")));
   const now = sha256(readFileSync(d.subject.path));
   if (seen !== now) refuse(`the report is of a different subject: what the Reviewer saw is ${short(seen)} and the subject now is ${short(now)}; request a review of the current subject`);
-  const statement = `Actor: ${actor}\nRecorded by the Worker (${d.grant.worker}) from the report of ${actor}, the Reviewer named in the Owner's grant: the Worker copied the report and decided nothing in it. Source: ${source}`;
+  const statement = `Actor: ${actor}\nSource: ${kind} ${sourceId} commit ${commit}\nRecorded by the Worker (${d.grant.worker}) from the report of ${actor}, the Reviewer named in the Owner's grant: the Worker copied the report and decided nothing in it.`;
   const content = review.render({ of: d.grant.subject, identity: now, outcome: a["--result"], reviewer: statement, findings: a["--findings"] === undefined ? undefined : clean(a["--findings"]) });
   return append(loop, "round", content);
 }
@@ -265,6 +310,7 @@ export async function relay(loop, a) {
 export async function direct(loop, a) {
   const d = await derive(loop);
   if (d.state !== "HOW") refuse(`the state is ${d.state}: there is no HOW to answer`);
+  if (d.preflight) refuse(`'${d.reason}' cannot be answered by a direction: the record must first be repaired (${d.reason === "grant" ? "the Owner writes a valid grant.md" : "restore the log to a gapless sequence"})`);
   if (a["--reason"] !== d.reason) refuse(`the reason in force is '${d.reason}', not '${a["--reason"]}': a direction answers the reason that holds`);
   const direction = a["--direction"];
   if (direction !== "continue" && direction !== "stop") refuse("--direction is continue or stop");
@@ -303,8 +349,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       for (const l of brief(d, loop)) console.log(l);
       process.exitCode = exitOf(d);
     };
-    if (command === "state" && rest.length === 0) {
-      const d = await derive(loop);
+    if (command === "state" && (rest.length === 0 || rest.length === 4)) {
+      const o = given(rest, ["--host", "--owner"]);
+      if (rest.length === 4 && !(o["--host"] && o["--owner"])) throw Object.assign(new Error(usage), { usage: true });
+      const host = rest.length === 4 ? { owner: o["--owner"], records: JSON.parse(readFileSync(rest[rest.indexOf("--host") + 1], "utf8")) } : undefined;
+      const d = await derive(loop, host);
       for (const l of brief(d, loop)) console.log(l);
       process.exitCode = exitOf(d);
     } else if (command === "begin") {
@@ -312,7 +361,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     } else if (command === "submit" && rest.length === 1) {
       await show(await submit(loop, rest[0]));
     } else if (command === "relay") {
-      await show(await relay(loop, given(rest, ["--result", "--actor", "--saw", "--source", "--findings"])));
+      await show(await relay(loop, given(rest, ["--result", "--actor", "--saw", "--source-kind", "--source-id", "--commit", "--findings"])));
     } else if (command === "direct") {
       await show(await direct(loop, given(rest, ["--reason", "--direction", "--rounds", "--words"])));
     } else if (command === "request" && (rest.length === 0 || (rest.length === 2 && rest[0] === "--standard"))) {
