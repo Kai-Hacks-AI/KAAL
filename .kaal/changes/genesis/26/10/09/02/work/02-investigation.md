@@ -18,7 +18,7 @@ Grounded in `kaal/genesis` at 7613ad9 (#73 merged), `packages/kaal-review`, `pac
 
 **Q3. Progress, stagnation, oscillation.** Only the bytes of the subject and the order of rounds are mechanical, so these three are defined on identities:
 - *Progress*: after a round with findings, the next subject has an identity not seen before in the loop's current window.
-- *Stagnation*: after a round with findings, the Worker puts forward the same identity again (it asks for review without having changed anything). A disagreement with a finding looks exactly like this, which is why it is an escalation and not something the Worker may settle.
+- *Stagnation*: after a round with findings, the Worker puts forward the same identity again (it asks for review without having changed anything). A disagreement with a finding looks exactly like this when it is unanswered, which is why it is an escalation and not something the Worker may settle; the Owner's later question (answer events, §6a of the Architecture) gives it a record, and a dispute the Reviewer holds still ends in HOW.
 - *Oscillation*: an identity recurs after a different one in between (A, B, A): the Worker is undoing its own revision, typically because two findings pull in opposite directions.
 Not mechanical, so not used: whether a finding is resolved, whether findings are getting fewer, whether a revision is any good. Counting bullets in Findings would interpret free text. A *byte* change that is not an improvement (whitespace thrash) is progress by this definition; the Owner-granted budget (§3, `ceiling`) is what bounds that.
 

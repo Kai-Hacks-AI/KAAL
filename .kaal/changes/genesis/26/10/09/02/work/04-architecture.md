@@ -49,7 +49,8 @@ Replay in order, keeping a *window* (opened at the start and at each `continue`)
 | round | `Actor:` missing, ≠ grant Reviewer, or = grant Worker | `seat` | the report is not the Reviewer's |
 | round | the other result already recorded for this identity in the window | `contradiction` | the Reviewer's record disagrees with itself |
 | round | `findings` and findings rounds in window = `Rounds` | `ceiling` | the granted budget is spent without agreement |
-| subject | identity = the previous subject's | `unrevised` | review asked again with nothing changed |
+| subject | identity = the previous subject's, and some finding of the latest round is neither challenged nor deferred | `unrevised` | review asked again with nothing changed |
+| round | the Reviewer reports findings on the unchanged identity the Worker re-asked after challenging or deferring every finding | `disputed` | the Worker's position is not accepted: a human decides scope |
 | subject | identity seen earlier in the window, not the previous one | `oscillation` | an earlier state came back |
 | round | `converged`, none of the above | — | **REPORTED**; **AGREED** only with the host's records (§4a) |
 | (host records supplied) | grant, a direction or a counted report is not shown at the host as made by the Owner / the granted Reviewer, of that commit, implying that result | `provenance` | the host does not bear out what the record says |
@@ -66,7 +67,7 @@ Why these and not a count: each is a *defect in the evidence* (a gap, a forged s
 
 AGREED is a derived state, not an artifact, and not an approval. It says: *the host's records show that the Reviewer the Owner named reported `converged` on exactly these bytes, under a grant and directions the Owner authored, and the Worker has not changed them since.* Without the host's records the state is REPORTED, which the Worker treats the same way (stop revising) and nobody treats as agreement. It does not establish the Intent: that remains the Owner's (`kaal-intent` step 5), and an agreed draft is the thing the Owner is then asked to establish.
 
-The Worker's concurrence is its having put the subject forward and not left it contested; a Worker that disagrees with a finding can only repeat the subject, which is `unrevised`, which is HOW. The Worker does not escalate and does not conclude; it does what `state` says. (Q6 asks whether disagreement should be its own record.)
+The Worker's concurrence is its having put the subject forward and not left it contested; a Worker that disagrees with a finding does not settle it: it answers it (challenge or defer, §6a), and the Reviewer or the human decides. Repeating the subject with no answer is `unrevised`, which is HOW; repeating it after every finding was challenged or deferred is a request to reconsider, and a Reviewer who holds the finding sends it to HOW(`disputed`). The Worker does not escalate and does not conclude; it does what `state` says.
 
 ## 4. The host edge, and what is only reported
 
@@ -158,5 +159,5 @@ The table in §2 and the record are subject-agnostic. A second pair (say Require
 3. **Name.** *Recommend `kaal-process-agree` / Node `Agreement`.* Alternative `kaal-process-loop`. "Describe Intent" is the first use, not the name.
 4. **Where does a loop live?** *Recommend nowhere in particular:* location-free, beside the draft Intent. Not inside a Change's `work/` (it would be sealed with the Work), and not in `.kaal`. 08/03's rule: the engine's location must not decide the Work's.
 5. **Does AGREED close anything?** *Recommend no.* It tells the Worker to stop revising and the Owner what is ready to establish.
-6. **Should Worker disagreement be its own record?** *Recommend not in 0.0.1;* repeating the subject already escalates, and the Worker's reasons go to the PR as ordinary comments.
+6. **Should Worker disagreement be its own record?** *Revised by the Owner's review of 2026-10-09:* yes, the smallest one: the `answer` event (§6a), because findings are not orders and none may be erased. Disagreement still never settles anything by itself.
 7. **The Reviewer for this Change.** The seat is Kai's to assign. I will not fill it and will not count `@codex review` runs on this PR as ROWING rounds; they are information (Worker-side probes) unless Kai assigns Codex under his grant.
