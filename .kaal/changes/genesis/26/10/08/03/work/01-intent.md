@@ -1,13 +1,15 @@
-Intent — Persistent, Client-Related KAAL Collection
+Intent — Separate KAAL Engine from Repository Work
 
-Evolve "kaal-collecting" so collected evidence remains persistent and consistently attributable to its originating KAAL client across collection events.
+Establish a clear boundary between the installed KAAL engine and the repository whose Work it governs.
 
-A client may be collected repeatedly, potentially through different adapters. KAAL must be able to relate those observations to the same client without confusing client identity, collection identity and carrier identity.
+".kaal/" holds the KAAL installation. The repository owns its Work and operational records.
 
-Preserve original carrier bytes, source paths, hashes and collection outcomes. Previous collections must remain intact and independently inspectable.
+Changes governed by KAAL concern the repository, not necessarily its KAAL installation. The same principle applies to Requests, Incidents and other repository-owned artifacts.
 
-Do not introduce a mandatory central client registry, assume visibility of all clients, or make client identity dependent on a particular transport or provider.
+Investigate moving KAAL's own Changes from ".kaal/changes/" to root-level "changes/", and establish a model that works consistently across Engineer, Embed and External KAAL.
 
-Investigate what the existing Collection capability already guarantees and establish only the smallest missing mechanism.
+Preserve existing identities, sealed history and lifecycle guarantees. Do not treat relocation as permission to rewrite admitted artifacts.
 
-Desired outcome: KAAL can reliably answer which client supplied which evidence, when it was observed, and whether the same carrier was encountered in multiple collections.
+Do not combine this with PR #70's Collection implementation. Identify the smallest safe transition and any dependencies before implementation.
+
+Desired outcome: KAAL governs repository Work without confusing that Work with its own installed engine.
