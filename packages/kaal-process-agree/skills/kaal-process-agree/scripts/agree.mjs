@@ -79,17 +79,19 @@ function listLog(loop) {
   const dir = join(loop, "log");
   const events = [];
   const problems = [];
-  if (!existsSync(dir)) return { events, problems }; // a loop with a grant and no log yet is an empty loop
-  if (!lstatSync(dir).isDirectory()) return { events, problems: [`${dir} is not a directory`] };
+  const found = []; // every file named like an event, in order, whatever the numbering: for listing findings when the log cannot be replayed
+  if (!existsSync(dir)) return { events, problems, found }; // a loop with a grant and no log yet is an empty loop
+  if (!lstatSync(dir).isDirectory()) return { events, problems: [`${dir} is not a directory`], found };
   const names = readdirSync(dir)
     .map((name) => ({ name, m: /^(\d{2,})-(subject|round|how|answer)\.md$/.exec(name) }))
     .sort((a, b) => (a.m && b.m ? Number(a.m[1]) - Number(b.m[1]) : a.name < b.name ? -1 : 1));
+  for (const { name, m } of names) if (m && lstatSync(join(dir, name)).isFile()) found.push({ n: m[1], kind: m[2], name, path: join(dir, name) });
   names.forEach(({ name, m }, i) => {
     if (!m || Number(m[1]) !== i + 1 || m[1] !== String(i + 1).padStart(2, "0")) return void problems.push(`${name} is not the next event: the log is 01-…, 02-… without a gap and with nothing else`);
     if (!lstatSync(join(dir, name)).isFile()) return void problems.push(`${name} is not a file`);
     events.push({ n: m[1], kind: m[2], name, path: join(dir, name) });
   });
-  return { events, problems };
+  return { events, problems, found };
 }
 
 /** A direction: the human's record answering a reason. */
@@ -121,6 +123,34 @@ export function parseAnswer(content) {
   return { round, sha, finding: Number(finding), disposition, ground, carrier: cpath === undefined ? undefined : { path: cpath, sha: csha } };
 }
 
+/** The findings and what became of them, read from the files as they are, when the record cannot be replayed (a human stop, a damaged record). Nothing here is validated and none of it is authority; it exists so that no finding is omitted because a stop was handled first. */
+function salvage(loop, found, review) {
+  const ledger = [];
+  let previous; // bytes of the subject before the one being read
+  let open; // the latest findings round, until a changed subject follows it
+  for (const e of found) {
+    try {
+      if (e.kind === "subject") {
+        const sha = sha256(readFileSync(e.path));
+        if (open && previous !== undefined && sha !== previous && !open.revisedBy) open.revisedBy = e.name;
+        previous = sha;
+      } else if (e.kind === "round") {
+        const round = review.parse(text(e.path));
+        if (round?.outcome === "findings") {
+          const f = findingItems(round.findings);
+          open = { name: e.name, path: e.path, items: f.n, answers: new Map() };
+          ledger.push(open);
+        }
+      } else if (e.kind === "answer") {
+        const a = parseAnswer(text(e.path));
+        const r = a && ledger.find((x) => x.name === a.round);
+        if (r && a.finding <= r.items && !r.answers.has(a.finding)) r.answers.set(a.finding, { ...a, by: e.name });
+      }
+    } catch { /* a file that cannot be read is simply not listed */ }
+  }
+  return ledger;
+}
+
 // ---------- state, derived ----------
 
 /** Replay the record. Returns the state and every fact the brief shows. */
@@ -128,7 +158,7 @@ export async function derive(loop, host) {
   const review = await sibling("kaal-review", "review.mjs");
   const g = readGrant(loop);
   const out = { state: undefined, reason: undefined, detail: undefined, events: [], ignored: [], subject: undefined, used: 0, rounds: g.rounds, grant: g };
-  const { events, problems } = listLog(loop);
+  const { events, problems, found } = listLog(loop);
   out.events = events;
   const fire = (reason, detail) => ((out.state = "HOW"), (out.reason = reason), (out.detail = detail));
   // These two cannot be answered by a direction: the record must first be a record
@@ -141,6 +171,8 @@ export async function derive(loop, host) {
   if (sd && sd.direction === "stop" && STOP_REASONS.includes(sd.reason)) {
     out.events.push({ n: "--", kind: "how", name: "stop.md", direction: "stop", answers: sd.reason });
     out.preflight = true;
+    out.ledger = salvage(loop, found, review);
+    out.salvaged = true;
     if (host && !authoredBy(host, "stop.md", readFileSync(stopPath))) {
       out.provenance = "contradicted or not shown by the host's records";
       return fire("provenance", `stop.md is not shown to be authored by the Owner '${host.owner}'`), out;
@@ -149,8 +181,8 @@ export async function derive(loop, host) {
     out.state = "STOPPED";
     return out;
   }
-  if (!g.ok) return fire("grant", g.why), (out.preflight = true), out;
-  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), out;
+  if (!g.ok) return fire("grant", g.why), (out.preflight = true), (out.ledger = salvage(loop, found, review)), (out.salvaged = true), out;
+  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), (out.ledger = salvage(loop, found, review)), (out.salvaged = true), out;
   const subject = await sibling(SUBJECTS[g.subject].sibling, SUBJECTS[g.subject].script);
 
   let latest; // { name, identity } of the latest applied subject
@@ -306,6 +338,7 @@ function provenance(g, loop, counted, hows, host) {
 /** What became of each finding of each round: always listed, however the loop ends. */
 export function findingLines(d, loop) {
   const lines = [];
+  if (d.salvaged && (d.ledger ?? []).length) lines.push("findings, read from the files as they are (the record could not be replayed, so none of this is validated and none is authority):");
   for (const r of d.ledger ?? []) {
     for (let i = 1; i <= r.items; i++) {
       const a = r.answers.get(i);
@@ -442,7 +475,9 @@ export async function answer(loop, a) {
   if (disposition === "defer") {
     const file = a["--carrier"] ?? refuse("--carrier is the file that carries the deferred finding forward as candidate Work (for example a request or incident made with kaal-request or kaal-incident, where those apply)");
     if (!existsSync(file) || !lstatSync(file).isFile()) refuse(`--carrier ${file} is not a file`);
-    carrier = `Carrier: ${relative(resolve(loop), resolve(file))} ${sha256(readFileSync(file))}\n`;
+    const shown = relative(resolve(loop), resolve(file));
+    if (/\s/.test(shown)) refuse(`--carrier ${file} is recorded as ${JSON.stringify(shown)} relative to the loop, and a recorded path is one token with no whitespace: put the carrier (or the loop) at a path without spaces; nothing was written`);
+    carrier = `Carrier: ${shown} ${sha256(readFileSync(file))}\n`;
   } else if (a["--carrier"] !== undefined) refuse("--carrier belongs to --disposition defer only");
   const words = clean(a["--words"] ?? "");
   if (words === "") refuse("--words is the Worker's reason in its own words and cannot be empty");

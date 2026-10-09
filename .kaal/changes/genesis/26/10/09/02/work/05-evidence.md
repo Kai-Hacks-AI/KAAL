@@ -106,3 +106,10 @@ The finding text itself is still in `02-round.md`; the carrier is a request in t
 - A ground is checked for being a quotation, not for supporting the disposition (the demo's ground is a boundary sentence, not proof that billing is out of scope); that is for the Reviewer and, in a dispute, the Owner.
 - Whether a carrier is the right mechanism is not judged; only that the file exists, and its bytes at that time.
 - Codex has not been run on a dispute here; the Reviewer in these scenarios is scripted.
+
+## 9. Reviewer round 04 (`review/04.md`, two findings), resolved
+
+1. **A durable stop hid the ledger.** The stop path, and the missing-grant and damaged-log paths, returned before the findings were collected. They now list every finding, answer and carrier read from the files as they are, headed "read from the files as they are (… none of this is validated and none is authority)", so a stop or damage changes what is trusted, never what is shown. Test: a valid log with a deferred finding, HOW(provenance) from the host, answered by a human stop; the STOPPED brief (reported), the verified brief with the stop shown as the Owner's, and the verified brief where it is not, all list `#1 accepted by revision` and `#2 deferred … carrier`. A log with the first subject removed (preflight HOW) lists the deferral before and after the human stop.
+2. **A carrier path with whitespace trapped the loop.** `answer` refuses, before writing, a carrier whose path relative to the loop contains whitespace, with the constraint in the message. Test: a carrier named `candidate work.md` in `candidate work/` is refused, the log is byte-identical, the state is still REVISE; a path without whitespace is accepted and appears in the brief.
+
+59 acceptance tests pass.

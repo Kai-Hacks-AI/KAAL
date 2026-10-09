@@ -744,3 +744,58 @@ test("verified: a transcription that drops one of the host's findings is not sho
   const unsaid = verifiedState(root, (r) => r.map((x) => { if (x.kind !== "review") return x; const { findings, ...rest } = x; return rest; }));
   assert.match(unsaid.out.join("\n"), /does not say how many findings/);
 });
+
+// ---------- found by the fourth independent review ----------
+
+test("a human stop, or a damaged record, does not hide the findings: they are listed from the files as they are, in reported and verified state", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings", { findings: TWO });
+  assert.equal(answer(root, 2, "defer", "because it matters", carrier(root)).code, 0);
+  submit(root, intentText("a, revised"));
+  report(root, "converged");
+  // HOW(provenance) from the host, answered by a human stop (reported and verified briefs)
+  const wrong = (r: Rec[]) => r.map((x) => (x.kind === "comment" ? { ...x, login: WORKER } : x));
+  assert.equal(verifiedState(root, wrong).code, 3);
+  assert.equal(run(root, ["direct", "loop", "--host", "host.json", "--owner", OWNER, "--reason", "provenance", "--direction", "stop", "--words", "Kai: no."]).code, 0);
+  const lines = /finding 02-round\.md #2 of 2: deferred as candidate Work, carried in \S*carrier\.md [0-9a-f]{8} \(03-answer\.md/;
+  const reported = state(root);
+  assert.equal(reported.out[0], "STOPPED");
+  assert.match(reported.out.join("\n"), /findings, read from the files as they are/);
+  assert.match(reported.out.join("\n"), lines);
+  assert.match(reported.out.join("\n"), /finding 02-round\.md #1 of 2: accepted by revision \(04-subject\.md\)/);
+  for (const mutate of [undefined, (r: Rec[]) => r.filter((x) => x.path !== "stop.md")]) {
+    const v = verifiedState(root, mutate);
+    assert.match(v.out.join("\n"), lines, mutate ? "stop not shown as the Owner's: still listed" : "verified stop: still listed");
+  }
+  // damaged record: the findings still appear, marked as unvalidated, and the stop stays terminal
+  const damaged = begin(t);
+  submit(damaged, intentText("a"));
+  report(damaged, "findings", { findings: TWO });
+  answer(damaged, 2, "defer", "because it matters", carrier(damaged));
+  rmSync(join(damaged, "loop/log/01-subject.md"));
+  const d1 = state(damaged);
+  assert.equal(d1.code, 3);
+  assert.match(d1.out.join("\n"), /finding 02-round\.md #2 of 2: deferred as candidate Work/, "preflight HOW keeps the ledger");
+  run(damaged, ["direct", "loop", "--reason", "evidence", "--direction", "stop", "--words", "Kai: end it."]);
+  assert.match(state(damaged).out.join("\n"), /finding 02-round\.md #2 of 2: deferred as candidate Work/);
+});
+
+test("a carrier whose recorded path has whitespace is refused before anything is written, and a path without it round-trips", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings", { findings: TWO });
+  mkdirSync(join(root, "candidate work"), { recursive: true });
+  writeFileSync(join(root, "candidate work/candidate work.md"), "# Request\n\nx\n");
+  const before = read(join(root, "loop"));
+  const refused = answer(root, 2, "defer", "because it matters", ["--carrier", join(root, "candidate work/candidate work.md")]);
+  assert.equal(refused.code, 1);
+  assert.match(refused.err, /no whitespace/);
+  assert.deepEqual(read(join(root, "loop")), before, "nothing was appended");
+  assert.equal(head(root), "REVISE", "the loop is not trapped");
+  mkdirSync(join(root, "candidate-work"), { recursive: true });
+  writeFileSync(join(root, "candidate-work/c.md"), "# Request\n\ny\n");
+  assert.equal(answer(root, 2, "defer", "because it matters", ["--carrier", join(root, "candidate-work/c.md")]).code, 0);
+  assert.equal(head(root), "REVISE");
+  assert.match(state(root).out.join("\n"), /carried in \.\.\/candidate-work\/c\.md/);
+});
