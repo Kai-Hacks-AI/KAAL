@@ -46,6 +46,8 @@ in such a way that the delivery directory is evidence of where a capability was 
 
 - Find out first whether the existing Node model already holds enough authority. Add a field or a concept only if it does not, and then only the smallest.
 - Do not derive a machine identity from presentation text. A human-readable name is not slugged, trimmed or normalised into a delivery name.
+- Take Core's existing typed discovery as the authority for what an instance holds; a tool that composes an instance asks Core, then maps identities to deliverable bytes.
+- Keep capability identity, package identity and Agent Skill naming distinct.
 - Prefer one existing authority over several validation grammars.
 - Do not weaken Node identity or sealing. Instance configuration stays mutable and unsealed. Core gains no capability-specific knowledge.
 - Keep the design small.

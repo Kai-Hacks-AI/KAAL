@@ -29,7 +29,7 @@ What the design must satisfy. Each requirement is stated so an outer test can be
 
 **R5. Retrofit.** A sealed Node never changes. Any approach must say how the three capabilities that already exist (Changing KAAL, Engineering Skill, Sealing) acquire whatever authority is required, without a byte of their sealed Nodes changing, or say that they cannot and what follows from that.
 
-**R6. Mechanical expected location.** Where sealed authority supplies the capability portion, the expected delivery name is the instance prefix followed by that portion, by concatenation and nothing more. The checker's verdict is a function of the sealed authority, the instance configuration and the files, with no judgement.
+**R6. Placement is checkable without deriving it.** The checker's verdict is a function of the admitted graph, the instance configuration and the files, with no judgement. Where no sealed authority supplies a capability portion, the design says so and does not invent one; if it did, the expected name would be the prefix followed by that portion by concatenation and nothing more.
 
 **R7. Prefix stays instance-owned.** Changing `capability-prefix` changes verdicts only. It touches no Node, ID or seal. The configuration stays plain, unsealed and human-editable.
 
@@ -41,13 +41,15 @@ What the design must satisfy. Each requirement is stated so an outer test can be
 
 **R11. The Agent Skill is named by its standard.** The Agent Skills standard requires a skill's `name` to equal its directory name. The design states how the delivery name of the Agent Skill relates to the delivery name of the KAAL contribution, and what an instance prefix change means for it, without KAAL defining a competing format.
 
-**R12. No Core growth beyond need.** Core gains no knowledge of any particular capability. Any generally useful definition it needs is stated once, generally.
+**R12. Typed discovery is the one source of what is held.** What an instance holds is answered by Core's typed discovery, by Node, and a future tool maps those identities to deliverable bytes through its source, proved by hashing. No delivery name, package name or directory is consulted to learn it.
 
-**R13. No Git, GitHub or host concepts** in any artifact of this Change.
+**R13. No Core growth beyond need.** Core gains no knowledge of any particular capability. Any generally useful definition it needs is stated once, generally.
+
+**R14. No Git, GitHub or host concepts** in any artifact of this Change.
 
 ## Acceptance sketch (outer, before implementation)
 
-- A delivery directory renamed, with nothing else touched, leaves every Node ID and seal unchanged and changes only the checker's verdict.
-- Two directories holding the same capability are reported; a directory holding no capability is reported; neither depends on the directory's name.
-- Where sealed authority exists, a directory named other than prefix plus that authority is reported with both the expected and the actual name; with the authority absent the checker says so and does not guess.
-- No test depends on any name being derived from a Node's human-readable name.
+- A delivery directory renamed, with nothing else touched, leaves every Node ID and seal and the set of held Skills and Extensions unchanged, and changes only the checker's verdict.
+- Two directories holding the same Node are reported; a directory holding no typed Node is reported; neither depends on the directory's name.
+- A tool that is asked what is held, and what a source offers, never reads a package or directory name to decide either.
+- No test depends on any name being derived from a Node's human-readable name, and none requires a sealed delivery stem.
