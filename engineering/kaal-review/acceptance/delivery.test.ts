@@ -23,7 +23,7 @@ test("Core carries no Review: a capability joins without becoming Core", () => {
   assert.ok(!Object.keys(core()).some((p) => p.startsWith("skills/")));
 });
 
-test("registering through Core admits the Review Skill, typed by the sealed Skill Node, and nothing else changes", (t) => {
+test("registering through Core admits the Review Skill, typed by the sealed Skill Node, with the Definitions HOW and ARE it delivers", (t) => {
   const dir = deployKaal(t);
   const before = admit(read(dir));
   const skill = before.find((n) => n.name === "Skill")!;
@@ -31,16 +31,16 @@ test("registering through Core admits the Review Skill, typed by the sealed Skil
   const ids = registerSkill(dir, CAPABILITY, kaal);
   const after = admit(read(dir));
   assert.deepEqual(ids, [sha256(kaal[nodeFile])], "the Skill's identity is the SHA-256 of the shipped bytes");
-  assert.equal(after.length, before.length + 1);
+  assert.equal(after.length, before.length + 3);
   assert.deepEqual(after.filter((n) => n.type?.name === "Skill" && n.type.id === skill.id).map((n) => n.name), ["Review"], "found by its type alone");
   assert.equal(readFileSync(join(dir, "skills", CAPABILITY, nodeFile), "utf8"), kaal[nodeFile], "bytes kept exactly");
-  assert.deepEqual(readdirSync(join(dir, "seals")).filter((id) => !sealsBefore.includes(id)), ids, "exactly one seal is added");
+  assert.deepEqual(readdirSync(join(dir, "seals")).filter((id) => !sealsBefore.includes(id)).sort(), ["ARE.md", "HOW.md", nodeFile].map((f) => sha256(kaal[f])).sort(), "exactly one seal is added per Node");
 });
 
-test("the capability is one Skill Node, sealed by its own bytes, and it is the Node sealed in birth", () => {
-  assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")), [nodeFile]);
-  assert.equal(kaal[`seals/${sha256(kaal[nodeFile])}`], "");
-  assert.equal(Object.keys(kaal).length, 2);
+test("the capability is one Skill Node, sealed by its own bytes, and it is the Node sealed in birth; its Definitions come after it", () => {
+  assert.deepEqual(Object.keys(kaal).filter((p) => !p.startsWith("seals/")), ["ARE.md", "HOW.md", nodeFile]);
+  for (const f of Object.keys(kaal).filter((p) => !p.startsWith("seals/"))) assert.equal(kaal[`seals/${sha256(kaal[f])}`], "");
+  assert.equal(Object.keys(kaal).length, 6);
   assert.equal(sha256(kaal[nodeFile]), "7c3d4d8e6f56f9d3a6bf6e49d1ed912ec1808ac44e61541196160ddf9ab46d5f");
 });
 

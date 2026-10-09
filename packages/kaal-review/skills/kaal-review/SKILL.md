@@ -1,13 +1,13 @@
 ---
 name: kaal-review
-description: Write a round of review in its canonical form (the result reviewed and its exact identity, findings or converged, the Reviewer's statement of authority and independence, the findings), check that a file is one, and tell whether the rounds in a directory have converged on a given identity. Use when a result must be reviewed or you are to review one, for any result from any viewpoint or capability of KAAL.
+description: Write a round of review in its canonical form (the result reviewed and its exact identity, findings or converged, the Reviewer's statement of authority and independence, the findings), check that a file is one, and tell whether the rounds in a directory have converged on a given identity. Use when a result must be reviewed or you are to review one, for any result from any viewpoint or capability of KAAL, and when asked for a HOW review (a human takes part in it) or an ARE review (an agent independently reviews another's result).
 license: MIT
 compatibility: Needs Node.js 20 or later. It needs no other package.
 ---
 
 # Review
 
-Use this to report a review of a result, to check that a file is a round, or to ask whether review has converged. What this capability means to KAAL is stated by the Nodes `Skill` and `Review` in the installed KAAL: read them there, by following references from Core. This file only tells you how to do the work.
+Use this to report a review of a result, to check that a file is a round, or to ask whether review has converged. What this capability means to KAAL is stated by the Nodes `Skill` and `Review` in the installed KAAL (and, for a HOW or ARE review, `HOW` and `ARE`): read them there, by following references from Core. This file only tells you how to do the work.
 
 ## What belongs to whom
 
@@ -21,7 +21,19 @@ Review owns the form of a round and the judgement that review has converged on a
 4. **Write the round.** `node scripts/review.mjs write <destination> --of <Name> --identity <id> --outcome findings --reviewer <text> --findings <text>`, or `--outcome converged` with no `--findings`. `<Name>` is one capitalised word for what was reviewed (for example `Work`). A text given as `@path` is read from that file, which is the easy way to give several paragraphs. It prints the destination.
 5. **Check, or ask about convergence.** `node scripts/review.mjs check <file>` exits 0 only if the file is a round. `node scripts/review.mjs converged <directory> <identity>` exits 0 only if the rounds in the directory (`01.md`, `02.md`, … with no gap) are all rounds and the latest says converged and names that identity.
 
+## When asked for HOW or ARE
+
+A request may be as short as `HOW Review of PR75 please`. HOW and ARE are Nodes of the installed KAAL that refer to `Review`: read the one you were asked for before you begin. They say what the review is; the steps above say how to write it. Then:
+
+1. **Identify the result and its exact identity** from the asker or the host (for a pull request, the commit its head is at now; if it moves, say which one you examined). Do not review a different result.
+2. **Check your seat.** You did not make the result and were not started by whoever did. If you are not independent of its maker, stop and say so; do not review it and do not report convergence.
+3. **HOW.** A human is taking part, so keep them in the review as it happens: say what you examine, show each finding as you found it, say plainly what you could not examine, and ask them when their observation matters. Their words are theirs: never write an observation, direction or approval as the human's. Report convergence only on the result as it now stands and as they observed it. In the round's Reviewer statement say under whose authority you hold the seat and that a human took part and what they observed of this identity. Where no human observed it, it is not HOW.
+4. **ARE.** No human is needed in a round. Examine, write the round with the statement of authority and independence of the maker, and leave the record where the asker can read it. If you cannot make that statement truthfully, say what is missing and stop; do not make it true by asking a human to stand in, and do not call it HOW without one.
+5. **What follows is not yours.** Convergence is not approval, and a human's participation does not make it one. What is done with findings, where the round goes and what happens next are the asker's to decide.
+
 ## Rules
+
+- A round is transient evidence of one review, not knowledge. What a review shows that matters beyond the result belongs to the capability that owns durable knowledge; Review keeps no store of observations.
 
 - Never write the structure by hand: the form is Review's.
 - A round has exactly one line starting `Result:` and one starting `<Name>:`, so no text of yours may begin a line that way; indent a quotation of such a line. `write` refuses it and `check` rejects a file with a second.
