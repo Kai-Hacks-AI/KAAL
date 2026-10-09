@@ -11,11 +11,11 @@ What was read and run in this Change. Nothing was sealed, no Node was touched, a
 
 ## The reference diagram
 
-The supplied reference diagram was not delivered to the Worker: the root message of the thread carried no image the Worker could open. `overview.svg` is therefore built from the briefing's own words (three columns, Agent / KAAL / Six Ds, the contents and framing it names) and a restrained neutral palette with one slate accent. Layout, grouping order, arrows, wording of the small captions and colours are the Worker's reading and may differ from the reference. The assignment of Destination, Discovery and Defence to individual Ds is not stated in the briefing and is not drawn.
+The Owner's reference diagram first did not reach the Worker, and the first `overview.svg` was built from the briefing's words alone. It then arrived as a screenshot and the SVG was redrawn from it: three columns (Agent, KAAL, 6 Ds), the same text, hierarchy and pastel palette (Agent blue, BRAIN lavender, Core grey, Skills and Extensions mint, Processes peach, Ds pale blue). The SVG adds only the small status footnote beneath the frame. The reference shows no Records element, so none is drawn; the amendment's colour for Records has no source yet.
 
 ## Run
 
-`overview.svg` is well-formed XML (`xmllint --noout`) and was rendered headless in Chromium at 1220 x 840 to check that no text overflows its box.
+`overview.svg` is well-formed XML (`xmllint --noout`) and was rendered headless in Chromium at 952 x 640 to check that no text overflows its box.
 
 ## Owner's follow-on note
 
