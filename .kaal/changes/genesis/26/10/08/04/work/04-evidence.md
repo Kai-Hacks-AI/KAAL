@@ -355,7 +355,7 @@ So from a Skill an Agent reaches the Learnings that qualify it, from a Learning 
 
 ## 7. Prototype source
 
-Each script is published once, exactly as run for sections 11 and 12 (revised after rounds 01, 02 and 03 and the Owner's Fork 4 decision; sections 5, 6 and 10 were run with the earlier forms, which are not kept); the earlier forms are superseded and not kept. Both are checked from this file by extracting the fenced blocks verbatim (see section 11).
+Each script is published once, exactly as run for sections 11 to 13 (revised after rounds 01, 02 and 03 and the Owner's Fork 4 and Fork 8 decisions; sections 5, 6 and 10 were run with the earlier forms, which are not kept); the earlier forms are superseded and not kept. Both are checked from this file by extracting the fenced blocks verbatim (see section 11).
 
 `learning.mjs`. Run in the host described in section 5 as `node learning.mjs check|establish --engine .kaal --brain <dir> [--record <dir>]… [<draft>]`.
 
@@ -365,7 +365,7 @@ Each script is published once, exactly as run for sections 11 and 12 (revised af
 // node builtins, the kaal-sealing scripts beside it, and kaal-core's PUBLIC API
 // (registerSkill) resolved as a package. It does not import Core's source.
 //   learning.mjs check     --engine <kaal-dir> --brain <dir>... [--record <kaal-dir>...]
-//   learning.mjs establish --engine <kaal-dir> --brain <dir> --record <kaal-dir>... --path <relative .md path in the BRAIN> <draft>
+//   learning.mjs establish --engine <kaal-dir> --brain <dir> [--record <kaal-dir>...] --path <relative .md path in the BRAIN> <draft>
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, lstatSync, realpathSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
@@ -444,16 +444,28 @@ function citations(text, graph, self) {
   return problems;
 }
 
-function closedChanges(record) {
-  const out = new Map();
-  const root = join(record, "changes");
+/**
+ * The kinds of sealed KAAL artifact this implementation can verify, each as its own domain defines it (the seals location, the identity
+ * form and domain, where such artifacts are found). Sealing computes the identity and checks the seal; nothing here decides either.
+ * A sealed artifact of another kind is not refused by the architecture, only by this table: add its row.
+ */
+const KINDS = [
+  { kind: "Node", seals: "seals", file: true, find: (h) => {
+    const out = new Map(), kaal = existsSync(join(h, "seals/changes")) || existsSync(join(h, "changes"));
+    for (const [p, b] of Object.entries(walk(h))) if (p.endsWith(".md") && !p.startsWith("seals/") && !(kaal && p.startsWith("changes/")) && FORM.test(b.toString("utf8"))) out.set(sha(b), join(h, p));
+    return out; } },
+  { kind: "Change", seals: "seals/changes", find: (h) => changeDirs(h).reduce((m, d) => (tryId(["--domain", "KAAL Change v1"], d, m), m), new Map()) },
+  { kind: "Work tree", seals: "seals/trees", find: (h) => changeDirs(h).map((d) => join(d, "work")).filter((d) => existsSync(d)).reduce((m, d) => (tryId(["--named", "--domain", "KAAL Tree v1"], d, m), m), new Map()) },
+];
+function changeDirs(h) {
+  const out = [], root = join(h, "changes");
   if (!existsSync(root)) return out;
-  for (const name of readdirSync(root)) for (const y of readdirSync(join(root, name))) for (const mo of readdirSync(join(root, name, y))) for (const d of readdirSync(join(root, name, y, mo))) for (const c of readdirSync(join(root, name, y, mo, d))) {
-    const dir = join(root, name, y, mo, d, c);
-    try { const id = sealing("artifact-id.mjs", "--domain", "KAAL Change v1", dir); out.set(id, { dir, closed: isSealed(join(record, "seals/changes"), id) }); } catch { /* not a Change */ }
-  }
+  for (const n of readdirSync(root)) for (const y of readdirSync(join(root, n))) for (const mo of readdirSync(join(root, n, y))) for (const d of readdirSync(join(root, n, y, mo))) for (const c of readdirSync(join(root, n, y, mo, d))) out.push(join(root, n, y, mo, d, c));
   return out;
 }
+function tryId(flags, dir, into) { try { into.set(sealing("artifact-id.mjs", ...flags, dir), dir); } catch { /* has no identity in this form */ } }
+const found = new Map();
+const held = (h, K) => { const k = `${h}\0${K.kind}`; if (!found.has(k)) found.set(k, K.find(h)); return found.get(k); };
 
 /** A path names a regular file inside the Change's own tree: relative, no "..", no link out of the tree. */
 function within(root, rel) {
@@ -462,19 +474,30 @@ function within(root, rel) {
   try { return lstatSync(full).isFile() && realpathSync(full).startsWith(realpathSync(root) + sep); } catch { return false; }
 }
 
-function evidence(text, changes) {
+/** One evidence line against the places given: sealed (by Sealing's check) in a known kind's seals location, held there now, and the path (if any) inside it. */
+function resolveEvidence(id, path, holders) {
+  let why = "is not sealed in any place given, in any kind this implementation can verify (an unsealed observation, Incident, Request, test output or file does not qualify by having bytes or a hash)";
+  for (const h of holders) for (const K of KINDS) {
+    if (!isSealed(join(h, K.seals), id)) continue;
+    const at = held(h, K).get(id);
+    if (!at) { why = `is sealed in ${K.seals} of a place given but no such ${K.kind} is held there now (deleted or altered)`; continue; }
+    if (K.file) return path === undefined ? { kind: K.kind } : { why: `is a ${K.kind}, one file, so a path (${path}) is refused` };
+    return path !== undefined && within(at, path) ? { kind: K.kind } : { why: `is a sealed ${K.kind} but ${path === undefined ? "a path inside it is required" : `holds no regular file ${path} inside it`}` };
+  }
+  return { why };
+}
+
+function evidence(text, holders) {
   const section = text.split("\n## Evidence")[1];
   const lines = (section ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
   const problems = [], ok = [];
   if (!lines.length) problems.push("no evidence line");
   for (const l of lines) {
-    const m = /^([0-9a-f]{64})  (\S+)$/.exec(l);
-    if (!m) { problems.push(`evidence line is not "<ID>  <path>": ${l.slice(0, 40)}`); continue; }
-    const c = changes?.get(m[1]);
-    if (!changes) ok.push(`unverified ${m[1].slice(0, 8)}`);
-    else if (!c) problems.push(`evidence ${m[1].slice(0, 8)} is not a Change in the given Records (only closed Changes are supported evidence)`);
-    else if (!c.closed) problems.push(`evidence ${m[1].slice(0, 8)} is a Change that is not closed`);
-    else if (!within(c.dir, m[2])) problems.push(`evidence ${m[1].slice(0, 8)} holds no regular file ${m[2]} inside that Change`);
+    const m = /^([0-9a-f]{64})(?:  (\S+))?$/.exec(l);
+    if (!m) { problems.push(`evidence line is not "<ID>" or "<ID>  <path>": ${l.slice(0, 40)}`); continue; }
+    if (!holders) { ok.push(`unverified ${m[1].slice(0, 8)}`); continue; }
+    const r = resolveEvidence(m[1], m[2], holders);
+    if (r.why) problems.push(`evidence ${m[1].slice(0, 8)} ${r.why}`);
   }
   return { problems, ok };
 }
@@ -499,7 +522,7 @@ const learningType = [...eidx.entries()].find(([, n]) => n.name === "Learning" &
 const brains = args.brain.map((b) => resolve(b));
 const graph = new Map(eidx);
 for (const b of brains) if (existsSync(b)) for (const [k, v] of index(b)) graph.set(k, v);
-const changes = args.record.length ? new Map(args.record.flatMap((r) => [...closedChanges(resolve(r))])) : undefined;
+const holders = args.record.length || cmd === "establish" ? [engine, ...args.record.map((r) => resolve(r)), ...brains] : undefined; // the places evidence is looked for: Engine, Records, BRAINs
 
 async function problemsOf(bytes, id, sealedInBrain) {
   const text = bytes.toString("utf8"), p = [];
@@ -510,7 +533,7 @@ async function problemsOf(bytes, id, sealedInBrain) {
   if (!sealedInBrain) p.push("not sealed");
   const core = await coreAdmits(engine, eidx, bytes, id);
   if (core) p.push(core);
-  p.push(...structure(text), ...citations(text, graph, id), ...evidence(text, changes).problems);
+  p.push(...structure(text), ...citations(text, graph, id), ...evidence(text, holders).problems);
   return p;
 }
 
@@ -536,13 +559,13 @@ if (cmd === "check") {
       else if (!held.has(n)) { console.log(`seal ${n.slice(0, 12)} has no Learning`); bad++; }
     }
   }
-  if (!changes) console.log("evidence unverified: no --record given");
+  if (!holders) console.log("evidence unverified: no --record given");
   process.exit(bad ? 1 : 0);
 }
 
 // establish: the establisher chooses the name and the place (--path, relative to the BRAIN); identity never depends on it.
 const [draft, ...extra] = args.rest;
-if (!draft || extra.length || brains.length !== 1 || !args.record.length || !args.path) { console.error("establish needs exactly one --brain, at least one --record, --path <relative .md path> and one draft"); process.exit(2); }
+if (!draft || extra.length || brains.length !== 1 || !args.path) { console.error("establish needs exactly one --brain, --path <relative .md path> and one draft"); process.exit(2); }
 const bytes = readFileSync(draft), id = sealing("artifact-id.mjs", draft), brain = brains[0], sealsDir = join(brain, "seals");
 const rel = args.path;
 if (isAbsolute(rel) || rel.split(/[\\/]/).includes("..") || !rel.endsWith(".md") || rel.split(/[\\/]/)[0] === "seals") { console.error("refused, nothing written: --path must be a relative .md path inside the BRAIN, not under seals/ and without .."); process.exit(1); }
@@ -640,7 +663,7 @@ for (const b of o.brain) for (const [p, t] of Object.entries(files(b))) {
   const ap = (t.split("## Applies when")[1] ?? "").split("##")[0].trim();
   if (learnings.some((x) => x.id === id)) continue; // the same bytes at another path are the same Learning
   learnings.push({ kind: "Learning", id, at: `${b.split("/").pop()}/${p}`, name: m[1], card: ap, text: t, body: t.replace(FORM, "").split("\n## Evidence")[0],
-    evidence: [...(t.split("## Evidence")[1] ?? "").matchAll(/^([0-9a-f]{64})  (\S+)$/gm)].map((e) => e[1]) });
+    evidence: [...(t.split("## Evidence")[1] ?? "").matchAll(/^([0-9a-f]{64})(?:  (\S+))?$/gm)].map((e) => e[1]) });
 }
 const changes = [];
 for (const r of o.record) {
@@ -650,7 +673,7 @@ for (const r of o.record) {
     const title = (intent.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#") && l !== "Intent" && !/^Intent [—-]/.test(l)) ?? "").slice(0, 100);
     const text = ["work/01-intent.md", "retro-work.md", "retro-owner.md", "retro-review.md"].map((k) => f[k] ?? "").join("\n");
     const own = Object.entries(f).filter(([k]) => k.startsWith("work/") || k.startsWith("retro")).map(([, v]) => v).join("\n");
-    changes.push({ kind: "Change", id, name: `${n}/${y}/${mo}/${d}/${c}`, card: title, text, own, closed: isSealed(join(r, "seals/changes"), id), order: `${y}${mo}${d}${c}`, files: f });
+    changes.push({ kind: "Change", id, dir, name: `${n}/${y}/${mo}/${d}/${c}`, card: title, text, own, closed: isSealed(join(r, "seals/changes"), id), order: `${y}${mo}${d}${c}`, files: f });
   }
 }
 // References: "<name> <ID>" in a Learning's body, or in a Change's own Work and retros. Evidence lines are a distinct relation.
@@ -658,6 +681,15 @@ const known = new Map([...skills, ...learnings].map((x) => [x.id, x.name]));
 for (const x of learnings) x.cites = citing(x.body, known).filter((i) => i !== x.id);
 for (const x of changes) x.cites = citing(x.own, known);
 const byId = new Map([...skills, ...learnings, ...changes].map((x) => [x.id, x]));
+// Evidence may be any sealed artifact. A Change's Work tree is a sealed artifact of its own (KAAL Tree v1, named); its ID is found lazily, only when an evidence ID has no card.
+const treeIds = new Map();
+const treeOf = (c) => { if (!treeIds.has(c.id) && !existsSync(join(c.dir, "work"))) treeIds.set(c.id, undefined);
+  if (!treeIds.has(c.id)) { try { treeIds.set(c.id, execFileSync("node", [join(SEALING, "artifact-id.mjs"), "--named", "--domain", "KAAL Tree v1", join(c.dir, "work")], { encoding: "utf8" }).trim()); } catch { treeIds.set(c.id, undefined); } } return treeIds.get(c.id); };
+const evidenceCards = (l) => {
+  const out = [], loose = [];
+  for (const i of l.evidence) { const x = byId.get(i) ?? changes.find((c) => treeOf(c) === i); if (x) { if (!out.includes(x)) out.push(x); } else loose.push(i); }
+  return { out, loose };
+};
 
 // --- output under a byte budget: names are clipped, cards stop when the budget is spent, and the output says so ---
 const lines = []; let used = 0, dropped = 0;
@@ -707,12 +739,15 @@ if (cmd === "find") {
   if (full.kind === "Learning") {
     show(cited(full).filter((y) => y.kind === "Skill"), "Skills it cites");
     show(cited(full).filter((y) => y.kind === "Learning"), "earlier Learnings it cites");
-    show(changes.filter((c) => full.evidence.includes(c.id)), "evidence Changes (what it rests on)");
+    const { out, loose } = evidenceCards(full);
+    show(out, "evidence (what it rests on; a Work tree shows as its Change)");
+    if (loose.length) note(`    (${loose.length} sealed evidence artifact(s) with no card here: ${loose.map((i) => i.slice(0, 12)).join(", ")})`);
   }
+  const restsOn = (x) => learnings.filter((l) => l.evidence.includes(x.id) || (x.kind === "Change" && l.evidence.includes(treeOf(x))));
+  if (full.kind !== "Learning" || restsOn(full).length) show(restsOn(full), "Learnings resting on it as evidence");
   if (full.kind === "Change") {
     show(cited(full).filter((y) => y.kind === "Skill"), "Skills it cites");
     show(cited(full).filter((y) => y.kind === "Learning"), "Learnings it cites");
-    show(learnings.filter((l) => l.evidence.includes(full.id)), "Learnings resting on it as evidence");
   }
 } else if (cmd === "show") {
   const full = pick(o.rest[0]);
@@ -734,7 +769,7 @@ The first prototype (`proto.mjs`, which imported a source copy of `nodes.ts`) wa
 
 - That an agent, unprompted, finds and applies a Learning. That needs the Skill and use.
 - That four Learnings are the right four. They are the ones that meet the criteria on the retrospectives of two days' Changes by a small set of actors; a different reader may weigh them differently, and the Owner's retrospectives are the Owner's judgement, not mine.
-- That the Evidence form is enough for kinds of evidence other than a Change (a carrier, a collected Incident). Sealing defines a Change's identity; other kinds define their own, and `check --record` resolves only what it is given a way to.
+- That the Evidence form is enough for sealed artifacts of kinds other than Node, Change and Work tree (section 13). Each kind's domain defines its own identity and seals, and the verifier resolves only the kinds it has a row for.
 - That `find` by plain text finds what a synonym describes.
 - That a host with only Core's deployed artifacts, and no `kaal-core` package, can run the Core-admission step. The prototype says so and stops.
 
@@ -789,3 +824,15 @@ The Owner decided (PR comment, 2026-10-09) that `<ID>.md` file names are not req
 **What this does not show.** The identity-based baseline control itself (it follows the Record locator Change); that two different Learnings at one path in two BRAINs combine, which the Architecture states is a matter of filing; names with unusual characters or very long paths beyond the clipping in cards; a Windows file system. The Fork 3 names are still the working ones.
 
 **Regression and extraction.** Both scripts were extracted from this file's section 7 blocks verbatim, compared byte for byte with the files the cases ran from (identical) and checked with `node --check`; the steps above, and the F5 to F9 cases of sections 10 and 11 that touch the same code (non-empty marker, escaping evidence with `--path`, the 100,011-character name at `--limit 1`, `near --after`, the unsealed mismatch file), were rerun from the extracted copies with the same results (`find boundprobe --limit 1` now 385 bytes with the added `@ <path>` hint).
+
+## 13. Disposition of the Owner's decisions on Fork 8 (sealed artifacts as evidence) and Fork 6 (no migration)
+
+**Fork 6.** The Owner decided that nothing is migrated from `KAAL-genesis`. Section 1 stays as what it was, an examination of historical material to learn from, and nothing in the Architecture imports, preserves compatibility with or recreates its model. Its nodes carry no `type` and no seal, so they could not be evidence under Fork 8 either.
+
+**Fork 8.** The investigation of how a cited artifact can be verified with Sealing's own semantics is the Architecture section "Evidence: a sealed KAAL artifact". What Sealing offers is read from `skills/kaal-sealing/SKILL.md` (identity in a form and domain the artifact's domain names; seals in a directory the domain names; `artifact-id.mjs` and `seal.mjs check`) and from the three identities KAAL defines today: a Node (SHA-256 of bytes, `seals/<ID>`), a Change (`KAAL Change v1`, `seals/changes/<ID>`) and a Work tree (`KAAL Tree v1` named, `seals/trees/<ID>`, from `change-state.mjs`). The prototype of section 7 now verifies all three through Sealing's scripts, in a scratch host (`p4`) whose Record holds the 25 real Changes and a copy of the real `seals/trees/`, run from the extracted blocks. Ids: Sealing Node `e15f370c…`, Change `4e89104a…` (`07/09`), its Work tree `3f1cb6e8…`, the open `08/04` `34e5f02b…`.
+
+- **Established**, exit 0: a Node alone (`<ID>`); a Work tree with a path (`<ID>  01-intent.md`); a Change with a path; a Learning with three lines, one of each kind; a Learning resting on another Learning in the BRAIN (a Node); and a Node-evidence Learning with no `--record` at all (the Engine holds the Node).
+- **Refused, nothing written**, each naming the line: a Change cited with no `--record` (`not sealed in any place given, in any kind this implementation can verify`); a path on a Node (`is a Node, one file, so a path (x.md) is refused`); no path on a Change or on a Work tree (`is a sealed Change but a path inside it is required`); the SHA-256 of an unsealed file in a sealed Change (a carrier); the ID of a Form-valid Node that is not sealed (a draft); the open `08/04` Change; a hash of arbitrary bytes; a sealed Change whose directory is moved away, and the same Change with one appended line (`is sealed in seals/changes of a place given but no such Change is held there now (deleted or altered)`).
+- **Checking and navigating.** `check` over the established BRAIN with the Record: every line `ok`, exit 0; without `--record`: `evidence unverified: no --record given`. `near` of the three-kind Learning lists its evidence as the Change (its Work tree shows as its Change) and Sealing; `near` of the Sealing Node lists the Learnings resting on it as evidence, and `near` of the Change does the same (six).
+
+**Limits stated as implementation limits.** The table has three rows; a sealed artifact of any other kind is refused with a message that does not claim it is unsealed. Each row restates three facts its domain owns (the same kind of duplication as the copied Form). Whether Incident and Request carriers are sealed as Nodes was not examined, so none is claimed as a kind. The prototype looks for a sealed Node by hashing every Form file of each place given, which is slow for very large places; no timing was taken.
