@@ -351,14 +351,202 @@ So from a Skill an Agent reaches the Learnings that qualify it, from a Learning 
 
 **Bounded.** 115,375 bytes were scanned; the example above is `--limit 2`, and the three questions at the default of 3 printed 1,798 to 2,749 bytes and the three `near` calls 364 to 825 bytes. Nothing was stored. These numbers are for this corpus. The claim is the shape (a cap and a statement of what was left out), not a figure.
 
-**What it does not show.** That the `description` of the real Skill brings an Agent to `find` at the right moment; a corpus large enough to make the scan slow; that whole-word matching is enough for questions phrased with other words (it is not for synonyms; the Agent re-asks); the Changes-establish-Learnings link (here Changes are linked only through Evidence, since no Change has yet cited a Learning).
+**What it does not show.** That the `description` of the real Skill brings an Agent to `find` at the right moment; a corpus large enough to make the scan slow; that whole-word matching is enough for questions phrased with other words (it is not for synonyms; the Agent re-asks); the Changes-establish-Learnings link (shown in section 10 with a synthetic Change).
 
 ## 7. Prototype source
 
-The second prototype, `learning.mjs`. Run in the host described in section 5 as `node learning.mjs check|establish --engine .kaal --brain <dir> [--record <dir>]… [<draft>]`.
+The second prototype, `learning.mjs` (revised after round 02: seals judged by Sealing's check, evidence confined to the Change tree). Run in the host described in section 5 as `node learning.mjs check|establish --engine .kaal --brain <dir> [--record <dir>]… [<draft>]`.
 
 ````javascript
 #!/usr/bin/env node
+// Prototype of what an installed kaal-learning Skill script could be. It uses only
+// node builtins, the kaal-sealing scripts beside it, and kaal-core's PUBLIC API
+// (registerSkill) resolved as a package. It does not import Core's source.
+//   learning.mjs check     --engine <kaal-dir> --brain <dir>... [--record <kaal-dir>...]
+//   learning.mjs establish --engine <kaal-dir> --brain <dir> --record <kaal-dir>... <draft>
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { cpSync, existsSync, lstatSync, realpathSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, isAbsolute, join, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const SEALING = join(HERE, "skills/kaal-sealing/scripts");
+// The Form, as Core's nodes.ts states it (a copy: acceptance must compare it with Core on every real Node).
+const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+const HEX = /(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])/g;
+const sha = (b) => createHash("sha256").update(b).digest("hex");
+/** Whether `id` is sealed in `dir`, decided by Sealing's own check (an empty regular file), never by existence. */
+const isSealed = (dir, id) => { try { execFileSync("node", [join(SEALING, "seal.mjs"), "check", dir, id], { stdio: "ignore" }); return true; } catch { return false; } };
+const sealing = (script, ...a) => execFileSync("node", [join(SEALING, script), ...a], { encoding: "utf8" }).trim();
+
+function walk(dir) {
+  const out = {};
+  for (const p of readdirSync(dir, { recursive: true, encoding: "utf8" })) if (statSync(join(dir, p)).isFile()) out[p.split("\\").join("/")] = readFileSync(join(dir, p));
+  return out;
+}
+/** id -> { name, sealed, path } for every Node-form file in a directory whose seals are in <dir>/seals. */
+function index(dir, base = dir) {
+  const files = walk(dir), idx = new Map();
+  for (const [p, b] of Object.entries(files)) {
+    if (p.startsWith("seals/") || p.startsWith("changes/")) continue;
+    const m = FORM.exec(b.toString("utf8"));
+    if (m) idx.set(sha(b), { name: m[1], type: m[3], sealed: isSealed(join(base, "seals"), sha(b)), path: p });
+  }
+  return idx;
+}
+
+function parseArgs(argv) {
+  const o = { engine: undefined, brain: [], record: [], rest: [] };
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--engine") o.engine = argv[++i];
+    else if (argv[i] === "--brain") o.brain.push(argv[++i]);
+    else if (argv[i] === "--record") o.record.push(argv[++i]);
+    else o.rest.push(argv[i]);
+  }
+  return o;
+}
+
+/** Core's admission by its public API: register into a throwaway copy of the Engine, in memory, with the prospective seal. */
+async function coreAdmits(engine, eidx, bytes, id) {
+  let core;
+  try { core = await import("kaal-core"); } catch { return "kaal-core is not resolvable: Core admission was not run"; }
+  const skill = [...eidx.entries()].find(([, n]) => n.name === "Learning KAAL" && n.sealed);
+  if (!skill) return "the Engine does not hold Learning KAAL";
+  const [skillId, s] = skill;
+  const rel = s.path.replace(/^skills\/kaal-learning\//, "");
+  const tmp = mkdtempSync(join(tmpdir(), "kaal-learning-"));
+  try {
+    cpSync(engine, tmp, { recursive: true });
+    core.registerSkill(tmp, "kaal-learning", { [rel]: readFileSync(join(engine, s.path), "utf8"), [`seals/${skillId}`]: "", [`${id}.md`]: bytes.toString("utf8"), [`seals/${id}`]: "" });
+    return undefined;
+  } catch (e) { return `Core refuses: ${e.message}`; } finally { rmSync(tmp, { recursive: true, force: true }); }
+}
+
+function citations(text, graph, self) {
+  const problems = [];
+  const body = text.replace(FORM, "").split("\n## Evidence")[0];
+  for (const m of body.matchAll(HEX)) {
+    const id = m[0], target = graph.get(id);
+    if (id === self) problems.push("a Learning cannot cite itself");
+    else if (!target) problems.push(`cites ${id.slice(0, 12)}, which no given Engine or BRAIN holds`);
+    else if (!target.sealed) problems.push(`cites ${id.slice(0, 12)}, which is not sealed`);
+    else if (body.slice(Math.max(0, m.index - target.name.length - 1), m.index) !== `${target.name} `) problems.push(`cites ${id.slice(0, 12)} without its name "${target.name}" beside it`);
+  }
+  return problems;
+}
+
+function closedChanges(record) {
+  const out = new Map();
+  const root = join(record, "changes");
+  if (!existsSync(root)) return out;
+  for (const name of readdirSync(root)) for (const y of readdirSync(join(root, name))) for (const mo of readdirSync(join(root, name, y))) for (const d of readdirSync(join(root, name, y, mo))) for (const c of readdirSync(join(root, name, y, mo, d))) {
+    const dir = join(root, name, y, mo, d, c);
+    try { const id = sealing("artifact-id.mjs", "--domain", "KAAL Change v1", dir); out.set(id, { dir, closed: isSealed(join(record, "seals/changes"), id) }); } catch { /* not a Change */ }
+  }
+  return out;
+}
+
+/** A path names a regular file inside the Change's own tree: relative, no "..", no link out of the tree. */
+function within(root, rel) {
+  if (isAbsolute(rel) || rel.split(/[\\/]/).includes("..")) return false;
+  const full = join(root, rel);
+  try { return lstatSync(full).isFile() && realpathSync(full).startsWith(realpathSync(root) + sep); } catch { return false; }
+}
+
+function evidence(text, changes) {
+  const section = text.split("\n## Evidence")[1];
+  const lines = (section ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const problems = [], ok = [];
+  if (!lines.length) problems.push("no evidence line");
+  for (const l of lines) {
+    const m = /^([0-9a-f]{64})  (\S+)$/.exec(l);
+    if (!m) { problems.push(`evidence line is not "<ID>  <path>": ${l.slice(0, 40)}`); continue; }
+    const c = changes?.get(m[1]);
+    if (!changes) ok.push(`unverified ${m[1].slice(0, 8)}`);
+    else if (!c) problems.push(`evidence ${m[1].slice(0, 8)} is not a Change in the given Records (only closed Changes are supported evidence)`);
+    else if (!c.closed) problems.push(`evidence ${m[1].slice(0, 8)} is a Change that is not closed`);
+    else if (!within(c.dir, m[2])) problems.push(`evidence ${m[1].slice(0, 8)} holds no regular file ${m[2]} inside that Change`);
+  }
+  return { problems, ok };
+}
+
+function structure(text) {
+  const p = [];
+  const m = FORM.exec(text);
+  if (!m) return ["not a Node by Form"];
+  const body = text.slice(m[0].length);
+  if (!body.startsWith(`\n# ${m[1]}\n`)) p.push(`the body does not begin with "# ${m[1]}"`);
+  const i = body.indexOf("\n## Applies when\n"), j = body.indexOf("\n## Evidence\n");
+  if (i < 0 || j < i) p.push("sections `## Applies when` then `## Evidence` are required, in that order");
+  else if (!body.slice(i + 17, j).trim()) p.push("Applies when is empty");
+  return p;
+}
+
+const args = parseArgs(process.argv.slice(3));
+const cmd = process.argv[2];
+if (!["check", "establish"].includes(cmd) || !args.engine || !args.brain.length) { console.error("usage: see header"); process.exit(2); }
+const engine = resolve(args.engine), eidx = index(engine);
+const learningType = [...eidx.entries()].find(([, n]) => n.name === "Learning" && n.sealed)?.[0];
+const brains = args.brain.map((b) => resolve(b));
+const graph = new Map(eidx);
+for (const b of brains) if (existsSync(b)) for (const [k, v] of index(b)) graph.set(k, v);
+const changes = args.record.length ? new Map(args.record.flatMap((r) => [...closedChanges(resolve(r))])) : undefined;
+
+async function problemsOf(bytes, id, sealedInBrain) {
+  const text = bytes.toString("utf8"), p = [];
+  const m = FORM.exec(text);
+  if (!m || !m[3]) return ["not a typed Node by Form"];
+  if (!learningType) p.push("the Engine does not hold the Learning type");
+  else if (m[2] !== "Learning" || m[3] !== learningType) p.push("its type is not the Engine's Learning, by name and ID");
+  if (!sealedInBrain) p.push("not sealed");
+  const core = await coreAdmits(engine, eidx, bytes, id);
+  if (core) p.push(core);
+  p.push(...structure(text), ...citations(text, graph, id), ...evidence(text, changes).problems);
+  return p;
+}
+
+if (cmd === "check") {
+  let bad = 0;
+  for (const b of brains) {
+    const files = walk(b);
+    for (const [p, bytes] of Object.entries(files)) {
+      if (p.startsWith("seals/")) continue;
+      const id = sha(bytes), probs = [];
+      if (p !== `${id}.md`) probs.push(`file is not named by its ID ${id.slice(0, 12)}`);
+      probs.push(...(await problemsOf(bytes, id, isSealed(join(b, "seals"), id))));
+      console.log(`${id.slice(0, 12)} ${probs.length ? "REFUSED: " + probs.join("; ") : "ok"}`);
+      if (probs.length) bad++;
+    }
+    if (existsSync(join(b, "seals"))) for (const n of readdirSync(join(b, "seals"))) {
+      if (!isSealed(join(b, "seals"), n)) { console.log(`seals/${n.slice(0, 12)} is not a seal (an empty regular file named by an ID)`); bad++; }
+      else if (!files[`${n}.md`]) { console.log(`seal ${n.slice(0, 12)} has no Learning`); bad++; }
+    }
+  }
+  if (!changes) console.log("evidence unverified: no --record given");
+  process.exit(bad ? 1 : 0);
+}
+
+// establish
+const [draft, ...extra] = args.rest;
+if (!draft || extra.length || brains.length !== 1 || !args.record.length) { console.error("establish needs exactly one --brain, at least one --record and one draft"); process.exit(2); }
+const bytes = readFileSync(draft), id = sealing("artifact-id.mjs", draft);
+const dest = join(brains[0], `${id}.md`), seal = join(brains[0], "seals", id);
+if (existsSync(dest)) {
+  if (!readFileSync(dest).equals(bytes)) { console.error("refused: the file exists with other bytes"); process.exit(1); }
+  if (isSealed(join(brains[0], "seals"), id)) { console.log(`already held ${id.slice(0, 12)}; nothing written`); process.exit(0); }
+}
+const probs = await problemsOf(bytes, id, true); // the prospective seal is supplied in memory only
+if (probs.length) { console.error(`refused, nothing written: ${probs.join("; ")}`); process.exit(1); }
+const made = [];
+try {
+  mkdirSync(join(brains[0], "seals"), { recursive: true });
+  if (!existsSync(dest)) { writeFileSync(`${dest}.tmp`, bytes); renameSync(`${dest}.tmp`, dest); made.push(dest); }
+  sealing("seal.mjs", "write", join(brains[0], "seals"), id);
+  if (!isSealed(join(brains[0], "seals"), id)) throw new Error("the marker at seals/<ID> is not a valid seal (Sealing refuses it)");
+  console.log(`established ${id}`);
+} catch (e) { for (const f of made) rmSync(f, { force: true }); console.error(`failed, rolled back: ${e.message}`); process.exit(1); }
 // Prototype of what an installed kaal-learning Skill script could be. It uses only
 // node builtins, the kaal-sealing scripts beside it, and kaal-core's PUBLIC API
 // (registerSkill) resolved as a package. It does not import Core's source.
@@ -535,10 +723,136 @@ try {
 } catch (e) { for (const f of made) rmSync(f, { force: true }); console.error(`failed, rolled back: ${e.message}`); process.exit(1); }
 ````
 
-The bounded-discovery prototype, `discover.mjs`, same host: `node discover.mjs find|near --engine .kaal --skills skills --record record --brain brain [--limit N] <term…|id>`.
+The bounded-discovery prototype, `discover.mjs`, same host: `node discover.mjs find|near|show --engine .kaal --skills skills --record record --brain brain [--limit N] [--budget B] [--after K] [--from O] [--bytes N] <term…|id>`.
 
 ````javascript
 #!/usr/bin/env node
+// Prototype of bounded, derived discovery over three kinds: installed Skill Nodes, Changes in a Record, Learnings in a BRAIN.
+// Reads files (a scan, nothing stored). Every command prints within an explicit byte budget and says what it left out.
+//   discover.mjs find --engine E --skills S --record R... --brain B... [--limit N] [--budget B] [--after K] <term>...
+//   discover.mjs near --engine E --record R... --brain B... [--limit N] [--budget B] <id>
+//   discover.mjs show --engine E --record R... --brain B... [--from O] [--bytes N] <id>
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const SEALING = join(HERE, "skills/kaal-sealing/scripts");
+const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+const HEX = /(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])/g;
+const sha = (b) => createHash("sha256").update(b).digest("hex");
+const isSealed = (dir, id) => { try { execFileSync("node", [join(SEALING, "seal.mjs"), "check", dir, id], { stdio: "ignore" }); return true; } catch { return false; } };
+const changeId = (dir) => execFileSync("node", [join(SEALING, "artifact-id.mjs"), "--domain", "KAAL Change v1", dir], { encoding: "utf8" }).trim();
+const files = (d) => Object.fromEntries(readdirSync(d, { recursive: true, encoding: "utf8" }).filter((p) => statSync(join(d, p)).isFile()).map((p) => [p.split("\\").join("/"), readFileSync(join(d, p), "utf8")]));
+/** Every cited ID with the name written beside it ("<name> <ID>"), for IDs that are known. */
+const citing = (text, known) => [...new Set([...text.matchAll(HEX)].filter((m) => known.has(m[0]) && text.slice(Math.max(0, m.index - known.get(m[0]).length - 1), m.index) === `${known.get(m[0])} `).map((m) => m[0]))];
+
+const o = { engine: "", skills: "", record: [], brain: [], limit: 3, budget: 2000, after: 0, from: 0, bytes: 1500, rest: [] };
+const argv = process.argv.slice(3);
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  if (a === "--engine") o.engine = resolve(argv[++i]);
+  else if (a === "--skills") o.skills = resolve(argv[++i]);
+  else if (a === "--record") o.record.push(resolve(argv[++i]));
+  else if (a === "--brain") o.brain.push(resolve(argv[++i]));
+  else if (["--limit", "--budget", "--after", "--from", "--bytes"].includes(a)) o[a.slice(2)] = Number(argv[++i]);
+  else o.rest.push(a);
+}
+o.bytes = Math.min(o.bytes, 4000);
+
+// --- the three kinds, as cards ---
+const eng = files(o.engine);
+const typeId = (name) => Object.values(eng).map((t) => ({ t, id: sha(t) })).find((x) => new RegExp(`^---\\nname: ${name}\\n`).test(x.t) && isSealed(join(o.engine, "seals"), x.id))?.id;
+const skillTypeId = typeId("Skill"), learningTypeId = typeId("Learning");
+const skills = [];
+for (const [p, t] of Object.entries(eng)) {
+  const m = FORM.exec(t);
+  if (!m || p.startsWith("seals/") || m[3] !== skillTypeId || !isSealed(join(o.engine, "seals"), sha(t))) continue;
+  const cap = p.split("/")[1], sk = o.skills && existsSync(join(o.skills, cap, "SKILL.md")) ? readFileSync(join(o.skills, cap, "SKILL.md"), "utf8") : "";
+  const desc = /^description: (.+)$/m.exec(sk)?.[1] ?? "";
+  skills.push({ kind: "Skill", id: sha(t), name: m[1], card: t.slice(m[0].length).trim().split("\n").filter((l) => l && !l.startsWith("#"))[0] ?? "", text: `${t}\n${desc}`, cites: [] });
+}
+// Read-side admission: a Learning is a file named by its ID, typed by the Engine's own Learning (name and ID), with its own valid seal.
+// Anything else in a BRAIN is a candidate that is not admitted; it is counted, never shown as a Learning.
+const learnings = []; let notAdmitted = 0;
+for (const b of o.brain) for (const [p, t] of Object.entries(files(b))) {
+  if (p.startsWith("seals/")) continue;
+  const m = FORM.exec(t), id = sha(t);
+  if (!m || !learningTypeId || m[2] !== "Learning" || m[3] !== learningTypeId || p !== `${id}.md` || !isSealed(join(b, "seals"), id)) { notAdmitted++; continue; }
+  const ap = (t.split("## Applies when")[1] ?? "").split("##")[0].trim();
+  learnings.push({ kind: "Learning", id, name: m[1], card: ap, text: t, body: t.replace(FORM, "").split("\n## Evidence")[0],
+    evidence: [...(t.split("## Evidence")[1] ?? "").matchAll(/^([0-9a-f]{64})  (\S+)$/gm)].map((e) => e[1]) });
+}
+const changes = [];
+for (const r of o.record) {
+  const root = join(r, "changes");
+  for (const n of readdirSync(root)) for (const y of readdirSync(join(root, n))) for (const mo of readdirSync(join(root, n, y))) for (const d of readdirSync(join(root, n, y, mo))) for (const c of readdirSync(join(root, n, y, mo, d))) {
+    const dir = join(root, n, y, mo, d, c), f = files(dir), intent = f["work/01-intent.md"] ?? "", id = changeId(dir);
+    const title = (intent.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#") && l !== "Intent" && !/^Intent [—-]/.test(l)) ?? "").slice(0, 100);
+    const text = ["work/01-intent.md", "retro-work.md", "retro-owner.md", "retro-review.md"].map((k) => f[k] ?? "").join("\n");
+    const own = Object.entries(f).filter(([k]) => k.startsWith("work/") || k.startsWith("retro")).map(([, v]) => v).join("\n");
+    changes.push({ kind: "Change", id, name: `${n}/${y}/${mo}/${d}/${c}`, card: title, text, own, closed: isSealed(join(r, "seals/changes"), id), order: `${y}${mo}${d}${c}`, files: f });
+  }
+}
+// References: "<name> <ID>" in a Learning's body, or in a Change's own Work and retros. Evidence lines are a distinct relation.
+const known = new Map([...skills, ...learnings].map((x) => [x.id, x.name]));
+for (const x of learnings) x.cites = citing(x.body, known).filter((i) => i !== x.id);
+for (const x of changes) x.cites = citing(x.own, known);
+const byId = new Map([...skills, ...learnings, ...changes].map((x) => [x.id, x]));
+
+// --- output under a byte budget: names are clipped, cards stop when the budget is spent, and the output says so ---
+const lines = []; let used = 0, dropped = 0;
+const clip = (s, n = 90) => (s.length > n ? `${s.slice(0, n - 1)}…(+${s.length - n + 1} chars)` : s);
+const say = (s) => { const b = Buffer.byteLength(s) + 1; if (used + b > o.budget - 160) { dropped++; return false; } lines.push(s); used += b; return true; };
+const label = (x) => `${x.kind === "Change" ? x.name + (x.closed ? "" : " (open)") : x.name} [${x.id.slice(0, 8)}]`;
+const card = (x, extra) => { const first = say(`  ${clip(label(x), 80)}${extra ?? ""}`); if (first) say(`    ${x.kind === "Learning" ? "applies when: " : ""}${clip(x.card, 110)}`); return first; };
+
+const cmd = process.argv[2];
+if (cmd === "find") {
+  const terms = o.rest.map((t) => t.toLowerCase());
+  for (const [lbl, set] of [["Skills", skills], ["Learnings", learnings], ["Changes", changes]]) {
+    const hits = set.map((x) => ({ x, score: terms.filter((t) => new RegExp("\\b" + t).test(x.text.toLowerCase())).length }))
+      .filter((h) => h.score > 0).sort((a, b) => b.score - a.score || String(b.x.order ?? "").localeCompare(String(a.x.order ?? "")));
+    say(`${lbl}: ${hits.length} match of ${set.length}`);
+    const shown = hits.slice(o.after, o.after + o.limit);
+    for (const h of shown) card(h.x, ` (${h.score}/${terms.length} terms)`);
+    if (hits.length > o.after + shown.length) say(`  (${hits.length - o.after - shown.length} more; narrow with more terms or --after ${o.after + shown.length})`);
+  }
+  if (notAdmitted) say(`BRAIN files not admitted as Learnings: ${notAdmitted} (not shown; run learning check)`);
+} else if (cmd === "near") {
+  const full = [...byId.values()].find((x) => x.id.startsWith(o.rest[0] ?? "\0"));
+  if (!full) { console.error("unknown id"); process.exit(1); }
+  say(`${full.kind} ${clip(label(full), 80)}`);
+  const show = (xs, l) => { say(`  ${l}: ${xs.length}`); xs.slice(0, o.limit).forEach((x) => card(x)); if (xs.length > o.limit) say(`    (+${xs.length - o.limit} more; --limit ${xs.length})`); };
+  const cited = (x) => x.cites.map((i) => byId.get(i)), citedBy = (x) => [...skills, ...learnings, ...changes].filter((y) => y.cites.includes(x.id));
+  if (full.kind !== "Change") {
+    show(citedBy(full).filter((y) => y.kind === "Learning"), "Learnings that cite it");
+    show(citedBy(full).filter((y) => y.kind === "Change"), "Changes that cite it (applied or established it)");
+  }
+  if (full.kind === "Learning") {
+    show(cited(full).filter((y) => y.kind === "Skill"), "Skills it cites");
+    show(cited(full).filter((y) => y.kind === "Learning"), "earlier Learnings it cites");
+    show(changes.filter((c) => full.evidence.includes(c.id)), "evidence Changes (what it rests on)");
+  }
+  if (full.kind === "Change") {
+    show(cited(full).filter((y) => y.kind === "Skill"), "Skills it cites");
+    show(cited(full).filter((y) => y.kind === "Learning"), "Learnings it cites");
+    show(learnings.filter((l) => l.evidence.includes(full.id)), "Learnings resting on it as evidence");
+  }
+} else if (cmd === "show") {
+  const full = [...byId.values()].find((x) => x.id.startsWith(o.rest[0] ?? "\0"));
+  if (!full) { console.error("unknown id"); process.exit(1); }
+  const buf = Buffer.from(full.kind === "Change" ? full.files["work/01-intent.md"] ?? "" : full.text), end = Math.min(buf.length, o.from + o.bytes);
+  say(`${full.kind} ${clip(label(full), 80)}`);
+  lines.push(buf.subarray(o.from, end).toString("utf8")); used += end - o.from;
+  lines.push(end < buf.length ? `[bytes ${o.from}-${end} of ${buf.length}; continue with --from ${end}]` : `[bytes ${o.from}-${end} of ${buf.length}; end]`);
+}
+if (dropped) lines.push(`(output budget ${o.budget} bytes reached; ${dropped} lines not shown; narrow the question or raise --budget)`);
+const out = lines.join("\n");
+console.log(out);
+console.error(`[output ${Buffer.byteLength(out)} bytes; budget ${cmd === "show" ? o.bytes : o.budget}; corpus scanned: ${[...skills, ...learnings, ...changes].reduce((a, x) => a + Buffer.byteLength(x.text), 0)} bytes]`);
 // Prototype of bounded, derived discovery over three kinds: installed Skill Nodes, Changes in a Record, Learnings in a BRAIN.
 // Reads files (a scan, nothing stored); prints only cards, never whole documents, at most --limit per kind.
 //   discover.mjs find --engine E --skills S --record R... --brain B... [--limit N] <term>...
@@ -650,3 +964,19 @@ The first prototype (`proto.mjs`, which imported a source copy of `nodes.ts`) wa
 Round 01 (`review/01.md`) named four findings; each is resolved in `03-architecture.md` and demonstrated in section 5. F1: delivery path through the public `registerSkill()` as an oracle, with the remaining gap named (Fork 7). F2: Core's admission and the Skill's citation check are distinguished, the citation form is `<name> <ID>`, and absent / unsealed / wrongly named targets are refused. F3: establishing has its own pre-write validation with the seal supplied in memory, defined write, rollback and already-held behaviour. F4: establishing requires Records and accepts only closed Changes as evidence, refusing every other kind; reading is permissive and says it is unverified. Nothing in the Intent was changed.
 
 The Owner's input on the PR (2026-10-09) added Requirements R30 to R35, the section on bounded discovery in the Architecture, the reordering of the transition so that the read side comes first, and closed Fork 5. The Intent is unchanged.
+
+## 10. Disposition of review round 02
+
+Round 02 (`review/02.md`) accepted the resolution of F1 to F4 and added F5 to F9: contradictions between the Architecture's contracts and the evidence. Each is now stated in the Architecture and Requirements (R6, R12, R30, R36, R37) and demonstrated below in a scratch copy (`p2`) of the host of section 5, with the revised prototypes of section 7. No file of the repository, no Node and no seal was written. The host has 47 Learnings after the bulk run (the 5 of section 6, one refinement, one with a 100,011-character name, 40 bulk probes) and 26 Changes (25 real plus a synthetic sealed one).
+
+**F5, a seal is Sealing's check.** `index()`, the closed-Change test, the already-held branch and the BRAIN `check` now call `seal.mjs check` instead of testing existence. With the marker of an established Learning replaced by the bytes `nonempty`, and again by a directory: `check` printed `4111e444126c REFUSED: not sealed` for it and `seals/4111e444126c is not a seal (an empty regular file named by an ID)`, and exited 1 (the other four ok). `establish` of a Learning citing that target, with either bad marker, printed `refused, nothing written: cites 4111e444126c, which is not sealed` and exited 1; the BRAIN was unchanged. Restoring an empty marker returned `check` to exit 0. After writing a seal, `establish` verifies it with Sealing and fails if a marker at that path still does not pass.
+
+**F6, evidence stays inside the Change.** With a correct Change ID: `../../../../../../../outside.md` printed `evidence 5f9d94f9 holds no regular file ../../../../../../../outside.md inside that Change` (the file existed outside, in the Record) and `/etc/hostname` the same; both exit 1, nothing written. A symlink placed in the sealed Change is not reachable as evidence: Sealing refuses to identify a Change that holds one (`link.md is not a regular file or directory`), so the Change is no longer a given Change. The path check is relative, no `..`, regular file by `lstat`, real path under the real Change directory.
+
+**F7, the read side admits.** A file with a wrong type name and no marker was placed in the BRAIN. `find mismatch` printed `Learnings: 0 match of 47` and `BRAIN files not admitted as Learnings: 1 (not shown; run learning check)`; `near` of the evidence Change listed 47 Learnings resting on it and not the file; `check` named it `REFUSED: file is not named by its ID…; its type is not the Engine's Learning…; not sealed; Core refuses…`. Reading without Records is unchanged (evidence is reported unverified by `check`, not required by discovery), and `find` over a host with no BRAIN still returns Skill and Change cards.
+
+**F8, a byte budget.** With one sealed, typed Learning whose name is 100,011 characters and 47 Learnings in all: `find boundprobe --limit 1` printed 323 bytes (name clipped to `BBBB…(+99943 chars)`; the round-02 measurement of the unbounded version was 100,394). `find bulkprobe --limit 20` (40 matches, longer cards) printed 1,909 bytes under the 2,000 budget and ended `output budget 2000 bytes reached; 12 lines not shown; narrow the question or raise --budget`; `--limit 3 --after 3` continued with the next three. `show --bytes 300` of the 210,277-byte Learning printed 457 bytes and `[bytes 0-300 of 210277; continue with --from 300]`; `--from 300` printed the next piece. `near` printed 112 to 661 bytes in every case. The corpus scanned grew from 115 KB to 353 KB; the output did not.
+
+**F9, neighbours both ways.** A synthetic sealed Change (`genesis/26/10/09/01`) whose Work cites `Refines the dependency one 7ac26854…` (a refinement that cites `One meaning has one definition 4111e444…` and has Evidence naming Change `07/07`). `near cdb40157` (the Change) gave `Learnings it cites: 1 – Refines the dependency one`. `near 7ac26854` (the refinement) gave `Changes that cite it: 1 – genesis/26/10/09/01`, `earlier Learnings it cites: 1 – One meaning has one definition`, and `evidence Changes: 1 – genesis/26/10/07/07`, the last kept apart from citation. `near 4111e444` gave `Learnings that cite it: 1 – Refines the dependency one`, `Skills it cites: 1 – Sealing` and its four evidence Changes. A citation counts only with the known name beside the ID.
+
+**What this still does not show.** The synthetic Change is a fixture, not a historical retrospective; no real Change cites a Learning yet. Speed: establishing 40 Learnings took minutes because each run starts Node, copies the Engine for Core's admission and spawns Sealing; that is a cost of the prototype, not of the architecture, and a scan of 353 KB read in under a second.
