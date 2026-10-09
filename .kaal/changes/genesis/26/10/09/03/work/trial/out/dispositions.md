@@ -1,0 +1,7 @@
+# The Worker's position on review/01.md, written before round 02 (the next round, not the Worker, decides whether a finding stands)
+
+F1. Position: stands. Reproduced against ledger.mjs 3e096e3215ea0b7ad55fc3f5ad4494c506b09669315dd6e5ffdbc3161d24f152; violates R4. Inside the authorized scope (the architecture itself says append refuses non-objects). Now: corrected in ledger.mjs (identity bfeb6fc9d45ab96115ccb4b7615c289afbfa7e2a59d614960acda2a85a4f04fe); append-rejects-nonobject.mjs passes.
+
+F2. Position: stands. Reproduced against ledger.mjs bfeb6fc9d45ab96115ccb4b7615c289afbfa7e2a59d614960acda2a85a4f04fe with ids-unique.red.mjs (e3476331709fd28572c7ded5e9b40cf0306a89474cdd59df37da2f7f0db948cf). Violates R1 (7cdadc4bb5309c1d28efb1ba558d96a0be764aeb16bdd5d6550cbbdccc523ac3). The cause is the id rule of architecture.md (52b0f6f31827d9cf2cdce29ba84acdfb4a0f12e5b8482978b6adb189e67ee8c0), which ledger.mjs realizes faithfully; correcting it means revising the agreed architecture, which this Work is not authorized to do (scope.md). Later: preserved as defects/01; architecture.md is untouched. The delivered Code remains correct against the architecture it was asked to realize; it does not satisfy R1 once retract is used, and that is stated, not hidden.
+
+F3. Position: does not stand. retract-unknown-id-throws.claimed.mjs exits 1: retract of an unknown id returns false, which is what R3 says. Rejected with this reasoning; nothing changes.
