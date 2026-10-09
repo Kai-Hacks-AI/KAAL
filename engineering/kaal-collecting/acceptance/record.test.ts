@@ -260,3 +260,26 @@ test("a Record that also holds locally authored dated carriers is checked withou
   writeFileSync(join(record, "requests/acme", `${sha256("y")}.md`), "y");
   assert.match(run("check-record", record).stderr, /is stored but no sighting lists it/);
 });
+
+test("a linked destination is refused however the Record is spelled: with a trailing slash, or relative to the working directory", (t) => {
+  const { root, record, exposed } = setup(t);
+  const outside = join(root, "outside");
+  mkdirSync(outside);
+  symlinkSync(outside, join(record, "clients"));
+  const c = begin(record, "2026-10-07");
+  const spellings: [string, string[], string | undefined][] = [
+    ["a trailing slash", [`${record}/`, c], undefined],
+    ["a doubled slash", [`${record}//`, c], undefined],
+    ["a dotted path", [`${join(record, "..", "record")}`, c], undefined],
+    ["a path relative to the working directory", ["./record", c], root],
+    ["a bare relative name", ["record", c], root],
+  ];
+  for (const [label, [dir, collection], cwd] of spellings) {
+    const r = spawnSync("node", [SCRIPT, "reached", dir, collection, "--client", "acme", "--adapter", "a", "--from", exposed, "--keep"], { encoding: "utf8", cwd });
+    assert.equal(r.status, 1, label);
+    assert.match(r.stderr, /clients is not a plain directory of this record/, label);
+    assert.deepEqual(readdirSync(outside), [], label);
+    assert.equal(existsSync(join(record, c, "acme")), false, label);
+    assert.deepEqual(stored(record, "incidents", "acme"), [], label);
+  }
+});

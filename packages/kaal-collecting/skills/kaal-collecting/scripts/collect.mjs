@@ -180,12 +180,12 @@ function hasSighting(root, client) {
   return readdirSync(dir, { recursive: true }).some((entry) => lstatSync(join(dir, entry)).isFile());
 }
 
-/** Refuses a destination below `root` whose existing directory components are not plain directories, so nothing is ever written through a link. */
-function plainDestination(root, file) {
+/** Refuses a destination below `root` whose existing directory components are not plain directories, so nothing is ever written through a link. `parts` are the directory components below the record, however `root` is spelled. */
+function plainDestination(root, parts) {
   let current = root;
-  for (const part of file.slice(root.length + 1).split("/").slice(0, -1)) {
+  for (const part of parts) {
     current = join(current, part);
-    if (anythingAt(current) && !lstatSync(current).isDirectory()) fail(`refused: ${current.slice(root.length + 1)} is not a plain directory of this record`);
+    if (anythingAt(current) && !lstatSync(current).isDirectory()) fail(`refused: ${parts.slice(0, parts.indexOf(part) + 1).join("/")} is not a plain directory of this record`);
   }
 }
 
@@ -196,13 +196,14 @@ function planKeep(root, collection, client, flags, text, found) {
   const known = hasSighting(root, client);
   if (known && !flags.continues) fail(`${client} already has sightings in this record: pass --continues to assert that it is the same client, which is an assertion and not proof`);
   if (!known && flags.continues) fail(`--continues asserts continuity with a client already recorded, and ${client} has no sighting in this record`);
-  const sighting = join(root, "clients", client, "sightings", `${collection.slice("collections/".length)}.md`);
-  plainDestination(root, sighting);
+  const day = collection.slice("collections/".length).split("/");
+  const sighting = join(root, "clients", client, "sightings", ...day.slice(0, 3), `${day[3]}.md`);
+  plainDestination(root, ["clients", client, "sightings", ...day.slice(0, 3)]);
   if (anythingAt(sighting)) fail(`refused: ${client} already has a sighting for ${collection}`);
   const stored = [];
   for (const [path, bytes] of found) {
     const target = join(root, path.split("/")[0], client, `${sha256(bytes)}.md`);
-    plainDestination(root, target);
+    plainDestination(root, [path.split("/")[0], client]);
     if (anythingAt(target)) {
       if (!lstatSync(target).isFile() || !readFileSync(target).equals(bytes)) fail(`refused: the stored carrier for ${path} is not the bytes it is named for`);
     } else if (!stored.some(([t]) => t === target)) stored.push([target, bytes]);

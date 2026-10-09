@@ -48,3 +48,9 @@ Both findings reproduced and fixed in `collect.mjs` (projection regenerated, ide
 2. **Check scope.** `check-record` now finds stored carriers by what they are (`<sha256>.md` files directly below a name under `incidents/` or `requests/`, or any name with a client record), independently of surviving client records, and enforces the founding requirement for every present client directory, empty ones included. Tests: removing `clients/<name>` is reported ("no record of this client"), an empty `clients/<name>/sightings` is reported as 0 founding sightings, and a Record that also holds dated local carriers passes while a stray hash-named file is still reported.
 
 `engineering/kaal-collecting` 43 of 43 pass (28 existing, 15 new); `check-kaal-install` exits 0.
+
+## Rounds 03 to 05 (`review/03.md`, `04.md`, `05.md`), resolved
+
+One finding, repeated: `plainDestination` took the directory components by slicing a path normalised by `path.join` at an offset taken from the caller's unnormalised Record argument, so a trailing slash or a relative spelling inspected different paths from the ones written. Reproduced with the previous script (Record `…/record/`, `clients` linked outside: exit 0, sighting written outside; the same with the fix: exit 1, `refused: clients is not a plain directory of this record`, nothing written).
+
+Fix: the components are passed as parts (`clients/<name>/sightings/YY/MM/DD`, `<place>/<name>`) and joined onto the Record as the caller spelled it; no offset is taken. Test: a linked `clients` refused, with the raw attempt, sighting, stored carriers and the outside directory all unchanged, for a trailing slash, a doubled slash, a dotted path, `./record` and `record` relative to the working directory. `engineering/kaal-collecting` 44 of 44 pass (28 existing, 16 new); projection regenerated and identical.
