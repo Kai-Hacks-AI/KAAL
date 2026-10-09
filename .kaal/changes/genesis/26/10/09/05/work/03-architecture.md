@@ -39,6 +39,10 @@ Review, as Review defines it, in which an agent examines the result of another a
 - **Whether a round records HOW or ARE** in a field (`review.mjs`/`change-state`): not done; the statement carries it in words, and no check can know who took part.
 - **Installing optional Skills by default** (raised in #76): not here.
 
+## Alternative considered
+
+One Node for the complete HOW ARE WE DOING? concept, raised by the Owner while the Change is open: compared in `05-alternative-one-node.md`, with the variant text. Recommendation there: keep separate `HOW` and `ARE`; an umbrella Node can be born later, additively.
+
 ## Open forks (recommendation first)
 
 1. Two Nodes `HOW`, `ARE` (recommended), or one combined Node, or Way of Working only. Way of Working only fails reasons (a) to (c) above; a combined Node would import the historical bundle.
