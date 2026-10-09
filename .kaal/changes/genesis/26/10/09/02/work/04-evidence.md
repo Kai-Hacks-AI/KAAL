@@ -35,7 +35,7 @@ No Agent over-claimed a thinking capability. Arm B's honesty on task 7 is attrib
 
 ## 2. Checks made
 
-- The Change allocated by hand as `09/04`: `next-change` on `kaal/genesis` alone gives `09/02`, held by #69 and #74; `09/03` is held by #75; `09/01` is #73, merged.
+- Allocation: `next-change` on `kaal/genesis` gives `09/02`, so that is the number here. #69 and #74 hold `09/02` too and #75 holds `09/03`; whichever lands later renumbers (allocation is optimistic). I first took `09/04` to avoid the clash, and `test-kaal` rejected it: the record test requires `09/01..` with no gap on this base.
 - `packages/kaal-learning/` and `brain/` do not exist on `kaal/genesis`; `find`/`near`/`show` exist only as the prototype in `08/04/work/04-evidence.md`.
 - `AGENTS.md` and `.kaal/AGENTS.md` carry no mention of TALL, BRAIN or a thinking capability.
-- Nothing outside `.kaal/changes/genesis/26/10/09/04/` is touched.
+- Nothing outside `.kaal/changes/genesis/26/10/09/02/` is touched.
