@@ -48,6 +48,7 @@ test("HOW is a human taking part, and adds no authority, no particular human and
   assert.match(how, /with a human taking part in it while it happens/);
   assert.match(how, /does not matter who the human is, which account or channel they use/);
   assert.match(how, /an agent that assists is not the human observing/);
+  assert.match(how, /a human who only reads the record of a finished review has read it, and has not observed the work/);
   assert.match(how, /adds no authority/);
   assert.match(how, /it is not approval, and it does not establish, accept or carry out the result/);
   assert.match(how, /does not excuse an examiner that is not independent/);
@@ -62,7 +63,7 @@ test("ARE is independent agent review of another actor's result, independence of
   assert.match(are, /Nothing here measures independence/);
   assert.match(are, /no agent acquires authority to review, or to approve, establish or carry out anything/);
   assert.match(are, /convergence among agents is not approval/);
-  assert.match(are, /For the rounds a human observes, the review is also HOW/);
+  assert.match(are, /reading it afterwards does not make a round HOW/);
 });
 
 test("neither Node depends on a product, host, account, mechanism, process or historical Idea", () => {
@@ -79,6 +80,7 @@ test("the Agent Skill is found by the words HOW and ARE, points to the Nodes wit
   assert.ok(!manifest.includes(reviewId) && !manifest.includes(sha256(kaal["HOW.md"])) && !manifest.includes(sha256(kaal["ARE.md"])), "carries no ID of a Node");
   assert.match(manifest, /never write an observation, direction or approval as the human's/);
   assert.match(manifest, /If you are not independent of its maker, stop and say so/);
+  assert.match(manifest, /reading the finished record afterwards is not enough/);
   assert.match(manifest, /Convergence is not approval/);
   assert.match(manifest, /Review keeps no store of observations/);
   assert.doesNotMatch(manifest, /kaal-(sealing|changing|retro)|ROWING|\bWorker\b|\bOwner\b/);
