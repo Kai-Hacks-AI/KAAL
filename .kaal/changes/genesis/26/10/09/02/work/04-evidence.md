@@ -1,6 +1,6 @@
 # Evidence — the minimum 0.0.1 demonstration, with what exists today
 
-Replay: `bash .kaal/changes/genesis/26/10/09/03/work/trial/run.sh <repo-root> <output-dir>`. It uses only the existing scripts (`kaal-review`, `kaal-sealing`, `kaal-incident`), reads the subject in `trial/subject/`, writes only into the output directory, and prints the transcript kept in `trial/transcript.txt`. The preserved record it produces is kept in `trial/out/`. No package, engineering, Core or `.github` file is touched.
+Replay: `bash .kaal/changes/genesis/26/10/09/02/work/trial/run.sh <repo-root> <output-dir>`. It uses only the existing scripts (`kaal-review`, `kaal-sealing`, `kaal-incident`), reads the subject in `trial/subject/`, writes only into the output directory, and prints the transcript kept in `trial/transcript.txt`. The preserved record it produces is kept in `trial/out/`. No package, engineering, Core or `.github` file is touched.
 
 ## The scenario
 
@@ -36,7 +36,7 @@ ledger.test: ok
 (exit 0)
 
 == 3. D5/D6: independent examination of the Code against the agreed Architecture and Requirements (round 01, findings)
-<repo>/.kaal/changes/genesis/26/10/09/03/work/trial/out/review/01.md
+<repo>/.kaal/changes/genesis/26/10/09/02/work/trial/out/review/01.md
 (check exit 0)
 
 == 4. The Worker investigates each finding; it does not take them as orders
@@ -65,7 +65,7 @@ ledger.mjs v2  bfeb6fc9d45ab96115ccb4b7615c289afbfa7e2a59d614960acda2a85a4f04fe
    (exit 1)
 
 == 6. Round 02: the Reviewer examines the Code as it now stands against its standard, and says whether each earlier finding stands
-<repo>/.kaal/changes/genesis/26/10/09/03/work/trial/out/review/02.md
+<repo>/.kaal/changes/genesis/26/10/09/02/work/trial/out/review/02.md
 (converged on v2: exit 0)
 02.md converged on Code bfeb6fc9d45ab96115ccb4b7615c289afbfa7e2a59d614960acda2a85a4f04fe, not on 3e096e3215ea0b7ad55fc3f5ad4494c506b09669315dd6e5ffdbc3161d24f152
 (converged on v1: exit 1 , expected 1)
@@ -81,7 +81,7 @@ AssertionError [ERR_ASSERTION]: R1 violated: ids [2,2]
 (exit 1)
 
 == 8. Could an Incident carrier hold this Defect? (kaal-incident: addressed to KAAL, two parts)
-   $ node <repo>/packages/kaal-incident/skills/kaal-incident/scripts/incident.mjs write <repo>/.kaal/changes/genesis/26/10/09/03/work/trial/out/kaal-dir --date 2026-10-09 --happened A ledger built to the agreed architecture gave two entries one id after a retract. --expected Ids stay unique for the life of the ledger (R1).
+   $ node <repo>/packages/kaal-incident/skills/kaal-incident/scripts/incident.mjs write <repo>/.kaal/changes/genesis/26/10/09/02/work/trial/out/kaal-dir --date 2026-10-09 --happened A ledger built to the agreed architecture gave two entries one id after a retract. --expected Ids stay unique for the life of the ledger (R1).
    incidents/26/10/09/01.md
    (exit 0)
    (the carrier has no place for the red test, the affected identities or a validity judgment; and kaal-incident says it is not for the client's own defects)
