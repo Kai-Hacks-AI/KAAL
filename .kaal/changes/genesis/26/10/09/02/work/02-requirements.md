@@ -54,6 +54,12 @@ What must hold for `01-intent.md` to be answered. They say what, not how; the ho
 - R27. Core's sealed Nodes, seals and public API are not changed by this Change. If Core must change, that is its own Change and travels alone.
 - R28. Enercon is not modified.
 
+## 0.0.1
+
+- R29. The first realization is the minimum that shows, offline and end to end, listing what is held, listing what a local directory of packages offers, and installing one chosen capability by its exact Node ID, with the refusals in R14, R16 and R17, and with the Subject untouched in External.
+- R30. It prefers a demonstrable minimum over a comprehensive implementation, and reports decisions that need the Owner before implementation.
+- R31. It keeps this Change's Intent and Change `05/04`'s separate: capability identity is Core's, package or source identity is the source's and proved by hashing, and delivery naming and placement are the instance's.
+
 ## What these requirements do not decide
 
 The interface (a CLI or otherwise), where the mechanism lives, which source adapters exist beyond the first, and how a remote source would be listed or authenticated. `03-architecture.md` investigates and recommends.
