@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 952 640" width="952" height="640" role="img" aria-labelledby="t d" font-family="Helvetica, Arial, sans-serif">
+  <title id="t">KAAL conceptual architecture overview</title>
+  <desc id="d">Target architecture in three columns. The Agent thinks and acts across KAAL. KAAL holds BRAIN (persistent learning, bounded knowledge navigation), Core (Node, Edge, Identity, Type, deterministic operations), Skills (ways of working), Extensions (additional capabilities) and Processes (specialized Skills, composition, review lenses), used in Engineer, Embed and External modes. The 6 Ds are D1 Describe Intent, D2 Define Requirements, D3 Design Architecture, D4 Develop Code, D5 Do IT and D6 Detect Defects, framed by Destination, Discovery and Defence. This is an architectural projection, not an inventory of implemented capabilities.</desc>
+  <style>
+    .h { font-size:32px; font-weight:700; fill:#1c1c1e }
+    .n { font-size:19px; font-weight:700; fill:#1c1c1e }
+    .s { font-size:15px; fill:#6b6b72 }
+    .dn { font-size:13px; fill:#6b6b72 }
+    .dt { font-size:16px; fill:#1c1c1e }
+    .f { font-size:15px; fill:#6b6b72 }
+    .note { font-size:13px; fill:#6b6b72 }
+  </style>
+  <rect width="952" height="640" fill="#ffffff"/>
+  <rect x="17" y="16" width="918" height="553" rx="22" fill="#ffffff" stroke="#e3e3e8" stroke-width="1.5"/>
+
+  <!-- Agent -->
+  <rect x="33" y="31" width="288" height="522" rx="16" fill="#e3f1f8" stroke="#1a8aa8" stroke-width="1.8"/>
+  <g fill="none" stroke="#1a8aa8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="170" y="252" width="14" height="11" rx="4"/><path d="M177 252v-3"/>
+  </g>
+  <circle cx="174.500" cy="257.500" r="1.200" fill="#1a8aa8"/><circle cx="179.500" cy="257.500" r="1.200" fill="#1a8aa8"/>
+  <text x="177" y="302" text-anchor="middle" font-size="25" font-weight="700" fill="#16384a" letter-spacing="0.5">AGENT</text>
+  <text x="177" y="334" text-anchor="middle" font-size="15.500" fill="#4a6574">Thinks and acts across KAAL</text>
+
+  <!-- KAAL -->
+  <rect x="332" y="31" width="288" height="522" rx="16" fill="#ffffff" stroke="#e3e3e8" stroke-width="1.5"/>
+  <text class="h" x="476" y="70" text-anchor="middle">KAAL</text>
+  <rect x="343" y="87" width="266" height="93" rx="14" fill="#f0ecfb"/>
+  <text class="n" x="476" y="118" text-anchor="middle">BRAIN</text>
+  <text class="s" x="476" y="145" text-anchor="middle">Persistent learning · Bounded</text>
+  <text class="s" x="476" y="165" text-anchor="middle">knowledge navigation</text>
+  <rect x="343" y="190" width="266" height="94" rx="14" fill="#ececf0"/>
+  <text class="n" x="476" y="221" text-anchor="middle">Core</text>
+  <text class="s" x="476" y="248" text-anchor="middle">Node · Edge · Identity · Type ·</text>
+  <text class="s" x="476" y="268" text-anchor="middle">Deterministic operations</text>
+  <rect x="343" y="294" width="130" height="92" rx="14" fill="#e6f5f0"/>
+  <text class="n" x="408" y="320" text-anchor="middle">Skills</text>
+  <text class="s" x="408" y="346" text-anchor="middle">Ways of</text>
+  <text class="s" x="408" y="366" text-anchor="middle">Working</text>
+  <rect x="479" y="294" width="130" height="92" rx="14" fill="#e6f5f0"/>
+  <text class="n" x="544" y="320" text-anchor="middle">Extensions</text>
+  <text class="s" x="544" y="346" text-anchor="middle">Additional</text>
+  <text class="s" x="544" y="366" text-anchor="middle">capabilities</text>
+  <rect x="343" y="392" width="266" height="93" rx="14" fill="#fdf0df"/>
+  <text class="n" x="476" y="423" text-anchor="middle">Processes</text>
+  <text class="s" x="476" y="450" text-anchor="middle">Specialized Skills · Composition ·</text>
+  <text class="s" x="476" y="470" text-anchor="middle">Review lenses</text>
+  <text class="f" x="476" y="510" text-anchor="middle">Engineer · Embed · External</text>
+
+  <!-- 6 Ds -->
+  <rect x="631" y="31" width="288" height="522" rx="16" fill="#ffffff" stroke="#e3e3e8" stroke-width="1.5"/>
+  <text class="h" x="775" y="70" text-anchor="middle">6 Ds</text>
+    <rect fill="#eff3fd" x="642" y="87" width="266" height="62" rx="12"/>
+    <text class="dn" x="652" y="108">D1</text>
+    <text class="dt" x="652" y="132">Describe Intent</text>
+    <rect fill="#eff3fd" x="642" y="159" width="266" height="62" rx="12"/>
+    <text class="dn" x="652" y="180">D2</text>
+    <text class="dt" x="652" y="204">Define Requirements</text>
+    <rect fill="#eff3fd" x="642" y="232" width="266" height="62" rx="12"/>
+    <text class="dn" x="652" y="253">D3</text>
+    <text class="dt" x="652" y="277">Design Architecture</text>
+    <rect fill="#eff3fd" x="642" y="304" width="266" height="62" rx="12"/>
+    <text class="dn" x="652" y="325">D4</text>
+    <text class="dt" x="652" y="349">Develop Code</text>
+    <rect fill="#eff3fd" x="642" y="377" width="266" height="62" rx="12"/>
+    <text class="dn" x="652" y="398">D5</text>
+    <text class="dt" x="652" y="422">Do IT</text>
+    <rect fill="#eff3fd" x="642" y="449" width="266" height="62" rx="12"/>
+    <text class="dn" x="652" y="470">D6</text>
+    <text class="dt" x="652" y="494">Detect Defects</text>
+  <text class="f" x="775" y="537" text-anchor="middle">Destination · Discovery · Defence</text>
+
+  <text class="note" x="17" y="598">Target architecture, not an inventory of implemented capabilities: Processes, BRAIN and the operating modes are not yet established.</text>
+  <text class="note" x="17" y="618">An architectural projection, not a source of truth. The Nodes in .kaal/ are. See architecture/overview.md.</text>
+</svg>

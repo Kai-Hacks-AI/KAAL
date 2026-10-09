@@ -16,3 +16,7 @@ To add a package, create `packages/<name>/` with its own `package.json` and `tsc
 ## Controls
 
 See [.github/README.md](.github/README.md).
+
+## Architecture
+
+See [architecture/README.md](architecture/README.md).
