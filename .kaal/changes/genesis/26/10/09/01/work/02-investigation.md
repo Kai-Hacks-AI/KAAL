@@ -44,14 +44,14 @@ Yes in substance, and in the strictest form. It names participants (Intent and R
 2. **A compass**: one deterministic definition of order (`change-state.mjs`).
 3. **Composition**: where Intent, Review and Retro sit relative to each other.
 
-Only the third is the Process concept in the Intent. The second is a *prescriptive* property that one Process chose (Changing KAAL fixes an order); the concept must not require it. Its Node already draws this line in words: "the capability for managing changes to KAAL **through KAAL's change process**… not the changes themselves, and not the tools". The capability and "KAAL's change process" are already two things in the sealed text.
+Only the third is the Process concept in the Intent, and the first two are what makes a Change a closed Change (the compass's order *is* the closure predicate). The architecture (§7.1) breaks the capability into ten responsibilities and sorts them. The second is a *prescriptive* property that one Process chose (Changing KAAL fixes an order); the concept must not require it. Its Node already draws this line in words: "the capability for managing changes to KAAL **through KAAL's change process**… not the changes themselves, and not the tools". The capability and "KAAL's change process" are already two things in the sealed text.
 
 ## 6. Naming (`kaal-changing` vs `kaal-process-change`)
 
 - KAAL names a capability by what it is for (`kaal-intent`, `kaal-review`, `kaal-sealing`, `kaal-collecting`); the *kind* of thing is carried by the Node's type and found by type alone ("found by Node type alone", `core/Skill.md`, `core/Extension.md`).
 - A delivery name is placement, not identity (open #43; 07/08 drew the same line for seats). A name that carried the kind (`kaal-process-…`) would introduce a second classification that Core does not read and that could disagree with the type.
 - A sealed Node cannot be renamed: changed bytes are another Node, and the old one stays. Renaming a package or an Agent Skill directory changes delivery, not capability identity.
-- **Reading:** the name question is real, but the answer follows from whether a Process is a kind (a type) or a role (a reading of a Skill). Decide that first (architecture, Q1); the name then does not carry the load. No rename is proposed.
+- **Reading:** the name question follows from the responsibility question. The inventory above and the architecture's comparison of supersession and separation (§7, Q8) decide what each capability is responsible for; a name then expresses that. `kaal-process-change` fits a capability whose responsibility is the Change Process, not the one whose responsibility is the governed Change. No rename of anything existing is proposed.
 
 ## 7. BRAIN and `kaal-learning` (#72, read only, not touched)
 

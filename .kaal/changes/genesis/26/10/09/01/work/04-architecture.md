@@ -22,29 +22,47 @@
 
 A Node refers only to Nodes born before it. So a composition is *necessarily* downstream of its parts: `Intent`, `Review` and `Changing KAAL` are sealed and can never cite a later Process. The structural half of "without embedding dependencies on other Skills into the individual Ways of Working" is therefore free for every Node that has not yet been born. The other half is discipline, and today it is not quite met by wording (investigation §2: `kaal-intent` step 6; `kaal-changing` steps 2 and 3). That wording is optional and unsealed; it is a second statement of a relationship that the model would state once, in the Process. Moving it is a later Change.
 
-## 2. What a Process is, smallest form
+## 2. What a Process is, justified from meaning
 
-Four options, in order of weight. The Intent asks not to assume a new type; the table shows what each costs.
+The type is decided from what the sealed Nodes mean, not from what costs least. (My first draft recommended a Skill-typed Node mainly because it needs no new type; the Owner's review rightly rejected that as a reason.)
 
-| | Form | Costs | Leaves open |
-|---|---|---|---|
-| 0 | Status quo: relationships in a Skill's unsealed Agent Skill wording. | Nothing. | G1 to G3, G7: nothing a Node-reading Agent can see or pin. |
-| **1** | **A Process is a Skill (a Node typed by `Skill`, registered and found by Core's existing calls) whose text states participants by `{name, id}`, relationships, lenses and boundary. Procedure stays in its Agent Skill.** | One new Node per Process. No Core change, no new type. | Process-ness is a reading of the text, not a typed fact. |
-| 2 | As 1, plus a vocabulary Node `Process` (KAAL Definition) that Process Nodes cite for what the word means. | One extra Definition (the RATIFICATION pattern: vocabulary, not machinery). | Nothing new; it only names the idea once. |
-| 3 | A new Node type `Process` with its own registration and a CASE dimension. | A Core change. | — |
+**What Core says a Skill is.** `core/Skill.md`: a Skill "specifies the desired behaviour for one capability, so that an agent acts on that capability as KAAL intends"; it is found by Node type alone and "joins KAAL without becoming Core". `core/Agent.md` (BASS) says the Skill step is for "a particular capability or kind of work", which is looser; the tension is real and is read below. An Extension is "an additional capability".
 
-**Recommendation: Option 1 for the first Process; birth the Option 2 Definition only when a second Process shows the word earns a Node.** A concept with one instance (Changing KAAL) is not yet a concept; and the Definition can be born later without touching anything already sealed, because later Nodes may cite it. Option 3 would expand Core to give a type a registration it does not need, which is against the posture that new semantic births extend CASE rather than Core. Not recommended.
+**What a Process is.** A statement of how several capabilities are used *in relation to each other* for a purpose.
 
-An illustration of a Process statement (**not a Node, not sealed, wording not proposed**; the IDs are the real, current ones and shown abbreviated):
+| | Skill | Process |
+|---|---|---|
+| About | one capability's Way of Working | relations among two or more capabilities |
+| Meaning complete alone? | yes: `Intent` cites nothing and installs alone | no: its meaning is the Nodes it pins; with a participant absent it is partly unavailable (R6) |
+| Acts on | its capability | no capability; it shapes how others are used |
+| Relation to other Skills | independent of them | dependent on them, by exact `{name, id}` |
+| Reuse | is reused by Processes | is the reuser |
+| What listing "the Skills" should mean | independent capabilities | not part of that list |
+
+Read from meaning, a Process is **not** a Skill. Typing it `Skill` would let a Skill be a composition of Skills, put dependent statements into the enumeration of independent capabilities (`installedSkills()`), and blur "one capability". The apparent counter-example is `Changing KAAL`, a Skill that is also process-like. It is a Skill because *managing Changes* is one capability (its own artifact, lifecycle operations and compass); the process-like part of it is exactly the composition wording (investigation §5), which is the part that is not that capability's own.
+
+**Shape.** A KAAL Definition `Process` stating that a Node is a KAAL Process exactly when its type refers, by name and ID, to this Node: the same pattern Core uses for `Skill` and `Extension`. A Process Node states participants by `{name, id}`, relationships, flows, lenses and boundary; it states no Way of Working and no implementation. The Definition and the first Process are born in a Process package, not in Core: CASE is sealed and a new Core dimension is not needed to type a Node.
+
+**What this costs, checked in a scratch run (evidence §5b):**
+
+1. **Delivery.** Core admits a Process-typed Node with no change. But `registerSkill()` and `registerExtension()` refuse a contribution that carries no Node typed by `Skill` or `Extension` ("a contribution carries a Node typed by the admitted Skill Node"). So a Process cannot be delivered alone; it ships *with the capability that works it*, a Skill whose Way of Working is acting under that Process. That is natural, not forced: the Change Process ships with the capability for working the Change Process, and a pure statement with nobody to act on it has no use.
+2. **Enumeration.** `installedSkills()` does not list a Process, and Core has no `installedProcesses()`. Finding Processes is a derived read of Nodes typed by the Process Definition (as #72 proposes for Learnings), or a later Core function. Neither is proposed here (Q9).
+3. **CASE.** CASE has no Process dimension and is sealed. The Process Definition sits beside CASE, not inside it. If the Owner wants Processes to be a dimension of CASE, that is a Core Change of its own.
+
+**The cheaper alternative, stated honestly:** type a Process `Skill`. It is enumerated and delivered with no new Definition. It is rejected on meaning, and it is the one that would have to be undone if Processes later need to be told apart from capabilities.
+
+An illustration of a Process statement (**not a Node, not sealed, wording not proposed**; IDs are the current real ones, abbreviated):
 
 ```
-name: Change Lenses
-type: Skill {2389ba68…}
+name: Change Process
+type: Process {<ID of the Process Definition, once born>}
 ---
-Composes:   Intent 7317b19e…22cf · Review 7c3d4d8e…6d5f · Changing KAAL 7b247073…96c2
+Composes:   Changing KAAL 7b247073…96c2 · Intent 7317b19e…22cf · Review 7c3d4d8e…6d5f
 Boundary:   within one Change. Nothing here applies to a result outside a Change.
-Absent:     if Intent or Review is not installed the lens below that needs it is
-            unavailable; the Change proceeds as Changing KAAL says.
+Closure:    Changing KAAL's compass and ROWING decide when a Change is closed. This
+            Process adds nothing to that and takes nothing from it.
+Absent:     if Intent or Review is not installed the lens that needs it is unavailable;
+            the Change proceeds as Changing KAAL says.
 
 Lens "Intent adequacy" (internal)
   subject      an Intent, as it stands (by identity)
@@ -62,9 +80,9 @@ Lens "Intent fulfilment" (external)
   ...
 ```
 
-The statement says *who relates to whom and what is asked*. It does not say how to describe an Intent (that is `kaal-intent`), how to write a round (that is `kaal-review`), or who reviews (that is the Owner's assignment, `rowing.md`).
+The statement says *who relates to whom and what is asked*. It does not say how to describe an Intent (`kaal-intent`), how to write a round (`kaal-review`), who reviews (the Owner's assignment, `rowing.md`), or when a Change is closed (Changing KAAL).
 
-An optional helper Skill that writes and checks such statements (as `kaal-intent` does for an Intent: form check, and that each pinned `{name, id}` resolves to an installed Node) is possible and **not proposed now**; a hand-written statement is enough until stale pins prove otherwise.
+A generic helper Skill that writes and checks Process statements, as `kaal-intent` does for an Intent (form, and that each pinned `{name, id}` resolves to an installed Node), is possible and not proposed now.
 
 ## 3. The lens
 
@@ -129,11 +147,74 @@ An established result is immutable; a finding about it cannot be resolved by edi
 
 Where findings are kept is the Process's decision (R16). The default proposed here is *not a new directory*: a finding worth keeping is carried into `work/` as evidence, named with the lens that produced it, so it is sealed with the Work and read by the retros; a lens round file is optional. Nothing is added to the Change record layout.
 
-## 7. Is `kaal-changing` an instance? What is its name?
+## 7. `kaal-changing`: supersession or separation?
 
-- **Yes, the strictest instance** (investigation §5), with three jobs bundled: record keeping, a compass that fixes an order, and composition. The Process concept is the third only; the second is a *prescriptive property* that one Process chose.
-- **In the model it is a participant as well.** A "Change" Process would cite `Changing KAAL` as the record-keeping capability, `Intent` and `Review` as composed capabilities, and state the lenses. `Changing KAAL` keeps its Node, its package, its order. The relationship is a new Node citing it; nothing renames.
-- **Name.** No rename is proposed. `kaal-changing` names a capability by what it is for, like every sibling; the kind (a Process) is a fact for the type or the text, found by reading, not by a name that Core does not read. `kaal-process-change` would put a classification in a delivery name, which can drift from what the Node says, and the old name would remain in every sealed Node and seal anyway. If a Process Node is born for the change process, *its* name can say what it composes. The Skill and package names are a separate decision from the concept (Q8).
+The Owner asked for two genuine alternatives to be weighed against the sealed Node, the delivered Skill, the compass and the lifecycle operations. **A**: a successor (for example `kaal-process-change`) takes over the Change process responsibilities, preserving Change identity and history and defining the transition. **B**: `kaal-changing` keeps the governed Change artifact and its lifecycle operations; a distinct Process capability owns composition, flows, feedback and lenses; Changing's process-specific wording is later reduced or moved through a governed Change, never edited in place against sealed identity.
+
+### 7.1 What `kaal-changing` actually holds
+
+| # | Responsibility | Where it lives today | Nature |
+|---|---|---|---|
+| 1 | Change address and allocation (`changes/<name>/YY/MM/DD/CC/`, `next-change`) | Agent Skill, script | artifact |
+| 2 | Identity and seal of a Change; "closed" means sealed | `kaal-sealing`, `engineering/change-seal`; Changing's wording | artifact |
+| 3 | The order that defines "closed": work ⇄ review converged on the Work, seal work, three retros in order, seal Change | `change-state.mjs`, consulted by sealing, closing, admission and the `.github` controls (07/05: "the one definition of the order") | **closure-defining**, mandatory, enforced |
+| 4 | Seats and authority (Owner, Worker, Reviewer; Worker and Reviewer never one; the turn, the seat, the capability; handoff) | Agent Skill, `rowing.md`; the compass's `next:` line | **closure-defining** governance |
+| 5 | `RATIFICATION`, `ROWING`, `WORK` | sealed Definitions delivered with Changing's package, "owned by nothing" | vocabulary |
+| 6 | Historical forms (`retro.md`, `retro-observe.md`) valid only for older Changes | compass | artifact validity |
+| 7 | Intent as the fixed target of a Change; kept byte for byte when established with `kaal-intent` | Agent Skill wording | composition |
+| 8 | Review as an optional capability whose round form is read "however written" | Agent Skill wording; the compass reads only `Work:` and `Result:` | composition (the form read is Review's) |
+| 9 | Sealing as an installation prerequisite | `compatibility` field; installer refuses if unmet | dependency of the lifecycle operations |
+| 10 | Targeted lenses, internal/external positions, feedback from Testing and Defects, the six vantages, timing relative to establishment | nowhere | **new composition** |
+
+Rows 1, 2, 3, 4, 5, 6 and 9 define what a Change is and when it is closed; they are one thing, because the compass's order *is* the closure predicate (a Change is closed when its tree has gone through that order and is sealed). Rows 7, 8 and 10 say how other capabilities are used around it. The sealed Node says nothing of either: it is "the capability for managing changes to KAAL through KAAL's change process. Its scope is that alone. It is not the changes themselves, and it is not the tools". It names no Intent, no Review, no order. **The sealed meaning already supports a split without anyone editing it**, since it never contained the composition.
+
+### 7.2 Alternative A: supersession
+
+What it needs, none of which exists:
+
+- **A supersession rule.** `registerSkill()` "never gives a registered path other bytes: changed bytes are another Node"; a referring Node still refers to the ID it was born against; `installedSkills()` lists every admitted Node typed `Skill` and relates none to another. Register a successor beside `Changing KAAL` and an Agent sees two Skills claiming one job, with nothing saying which governs. A rule that a Node "takes over" another is a new semantic, and the Owner's rule is that new semantic births extend CASE, not Core machinery.
+- **A transition for the compass.** The compass is deliberately single (07/05). A successor either re-implements it (two definitions of the order, which the Owner closed in 07/05) or becomes its home, and then `engineering/change-seal`, the admission check and the `.github` controls (which travel alone, under the isolation rule) must be re-pointed.
+- **Carrying everything.** The successor must carry or re-cite the historical forms, the three Definitions, the seat rules and the Sealing prerequisite, or the old Node remains the only place they live.
+- **Handling the old Node.** It stays sealed and admitted forever. This repository's `.kaal` installs it; `check-kaal-install` names installed Skills no package delivers, so dropping the old package makes the check red, and removal of a Node or a seal is not built and must not be.
+
+What it preserves: Change identity (path plus bytes, independent of any Skill) and all admitted history. What it buys: one new name and a clean restatement.
+
+It would be right if the *sealed meaning* of Changing KAAL were wrong, or if "a Change" were itself changing meaning. Neither holds: the Node's meaning is unchanged by any of rows 7, 8 and 10, and A would move rows 1 to 6 and 9, which are not the problem, in order to move 7, 8 and 10, which are.
+
+### 7.3 Alternative B: separation
+
+The line is drawn at **closure-defining versus composing**, not at "process versus not". Changing KAAL keeps rows 1 to 6 and 9. A distinct Process capability (the Process Definition, the Change Process, and a Skill that works it) owns rows 7, 8 (as relationships) and 10.
+
+- **ROWING stays authoritative, and has a place in the model.** The review by ROWING is structurally a lens: subject the Work, standard the Change as intended (Intent, Requirements, Architecture), discipline Review, a seat assigned by the Owner. It is the one lens that is *closure-bearing*, because the compass requires its convergence before the Work is sealed. Every other lens is optional and Process-owned. The Process may cite ROWING and Review; it may not weaken, replace or add to what closes a Change (R25).
+- **Dependencies run one way.** The Process pins `Changing KAAL`, `Intent`, `Review` by exact `{name, id}` (it is born after them, so it can). Changing never names the Process. The one unavoidable dependency, a Change Process presupposing Changing, is on the Process, where it belongs; it is declared as an installation prerequisite in the working Skill's `compatibility` field, the mechanism that already carries `kaal-changing` needing `kaal-sealing`. A Process that is about something other than a Change has no such dependency.
+- **The compass stays the one definition of order.** Nothing here duplicates or moves it. The Process says nothing the compass reads.
+- **Skills stay independently reusable.** `Intent`, `Review`, `Retro` and `Sealing` are untouched and can be pinned by any number of Processes. The existing cross-Skill wording (`kaal-intent` step 6; `kaal-changing` steps 2, 3) is reduced or moved by a later governed Change that points it at the Process. That is the Agent Skill, which is unsealed and delivered, so this is a governed edit of delivered text, not an edit of a sealed Node. This Change does not do it.
+- **Transition risk is nil.** The Process package is additive: no sealed Node changes, no Change is re-sealed, admission is unchanged, the compass and its consumers are unchanged. For a while the same relationship is stated twice (the old optional wording and the Process); the Process Skill says that Changing's wording governs closure until the later Change reduces it.
+
+**What B cannot do, stated plainly:** make a lens *mandatory for closure*. That would require the compass to read the Process, which inverts the dependency (Changing depending on a Process). Under B a lens is advisory unless a host control reads the Process (the host's choice, outside KAAL) or the Owner deliberately extends closure through a Changing-governed Change. That is a limit worth having: a Process is read, not run.
+
+### 7.4 Comparison
+
+| Criterion | A: supersession | B: separation |
+|---|---|---|
+| Fits the sealed meaning of `Changing KAAL` | moves what the Node never said | unchanged and sufficient |
+| Change identity and history | preserved by identity; validity of old forms must be carried | untouched |
+| One definition of the order | at risk during transition, then re-homed | untouched |
+| ROWING and Reviewer authority | restated in the successor | stay where the compass reads them |
+| Dependency direction | successor replaces; consumers re-pointed | Process → Changing only |
+| Skills reusable | yes | yes |
+| New mechanism needed | a supersession rule (new semantic) | none beyond the Process Definition |
+| Core change | none, but a rule that wants to be Core's | none |
+| Can a lens be mandatory for closure? | yes, by moving the compass | no, by design |
+| Transition | real: two Skills, consumers, `.github`, installed Node | none |
+
+### 7.5 Recommendation (smallest coherent)
+
+**B.** Changing KAAL keeps the governed Change, its compass, ROWING and the seats. A distinct Process capability, new and additive, owns composition and lenses. Nothing is superseded, renamed or edited.
+
+On naming, which this answers: `kaal-process-change` is a good name, but for the *new* capability, whose responsibility is the Change Process, not for `kaal-changing`, whose responsibility is the governed Change. A name for the composing capability expresses its responsibility; the name `kaal-changing` still expresses its own. The name of a Skill and its package is chosen when born and is the Owner's call (Q8); it is placement, not identity.
+
+What would change this recommendation: if the Owner wants lenses to be closure-bearing, B's limit above applies and either the compass is deliberately extended through a Changing-governed Change or A is reconsidered; if "a Change" is to change meaning, A is the honest path and wants its own supersession rule first.
 
 ## 8. How an Agent reaches a lens (R19, not yet shown)
 
@@ -150,23 +231,24 @@ No prior capability names are needed, and nothing is loaded wholesale. Two route
 
 - No engine, scheduler, state, status, approval or enforcement. A Process is read.
 - No mandatory sequence and no six-stage pipeline. The six Ds are vantages a Process may cite, not an order.
-- No Core, Node Form, relationship model, package, script or Skill is created by this Change.
+- No Core, Node Form, relationship model, package, script or Skill is created by this Change, and no supersession mechanism is proposed.
 - No rename; no change to `kaal-changing`, `kaal-intent`, `kaal-review`, sealed Nodes, `.github`, `engineering`.
 - No review governance: the Reviewer seat rule stands as 07/08 ruled it. A lens review confers no seat.
 - No change to #72. Where lens discovery meets BRAIN's read surface is a question, not a plan.
 
 ## 10. Questions for the Owner
 
-Numbered, recommendation first. None is answered by this Change; each is one word, with the reason in the line.
+Numbered, recommendation first. None is answered by this Change.
 
-1. **What is a Process, in the smallest form?** *Recommend: a Skill-typed Node that states composition (Option 1); the `Process` Definition only when a second Process exists.* Alternatives: Option 2 now; Option 3 (a Core dimension), not recommended.
-2. **Does a Process pin composed capabilities by exact `{name, id}`?** *Recommend: yes.* It is KAAL's reference rule and what makes the relation checkable. The cost is that superseding a composed Skill means re-birthing the Process; KAAL has no supersession rule, and this question should not invent one.
-3. **Do lens statements live in the Process Node (sealed, short) or only in its Agent Skill (unsealed)?** *Recommend: relationship, position, timing and question in the Node; procedure in the Agent Skill.* Otherwise G1 stays.
-4. **What standing does a lens review without an assigned seat have?** *Recommend: information only, never a round that counts and never in `review/`; the lens statement can name a case where the Owner assigns a seat for it.* This adds no governance; it states what 07/08 already implies for the Work seat.
-5. **Where is a useful lens finding kept?** *Recommend: carried into `work/` evidence with the lens named; no new directory.* Alternative: a Process-defined directory beside `review/`, a Change-layout decision this Change cannot make.
-6. **Timing of internal Intent review.** *Recommend: before establishment, when the Owner can still describe again; stated by the Process.* After establishment it informs a future Intent. Do you want this recorded for the Change process now, or only after a second Process exists?
-7. **The existing wording** (`kaal-intent` step 6; `kaal-changing` steps 2 and 3) is the dependency the criterion wants out of Ways of Working. *Recommend: leave it, and plan a later Change that points it at the Process.* Is that how you read "without embedding dependencies"?
-8. **Names.** *Recommend: no rename of `kaal-changing`; a future Process Node is named for what it composes.* Confirm.
-9. **Lens discovery and #72.** Does the route in §8 ride on #72's `find`/`near` surface, or on reading the installed Process Nodes? *Recommend: decide after #72's direction is reviewed; do not couple the two Changes now.*
-10. **Test the discoverability claim before building anything.** *Recommend: yes.* The two-prompt trial in evidence §6 shows whether an Agent given only "review this Intent" reaches the lens; the Codex finding does not. Who runs it is yours to assign; a Worker-side run is a probe, not evidence of independence.
-11. **Is the briefing an Intent?** This Change's own `work/01-intent.md` keeps your briefing's wording (with markdown headings added) and has the same "Expected Work" section that Codex flagged in #72. Is that the right place for an Owner's briefing to land, or should an Intent be separated from the briefing before work begins (what `kaal-intent` exists for)?
+1. **What is a Process, as a type?** *Recommend: a distinct type, a KAAL Definition `Process` born in a Process package (not Core), justified from meaning (§2): a Skill is one capability's Way of Working, a Process is dependent relations among several.* It ships with a Skill that works it, because registration requires one; Processes are found by a derived read. The cheaper alternative, typing a Process `Skill`, is rejected on meaning.
+2. **Does a Process pin composed capabilities by exact `{name, id}`?** *Recommend: yes.* It is KAAL's reference rule and what makes the relation checkable. The cost is that superseding a composed Skill means re-birthing the Process; KAAL has no supersession rule, and this Change does not invent one.
+3. **Do lens statements live in the Process Node (sealed, short) or only in its Agent Skill (unsealed)?** *Recommend: relationship, position, timing and question in the Node; procedure in the Agent Skill.*
+4. **What standing does a lens review without an assigned seat have?** *Recommend: information only, never a round that counts and never in `review/`.* This states what 07/08 already implies for the Work seat; it adds no governance.
+5. **Where is a useful lens finding kept?** *Recommend: carried into `work/` evidence with the lens named; no new directory.*
+6. **Timing of internal Intent review.** *Recommend: before establishment, stated by the Process.* After establishment it informs a future Intent.
+7. **The existing cross-Skill wording** (`kaal-intent` step 6; `kaal-changing` steps 2, 3). *Recommend: leave it now; a later governed Change points it at the Process.* Is that how you read "without embedding dependencies"?
+8. **`kaal-changing`: supersession (A) or separation (B)?** *Recommend: B (§7).* Changing KAAL keeps the governed Change, compass, ROWING and seats; a new additive Process capability owns composition and lenses. `kaal-process-change` is a fitting name for that new capability, if you want it; `kaal-changing` keeps its name.
+9. **Finding Processes, and #72.** Does the route in §8 ride on a derived read of Process-typed Nodes, on #72's `find`/`near` surface, or on a later Core function? *Recommend: derived read; decide after #72's direction is reviewed; do not couple the Changes now.*
+10. **Test the discoverability claim before building anything.** *Recommend: yes.* The two-prompt trial in evidence §6; who runs it is yours to assign. A Worker-side run is a probe, not evidence of independence.
+11. **Is the briefing an Intent?** This Change's `work/01-intent.md` keeps your wording (headings added) and has the same "Expected Work" section Codex flagged in #72. Is that the right place for an Owner's briefing to land, or should an Intent be separated from the briefing before work begins (what `kaal-intent` exists for)?
+12. **May a lens ever be closure-bearing?** *Recommend: not now.* Under B that requires deliberately extending the compass through a Changing-governed Change, so it can never happen by stating a lens.

@@ -76,13 +76,30 @@ Read as: Review writes a round for any named result and identity; a round outsid
 
 **Not run:** `check-kaal-admission` on a closed Change that holds a directory other than `work/`, `review/` and the retros; any closing or sealing; any Process statement as a Node (none exists); any lens against a subject other than an Intent; any run in Embed or External mode.
 
+### 5b. Delivering and finding a Process-typed Node (scratch)
+
+A copy of this repository's `.kaal`, `kaal-core` built from the checkout, and `registerSkill()` / `installedSkills()` called directly. A scratch KAAL Definition `Process`, a Node `Change Process` typed by it, and a Skill-typed Node `Working the Change Process`, each with its seal marker.
+
+```
+registerSkill(kaal, "process-only", { Process.md, Change-Process.md, seals })
+  -> REFUSED: a contribution carries a Node typed by the admitted Skill Node of this KAAL, by name and ID
+registerSkill(kaal, "with-skill",   { Process.md, Change-Process.md, Working.md, seals })
+  -> OK
+installedSkills(kaal)
+  -> Changing KAAL, Collecting KAAL, Engineering Skill, Retro, Sealing, Working the Change Process
+```
+
+Read as: Core admits a Node typed by a Definition born outside Core, with no Core change; a Process cannot be delivered alone through the existing registration; and the Process-typed Node is admitted but not enumerated, so finding Processes is a derived read or a later Core function. Nothing from this run is kept in the repository.
+
+Also read, not run: `registerSkill()` "never gives a registered path other bytes", and `installedSkills()` lists every admitted Node typed `Skill` and relates none to another, so a successor Skill registered beside `Changing KAAL` would be listed with it and nothing says which governs.
+
 ## 6. A proposed trial for what is unproven (not run)
 
 To separate U1 and U6 from explicit instruction. It is for the Owner to assign; a Worker-side run is a probe, not evidence of independence, and does not substitute for an assigned Reviewer.
 
 - **Host.** A scratch KAAL with `kaal-intent` and `kaal-review` installed (they are optional), a `work/01-intent.md` containing a how-leak, no Skill names in any prompt.
 - **Trial A, no Process statement.** Prompt: *"Review this Intent."* Record, per run: did the Agent reach `kaal-intent`'s Way of Working; did it use `kaal-review`'s form; did it state its authority and position; did it cite a standard other than its own taste.
-- **Trial B, an illustrative Process statement installed** (the Option 1 shape in the Architecture, in the scratch host only). Same prompt, same four observations, plus whether it cited the Process.
+- **Trial B, an illustrative Process statement installed** (the illustrative statement in Architecture §2, in the scratch host only). Same prompt, same four observations, plus whether it cited the Process.
 - **Three runs per trial,** ideally with a second provider, since one run proves nothing about variance.
 - **A pass for the model** is B reaching all four where A reaches fewer, on the same prompt. **A fail** is no difference, or B citing the statement while ignoring the standard. **What it cannot show:** independence, correctness of findings, or any mode but the one the host is in.
 

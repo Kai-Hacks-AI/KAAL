@@ -1,6 +1,6 @@
 # Requirements (draft, for Owner alignment)
 
-Each requirement says what must be true of a model of Process composition and review lenses, not how it is built. Section 8 of the investigation names the gaps these answer. "Process" here is the concept in the Intent; whether it is a type, a Skill or only a reading is Architecture's question (Q1), not settled by these.
+Each requirement says what must be true of a model of Process composition and review lenses, not how it is built. Section 8 of the investigation names the gaps these answer. "Process" here is the concept in the Intent; its type is decided from meaning in the Architecture (§2, Q1), not settled by these.
 
 ## Composition
 
@@ -33,6 +33,16 @@ Each requirement says what must be true of a model of Process composition and re
 - **R18. Mode independence.** A lens statement is true in Engineer, Embed and External operation without alteration: it names identities and relationships, never Engine, Record or Subject locations (the separation settled in 08/03).
 - **R19. Discoverable from a subject.** An Agent that starts from Core and from a subject it holds (an Intent, a set of Requirements) can reach the lens statements concerning that kind of subject without knowing capability names or IDs in advance and without loading everything. This is the requirement the Evidence does not yet support (evidence §3).
 - **R20. Feedback is a relationship, not a loop engine.** Testing, Defects and operational results *inform* Requirements or Architecture as stated relationships; whether and when a result changes an upstream artifact is the Owner's and, for an established Intent, another Intent.
+
+## Relation to Changing KAAL
+
+- **R24. One definition of closure.** What makes a Change closed, including the order and the seats that decide whose act is next, has exactly one definition (today the compass). No Process restates, duplicates or competes with it.
+- **R25. ROWING stays authoritative and closure-bearing.** A Process may cite ROWING and Review and may state further lenses. It may not weaken, replace or add to what the review of the Work must establish before a Change is sealed.
+- **R26. Dependencies run one way.** A Process depends on the capabilities it composes, `Changing KAAL` included; no composed capability depends on the Process, for its meaning or its operation. A Process's need for a sibling is declared on the Process as an installation prerequisite, never on the capability it composes.
+- **R27. History is untouched.** Every admitted Change keeps its identity and validity, in every transition the model contemplates, and none needs re-sealing.
+- **R28. Governed reduction.** Process-specific wording now in a delivered Skill may be reduced or moved only through a later governed Change; no sealed Node is edited. The model is satisfiable without that Change having happened.
+- **R29. The type follows from meaning.** A Process's Node type is justified from what it is (relations among capabilities, dependent on them), not from what avoids a change elsewhere. The cost of the choice is stated, including delivery and enumeration.
+- **R30. Supersession is not assumed.** Where a model needs one Node to take over another, it says that KAAL has no such rule and does not rely on one.
 
 ## Boundaries of this Change
 
