@@ -10,7 +10,7 @@ Core already supplies everything a Learning needs except a meaning for "Learning
 - **It does need a type of its own**, not for Core's sake but for discovery: KAAL finds definitions and Skills by type alone, and a Learning is found the same way. That type is a Node born in the new package, not in Core.
 - **A BRAIN is a directory that someone names.** It holds sealed Learnings and their seals, nothing else, and has no identity, no list and no default.
 - **Relationships need nothing new.** Core's Edge (a pointer written into the later Node's own bytes, to Nodes already sealed) is enough. "Cited by" is derived by reading, never stored.
-- **What is genuinely missing** is three Nodes (`Learning`, `BRAIN`, `Learning KAAL`), a Skill whose scripts check, establish, find and trace Learnings, the decision of how a BRAIN is named, and two things Core does not give an installed Skill: a public way to ask whether a non-Skill Node is admitted (the nearest supported route is registration into a throwaway copy, which works), and any check of citations in a Node's body (the Skill supplies it). Everything else is reused.
+- **What is genuinely missing** is three Nodes (`Learning`, `BRAIN`, `Learning KAAL`), a Skill whose scripts check, establish, find, show and near Learnings, Skill Nodes and Changes, the decision of how a BRAIN is named, and two things Core does not give an installed Skill: a public way to ask whether a non-Skill Node is admitted (the nearest supported route is registration into a throwaway copy, which works), and any check of citations in a Node's body (the Skill supplies it). Everything else is reused.
 
 ## What exists, and what is missing
 
@@ -131,21 +131,42 @@ The Skill therefore holds one copy of Core's meaning: the Form, in the three-lin
 
 The Skill's text (`SKILL.md`, the agent-facing form) carries the practice, which is where the judgement lives (BASS: Bare and Skill do the part that cannot yet be a Script):
 
-1. **Look first.** `find` the BRAINs you were given for what already applies. Read what comes back before writing anything.
+1. **Look first.** `find` over the BRAINs, Skills and Changes you were given for what already applies. Read what comes back before writing anything.
 2. **Decide what the evidence is.** A retrospective is one writer's account. Read the observations across the experience; the recurring ones, the ones that changed a decision and the ones a later actor would repeat are candidates; a single observation usually is not.
 3. **Say whether it is understanding.** Could a different actor in a different Change use it? Does it say what to do, and when? If not, it is an observation and stays evidence.
 4. **Choose its home.** If a capability or process text already owns this practice, the learning belongs there, as a Change to that text, and a Learning only cites it. If it is a want, it is a Request or an Intent. If it is a failure of what KAAL intends to hold, it is an Incident. A Learning is for understanding that has no other owner.
 5. **Grow, don't duplicate.** If a Learning already holds the understanding, don't write it again; if you can say something the earlier one does not (a correction, a narrower case, a wider one), write that, cite the earlier by `<name> <ID>`, and say in one sentence what changed.
 6. **Write it, check it, establish it.**
 
-## Discovering and using
+## Reaching knowledge within a bounded context
 
-`find --engine <kaal-dir> --brain <dir>… [<term>…]` prints each admitted Learning as `{name, id}`, the BRAIN it came from, its *Applies when* paragraph and the IDs of Learnings that cite it, filtered by the terms if any. `show <id>` prints one. `trace --record <kaal-dir> <id>` lists the Changes whose files mention that ID. All three read and write nothing.
+*Owner input on the PR (Kai, 2026-10-09), taken as architecture direction:* BRAIN is needed for 0.0.1 so that an Agent can discover and navigate relevant knowledge within bounded context. An unfamiliar question must reach relevant Skill Nodes, Changes and Learnings without pre-known IDs and without loading everything. Skills already carry immutable Nodes, so BRAIN connects to them and does not duplicate them. Learning Nodes are established through Changes.
 
-- **Matching is not judged by a script.** `find` lists and filters by plain text; deciding that this Architecture is the situation a Learning applies to is the agent's reading of *Applies when*. A semantic index would be a cache, never an authority, and is not proposed.
-- **What brings an agent to `find`** is the Skill's `description` (it is loaded wherever the Skill is installed), written for the moments the evidence shows: before Requirements or Architecture are committed, before a review, when a retrospective is being turned into something kept. There is no hook in Changing KAAL (R16). A host that wants learning consulted says so in its own `AGENTS.md`.
-- **Use is a citation.** A Work that applies a Learning cites it in its own text by name and ID, as it would cite any Node. `trace` then answers "which Records cite this". A Learning nothing cites is not shown unused (an actor may have read and acted without writing it down); one that many cite is shown used. A Learning is never marked by being cited.
-- **Where Records are** is a locator too: `--record` names a directory of Changes, as Change `08/03` names Records, and none is assumed.
+**The problem, measured.** KAAL's knowledge already sits in three kinds of place: Skill Nodes (the meaning of each capability), Changes (the Records: Intent, review, three retrospectives each), and, once they exist, Learnings. In the scratch host of `04-evidence.md` that is 115 KB of text for six Skills, 25 Changes and 5 Learnings, growing with every Change. An Agent cannot load that, and today nothing but memory of an ID or a grep leads from a question to the right Change.
+
+**The shape: one read-only surface, three tiers, derived from the bytes that exist.**
+
+1. **Cards, bounded.** `find` takes the Agent's own words (the Agent is an LLM and phrases its own terms) and returns, per kind, at most `--limit` cards (default small), each: kind, name or Change address, a short ID, and one line. The line is what each kind already has: a Skill Node's first sentence, a Learning's *Applies when*, a Change's Intent (its first non-heading line), plus the single best-matching line from the text. It always says how many more matched and that narrowing the terms is the way to see them. The Agent never needs an ID in advance: IDs are in the output.
+2. **Edges, bounded.** `near <id>` returns the neighbours of a Skill Node, a Learning or a Change, by the references that already exist: the Learnings that cite a Skill (`<name> <ID>`), the Skills a Learning cites, the Changes its Evidence names, the Learnings resting on a Change. Nothing is stored for this. Navigation from a hit to the next hit is following references, which is how KAAL says an Agent finds anything ("follow references from Core").
+3. **Full text, on demand.** `show <id>` prints one Learning or Skill Node; a Change is read by its path (its Intent, a retrospective). Reading a whole Node is the Agent's decision after a card made it worth it.
+
+**Why this stays bounded.** Every command has an explicit output cap and says what was omitted; the scan reads files so the Agent doesn't, and what it prints is cards. In the prototype, three unfamiliar questions printed 1.8 to 2.7 KB each and `near` printed 0.4 to 0.8 KB, over 115 KB scanned (`04-evidence.md` section 6). A larger corpus changes how long the scan takes, not how much reaches the Agent.
+
+**Why nothing is duplicated.** A Learning never restates a Skill's meaning. It cites the Skill Node by `<name> <ID>` and says only what experience adds, and the practice (Establishing, step 4) sends a rule that a capability already owns back to that capability. A Change is evidence and is cited by identity, never copied. `near` is therefore the join: from a Skill to the Learnings that qualify it, from a Learning to the Changes that taught it, from a Change to what was learned from it. BRAIN holds the understanding and the pointers; Nodes and Records stay where they are.
+
+**What is stored: nothing new.** No index, no catalogue Node, no table of contents file. An index would be a second source of truth about what the Skill Nodes and Records already say, and a stale one. If the corpus ever outgrows a scan, a cache can be derived from the same bytes and discarded; it would never be an authority.
+
+**What it uses to match.** Plain whole-word term matching, counted by distinct terms, ties by recency. That is deliberately weak: the first answer is a short list the Agent reads and re-asks, not a ranking it trusts. In the prototype it found the right Learning and the right Changes for three questions in the Agent's own words, and ranked a loosely related Skill first for one of them; the cards made that visible at a glance. Semantic matching is the Agent's job (it reads *Applies when* and the one-liners), not the script's, as BASS puts judgement before Script.
+
+**Which Skills and Changes are searched** is a locator like any other: `--engine` (the installed Skill Nodes, plus each Skill's `description` where an Agent Skill is installed beside it), `--record` (Changes), `--brain` (Learnings), each named when used. A host with no BRAIN still gets the Skill and Change cards: the surface is useful on day one, before one Learning exists. That is the part 0.0.1 needs.
+
+**Use is still a citation.** A Work that applies a Learning cites it in its own text by `<name> <ID>`. `near` then also answers "which Changes cite this", and a Change that establishes a Learning cites it, so Change to Learning is derivable in both directions. A Learning nothing cites is not shown unused; one that many cite is shown used. A Learning is never marked by being cited.
+
+**What brings an Agent to `find`.** The Skill's `description`, which Agent Skills loads wherever it is installed, written for the moments the evidence shows: facing an unfamiliar question; before Requirements or Architecture are committed; before a review; when a retrospective is being turned into something kept. There is no hook in Changing KAAL (R16). A host that wants it consulted says so in its own `AGENTS.md`.
+
+## Learnings are established through Changes
+
+Settled by the Owner (Fork 5 below is therefore closed). In a governed repository a Learning enters its BRAIN as part of a Change: the Change's Work holds the draft Learning, the draft is reviewed as a result by the Reviewer seat (`kaal-review`, `--of Learning`, naming its identity), and `establish` places it in the BRAIN in the same proposal that closes the Change. The Change then cites the established Learning by `<name> <ID>` in its Work. That gives the Learning a reviewed origin without a new seat, a status or a gate: Learning is not a step of Changing KAAL, it is something a Change may do. A Change that establishes nothing is complete as it is.
 
 ## Relationships between learnings
 
@@ -184,12 +205,13 @@ BRAIN is a fourth place. It is neither Engine (it is not KAAL's meaning or machi
 
 ## Transition (proposal; nothing is authorised)
 
-Each step is its own Change, green, in this order.
+Each step is its own Change, green, in this order. The read side comes first because it is what 0.0.1 needs and works over what exists.
 
-1. **Birth `Learning`, `BRAIN`, `Learning KAAL` and the Skill.** `packages/kaal-learning/` (Nodes, seals, `SKILL.md`, scripts `check`, `establish`, `find`, `show`, `trace`), `engineering/kaal-learning/` acceptance with the refusal matrix (R27), the self-install projection. First Skill Node outside Core is sealed with the repository's engineering bootstrap helper, an intended exception, as for `Sealing`. Needs `kaal-sealing` beside it and the `kaal-core` package resolvable (as `register-skill` already does), and says so.
-2. **Establish the first Learnings and open this repository's BRAIN.** The drafts here, reviewed as results by an assigned Reviewer; whichever of them the Owner accepts. They ride a Change as vehicle, because this repository admits one closed Change per proposal; that is the repository's admission rule and not KAAL's, and it also gives the Learnings a reviewed Work to be established from.
-3. **Control for a BRAIN's place in a governed repository**, after the Record locator exists, so one baseline/candidate resolution serves both. `.github` and controls, alone.
-4. Only then, if use shows it: an index as a cache, typed relations, supersession-aware listing.
+1. **Birth `Learning`, `BRAIN`, `Learning KAAL` and the Skill with its read side.** `packages/kaal-learning/` (Nodes, seals, `SKILL.md`, scripts `find`, `near`, `show`), `engineering/kaal-learning/` acceptance (bounded output, no ID needed, refusals), the self-install projection. Useful before any Learning exists: it already reaches Skill Nodes and Changes. First Skill Node outside Core is sealed with the repository's engineering bootstrap helper, an intended exception, as for `Sealing`. Needs `kaal-sealing` beside it and `kaal-core` resolvable only where Core admission is asked for (as `register-skill` already does).
+2. **The write side.** `check` and `establish`, with the pre-write validation, citation and evidence rules, and their refusal matrix.
+3. **The first Learnings and this repository's BRAIN**, established through a Change, the drafts reviewed as results by an assigned Reviewer; whichever of the candidates the Owner accepts.
+4. **Control for a BRAIN's place in a governed repository**, after the Record locator exists, so one baseline/candidate resolution serves both. `.github` and controls, alone.
+5. Only then, if use shows it: a derived cache, typed relations, supersession-aware listing.
 
 ## Risks and honest limits
 
@@ -199,7 +221,7 @@ Each step is its own Change, green, in this order.
 - **`kaal-core` must be resolvable** for Core admission, as for registration. A host that has only Core's deployed artifacts can read a BRAIN and run the Skill's own checks, but `check` says Core admission was not run and does not report the BRAIN as checked. How a host obtains the package is the composition question the open `08/03` sibling raises, not this Change's.
 - **A copied Form.** The Skill reads `name` and `type` with its own copy of Core's three-line Form. It is held by an acceptance check against Core's `candidates()` on every real Node, and removed if Core ever exports a read-only reader (Fork 7).
 - **Only closed Changes are evidence** for now. A Learning from a collected Incident or a test result cannot be established until that kind has a resolver. This is the cost of refusing, instead of accepting unverified, and is deliberate.
-- **`find` by plain text** will not scale to thousands of Learnings, and will not match a synonym. Both are fine at the scale the exercise shows (four Learnings from eight Changes) and are the reason not to build an index before use shows it is needed.
+- **`find` by plain text** is a weak matcher: it will not match a synonym, and it ranks crudely. That is acceptable because it returns a short bounded list the Agent reads and re-asks, and it is the reason not to build an index before use shows one is needed. The scan's time grows with the corpus; what reaches the Agent does not.
 - **The type Node is fixed by its ID.** A reborn `Learning` Definition (new bytes) leaves existing Learnings typed under the old one; an Engine then needs both. This is the supersession gap every Skill has, not new.
 - **Ordering of births is a constraint.** `Learning` is sealed first, `BRAIN` cites it, `Learning KAAL` cites both; the Learnings cite `Learning`. Any change to the first changes every ID below it.
 - **Parallel Changes.** `08/03` is taken by three open PRs; this Change took `08/04` because `next-change` allocates optimistically. Whichever lands later renumbers, and the staged Change moves whole.
@@ -210,7 +232,7 @@ Each step is its own Change, green, in this order.
 - **Fork 2. Is evidence required?** At least one `<ID>  <path>` line per Learning. **I recommend yes.** Without it a Learning is indistinguishable from an opinion, and the Intent's distinction between evidence and understanding disappears.
 - **Fork 3. Prescribed headings or free body?** `Applies when` and `Evidence` as fixed headings (as `Retro` fixes its four) or a free body checked only for Form, type and evidence. **I recommend fixed headings**: discovery needs *Applies when*, and the checks for citation and evidence need somewhere to look.
 - **Fork 4. File names in a BRAIN.** `<ID>.md` (recommended: checkable, no collisions, no meaning in the path) or readable names with the ID embedded. Readable names cost a second rule to check and another to refuse when they disagree.
-- **Fork 5. How an accepted Learning gets into this repository.** Riding a Change as vehicle, reviewed as a result with `kaal-review` (recommended), or a separate lighter admission for `brain/`, which would be a control and a new governance path.
+- **Fork 5. How an accepted Learning gets into this repository.** Closed by the Owner's input on the PR: Learnings are established through Changes (see above).
 - **Fork 6. The historical BRAIN.** Leave `KAAL-genesis` where it is as read-only evidence and re-establish a Learning from it only when current work calls for it (recommended), or migrate. Its nodes have no `type` and a path identity, so they are not Learnings as KAAL now means it; a new Learning can cite one by its byte ID as evidence, which names it without importing it.
 - **Fork 7. The copied Form or a Core export?** The Skill keeps a copy of Core's Form, held by an acceptance check against Core (recommended, nothing changes in Core), or a Core Change first exports one read-only reader and the copy never exists. The second is cleaner and slower, and Core has been kept small on purpose.
 - **Fork 8. Evidence kinds.** Only closed Changes are accepted when establishing (recommended). Another kind (a collected carrier, a test result) is added only with its own resolver in its own Change.

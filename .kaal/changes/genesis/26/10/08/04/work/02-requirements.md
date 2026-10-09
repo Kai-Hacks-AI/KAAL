@@ -39,6 +39,15 @@ What must hold for `01-intent.md` to be answered. They say what, not how; the ho
 - **R24 A BRAIN in a repository.** A BRAIN held in a governed repository can be protected by the same identity-based preservation that protects closed Changes, so that the repository's controls need only be told which place to judge. That control is not part of this Change.
 - **R25 Smallest.** What already exists is reused as it is. What is genuinely missing is named, and nothing is added for convenience: no index, cache, configuration, status, relation vocabulary or new seal domain unless a requirement above cannot be met without it.
 
+## Discovery within bounded context (Owner input, PR #72)
+
+- **R30 Bounded.** Every act of discovery returns a bounded amount, states its bound and what it left out, and never requires or performs loading the whole corpus into an Agent's context. Narrowing is something the Agent can do with its next question.
+- **R31 No pre-known IDs.** From a question in its own words, an Agent reaches relevant Skill Nodes, Changes and Learnings. IDs come out of discovery; none is needed to begin.
+- **R32 Connect, never duplicate.** BRAIN refers to Skill Nodes and Changes by name and ID, or by evidence identity, and does not restate their content. From a Skill Node, a Learning or a Change, an Agent can reach the others that refer to it or that it refers to, by those references.
+- **R33 Derived, not stored.** Discovery is computed from the Nodes, Records and Learnings as they are. No index, catalogue or table of contents is an authority about what they say.
+- **R34 Useful before any Learning exists.** Discovery works over Skill Nodes and Changes without a BRAIN.
+- **R35 Established through Changes.** In a governed repository a Learning is established as part of a Change whose Work holds the reviewed draft, and the Change refers to it by name and ID. This adds no seat, status or gate (R16, R17).
+
 ## The exercise
 
 - **R26 Evidence from real Changes.** The six themes of the Intent are examined against the retrospectives and review rounds of the Changes behind PRs #62 to #71. Each is given a disposition (a Learning, not a Learning, deferred) with its reason, and the evidence cited is resolvable by identity.

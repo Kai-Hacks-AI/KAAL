@@ -59,7 +59,7 @@ In sum: four candidates justify Learnings (themes 1, 2, 3's practice and 4). The
 
 ## 4. Candidate Learnings and the three Nodes, drafted
 
-Text as proposed, so that the Owner and a Reviewer can judge the form and the content. **Provisional**: each ID is of the exact bytes below and changes with any edit, and each candidate Learning's type ID is the ID of the `Learning` draft. Candidates 1 and 2 cite the open `08/03` Change; that line does not resolve until it is admitted, and the check says so (section 5).
+Text as proposed, so that the Owner and a Reviewer can judge the form and the content. **Provisional**: each ID is of the exact bytes below and changes with any edit, and each candidate Learning's type ID is the ID of the `Learning` draft. Candidates 3 and 4 cite the Skill Nodes they teach about, `Changing KAAL`, `Sealing`, by `<name> <ID>`, so that discovery can connect them (section 6). Candidates 1 and 2 cite the open `08/03` Change; that line does not resolve until it is admitted, and the check says so (section 5).
 
 ### Learning (KAAL Definition)
 
@@ -188,7 +188,7 @@ ed5387f4bdc244c7212ca31c51c07fb9c0643e55e904bdcfc3bb022cf5a64c8a  retro-review.m
 
 ### Candidate 3
 
-ID `7a4708bf46834ed43cda92c3343e3d1108c486365896a97b9f6fc50c5197faf7`
+ID `542fcbf02d0deadd2662bd0c4f20326cdad99a7e11f4af7c187d23b39cecc33f`
 
 ````markdown
 ---
@@ -200,7 +200,7 @@ type:
 
 # Run the capability where it will live before it is reviewed
 
-A capability proven only by its own acceptance suite hides what it needs beside it and what it leaves behind. Installed into a host that is not its source, with real data, it showed a sibling Skill it needed but never declared, state it wrote that the installer read as drift, and a boundary in the checks around it. None was found by reasoning or by the suite. At Architecture time, list what the capability needs beside it, what it writes and where, and which other readers will meet those bytes, and probe each in such a host. A need that keeps being rediscovered is a decision waiting to be made, not understanding to repeat.
+A capability proven only by its own acceptance suite hides what it needs beside it and what it leaves behind. Installed into a host that is not its source, with real data, it showed a sibling Skill it needed but never declared (Changing KAAL 7b2470732033e9ca6e916cf1ff7d73629bd203737aaf1894a9d621b517e896c2 needing Sealing e15f370ca679e69bdf5a4644d58138cc03d2d06f0eb1832628c4594e49dc335a), state it wrote that the installer read as drift, and a boundary in the checks around it. None was found by reasoning or by the suite. At Architecture time, list what the capability needs beside it, what it writes and where, and which other readers will meet those bytes, and probe each in such a host. A need that keeps being rediscovered is a decision waiting to be made, not understanding to repeat.
 
 ## Applies when
 
@@ -216,7 +216,7 @@ ed5387f4bdc244c7212ca31c51c07fb9c0643e55e904bdcfc3bb022cf5a64c8a  retro-work.md
 
 ### Candidate 4
 
-ID `ab815c8fa3557c0a1169a9521e78ab0a06dbff31999080c8136668358f37f033`
+ID `4111e444126c39f896548346a4da1a1a6149137fa9d5b562ffdd2e74a3850a1f`
 
 ````markdown
 ---
@@ -228,7 +228,7 @@ type:
 
 # One meaning has one definition
 
-Where two consumers need the same meaning (a parse, a path rule, an identity), a second implementation is where the next defect arises: the two agree on the inputs the author thought of and part on the rest. Take the meaning from the capability that owns it. Where that dependency is not yet acceptable, say in the Architecture that the meaning is held twice, and run both on every real input they will meet, so that the disagreement is found by a check and not by a Reviewer.
+Where two consumers need the same meaning (a parse, a path rule, an identity), a second implementation is where the next defect arises: the two agree on the inputs the author thought of and part on the rest. Take the meaning from the capability that owns it (an identity, for one, is Sealing e15f370ca679e69bdf5a4644d58138cc03d2d06f0eb1832628c4594e49dc335a's). Where that dependency is not yet acceptable, say in the Architecture that the meaning is held twice, and run both on every real input they will meet, so that the disagreement is found by a check and not by a Reviewer.
 
 ## Applies when
 
@@ -241,7 +241,6 @@ You are about to write a parser, a path rule or an identity that another capabil
 295a2e4fc7b3115ea48e93f0b04c4eb43c10e0f64c1f6e14118d5bc177e38848  retro-work.md
 72ee2a6383c182d1d94f6d8b2577ed2d1c67e087afb721cd255cabf1533da79e  retro-work.md
 ````
-
 
 ## 5. Scratch prototype, second form (after review round 01)
 
@@ -257,7 +256,7 @@ Round 01 correctly found that the first prototype (below, retained) ran a *sourc
 |---|---|
 | Cites candidate 3 as `<its exact name> <ID>` | established; candidate 3 now "cited by 1" |
 | Cites an ID no Engine or BRAIN holds | refused: "cites abababababab, which no given Engine or BRAIN holds" |
-| Cites a Learning present in the BRAIN but **unsealed** | refused: "cites 878b7af533c3, which is not sealed" |
+| Cites a Learning present in the BRAIN but **unsealed** | refused: "cites <ID>, which is not sealed" |
 | Cites a present, sealed Learning with a **different name** | refused: "without its name … beside it" |
 | Cites a bare ID | refused, same reason |
 | A Change ID written into the understanding instead of Evidence | refused as a citation of nothing |
@@ -300,17 +299,59 @@ Not committed, not part of any package. Core's `nodes.ts` (`admit`, `candidates`
 What this shows: the form passes Core's admission as it is; tampering, renaming, a missing seal and a missing type are each refused by existing rules plus a name check; evidence is resolvable by identity from the Records that exist; relationships need only citation. What it does not show: the Skill's scripts (none exist), the install into a host, any control in a governed repository, or that an agent would find and use a Learning unprompted.
 
 
-## 6. How future Work would find and use them
+## 6. Reaching knowledge within a bounded context (Owner input on the PR)
 
-A Worker begins the Architecture of a Change whose Intent names a mechanism (a CLI, a registry, a directory move) together with an outcome. Today, nothing brings Candidate 1 to the Worker. With `kaal-learning` installed and a BRAIN named by the Owner or the host:
+Kai's comment: BRAIN is needed for 0.0.1 so an Agent can discover and navigate relevant knowledge in bounded context, from an unfamiliar question, without pre-known IDs or loading everything; Skills already carry Nodes, so BRAIN connects and does not duplicate; Learnings are established through Changes.
 
-1. The Skill's description matches the moment ("before Requirements or Architecture are committed"), and the Worker runs `find --engine .kaal --brain <the Owner's BRAIN> architecture mechanism`.
-2. It prints, for each hit, name, ID, BRAIN, *Applies when*, and later Learnings that cite it. In the prototype: `d1efdc8d3f4f Ask what the want serves before choosing the mechanism`, applies when "You are about to commit an Architecture to a mechanism, or to proceed on a default for a decision that is the Owner's", cited by 0.
-3. The Worker reads that Learning, and in its own `03-architecture.md` writes, among the reasoning, "Applies Ask what the want serves before choosing the mechanism d1efdc8d3f4f5385bf25759461b016ff5e81ba731f2a93bd4189c08ce712f6a8: the Intent names a CLI and a registry; the outcome is composition from a source".
-4. Later, `trace --record .kaal d1efdc8d...` lists the Changes that cite it. Nobody has been required to cite it; the Reviewer may ask whether it was considered, as it may ask about any Node.
-5. If the Worker finds the Learning wrong, or narrower than it states, the correction is a new Learning that cites it. The first is not edited.
+`discover.mjs` (section 7) is a prototype of the read side, in the scratch host of section 5, over the real installed Skill Nodes and their Agent Skill descriptions, the 25 real closed Changes, and a BRAIN of five Learnings (the four candidates with candidates 1 and 2 minus their pending-`08/03` line, plus a scratch refinement). Candidates 3 and 4 had been revised to cite `Changing KAAL` and `Sealing` by `<name> <ID>`. It scans files and prints cards only, at most `--limit` per kind.
 
-(*Inference:* the sibling Change `08/03` composition Intent was reshaped by its Owner from "a CLI and a registry" to the outcome. Candidate 1 states what that redirection taught. I do not claim the Worker would have avoided the draft had the Learning existed.)
+**An unfamiliar question, in an Agent's own words, no IDs.** "My new Skill writes a state directory and the installer keeps flagging it as drift", searched as `find installer drift state directory --limit 2`:
+
+```
+Skills: 3 match of 6
+  Collecting KAAL [d938e531] (1/4 terms)
+    Collecting KAAL is the capability for bringing communication addressed to KAAL into KAAL from the KAAL clients it can reach. …
+  Learning KAAL [06b23f91] (1/4 terms)
+    Learning KAAL is the capability for establishing, in a BRAIN, understanding drawn from experience …
+  (+1 more; narrow with more terms)
+Learnings: 3 match of 5
+  Run the capability where it will live before it is reviewed [542fcbf0] (3/4 terms)
+    applies when: You are about to review or admit a capability that is installed, writes state, or is read by something other than its own tests.
+    ~ A capability proven only by its own acceptance suite hides what it needs beside it and what it leaves behind. …
+  Ask what the want serves before choosing the mechanism [9e10996f] (1/4 terms)
+  (+1 more; narrow with more terms)
+Changes: 17 match of 25
+  genesis/26/10/07/09 [4e89104a] (4/4 terms)
+    Enable KAAL to collect KAAL-addressed communication from KAAL clients it can reach.
+    ~ A general understanding of instance-owned operational state within installation. Incident, Request and Collection each required the installer to reco…
+  genesis/26/10/07/07 [5f9d94f9] (4/4 terms)
+    Establish two optional KAAL Skills through which a KAAL client can deliberately communicate experien…
+    ~ I also learned that the installer treats anything in the KAAL directory that no package delivers as drift. …
+  (+15 more; narrow with more terms)
+[output 2098 bytes; corpus read: 115375 bytes]
+```
+
+The relevant Learning and the two Changes that actually met this problem are on top; the Skill ranking is poor (one weak term each), and the card makes that visible at a glance. Two other questions printed 1.8 KB and 2.1 KB ("a reviewer keeps finding one more case every round" reached `State what is refused with what is accepted` with 4 of 4 terms; "may my own helper be the reviewer" reached Changing KAAL and the `07/08` Change on Reviewer authority, and found no Learning, which is true: that rule is owned by Changing KAAL).
+
+**Navigation by references, no stored index.**
+
+```
+near <Sealing Skill Node>            364 bytes
+  Learnings citing this Skill: 2     One meaning has one definition [4111e444] …
+                                     Run the capability where it will live before it is reviewed [542fcbf0] …
+near <that Learning>                 825 bytes
+  later Learnings citing it: 1       Refines the host run [72562db3]
+  Skills it cites: 2                 Changing KAAL [7b247073], Sealing [e15f370c]
+  evidence Changes: 4                genesis/26/10/07/05, …/06, …/07 (+1 more), each with its Intent line
+near <Change genesis/26/10/07/07>    440 bytes
+  Learnings resting on this Change: 5
+```
+
+So from a Skill an Agent reaches the Learnings that qualify it, from a Learning the Skills it depends on and the Changes that taught it, and from a Change what was learned from it. A Learning restates none of the Skill's text; the join is the `<name> <ID>` citation and the Evidence line.
+
+**Bounded.** 115,375 bytes were scanned; the example above is `--limit 2`, and the three questions at the default of 3 printed 1,798 to 2,749 bytes and the three `near` calls 364 to 825 bytes. Nothing was stored. These numbers are for this corpus. The claim is the shape (a cap and a statement of what was left out), not a figure.
+
+**What it does not show.** That the `description` of the real Skill brings an Agent to `find` at the right moment; a corpus large enough to make the scan slow; that whole-word matching is enough for questions phrased with other words (it is not for synonyms; the Agent re-asks); the Changes-establish-Learnings link (here Changes are linked only through Evidence, since no Change has yet cited a Learning).
 
 ## 7. Prototype source
 
@@ -494,6 +535,106 @@ try {
 } catch (e) { for (const f of made) rmSync(f, { force: true }); console.error(`failed, rolled back: ${e.message}`); process.exit(1); }
 ````
 
+The bounded-discovery prototype, `discover.mjs`, same host: `node discover.mjs find|near --engine .kaal --skills skills --record record --brain brain [--limit N] <term…|id>`.
+
+````javascript
+#!/usr/bin/env node
+// Prototype of bounded, derived discovery over three kinds: installed Skill Nodes, Changes in a Record, Learnings in a BRAIN.
+// Reads files (a scan, nothing stored); prints only cards, never whole documents, at most --limit per kind.
+//   discover.mjs find --engine E --skills S --record R... --brain B... [--limit N] <term>...
+//   discover.mjs near --engine E --record R... --brain B... <id>   (a Skill or Learning Node ID, or a Change ID)
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+const HEX = /(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])/g;
+const sha = (b) => createHash("sha256").update(b).digest("hex");
+const changeId = (dir) => execFileSync("node", [join(HERE, "skills/kaal-sealing/scripts/artifact-id.mjs"), "--domain", "KAAL Change v1", dir], { encoding: "utf8" }).trim();
+const files = (d) => Object.fromEntries(readdirSync(d, { recursive: true, encoding: "utf8" }).filter((p) => statSync(join(d, p)).isFile()).map((p) => [p.split("\\").join("/"), readFileSync(join(d, p), "utf8")]));
+
+const o = { engine: "", skills: "", record: [], brain: [], limit: 3, rest: [] };
+const argv = process.argv.slice(3);
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === "--engine") o.engine = resolve(argv[++i]);
+  else if (argv[i] === "--skills") o.skills = resolve(argv[++i]);
+  else if (argv[i] === "--record") o.record.push(resolve(argv[++i]));
+  else if (argv[i] === "--brain") o.brain.push(resolve(argv[++i]));
+  else if (argv[i] === "--limit") o.limit = Number(argv[++i]);
+  else o.rest.push(argv[i]);
+}
+
+// --- the three kinds, as cards ---
+const eng = files(o.engine);
+const skillTypeId = Object.entries(eng).map(([, t]) => ({ t, id: sha(t) })).find((x) => /^---\nname: Skill\n/.test(x.t))?.id;
+const skills = [];
+for (const [p, t] of Object.entries(eng)) {
+  const m = FORM.exec(t);
+  if (!m || p.startsWith("seals/") || m[3] !== skillTypeId || !existsSync(join(o.engine, "seals", sha(t)))) continue;
+  const cap = p.split("/")[1], sk = o.skills && existsSync(join(o.skills, cap, "SKILL.md")) ? readFileSync(join(o.skills, cap, "SKILL.md"), "utf8") : "";
+  const desc = /^description: (.+)$/m.exec(sk)?.[1] ?? "";
+  skills.push({ kind: "Skill", id: sha(t), name: m[1], card: t.slice(m[0].length).trim().split("\n").filter((l) => l && !l.startsWith("#"))[0] ?? "", text: `${t}\n${desc}` });
+}
+const learnings = [];
+for (const b of o.brain) for (const [p, t] of Object.entries(files(b))) {
+  if (p.startsWith("seals/") || !FORM.test(t)) continue;
+  const m = FORM.exec(t), ap = (t.split("## Applies when")[1] ?? "").split("##")[0].trim();
+  learnings.push({ kind: "Learning", id: sha(t), name: m[1], card: ap, text: t, cites: [...new Set((t.replace(FORM, "").split("\n## Evidence")[0].match(HEX)) ?? [])], evidence: [...(t.split("## Evidence")[1] ?? "").matchAll(/^([0-9a-f]{64})  (\S+)$/gm)].map((e) => e[1]) });
+}
+const changes = [];
+for (const r of o.record) {
+  const root = join(r, "changes");
+  for (const n of readdirSync(root)) for (const y of readdirSync(join(root, n))) for (const mo of readdirSync(join(root, n, y))) for (const d of readdirSync(join(root, n, y, mo))) for (const c of readdirSync(join(root, n, y, mo, d))) {
+    const dir = join(root, n, y, mo, d, c), f = files(dir), intent = f["work/01-intent.md"] ?? "";
+    const title = (intent.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#") && l !== "Intent" && !/^Intent [—-]/.test(l)) ?? "").slice(0, 100);
+    const text = ["work/01-intent.md", "retro-work.md", "retro-owner.md", "retro-review.md"].map((k) => f[k] ?? "").join("\n");
+    changes.push({ kind: "Change", id: changeId(dir), name: `${n}/${y}/${mo}/${d}/${c}`, card: title, text, order: `${y}${mo}${d}${c}` });
+  }
+}
+
+const lines = [];
+const say = (s) => lines.push(s);
+const cap = (s, n = 150) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+if (process.argv[2] === "find") {
+  const terms = o.rest.map((t) => t.toLowerCase());
+  for (const [label, set] of [["Skills", skills], ["Learnings", learnings], ["Changes", changes]]) {
+    const hits = set.map((x) => {
+      const low = x.text.toLowerCase(), got = terms.filter((t) => new RegExp("\\b" + t).test(low));
+      const line = x.text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("---"))
+        .map((l) => ({ l, n: terms.filter((t) => new RegExp("\\b" + t).test(l.toLowerCase())).length })).sort((a, b) => b.n - a.n)[0];
+      return { x, score: got.length, line: line?.n ? line.l : "" };
+    }).filter((h) => h.score > 0).sort((a, b) => b.score - a.score || String(b.x.order ?? "").localeCompare(String(a.x.order ?? "")));
+    say(`${label}: ${hits.length} match of ${set.length}`);
+    for (const h of hits.slice(0, o.limit)) {
+      say(`  ${h.x.kind === "Change" ? h.x.name : h.x.name} [${h.x.id.slice(0, 8)}] (${h.score}/${terms.length} terms)`);
+      say(`    ${h.x.kind === "Learning" ? "applies when: " : ""}${cap(h.x.card)}`);
+      if (h.line && h.line !== h.x.card) say(`    ~ ${cap(h.line)}`);
+    }
+    if (hits.length > o.limit) say(`  (+${hits.length - o.limit} more; narrow with more terms)`);
+  }
+} else if (process.argv[2] === "near") {
+  const id = o.rest[0], all = [...skills, ...learnings, ...changes];
+  const full = all.find((x) => x.id.startsWith(id));
+  if (!full) { console.error("unknown id"); process.exit(1); }
+  say(`${full.kind} ${full.name} [${full.id.slice(0, 8)}]`);
+  const show = (xs, l) => { say(`  ${l}: ${xs.length}`); for (const x of xs.slice(0, o.limit)) say(`    ${x.kind === "Change" ? x.name : x.name} [${x.id.slice(0, 8)}] ${cap(x.kind === "Learning" ? x.card : x.card, 90)}`); if (xs.length > o.limit) say(`    (+${xs.length - o.limit} more)`); };
+  if (full.kind === "Skill") show(learnings.filter((l) => l.cites.includes(full.id)), "Learnings citing this Skill");
+  if (full.kind === "Learning") {
+    show(learnings.filter((l) => l.cites.includes(full.id)), "later Learnings citing it");
+    show(skills.filter((s) => full.cites.includes(s.id)), "Skills it cites");
+    show(changes.filter((c) => full.evidence.includes(c.id)), "evidence Changes");
+  }
+  if (full.kind === "Change") show(learnings.filter((l) => l.evidence.includes(full.id)), "Learnings resting on this Change");
+}
+const out = lines.join("\n");
+console.log(out);
+console.error(`[output ${Buffer.byteLength(out)} bytes; corpus read: ${[...skills, ...learnings, ...changes].reduce((a, x) => a + Buffer.byteLength(x.text), 0)} bytes]`);
+````
+
 The first prototype (`proto.mjs`, which imported a source copy of `nodes.ts`) was a 40-line script of the same kind and is superseded; its results are in section 5.
 
 ## 8. What the evidence does not establish
@@ -507,3 +648,5 @@ The first prototype (`proto.mjs`, which imported a source copy of `nodes.ts`) wa
 ## 9. Disposition of review round 01
 
 Round 01 (`review/01.md`) named four findings; each is resolved in `03-architecture.md` and demonstrated in section 5. F1: delivery path through the public `registerSkill()` as an oracle, with the remaining gap named (Fork 7). F2: Core's admission and the Skill's citation check are distinguished, the citation form is `<name> <ID>`, and absent / unsealed / wrongly named targets are refused. F3: establishing has its own pre-write validation with the seal supplied in memory, defined write, rollback and already-held behaviour. F4: establishing requires Records and accepts only closed Changes as evidence, refusing every other kind; reading is permissive and says it is unverified. Nothing in the Intent was changed.
+
+The Owner's input on the PR (2026-10-09) added Requirements R30 to R35, the section on bounded discovery in the Architecture, the reordering of the transition so that the read side comes first, and closed Fork 5. The Intent is unchanged.
