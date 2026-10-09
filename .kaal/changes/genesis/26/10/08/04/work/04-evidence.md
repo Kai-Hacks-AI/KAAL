@@ -355,7 +355,7 @@ So from a Skill an Agent reaches the Learnings that qualify it, from a Learning 
 
 ## 7. Prototype source
 
-Each script is published once, exactly as run for sections 11 to 13 (revised after rounds 01, 02 and 03 and the Owner's Fork 4 and Fork 8 decisions; sections 5, 6 and 10 were run with the earlier forms, which are not kept); the earlier forms are superseded and not kept. Both are checked from this file by extracting the fenced blocks verbatim (see section 11).
+Each script is published once, exactly as run for sections 11 to 14 (revised after rounds 01 to 04 and the Owner's Fork 4 and Fork 8 decisions; sections 5, 6 and 10 were run with the earlier forms, which are not kept); the earlier forms are superseded and not kept. Both are checked from this file by extracting the fenced blocks verbatim (see section 11).
 
 `learning.mjs`. Run in the host described in section 5 as `node learning.mjs check|establish --engine .kaal --brain <dir> [--record <dir>]… [<draft>]`.
 
@@ -642,6 +642,9 @@ o.bytes = Math.min(o.bytes, 4000);
 
 // --- the three kinds, as cards ---
 const eng = files(o.engine);
+// Any Node of the Engine can be an evidence target and be read with `show`; only Skills and Learnings are cards.
+const engNodes = new Map();
+for (const [p, t] of Object.entries(eng)) { const m = FORM.exec(t); if (m && p.endsWith(".md") && !p.startsWith("seals/") && !p.startsWith("changes/")) engNodes.set(sha(t), { kind: "Node", id: sha(t), name: m[1], card: "", text: t }); }
 const typeId = (name) => Object.values(eng).map((t) => ({ t, id: sha(t) })).find((x) => new RegExp(`^---\\nname: ${name}\\n`).test(x.t) && isSealed(join(o.engine, "seals"), x.id))?.id;
 const skillTypeId = typeId("Skill"), learningTypeId = typeId("Learning");
 const skills = [];
@@ -687,26 +690,29 @@ const treeOf = (c) => { if (!treeIds.has(c.id) && !existsSync(join(c.dir, "work"
   if (!treeIds.has(c.id)) { try { treeIds.set(c.id, execFileSync("node", [join(SEALING, "artifact-id.mjs"), "--named", "--domain", "KAAL Tree v1", join(c.dir, "work")], { encoding: "utf8" }).trim()); } catch { treeIds.set(c.id, undefined); } } return treeIds.get(c.id); };
 const evidenceCards = (l) => {
   const out = [], loose = [];
-  for (const i of l.evidence) { const x = byId.get(i) ?? changes.find((c) => treeOf(c) === i); if (x) { if (!out.includes(x)) out.push(x); } else loose.push(i); }
+  for (const i of l.evidence) { const x = byId.get(i) ?? changes.find((c) => treeOf(c) === i); if (x) { if (!out.includes(x)) out.push(x); } else loose.push(engNodes.get(i) ?? { kind: "Artifact", id: i, name: "sealed artifact", card: "" }); }
   return { out, loose };
 };
 
 // --- output under a byte budget: names are clipped, cards stop when the budget is spent, and the output says so ---
 const lines = []; let used = 0, dropped = 0;
 const clip = (s, n = 90) => (s.length > n ? `${s.slice(0, n - 1)}…(+${s.length - n + 1} chars)` : s);
-const RESERVE = 400; // room kept for the lines that say what was left out and how to continue
-const fits = (n) => used + n <= o.budget - RESERVE;
+// Room is reserved, before any card, for the lines that say what was left out and how to continue: one note per list, each at most NOTE bytes,
+// and one closing line. So the whole output (cards, notes, closing line) stays within --budget, whatever the lists hold.
+const NOTE = 130;
+let reserve = 4 * NOTE;
+const fits = (n) => used + n <= o.budget - reserve;
 const say = (s) => { const b = Buffer.byteLength(s) + 1; if (!fits(b)) { dropped++; return false; } lines.push(s); used += b; return true; };
-const note = (s) => { lines.push(s); used += Buffer.byteLength(s) + 1; }; // continuation notes are short and always printed
+const note = (s) => { while (Buffer.byteLength(s) > NOTE) s = s.slice(0, -2); lines.push(s); used += Buffer.byteLength(s) + 1; }; // continuation notes are fixed-size and always printed
 // The address is never clipped: only the name is. 12 hex digits; near/show refuse a prefix that matches more than one.
 const label = (x) => `${clip(x.kind === "Change" ? x.name + (x.closed ? "" : " (open)") : x.name, 60)} [${x.id.slice(0, 12)}]`;
 /** One whole card or none: returns whether it was printed. */
 const card = (x, extra) => {
-  const a = `  ${label(x)}${x.at ? ` @ ${clip(x.at, 50)}` : ""}${extra ?? ""}`, b = `    ${x.kind === "Learning" ? "applies when: " : ""}${clip(x.card, 110)}`;
-  if (!fits(Buffer.byteLength(a) + Buffer.byteLength(b) + 2)) return false;
-  say(a); say(b); return true;
+  const a = `  ${label(x)}${x.at ? ` @ ${clip(x.at, 50)}` : ""}${extra ?? ""}`, b = x.card ? `    ${x.kind === "Learning" ? "applies when: " : ""}${clip(x.card, 110)}` : "";
+  if (!fits(Buffer.byteLength(a) + (b ? Buffer.byteLength(b) + 1 : 0) + 1)) return false;
+  say(a); if (b) say(b); return true;
 };
-const pick = (prefix) => { const m = [...byId.values()].filter((x) => x.id.startsWith(prefix ?? "\0")); if (m.length > 1) { console.error(`ambiguous: ${m.length} Nodes or Changes begin ${prefix}; give more digits`); process.exit(1); } return m[0]; };
+const pick = (prefix) => { const m = [...byId.values(), ...[...engNodes.values()].filter((n) => !byId.has(n.id))].filter((x) => x.id.startsWith(prefix ?? "\0")); if (m.length > 1) { console.error(`ambiguous: ${m.length} Nodes or Changes begin ${prefix}; give more digits`); process.exit(1); } return m[0]; };
 
 const cmd = process.argv[2];
 if (cmd === "find") {
@@ -723,6 +729,7 @@ if (cmd === "find") {
 } else if (cmd === "near") {
   const full = pick(o.rest[0]);
   if (!full) { console.error("unknown id"); process.exit(1); }
+  reserve = ((full.kind === "Learning" ? 7 : 3) + 1) * NOTE;
   say(`${full.kind} ${label(full)}`);
   // --after applies to every list below; a list continues from where the limit or the budget stopped it.
   const show = (xs, l) => {
@@ -741,7 +748,7 @@ if (cmd === "find") {
     show(cited(full).filter((y) => y.kind === "Learning"), "earlier Learnings it cites");
     const { out, loose } = evidenceCards(full);
     show(out, "evidence (what it rests on; a Work tree shows as its Change)");
-    if (loose.length) note(`    (${loose.length} sealed evidence artifact(s) with no card here: ${loose.map((i) => i.slice(0, 12)).join(", ")})`);
+    show(loose, "sealed evidence with no card here (a Node can be read with show)");
   }
   const restsOn = (x) => learnings.filter((l) => l.evidence.includes(x.id) || (x.kind === "Change" && l.evidence.includes(treeOf(x))));
   if (full.kind !== "Learning" || restsOn(full).length) show(restsOn(full), "Learnings resting on it as evidence");
@@ -836,3 +843,20 @@ The Owner decided (PR comment, 2026-10-09) that `<ID>.md` file names are not req
 - **Checking and navigating.** `check` over the established BRAIN with the Record: every line `ok`, exit 0; without `--record`: `evidence unverified: no --record given`. `near` of the three-kind Learning lists its evidence as the Change (its Work tree shows as its Change) and Sealing; `near` of the Sealing Node lists the Learnings resting on it as evidence, and `near` of the Change does the same (six).
 
 **Limits stated as implementation limits.** The table has three rows; a sealed artifact of any other kind is refused with a message that does not claim it is unsealed. Each row restates three facts its domain owns (the same kind of duplication as the copied Form). Whether Incident and Request carriers are sealed as Nodes was not examined, so none is claimed as a kind. The prototype looks for a sealed Node by hashing every Form file of each place given, which is slow for very large places; no timing was taken.
+
+## 14. Disposition of review round 04 (evidence output outside the budget)
+
+Round 04 (`review/04.md`) accepted F1 to F7, F9 and F10 and the two round-03 parts of F8, and kept F8 open for one route: a Learning's evidence that has no card (a sealed Definition Node, say) was printed by `near` as one note listing every ID, which bypassed the byte budget and grew with the number of evidence lines. The finding is right: the note was not counted, and the 400-byte reserve bounded nothing for it.
+
+**Change.** The budget now bounds the whole output. Before any card, room is reserved for one continuation note per list (at most 130 bytes each, clipped if longer) and one closing line; a list is as many cards as fit in what remains, whole or not at all. Evidence with no card is an ordinary list (`sealed evidence with no card here`), one `<name> [<12 digits>]` line per artifact, continued with `--after`. `show` now reads any Node of the Engine by ID (carded or not), so an omitted reference can be inspected. The Architecture's "The output budget" and R30 say this.
+
+**Reproduction and result**, run from the section 7 blocks extracted verbatim (`cmp` identical to the files run, `node --check` passes), in a scratch Engine with 150 further Form-valid KAAL Definition Nodes, each sealed, and a Learning citing all 150 as evidence, established through the published `learning.mjs` and Core's public `registerSkill()` (`established 80c7a771…`, `check` over the BRAIN: no line not ok):
+
+- `near` at the default budget (2,000 bytes), `--limit 3`: 577 bytes with `--after 0` (three cards and `147 more of "sealed evidence with no card here…"; continue with --after 3`), 577 bytes with `--after 3`, 419 bytes with `--after 148` (the last two). Before the change the reviewer measured 2,557 and 2,403 bytes for the same shape.
+- Paging with `--limit 20` at the default budget: twelve pages of 659 to 1,058 bytes, 150 distinct artifacts listed in total, none repeated.
+- `--budget 900`: 202 bytes, the continuation note for the list and the closing line `output budget 900 bytes reached; 7 lines not shown`, within the budget.
+- `show <12 digits>` of one of the 150 printed the Node, bounded by `--bytes`.
+
+The F5 to F9 cases, the Fork 4 cases (section 12) and the Fork 8 cases (section 13) were rerun from the same extracted blocks with the same results (`cases5`: the fifteen establish and refuse results of section 13; `cases4`: the ten steps of section 12).
+
+**What this does not show.** Wall-clock time: establishing the 150-line Learning took on the order of a minute because each evidence line starts Sealing checks per place and kind; the architecture bounds output, not scan time (as stated). The 130-byte note bound relies on list names being clipped; a custom list name longer than that would be clipped at the end, which loses the `--after` value, but no list in the prototype is that long.
