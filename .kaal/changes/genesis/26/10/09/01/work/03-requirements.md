@@ -22,7 +22,7 @@ Each requirement says what must be true of a model of Process composition and re
 
 ## Standing of a targeted review
 
-- **R13. A targeted review is not Change convergence.** A review of any result other than the Work, or any round not in the Change's `review/`, can produce findings and does not affect whether the Change's review has converged or what its compass reports.
+- **R13. A targeted review is not Change convergence.** A targeted review can produce findings and does not establish the Change's convergence. For a result other than the Work the compass already keeps it apart. For the Work itself nothing structural does: the Process places such rounds outside `review/` and states that a round in `review/` is written under an assigned seat (R14).
 - **R14. Authority is stated when a round is written.** A round states under whose authority the reviewer holds the seat and in what independence of the result's maker (Review's own rule). A targeted review with no assigned seat is *information*: it is reported, it is not a round that counts.
 - **R15. A review does not change its subject.** Lens findings are for the one who made the result, or for the Owner when the subject is established.
 - **R16. Where a finding is kept is decided by the Process.** Findings that matter are not left only in a place outside the Change record (a comment); the Process says whether and how they are carried into Work evidence. Review's round form is available but not required.
@@ -31,7 +31,7 @@ Each requirement says what must be true of a model of Process composition and re
 
 - **R17. Reuse.** The same capability Node is citable by any number of Processes unchanged, and no Process-specific text appears in a capability.
 - **R18. Mode independence.** A lens statement is true in Engineer, Embed and External operation without alteration: it names identities and relationships, never Engine, Record or Subject locations (the separation settled in 08/03).
-- **R19. Discoverable from a subject.** An Agent that starts from Core and from a subject it holds (an Intent, a set of Requirements) can reach the lens statements concerning that kind of subject without knowing capability names or IDs in advance and without loading everything. This is the requirement the Evidence does not yet support (evidence §3).
+- **R19. Discoverable from a subject.** An Agent that starts from Core and from a subject it holds (an Intent, a set of Requirements) can reach the lens statements concerning that kind of subject without knowing capability names or IDs in advance. The model provides a complete route for a small installed set, independent of #72 (Architecture §8); a route that scales to many installed Skills is deferred to the Owner. No Agent has yet been run along it (evidence §3, §6).
 - **R20. Feedback is a relationship, not a loop engine.** Testing, Defects and operational results *inform* Requirements or Architecture as stated relationships; whether and when a result changes an upstream artifact is the Owner's and, for an established Intent, another Intent.
 
 ## Relation to Changing KAAL
@@ -45,11 +45,13 @@ Each requirement says what must be true of a model of Process composition and re
 - **R30. Supersession is not assumed.** Where a model needs one Node to take over another, it says that KAAL has no such rule and does not rely on one.
 - **R31. The Change artifact is independently useful.** Changing KAAL supports a Change's address, allocation, identity, seal, closure, integrity and preservation with no Process installed, and nothing it needs depends on one.
 - **R32. Artifact validity and Process fulfilment are distinct.** Artifact validity (a Change tree at a valid address, its seal present and matching, history intact) is what closure, admission and preservation read. Fulfilment of a particular Process (the order, review convergence, retros) is that Process's, enforced where it is enforced today.
-- **R33. Extraction is by responsibility.** `change-state.mjs` is not moved whole. What answers "is it a Change, is it closed, is its history intact" stays; what answers "where is it in the order and whose act is next" moves. The order is defined exactly once.
+- **R33. Extraction is by responsibility.** `change-state.mjs` is not moved whole. What answers "is it a Change, is it closed, is its history intact" stays, including `work/` as the one recognized named tree and every check that depends on it, unchanged and not generalized; what answers "where is it in the order and whose act is next" moves. The order is defined exactly once.
 - **R34. History is valid by seal.** Closed Changes, including those with the historical retrospective forms, remain valid with unchanged identity and are never re-examined against a Process.
 - **R35. No accidental weakening or strengthening.** After any step of the transition every existing control returns the same verdict on every existing Change and on the sealed-without-process case. Behaviour changes (asking Review for convergence, checking fulfilment at admission) are deliberate, separate Changes.
 - **R36. Governed transition.** Each step is its own Change with no waived check, using a bridge where a consumer must accept both forms; no sealed Node is edited and no Change is re-sealed.
 - **R37. Dependencies run one way.** The Process may depend on Changing and Sealing; Changing never depends on the Process. The Process declares what it needs as installation prerequisites.
+
+- **R38. A composing Skill leads with what it composes.** The first paragraph of a Process's Node says what it composes and for what, so a reader can classify it from its lead. This is a convention for the Node's text, not a Core rule.
 
 ## Boundaries of this Change
 

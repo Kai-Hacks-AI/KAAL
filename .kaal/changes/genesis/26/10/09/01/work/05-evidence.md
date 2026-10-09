@@ -72,9 +72,19 @@ review.mjs write review/01.md --of Intent --identity c5719966…1f49 --outcome c
 change-state …                                                                                          # problem: review/01.md is malformed: it needs exactly one "Work: <identity of work/>" line…
 ```
 
-Read as: Review writes a round for any named result and identity; a round outside `review/` does not change the Change's compass; a round inside `review/` for another result is rejected by the compass, not by Review. The separation of a targeted review from the authorized independent review is already structural.
+Read as: Review writes a round for any named result and identity; a round outside `review/` does not change the Change's compass; a round inside `review/` for another result is rejected by the compass, not by Review. This shows subject-mismatch detection only, not separation of lens or authority; see §5a for the case where the subject is the Work.
 
 **Not run:** `check-kaal-admission` on a closed Change that holds a directory other than `work/`, `review/` and the retros; any closing or sealing; any Process statement as a Node (none exists); any lens against a subject other than an Intent; any run in Embed or External mode.
+
+### 5a. A targeted review of the Work, placed in `review/` (scratch; prompted by Reviewer round 01, finding 2)
+
+A throwaway Change with a `work/` and no rounds; a round naming the Work's exact identity written with `review.mjs write … --of Work --outcome converged --reviewer "Advisory targeted lens review by the Worker; holds no Reviewer seat."`, placed in `review/01.md`.
+
+```
+change-state …  ->  REVIEW CONVERGED   next: the Worker seals work   (no problems, exit 0)
+```
+
+Read as: the compass reads the Work identity and the result, not the lens and not the Reviewer's authority. A targeted review of the Work is separated from the authorized review only by where it is placed and by the Reviewer's statement, which an owner can inspect and which is not proof. Existing behaviour; nothing is proposed to enforce it.
 
 ### 5b. The alternative not adopted: a Process-typed Node (scratch)
 

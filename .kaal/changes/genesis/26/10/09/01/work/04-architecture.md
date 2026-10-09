@@ -111,12 +111,17 @@ A lens statement mentions only the first. An internal review can be done in any 
 | | ROWING round (Changing KAAL) | Targeted lens review |
 |---|---|---|
 | Subject | the Change's `work/` | any result; the Work may be one |
-| Home | `review/NN.md` | any other place; never `review/` |
+| Home | `review/NN.md` | any other place; never `review/` (kept by Process discipline for the Work, by the compass for other subjects) |
 | Seat | assigned by the Owner, never the Worker | optional; an unassigned reviewer's output is information |
 | Effect on the Change | decides convergence and unlocks the Work seal | none |
 | Form | Review's round, `--of Work` | Review's round with the subject's name (`--of Intent`) when a record is wanted; otherwise any report |
 
-This distinction needs **no new rule** in Changing KAAL. A scratch run (evidence §5) shows both halves of why: a lens round outside `review/` leaves the compass byte-identical, and a lens round placed *in* `review/` makes `change-state` report the Change's own `review/01.md` malformed (the compass reads `Work:` and the Work identity). The structure already keeps them apart; the Process only has to say which kind of review it is describing.
+This distinction needs **no new rule** in Changing KAAL, but it is kept by two different things, and only one is structural:
+
+- **Structural, for other subjects.** A targeted round about a result other than the Work, placed outside `review/`, leaves the compass byte-identical; placed *in* `review/`, it makes `change-state` report the Change's own `review/01.md` malformed, because the compass reads a `Work:` line and a Work identity (evidence §5). That is detection of a subject mismatch, nothing more.
+- **Not structural, for the Work.** A targeted review whose subject *is* the Work can be written as a round naming the Work's exact identity. Placed in `review/` it is indistinguishable to the compass from a ROWING round: a scratch round with outcome `converged` and an explicitly advisory, unassigned Reviewer statement produced `REVIEW CONVERGED` with no problems (evidence §5a). The compass reads the Work identity and the result; it reads neither the lens nor the Reviewer's authority. This is existing behaviour (the Reviewer statement is "something an owner can inspect and is not proof"), not something this Change proposes to enforce.
+
+So the separation of a targeted Work review from the authorized independent review rests on **Process-controlled placement and authority discipline**: the Process puts targeted rounds outside `review/` and states that only a round written under an assigned seat belongs in it. Nothing in KAAL stops a mistaken placement; it is the Reviewer's statement and the Owner's inspection that do (R14).
 
 What the model does add is **provenance**: a round carries the subject's identity but not which lens or standard was used (investigation §2, point 3). If a Process wants it recorded, the finding text says it; Review's form is not extended, and nothing parses it.
 
@@ -149,11 +154,12 @@ The Owner's direction settles which alternative: **separate artifact responsibil
 | Record structure as documented | `SKILL.md` "The change record", "Admission" | **Changing** | |
 | Immutability of a closed Change; no reuse or renumber | `SKILL.md` rules | **Changing** | artifact rules |
 | Sealing as the way identity and seals are established | `compatibility: kaal-sealing` | **Changing** (still needs Sealing) | |
-| Names `work/`, `review/`, `retro-*`; `currentWorkId()` | `change-state.mjs` | **Process** | they exist because of the order |
+| `work/` as the one recognized **named tree**: `WORK`, `currentWorkId()`, `namedTreeId()`, the tree-seal resolution that finds an orphan Work seal | `change-state.mjs` | **Changing** | `checkChanges()` needs it to give today's verdicts (Reviewer round 01, finding 1); it is a compatibility rule of the artifact, not a meaning of the order |
+| Names `review/`, `retro-*` | `change-state.mjs` | **Process** | they exist because of the order |
 | `rounds()` (reading `review/NN.md`) | `change-state.mjs` | **Process** | a reading of Review's form for ROWING |
 | `derive()` stages, `next:`, whose act | `change-state.mjs` | **Process** | ROWING, convergence, Work seal, retro order, next actor |
 | Historical-form warnings for *open* Changes | `derive()` | **Process** | meaningful only against the order |
-| "Closed but `work/` not sealed" | `checkChanges()` | **Process fulfilment**; see 7.4 | names `work/` |
+| "Closed but `work/` not sealed" | `checkChanges()` | **Changing**, as part of the named-tree rule above; see 7.4 | admission relies on it; moving it would change admitted verdicts |
 | Roles, seats, Worker ≠ Reviewer, handoff and continuation | `SKILL.md`, `rowing.md` | **Process** | |
 | Retros, their order, Knowledge | `SKILL.md`, `retro.md` | **Process** (the form is Retro's) | |
 | Intent as fixed target; Review as optional capability | `SKILL.md` wording | **Process** | composition |
@@ -167,12 +173,15 @@ Moving the script whole would carry the artifact's identity functions into the P
 
 ```
 Changing  (kept):  changes(), present(), address grammar, SEALS/TREE_SEALS, changeId(), namedTreeId(),
-                   sealedIds(), sealedTreeIds(), closedChanges(), seal-integrity checks,
+                   WORK and currentWorkId() as the one recognized named tree (unchanged rule, no generalization),
+                   sealedIds(), sealedTreeIds(), closedChanges(), checkChanges() with all three of its checks,
                    the damaged-history override.          answers: what is a Change, is it closed, is its history intact
-Process   (new):   WORK/REVIEW/RETRO_* names, currentWorkId(), rounds(), derive(),
+Process   (new):   REVIEW and RETRO_* names, rounds(), derive() past the closed early return,
                    the open-Change historical-form warnings.      answers: where it is in the order, whose act is next
-                   imports Changing's functions. It never re-implements them.
+                   imports Changing's functions, including WORK and currentWorkId(). It never re-implements them.
 ```
+
+**The line is not drawn through `checkChanges()`.** It resolves every seal under `seals/trees` against the current `work/` trees and rejects a closed Change whose `work/` is unsealed, so it needs `WORK` and `currentWorkId()`. If those moved to the Process, Changing would need Process-owned identification (a dependency the wrong way), a duplicate, or changed verdicts. A scratch probe in round 01 showed the verdict is specific: an arbitrary sealed named tree `other/` is reported as matching no `work/`, so replacing the existing resolution with generic named-tree scanning would change what is reported. **No generalization is proposed.** `work/` stays the one recognized named tree, with its compatibility rules exactly as they are, in the artifact layer, as the single place where the order's vocabulary appears in the artifact; the Process uses it and adds none.
 
 The compass's two-argument shape (`compass({identity, markers})`) is already the seam: Changing keeps the part that needs only Sealing's identity and markers; the Process takes the rest and calls it. The order stays defined exactly once, in the Process.
 
@@ -186,7 +195,7 @@ The code already makes this distinction without naming it (investigation §9.3):
 The separation must **keep admission artifact-level, not weaken it by accident, and not strengthen it by accident**:
 
 1. After extraction `admit()` must call only Changing's closure and Changing's seal-integrity checks, exactly as `stateOf()` returned `CHANGE CLOSED` plus `checkChanges()` before. A Change sealed without the Process is admitted before and after, which is today's behaviour (evidence §5c).
-2. The one process-flavoured check inside `checkChanges()` (closed Change with a `work/` that has no seal) must not be dropped. Either it stays in the artifact layer as a named-tree rule (a Change containing a named tree whose seal is gone is damaged), or admission asks the Process for fulfilment. Which is a decision (Q10). Dropping it silently would weaken admission.
+2. The process-flavoured check inside `checkChanges()` (closed Change with a `work/` that has no seal), the orphan tree-seal check and the `work/` resolution they share stay in Changing exactly as they are (§7.3). That keeps admission's verdicts identical with no Process installed. The alternative, admission asking the Process for fulfilment, would make a host command depend on the Process and is Q10. Dropping the check, or generalizing it to any named tree, would change admitted verdicts.
 3. The gate on `seal-kaal-work` and `close-kaal-change` moves to the Process-owned order, called by the same engineering helper. If the Process is not installed, only the bare `seal` is available and nothing enforces the order, the same as hand-placing a seal today.
 4. Whether a host control should additionally ask "was this Change's Process fulfilled?" is a separate, new control and a separate Change. It would be a strengthening, not a preservation.
 
@@ -208,7 +217,7 @@ The separation must **keep admission artifact-level, not weaken it by accident, 
 |---|---|---|---|
 | 0 | **This Change** | design only | none touched |
 | 1 | Born: the Process package, additive. Its Skill, its Node, its script **wrapping** `change-state.mjs` (no second copy of the order) | `kaal-process-change` installable; Changing unchanged | all existing verdicts unchanged |
-| 2 | Move: `rounds()`, `derive()`, names and warnings into the Process script; Changing's script keeps the artifact functions. **Bridge**: `engineering/change-seal` accepts the stage from either location for one Change, then drops it | one definition of the order, in the Process | scratch case in §5c and every existing Change give identical verdicts, before and after |
+| 2 | Move: `rounds()`, `derive()` past the closed early return, the `review/` and `retro-*` names and the open-Change warnings into the Process script; Changing's script keeps the artifact functions, `work/` as the named tree and all of `checkChanges()`. **Bridge**: `engineering/change-seal` accepts the stage from either location for one Change, then drops it | one definition of the order, in the Process | scratch case in §5c and every existing Change give identical verdicts, before and after |
 | 3 | Reduce: `kaal-changing/SKILL.md` to record structure, allocation, artifact rules, Sealing; the 8-step Process, roles, handoff move to the Process Skill | Changing independently useful; no sealed Node edited | none |
 | 4 | Optional: ask Review for convergence in the Process; add a host control for fulfilment | strengthening, only if the Owner wants it | new, deliberate |
 
@@ -220,16 +229,25 @@ Properties of the transition: no Core change, no `.github` change in steps 1 to 
 
 `kaal-process-change` names the specialized Skill that composes Changing, Review, Sealing and the D Skills and owns flows, feedback, lenses, roles and progression. `kaal-changing` keeps its name and its responsibility: the Change as an artifact. No existing Node, package or Skill is renamed.
 
-## 8. How an Agent reaches a lens (R19, not yet shown)
+## 8. How an Agent reaches a lens (R19)
+
+The route uses only what exists, and does not depend on #72 or on any index.
 
 ```
-Agent holds a subject (an Intent)
-  → Core (AGENTS.md → core/): what Skills are installed, by {name, id}
-  → the installed Skills that compose others (few, short): which state a lens whose subject is an Intent
-  → the Skills those lenses cite, only as needed
+1. The Agent holds a subject of some kind (an Intent) and has no capability names.
+2. Core: installedSkills(kaal) -> a list of {name, id}. Core cannot say which compose others.
+3. For each listed Skill, read its Node (found by its ID, as AGENTS.md directs: follow references,
+   do not crawl). A Node is short; a Process Node leads with what it composes and for what (R38).
+   Keep the Skills whose lead says they compose and whose subjects include this kind.
+4. Read those Processes' lens statements; follow their pinned {name, id} to the standard
+   (the Way of Working of Intent) and to Review, only as needed.
 ```
 
-No prior capability names are needed, and nothing is loaded wholesale. Two routes exist and neither needs Core to change: read the composing Skills' Nodes directly (small N), or use the derived read surface #72 proposes (`find` by the Agent's words, `near` along references). **This route is a design, not a demonstration**; the Evidence shows the one case the Intent asks about and what it does not establish (evidence §3 to §4). A proposed way to test it is in evidence §6.
+**Bounded, and by what.** Step 3 reads the Node of every installed Skill, not their Agent Skill bodies. The installed set is not the whole of KAAL: optional Skills are installed only by exact ID (investigation §2), so it is what the Owner chose. In this repository the five installed Skills' Nodes total about 4.9 KB (346 to 2,370 bytes each); a Process Node is longer but is read only once it matches. That is acceptable for a small installed set and **is not shown to scale**: with many installed Skills, reading each Node's lead is linear in their number.
+
+**What is deferred.** A scalable route needs something that tells composing Skills from capability Skills without reading each: a marker the type carries (a vocabulary Definition `Process`, Q1), a derived index, or #72's `find`/`near` surface. None is assumed. R19 is therefore met as a complete route for a small installed set and **deferred for large ones**, for the Owner to align (Q14). BRAIN may later be one such derived surface; it is not a prerequisite of anything here.
+
+**Not shown.** Nobody has run an Agent along this route (evidence §6 proposes the trial).
 
 ## 9. What is deliberately out
 
@@ -253,7 +271,7 @@ Numbered, recommendation first. None is answered by this Change.
 7. **The existing cross-Skill wording** in `kaal-intent` and `kaal-changing`. *Recommend: leave now; reduced by the governed Changes in §7.6 and a later one for `kaal-intent`.*
 8. **Which extraction line for `change-state.mjs`?** *Recommend: the split in §7.3: Changing keeps what answers "is it a Change, is it closed, is its history intact"; the Process takes the order, the rounds and the next actor.* Is the line where you read the code?
 9. **Is the sealed `Changing KAAL` still true after its Skill is reduced?** *Recommend: yes, since it names "KAAL's change process" and never defined it.* If you read it as promising the process, a narrower successor Node is the only route and needs a supersession rule first.
-10. **The "closed but `work/` is not sealed" check.** *Recommend: keep it in the artifact layer as a named-tree rule, so admission does not weaken.* Alternative: admission asks the Process for fulfilment (a new dependency of a host command on the Process).
+10. **`work/` as the one recognized named tree, and the "closed but `work/` is not sealed" check.** *Recommend: both stay in Changing unchanged, with no generalization to arbitrary named trees,* so admission's verdicts are identical with or without a Process. It is the one place the order's vocabulary appears in the artifact layer. Alternative: admission asks the Process for fulfilment, a new dependency of a host command on the Process.
 11. **Should Process fulfilment ever be checked at admission?** *Recommend: not in this line of work.* Today admission is artifact-level; adding fulfilment is a deliberate strengthening and its own Change (step 4 of §7.6).
 12. **Does the Process ask Review for convergence instead of re-reading rounds?** *Recommend: later, as its own Change.* It makes Review a prerequisite and has a stricter parser than the compass's two-line reading (R35).
 13. **Where do `ROWING`, `WORK`, `RATIFICATION` ship?** *Recommend: unchanged for now* (Nodes are location-independent; the Process pins them by ID); relocating delivery to the Process package is optional and can wait.
