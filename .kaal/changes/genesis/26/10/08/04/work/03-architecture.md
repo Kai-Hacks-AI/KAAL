@@ -69,12 +69,34 @@ type:
 <ID>  <path>
 ```
 
-- **The understanding** is prose. Any 64-hex ID in it is an Edge, written `<name> <ID>` as in Core's own Nodes ("CASE 6cffa0…"): it must be the ID of a sealed Node in the graph (Engine plus BRAINs supplied), with that Node's exact name immediately before it. This is where one Learning grows from another. Core states this rule for Edges and does not check it of a body; the Skill checks it.
-- **Applies when** is what discovery shows first. It is the difference between a Learning and a note: an observation does not know when it applies.
-- **Evidence** is a list of `<ID>  <path>` lines in the form `reach.md` already uses. `<ID>` identifies the evidence (today a closed Change, by its address-free ID); `<path>` is a file inside it. At least one line is required; a Learning with no experience behind it is an opinion. No PR number, branch, commit or check may appear, as nothing in `.kaal` carries them.
 - **Name**: not unique. Two Learnings may share a name, as the original BRAIN's `testing` was born three times; the ID tells them apart.
 
-Whether to prescribe these headings or leave the body free, as `Intent` does, is Fork 3.
+Whether the body is prescribed or free was Fork 3, decided by the Owner: structured, with the understanding as prose.
+
+### Prose and mechanics
+
+*Owner decision, Fork 3:* a Learning is structured and deterministically readable, with its understanding as prose. Its content is therefore of two kinds, kept apart because they are read differently. **Prose** is for an Agent to read and judge; a script never interprets it. **Mechanics** are for a script to decide; each has an exact grammar and a deterministic check, and none needs anyone to infer what a value means. (In the rest of this document the two section names are the working names used in the prototype, `Applies when` and `Evidence`; the analysis below proposes the clearest terms and does not freeze them.)
+
+| Part | Kind | Exact rule | Decided by |
+| --- | --- | --- | --- |
+| Frontmatter | mechanical | Exactly `name` and `type` (`type` is the Engine's `Learning`, by name and ID). **No other field, ever**: Core's Form admits nothing else, so a Learning with an added field is not a Node by Form and cannot be admitted as one. No tags, status, date, author, confidence or lineage field. | Core's admission, and the Skill's type check |
+| Title | mechanical | The first body line is `# <name>`, equal to the frontmatter `name`. | Skill |
+| Understanding | prose | Free Markdown between the title and the situation section. The only mechanical reading is citations. | Agent; Skill scans citations |
+| Situation section | heading mechanical, content prose | Exactly one, after the understanding and before the evidence section; its content is not empty and is never parsed. | Skill (presence, order, not empty) |
+| Citations | mechanical | Every 64-hex ID in the understanding or situation is written `<name> <ID>` and is a sealed Node with that exact name. | Skill |
+| Evidence section | wholly mechanical | The last section. Every non-blank line is `<64-hex ID>  <relative path>` (two spaces) and nothing else is in it, not even prose. At least one line (Fork 2). The ID names the evidence artifact and the path a regular file inside it (confined, F6). There is no kind label: the kind is whatever resolver the ID resolves under (Fork 8), and a label would be a second claim to check. | Skill and the Records |
+
+*What the prototype does and does not yet enforce.* It checks Form and type, the title, that the situation section is present, ordered and not empty, citations, and every evidence line's grammar and resolution. It does not yet refuse a second situation section or an empty understanding, and the added-field case was not run; the rules above are the contract for the implementation, and these three need cases in it.
+
+A new structured element is added only with an exact grammar, a deterministic check and a reader who needs it; "might be useful" does not qualify. The two prose parts are where the understanding lives. The situation text is prose on purpose: a script that matched it would be pretending to know when something applies, which is the Agent's judgement.
+
+**The terms, from what each must mean.** The situation section states, in general terms, the circumstance in which a later actor should bring this understanding to bear. It is the writer's statement, compared by the reader with the reader's own present circumstance; it is not the circumstance in which the Learning was learned (that is evidence). The evidence section lists what experience left behind that supports the understanding: several, each identified and resolvable, giving traceability and not proof (Fork 2).
+
+- For the situation: *Context* is already overloaded in KAAL (bounded context, context window, Subject). *Conditions* suggests a predicate a script could evaluate, which it is not. *Relevance* is the reader's judgement of fit, not something a writer states. *Applies when* is accurate but half a sentence and a property, not a noun; *Use when* belongs to a Skill's `description`, instructions to use something, where a Learning is understanding to weigh. **Recommended: `Situation`.**
+- For the evidence: *Provenance* means an origin or chain of custody, which in KAAL is already what identity and Edges do. *Source* is one thing and collides with source code and "source of truth". *Justification* is an argument, prose, and would invite prose into the one section that must have none. KAAL already says "evidence" in this sense (Review: "the observed Work with its evidence"; Changing KAAL: `work/` holds "support and evidence"). **Recommended: `Evidence`**, defined as above.
+
+The two names live in exactly two places once implemented: the text of the `Learning` definition Node and the Skill's structure check. Settling them before the first Node is sealed costs an edit in each; the drafts and the prototype of `04-evidence.md` carry the working names and would be re-drafted with them.
+
 
 ## Where a BRAIN is and how it is found
 
@@ -107,7 +129,7 @@ Two layers, kept apart because only the first is Core's.
 1. `<ID>.md` hashes to its own name (Sealing's `artifact-id.mjs`, bare).
 2. **A seal is what Sealing says it is.** The Learning is sealed when Sealing's own check (`seal.mjs check`: an empty regular file named by the ID) passes in its BRAIN's `seals/`; existence of a path is never taken for a seal. A non-empty file or a directory at `seals/<ID>` is not a seal: that Learning is not sealed, every use of it (checking, citing, evidence, "already held") treats it so, and `check` names the entry. Every seal has its Learning. The one marker supplied in memory by Establishing (below) stands in only for the draft being established; every marker that already exists is judged by Sealing.
 3. Its type is the Engine's `Learning`, by name and ID.
-4. **Structure**: the body begins `# <name>`, then `## Applies when` (not empty), then `## Evidence`.
+4. **Structure**: the body begins `# <name>`, then the understanding, then the situation section (working name `## Applies when`, not empty), then the evidence section as the last section; its exact grammar is in "Prose and mechanics".
 5. **Citations**: the understanding (everything between the frontmatter and `## Evidence`) cites a Node only in the form Core's own Nodes use, `<name> <ID>`. Every 64-hex ID there must be the ID of a Node found in the given Engine or BRAINs, that is **sealed**, with its **exact name** immediately before the ID and a single space. An absent ID, an unsealed target, a name that is not the target's, a bare ID, and a Learning citing itself are each refused. This is Edge's rule (to already-sealed Nodes, by name and ID) checked, since Core states it and does not check it of a body.
 6. **Evidence** lines are `<ID>  <path>` and only in `## Evidence`. A 64-hex ID in the understanding is a citation, never evidence, so the two cannot be confused: a Change ID written into the understanding is refused as a citation of nothing.
 7. **Evidence resolves**, when Records are given (see Establishing for when they must be).
@@ -236,7 +258,7 @@ Each step is its own Change, green, in this order. The read side comes first bec
 
 - **Fork 1. Where does this repository's own BRAIN live?** *Decided by the Owner (PR comment, 2026-10-09):* a root-level `brain/` directory, explicitly named by this repository's own wrapper or configuration. It is a placement for this repository, not a universal KAAL directory convention. `kaal-learning` keeps accepting an explicit BRAIN locator and never infers it from the Engine, Record, Subject or working directory. See "Where a BRAIN is", the repository placement paragraph.
 - **Fork 2. Is evidence required?** *Decided by the Owner (PR comment, 2026-10-09): A, evidence is mandatory.* At least one `<ID>  <path>` line per Learning; `establish` refuses a Learning without one. Evidence is traceability, not mechanical proof that the understanding is correct. The decision does not restrict evidence to closed Changes; which kinds resolve is Fork 8.
-- **Fork 3. Prescribed headings or free body?** `Applies when` and `Evidence` as fixed headings (as `Retro` fixes its four) or a free body checked only for Form, type and evidence. **I recommend fixed headings**: discovery needs *Applies when*, and the checks for citation and evidence need somewhere to look.
+- **Fork 3. Prescribed headings or free body?** *Decided by the Owner (PR comment, 2026-10-09):* structured, deterministically readable sections, but the names are not frozen. Mechanics and prose are separated (see "Prose and mechanics"); frontmatter carries only Core's `name` and `type`; the understanding stays prose. Recommended names for the Owner to confirm: `Situation` and `Evidence`; the prototype uses the working name `Applies when`.
 - **Fork 4. File names in a BRAIN.** `<ID>.md` (recommended: checkable, no collisions, no meaning in the path) or readable names with the ID embedded. Readable names cost a second rule to check and another to refuse when they disagree.
 - **Fork 5. How an accepted Learning gets into this repository.** Closed by the Owner's input on the PR: Learnings are established through Changes (see above).
 - **Fork 6. The historical BRAIN.** Leave `KAAL-genesis` where it is as read-only evidence and re-establish a Learning from it only when current work calls for it (recommended), or migrate. Its nodes have no `type` and a path identity, so they are not Learnings as KAAL now means it; a new Learning can cite one by its byte ID as evidence, which names it without importing it.
