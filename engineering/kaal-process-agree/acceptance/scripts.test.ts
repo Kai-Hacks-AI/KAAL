@@ -71,7 +71,7 @@ function hostFor(root: string, mutate: (records: Rec[]) => Rec[] = (r) => r) {
     if (name.endsWith("-how.md")) records.push({ kind: "authored", path: `log/${name}`, sha256: sha256(text), login: OWNER });
     const m = /^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(text);
     if (name.endsWith("-round.md") && m) {
-      records.push(m[1] === "review" ? { kind: "review", id: m[2], login: REVIEWER, commit: m[3] } : { kind: m[1], id: m[2], login: REVIEWER, commit: m[3], body: "No findings", content: "+1" });
+      records.push(m[1] === "review" ? { kind: "review", id: m[2], login: REVIEWER, commit: m[3], findings: Math.max(1, (text.match(/^\d+\. /gm) ?? []).length) } : { kind: m[1], id: m[2], login: REVIEWER, commit: m[3], body: "No findings", content: "+1" });
       records.push({ kind: "file", path: `log/${subjectName}`, commit: m[3], sha256: sha256(readFileSync(join(root, "loop/log", subjectName), "utf8")) });
     }
   }
@@ -282,7 +282,7 @@ test("a report of a different subject than the current one is refused and writes
 test("the findings are never read: prose that says approved, agreed or converged does not agree, and prose that says nothing does not disagree", (t) => {
   const root = begin(t);
   submit(root, intentText("a"));
-  report(root, "findings", { findings: "No findings. Approved. This is converged and agreed." });
+  report(root, "findings", { findings: "1. No findings. Approved. This is converged and agreed." });
   assert.equal(head(root), "REVISE");
   submit(root, intentText("b"));
   report(root, "converged");
@@ -626,4 +626,121 @@ test("a human stop is durable: restoring the damaged record or writing the missi
   assert.equal(run(none, ["direct", "loop", "--reason", "grant", "--direction", "stop", "--words", "Kai: no."]).code, 0);
   writeFileSync(join(none, "loop/grant.md"), `# Grant\n\nWorker: ${WORKER}\nReviewer: ${REVIEWER}\nRounds: 2\nSubject: Intent\n\n## Words\n\nA grant written later.\n`);
   assert.equal(head(none), "STOPPED", "a grant that appears after the stop does not reopen it");
+});
+
+
+// ---------- findings are not orders, and none of them disappears (Owner's review question on PR #75) ----------
+
+const TWO = "1. The description names no boundary.\n2. The Intent should also say how the Reviewer will be paid.";
+const answer = (root: string, finding: number, disposition: string, ground = "because it matters", extra: string[] = []) =>
+  run(root, ["answer", "loop", "--finding", String(finding), "--disposition", disposition, "--ground", ground, "--words", "The Worker's reason, in its own words.", ...extra]);
+const carrier = (root: string) => {
+  writeFileSync(join(root, "carrier.md"), "# Request\n\nA valid observation outside this Change.\n");
+  return ["--carrier", join(root, "carrier.md")];
+};
+
+test("a valid finding outside the governing words is deferred, not implemented and not discarded: it stays in the brief after the loop concludes", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  assert.equal(report(root, "findings", { findings: TWO }).code, 0);
+  assert.equal(head(root), "REVISE");
+  assert.match(state(root).out.join("\n"), /finding 02-round\.md #2 of 2: open/);
+  const deferred = answer(root, 2, "defer", "because it matters", carrier(root));
+  assert.equal(deferred.code, 0, deferred.err);
+  assert.equal(submit(root, intentText("a, with its boundary")).code, 0);
+  assert.equal(report(root, "converged").code, 0);
+  for (const out of [state(root).out, run(root, hostFor(root)).out]) {
+    const text = out.join("\n");
+    assert.match(out[0], /^(REPORTED|AGREED)$/);
+    assert.match(text, /finding 02-round\.md #1 of 2: accepted by revision \(04-subject\.md\)/);
+    assert.match(text, /finding 02-round\.md #2 of 2: deferred as candidate Work, carried in \S*carrier\.md [0-9a-f]{8} \(03-answer\.md; ground: "because it matters"\)/);
+  }
+  assert.match(readFileSync(join(root, "loop/log/02-round.md"), "utf8"), /should also say how the Reviewer will be paid/, "the original finding is untouched");
+});
+
+test("the Worker may challenge every finding and put the same bytes forward: the Reviewer reconsiders, and a Reviewer who accepts the position converges with the finding still on record", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings", { findings: "1. Say more." });
+  submit(root, intentText("a"));
+  assert.equal(reasonOf(root), "unrevised", "without an answer, the same bytes asked again are still unrevised");
+  const again = begin(t);
+  submit(again, intentText("a"));
+  report(again, "findings", { findings: "1. Say more." });
+  assert.equal(answer(again, 1, "challenge").code, 0);
+  assert.equal(submit(again, intentText("a")).code, 0);
+  assert.equal(head(again), "REVIEW", "a dispute is not a stall");
+  const asked = run(again, ["request", "loop", "--standard", STANDARD]).out.join("\n");
+  assert.match(asked, /Answers: the Worker has answered the findings of 02-round\.md/);
+  assert.match(asked, /finding 1: challenged; ground quoted from the subject or the Owner's words: "because it matters"/);
+  assert.match(asked, /the Owner decides scope, not the Worker or you/);
+  report(again, "converged");
+  assert.equal(head(again), "REPORTED");
+  assert.match(state(again).out.join("\n"), /finding 02-round\.md #1 of 1: challenged by the Worker/);
+});
+
+test("a Reviewer who still holds the finding after the Worker's answer on unchanged bytes escalates to HOW(disputed); neither Agent decides scope, and the finding is still listed", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings", { findings: TWO });
+  answer(root, 1, "challenge");
+  answer(root, 2, "defer", "because it matters", carrier(root));
+  submit(root, intentText("a"));
+  assert.equal(report(root, "findings", { findings: "1. Still the boundary.\n2. Still the payment." }).code, 3, "recording it is not a failure; the state it reaches needs a human");
+  const how = state(root);
+  assert.equal(how.code, 3);
+  assert.match(how.out.join("\n"), /reason: disputed:[\s\S]*finding 02-round\.md #2 of 2: deferred as candidate Work[\s\S]*finding 06-round\.md #1 of 2: open/);
+  assert.equal(submit(root, intentText("a")).code, 1, "the Worker does not continue");
+  assert.equal(answer(root, 1, "accept").code, 1, "nor answer");
+  const go = run(root, ["direct", "loop", "--reason", "disputed", "--direction", "continue", "--rounds", "2", "--words", "Kai: boundary yes, payment is out of scope."]);
+  assert.equal(go.code, 0, go.err);
+  assert.equal(head(root), "REVISE");
+  assert.match(state(root).out.join("\n"), /finding 02-round\.md #1 of 2: challenged/);
+  assert.equal(run(root, ["direct", "loop", "--reason", "ceiling", "--direction", "stop", "--words", "x"]).code, 1, "a direction answers the reason in force");
+});
+
+test("an answer rests on the governing words and on a real carrier, and is refused otherwise; refusals write nothing", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  assert.equal(answer(root, 1, "challenge").code, 1, "no findings to answer while a subject waits for review");
+  report(root, "findings", { findings: TWO });
+  const before = read(join(root, "loop"));
+  assert.match(answer(root, 1, "challenge", "this is just wrong").err, /quotes the subject or the Owner's words/);
+  assert.match(answer(root, 3, "challenge").err, /1 to 2/);
+  assert.match(answer(root, 1, "defer").err, /--carrier is the file/);
+  assert.match(answer(root, 1, "defer", "because it matters", ["--carrier", join(root, "nothing.md")]).err, /is not a file/);
+  assert.match(answer(root, 1, "challenge", "because it matters", carrier(root)).err, /belongs to --disposition defer only/);
+  assert.match(answer(root, 1, "delete").err, /--disposition is/);
+  assert.deepEqual(read(join(root, "loop")), before);
+  assert.equal(answer(root, 1, "challenge", "describe the Intent with Codex").code, 0, "the Owner's words in the grant are a ground too");
+  assert.match(answer(root, 1, "challenge").err, /already answered/);
+  // with one finding still unanswered, the same bytes are unrevised, not a dispute
+  submit(root, intentText("a"));
+  assert.equal(reasonOf(root), "unrevised");
+});
+
+test("findings are copied one per numbered item, and the original cannot be rewritten after it was answered", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  assert.match(report(root, "findings", { findings: "1. one\n3. three" }).err, /numbered item/);
+  report(root, "findings", { findings: TWO });
+  answer(root, 2, "defer", "because it matters", carrier(root));
+  const round = join(root, "loop/log/02-round.md");
+  writeFileSync(round, readFileSync(round, "utf8").replace("2. The Intent should also say how the Reviewer will be paid.", "2. (withdrawn)"));
+  const s = state(root);
+  assert.equal(reasonOf(root), "evidence");
+  assert.match(s.out.join("\n"), /its bytes have changed/);
+});
+
+test("verified: a transcription that drops one of the host's findings is not shown to be complete", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings", { findings: "1. only the convenient one" });
+  submit(root, intentText("b"));
+  report(root, "converged");
+  const dropped = verifiedState(root, (r) => r.map((x) => (x.kind === "review" ? { ...x, findings: 2 } : x)));
+  assert.equal(dropped.code, 3);
+  assert.match(dropped.out.join("\n"), /the host's review \d+ holds 2 findings, the round carries 1/);
+  const unsaid = verifiedState(root, (r) => r.map((x) => { if (x.kind !== "review") return x; const { findings, ...rest } = x; return rest; }));
+  assert.match(unsaid.out.join("\n"), /does not say how many findings/);
 });

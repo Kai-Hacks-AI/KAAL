@@ -124,6 +124,18 @@ Subject, standard and expected examination are exactly the three things the brie
 
 `direct <loop> --reason <code> --direction continue|stop [--rounds n] --words <text|@file>` refuses unless `<code>` is the reason in force. A human direction is the human's by the host: the verified run shows that the Owner authored the file (§4a). `continue` opens a window: identities forgotten, count zero, budget `n`. Human participation is the defining distinction; Agents may help the human write the words. The script cannot tell who ran it; §4a is what makes the direction's authorship checkable.
 
+## 6a. Findings are not orders (Owner's review of 2026-10-09)
+
+**Question and answer in short.** The Reviewer's findings are information to the Worker, not instructions; a valid finding can be outside the governing words; neither may be erased. The smallest mechanism is one new event kind and one new HOW reason; no registry, no new Node.
+
+- **Event `NN-answer.md`**, written by `agree.mjs answer`: the round it answers (name plus its SHA-256), the finding number, a disposition, a ground and, for `defer`, a carrier (path plus SHA-256). Findings are numbered items (`1. …`) because `relay` now requires that structure; a legacy round with no numbered item is one finding. Only structure is read, never meaning.
+- **Dispositions.** `accept` (also implied for an unanswered finding when the subject changes); `challenge` (the Worker holds it invalid or met); `defer` (valid, out of this Work: do not implement; carried forward in an existing mechanism, typically a `kaal-request`/`kaal-incident` carrier, otherwise the project's own backlog).
+- **The ground** must be a verbatim quotation (at least 8 characters) of the current subject or of the Owner's `Words` in the grant. That makes the position traceable to the governing words and checkable by a reader; it does not make it correct. Nothing reads the Worker's `--words`.
+- **Reconsideration.** If every finding of the latest round is challenged or deferred, the same bytes may be put forward again: it is not `unrevised`. `request` then hands the Reviewer the Worker's answers, labelled as a position and not an instruction, and says the Owner decides scope. The Reviewer then either converges (it accepts the position; the record says so by outcome and identity) or reports findings again.
+- **Disagreement and escalation.** Findings again on those unchanged bytes is HOW(`disputed`): the Process requires a human, `continue` with a new budget or `stop`. Disagreement through changed bytes is bounded by the ceiling, and oscillation and stagnation fire as before. Scope is thus decided by the Owner (or never), not by either Agent.
+- **Preservation.** Immutable round files (any change after an answer pinned its digest is `evidence`), the gapless log, and a `finding` line per finding in every brief, in every state. Verified state also requires the host's finding count for a review to equal the round's.
+- **Not done.** The Worker's transcription of a finding's text is not compared with the host's text (only the count is); the Process cannot tell whether a carrier is a good one, only that it exists and what its bytes were.
+
 ## 7. Package and Node
 
 - `packages/kaal-process-agree/`: sealed Node `Agreement` (typed by `Skill`; leads with *Composes:* `Intent` and `Review`, each `{name, id}`; boundary; says what the Process owns and what it does not), Agent Skill `kaal-process-agree` (`compatibility: … kaal-intent and kaal-review installed beside this one`), one script `agree.mjs` with `begin`, `state`, `request`, `submit`, `relay`, `direct`, and `payload()` as the others.

@@ -4,6 +4,7 @@
 // agree request <loop> [--standard <SKILL.md of kaal-intent>]
 // agree submit <loop> <file>
 // agree relay <loop> --result findings|converged --actor <actor> --saw <file> --source-kind review|comment|reaction --source-id <id> --commit <sha> [--findings <text|@file>]
+// agree answer <loop> --finding <n> --disposition accept|challenge|defer --ground <quoted text> [--carrier <file>] --words <text|@file>
 // agree direct <loop> --reason <code> --direction continue|stop [--rounds <n>] --words <text|@file>
 //
 // The Agreement process for describing an Intent: a Worker puts versions of an
@@ -21,7 +22,7 @@
 // control. Until then the most a record can reach is REPORTED, never AGREED.
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const here = (relative) => new URL(relative, import.meta.url).href;
@@ -53,6 +54,7 @@ export const REASONS = {
   unrevised: "review was asked again with the subject unchanged",
   oscillation: "an earlier subject has come back",
   ceiling: "the rounds the Owner granted are spent without agreement",
+  disputed: "the Worker answered the findings without changing the subject and the Reviewer holds them",
 };
 
 // ---------- the grant ----------
@@ -68,7 +70,7 @@ export function readGrant(loop) {
   if (worker === reviewer) return { ok: false, why: "the Worker and the Reviewer are one actor; the grant must name two" };
   if (Number(rounds) < 1) return { ok: false, why: "Rounds is at least 1" };
   if (!(subject in SUBJECTS)) return { ok: false, why: `Subject ${subject} is not one this process knows: ${Object.keys(SUBJECTS).join(", ")}` };
-  return { ok: true, worker, reviewer, rounds: Number(rounds), subject };
+  return { ok: true, worker, reviewer, rounds: Number(rounds), subject, words: m[5] };
 }
 
 // ---------- the log ----------
@@ -80,7 +82,7 @@ function listLog(loop) {
   if (!existsSync(dir)) return { events, problems }; // a loop with a grant and no log yet is an empty loop
   if (!lstatSync(dir).isDirectory()) return { events, problems: [`${dir} is not a directory`] };
   const names = readdirSync(dir)
-    .map((name) => ({ name, m: /^(\d{2,})-(subject|round|how)\.md$/.exec(name) }))
+    .map((name) => ({ name, m: /^(\d{2,})-(subject|round|how|answer)\.md$/.exec(name) }))
     .sort((a, b) => (a.m && b.m ? Number(a.m[1]) - Number(b.m[1]) : a.name < b.name ? -1 : 1));
   names.forEach(({ name, m }, i) => {
     if (!m || Number(m[1]) !== i + 1 || m[1] !== String(i + 1).padStart(2, "0")) return void problems.push(`${name} is not the next event: the log is 01-…, 02-… without a gap and with nothing else`);
@@ -98,6 +100,25 @@ export function parseDirection(content) {
   if (direction === "continue" && (rounds === undefined || Number(rounds) < 1)) return undefined;
   if (direction === "stop" && rounds !== undefined) return undefined;
   return { reason, direction, rounds: rounds === undefined ? undefined : Number(rounds) };
+}
+
+/** The findings of a round are its numbered items (`1. …`, `2. …`); a round with no numbered item is one finding. Structure only, never meaning. */
+export function findingItems(findings) {
+  const numbers = [...findings.matchAll(/^(\d+)\. /gm)].map((m) => Number(m[1]));
+  if (numbers.length === 0) return { n: 1, ok: true };
+  return { n: numbers.length, ok: numbers.every((v, i) => v === i + 1) };
+}
+
+const DISPOSITIONS = ["accept", "challenge", "defer"];
+const squash = (t) => String(t).replace(/\s+/g, " ").trim();
+
+/** An answer: the Worker's disposition of one finding of a round. */
+export function parseAnswer(content) {
+  const m = /^# Answer\n\nRound: (\S+) ([0-9a-f]{64})\nFinding: ([1-9]\d*)\nDisposition: (accept|challenge|defer)\nGround: "([^\n"]+)"\n(?:Carrier: (\S+) ([0-9a-f]{64})\n)?\n## Words\n\n([\s\S]*\S[\s\S]*)$/.exec(content);
+  if (!m) return undefined;
+  const [, round, sha, finding, disposition, ground, cpath, csha] = m;
+  if ((disposition === "defer") !== (cpath !== undefined)) return undefined; // a deferred finding is carried; nothing else carries
+  return { round, sha, finding: Number(finding), disposition, ground, carrier: cpath === undefined ? undefined : { path: cpath, sha: csha } };
 }
 
 // ---------- state, derived ----------
@@ -142,6 +163,9 @@ export async function derive(loop, host) {
   const counted = []; // rounds attributed to the granted Reviewer
   const hows = []; // directions that were applied
   let pendingRound; // a round that fired a condition but is counted once a direction continues
+  const ledger = []; // every counted round with findings, with what became of each finding
+  let lastRound; // the latest of them
+  let reasked; // identity of a subject put forward again after the Worker's dispositions
 
   for (const e of events) {
     if (stopped) { out.ignored.push(`${e.name} (the loop was stopped)`); continue; }
@@ -163,6 +187,19 @@ export async function derive(loop, host) {
       out.state = undefined; out.reason = undefined; out.detail = undefined;
       continue;
     }
+    if (e.kind === "answer") {
+      const a = parseAnswer(text(e.path));
+      if (!a) { fire("evidence", `${e.name} is not an answer in the form`); continue; }
+      if (awaiting || agreed || !lastRound || lastRound.name !== a.round) { fire("evidence", `${e.name} is out of turn: it answers ${a.round}, which is not the latest findings round waiting for the Worker`); continue; }
+      if (sha256(readFileSync(join(loop, "log", a.round))) !== a.sha) { fire("evidence", `${e.name}: ${a.round} is not the round it answered: its bytes have changed`); continue; }
+      if (a.finding > lastRound.items) { fire("evidence", `${e.name} answers finding ${a.finding}, and ${a.round} has ${lastRound.items}`); continue; }
+      if (lastRound.answers.has(a.finding)) { fire("evidence", `${e.name} answers finding ${a.finding} of ${a.round} a second time`); continue; }
+      const ground = squash(a.ground);
+      if (ground.length < 8 || !(squash(readFileSync(join(loop, "log", latest.name), "utf8")).includes(ground) || squash(g.words).includes(ground))) { fire("evidence", `${e.name}: its ground is not a quotation of the subject or of the Owner's words in the grant`); continue; }
+      e.outcome = `${a.disposition} #${a.finding}`;
+      lastRound.answers.set(a.finding, { ...a, by: e.name });
+      continue;
+    }
     if (e.kind === "subject") {
       if (awaiting || agreed) { fire("evidence", `${e.name} is out of turn: ${awaiting ? "the previous subject has no report yet" : "agreement was already reached"}`); continue; }
       const bytes = readFileSync(e.path);
@@ -170,9 +207,14 @@ export async function derive(loop, host) {
       if (why) { fire("evidence", `${e.name} is not an ${g.subject}: ${why}`); continue; }
       const identity = subject.identity(bytes);
       e.identity = identity;
+      if (latest && identity === latest.identity && lastRound && !lastRound.revisedBy && lastRound.items > 0 && [...Array(lastRound.items).keys()].every((i) => ["challenge", "defer"].includes(lastRound.answers.get(i + 1)?.disposition))) {
+        // the same bytes again, after the Worker disputed or deferred every finding: the Reviewer is asked to reconsider
+        latest = { name: e.name, identity }; awaiting = true; reasked = identity; continue;
+      }
       if (latest && identity === latest.identity) { fire("unrevised", `${e.name} has the identity of the previous subject, ${short(identity)}`); latest = { name: e.name, identity }; awaiting = true; continue; }
       if (window.seen.includes(identity)) { fire("oscillation", `${e.name} has the identity ${short(identity)} seen earlier in this window`); latest = { name: e.name, identity }; awaiting = true; continue; }
       window.seen.push(identity);
+      if (lastRound && !lastRound.revisedBy) lastRound.revisedBy = e.name;
       latest = { name: e.name, identity };
       awaiting = true; last = undefined;
       continue;
@@ -190,6 +232,20 @@ export async function derive(loop, host) {
     e.source = /^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(round.reviewer) && ((m) => ({ kind: m[1], id: m[2], commit: m[3] }))(/^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(round.reviewer));
     if (actor === undefined || actor !== g.reviewer || actor === g.worker) { fire("seat", `${e.name} is attributed to ${actor === undefined ? "no actor" : `'${actor}'`}, and the grant names '${g.reviewer}' as the Reviewer and '${g.worker}' as the Worker`); continue; }
     counted.push(e);
+    if (round.outcome === "findings") {
+      const f = findingItems(round.findings);
+      if (!f.ok) { fire("evidence", `${e.name}: the findings are numbered items that must run 1, 2, 3 without a gap`); continue; }
+      e.items = f.n; e.answers = new Map(); ledger.push(e); lastRound = e;
+    }
+    const wasReasked = reasked === round.identity;
+    reasked = undefined;
+    if (wasReasked) {
+      if (round.outcome === "converged") { results.set(round.identity, new Set(["converged"])); awaiting = false; agreed = true; last = "converged"; continue; }
+      window.findings += 1;
+      fire("disputed", `${e.name} found again on ${short(round.identity)}, which the Worker had answered without changing it`);
+      pendingRound = { outcome: "findings" };
+      continue;
+    }
     const before = results.get(round.identity) ?? new Set();
     results.set(round.identity, before.add(round.outcome));
     if ([...before].some((o) => o !== round.outcome)) { fire("contradiction", `${e.name} says ${round.outcome} about ${short(round.identity)}, which was also reported as ${[...before].find((o) => o !== round.outcome)}`); continue; }
@@ -200,6 +256,7 @@ export async function derive(loop, host) {
     } else { awaiting = false; agreed = true; last = "converged"; }
   }
 
+  out.ledger = ledger;
   out.used = window.findings; out.rounds = window.budget;
   out.subject = latest && { path: join(loop, "log", latest.name), identity: latest.identity };
   out.provenance = host ? "verified against the host's records" : "reported, not verified";
@@ -236,17 +293,38 @@ function provenance(g, loop, counted, hows, host) {
     const at = records.find((x) => x.kind === "file" && x.path === `log/${r.subjectName}` && sameCommit(x.commit, s.commit));
     if (!at) bad.push(`${r.name}: the host shows no log/${r.subjectName} at commit ${s.commit}`);
     else if (at.sha256 !== r.identity) bad.push(`${r.name}: log/${r.subjectName} at commit ${s.commit} is ${short(String(at.sha256))}, not the ${short(r.identity)} the round names`);
+    if (r.outcome === "findings" && s.kind === "review") {
+      if (rec.findings === undefined) bad.push(`${r.name}: the host does not say how many findings ${s.kind} ${s.id} holds, so the transcription is not shown to be complete`);
+      else if (Number(rec.findings) !== r.items) bad.push(`${r.name}: the host's ${s.kind} ${s.id} holds ${rec.findings} findings, the round carries ${r.items}`);
+    }
     const implied = s.kind === "review" ? "findings" : s.kind === "comment" ? (NO_FINDINGS.test(rec.body ?? "") ? "converged" : undefined) : rec.content === "+1" ? "converged" : undefined;
     if (implied !== r.outcome) bad.push(`${r.name}: the host's ${s.kind} ${s.id} implies ${implied ?? "neither result"}, the round says ${r.outcome}`);
   }
   return bad;
 }
 
+/** What became of each finding of each round: always listed, however the loop ends. */
+export function findingLines(d, loop) {
+  const lines = [];
+  for (const r of d.ledger ?? []) {
+    for (let i = 1; i <= r.items; i++) {
+      const a = r.answers.get(i);
+      let what;
+      if (a?.disposition === "challenge") what = `challenged by the Worker (${a.by}; ground: "${a.ground}")`;
+      else if (a?.disposition === "defer") what = `deferred as candidate Work, carried in ${a.carrier.path} ${short(a.carrier.sha)}${existsSync(resolve(loop, a.carrier.path)) ? "" : " [carrier not found]"} (${a.by}; ground: "${a.ground}")`;
+      else if (a) what = `accepted (${a.by})`;
+      else what = r.revisedBy ? `accepted by revision (${r.revisedBy})` : "open: no answer and no revision yet";
+      lines.push(`finding ${r.name} #${i} of ${r.items}: ${what}`);
+    }
+  }
+  return lines;
+}
+
 const NEXT = {
   REPORTED: "none for the Worker: the Reviewer's convergence is only reported; someone outside the Worker's control verifies it against the host (state --host … --owner …), and the Worker stops revising",
   DESCRIBE: "the Worker describes the Intent and submits it",
   REVIEW: "the Worker requests a targeted review of the subject, then records the Reviewer's report",
-  REVISE: "the Worker revises the Intent in answer to the findings and submits it",
+  REVISE: "the Worker answers each finding it does not accept (agree.mjs answer: challenge it, or defer it as candidate Work in a carrier) and revises the Intent in answer to the rest; if every finding is challenged or deferred it may put the same Intent forward again for the Reviewer to reconsider",
   AGREED: "none: the host's records show the Reviewer the Owner named reported convergence on exactly this subject; the Worker stops revising, and establishing the Intent is the Owner's",
   STOPPED: "none: a human ended the loop; no agreement is claimed",
 };
@@ -263,6 +341,7 @@ export function brief(d, loop) {
   if (d.provenance) lines.push(`provenance: ${d.provenance}`);
   if (d.grant.ok) lines.push(`rounds: ${d.used} of ${d.rounds} used in this window; worker: ${d.grant.worker}; reviewer: ${d.grant.reviewer}`);
   for (const e of d.events) lines.push(`${e.n} ${e.kind}${e.outcome ? ` ${e.outcome}` : ""}${e.direction ? ` ${e.direction} (answers ${e.answers})` : ""}${e.actor ? ` by ${e.actor}` : ""}${e.identity ? ` ${short(e.identity)}` : ""}${e.kind === "round" ? ` (${e.path})` : ""}${e.n === "--" ? " (stop.md, beside the grant)" : ""}`);
+  lines.push(...findingLines(d, loop));
   for (const x of d.ignored) lines.push(`ignored: ${x}`);
   if (d.state === "HOW" && d.preflight) {
     const fix = d.reason === "grant" ? "The Owner writes a valid grant.md" : d.reason === "provenance" ? "The host's records are corrected, or the record is restored to what they show" : "Restore the log to a gapless sequence of events";
@@ -337,9 +416,37 @@ export async function relay(loop, a) {
   const seen = sha256(readFileSync(a["--saw"] ?? refuse("--saw is the subject as the Reviewer saw it")));
   const now = sha256(readFileSync(d.subject.path));
   if (seen !== now) refuse(`the report is of a different subject: what the Reviewer saw is ${short(seen)} and the subject now is ${short(now)}; request a review of the current subject`);
+  if (a["--result"] === "findings") {
+    const f = findingItems(clean(a["--findings"] ?? ""));
+    if (!f.ok) refuse("the findings are copied one per numbered item, '1. …', '2. …', without a gap, so that each can be answered; the Worker does not merge or drop one");
+  }
   const statement = `Actor: ${actor}\nSource: ${kind} ${sourceId} commit ${commit}\nRecorded by the Worker (${d.grant.worker}) from the report of ${actor}, the Reviewer named in the Owner's grant: the Worker copied the report and decided nothing in it.`;
   const content = review.render({ of: d.grant.subject, identity: now, outcome: a["--result"], reviewer: statement, findings: a["--findings"] === undefined ? undefined : clean(a["--findings"]) });
   return append(loop, "round", content);
+}
+
+export async function answer(loop, a) {
+  const d = await derive(loop);
+  if (d.state !== "REVISE") refuse(`the state is ${d.state}: findings are answered only while the Worker owes a revision`);
+  const r = d.ledger[d.ledger.length - 1];
+  const finding = a["--finding"];
+  if (!/^[1-9]\d*$/.test(finding ?? "") || Number(finding) > r.items) refuse(`--finding is a number from 1 to ${r.items}: the numbered items of ${r.name}`);
+  if (r.answers.has(Number(finding))) refuse(`finding ${finding} of ${r.name} is already answered: an answer is written once`);
+  const disposition = a["--disposition"];
+  if (!DISPOSITIONS.includes(disposition)) refuse(`--disposition is ${DISPOSITIONS.join(", ")}`);
+  const ground = oneLine("--ground", a["--ground"]);
+  if (ground.includes('"')) refuse("--ground is quoted text without a double quote");
+  const subject = squash(readFileSync(d.subject.path, "utf8"));
+  if (squash(ground).length < 8 || !(subject.includes(squash(ground)) || squash(d.grant.words).includes(squash(ground)))) refuse("--ground quotes the subject or the Owner's words in the grant verbatim (at least 8 characters): a disposition rests on the governing words, not on opinion");
+  let carrier = "";
+  if (disposition === "defer") {
+    const file = a["--carrier"] ?? refuse("--carrier is the file that carries the deferred finding forward as candidate Work (for example a request or incident made with kaal-request or kaal-incident, where those apply)");
+    if (!existsSync(file) || !lstatSync(file).isFile()) refuse(`--carrier ${file} is not a file`);
+    carrier = `Carrier: ${relative(resolve(loop), resolve(file))} ${sha256(readFileSync(file))}\n`;
+  } else if (a["--carrier"] !== undefined) refuse("--carrier belongs to --disposition defer only");
+  const words = clean(a["--words"] ?? "");
+  if (words === "") refuse("--words is the Worker's reason in its own words and cannot be empty");
+  return append(loop, "answer", `# Answer\n\nRound: ${r.name} ${sha256(readFileSync(r.path))}\nFinding: ${finding}\nDisposition: ${disposition}\nGround: "${ground}"\n${carrier}\n## Words\n\n${words}\n`);
 }
 
 export async function direct(loop, a, host) {
@@ -366,6 +473,8 @@ export async function request(loop, standard = "skills/kaal-intent/SKILL.md") {
   const d = await derive(loop);
   if (d.state !== "REVIEW") refuse(`the state is ${d.state}: a review is requested only while a subject waits for one`);
   if (!existsSync(standard)) refuse(`${standard} is not found: pass --standard <the SKILL.md of kaal-intent as installed>`);
+  const disputed = (d.ledger ?? []).filter((r) => [...r.answers.values()].some((a) => a.disposition !== "accept")).pop();
+  const answered = disputed ? [...disputed.answers.values()].filter((a) => a.disposition !== "accept").sort((a, b) => a.finding - b.finding) : [];
   return [
     "@codex review",
     "",
@@ -374,6 +483,13 @@ export async function request(loop, standard = "skills/kaal-intent/SKILL.md") {
     `Standard: the Way of Working of the Intent capability, ${standard} (SHA-256 ${sha256(readFileSync(standard))}).`,
     "Examine: whether it says what is wanted and why, with the outcomes and the boundaries, in the Owner's own terms; whether it stays out of Requirements, Architecture and implementation; whether it is short enough for the Owner to hold; and whether every boundary is the Owner's rather than a convenient guess.",
     'Report: one comment per finding, citing the line and saying what must be resolved. If there is nothing to resolve, comment "No findings" (do not only react).',
+    ...(answered.length
+      ? [
+          `Answers: the Worker has answered the findings of ${disputed.name} (${disputed.revisedBy ? `the subject was revised in ${disputed.revisedBy}` : "the subject is unchanged"}) and keeps these as follows. They are the Worker's position, not an instruction to you and not a closing of the finding; the finding stays in the record either way.`,
+          ...answered.map((a) => `- finding ${a.finding}: ${a.disposition === "defer" ? `deferred as candidate Work (carried in ${a.carrier.path})` : "challenged"}; ground quoted from the subject or the Owner's words: "${a.ground}" (${a.by})`),
+          "Decide for yourself: if you still hold a finding, report it again; if you accept the position, report no findings. If you hold that something out of scope must change in this Work, say so as a finding; the Owner decides scope, not the Worker or you.",
+        ]
+      : []),
   ].join("\n");
 }
 
@@ -404,6 +520,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       await show(await submit(loop, rest[0]));
     } else if (command === "relay") {
       await show(await relay(loop, given(rest, ["--result", "--actor", "--saw", "--source-kind", "--source-id", "--commit", "--findings"])));
+    } else if (command === "answer") {
+      await show(await answer(loop, given(rest, ["--finding", "--disposition", "--ground", "--carrier", "--words"])));
     } else if (command === "direct") {
       const o = given(rest, ["--reason", "--direction", "--rounds", "--words", "--host", "--owner"]);
       if (!o["--host"] !== !o["--owner"]) throw Object.assign(new Error(usage), { usage: true });

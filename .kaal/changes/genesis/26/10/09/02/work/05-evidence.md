@@ -76,3 +76,33 @@ All three were reproduced first, then fixed in `agree.mjs`, documented (Requirem
 The trial's host records now carry the commit and `file` records (`846a90d` for v1, `bfa83fb` for v2). Re-run: `state --host … --owner ChBrain` is still HOW(provenance) because the Worker authored the grant (nothing else is now reported); the counterfactual with the grant attributed to the Owner is AGREED.
 
 Not done, as before: a CI control that fetches the host records; Codex's targeting of one file.
+
+## 8. Findings are not orders, and none is erased (Owner's two comments of 2026-10-09)
+
+Design: Architecture §6a, Requirements R36 to R38. Built as one event kind (`answer`), one HOW reason (`disputed`), a `finding` line per finding in every brief, and numbered findings at `relay`. No registry, no new Node, no change to any sealed text. 57 acceptance tests pass.
+
+**Concrete scenario, run with the real scripts** (a throwaway copy of `.kaal`, `kaal-request` for the carrier; Reviewer `codex[bot]`):
+
+1. The Intent is submitted and the Reviewer reports two findings: (1) no boundary for who decides when the loop fails, a valid in-scope point; (2) "should also say how the loop is billed per Reviewer token", valid and outside the Owner's words.
+2. The Worker defers finding 2: `answer --finding 2 --disposition defer --ground "Do not build a general orchestration framework." --carrier .kaal/requests/26/10/09/01.md`. The carrier was made with `request.mjs write`. It revises the Intent for finding 1 only (an unanswered finding is accepted by the revision). Nothing for finding 2 is implemented.
+3. The Reviewer converges. State REPORTED, and the brief ends with:
+
+```
+finding 02-round.md #1 of 2: accepted by revision (04-subject.md)
+finding 02-round.md #2 of 2: deferred as candidate Work, carried in ../.kaal/requests/26/10/09/01.md 87a752bb (03-answer.md; ground: "Do not build a general orchestration framework.")
+```
+
+The finding text itself is still in `02-round.md`; the carrier is a request in the KAAL directory where KAAL can collect it; neither was altered to reach agreement.
+
+**Boundaries shown by tests** (`scripts.test.ts`, last six tests):
+- The Worker challenges everything and puts the same bytes forward: REVIEW, not `unrevised`; the request carries the answers as the Worker's position and says the Owner decides scope; a converging Reviewer gives REPORTED and the finding is still listed as challenged. Without the answer the same bytes are `unrevised`; with one of two findings answered they are still `unrevised`.
+- The Reviewer holds the finding on unchanged bytes: HOW(`disputed`), exit 3, with every finding listed. The Worker cannot submit or answer; only a human `continue` (new budget) or `stop` moves it, and a direction names the reason in force.
+- Answers are refused, writing nothing, when the ground is not a quotation of the subject or grant words, the finding does not exist or is already answered, a deferral has no carrier or a missing one, a carrier is attached to a non-deferral, it is out of turn.
+- Findings must be numbered items, with no gap, at `relay`. Rewriting a round after it was answered is `evidence` (its pinned digest no longer matches).
+- Verified: a transcription that drops one of the host's findings (count 2 at the host, 1 in the round), or a review whose finding count the host does not state, is HOW(`provenance`).
+
+**Limits, stated:**
+- The Worker's copy of a finding's text is not compared with the host's, only the count.
+- A ground is checked for being a quotation, not for supporting the disposition (the demo's ground is a boundary sentence, not proof that billing is out of scope); that is for the Reviewer and, in a dispute, the Owner.
+- Whether a carrier is the right mechanism is not judged; only that the file exists, and its bytes at that time.
+- Codex has not been run on a dispute here; the Reviewer in these scenarios is scripted.
