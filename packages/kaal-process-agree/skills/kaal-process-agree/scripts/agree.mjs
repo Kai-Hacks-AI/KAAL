@@ -113,14 +113,23 @@ export async function derive(loop, host) {
   // These two cannot be answered by a direction: the record must first be a record
   // (a grant is the Owner's to write; a log is repaired by restoring it).
   // A human can still end such a loop: `stop.md` beside the grant, outside the log that cannot be trusted.
-  const ended = (reason) => {
-    const path = join(loop, "stop.md");
-    const d = existsSync(path) ? parseDirection(text(path)) : undefined;
-    if (d && d.direction === "stop" && d.reason === reason) { out.events.push({ n: "--", kind: "how", name: "stop.md", direction: "stop", answers: reason }); out.state = "STOPPED"; out.reason = undefined; }
+  // A human stop is terminal and durable: stop.md is read first, every time, so repairing the record
+  // does not reopen a loop a human ended. In verified state it must be shown as the Owner's.
+  const stopPath = join(loop, "stop.md");
+  const sd = existsSync(stopPath) && lstatSync(stopPath).isFile() ? parseDirection(text(stopPath)) : undefined;
+  if (sd && sd.direction === "stop" && STOP_REASONS.includes(sd.reason)) {
+    out.events.push({ n: "--", kind: "how", name: "stop.md", direction: "stop", answers: sd.reason });
+    out.preflight = true;
+    if (host && !authoredBy(host, "stop.md", readFileSync(stopPath))) {
+      out.provenance = "contradicted or not shown by the host's records";
+      return fire("provenance", `stop.md is not shown to be authored by the Owner '${host.owner}'`), out;
+    }
+    out.provenance = host ? "verified against the host's records" : "reported, not verified";
+    out.state = "STOPPED";
     return out;
-  };
-  if (!g.ok) return fire("grant", g.why), (out.preflight = true), ended("grant");
-  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), ended("evidence");
+  }
+  if (!g.ok) return fire("grant", g.why), (out.preflight = true), out;
+  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), out;
   const subject = await sibling(SUBJECTS[g.subject].sibling, SUBJECTS[g.subject].script);
 
   let latest; // { name, identity } of the latest applied subject
@@ -177,6 +186,7 @@ export async function derive(loop, host) {
     e.identity = round.identity; e.outcome = round.outcome;
     const actor = /^Actor: (.+)$/m.exec(round.reviewer.split("\n")[0] ?? "")?.[1];
     e.actor = actor;
+    e.subjectName = latest.name;
     e.source = /^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(round.reviewer) && ((m) => ({ kind: m[1], id: m[2], commit: m[3] }))(/^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(round.reviewer));
     if (actor === undefined || actor !== g.reviewer || actor === g.worker) { fire("seat", `${e.name} is attributed to ${actor === undefined ? "no actor" : `'${actor}'`}, and the grant names '${g.reviewer}' as the Reviewer and '${g.worker}' as the Worker`); continue; }
     counted.push(e);
@@ -195,7 +205,7 @@ export async function derive(loop, host) {
   out.provenance = host ? "verified against the host's records" : "reported, not verified";
   if (host) {
     const bad = provenance(g, loop, counted, hows, host);
-    if (bad.length) { out.provenance = "contradicted or not shown by the host's records"; fire("provenance", bad.join("; ")); return out; }
+    if (bad.length) { out.provenance = "contradicted or not shown by the host's records"; fire("provenance", bad.join("; ")); out.preflight = true; return out; }
   }
   if (out.state === "HOW" || out.state === "STOPPED") return out;
   out.state = agreed ? (host ? "AGREED" : "REPORTED") : awaiting ? "REVIEW" : last === "findings" ? "REVISE" : "DESCRIBE";
@@ -203,10 +213,14 @@ export async function derive(loop, host) {
 }
 
 /** What the host's records must show for the record to be trusted: who made the grant, each direction and each counted report. */
+const STOP_REASONS = ["grant", "evidence", "provenance"];
+const sameCommit = (a, b) => typeof a === "string" && typeof b === "string" && a.length >= 7 && b.length >= 7 && (a.startsWith(b) || b.startsWith(a));
+const authoredBy = (host, path, bytes) => host.records.some((r) => r.kind === "authored" && r.path === path && r.sha256 === sha256(bytes) && r.login === host.owner);
+
 function provenance(g, loop, counted, hows, host) {
   const bad = [];
   const records = host.records;
-  const authored = (path, bytes) => records.some((r) => r.kind === "authored" && r.path === path && r.sha256 === sha256(bytes) && r.login === host.owner);
+  const authored = (path, bytes) => authoredBy(host, path, bytes);
   if (!authored("grant.md", readFileSync(join(loop, "grant.md")))) bad.push(`grant.md is not shown to be authored by the Owner '${host.owner}'`);
   for (const h of hows) if (!authored(`log/${h.name}`, readFileSync(h.path))) bad.push(`${h.name} is not shown to be authored by the Owner '${host.owner}'`);
   for (const r of counted) {
@@ -215,7 +229,13 @@ function provenance(g, loop, counted, hows, host) {
     const rec = records.find((x) => x.kind === s.kind && String(x.id) === s.id);
     if (!rec) { bad.push(`${r.name}: the host shows no ${s.kind} ${s.id}`); continue; }
     if (rec.login !== g.reviewer) bad.push(`${r.name}: ${s.kind} ${s.id} was made by '${rec.login}', not by the Reviewer '${g.reviewer}'`);
-    if (rec.commit !== undefined && !(rec.commit.startsWith(s.commit) || s.commit.startsWith(rec.commit))) bad.push(`${r.name}: ${s.kind} ${s.id} is of commit ${rec.commit}, not ${s.commit}`);
+    // Bind the source to the bytes: the host must say which commit the source covers, and that the subject at that
+    // commit is exactly the bytes the round names. Without either, fail closed: an old all-clear is not this subject's.
+    if (rec.commit === undefined) bad.push(`${r.name}: the host does not say which commit ${s.kind} ${s.id} covers, so it is not shown to be about this subject`);
+    else if (!sameCommit(rec.commit, s.commit)) bad.push(`${r.name}: ${s.kind} ${s.id} is of commit ${rec.commit}, not ${s.commit}`);
+    const at = records.find((x) => x.kind === "file" && x.path === `log/${r.subjectName}` && sameCommit(x.commit, s.commit));
+    if (!at) bad.push(`${r.name}: the host shows no log/${r.subjectName} at commit ${s.commit}`);
+    else if (at.sha256 !== r.identity) bad.push(`${r.name}: log/${r.subjectName} at commit ${s.commit} is ${short(String(at.sha256))}, not the ${short(r.identity)} the round names`);
     const implied = s.kind === "review" ? "findings" : s.kind === "comment" ? (NO_FINDINGS.test(rec.body ?? "") ? "converged" : undefined) : rec.content === "+1" ? "converged" : undefined;
     if (implied !== r.outcome) bad.push(`${r.name}: the host's ${s.kind} ${s.id} implies ${implied ?? "neither result"}, the round says ${r.outcome}`);
   }
@@ -242,9 +262,13 @@ export function brief(d, loop) {
   if (d.subject) lines.push(`subject: ${d.subject.path} ${d.subject.identity}`);
   if (d.provenance) lines.push(`provenance: ${d.provenance}`);
   if (d.grant.ok) lines.push(`rounds: ${d.used} of ${d.rounds} used in this window; worker: ${d.grant.worker}; reviewer: ${d.grant.reviewer}`);
-  for (const e of d.events) lines.push(`${e.n} ${e.kind}${e.outcome ? ` ${e.outcome}` : ""}${e.direction ? ` ${e.direction} (answers ${e.answers})` : ""}${e.actor ? ` by ${e.actor}` : ""}${e.identity ? ` ${short(e.identity)}` : ""}${e.kind === "round" ? ` (${e.path})` : ""}`);
+  for (const e of d.events) lines.push(`${e.n} ${e.kind}${e.outcome ? ` ${e.outcome}` : ""}${e.direction ? ` ${e.direction} (answers ${e.answers})` : ""}${e.actor ? ` by ${e.actor}` : ""}${e.identity ? ` ${short(e.identity)}` : ""}${e.kind === "round" ? ` (${e.path})` : ""}${e.n === "--" ? " (stop.md, beside the grant)" : ""}`);
   for (const x of d.ignored) lines.push(`ignored: ${x}`);
-  if (d.state === "HOW" && d.preflight) lines.push(`repair: the loop cannot be continued by a direction. ${d.reason === "grant" ? "The Owner writes a valid grant.md" : "Restore the log to a gapless sequence of events"}, then ask state again; or a human ends it: agree.mjs direct ${loop} --reason ${d.reason} --direction stop --words <text|@file> (recorded in stop.md)`);
+  if (d.state === "HOW" && d.preflight) {
+    const fix = d.reason === "grant" ? "The Owner writes a valid grant.md" : d.reason === "provenance" ? "The host's records are corrected, or the record is restored to what they show" : "Restore the log to a gapless sequence of events";
+    const hostArgs = d.reason === "provenance" ? " --host <records.json> --owner <login>" : "";
+    lines.push(`repair: the loop cannot be continued by a direction. ${fix}, then ask state again; or a human ends it, for good: agree.mjs direct ${loop}${hostArgs} --reason ${d.reason} --direction stop --words <text|@file> (recorded in stop.md, which stays in force once the record is repaired)`);
+  }
   else if (d.state === "HOW") lines.push(`direct with: agree.mjs direct ${loop} --reason ${d.reason} --direction continue --rounds <n> --words <text|@file>  (or --direction stop)`);
   return lines;
 }
@@ -318,8 +342,8 @@ export async function relay(loop, a) {
   return append(loop, "round", content);
 }
 
-export async function direct(loop, a) {
-  const d = await derive(loop);
+export async function direct(loop, a, host) {
+  const d = await derive(loop, host);
   if (d.state !== "HOW") refuse(`the state is ${d.state}: there is no HOW to answer`);
   if (d.preflight && a["--direction"] !== "stop") refuse(`'${d.reason}' cannot be continued by a direction: the record must first be repaired (${d.reason === "grant" ? "the Owner writes a valid grant.md" : "restore the log to a gapless sequence"}); a human may end the loop with --direction stop`);
   if (a["--reason"] !== d.reason) refuse(`the reason in force is '${d.reason}', not '${a["--reason"]}': a direction answers the reason that holds`);
@@ -360,8 +384,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const [command, loop, ...rest] = process.argv.slice(2);
   try {
     if (!loop) throw Object.assign(new Error(usage), { usage: true });
-    const show = async (path) => {
-      const d = await derive(loop);
+    const hostOf = (o) => (o["--host"] ? { owner: o["--owner"], records: JSON.parse(readFileSync(o["--host"], "utf8")) } : undefined);
+    const show = async (path, host) => {
+      const d = await derive(loop, host);
       console.log(path);
       for (const l of brief(d, loop)) console.log(l);
       process.exitCode = exitOf(d);
@@ -380,7 +405,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     } else if (command === "relay") {
       await show(await relay(loop, given(rest, ["--result", "--actor", "--saw", "--source-kind", "--source-id", "--commit", "--findings"])));
     } else if (command === "direct") {
-      await show(await direct(loop, given(rest, ["--reason", "--direction", "--rounds", "--words"])));
+      const o = given(rest, ["--reason", "--direction", "--rounds", "--words", "--host", "--owner"]);
+      if (!o["--host"] !== !o["--owner"]) throw Object.assign(new Error(usage), { usage: true });
+      const host = hostOf(o);
+      await show(await direct(loop, o, host)); // what it printed is the state without the host: the Owner's authorship of the new record is for the verifier to show
     } else if (command === "request" && (rest.length === 0 || (rest.length === 2 && rest[0] === "--standard"))) {
       console.log(await request(loop, rest[1]));
     } else {

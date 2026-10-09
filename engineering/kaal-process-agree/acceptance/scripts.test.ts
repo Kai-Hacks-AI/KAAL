@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { payload as intent } from "kaal-intent";
 import { payload as agree } from "kaal-process-agree";
@@ -54,7 +54,7 @@ const submit = (root: string, text: string) => {
 function report(root: string, result: "findings" | "converged", options: { actor?: string; saw?: string; findings?: string } = {}) {
   const subject = readdirSync(join(root, "loop/log")).filter((n) => n.endsWith("-subject.md")).sort().pop()!;
   writeFileSync(join(root, "saw.md"), options.saw ?? readFileSync(join(root, "loop/log", subject), "utf8"));
-  const args = ["relay", "loop", "--result", result, "--actor", options.actor ?? REVIEWER, "--saw", "saw.md", "--source-kind", result === "converged" ? "comment" : "review", "--source-id", String(++counter), "--commit", "abc123"];
+  const args = ["relay", "loop", "--result", result, "--actor", options.actor ?? REVIEWER, "--saw", "saw.md", "--source-kind", result === "converged" ? "comment" : "review", "--source-id", String(++counter), "--commit", "abc1234"];
   if (result === "findings") args.push("--findings", options.findings ?? "1. Cut the part that says how.");
   return run(root, args);
 }
@@ -64,12 +64,18 @@ function report(root: string, result: "findings" | "converged", options: { actor
 type Rec = Record<string, unknown>;
 function hostFor(root: string, mutate: (records: Rec[]) => Rec[] = (r) => r) {
   const records: Rec[] = [{ kind: "authored", path: "grant.md", sha256: sha256(readFileSync(join(root, "loop/grant.md"), "utf8")), login: OWNER }];
-  for (const name of readdirSync(join(root, "loop/log"))) {
+  let subjectName = "";
+  for (const name of readdirSync(join(root, "loop/log")).sort()) {
     const text = readFileSync(join(root, "loop/log", name), "utf8");
+    if (name.endsWith("-subject.md")) subjectName = name;
     if (name.endsWith("-how.md")) records.push({ kind: "authored", path: `log/${name}`, sha256: sha256(text), login: OWNER });
     const m = /^Source: (review|comment|reaction) (\S+) commit (\S+)$/m.exec(text);
-    if (name.endsWith("-round.md") && m) records.push(m[1] === "review" ? { kind: "review", id: m[2], login: REVIEWER, commit: m[3] } : { kind: m[1], id: m[2], login: REVIEWER, body: "No findings", content: "+1" });
+    if (name.endsWith("-round.md") && m) {
+      records.push(m[1] === "review" ? { kind: "review", id: m[2], login: REVIEWER, commit: m[3] } : { kind: m[1], id: m[2], login: REVIEWER, commit: m[3], body: "No findings", content: "+1" });
+      records.push({ kind: "file", path: `log/${subjectName}`, commit: m[3], sha256: sha256(readFileSync(join(root, "loop/log", subjectName), "utf8")) });
+    }
   }
+  if (existsSync(join(root, "loop/stop.md"))) records.push({ kind: "authored", path: "stop.md", sha256: sha256(readFileSync(join(root, "loop/stop.md"), "utf8")), login: OWNER });
   writeFileSync(join(root, "host.json"), JSON.stringify(mutate(records)));
   return ["state", "loop", "--host", "host.json", "--owner", OWNER];
 }
@@ -402,7 +408,7 @@ test("a forged or altered report is refused against the host: nothing at the hos
   submit(altered, intentText("a"));
   report(altered, "findings");
   const v = verifiedState(altered, (r) => r.map((x) => (x.kind === "review" ? { ...x, commit: "ffff000" } : x)));
-  assert.match(v.out.join("\n"), /is of commit ffff000, not abc123/);
+  assert.match(v.out.join("\n"), /is of commit ffff000, not abc1234/);
 });
 
 test("the Worker cannot increase its own budget, change seats or make a continuation: its grant and directions are not shown to be the Owner's", (t) => {
@@ -547,4 +553,77 @@ test("Codex's own all-clear comment counts as the report of no findings, and an 
   const other = verifiedState(root, (r) => r.map((x) => (x.kind === "comment" ? { ...x, body: "To use Codex here, create an environment for this repo." } : x)));
   assert.equal(other.code, 3);
   assert.match(other.out.join("\n"), /implies neither result, the round says converged/);
+});
+
+
+// ---------- found by the second independent review ----------
+
+test("an authentic all-clear about subject A, replayed against subject B, is refused: the source must be shown to cover these bytes", (t) => {
+  for (const kind of ["comment", "reaction"]) {
+    const root = begin(t);
+    submit(root, intentText("a"));
+    report(root, "findings");
+    submit(root, intentText("b, said differently"));
+    // the Worker relays a genuine old report (about A) against B by naming B as what was seen
+    const subjects = readdirSync(join(root, "loop/log")).filter((n) => n.endsWith("-subject.md")).sort();
+    writeFileSync(join(root, "saw.md"), readFileSync(join(root, "loop/log", subjects[1]), "utf8"));
+    const r = run(root, ["relay", "loop", "--result", "converged", "--actor", REVIEWER, "--saw", "saw.md", "--source-kind", kind, "--source-id", "777", "--commit", "aaaaaaa"]);
+    assert.equal(r.code, 0, r.err);
+    assert.equal(head(root), "REPORTED");
+    // what the host knows: the all-clear covers commit aaaaaaa, where the subject was A
+    const v = verifiedState(root, (rs) => [
+      ...rs.filter((x) => x.kind !== "file" || x.path !== `log/${subjects[1]}`),
+      { kind: "file", path: `log/${subjects[1]}`, commit: "aaaaaaa", sha256: sha256(intentText("a")) },
+    ]);
+    assert.equal(v.code, 3, kind);
+    assert.match(v.out.join("\n"), /reason: provenance:[\s\S]*log\/03-subject\.md at commit aaaaaaa is [0-9a-f]{8}, not the [0-9a-f]{8} the round names/, kind);
+    // with no statement of what the source covers the host record is not enough either
+    const none = verifiedState(root, (rs) => rs.filter((x) => x.kind !== "file"));
+    assert.match(none.out.join("\n"), /the host shows no log\/03-subject\.md at commit aaaaaaa/, kind);
+    const nocommit = verifiedState(root, (rs) => rs.map((x) => { if (x.kind !== "comment" && x.kind !== "reaction") return x; const { commit, ...rest } = x; return rest; }));
+    assert.match(nocommit.out.join("\n"), /does not say which commit/, kind);
+  }
+});
+
+test("HOW(provenance) is answered with the same evidence: the human stops it, the stop survives repairing the record, and the Worker cannot reopen it", (t) => {
+  const root = converged(t);
+  const wrong = (r: Rec[]) => r.map((x) => (x.kind === "comment" ? { ...x, login: WORKER } : x));
+  const v = verifiedState(root, wrong);
+  assert.equal(v.code, 3);
+  assert.match(v.out.join("\n"), /repair: .*direct loop --host <records\.json> --owner <login> --reason provenance --direction stop/);
+  // without the host evidence the Process cannot see this HOW, and says so
+  assert.equal(run(root, ["direct", "loop", "--reason", "provenance", "--direction", "stop", "--words", "x"]).code, 1);
+  const args = ["direct", "loop", "--host", "host.json", "--owner", OWNER, "--reason", "provenance", "--direction", "stop", "--words", "Kai: the Reviewer did not say this."];
+  assert.equal(run(root, ["direct", "loop", "--host", "host.json", "--owner", OWNER, "--reason", "provenance", "--direction", "continue", "--rounds", "2", "--words", "go"]).code, 1, "provenance is not continued by a direction");
+  const stopped = run(root, args);
+  assert.equal(stopped.code, 0, stopped.err);
+  assert.equal(head(root), "STOPPED");
+  // the records are put right; the loop stays stopped
+  const unshown = verifiedState(root, (r) => r.filter((x) => x.path !== "stop.md"));
+  assert.equal(unshown.out[0], "HOW", "a stop the host does not show as the Owner's is itself a provenance condition");
+  assert.match(unshown.out.join("\n"), /stop\.md is not shown to be authored by the Owner/);
+  assert.equal(run(root, hostFor(root)).out[0], "STOPPED", "authored by the Owner, it is the Owner's stop");
+  assert.equal(submit(root, intentText("c")).code, 1);
+});
+
+test("a human stop is durable: restoring the damaged record or writing the missing grant does not reopen the loop", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings");
+  const subject = join(root, "loop/log/01-subject.md");
+  const original = readFileSync(subject);
+  rmSync(subject);
+  assert.equal(reasonOf(root), "evidence");
+  assert.equal(run(root, ["direct", "loop", "--reason", "evidence", "--direction", "stop", "--words", "Kai: end it."]).code, 0);
+  assert.equal(head(root), "STOPPED");
+  writeFileSync(subject, original);
+  assert.equal(head(root), "STOPPED", "restoring the original bytes does not reopen it");
+  assert.equal(submit(root, intentText("b")).code, 1);
+  assert.match(state(root).out.join("\n"), /stop\.md/);
+
+  const none = embedding(t);
+  mkdirSync(join(none, "loop"), { recursive: true });
+  assert.equal(run(none, ["direct", "loop", "--reason", "grant", "--direction", "stop", "--words", "Kai: no."]).code, 0);
+  writeFileSync(join(none, "loop/grant.md"), `# Grant\n\nWorker: ${WORKER}\nReviewer: ${REVIEWER}\nRounds: 2\nSubject: Intent\n\n## Words\n\nA grant written later.\n`);
+  assert.equal(head(none), "STOPPED", "a grant that appears after the stop does not reopen it");
 });

@@ -64,3 +64,15 @@ Loop at `work/trial/loop`. Grant: Worker `claude-worker (…)`, Reviewer `chatgp
 ## 6. Not touched
 
 `kaal-core`, `.github`, Changing, Sealing, Intent, Review, the installer, and every sealed Node. One new sealed Node, `Agreement` (`29c44ad3…`); its text does not mention the host check and is still true of it.
+
+## 7. Reviewer round 02 (`review/02.md`, three findings), resolved
+
+All three were reproduced first, then fixed in `agree.mjs`, documented (Requirements R33–R35, Architecture §4a, SKILL.md) and shown by focused tests (51 acceptance tests pass; the three new ones are the last three in `scripts.test.ts`). The sealed `Agreement` Node is unchanged.
+
+1. **P1, source not bound to the bytes.** Verification now needs, for every counted round, a host record for the source that says which commit it covers (comments and reactions included; absent means fail closed) and a `file` record that the round's subject file at that commit has exactly the SHA-256 the round names. Test: an authentic all-clear about A relayed against B, once as a comment and once as a reaction, gives HOW(provenance) in three variants: the host shows B's file at the covered commit as A's bytes; the host shows no such file; the host does not say which commit the source covers.
+2. **P2, advertised direction not executable.** HOW(provenance) is answered like `grant` and `evidence`: not by a continuing direction. `direct` now takes `--host … --owner …`, sees the evidence that fired the reason and writes `stop.md`; the brief prints that exact command. Test: stop recorded, `continue` refused, `direct` without the host refuses and says there is no HOW to answer.
+3. **P1, repair reopened a stop.** `stop.md` is read first on every derivation, whatever the reason now in force. Test: stop for missing structure, restore the original bytes, still STOPPED and `submit` refused; stop for a missing grant, a grant written later, still STOPPED. In verified state `stop.md` must be shown authored by the Owner, else HOW(provenance); with it shown, STOPPED.
+
+The trial's host records now carry the commit and `file` records (`846a90d` for v1, `bfa83fb` for v2). Re-run: `state --host … --owner ChBrain` is still HOW(provenance) because the Worker authored the grant (nothing else is now reported); the counterfactual with the grant attributed to the Owner is AGREED.
+
+Not done, as before: a CI control that fetches the host records; Codex's targeting of one file.

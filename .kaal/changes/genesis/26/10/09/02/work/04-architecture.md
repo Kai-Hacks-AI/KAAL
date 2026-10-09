@@ -80,13 +80,19 @@ Review rounds are files. Codex posts a PR review, comment or reaction. KAAL "kno
 
 ```
 {"kind":"review","id":"5470597438","login":"chatgpt-codex-connector[bot]","commit":"846a90d7…"}
-{"kind":"comment","id":"…","login":"chatgpt-codex-connector[bot]","body":"No findings"}
-{"kind":"reaction","id":"<comment id>","login":"…","content":"+1"}
+{"kind":"comment","id":"…","login":"chatgpt-codex-connector[bot]","commit":"<head the comment covers>","body":"No findings"}
+{"kind":"reaction","id":"<comment id>","login":"…","commit":"<head the reaction covers>","content":"+1"}
+{"kind":"file","path":"log/03-subject.md","commit":"<that commit>","sha256":"<identity of the file at that commit>"}
 {"kind":"authored","path":"grant.md","sha256":"<identity of the file>","login":"<Owner>"}
 {"kind":"authored","path":"log/05-how.md","sha256":"…","login":"<Owner>"}
+{"kind":"authored","path":"stop.md","sha256":"…","login":"<Owner>"}
 ```
 
-Refusals, each shown by a test: no host record for the named source; made by someone other than the granted Reviewer; of another commit; implying the other result (a review where the round says converged; a comment that does not begin `No findings`); a grant or a direction whose bytes the host does not show authored by `--owner`; a grant the Worker authored. All give HOW(`provenance`) with the detail. `--owner` is given by the verifier, never read from the grant, so a Worker cannot name itself Owner.
+**The source is bound to the bytes (round 02, finding 1).** The comment or reaction record says which commit it covers (a review already does), and a `file` record says what the round's subject was at that commit. A counted round is verified only when both exist and the file's SHA-256 is the identity the round names. A genuine all-clear about subject A, relayed against subject B, therefore fails: the host shows B absent or different at the covered commit. A source without a covered commit fails closed.
+
+Refusals, each shown by a test: no host record for the named source; made by someone other than the granted Reviewer; of another commit; implying the other result (a review where the round says converged; a comment that does not begin `No findings`); a grant or a direction whose bytes the host does not show authored by `--owner`; a grant the Worker authored. All give HOW(`provenance`) with the detail. HOW(`provenance`) is answered like `grant` and `evidence`: not by a continuing direction. The record is put right (the host's records are corrected, or the Owner writes the record), or a human ends the loop with `direct … --host <records.json> --owner <login> --reason provenance --direction stop`, which sees the same evidence that fired the reason and writes `stop.md`.
+
+**A human stop is terminal and durable.** `stop.md` (beside the grant, outside the log) is read first, every time. Once it is there, repairing the log or writing the missing grant does not reopen the loop. In verified state `stop.md` must be shown authored by the Owner, or the state is HOW(`provenance`) until it is. `--owner` is given by the verifier, never read from the grant, so a Worker cannot name itself Owner.
 
 **The boundary, named:** the host's records, in the hands of a party the Worker does not control. For this repository that is a CI job with the repository token running `state --host`, or the Owner (or an agent they use) running it. **The limit:** if the Worker also supplies the host records, a malicious Worker can forge them; the check then catches mistranscription, not malice. The Process does not and cannot fetch for itself without becoming a GitHub client. A `.github` control that fetches the records and runs the check is the stronger answer and is a separate Change (it travels alone).
 
