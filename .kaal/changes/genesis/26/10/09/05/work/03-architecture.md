@@ -32,6 +32,7 @@ Review, as Review defines it, in which an agent examines the result of another a
 
 ## Deliberately deferred
 
+- **The complete Idea** is preserved as provenance in `packages/kaal-review/skills/kaal-review/references/how-are-we-doing.md` (see `02-investigation.md`), not as a Node.
 - **WE and DOING**: not birthed. They describe retention, which is `kaal-learning`'s realization (Change 08/04 design merged). CEIL belongs there. If a Learning is ever born from review experience, it is established through that capability by a Change.
 - **TOGETHER WE CAN GO FAR**: not birthed; see `02-investigation.md`. Recorded here as provenance with its caveat (restored from recollection).
 - **The Human/Owner distinction** of the historical Idea; **formal positions** (Owner, Worker, Reviewer as Review concepts); **quorum, independence measurement, required model diversity**; **approval points**. The Idea itself leaves all of them open.

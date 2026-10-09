@@ -33,6 +33,7 @@ A request may be as short as `HOW Review of PR75 please`. HOW and ARE are Nodes 
 
 ## Rules
 
+- The complete historical concept behind HOW and ARE, `HOW ARE WE DOING?`, is kept with its provenance in `references/how-are-we-doing.md`. That file is history and defines nothing; the Nodes `HOW` and `ARE` are the meaning.
 - A round is transient evidence of one review, not knowledge. What a review shows that matters beyond the result belongs to the capability that owns durable knowledge; Review keeps no store of observations.
 
 - Never write the structure by hand: the form is Review's.

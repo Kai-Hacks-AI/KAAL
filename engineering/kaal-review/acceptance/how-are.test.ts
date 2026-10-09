@@ -86,6 +86,20 @@ test("the Agent Skill is found by the words HOW and ARE, points to the Nodes wit
   assert.doesNotMatch(manifest, /kaal-(sealing|changing|retro)|ROWING|\bWorker\b|\bOwner\b/);
 });
 
+test("the complete historical Idea is kept as provenance beside the Skill, distinct from the Nodes and from anything unbuilt", () => {
+  const ref = skills[`${CAPABILITY}/references/how-are-we-doing.md`];
+  assert.ok(ref, "shipped with the Agent Skill");
+  for (const line of ["HOW     Human Observes Work", "ARE     Agents Review Each-other", "WE      With Experience", "DOING   Durable Observations Inform Next Goals"]) assert.ok(ref.includes(line), line);
+  assert.match(ref, /Status: provenance\. This file defines nothing\./);
+  assert.match(ref, /`WE` and `DOING` are not established in current KAAL/);
+  assert.match(ref, /cfc110c6a8497821e99ef425b2ce1023ff72fccd/);
+  assert.match(ref, /It describes one feedback loop, not a review procedure/);
+  assert.match(ref, /TOGETHER` \(The Owner Gets Enhanced Through Holistic Experience Reviews\)/);
+  assert.match(manifest, /references\/how-are-we-doing\.md/);
+  assert.match(manifest, /That file is history and defines nothing/);
+  for (const file of ["HOW.md", "ARE.md"]) assert.ok(!kaal[file].includes("how-are-we-doing"), "the Nodes do not depend on it");
+});
+
 function readTree(dir: string): Record<string, string> {
   const files: Record<string, string> = {};
   for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" })) if (statSync(join(dir, path)).isFile()) files[path.split("\\").join("/")] = readFileSync(join(dir, path), "utf8");

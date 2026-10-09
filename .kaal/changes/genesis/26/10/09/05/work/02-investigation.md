@@ -16,6 +16,10 @@ Sources read in full: Review (`packages/kaal-review/kaal/Review.md`, sealed `7c3
 
 Two collisions worth knowing: both mnemonics use **WE** with different meanings (With Experience; Worked Evidence), and the Idea that carries Review-shaped meaning (HOW, ARE) is the one whose WE and DOING point at learning, not at Review.
 
+## Preserved provenance (Owner clarification on #77)
+
+Deferring WE, DOING and the whole loop must not lose the Idea. The complete mnemonic, its combined meaning (one feedback loop: humans observe, independent agents challenge, experience is carried forward, durable observations inform next goals), the positions vocabulary, what it left undecided, and the related TOGETHER WE CAN GO FAR with its provenance caveat, are kept in `packages/kaal-review/skills/kaal-review/references/how-are-we-doing.md`. That is the smallest placement that is reachable from Review: it ships with the Agent Skill, `SKILL.md` points to it in one line, it is unsealed, and it says in its first paragraph that it defines nothing, that WE and DOING are not established and that the whole loop is not current architecture. It is not a Node (a Node would assert meaning, and would be sealed history that cannot be corrected) and not four Skills. The authoritative meanings stay the Nodes `HOW` and `ARE`; the Nodes do not refer to the file. Where the file lives is the Owner's call.
+
 ## What Review already covers
 
 | Meaning in the Ideas | Already in current KAAL | Where |
