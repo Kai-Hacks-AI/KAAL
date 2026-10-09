@@ -449,23 +449,38 @@ test("a hand-written grant with no log yet is an empty loop, and the first act c
   assert.deepEqual(readdirSync(join(root, "loop/log")), ["01-subject.md"]);
 });
 
-test("no grant and a broken log are not answered by a direction: the brief says what to repair, and direct refuses", (t) => {
+test("no grant and a broken log are not continued by a direction; the brief says what to repair, and a human can still end the loop without touching its history", (t) => {
   const none = embedding(t);
   mkdirSync(join(none, "loop"), { recursive: true });
   const s = state(none);
   assert.equal(s.code, 3);
-  assert.match(s.out.join("\n"), /repair: a direction cannot answer this; the Owner writes a valid grant\.md/);
-  const refused = run(none, ["direct", "loop", "--reason", "grant", "--direction", "stop", "--words", "stop"]);
+  assert.match(s.out.join("\n"), /repair: the loop cannot be continued by a direction\. The Owner writes a valid grant\.md/);
+  const refused = run(none, ["direct", "loop", "--reason", "grant", "--direction", "continue", "--rounds", "2", "--words", "go"]);
   assert.equal(refused.code, 1);
-  assert.match(refused.err, /cannot be answered by a direction/);
+  assert.match(refused.err, /cannot be continued by a direction/);
+  const stopped = run(none, ["direct", "loop", "--reason", "grant", "--direction", "stop", "--words", "Kai: no loop here."]);
+  assert.equal(stopped.code, 0, stopped.err);
+  assert.equal(state(none).out[0], "STOPPED");
 
   const gap = begin(t);
   submit(gap, intentText("a"));
   report(gap, "findings");
   rmSync(join(gap, "loop/log/01-subject.md"));
-  assert.match(state(gap).out.join("\n"), /repair: a direction cannot answer this; restore the log/);
-  assert.equal(run(gap, ["direct", "loop", "--reason", "evidence", "--direction", "stop", "--words", "stop"]).code, 1);
-  assert.deepEqual(readdirSync(join(gap, "loop/log")), ["02-round.md"], "and nothing was written");
+  assert.match(state(gap).out.join("\n"), /repair: the loop cannot be continued by a direction\. Restore the log/);
+  assert.equal(run(gap, ["direct", "loop", "--reason", "evidence", "--direction", "continue", "--rounds", "2", "--words", "go"]).code, 1);
+  const before = readdirSync(join(gap, "loop/log"));
+  assert.equal(run(gap, ["direct", "loop", "--reason", "evidence", "--direction", "stop", "--words", "Kai: end it."]).code, 0);
+  assert.equal(state(gap).out[0], "STOPPED", "the prescribed direction takes effect");
+  assert.deepEqual(readdirSync(join(gap, "loop/log")), before, "and the history was not rewritten");
+  // restoring the record is the other way out
+  const restored = begin(t);
+  submit(restored, intentText("a"));
+  report(restored, "findings");
+  const kept = readFileSync(join(restored, "loop/log/01-subject.md"), "utf8");
+  rmSync(join(restored, "loop/log/01-subject.md"));
+  assert.equal(head(restored), "HOW");
+  writeFileSync(join(restored, "loop/log/01-subject.md"), kept);
+  assert.equal(head(restored), "REVISE");
 });
 
 test("a Worker event added after HOW is ignored and does not stop the human's direction from being found", (t) => {
@@ -495,4 +510,32 @@ test("a loop is not limited to 99 events: the hundredth is event 100 and numberi
   assert.equal(s.code, 0, s.out.join("\n"));
   assert.equal(s.out[0], "REVISE");
   assert.match(s.out.join("\n"), /rounds: 50 of 60 used/);
+});
+
+test("a human can stop or continue after a Worker event was ignored", (t) => {
+  for (const direction of ["stop", "continue"]) {
+    const root = begin(t, 1);
+    submit(root, intentText("a"));
+    report(root, "findings");
+    writeFileSync(join(root, "loop/log/03-subject.md"), intentText("b"));
+    const args = ["direct", "loop", "--reason", "ceiling", "--direction", direction, ...(direction === "continue" ? ["--rounds", "2"] : []), "--words", "Kai decides."];
+    assert.equal(run(root, args).code, 0);
+    assert.equal(head(root), direction === "stop" ? "STOPPED" : "REVISE");
+  }
+});
+
+test("a contradiction is settled by the human who answers it, and the retry they authorized can conclude; the earlier history stays in the record", (t) => {
+  const root = begin(t);
+  submit(root, intentText("a"));
+  report(root, "findings");
+  submit(root, intentText("a"));
+  run(root, ["direct", "loop", "--reason", "unrevised", "--direction", "continue", "--rounds", "3", "--words", "Kai: ask once more on the same text."]);
+  assert.equal(report(root, "converged").code, 3);
+  assert.equal(reasonOf(root), "contradiction");
+  run(root, ["direct", "loop", "--reason", "contradiction", "--direction", "continue", "--rounds", "3", "--words", "Kai: the second report is the one I accept; retry."]);
+  assert.equal(head(root), "REVIEW");
+  const retry = report(root, "converged");
+  assert.equal(retry.code, 0, retry.out.join("\n"));
+  assert.equal(head(root), "REPORTED");
+  assert.equal(readdirSync(join(root, "loop/log")).filter((n) => n.endsWith("-round.md")).length, 3, "all three reports are still there");
 });

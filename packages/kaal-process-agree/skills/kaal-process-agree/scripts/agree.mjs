@@ -109,8 +109,15 @@ export async function derive(loop, host) {
   const fire = (reason, detail) => ((out.state = "HOW"), (out.reason = reason), (out.detail = detail));
   // These two cannot be answered by a direction: the record must first be a record
   // (a grant is the Owner's to write; a log is repaired by restoring it).
-  if (!g.ok) return fire("grant", g.why), (out.preflight = true), out;
-  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), out;
+  // A human can still end such a loop: `stop.md` beside the grant, outside the log that cannot be trusted.
+  const ended = (reason) => {
+    const path = join(loop, "stop.md");
+    const d = existsSync(path) ? parseDirection(text(path)) : undefined;
+    if (d && d.direction === "stop" && d.reason === reason) { out.events.push({ n: "--", kind: "how", name: "stop.md", direction: "stop", answers: reason }); out.state = "STOPPED"; out.reason = undefined; }
+    return out;
+  };
+  if (!g.ok) return fire("grant", g.why), (out.preflight = true), ended("grant");
+  if (problems.length) return fire("evidence", problems.join("; ")), (out.preflight = true), ended("evidence");
   const subject = await sibling(SUBJECTS[g.subject].sibling, SUBJECTS[g.subject].script);
 
   let latest; // { name, identity } of the latest applied subject
@@ -135,6 +142,7 @@ export async function derive(loop, host) {
       e.answers = d.reason;
       e.direction = d.direction;
       if (d.direction === "stop") { out.state = "STOPPED"; out.reason = undefined; stopped = true; continue; }
+      if (d.reason === "contradiction") results.clear(); // the human settled what the Reviewer said of identical bytes
       if (pendingRound) { // the round that reached the ceiling counts once it is answered
         if (pendingRound.outcome === "findings") { awaiting = false; last = "findings"; }
         pendingRound = undefined;
@@ -233,7 +241,7 @@ export function brief(d, loop) {
   if (d.grant.ok) lines.push(`rounds: ${d.used} of ${d.rounds} used in this window; worker: ${d.grant.worker}; reviewer: ${d.grant.reviewer}`);
   for (const e of d.events) lines.push(`${e.n} ${e.kind}${e.outcome ? ` ${e.outcome}` : ""}${e.direction ? ` ${e.direction} (answers ${e.answers})` : ""}${e.actor ? ` by ${e.actor}` : ""}${e.identity ? ` ${short(e.identity)}` : ""}${e.kind === "round" ? ` (${e.path})` : ""}`);
   for (const x of d.ignored) lines.push(`ignored: ${x}`);
-  if (d.state === "HOW" && d.preflight) lines.push(d.reason === "grant" ? "repair: a direction cannot answer this; the Owner writes a valid grant.md, then ask state again" : "repair: a direction cannot answer this; restore the log to a gapless sequence of events, then ask state again");
+  if (d.state === "HOW" && d.preflight) lines.push(`repair: the loop cannot be continued by a direction. ${d.reason === "grant" ? "The Owner writes a valid grant.md" : "Restore the log to a gapless sequence of events"}, then ask state again; or a human ends it: agree.mjs direct ${loop} --reason ${d.reason} --direction stop --words <text|@file> (recorded in stop.md)`);
   else if (d.state === "HOW") lines.push(`direct with: agree.mjs direct ${loop} --reason ${d.reason} --direction continue --rounds <n> --words <text|@file>  (or --direction stop)`);
   return lines;
 }
@@ -310,7 +318,7 @@ export async function relay(loop, a) {
 export async function direct(loop, a) {
   const d = await derive(loop);
   if (d.state !== "HOW") refuse(`the state is ${d.state}: there is no HOW to answer`);
-  if (d.preflight) refuse(`'${d.reason}' cannot be answered by a direction: the record must first be repaired (${d.reason === "grant" ? "the Owner writes a valid grant.md" : "restore the log to a gapless sequence"})`);
+  if (d.preflight && a["--direction"] !== "stop") refuse(`'${d.reason}' cannot be continued by a direction: the record must first be repaired (${d.reason === "grant" ? "the Owner writes a valid grant.md" : "restore the log to a gapless sequence"}); a human may end the loop with --direction stop`);
   if (a["--reason"] !== d.reason) refuse(`the reason in force is '${d.reason}', not '${a["--reason"]}': a direction answers the reason that holds`);
   const direction = a["--direction"];
   if (direction !== "continue" && direction !== "stop") refuse("--direction is continue or stop");
@@ -318,6 +326,12 @@ export async function direct(loop, a) {
   if (direction === "stop" && a["--rounds"] !== undefined) refuse("--direction stop grants nothing: no --rounds");
   const words = clean(a["--words"] ?? "");
   if (words === "") refuse("--words is the human's words and cannot be empty");
+  if (d.preflight) {
+    if (a["--rounds"] !== undefined) refuse("--direction stop grants nothing: no --rounds");
+    mkdirSync(loop, { recursive: true });
+    writeFileSync(join(loop, "stop.md"), `# HOW\n\nReason: ${d.reason}\nDirection: stop\n\n## Words\n\n${words}\n`, { flag: "wx" });
+    return join(loop, "stop.md");
+  }
   return append(loop, "how", `# HOW\n\nReason: ${d.reason}\nDirection: ${direction}\n${direction === "continue" ? `Rounds: ${a["--rounds"]}\n` : ""}\n## Words\n\n${words}\n`);
 }
 

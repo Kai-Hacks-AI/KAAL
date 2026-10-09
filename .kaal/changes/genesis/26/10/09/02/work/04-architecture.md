@@ -11,7 +11,9 @@
         ◀─────── state ◀── derived every time ◀─────│ NN-how.md (human direction)         │
  Reviewer (Codex, on the PR) ─report─▶ Worker ─relay─▶ 02-round.md (Review's form)        │
                                                     └─────────────────────────────────────┘
- state ∈ { DESCRIBE · REVIEW · REVISE · AGREED · STOPPED · HOW(reason) }
+ state ∈ { DESCRIBE · REVIEW · REVISE · REPORTED · AGREED · STOPPED · HOW(reason) }
+ REPORTED = the Reviewer's convergence as the Worker recorded it.  AGREED = REPORTED, and the host's records (fetched by
+ someone outside the Worker's control) show who made the grant, every direction and every counted report.
  HOW(reason) ──▶ human ──direct (continue | stop)──▶ NN-how.md ──▶ REVIEW/REVISE (new window) or STOPPED
 ```
 
@@ -49,32 +51,46 @@ Replay in order, keeping a *window* (opened at the start and at each `continue`)
 | round | `findings` and findings rounds in window = `Rounds` | `ceiling` | the granted budget is spent without agreement |
 | subject | identity = the previous subject's | `unrevised` | review asked again with nothing changed |
 | subject | identity seen earlier in the window, not the previous one | `oscillation` | an earlier state came back |
-| round | `converged`, none of the above | — | **AGREED** |
+| round | `converged`, none of the above | — | **REPORTED**; **AGREED** only with the host's records (§4a) |
+| (host records supplied) | grant, a direction or a counted report is not shown at the host as made by the Owner / the granted Reviewer, of that commit, implying that result | `provenance` | the host does not bear out what the record says |
 
-States: no events → `DESCRIBE`; last is a subject → `REVIEW`; last is a `findings` round → `REVISE`; `converged` → `AGREED`; `stop` → `STOPPED`. Exit codes of `state`: 0 when the Worker may act as `next:` says or the loop has ended; 3 when HOW is required; 2 usage.
+`contradiction` is reachable only after a human continued an `unrevised` or `oscillation` (the same bytes asked again, then reported differently); the human who answers it settles it for that identity. It also covers a Reviewer that changes its mind on identical bytes.
+
+A direction does not answer `grant` or structural `evidence` (the record is not yet a record): the Owner writes a valid grant, or the log is restored; a human can end such a loop with `stop`, recorded in `stop.md` beside the grant so the log is not touched. A Worker event after HOW is ignored, and a later answering direction is still found.
+
+States: no events → `DESCRIBE`; last is a subject → `REVIEW`; last is a `findings` round → `REVISE`; `converged` → `REPORTED` (`AGREED` with host records); `stop` → `STOPPED`. Exit codes of `state`: 0 when the Worker may act as `next:` says or the loop has ended; 3 when HOW is required; 2 usage.
 
 Why these and not a count: each is a *defect in the evidence* (a gap, a forged seat, a self-contradiction) or a *shape of identities* (same, back, spent). None needs the meaning of a finding. `02-investigation.md` §3.5 applies the identity conditions to history: the 07/07 record contains a `contradiction`, and the four Review-form Changes since (findings, then converged, on distinct identities) trip none of them. (They predate the grant and `Actor:` line, so `seat` could not apply to them.)
 
 ## 3. Agreement, and what stays outside it
 
-AGREED is a derived state, not an artifact, and not an approval. It says: *the Reviewer the Owner named reported `converged` on exactly these bytes, and the Worker has not changed them since.* It does not establish the Intent: that remains the Owner's (`kaal-intent` step 5), and an agreed draft is the thing the Owner is then asked to establish.
+AGREED is a derived state, not an artifact, and not an approval. It says: *the host's records show that the Reviewer the Owner named reported `converged` on exactly these bytes, under a grant and directions the Owner authored, and the Worker has not changed them since.* Without the host's records the state is REPORTED, which the Worker treats the same way (stop revising) and nobody treats as agreement. It does not establish the Intent: that remains the Owner's (`kaal-intent` step 5), and an agreed draft is the thing the Owner is then asked to establish.
 
 The Worker's concurrence is its having put the subject forward and not left it contested; a Worker that disagrees with a finding can only repeat the subject, which is `unrevised`, which is HOW. The Worker does not escalate and does not conclude; it does what `state` says. (Q6 asks whether disagreement should be its own record.)
 
-## 4. The host edge: from a bot's review to a round
+## 4. The host edge, and what is only reported
 
-Review rounds are files. Codex posts a PR review. Something must carry one into the other, and KAAL "knows nothing of any host".
+Review rounds are files. Codex posts a PR review, comment or reaction. KAAL "knows nothing of any host". The Worker carries a report into a round by **transcription under a fixed rule**: `relay --result findings|converged --actor <bot login> --saw <file> --source-kind review|comment|reaction --source-id <id> --commit <sha> [--findings @file]`, with `Result` `findings` iff the Reviewer posted a review on the commit, `converged` iff it commented `No findings` (or reacted 👍), nothing yet meaning no round; the Findings are the bot's text verbatim; and `--saw` must have the current subject's identity or `relay` refuses (a stale review cannot be recorded against a newer draft).
 
-The Process puts this in the Worker's hands as **transcription under a fixed rule, never a judgment**: the Worker records a round with `relay --result findings|converged --actor <bot login> --saw <file> --source <text> [--findings @file]`, where
+**All of that is *reported* evidence.** The Worker supplies the result, the actor and the source, so the byte check proves freshness and nothing else. A Worker-written record therefore cannot, by itself, reach AGREED.
 
-- `Result` is `findings` iff the Reviewer posted inline comments or a review body on the commit; `converged` iff the Reviewer posted a comment beginning `No findings` (or, per Codex's published behaviour, reacted 👍 to the request); nothing yet means no round, wait;
-- `Actor` is the bot's login, copied;
-- `--source` is the host's provenance (review id or comment id, and the commit it names), copied;
-- `--saw` is a file holding the subject as that commit has it (`git show <commit>:<path>`), and `relay` refuses unless its identity is the current subject's. **A stale review cannot be recorded against a newer draft.**
+## 4a. Verified evidence, the trust boundary, and its limits
 
-The Findings part is the bot's text verbatim. The script writes the statement of authority in plain words: the report is the named Reviewer's, the Worker recorded it and decided nothing in it.
+`state <loop> --host <records.json> --owner <login>` checks the record against the host's own records. The records are an array the verifier fetched (it is a plain JSON file; this Process fetches nothing):
 
-This is the one place a human (or Owner inspection) is the check: whether the recorded `Result` matches what the bot posted is verifiable against the review id and cannot be proved by a script. It is the same residual limit Review states. Alternatives are in Q1.
+```
+{"kind":"review","id":"5470597438","login":"chatgpt-codex-connector[bot]","commit":"846a90d7…"}
+{"kind":"comment","id":"…","login":"chatgpt-codex-connector[bot]","body":"No findings"}
+{"kind":"reaction","id":"<comment id>","login":"…","content":"+1"}
+{"kind":"authored","path":"grant.md","sha256":"<identity of the file>","login":"<Owner>"}
+{"kind":"authored","path":"log/05-how.md","sha256":"…","login":"<Owner>"}
+```
+
+Refusals, each shown by a test: no host record for the named source; made by someone other than the granted Reviewer; of another commit; implying the other result (a review where the round says converged; a comment that does not begin `No findings`); a grant or a direction whose bytes the host does not show authored by `--owner`; a grant the Worker authored. All give HOW(`provenance`) with the detail. `--owner` is given by the verifier, never read from the grant, so a Worker cannot name itself Owner.
+
+**The boundary, named:** the host's records, in the hands of a party the Worker does not control. For this repository that is a CI job with the repository token running `state --host`, or the Owner (or an agent they use) running it. **The limit:** if the Worker also supplies the host records, a malicious Worker can forge them; the check then catches mistranscription, not malice. The Process does not and cannot fetch for itself without becoming a GitHub client. A `.github` control that fetches the records and runs the check is the stronger answer and is a separate Change (it travels alone).
+
+What the Worker can still do alone, and the bound on it: a Worker can write a grant or a continuation of its own. The Worker-side `state` will then move (it cannot tell who ran the command), the loop can iterate, and the result is at most REPORTED. The verified run refuses the grant and every direction the Owner did not author (`provenance`), so that Worker-made authority never produces AGREED and is visible to the Owner as the reason. That is the claimed trust model: **the Process bounds what the Worker may do through its commands and makes every claim checkable; it does not make a claim true.**
 
 ## 5. The request
 
@@ -100,7 +116,7 @@ Subject, standard and expected examination are exactly the three things the brie
 
 `state` at exit 3 prints a brief a human or an assisting Agent can read without the Worker: reason code and statement, the subject path and identity, one line per event (position, kind, result, actor, identity), the Reviewer's findings paths, and the command that records a direction. The Worker posts that on the PR ("communication over PRs").
 
-`direct <loop> --reason <code> --direction continue|stop [--rounds n] --words <text|@file>` refuses unless `<code>` is the reason in force. `continue` opens a window: identities forgotten, count zero, budget `n`. Human participation is the defining distinction; Agents may help the human write the words. The script cannot tell who ran it. That is stated, not enforced: a direction is the human's by the same rule as `retro-owner.md` (their text, carried).
+`direct <loop> --reason <code> --direction continue|stop [--rounds n] --words <text|@file>` refuses unless `<code>` is the reason in force. A human direction is the human's by the host: the verified run shows that the Owner authored the file (§4a). `continue` opens a window: identities forgotten, count zero, budget `n`. Human participation is the defining distinction; Agents may help the human write the words. The script cannot tell who ran it; §4a is what makes the direction's authorship checkable.
 
 ## 7. Package and Node
 
@@ -119,7 +135,7 @@ The table in §2 and the record are subject-agnostic. A second pair (say Require
 
 ## Open forks (answer by number; recommendation first)
 
-1. **Who carries a bot's review into a round?** *Recommend the Worker transcribes under the fixed rule of §4, with the stale-review check.* Alternatives: the Reviewer pushes `NN-round.md` itself (what Kai's Codex session did for #73; cannot be asked of `@codex review` on the PR), or a later `.github` job relays bot reviews (must travel alone, and is the stronger answer long term).
+1. **Who carries a bot's review into a round, and who verifies it?** *Recommend the Worker transcribes under the fixed rule of §4 (reported), and a verifier outside the Worker's control runs `state --host` (§4a) before anything is called AGREED; a `.github` control that does it in CI is the follow-on.* Alternatives: the Reviewer pushes `NN-round.md` itself (what Kai's Codex session did for #73; cannot be asked of `@codex review` on the PR), or a later `.github` job relays bot reviews (must travel alone, and is the stronger answer long term).
 2. **Is the budget required in the grant?** *Recommend yes, `Rounds` is required,* so the Owner always states how much autonomy is given; it is one of seven conditions, not the criterion. Without it, byte-changing thrash is unbounded.
 3. **Name.** *Recommend `kaal-process-agree` / Node `Agreement`.* Alternative `kaal-process-loop`. "Describe Intent" is the first use, not the name.
 4. **Where does a loop live?** *Recommend nowhere in particular:* location-free, beside the draft Intent. Not inside a Change's `work/` (it would be sealed with the Work), and not in `.kaal`. 08/03's rule: the engine's location must not decide the Work's.
