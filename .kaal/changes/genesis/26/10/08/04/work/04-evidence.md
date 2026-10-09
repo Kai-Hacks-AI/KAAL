@@ -702,6 +702,8 @@ const clip = (s, n = 90) => (s.length > n ? `${s.slice(0, n - 1)}…(+${s.length
 const NOTE = 130;
 let reserve = 4 * NOTE;
 const fits = (n) => used + n <= o.budget - reserve;
+// A budget that cannot hold the mandatory lines (a note per list and the closing line) is refused before anything is printed.
+const needBudget = () => { if (!(o.budget >= reserve)) { console.error(`--budget ${o.budget} is below the ${reserve} bytes this command needs for its continuation notes and closing line; nothing printed`); process.exit(1); } };
 const say = (s) => { const b = Buffer.byteLength(s) + 1; if (!fits(b)) { dropped++; return false; } lines.push(s); used += b; return true; };
 const note = (s) => { while (Buffer.byteLength(s) > NOTE) s = s.slice(0, -2); lines.push(s); used += Buffer.byteLength(s) + 1; }; // continuation notes are fixed-size and always printed
 // The address is never clipped: only the name is. 12 hex digits; near/show refuse a prefix that matches more than one.
@@ -716,6 +718,7 @@ const pick = (prefix) => { const m = [...byId.values(), ...[...engNodes.values()
 
 const cmd = process.argv[2];
 if (cmd === "find") {
+  needBudget();
   const terms = o.rest.map((t) => t.toLowerCase());
   for (const [lbl, set] of [["Skills", skills], ["Learnings", learnings], ["Changes", changes]]) {
     const hits = set.map((x) => ({ x, score: terms.filter((t) => new RegExp("\\b" + t).test(x.text.toLowerCase())).length }))
@@ -730,6 +733,7 @@ if (cmd === "find") {
   const full = pick(o.rest[0]);
   if (!full) { console.error("unknown id"); process.exit(1); }
   reserve = ((full.kind === "Learning" ? 7 : 3) + 1) * NOTE;
+  needBudget();
   say(`${full.kind} ${label(full)}`);
   // --after applies to every list below; a list continues from where the limit or the budget stopped it.
   const show = (xs, l) => {
@@ -860,3 +864,20 @@ Round 04 (`review/04.md`) accepted F1 to F7, F9 and F10 and the two round-03 par
 The F5 to F9 cases, the Fork 4 cases (section 12) and the Fork 8 cases (section 13) were rerun from the same extracted blocks with the same results (`cases5`: the fifteen establish and refuse results of section 13; `cases4`: the ten steps of section 12).
 
 **What this does not show.** Wall-clock time: establishing the 150-line Learning took on the order of a minute because each evidence line starts Sealing checks per place and kind; the architecture bounds output, not scan time (as stated). The 130-byte note bound relies on list names being clipped; a custom list name longer than that would be clipped at the end, which loses the `--after` value, but no list in the prototype is that long.
+
+## 15. Disposition of review round 05 (a budget too small for the notes)
+
+Round 05 (`review/05.md`) accepted everything of round 04 except one narrow remainder of F8: the prototype accepted a `--budget` smaller than the continuation notes and closing line it must print, and exceeded it (261 bytes at `--budget 200`), contradicting both R30 and the Architecture's own fallback ("a budget too small for the notes alone yields only the notes"). The finding is right, and the fallback sentence was the wrong answer.
+
+**Decision.** Reject, not truncate. A command knows, before it prints anything, the least it must print: one note per list it can show plus one closing line, which is exactly the reserve it already computes (130 bytes each: `find` has three lists, so 520; `near` on a Skill or a Change has three, so 520; `near` on a Learning has seven, so 1,040). If `--budget` is smaller than that reserve, the command prints an error on stderr naming the budget and the minimum, prints nothing on stdout and exits 1. A non-numeric budget fails the same test. Any budget it accepts is kept: cards, notes and closing line together stay within it. The default (2,000) is above every minimum. Rejecting was chosen over shrinking the notes further because a continuation note that cannot say how to continue would defeat the purpose of the budget. `show` is unaffected (it is bounded by `--bytes`).
+
+**Changed.** The prototype (section 7, `discover.mjs`: `needBudget()`, called in `find` and, once the reserve for the kind is known, in `near`), the Architecture ("The output budget": the fallback sentence now states the refusal and the three minimums) and R30 (a budget too small is refused rather than exceeded). `learning.mjs` is unchanged. Section 7 was republished once; the block is byte-identical to the file run (`cmp`) and passes `node --check`.
+
+**Reproduction and result**, from the extracted block, in the round-04 fixture (a Learning citing 150 sealed Definition Nodes, `80c7a771c707`; the reviewer's 30ac5eb2641c is the same shape in their fixture):
+
+- `near --budget 200`, `900` and `1039`: exit 1, 0 bytes on stdout, `--budget 200 is below the 1040 bytes this command needs for its continuation notes and closing line; nothing printed`.
+- `near --budget 1040`: exit 0, 202 bytes (the note for the evidence list and the closing line `output budget 1040 bytes reached; 7 lines not shown`). `near --budget 2000`: 576 bytes, as in section 14.
+- `find --budget 100` and `519`: refused (minimum 520); `find --budget 520`: accepted, 215 bytes. `near ... --budget abc`: exit 1, nothing printed.
+- The F5 to F9 cases, section 12 (Fork 4: `cases4`, `cases4x`, output identical to the previous run), section 13 (`cases5`, 47 lines, identical) and section 14 (`cases6`: 577, 577 and 419 bytes; thirteen-card pages; 150 listed across the pages) pass as before. In the last, the old "small budget" step (`--budget 900`) now exits 1 with an empty stdout, as above.
+
+**What this does not show.** The minimum is a property of this prototype's list count (a future command with more lists has a larger minimum, which it must state the same way). It says nothing about scan time, nor does it choose the final Situation/Evidence names, which stay with the Owner.
