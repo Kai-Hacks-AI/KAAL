@@ -199,3 +199,64 @@ test("a client directory with no founding sighting is refused", (t) => {
   writeFileSync(founding, text.replace("adapter: a\n", "adapter: a\ncontinues: asserted\n"));
   assert.match(run("check-record", record).stderr, /0 founding sightings/);
 });
+
+test("--keep refuses a destination reached through a link, and leaves the attempt, the sighting and the stored carriers unwritten", (t) => {
+  const { root, record, exposed } = setup(t);
+  const outside = join(root, "outside");
+  mkdirSync(outside);
+  const c = begin(record, "2026-10-07");
+  for (const [link, where] of [
+    ["clients", "the sighting"],
+    ["incidents", "a stored carrier"],
+    ["requests", "a stored carrier"],
+  ] as const) {
+    symlinkSync(outside, join(record, link));
+    const r = reached(record, c, "acme", exposed, "--keep");
+    assert.equal(r.status, 1, where);
+    assert.match(r.stderr, /is not a plain directory of this record/);
+    assert.equal(existsSync(join(record, c, "acme")), false, "no raw attempt is left");
+    assert.deepEqual(readdirSync(outside), [], "nothing is written outside the record");
+    rmSync(join(record, link));
+  }
+  mkdirSync(join(record, "incidents"));
+  symlinkSync(outside, join(record, "incidents/acme"));
+  assert.equal(reached(record, c, "acme", exposed, "--keep").status, 1);
+  assert.deepEqual(readdirSync(outside), []);
+  assert.equal(existsSync(join(record, "clients")), false);
+  rmSync(join(record, "incidents/acme"));
+  mkdirSync(join(record, "clients/acme"), { recursive: true });
+  symlinkSync(outside, join(record, "clients/acme/sightings"));
+  assert.equal(unreached(record, c, "acme", "--keep").status, 1);
+  assert.deepEqual(readdirSync(outside), []);
+  assert.equal(existsSync(join(record, c, "acme")), false);
+});
+
+test("check-record reports stored carriers whose client record is gone, and a client record with no sighting", (t) => {
+  const { record, exposed } = setup(t);
+  reached(record, begin(record, "2026-10-07"), "acme", exposed, "--keep");
+  rmSync(join(record, "clients/acme"), { recursive: true });
+  const lost = run("check-record", record);
+  assert.equal(lost.status, 1);
+  assert.match(lost.stderr, /requests\/acme\/.* is stored but no sighting lists it, and there is no record of this client/);
+  assert.match(lost.stderr, /incidents\/acme\/.* is stored but no sighting lists it/);
+  mkdirSync(join(record, "clients/acme/sightings"), { recursive: true });
+  const empty = run("check-record", record);
+  assert.equal(empty.status, 1);
+  assert.match(empty.stderr, /acme: has 0 founding sightings/);
+  rmSync(join(record, "clients"), { recursive: true });
+  mkdirSync(join(record, "clients/ghost/sightings"), { recursive: true });
+  assert.match(run("check-record", record).stderr, /ghost: has 0 founding sightings/);
+});
+
+test("a Record that also holds locally authored dated carriers is checked without mistaking them for stored ones", (t) => {
+  const { record, exposed } = setup(t);
+  for (const place of ["incidents", "requests"]) {
+    mkdirSync(join(record, place, "26/10/07"), { recursive: true });
+    writeFileSync(join(record, place, "26/10/07/01.md"), "ours\n");
+  }
+  reached(record, begin(record, "2026-10-07"), "acme", exposed, "--keep");
+  const r = run("check-record", record);
+  assert.equal(r.status, 0, r.stderr);
+  writeFileSync(join(record, "requests/acme", `${sha256("y")}.md`), "y");
+  assert.match(run("check-record", record).stderr, /is stored but no sighting lists it/);
+});

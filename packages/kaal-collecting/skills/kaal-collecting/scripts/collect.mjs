@@ -180,6 +180,15 @@ function hasSighting(root, client) {
   return readdirSync(dir, { recursive: true }).some((entry) => lstatSync(join(dir, entry)).isFile());
 }
 
+/** Refuses a destination below `root` whose existing directory components are not plain directories, so nothing is ever written through a link. */
+function plainDestination(root, file) {
+  let current = root;
+  for (const part of file.slice(root.length + 1).split("/").slice(0, -1)) {
+    current = join(current, part);
+    if (anythingAt(current) && !lstatSync(current).isDirectory()) fail(`refused: ${current.slice(root.length + 1)} is not a plain directory of this record`);
+  }
+}
+
 /** Everything --keep would write for this attempt, after refusing, before writing anything, what it must not. */
 function planKeep(root, collection, client, flags, text, found) {
   if (flags.continues && !flags.keep) fail("--continues applies only with --keep", 2);
@@ -188,10 +197,12 @@ function planKeep(root, collection, client, flags, text, found) {
   if (known && !flags.continues) fail(`${client} already has sightings in this record: pass --continues to assert that it is the same client, which is an assertion and not proof`);
   if (!known && flags.continues) fail(`--continues asserts continuity with a client already recorded, and ${client} has no sighting in this record`);
   const sighting = join(root, "clients", client, "sightings", `${collection.slice("collections/".length)}.md`);
+  plainDestination(root, sighting);
   if (anythingAt(sighting)) fail(`refused: ${client} already has a sighting for ${collection}`);
   const stored = [];
   for (const [path, bytes] of found) {
     const target = join(root, path.split("/")[0], client, `${sha256(bytes)}.md`);
+    plainDestination(root, target);
     if (anythingAt(target)) {
       if (!lstatSync(target).isFile() || !readFileSync(target).equals(bytes)) fail(`refused: the stored carrier for ${path} is not the bytes it is named for`);
     } else if (!stored.some(([t]) => t === target)) stored.push([target, bytes]);
@@ -386,13 +397,23 @@ function checkRecord() {
         else if (sha256(readFileSync(stored)) !== sha) problems.push(`${client}: ${key} no longer matches its name`);
       }
     }
-    if (files.length > 0 && founding !== 1) problems.push(`${client}: has ${founding} founding sightings, and exactly one is required`);
+    if (founding !== 1) problems.push(`${client}: has ${founding} founding sightings, and exactly one is required`);
   }
+  // Stored carriers are found by what they are, not by the client records that survive. A caller's
+  // Record may also hold the locally authored dated carriers (<place>/YY/MM/DD/CC.md); those hold no
+  // <sha256>.md file directly below a name, so they are not stored carriers.
   for (const place of CARRIED_AT) {
-    for (const client of clients) {
-      const dir = join(root, place, client);
-      if (!NAME.test(client) || !anythingAt(dir) || !lstatSync(dir).isDirectory()) continue;
-      for (const entry of readdirSync(dir)) if (!referenced.has(`${place}/${client}/${entry}`)) problems.push(`${client}: ${place}/${client}/${entry} is stored but no sighting lists it`);
+    const placeDir = join(root, place);
+    if (!anythingAt(placeDir) || !lstatSync(placeDir).isDirectory()) continue;
+    for (const client of readdirSync(placeDir).sort()) {
+      const dir = join(placeDir, client);
+      if (!NAME.test(client) || !lstatSync(dir).isDirectory()) continue;
+      const entries = readdirSync(dir);
+      if (!clients.includes(client) && !entries.some((entry) => /^[0-9a-f]{64}\.md$/.test(entry))) continue;
+      for (const entry of entries) {
+        const key = `${place}/${client}/${entry}`;
+        if (!referenced.has(key)) problems.push(`${client}: ${key} is stored but no sighting lists it${clients.includes(client) ? "" : ", and there is no record of this client"}`);
+      }
     }
   }
   for (const problem of new Set(problems)) console.error(problem);
