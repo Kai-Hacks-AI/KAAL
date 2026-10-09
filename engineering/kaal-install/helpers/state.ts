@@ -2,14 +2,16 @@
 // it. Sealed material (everything in the KAAL directory except AGENTS.md) is
 // append-only: an installed file with other bytes is refused, as Core's
 // registration refuses it. Unsealed derived files (AGENTS.md and the host's
-// Agent Skills) are made to match the packages. `changes/` is genuine
-// installed state: it is neither read nor written here, and neither are the
+// Agent Skills) are made to match the packages. `changes/`, the carriers
+// a client addresses to KAAL (`incidents/`, `requests/`) and `collections/`,
+// what this KAAL has collected from its clients, are genuine installed state:
+// they are neither read nor written here, and neither are the
 // seals of Changes and of named trees, `seals/changes/` and `seals/trees/`, which
 // belong to it. The bare `seals/<ID>`
 // markers remain Node seals and are still judged.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./delivery.js";
+import { CARRIERS, CHANGES, Delivery, Files, HOST_SKILLS, KAAL_DIR, nodes, read } from "./delivery.js";
 
 /** The one derived file of the KAAL directory that is not sealed. */
 const UNSEALED = "AGENTS.md";
@@ -17,8 +19,10 @@ const UNSEALED = "AGENTS.md";
 /** Files Core delivers as defaults and the KAAL instance then owns: human-editable, never sealed. */
 const INSTANCE = ["core/config"];
 
+/** What this KAAL has collected, written by kaal-collecting; installed state, never a delivery. */
+const COLLECTIONS = "collections";
 const CHANGE_SEALS = ["seals/changes", "seals/trees"];
-const underChanges = (path: string) => [CHANGES, ...CHANGE_SEALS].some((dir) => path === dir || path.startsWith(`${dir}/`));
+const underChanges = (path: string) => [CHANGES, COLLECTIONS, ...CARRIERS, ...CHANGE_SEALS].some((dir) => path === dir || path.startsWith(`${dir}/`));
 
 /** The derived files installed in the KAAL directory of `target`, and its host skills of the delivered capabilities. */
 function installed(target: string, d: Delivery): { kaal: Files; skills: Files } {
@@ -31,7 +35,7 @@ function installed(target: string, d: Delivery): { kaal: Files; skills: Files } 
 
 /** What differs between `target` and the delivery; empty means it holds the delivery. Never repairs. */
 export function check(target: string, d: Delivery): string[] {
-  const problems: string[] = d.unresolved.map((s) => `the installed Skill ${s.name} (${s.id}) is delivered by no package`);
+  const problems: string[] = [...d.unresolved.map((s) => `the installed ${s.kind} ${s.name} (${s.id}) is delivered by no package`), ...d.unmet];
   const have = installed(target, d);
   const compare = (label: string, expected: Files, found: Files) => {
     for (const [path, bytes] of Object.entries(expected)) {
@@ -52,6 +56,7 @@ export function check(target: string, d: Delivery): string[] {
 
 /** Make `target` hold the delivery. Refuses, writing nothing, if sealed material would take other bytes. */
 export function install(target: string, d: Delivery): void {
+  if (d.unmet.length > 0) throw new Error(`${d.unmet.join("\n")}\nnothing was written: an installation that cannot work is not an installation`);
   const dir = join(target, KAAL_DIR);
   for (const [path, bytes] of Object.entries(d.kaal)) {
     const file = join(dir, path);

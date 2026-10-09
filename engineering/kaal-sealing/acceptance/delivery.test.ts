@@ -63,13 +63,13 @@ test("the shipped scripts are exactly the tree identity and the seal marker, and
 });
 
 test("the capability passes the conventions Engineering KAAL Skill teaches", () => {
-  const checker = join(REPO, "packages", "engineering-kaal-skill", "skills", "engineering-kaal-skill", "scripts", "check-skill.mjs");
+  const checker = join(REPO, "packages", "kaal-engineering", "skills", "kaal-engineering", "scripts", "check-skill.mjs");
   const r = spawnSync("node", [checker, REPO, CAPABILITY], { encoding: "utf8" });
   assert.equal(r.status, 0, r.stderr);
 });
 
 test("registering is Core's: the shipped contribution passes register-skill --check", (t) => {
-  const registrar = join(REPO, "packages", "engineering-kaal-skill", "skills", "engineering-kaal-skill", "scripts", "register-skill.mjs");
+  const registrar = join(REPO, "packages", "kaal-engineering", "skills", "kaal-engineering", "scripts", "register-skill.mjs");
   const r = spawnSync("node", [registrar, "--check", deployKaal(t), CAPABILITY, join(PACKAGE, "kaal")], { encoding: "utf8" });
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /can register kaal-sealing: [0-9a-f]{64}/);

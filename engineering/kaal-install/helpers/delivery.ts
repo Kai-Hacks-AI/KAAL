@@ -8,6 +8,7 @@
 // contribution is registered through Core's registerSkill() into a throwaway
 // KAAL directory. The installed files are a projection of this, never its
 // source.
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -21,14 +22,24 @@ export const KAAL_DIR = ".kaal";
 export const HOST_SKILLS = "skills";
 /** Genuine installed state: never derived from a package, never touched by installing. */
 export const CHANGES = "changes";
+/** Genuine installed state of the same kind: the carriers a client addresses to KAAL (KAAL Incident, KAAL Request), kept beside the embedded KAAL for later collection. */
+export const CARRIERS = ["incidents", "requests"];
 
 export type Files = Record<string, string>;
 export interface Ref {
   name: string;
   id: string;
 }
-type Core = { payload(): Files; registerSkill(kaal: string, capability: string, contribution: Files): string[]; installedSkills(kaal: string): Ref[] };
-type Capability = { payload(): { kaal: Files; skills: Files } };
+/** What an installed Node is registered as. */
+export type Kind = "Skill" | "Extension";
+type Core = {
+  payload(): Files;
+  registerSkill(kaal: string, capability: string, contribution: Files): string[];
+  installedSkills(kaal: string): Ref[];
+  registerExtension(kaal: string, capability: string, contribution: Files): string[];
+  installedExtensions(kaal: string): Ref[];
+};
+type Capability = { payload(): { kaal: Files; skills?: Files } };
 type Found = { id: string; name: string; type?: Ref };
 // Node machinery is the one Core's registration uses, reached in the built package and not through its public API.
 type Nodes = { candidates(files: Files): Found[]; admit(files: Files): Found[] };
@@ -44,8 +55,10 @@ export interface Delivery {
   skills: Files;
   /** The capabilities delivered, each registered through Core. */
   capabilities: string[];
-  /** Installed Skills that no package delivers. */
-  unresolved: Ref[];
+  /** Installed Skills and Extensions that no package delivers. */
+  unresolved: (Ref & { kind: Kind })[];
+  /** Capabilities a delivered Agent Skill declares it needs beside it that the KAAL does not have installed, with the exact Node ID that would select each. */
+  unmet: string[];
 }
 
 /** Files under a directory, keyed by path relative to it. */
@@ -57,45 +70,175 @@ export function read(dir: string): Files {
   return files;
 }
 
-interface Package {
-  /** The Agent Skills directory the package realizes: the name its contribution registers under. */
+export interface Package {
+  /** The name its contribution registers under: the Agent Skill the package realizes, or, for a package with none, the package's own directory. */
   capability: string;
   kaal: Files;
   skills: Files;
   nodes: Found[];
 }
 
-/** The packages that deliver a KAAL contribution and its Agent Skills, as their own payload() says. */
-async function packages(): Promise<Package[]> {
+/**
+ * The packages that deliver a KAAL contribution, as their own payload() says,
+ * and its Agent Skills where they have any. A package with an Agent Skill
+ * realizes exactly one; a package with none (an Extension's) registers under
+ * its own directory name.
+ */
+export async function packages(root: string): Promise<Package[]> {
   const found: Package[] = [];
-  for (const dir of readdirSync(join(SOURCE, "packages")).sort()) {
-    if (!existsSync(join(SOURCE, "packages", dir, "dist", "index.js"))) continue;
-    const mod = await load<Partial<Capability>>(dir, "dist", "index.js");
+  for (const dir of readdirSync(root).sort()) {
+    if (!existsSync(join(root, dir, "dist", "index.js"))) continue;
+    const mod = (await import(pathToFileURL(join(root, dir, "dist", "index.js")).href)) as Partial<Capability>;
     const delivered = typeof mod.payload === "function" ? mod.payload() : undefined;
-    if (!delivered || typeof delivered.kaal !== "object" || typeof delivered.skills !== "object") continue;
-    const names = new Set(Object.keys(delivered.skills).map((p) => p.split("/")[0]));
-    if (names.size !== 1) throw new Error(`packages/${dir} realizes exactly one Agent Skill`);
-    found.push({ capability: [...names][0], kaal: delivered.kaal, skills: delivered.skills, nodes: nodes.candidates(delivered.kaal) });
+    if (!delivered || typeof delivered.kaal !== "object" || (delivered.skills !== undefined && typeof delivered.skills !== "object")) continue;
+    const skills = delivered.skills ?? {};
+    const names = new Set(Object.keys(skills).map((p) => p.split("/")[0]));
+    if (names.size > 1) throw new Error(`packages/${dir} realizes exactly one Agent Skill`);
+    found.push({ capability: names.size === 1 ? [...names][0] : dir, kaal: delivered.kaal, skills, nodes: nodes.candidates(delivered.kaal) });
   }
   return found;
 }
 
+const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
+/** The exact IDs of Core's Skill and Extension Nodes: what a Node's type must refer to for it to be one. */
+const KIND_ID: Record<Kind, string> = { Skill: sha256(core.payload()["core/Skill.md"]), Extension: sha256(core.payload()["core/Extension.md"]) };
+
+/** The Skill or Extension Nodes a package carries, by what their type refers to in Core and not by name. */
+export function contributions(pkg: Package): (Ref & { kind: Kind })[] {
+  const out: (Ref & { kind: Kind })[] = [];
+  for (const n of pkg.nodes) for (const kind of ["Skill", "Extension"] as const) if (n.type?.id === KIND_ID[kind]) out.push({ name: n.name, id: n.id, kind });
+  return out;
+}
+
 /**
- * What the packages deliver for `target`: for the Skills already installed in
- * its KAAL directory, as Core reports them. Core's payload is always
- * delivered. A Skill enters the installed KAAL by being registered through
- * Core, never by being named here.
+ * The `compatibility` an Agent Skill declares, in its SKILL.md frontmatter
+ * (the Agent Skills standard's free text), as the string value it decodes to.
+ * Plain scalars (comment excluded), single- and double-quoted scalars, and
+ * folded and literal block scalars are read. A representation that cannot be
+ * decoded reliably here (an escape in a double-quoted scalar, an anchor, alias
+ * or tag, a flow collection) is not guessed at: it comes back as `unreadable`,
+ * and the installation is then refused, as an unmet need is.
  */
-export async function delivery(target: string): Promise<Delivery> {
+export function compatibility(skill: string): { value: string } | { unreadable: string } {
+  const lines = skill.replace(/\r\n/g, "\n").split("\n");
+  if (skill === "") return { value: "" };
+  // The frontmatter is held to one bounded shape, and anything outside it is refused, never read as "no declaration": it starts the file, is closed by a line of `---`, and holds only blank lines, comment lines, plain `key:` lines at column 0 and space-indented lines that continue the key above.
+  const shape = "a frontmatter outside the supported shape (plain `key:` lines at column 0, space-indented continuation lines, comment lines)";
+  const close = lines.indexOf("---", 1);
+  if (lines[0] !== "---" || close < 0) return { unreadable: shape };
+  const front = lines.slice(1, close);
+  let keyed = false;
+  for (const l of front) {
+    if (l.trim() === "" || l.startsWith("#")) continue;
+    if (/^[A-Za-z][A-Za-z0-9_-]*:(\s|$)/.test(l)) keyed = true;
+    else if (!(keyed && /^ +\S/.test(l))) return { unreadable: shape };
+  }
+  const keys = front.filter((l) => l.startsWith("compatibility:"));
+  if (keys.length > 1) return { unreadable: "a frontmatter that repeats the key `compatibility`" };
+  const at = front.findIndex((l) => l.startsWith("compatibility:"));
+  if (at < 0) return { value: "" };
+  let first = front[at].slice("compatibility:".length).trim();
+  let rest: string[] = [];
+  for (const l of front.slice(at + 1)) {
+    if (l.trim() !== "" && !/^\s/.test(l)) break;
+    rest.push(l);
+  }
+  const comment = /(^|\s)#/;
+  // The value may start on a following line, below an empty or comment-only key line: it is then decoded exactly as one on the key's line.
+  if (first === "" || first.startsWith("#")) {
+    const i = rest.findIndex((l) => l.trim() !== "" && !l.trim().startsWith("#"));
+    if (i < 0) return { value: "" };
+    first = rest[i].trim();
+    rest = rest.slice(i + 1);
+  }
+  if (/^[>|]/.test(first)) return { value: rest.map((l) => l.trim()).join("\n") };
+  if (first.startsWith('"') || first.startsWith("'")) {
+    const quote = first[0];
+    const body = [first.slice(1), ...rest.map((l) => l.trim())].join("\n");
+    if (quote === '"' && body.includes("\\")) return { unreadable: "a double-quoted scalar with an escape sequence" };
+    let out = "";
+    for (let i = 0; i < body.length; i++) {
+      if (body[i] === quote) {
+        if (quote === "'" && body[i + 1] === "'") {
+          out += "'";
+          i++;
+          continue;
+        }
+        const after = body.slice(i + 1);
+        return /^\s*(#.*)?$/.test(after.split("\n")[0]) && after.split("\n").slice(1).every((l) => l.trim() === "" || l.trim().startsWith("#")) ? { value: out } : { unreadable: "text after the closing quote" };
+      }
+      out += body[i];
+    }
+    return { unreadable: "a quoted scalar that does not close" };
+  }
+  if (/^[&*!\[{%@`]/.test(first)) return { unreadable: `a value starting with ${first[0]} (an anchor, alias, tag or flow collection)` };
+  return plain([first, ...rest], comment);
+}
+
+/** A plain (multi-line) scalar: its lines folded by a space, ended by the first comment. */
+function plain(lines: string[], comment: RegExp): { value: string } {
+  const out: string[] = [];
+  for (const raw of lines) {
+    const l = raw.trim();
+    const c = comment.exec(l);
+    if (c) {
+      const cut = l.slice(0, c.index).trim();
+      if (cut) out.push(cut);
+      break;
+    }
+    if (l) out.push(l);
+  }
+  return { value: out.join(" ") };
+}
+
+/** The capability-name prefix of the KAAL in `kaalDir`: its instance's `capability-prefix`, else Core's default. */
+function prefix(kaalDir: string): string {
+  const file = join(kaalDir, "core", "config");
+  const text = existsSync(file) ? readFileSync(file, "utf8") : core.payload()["core/config"] ?? "";
+  return /^capability-prefix\s*=\s*(\S+)\s*$/m.exec(text)?.[1] ?? "kaal-";
+}
+
+/** The capability names a declaration mentions: whole words that begin with the prefix. Core's own package is not a capability. */
+function named(text: string, pre: string): string[] {
+  const esc = pre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const found = text.match(new RegExp(`(?<![\\w-])${esc}[a-z0-9]+(?:-[a-z0-9]+)*`, "g")) ?? [];
+  return [...new Set(found)].filter((n) => n !== "kaal-core");
+}
+
+/**
+ * What the packages deliver for `target`: for the Skills and Extensions
+ * already installed in its KAAL directory, as Core reports them. Core's
+ * payload is always delivered. A Skill or an Extension enters the installed
+ * KAAL by being registered through Core, never by being named here. `select`
+ * is the one way a Skill or Extension that is not installed yet is chosen: by
+ * the exact ID of its Node, never by name; it is registered into the delivery
+ * through Core like any other, and Core's admission decides whether it is
+ * valid. `root` is where the packages are; this repository's own by default.
+ */
+export async function delivery(target: string, root: string = join(SOURCE, "packages"), select: string[] = []): Promise<Delivery> {
   const dir = join(target, KAAL_DIR);
-  const installed = existsSync(dir) ? core.installedSkills(dir) : [];
-  const all = await packages();
-  const wanted = new Set<Package>();
-  const unresolved: Ref[] = [];
-  for (const skill of installed) {
-    const pkg = all.find((p) => p.nodes.some((n) => n.id === skill.id));
-    if (pkg) wanted.add(pkg);
-    else unresolved.push(skill);
+  const installed: (Ref & { kind: Kind })[] = existsSync(dir)
+    ? [...core.installedSkills(dir).map((r) => ({ ...r, kind: "Skill" as const })), ...core.installedExtensions(dir).map((r) => ({ ...r, kind: "Extension" as const }))]
+    : [];
+  const all = await packages(root);
+  const have = new Set(installed.map((n) => n.id));
+  for (const id of select) {
+    if (have.has(id)) continue;
+    const node = all.flatMap((p) => contributions(p)).find((c) => c.id === id);
+    if (!node) {
+      const known = all.some((p) => p.nodes.some((n) => n.id === id));
+      throw new Error(known ? `select: ${id} is a Node of a package, but not a Skill or Extension Node` : `select: no package carries a Node with the exact ID ${id}`);
+    }
+    installed.push(node);
+    have.add(id);
+  }
+  const wanted = new Map<Package, Kind>();
+  const unresolved: (Ref & { kind: Kind })[] = [];
+  for (const node of installed) {
+    const pkg = all.find((p) => p.nodes.some((n) => n.id === node.id));
+    if (!pkg) unresolved.push(node);
+    else if (wanted.get(pkg) && wanted.get(pkg) !== node.kind) throw new Error(`packages: ${pkg.capability} is installed as both a Skill and an Extension; a package delivers one kind of contribution, so a capability that needs both is two independently selectable packages`);
+    else wanted.set(pkg, node.kind);
   }
   const scratch = mkdtempSync(join(tmpdir(), "kaal-delivery-"));
   try {
@@ -106,12 +249,32 @@ export async function delivery(target: string): Promise<Delivery> {
     }
     const skills: Files = {};
     const capabilities: string[] = [];
-    for (const pkg of [...wanted].sort((a, b) => (a.capability < b.capability ? -1 : 1))) {
-      core.registerSkill(expected, pkg.capability, pkg.kaal);
+    for (const [pkg, kind] of [...wanted].sort(([a], [b]) => (a.capability < b.capability ? -1 : 1))) {
+      (kind === "Skill" ? core.registerSkill : core.registerExtension)(expected, pkg.capability, pkg.kaal);
       Object.assign(skills, pkg.skills);
       capabilities.push(pkg.capability);
     }
-    return { kaal: read(expected), skills, capabilities, unresolved };
+    const unmet: string[] = [];
+    const pre = prefix(dir);
+    const present = new Set([...wanted.keys()].map((p) => p.capability));
+    for (const pkg of wanted.keys()) {
+      const declared = compatibility(pkg.skills[`${pkg.capability}/SKILL.md`] ?? "");
+      if ("unreadable" in declared) {
+        unmet.push(`${pkg.capability}'s compatibility declaration is ${declared.unreadable}, which cannot be read reliably here, so what it needs beside it cannot be established: write it as a plain, quoted or block scalar without escapes`);
+        continue;
+      }
+      for (const need of named(declared.value, pre)) {
+        if (need === pkg.capability || present.has(need)) continue;
+        const other = all.find((p) => p.capability === need);
+        const ids = other ? contributions(other).map((c) => `${c.name} ${c.id}`).join(", ") : "";
+        unmet.push(
+          ids
+            ? `${pkg.capability} declares that it needs ${need} beside it, which is not installed: select its Node by exact ID (${ids})`
+            : `${pkg.capability} declares that it needs ${need} beside it, which is not installed, and no package of this delivery carries a Skill or Extension Node for it: there is no exact Node ID to select`,
+        );
+      }
+    }
+    return { kaal: read(expected), skills, capabilities, unresolved, unmet };
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }

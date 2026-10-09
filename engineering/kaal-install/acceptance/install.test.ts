@@ -8,23 +8,27 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { core, delivery, nodes, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../helpers/delivery.js";
+import { contributions, core, delivery, nodes, packages, read, SOURCE, KAAL_DIR, HOST_SKILLS } from "../helpers/delivery.js";
 import { check, install } from "../helpers/state.js";
-import * as changing from "changing-kaal";
-import * as engineering from "engineering-kaal-skill";
+import * as changing from "kaal-changing";
+import * as collecting from "kaal-collecting";
+import * as engineering from "kaal-engineering";
+import * as retro from "kaal-retro";
 import * as sealing from "kaal-sealing";
 
-const SKILLS = ["Changing KAAL", "Engineering Skill", "Sealing"];
+const SKILLS = ["Changing KAAL", "Collecting KAAL", "Engineering Skill", "Retro", "Sealing"];
 // Genesis bootstrap, explicit and boring: deploy Core, then register each capability's contribution through Core.
 const bootstrap: [string, () => { kaal: Record<string, string> }][] = [
-  ["engineering-kaal-skill", engineering.payload],
-  ["changing-kaal", changing.payload],
+  ["kaal-engineering", engineering.payload],
+  ["kaal-changing", changing.payload],
+  ["kaal-collecting", collecting.payload],
+  ["kaal-retro", retro.payload],
   ["kaal-sealing", sealing.payload],
 ];
-const CAPABILITIES = ["changing-kaal", "engineering-kaal-skill", "kaal-sealing"];
+const CAPABILITIES = ["kaal-changing", "kaal-collecting", "kaal-engineering", "kaal-retro", "kaal-sealing"];
 const sha256 = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
 
 type After = { after: (fn: () => void) => void };
@@ -87,11 +91,104 @@ test("registered through Core, the capabilities are installed Skills: Nodes unde
 
 test("what is delivered follows the installed Skills: install one and only it is delivered, whatever other packages exist", async (t) => {
   const dir = checkout(t);
-  await bootstrapped(dir, bootstrap.filter(([c]) => c === "changing-kaal"));
-  assert.deepEqual((await deliver(dir)).capabilities, ["changing-kaal"]);
+  await bootstrapped(dir, bootstrap.filter(([c]) => c === "kaal-retro"));
+  assert.deepEqual((await deliver(dir)).capabilities, ["kaal-retro"]);
   assert.deepEqual(await problems(dir), []);
-  assert.ok(!existsSync(join(dir, HOST_SKILLS, "engineering-kaal-skill")), "a package that exists is not thereby installed");
-  assert.ok(!Object.keys(read(join(dir, KAAL_DIR))).some((p) => p.startsWith("skills/engineering-kaal-skill/")));
+  assert.ok(!existsSync(join(dir, HOST_SKILLS, "kaal-engineering")), "a package that exists is not thereby installed");
+  assert.ok(!Object.keys(read(join(dir, KAAL_DIR))).some((p) => p.startsWith("skills/kaal-engineering/")));
+});
+
+// The transition from a repository that holds no KAAL: a first Skill is selected by the exact ID of its Node.
+const nodeId = async (capability: string) => (await packages(join(SOURCE, "packages"))).filter((p) => p.capability === capability).flatMap(contributions)[0].id;
+/** A repository that is not KAAL, with a README and an AGENTS.md of its own. */
+function host(t: After): string {
+  const dir = checkout(t);
+  put(join(dir, "README.md"), "# Some host\n");
+  put(join(dir, "AGENTS.md"), "# Host agents\n\nBe kind.\n");
+  return dir;
+}
+const whole = (dir: string) => JSON.stringify(read(dir));
+const hostFiles = (dir: string) => Object.fromEntries(Object.entries(read(dir)).filter(([p]) => !p.startsWith(`${KAAL_DIR}/`) && !p.startsWith(`${HOST_SKILLS}/`)));
+
+test("a non-KAAL repository becomes an installed, composed KAAL: Core, then Skills selected by exact Node ID, then the Agent entrypoint", async (t) => {
+  const dir = host(t);
+  const before = hostFiles(dir);
+  const ids = [await nodeId("kaal-changing"), await nodeId("kaal-sealing")];
+  assert.equal(run("install-kaal", dir, "--select", ids[0], "--select", ids[1]).code, 0);
+  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.id).sort(), [...ids].sort(), "registered through Core: Core's answer is the truth");
+  assert.deepEqual(await problems(dir), []);
+  for (const cap of ["kaal-changing", "kaal-sealing"]) assert.ok(existsSync(join(dir, HOST_SKILLS, cap, "SKILL.md")), `${cap}'s Agent Skill is projected`);
+  const wire = spawnSync("npm", ["run", "--silent", "wire-kaal-agent", "--", "--agents", join(dir, "AGENTS.md")], { cwd: SOURCE, encoding: "utf8" });
+  assert.equal(wire.status, 0, wire.stderr);
+  const agent = spawnSync("npm", ["run", "--silent", "check-kaal-agent", "--", "--agents", join(dir, "AGENTS.md")], { cwd: SOURCE, encoding: "utf8" });
+  assert.equal(agent.status, 0, agent.stderr);
+  const agents = readFileSync(join(dir, "AGENTS.md"), "utf8");
+  assert.ok(agents.startsWith("# Host agents\n\nBe kind.\n"), "the host's own AGENTS.md content is kept");
+  assert.deepEqual({ ...hostFiles(dir), "AGENTS.md": "" }, { ...before, "AGENTS.md": "" }, "nothing of the host is written but .kaal, the delivered skills/ and the AGENTS.md wiring");
+  // The installed Skill works in the host: its own state command runs there, with its sibling Sealing beside it.
+  const change = spawnSync("node", [join(dir, HOST_SKILLS, "kaal-changing", "scripts", "next-change.mjs"), join(dir, KAAL_DIR), "host"], { encoding: "utf8" });
+  assert.equal(change.status, 0, change.stderr);
+  const rel = change.stdout.trim();
+  const state = spawnSync("node", [join(dir, HOST_SKILLS, "kaal-changing", "scripts", "change-state.mjs"), join(dir, KAAL_DIR), rel], { encoding: "utf8" });
+  assert.equal(state.status, 0, state.stdout + state.stderr);
+});
+
+test("selection is one-time: installing again without it reproduces the same installation, and nothing else remembers it", async (t) => {
+  const dir = host(t);
+  assert.equal(run("install-kaal", dir, "--select", await nodeId("kaal-retro")).code, 0);
+  const first = both(dir);
+  assert.equal(run("install-kaal", dir).code, 0);
+  assert.equal(both(dir), first);
+  assert.equal(run("install-kaal", dir, "--select", await nodeId("kaal-retro")).code, 0, "selecting what is installed is a no-op");
+  assert.equal(both(dir), first);
+  assert.equal(run("check-kaal-install", dir).code, 0);
+  assert.deepEqual(Object.keys(hostFiles(dir)).sort(), ["AGENTS.md", "README.md"], "no list, lock file or registry");
+});
+
+test("composition: a Skill that declares a sibling it needs is not installed without it, and the refusal names the exact Node ID that selects it", async (t) => {
+  const dir = host(t);
+  const before = whole(dir);
+  const alone = run("install-kaal", dir, "--select", await nodeId("kaal-changing"));
+  assert.equal(alone.code, 1);
+  assert.match(alone.err, /kaal-changing declares that it needs kaal-sealing/);
+  assert.ok(alone.err.includes(await nodeId("kaal-sealing")), "the dependency's exact Node ID is named");
+  assert.equal(whole(dir), before, "nothing was written");
+  assert.ok(!existsSync(join(dir, KAAL_DIR)));
+  assert.equal(run("install-kaal", dir, "--select", await nodeId("kaal-changing"), "--select", await nodeId("kaal-sealing")).code, 0);
+  assert.equal(run("check-kaal-install", dir).code, 0);
+});
+
+test("composition: an installation registered by hand without the needed sibling is named by the check, as incomplete", async (t) => {
+  const dir = checkout(t);
+  await installed(dir);
+  core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+  const found = (await problems(dir)).join("\n");
+  assert.match(found, /kaal-changing declares that it needs kaal-sealing/);
+  assert.notEqual(run("check-kaal-install", dir).code, 0);
+  assert.notEqual(run("install-kaal", dir).code, 0, "and it is not made to look installed");
+});
+
+test("selection is by exact ID and refused otherwise, writing nothing: a name, an unknown ID, a Node that is not a Skill", async (t) => {
+  const dir = host(t);
+  const before = whole(dir);
+  const candidates = (await packages(join(SOURCE, "packages"))).flatMap((p) => p.nodes);
+  const other = candidates.find((n) => n.name === "RATIFICATION")!;
+  for (const bad of ["kaal-sealing", "Sealing", "0".repeat(64), other.id]) {
+    const r = run("install-kaal", dir, "--select", bad);
+    assert.equal(r.code, 1, `selecting ${bad}`);
+    assert.equal(whole(dir), before);
+  }
+  assert.match(run("install-kaal", dir, "--select", other.id).err, /not a Skill or Extension Node/);
+  assert.match(run("install-kaal", dir, "--select", "kaal-sealing").err, /no package carries a Node with the exact ID/);
+});
+
+test("list-kaal-capabilities lists what can be selected, with exact IDs, and selects nothing", async (t) => {
+  const dir = host(t);
+  const before = whole(dir);
+  const r = spawnSync("node", [join(SOURCE, "engineering", "kaal-install", "dist", "helpers", "list-kaal-capabilities.js"), "--into", dir], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(r.stdout.includes(await nodeId("kaal-sealing")) && r.stdout.includes("not installed"));
+  assert.equal(whole(dir), before);
 });
 
 test("an installed Skill that no package delivers is named by the check", async (t) => {
@@ -124,39 +221,39 @@ test("core/config is instance-owned: written when absent, then never overwritten
 
 test("installing twice changes nothing", async (t) => {
   const dir = await full(t);
-  const once = both(dir);
+  const once = whole(dir);
   await installed(dir);
-  assert.equal(both(dir), once);
+  assert.equal(whole(dir), once);
 });
 
 test("the check names what differs from the delivery, and repairs nothing", async (t) => {
   const dir = await full(t);
-  const node = join(dir, KAAL_DIR, "skills", "changing-kaal", "Changing-KAAL.md");
-  const skill = join(dir, HOST_SKILLS, "changing-kaal", "SKILL.md");
+  const node = join(dir, KAAL_DIR, "skills", "kaal-changing", "Changing-KAAL.md");
+  const skill = join(dir, HOST_SKILLS, "kaal-changing", "SKILL.md");
   const damage: [string, () => void, RegExp][] = [
     ["a missing Core file", () => rmSync(join(dir, KAAL_DIR, "core", "Core.md")), /core\/Core\.md is missing/],
     ["a changed Node", () => writeFileSync(node, readFileSync(node, "utf8") + " "), /Changing-KAAL\.md is not delivered by any package[\s\S]*1 Node\(s\) that are not admitted/],
     ["a missing seal", () => rmSync(join(dir, KAAL_DIR, "seals", readdirSync(join(dir, KAAL_DIR, "seals"))[0])), /is missing|is not delivered/],
-    ["a changed Agent Skill", () => writeFileSync(skill, "changed"), /changing-kaal\/SKILL\.md differs/],
+    ["a changed Agent Skill", () => writeFileSync(skill, "changed"), /kaal-changing\/SKILL\.md differs/],
     ["a file no package delivers in the KAAL directory", () => put(join(dir, KAAL_DIR, "skills", "other", "X.md"), "x"), /skills\/other\/X\.md is not delivered/],
-    ["a file no package delivers in a delivered Agent Skill", () => put(join(dir, HOST_SKILLS, "changing-kaal", "extra.md"), "x"), /extra\.md is not delivered/],
+    ["a file no package delivers in a delivered Agent Skill", () => put(join(dir, HOST_SKILLS, "kaal-changing", "extra.md"), "x"), /extra\.md is not delivered/],
   ];
   for (const [what, harm, expected] of damage) {
     rmSync(join(dir, KAAL_DIR), { recursive: true, force: true });
     rmSync(join(dir, HOST_SKILLS), { recursive: true, force: true });
     await bootstrapped(dir);
     harm();
-    const before = both(dir);
+    const before = whole(dir);
     assert.match((await problems(dir)).join("\n"), expected, what);
-    assert.equal(both(dir), before, `${what}: nothing repaired`);
+    assert.equal(whole(dir), before, `${what}: nothing repaired`);
   }
 });
 
 test("an unsealed derived file is made to match; sealed material with other bytes is refused and nothing is written", async (t) => {
   const dir = await full(t);
   writeFileSync(join(dir, KAAL_DIR, "AGENTS.md"), "stale");
-  writeFileSync(join(dir, HOST_SKILLS, "changing-kaal", "SKILL.md"), "stale");
-  put(join(dir, HOST_SKILLS, "changing-kaal", "old.md"), "gone from the package");
+  writeFileSync(join(dir, HOST_SKILLS, "kaal-changing", "SKILL.md"), "stale");
+  put(join(dir, HOST_SKILLS, "kaal-changing", "old.md"), "gone from the package");
   put(join(dir, HOST_SKILLS, "not-ours", "SKILL.md"), "some other host skill");
   await installed(dir);
   assert.deepEqual(await problems(dir), [], "AGENTS.md and the Agent Skill match again; the stale file is gone");
@@ -180,6 +277,19 @@ test("changes, the genuine installed state, survive installing and are outside t
   assert.equal(readFileSync(retro, "utf8"), "# Retro\n\nedited");
   put(join(dir, KAAL_DIR, "changes", "x", "y.md"), "y");
   assert.deepEqual(await problems(dir), []);
+  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
+});
+
+test("collections, what this KAAL collected from its clients, are installed state too: they survive installing and are outside the check", async (t) => {
+  const dir = await full(t);
+  const carrier = join(dir, KAAL_DIR, "collections", "26", "10", "07", "01", "some-client", "carriers", "a.md");
+  put(carrier, "one");
+  await installed(dir);
+  assert.equal(readFileSync(carrier, "utf8"), "one");
+  assert.deepEqual(await problems(dir), [], "collections are not a package's delivery");
+  writeFileSync(carrier, "edited");
+  assert.deepEqual(await problems(dir), [], "the check does not judge collected evidence");
+  assert.equal(readFileSync(carrier, "utf8"), "edited");
   assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "and installed Skills are unaffected by them");
 });
 
@@ -222,12 +332,151 @@ test("the Agent entrypoint is wired by the existing KAAL Agent machinery", async
   assert.equal(agent("check-kaal-agent"), 0, "AGENTS.md points to the installed .kaal/AGENTS.md");
 });
 
+// Extensions: delivered the way Skills are, found by Core's typing alone. No
+// package of this repository is an Extension yet, so the delivery is proven
+// over a throwaway package root holding real, sealed Extension Nodes.
+
+const typeLine = (name: string, id: string) => `---\nname: ${name}\ntype:\n  name: Extension\n  id: ${id}\n---\n\n# ${name}\n\nAn Extension.\n`;
+/** A throwaway package root with one package per entry, each a real built payload() of the given KAAL files and optional Agent Skills. */
+function packageRoot(t: After, packages: Record<string, { kaal: Record<string, string>; skills?: Record<string, string> }>): string {
+  const root = checkout(t);
+  for (const [name, payload] of Object.entries(packages)) {
+    const dist = join(root, name, "dist");
+    mkdirSync(dist, { recursive: true });
+    writeFileSync(join(root, name, "package.json"), '{ "type": "module" }');
+    // The payload is data, read back as data: no code is constructed from it.
+    writeFileSync(join(dist, "payload.json"), JSON.stringify(payload));
+    writeFileSync(join(dist, "index.js"), 'import { readFileSync } from "node:fs";\nconst data = JSON.parse(readFileSync(new URL("./payload.json", import.meta.url), "utf8"));\nexport const payload = () => data;\n');
+  }
+  return root;
+}
+const extensionNode = (name: string): { md: string; files: Record<string, string> } => {
+  const id = core.payload()["core/Extension.md"] === undefined ? "" : sha256(core.payload()["core/Extension.md"]);
+  const md = typeLine(name, id);
+  return { md, files: { [`${name}.md`]: md, [`seals/${sha256(md)}`]: "" } };
+};
+
+test("an installed Extension is delivered by the package carrying its Node, with no Agent Skill and under its package's own name", async (t) => {
+  const hosting = extensionNode("Hosting");
+  const root = packageRoot(t, { "kaal-hosting": { kaal: hosting.files }, "kaal-idle": { kaal: extensionNode("Idle").files } });
+  const dir = checkout(t);
+  await installed(dir);
+  assert.deepEqual((await delivery(dir, root)).capabilities, [], "no installed Extension, so no package is delivered");
+  core.registerExtension(join(dir, KAAL_DIR), "kaal-hosting", hosting.files);
+  const d = await delivery(dir, root);
+  assert.deepEqual(d.capabilities, ["kaal-hosting"], "only the package whose Node is installed");
+  assert.deepEqual(d.unresolved, []);
+  assert.deepEqual(d.skills, {}, "an Extension delivers no Agent Skill");
+  assert.equal(d.kaal["extensions/kaal-hosting/Hosting.md"], hosting.md);
+  assert.deepEqual(check(dir, d), [], "the registered projection is the delivery");
+  install(dir, d);
+  assert.deepEqual(check(dir, d), []);
+  assert.ok(!existsSync(join(dir, HOST_SKILLS)), "no host Agent Skills");
+  const before = whole(dir);
+  install(dir, await delivery(dir, root));
+  assert.equal(whole(dir), before, "installing twice changes nothing");
+});
+
+test("a stale Extension projection is advanced by installing, and never rewritten", async (t) => {
+  // The capability's Extension, and a second Node of it typed by that Extension, as a capability may carry.
+  const hosting = extensionNode("Hosting");
+  const notesMd = `---\nname: Hosting Notes\ntype:\n  name: Hosting\n  id: ${sha256(hosting.md)}\n---\n\n# Hosting Notes\n`;
+  const kaal = { ...hosting.files, "Hosting Notes.md": notesMd, [`seals/${sha256(notesMd)}`]: "" };
+  const root = packageRoot(t, { "kaal-hosting": { kaal } });
+  const dir = checkout(t);
+  await installed(dir);
+  core.registerExtension(join(dir, KAAL_DIR), "kaal-hosting", kaal);
+  assert.deepEqual(check(dir, await delivery(dir, root)), []);
+  rmSync(join(dir, KAAL_DIR, "extensions", "kaal-hosting", "Hosting Notes.md"));
+  rmSync(join(dir, KAAL_DIR, "seals", sha256(notesMd)));
+  assert.match(check(dir, await delivery(dir, root)).join("\n"), /extensions\/kaal-hosting\/Hosting Notes\.md is missing/);
+  install(dir, await delivery(dir, root));
+  assert.deepEqual(check(dir, await delivery(dir, root)), []);
+  writeFileSync(join(dir, KAAL_DIR, "extensions", "kaal-hosting", "Hosting Notes.md"), `${notesMd}Changed.\n`);
+  await assert.rejects(async () => install(dir, await delivery(dir, root)), /changed bytes are another Node/);
+});
+
+test("an installed Extension that no package delivers is named as an Extension", async (t) => {
+  const hosting = extensionNode("Hosting");
+  const root = packageRoot(t, {});
+  const dir = checkout(t);
+  await installed(dir);
+  core.registerExtension(join(dir, KAAL_DIR), "kaal-hosting", hosting.files);
+  const found = check(dir, await delivery(dir, root)).join("\n");
+  assert.match(found, new RegExp(`the installed Extension Hosting \\(${sha256(hosting.md)}\\) is delivered by no package`));
+});
+
+test("Skills and Extensions are delivered side by side, each by its own registration", async (t) => {
+  const hosting = extensionNode("Hosting");
+  const root = packageRoot(t, { "kaal-hosting": { kaal: hosting.files } });
+  const dir = await full(t);
+  core.registerExtension(join(dir, KAAL_DIR), "kaal-hosting", hosting.files);
+  const d = await delivery(dir, root);
+  assert.deepEqual(d.unresolved.map((u) => u.kind), ["Skill", "Skill", "Skill", "Skill", "Skill"], "the repository's own packages are not at this root, so its installed Skills are unresolved there");
+  const own = await delivery(dir);
+  assert.deepEqual(own.capabilities, CAPABILITIES, "with this repository's packages, the Skills are delivered as before");
+  assert.ok(!Object.keys(own.kaal).some((p) => p.startsWith("extensions/")), "an Extension no package here delivers adds nothing");
+});
+
+test("package delivery rule: a package delivers a Skill contribution or an Extension contribution, never both", async (t) => {
+  const hosting = extensionNode("Hosting");
+  const skillMd = `---\nname: Both\ntype:\n  name: Skill\n  id: ${sha256(core.payload()["core/Skill.md"])}\n---\n\n# Both\n`;
+  const files = { ...hosting.files, "Both.md": skillMd, [`seals/${sha256(skillMd)}`]: "" };
+  const root = packageRoot(t, { "kaal-both": { kaal: files } });
+  const dir = checkout(t);
+  await installed(dir);
+  core.registerExtension(join(dir, KAAL_DIR), "kaal-both", files);
+  core.registerSkill(join(dir, KAAL_DIR), "kaal-both", files);
+  await assert.rejects(delivery(dir, root), /both a Skill and an Extension.*two independently selectable packages/);
+});
+
 // This repository, held to the same.
 
-test("this repository holds what its packages deliver for its installed Skills, derived and not authored", async () => {
-  assert.deepEqual(await problems(SOURCE), []);
-  assert.deepEqual(core.installedSkills(join(SOURCE, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL and Sealing are installed Skills");
-  assert.deepEqual((await deliver(SOURCE)).capabilities, CAPABILITIES);
+/**
+ * A scratch copy of this repository's checked-in projection and host delivery:
+ * the installed KAAL and the host's Agent Skills, without the installed
+ * history (`changes` and the seals that belong to it), which the check does
+ * not judge. The checked-in files themselves are never touched.
+ */
+function scratchProjection(t: After, remove: (scratch: string) => void = () => {}): string {
+  const dir = checkout(t);
+  const history = [CHANGES_DIR, "collections", join("seals", "changes"), join("seals", "trees")].map((p) => join(SOURCE, KAAL_DIR, p));
+  cpSync(join(SOURCE, KAAL_DIR), join(dir, KAAL_DIR), { recursive: true, filter: (src) => !history.includes(src) });
+  if (existsSync(join(SOURCE, HOST_SKILLS))) cpSync(join(SOURCE, HOST_SKILLS), join(dir, HOST_SKILLS), { recursive: true });
+  remove(dir);
+  return dir;
+}
+const CHANGES_DIR = "changes";
+
+// The candidate packages are always this repository's, so the question the
+// repository is held to is not whether the checked-in projection happens to
+// be current (a change confined to a package cannot also update `.kaal`) but
+// whether the candidate's delivery can be installed over it, legally and
+// completely: installing must succeed, which refuses any sealed byte that
+// would change, and the full check must then hold, with no exceptions.
+test("this repository's candidate delivery installs over its checked-in projection, completely and without changing sealed material", async (t) => {
+  const dir = scratchProjection(t);
+  await installed(dir);
+  assert.deepEqual(await problems(dir), []);
+  assert.deepEqual(core.installedSkills(join(dir, KAAL_DIR)).map((s) => s.name), SKILLS, "Engineering KAAL Skill, Changing KAAL, Collecting KAAL, Retro and Sealing are installed Skills");
+  assert.deepEqual(core.installedExtensions(join(dir, KAAL_DIR)).map((e) => e.name), ["GitHub"], "GitHub is an installed Extension");
+  assert.deepEqual((await deliver(dir)).capabilities, [...CAPABILITIES, "kaal-github"].sort(), "Skills and the Extension are delivered together");
+});
+
+test("the candidate-installation check advances a projection that lags the packages, and still refuses what it must", async (t) => {
+  // A projection that lacks something the packages now deliver (a Core Node and its seal, as when a Core change precedes its installation) is advanced by installing, and the full check then holds.
+  const lagging = scratchProjection(t, (scratch) => {
+    const node = readdirSync(join(scratch, KAAL_DIR, "core")).find((n) => n === "Skill.md")!;
+    const id = sha256(readFileSync(join(scratch, KAAL_DIR, "core", node), "utf8"));
+    rmSync(join(scratch, KAAL_DIR, "core", node));
+    rmSync(join(scratch, KAAL_DIR, "seals", id));
+  });
+  assert.match((await problems(lagging)).join("\n"), /core\/Skill\.md is missing/, "it is stale before installing");
+  await installed(lagging);
+  assert.deepEqual(await problems(lagging), [], "installing completes it, and the full check holds");
+  // A projection whose sealed bytes disagree with the packages cannot be advanced: installing refuses, and nothing is excused.
+  const altered = scratchProjection(t, (scratch) => writeFileSync(join(scratch, KAAL_DIR, "core", "Core.md"), "x"));
+  await assert.rejects(installed(altered), /changed bytes are another Node/);
 });
 
 test("this repository's AGENTS.md is wired to its installed .kaal", () => {
@@ -235,11 +484,11 @@ test("this repository's AGENTS.md is wired to its installed .kaal", () => {
   assert.equal(r.status, 0, r.stderr);
 });
 
-test("this repository's change records are well formed: allocated in sequence, work/ and retros only where the process puts them, each retro the 4L form", () => {
+test("this repository's change records are well formed: allocated in sequence, work/, review rounds and retros only where the process puts them, each retro the 4L form", () => {
   const changes = read(join(SOURCE, KAAL_DIR, "changes"));
   const paths = Object.keys(changes);
   assert.ok(paths.length > 0, "the self-install change is recorded");
-  for (const path of paths) assert.match(path, /^[a-z0-9]+(-[a-z0-9]+)*\/\d\d\/\d\d\/\d\d\/(0[1-9]|[1-9]\d)\/(retro(-work|-observe)?\.md|work\/.+)$/, path);
+  for (const path of paths) assert.match(path, /^[a-z0-9]+(-[a-z0-9]+)*\/\d\d\/\d\d\/\d\d\/(0[1-9]|[1-9]\d)\/(retro(-work|-observe|-review|-owner)?\.md|work\/.+|review\/(0[1-9]|[1-9]\d)\.md)$/, path);
   const days = new Map<string, Set<number>>();
   for (const path of paths) {
     const [name, yy, mm, dd, cc] = path.split("/");
@@ -248,9 +497,187 @@ test("this repository's change records are well formed: allocated in sequence, w
   }
   for (const [day, sequence] of days) assert.deepEqual([...sequence].sort((a, b) => a - b), [...sequence].map((_, i) => i + 1), `${day}: 01.. with no gap`);
   assert.ok(days.has("genesis/26/10/04") && changes["genesis/26/10/04/01/retro.md"], "the self-install change is genesis 26/10/04 01");
-  for (const [path, text] of Object.entries(changes).filter(([p]) => /\/retro(-work|-observe)?\.md$/.test(p))) {
+  for (const [path, text] of Object.entries(changes).filter(([p]) => /\/retro(-work|-observe|-review|-owner)?\.md$/.test(p))) {
     const headings = text.split("\n").filter((l) => l.startsWith("#"));
     assert.deepEqual(headings, ["# Retro", "## Learned", "## Liked", "## Lacked", "## Longed"], `${path}: the 4L form and nothing else`);
     for (const section of text.split(/^## /m).slice(1)) assert.ok(section.split("\n").slice(1).join("").trim().length > 0, `${path}: ${section.split("\n")[0]} says something`);
   }
+});
+
+// Delivery names are configuration, not identity: the capability directories were renamed to the Core
+// capability-prefix, and the semantic Nodes are the very bytes they were born as, still sealed.
+test("this repository's delivery names changed and no Node identity did", () => {
+  const born: Record<string, [string, string][]> = {
+    "kaal-changing": [
+      ["Changing-KAAL.md", "7b2470732033e9ca6e916cf1ff7d73629bd203737aaf1894a9d621b517e896c2"],
+      ["RATIFICATION.md", "ff114bfe71e7780df04c290e142c002fe985046d2635b46c78ff3d1e464b9a77"],
+      ["ROWING.md", "c553c94e84718f8cb660f38c7da22154a309c1925d8428d094d97c6c9196fdd1"],
+    ],
+    "kaal-engineering": [["Engineering-Skill.md", "fa393cb5ac37237c944e62874b8b8cc328d3ef93450a18a79421761d8e2de200"]],
+  };
+  for (const [capability, files] of Object.entries(born)) {
+    for (const [file, id] of files) {
+      const path = join(SOURCE, KAAL_DIR, "skills", capability, file);
+      assert.equal(sha256(readFileSync(path, "utf8")), id, `${capability}/${file} keeps its bytes`);
+      assert.ok(existsSync(join(SOURCE, KAAL_DIR, "seals", id)), `${capability}/${file} keeps its seal`);
+    }
+  }
+  assert.deepEqual(readdirSync(join(SOURCE, KAAL_DIR, "skills")).sort(), CAPABILITIES);
+});
+
+// The declaration is read as the scalar it is, and a need that cannot be satisfied stays a need.
+const changingIn = (skills: Record<string, string>, extra: Record<string, { kaal: Record<string, string>; skills?: Record<string, string> }> = {}) => ({
+  "kaal-changing": { kaal: changing.payload().kaal, skills },
+  ...extra,
+});
+const declaration = (skills: Record<string, string>, to: (line: string) => string) =>
+  Object.fromEntries(Object.entries(skills).map(([p, b]) => [p, p === "kaal-changing/SKILL.md" ? b.replace(/^compatibility: (.*)$/m, (_, v) => to(v)) : b]));
+const changingSkills = (changing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+
+for (const [label, to] of [
+  ["folded scalar", (v: string) => `compatibility: >-\n  ${v}`],
+  ["literal scalar", (v: string) => `compatibility: |\n  ${v}`],
+  ["quoted scalar", (v: string) => `compatibility: "${v.replace(/"/g, "'")}"`],
+  ["scalar over several lines", (v: string) => `compatibility: ${v.slice(0, 20)}\n  ${v.slice(20)}`],
+] as [string, (v: string) => string][]) {
+  test(`composition cannot be bypassed by the same declaration written as a ${label}`, async (t) => {
+    const root = packageRoot(t, changingIn(declaration(changingSkills, to), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills } }));
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, root, [await nodeId("kaal-changing")]);
+    assert.equal(d.unmet.length, 1, d.unmet.join("\n"));
+    assert.match(d.unmet[0], /kaal-changing declares that it needs kaal-sealing/);
+    assert.throws(() => install(dir, d), /nothing was written/);
+    assert.equal(whole(dir), before);
+    const both = await delivery(dir, root, [await nodeId("kaal-changing"), await nodeId("kaal-sealing")]);
+    assert.deepEqual(both.unmet, []);
+  });
+}
+
+test("a declared need whose delivery is unavailable stays unmet: refused before any write, and named by the check", async (t) => {
+  for (const sibling of [{}, { "kaal-sealing": null }]) {
+    const root = packageRoot(t, changingIn(changingSkills));
+    // A sibling directory with no built payload is skipped by the package scan, as an absent one is.
+    if ("kaal-sealing" in sibling) mkdirSync(join(root, "kaal-sealing"), { recursive: true });
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, root, [await nodeId("kaal-changing")]);
+    assert.equal(d.unmet.length, 1);
+    assert.match(d.unmet[0], /needs kaal-sealing beside it, which is not installed, and no package of this delivery carries a Skill or Extension Node for it: there is no exact Node ID to select/);
+    assert.throws(() => install(dir, d), /nothing was written/);
+    assert.equal(whole(dir), before);
+    // Registered by hand into a KAAL that holds Core, the check still names it.
+    await installed(dir);
+    core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+    assert.match((check(dir, await delivery(dir, root))).join("\n"), /needs kaal-sealing beside it/);
+  }
+});
+
+test("a declaration naming Core's own package, or nothing, needs nothing", async (t) => {
+  const dir = host(t);
+  assert.deepEqual((await delivery(dir, join(SOURCE, "packages"), [await nodeId("kaal-engineering")])).unmet, []);
+  assert.deepEqual((await delivery(dir, join(SOURCE, "packages"), [await nodeId("kaal-retro")])).unmet, []);
+});
+
+test("the declaration is read as its decoded value: an escape cannot hide a need, a comment cannot invent one, and what cannot be read reliably is refused", async (t) => {
+  const sealingSkills = (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+  const root = (to: (v: string) => string) => packageRoot(t, changingIn(declaration(changingSkills, to), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: sealingSkills } }));
+  const id = await nodeId("kaal-changing");
+  // Refused before any write, naming that the declaration cannot be read: the same string spelled with an escape, an anchor, a tag, a flow collection.
+  for (const to of [
+    (v: string) => `compatibility: "${v.replace("kaal-sealing", "kaal\\u002dsealing")}"`,
+    (v: string) => `compatibility: &needs ${v}`,
+    (v: string) => `compatibility: !!str ${v}`,
+    (v: string) => `compatibility: [${v}]`,
+  ]) {
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, root(to), [id]);
+    assert.equal(d.unmet.length, 1, d.unmet.join("\n"));
+    assert.match(d.unmet[0], /compatibility declaration is .* which cannot be read reliably here/);
+    assert.throws(() => install(dir, d), /nothing was written/);
+    assert.equal(whole(dir), before);
+  }
+  // Read as the string they decode to: a comment outside the scalar is not part of it, a doubled single quote is one quote, a block scalar keeps its '#'.
+  const dir = host(t);
+  const reads: [(v: string) => string, number][] = [
+    [(v) => `compatibility: Needs Node.js 20 or later. # ${v.slice(v.indexOf("kaal-sealing"))}`, 0],
+    [(v) => `compatibility: 'It''s needed: ${v}'`, 1],
+    [(v) => `compatibility: >-\n  ${v}`, 1],
+    [(v) => `compatibility: |\n  Needs Node.js. # ${v}`, 1],
+    [(v) => `compatibility: ${v} # a comment`, 1],
+  ];
+  for (const [to, expected] of reads) assert.equal((await delivery(dir, root(to), [id])).unmet.length, expected, to("kaal-sealing").slice(0, 60));
+});
+
+test("indentation does not bypass the declaration's decoding or refusal: a value below an empty or comment-only key line is read as one on the key's line", async (t) => {
+  const sealingSkills = (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+  const root = (to: (v: string) => string) => packageRoot(t, changingIn(declaration(changingSkills, to), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: sealingSkills } }));
+  const id = await nodeId("kaal-changing");
+  const heads = ["compatibility:", "compatibility: # a comment about it"];
+  const refused: ((v: string) => string)[] = [
+    (v) => `\n  "${v.replace("kaal-sealing", "kaal\\u002dsealing")}"`,
+    (v) => `\n  &needs ${v}`,
+    (v) => `\n  !!str ${v}`,
+    (v) => `\n  [${v}]`,
+  ];
+  for (const head of heads) {
+    for (const body of refused) {
+      const dir = host(t);
+      const before = whole(dir);
+      const d = await delivery(dir, root((v) => head + body(v)), [id]);
+      assert.equal(d.unmet.length, 1, d.unmet.join("\n"));
+      assert.match(d.unmet[0], /compatibility declaration is .* which cannot be read reliably here/);
+      assert.throws(() => install(dir, d), /nothing was written/);
+      assert.equal(whole(dir), before);
+      // Registered by hand into a KAAL that holds Core, the check reports it too.
+      await installed(dir);
+      core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+      assert.match((check(dir, await delivery(dir, root((v) => head + body(v))))).join("\n"), /cannot be read reliably here/);
+    }
+    // Read as the string they decode to, the dependency is found, and what is not a dependency is not invented.
+    const dir = host(t);
+    assert.match((await delivery(dir, root((v) => `${head}\n  ${v}`), [id])).unmet.join(), /needs kaal-sealing/);
+    assert.match((await delivery(dir, root((v) => `${head}\n\n  # a note\n  "${v}"`), [id])).unmet.join(), /needs kaal-sealing/);
+    assert.deepEqual((await delivery(dir, root(() => `${head}\n  Needs Node.js 20 or later. # kaal-sealing`), [id])).unmet, []);
+  }
+  // A key written in another form is outside the supported shape: refused, not skipped.
+  const d = await delivery(host(t), root((v) => `"compatibility": ${v}`), [id]);
+  assert.match(d.unmet.join(), /a frontmatter outside the supported shape/);
+});
+
+test("the frontmatter is held to one bounded shape: whatever is outside it is refused, never read as no declaration", async (t) => {
+  const sealingSkills = (sealing as unknown as { payload(): { skills: Record<string, string> } }).payload().skills;
+  const id = await nodeId("kaal-changing");
+  const whole_ = (rewrite: (skill: string) => string) => packageRoot(t, changingIn(Object.fromEntries(Object.entries(changingSkills).map(([p, b]) => [p, p === "kaal-changing/SKILL.md" ? rewrite(b) : b])), { "kaal-sealing": { kaal: sealing.payload().kaal, skills: sealingSkills } }));
+  const front = (skill: string) => {
+    const end = skill.indexOf("\n---", 4);
+    return { head: skill.slice(0, 4), body: skill.slice(4, end), tail: skill.slice(end) };
+  };
+  const variants: [string, (skill: string) => string][] = [
+    ["every mapping line indented", (s) => { const f = front(s); return f.head + f.body.split("\n").map((l) => `  ${l}`).join("\n") + f.tail; }],
+    ["an escaped quoted key", (s) => s.replace(/^compatibility:/m, '"compatibilit\\u0079":')],
+    ["a quoted key", (s) => s.replace(/^compatibility:/m, '"compatibility":')],
+    ["a space before the colon", (s) => s.replace(/^compatibility:/m, "compatibility :")],
+    ["a repeated key", (s) => s.replace(/^compatibility: (.*)$/m, "compatibility: $1\ncompatibility: $1")],
+    ["a flow mapping", (s) => { const f = front(s); return `---\n{ ${f.body.split("\n").join(", ")} }${f.tail}`; }],
+    ["a tab-indented continuation", (s) => s.replace(/^compatibility: (.*)$/m, "compatibility:\n\t$1")],
+    ["no closing delimiter", (s) => s.replace("\n---", "\n--")],
+    ["no frontmatter", (s) => s.replace(/^---\n[\s\S]*?\n---\n/, "")],
+  ];
+  for (const [label, rewrite] of variants) {
+    const dir = host(t);
+    const before = whole(dir);
+    const d = await delivery(dir, whole_(rewrite), [id]);
+    assert.equal(d.unmet.length, 1, `${label}: ${d.unmet.join("\n")}`);
+    assert.match(d.unmet[0], /cannot be read reliably here|compatibility declaration is/, label);
+    assert.throws(() => install(dir, d), /nothing was written/, label);
+    assert.equal(whole(dir), before, label);
+    await installed(dir);
+    core.registerSkill(join(dir, KAAL_DIR), "kaal-changing", changing.payload().kaal);
+    assert.match((check(dir, await delivery(dir, whole_(rewrite)))).join("\n"), /cannot be read reliably here/, label);
+  }
+  // The shape the real Agent Skills have is inside it, comments included.
+  const dir = host(t);
+  assert.match((await delivery(dir, whole_((s) => s.replace("---\n", "---\n# a comment\n")), [id])).unmet.join(), /needs kaal-sealing/);
 });
