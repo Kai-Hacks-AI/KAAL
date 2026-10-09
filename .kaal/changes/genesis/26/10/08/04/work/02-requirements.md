@@ -41,7 +41,7 @@ What must hold for `01-intent.md` to be answered. They say what, not how; the ho
 
 ## Discovery within bounded context (Owner input, PR #72)
 
-- **R30 Bounded.** Every act of discovery returns a bounded number of bytes, whatever the length of any name or text in the corpus, states its bound and what it left out, offers a bounded way to continue, and never requires or performs loading the whole corpus into an Agent's context. Narrowing is something the Agent can do with its next question.
+- **R30 Bounded.** Every act of discovery returns a bounded number of bytes, whatever the length of any name or text in the corpus, states its bound and what it left out, keeps an unclipped, unambiguous reference to everything it returns, offers a bounded way to continue (for neighbour lists as well as matches, whether the limit or the byte budget cut them short), and never requires or performs loading the whole corpus into an Agent's context. Narrowing is something the Agent can do with its next question.
 - **R31 No pre-known IDs.** From a question in its own words, an Agent reaches relevant Skill Nodes, Changes and Learnings. IDs come out of discovery; none is needed to begin.
 - **R32 Connect, never duplicate.** BRAIN refers to Skill Nodes and Changes by name and ID, or by evidence identity, and does not restate their content. From a Skill Node, a Learning or a Change, an Agent can reach the others that refer to it or that it refers to, by those references.
 - **R36 Only what is admitted is shown as a Learning.** Discovery distinguishes the Learnings a BRAIN holds (typed by the Engine's Learning, named by their ID, sealed) from other files in the BRAIN, which it reports only as a count and never as Learnings, never as matches and never as neighbours.
