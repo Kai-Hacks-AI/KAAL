@@ -539,3 +539,12 @@ test("a contradiction is settled by the human who answers it, and the retry they
   assert.equal(head(root), "REPORTED");
   assert.equal(readdirSync(join(root, "loop/log")).filter((n) => n.endsWith("-round.md")).length, 3, "all three reports are still there");
 });
+
+test("Codex's own all-clear comment counts as the report of no findings, and an unrelated comment does not", (t) => {
+  const root = converged(t);
+  const codex = verifiedState(root, (r) => r.map((x) => (x.kind === "comment" ? { ...x, body: "Codex Review: Didn't find any major issues. You're on a roll." } : x)));
+  assert.equal(codex.out[0], "AGREED");
+  const other = verifiedState(root, (r) => r.map((x) => (x.kind === "comment" ? { ...x, body: "To use Codex here, create an environment for this repo." } : x)));
+  assert.equal(other.code, 3);
+  assert.match(other.out.join("\n"), /implies neither result, the round says converged/);
+});

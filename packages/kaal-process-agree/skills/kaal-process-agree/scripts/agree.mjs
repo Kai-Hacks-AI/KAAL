@@ -41,6 +41,9 @@ const text = (path) => readFileSync(path, "utf8");
 /** The one subject kind of 0.0.1: its name, and which Skill decides what it is and what its identity is. */
 const SUBJECTS = { Intent: { sibling: "kaal-intent", script: "intent.mjs" } };
 
+/** What a Reviewer's comment must begin with to report no findings: what the request asks for, and what Codex was observed to say instead. */
+export const NO_FINDINGS = /^(No findings|Codex Review: Didn't find any major issues)/;
+
 export const REASONS = {
   grant: "no valid grant of authority from the Owner",
   seat: "a report is not the granted Reviewer's",
@@ -213,7 +216,7 @@ function provenance(g, loop, counted, hows, host) {
     if (!rec) { bad.push(`${r.name}: the host shows no ${s.kind} ${s.id}`); continue; }
     if (rec.login !== g.reviewer) bad.push(`${r.name}: ${s.kind} ${s.id} was made by '${rec.login}', not by the Reviewer '${g.reviewer}'`);
     if (rec.commit !== undefined && !(rec.commit.startsWith(s.commit) || s.commit.startsWith(rec.commit))) bad.push(`${r.name}: ${s.kind} ${s.id} is of commit ${rec.commit}, not ${s.commit}`);
-    const implied = s.kind === "review" ? "findings" : s.kind === "comment" ? (/^No findings/.test(rec.body ?? "") ? "converged" : undefined) : rec.content === "+1" ? "converged" : undefined;
+    const implied = s.kind === "review" ? "findings" : s.kind === "comment" ? (NO_FINDINGS.test(rec.body ?? "") ? "converged" : undefined) : rec.content === "+1" ? "converged" : undefined;
     if (implied !== r.outcome) bad.push(`${r.name}: the host's ${s.kind} ${s.id} implies ${implied ?? "neither result"}, the round says ${r.outcome}`);
   }
   return bad;
