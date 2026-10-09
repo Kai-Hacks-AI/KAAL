@@ -10,7 +10,7 @@ Core already supplies everything a Learning needs except a meaning for "Learning
 - **It does need a type of its own**, not for Core's sake but for discovery: KAAL finds definitions and Skills by type alone, and a Learning is found the same way. That type is a Node born in the new package, not in Core.
 - **A BRAIN is a directory that someone names.** It holds sealed Learnings and their seals, nothing else, and has no identity, no list and no default.
 - **Relationships need nothing new.** Core's Edge (a pointer written into the later Node's own bytes, to Nodes already sealed) is enough. "Cited by" is derived by reading, never stored.
-- **What is genuinely missing** is three Nodes (`Learning`, `BRAIN`, `Learning KAAL`), a Skill whose scripts check, establish, find and trace Learnings, and the decision of how a BRAIN is named. Everything else is reused.
+- **What is genuinely missing** is three Nodes (`Learning`, `BRAIN`, `Learning KAAL`), a Skill whose scripts check, establish, find and trace Learnings, the decision of how a BRAIN is named, and two things Core does not give an installed Skill: a public way to ask whether a non-Skill Node is admitted (the nearest supported route is registration into a throwaway copy, which works), and any check of citations in a Node's body (the Skill supplies it). Everything else is reused.
 
 ## What exists, and what is missing
 
@@ -20,6 +20,7 @@ Core already supplies everything a Learning needs except a meaning for "Learning
 | Immutability, written once (R7) | Core: changed bytes are another Node. Sealing: `seals/<ID>` markers, `seal.mjs write|check|list` | nothing |
 | Refer to other Learnings (R13) | Core `Edge`: pointer from the source Node, to Nodes already sealed, by `{name, id}`; no identity of its own | nothing |
 | Recognise a Learning by type (R9, R10) | Core `Node` Form, `type` by reference; KAAL Definitions and Skills are found this way | a type Node for Learning |
+| Admit a Node in a graph (R9) | `registerSkill()` (public): admits the installed KAAL plus a contribution, all checks before any write; used by `register-skill --check` against a throwaway copy | no public admission of non-Skill Nodes; Core states but does not check citations in a body; named as a gap below |
 | Join without becoming Core (R15) | `registerSkill()`: a Skill plus further Nodes (as `kaal-changing` carries `ROWING`, `WORK`, `RATIFICATION`) | the package |
 | Say what BRAIN is | Mnemonic KAAL Definitions exist (`BASS`, `ROWING`, `WORK`, `RATIFICATION`) | `BRAIN` |
 | Name the evidence (R12) | Change ID (address-free, defined by Changing KAAL, computed by Sealing under `KAAL Change v1`); carriers are identified by SHA-256 | a line form to cite it |
@@ -68,12 +69,12 @@ type:
 <ID>  <path>
 ```
 
-- **The understanding** is prose. Any 64-hex ID in it is an Edge: it must resolve to a Node already sealed in the graph (engine plus BRAINs supplied), with the name beside it checked, as in Core's own Nodes. This is where one Learning grows from another.
+- **The understanding** is prose. Any 64-hex ID in it is an Edge, written `<name> <ID>` as in Core's own Nodes ("CASE 6cffa0…"): it must be the ID of a sealed Node in the graph (Engine plus BRAINs supplied), with that Node's exact name immediately before it. This is where one Learning grows from another. Core states this rule for Edges and does not check it of a body; the Skill checks it.
 - **Applies when** is what discovery shows first. It is the difference between a Learning and a note: an observation does not know when it applies.
 - **Evidence** is a list of `<ID>  <path>` lines in the form `reach.md` already uses. `<ID>` identifies the evidence (today a closed Change, by its address-free ID); `<path>` is a file inside it. At least one line is required; a Learning with no experience behind it is an opinion. No PR number, branch, commit or check may appear, as nothing in `.kaal` carries them.
 - **Name**: not unique. Two Learnings may share a name, as the original BRAIN's `testing` was born three times; the ID tells them apart.
 
-Whether to prescribe these headings or leave the body free, as `Intent` does, is part of Fork 3.
+Whether to prescribe these headings or leave the body free, as `Intent` does, is Fork 3.
 
 ## Where a BRAIN is and how it is found
 
@@ -96,28 +97,37 @@ A BRAIN is a directory:
 
 ## Verifying a BRAIN
 
-`check` takes `--engine <kaal-dir>` and one or more `--brain <dir>` and reports, writing nothing:
+Two layers, kept apart because only the first is Core's.
 
-1. every `<ID>.md` hashes to its own name (Sealing's `artifact-id.mjs`, bare);
-2. every Learning is sealed in its BRAIN's `seals/`, and every seal has its Learning (as `check-kaal-seals` already flags a seal no Node carries);
-3. every Learning is admitted by Core's own rules, with the Engine plus the BRAINs as one graph, as `registerSkill()` admits an installed KAAL plus a contribution: its type resolves to the `Learning` Node by ID with the name checked, and every ID cited in the understanding resolves to a sealed Node;
-4. every Learning has the structure above, with at least one well-formed evidence line;
-5. with `--record <kaal-dir>`, every evidence line resolves: a closed Change whose ID is that value, containing that path. Without a Record the lines are shown as unresolved, not refused.
+**What Core decides, reached through Core's public API.** `admit()` and `candidates()` are not exported (and stay unexported, as ruled), so an installed Skill cannot call them. Core's public API does admit a graph: `registerSkill()` admits the installed KAAL together with a contribution, with every check before any write, and the engineering Skill's `register-skill --check` already uses it against a throwaway copy so that Core decides. `kaal-learning` does the same. It copies the Engine to a throwaway directory and registers, in memory, the `Learning KAAL` Node (it satisfies the rule that a contribution carries a Node typed by `Skill`; its bytes are the installed ones, so registering them changes nothing) plus the Learning and a seal marker for it. Core then refuses, naming the Node, unless the Learning is Form-valid, sealed (by that marker) and typed, by name and ID, by an admitted Node. Nothing is written to the Engine or to the BRAIN. This needs the `kaal-core` package to be resolvable, exactly as `register-skill` does; without it `check` says that Core admission was not run and refuses to call the BRAIN checked.
 
-Check 3 depends on the Engine holding `Learning`. An Engine without `kaal-learning` installed can still *read* the BRAIN, because it is Markdown, but `check` reports exactly which type ID is missing and writes nothing: a BRAIN is meaningful to the Engines that hold its types, and that dependency is written in the Learnings' own bytes. That the installer cannot yet replace a registered Skill Node (no supersession rule) is unchanged and affects `Learning KAAL`, not existing Learnings.
+**What Core does not decide, which the Skill decides and says so.** Core's admission does not read a Node's body. These are the Skill's own checks, written for Learnings:
 
-Checks 1 to 4 reuse Core's admission by running it on the graph; none of them is a new protection mechanism. The prototype in `04-evidence.md` does exactly this with Core's `admit()` as it is.
+1. `<ID>.md` hashes to its own name (Sealing's `artifact-id.mjs`, bare).
+2. The Learning is sealed in its BRAIN's `seals/`, and every seal has its Learning.
+3. Its type is the Engine's `Learning`, by name and ID.
+4. **Structure**: the body begins `# <name>`, then `## Applies when` (not empty), then `## Evidence`.
+5. **Citations**: the understanding (everything between the frontmatter and `## Evidence`) cites a Node only in the form Core's own Nodes use, `<name> <ID>`. Every 64-hex ID there must be the ID of a Node found in the given Engine or BRAINs, that is **sealed**, with its **exact name** immediately before the ID and a single space. An absent ID, an unsealed target, a name that is not the target's, a bare ID, and a Learning citing itself are each refused. This is Edge's rule (to already-sealed Nodes, by name and ID) checked, since Core states it and does not check it of a body.
+6. **Evidence** lines are `<ID>  <path>` and only in `## Evidence`. A 64-hex ID in the understanding is a citation, never evidence, so the two cannot be confused: a Change ID written into the understanding is refused as a citation of nothing.
+7. **Evidence resolves**, when Records are given (see Establishing for when they must be).
 
-*What check cannot see.* A Learning deleted together with its seal leaves a BRAIN that is whole and smaller. Nothing inside a directory can know what it used to hold, as the Kernel's genesis seal and the Change seals rely on a baseline held elsewhere. For a BRAIN in a repository that baseline is the target revision, and the control is the one Change `08/03` designed for Records: baseline and candidate places resolved independently, judged by identity. It is a later Change that follows the Record locator, and a BRAIN is valuable without it (R24). It is shown in the prototype as the one refusal that fails.
+The Skill therefore holds one copy of Core's meaning: the Form, in the three-line frontmatter regex it needs to read `name` and `type`. That duplication is stated, not hidden, and it is held by a check, as `One meaning has one definition` asks: the engineering acceptance runs the Skill's reading and Core's own `candidates()` over every Node in the installed KAAL and the packages and requires them to agree, and the Skill never decides admission itself, since that is the layer above.
+
+*The genuine gap, named.* An installed Skill has no supported way to call Core's Node reading directly; the nearest supported route is registration, used above as an oracle. Three ways to close it differently, none needed now: (a) accept the copy of the Form, held by the acceptance check (recommended); (b) a Core Change that exports one read-only function, travelling alone, after which the copy goes; (c) make `kaal-learning` a Core concern, which the Intent rules out. Fork 7.
+
+*What check cannot see.* A Learning deleted together with its seal leaves a BRAIN that is whole and smaller. Nothing inside a directory can know what it used to hold, as the Kernel's genesis seal and the Change seals rely on a baseline held elsewhere. For a BRAIN in a repository that baseline is the target revision, and the control is the one Change `08/03` designed for Records: baseline and candidate places resolved independently, judged by identity. It is a later Change that follows the Record locator, and a BRAIN is valuable without it (R24). It is shown in the evidence as the one refusal that does not fail.
 
 ## Establishing
 
-`establish --engine <kaal-dir> --brain <dir> <draft>`:
+`establish --engine <kaal-dir> --brain <dir> --record <kaal-dir>… <draft>`. Establishing a new Learning is not the same act as checking an established BRAIN, and it is stricter.
 
-- The draft is a file anywhere (typically in the `work/` of the Change being done). Its path is not identity.
-- It runs every `check` on the draft against the Engine and the BRAIN, and only if all pass writes `<brain>/<ID>.md` with the draft's exact bytes and then the seal, through Sealing's `seal.mjs write`. Failure writes nothing. Establishing bytes that are already held changes nothing.
-- It never edits the draft, never replaces a file, never removes a seal.
-- It does not decide that the draft is understanding. That judgement is the agent's and, where the Owner wants it, the Reviewer's: a draft Learning is a result with an identity and `kaal-review` can name it (`--of Learning`) like an Intent. KAAL has no new seat for this.
+1. **Pre-write validation of a draft that has no file and no seal in the BRAIN.** The draft is a file anywhere, typically in the `work/` of the Change being done; its path is not identity. Its ID is computed (Sealing). It is then examined as a prospective member: Core is asked by the throwaway registration above, with the **prospective seal supplied in memory**, so nothing is written or sealed in the destination to find out; the Skill's own checks 3 to 6 run on the draft's bytes against the Engine and the BRAINs given; and the evidence resolves (below). The destination is untouched by every one of these.
+2. **Evidence must resolve to establish.** At least one `--record` is required, else `establish` refuses before reading the draft. Every evidence line must be a closed Change: a directory in a given Record whose recomputed Change ID is the line's ID, with its Change seal in that Record's `seals/changes/`, containing the named path as a regular file. **The only supported kind of evidence in this architecture is a closed Change.** Any other kind (a carrier hash, a collection address, an unclosed Change, an ID in no Record) is refused, naming the line; it is never skipped and never accepted unverified. A new kind is admitted by adding its resolver in a Change of its own. (Reading is more permissive on purpose: `check` of a portable BRAIN without a Record reports "evidence unverified" for the whole BRAIN and exits 0, and with a Record refuses any line that does not resolve. A reader without the Records can still read; only establishing needs them.)
+3. **Already held.** If `<brain>/<ID>.md` exists with exactly the draft's bytes and its seal, nothing is written and it says so. If it exists with other bytes it is refused (changed bytes are another Node, so this cannot occur for a file named by its own ID, but the check stands). If the file exists but its seal does not, the seal is written (the bytes are the ones the ID was computed from).
+4. **Writing.** Only after every check passes: the file is written to a temporary name and renamed to `<ID>.md`, then Sealing's `seal.mjs write` makes the seal. If any step fails, what this run created is removed; nothing existing is touched. Establishing never edits the draft, never replaces a file and never removes a seal.
+5. **After.** The established-BRAIN `check` can be run at once; it is the same code with the seal now real.
+
+`establish` does not decide that the draft is understanding. That judgement is the agent's and, where the Owner wants it, a Reviewer's: a draft Learning is a result with an identity and `kaal-review` can name it (`--of Learning`) like an Intent. KAAL has no new seat for this.
 
 The Skill's text (`SKILL.md`, the agent-facing form) carries the practice, which is where the judgement lives (BASS: Bare and Skill do the part that cannot yet be a Script):
 
@@ -125,7 +135,7 @@ The Skill's text (`SKILL.md`, the agent-facing form) carries the practice, which
 2. **Decide what the evidence is.** A retrospective is one writer's account. Read the observations across the experience; the recurring ones, the ones that changed a decision and the ones a later actor would repeat are candidates; a single observation usually is not.
 3. **Say whether it is understanding.** Could a different actor in a different Change use it? Does it say what to do, and when? If not, it is an observation and stays evidence.
 4. **Choose its home.** If a capability or process text already owns this practice, the learning belongs there, as a Change to that text, and a Learning only cites it. If it is a want, it is a Request or an Intent. If it is a failure of what KAAL intends to hold, it is an Incident. A Learning is for understanding that has no other owner.
-5. **Grow, don't duplicate.** If a Learning already holds the understanding, don't write it again; if you can say something the earlier one does not (a correction, a narrower case, a wider one), write that, cite the earlier by name and ID, and say in one sentence what changed.
+5. **Grow, don't duplicate.** If a Learning already holds the understanding, don't write it again; if you can say something the earlier one does not (a correction, a narrower case, a wider one), write that, cite the earlier by `<name> <ID>`, and say in one sentence what changed.
 6. **Write it, check it, establish it.**
 
 ## Discovering and using
@@ -164,7 +174,7 @@ BRAIN is a fourth place. It is neither Engine (it is not KAAL's meaning or machi
 
 | Boundary | How |
 |---|---|
-| Reuse Core's Node model and identity | A Learning is a Node, ID is the SHA-256 of bytes; admission is Core's `admit()` over Engine plus BRAIN |
+| Reuse Core's Node model and identity | A Learning is a Node, ID is the SHA-256 of bytes; admission is Core's, reached through `registerSkill()` into a throwaway copy of the Engine; the checks Core does not make (structure, citations, evidence) are the Skill's and are named as such |
 | Reuse Sealing | Identity from `artifact-id.mjs` (bare), seals from `seal.mjs`; no domain, no marker form, no seal namespace added |
 | Independent optional Skill | A package that joins by `registerSkill()`; needs only Sealing beside it; not installed by embedding |
 | Learning not a gate in Changing KAAL | No file, step, phase, check or text of Changing KAAL, Review, Retro changes |
@@ -176,7 +186,7 @@ BRAIN is a fourth place. It is neither Engine (it is not KAAL's meaning or machi
 
 Each step is its own Change, green, in this order.
 
-1. **Birth `Learning`, `BRAIN`, `Learning KAAL` and the Skill.** `packages/kaal-learning/` (Nodes, seals, `SKILL.md`, scripts `check`, `establish`, `find`, `show`, `trace`), `engineering/kaal-learning/` acceptance with the refusal matrix (R27), the self-install projection. First Skill Node outside Core is sealed with the repository's engineering bootstrap helper, an intended exception, as for `Sealing`. Needs `kaal-sealing` beside it, and says so.
+1. **Birth `Learning`, `BRAIN`, `Learning KAAL` and the Skill.** `packages/kaal-learning/` (Nodes, seals, `SKILL.md`, scripts `check`, `establish`, `find`, `show`, `trace`), `engineering/kaal-learning/` acceptance with the refusal matrix (R27), the self-install projection. First Skill Node outside Core is sealed with the repository's engineering bootstrap helper, an intended exception, as for `Sealing`. Needs `kaal-sealing` beside it and the `kaal-core` package resolvable (as `register-skill` already does), and says so.
 2. **Establish the first Learnings and open this repository's BRAIN.** The drafts here, reviewed as results by an assigned Reviewer; whichever of them the Owner accepts. They ride a Change as vehicle, because this repository admits one closed Change per proposal; that is the repository's admission rule and not KAAL's, and it also gives the Learnings a reviewed Work to be established from.
 3. **Control for a BRAIN's place in a governed repository**, after the Record locator exists, so one baseline/candidate resolution serves both. `.github` and controls, alone.
 4. Only then, if use shows it: an index as a cache, typed relations, supersession-aware listing.
@@ -186,6 +196,9 @@ Each step is its own Change, green, in this order.
 - **Judgement stays judgement.** Nothing here makes an agent write a good Learning. The checks make a bad one visible (no evidence, wrong type, unresolved reference), not wrong.
 - **Evidence is only as durable as its holder.** A Learning cites a Change by ID; anyone without the Record cannot resolve it. That is stated, not hidden, and the Learning's own text must stand without it.
 - **Deletion is invisible from inside** (above). The control is a later Change.
+- **`kaal-core` must be resolvable** for Core admission, as for registration. A host that has only Core's deployed artifacts can read a BRAIN and run the Skill's own checks, but `check` says Core admission was not run and does not report the BRAIN as checked. How a host obtains the package is the composition question the open `08/03` sibling raises, not this Change's.
+- **A copied Form.** The Skill reads `name` and `type` with its own copy of Core's three-line Form. It is held by an acceptance check against Core's `candidates()` on every real Node, and removed if Core ever exports a read-only reader (Fork 7).
+- **Only closed Changes are evidence** for now. A Learning from a collected Incident or a test result cannot be established until that kind has a resolver. This is the cost of refusing, instead of accepting unverified, and is deliberate.
 - **`find` by plain text** will not scale to thousands of Learnings, and will not match a synonym. Both are fine at the scale the exercise shows (four Learnings from eight Changes) and are the reason not to build an index before use shows it is needed.
 - **The type Node is fixed by its ID.** A reborn `Learning` Definition (new bytes) leaves existing Learnings typed under the old one; an Engine then needs both. This is the supersession gap every Skill has, not new.
 - **Ordering of births is a constraint.** `Learning` is sealed first, `BRAIN` cites it, `Learning KAAL` cites both; the Learnings cite `Learning`. Any change to the first changes every ID below it.
@@ -199,3 +212,5 @@ Each step is its own Change, green, in this order.
 - **Fork 4. File names in a BRAIN.** `<ID>.md` (recommended: checkable, no collisions, no meaning in the path) or readable names with the ID embedded. Readable names cost a second rule to check and another to refuse when they disagree.
 - **Fork 5. How an accepted Learning gets into this repository.** Riding a Change as vehicle, reviewed as a result with `kaal-review` (recommended), or a separate lighter admission for `brain/`, which would be a control and a new governance path.
 - **Fork 6. The historical BRAIN.** Leave `KAAL-genesis` where it is as read-only evidence and re-establish a Learning from it only when current work calls for it (recommended), or migrate. Its nodes have no `type` and a path identity, so they are not Learnings as KAAL now means it; a new Learning can cite one by its byte ID as evidence, which names it without importing it.
+- **Fork 7. The copied Form or a Core export?** The Skill keeps a copy of Core's Form, held by an acceptance check against Core (recommended, nothing changes in Core), or a Core Change first exports one read-only reader and the copy never exists. The second is cleaner and slower, and Core has been kept small on purpose.
+- **Fork 8. Evidence kinds.** Only closed Changes are accepted when establishing (recommended). Another kind (a collected carrier, a test result) is added only with its own resolver in its own Change.

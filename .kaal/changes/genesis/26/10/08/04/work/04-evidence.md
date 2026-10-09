@@ -243,7 +243,42 @@ You are about to write a parser, a path rule or an identity that another capabil
 ````
 
 
-## 5. Scratch prototype with Core's own admission
+## 5. Scratch prototype, second form (after review round 01)
+
+Round 01 correctly found that the first prototype (below, retained) ran a *source copy* of Core's `nodes.ts`, which an installed Skill cannot do; that Core's `admit()` does not read a Node's body, so citation integrity was never shown; that a new draft cannot literally run the established-BRAIN checks; and that evidence resolution was optional where establishing needs it. The second prototype answers each, outside the repository's source tree.
+
+**The host.** A scratch directory holding: a copy of the installed `.kaal` (Core, installed Skills, Node seals; no Changes); `skills/kaal-sealing` (the Sealing scripts as installed); `node_modules/kaal-core` built from `packages/kaal-core` (its public API only); a Record directory (`changes/` and `seals/changes/`, 24 real Changes); and `learning.mjs` (section 7). Nothing from `engineering/` and no `nodes.ts` is read. The three drafted Nodes were installed with Core's own public `registerSkill(".kaal", "kaal-learning", {...})`, which admitted them (`installedSkills()` then reports `Learning KAAL` among the six Skills).
+
+**F1, the delivery path.** `learning.mjs` copies the Engine to a throwaway directory and calls `registerSkill()` with the installed `Learning KAAL` Node (to satisfy "a contribution carries a Node typed by Skill"; its bytes are the installed ones) and the prospective Learning plus its seal marker, in memory. Core's admission therefore decides Form, seal and type, by public API. Without a resolvable `kaal-core`, the script says "Core admission was not run" and refuses to call the BRAIN checked. The gap that remains is named in `03-architecture.md` (Verifying a BRAIN; Fork 7).
+
+**F2, citations.** Core's admission does not read the body. Verified: the `absent` case below was not refused by Core (the only message is the Skill's). The Skill's own check requires `<name> <ID>` with the ID the ID of a *sealed* Node found in the Engine or the BRAINs given. Results, each from `establish` with the Records given:
+
+| Case | Result |
+|---|---|
+| Cites candidate 3 as `<its exact name> <ID>` | established; candidate 3 now "cited by 1" |
+| Cites an ID no Engine or BRAIN holds | refused: "cites abababababab, which no given Engine or BRAIN holds" |
+| Cites a Learning present in the BRAIN but **unsealed** | refused: "cites 878b7af533c3, which is not sealed" |
+| Cites a present, sealed Learning with a **different name** | refused: "without its name … beside it" |
+| Cites a bare ID | refused, same reason |
+| A Change ID written into the understanding instead of Evidence | refused as a citation of nothing |
+
+**F3, a new draft.** `establish` on drafts in a directory outside the BRAIN, with the BRAIN not yet existing: candidates 3 and 4 were established (file written to a temporary name, renamed to `<ID>.md`, then sealed through Sealing's `seal.mjs`). Core's check ran with the seal supplied in memory only. Establishing candidate 3 again printed "already held … nothing written". `check` then reported both Learnings ok.
+
+**F4, evidence.** `establish` without `--record` exits 2 before reading the draft. With Records:
+
+| Case | Result |
+|---|---|
+| Evidence line naming the not-yet-admitted `08/03` Change (candidate 1 as drafted) | refused: "not a Change in the given Records (only closed Changes are supported evidence)" |
+| Evidence of another kind (a hash in no Record) | refused, same |
+| A closed Change, a file it does not hold | refused: "holds no file retro-nothing.md" |
+| No evidence line | refused |
+| Wrong type | refused by both the Skill and Core |
+
+The sequence of nine refused cases and the unsealed-target case left the BRAIN's file hash identical to the one taken after the single acceptance (`sha256sum` over every file). `check` of an already established BRAIN without a Record reported "evidence unverified: no --record given" and exited 0; with a Record each line resolved. A byte appended to an established Learning was reported "not named by its ID; not sealed".
+
+**What this shows:** the form passes Core's admission by its public API, outside the source tree; citations, structure and evidence are checked by the Skill and refused when wrong; establishing from an unsealed draft works and refuses without writing. **What it does not show:** the real Skill (scripts here are a prototype, not written to the packages' conventions or tests), a host without the `kaal-core` package, the install path, any control in a governed repository, deletion of a whole sealed Learning (still invisible from inside), or that an agent finds and uses a Learning unprompted.
+
+### The first prototype, retained
 
 Not committed, not part of any package. Core's `nodes.ts` (`admit`, `candidates`, `sha256`) run unchanged under `node --experimental-strip-types`, over a graph of the Engine's real `core/` Nodes and seals plus the three new Nodes sealed in a scratch Engine copy, and a scratch BRAIN of the four candidates (`<ID>.md` plus `seals/<ID>`, sealed with `seal.mjs write`). The script (below) checks naming, seal, admission, evidence form, and resolves each evidence line against this repository's real Changes by recomputing Change IDs.
 
@@ -264,6 +299,7 @@ Not committed, not part of any package. Core's `nodes.ts` (`admit`, `candidates`
 
 What this shows: the form passes Core's admission as it is; tampering, renaming, a missing seal and a missing type are each refused by existing rules plus a name check; evidence is resolvable by identity from the Records that exist; relationships need only citation. What it does not show: the Skill's scripts (none exist), the install into a host, any control in a governed repository, or that an agent would find and use a Learning unprompted.
 
+
 ## 6. How future Work would find and use them
 
 A Worker begins the Architecture of a Change whose Intent names a mechanism (a CLI, a registry, a directory move) together with an outcome. Today, nothing brings Candidate 1 to the Worker. With `kaal-learning` installed and a BRAIN named by the Owner or the host:
@@ -278,32 +314,187 @@ A Worker begins the Architecture of a Change whose Intent names a mechanism (a C
 
 ## 7. Prototype source
 
+The second prototype, `learning.mjs`. Run in the host described in section 5 as `node learning.mjs check|establish --engine .kaal --brain <dir> [--record <dir>]… [<draft>]`.
+
 ````javascript
-import { admit, sha256 } from "./nodes.mts";
-import fs from "node:fs"; import path from "node:path"; import { execFileSync } from "node:child_process";
-const walk=(d,base=d,o={})=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())walk(p,base,o);else o[path.relative(base,p)]=fs.readFileSync(p);}return o;};
-const engine=walk(process.argv[2]); const brainDir=process.argv[3]; const recordDir=process.argv[4];
-const brain=walk(brainDir);
-// graph = engine + brain, one graph (as registerSkill admits installed KAAL + contribution)
-const files={...engine}; for(const [p,b] of Object.entries(brain)) files[p.startsWith("seals/")?p:"brain/"+p]=b;
-const adm=admit(files);
-const learning=adm.find(n=>n.name==="Learning"&&n.type?.name==="KAAL Definition");
-console.log("engine holds Learning type:", learning?learning.id.slice(0,12):"NO");
-const L=adm.filter(n=>learning&&n.type?.id===learning.id);
-const issues=[];
-for(const [p,b] of Object.entries(brain)){ if(p.startsWith("seals/")) continue; const id=sha256(b);
-  if(p!==id+".md") issues.push(`file ${p} is not named by its ID ${id.slice(0,12)}`);
-  if(!brain["seals/"+id]) issues.push(`${p.slice(0,12)} is not sealed`); if(!L.some(n=>n.id===id)) issues.push(`${p.slice(0,12)} is not an admitted Learning`);}
-for(const p of Object.keys(brain)) if(p.startsWith("seals/")&&!brain[p.slice(6)+".md"]) issues.push(`seal ${p.slice(6,18)} has no Node`);
-// record: change ids
-const changes={}; if(recordDir){ for(const y of walkDirs(recordDir)) { try{ const id=execFileSync("node",["/home/user/KAAL/skills/kaal-sealing/scripts/artifact-id.mjs","--domain","KAAL Change v1",y]).toString().trim(); changes[id]=y;}catch{} } }
-function walkDirs(r){const out=[];(function rec(d,depth){ if(depth===4){out.push(d);return;} for(const e of fs.readdirSync(d,{withFileTypes:true})) if(e.isDirectory()) rec(path.join(d,e.name),depth+1);})(path.join(r,"changes/genesis"),0);return out;}
-for(const n of L){ const ev=n.markdown.split("## Evidence")[1]||""; for(const line of ev.trim().split("\n")){ const m=/^([0-9a-f]{64})  (\S+)$/.exec(line); if(!m){issues.push(`${n.name}: bad evidence line ${line}`);continue;} const dir=changes[m[1]]; if(!dir) issues.push(`${n.id.slice(0,8)} evidence: Change ${m[1].slice(0,8)} not in Record`); else if(!fs.existsSync(path.join(dir,m[2]))) issues.push(`${n.id.slice(0,8)} evidence: ${m[2]} missing in ${m[1].slice(0,8)}`);}}
-console.log(`admitted Learnings: ${L.length}`); for(const n of L){ const cited=L.filter(o=>o!==n&&o.markdown.includes(n.id)).length; const ap=(n.markdown.split("## Applies when")[1]||"").split("##")[0].trim(); console.log(`- ${n.id.slice(0,12)} ${n.name}\n    applies when: ${ap}\n    cited by ${cited} later Learning(s)`);}
-console.log(issues.length?"ISSUES:\n  "+issues.join("\n  "):"no issues");
+#!/usr/bin/env node
+// Prototype of what an installed kaal-learning Skill script could be. It uses only
+// node builtins, the kaal-sealing scripts beside it, and kaal-core's PUBLIC API
+// (registerSkill) resolved as a package. It does not import Core's source.
+//   learning.mjs check     --engine <kaal-dir> --brain <dir>... [--record <kaal-dir>...]
+//   learning.mjs establish --engine <kaal-dir> --brain <dir> --record <kaal-dir>... <draft>
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const SEALING = join(HERE, "skills/kaal-sealing/scripts");
+// The Form, as Core's nodes.ts states it (a copy: acceptance must compare it with Core on every real Node).
+const FORM = /^---\nname: (.+)\n(?:type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+const HEX = /(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])/g;
+const sha = (b) => createHash("sha256").update(b).digest("hex");
+const sealing = (script, ...a) => execFileSync("node", [join(SEALING, script), ...a], { encoding: "utf8" }).trim();
+
+function walk(dir) {
+  const out = {};
+  for (const p of readdirSync(dir, { recursive: true, encoding: "utf8" })) if (statSync(join(dir, p)).isFile()) out[p.split("\\").join("/")] = readFileSync(join(dir, p));
+  return out;
+}
+/** id -> { name, sealed, path } for every Node-form file in a directory whose seals are in <dir>/seals. */
+function index(dir, base = dir) {
+  const files = walk(dir), idx = new Map();
+  for (const [p, b] of Object.entries(files)) {
+    if (p.startsWith("seals/") || p.startsWith("changes/")) continue;
+    const m = FORM.exec(b.toString("utf8"));
+    if (m) idx.set(sha(b), { name: m[1], type: m[3], sealed: existsSync(join(base, "seals", sha(b))), path: p });
+  }
+  return idx;
+}
+
+function parseArgs(argv) {
+  const o = { engine: undefined, brain: [], record: [], rest: [] };
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--engine") o.engine = argv[++i];
+    else if (argv[i] === "--brain") o.brain.push(argv[++i]);
+    else if (argv[i] === "--record") o.record.push(argv[++i]);
+    else o.rest.push(argv[i]);
+  }
+  return o;
+}
+
+/** Core's admission by its public API: register into a throwaway copy of the Engine, in memory, with the prospective seal. */
+async function coreAdmits(engine, eidx, bytes, id) {
+  let core;
+  try { core = await import("kaal-core"); } catch { return "kaal-core is not resolvable: Core admission was not run"; }
+  const skill = [...eidx.entries()].find(([, n]) => n.name === "Learning KAAL" && n.sealed);
+  if (!skill) return "the Engine does not hold Learning KAAL";
+  const [skillId, s] = skill;
+  const rel = s.path.replace(/^skills\/kaal-learning\//, "");
+  const tmp = mkdtempSync(join(tmpdir(), "kaal-learning-"));
+  try {
+    cpSync(engine, tmp, { recursive: true });
+    core.registerSkill(tmp, "kaal-learning", { [rel]: readFileSync(join(engine, s.path), "utf8"), [`seals/${skillId}`]: "", [`${id}.md`]: bytes.toString("utf8"), [`seals/${id}`]: "" });
+    return undefined;
+  } catch (e) { return `Core refuses: ${e.message}`; } finally { rmSync(tmp, { recursive: true, force: true }); }
+}
+
+function citations(text, graph, self) {
+  const problems = [];
+  const body = text.replace(FORM, "").split("\n## Evidence")[0];
+  for (const m of body.matchAll(HEX)) {
+    const id = m[0], target = graph.get(id);
+    if (id === self) problems.push("a Learning cannot cite itself");
+    else if (!target) problems.push(`cites ${id.slice(0, 12)}, which no given Engine or BRAIN holds`);
+    else if (!target.sealed) problems.push(`cites ${id.slice(0, 12)}, which is not sealed`);
+    else if (body.slice(Math.max(0, m.index - target.name.length - 1), m.index) !== `${target.name} `) problems.push(`cites ${id.slice(0, 12)} without its name "${target.name}" beside it`);
+  }
+  return problems;
+}
+
+function closedChanges(record) {
+  const out = new Map();
+  const root = join(record, "changes");
+  if (!existsSync(root)) return out;
+  for (const name of readdirSync(root)) for (const y of readdirSync(join(root, name))) for (const mo of readdirSync(join(root, name, y))) for (const d of readdirSync(join(root, name, y, mo))) for (const c of readdirSync(join(root, name, y, mo, d))) {
+    const dir = join(root, name, y, mo, d, c);
+    try { const id = sealing("artifact-id.mjs", "--domain", "KAAL Change v1", dir); out.set(id, { dir, closed: existsSync(join(record, "seals/changes", id)) }); } catch { /* not a Change */ }
+  }
+  return out;
+}
+
+function evidence(text, changes) {
+  const section = text.split("\n## Evidence")[1];
+  const lines = (section ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const problems = [], ok = [];
+  if (!lines.length) problems.push("no evidence line");
+  for (const l of lines) {
+    const m = /^([0-9a-f]{64})  (\S+)$/.exec(l);
+    if (!m) { problems.push(`evidence line is not "<ID>  <path>": ${l.slice(0, 40)}`); continue; }
+    const c = changes?.get(m[1]);
+    if (!changes) ok.push(`unverified ${m[1].slice(0, 8)}`);
+    else if (!c) problems.push(`evidence ${m[1].slice(0, 8)} is not a Change in the given Records (only closed Changes are supported evidence)`);
+    else if (!c.closed) problems.push(`evidence ${m[1].slice(0, 8)} is a Change that is not closed`);
+    else if (!existsSync(join(c.dir, m[2])) || !statSync(join(c.dir, m[2])).isFile()) problems.push(`evidence ${m[1].slice(0, 8)} holds no file ${m[2]}`);
+  }
+  return { problems, ok };
+}
+
+function structure(text) {
+  const p = [];
+  const m = FORM.exec(text);
+  if (!m) return ["not a Node by Form"];
+  const body = text.slice(m[0].length);
+  if (!body.startsWith(`\n# ${m[1]}\n`)) p.push(`the body does not begin with "# ${m[1]}"`);
+  const i = body.indexOf("\n## Applies when\n"), j = body.indexOf("\n## Evidence\n");
+  if (i < 0 || j < i) p.push("sections `## Applies when` then `## Evidence` are required, in that order");
+  else if (!body.slice(i + 17, j).trim()) p.push("Applies when is empty");
+  return p;
+}
+
+const args = parseArgs(process.argv.slice(3));
+const cmd = process.argv[2];
+if (!["check", "establish"].includes(cmd) || !args.engine || !args.brain.length) { console.error("usage: see header"); process.exit(2); }
+const engine = resolve(args.engine), eidx = index(engine);
+const learningType = [...eidx.entries()].find(([, n]) => n.name === "Learning" && n.sealed)?.[0];
+const brains = args.brain.map((b) => resolve(b));
+const graph = new Map(eidx);
+for (const b of brains) if (existsSync(b)) for (const [k, v] of index(b)) graph.set(k, v);
+const changes = args.record.length ? new Map(args.record.flatMap((r) => [...closedChanges(resolve(r))])) : undefined;
+
+async function problemsOf(bytes, id, sealedInBrain) {
+  const text = bytes.toString("utf8"), p = [];
+  const m = FORM.exec(text);
+  if (!m || !m[3]) return ["not a typed Node by Form"];
+  if (!learningType) p.push("the Engine does not hold the Learning type");
+  else if (m[2] !== "Learning" || m[3] !== learningType) p.push("its type is not the Engine's Learning, by name and ID");
+  if (!sealedInBrain) p.push("not sealed");
+  const core = await coreAdmits(engine, eidx, bytes, id);
+  if (core) p.push(core);
+  p.push(...structure(text), ...citations(text, graph, id), ...evidence(text, changes).problems);
+  return p;
+}
+
+if (cmd === "check") {
+  let bad = 0;
+  for (const b of brains) {
+    const files = walk(b);
+    for (const [p, bytes] of Object.entries(files)) {
+      if (p.startsWith("seals/")) { if (!files[`${p.slice(6)}.md`]) { console.log(`seal ${p.slice(6, 18)} has no Learning`); bad++; } continue; }
+      const id = sha(bytes), probs = [];
+      if (p !== `${id}.md`) probs.push(`file is not named by its ID ${id.slice(0, 12)}`);
+      probs.push(...(await problemsOf(bytes, id, !!files[`seals/${id}`])));
+      console.log(`${id.slice(0, 12)} ${probs.length ? "REFUSED: " + probs.join("; ") : "ok"}`);
+      if (probs.length) bad++;
+    }
+  }
+  if (!changes) console.log("evidence unverified: no --record given");
+  process.exit(bad ? 1 : 0);
+}
+
+// establish
+const [draft, ...extra] = args.rest;
+if (!draft || extra.length || brains.length !== 1 || !args.record.length) { console.error("establish needs exactly one --brain, at least one --record and one draft"); process.exit(2); }
+const bytes = readFileSync(draft), id = sealing("artifact-id.mjs", draft);
+const dest = join(brains[0], `${id}.md`), seal = join(brains[0], "seals", id);
+if (existsSync(dest)) {
+  if (!readFileSync(dest).equals(bytes)) { console.error("refused: the file exists with other bytes"); process.exit(1); }
+  if (existsSync(seal)) { console.log(`already held ${id.slice(0, 12)}; nothing written`); process.exit(0); }
+}
+const probs = await problemsOf(bytes, id, true); // the prospective seal is supplied in memory only
+if (probs.length) { console.error(`refused, nothing written: ${probs.join("; ")}`); process.exit(1); }
+const made = [];
+try {
+  mkdirSync(join(brains[0], "seals"), { recursive: true });
+  if (!existsSync(dest)) { writeFileSync(`${dest}.tmp`, bytes); renameSync(`${dest}.tmp`, dest); made.push(dest); }
+  sealing("seal.mjs", "write", join(brains[0], "seals"), id);
+  console.log(`established ${id}`);
+} catch (e) { for (const f of made) rmSync(f, { force: true }); console.error(`failed, rolled back: ${e.message}`); process.exit(1); }
 ````
 
-Run as `node --experimental-strip-types proto.mjs <engine-dir> <brain-dir> <kaal-dir-with-changes>`, with `nodes.mts` a copy of `packages/kaal-core/src/nodes.ts`.
+The first prototype (`proto.mjs`, which imported a source copy of `nodes.ts`) was a 40-line script of the same kind and is superseded; its results are in section 5.
 
 ## 8. What the evidence does not establish
 
@@ -311,3 +502,8 @@ Run as `node --experimental-strip-types proto.mjs <engine-dir> <brain-dir> <kaal
 - That four Learnings are the right four. They are the ones that meet the criteria on the retrospectives of two days' Changes by a small set of actors; a different reader may weigh them differently, and the Owner's retrospectives are the Owner's judgement, not mine.
 - That the Evidence form is enough for kinds of evidence other than a Change (a carrier, a collected Incident). Sealing defines a Change's identity; other kinds define their own, and `check --record` resolves only what it is given a way to.
 - That `find` by plain text finds what a synonym describes.
+- That a host with only Core's deployed artifacts, and no `kaal-core` package, can run the Core-admission step. The prototype says so and stops.
+
+## 9. Disposition of review round 01
+
+Round 01 (`review/01.md`) named four findings; each is resolved in `03-architecture.md` and demonstrated in section 5. F1: delivery path through the public `registerSkill()` as an oracle, with the remaining gap named (Fork 7). F2: Core's admission and the Skill's citation check are distinguished, the citation form is `<name> <ID>`, and absent / unsealed / wrongly named targets are refused. F3: establishing has its own pre-write validation with the seal supplied in memory, defined write, rollback and already-held behaviour. F4: establishing requires Records and accepts only closed Changes as evidence, refusing every other kind; reading is permissive and says it is unverified. Nothing in the Intent was changed.
