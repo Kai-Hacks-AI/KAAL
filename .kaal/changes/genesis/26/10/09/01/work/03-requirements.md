@@ -1,0 +1,60 @@
+# Requirements (draft, for Owner alignment)
+
+Each requirement says what must be true of a model of Process composition and review lenses, not how it is built. Section 8 of the investigation names the gaps these answer. "Process" here is the concept in the Intent; its type is decided from meaning in the Architecture (§2, Q1), not settled by these.
+
+## Composition
+
+- **R1. A Process composes, it does not redefine.** The meaning of a Skill or Extension is stated by that capability's own Node and Way of Working. A Process states how capabilities are used *in relation to each other* for a purpose and never restates, narrows or extends what one means.
+- **R2. The relationship lives with the Process, not the capability.** No Node or Way of Working of a composed capability names the Process, nor needs another capability for its own meaning. Where today's wording already does (investigation §2), the model says so and does not depend on it; moving it is a separate Change.
+- **R3. Participants are named by identity.** A Process names each participating Skill or Extension by `{name, id}` of its Node, never by directory, package, delivery name or location.
+- **R4. A Process can state** which capabilities participate, their relationships and dependencies, the flows and feedback loops it wants, its review positions and lenses, and the boundary within which these apply (for example "within a Change").
+- **R5. No mandatory sequence and no engine.** A Process describes relationships and expectations an Agent reads. It may state an order where its purpose needs one (Changing KAAL does); the concept requires none. Nothing executes, schedules, stores state for, or enforces a Process.
+- **R6. Absence is stated.** Optional capabilities may not be installed (investigation §2). A Process says what a missing participant means for it: the relationship is unavailable, not silently skipped, and the Process remains usable without it.
+
+## Review lenses
+
+- **R7. A lens has exactly four parts**, stated together: (1) the *subject*, the result examined; (2) the *standard*, which for an internal lens is the Way of Working of a named capability and for an external lens is another identified result; (3) the *expectation*, the Process-defined relationship between subject and standard, ideally as the question the lens asks; (4) the *discipline*, Review.
+- **R8. The Process defines the expectation only.** It does not copy the standard's steps, restate the Way of Working, or provide another way to write rounds, take identity, or judge convergence. Those stay with the capability and with Review.
+- **R9. Subjects and standards are results with identity.** A lens examines a result as it stands, by exact identity, the way Review already requires; it never depends on where the result is kept.
+- **R10. Position, mode and independence are three separate facts.** *Internal* and *external* describe the review's position relative to the subject. Engineer, Embed and External are KAAL operating modes. Independence is whether the Reviewer holds an assigned seat apart from the maker. None implies another; a lens statement must not state one in terms of another.
+- **R11. No lens is mandatory by being stated.** Stating a lens makes it available to an Agent; it is owed only where the Process or the Owner says so. Neither internal nor external is automatic.
+- **R12. Timing is stated.** Results are immutable once established. A Process says whether a lens applies before the subject is established (a finding can be resolved by describing again) or after (a finding informs the Owner and a future result).
+
+## Standing of a targeted review
+
+- **R13. A targeted review is not Change convergence.** A targeted review can produce findings and does not establish the Change's convergence. For a result other than the Work the compass already keeps it apart. For the Work itself nothing structural does: the Process places such rounds outside `review/` and states that a round in `review/` is written under an assigned seat (R14).
+- **R14. Authority is stated when a round is written.** A round states under whose authority the reviewer holds the seat and in what independence of the result's maker (Review's own rule). A targeted review with no assigned seat is *information*: it is reported, it is not a round that counts.
+- **R15. A review does not change its subject.** Lens findings are for the one who made the result, or for the Owner when the subject is established.
+- **R16. Where a finding is kept is decided by the Process.** Findings that matter are not left only in a place outside the Change record (a comment); the Process says whether and how they are carried into Work evidence. Review's round form is available but not required.
+
+## Reuse and discovery
+
+- **R17. Reuse.** The same capability Node is citable by any number of Processes unchanged, and no Process-specific text appears in a capability.
+- **R18. Mode independence.** A lens statement is true in Engineer, Embed and External operation without alteration: it names identities and relationships, never Engine, Record or Subject locations (the separation settled in 08/03).
+- **R19. Discoverable from a subject.** An Agent that starts from Core and from a subject it holds (an Intent, a set of Requirements) can reach the lens statements concerning that kind of subject without knowing capability names or IDs in advance. The model provides a complete route for a small installed set, independent of #72 (Architecture §8); a route that scales to many installed Skills is deferred to the Owner. No Agent has yet been run along it (evidence §3, §6).
+- **R20. Feedback is a relationship, not a loop engine.** Testing, Defects and operational results *inform* Requirements or Architecture as stated relationships; whether and when a result changes an upstream artifact is the Owner's and, for an established Intent, another Intent.
+
+## Relation to Changing KAAL
+
+- **R24. One definition of closure.** What makes a Change closed, including the order and the seats that decide whose act is next, has exactly one definition (today the compass). No Process restates, duplicates or competes with it.
+- **R25. ROWING stays authoritative and closure-bearing.** A Process may cite ROWING and Review and may state further lenses. It may not weaken, replace or add to what the review of the Work must establish before a Change is sealed.
+- **R26. Dependencies run one way.** A Process depends on the capabilities it composes, `Changing KAAL` included; no composed capability depends on the Process, for its meaning or its operation. A Process's need for a sibling is declared on the Process as an installation prerequisite, never on the capability it composes.
+- **R27. History is untouched.** Every admitted Change keeps its identity and validity, in every transition the model contemplates, and none needs re-sealing.
+- **R28. Governed reduction.** Process-specific wording now in a delivered Skill may be reduced or moved only through a later governed Change; no sealed Node is edited. The model is satisfiable without that Change having happened.
+- **R29. A Process is a specialized Skill.** It uses existing Core Node, type and reference semantics. Core gains no sealed Change Process content and no Process-specific dimension. The costs of the choice (enumeration, "one capability", dependency in text) are stated.
+- **R30. Supersession is not assumed.** Where a model needs one Node to take over another, it says that KAAL has no such rule and does not rely on one.
+- **R31. The Change artifact is independently useful.** Changing KAAL supports a Change's address, allocation, identity, seal, closure, integrity and preservation with no Process installed, and nothing it needs depends on one.
+- **R32. Artifact validity and Process fulfilment are distinct.** Artifact validity (a Change tree at a valid address, its seal present and matching, history intact) is what closure, admission and preservation read. Fulfilment of a particular Process (the order, review convergence, retros) is that Process's, enforced where it is enforced today.
+- **R33. Extraction is by responsibility.** `change-state.mjs` is not moved whole. What answers "is it a Change, is it closed, is its history intact" stays, including `work/` as the one recognized named tree and every check that depends on it, unchanged and not generalized; what answers "where is it in the order and whose act is next" moves. The order is defined exactly once.
+- **R34. History is valid by seal.** Closed Changes, including those with the historical retrospective forms, remain valid with unchanged identity and are never re-examined against a Process.
+- **R35. No accidental weakening or strengthening.** After any step of the transition every existing control returns the same verdict on every existing Change and on the sealed-without-process case. Behaviour changes (asking Review for convergence, checking fulfilment at admission) are deliberate, separate Changes.
+- **R36. Governed transition.** Each step is its own Change with no waived check, using a bridge where a consumer must accept both forms; no sealed Node is edited and no Change is re-sealed.
+- **R37. Dependencies run one way.** The Process may depend on Changing and Sealing; Changing never depends on the Process. The Process declares what it needs as installation prerequisites.
+
+- **R38. A composing Skill leads with what it composes.** The first paragraph of a Process's Node says what it composes and for what, so a reader can classify it from its lead. This is a convention for the Node's text, not a Core rule.
+
+## Boundaries of this Change
+
+- **R21. Existing meaning is untouched.** No sealed Node, no Core, no `kaal-changing`, `kaal-intent`, `kaal-review`, `.github` or `engineering` file is changed, nothing is renamed, and no new Core machinery is proposed unless a gap in the investigation cannot be met otherwise.
+- **R22. Nothing is established.** No Node, package, script, review governance or seat rule is created. The Work holds a design for review only.
+- **R23. Learning is separate.** BRAIN may hold what was learned about a lens (that a particular lens catches a recurring mistake) and may be cited by a Process. It never defines a capability or a lens.
