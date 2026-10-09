@@ -76,9 +76,9 @@ Read as: Review writes a round for any named result and identity; a round outsid
 
 **Not run:** `check-kaal-admission` on a closed Change that holds a directory other than `work/`, `review/` and the retros; any closing or sealing; any Process statement as a Node (none exists); any lens against a subject other than an Intent; any run in Embed or External mode.
 
-### 5b. Delivering and finding a Process-typed Node (scratch)
+### 5b. The alternative not adopted: a Process-typed Node (scratch)
 
-A copy of this repository's `.kaal`, `kaal-core` built from the checkout, and `registerSkill()` / `installedSkills()` called directly. A scratch KAAL Definition `Process`, a Node `Change Process` typed by it, and a Skill-typed Node `Working the Change Process`, each with its seal marker.
+Run before the Owner chose a specialized Skill, and kept as the cost record of the type that was not adopted. A copy of this repository's `.kaal`, `kaal-core` built from the checkout, and `registerSkill()` / `installedSkills()` called directly. A scratch KAAL Definition `Process`, a Node `Change Process` typed by it, and a Skill-typed Node `Working the Change Process`, each with its seal marker.
 
 ```
 registerSkill(kaal, "process-only", { Process.md, Change-Process.md, seals })
@@ -92,6 +92,19 @@ installedSkills(kaal)
 Read as: Core admits a Node typed by a Definition born outside Core, with no Core change; a Process cannot be delivered alone through the existing registration; and the Process-typed Node is admitted but not enumerated, so finding Processes is a derived read or a later Core function. Nothing from this run is kept in the repository.
 
 Also read, not run: `registerSkill()` "never gives a registered path other bytes", and `installedSkills()` lists every admitted Node typed `Skill` and relates none to another, so a successor Skill registered beside `Changing KAAL` would be listed with it and nothing says which governs.
+
+### 5c. Admission today checks closure, not Process fulfilment (scratch)
+
+`engineering/change-seal` built from the checkout; a baseline and a candidate copy of this repository's `.kaal` (without `09`), the candidate holding one new Change whose only file is a note.
+
+```
+change-seal state cand changes/genesis/30/01/01/01        -> WORK OPEN  (next: the Worker does the work in work/…)
+change-seal seal  cand changes/genesis/30/01/01/01        -> ef6293c4…2e8a5      (the bare seal, no process check)
+change-seal state cand changes/genesis/30/01/01/01        -> CHANGE CLOSED
+change-seal admit base cand                               -> admitted: changes/genesis/30/01/01/01   (exit 0)
+```
+
+Read as: closure is the sealed tree, not the order. `admit` accepts a Change that never went through work, review or retros if its tree carries a seal. The order is enforced only by the writing steps (`seal-kaal-work`, `close-kaal-change`, which call `stateOf` first), by the compass's report while a Change is open, and by review. Not caused or changed by this Change; it is the baseline R35 must preserve. Nothing from this run is kept in the repository.
 
 ## 6. A proposed trial for what is unproven (not run)
 

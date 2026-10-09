@@ -41,8 +41,15 @@ Each requirement says what must be true of a model of Process composition and re
 - **R26. Dependencies run one way.** A Process depends on the capabilities it composes, `Changing KAAL` included; no composed capability depends on the Process, for its meaning or its operation. A Process's need for a sibling is declared on the Process as an installation prerequisite, never on the capability it composes.
 - **R27. History is untouched.** Every admitted Change keeps its identity and validity, in every transition the model contemplates, and none needs re-sealing.
 - **R28. Governed reduction.** Process-specific wording now in a delivered Skill may be reduced or moved only through a later governed Change; no sealed Node is edited. The model is satisfiable without that Change having happened.
-- **R29. The type follows from meaning.** A Process's Node type is justified from what it is (relations among capabilities, dependent on them), not from what avoids a change elsewhere. The cost of the choice is stated, including delivery and enumeration.
+- **R29. A Process is a specialized Skill.** It uses existing Core Node, type and reference semantics. Core gains no sealed Change Process content and no Process-specific dimension. The costs of the choice (enumeration, "one capability", dependency in text) are stated.
 - **R30. Supersession is not assumed.** Where a model needs one Node to take over another, it says that KAAL has no such rule and does not rely on one.
+- **R31. The Change artifact is independently useful.** Changing KAAL supports a Change's address, allocation, identity, seal, closure, integrity and preservation with no Process installed, and nothing it needs depends on one.
+- **R32. Artifact validity and Process fulfilment are distinct.** Artifact validity (a Change tree at a valid address, its seal present and matching, history intact) is what closure, admission and preservation read. Fulfilment of a particular Process (the order, review convergence, retros) is that Process's, enforced where it is enforced today.
+- **R33. Extraction is by responsibility.** `change-state.mjs` is not moved whole. What answers "is it a Change, is it closed, is its history intact" stays; what answers "where is it in the order and whose act is next" moves. The order is defined exactly once.
+- **R34. History is valid by seal.** Closed Changes, including those with the historical retrospective forms, remain valid with unchanged identity and are never re-examined against a Process.
+- **R35. No accidental weakening or strengthening.** After any step of the transition every existing control returns the same verdict on every existing Change and on the sealed-without-process case. Behaviour changes (asking Review for convergence, checking fulfilment at admission) are deliberate, separate Changes.
+- **R36. Governed transition.** Each step is its own Change with no waived check, using a bridge where a consumer must accept both forms; no sealed Node is edited and no Change is re-sealed.
+- **R37. Dependencies run one way.** The Process may depend on Changing and Sealing; Changing never depends on the Process. The Process declares what it needs as installation prerequisites.
 
 ## Boundaries of this Change
 

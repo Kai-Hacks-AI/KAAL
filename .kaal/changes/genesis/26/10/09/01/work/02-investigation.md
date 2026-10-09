@@ -51,11 +51,11 @@ Only the third is the Process concept in the Intent, and the first two are what 
 - KAAL names a capability by what it is for (`kaal-intent`, `kaal-review`, `kaal-sealing`, `kaal-collecting`); the *kind* of thing is carried by the Node's type and found by type alone ("found by Node type alone", `core/Skill.md`, `core/Extension.md`).
 - A delivery name is placement, not identity (open #43; 07/08 drew the same line for seats). A name that carried the kind (`kaal-process-…`) would introduce a second classification that Core does not read and that could disagree with the type.
 - A sealed Node cannot be renamed: changed bytes are another Node, and the old one stays. Renaming a package or an Agent Skill directory changes delivery, not capability identity.
-- **Reading:** the name question follows from the responsibility question. The inventory above and the architecture's comparison of supersession and separation (§7, Q8) decide what each capability is responsible for; a name then expresses that. `kaal-process-change` fits a capability whose responsibility is the Change Process, not the one whose responsibility is the governed Change. No rename of anything existing is proposed.
+- **Reading:** the name question follows from the responsibility question. The inventory above and the architecture's comparison of supersession and separation (§7) decide what each capability is responsible for; a name then expresses that. `kaal-process-change` fits a capability whose responsibility is the Change Process, not the one whose responsibility is the governed Change. No rename of anything existing is proposed.
 
 ## 7. BRAIN and `kaal-learning` (#72, read only, not touched)
 
-#72 is open (review round 04 pending) and nothing in it is relied on as established. What it contributes to this question: a derived read surface (`find`, `near`, `show`) that finds Skill Nodes, Learnings and Changes from the Agent's own words with a byte budget and follows references both ways; Learnings cite Skill Nodes by `{name, id}` and say only what experience adds; "not a gate". A Process lens statement is the same kind of thing as a Learning in one respect, a Node citing earlier Nodes, and the same kind of thing as a Skill in another. Whether lens discovery rides on that surface is a question for after #72 is reviewed (architecture, Q9). BRAIN would hold *learning about lenses* (for example, "an Intent review before establishment catches how-leaks"), never the lens's meaning.
+#72 is open (review round 04 pending) and nothing in it is relied on as established. What it contributes to this question: a derived read surface (`find`, `near`, `show`) that finds Skill Nodes, Learnings and Changes from the Agent's own words with a byte budget and follows references both ways; Learnings cite Skill Nodes by `{name, id}` and say only what experience adds; "not a gate". A Process lens statement is the same kind of thing as a Learning in one respect, a Node citing earlier Nodes, and the same kind of thing as a Skill in another. Whether lens discovery rides on that surface is a question for after #72 is reviewed (architecture, Q14). BRAIN would hold *learning about lenses* (for example, "an Intent review before establishment catches how-leaks"), never the lens's meaning.
 
 ## 8. What is genuinely missing
 
@@ -70,3 +70,43 @@ Only the third is the Process concept in the Intent, and the first two are what 
 | G7 | An Agent cannot, from a subject, find the lenses that concern it without prior knowledge of names; "cited by" is derived by reading. | Discovery of installed capabilities exists. | §1, §2 point 2 |
 
 None of G1 to G7 needs Core to change, a Node Form extension, a new relationship model, or a new package *to state*. G6 and G7 need a decision about supersession and about the read surface, both owned elsewhere (see Questions).
+
+## 9. The code, function by function (read for the Owner's direction on separation)
+
+Read: `packages/kaal-changing/skills/kaal-changing/scripts/change-state.mjs` and `next-change.mjs`, `engineering/change-seal/helpers/{compass,process,changes,admission,preservation,cli}.ts`, `packages/kaal-github/src/{controls,kaal}.ts`. "Artifact" means true of any Change as a sealed directory tree; "Process" means true only of Changes made by the ROWING/WORK order.
+
+### 9.1 `change-state.mjs`
+
+| Piece | What it does | Nature |
+|---|---|---|
+| `changes(kaalDir)`, the address grammar `<name>/YY/MM/DD/CC`, `present()` | which directories are Changes | artifact |
+| `next-change.mjs` | allocates the next `CC`, never reuses a gap | artifact |
+| `SEALS`, `TREE_SEALS` | where Change seals and named-tree seals live | artifact |
+| `changeId()` (`KAAL Change v1`), `namedTreeId()` (`KAAL Tree v1`) | which tree is a Change, which is a named tree, delegated to Sealing for the hash | artifact |
+| `sealedIds()`, `sealedTreeIds()`, `closedChanges()` | **a Change is closed exactly when the ID of its current tree has a seal** | artifact |
+| `checkChanges()`, first two checks | a Change seal or a tree seal that matches no tree means sealed history was altered or removed | artifact |
+| `checkChanges()`, last check | "`<c>` is closed but its `work/` is not sealed" | **mixed**: it names `work/`, a Process directory, yet admission relies on it today |
+| `stateOf()` override | `SEALED HISTORY DAMAGED` outranks the order | artifact (wrapped in the process function) |
+| `derive()`, the `closed` early return | a sealed tree is `CHANGE CLOSED`, `next: none`, **with no look at its contents** | artifact |
+| `WORK`, `REVIEW`, `RETRO_*` names; `currentWorkId()` | which sub-trees and files the order talks about | Process |
+| `rounds()` | reads `review/NN.md`, requires one `Work: <id>` and one `Result:` line, a gapless sequence | Process (and a second parser of Review's round form) |
+| `derive()`, the rest | stages `WORK OPEN`, `REVIEW CONVERGED`, `WORK SEALED`, retro order, historical forms flagged in an open Change, `next:` and whose act | **Process: ROWING, convergence, Work seal, retro order, next actor** |
+| `compass({identity, markers})` | takes Sealing's calls as arguments | seam |
+| the CLI `sealing()` | finds `kaal-sealing` beside it | artifact need, shared |
+
+### 9.2 What reads it
+
+| Consumer | Calls | Needs from Changing | Needs from the Process |
+|---|---|---|---|
+| `engineering/change-seal` `changes.ts` | `sealChange`, `sealWork` (bare seals) | artifact | none |
+| `process.ts` `sealWorkStep`, `closeStep` | `stateOf` gates the write: only after review converged, only with the three retros | artifact + Process | **the only place the Process order is enforced** |
+| `admission.ts` | `preserveChanges`, `newChanges`, `stateOf` must say `CHANGE CLOSED`, then its `problems` | artifact | none in effect (see 9.3) |
+| `preservation.ts` | `closedChanges` | artifact | none |
+| `packages/kaal-github` controls | run the root npm commands (`check-kaal-admission`, `preserve-kaal-changes`, `preserve-kaal-seals`) across a process boundary; import nothing | via those commands | none |
+
+### 9.3 Two findings that bear on the separation
+
+1. **Admission today checks artifact closure, not Process fulfilment.** Because `derive()` returns `CHANGE CLOSED` for any sealed tree before it looks inside, `admit` accepts a Change that never went through work, review or retros if its tree carries a seal. Shown in a scratch run (evidence §5c): a Change holding one note, sealed with the bare `seal` command, is `WORK OPEN` before and `CHANGE CLOSED` after, and `admit` returns `admitted`. The Process order is enforced only by the *writing* steps (`close-kaal-change`, `seal-kaal-work`), which refuse out of order, and by review. This is not introduced by this Change and is not fixed by it.
+2. **Historical Changes are valid because closure is artifact-level.** The early forms (`retro.md`, `retro-observe.md`, no review) are never re-examined: a sealed tree is closed, whatever it contains. The historical-form warnings in `derive()` apply only to an *open* Change. So separating the Process from the artifact cannot invalidate history provided closure and preservation stay artifact-level, which they already are.
+
+These two are the "artifact identity and structural validity versus fulfilment of a particular Process" distinction the Owner asked for. It is already present in the code, unnamed.
