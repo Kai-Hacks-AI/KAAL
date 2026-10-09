@@ -16,3 +16,7 @@ The supplied reference diagram was not delivered to the Worker: the root message
 ## Run
 
 `overview.svg` is well-formed XML (`xmllint --noout`) and was rendered headless in Chromium at 1220 x 840 to check that no text overflows its box.
+
+## Owner's follow-on note
+
+A later note from the Owner (relationship to D3, Design Architecture) is recorded in `architecture/overview.md` as written; D3's Way of Working is deliberately not defined here. It is a note on the Work, not a revision of the Intent in `work/01-intent.md`, which is unchanged.

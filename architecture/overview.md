@@ -48,6 +48,12 @@ What the Agent works on through KAAL: Describe Intent, Define Requirements, Desi
 
 This table is a reading of the repository at the time of writing and is not itself kept current by anything. When it disagrees with the repository, the repository wins.
 
+## Relation to Design Architecture (D3)
+
+This overview is an early architectural result of applying Design Architecture thinking to KAAL itself. D3 is fundamental to the Six Ds but is not yet established as a dedicated Skill, and this page does not define its Way of Working.
+
+When a Design Architecture Skill is established, revisit this artifact as a concrete example of architectural Work: evaluate its structure, traceability, architectural decisions and relationship to the established Nodes against that Skill. The overview remains a maintained architectural projection, and its future evolution is governed by the capabilities established at that time.
+
 ## Keeping it true
 
 The overview changes by a Change, like anything else in this repository. When a part moves from target to established, update the table and the text here in the same Change that establishes it, and point at the Node that now carries its meaning. Do not add detail here that a Node should own.
