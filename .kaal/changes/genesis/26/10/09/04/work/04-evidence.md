@@ -16,4 +16,4 @@ Two subagents I started and briefed are part of the Worker; their output is evid
 
 ## Not done
 
-No Reviewer is assigned and no round exists: the seat is empty and I started nothing to fill it. I did not seal `work/`, write a retro or close the Change. The Nodes `HOW` and `ARE` are sealed on the branch only (seals `5cb8d624…edf` and `aa3a4ce8…f1a`); if their wording changes before merge, the files and seals are replaced together.
+No Reviewer is assigned and no round exists: the seat is empty and I started nothing to fill it. I did not seal `work/`, write a retro or close the Change. The Nodes `HOW` and `ARE` are sealed on the branch only (seals `5cb8d624…edf` and `839d097b…e82` (ARE was reworded once, replacing its first seal, to avoid the word the Agreement Process's composition test forbids in Review)); if their wording changes before merge, the files and seals are replaced together.

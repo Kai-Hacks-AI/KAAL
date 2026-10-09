@@ -61,7 +61,7 @@ test("ARE is independent agent review of another actor's result, independence of
   assert.match(are, /Independence here is of judgment and not of product/);
   assert.match(are, /Nothing here measures independence/);
   assert.match(are, /no agent acquires authority to review, or to approve, establish or carry out anything/);
-  assert.match(are, /agreement among agents is not approval/);
+  assert.match(are, /convergence among agents is not approval/);
   assert.match(are, /For the rounds a human observes, the review is also HOW/);
 });
 
