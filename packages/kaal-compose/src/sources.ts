@@ -5,7 +5,7 @@
 // here and nowhere else; a package's name, version or metadata is never an
 // identity.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { read, type Files } from "./files.js";
@@ -46,7 +46,8 @@ export function fromDirectory(dir: string): Offer[] {
  * npm populating a directory: each spec (a name, a range, a tarball or a
  * folder, as npm reads them) is installed without running any script into a
  * throwaway directory, and the packages asked for are read from there as data.
- * npm resolves package dependencies; this does not. `dispose` removes it all.
+ * npm resolves package dependencies; this does not, and what npm obtained is
+ * offered whether it was asked for or came as a dependency. `dispose` removes it all.
  */
 export function fromNpm(specs: string[]): { offers: Offer[]; dispose(): void } {
   const scratch = mkdtempSync(join(tmpdir(), "kaal-compose-npm-"));
@@ -55,11 +56,16 @@ export function fromNpm(specs: string[]): { offers: Offer[]; dispose(): void } {
     writeFileSync(join(scratch, "package.json"), '{"name":"kaal-compose-scratch","private":true}\n');
     const run = spawnSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...specs], { cwd: scratch, encoding: "utf8" });
     if (run.status !== 0) throw new Error(`npm could not obtain ${specs.join(", ")}: ${(run.stderr || run.stdout || String(run.error)).trim()}`);
-    const asked = Object.keys((JSON.parse(readFileSync(join(scratch, "package.json"), "utf8")) as { dependencies?: Record<string, string> }).dependencies ?? {});
+    // Everything npm obtained is offered, as a local directory of the same packages would be; choosing among them stays the caller's, by exact Node ID.
+    const modules = join(scratch, "node_modules");
     const offers: Offer[] = [];
-    for (const name of asked) {
-      const offer = offerOf(join(scratch, "node_modules", name), name.replace(/^@[^/]+\//, ""));
-      if (offer) offers.push({ ...offer, origin: `npm:${name}` });
+    for (const entry of existsSync(modules) ? readdirSync(modules).sort() : []) {
+      const names = entry.startsWith("@") ? readdirSync(join(modules, entry)).map((n) => `${entry}/${n}`) : [entry];
+      for (const name of names) {
+        if (!statSync(join(modules, name)).isDirectory()) continue;
+        const offer = offerOf(join(modules, name), name.replace(/^@[^/]+\//, ""));
+        if (offer) offers.push({ ...offer, origin: `npm:${name}` });
+      }
     }
     return { offers, dispose };
   } catch (e) {

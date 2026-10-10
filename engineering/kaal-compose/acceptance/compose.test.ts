@@ -262,3 +262,110 @@ test("the command: held, offers and install, with exit 0 done, 1 refused with no
   assert.match(cli("offers", "--source", PACKAGES, "--kaal", engine).stdout, new RegExp(`${GITHUB}\\tkaal-github\\theld`));
   for (const bad of [[], ["frobnicate"], ["held"], ["install", "--kaal", engine, "--select", CHANGING, "--bogus", "x"], ["offers"]]) assert.equal(cli(...bad).status, 2, bad.join(" "));
 });
+
+// ---- Reviewer findings 1 to 4 (review/01.md) ----
+
+const pack = (dest: string, path: string): string => {
+  const r = spawnSync("npm", ["pack", "--ignore-scripts", "--pack-destination", dest, path], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  return join(dest, r.stdout.trim().split("\n").pop()!);
+};
+/** A host as the installer reads it: the Engine is its `.kaal`. */
+const hostOf = (engine: string, host: string): string => (cpSync(engine, join(host, ".kaal"), { recursive: true }), host);
+
+test("the whole resulting composition is held to its needs, as the installer holds it: an existing Skill whose need went missing refuses an unrelated install", async (t) => {
+  const dir = tmp(t);
+  const [engine, skills] = [join(dir, "engine"), join(dir, "skills")];
+  install({ engine, skills, offers, select: [CHANGING, SEALING] });
+  // Sealing's delivery goes missing from the Engine and from the host, while Changing KAAL stays.
+  rmSync(join(engine, "skills", "kaal-sealing"), { recursive: true });
+  rmSync(join(skills, "kaal-sealing"), { recursive: true });
+  const [before, host] = [whole(engine, skills), hostOf(engine, join(dir, "host"))];
+  const oracle = await installer.delivery(host, PACKAGES, [GITHUB]);
+  assert.ok(oracle.unmet.some((u) => /kaal-changing declares that it needs kaal-sealing/.test(u)), "the installer refuses this");
+  refused(() => install({ engine, skills, offers, select: [GITHUB] }), /kaal-changing declares that it needs kaal-sealing beside it, which is not installed/);
+  // Reselecting the held Node does not skip its declaration either.
+  refused(() => install({ engine, skills, offers, select: [CHANGING] }), /kaal-changing declares that it needs kaal-sealing/);
+  assert.equal(whole(engine, skills), before, "both destinations unchanged");
+  // Without its package or its Agent Skill to read, what a held Skill needs cannot be established, so it is refused.
+  rmSync(join(skills, "kaal-changing"), { recursive: true });
+  refused(() => install({ engine, skills, offers: fromDirectory(join(PACKAGES, "kaal-github")), select: [GITHUB] }), /cannot be established/);
+  // With the need restored the same install is accepted by both.
+  install({ engine, skills, offers, select: [SEALING] });
+  assert.deepEqual((await installer.delivery(hostOf(engine, join(dir, "host2")), PACKAGES, [GITHUB])).unmet, []);
+  install({ engine, skills, offers, select: [GITHUB] });
+});
+
+test("exact selection installs exactly what was selected: an offer that carries another capability as well is refused whole", (t) => {
+  const dir = tmp(t);
+  const bundle = join(dir, "bundle", "kaal-sealing");
+  cpSync(join(PACKAGES, "kaal-sealing"), bundle, { recursive: true, filter: (s) => !s.includes("node_modules") });
+  for (const [path, bytes] of Object.entries(read(join(PACKAGES, "kaal-changing", "kaal")))) {
+    mkdirSync(dirname(join(bundle, "kaal", path)), { recursive: true });
+    writeFileSync(join(bundle, "kaal", path), bytes);
+  }
+  const [engine, skills] = [join(dir, "engine"), join(dir, "skills")];
+  const bundled = fromDirectory(join(dir, "bundle"));
+  assert.ok(stage(bundled)[0].nodes.some((n) => n.id === SEALING) && stage(bundled)[0].nodes.some((n) => n.id === CHANGING), "Core takes both as Skills of one offer");
+  const before = whole(engine, skills);
+  refused(() => install({ engine, skills, offers: bundled, select: [SEALING] }), /would also install .*Changing.* which was not selected/);
+  assert.equal(whole(engine, skills), before, "nothing written");
+  // Selecting both is a different, explicit composition.
+  install({ engine, skills, offers: bundled, select: [SEALING, CHANGING] });
+  assert.deepEqual(heldBy(engine).map((h) => h.id).sort(), [CHANGING, SEALING].sort());
+});
+
+test("npm offers what npm obtained, dependencies included, exactly as the local adapter offers that directory, and selection stays explicit", (t) => {
+  const dir = tmp(t);
+  const sealingTarball = pack(dir, join(PACKAGES, "kaal-sealing"));
+  const wrapper = join(dir, "wrapper");
+  cpSync(join(PACKAGES, "kaal-github", "kaal"), join(wrapper, "kaal"), { recursive: true });
+  writeFileSync(join(wrapper, "package.json"), JSON.stringify({ name: "wrapper", version: "1.0.0", dependencies: { "kaal-sealing": `file:${sealingTarball}` } }));
+  const wrapperTarball = pack(dir, wrapper);
+  const previous = process.env.npm_config_offline;
+  process.env.npm_config_offline = "true";
+  t.after(() => (previous === undefined ? delete process.env.npm_config_offline : (process.env.npm_config_offline = previous)));
+  const npm = fromNpm([wrapperTarball]);
+  t.after(npm.dispose);
+  const ids = (os: typeof offers) => stage(os).flatMap((s) => s.nodes.map((n) => n.id)).sort();
+  assert.deepEqual(ids(npm.offers), [GITHUB, SEALING].sort(), "the dependency npm fetched is offered");
+  const [engine, skills] = [join(dir, "engine"), join(dir, "skills")];
+  install({ engine, skills, offers: npm.offers, select: [SEALING] });
+  assert.deepEqual(heldBy(engine).map((h) => h.id), [SEALING], "only what was selected is installed, though both were obtained");
+});
+
+test("outside the checkout, offline: the packed tool and packed capabilities install into explicit locations and the acquired Skill and Extension are used", (t) => {
+  const dir = tmp(t);
+  const tarballs = Object.fromEntries(["kaal-core", "kaal-compose", "kaal-changing", "kaal-sealing", "kaal-github"].map((n) => [n, pack(dir, join(PACKAGES, n))]));
+  const env = { ...process.env, npm_config_offline: "true" };
+  const run = (cmd: string, args: string[], cwd: string) => spawnSync(cmd, args, { cwd, env, encoding: "utf8" });
+  // The operator's tooling directory, clean: the composition tool with the Core it depends on, then the Extension's own package, whose executable npm delivers.
+  const tools = join(dir, "tools");
+  mkdirSync(tools);
+  writeFileSync(join(tools, "package.json"), '{"name":"operator","private":true}');
+  const got = run("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", tarballs["kaal-core"], tarballs["kaal-compose"], tarballs["kaal-github"]], tools);
+  assert.equal(got.status, 0, got.stderr);
+  const compose = join(tools, "node_modules", ".bin", "kaal-compose");
+  // Separate locations: the Engine, the host's Agent Skills, the Record, and the Subject.
+  const [engine, skills, record, subject] = ["engine", "skills", "record", "subject"].map((n) => join(dir, n));
+  mkdirSync(subject);
+  writeFileSync(join(subject, "a.txt"), "the Subject\n");
+  for (const cmd of [["init", "-q"], ["add", "."], ["-c", "user.email=a@b", "-c", "user.name=n", "commit", "-qm", "subject"]]) assert.equal(run("git", cmd, subject).status, 0);
+  const frozen = whole(subject);
+  const args = ["--npm", tarballs["kaal-changing"], "--npm", tarballs["kaal-sealing"], "--npm", tarballs["kaal-github"], "--kaal", engine, "--skills", skills];
+  const offered = run(compose, ["offers", ...args.slice(0, 6)], dir);
+  assert.equal(offered.status, 0, offered.stderr);
+  assert.equal(run(compose, ["install", ...args, "--select", CHANGING], dir).status, 1, "a Skill without what it needs is refused");
+  assert.ok(!existsSync(engine) && !existsSync(skills));
+  const done = run(compose, ["install", ...args, "--select", CHANGING, "--select", SEALING, "--select", GITHUB], dir);
+  assert.equal(done.status, 0, done.stderr);
+  assert.deepEqual(run(compose, ["held", "--kaal", engine], dir).stdout.trim().split("\n").map((l) => l.split("\t")[2]).sort(), [CHANGING, SEALING, GITHUB].sort());
+  // The acquired Skill is used, from the host's Agent Skills, against the Engine and a Record location of the operator's choosing.
+  const next = run("node", [join(skills, "kaal-changing", "scripts", "next-change.mjs"), record, "demo"], dir);
+  assert.equal(next.status, 0, next.stderr);
+  assert.match(next.stdout, /^changes\/demo\/\d\d\/\d\d\/\d\d\/01\/$/m);
+  // The held Extension's executable is delivered by its npm package, where the operator installed it; composition installs its Node, not its code.
+  const control = run(join(tools, "node_modules", ".bin", "kaal-github"), ["isolate-boundaries", "HEAD"], subject);
+  assert.equal(control.status, 0, control.stderr + control.stdout);
+  assert.equal(whole(subject), frozen, "the Subject is as it was, apart from what git itself keeps");
+});

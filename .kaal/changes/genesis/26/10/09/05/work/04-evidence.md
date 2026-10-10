@@ -28,11 +28,22 @@ Core is used only through its public API. Nothing in Core or any sealed Node cha
 
 ## Differences from the architecture
 
-- Needs are checked for the selected packages only. A capability the Engine already holds was checked when it was installed; its Agent Skill is in the host, not the Engine.
+- Superseded by review round 01 finding 1: needs are checked for the whole resulting composition, held and selected alike (see Round 01 below).
 - A package is classified in a throwaway KAAL with Core alone. A package whose Nodes would need another offered package's Nodes to be admitted is not offered; no current package is like that.
 - `kaal-compose` declares `kaal-core` as a dependency (resolved by the root workspace). Sibling packages declare none and keep their own lockfiles; a standalone install of `kaal-compose` needs `kaal-core` to be published, which it is not yet.
-- `offers` writes tab-separated lines: kind, name, ID, delivery name, and `held`.
+- `fromNpm` now offers everything npm obtained (round 01 finding 3). `offers` writes tab-separated lines: kind, name, ID, delivery name, and `held`.
 
 ## Not done, by decision
 
 No automatic dependency closure (F1), no registry, no Core change, no authentication claim beyond exact ID, byte equality and Core admission (F7), no `kaal-packaging`.
+
+## Round 01 to 03 findings (review/01.md to 03.md)
+
+The Change moved from `09/02` to `09/05` because another Change took `09/02` on `kaal/genesis`; the Work and the review records were moved as they were.
+
+1. **Whole-composition needs.** Every Skill the resulting Engine holds, existing or selected, is checked: its declaration is read from the offered package carrying it, else from its Agent Skill in the host skills directory, and a held Skill whose declaration cannot be found is refused. Test 11 reproduces the reviewer's case with real packages (Sealing's delivery and Agent Skill removed, then GitHub selected): the installer's `delivery()` and `install()` both refuse, naming Sealing's exact ID, with both destinations unchanged; reselecting the held Changing KAAL is refused too; with the need restored both accept.
+2. **Exactly what was selected.** The held set of the staged candidate must equal what the Engine holds plus what was selected; an offer that brings another typed capability is refused, naming it. The committed Engine is read back through Core and must equal the staged set, otherwise what was written is removed. Test 12 uses the reviewer's real-byte bundle (Sealing's Agent Skill and slot with Changing KAAL's contribution): selecting Sealing alone is refused with nothing written; selecting both is accepted.
+3. **npm and local views.** `fromNpm` offers every package in the directory npm populated, as `fromDirectory` does. Test 13 packs a wrapper whose npm dependency is the Sealing tarball, offline: the offers include the dependency's exact ID, and selecting only it installs only it.
+4. **Outside the checkout.** Test 14 packs `kaal-core`, `kaal-compose`, `kaal-changing`, `kaal-sealing` and `kaal-github`, installs the tool and its Core into a clean directory offline, and runs the shipped command with separate Engine, skills, Record and Subject locations. A Skill without its need is refused with nothing created. With all three selected, `held` reports them; the acquired Changing KAAL script allocates a change in the Record location; the Extension's executable, delivered by its npm package where the operator installed it, runs as `kaal-github isolate-boundaries HEAD` in the Subject, which stays as it was. Responsibility is stated in the README: composition installs an Extension's Node, and npm delivers its code. It is not claimed that installing the Node exercises the Extension.
+
+Limit that stands: each offer is still classified alone against Core, so a package whose Nodes need another offered package's Nodes to be admitted is not offered.

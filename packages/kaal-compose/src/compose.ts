@@ -7,7 +7,7 @@
 // whole candidate (the Engine as it would be after the install) is staged and
 // checked before a single byte is written to the Engine or the host's skills
 // directory, which are the only places written, and only when named.
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { installedExtensions, installedSkills, payload, registerExtension, registerSkill } from "kaal-core";
@@ -110,7 +110,7 @@ function checkCore(engine: string): void {
  * throws a Refusal; either way nothing has been written to the Engine or the
  * skills directory.
  */
-function plan(req: Request): { installed: Held[]; kaal: Files; skills: Files } {
+function plan(req: Request): { installed: Held[]; held: Set<string>; kaal: Files; skills: Files } {
   const exists = Object.keys(read(req.engine)).length > 0;
   if (exists) checkCore(req.engine);
   const already = exists ? new Set(held(req.engine).map((h) => h.id)) : new Set<string>();
@@ -148,26 +148,48 @@ function plan(req: Request): { installed: Held[]; kaal: Files; skills: Files } {
       }
     }
 
-    // A need is met when, in the Engine as it would be, the slot of that name holds a Node Core reports held.
+    // Selection adds exactly what was chosen: an offer's package boundary does not decide what else becomes held.
     const after = held(candidate);
+    const expected = new Set([...already, ...[...chosen.values()].flat().map((h) => h.id)]);
+    const extra = after.filter((h) => !expected.has(h.id));
+    if (extra.length > 0) {
+      throw new Refusal(`the offered package(s) would also install ${extra.map((h) => `${h.name} ${h.id}`).join(", ")}, which was not selected: select it as well, or offer a package that carries only what is selected`);
+    }
+
+    // The whole resulting composition is held to its needs, the selected and the already held alike. A need is met when,
+    // in the Engine as it would be, the slot of that name holds a Node Core reports held.
     const ids = new Set(after.map((h) => h.id));
-    const slotHolds = (need: string) =>
-      ["skills", "extensions"].some((dir) => Object.values(read(join(candidate, dir, need))).some((bytes) => ids.has(sha256(bytes))));
+    const slots = new Map<string, string>();
+    for (const dir of ["skills", "extensions"]) {
+      for (const slot of existsSync(join(candidate, dir)) ? readdirSync(join(candidate, dir)) : []) {
+        for (const bytes of Object.values(read(join(candidate, dir, slot)))) if (!slots.has(sha256(bytes))) slots.set(sha256(bytes), slot);
+      }
+    }
+    const slotHolds = (need: string) => ["skills", "extensions"].some((dir) => Object.values(read(join(candidate, dir, need))).some((bytes) => ids.has(sha256(bytes))));
     const pre = prefix(read(candidate)["core/config"] ?? payload()["core/config"] ?? "");
     const unmet: string[] = [];
-    for (const offer of selected) {
-      const declared = compatibility(offer.skills[`${offer.delivery}/SKILL.md`] ?? "");
+    for (const node of after) {
+      const slot = slots.get(node.id) ?? node.name;
+      // What it declares comes from the offered package that carries it, else from its Agent Skill already in the host.
+      const offer = staged.find((s) => s.nodes.some((n) => n.id === node.id));
+      const hosted = req.skills ? join(req.skills, slot, "SKILL.md") : undefined;
+      const text = offer ? (offer.skills[`${offer.delivery}/SKILL.md`] ?? "") : node.kind === "Extension" ? "" : hosted && existsSync(hosted) ? readFileSync(hosted, "utf8") : undefined;
+      if (text === undefined) {
+        unmet.push(`${slot} is held and what it declares it needs beside it cannot be established, since no offered package carries it and the host skills directory has no ${slot}/SKILL.md: offer its package or name the host's skills directory`);
+        continue;
+      }
+      const declared = compatibility(text);
       if ("unreadable" in declared) {
-        unmet.push(`${offer.delivery}'s compatibility declaration is ${declared.unreadable}, which cannot be read reliably here, so what it needs beside it cannot be established: write it as a plain, quoted or block scalar without escapes`);
+        unmet.push(`${slot}'s compatibility declaration is ${declared.unreadable}, which cannot be read reliably here, so what it needs beside it cannot be established: write it as a plain, quoted or block scalar without escapes`);
         continue;
       }
       for (const need of named(declared.value, pre)) {
-        if (need === offer.delivery || slotHolds(need)) continue;
+        if (need === slot || slotHolds(need)) continue;
         const offered = staged.filter((s) => s.delivery === need).flatMap((s) => s.nodes.map((n) => `${n.name} ${n.id}`));
         unmet.push(
           offered.length
-            ? `${offer.delivery} declares that it needs ${need} beside it, which is not installed: select its Node by exact ID (${offered.join(", ")})`
-            : `${offer.delivery} declares that it needs ${need} beside it, which is not installed, and no package offered carries a Skill or Extension Node for it: there is no exact Node ID to select`,
+            ? `${slot} declares that it needs ${need} beside it, which is not installed: select its Node by exact ID (${offered.join(", ")})`
+            : `${slot} declares that it needs ${need} beside it, which is not installed, and no package offered carries a Skill or Extension Node for it: there is no exact Node ID to select`,
         );
       }
     }
@@ -184,7 +206,7 @@ function plan(req: Request): { installed: Held[]; kaal: Files; skills: Files } {
       const file = join(req.skills!, path);
       if (existsSync(file) && readFileSync(file, "utf8") !== bytes) throw new Refusal(`${file} exists with other bytes: an Agent Skill is not replaced`);
     }
-    return { installed: [...chosen.values()].flat(), kaal, skills };
+    return { installed: [...chosen.values()].flat(), held: ids, kaal, skills };
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
@@ -192,7 +214,7 @@ function plan(req: Request): { installed: Held[]; kaal: Files; skills: Files } {
 
 /** Install the selection whole or not at all: everything is decided before the first write, and a failing write removes what was written. */
 export function install(req: Request): Installed {
-  const { installed, kaal, skills } = plan(req);
+  const { installed, held: expected, kaal, skills } = plan(req);
   const wrote: string[] = [];
   const created: string[] = [];
   const put = (root: string, files: Files) => {
@@ -209,6 +231,10 @@ export function install(req: Request): Installed {
   try {
     put(req.engine, kaal);
     if (req.skills) put(req.skills, skills);
+    // Committed state is read back through Core and must be exactly the composition that was staged.
+    const got = heldBy(req.engine);
+    const wrong = [...got.filter((h) => !expected.has(h.id)).map((h) => `unexpected ${h.name} ${h.id}`), ...[...expected].filter((id) => !got.some((h) => h.id === id)).map((id) => `missing ${id}`)];
+    if (wrong.length > 0) throw new Refusal(`the installed Engine does not hold what was staged (${wrong.join(", ")}); what was written has been removed`);
   } catch (e) {
     for (const path of created) rmSync(path, { recursive: true, force: true });
     throw e;
