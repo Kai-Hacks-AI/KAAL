@@ -369,3 +369,29 @@ test("outside the checkout, offline: the packed tool and packed capabilities ins
   assert.equal(control.status, 0, control.stderr + control.stdout);
   assert.equal(whole(subject), frozen, "the Subject is as it was, apart from what git itself keeps");
 });
+
+test("npm's nested packages are offered too: a conflicting version makes npm nest a dependency, and its capability is selectable by its own ID alone", (t) => {
+  const dir = tmp(t);
+  const sealingTarball = pack(dir, join(PACKAGES, "kaal-sealing"));
+  const make = (name: string, version: string, kaalFrom: string, dependencies: Record<string, string> = {}): string => {
+    const root = join(dir, `${name}-${version}`);
+    cpSync(join(PACKAGES, kaalFrom, "kaal"), join(root, "kaal"), { recursive: true });
+    writeFileSync(join(root, "package.json"), JSON.stringify({ name, version, dependencies }));
+    return pack(dir, root);
+  };
+  // A direct package named like Sealing but at another version and carrying GitHub's bytes: names and versions are not capability identity.
+  const direct = make("kaal-sealing", "9.0.0", "kaal-github");
+  const wrapper = make("nested-wrapper", "1.0.0", "kaal-github", { "kaal-sealing": `file:${sealingTarball}` });
+  const previous = process.env.npm_config_offline;
+  process.env.npm_config_offline = "true";
+  t.after(() => (previous === undefined ? delete process.env.npm_config_offline : (process.env.npm_config_offline = previous)));
+  const npm = fromNpm([direct, wrapper]);
+  t.after(npm.dispose);
+  const sealings = stage(npm.offers.filter((o) => o.origin === "npm:kaal-sealing"));
+  assert.equal(sealings.length, 2, "npm holds two packages named kaal-sealing, one nested");
+  assert.deepEqual(sealings.map((x) => x.nodes.some((n) => n.id === SEALING)).sort(), [false, true], "only the nested one is the real Sealing, offered by its Core ID");
+  const [engine, skills] = [join(dir, "engine"), join(dir, "skills")];
+  install({ engine, skills, offers: npm.offers, select: [SEALING] });
+  assert.deepEqual(heldBy(engine).map((h) => h.id), [SEALING], "only that capability is installed");
+  assert.deepEqual(readdirSync(skills), ["kaal-sealing"]);
+});

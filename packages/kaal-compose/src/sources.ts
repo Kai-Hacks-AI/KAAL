@@ -56,17 +56,21 @@ export function fromNpm(specs: string[]): { offers: Offer[]; dispose(): void } {
     writeFileSync(join(scratch, "package.json"), '{"name":"kaal-compose-scratch","private":true}\n');
     const run = spawnSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...specs], { cwd: scratch, encoding: "utf8" });
     if (run.status !== 0) throw new Error(`npm could not obtain ${specs.join(", ")}: ${(run.stderr || run.stdout || String(run.error)).trim()}`);
-    // Everything npm obtained is offered, as a local directory of the same packages would be; choosing among them stays the caller's, by exact Node ID.
-    const modules = join(scratch, "node_modules");
+    // Everything npm obtained is offered, nested copies included, as a local directory of the same packages would be; choosing among them stays the caller's, by exact Node ID.
     const offers: Offer[] = [];
-    for (const entry of existsSync(modules) ? readdirSync(modules).sort() : []) {
-      const names = entry.startsWith("@") ? readdirSync(join(modules, entry)).map((n) => `${entry}/${n}`) : [entry];
-      for (const name of names) {
-        if (!statSync(join(modules, name)).isDirectory()) continue;
-        const offer = offerOf(join(modules, name), name.replace(/^@[^/]+\//, ""));
-        if (offer) offers.push({ ...offer, origin: `npm:${name}` });
+    const scan = (modules: string): void => {
+      for (const entry of existsSync(modules) ? readdirSync(modules).sort() : []) {
+        const names = entry.startsWith("@") ? readdirSync(join(modules, entry)).map((n) => `${entry}/${n}`) : [entry];
+        for (const name of names) {
+          const dir = join(modules, name);
+          if (!statSync(dir).isDirectory()) continue;
+          const offer = offerOf(dir, name.replace(/^@[^/]+\//, ""));
+          if (offer) offers.push({ ...offer, origin: `npm:${name}` });
+          scan(join(dir, "node_modules"));
+        }
       }
-    }
+    };
+    scan(join(scratch, "node_modules"));
     return { offers, dispose };
   } catch (e) {
     dispose();
