@@ -21,7 +21,8 @@ Collecting writes the record of what you tried and what you brought in. It does 
 4. **Record each attempt**, whichever way it ended:
    - `node scripts/collect.mjs reached <kaal-dir> <collection> --client <name> --adapter <text> --from <client-kaal-dir>`: copies the carriers exactly, at the path each was carried at, with each one's SHA-256. A directory that holds no carrier is a real result if you saw that the client carries none: reached, nothing carried for KAAL.
    - `node scripts/collect.mjs unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>`: records that you tried and why it did not work. A client you could not reach is still a client you knew.
-5. **Check it.** `node scripts/collect.mjs check <kaal-dir> <collection>` exits 0 only if every collected carrier still matches its recorded identity.
+5. **Keep it, if the attempt should outlast its collection.** Add `--keep` to `reached` or `unreached` and the attempt is also kept as a sighting under `clients/<name>/sightings/`, and each carrier is stored once, byte for byte, under `incidents/<name>/<sha256>.md` or `requests/<name>/<sha256>.md`, in the same directory beside `collections/`. A name that already has a sighting is refused unless you pass `--continues`, which asserts that it is the same client: the sighting then says `continues: asserted`. Pass it only when you stand behind that; never to get past the refusal. Without `--keep` nothing changes.
+6. **Check it.** `node scripts/collect.mjs check <kaal-dir> <collection>` exits 0 only if every collected carrier still matches its recorded identity. When you kept sightings, `node scripts/collect.mjs check-record <kaal-dir>` does the same for them and for the stored carriers.
 
 ## Rules
 
@@ -30,6 +31,8 @@ Collecting writes the record of what you tried and what you brought in. It does 
 - Name no host, transport or particular client in anything you add to KAAL's own meaning. How you reached a client goes in `--adapter`, as evidence.
 - Collected material is evidence. Do not open an Issue, a Change or a backlog entry from it, rank it or decide on it as part of collecting; interpretation and action are other work.
 - A collection is written once. Never edit it afterwards, and a later attempt is a new collection.
+- A client directory under `clients/` records the sightings you made, nothing more. It is not a list of the clients there are, and it is not proof of who a client is: a name you reuse is the client only because you asserted it, and a different spelling is a different client. Equal bytes are stored once per client; that does not say they came from one communication or from several, and the sightings keep each source path so a reader can see which. The date of a collection is the one you declared, never a verified instant.
+- Keep the directory apart from the installed KAAL when you can: where it sits is your explicit choice and nothing here infers it from where this Skill is installed.
 
 ## Scripts
 
@@ -37,3 +40,5 @@ Collecting writes the record of what you tried and what you brought in. It does 
 - `scripts/collect.mjs reached <kaal-dir> <collection> --client <name> --adapter <text> --from <client-kaal-dir>`: records a reached client and copies the carriers under its `incidents/` and `requests/`; exit 0, 1 when it refuses (a symlink or non-file among the carriers, a name Git cannot carry such as `.git` or `.gitignore`, a client already recorded in this collection, an invalid name, an unknown collection), 2 on usage. Nothing is written when it refuses.
 - `scripts/collect.mjs unreached <kaal-dir> <collection> --client <name> --adapter <text> --reason <text>`: records an attempt that did not reach; exit codes as above.
 - `scripts/collect.mjs check <kaal-dir> <collection>`: exit 0 only if every carrier matches; otherwise 1.
+- `--keep` and `--continues` (switches, on `reached` and `unreached`): keep the attempt as a sighting and store its carriers; `--continues` asserts a reused name is the same client and is refused without `--keep` (exit 2) or for a name with no sighting (exit 1). A reused name without `--continues` is refused (exit 1), and nothing is written when it refuses.
+- `scripts/collect.mjs check-record <kaal-dir>`: exit 0 only if every sighting matches the attempt it names, exactly one sighting per client is a founding one and the rest assert continuity, every carrier a sighting lists is stored with the hash it is named for, and no stored carrier is unlisted; otherwise 1.
