@@ -4,7 +4,7 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present && npm run test:kaal-core && npm run test:kaal-agent && npm run test:kaal-engineering && npm run test:kaal-changing && npm run test:kaal-install && npm run test:change-seal && npm run test:kaal-sealing && npm run test:kaal-retro && npm run test:kaal-review && npm run test:kaal-intent && npm run test:kaal-process-agree && npm run test:kaal-incident && npm run test:kaal-request && npm run test:kaal-collecting && npm run check-kaal-config",
+    "test": "npm run test --workspaces --if-present && npm run test:kaal-core && npm run test:kaal-agent && npm run test:kaal-engineering && npm run test:kaal-changing && npm run test:kaal-install && npm run test:change-seal && npm run test:kaal-sealing && npm run test:kaal-retro && npm run test:kaal-review && npm run test:kaal-intent && npm run test:kaal-process-agree && npm run test:kaal-incident && npm run test:kaal-request && npm run test:kaal-collecting && npm run test:kaal-compose && npm run check-kaal-config",
     "test:kaal-core": "npm test --prefix engineering/kaal-core",
     "test:kaal-agent": "npm test --prefix engineering/kaal-agent",
     "test:kaal-engineering": "npm test --prefix engineering/kaal-engineering",
@@ -19,6 +19,7 @@
     "test:kaal-incident": "npm test --prefix engineering/kaal-incident",
     "test:kaal-request": "npm test --prefix engineering/kaal-request",
     "test:kaal-collecting": "npm test --prefix engineering/kaal-collecting",
+    "test:kaal-compose": "npm test --prefix engineering/kaal-compose",
     "install-kaal": "npm run build --prefix engineering/kaal-install && node engineering/kaal-install/dist/helpers/install-kaal.js",
     "list-kaal-capabilities": "npm run build --prefix engineering/kaal-install > /dev/null && node engineering/kaal-install/dist/helpers/list-kaal-capabilities.js",
     "check-kaal-install": "npm run build --prefix engineering/kaal-install && node engineering/kaal-install/dist/helpers/check-kaal-install.js",

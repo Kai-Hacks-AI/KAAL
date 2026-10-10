@@ -1,0 +1,17 @@
+# Retro
+
+## Learned
+
+That Core already said everything composition needs. Staging an offer into a throwaway KAAL and asking `installedSkills()` and `installedExtensions()` gave identity, admission and the held set without a new Core call, and the Owner's rulings (explicit selection, plain adapters, npm only inside its adapter) kept the package small. I also learned how far a parity oracle reaches. My 21-spelling matrix against the installer's own refusal was real evidence, but it only exercised fresh targets, and the Reviewer then found three places where behaviour diverged that it never touched: an existing Engine whose held Skill lost its need, an offer that carried more than the selected ID, and npm packages that arrived as dependencies or nested. Each time the cause was the same: I wrote a claim wider than what my tests tried, "needs are checked", "everything npm obtained is offered", and the claim was false at the edge I had not looked at. Smaller lessons: a workspace test run that passes locally can fail on a clean checkout because of build order, which only CI showed me; and the address of a Change is not its identity, since the Change moved from 08/03 to 09/02 to 09/05 while its Work bytes stayed as they were.
+
+## Liked
+
+The decisions arriving as seven numbered forks with reasons, which let me build against a stable target instead of guessing. I liked that the refusal stayed on Core's answer instead of on a name: the slot-holds-a-held-Node rule is small, and it reproduced every installer outcome. I liked the Reviewer reproducing each finding with real packages and real bytes rather than arguing, which made each one unarguable and each fix checkable, and I liked that the final standalone demonstration actually ran an acquired Skill script and an Extension executable outside the checkout, because registering a Node proves much less than that. Writing my response per round into the evidence file also made the later rounds easy to judge.
+
+## Lacked
+
+A signal that a Reviewer round had landed. Rounds 01 to 03 sat on the branch while I believed the Change was waiting for a Reviewer to be assigned, because I was not watching the PR for review activity and had finished my own checklist; Kai had to ask whether the review was being worked. That was my lapse: after pushing I should have looked at the head against what I knew. I also lacked a clean-checkout run before my first push, which would have caught the build-order failure that CI reported, and a test habit of asking "what else does this claim cover" before writing the claim, which is where all three substantive findings came from. And I lacked a way to run the installer's oracle against existing targets from the start, which I had to build late.
+
+## Longed
+
+Making `kaal-install` a caller of the same composition, so there is one implementation of the need refusal instead of a ported copy kept equal by a parity test. I would like needs to be machine-readable by Node ID so the `compatibility` text no longer has to be read by name, and classification of an offer that needs another offered package's Nodes, which the per-offer staging still cannot do. I also long for `kaal-core` to be published, so the standalone demonstration does not have to supply Core as a local tarball, and for an honest account of how an Extension's code reaches a host, since composition installs its Node and leaves its executable to npm.
