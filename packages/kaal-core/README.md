@@ -41,6 +41,7 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 
 ```
 <engine>/                   ./.kaal/ unless --engine names another directory
+  AGENTS.md                   entry point for an Agent working with this Engine
   KAAL-KERNEL.md
   core/Node.md, KAAL-Definition.md, KAAL-Skill.md, KAAL-Extension.md
   skills/<capability>/        registered Skill contributions
