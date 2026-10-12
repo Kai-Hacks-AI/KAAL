@@ -5,7 +5,7 @@
 // and operates the Engine there through the installed package alone.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { cpSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
@@ -145,6 +145,46 @@ describe("embedding into a fresh host", () => {
     assert.match(fails(kaal, ["register", "skill", "kaal-bad", bad], host), /Dangling\.md is not admitted/);
     assert.deepEqual(tree(join(host, ".kaal")), before);
     assert.deepEqual(readdirSync(join(host, ".kaal", "skills")), ["kaal-greeting"]);
+    // Delivery metadata is not a Node: Core does not read it as a dependency declaration, it refuses it.
+    const packaged = join(work, "contrib-packaged");
+    mkdirSync(packaged);
+    writeFileSync(join(packaged, "Good.md"), node("Good", skillType, "fine\n"));
+    writeFileSync(join(packaged, "package.json"), JSON.stringify({ name: "kaal-good", dependencies: { "kaal-other": "1.0.0" } }));
+    assert.match(fails(kaal, ["register", "skill", "kaal-good", packaged], host), /package\.json is not a Markdown file/);
+    assert.deepEqual(tree(join(host, ".kaal")), before);
+  });
+
+  it("keeps identity, resolution and discovery when the Engine is rearranged, and init leaves it alone", () => {
+    const engine = join(host, ".kaal");
+    const id = (file) => run(kaal, ["identify", file], host).split("\t")[0];
+    const greetingId = id(".kaal/skills/kaal-greeting/Greeting.md");
+    const listed = run(kaal, ["list"], host);
+    // Move and rename every file, bytes untouched; drop the packaged core/, skills/, extensions/ layout.
+    const moves = Object.keys(tree(engine)).map((from, i) => ({ from, to: `rearranged/${i % 2 ? "odd" : "even"}/f${i}${from.endsWith(".md") ? ".md" : ".txt"}` }));
+    for (const { from, to } of moves) {
+      mkdirSync(dirname(join(engine, to)), { recursive: true });
+      renameSync(join(engine, from), join(engine, to));
+    }
+    for (const top of ["core", "skills", "extensions"]) rmSync(join(engine, top), { recursive: true, force: true });
+    const greetingAt = moves.find((m) => m.from === "skills/kaal-greeting/Greeting.md").to;
+    assert.equal(id(`.kaal/${greetingAt}`), greetingId);
+    assert.match(run(kaal, ["verify"], host), /ok: 6 Nodes admitted/);
+    assert.equal(run(kaal, ["list"], host), listed);
+    const [resolvedId, , type, paths] = run(kaal, ["resolve", "Greeting", greetingId], host).trim().split("\t");
+    assert.equal(resolvedId, greetingId);
+    assert.equal(type, `KAAL Skill ${skillType.id}`);
+    assert.equal(paths, greetingAt);
+    const before = tree(engine);
+    assert.match(run(kaal, ["init"], host), /already holds the foundation/);
+    assert.deepEqual(tree(engine), before);
+  });
+
+  it("refuses to init over an existing directory that is not a valid Engine", () => {
+    const other = join(work, "other-host");
+    mkdirSync(join(other, ".kaal"), { recursive: true });
+    writeFileSync(join(other, ".kaal", "notes.txt"), "not an Engine");
+    assert.match(fails(kaal, ["init", "--host", other], host), /not a valid Engine; nothing was written/);
+    assert.deepEqual(tree(join(other, ".kaal")), { "notes.txt": "not an Engine" });
   });
 
   it("operates without the engineering repository", () => {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import {
   bootstrap,
@@ -59,6 +59,23 @@ function snapshot(dir: string): string {
 }
 
 const f = foundation();
+
+/**
+ * Move every file of an Engine to another directory and filename, keeping its
+ * exact bytes and dropping the packaged `core/`, `skills/` and `extensions/`
+ * layout. Returns the moves, in path order.
+ */
+function rearrange(dir: string): { from: string; to: string }[] {
+  const moves = Object.keys(readTree(dir))
+    .sort()
+    .map((from, i) => ({ from, to: `moved/${String.fromCharCode(97 + (i % 3))}/${i}.${from.endsWith(".md") ? "md" : "txt"}` }));
+  for (const { from, to } of moves) {
+    mkdirSync(dirname(join(dir, to)), { recursive: true });
+    renameSync(join(dir, from), join(dir, to));
+  }
+  for (const top of ["core", "skills", "extensions"]) rmSync(join(dir, top), { recursive: true, force: true });
+  return moves;
+}
 
 describe("identity", () => {
   it("is the SHA-256 of exact bytes, and the foundation is deterministic", () => {
@@ -161,13 +178,36 @@ describe("bootstrap and verify", () => {
     assert.ok(v.ok);
   });
 
-  it("completes a partial Engine and refuses one with other bytes", () => {
+  it("leaves a valid but rearranged Engine untouched", () => {
     const dir = engine();
-    const removed = join(dir, "core", "KAAL-Skill.md");
-    writeFileSync(removed, "changed");
+    rearrange(dir);
+    assert.ok(verify(dir).ok, verify(dir).problems.join("\n"));
     const before = snapshot(dir);
-    assert.throws(() => bootstrap(dir), /other bytes/);
+    assert.deepEqual(bootstrap(dir), []);
     assert.equal(snapshot(dir), before);
+    assert.ok(!existsSync(join(dir, "core")), "no packaged layout was added back");
+  });
+
+  it("refuses an existing directory that is not a valid Engine, writing nothing", () => {
+    const changed = engine();
+    writeFileSync(join(changed, "core", "KAAL-Skill.md"), "changed");
+    const partial = engine();
+    rmSync(join(partial, "core", "KAAL-Extension.md"));
+    const unrelated = join(tmp(), ".kaal");
+    mkdirSync(unrelated);
+    writeFileSync(join(unrelated, "notes.txt"), "someone else's directory");
+    for (const dir of [changed, partial, unrelated]) {
+      const before = snapshot(dir);
+      assert.throws(() => bootstrap(dir), /not a valid Engine; nothing was written/);
+      assert.equal(snapshot(dir), before);
+    }
+  });
+
+  it("bootstraps an empty existing directory", () => {
+    const dir = join(tmp(), ".kaal");
+    mkdirSync(dir);
+    assert.equal(bootstrap(dir).length, 5);
+    assert.ok(verify(dir).ok);
   });
 
   it("reports what is wrong with an Engine", () => {
@@ -182,15 +222,23 @@ describe("bootstrap and verify", () => {
     assert.equal(verify(join(tmp(), "nowhere")).ok, false);
   });
 
-  it("verifies by identity, not location", () => {
+  it("keeps identity, type resolution and discovery when Node files are moved and renamed", () => {
     const dir = engine();
-    const moved = join(dir, "elsewhere");
-    mkdirSync(moved);
-    for (const name of readdirSync(join(dir, "core"))) {
-      writeFileSync(join(moved, name.toLowerCase()), readFileSync(join(dir, "core", name)));
-    }
-    const ok = verify(dir);
-    assert.ok(ok.ok, ok.problems.join("\n"));
+    const skill = node("Greeting", f.skill, "Greet people warmly.\n");
+    const extension = node("Clock", f.extension, "Tell the time.\n");
+    registerSkill(dir, "greeting", { "Greeting.md": skill });
+    registerExtension(dir, "clock", { "Clock.md": extension });
+    const before = loadEngine(dir).nodes.map(({ id, name, type }) => ({ id, name, type }));
+    const caps = capabilities(dir);
+    const moves = rearrange(dir);
+    assert.ok(moves.length >= 7);
+    for (const { from, to } of moves) assert.ok(!existsSync(join(dir, from)) && existsSync(join(dir, to)), `${from} -> ${to}`);
+    const after = loadEngine(dir);
+    assert.deepEqual(after.nodes.map(({ id, name, type }) => ({ id, name, type })), before);
+    assert.deepEqual(after.resolve(f.skill).paths, ["moved/a/3.md"]);
+    assert.deepEqual(after.resolve({ name: "Greeting", id: sha256(skill) }).type, f.skill);
+    assert.deepEqual(capabilities(dir), caps);
+    assert.ok(verify(dir).ok, verify(dir).problems.join("\n"));
   });
 
   it("exports the foundational payload", () => {
@@ -262,6 +310,42 @@ describe("registration", () => {
       assert.deepEqual(readdirSync(dir).sort(), ["KAAL-KERNEL.md", "core"]);
     });
   }
+
+  it("registers into a rearranged Engine, found by identity alone", () => {
+    const dir = engine();
+    rearrange(dir);
+    assert.deepEqual(registerSkill(dir, "greeting", { "Greeting.md": skill }).ids, [sha256(skill)]);
+    assert.deepEqual(capabilities(dir).skills, [{ name: "Greeting", id: sha256(skill) }]);
+  });
+
+  it("resolves across contributions by identity, and never acquires what is missing", () => {
+    const style = node("Greeting Style", f.definition);
+    const uses = node("Formal Greeting", { name: "Greeting Style", id: sha256(style) });
+    const later = { "Formal.md": node("Formal", f.skill), "Uses.md": uses };
+    const dir = engine();
+    const before = snapshot(dir);
+    assert.throws(() => registerSkill(dir, "formal", later), /Uses\.md is not admitted: type Greeting Style .* resolves to no Node/);
+    assert.equal(snapshot(dir), before);
+    registerSkill(dir, "styles", { "Style.md": style, "Greeting.md": skill });
+    assert.deepEqual(registerSkill(dir, "formal", later).written, true);
+  });
+
+  it("treats delivery metadata as no part of a contribution", () => {
+    const dir = engine();
+    const before = snapshot(dir);
+    const manifest = JSON.stringify({ name: "kaal-greeting", dependencies: { "kaal-styles": "1.0.0" } });
+    assert.throws(() => registerSkill(dir, "greeting", { "Greeting.md": skill, "package.json": manifest }), /package\.json is not a Markdown file/);
+    assert.equal(snapshot(dir), before);
+  });
+
+  it("removes its staging and writes nothing when the final write fails", () => {
+    const dir = engine();
+    writeFileSync(join(dir, "skills"), "a file where the skills directory would go");
+    const before = snapshot(dir);
+    assert.throws(() => registerSkill(dir, "greeting", { "Greeting.md": skill }));
+    assert.equal(snapshot(dir), before);
+    assert.deepEqual(readdirSync(dir).sort(), ["KAAL-KERNEL.md", "core", "skills"]);
+  });
 
   it("refuses a capability already registered with other content", () => {
     const dir = engine();

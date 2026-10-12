@@ -47,10 +47,14 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
   extensions/<capability>/    registered Extension contributions
 ```
 
+This layout is how Core delivers files, not part of any identity. The Engine is found by content: you may move or rename any file, keeping its bytes, and every Node keeps its id, its type resolution and its discovery.
+
+`kaal init` materializes the payload into a missing or empty `.kaal/`, staged and renamed into place in one step. If `.kaal/` already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If `.kaal/` holds anything else, init refuses and writes nothing.
+
 ## CLI
 
 ```
-kaal init                                              bootstrap <host>/.kaal (idempotent)
+kaal init                                              bootstrap <host>/.kaal (see below)
 kaal verify                                            verify the Engine
 kaal list                                              list the Skills and Extensions the Engine holds
 kaal resolve <name> [<id>]                             resolve a Node by name, or by name and id
