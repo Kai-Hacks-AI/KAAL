@@ -1,6 +1,6 @@
 # kaal-core
 
-KAAL Core: the smallest working KAAL. It carries the five foundational documents, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any host as `.kaal/`.
+KAAL Core: the smallest working KAAL. It carries the five foundational documents, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
 Core depends on no Git host and no agent provider. It has no runtime dependencies and needs Node.js 20 or later.
 
@@ -8,7 +8,7 @@ Core depends on no Git host and no agent provider. It has no runtime dependencie
 
 ```sh
 npm install kaal-core
-npx kaal init      # materializes .kaal/ from the package payload
+npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
 npx kaal verify    # checks the Kernel and the four foundational Nodes by identity
 ```
 
@@ -40,7 +40,7 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 ## Engine layout
 
 ```
-.kaal/
+<engine>/                   ./.kaal/ unless --engine names another directory
   KAAL-KERNEL.md
   core/Node.md, KAAL-Definition.md, KAAL-Skill.md, KAAL-Extension.md
   skills/<capability>/        registered Skill contributions
@@ -49,12 +49,12 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 
 This layout is how Core delivers files, not part of any identity. The Engine is found by content: you may move or rename any file, keeping its bytes, and every Node keeps its id, its type resolution and its discovery.
 
-`kaal init` materializes the payload into a missing or empty `.kaal/`, staged and renamed into place in one step. If `.kaal/` already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If `.kaal/` holds anything else, init refuses and writes nothing.
+`kaal init` materializes the payload into a missing or empty Engine directory, staged and renamed into place in one step. If the directory already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If it holds anything else, init refuses and writes nothing.
 
 ## CLI
 
 ```
-kaal init                                              bootstrap <host>/.kaal (see below)
+kaal init                                              bootstrap the Engine (see below)
 kaal verify                                            verify the Engine
 kaal list                                              list the Skills and Extensions the Engine holds
 kaal resolve <name> [<id>]                             resolve a Node by name, or by name and id
@@ -63,7 +63,7 @@ kaal register <skill|extension> <capability> <dir>     register a contribution, 
 kaal export <out-dir>                                  write the foundational payload into an empty directory
 ```
 
-Every command takes `--host <dir>`; the default is the current directory.
+Every command takes `--engine <dir>`: the Engine directory itself, absolute or relative, under any name (`kaal init --engine ./myKAAL`). Without it, the Engine is `./.kaal`. `.kaal` is a default convention, not part of any identity.
 
 ## Registration
 

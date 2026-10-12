@@ -5,9 +5,9 @@
 // and operates the Engine there through the installed package alone.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { cpSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -180,11 +180,11 @@ describe("embedding into a fresh host", () => {
   });
 
   it("refuses to init over an existing directory that is not a valid Engine", () => {
-    const other = join(work, "other-host");
-    mkdirSync(join(other, ".kaal"), { recursive: true });
-    writeFileSync(join(other, ".kaal", "notes.txt"), "not an Engine");
-    assert.match(fails(kaal, ["init", "--host", other], host), /not a valid Engine; nothing was written/);
-    assert.deepEqual(tree(join(other, ".kaal")), { "notes.txt": "not an Engine" });
+    const other = join(work, "other-host", ".kaal");
+    mkdirSync(other, { recursive: true });
+    writeFileSync(join(other, "notes.txt"), "not an Engine");
+    assert.match(fails(kaal, ["init", "--engine", other], host), /not a valid Engine; nothing was written/);
+    assert.deepEqual(tree(other), { "notes.txt": "not an Engine" });
   });
 
   it("operates without the engineering repository", () => {
@@ -204,5 +204,66 @@ describe("embedding into a fresh host", () => {
     const out = join(work, "exported");
     run(kaal, ["export", out], host);
     assert.deepEqual(tree(out), tree(join(host, "node_modules", "kaal-core", "payload")));
+  });
+});
+
+describe("Engine location", () => {
+  let skillType;
+  let defaultEngine;
+
+  before(() => {
+    skillType = { name: "KAAL Skill", id: run(kaal, ["resolve", "KAAL Skill"], host).split("\t")[0] };
+    defaultEngine = tree(join(host, ".kaal"));
+  });
+
+  function contribution(dir, name) {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, `${name}.md`), node(name, skillType, `${name} behaviour.\n`));
+    return dir;
+  }
+
+  /** init, verify, register, list, resolve and a refused register, all against one explicit Engine. */
+  function operate(engineArg, engineDir, cwd) {
+    assert.ok(!existsSync(engineDir));
+    assert.match(run(kaal, ["init", "--engine", engineArg], cwd), /bootstrapped/);
+    assert.deepEqual(Object.keys(tree(engineDir)), ["KAAL-KERNEL.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.match(run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 4 Nodes admitted/);
+    assert.equal(run(kaal, ["list", "--engine", engineArg], cwd), "");
+    const source = contribution(join(work, `contrib-${basename(engineDir)}`), "Located");
+    assert.match(run(kaal, ["register", "skill", "located", source, "--engine", engineArg], cwd), /^registered skill located/);
+    assert.match(run(kaal, ["list", "--engine", engineArg], cwd), /^skill\t[0-9a-f]{64}\tLocated\n$/);
+    assert.match(run(kaal, ["resolve", "Located", "--engine", engineArg], cwd), /\tKAAL Skill /);
+    const before = tree(engineDir);
+    const bad = join(work, `bad-${basename(engineDir)}`);
+    mkdirSync(bad);
+    writeFileSync(join(bad, "Ghost.md"), node("Ghost", { name: "Nothing", id: "5".repeat(64) }, "x\n"));
+    assert.match(fails(kaal, ["register", "skill", "ghost", bad, "--engine", engineArg], cwd), /not admitted/);
+    assert.deepEqual(tree(engineDir), before);
+    assert.match(run(kaal, ["init", "--engine", engineArg], cwd), /already holds the foundation/);
+    assert.deepEqual(tree(engineDir), before);
+    assert.match(run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 5 Nodes admitted/);
+    // The default Engine was never touched.
+    assert.deepEqual(tree(join(host, ".kaal")), defaultEngine);
+  }
+
+  it("operates an Engine at a relative path under any name", () => {
+    operate("./myKAAL", join(host, "myKAAL"), host);
+  });
+
+  it("operates an Engine at an absolute path outside the host", () => {
+    const dir = join(work, "external", "engine-abs");
+    operate(dir, dir, host);
+  });
+
+  it("operates an Engine at a relative path outside the host", () => {
+    operate("../external-rel/E", join(work, "external-rel", "E"), host);
+  });
+
+  it("refuses ambiguous or unknown location options", () => {
+    assert.match(fails(kaal, ["verify", "--engine"], host), /--engine needs a directory/);
+    assert.match(fails(kaal, ["verify", "--engine", "a", "--engine", "b"], host), /unknown or repeated option --engine/);
+    assert.match(fails(kaal, ["init", "--host", work], host), /unknown or repeated option --host/);
+    assert.ok(!existsSync(join(work, ".kaal")));
+    assert.deepEqual(tree(join(host, ".kaal")), defaultEngine);
   });
 });

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
 import { identify, KaalError } from "./node.js";
 import { capabilities, readContribution, register } from "./register.js";
 
-const USAGE = `usage: kaal <command> [--host <dir>]
+const USAGE = `usage: kaal <command> [--engine <dir>]
 
-  init                                     materialize <host>/.kaal from the kaal-core payload
-  verify                                   verify the Engine in <host>/.kaal
+  init                                     materialize the Engine from the kaal-core payload
+  verify                                   verify the Engine
   list                                     list the Skills and Extensions the Engine holds
   resolve <name> [<id>]                    resolve a Node of the Engine by name, or by name and id
   identify <file>...                       print the id, name and type of Node files
@@ -17,18 +17,21 @@ const USAGE = `usage: kaal <command> [--host <dir>]
                                            register a contribution, atomically
   export <out-dir>                         write the foundational Core payload into an empty directory
 
-<host> defaults to the current directory.`;
+--engine <dir> is the Engine directory itself, absolute or relative to the
+current directory, under any name. Without it, the Engine is ./.kaal.`;
 
 function main(argv: string[]): number {
   const args = [...argv];
-  let host = process.cwd();
-  const at = args.indexOf("--host");
+  let engine = resolve(".kaal");
+  const at = args.indexOf("--engine");
   if (at >= 0) {
-    if (!args[at + 1]) throw new KaalError("--host needs a directory");
-    host = resolve(args[at + 1]);
+    const dir = args[at + 1];
+    if (!dir || dir.startsWith("--")) throw new KaalError("--engine needs a directory");
+    engine = resolve(dir);
     args.splice(at, 2);
   }
-  const engine = join(host, ".kaal");
+  const option = args.find((a) => a.startsWith("--") && a !== "--help");
+  if (option) throw new KaalError(`unknown or repeated option ${option}\n\n${USAGE}`);
   const [command, ...rest] = args;
   switch (command) {
     case "init": {
