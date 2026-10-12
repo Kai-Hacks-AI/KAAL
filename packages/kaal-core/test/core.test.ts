@@ -25,11 +25,11 @@ import {
  * a visible, reviewed change to this table.
  */
 const PINNED = {
-  kernel: "ddaa92fac353ee8afc639832a8a17ed5d038b641ce9a28ee3acb0aee754e6a2f",
-  node: "e35de03241f75702886248ce4ebc38e19a88bc0fd5338a1618f5316c8ae1124f",
-  definition: "46fbaf19ec03f357002b029c99171ed0ea456e502f641c22c8338cbf51566fce",
-  skill: "e71195c81b4551e9301fc7a801a0a81b48cf1e64792b5aa77e29eba3c043b1f5",
-  extension: "8ed0270988440c0a726c3270a7a99757c68f937b4f6771ebcee1de282ea183b6",
+  kernel: "6122198d786686964863a8c81237fb30d0a2e29c1efe7473c366c7c20791b20b",
+  node: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
+  definition: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
+  skill: "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
+  extension: "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94",
 };
 
 function node(name: string, type?: Ref, body = `# ${name}\n`): string {
