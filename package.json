@@ -13,6 +13,6 @@
     "pack": "npm pack -w kaal-core --pack-destination engineering/out"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.1"
   }
 }

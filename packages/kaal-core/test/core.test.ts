@@ -222,6 +222,11 @@ describe("bootstrap and verify", () => {
     assert.ok(v.problems.some((p) => p.includes("Kernel")));
     assert.ok(v.problems.some((p) => p.startsWith("stray.md")));
     assert.equal(verify(join(tmp(), "nowhere")).ok, false);
+    const file = join(tmp(), "a-file");
+    writeFileSync(file, "not a directory");
+    const v2 = verify(file);
+    assert.equal(v2.ok, false);
+    assert.equal(v2.engine.nodes.length, 0);
   });
 
   it("keeps identity, type resolution and discovery when Node files are moved and renamed", () => {
@@ -360,7 +365,19 @@ describe("registration", () => {
 
   it("refuses to register into something that is not a bootstrapped Engine", () => {
     const dir = tmp();
-    assert.throws(() => registerSkill(dir, "greeting", { "Greeting.md": skill }), /not a bootstrapped Engine/);
+    assert.throws(() => registerSkill(dir, "greeting", { "Greeting.md": skill }), /not a valid Engine/);
     assert.deepEqual(readdirSync(dir), []);
+  });
+
+  it("refuses to register into an Engine that does not verify, though its foundation is admitted", () => {
+    const noKernel = engine();
+    rmSync(join(noKernel, "KAAL-KERNEL.md"));
+    const malformed = engine();
+    writeFileSync(join(malformed, "broken.md"), "---\nname: Broken\n");
+    for (const dir of [noKernel, malformed]) {
+      const before = snapshot(dir);
+      assert.throws(() => registerSkill(dir, "greeting", { "Greeting.md": skill }), /not a valid Engine; nothing was written/);
+      assert.equal(snapshot(dir), before);
+    }
   });
 });
