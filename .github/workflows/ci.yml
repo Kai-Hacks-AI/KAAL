@@ -5,20 +5,34 @@ on:
     branches: [main, "kaal/**"]
   pull_request:
 
+# Hosting is KAAL's host boundary: its conformance suite runs on every
+# supported OS. Everything else is checked once, on a reference host.
 jobs:
-  test:
-    name: ${{ matrix.os }} · Node ${{ matrix.node }}
+  hosting:
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node: [20, 22]
+        include:
+          - { name: Windows Hosting, os: windows-latest }
+          - { name: Ubuntu Hosting, os: ubuntu-latest }
+          - { name: macOS Hosting, os: macos-latest }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 24
       - run: npm ci
-      - run: npm test
-      - run: npm run test:acceptance
+      - run: npm run test:hosting
+
+  kaal:
+    name: KAAL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run test:kaal
