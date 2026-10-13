@@ -118,8 +118,11 @@ describe("the CLI", () => {
     assert.equal(bad.stderr, ".github travels alone: README.md is outside .github/\n");
   });
 
-  it("refuses unknown arguments", () => {
+  it("refuses unknown arguments and paths that are not repository-relative", () => {
     assert.equal(run(["--diff", "main"]).status, 2);
+    for (const p of ["./packages/kaal-core/x", "/packages/kaal-core/x", "a//b", "a/../packages/kaal-core/x"]) {
+      assert.equal(run([], `README.md\n${p}\n`).status, 2, p);
+    }
   });
 });
 
@@ -163,6 +166,14 @@ describe("the complete PR diff against its target", () => {
     write("README.md", "moved on\n");
     commit("target moves on");
     assert.equal(judge("target", "core-only").status, 0, judge("target", "core-only").stderr);
+  });
+
+  it("cannot be passed by refs that git would read as options, and reports git failures as exit 2", () => {
+    const opt = judge(`--output=${join(repo, "out")}`, "mixed");
+    assert.equal(opt.status, 2, opt.stdout);
+    const unknown = judge("target", "no-such-ref");
+    assert.equal(unknown.status, 2);
+    assert.match(unknown.stderr, /^cannot diff target\.\.\.no-such-ref: /);
   });
 
   it("sees both sides of a rename out of Core", () => {
