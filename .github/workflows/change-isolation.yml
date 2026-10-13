@@ -1,10 +1,11 @@
 # Enforces Change Isolation (engineering/change-isolation) on pull requests: Core travels alone,
 # .github travels alone. The rules live only in the checker; this workflow supplies the change set.
 #
-# pull_request_target runs this workflow as it stands on the target branch, never as the candidate
-# PR has it. Only the target's checker is executed; the candidate's commits are fetched as git data
-# to list its changed paths and are never checked out, built, installed or run. A target branch
-# without this workflow is not judged: enforcement starts where these controls have landed.
+# pull_request_target runs this workflow as it stands on the default branch, never as the candidate
+# PR has it. Only the checker held by the PR's target (base.sha) is executed; the candidate's commits
+# are fetched as git data to list its changed paths and are never checked out, built, installed or
+# run. Activation: nothing runs until this workflow is on the default branch, and a target that does
+# not hold the checker is reported as not yet active rather than judged.
 name: Change Isolation
 
 on:
@@ -26,17 +27,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Unauthenticated: this repository is public. If it ever goes private, this fails closed.
-      - name: Fetch the candidate's commits as data
-        env:
-          HEAD: ${{ github.event.pull_request.head.sha }}
-        run: git fetch --no-tags origin "$HEAD"
-
+      # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Judge the complete change against the target
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -o pipefail
+          if [ ! -f engineering/change-isolation/check.mjs ]; then
+            echo "::notice::Change Isolation is not active on this target: it does not hold engineering/change-isolation"
+            exit 0
+          fi
+          git fetch --no-tags origin "$HEAD"
           git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
             | node engineering/change-isolation/check.mjs
