@@ -24,10 +24,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Fetch the candidate's commits as data
         env:
-          PR: ${{ github.event.pull_request.number }}
-        run: git fetch --no-tags origin "+refs/pull/$PR/head:refs/candidate"
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: git fetch --no-tags origin "$HEAD"
 
       - name: Judge the complete change against the target
         env:
@@ -35,6 +36,5 @@ jobs:
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -o pipefail
-          git cat-file -e "$HEAD^{commit}" || { echo "head $HEAD not fetched; a newer run judges the newer head"; exit 1; }
           git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
             | node engineering/pr-isolation/check.mjs
