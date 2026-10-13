@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { verify } from "./bootstrap.js";
-import { evaluate, readTree, STAGING_PREFIX } from "./engine.js";
+import { evaluate, makeStaging, readTree } from "./engine.js";
 import { claimsForm, compareRefs, identify, KaalError, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
@@ -24,7 +24,7 @@ function toFiles(contribution: Record<string, string | Uint8Array>): Files {
 }
 
 function checkPath(path: string): void {
-  if (path.startsWith("/") || path.includes("\\") || path.split("/").some((s) => s === "" || s === "." || s === ".." || s.startsWith(STAGING_PREFIX)))
+  if (path.startsWith("/") || path.includes("\\") || path.split("/").some((s) => s === "" || s === "." || s === ".."))
     throw new KaalError(`${path} is not a path within the capability`);
   if (!path.endsWith(".md")) throw new KaalError(`${path} is not a Markdown file: a contribution is Nodes and nothing else`);
 }
@@ -99,7 +99,7 @@ export function register(dir: string, kind: Kind, capability: string, contributi
   const ids = [...new Set(typed.map((n) => n.id))].sort();
   if (existsSync(target)) return { ids, written: false };
 
-  const staging = mkdtempSync(join(dir, STAGING_PREFIX));
+  const staging = makeStaging(dir);
   try {
     for (const p of paths) {
       mkdirSync(dirname(join(staging, p)), { recursive: true });

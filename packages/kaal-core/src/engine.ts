@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, statSync, type Dirent } from "node:fs";
 import { join } from "node:path";
 import { claimsForm, compareRefs, identify, KaalError, type Identity, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
@@ -26,17 +26,38 @@ export interface Engine {
   typedBy(ref: Ref): EngineNode[];
 }
 
-/** Directories inside an Engine that belong to Core's own atomic writes, never to the graph. */
-export const STAGING_PREFIX = ".staging-";
+const STAGING_PREFIX = ".staging-";
+
+/**
+ * Create a staging directory inside `dir` for one of Core's atomic writes. Staging
+ * is internal to how Core writes: it reserves no Node name, filename or path.
+ */
+export function makeStaging(dir: string): string {
+  return mkdtempSync(join(dir, STAGING_PREFIX));
+}
+
+/** Whether a top-level entry of an Engine is one of Core's staging directories, never part of the graph. */
+export function isStaging(entry: Dirent): boolean {
+  return entry.isDirectory() && entry.name.startsWith(STAGING_PREFIX);
+}
 
 /** The files of an Engine directory, keyed by `/`-separated relative path. */
 export function readTree(dir: string): Files {
   const files: Files = {};
   if (!existsSync(dir)) return files;
-  for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" })) {
-    const rel = path.split("\\").join("/");
-    if (rel.split("/")[0].startsWith(STAGING_PREFIX)) continue;
-    if (statSync(join(dir, path)).isFile()) files[rel] = readFileSync(join(dir, path));
+  // Only staging directories are reserved: a top-level file named like one is
+  // scanned. Staging directories are never descended into, so one renamed away
+  // by a concurrent write cannot fail the scan.
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (isStaging(entry)) continue;
+    if (entry.isDirectory()) {
+      for (const path of readdirSync(join(dir, entry.name), { recursive: true, encoding: "utf8" })) {
+        const full = join(dir, entry.name, path);
+        if (statSync(full).isFile()) files[`${entry.name}/${path.split("\\").join("/")}`] = readFileSync(full);
+      }
+    } else if (statSync(join(dir, entry.name)).isFile()) {
+      files[entry.name] = readFileSync(join(dir, entry.name));
+    }
   }
   return files;
 }
