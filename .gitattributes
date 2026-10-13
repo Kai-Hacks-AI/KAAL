@@ -1,0 +1,4 @@
+# Node identity is the SHA-256 of exact bytes: never rewrite line endings in the payload.
+packages/kaal-core/payload/** -text
+.kaal/** -text
+packages/extensions/kaal-hosting/payload/** -text
