@@ -89,7 +89,12 @@ function parseFrontmatter(source, found) {
       }
       const key = nested[2];
       if (key in map) found.standard.push(`frontmatter key ${key} appears twice, which YAML does not allow`);
-      map[key] = scalar(nested[3] ?? "", key, found);
+      if (notString(key)) found.standard.push(`frontmatter key ${key} is not a string in YAML; quote it`);
+      const value = uncomment(nested[3] ?? "");
+      if (value === "") {
+        found.standard.push(`${key}: an empty value is null in YAML, not a string; quote it`);
+        map[key] = UNREADABLE;
+      } else map[key] = scalar(value, key, found);
       continue;
     }
     const top = /^([^\s:#][^:]*?):(?:\s+(.*))?$/.exec(line);
@@ -100,11 +105,12 @@ function parseFrontmatter(source, found) {
     }
     const key = top[1];
     if (key in fields) found.standard.push(`frontmatter field ${key} appears twice, which YAML does not allow`);
-    if ((top[2] ?? "").trim() === "") {
+    const value = uncomment(top[2] ?? "");
+    if (value === "") {
       fields[key] = map = {};
       indent = undefined;
     } else {
-      fields[key] = scalar(top[2], key, found);
+      fields[key] = scalar(value, key, found);
       map = undefined;
     }
   }
@@ -112,8 +118,23 @@ function parseFrontmatter(source, found) {
   return fields;
 }
 
-function scalar(raw, key, found) {
+/** A value with a trailing YAML comment removed: " #" after a plain scalar, or a "#" after a closing quote. */
+function uncomment(raw) {
   const value = raw.trim();
+  if (value.startsWith("#")) return "";
+  const quoted = /^('(?:[^']|'')*'|"(?:[^"\\]|\\.)*")\s+#/.exec(value);
+  if (quoted) return quoted[1];
+  if (value.startsWith("'") || value.startsWith('"')) return value;
+  const at = value.search(/\s#/);
+  return at < 0 ? value : value.slice(0, at).trim();
+}
+
+/** Whether YAML reads a plain scalar as something other than a string. */
+function notString(value) {
+  return /^(~|null|Null|NULL|true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO|on|On|ON|off|Off|OFF)$/.test(value) || /^[-+]?(\d[\d_]*(\.\d*)?([eE][-+]?\d+)?|\.\d+([eE][-+]?\d+)?|0x[0-9a-fA-F]+|0o[0-7]+|\.inf|\.Inf|\.INF|\.nan|\.NaN|\.NAN)$/.test(value);
+}
+
+function scalar(value, key, found) {
   if (value.startsWith("'")) {
     if (/^'([^']|'')*'$/.test(value)) return value.slice(1, -1).replace(/''/g, "'");
     found.standard.push(`${key}: the single-quoted value is not closed, which is not valid YAML`);
@@ -133,11 +154,11 @@ function scalar(raw, key, found) {
     found.unsupported.push(`${key}: ${value.slice(0, 40)} is outside the plain YAML this checker reads`);
     return UNREADABLE;
   }
-  if (/:\s|\s#/.test(value)) {
-    found.standard.push(`${key}: a plain value containing ": " or " #" is not valid YAML as written; quote it`);
+  if (/:\s/.test(value)) {
+    found.standard.push(`${key}: a plain value containing ": " is not valid YAML as written; quote it`);
     return UNREADABLE;
   }
-  if (/^(~|null|Null|NULL|true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO|on|On|ON|off|Off|OFF)$/.test(value) || /^[-+]?(\d[\d_]*(\.\d*)?([eE][-+]?\d+)?|\.\d+([eE][-+]?\d+)?|0x[0-9a-fA-F]+|0o[0-7]+|\.inf|\.Inf|\.INF|\.nan|\.NaN|\.NAN)$/.test(value)) {
+  if (notString(value)) {
     found.standard.push(`${key}: ${value} is not a string in YAML; quote it`);
     return UNREADABLE;
   }
@@ -147,12 +168,22 @@ function scalar(raw, key, found) {
 /** Relative file references in the SKILL.md body: Markdown link targets, and paths under scripts/, references/ or assets/. */
 function references(body) {
   const found = new Set();
-  for (const m of body.matchAll(/\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) {
-    const target = m[1].split("#")[0];
-    if (target && !/^[a-z][a-z0-9+.-]+:/i.test(target)) found.add(decodeURIComponent(target));
+  const link = /\]\(\s*(?:<([^<>\n]*)>|([^)\s<>]+))(?:\s+"[^"]*")?\s*\)/g;
+  for (const m of body.matchAll(link)) {
+    const target = (m[1] ?? m[2]).split("#")[0];
+    if (target && !/^[a-z][a-z0-9+.-]+:/i.test(target)) found.add(decoded(target));
   }
-  for (const m of body.matchAll(/(?<=^|[\s`("'])((?:scripts|references|assets)\/[\w.\-/]*\w)/gm)) found.add(m[1]);
+  for (const m of body.replace(link, "]").matchAll(/(?<=^|[\s`("'])((?:scripts|references|assets)\/[\w.\-/]*\w)/gm)) found.add(m[1]);
   return [...found].sort();
+}
+
+/** A link target with its percent escapes decoded, or as written when they are malformed. */
+function decoded(target) {
+  try {
+    return decodeURIComponent(target);
+  } catch {
+    return target;
+  }
 }
 
 /** A relative reference as a path within the skill, or undefined if it is not one. */

@@ -94,6 +94,15 @@ describe("standard: the Agent Skills specification", () => {
     only(skill("my-skill", ok("my-skill", "metadata:\n")), "standard", /metadata is not a map/);
     only(skill("my-skill", ok("my-skill", "metadata:\n  version: 1.0\n")), "standard", /version: 1\.0 is not a string in YAML/);
     only(skill("my-skill", ok("my-skill", "metadata:\n  beta: true\n")), "standard", /beta: true is not a string/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n  version:\n")), "standard", /version: an empty value is null in YAML/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n  1: value\n")), "standard", /frontmatter key 1 is not a string in YAML/);
+  });
+
+  it("reads trailing YAML comments as comments", () => {
+    assert.deepEqual(check(skill("my-skill", "name: my-skill # the name\ndescription: Does a thing # explanation\nmetadata: # map\n  author: me # who\n")), clean);
+    assert.deepEqual(check(skill("my-skill", "name: 'my-skill' # quoted\ndescription: \"Does: a thing\" # quoted\n")), clean);
+    assert.deepEqual(check(skill("my-skill", "name: my-skill\ndescription: Issue#42 stays part of the value\n")), clean);
+    only(skill("my-skill", "name: my-skill\ndescription: # nothing but a comment\n"), "standard", /description is not a string of 1-1024/);
   });
 
   it("reports frontmatter YAML itself refuses as a standard violation", () => {
@@ -133,6 +142,10 @@ describe("kaal: engineering rules beyond the standard", () => {
     only(skill("my-skill", ok(), "See [up](../README.md).\n"), "kaal", /\.\.\/README\.md, which is not inside/);
     only(skill("my-skill", ok(), "See [abs](/etc/hosts).\n"), "kaal", /\/etc\/hosts, which is not inside/);
     only(skill("my-skill", ok(), "See [win](C:/x.md).\n"), "kaal", /C:\/x\.md, which is not inside/);
+    only(skill("my-skill", ok(), "See [g](<references/my guide.md>).\n"), "kaal", /references\/my guide\.md, which the skill does not carry/);
+    assert.deepEqual(check(skill("my-skill", ok(), "See [g](<references/my guide.md>).\n", { "references/my guide.md": "g" })), clean);
+    only(skill("my-skill", ok(), "See [g](references/100%.md).\n"), "kaal", /references\/100%\.md, which the skill does not carry/);
+    assert.deepEqual(check(skill("my-skill", ok(), "See [g](references/a%20b.md).\n", { "references/a b.md": "g" })), clean);
   });
 });
 
