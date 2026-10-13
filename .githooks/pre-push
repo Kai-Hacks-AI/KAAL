@@ -1,0 +1,31 @@
+#!/bin/sh
+# Change Isolation (engineering/change-isolation), as local feedback before a push: Core travels
+# alone, .github travels alone. The rules live only in the checker; this hook supplies the change set
+# the same way the GitHub workflow does. GitHub's check stays the authority.
+#
+# Enable once per clone: git config core.hooksPath .githooks
+# Target: the remote's default branch, or git config kaal.changeIsolation.target <ref> (e.g.
+# origin/kaal/genesis). Judged against your last fetch of it; skip once with git push --no-verify.
+remote=${1:-origin}
+default=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null || echo "$remote/main")
+target=$(git config kaal.changeIsolation.target || echo "$default")
+tmp=$(mktemp -d) || exit 1
+trap 'rm -rf "$tmp"' EXIT
+status=0
+while read -r local_ref head remote_ref remote_head; do
+  case $head in *[!0]*) ;; *) continue ;; esac # a deleted ref carries no change
+  if git merge-base --is-ancestor "$head" "$default" 2>/dev/null; then
+    continue # synchronization: already admitted on the default branch
+  fi
+  if ! git show "$target:engineering/change-isolation/check.mjs" >"$tmp/check.mjs" 2>/dev/null; then
+    echo "Change Isolation: not verified: $target does not hold engineering/change-isolation/check.mjs" >&2
+    status=1
+    continue
+  fi
+  git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$target...$head" \
+    >"$tmp/paths" && node "$tmp/check.mjs" <"$tmp/paths" >&2 || {
+    echo "Change Isolation: $local_ref does not conform against $target" >&2
+    status=1
+  }
+done
+exit $status
