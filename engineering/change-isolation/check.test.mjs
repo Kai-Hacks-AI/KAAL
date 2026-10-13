@@ -1,4 +1,4 @@
-// Acceptance for the PR isolation checker: path sets in, rule results out.
+// Acceptance for the Change Isolation checker: path sets in, rule results out.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
@@ -41,11 +41,11 @@ describe("core travels alone", () => {
 
   it("fails Core mixed with registered Skills in the Engine, repository docs or other engineering", () => {
     fails(
-      ["packages/kaal-core/src/cli.ts", ".kaal/skills/kaal-sealing/Sealing.md", "README.md", "AGENTS.md", "engineering/pr-isolation/check.mjs"],
+      ["packages/kaal-core/src/cli.ts", ".kaal/skills/kaal-sealing/Sealing.md", "README.md", "AGENTS.md", "engineering/change-isolation/check.mjs"],
       ".kaal/skills/kaal-sealing/Sealing.md",
       "README.md",
       "AGENTS.md",
-      "engineering/pr-isolation/check.mjs",
+      "engineering/change-isolation/check.mjs",
     );
   });
 
@@ -60,13 +60,13 @@ describe("core travels alone", () => {
 
 describe(".github travels alone", () => {
   it("passes a .github-only change", () => {
-    passes([".github/workflows/pr-isolation.yml"]);
+    passes([".github/workflows/change-isolation.yml"]);
     passes([".github/workflows/a.yml", ".github/CODEOWNERS"]);
   });
 
   it("fails .github mixed with any outside file", () => {
-    fails([".github/workflows/pr-isolation.yml", "README.md"], "README.md");
-    fails([".github/workflows/pr-isolation.yml", "engineering/pr-isolation/check.mjs"], "engineering/pr-isolation/check.mjs");
+    fails([".github/workflows/change-isolation.yml", "README.md"], "README.md");
+    fails([".github/workflows/change-isolation.yml", "engineering/change-isolation/check.mjs"], "engineering/change-isolation/check.mjs");
     fails([".github/x.yml", ".githubx/y"], ".githubx/y");
   });
 
@@ -84,7 +84,7 @@ describe("ordinary changes", () => {
     passes([]);
     passes(["README.md"]);
     passes(["package.json", "package-lock.json", "engineering/acceptance/embed.test.mjs"]);
-    passes([".kaal/skills/kaal-sealing/Sealing.md", "engineering/pr-isolation/check.mjs"]);
+    passes([".kaal/skills/kaal-sealing/Sealing.md", "engineering/change-isolation/check.mjs"]);
   });
 
   it("include this repository's open Skill PRs as they stand", () => {

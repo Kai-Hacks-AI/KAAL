@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// PR isolation: two repository engineering controls, decided from changed paths alone.
+// Change Isolation: two repository engineering controls, decided from changed paths alone.
 //
 //   1. Core travels alone. A change touching Core contains only Core and the
 //      supporting files listed in CORE_SUPPORT.
 //   2. .github travels alone. A change touching .github/ contains nothing outside it.
 //
 // Usage: check.mjs < paths
-// Reads the change's repository-relative paths from stdin, NUL- or newline-separated. A caller
-// judging a pull request passes its complete change against the target, both sides of every rename.
+// Reads the change's repository-relative paths from stdin, NUL- or newline-separated. The caller
+// supplies the complete change, both sides of every rename; this file alone defines the rules.
 // Exits 0 when the change conforms, 1 with one line per offending path, 2 when it cannot judge.
 //
 // Limitation: the rules are path-level. An allowed supporting file passes whatever it contains.
