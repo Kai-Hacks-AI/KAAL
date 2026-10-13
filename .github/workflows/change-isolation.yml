@@ -1,10 +1,11 @@
-# Enforces engineering/pr-isolation on every pull request: Core travels alone, .github travels alone.
+# Enforces Change Isolation (engineering/change-isolation) on pull requests: Core travels alone,
+# .github travels alone. The rules live only in the checker; this workflow supplies the change set.
 #
 # pull_request_target runs this workflow as it stands on the target branch, never as the candidate
 # PR has it. Only the target's checker is executed; the candidate's commits are fetched as git data
 # to list its changed paths and are never checked out, built, installed or run. A target branch
 # without this workflow is not judged: enforcement starts where these controls have landed.
-name: PR isolation
+name: Change Isolation
 
 on:
   pull_request_target:
@@ -14,7 +15,8 @@ permissions:
   contents: read
 
 jobs:
-  isolation:
+  change-isolation:
+    name: Change Isolation
     runs-on: ubuntu-latest
     steps:
       - name: Check out the target branch
@@ -37,4 +39,4 @@ jobs:
         run: |
           set -o pipefail
           git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
-            | node engineering/pr-isolation/check.mjs
+            | node engineering/change-isolation/check.mjs
