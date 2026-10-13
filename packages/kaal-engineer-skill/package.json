@@ -22,7 +22,9 @@
     "node": ">=20.1"
   },
   "dependencies": {
-    "kaal-hosting": "0.0.1"
+    "commonmark": "0.31.2",
+    "kaal-hosting": "0.0.1",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "kaal-core": "0.0.1"

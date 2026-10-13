@@ -39,11 +39,11 @@ function toDisk({ name, files }) {
 
 const check = ({ name, files }) => checkSkill(name, files);
 const ok = (name = "my-skill", extra = "") => `name: ${name}\ndescription: Does a thing. Use when the thing is needed.\n${extra}`;
-const clean = { standard: [], kaal: [], unsupported: [], warnings: [] };
+const clean = { standard: [], kaal: [], warnings: [] };
 /** Assert the only findings are of `kind`, and one of them matches. */
 function only(s, kind, pattern) {
   const found = check(s);
-  for (const other of ["standard", "kaal", "unsupported"]) if (other !== kind) assert.deepEqual(found[other], [], `${other}: ${JSON.stringify(found)}`);
+  for (const other of ["standard", "kaal"]) if (other !== kind) assert.deepEqual(found[other], [], `${other}: ${JSON.stringify(found)}`);
   assert.ok(found[kind].some((m) => pattern.test(m)), `expected ${kind} ${pattern} in ${JSON.stringify(found)}`);
 }
 
@@ -86,16 +86,15 @@ describe("standard: the Agent Skills specification", () => {
 
   it("refuses fields outside the standard and duplicate keys", () => {
     only(skill("my-skill", ok("my-skill", "version: 1.0.0\n")), "standard", /field version is not in the standard/);
-    only(skill("my-skill", ok("my-skill", "name: again\n")), "standard", /field name appears twice/);
+    only(skill("my-skill", ok("my-skill", "name: again\n")), "standard", /not valid YAML: Map keys must be unique/);
   });
 
   it("holds metadata to a map of strings", () => {
     only(skill("my-skill", ok("my-skill", "metadata: flat\n")), "standard", /metadata is not a map/);
     only(skill("my-skill", ok("my-skill", "metadata:\n")), "standard", /metadata is not a map/);
-    only(skill("my-skill", ok("my-skill", "metadata:\n  version: 1.0\n")), "standard", /version: 1\.0 is not a string in YAML/);
-    only(skill("my-skill", ok("my-skill", "metadata:\n  beta: true\n")), "standard", /beta: true is not a string/);
-    only(skill("my-skill", ok("my-skill", "metadata:\n  version:\n")), "standard", /version: an empty value is null in YAML/);
-    only(skill("my-skill", ok("my-skill", "metadata:\n  1: value\n")), "standard", /frontmatter key 1 is not a string in YAML/);
+    for (const value of ["1.0", "true", "", "null", "~", "0x1F"]) only(skill("my-skill", ok("my-skill", `metadata:\n  version: ${value}\n`)), "standard", /metadata version: the value is not a string in YAML/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n  1: value\n")), "standard", /metadata key 1 is not a string in YAML/);
+    assert.deepEqual(check(skill("my-skill", ok("my-skill", 'metadata:\n  version: "1.0"\n  "1": value\n  flag: yes\n'))), clean);
   });
 
   it("reads trailing YAML comments as comments", () => {
@@ -106,8 +105,9 @@ describe("standard: the Agent Skills specification", () => {
   });
 
   it("reports frontmatter YAML itself refuses as a standard violation", () => {
-    only(skill("my-skill", "name: my-skill\ndescription: Engineer Skills: create and check them.\n"), "standard", /not valid YAML as written/);
-    only(skill("my-skill", "name: my-skill\ndescription: 'unclosed\n"), "standard", /single-quoted value is not closed/);
+    only(skill("my-skill", "name: my-skill\ndescription: Engineer Skills: create and check them.\n"), "standard", /not valid YAML/);
+    only(skill("my-skill", "name: my-skill\ndescription: 'unclosed\n"), "standard", /not valid YAML/);
+    only(skill("my-skill", "- name: my-skill\n"), "standard", /not a YAML mapping of fields/);
     assert.deepEqual(check(skill("my-skill", "name: my-skill\ndescription: \"Engineer Skills: create and check them.\"\n")), clean);
     assert.deepEqual(check(skill("my-skill", "name: 'my-skill'\ndescription: 'It''s quoted: fine.'\n")), clean);
   });
@@ -120,13 +120,14 @@ describe("standard: the Agent Skills specification", () => {
     assert.deepEqual({ ...long, warnings: [] }, clean);
     assert.match(long.warnings[0], /recommends under 500/);
   });
-});
 
-describe("unsupported: the validator's own YAML limits, not violations", () => {
-  it("leaves valid YAML outside its subset undecided", () => {
-    only(skill("my-skill", "name: my-skill\ndescription: >\n  folded text\n"), "unsupported", /outside the plain YAML this checker reads/);
-    only(skill("my-skill", "name: my-skill\ndescription: \"tab\\x41\"\n"), "unsupported", /double-quoted value is outside/);
-    only(skill("my-skill", ok("my-skill", "metadata:\n  a: x\n    b: y\n")), "unsupported", /frontmatter line is outside/);
+  it("accepts any YAML the standard permits, read by a YAML parser", () => {
+    assert.deepEqual(check(skill("my-skill", "name: my-skill\ndescription: >\n  folded\n  text\n")), clean);
+    assert.deepEqual(check(skill("my-skill", "name: my-skill\ndescription: |\n  literal text\n")), clean);
+    assert.deepEqual(check(skill("my-skill", "name: my-skill\ndescription: \"tab\\x41\"\n")), clean);
+    assert.deepEqual(check(skill("my-skill", "{ name: my-skill, description: Flow style. }\n")), clean);
+    assert.deepEqual(check(skill("my-skill", ok("my-skill", "metadata: { author: me, version: '2' }\n"))), clean);
+    only(skill("my-skill", "name: my-skill\ndescription: >\n"), "standard", /description is not a string of 1-1024/);
   });
 });
 
@@ -147,12 +148,25 @@ describe("kaal: engineering rules beyond the standard", () => {
     only(skill("my-skill", ok(), "See [g](references/100%.md).\n"), "kaal", /references\/100%\.md, which the skill does not carry/);
     assert.deepEqual(check(skill("my-skill", ok(), "See [g](references/a%20b.md).\n", { "references/a b.md": "g" })), clean);
   });
+
+  it("reads references as CommonMark does", () => {
+    // Reference-style links and images are references; a link destination is not scanned again as a bare path.
+    only(skill("my-skill", ok(), "See [guide][g].\n\n[g]: references/guide.md\n"), "kaal", /references\/guide\.md, which the skill does not carry/);
+    only(skill("my-skill", ok(), "![diagram](assets/d.png)\n"), "kaal", /assets\/d\.png, which the skill does not carry/);
+    assert.deepEqual(check(skill("my-skill", ok(), "See [g](references/a%20b.md).\n", { "references/a b.md": "g" })).kaal, []);
+    // Paths in code are references too: an agent runs them.
+    only(skill("my-skill", ok(), "```sh\nnode scripts/run.mjs\n```\n"), "kaal", /scripts\/run\.mjs, which the skill does not carry/);
+    // Escaped brackets are not a link.
+    assert.deepEqual(check(skill("my-skill", ok(), "\\[not a link\\](nowhere.md)\n")), clean);
+  });
 });
 
 describe("responsibility boundaries", () => {
-  it("validates from contents alone: the validator imports nothing and touches no host", () => {
+  it("validates from contents alone: the validator imports only its YAML and CommonMark parsers and touches no host", () => {
     const text = readFileSync(VALIDATOR, "utf8");
-    assert.doesNotMatch(text, /^\s*import\b|\brequire\(|\bimport\(|\bprocess\.|node:/m);
+    const imports = [...text.matchAll(/^import (.*) from "([^"]+)";$/gm)].map((m) => `${m[1]} from ${m[2]}`);
+    assert.deepEqual(imports, ["{ Parser } from commonmark", "{ parseDocument } from yaml"]);
+    assert.doesNotMatch(text, /\brequire\(|\bimport\(|\bprocess\.|node:/);
   });
 
   it("knows nothing of packaging, package names or how many skills a package carries", () => {
@@ -192,7 +206,7 @@ describe("the entry point", () => {
     assert.deepEqual(check(await fromDisk(toDisk(s))), check(s));
   });
 
-  it("exits 0 when clean, 1 on a violation, 3 when undecided, 2 on misuse, naming each finding's kind", () => {
+  it("exits 0 when clean, 1 on a violation, 2 on misuse, naming each finding's kind", () => {
     assert.equal(run(OWN).status, 0);
     const standard = run(toDisk(skill("my-skill", "name: my-skill\n")));
     assert.equal(standard.status, 1);
@@ -200,10 +214,9 @@ describe("the entry point", () => {
     const kaal = run(toDisk(skill("my-skill", ok(), "See [g](references/g.md).\n")));
     assert.equal(kaal.status, 1);
     assert.match(kaal.stderr, /^kaal: SKILL\.md references references\/g\.md/m);
-    const undecided = run(toDisk(skill("my-skill", "name: my-skill\ndescription: >\n  folded\n")));
-    assert.equal(undecided.status, 3);
-    assert.match(undecided.stderr, /^unsupported: /m);
-    assert.match(undecided.stderr, /^undecided: /m);
+    const yaml = run(toDisk(skill("my-skill", "name: my-skill\ndescription: a: b\n")));
+    assert.equal(yaml.status, 1);
+    assert.match(yaml.stderr, /^standard: frontmatter is not valid YAML/m);
     assert.match(run(join(work, "nowhere")).stderr, /^standard: SKILL\.md is missing$/m);
     writeFileSync(join(work, "a-file"), "x");
     assert.match(run(join(work, "a-file")).stderr, /could not be read/);

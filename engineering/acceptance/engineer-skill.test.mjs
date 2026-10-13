@@ -95,7 +95,7 @@ describe("the shipped Agent Skill", () => {
 
   it("reads through the installed kaal-hosting", () => {
     const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1" });
+    assert.deepEqual(pkg.dependencies, { commonmark: "0.31.2", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
     assert.ok(existsSync(join(host, "node_modules", "kaal-hosting", "dist", "index.js")));
   });
 
@@ -116,6 +116,7 @@ describe("the shipped Agent Skill", () => {
     assert.match(fails(checker, [skill("mismatch", `name: kaal-other\n${description}`)], host), /^standard: name kaal-other does not match its parent directory name kaal-thing/m);
     assert.match(fails(checker, [skill("unknown-field", `name: kaal-thing\n${description}version: "1"\n`)], host), /^standard: frontmatter field version is not in the standard/m);
     assert.match(fails(checker, [skill("broken-reference", `name: kaal-thing\n${description}`, "Run scripts/go.sh.\n")], host), /^kaal: SKILL\.md references scripts\/go\.sh/m);
-    assert.match(fails(checker, [skill("folded", "name: kaal-thing\ndescription: >\n  folded\n")], host, 3), /^unsupported: /m);
+    assert.match(run(checker, [skill("folded", "name: kaal-thing\ndescription: >\n  folded\n")], host), /^ok/);
+    assert.match(fails(checker, [skill("invalid-yaml", "name: kaal-thing\ndescription: Does: the thing\n")], host), /^standard: frontmatter is not valid YAML/m);
   });
 });

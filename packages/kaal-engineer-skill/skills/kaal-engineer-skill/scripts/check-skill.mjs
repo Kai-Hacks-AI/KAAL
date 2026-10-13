@@ -8,9 +8,9 @@
 // Hosting's.
 //
 // Exits 0 when nothing is found, 1 when there is a standard or kaal
-// violation, 3 when the only findings are unsupported, 2 on misuse or when
-// Hosting refuses to read the directory. Warnings go to stderr and do not
-// fail. Repairs nothing. Needs Node.js 20.1 or later and kaal-hosting.
+// violation, 2 on misuse or when Hosting refuses to read the directory.
+// Warnings go to stderr and do not fail. Repairs nothing. Needs Node.js 20.1
+// or later and this package's dependencies.
 import { read } from "kaal-hosting";
 import { basename, resolve } from "node:path";
 import { checkSkill } from "./validate.mjs";
@@ -29,12 +29,8 @@ async function main(argv) {
   }
   const found = checkSkill(basename(resolve(argv[0])), files);
   for (const w of found.warnings) console.error(`warning: ${w}`);
-  for (const kind of ["standard", "kaal", "unsupported"]) for (const message of found[kind]) console.error(`${kind}: ${message}`);
+  for (const kind of ["standard", "kaal"]) for (const message of found[kind]) console.error(`${kind}: ${message}`);
   if (found.standard.length + found.kaal.length > 0) return 1;
-  if (found.unsupported.length > 0) {
-    console.error("undecided: the frontmatter could not be read completely");
-    return 3;
-  }
   console.log("ok");
   return 0;
 }

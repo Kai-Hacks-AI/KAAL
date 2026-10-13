@@ -2,7 +2,7 @@
 name: kaal-engineer-skill
 description: Produce and update KAAL Skills, and check that their Agent Skill conforms to the Agent Skills standard. Use when creating, changing or checking a KAAL Skill, its Skill Node, or its SKILL.md.
 license: MIT
-compatibility: The checker needs Node.js 20.1 or later and the kaal-hosting package.
+compatibility: The checker needs Node.js 20.1 or later and the kaal-engineer-skill package's dependencies (kaal-hosting, yaml, commonmark).
 ---
 
 # Engineering KAAL Skills
@@ -30,9 +30,8 @@ Each finding says its kind:
 
 - `standard`: a violation of the Agent Skills standard. Fix the skill.
 - `kaal`: a violation of a KAAL Skill engineering rule beyond the standard. Every relative file reference in `SKILL.md` must resolve inside the skill, so it works wherever a host places it. Fix the skill.
-- `unsupported`: frontmatter the checker cannot read. It may be valid YAML, and conformance is left undecided. Prefer plain or quoted scalars, or validate with the standard's reference validator.
 
-It exits 0 when nothing is found, 1 on a standard or kaal violation, and 3 when the only findings are unsupported. Warnings, such as a `SKILL.md` of 500 lines or more, do not fail.
+It exits 0 when nothing is found and 1 on a standard or kaal violation. Warnings, such as a `SKILL.md` of 500 lines or more, do not fail.
 
 ## Rules
 
