@@ -5,13 +5,12 @@
 //      supporting files listed in CORE_SUPPORT.
 //   2. .github travels alone. A change touching .github/ contains nothing outside it.
 //
-// Usage:
-//   check.mjs --diff <base> <head>   judge the complete diff of head against its merge base with base
-//   check.mjs < paths                judge newline-separated repository-relative paths from stdin
+// Usage: check.mjs < paths
+// Reads the change's repository-relative paths from stdin, NUL- or newline-separated. A caller
+// judging a pull request passes its complete change against the target, both sides of every rename.
 // Exits 0 when the change conforms, 1 with one line per offending path, 2 when it cannot judge.
 //
 // Limitation: the rules are path-level. An allowed supporting file passes whatever it contains.
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -43,31 +42,16 @@ export function check(paths) {
   return violations;
 }
 
-/** Every path the PR changes against its target: both sides of a rename, all commits together. */
-export function changedPaths(base, head, cwd) {
-  const args = ["diff", "--no-ext-diff", "--no-relative", "--no-renames", "--name-only", "-z", "--end-of-options", `${base}...${head}`];
-  const out = execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  return out.split("\0").filter(Boolean);
-}
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2);
   const refuse = (message) => {
     console.error(message);
     process.exit(2);
   };
-  let paths;
-  if (args.length === 3 && args[0] === "--diff") {
-    try {
-      paths = changedPaths(args[1], args[2]);
-    } catch (e) {
-      refuse(`cannot diff ${args[1]}...${args[2]}: ${String(e.stderr || e.message).trim()}`);
-    }
-  } else if (args.length === 0) {
-    paths = readFileSync(0, "utf8").split("\n").map((l) => l.trim()).filter(Boolean);
-    const unnormal = paths.find((p) => p.split("/").some((s) => s === "" || s === "." || s === ".."));
-    if (unnormal) refuse(`not a repository-relative path: ${unnormal}`);
-  } else refuse("usage: check.mjs --diff <base> <head> | check.mjs < paths");
+  if (process.argv.length > 2) refuse("usage: check.mjs < paths");
+  const input = readFileSync(0, "utf8");
+  const paths = input.split(input.includes("\0") ? "\0" : "\n").filter(Boolean);
+  const unnormal = paths.find((p) => p.split("/").some((s) => s === "" || s === "." || s === ".."));
+  if (unnormal !== undefined) refuse(`not a repository-relative path: ${unnormal}`);
   const violations = check(paths);
   for (const v of violations) console.error(v);
   if (violations.length) process.exit(1);
