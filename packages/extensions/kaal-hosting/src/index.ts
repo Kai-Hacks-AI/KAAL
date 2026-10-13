@@ -1,7 +1,7 @@
 import gfs from "graceful-fs";
 import lockfile from "proper-lockfile";
 import type { Dirent, Stats } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -35,6 +35,8 @@ const mkdtemp = promisify(gfs.mkdtemp) as (prefix: string) => Promise<string>;
 const rename = promisify(gfs.rename) as (from: string, to: string) => Promise<void>;
 const rm = promisify(gfs.rm) as (path: string, options: { recursive: true; force: true }) => Promise<void>;
 const stat = promisify(gfs.stat) as (path: string) => Promise<Stats>;
+const lstat = promisify(gfs.lstat) as (path: string) => Promise<Stats>;
+const realpath = promisify(gfs.realpath) as (path: string) => Promise<string>;
 
 const STAGING = ".staging-";
 
@@ -56,7 +58,7 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-async function walk(root: string, rel: string, files: Files): Promise<void> {
+async function walk(root: string, rel: string, files: Files, dirs: string[] = []): Promise<void> {
   let entries: Dirent[];
   try {
     entries = await readdir(rel ? join(root, rel) : root, { withFileTypes: true });
@@ -68,7 +70,8 @@ async function walk(root: string, rel: string, files: Files): Promise<void> {
     if (!rel && isStaging(entry)) continue;
     const path = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
-      await walk(root, path, files);
+      dirs.push(path);
+      await walk(root, path, files, dirs);
       continue;
     }
     try {
@@ -146,11 +149,23 @@ async function checkFaithful(staging: string, files: Files): Promise<void> {
     throw new HostingError("this host did not hold the files exactly as given; nothing was published", "UNFAITHFUL");
 }
 
+// One directory has one lock, whatever path names it: the lock sits beside
+// the directory's canonical path, with symlinks resolved.
+async function canonical(dir: string): Promise<string> {
+  try {
+    return await realpath(dir);
+  } catch (e) {
+    if (!missing(e)) throw e;
+    return join(await realpath(dirname(dir)), basename(dir));
+  }
+}
+
 async function exclusive<T>(dir: string, fn: () => Promise<T>): Promise<T> {
   await mkdir(dirname(dir), { recursive: true });
-  const release = await lockfile.lock(dir, {
+  const at = await canonical(dir);
+  const release = await lockfile.lock(at, {
     realpath: false,
-    lockfilePath: `${dir}.lock`,
+    lockfilePath: `${at}.lock`,
     fs: gfs,
     stale: 10_000,
     retries: { retries: 100, minTimeout: 20, maxTimeout: 250 },
@@ -159,6 +174,20 @@ async function exclusive<T>(dir: string, fn: () => Promise<T>): Promise<T> {
     return await fn();
   } finally {
     await release();
+  }
+}
+
+/** Refuse a prefix reached through a symlink, which would publish outside `root`. */
+async function checkContained(root: string, prefix: string): Promise<void> {
+  for (const p of prefixes(prefix)) {
+    let entry: Stats;
+    try {
+      entry = await lstat(join(root, p));
+    } catch (e) {
+      if (missing(e)) return;
+      throw e;
+    }
+    if (entry.isSymbolicLink()) throw new HostingError(`${p} is a symbolic link; a change is published only inside the directory`, "INVALID_PATH");
   }
 }
 
@@ -173,15 +202,18 @@ async function exclusive<T>(dir: string, fn: () => Promise<T>): Promise<T> {
 export async function update<T extends Change | undefined>(dir: string, plan: (current: Files) => T | Promise<T>): Promise<T> {
   const root = resolve(dir);
   return exclusive(root, async () => {
-    const current = await read(root);
+    const current: Files = {};
+    const dirs: string[] = [];
+    await walk(root, "", current, dirs);
     const change = await plan(current);
     if (!change) return change;
     const paths = Object.keys(change.files).sort();
     if (paths.length === 0) throw new HostingError("a change carries at least one file", "INVALID_PATH");
     checkPortable(
       paths.map((p) => `${change.prefix}/${p}`),
-      Object.keys(current),
+      [...dirs, ...Object.keys(current)],
     );
+    await checkContained(root, change.prefix);
     const target = join(root, change.prefix);
     if (await exists(target)) throw new HostingError(`${change.prefix} already exists`, "EXISTS");
     const staging = await mkdtemp(join(root, STAGING));

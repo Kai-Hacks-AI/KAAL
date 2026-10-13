@@ -2,7 +2,7 @@
 // runs this suite. CI runs it on Linux, Windows and macOS.
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -87,6 +87,14 @@ describe("update", () => {
     assert.deepEqual(readdirSync(dir), ["skills"]);
   });
 
+  it("refuses a prefix reached through a symbolic link, writing nothing outside", async () => {
+    const dir = tmp();
+    const outside = tmp();
+    symlinkSync(outside, join(dir, "skills"), "junction");
+    await assert.rejects(update(dir, () => ({ prefix: "skills/greeting", files: files({ "a.md": "1" }) })), code("INVALID_PATH"));
+    assert.deepEqual(readdirSync(outside), []);
+  });
+
   it("propagates a refusal from the plan, writing nothing", async () => {
     const dir = tmp();
     await assert.rejects(update(dir, () => { throw new Error("not admitted"); }), /not admitted/);
@@ -114,6 +122,13 @@ describe("faithful publication on every host", () => {
     const before = await snapshot(dir);
     await assert.rejects(update(dir, () => ({ prefix: "skills/greeting", files: files({ "a.md": "2" }) })), code("COLLISION"));
     assert.equal(await snapshot(dir), before);
+  });
+
+  it("refuses a new path that collapses onto an existing empty directory", async () => {
+    const dir = tmp();
+    mkdirSync(join(dir, "Skills"));
+    await assert.rejects(update(dir, () => ({ prefix: "skills/greeting", files: files({ "a.md": "1" }) })), code("COLLISION"));
+    assert.deepEqual(readdirSync(dir), ["Skills"]);
   });
 
   const invalid = ["../escape.md", "/abs.md", "a//b.md", "con.md", "aux", "x:y.md", "trailing.", "q?.md", "back\\slash.md"];
@@ -163,23 +178,25 @@ describe("initialize", () => {
 });
 
 describe("one writer at a time, across processes", () => {
-  it("serializes concurrent updates: each plan sees every earlier change", async () => {
+  it("serializes concurrent updates, whatever path names the directory: each plan sees every earlier change", async () => {
     const dir = tmp();
+    const link = join(tmp(), "link");
+    symlinkSync(dir, link, "junction");
     const hosting = pathToFileURL(join(here, "..", "dist", "index.js")).href;
-    const script = `
+    const script = (at: string) => `
       import { update } from ${JSON.stringify(hosting)};
-      const change = await update(${JSON.stringify(dir)}, async (current) => {
+      const change = await update(${JSON.stringify(at)}, async (current) => {
         const n = Object.keys(current).length;
         await new Promise((r) => setTimeout(r, 30));
         return { prefix: "p" + n, files: { "f.md": Buffer.from(String(n)) } };
       });
       console.log(change.prefix);`;
     const writers = 6;
-    const outs = await Promise.all(Array.from({ length: writers }, () => run(process.execPath, ["--input-type=module", "-e", script])));
+    const outs = await Promise.all(Array.from({ length: writers }, (_, i) => run(process.execPath, ["--input-type=module", "-e", script(i % 2 ? link : dir)])));
     const prefixes = outs.map((o) => o.stdout.trim()).sort();
     assert.deepEqual(prefixes, Array.from({ length: writers }, (_, i) => `p${i}`).sort());
     assert.equal(Object.keys(await read(dir)).length, writers);
-    assert.ok(!existsSync(`${dir}.lock`), "the lock is released");
+    assert.ok(!existsSync(`${dir}.lock`) && !existsSync(`${link}.lock`), "the lock is released");
   });
 });
 
