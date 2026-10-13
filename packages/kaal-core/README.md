@@ -86,3 +86,4 @@ capabilities(".kaal");                               // { skills: [{ name, id }]
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
+
