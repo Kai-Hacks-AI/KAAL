@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./skills/kaal-engineer-skill/scripts/check-skill.mjs",
+    ".": "./skills/kaal-engineer-skill/scripts/validate.mjs",
     "./package.json": "./package.json"
   },
   "bin": {
