@@ -102,8 +102,8 @@ describe("ordinary changes", () => {
   });
 });
 
-describe("the genesis bootstrap", () => {
-  it("does not conform, so enforcement starts only on targets that already hold these controls", () => {
+describe("aggregate changes", () => {
+  it("do not bypass isolation: Core bundled with unrelated files does not conform", () => {
     assert.notDeepEqual(check([".gitattributes", "AGENTS.md", "README.md", "packages/kaal-core/src/cli.ts"]), []);
   });
 });
