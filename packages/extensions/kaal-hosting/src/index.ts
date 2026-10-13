@@ -102,8 +102,11 @@ export async function read(dir: string): Promise<Files> {
 const RESERVED_CHARS = /[<>:"|?*\u0000-\u001f\\]/;
 const DEVICE = /^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(\..*)?$/i;
 
+// Case folding as case-insensitive hosts apply it: upper- then lowercasing
+// folds what lowercasing alone keeps apart (final sigma and sigma, ß and ss).
+// Where hosts differ, the stricter reading is refused everywhere.
 function key(path: string): string {
-  return path.normalize("NFC").toLowerCase();
+  return path.normalize("NFC").toUpperCase().toLowerCase().normalize("NFC");
 }
 
 function prefixes(path: string): string[] {
