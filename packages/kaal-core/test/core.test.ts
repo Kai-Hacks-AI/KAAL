@@ -205,10 +205,17 @@ describe("bootstrap and verify", () => {
     }
   });
 
-  it("bootstraps an empty existing directory", () => {
+  it("bootstraps an empty existing directory in place, never removing or replacing it", () => {
     const dir = join(tmp(), ".kaal");
     mkdirSync(dir);
-    assert.equal(bootstrap(dir).length, 6);
+    const cwd = process.cwd();
+    process.chdir(dir);
+    try {
+      assert.equal(bootstrap(".").length, 6);
+      assert.deepEqual(Object.keys(readTree(".")).sort(), Object.keys(payload()).sort(), "the current directory still holds the Engine");
+    } finally {
+      process.chdir(cwd);
+    }
     assert.ok(verify(dir).ok);
   });
 
@@ -331,6 +338,15 @@ describe("registration", () => {
       assert.deepEqual(readdirSync(dir).sort(), ["AGENTS.md", "KAAL-KERNEL.md", "core"]);
     });
   }
+
+  it("admits contribution files named like staging directories", () => {
+    const dir = engine();
+    const notes = node("Greeting Notes", f.definition);
+    const files = { ".staging-greeting.md": skill, "docs/.staging-v1.md": notes };
+    assert.deepEqual(registerSkill(dir, "greeting", files), { ids: [sha256(skill)], written: true });
+    assert.deepEqual(capabilities(dir).skills, [{ name: "Greeting", id: sha256(skill) }]);
+    assert.ok(verify(dir).ok, verify(dir).problems.join("\n"));
+  });
 
   it("registers into a rearranged Engine, found by identity alone", () => {
     const dir = engine();
