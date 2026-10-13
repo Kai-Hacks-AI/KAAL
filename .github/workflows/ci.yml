@@ -36,3 +36,20 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run test:kaal
+
+  # Probe only (#14, never merged): the KAAL lane on the other hosts too,
+  # to show the acceptance harness no longer depends on the host.
+  probe-kaal:
+    name: probe KAAL ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run test:kaal
