@@ -11,7 +11,7 @@
     "build": "npm run build --workspaces",
     "test": "npm run test:hosting && npm run test:kaal",
     "test:hosting": "npm test -w kaal-hosting",
-    "test:kaal": "node engineering/lanes/kaal.mjs",
+    "test:kaal": "npm run build -w kaal-hosting && node engineering/lanes/kaal.mjs",
     "test:acceptance": "node --test engineering/acceptance/embed.test.mjs",
     "pack": "npm pack -w kaal-core --pack-destination engineering/out"
   },
