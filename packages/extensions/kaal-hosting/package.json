@@ -26,10 +26,12 @@
     "node": ">=24"
   },
   "dependencies": {
+    "cross-spawn": "^7.0.6",
     "graceful-fs": "^4.2.11",
     "proper-lockfile": "^4.1.2"
   },
   "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
     "@types/graceful-fs": "^4.1.9",
     "@types/node": "^24.0.0",
     "@types/proper-lockfile": "^4.1.4",

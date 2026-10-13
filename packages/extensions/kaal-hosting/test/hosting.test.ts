@@ -9,7 +9,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, HostingError, initialize, read, update, type Files } from "kaal-hosting";
+import { contribution, execute, HostingError, initialize, read, update, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -245,6 +245,37 @@ describe("one writer at a time, across processes", () => {
     assert.deepEqual(prefixes, Array.from({ length: writers }, (_, i) => `p${i}`).sort());
     assert.equal(Object.keys(await read(dir)).length, writers);
     assert.ok(!existsSync(`${dir}.lock`) && !existsSync(`${link}.lock`), "the lock is released");
+  });
+});
+
+describe("execute", () => {
+  it("runs a command found on the PATH, however the host realizes it", async () => {
+    const r = await execute("npm", ["--version"], { cwd: tmp() });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /^\d+\.\d+\.\d+/);
+  });
+
+  it("runs an installed package's command with its arguments exactly as given", async () => {
+    const pkg = tmp();
+    writeFileSync(join(pkg, "package.json"), JSON.stringify({ name: "echo-args", version: "1.0.0", bin: { "echo-args": "echo.js" } }));
+    writeFileSync(join(pkg, "echo.js"), "#!/usr/bin/env node\nprocess.stdout.write(JSON.stringify(process.argv.slice(2)));\n");
+    const host = tmp();
+    writeFileSync(join(host, "package.json"), JSON.stringify({ name: "host", version: "1.0.0", private: true }));
+    const installed = await execute("npm", ["install", "--offline", "--no-audit", "--no-fund", "--no-package-lock", pkg], { cwd: host });
+    assert.equal(installed.status, 0, installed.stderr);
+    const args = ["plain", "two words", '"quoted"', "it's", "%PATH%", "$HOME", "a&b", "a|b", "a^b", "<in>", "semi;colon", "back\\slash\\", ""];
+    const r = await execute(join(host, "node_modules", ".bin", "echo-args"), args, { cwd: host });
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(JSON.parse(r.stdout), args);
+  });
+
+  it("reports a failing command's status and output", async () => {
+    const r = await execute(process.execPath, ["-e", "process.stdout.write('out'); process.stderr.write('err'); process.exit(3)"], { cwd: tmp() });
+    assert.deepEqual(r, { status: 3, stdout: "out", stderr: "err" });
+  });
+
+  it("rejects a command that cannot be started", async () => {
+    await assert.rejects(execute("kaal-hosting-no-such-command", [], { cwd: tmp() }), /ENOENT/);
   });
 });
 

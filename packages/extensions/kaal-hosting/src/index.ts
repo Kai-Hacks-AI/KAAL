@@ -1,3 +1,4 @@
+import spawn from "cross-spawn";
 import gfs from "graceful-fs";
 import lockfile from "proper-lockfile";
 import type { Dirent, Stats } from "node:fs";
@@ -278,6 +279,35 @@ export async function initialize(dir: string, files: Files): Promise<string[]> {
       }
     });
     return paths;
+  });
+}
+
+/** What a command did: its exit status and everything it wrote. */
+export interface Execution {
+  status: number;
+  stdout: string;
+  stderr: string;
+}
+
+/**
+ * Run an installed command, by name on the PATH or by path, with `args`
+ * passed exactly as given, and collect what it writes. However the host
+ * realizes the command (an executable, or on Windows a `.cmd` shim such as
+ * npm installs), the caller only names it: no shell interprets the
+ * arguments. A command that runs and fails resolves with its status; one
+ * that cannot be started rejects.
+ */
+export function execute(command: string, args: string[], options: { cwd: string; env?: NodeJS.ProcessEnv }): Promise<Execution> {
+  return new Promise((done, fail) => {
+    const child = spawn(command, args, { cwd: options.cwd, env: options.env ?? process.env, stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout!.setEncoding("utf8").on("data", (s: string) => (stdout += s));
+    child.stderr!.setEncoding("utf8").on("data", (s: string) => (stderr += s));
+    child.on("error", fail);
+    child.on("close", (status, signal) =>
+      status === null ? fail(new Error(`${command} was ended by ${signal}`)) : done({ status, stdout, stderr }),
+    );
   });
 }
 
