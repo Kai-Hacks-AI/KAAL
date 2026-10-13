@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { loadEngine, readTree, type Engine } from "./engine.js";
+import { evaluate, loadEngine, readTree, type Engine } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
 import { foundation, payload, type Files } from "./payload.js";
 
@@ -57,7 +57,7 @@ export function verify(dir: string): Verification {
   const problems: string[] = [];
   if (!existsSync(dir) || !statSync(dir).isDirectory()) {
     problems.push(`${dir} is not an Engine directory`);
-    return { ok: false, problems, engine: loadEngine(dir) };
+    return { ok: false, problems, engine: evaluate({}) };
   }
   const files = readTree(dir);
   const f = foundation();

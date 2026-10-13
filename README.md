@@ -6,6 +6,8 @@ This repository engineers KAAL. What it distributes is the npm package `kaal-cor
 ```
 packages/kaal-core/    the distributable package: source, the foundational payload, unit tests, its own MIT LICENSE
 engineering/           repository-only material: acceptance tests that pack, install and embed kaal-core
+AGENTS.md              entry point for an Agent engineering this repository
+.kaal/                 this repository's KAAL Engine, deployed by `kaal init`
 ```
 
 Only what `packages/kaal-core/package.json` lists under `files` is shipped (`dist/`, `payload/`, plus `package.json`, `README.md` and `LICENSE`). The acceptance suite checks the packed tarball itself.

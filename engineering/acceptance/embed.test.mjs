@@ -33,6 +33,7 @@ const EXPECTED_TARBALL = [
   "package/dist/register.d.ts",
   "package/dist/register.js",
   "package/package.json",
+  "package/payload/AGENTS.md",
   "package/payload/KAAL-KERNEL.md",
   "package/payload/core/KAAL-Definition.md",
   "package/payload/core/KAAL-Extension.md",
@@ -61,6 +62,10 @@ function tree(dir) {
     if (statSync(join(dir, p)).isFile()) out[p.split("\\").join("/")] = readFileSync(join(dir, p), "utf8");
   }
   return out;
+}
+
+function packagedAgents() {
+  return readFileSync(join(host, "node_modules", "kaal-core", "payload", "AGENTS.md"), "utf8");
 }
 
 function node(name, type, body) {
@@ -107,8 +112,16 @@ describe("embedding into a fresh host", () => {
     const engine = tree(join(host, ".kaal"));
     const carried = tree(join(host, "node_modules", "kaal-core", "payload"));
     assert.deepEqual(engine, carried);
-    assert.deepEqual(Object.keys(engine), ["KAAL-KERNEL.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.deepEqual(Object.keys(engine), ["AGENTS.md", "KAAL-KERNEL.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
     assert.match(run(kaal, ["init"], host), /already holds the foundation/);
+  });
+
+  it("installs the Agent entry point inside the Engine, naming no Engine location", () => {
+    const agents = readFileSync(join(host, ".kaal", "AGENTS.md"), "utf8");
+    assert.equal(agents, packagedAgents());
+    assert.match(agents, /KAAL-KERNEL\.md/);
+    assert.doesNotMatch(agents, /\.kaal|myKAAL/);
+    assert.match(fails(kaal, ["identify", ".kaal/AGENTS.md"], host), /not in Form/);
   });
 
   it("verifies the installed Engine with deterministic identities", () => {
@@ -226,7 +239,8 @@ describe("Engine location", () => {
   function operate(engineArg, engineDir, cwd) {
     assert.ok(!existsSync(engineDir));
     assert.match(run(kaal, ["init", "--engine", engineArg], cwd), /bootstrapped/);
-    assert.deepEqual(Object.keys(tree(engineDir)), ["KAAL-KERNEL.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.deepEqual(Object.keys(tree(engineDir)), ["AGENTS.md", "KAAL-KERNEL.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.equal(readFileSync(join(engineDir, "AGENTS.md"), "utf8"), packagedAgents());
     assert.match(run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 4 Nodes admitted/);
     assert.equal(run(kaal, ["list", "--engine", engineArg], cwd), "");
     const source = contribution(join(work, `contrib-${basename(engineDir)}`), "Located");
@@ -265,5 +279,19 @@ describe("Engine location", () => {
     assert.match(fails(kaal, ["init", "--host", work], host), /unknown or repeated option --host/);
     assert.ok(!existsSync(join(work, ".kaal")));
     assert.deepEqual(tree(join(host, ".kaal")), defaultEngine);
+  });
+});
+
+describe("this repository's own Engine", () => {
+  const engine = join(REPO, ".kaal");
+
+  it("is a real Engine deployed by kaal init, verified by the packaged kaal", () => {
+    assert.match(run(kaal, ["verify", "--engine", engine], host), /^ok: /);
+    assert.match(run(kaal, ["init", "--engine", engine], host), /already holds the foundation/);
+  });
+
+  it("is what the root AGENTS.md points to", () => {
+    assert.match(readFileSync(join(REPO, "AGENTS.md"), "utf8"), /`\.kaal\/`\. Start with its `AGENTS\.md`/);
+    assert.equal(readFileSync(join(engine, "AGENTS.md"), "utf8"), packagedAgents());
   });
 });
