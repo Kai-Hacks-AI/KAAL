@@ -35,7 +35,8 @@ export function readTree(dir: string): Files {
   if (!existsSync(dir)) return files;
   for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" })) {
     const rel = path.split("\\").join("/");
-    if (rel.split("/")[0].startsWith(STAGING_PREFIX)) continue;
+    const top = rel.split("/")[0];
+    if (top.startsWith(STAGING_PREFIX) && statSync(join(dir, top)).isDirectory()) continue;
     if (statSync(join(dir, path)).isFile()) files[rel] = readFileSync(join(dir, path));
   }
   return files;
