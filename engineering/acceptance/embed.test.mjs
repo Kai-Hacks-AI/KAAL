@@ -281,3 +281,17 @@ describe("Engine location", () => {
     assert.deepEqual(tree(join(host, ".kaal")), defaultEngine);
   });
 });
+
+describe("this repository's own Engine", () => {
+  const engine = join(REPO, ".kaal");
+
+  it("is a real Engine deployed by kaal init, verified by the packaged kaal", () => {
+    assert.match(run(kaal, ["verify", "--engine", engine], host), /^ok: /);
+    assert.match(run(kaal, ["init", "--engine", engine], host), /already holds the foundation/);
+  });
+
+  it("is what the root AGENTS.md points to", () => {
+    assert.match(readFileSync(join(REPO, "AGENTS.md"), "utf8"), /`\.kaal\/`\. Start with its `AGENTS\.md`/);
+    assert.equal(readFileSync(join(engine, "AGENTS.md"), "utf8"), packagedAgents());
+  });
+});
