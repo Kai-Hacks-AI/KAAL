@@ -5,12 +5,13 @@
 # PR has it. Only the checker held by the PR's target (base.sha) is executed; the candidate's commits
 # are fetched as git data to list its changed paths and are never checked out, built, installed or
 # run. Activation: nothing runs until this workflow is on the default branch. Once it runs, a target
-# that does not hold the checker fails: the check passes only when a judgment actually occurred.
+# that does not hold the checker fails: the check passes only on a judgment or a synchronization.
 #
 # Synchronization: a candidate head already contained in the default branch carries only Changes
 # that were each admitted there. Such a main -> kaal/* synchronization is expected not to travel
 # alone, so Change Isolation does not apply to its aggregate. Any commit not on the default branch,
-# a conflict resolution included, makes the candidate an ordinary Change, judged as usual.
+# a conflict resolution included, makes the candidate an ordinary Change, judged as usual. This
+# needs no checker, so a target that lacks it can still receive it from the default branch.
 name: Change Isolation
 
 on:
@@ -40,14 +41,14 @@ jobs:
           DEFAULT: ${{ github.event.repository.default_branch }}
         run: |
           set -o pipefail
-          if [ ! -f engineering/change-isolation/check.mjs ]; then
-            echo "::error::not verified: the target does not hold engineering/change-isolation/check.mjs"
-            exit 1
-          fi
           git fetch --no-tags origin "$HEAD"
           if git merge-base --is-ancestor "$HEAD" "origin/$DEFAULT"; then
             echo "Synchronization: Change Isolation not applicable; candidate $HEAD already admitted on $DEFAULT."
             exit 0
+          fi
+          if [ ! -f engineering/change-isolation/check.mjs ]; then
+            echo "::error::not verified: the target does not hold engineering/change-isolation/check.mjs"
+            exit 1
           fi
           git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
             | node engineering/change-isolation/check.mjs
