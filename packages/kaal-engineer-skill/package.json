@@ -1,0 +1,35 @@
+{
+  "name": "kaal-engineer-skill",
+  "version": "0.0.1",
+  "description": "KAAL Engineer Skill: engineering KAAL Skills so each one is a correct KAAL Skill and a conformant, packaged Agent Skill.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./skills/kaal-engineer-skill/scripts/check-skill.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kaal-engineer-skill": "skills/kaal-engineer-skill/scripts/check-skill.mjs"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "test": "node --test test/check-skill.test.mjs"
+  },
+  "engines": {
+    "node": ">=20.1"
+  },
+  "peerDependencies": {
+    "kaal-core": "0.0.1"
+  },
+  "peerDependenciesMeta": {
+    "kaal-core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1"
+  }
+}
