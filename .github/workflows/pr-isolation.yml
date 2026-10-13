@@ -1,0 +1,40 @@
+# Enforces engineering/pr-isolation on every pull request: Core travels alone, .github travels alone.
+#
+# pull_request_target runs this workflow as it stands on the target branch, never as the candidate
+# PR has it. Only the target's checker is executed; the candidate's commits are fetched as git data
+# to list its changed paths and are never checked out, built, installed or run. A target branch
+# without this workflow is not judged: enforcement starts where these controls have landed.
+name: PR isolation
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the target branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch the candidate's commits as data
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: git fetch --no-tags origin "+refs/pull/$PR/head:refs/candidate"
+
+      - name: Judge the complete change against the target
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          git cat-file -e "$HEAD^{commit}" || { echo "head $HEAD not fetched; a newer run judges the newer head"; exit 1; }
+          git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
+            | node engineering/pr-isolation/check.mjs
