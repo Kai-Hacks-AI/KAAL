@@ -248,6 +248,20 @@ describe("bootstrap and verify", () => {
     assert.ok(verify(dir).ok, verify(dir).problems.join("\n"));
   });
 
+  it("excludes only staging directories from the graph, never a file named like one", () => {
+    const greeting = node("Greeting", f.skill, "Greet people warmly.\n");
+    const moved = engine();
+    writeFileSync(join(moved, ".staging-greeting.md"), greeting);
+    assert.deepEqual(capabilities(moved).skills, [{ name: "Greeting", id: sha256(greeting) }]);
+    const malformed = engine();
+    writeFileSync(join(malformed, ".staging-broken.md"), "---\nname: Broken\n");
+    assert.ok(!verify(malformed).ok);
+    const staging = engine();
+    mkdirSync(join(staging, ".staging-left"));
+    writeFileSync(join(staging, ".staging-left", "Broken.md"), "---\nname: Broken\n");
+    assert.ok(verify(staging).ok, verify(staging).problems.join("\n"));
+  });
+
   it("exports the foundational payload", () => {
     const out = join(tmp(), "export");
     assert.equal(exportPayload(out).length, 6);

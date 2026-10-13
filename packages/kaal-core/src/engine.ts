@@ -33,10 +33,19 @@ export const STAGING_PREFIX = ".staging-";
 export function readTree(dir: string): Files {
   const files: Files = {};
   if (!existsSync(dir)) return files;
-  for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" })) {
-    const rel = path.split("\\").join("/");
-    if (rel.split("/")[0].startsWith(STAGING_PREFIX)) continue;
-    if (statSync(join(dir, path)).isFile()) files[rel] = readFileSync(join(dir, path));
+  // Only staging directories are reserved: a top-level file named like one is
+  // scanned. Staging directories are never descended into, so one renamed away
+  // by a concurrent write cannot fail the scan.
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (entry.name.startsWith(STAGING_PREFIX)) continue;
+      for (const path of readdirSync(join(dir, entry.name), { recursive: true, encoding: "utf8" })) {
+        const full = join(dir, entry.name, path);
+        if (statSync(full).isFile()) files[`${entry.name}/${path.split("\\").join("/")}`] = readFileSync(full);
+      }
+    } else if (statSync(join(dir, entry.name)).isFile()) {
+      files[entry.name] = readFileSync(join(dir, entry.name));
+    }
   }
   return files;
 }
