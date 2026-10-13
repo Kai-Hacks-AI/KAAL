@@ -21,6 +21,9 @@
   "engines": {
     "node": ">=20.1"
   },
+  "dependencies": {
+    "kaal-hosting": "0.0.1"
+  },
   "devDependencies": {
     "kaal-core": "0.0.1"
   }

@@ -25,9 +25,9 @@ Each finding says its kind:
 - `kaal`: a KAAL engineering rule beyond the standard. Every relative file reference in `SKILL.md` resolves inside the skill, so it works wherever a host places it.
 - `unsupported`: frontmatter outside the plain YAML subset the checker reads. It may be valid, so conformance is left undecided.
 
-The checker exits 0 when nothing is found, 1 on a standard or kaal violation, 3 when the only findings are unsupported, and 2 on misuse. A `SKILL.md` of 500 lines or more is only warned about. It repairs nothing, and needs Node.js 20.1 or later.
+The checker exits 0 when nothing is found, 1 on a standard or kaal violation, 3 when the only findings are unsupported, and 2 on misuse or when Hosting refuses to read the directory. A `SKILL.md` of 500 lines or more is only warned about. It repairs nothing, and needs Node.js 20.1 or later and kaal-hosting.
 
-Validation and host access are separate. `scripts/validate.mjs` judges a skill from a host-independent representation of it: its directory name and its files, keyed by `/`-separated relative path. It imports nothing and touches no host, and it is the package's API, `checkSkill(name, files)`. `scripts/check-skill.mjs` is the only part that reads the host, and all it needs is a directory's files. That is the operation kaal-hosting's `read(dir)` provides, and the entry point is meant to obtain it there once that contract is approved.
+Validation and host access are separate. `scripts/validate.mjs` judges a skill from a host-independent representation of it: its directory name and its files, keyed by `/`-separated relative path. It imports nothing and touches no host, and it is the package's API, `checkSkill(name, files)`. `scripts/check-skill.mjs` is the entry point. It obtains the files through kaal-hosting's `read(dir)`, so Hosting decides how links are treated and what it refuses, and it is the package's only runtime dependency.
 
 ## Register the Node
 

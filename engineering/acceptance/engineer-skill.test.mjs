@@ -1,10 +1,11 @@
 // Acceptance: kaal-engineer-skill, Engineering -> Package -> Embed.
 //
-// Installs kaal-core and kaal-engineer-skill from their packed tarballs into
-// a fresh host outside this repository, as the repository's other acceptance
-// does. Core alone admits the Engineer Skill Node into an Engine at an
-// arbitrary location. The shipped Agent Skill's checker, which reads only the
-// skill directory, runs from wherever a host might put it.
+// Installs kaal-core, kaal-hosting and kaal-engineer-skill from their packed
+// tarballs into a fresh host outside this repository, as the repository's
+// other acceptance does. Core alone admits the Engineer Skill Node into an
+// Engine at an arbitrary location. The shipped Agent Skill's checker, which
+// reads the skill through the installed kaal-hosting, runs from wherever in
+// the host the skill is placed.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -39,8 +40,8 @@ function tree(dir) {
   return out;
 }
 
-function pack(name) {
-  const out = JSON.parse(run("npm", ["pack", "--json", "--pack-destination", work], join(REPO, "packages", name)));
+function pack(...path) {
+  const out = JSON.parse(run("npm", ["pack", "--json", "--pack-destination", work], join(REPO, "packages", ...path)));
   return join(work, out[0].filename);
 }
 
@@ -52,11 +53,13 @@ let engine;
 
 before(() => {
   const core = pack("kaal-core");
+  const hosting = pack("extensions", "kaal-hosting");
   const tarball = pack("kaal-engineer-skill");
   host = join(work, "host");
   mkdirSync(host);
   writeFileSync(join(host, "package.json"), JSON.stringify({ name: "fresh-host", version: "1.0.0", private: true }, null, 2));
-  run("npm", ["install", "--offline", "--no-package-lock", core, tarball], host);
+  // kaal-hosting has registry dependencies, so the cache is preferred but not required.
+  run("npm", ["install", "--prefer-offline", "--no-package-lock", core, hosting, tarball], host);
   installed = join(host, "node_modules", "kaal-engineer-skill");
   kaal = join(host, "node_modules", ".bin", "kaal");
   checker = join(host, "node_modules", ".bin", "kaal-engineer-skill");
@@ -79,15 +82,21 @@ describe("embedding into an Engine", () => {
 });
 
 describe("the shipped Agent Skill", () => {
-  it("passes its own check, installed and from any location outside a repository", () => {
+  it("passes its own check, installed and wherever the host places it, outside a repository", () => {
     assert.match(run(checker, [join(installed, "skills", "kaal-engineer-skill")], host), /^ok/);
     for (const where of ["agent-skills", join("deep", "x", "skills")]) {
-      const placed = join(mkdtempSync(join(tmpdir(), "kaal-host-skills-")), where, "kaal-engineer-skill");
+      const placed = join(host, where, "kaal-engineer-skill");
       mkdirSync(dirname(placed), { recursive: true });
       cpSync(join(installed, "skills", "kaal-engineer-skill"), placed, { recursive: true });
-      assert.ok(!existsSync(join(placed, "..", "..", ".git")));
+      assert.ok(!existsSync(join(host, ".git")));
       assert.match(run(process.execPath, [join(placed, "scripts", "check-skill.mjs"), placed], dirname(placed)), /^ok/);
     }
+  });
+
+  it("reads through the installed kaal-hosting", () => {
+    const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
+    assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1" });
+    assert.ok(existsSync(join(host, "node_modules", "kaal-hosting", "dist", "index.js")));
   });
 
   it("names no host skills location", () => {

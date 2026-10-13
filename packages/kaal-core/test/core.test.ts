@@ -205,10 +205,17 @@ describe("bootstrap and verify", () => {
     }
   });
 
-  it("bootstraps an empty existing directory", () => {
+  it("bootstraps an empty existing directory in place, never removing or replacing it", () => {
     const dir = join(tmp(), ".kaal");
     mkdirSync(dir);
-    assert.equal(bootstrap(dir).length, 6);
+    const cwd = process.cwd();
+    process.chdir(dir);
+    try {
+      assert.equal(bootstrap(".").length, 6);
+      assert.deepEqual(Object.keys(readTree(".")).sort(), Object.keys(payload()).sort(), "the current directory still holds the Engine");
+    } finally {
+      process.chdir(cwd);
+    }
     assert.ok(verify(dir).ok);
   });
 
@@ -246,6 +253,20 @@ describe("bootstrap and verify", () => {
     assert.deepEqual(after.resolve({ name: "Greeting", id: sha256(skill) }).type, f.skill);
     assert.deepEqual(capabilities(dir), caps);
     assert.ok(verify(dir).ok, verify(dir).problems.join("\n"));
+  });
+
+  it("excludes only staging directories from the graph, never a file named like one", () => {
+    const greeting = node("Greeting", f.skill, "Greet people warmly.\n");
+    const moved = engine();
+    writeFileSync(join(moved, ".staging-greeting.md"), greeting);
+    assert.deepEqual(capabilities(moved).skills, [{ name: "Greeting", id: sha256(greeting) }]);
+    const malformed = engine();
+    writeFileSync(join(malformed, ".staging-broken.md"), "---\nname: Broken\n");
+    assert.ok(!verify(malformed).ok);
+    const staging = engine();
+    mkdirSync(join(staging, ".staging-left"));
+    writeFileSync(join(staging, ".staging-left", "Broken.md"), "---\nname: Broken\n");
+    assert.ok(verify(staging).ok, verify(staging).problems.join("\n"));
   });
 
   it("exports the foundational payload", () => {
@@ -317,6 +338,15 @@ describe("registration", () => {
       assert.deepEqual(readdirSync(dir).sort(), ["AGENTS.md", "KAAL-KERNEL.md", "core"]);
     });
   }
+
+  it("admits contribution files named like staging directories", () => {
+    const dir = engine();
+    const notes = node("Greeting Notes", f.definition);
+    const files = { ".staging-greeting.md": skill, "docs/.staging-v1.md": notes };
+    assert.deepEqual(registerSkill(dir, "greeting", files), { ids: [sha256(skill)], written: true });
+    assert.deepEqual(capabilities(dir).skills, [{ name: "Greeting", id: sha256(skill) }]);
+    assert.ok(verify(dir).ok, verify(dir).problems.join("\n"));
+  });
 
   it("registers into a rearranged Engine, found by identity alone", () => {
     const dir = engine();

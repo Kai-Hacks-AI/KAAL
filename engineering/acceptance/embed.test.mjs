@@ -273,6 +273,16 @@ describe("Engine location", () => {
     operate("../external-rel/E", join(work, "external-rel", "E"), host);
   });
 
+  it("initializes the current directory in place when it is empty", () => {
+    const dir = join(work, "here");
+    mkdirSync(dir);
+    const ino = statSync(dir).ino;
+    assert.match(run(kaal, ["init", "--engine", "."], dir), /bootstrapped/);
+    assert.equal(statSync(dir).ino, ino);
+    assert.match(run(kaal, ["verify", "--engine", "."], dir), /^ok: 4 Nodes admitted/);
+    assert.deepEqual(tree(dir), tree(join(host, "node_modules", "kaal-core", "payload")));
+  });
+
   it("refuses ambiguous or unknown location options", () => {
     assert.match(fails(kaal, ["verify", "--engine"], host), /--engine needs a directory/);
     assert.match(fails(kaal, ["verify", "--engine", "a", "--engine", "b"], host), /unknown or repeated option --engine/);

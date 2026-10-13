@@ -50,7 +50,7 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 
 This layout is how Core delivers files, not part of any identity. The Engine is found by content: you may move or rename any file, keeping its bytes, and every Node keeps its id, its type resolution and its discovery.
 
-`kaal init` materializes the payload into a missing or empty Engine directory, staged and renamed into place in one step. If the directory already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If it holds anything else, init refuses and writes nothing.
+`kaal init` materializes the payload into a missing or empty Engine directory. A missing directory is staged and renamed into place in one step. An existing empty directory, such as the current one, is kept and filled in place, never removed. If the directory already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If it holds anything else, init refuses and writes nothing.
 
 ## CLI
 

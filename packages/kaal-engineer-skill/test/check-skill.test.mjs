@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation, identify } from "kaal-core";
 import { checkSkill } from "kaal-engineer-skill";
+import { read } from "kaal-hosting";
 
 const VALIDATOR = fileURLToPath(import.meta.resolve("kaal-engineer-skill"));
 
@@ -21,11 +22,9 @@ function skill(name, frontmatter, body = "# Body\n", files = {}) {
   return { name, files: { "SKILL.md": `---\n${frontmatter}---\n\n${body}`, ...files } };
 }
 
-/** A skill's directory on disk, read into the same representation the entry point hands the validator. */
-function fromDisk(dir) {
-  const files = {};
-  for (const p of readdirSync(dir, { recursive: true, encoding: "utf8" })) if (statSync(join(dir, p)).isFile()) files[p.split("\\").join("/")] = readFileSync(join(dir, p));
-  return { name: dir.split(/[\\/]/).pop(), files };
+/** A skill's directory on disk, read through kaal-hosting as the entry point reads it. */
+async function fromDisk(dir) {
+  return { name: dir.split(/[\\/]/).pop(), files: await read(dir) };
 }
 
 /** Write an in-memory skill to disk under its name; returns its directory. */
@@ -49,8 +48,8 @@ function only(s, kind, pattern) {
 }
 
 describe("standard: the Agent Skills specification", () => {
-  it("accepts its own Agent Skill", () => {
-    assert.deepEqual(check(fromDisk(OWN)), clean);
+  it("accepts its own Agent Skill", async () => {
+    assert.deepEqual(check(await fromDisk(OWN)), clean);
   });
 
   it("accepts a minimal skill and one with every optional field", () => {
@@ -158,11 +157,11 @@ describe("responsibility boundaries", () => {
     assert.deepEqual(id.type, foundation().skill);
   });
 
-  it("reads the host only in the entry point, and only as a directory's files", () => {
+  it("reaches the host only in the entry point, and only through kaal-hosting's read()", () => {
     const entry = readFileSync(SCRIPT, "utf8");
-    const used = [...entry.matchAll(/import \{([^}]*)\} from "node:fs"/g)].flatMap((m) => m[1].split(",").map((s) => s.trim()));
-    assert.deepEqual(used.sort(), ["readFileSync", "readdirSync", "realpathSync", "statSync"]);
-    assert.doesNotMatch(entry, /kaal-core|child_process|npm|writeFile|mkdir|rename|\brm\(/);
+    const imports = [...entry.matchAll(/^import (.*) from "([^"]+)";$/gm)].map((m) => `${m[1]} from ${m[2]}`);
+    assert.deepEqual(imports, ["{ read } from kaal-hosting", "{ basename, resolve } from node:path", "{ checkSkill } from ./validate.mjs"]);
+    assert.doesNotMatch(entry, /node:fs|kaal-core|child_process|process\.platform/);
   });
 });
 
@@ -175,9 +174,9 @@ describe("the entry point", () => {
     }
   };
 
-  it("hands the validator the same representation it would get in memory", () => {
+  it("hands the validator the same representation it would get in memory", async () => {
     const s = skill("my-skill", ok(), "See [g](references/g.md).\n", { "references/g.md": "g" });
-    assert.deepEqual(check(fromDisk(toDisk(s))), check(s));
+    assert.deepEqual(check(await fromDisk(toDisk(s))), check(s));
   });
 
   it("exits 0 when clean, 1 on a violation, 3 when undecided, 2 on misuse, naming each finding's kind", () => {
@@ -192,17 +191,17 @@ describe("the entry point", () => {
     assert.equal(undecided.status, 3);
     assert.match(undecided.stderr, /^unsupported: /m);
     assert.match(undecided.stderr, /^undecided: /m);
-    assert.equal(run(join(work, "nowhere")).status, 2);
+    assert.match(run(join(work, "nowhere")).stderr, /^standard: SKILL\.md is missing$/m);
+    writeFileSync(join(work, "a-file"), "x");
+    assert.match(run(join(work, "a-file")).stderr, /could not be read/);
+    assert.equal(run(join(work, "a-file")).status, 2);
     assert.equal(run().status, 2);
     assert.equal(run("a", "b").status, 2);
     assert.equal(run("--package", PACKAGE).status, 2);
   });
 
-  it("needs neither kaal-core nor npm, and runs from any host location", () => {
-    const placed = join(mkdtempSync(join(tmpdir(), "any-host-")), "some", "skills", "kaal-engineer-skill");
-    mkdirSync(dirname(placed), { recursive: true });
-    cpSync(OWN, placed, { recursive: true });
-    const out = execFileSync(process.execPath, [join(placed, "scripts", "check-skill.mjs"), placed], { cwd: dirname(placed), encoding: "utf8", env: { PATH: "" } });
+  it("needs neither kaal-core nor npm", () => {
+    const out = execFileSync(process.execPath, [SCRIPT, OWN], { encoding: "utf8", env: { PATH: "" } });
     assert.equal(out, "ok\n");
   });
 });

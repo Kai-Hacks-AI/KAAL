@@ -1,17 +1,18 @@
 {
   "name": "kaal-engineering",
   "private": true,
-  "description": "Engineering repository for KAAL. Only the packages under packages/ are distributed.",
+  "description": "Engineering repository for KAAL. The distributable packages are under packages/.",
   "type": "module",
   "workspaces": [
     "packages/kaal-core",
+    "packages/extensions/kaal-hosting",
     "packages/kaal-engineer-skill"
   ],
   "scripts": {
-    "build": "npm run build -w kaal-core",
-    "test": "npm test -w kaal-core -w kaal-engineer-skill",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm test --workspaces",
     "test:acceptance": "node --test engineering/acceptance/embed.test.mjs engineering/acceptance/engineer-skill.test.mjs",
-    "pack": "npm pack -w kaal-core -w kaal-engineer-skill --pack-destination engineering/out"
+    "pack": "npm pack -w kaal-core --pack-destination engineering/out"
   },
   "engines": {
     "node": ">=20.1"

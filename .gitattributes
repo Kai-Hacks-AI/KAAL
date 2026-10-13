@@ -1,6 +1,5 @@
 # Node identity is the SHA-256 of exact bytes: never rewrite line endings in the payload.
 packages/kaal-core/payload/** -text
 .kaal/** -text
-
-# Skill Nodes are identified by their exact bytes too.
+packages/extensions/kaal-hosting/payload/** -text
 packages/kaal-engineer-skill/payload/** -text

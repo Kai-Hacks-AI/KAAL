@@ -2,7 +2,7 @@
 name: kaal-engineer-skill
 description: Produce and update KAAL Skills, and check that their Agent Skill conforms to the Agent Skills standard. Use when creating, changing or checking a KAAL Skill, its Skill Node, or its SKILL.md.
 license: MIT
-compatibility: The checker needs Node.js 20.1 or later.
+compatibility: The checker needs Node.js 20.1 or later and the kaal-hosting package.
 ---
 
 # Engineering KAAL Skills
