@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import gfs from "graceful-fs";
 import { contribution, HostingError, initialize, read, update, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
@@ -15,6 +16,25 @@ const here = fileURLToPath(new URL(".", import.meta.url));
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), "kaal-hosting-"));
+}
+
+/** A directory in a parent of its own, so whatever Hosting leaves beside it shows. */
+function alone(): { parent: string; dir: string } {
+  const parent = tmp();
+  const dir = join(parent, "d");
+  mkdirSync(dir);
+  return { parent, dir };
+}
+
+/** Make the host refuse every rename while `fn` runs. */
+async function renamesFail<T>(fn: () => Promise<T>): Promise<T> {
+  const original = gfs.rename;
+  gfs.rename = ((_from: string, _to: string, cb: (e: Error) => void) => cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" }))) as typeof gfs.rename;
+  try {
+    return await fn();
+  } finally {
+    gfs.rename = original;
+  }
 }
 
 function files(entries: Record<string, string>): Files {
@@ -40,24 +60,45 @@ describe("read", () => {
     assert.deepEqual(await read(join(dir, "missing")), {});
   });
 
-  it("leaves out only staging directories, never a file named like one", async () => {
+  it("leaves nothing out by its name", async () => {
     const dir = tmp();
     mkdirSync(join(dir, ".staging-x"));
-    writeFileSync(join(dir, ".staging-x", "hidden.md"), "h");
+    writeFileSync(join(dir, ".staging-x", "kept.md"), "k");
     writeFileSync(join(dir, ".staging-notes.md"), "n");
-    mkdirSync(join(dir, "docs"));
-    writeFileSync(join(dir, "docs", ".staging-v1.md"), "v");
-    assert.deepEqual(await read(dir), files({ ".staging-notes.md": "n", "docs/.staging-v1.md": "v" }));
+    mkdirSync(join(dir, "d.lock"));
+    writeFileSync(join(dir, "d.lock", "kept.md"), "l");
+    assert.deepEqual(await read(dir), files({ ".staging-x/kept.md": "k", ".staging-notes.md": "n", "d.lock/kept.md": "l" }));
+  });
+
+  it("reads a link to a file as that file, and refuses a link to a directory", async () => {
+    const dir = tmp();
+    const outside = tmp();
+    writeFileSync(join(outside, "real.md"), "r");
+    symlinkSync(join(outside, "real.md"), join(dir, "linked.md"), "file");
+    assert.deepEqual(await read(dir), files({ "linked.md": "r" }));
+    symlinkSync(outside, join(dir, "elsewhere"), "junction");
+    await assert.rejects(read(dir), code("INVALID_PATH"));
   });
 });
 
 describe("update", () => {
-  it("publishes a change as a new directory, all at once", async () => {
-    const dir = tmp();
+  it("publishes a change as a new directory, all at once, leaving nothing else inside or beside", async () => {
+    const { parent, dir } = alone();
     const change = { prefix: "skills/greeting", files: files({ "Greeting.md": "g", "docs/.staging-v1.md": "d" }) };
     assert.deepEqual(await update(dir, () => change), change);
     assert.deepEqual(await read(dir), files({ "skills/greeting/Greeting.md": "g", "skills/greeting/docs/.staging-v1.md": "d" }));
     assert.deepEqual(readdirSync(dir), ["skills"]);
+    assert.deepEqual(readdirSync(parent), ["d"]);
+  });
+
+  it("restores the whole directory, created parents included, when the final rename fails", async () => {
+    const { parent, dir } = alone();
+    mkdirSync(join(dir, "skills"));
+    await assert.rejects(renamesFail(() => update(dir, () => ({ prefix: "skills/a/b", files: files({ "x.md": "1" }) }))), /EPERM/);
+    await assert.rejects(renamesFail(() => update(dir, () => ({ prefix: "new/c", files: files({ "x.md": "1" }) }))), /EPERM/);
+    assert.deepEqual(readdirSync(dir), ["skills"]);
+    assert.deepEqual(readdirSync(join(dir, "skills")), []);
+    assert.deepEqual(readdirSync(parent), ["d"]);
   });
 
   it("gives the plan the directory as it is, and writes nothing when the plan declines", async () => {
@@ -148,6 +189,13 @@ describe("initialize", () => {
     const dir = join(tmp(), "engine");
     assert.deepEqual(await initialize(dir, payload), ["KERNEL.md", "core/Node.md"]);
     assert.deepEqual(await read(dir), payload);
+  });
+
+  it("leaves an empty directory empty, and nothing beside it, when a move fails", async () => {
+    const { parent, dir } = alone();
+    await assert.rejects(renamesFail(() => initialize(dir, payload)), /EPERM/);
+    assert.deepEqual(readdirSync(dir), []);
+    assert.deepEqual(readdirSync(parent), ["d"]);
   });
 
   it("fills an empty current directory in place, never removing it", async () => {

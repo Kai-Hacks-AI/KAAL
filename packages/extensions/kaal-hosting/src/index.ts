@@ -26,23 +26,18 @@ export class HostingError extends Error {
 }
 
 // graceful-fs patches the callback API (on Windows, rename retries through
-// antivirus and indexer locks), so every call goes through it.
-const readdir = promisify(gfs.readdir) as (path: string, options: { withFileTypes: true }) => Promise<Dirent[]>;
-const readFile = promisify(gfs.readFile) as (path: string) => Promise<Buffer>;
-const writeFile = promisify(gfs.writeFile) as (path: string, data: Uint8Array) => Promise<void>;
-const mkdir = promisify(gfs.mkdir) as (path: string, options: { recursive: true }) => Promise<string | undefined>;
-const mkdtemp = promisify(gfs.mkdtemp) as (prefix: string) => Promise<string>;
-const rename = promisify(gfs.rename) as (from: string, to: string) => Promise<void>;
-const rm = promisify(gfs.rm) as (path: string, options: { recursive: true; force: true }) => Promise<void>;
-const stat = promisify(gfs.stat) as (path: string) => Promise<Stats>;
-const lstat = promisify(gfs.lstat) as (path: string) => Promise<Stats>;
-const realpath = promisify(gfs.realpath) as (path: string) => Promise<string>;
-
-const STAGING = ".staging-";
-
-function isStaging(entry: Dirent): boolean {
-  return entry.isDirectory() && entry.name.startsWith(STAGING);
-}
+// antivirus and indexer locks), so every call goes through it, looked up at
+// call time.
+const readdir = (path: string) => promisify(gfs.readdir)(path, { withFileTypes: true }) as Promise<Dirent[]>;
+const readFile = (path: string) => promisify(gfs.readFile)(path) as Promise<Buffer>;
+const writeFile = (path: string, data: Uint8Array) => promisify(gfs.writeFile)(path, data);
+const mkdir = (path: string) => promisify(gfs.mkdir)(path, { recursive: true });
+const mkdtemp = (prefix: string) => promisify(gfs.mkdtemp)(prefix);
+const rename = (from: string, to: string) => promisify(gfs.rename)(from, to);
+const rm = (path: string) => promisify(gfs.rm)(path, { recursive: true, force: true });
+const stat = (path: string) => promisify(gfs.stat)(path);
+const lstat = (path: string) => promisify(gfs.lstat)(path);
+const realpath = (path: string) => promisify(gfs.realpath)(path);
 
 function missing(e: unknown): boolean {
   return (e as NodeJS.ErrnoException).code === "ENOENT";
@@ -58,34 +53,41 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
+/**
+ * Every file under `root`, and every directory, by relative path. A link to a
+ * file reads as that file; a link to a directory is refused, since Hosting
+ * neither reads nor writes through one.
+ */
 async function walk(root: string, rel: string, files: Files, dirs: string[] = []): Promise<void> {
   let entries: Dirent[];
   try {
-    entries = await readdir(rel ? join(root, rel) : root, { withFileTypes: true });
+    entries = await readdir(rel ? join(root, rel) : root);
   } catch (e) {
     if (missing(e)) return;
     throw e;
   }
   for (const entry of entries) {
-    if (!rel && isStaging(entry)) continue;
     const path = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
       dirs.push(path);
       await walk(root, path, files, dirs);
       continue;
     }
+    let target: Stats;
     try {
-      if ((await stat(join(root, path))).isFile()) files[path] = await readFile(join(root, path));
+      target = await stat(join(root, path));
     } catch (e) {
-      if (!missing(e)) throw e;
+      if (missing(e)) continue;
+      throw e;
     }
+    if (target.isDirectory()) throw new HostingError(`${path} is a link to a directory; Hosting does not follow one`, "INVALID_PATH");
+    if (target.isFile()) files[path] = await readFile(join(root, path));
   }
 }
 
 /**
  * Read a directory tree: every file, keyed by `/`-separated relative path.
- * Staging directories of Hosting's own writes are not part of it. A missing
- * directory reads as empty.
+ * A missing directory reads as empty.
  */
 export async function read(dir: string): Promise<Files> {
   const files: Files = {};
@@ -134,7 +136,7 @@ function checkPortable(paths: string[], existing: string[] = []): void {
 
 async function writeAll(dir: string, files: Files): Promise<void> {
   for (const [path, bytes] of Object.entries(files)) {
-    await mkdir(dirname(join(dir, path)), { recursive: true });
+    await mkdir(dirname(join(dir, path)));
     await writeFile(join(dir, path), bytes);
   }
 }
@@ -149,6 +151,22 @@ async function checkFaithful(staging: string, files: Files): Promise<void> {
     throw new HostingError("this host did not hold the files exactly as given; nothing was published", "UNFAITHFUL");
 }
 
+/**
+ * Stage `files` beside the directory and hand the staged tree to `publish`.
+ * Staging never sits inside the directory, so the directory only ever holds
+ * published content. The staged tree is removed whatever happens.
+ */
+async function staged(at: string, files: Files, publish: (staging: string) => Promise<void>): Promise<void> {
+  const staging = await mkdtemp(`${at}.staging-`);
+  try {
+    await writeAll(staging, files);
+    await checkFaithful(staging, files);
+    await publish(staging);
+  } finally {
+    await rm(staging);
+  }
+}
+
 // One directory has one lock, whatever path names it: the lock sits beside
 // the directory's canonical path, with symlinks resolved.
 async function canonical(dir: string): Promise<string> {
@@ -160,9 +178,9 @@ async function canonical(dir: string): Promise<string> {
   }
 }
 
-async function exclusive<T>(dir: string, fn: () => Promise<T>): Promise<T> {
-  await mkdir(dirname(dir), { recursive: true });
-  const at = await canonical(dir);
+async function exclusive<T>(dir: string, fn: (at: string) => Promise<T>): Promise<T> {
+  await mkdir(dirname(resolve(dir)));
+  const at = await canonical(resolve(dir));
   const release = await lockfile.lock(at, {
     realpath: false,
     lockfilePath: `${at}.lock`,
@@ -171,40 +189,47 @@ async function exclusive<T>(dir: string, fn: () => Promise<T>): Promise<T> {
     retries: { retries: 100, minTimeout: 20, maxTimeout: 250 },
   });
   try {
-    return await fn();
+    return await fn(at);
   } finally {
     await release();
   }
 }
 
-/** Refuse a prefix reached through a symlink, which would publish outside `root`. */
-async function checkContained(root: string, prefix: string): Promise<void> {
+/**
+ * The first segment of `prefix` that does not exist yet: publishing creates
+ * it, whole, with one rename. Everything above it must be a real directory
+ * inside `root`, never a link, so nothing is published elsewhere.
+ */
+async function newTop(root: string, prefix: string): Promise<string> {
   for (const p of prefixes(prefix)) {
     let entry: Stats;
     try {
       entry = await lstat(join(root, p));
     } catch (e) {
-      if (missing(e)) return;
+      if (missing(e)) return p;
       throw e;
     }
-    if (entry.isSymbolicLink()) throw new HostingError(`${p} is a symbolic link; a change is published only inside the directory`, "INVALID_PATH");
+    if (entry.isSymbolicLink()) throw new HostingError(`${p} is a link; a change is published only inside the directory`, "INVALID_PATH");
+    if (!entry.isDirectory()) throw new HostingError(`${p} exists and is not a directory`, "EXISTS");
   }
+  throw new HostingError(`${prefix} already exists`, "EXISTS");
 }
 
 /**
  * Change a directory as its only writer. Under a lock held across processes,
  * `plan` receives the directory as it is and returns the change to make, or
- * nothing. The change is published all or nothing: its files are staged,
- * read back to confirm the host holds them exactly, and renamed into place
- * as the new directory `prefix`, which must not exist yet. Any failure leaves
- * the directory as it was.
+ * nothing. The change is published all or nothing: its files are staged
+ * beside the directory, read back to confirm the host holds them exactly,
+ * and renamed into place as the new directory `prefix`, which must not exist
+ * yet. Any directories `prefix` needs are part of that one rename, so any
+ * failure leaves the directory exactly as it was. The directory must exist
+ * (`initialize` creates one), on the same filesystem as its parent.
  */
 export async function update<T extends Change | undefined>(dir: string, plan: (current: Files) => T | Promise<T>): Promise<T> {
-  const root = resolve(dir);
-  return exclusive(root, async () => {
+  return exclusive(dir, async (at) => {
     const current: Files = {};
     const dirs: string[] = [];
-    await walk(root, "", current, dirs);
+    await walk(at, "", current, dirs);
     const change = await plan(current);
     if (!change) return change;
     const paths = Object.keys(change.files).sort();
@@ -213,19 +238,10 @@ export async function update<T extends Change | undefined>(dir: string, plan: (c
       paths.map((p) => `${change.prefix}/${p}`),
       [...dirs, ...Object.keys(current)],
     );
-    await checkContained(root, change.prefix);
-    const target = join(root, change.prefix);
-    if (await exists(target)) throw new HostingError(`${change.prefix} already exists`, "EXISTS");
-    const staging = await mkdtemp(join(root, STAGING));
-    try {
-      await writeAll(staging, change.files);
-      await checkFaithful(staging, change.files);
-      await mkdir(dirname(target), { recursive: true });
-      await rename(staging, target);
-    } catch (e) {
-      await rm(staging, { recursive: true, force: true });
-      throw e;
-    }
+    const top = await newTop(at, change.prefix);
+    const below = change.prefix.slice(top.length + 1);
+    const files = Object.fromEntries(Object.entries(change.files).map(([p, bytes]) => [below ? `${below}/${p}` : p, bytes]));
+    await staged(at, files, (staging) => rename(staging, join(at, top)));
     return change;
   });
 }
@@ -234,44 +250,33 @@ export async function update<T extends Change | undefined>(dir: string, plan: (c
  * Populate a missing or empty directory with `files`, as its only writer. A
  * missing directory is staged beside it and renamed into place, so it appears
  * complete or not at all. An existing empty directory is kept, never removed
- * or replaced (it may be the current directory): the staged files are moved
- * into it, and moved back out if any move fails. Anything else is refused and
- * nothing is written. Returns the paths written.
+ * or replaced (it may be the current directory): the staged entries are
+ * moved into it, and moved back out if any move fails. Anything else is
+ * refused and nothing is written. The directory and its parent must be on
+ * one filesystem. Returns the paths written.
  */
 export async function initialize(dir: string, files: Files): Promise<string[]> {
-  const root = resolve(dir);
   const paths = Object.keys(files).sort();
   checkPortable(paths);
-  return exclusive(root, async () => {
-    if (!(await exists(root))) {
-      const staging = await mkdtemp(join(dirname(root), STAGING));
-      try {
-        await writeAll(staging, files);
-        await checkFaithful(staging, files);
-        await rename(staging, root);
-      } catch (e) {
-        await rm(staging, { recursive: true, force: true });
-        throw e;
-      }
+  return exclusive(dir, async (at) => {
+    if (!(await exists(at))) {
+      await staged(at, files, (staging) => rename(staging, at));
       return paths;
     }
-    if (!(await stat(root)).isDirectory()) throw new HostingError(`${dir} exists and is not a directory`, "NOT_EMPTY");
-    if ((await readdir(root, { withFileTypes: true })).length > 0) throw new HostingError(`${dir} is not empty`, "NOT_EMPTY");
-    const staging = await mkdtemp(join(root, STAGING));
-    const moved: string[] = [];
-    try {
-      await writeAll(staging, files);
-      await checkFaithful(staging, files);
-      for (const entry of await readdir(staging, { withFileTypes: true })) {
-        await rename(join(staging, entry.name), join(root, entry.name));
-        moved.push(entry.name);
+    if (!(await stat(at)).isDirectory()) throw new HostingError(`${dir} exists and is not a directory`, "NOT_EMPTY");
+    if ((await readdir(at)).length > 0) throw new HostingError(`${dir} is not empty`, "NOT_EMPTY");
+    await staged(at, files, async (staging) => {
+      const moved: string[] = [];
+      try {
+        for (const entry of await readdir(staging)) {
+          await rename(join(staging, entry.name), join(at, entry.name));
+          moved.push(entry.name);
+        }
+      } catch (e) {
+        for (const name of moved) await rename(join(at, name), join(staging, name));
+        throw e;
       }
-    } catch (e) {
-      for (const name of moved) await rename(join(root, name), join(staging, name));
-      throw e;
-    } finally {
-      await rm(staging, { recursive: true, force: true });
-    }
+    });
     return paths;
   });
 }
