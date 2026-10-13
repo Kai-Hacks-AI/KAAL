@@ -70,6 +70,14 @@ describe("read", () => {
     assert.deepEqual(await read(dir), files({ ".staging-x/kept.md": "k", ".staging-notes.md": "n", "d.lock/kept.md": "l" }));
   });
 
+  it("reads and publishes a file named __proto__ like any other", async () => {
+    const dir = tmp();
+    writeFileSync(join(dir, "__proto__"), "p");
+    assert.deepEqual(Object.keys(await read(dir)), ["__proto__"]);
+    await update(dir, () => ({ prefix: "skills/odd", files: files({ ["__proto__"]: "q" }) }));
+    assert.deepEqual(Object.keys(await read(dir)).sort(), ["__proto__", "skills/odd/__proto__"]);
+  });
+
   it("reads a link to a file as that file, and refuses a link to a directory", async () => {
     const dir = tmp();
     const outside = tmp();

@@ -81,7 +81,8 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
       throw e;
     }
     if (target.isDirectory()) throw new HostingError(`${path} is a link to a directory; Hosting does not follow one`, "INVALID_PATH");
-    if (target.isFile()) files[path] = await readFile(join(root, path));
+    // Defined, not assigned: a file named `__proto__` is a file like any other.
+    if (target.isFile()) Object.defineProperty(files, path, { value: await readFile(join(root, path)), enumerable: true, writable: true, configurable: true });
   }
 }
 
