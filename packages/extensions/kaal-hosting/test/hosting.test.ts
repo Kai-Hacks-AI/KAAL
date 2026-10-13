@@ -156,6 +156,7 @@ describe("faithful publication on every host", () => {
     ["names differing only in case", { "A.md": "1", "a.md": "2" }],
     ["directories differing only in case", { "Docs/x.md": "1", "docs/y.md": "2" }],
     ["NFC and NFD spellings of one name", { "café.md": "1", "café.md": "2" }],
+    ["final sigma and sigma, which case folding equates", { "ος.md": "1", "οσ.md": "2" }],
   ];
   for (const [label, entries] of collisions) {
     it(`refuses ${label}, writing nothing`, async () => {
