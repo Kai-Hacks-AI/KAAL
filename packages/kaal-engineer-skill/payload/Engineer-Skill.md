@@ -7,4 +7,4 @@ type:
 
 # Engineer Skill
 
-Engineer Skill is the capability for engineering KAAL Skills: producing and maintaining them so that each one is a correct KAAL Skill and, in its agent-facing form, a conformant Agent Skill. Its scope is that alone. It is not software engineering in general, and it is not the engineering of KAAL in general.
+Engineer Skill is the capability for producing and updating valid KAAL Skills, including the conformance of their Agent Skills to the Agent Skills standard. Its scope is that alone.

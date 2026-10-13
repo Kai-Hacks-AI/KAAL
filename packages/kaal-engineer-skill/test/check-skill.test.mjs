@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation, identify } from "kaal-core";
-import { checkPackage, checkSkill } from "kaal-engineer-skill";
+import { checkSkill } from "kaal-engineer-skill";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SCRIPT = join(PACKAGE, "skills", "kaal-engineer-skill", "scripts", "check-skill.mjs");
+const OWN = join(PACKAGE, "skills", "kaal-engineer-skill");
+const SCRIPT = join(OWN, "scripts", "check-skill.mjs");
 const work = mkdtempSync(join(tmpdir(), "kaal-engineer-skill-"));
 let count = 0;
 
@@ -26,171 +27,147 @@ function skill(name, frontmatter, body = "# Body\n", files = {}) {
 }
 
 const ok = (name = "my-skill", extra = "") => `name: ${name}\ndescription: Does a thing. Use when the thing is needed.\n${extra}`;
-const problems = (dir) => checkSkill(dir).problems;
-const fails = (dir, pattern) => assert.ok(problems(dir).some((p) => pattern.test(p)), `expected ${pattern} in ${JSON.stringify(problems(dir))}`);
+const clean = { standard: [], kaal: [], unsupported: [], warnings: [] };
+/** Assert the only findings are of `kind`, and one of them matches. */
+function only(dir, kind, pattern) {
+  const found = checkSkill(dir);
+  for (const other of ["standard", "kaal", "unsupported"]) if (other !== kind) assert.deepEqual(found[other], [], `${other}: ${JSON.stringify(found)}`);
+  assert.ok(found[kind].some((m) => pattern.test(m)), `expected ${kind} ${pattern} in ${JSON.stringify(found)}`);
+}
 
-describe("checkSkill: the Agent Skills standard", () => {
+describe("standard: the Agent Skills specification", () => {
   it("accepts its own Agent Skill", () => {
-    assert.deepEqual(checkSkill(join(PACKAGE, "skills", "kaal-engineer-skill")), { problems: [], warnings: [] });
+    assert.deepEqual(checkSkill(OWN), clean);
   });
 
   it("accepts a minimal skill and one with every optional field", () => {
-    assert.deepEqual(problems(skill("my-skill", ok())), []);
+    assert.deepEqual(checkSkill(skill("my-skill", ok())), clean);
     const full = ok("pdf-tools", 'license: Apache-2.0\ncompatibility: Requires git and jq\nmetadata:\n  author: example-org\n  version: "1.0"\nallowed-tools: Bash(git:*) Read\n');
-    assert.deepEqual(problems(skill("pdf-tools", full)), []);
+    assert.deepEqual(checkSkill(skill("pdf-tools", full)), clean);
   });
 
-  it("requires SKILL.md and frontmatter", () => {
+  it("requires SKILL.md, exactly so named, and frontmatter", () => {
     const empty = join(work, "empty", "my-skill");
     mkdirSync(empty, { recursive: true });
-    fails(empty, /SKILL\.md is missing/);
+    only(empty, "standard", /SKILL\.md is missing/);
     const lower = join(work, "lower", "my-skill");
     mkdirSync(lower, { recursive: true });
     writeFileSync(join(lower, "skill.md"), `---\n${ok()}---\n`);
-    fails(lower, /SKILL\.md is missing/);
+    only(lower, "standard", /SKILL\.md is missing/);
     const bare = join(work, "bare", "my-skill");
     mkdirSync(bare, { recursive: true });
     writeFileSync(join(bare, "SKILL.md"), "# No frontmatter\n");
-    fails(bare, /does not begin with YAML frontmatter/);
+    only(bare, "standard", /does not begin with YAML frontmatter/);
   });
 
   it("requires name and description", () => {
-    fails(skill("my-skill", "description: Does a thing.\n"), /name is required/);
-    fails(skill("my-skill", "name: my-skill\n"), /description is required/);
-    fails(skill("my-skill", "name: my-skill\ndescription:\n"), /description is not a string of 1-1024/);
+    only(skill("my-skill", "description: Does a thing.\n"), "standard", /name is required/);
+    only(skill("my-skill", "name: my-skill\n"), "standard", /description is required/);
+    only(skill("my-skill", "name: my-skill\ndescription:\n"), "standard", /description is not a string of 1-1024/);
   });
 
-  it("holds name to the grammar and to its directory", () => {
-    for (const bad of ["My-Skill", "-skill", "skill-", "my--skill", "my_skill", "a".repeat(65)]) fails(skill("x", ok(bad)), /is not 1-64 lowercase letters/);
-    assert.deepEqual(problems(skill("a".repeat(64), ok("a".repeat(64)))), []);
-    fails(skill("other-name", ok("my-skill")), /does not match its directory name other-name/);
+  it("holds name to the grammar and to its parent directory", () => {
+    for (const bad of ["My-Skill", "-skill", "skill-", "my--skill", "my_skill", "a".repeat(65)]) only(skill("x", ok(bad)), "standard", /is not 1-64 lowercase letters/);
+    assert.deepEqual(checkSkill(skill("a".repeat(64), ok("a".repeat(64)))), clean);
+    only(skill("other-name", ok("my-skill")), "standard", /name my-skill does not match its parent directory name other-name/);
   });
 
   it("bounds description and compatibility by characters", () => {
     const d = (n) => `name: my-skill\ndescription: ${"é".repeat(n)}\n`;
-    assert.deepEqual(problems(skill("my-skill", d(1024))), []);
-    fails(skill("my-skill", d(1025)), /description is not a string of 1-1024/);
-    assert.deepEqual(problems(skill("my-skill", ok("my-skill", `compatibility: ${"x".repeat(500)}\n`))), []);
-    fails(skill("my-skill", ok("my-skill", `compatibility: ${"x".repeat(501)}\n`)), /compatibility is not a string of 1-500/);
+    assert.deepEqual(checkSkill(skill("my-skill", d(1024))), clean);
+    only(skill("my-skill", d(1025)), "standard", /description is not a string of 1-1024/);
+    assert.deepEqual(checkSkill(skill("my-skill", ok("my-skill", `compatibility: ${"x".repeat(500)}\n`))), clean);
+    only(skill("my-skill", ok("my-skill", `compatibility: ${"x".repeat(501)}\n`)), "standard", /compatibility is not a string of 1-500/);
   });
 
-  it("refuses fields outside the standard", () => {
-    fails(skill("my-skill", ok("my-skill", "version: 1.0.0\n")), /field version is not in the Agent Skills standard/);
-    fails(skill("my-skill", ok("my-skill", "name: again\n")), /field name appears twice/);
+  it("refuses fields outside the standard and duplicate keys", () => {
+    only(skill("my-skill", ok("my-skill", "version: 1.0.0\n")), "standard", /field version is not in the standard/);
+    only(skill("my-skill", ok("my-skill", "name: again\n")), "standard", /field name appears twice/);
   });
 
   it("holds metadata to a map of strings", () => {
-    fails(skill("my-skill", ok("my-skill", "metadata: flat\n")), /metadata is not a map/);
-    fails(skill("my-skill", ok("my-skill", "metadata:\n")), /metadata is not a map/);
-    fails(skill("my-skill", ok("my-skill", "metadata:\n  version: 1.0\n")), /version: 1\.0 is not a string in YAML; quote it/);
-    fails(skill("my-skill", ok("my-skill", "metadata:\n  beta: true\n")), /beta: true is not a string/);
-    fails(skill("my-skill", ok("my-skill", "metadata:\n  a: x\n    b: y\n")), /line is not understood/);
+    only(skill("my-skill", ok("my-skill", "metadata: flat\n")), "standard", /metadata is not a map/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n")), "standard", /metadata is not a map/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n  version: 1.0\n")), "standard", /version: 1\.0 is not a string in YAML/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n  beta: true\n")), "standard", /beta: true is not a string/);
   });
 
-  it("reads plain YAML only, and refuses what real YAML would not read as written", () => {
-    fails(skill("my-skill", "name: my-skill\ndescription: Engineer Skills: create and check them.\n"), /plain value containing ": "/);
-    assert.deepEqual(problems(skill("my-skill", "name: my-skill\ndescription: \"Engineer Skills: create and check them.\"\n")), []);
-    assert.deepEqual(problems(skill("my-skill", "name: 'my-skill'\ndescription: 'It''s quoted: fine.'\n")), []);
-    fails(skill("my-skill", "name: my-skill\ndescription: >\n  folded text\n"), /outside the plain YAML/);
-    fails(skill("my-skill", "name: my-skill\ndescription: [a, b]\n"), /outside the plain YAML/);
-    fails(skill("my-skill", "name: my-skill\ndescription: 'unclosed\n"), /single-quoted value is not closed/);
+  it("reports frontmatter YAML itself refuses as a standard violation", () => {
+    only(skill("my-skill", "name: my-skill\ndescription: Engineer Skills: create and check them.\n"), "standard", /not valid YAML as written/);
+    only(skill("my-skill", "name: my-skill\ndescription: 'unclosed\n"), "standard", /single-quoted value is not closed/);
+    assert.deepEqual(checkSkill(skill("my-skill", "name: my-skill\ndescription: \"Engineer Skills: create and check them.\"\n")), clean);
+    assert.deepEqual(checkSkill(skill("my-skill", "name: 'my-skill'\ndescription: 'It''s quoted: fine.'\n")), clean);
   });
 
-  it("accepts CRLF line endings", () => {
+  it("accepts CRLF line endings, and only warns past 500 lines", () => {
     const dir = join(work, "crlf", "my-skill");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "SKILL.md"), `---\r\n${ok().replace(/\n/g, "\r\n")}---\r\n\r\n# Body\r\n`);
-    assert.deepEqual(problems(dir), []);
-  });
-
-  it("only warns past 500 lines", () => {
+    assert.deepEqual(checkSkill(dir), clean);
     const long = checkSkill(skill("my-skill", ok(), "line\n".repeat(600)));
-    assert.deepEqual(long.problems, []);
+    assert.deepEqual({ ...long, warnings: [] }, clean);
     assert.match(long.warnings[0], /recommends under 500/);
   });
 });
 
-describe("checkSkill: references resolve inside the skill", () => {
-  it("accepts links and paths to files it carries, and ignores URLs and anchors", () => {
+describe("unsupported: the checker's own YAML limits, not violations", () => {
+  it("leaves valid YAML outside its subset undecided", () => {
+    only(skill("my-skill", "name: my-skill\ndescription: >\n  folded text\n"), "unsupported", /outside the plain YAML this checker reads/);
+    only(skill("my-skill", "name: my-skill\ndescription: \"tab\\x41\"\n"), "unsupported", /double-quoted value is outside/);
+    only(skill("my-skill", ok("my-skill", "metadata:\n  a: x\n    b: y\n")), "unsupported", /frontmatter line is outside/);
+  });
+});
+
+describe("kaal: engineering rules beyond the standard", () => {
+  it("accepts references to files the skill carries, and ignores URLs and anchors", () => {
     const body = "See [the guide](references/guide.md#setup) and run `node scripts/run.mjs`.\nSpec: [spec](https://agentskills.io/specification), [top](#body).\n";
-    assert.deepEqual(problems(skill("my-skill", ok(), body, { "references/guide.md": "g", "scripts/run.mjs": "r" })), []);
+    assert.deepEqual(checkSkill(skill("my-skill", ok(), body, { "references/guide.md": "g", "scripts/run.mjs": "r" })), clean);
   });
 
   it("refuses a missing file, a path leaving the skill, and a link escaping it", () => {
-    fails(skill("my-skill", ok(), "See [guide](references/guide.md).\n"), /references references\/guide\.md, which does not exist/);
-    fails(skill("my-skill", ok(), "Run scripts/missing.sh first.\n"), /scripts\/missing\.sh, which does not exist/);
-    fails(skill("my-skill", ok(), "See [up](../README.md).\n"), /\.\.\/README\.md, which is not inside/);
-    fails(skill("my-skill", ok(), "See [abs](/etc/hosts).\n"), /\/etc\/hosts, which is not inside/);
+    only(skill("my-skill", ok(), "See [guide](references/guide.md).\n"), "kaal", /references\/guide\.md, which does not exist/);
+    only(skill("my-skill", ok(), "Run scripts/missing.sh first.\n"), "kaal", /scripts\/missing\.sh, which does not exist/);
+    only(skill("my-skill", ok(), "See [up](../README.md).\n"), "kaal", /\.\.\/README\.md, which is not inside/);
+    only(skill("my-skill", ok(), "See [abs](/etc/hosts).\n"), "kaal", /\/etc\/hosts, which is not inside/);
     const dir = skill("my-skill", ok(), "See [linked](references/outside.md).\n");
     writeFileSync(join(work, "outside.md"), "outside");
     mkdirSync(join(dir, "references"));
     symlinkSync(join(work, "outside.md"), join(dir, "references", "outside.md"));
-    fails(dir, /resolves outside the skill directory through a link/);
+    only(dir, "kaal", /resolves outside the skill directory through a link/);
   });
 });
 
-/** A package directory with this package.json, Agent Skills and payload Nodes. */
-function pkg(manifest, { skills = {}, payload = {} } = {}) {
-  const dir = join(work, `p${count++}`);
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "package.json"), JSON.stringify({ version: "0.0.1", files: ["payload", "skills"], ...manifest }));
-  for (const [name, frontmatter] of Object.entries(skills)) {
-    mkdirSync(join(dir, "skills", name), { recursive: true });
-    writeFileSync(join(dir, "skills", name, "SKILL.md"), `---\n${frontmatter}---\n\n# Body\n`);
-  }
-  for (const [path, text] of Object.entries(payload)) {
-    mkdirSync(dirname(join(dir, "payload", path)), { recursive: true });
-    writeFileSync(join(dir, "payload", path), text);
-  }
-  return dir;
-}
+describe("responsibility boundaries", () => {
+  it("reads only the skill directory: no packaging, no package names, no Skill count", () => {
+    // A package that names itself differently, carries two skills and a broken manifest: each skill is judged on its own.
+    const root = join(work, "unrelated-package-name");
+    mkdirSync(root);
+    writeFileSync(join(root, "package.json"), "{ not json");
+    for (const name of ["first-skill", "second-skill"]) {
+      mkdirSync(join(root, "skills", name), { recursive: true });
+      writeFileSync(join(root, "skills", name, "SKILL.md"), `---\n${ok(name)}---\n\n# Body\n`);
+      assert.deepEqual(checkSkill(join(root, "skills", name)), clean);
+    }
+  });
 
-const node = (name, type) => `---\nname: ${name}\ntype:\n  name: ${type.name}\n  id: ${type.id}\n---\n\n# ${name}\n\n${name} behaviour.\n`;
-const skillNode = (name = "Thing") => node(name, foundation().skill);
-const packageProblems = async (dir) => (await checkPackage(dir)).problems;
-async function packageFails(dir, pattern) {
-  const found = await packageProblems(dir);
-  assert.ok(found.some((p) => pattern.test(p)), `expected ${pattern} in ${JSON.stringify(found)}`);
-}
-
-describe("checkPackage: the package as npm ships it", () => {
-  it("accepts this package, and its Node is typed by Core's KAAL Skill", async () => {
-    assert.deepEqual(await checkPackage(PACKAGE), { problems: [], warnings: [] });
-    const { readFileSync } = await import("node:fs");
+  it("does not judge KAAL Nodes: Core does", () => {
+    // A Node beside the skill that Core would refuse does not affect Agent Skill conformance.
+    const dir = skill("my-skill", ok(), "# Body\n", { "Broken-Node.md": "---\nname: Broken\ntype:\n  name: Ghost\n  id: nothing\n---\n" });
+    assert.deepEqual(checkSkill(dir), clean);
+    // This package's own Node is judged by Core alone.
     const id = identify(readFileSync(join(PACKAGE, "payload", "Engineer-Skill.md")));
     assert.equal(id.name, "Engineer Skill");
     assert.deepEqual(id.type, foundation().skill);
   });
 
-  it("accepts a well-formed Skill package", async () => {
-    assert.deepEqual(await packageProblems(pkg({ name: "kaal-thing" }, { skills: { "kaal-thing": ok("kaal-thing") }, payload: { "Thing.md": skillNode() } })), []);
-  });
-
-  it("refuses a package name that cannot be the capability", async () => {
-    await packageFails(pkg({ name: "@scope/kaal-thing" }), /is not a capability name/);
-    await packageFails(pkg({ name: "Kaal-Thing" }), /is not a capability name/);
-  });
-
-  it("checks what is shipped, not what is on disk", async () => {
-    await packageFails(pkg({ name: "kaal-thing", files: ["payload"] }, { skills: { "kaal-thing": ok("kaal-thing") }, payload: { "Thing.md": skillNode() } }), /does not ship its Agent Skill/);
-    await packageFails(pkg({ name: "kaal-thing", files: ["skills"] }, { skills: { "kaal-thing": ok("kaal-thing") }, payload: { "Thing.md": skillNode() } }), /does not ship its KAAL contribution/);
-  });
-
-  it("requires exactly one Agent Skill, named as the package", async () => {
-    await packageFails(pkg({ name: "kaal-thing" }, { skills: { "kaal-other": ok("kaal-other") }, payload: { "Thing.md": skillNode() } }), /exactly one Agent Skill, skills\/kaal-thing\/ \(shipped: skills\/kaal-other\)/);
-    await packageFails(pkg({ name: "kaal-thing" }, { skills: { "kaal-thing": ok("kaal-thing"), "kaal-more": ok("kaal-more") }, payload: { "Thing.md": skillNode() } }), /exactly one Agent Skill/);
-  });
-
-  it("reports the shipped Agent Skill's problems", async () => {
-    await packageFails(pkg({ name: "kaal-thing" }, { skills: { "kaal-thing": "name: kaal-thing\n" }, payload: { "Thing.md": skillNode() } }), /^skills\/kaal-thing: description is required/);
-  });
-
-  it("leaves validity of the contribution to Core", async () => {
-    const dangling = node("Thing", { name: "Ghost", id: "4".repeat(64) });
-    await packageFails(pkg({ name: "kaal-thing" }, { skills: { "kaal-thing": ok("kaal-thing") }, payload: { "Thing.md": dangling } }), /kaal-core refuses the contribution in payload\/: Thing\.md is not admitted/);
-    const extension = node("Thing", foundation().extension);
-    await packageFails(pkg({ name: "kaal-thing" }, { skills: { "kaal-thing": ok("kaal-thing") }, payload: { "Thing.md": extension } }), /kaal-core refuses/);
-    await packageFails(pkg({ name: "kaal-thing" }, { skills: { "kaal-thing": ok("kaal-thing") }, payload: { "Thing.md": skillNode(), "notes.txt": "x" } }), /notes\.txt is not a Markdown file/);
+  it("needs neither kaal-core nor npm, and runs from any host location", () => {
+    const placed = join(mkdtempSync(join(tmpdir(), "any-host-")), "some", "skills", "kaal-engineer-skill");
+    mkdirSync(dirname(placed), { recursive: true });
+    cpSync(OWN, placed, { recursive: true });
+    const out = execFileSync(process.execPath, [join(placed, "scripts", "check-skill.mjs"), placed], { cwd: dirname(placed), encoding: "utf8", env: { PATH: "" } });
+    assert.equal(out, "ok\n");
+    const text = readFileSync(join(placed, "scripts", "check-skill.mjs"), "utf8");
+    assert.doesNotMatch(text, /kaal-core|child_process|npm/);
   });
 });
 
@@ -203,22 +180,20 @@ describe("the command", () => {
     }
   };
 
-  it("exits 0, 1 or 2", () => {
-    assert.equal(run(join(PACKAGE, "skills", "kaal-engineer-skill")).status, 0);
-    const bad = run(skill("my-skill", "name: my-skill\n"));
-    assert.equal(bad.status, 1);
-    assert.match(bad.stderr, /description is required/);
+  it("exits 0 when clean, 1 on a violation, 3 when undecided, 2 on misuse, naming each finding's kind", () => {
+    assert.equal(run(OWN).status, 0);
+    const standard = run(skill("my-skill", "name: my-skill\n"));
+    assert.equal(standard.status, 1);
+    assert.match(standard.stderr, /^standard: description is required$/m);
+    const kaal = run(skill("my-skill", ok(), "See [g](references/g.md).\n"));
+    assert.equal(kaal.status, 1);
+    assert.match(kaal.stderr, /^kaal: SKILL\.md references references\/g\.md/m);
+    const undecided = run(skill("my-skill", "name: my-skill\ndescription: >\n  folded\n"));
+    assert.equal(undecided.status, 3);
+    assert.match(undecided.stderr, /^unsupported: /m);
+    assert.match(undecided.stderr, /^undecided: /m);
     assert.equal(run().status, 2);
     assert.equal(run("a", "b").status, 2);
-    assert.equal(run("--package").status, 2);
-    assert.equal(run("--package", PACKAGE, "--other", "x").status, 2);
-  });
-
-  it("checks a package, optionally against an existing Engine", () => {
-    assert.equal(run("--package", PACKAGE).status, 0);
-    const engine = join(work, "engine");
-    execFileSync(process.execPath, [join(PACKAGE, "..", "kaal-core", "dist", "cli.js"), "init", "--engine", engine]);
-    assert.equal(run("--package", PACKAGE, "--engine", engine).status, 0);
-    assert.match(run("--package", PACKAGE, "--engine", join(work, "nowhere")).stderr, /is not a directory/);
+    assert.equal(run("--package", PACKAGE).status, 2);
   });
 });

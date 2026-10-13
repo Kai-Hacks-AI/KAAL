@@ -6,7 +6,7 @@ This repository engineers KAAL. What it distributes are the npm packages under `
 ```
 packages/kaal-core/    the distributable package: source, the foundational payload, unit tests, its own MIT LICENSE
 packages/kaal-engineer-skill/
-                       the Skill for engineering KAAL Skills: its Node, its Agent Skill and checker, its own MIT LICENSE
+                       the Skill for engineering KAAL Skills: its Node, its Agent Skill and its checker, its own MIT LICENSE
 engineering/           repository-only material: acceptance tests that pack, install and embed kaal-core
 AGENTS.md              entry point for an Agent engineering this repository
 .kaal/                 this repository's KAAL Engine, deployed by `kaal init`

@@ -1,7 +1,7 @@
 {
   "name": "kaal-engineer-skill",
   "version": "0.0.1",
-  "description": "KAAL Engineer Skill: engineering KAAL Skills so each one is a correct KAAL Skill and a conformant, packaged Agent Skill.",
+  "description": "KAAL Engineer Skill: producing and updating KAAL Skills, including the conformance of their Agent Skills to the Agent Skills standard.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -20,14 +20,6 @@
   },
   "engines": {
     "node": ">=20.1"
-  },
-  "peerDependencies": {
-    "kaal-core": "0.0.1"
-  },
-  "peerDependenciesMeta": {
-    "kaal-core": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "kaal-core": "0.0.1"

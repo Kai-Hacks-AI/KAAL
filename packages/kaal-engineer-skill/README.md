@@ -1,37 +1,37 @@
 # kaal-engineer-skill
 
-KAAL Engineer Skill: the capability for engineering KAAL Skills, so that each one is a correct KAAL Skill and, in its agent-facing form, a conformant Agent Skill ([agentskills.io](https://agentskills.io/specification)). It is not part of Core. Core provides the `KAAL Skill` type and registration, and this capability joins through them.
-
-One capability, one package, one name, delivered in two parts:
+KAAL Engineer Skill: the capability for producing and updating valid KAAL Skills, including the conformance of their Agent Skills to the [Agent Skills standard](https://agentskills.io/specification). It is not part of Core. Core provides the `KAAL Skill` type and admission, and this capability joins through them.
 
 ```
-payload/Engineer-Skill.md         the KAAL contribution: the Node, typed by Core's KAAL Skill
+payload/Engineer-Skill.md         the Skill Node, typed by Core's KAAL Skill
 skills/kaal-engineer-skill/       the Agent Skill: SKILL.md, references/, scripts/check-skill.mjs
 ```
 
-The Node carries what the capability means to KAAL. The Agent Skill tells an agent how to do the work, and points to the Node rather than defining it again. It assumes no host: a host places `skills/kaal-engineer-skill/` wherever it keeps skills.
+The Node carries what the capability means to KAAL. The Agent Skill tells an agent how to do the work and points to the Node. It assumes no host: a host places `skills/kaal-engineer-skill/` wherever it keeps skills.
 
-## Install
+## Responsibilities
+
+This Skill checks an Agent Skill against the standard, plus the KAAL engineering rules beyond it. It does not decide how a Skill is packaged or delivered. It does not re-check what Core decides, either: a Node's identity, its type resolution and its admission into an Engine stay with Core (`kaal identify`, `kaal register`).
+
+## Check an Agent Skill
+
+```
+kaal-engineer-skill <skill-dir>
+```
+
+Each finding says its kind:
+
+- `standard`: a violation of the Agent Skills standard. These cover frontmatter limited to the standard's fields, `name` following the grammar and matching its parent directory, `description` at 1-1024 characters, `compatibility` at 1-500 characters, `metadata` as a map of strings, and frontmatter YAML itself refuses or does not read as strings.
+- `kaal`: a KAAL engineering rule beyond the standard. Every relative file reference in `SKILL.md` resolves inside the skill, so it works wherever a host places it.
+- `unsupported`: frontmatter outside the plain YAML subset the checker reads. It may be valid, so conformance is left undecided.
+
+The checker exits 0 when nothing is found, 1 on a standard or kaal violation, 3 when the only findings are unsupported, and 2 on misuse. A `SKILL.md` of 500 lines or more is only warned about. The checker reads nothing outside the skill directory and repairs nothing. It is importable as `checkSkill(dir)`, and needs Node.js 20.1 or later.
+
+## Register the Node
 
 ```sh
-npm install kaal-core kaal-engineer-skill
-npx kaal init                                                                       # or: --engine <dir>
-npx kaal register skill kaal-engineer-skill node_modules/kaal-engineer-skill/payload
-npx kaal list                                                                       # skill <id> Engineer Skill
+npx kaal register skill kaal-engineer-skill node_modules/kaal-engineer-skill/payload    # Core decides
 ```
-
-## Check a Skill
-
-```
-kaal-engineer-skill <skill-dir>                                 Agent Skills conformance of one skill directory
-kaal-engineer-skill --package <package-dir> [--engine <dir>]    a KAAL Skill package, as npm ships it
-```
-
-The first form checks the standard's rules that bytes can decide. That covers frontmatter limited to the standard's fields; `name` following the grammar and matching its directory; `description` at 1-1024 characters; `compatibility` at 1-500 characters; and `metadata` as a map of strings. It also checks that every relative file reference in `SKILL.md` resolves inside the skill. A `SKILL.md` of 500 lines or more is only warned about. Frontmatter is read as a plain subset of YAML, and anything outside it is reported rather than guessed at.
-
-The second form asks npm what the package ships and checks it as shipped. The package name, capability and Agent Skill must be one name. The package must ship exactly one Agent Skill, and that skill must conform. The `payload/` must be registered through kaal-core's `registerSkill` into a throwaway Engine, so Core alone decides whether it is a valid Skill. That step needs kaal-core installed.
-
-Both forms exit 0 when everything holds, 1 with one line per problem, and 2 on misuse. They repair nothing. The same checks are importable as `checkSkill(dir)` and `checkPackage(dir, { engine })`. The script needs Node.js 20.1 or later, and `--package` also needs npm.
 
 ## License
 
