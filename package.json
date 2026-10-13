@@ -9,11 +9,13 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm test --workspaces",
+    "test": "npm run test:hosting && npm run test:kaal",
+    "test:hosting": "npm test -w kaal-hosting",
+    "test:kaal": "node engineering/lanes/kaal.mjs",
     "test:acceptance": "node --test engineering/acceptance/embed.test.mjs",
     "pack": "npm pack -w kaal-core --pack-destination engineering/out"
   },
   "engines": {
-    "node": ">=20.1"
+    "node": ">=24"
   }
 }
