@@ -1,0 +1,49 @@
+# Promotion Source: runs the branching checker, engineering/github/lineage.ts, on where a pull
+# request comes from. The verdict and its guidance live only in the checker and
+# engineering/github/branching.md; a pull request into any branch but the default is not applicable.
+#
+# This is a provider-side promotion gate, separate from Change Isolation's changed-path judgment.
+# pull_request_target runs this workflow, and the checker, as they stand on the default branch. Only
+# the event's refs are judged: nothing of the candidate is fetched, checked out or run. It runs on
+# every pull request so that, once required, it reports on every one.
+name: Promotion Source
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions: {}
+
+jobs:
+  promotion-source:
+    name: Promotion Source
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
+      - name: Judge the source with the default branch's checker
+        env:
+          SERVER: ${{ github.server_url }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          git init -q checker && cd checker
+          git fetch -q --no-tags --depth=1 "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT"
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+            echo "::error title=Promotion Source::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+          RC=0; node "$RUNNER_TEMP/lineage.ts" source "$REPO" "$DEFAULT" "$BASE_REF" "$HEAD_REPO" "$HEAD_REF" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+          # 0 pass; 3 not a promotion, reported as such; 1 fail; 2 or anything else cannot judge, which fails closed.
+          case $RC in
+            0) cat "$RUNNER_TEMP/verdict" ;;
+            3) echo "Not applicable: $(cat "$RUNNER_TEMP/verdict")" ;;
+            1) echo "::error title=Promotion Source::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            *) echo "::error title=Promotion Source: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+          esac

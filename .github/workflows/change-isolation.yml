@@ -1,0 +1,86 @@
+# Enforces Change Isolation (engineering/change-isolation) on pull requests: Core travels alone,
+# .github travels alone. The rules live only in the checker; this workflow supplies the change set.
+#
+# pull_request_target runs this workflow as it stands on the default branch, never as the candidate
+# PR has it. Only the checker held by the PR's target branch at its current tip is executed; the
+# event's base.sha is not used, as it is recorded when the PR last changed and can predate the
+# target. The candidate's commits are fetched as git data to list its changed paths and are never
+# checked out, built, installed or run. Activation: nothing runs until this workflow is on the
+# default branch. Once it runs, a target that does not hold the checker fails: the check passes
+# only on a judgment or a synchronization.
+#
+# Synchronization: a candidate head already contained in the default branch carries only Changes
+# that were each admitted there. Such a main -> kaal/* synchronization is expected not to travel
+# alone, so Change Isolation does not apply to its aggregate. This needs no checker, so a target that
+# lacks it can still receive it from the default branch.
+#
+# A synchronization of an existing kaal/* lineage brings the default branch's admitted Changes and
+# keeps the lineage's own; its Change is only its explicit resolutions. The branching checker
+# (engineering/github/lineage.ts, as the default branch holds it) verifies the synchronization and
+# names those paths, and only they are judged here. A candidate it does not verify is an ordinary
+# Change, judged whole; Lineage Synchronization reports what is wrong with it.
+name: Change Isolation
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  change-isolation:
+    name: Change Isolation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the target branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
+      - name: Judge the complete change against the target
+        env:
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -o pipefail
+          BASE=$(git rev-parse HEAD)
+          git fetch --no-tags origin "$HEAD"
+          if git merge-base --is-ancestor "$HEAD" "origin/$DEFAULT"; then
+            echo "Synchronization: Change Isolation not applicable; candidate $HEAD already admitted on $DEFAULT."
+            exit 0
+          fi
+          CHANGE="$BASE...$HEAD"
+          if [[ "$BASE_REF" == kaal/* ]]; then
+            git show "origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+              echo "::error title=Change Isolation: cannot judge::$DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+            # 0 a verified synchronization: judge its explicit resolutions only. 1 or 3, not a verified
+            # synchronization: an ordinary Change, judged whole. 2 or anything else cannot judge, which fails closed.
+            RC=0; node "$RUNNER_TEMP/lineage.ts" synchronization "$DEFAULT" "$BASE_REF" "origin/$DEFAULT" "$BASE" "$HEAD" \
+              --resolutions "$RUNNER_TEMP/resolved" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+            case $RC in
+              0) CHANGE=
+                 [ -s "$RUNNER_TEMP/resolved" ] || { echo "Synchronization: no explicit resolutions; nothing of its own to judge."; exit 0; } ;;
+              1|3) echo "Not a verified synchronization; judged as an ordinary Change." ;;
+              *) echo "::error title=Change Isolation: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            esac
+          fi
+          if [ ! -f engineering/change-isolation/check.mjs ]; then
+            echo "::error::not verified: the target does not hold engineering/change-isolation/check.mjs"
+            exit 1
+          fi
+          if [ -z "$CHANGE" ]; then
+            echo "Synchronization: judging its explicit resolutions only."
+            node engineering/change-isolation/check.mjs < "$RUNNER_TEMP/resolved"
+          else
+            git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
+              | node engineering/change-isolation/check.mjs
+          fi
