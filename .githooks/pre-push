@@ -4,11 +4,13 @@
 # the same way the GitHub workflow does. GitHub's check stays the authority.
 #
 # Enable once per clone: git config core.hooksPath .githooks
-# Target: the remote's default branch, or git config kaal.changeIsolation.target <ref> (e.g.
-# origin/kaal/genesis). Judged against your last fetch of it; skip once with git push --no-verify.
+# Target: the PR base this branch is meant for. Name it once per branch with
+#   git config branch.<branch>.kaalTarget origin/kaal/genesis   (or origin/main)
+# Unnamed, the target is the remote's default branch only while the work shares no history with a
+# kaal/* lineage beyond it; otherwise the push is not verified until the target is named. Judged
+# against your last fetch of the target; skip once with git push --no-verify.
 remote=${1:-origin}
 default=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null || echo "$remote/main")
-target=$(git config kaal.changeIsolation.target || echo "$default")
 tmp=$(mktemp -d) || exit 1
 trap 'rm -rf "$tmp"' EXIT
 status=0
@@ -16,6 +18,25 @@ while read -r local_ref head remote_ref remote_head; do
   case $head in *[!0]*) ;; *) continue ;; esac # a deleted ref carries no change
   if git merge-base --is-ancestor "$head" "$default" 2>/dev/null; then
     continue # synchronization: already admitted on the default branch
+  fi
+  branch=${local_ref#refs/heads/}
+  target=
+  [ "$branch" != "$local_ref" ] && target=$(git config "branch.$branch.kaalTarget")
+  if [ -z "$target" ]; then
+    lineages=$(git for-each-ref --format='%(refname:short)' "refs/remotes/$remote/kaal/" | while read -r l; do
+      base=$(git merge-base "$head" "$l") && ! git merge-base --is-ancestor "$base" "$default" && echo "$l"
+    done)
+    if [ -n "$lineages" ]; then
+      echo "Change Isolation: not verified: $local_ref shares history with" $lineages "beyond $default." >&2
+      if [ "$branch" != "$local_ref" ]; then
+        echo "  Name its PR target: git config branch.$branch.kaalTarget <ref>" >&2
+      else
+        echo "  Push it from a branch and name that branch's PR target." >&2
+      fi
+      status=1
+      continue
+    fi
+    target=$default
   fi
   if ! git show "$target:engineering/change-isolation/check.mjs" >"$tmp/check.mjs" 2>/dev/null; then
     echo "Change Isolation: not verified: $target does not hold engineering/change-isolation/check.mjs" >&2
