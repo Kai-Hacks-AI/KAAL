@@ -14,11 +14,11 @@
 # alone, so Change Isolation does not apply to its aggregate. This needs no checker, so a target that
 # lacks it can still receive it from the default branch.
 #
-# A synchronization of an existing kaal/* lineage (.github/lineage/synchronization.sh, as it stands
-# on the default branch) brings the default branch's admitted Changes and keeps the lineage's own; its
-# Change is only its explicit resolutions, the paths where the two meet in conflict, and those paths
-# are what the checker judges. A candidate the script does not verify is an ordinary Change, judged
-# whole; Lineage Synchronization says what is wrong with it.
+# A synchronization of an existing kaal/* lineage brings the default branch's admitted Changes and
+# keeps the lineage's own; its Change is only its explicit resolutions. The branching checker
+# (engineering/github/lineage.ts, as the default branch holds it) verifies the synchronization and
+# names those paths, and only they are judged here. A candidate it does not verify is an ordinary
+# Change, judged whole; Lineage Synchronization reports what is wrong with it.
 name: Change Isolation
 
 on:
@@ -40,6 +40,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Judge the complete change against the target
         env:
@@ -55,10 +59,11 @@ jobs:
             exit 0
           fi
           CHANGE="$BASE...$HEAD"
-          if [[ "$BASE_REF" == kaal/* ]] && git show "origin/$DEFAULT:.github/lineage/synchronization.sh" > ../synchronization.sh 2>/dev/null \
-            && bash ../synchronization.sh "$(git rev-parse "origin/$DEFAULT")" "$BASE" "$HEAD" > ../resolved; then
+          if [[ "$BASE_REF" == kaal/* ]] && git show "origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" 2>/dev/null \
+            && node "$RUNNER_TEMP/lineage.ts" synchronization "$DEFAULT" "$BASE_REF" "origin/$DEFAULT" "$BASE" "$HEAD" \
+              --resolutions "$RUNNER_TEMP/resolved"; then
             CHANGE=
-            [ -s ../resolved ] || { echo "Synchronization: no explicit resolutions; nothing of its own to judge."; exit 0; }
+            [ -s "$RUNNER_TEMP/resolved" ] || { echo "Synchronization: no explicit resolutions; nothing of its own to judge."; exit 0; }
           fi
           if [ ! -f engineering/change-isolation/check.mjs ]; then
             echo "::error::not verified: the target does not hold engineering/change-isolation/check.mjs"
@@ -66,7 +71,7 @@ jobs:
           fi
           if [ -z "$CHANGE" ]; then
             echo "Synchronization: judging its explicit resolutions only."
-            node engineering/change-isolation/check.mjs < ../resolved
+            node engineering/change-isolation/check.mjs < "$RUNNER_TEMP/resolved"
           else
             git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
               | node engineering/change-isolation/check.mjs

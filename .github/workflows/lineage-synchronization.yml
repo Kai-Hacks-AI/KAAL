@@ -1,23 +1,15 @@
-# Lineage Synchronization: verifies the result a pull request proposes for the default branch or for
-# a kaal/* lineage against the default branch's current state. It realizes two KAAL flows in Git
-# terms; what a Change may contain is Change Isolation's to judge.
+# Lineage Synchronization: runs the branching checker, engineering/github/lineage.ts, on the result a
+# pull request proposes. Into the default branch it judges promotion freshness; into any other branch
+# it judges a synchronization (not applicable to an ordinary Change). The verdicts and their guidance
+# live only in the checker and engineering/github/branching.md; this workflow supplies Git data and
+# reports the outcome. Nothing here synchronizes, rebases or merges.
 #
-# Promote (kaal/* -> default): fresh when merging the promotion yields exactly the tree validated on
-# its head. A stale promotion fails and is told how to refresh it: rebase its Change onto the default
-# branch's tip in a working branch, take it into a new kaal/* lineage established at that tip, and
-# resubmit the promotion from there.
-#
-# Synchronize (default -> an existing kaal/* lineage): the lineage receives the default branch's
-# current state with its own outstanding Changes kept, as one pull request that lands by squash or
-# rebase. .github/lineage/synchronization.sh defines and verifies it; a pull request into kaal/*
-# without a Synchronized-with line is an ordinary Change and not applicable here.
-#
-# Nothing here synchronizes, rebases or merges. pull_request_target runs this workflow, and the
-# script, as they stand on the default branch. Branches are read at their current tips, never the
-# event's base.sha; the candidate's commits are fetched as Git data only: nothing of the candidate is
-# checked out, built, installed or run. When the default branch advances, the revalidate job re-runs
-# this check on every open promotion and synchronization, so an earlier pass does not outlive the
-# tip it was judged against.
+# pull_request_target runs this workflow, and the checker, as they stand on the default branch.
+# Branches are read at their current tips, never the event's base.sha; the candidate's commits are
+# fetched as Git data only: nothing of the candidate is checked out, built, installed or run. When
+# the default branch advances, the revalidate job re-runs this check on every open pull request into
+# the default branch from kaal/* and into kaal/*, so an earlier pass does not outlive the tip it was
+# judged against.
 name: Lineage Synchronization
 
 on:
@@ -36,47 +28,35 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
-      - name: Judge the proposed result against the default branch
+      - name: Judge the proposed result with the default branch's checker
         env:
           SERVER: ${{ github.server_url }}
           REPO: ${{ github.repository }}
           DEFAULT: ${{ github.event.repository.default_branch }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          fail() { echo "::error title=Lineage Synchronization::$1"; echo "$1" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
-          if [ "$BASE_REF" = "$DEFAULT" ]; then
-            if [ "$HEAD_REPO" != "$REPO" ] || [[ "$HEAD_REF" != kaal/* ]]; then
-              echo "Not applicable: $HEAD_REPO:$HEAD_REF -> $BASE_REF is not a kaal/* promotion."; exit 0; fi
-          elif [[ "$BASE_REF" != kaal/* ]]; then
-            echo "Not applicable: $BASE_REF is neither $DEFAULT nor a kaal/* lineage."; exit 0
-          fi
           git init -q lineage && cd lineage
           git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" \
             "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF" "$HEAD"
-          TIP=$(git rev-parse "refs/remotes/origin/$DEFAULT")
-
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+            echo "::error title=Lineage Synchronization::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
           if [ "$BASE_REF" = "$DEFAULT" ]; then
-            if OUT=$(git merge-tree --write-tree --name-only --no-messages "$TIP" "$HEAD"); then
-              [ "${OUT%%$'\n'*}" = "$(git rev-parse "$HEAD^{tree}")" ] && {
-                echo "Fresh: merging $HEAD_REF ($HEAD) into $DEFAULT ($TIP) yields exactly the head's validated tree."; exit 0; }
-              WHY="merging it into the current $DEFAULT tip $TIP would produce a tree that was never validated on its head"
-            else
-              WHY="it conflicts with the current $DEFAULT tip $TIP on $(tail -n +2 <<< "$OUT" | sed '/^$/d' | sort -u | paste -sd' ')"
-            fi
-            fail "$HEAD_REF is not fresh: $WHY. Refresh the promotion: rebase its Change onto $TIP in a working branch, open that branch into a new kaal/* lineage established at $TIP, merge it through its normal checks, and resubmit the promotion from that lineage, superseding this pull request."
+            set -- freshness "$DEFAULT" "refs/remotes/origin/$DEFAULT" "$HEAD_REF" "$HEAD"
+          else
+            set -- synchronization "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" "refs/remotes/origin/$BASE_REF" "$HEAD"
           fi
-
-          git show "$TIP:.github/lineage/synchronization.sh" > ../synchronization.sh
-          bash ../synchronization.sh "$TIP" "$(git rev-parse "refs/remotes/origin/$BASE_REF")" "$HEAD" > ../resolved 2> ../verdict || RC=$?
-          case ${RC:-0} in
-            0) echo "Synchronized: $HEAD_REF -> $BASE_REF $(cat ../verdict)" ;;
-            3) echo "Not applicable: $(cat ../verdict); an ordinary Change into $BASE_REF." ;;
-            1) fail "$HEAD_REF -> $BASE_REF: $(cat ../verdict)" ;;
-            *) fail "$HEAD_REF -> $BASE_REF cannot be judged: $(cat ../verdict)" ;;
+          RC=0; node "$RUNNER_TEMP/lineage.ts" "$@" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+          cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
+          case $RC in
+            0|3) cat "$RUNNER_TEMP/verdict" ;;
+            *) echo "::error title=Lineage Synchronization::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
           esac
 
   revalidate:
