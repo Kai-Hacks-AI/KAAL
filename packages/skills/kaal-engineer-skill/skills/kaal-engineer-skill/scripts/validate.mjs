@@ -49,8 +49,8 @@ export function checkSkill(name, files) {
     else if (typeof declared !== "string" || !NAME.test(declared) || length(declared) > 64) standard.push(`name ${show(declared)} is not 1-64 lowercase letters, digits and single hyphens, without a leading or trailing hyphen`);
     else if (declared !== name) standard.push(`name ${declared} does not match its parent directory name ${name}`);
     if (!fields.has("description")) standard.push("description is required");
-    else if (typeof description !== "string" || length(description) === 0 || length(description) > 1024) standard.push("description is not a string of 1-1024 characters");
-    if (fields.has("compatibility") && (typeof compatibility !== "string" || length(compatibility) === 0 || length(compatibility) > 500)) standard.push("compatibility is not a string of 1-500 characters");
+    else if (typeof description !== "string" || description.trim() === "" || length(description) > 1024) standard.push("description is not a string of 1-1024 characters");
+    if (fields.has("compatibility") && (typeof compatibility !== "string" || compatibility.trim() === "" || length(compatibility) > 500)) standard.push("compatibility is not a string of 1-500 characters");
     if (fields.has("license") && (typeof license !== "string" || license.length === 0)) standard.push("license is not a non-empty string");
     if (fields.has("allowed-tools") && (typeof allowedTools !== "string" || allowedTools.length === 0)) standard.push("allowed-tools is not a non-empty space-separated string");
     if (fields.has("metadata")) {
@@ -82,14 +82,21 @@ function frontmatter(source, standard) {
     for (const e of doc.errors) standard.push(`frontmatter is not valid YAML: ${e.message.split("\n")[0].replace(/:$/, "")}`);
     return undefined;
   }
-  const value = doc.toJS({ mapAsMap: true });
+  let value;
+  try {
+    value = doc.toJS({ mapAsMap: true });
+  } catch (e) {
+    // yaml bounds alias expansion against resource exhaustion; past that bound the frontmatter is not resolved.
+    standard.push(`frontmatter could not be resolved as YAML: ${e.message}`);
+    return undefined;
+  }
   if (value instanceof Map) return value;
   if (value === null) return new Map();
   standard.push("frontmatter is not a YAML mapping of fields");
   return undefined;
 }
 
-/** Relative file references in the SKILL.md body: CommonMark link and image destinations, and paths under scripts/, references/ or assets/ in text and code. */
+/** Relative file references in the SKILL.md body: CommonMark link and image destinations other than URLs (with a scheme, or network-path //host), and paths under scripts/, references/ or assets/ in text and code. */
 function references(body) {
   const found = new Set();
   const walker = new Parser().parse(body).walker();
@@ -98,7 +105,7 @@ function references(body) {
     if (!entering) continue;
     if (node.type === "link" || node.type === "image") {
       const target = node.destination.split("#")[0];
-      if (target && !/^[a-z][a-z0-9+.-]+:/i.test(target)) found.add(decoded(target));
+      if (target && !/^[a-z][a-z0-9+.-]+:/i.test(target) && !target.startsWith("//")) found.add(decoded(target));
     } else if (node.literal) {
       for (const m of node.literal.matchAll(/(?<=^|[\s`("'])((?:scripts|references|assets)\/[\w.\-/]*\w)/gm)) found.add(m[1]);
     }

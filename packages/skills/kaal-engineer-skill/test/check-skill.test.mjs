@@ -67,6 +67,8 @@ describe("standard: the Agent Skills specification", () => {
     only(skill("my-skill", "description: Does a thing.\n"), "standard", /name is required/);
     only(skill("my-skill", "name: my-skill\n"), "standard", /description is required/);
     only(skill("my-skill", "name: my-skill\ndescription:\n"), "standard", /description is not a string of 1-1024/);
+    only(skill("my-skill", 'name: my-skill\ndescription: "   "\n'), "standard", /description is not a string of 1-1024/);
+    only(skill("my-skill", ok("my-skill", 'compatibility: " "\n')), "standard", /compatibility is not a string of 1-500/);
   });
 
   it("holds name to the grammar and to its parent directory", () => {
@@ -127,12 +129,16 @@ describe("standard: the Agent Skills specification", () => {
     assert.deepEqual(check(skill("my-skill", "{ name: my-skill, description: Flow style. }\n")), clean);
     assert.deepEqual(check(skill("my-skill", ok("my-skill", "metadata: { author: me, version: '2' }\n"))), clean);
     only(skill("my-skill", "name: my-skill\ndescription: >\n"), "standard", /description is not a string of 1-1024/);
+    assert.deepEqual(check(skill("my-skill", ok("my-skill", "metadata:\n  a: &a v\n  b: *a\n"))), clean);
+    // Alias expansion past yaml's resource-exhaustion bound is a finding, not a crash.
+    const aliases = Array.from({ length: 101 }, (_, i) => `  k${i}: *a\n`).join("");
+    only(skill("my-skill", ok("my-skill", `metadata:\n  a: &a v\n${aliases}`)), "standard", /could not be resolved as YAML/);
   });
 });
 
 describe("kaal: engineering rules beyond the standard", () => {
   it("accepts references to files and directories the skill carries, and ignores URLs and anchors", () => {
-    const body = "See [the guide](references/guide.md#setup), [this](./references/../references/guide.md) and run `node scripts/run.mjs` from scripts/tools.\nSpec: [spec](https://agentskills.io/specification), [top](#body).\n";
+    const body = "See [the guide](references/guide.md#setup), [this](./references/../references/guide.md) and run `node scripts/run.mjs` from scripts/tools.\nSpec: [spec](https://agentskills.io/specification), [docs](//example.com/guide), [top](#body).\n";
     assert.deepEqual(check(skill("my-skill", ok(), body, { "references/guide.md": "g", "scripts/run.mjs": "r", "scripts/tools/a.sh": "a" })), clean);
   });
 
