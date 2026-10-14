@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "kaal/**"]
+  pull_request:
+
+# Hosting is KAAL's host boundary: its conformance suite runs on every
+# supported OS. Everything else is checked once, on a reference host.
+jobs:
+  hosting:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Windows Hosting, os: windows-latest }
+          - { name: Ubuntu Hosting, os: ubuntu-latest }
+          - { name: macOS Hosting, os: macos-latest }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run test:hosting
+
+  kaal:
+    name: KAAL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run test:kaal
