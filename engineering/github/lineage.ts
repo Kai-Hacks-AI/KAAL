@@ -5,8 +5,9 @@
 //
 //   promotionSource      Promote: the default branch accepts pull requests only from kaal/* of this repository.
 //   promotionFreshness   Promote: merging the promotion yields exactly the tree validated on its head.
-//   synchronization      Synchronize: a lineage receives the default branch's current state with its
-//                        own outstanding Changes kept, and its explicit resolutions are named.
+//   synchronization      Synchronize: a lineage receives a state of the default branch newer than the
+//                        one it last incorporated, with its own outstanding Changes kept, and its
+//                        explicit resolutions are named. It is fully current or a valid step.
 //
 // A `Synchronized-with: <sha>` line states intent only. Every claim it makes is verified against
 // the actual Git state and the proposed result before it is used.
@@ -30,7 +31,9 @@ import { fileURLToPath } from "node:url";
 export const GUIDE = "engineering/github/branching.md";
 
 export type Verdict = { kind: "pass" | "fail" | "not-applicable"; message: string };
-export type SyncVerdict = Verdict & { resolutions: string[] };
+/** A synchronization verdict. A pass is either fully current (it incorporates the default branch's
+ *  tip) or a valid intermediate step that leaves the lineage behind; both name their resolutions. */
+export type SyncVerdict = Verdict & { resolutions: string[]; current: boolean };
 
 /** A three-way merge as Git computes it: the resulting tree and the paths it could not merge. */
 export interface MergeResult {
@@ -106,8 +109,11 @@ export interface SyncFacts {
   marker: string | null;
   /** The head builds on the lineage's tip: it contains it and is not it. */
   onLineageTip: boolean;
-  /** The marker names a commit of the default branch's history. */
+  /** The marker names a commit on the default branch's first-parent history: a state it admitted. */
   markerOnDefault: boolean;
+  /** The marker is strictly newer than the incorporated state: the incorporated state is its ancestor
+   *  and not itself. */
+  advances: boolean;
   /** The last default-branch state the lineage verifiably incorporated (see incorporated()). */
   incorporated: string;
   /** The merge of the marker and the lineage's tip over the incorporated state. */
@@ -120,18 +126,22 @@ export function synchronization(f: SyncFacts): SyncVerdict {
   const fail = (problem: string): SyncVerdict => ({
     kind: "fail",
     resolutions: [],
+    current: false,
     message:
-      `${problem} Rebuild it on a branch from ${f.lineage}'s tip ${short(f.lineageTip)}: apply ${f.defaultBranch}'s Changes ` +
-      `since ${short(f.incorporated)} (git diff --binary ${short(f.incorporated)} ${short(f.defaultTip)} | git apply --3way --index), ` +
-      `resolve every conflict explicitly, commit with the line "Synchronized-with: ${f.defaultTip}", and push it to this ` +
-      `pull request. See ${GUIDE}#synchronize`,
+      `${problem} Rebuild it on a branch from ${f.lineage}'s tip ${short(f.lineageTip)}: choose a ${f.defaultBranch} commit S after ` +
+      `${short(f.incorporated)} (its tip ${short(f.defaultTip)}, or an earlier one so that each step's resolutions travel alone), ` +
+      `apply ${f.defaultBranch}'s Changes up to it (git diff --binary ${short(f.incorporated)} S | git apply --3way --index), ` +
+      `resolve every conflict explicitly, commit with the line "Synchronized-with: <S>", and push it to this pull request. ` +
+      `See ${GUIDE}#synchronize`,
   });
   if (f.marker === null) {
-    return { kind: "not-applicable", resolutions: [], message: `Not a synchronization: ${short(f.head)} states no Synchronized-with; an ordinary Change into ${f.lineage}.` };
+    return { kind: "not-applicable", resolutions: [], current: false, message: `Not a synchronization: ${short(f.head)} states no Synchronized-with; an ordinary Change into ${f.lineage}.` };
   }
   if (!f.onLineageTip) return fail(`This synchronization does not build on ${f.lineage}'s tip ${short(f.lineageTip)}.`);
-  if (!f.markerOnDefault) return fail(`Synchronized-with ${short(f.marker)} is not a commit of ${f.defaultBranch}.`);
-  if (f.marker !== f.defaultTip) return fail(`Stale: ${f.defaultBranch} has advanced from ${short(f.marker)} to ${short(f.defaultTip)}.`);
+  if (!f.markerOnDefault) return fail(`Synchronized-with ${short(f.marker)} is not a commit on ${f.defaultBranch}'s first-parent history.`);
+  if (!f.advances) {
+    return fail(`No progress: Synchronized-with ${short(f.marker)} is not newer than ${short(f.incorporated)}, the ${f.defaultBranch} state ${f.lineage} already incorporated.`);
+  }
   if (f.differing.length) {
     return fail(
       `This synchronization differs from ${f.defaultBranch} at ${short(f.marker)} with ${f.lineage}'s outstanding Changes on: ` +
@@ -139,13 +149,17 @@ export function synchronization(f: SyncFacts): SyncVerdict {
     );
   }
   const resolutions = f.expected.conflicts;
+  const current = f.marker === f.defaultTip;
   return {
     kind: "pass",
     resolutions,
+    current,
     message:
-      `Synchronized: ${f.lineage} receives ${f.defaultBranch} at ${short(f.marker)} with its outstanding Changes since ` +
-      `${short(f.incorporated)}; explicit resolutions: ${resolutions.length ? list(resolutions) : "none"}. Structure verified; ` +
-      `whether each resolution is right is for the lineage's tests and review.`,
+      `${current ? "Synchronized, fully current" : "Synchronized, a valid intermediate step"}: ${f.lineage} receives ` +
+      `${f.defaultBranch} at ${short(f.marker)} with its outstanding Changes since ${short(f.incorporated)}; explicit resolutions: ` +
+      `${resolutions.length ? list(resolutions) : "none"}. ` +
+      (current ? "" : `${f.defaultBranch} is at ${short(f.defaultTip)}: synchronize again from ${short(f.marker)} to bring ${f.lineage} current. `) +
+      `Structure verified; whether each resolution is right is for the lineage's tests and review.`,
   };
 }
 
@@ -191,15 +205,22 @@ function synchronizes(cwd: string, c: string, from: string, s: string, base: str
   return { ok: differing.length === 0, expected, differing };
 }
 
+/** Whether s is a state the default branch admitted: a commit on its first-parent history. */
+function admitted(cwd: string, s: string, defaultTip: string): boolean {
+  if (git(cwd, ["cat-file", "-e", `${s}^{commit}`], [0, 1, 128]).status !== 0 || !isAncestor(cwd, s, defaultTip)) return false;
+  return git(cwd, ["rev-list", "--first-parent", defaultTip]).stdout.split("\n").includes(s);
+}
+
 /** The last default-branch state the lineage verifiably incorporated: its fork point, advanced along
- *  its first-parent history by each commit that states Synchronized-with and is verified to be that
- *  synchronization. A marker that does not verify is ignored. */
+ *  its first-parent history by each commit that states Synchronized-with, names an admitted state
+ *  strictly newer than the one so far, and is verified to be that synchronization. It only moves
+ *  forward. A marker that does not verify is ignored. */
 export function incorporated(cwd: string, lineageTip: string, defaultTip: string): string {
   let base = git(cwd, ["merge-base", lineageTip, defaultTip]).stdout.trim();
   const history = git(cwd, ["rev-list", "--first-parent", "--reverse", lineageTip, `^${base}`]).stdout.split("\n").filter(Boolean);
   for (const c of history) {
     const s = markerOf(cwd, c);
-    if (!s || s === base || !isAncestor(cwd, base, s) || !isAncestor(cwd, s, defaultTip)) continue;
+    if (!s || s === base || !isAncestor(cwd, base, s) || !admitted(cwd, s, defaultTip)) continue;
     const ps = parents(cwd, c);
     if (ps.length === 1 && synchronizes(cwd, c, ps[0], s, base).ok) base = s;
   }
@@ -213,14 +234,15 @@ export function readFreshness(cwd: string, defaultBranch: string, defaultTip: st
 export function readSync(cwd: string, defaultBranch: string, lineage: string, defaultTip: string, lineageTip: string, head: string): SyncFacts {
   const inc = incorporated(cwd, lineageTip, defaultTip);
   const m = markerOf(cwd, head);
-  const markerOnDefault = m !== null && git(cwd, ["cat-file", "-e", `${m}^{commit}`], [0, 1, 128]).status === 0 && isAncestor(cwd, m, defaultTip);
+  const markerOnDefault = m !== null && admitted(cwd, m, defaultTip);
+  const advances = m !== null && markerOnDefault && m !== inc && isAncestor(cwd, inc, m);
   const facts: SyncFacts = {
     defaultBranch, lineage, defaultTip, lineageTip, head, marker: m,
     onLineageTip: head !== lineageTip && isAncestor(cwd, lineageTip, head),
-    markerOnDefault, incorporated: inc,
+    markerOnDefault, advances, incorporated: inc,
     expected: { clean: true, tree: "", conflicts: [] }, differing: [],
   };
-  if (m !== null && facts.onLineageTip && markerOnDefault) {
+  if (m !== null && facts.onLineageTip && advances) {
     const { expected, differing } = synchronizes(cwd, head, lineageTip, m, inc);
     facts.expected = expected;
     facts.differing = differing;

@@ -44,25 +44,31 @@ describe("promotionFreshness", () => {
 describe("synchronization", () => {
   const f: SyncFacts = {
     defaultBranch: "main", lineage: "kaal/x", defaultTip: A, lineageTip: B, head: C, marker: A,
-    onLineageTip: true, markerOnDefault: true, incorporated: D,
+    onLineageTip: true, markerOnDefault: true, advances: true, incorporated: D,
     expected: { clean: false, tree: D, conflicts: ["package.json"] }, differing: [],
   };
   const fails = (g: Partial<SyncFacts>, re: RegExp) => {
     const v = synchronization({ ...f, ...g });
     assert.equal(v.kind, "fail");
     assert.match(v.message, re);
-    assert.match(v.message, /Rebuild it on a branch from kaal\/x's tip bbbbbbb: .*git apply --3way --index.* with the line "Synchronized-with: a{40}"/);
+    assert.match(v.message, /Rebuild it on a branch from kaal\/x's tip bbbbbbb: choose a main commit S after ddddddd .*git apply --3way --index.* with the line "Synchronized-with: <S>"/);
     assert.ok(v.message.endsWith(`${GUIDE}#synchronize`));
   };
-  it("passes and names its explicit resolutions, as structure only", () => {
+  it("passes fully current and names its explicit resolutions, as structure only", () => {
     const v = synchronization(f);
-    assert.deepEqual(v.resolutions, ["package.json"]);
+    assert.deepEqual([v.kind, v.current, v.resolutions], ["pass", true, ["package.json"]]);
+    assert.match(v.message, /^Synchronized, fully current/);
     assert.match(v.message, /Structure verified; whether each resolution is right is for the lineage's tests and review/);
   });
   it("does not apply without a marker", () => assert.equal(synchronization({ ...f, marker: null }).kind, "not-applicable"));
   it("fails when it does not build on the lineage's tip", () => fails({ onLineageTip: false }, /does not build on kaal\/x's tip bbbbbbb/));
-  it("fails a marker that is not a default-branch commit", () => fails({ markerOnDefault: false }, /is not a commit of main/));
-  it("fails stale", () => fails({ marker: D }, /Stale: main has advanced from ddddddd to aaaaaaa/));
+  it("fails a marker that is not an admitted default-branch state", () => fails({ markerOnDefault: false }, /is not a commit on main's first-parent history/));
+  it("passes an intermediate step and says the lineage is still behind", () => {
+    const v = synchronization({ ...f, marker: C });
+    assert.deepEqual([v.kind, v.current], ["pass", false]);
+    assert.match(v.message, /^Synchronized, a valid intermediate step: .* main is at aaaaaaa: synchronize again from ccccccc/);
+  });
+  it("fails a marker that does not advance the incorporated state", () => fails({ advances: false }, /No progress: Synchronized-with aaaaaaa is not newer than ddddddd/));
   it("fails any other difference and names it", () => fails({ differing: ["AGENTS.md"] }, /on: AGENTS\.md\. Only paths where the two conflict may differ/));
 });
 
@@ -111,9 +117,9 @@ function repo() {
   /** The agent's procedure (branching.md#synchronize), with ordinary Git only: a branch from the
    *  lineage's tip; main's Changes since the lineage's incorporated state applied with a three-way
    *  merge; conflicts resolved by `resolve`; one commit stating Synchronized-with. */
-  const synchronize = (lineage: string, resolve: (conflicts: string[]) => Record<string, string | null> = () => ({})) => {
-    const tip = g("rev-parse", "main");
-    const inc = incorporated(dir, g("rev-parse", lineage), tip);
+  const synchronize = (lineage: string, resolve: (conflicts: string[]) => Record<string, string | null> = () => ({}), to = "main") => {
+    const tip = g("rev-parse", to);
+    const inc = incorporated(dir, g("rev-parse", lineage), g("rev-parse", "main"));
     g("checkout", "-q", "-B", "work", lineage);
     const diff = spawnSync("git", ["diff", "--binary", inc, tip], { cwd: dir, encoding: "utf8" }).stdout;
     const applied = spawnSync("git", ["apply", "--3way", "--index"], { cwd: dir, input: diff, encoding: "utf8" });
@@ -183,13 +189,12 @@ describe("acceptance: synchronizing a divergent lineage", () => {
     assert.match(r.judge("kaal/genesis", onMain).message, /does not build on kaal\/genesis's tip/);
   });
 
-  it("fails as stale once main advances, and verifies once rebuilt", () => {
+  it("remains a valid intermediate step once main advances, and is current once rebuilt", () => {
     r.land("main", { "docs/note.md": "note\n" }, "unrelated Change");
     const v = r.judge("kaal/genesis", s1);
-    assert.equal(v.kind, "fail");
-    assert.match(v.message, /^Stale: main has advanced/);
+    assert.deepEqual([v.kind, v.current], ["pass", false]);
     s1 = r.synchronize("kaal/genesis", keepLineage);
-    assert.equal(r.judge("kaal/genesis", s1).kind, "pass");
+    assert.deepEqual([r.judge("kaal/genesis", s1).kind, r.judge("kaal/genesis", s1).current], ["pass", true]);
   });
 
   it("accepts a synchronization committed in more than one step", () => {
@@ -241,6 +246,68 @@ describe("acceptance: synchronizing a divergent lineage", () => {
   });
 });
 
+describe("acceptance: stepwise synchronization", () => {
+  const r = repo();
+  const isolation = (paths: string[]) =>
+    spawnSync(process.execPath, [join(import.meta.dirname, "../change-isolation/check.mjs")], { input: paths.join("\0"), encoding: "utf8" }).status;
+  r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4\n", "package.json": pkg(MAIN_SCRIPTS) }, "initial");
+  r.g("branch", "kaal/l", "main");
+  const fork = r.g("rev-parse", "main");
+  r.land("kaal/l", { ".github/workflows/ci.yml": "uses: checkout@v5\n" }, "lineage .github Change");
+  r.land("kaal/l", { "package.json": pkg(KAAL_SCRIPTS) }, "lineage root Change");
+  const github = r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4.2\n" }, "main .github Change");
+  const root = r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace kaal-hosting"']) }, "main root Change");
+  const keepLineage = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("show", `kaal/l:${p}`) + "\n"]));
+
+  it("a synchronization straight to main's tip mixes .github and root resolutions, which Change Isolation rejects", () => {
+    const v = r.judge("kaal/l", r.synchronize("kaal/l", keepLineage));
+    assert.deepEqual([v.kind, v.current, v.resolutions], ["pass", true, [".github/workflows/ci.yml", "package.json"]]);
+    assert.equal(isolation(v.resolutions), 1);
+  });
+
+  it("splits into two consecutive synchronizations whose resolutions each travel alone", () => {
+    const step1 = r.synchronize("kaal/l", keepLineage, github);
+    const v1 = r.judge("kaal/l", step1);
+    assert.deepEqual([v1.kind, v1.current, v1.resolutions], ["pass", false, [".github/workflows/ci.yml"]]);
+    assert.equal(isolation(v1.resolutions), 0);
+    r.squash("kaal/l", step1);
+    assert.equal(incorporated(r.dir, r.g("rev-parse", "kaal/l"), root), github, "the incorporated state advanced to step 1");
+
+    const step2 = r.synchronize("kaal/l", keepLineage);
+    const v2 = r.judge("kaal/l", step2);
+    assert.deepEqual([v2.kind, v2.current, v2.resolutions], ["pass", true, ["package.json"]]);
+    assert.equal(isolation(v2.resolutions), 0);
+    r.squash("kaal/l", step2);
+    assert.equal(incorporated(r.dir, r.g("rev-parse", "kaal/l"), root), root, "and then to main's tip");
+  });
+
+  it("rejects a synchronization that does not move forward", () => {
+    const stamp = (s: string) => r.g("commit-tree", "kaal/l^{tree}", "-p", "kaal/l", "-m", `S\n\nSynchronized-with: ${s}`);
+    for (const s of [root, github, fork]) assert.match(r.judge("kaal/l", stamp(s)).message, /^No progress: /);
+  });
+
+  it("keeps a step valid but not current when main advances before it lands", () => {
+    r.land("kaal/l", { "lanes/kaal.mjs": "lane\n" }, "lineage Change");
+    r.land("main", { "docs/a.md": "a\n" }, "main Change a");
+    const step = r.synchronize("kaal/l");
+    r.land("main", { "docs/b.md": "b\n" }, "main Change b");
+    const v = r.judge("kaal/l", step);
+    assert.deepEqual([v.kind, v.current], ["pass", false]);
+    assert.match(v.message, /synchronize again from/);
+  });
+
+  it("never advances on a marker naming a state off main's first-parent history", () => {
+    r.g("checkout", "-q", "-B", "side", "main");
+    r.g("commit", "-q", "--allow-empty", "-m", "side");
+    const side = r.g("rev-parse", "HEAD");
+    r.g("checkout", "-q", "--detach", "main");
+    r.g("merge", "-q", "--no-ff", "-m", "a merge on main", side);
+    r.g("branch", "-f", "main", "HEAD");
+    const v = r.judge("kaal/l", r.g("commit-tree", "kaal/l^{tree}", "-p", "kaal/l", "-m", `S\n\nSynchronized-with: ${side}`));
+    assert.match(v.message, /is not a commit on main's first-parent history/);
+  });
+});
+
 describe("acceptance: a Synchronized-with line is never proof", () => {
   const r = repo();
   r.land("main", { "a.txt": "1\n" }, "initial");
@@ -262,7 +329,7 @@ describe("acceptance: a Synchronized-with line is never proof", () => {
   it("fails a head whose marker names a commit outside main", () => {
     const off = r.land("kaal/x", { "z.txt": "z\n" });
     const bad = r.g("commit-tree", `${off}^{tree}`, "-p", "kaal/x", "-m", `S\n\nSynchronized-with: ${off}`);
-    assert.match(r.judge("kaal/x", bad).message, /is not a commit of main/);
+    assert.match(r.judge("kaal/x", bad).message, /is not a commit on main's first-parent history/);
   });
 });
 

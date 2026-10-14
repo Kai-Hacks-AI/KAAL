@@ -43,7 +43,9 @@ A promotion that is no longer fresh is refreshed, not merged stale and not synch
 
 ### Synchronize
 
-An existing lineage receives `main`'s current state while keeping its own outstanding Changes. Synchronization is a pull request into the lineage like any other, so it passes the same required checks.
+An existing lineage receives a newer state of `main` while keeping its own outstanding Changes. Synchronization is a pull request into the lineage like any other, so it passes the same required checks.
+
+A synchronization may take `main` all the way to its tip, which leaves the lineage fully current, or only to an earlier `main` commit that is still newer than the one it last incorporated. That second kind is a valid intermediate step: the lineage stays behind until a later synchronization takes it further. Each step is its own pull request with its own required checks, and every step must move forward. Promotion is different: it is always judged against `main`'s latest tip.
 
 Squash and rebase never record `main` as a parent of the lineage, so Git's merge base does not follow synchronizations. The lineage's commit message carries `Synchronized-with: <main commit>` to state which `main` state it took in. That line states intent only: the checker verifies it against the actual Git state before relying on it, and an unverified line is ignored.
 
@@ -52,10 +54,13 @@ Procedure, with ordinary Git:
 ```sh
 git switch -c <working branch> origin/<lineage>
 base=$(node engineering/github/lineage.ts incorporated origin/<lineage> origin/main)
-git diff --binary "$base" origin/main | git apply --3way --index
+target=$(git rev-parse origin/main)   # or an earlier main commit after $base, to take a step
+git diff --binary "$base" "$target" | git apply --3way --index
 # resolve every conflict explicitly, keeping the lineage's intent; git add the results
-git commit -m "Synchronize <lineage> with main" -m "Synchronized-with: $(git rev-parse origin/main)"
+git commit -m "Synchronize <lineage> with main" -m "Synchronized-with: $target"
 ```
+
+Take a step rather than the whole way when the resolutions would otherwise not travel alone. For example, if `main` brought a `.github` Change and a root Change that both conflict with the lineage, synchronize to the first one, land it, and then synchronize to the tip.
 
 Then push the working branch and open its pull request into the lineage. It may take more than one commit; the last states `Synchronized-with`.
 
@@ -64,7 +69,7 @@ Why this shape:
 - The branch builds on the lineage's tip because a `kaal/*` pull request must be up to date with its target, which GitHub decides by ancestry. A branch rebased onto `main` does not contain the lineage's tip and stays behind it.
 - `main`'s Changes are applied from the incorporated state rather than merged with `git merge`, because Git's merge base for a squash-synchronized lineage is still its original fork point. Merging from there conflicts again on every path an earlier synchronization already settled and the lineage edited since.
 
-The paths where `main` and the lineage conflicted are the synchronization's explicit resolutions. They are its own Change and Change Isolation judges them. Everything else must be exactly `main` with the lineage's outstanding Changes, and the checker verifies that. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the lineage's tests and review decide it. If `main` advances before the pull request merges, rebuild against the new tip.
+The paths where `main` and the lineage conflicted are the synchronization's explicit resolutions. They are its own Change and Change Isolation judges them. Everything else must be exactly `main` with the lineage's outstanding Changes, and the checker verifies that. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the lineage's tests and review decide it. If `main` advances before the pull request merges, the synchronization is still a valid step; the next one brings the lineage current.
 
 Reasoning: the lineage keeps building on what has been promoted without losing work in flight, and every synchronization is verified before it lands.
 
