@@ -2,10 +2,12 @@
 # .github travels alone. The rules live only in the checker; this workflow supplies the change set.
 #
 # pull_request_target runs this workflow as it stands on the default branch, never as the candidate
-# PR has it. Only the checker held by the PR's target (base.sha) is executed; the candidate's commits
-# are fetched as git data to list its changed paths and are never checked out, built, installed or
-# run. Activation: nothing runs until this workflow is on the default branch. Once it runs, a target
-# that does not hold the checker fails: the check passes only on a judgment or a synchronization.
+# PR has it. Only the checker held by the PR's target branch at its current tip is executed; the
+# event's base.sha is not used, as it is recorded when the PR last changed and can predate the
+# target. The candidate's commits are fetched as git data to list its changed paths and are never
+# checked out, built, installed or run. Activation: nothing runs until this workflow is on the
+# default branch. Once it runs, a target that does not hold the checker fails: the check passes
+# only on a judgment or a synchronization.
 #
 # Synchronization: a candidate head already contained in the default branch carries only Changes
 # that were each admitted there. Such a main -> kaal/* synchronization is expected not to travel
@@ -29,18 +31,18 @@ jobs:
       - name: Check out the target branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
           persist-credentials: false
 
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Judge the complete change against the target
         env:
-          BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
         run: |
           set -o pipefail
+          BASE=$(git rev-parse HEAD)
           git fetch --no-tags origin "$HEAD"
           if git merge-base --is-ancestor "$HEAD" "origin/$DEFAULT"; then
             echo "Synchronization: Change Isolation not applicable; candidate $HEAD already admitted on $DEFAULT."
