@@ -313,6 +313,10 @@ describe("this repository's own Engine", () => {
   it("is a real Engine deployed by kaal init, verified by the packaged kaal", async () => {
     assert.match(await run(kaal, ["verify", "--engine", engine], host), /^ok: /);
     assert.match(await run(kaal, ["init", "--engine", engine], host), /already holds the foundation/);
+  });
+
+  it("is what the root AGENTS.md points to", async () => {
+    assert.match(readFileSync(join(REPO, "AGENTS.md"), "utf8"), /`\.kaal\/`\. Start with its `AGENTS\.md`/);
     assert.equal(readFileSync(join(engine, "AGENTS.md"), "utf8"), packagedAgents());
   });
 });
