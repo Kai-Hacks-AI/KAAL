@@ -2,10 +2,10 @@
 # default branch exactly the tree validated on the promotion's head. The judgment is a clean
 # `git merge-tree` of the default branch's current tip with the head whose result equals the head's
 # own tree. How the default branch's Changes reached the lineage, by a merge commit or a squash, is
-# not part of it. A stale promotion fails and is told how to catch up: one synchronization pull
-# request from the default branch into its lineage, merged through that lineage's normal checks,
-# after which this check re-runs on the promotion's new head. Nothing here synchronizes, rebases or
-# merges anything.
+# not part of it. A stale promotion fails and is told how to refresh: rebase its Change onto the
+# default branch's tip in a working branch, take it through a new kaal/* lineage cut at that tip by
+# the normal pull request process, and resubmit the promotion from there. Nothing here
+# synchronizes, rebases or merges anything.
 #
 # Required checks run on the head (CI on the pull request's merge, which equals the head's tree
 # while this check passes), so a pass here means they validated the exact state the default branch
@@ -64,7 +64,7 @@ jobs:
           else
             WHY="it conflicts with the current $DEFAULT tip $TIP"
           fi
-          MSG="$HEAD_REF is not synchronized: $WHY. Create one synchronization pull request from $DEFAULT into $HEAD_REF and merge it through its normal checks; this check then re-runs on the promotion's new head."
+          MSG="$HEAD_REF is not fresh: $WHY. Refresh the promotion: rebase its Change onto the current $DEFAULT tip in a working branch, open that branch into a new kaal/* lineage cut at $TIP, merge it through its normal checks, and resubmit the promotion from that lineage, superseding this pull request."
           echo "::error title=Lineage Synchronization::$MSG"
           echo "$MSG" >> "$GITHUB_STEP_SUMMARY"
           exit 1
