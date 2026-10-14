@@ -59,11 +59,19 @@ jobs:
             exit 0
           fi
           CHANGE="$BASE...$HEAD"
-          if [[ "$BASE_REF" == kaal/* ]] && git show "origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" 2>/dev/null \
-            && node "$RUNNER_TEMP/lineage.ts" synchronization "$DEFAULT" "$BASE_REF" "origin/$DEFAULT" "$BASE" "$HEAD" \
-              --resolutions "$RUNNER_TEMP/resolved"; then
-            CHANGE=
-            [ -s "$RUNNER_TEMP/resolved" ] || { echo "Synchronization: no explicit resolutions; nothing of its own to judge."; exit 0; }
+          if [[ "$BASE_REF" == kaal/* ]]; then
+            git show "origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+              echo "::error title=Change Isolation: cannot judge::$DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+            # 0 a verified synchronization: judge its explicit resolutions only. 1 or 3, not a verified
+            # synchronization: an ordinary Change, judged whole. 2 or anything else cannot judge, which fails closed.
+            RC=0; node "$RUNNER_TEMP/lineage.ts" synchronization "$DEFAULT" "$BASE_REF" "origin/$DEFAULT" "$BASE" "$HEAD" \
+              --resolutions "$RUNNER_TEMP/resolved" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+            case $RC in
+              0) CHANGE=
+                 [ -s "$RUNNER_TEMP/resolved" ] || { echo "Synchronization: no explicit resolutions; nothing of its own to judge."; exit 0; } ;;
+              1|3) echo "Not a verified synchronization; judged as an ordinary Change." ;;
+              *) echo "::error title=Change Isolation: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            esac
           fi
           if [ ! -f engineering/change-isolation/check.mjs ]; then
             echo "::error::not verified: the target does not hold engineering/change-isolation/check.mjs"

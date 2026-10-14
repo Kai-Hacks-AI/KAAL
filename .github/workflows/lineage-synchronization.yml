@@ -54,9 +54,13 @@ jobs:
           fi
           RC=0; node "$RUNNER_TEMP/lineage.ts" "$@" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
           cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
+          # 0 pass; 3 this verdict does not apply (an ordinary Change), reported as such; 1 fail; 2 or
+          # anything else cannot judge, which fails closed.
           case $RC in
-            0|3) cat "$RUNNER_TEMP/verdict" ;;
-            *) echo "::error title=Lineage Synchronization::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            0) cat "$RUNNER_TEMP/verdict" ;;
+            3) echo "Not applicable: $(cat "$RUNNER_TEMP/verdict")" ;;
+            1) echo "::error title=Lineage Synchronization::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            *) echo "::error title=Lineage Synchronization: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
           esac
 
   revalidate:
