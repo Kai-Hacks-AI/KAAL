@@ -6,7 +6,7 @@
 # pull_request_target runs this workflow, and the checker, as they stand on the default branch. Only
 # the event's refs are judged: nothing of the candidate is fetched, checked out or run. It runs on
 # every pull request so that, once required, it reports on every one.
-name: Promotion Source
+name: KAAL
 
 on:
   pull_request_target:

@@ -18,8 +18,8 @@
 # keeps the lineage's own; its Change is only its explicit resolutions. The branching checker
 # (engineering/github/lineage.ts, as the default branch holds it) verifies the synchronization and
 # names those paths, and only they are judged here. A candidate it does not verify is an ordinary
-# Change, judged whole; Lineage Synchronization reports what is wrong with it.
-name: Change Isolation
+# Change, judged whole; Branching reports what is wrong with it.
+name: KAAL
 
 on:
   pull_request_target:
