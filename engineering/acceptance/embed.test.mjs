@@ -316,7 +316,13 @@ describe("this repository's own Engine", () => {
   });
 
   it("is what the root AGENTS.md points to", async () => {
-    assert.match(readFileSync(join(REPO, "AGENTS.md"), "utf8"), /`\.kaal\/`\. Start with its `AGENTS\.md`/);
+    // The pointer's contract is the paths it names (code spans and link targets), not its prose.
+    const root = readFileSync(join(REPO, "AGENTS.md"), "utf8");
+    const named = [...root.matchAll(/`([^`]+)`|\]\(([^)]+)\)/g)].map((m) => resolve(REPO, m[1] ?? m[2]));
+    assert.ok(named.includes(engine), "names the Engine directory");
+    assert.ok(named.includes(join(engine, "AGENTS.md")), "names the Engine's AGENTS.md as the entry point");
     assert.equal(readFileSync(join(engine, "AGENTS.md"), "utf8"), packagedAgents());
+    // A pointer, not a second authority: it repeats none of the Engine's own notes.
+    for (const line of packagedAgents().split("\n").filter((l) => l.startsWith("- "))) assert.ok(!root.includes(line), `repeats: ${line}`);
   });
 });
