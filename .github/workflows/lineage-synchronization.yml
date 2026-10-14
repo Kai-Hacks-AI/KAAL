@@ -1,0 +1,65 @@
+# Lineage Synchronization: runs the branching checker, engineering/github/lineage.ts, on the result a
+# pull request proposes. Into the default branch it judges promotion freshness; into any other branch
+# it judges a synchronization (not applicable to an ordinary Change). The verdicts and their guidance
+# live only in the checker and engineering/github/branching.md; this workflow supplies Git data and
+# reports the outcome. Nothing here synchronizes, rebases or merges.
+#
+# pull_request_target runs this workflow, and the checker, as they stand on the default branch.
+# Branches are read at their current tips when the run starts, never the event's base.sha; the
+# candidate's commits are fetched as Git data only: nothing of the candidate is checked out, built,
+# installed or run.
+#
+# No re-run is needed when the default branch advances. A promotion's pass is tied to its head: the
+# rulesets' strict up-to-date requirement makes a promotion that does not contain the new tip
+# unmergeable, and the only way back is a new head, which runs this check again. A synchronization's
+# verdict does not depend on the default branch's tip: once valid, it stays a valid step.
+name: Lineage Synchronization
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions: {}
+
+jobs:
+  lineage-synchronization:
+    name: Lineage Synchronization
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
+      - name: Judge the proposed result with the default branch's checker
+        env:
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init -q lineage && cd lineage
+          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" \
+            "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF" "$HEAD"
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+            echo "::error title=Lineage Synchronization::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+          if [ "$BASE_REF" = "$DEFAULT" ]; then
+            set -- freshness "$DEFAULT" "refs/remotes/origin/$DEFAULT" "$HEAD_REF" "$HEAD"
+          else
+            set -- synchronization "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" "refs/remotes/origin/$BASE_REF" "$HEAD"
+          fi
+          RC=0; node "$RUNNER_TEMP/lineage.ts" "$@" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+          cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
+          # 0 pass (a synchronization says whether it is fully current or a valid intermediate step);
+          # 3 this verdict does not apply (an ordinary Change), reported as such; 1 fail; 2 or anything
+          # else cannot judge, which fails closed.
+          case $RC in
+            0) cat "$RUNNER_TEMP/verdict" ;;
+            3) echo "Not applicable: $(cat "$RUNNER_TEMP/verdict")" ;;
+            1) echo "::error title=Lineage Synchronization::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            *) echo "::error title=Lineage Synchronization: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+          esac
