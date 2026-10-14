@@ -1,18 +1,24 @@
-# Lineage Synchronization: a kaal/* -> default-branch promotion must already contain the default
-# branch's current tip. A promotion that does not is told how to catch up: one synchronization pull
-# request from the default branch into its lineage, merged through that lineage's normal checks with
-# a merge commit, after which this check re-runs on the promotion's new head. Nothing here
-# synchronizes, rebases or merges anything.
+# Lineage Synchronization: a kaal/* -> default-branch promotion is fresh when merging it gives the
+# default branch exactly the tree validated on the promotion's head. The judgment is a clean
+# `git merge-tree` of the default branch's current tip with the head whose result equals the head's
+# own tree. How the default branch's Changes reached the lineage, by a merge commit or a squash, is
+# not part of it. A stale promotion fails and is told how to catch up: one synchronization pull
+# request from the default branch into its lineage, merged through that lineage's normal checks,
+# after which this check re-runs on the promotion's new head. Nothing here synchronizes, rebases or
+# merges anything.
 #
-# This is a provider-side gate on Git ancestry alone, separate from Change Isolation's changed-path
-# judgment and from Promotion Source's judgment of where a promotion comes from. Pull requests that
-# are not a kaal/* promotion of this repository into the default branch report not applicable.
+# Required checks run on the head (CI on the pull request's merge, which equals the head's tree
+# while this check passes), so a pass here means they validated the exact state the default branch
+# will hold. Pull requests that are not a kaal/* promotion of this repository into the default branch
+# report not applicable. Change Isolation's path judgment and Promotion Source's source judgment are
+# separate checks.
 #
 # pull_request_target runs this workflow as it stands on the default branch. The default branch is
 # read at its current tip, never the event's base.sha, and the candidate's commits are fetched as Git
 # data only: nothing is checked out, built, installed or run. Freshness: when the default branch
 # advances, the revalidate job re-runs this check on every open promotion, so an earlier pass does
-# not outlive the tip it was judged against.
+# not outlive the tip it was judged against. The head is unchanged by that, so a renewed pass means
+# the other checks' results on it still describe the exact result.
 name: Lineage Synchronization
 
 on:
@@ -32,7 +38,7 @@ jobs:
       contents: read
     steps:
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
-      - name: Judge the promotion's ancestry against the default branch
+      - name: Judge the promotion's merge result against the default branch
         env:
           SERVER: ${{ github.server_url }}
           REPO: ${{ github.repository }}
@@ -47,14 +53,18 @@ jobs:
             exit 0
           fi
           git init -q lineage && cd lineage
-          git fetch -q --no-tags --filter=tree:0 "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" "$HEAD"
+          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" "$HEAD"
           TIP=$(git rev-parse "refs/remotes/origin/$DEFAULT")
-          if git merge-base --is-ancestor "$TIP" "$HEAD"; then
-            echo "Synchronized: $HEAD_REF ($HEAD) contains the current $DEFAULT tip ($TIP)."
-            exit 0
+          if OUT=$(git merge-tree --write-tree --no-messages "$TIP" "$HEAD" 2>&1); then
+            if [ "${OUT%%$'\n'*}" = "$(git rev-parse "$HEAD^{tree}")" ]; then
+              echo "Fresh: merging $HEAD_REF ($HEAD) into $DEFAULT ($TIP) yields exactly the head's validated tree."
+              exit 0
+            fi
+            WHY="merging it into the current $DEFAULT tip $TIP would produce a tree that was never validated on its head"
+          else
+            WHY="it conflicts with the current $DEFAULT tip $TIP"
           fi
-          BEHIND=$(git rev-list --count "$HEAD..$TIP")
-          MSG="$HEAD_REF does not contain the current $DEFAULT tip $TIP ($BEHIND commit(s) behind). Create one synchronization pull request from $DEFAULT into $HEAD_REF, merge it through its normal checks with a merge commit so that $DEFAULT's history is kept, then revalidate this promotion: this check re-runs on its new head."
+          MSG="$HEAD_REF is not synchronized: $WHY. Create one synchronization pull request from $DEFAULT into $HEAD_REF and merge it through its normal checks; this check then re-runs on the promotion's new head."
           echo "::error title=Lineage Synchronization::$MSG"
           echo "$MSG" >> "$GITHUB_STEP_SUMMARY"
           exit 1
