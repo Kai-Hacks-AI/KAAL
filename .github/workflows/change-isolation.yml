@@ -11,9 +11,14 @@
 #
 # Synchronization: a candidate head already contained in the default branch carries only Changes
 # that were each admitted there. Such a main -> kaal/* synchronization is expected not to travel
-# alone, so Change Isolation does not apply to its aggregate. Any commit not on the default branch,
-# a conflict resolution included, makes the candidate an ordinary Change, judged as usual. This
-# needs no checker, so a target that lacks it can still receive it from the default branch.
+# alone, so Change Isolation does not apply to its aggregate. This needs no checker, so a target that
+# lacks it can still receive it from the default branch.
+#
+# A synchronization of an existing kaal/* lineage (.github/lineage/synchronization.sh, as it stands
+# on the default branch) brings the default branch's admitted Changes and keeps the lineage's own; its
+# Change is only its explicit resolutions, the paths where the two meet in conflict, and those paths
+# are what the checker judges. A candidate the script does not verify is an ordinary Change, judged
+# whole; Lineage Synchronization says what is wrong with it.
 name: Change Isolation
 
 on:
@@ -40,6 +45,7 @@ jobs:
         env:
           HEAD: ${{ github.event.pull_request.head.sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           set -o pipefail
           BASE=$(git rev-parse HEAD)
@@ -48,9 +54,20 @@ jobs:
             echo "Synchronization: Change Isolation not applicable; candidate $HEAD already admitted on $DEFAULT."
             exit 0
           fi
+          CHANGE="$BASE...$HEAD"
+          if [[ "$BASE_REF" == kaal/* ]] && git show "origin/$DEFAULT:.github/lineage/synchronization.sh" > ../synchronization.sh 2>/dev/null \
+            && bash ../synchronization.sh "$(git rev-parse "origin/$DEFAULT")" "$BASE" "$HEAD" > ../resolved; then
+            CHANGE=
+            [ -s ../resolved ] || { echo "Synchronization: no explicit resolutions; nothing of its own to judge."; exit 0; }
+          fi
           if [ ! -f engineering/change-isolation/check.mjs ]; then
             echo "::error::not verified: the target does not hold engineering/change-isolation/check.mjs"
             exit 1
           fi
-          git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
-            | node engineering/change-isolation/check.mjs
+          if [ -z "$CHANGE" ]; then
+            echo "Synchronization: judging its explicit resolutions only."
+            node engineering/change-isolation/check.mjs < ../resolved
+          else
+            git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
+              | node engineering/change-isolation/check.mjs
+          fi
