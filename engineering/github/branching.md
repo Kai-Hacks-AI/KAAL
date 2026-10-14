@@ -47,14 +47,24 @@ An existing lineage receives `main`'s current state while keeping its own outsta
 
 Squash and rebase never record `main` as a parent of the lineage, so Git's merge base does not follow synchronizations. The lineage's commit message carries `Synchronized-with: <main commit>` to state which `main` state it took in. That line states intent only: the checker verifies it against the actual Git state before relying on it, and an unverified line is ignored.
 
-Procedure:
+Procedure, with ordinary Git:
 
-1. In a working branch from `main`'s tip, rebase the lineage's outstanding Changes onto it and resolve every conflict explicitly. Keep the lineage's intent; take nothing that is in neither `main` nor the lineage.
-2. Commit the resulting tree as one commit whose only parent is the lineage's tip, with the line `Synchronized-with: <main's tip>`:
-   `git commit-tree <tree> -p <lineage tip> -m "Synchronize <lineage> with main" -m "Synchronized-with: <main tip>"`
-3. Push it to a working branch and open its pull request into the lineage.
+```sh
+git switch -c <working branch> origin/<lineage>
+base=$(node engineering/github/lineage.ts incorporated origin/<lineage> origin/main)
+git diff --binary "$base" origin/main | git apply --3way --index
+# resolve every conflict explicitly, keeping the lineage's intent; git add the results
+git commit -m "Synchronize <lineage> with main" -m "Synchronized-with: $(git rev-parse origin/main)"
+```
 
-The paths where `main` and the lineage conflicted are the synchronization's explicit resolutions. They are its own Change and Change Isolation judges them; everything else must be exactly `main` with the lineage's outstanding Changes. If `main` advances before the pull request merges, rebuild against the new tip.
+Then push the working branch and open its pull request into the lineage. It may take more than one commit; the last states `Synchronized-with`.
+
+Why this shape:
+
+- The branch builds on the lineage's tip because a `kaal/*` pull request must be up to date with its target, which GitHub decides by ancestry. A branch rebased onto `main` does not contain the lineage's tip and stays behind it.
+- `main`'s Changes are applied from the incorporated state rather than merged with `git merge`, because Git's merge base for a squash-synchronized lineage is still its original fork point. Merging from there conflicts again on every path an earlier synchronization already settled and the lineage edited since.
+
+The paths where `main` and the lineage conflicted are the synchronization's explicit resolutions. They are its own Change and Change Isolation judges them. Everything else must be exactly `main` with the lineage's outstanding Changes, and the checker verifies that. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the lineage's tests and review decide it. If `main` advances before the pull request merges, rebuild against the new tip.
 
 Reasoning: the lineage keeps building on what has been promoted without losing work in flight, and every synchronization is verified before it lands.
 

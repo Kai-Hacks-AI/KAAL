@@ -4,7 +4,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
@@ -44,19 +44,23 @@ describe("promotionFreshness", () => {
 describe("synchronization", () => {
   const f: SyncFacts = {
     defaultBranch: "main", lineage: "kaal/x", defaultTip: A, lineageTip: B, head: C, marker: A,
-    oneCommitOnLineageTip: true, markerOnDefault: true, incorporated: D,
+    onLineageTip: true, markerOnDefault: true, incorporated: D,
     expected: { clean: false, tree: D, conflicts: ["package.json"] }, differing: [],
   };
   const fails = (g: Partial<SyncFacts>, re: RegExp) => {
     const v = synchronization({ ...f, ...g });
     assert.equal(v.kind, "fail");
     assert.match(v.message, re);
-    assert.match(v.message, /Rebuild it: .* with the line "Synchronized-with: a{40}"/);
+    assert.match(v.message, /Rebuild it on a branch from kaal\/x's tip bbbbbbb: .*git apply --3way --index.* with the line "Synchronized-with: a{40}"/);
     assert.ok(v.message.endsWith(`${GUIDE}#synchronize`));
   };
-  it("passes and names its explicit resolutions", () => assert.deepEqual(synchronization(f).resolutions, ["package.json"]));
+  it("passes and names its explicit resolutions, as structure only", () => {
+    const v = synchronization(f);
+    assert.deepEqual(v.resolutions, ["package.json"]);
+    assert.match(v.message, /Structure verified; whether each resolution is right is for the lineage's tests and review/);
+  });
   it("does not apply without a marker", () => assert.equal(synchronization({ ...f, marker: null }).kind, "not-applicable"));
-  it("fails when not one commit on the lineage's tip", () => fails({ oneCommitOnLineageTip: false }, /not one commit on kaal\/x's tip bbbbbbb/));
+  it("fails when it does not build on the lineage's tip", () => fails({ onLineageTip: false }, /does not build on kaal\/x's tip bbbbbbb/));
   it("fails a marker that is not a default-branch commit", () => fails({ markerOnDefault: false }, /is not a commit of main/));
   it("fails stale", () => fails({ marker: D }, /Stale: main has advanced from ddddddd to aaaaaaa/));
   it("fails any other difference and names it", () => fails({ differing: ["AGENTS.md"] }, /on: AGENTS\.md\. Only paths where the two conflict may differ/));
@@ -104,20 +108,21 @@ function repo() {
     const c = g("commit-tree", `${head}^{tree}`, "-p", branch, "-m", g("log", "-1", "--format=%B", head));
     g("branch", "-f", branch, c);
   };
-  /** The agent's procedure: a working branch from main's tip, the lineage's outstanding Changes since
-   *  its incorporated state rebased onto it, conflicts resolved by `resolve`, the tree committed as one
-   *  commit on the lineage's tip with the Synchronized-with line. */
+  /** The agent's procedure (branching.md#synchronize), with ordinary Git only: a branch from the
+   *  lineage's tip; main's Changes since the lineage's incorporated state applied with a three-way
+   *  merge; conflicts resolved by `resolve`; one commit stating Synchronized-with. */
   const synchronize = (lineage: string, resolve: (conflicts: string[]) => Record<string, string | null> = () => ({})) => {
     const tip = g("rev-parse", "main");
     const inc = incorporated(dir, g("rev-parse", lineage), tip);
-    const outstanding = g("commit-tree", `${lineage}^{tree}`, "-p", inc, "-m", "outstanding");
-    g("checkout", "-q", "-B", "work", tip);
-    const picked = spawnSync("git", ["cherry-pick", "--no-commit", outstanding], { cwd: dir, encoding: "utf8" });
-    if (picked.status !== 0) put(resolve(g("diff", "--name-only", "--diff-filter=U").split("\n").filter(Boolean)));
+    g("checkout", "-q", "-B", "work", lineage);
+    const diff = spawnSync("git", ["diff", "--binary", inc, tip], { cwd: dir, encoding: "utf8" }).stdout;
+    const applied = spawnSync("git", ["apply", "--3way", "--index"], { cwd: dir, input: diff, encoding: "utf8" });
+    if (applied.status !== 0) put(resolve(g("diff", "--name-only", "--diff-filter=U").split("\n").filter(Boolean)));
     g("add", "-A");
-    const tree = g("write-tree");
-    g("reset", "-q", "--hard");
-    return g("commit-tree", tree, "-p", lineage, "-m", "Synchronize", "-m", `Synchronized-with: ${tip}`);
+    g("commit", "-q", "--allow-empty", "-m", "Synchronize", "-m", `Synchronized-with: ${tip}`);
+    const head = g("rev-parse", "HEAD");
+    g("checkout", "-q", "--detach", "main");
+    return head;
   };
   const judge = (lineage: string, head: string) =>
     synchronization(readSync(dir, "main", lineage, g("rev-parse", "main"), g("rev-parse", lineage), head));
@@ -170,9 +175,12 @@ describe("acceptance: synchronizing a divergent lineage", () => {
   });
 
   it("treats the main-based working branch without a marker as an ordinary Change, and fails it with one", () => {
-    assert.equal(r.judge("kaal/genesis", r.g("rev-parse", "work")).kind, "not-applicable");
+    r.g("checkout", "-q", "-B", "rebased", "main");
+    r.g("commit", "-q", "--allow-empty", "-m", "rebased lineage");
+    assert.equal(r.judge("kaal/genesis", r.g("rev-parse", "rebased")).kind, "not-applicable");
+    r.g("checkout", "-q", "--detach", "main");
     const onMain = r.g("commit-tree", `${s1}^{tree}`, "-p", "main", "-m", `S\n\nSynchronized-with: ${r.g("rev-parse", "main")}`);
-    assert.match(r.judge("kaal/genesis", onMain).message, /not one commit on kaal\/genesis's tip/);
+    assert.match(r.judge("kaal/genesis", onMain).message, /does not build on kaal\/genesis's tip/);
   });
 
   it("fails as stale once main advances, and verifies once rebuilt", () => {
@@ -182,6 +190,17 @@ describe("acceptance: synchronizing a divergent lineage", () => {
     assert.match(v.message, /^Stale: main has advanced/);
     s1 = r.synchronize("kaal/genesis", keepLineage);
     assert.equal(r.judge("kaal/genesis", s1).kind, "pass");
+  });
+
+  it("accepts a synchronization committed in more than one step", () => {
+    r.g("checkout", "-q", "--detach", "kaal/genesis");
+    r.g("restore", "--source", s1, "--staged", "--worktree", "--", ".github");
+    r.g("commit", "-q", "-m", "Take main's .github");
+    r.g("restore", "--source", s1, "--staged", "--worktree", "--", ":/");
+    r.g("commit", "-q", "-m", "Resolve package.json", "-m", `Synchronized-with: ${r.g("rev-parse", "main")}`);
+    const v = r.judge("kaal/genesis", r.g("rev-parse", "HEAD"));
+    r.g("checkout", "-q", "--detach", "main");
+    assert.equal(v.kind, "pass", v.message);
   });
 
   it("does not make the synchronized lineage a fresh promotion: promotion is a refresh", () => {
@@ -286,8 +305,14 @@ describe("command line", () => {
     const out = join(r.dir, "..", `resolutions-${process.pid}`);
     const s = cli(r.dir, "synchronization", "main", "kaal/x", "main", "kaal/x", head, "--resolutions", out);
     assert.equal(s.status, 0, s.stderr);
-    assert.equal(spawnSync("cat", [out], { encoding: "utf8" }).stdout, "a.txt\0");
+    assert.equal(readFileSync(out, "utf8"), "a.txt\0");
     rmSync(out);
+  });
+
+  it("prints the incorporated state a synchronization starts from", () => {
+    const v = cli(r.dir, "incorporated", "kaal/x", "main");
+    assert.equal(v.status, 0);
+    assert.equal(v.stdout.trim(), r.g("merge-base", "kaal/x", "main"));
   });
 
   it("exits 2 when it cannot judge", () => {

@@ -15,8 +15,14 @@
 //   lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref>
 //   lineage.ts freshness <default> <default-tip> <head-ref> <head>
 //   lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]
-// Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable. --resolutions writes a verified
+//   lineage.ts incorporated <lineage-tip> <default-tip>    prints the state a synchronization starts from
+// Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable. A consumer must treat 2 as a failure and
+// 3 as "this verdict does not apply", never as a pass of it. --resolutions writes a verified
 // synchronization's explicit resolutions, NUL-separated, as input for Change Isolation.
+//
+// A passing synchronization proves structure only: everything outside the explicit resolutions is
+// exactly the default branch with the lineage's outstanding Changes. Whether a resolution is right
+// is not judged here; the lineage's tests and review decide that.
 import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -98,8 +104,8 @@ export interface SyncFacts {
   head: string;
   /** The head's Synchronized-with value, as claimed; null when it states none. */
   marker: string | null;
-  /** The head is one commit whose only parent is the lineage's tip. */
-  oneCommitOnLineageTip: boolean;
+  /** The head builds on the lineage's tip: it contains it and is not it. */
+  onLineageTip: boolean;
   /** The marker names a commit of the default branch's history. */
   markerOnDefault: boolean;
   /** The last default-branch state the lineage verifiably incorporated (see incorporated()). */
@@ -115,15 +121,15 @@ export function synchronization(f: SyncFacts): SyncVerdict {
     kind: "fail",
     resolutions: [],
     message:
-      `${problem} Rebuild it: in a working branch from ${f.defaultBranch} at ${short(f.defaultTip)}, rebase ${f.lineage}'s ` +
-      `outstanding Changes (since ${short(f.incorporated)}) onto it and resolve conflicts explicitly; commit that tree as ` +
-      `one commit on ${f.lineage}'s tip ${short(f.lineageTip)} with the line "Synchronized-with: ${f.defaultTip}" and push ` +
-      `it to this pull request. See ${GUIDE}#synchronize`,
+      `${problem} Rebuild it on a branch from ${f.lineage}'s tip ${short(f.lineageTip)}: apply ${f.defaultBranch}'s Changes ` +
+      `since ${short(f.incorporated)} (git diff --binary ${short(f.incorporated)} ${short(f.defaultTip)} | git apply --3way --index), ` +
+      `resolve every conflict explicitly, commit with the line "Synchronized-with: ${f.defaultTip}", and push it to this ` +
+      `pull request. See ${GUIDE}#synchronize`,
   });
   if (f.marker === null) {
     return { kind: "not-applicable", resolutions: [], message: `Not a synchronization: ${short(f.head)} states no Synchronized-with; an ordinary Change into ${f.lineage}.` };
   }
-  if (!f.oneCommitOnLineageTip) return fail(`This synchronization is not one commit on ${f.lineage}'s tip ${short(f.lineageTip)}.`);
+  if (!f.onLineageTip) return fail(`This synchronization does not build on ${f.lineage}'s tip ${short(f.lineageTip)}.`);
   if (!f.markerOnDefault) return fail(`Synchronized-with ${short(f.marker)} is not a commit of ${f.defaultBranch}.`);
   if (f.marker !== f.defaultTip) return fail(`Stale: ${f.defaultBranch} has advanced from ${short(f.marker)} to ${short(f.defaultTip)}.`);
   if (f.differing.length) {
@@ -138,7 +144,8 @@ export function synchronization(f: SyncFacts): SyncVerdict {
     resolutions,
     message:
       `Synchronized: ${f.lineage} receives ${f.defaultBranch} at ${short(f.marker)} with its outstanding Changes since ` +
-      `${short(f.incorporated)}; explicit resolutions: ${resolutions.length ? list(resolutions) : "none"}.`,
+      `${short(f.incorporated)}; explicit resolutions: ${resolutions.length ? list(resolutions) : "none"}. Structure verified; ` +
+      `whether each resolution is right is for the lineage's tests and review.`,
   };
 }
 
@@ -176,10 +183,10 @@ export function marker(message: string): string | null {
 }
 const markerOf = (cwd: string, c: string) => marker(git(cwd, ["log", "-1", "--format=%B", c]).stdout);
 
-/** Whether commit c, on its only parent, is that parent synchronized with s over base: equal to
- *  their merge except where the merge conflicts. */
-function synchronizes(cwd: string, c: string, parent: string, s: string, base: string): { ok: boolean; expected: MergeResult; differing: string[] } {
-  const expected = merge(cwd, s, parent, base);
+/** Whether commit c is `from` synchronized with s over base: equal to their merge except where the
+ *  merge conflicts. */
+function synchronizes(cwd: string, c: string, from: string, s: string, base: string): { ok: boolean; expected: MergeResult; differing: string[] } {
+  const expected = merge(cwd, s, from, base);
   const differing = changed(cwd, expected.tree, c).filter((p) => !expected.conflicts.includes(p));
   return { ok: differing.length === 0, expected, differing };
 }
@@ -206,15 +213,14 @@ export function readFreshness(cwd: string, defaultBranch: string, defaultTip: st
 export function readSync(cwd: string, defaultBranch: string, lineage: string, defaultTip: string, lineageTip: string, head: string): SyncFacts {
   const inc = incorporated(cwd, lineageTip, defaultTip);
   const m = markerOf(cwd, head);
-  const ps = parents(cwd, head);
   const markerOnDefault = m !== null && git(cwd, ["cat-file", "-e", `${m}^{commit}`], [0, 1, 128]).status === 0 && isAncestor(cwd, m, defaultTip);
   const facts: SyncFacts = {
     defaultBranch, lineage, defaultTip, lineageTip, head, marker: m,
-    oneCommitOnLineageTip: ps.length === 1 && ps[0] === lineageTip,
+    onLineageTip: head !== lineageTip && isAncestor(cwd, lineageTip, head),
     markerOnDefault, incorporated: inc,
     expected: { clean: true, tree: "", conflicts: [] }, differing: [],
   };
-  if (m !== null && facts.oneCommitOnLineageTip && markerOnDefault) {
+  if (m !== null && facts.onLineageTip && markerOnDefault) {
     const { expected, differing } = synchronizes(cwd, head, lineageTip, m, inc);
     facts.expected = expected;
     facts.differing = differing;
@@ -236,6 +242,9 @@ function main(argv: string[]): number {
   } else if (verdict === "freshness" && args.length === 4) {
     const [def, defaultTip, headRef, head] = args;
     v = promotionFreshness(readFreshness(cwd, def, rev(cwd, defaultTip), headRef, rev(cwd, head)));
+  } else if (verdict === "incorporated" && args.length === 2) {
+    console.log(incorporated(cwd, rev(cwd, args[0]), rev(cwd, args[1])));
+    return 0;
   } else if (verdict === "synchronization" && (args.length === 5 || (args.length === 7 && args[5] === "--resolutions"))) {
     const [def, lineage, defaultTip, lineageTip, head, , out] = args;
     const s = synchronization(readSync(cwd, def, lineage, rev(cwd, defaultTip), rev(cwd, lineageTip), rev(cwd, head)));
@@ -244,7 +253,8 @@ function main(argv: string[]): number {
   } else {
     console.error("usage: lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref>\n" +
       "       lineage.ts freshness <default> <default-tip> <head-ref> <head>\n" +
-      "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]");
+      "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]\n" +
+      "       lineage.ts incorporated <lineage-tip> <default-tip>");
     return 2;
   }
   (v.kind === "fail" ? console.error : console.log)(v.message);
