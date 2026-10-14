@@ -5,25 +5,25 @@
 # reports the outcome. Nothing here synchronizes, rebases or merges.
 #
 # pull_request_target runs this workflow, and the checker, as they stand on the default branch.
-# Branches are read at their current tips, never the event's base.sha; the candidate's commits are
-# fetched as Git data only: nothing of the candidate is checked out, built, installed or run. When
-# the default branch advances, the revalidate job re-runs this check on every open pull request into
-# the default branch from kaal/* and into kaal/*, so an earlier pass does not outlive the tip it was
-# judged against.
+# Branches are read at their current tips when the run starts, never the event's base.sha; the
+# candidate's commits are fetched as Git data only: nothing of the candidate is checked out, built,
+# installed or run.
+#
+# No re-run is needed when the default branch advances. A promotion's pass is tied to its head: the
+# rulesets' strict up-to-date requirement makes a promotion that does not contain the new tip
+# unmergeable, and the only way back is a new head, which runs this check again. A synchronization's
+# verdict does not depend on the default branch's tip: once valid, it stays a valid step.
 name: Lineage Synchronization
 
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
-  push:
-    branches: [main]
 
 permissions: {}
 
 jobs:
   lineage-synchronization:
     name: Lineage Synchronization
-    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,44 +54,12 @@ jobs:
           fi
           RC=0; node "$RUNNER_TEMP/lineage.ts" "$@" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
           cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
-          # 0 pass; 3 this verdict does not apply (an ordinary Change), reported as such; 1 fail; 2 or
-          # anything else cannot judge, which fails closed.
+          # 0 pass (a synchronization says whether it is fully current or a valid intermediate step);
+          # 3 this verdict does not apply (an ordinary Change), reported as such; 1 fail; 2 or anything
+          # else cannot judge, which fails closed.
           case $RC in
             0) cat "$RUNNER_TEMP/verdict" ;;
             3) echo "Not applicable: $(cat "$RUNNER_TEMP/verdict")" ;;
             1) echo "::error title=Lineage Synchronization::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
             *) echo "::error title=Lineage Synchronization: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
           esac
-
-  revalidate:
-    name: Revalidate open promotions and synchronizations
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-      pull-requests: read
-    steps:
-      - name: Re-run Lineage Synchronization on every open kaal/* promotion and every pull request into kaal/*
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          DEFAULT: ${{ github.event.repository.default_branch }}
-        run: |
-          set -o pipefail
-          gh api --paginate "repos/$REPO/pulls?state=open" \
-            --jq ".[] | select((.base.ref == \"$DEFAULT\" and .head.repo.full_name == \"$REPO\" and (.head.ref | startswith(\"kaal/\"))) or (.base.ref | startswith(\"kaal/\"))) | \"\(.number) \(.head.sha)\"" |
-          while read -r PR SHA; do
-            RUN=$(gh api "repos/$REPO/actions/workflows/lineage-synchronization.yml/runs?event=pull_request_target&head_sha=$SHA&per_page=1" \
-              --jq '.workflow_runs[0] | select(. != null) | "\(.id) \(.status)"')
-            if [ -z "$RUN" ]; then
-              echo "#$PR: no Lineage Synchronization run on $SHA yet; its next pull request event judges it."
-              continue
-            fi
-            read -r ID STATUS <<< "$RUN"
-            if [ "$STATUS" != "completed" ]; then
-              echo "#$PR: run $ID is $STATUS; not re-run."
-              continue
-            fi
-            gh api -X POST "repos/$REPO/actions/runs/$ID/rerun" >/dev/null
-            echo "#$PR: re-ran $ID against the new $DEFAULT tip."
-          done
