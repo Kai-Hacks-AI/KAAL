@@ -1,0 +1,16 @@
+{
+  "name": "kaal-engineering",
+  "private": true,
+  "description": "Engineering repository for KAAL. The distributable packages are under packages/.",
+  "type": "module",
+  "workspaces": [
+    "packages/extensions/kaal-hosting"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test:hosting": "npm test -w kaal-hosting"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
