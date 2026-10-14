@@ -21,7 +21,7 @@ How the two are packaged and delivered is not part of this Skill.
 1. **Find Core's `KAAL Skill` Node** with `kaal resolve "KAAL Skill"`. Its id is the type every Skill Node names.
 2. **Write the Skill Node** in the Form from [references/kaal-skill.md](references/kaal-skill.md). Keep it concise: meaning and scope, no paths, commands or implementation. Its id is the SHA-256 of its exact bytes, so keep line endings untouched.
 3. **Write the Agent Skill**, following [references/agent-skills.md](references/agent-skills.md). Its directory name is its `name`. The `description` is what makes it discoverable: say what it does and when to use it, in the words a task would use.
-4. **Check the Agent Skill**: `node scripts/check-skill.mjs <skill-dir>`.
+4. **Check the Agent Skill**: run this skill's `scripts/check-skill.mjs` with `<skill-dir>`, the directory of the skill to check. Resolve the script from this skill's own directory, not from the working directory, or use the `kaal-engineer-skill` command when the package is installed.
 5. **Let Core decide the Node**: `kaal identify <node-file>` shows its id and type, and `kaal register skill <capability> <dir>` admits it into an Engine or says why not.
 
 ## Reading the checker

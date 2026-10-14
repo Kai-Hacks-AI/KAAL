@@ -161,6 +161,8 @@ describe("kaal: engineering rules beyond the standard", () => {
     assert.deepEqual(check(skill("my-skill", ok(), "See [g](references/a%20b.md).\n", { "references/a b.md": "g" })).kaal, []);
     // Paths in code are references too: an agent runs them.
     only(skill("my-skill", ok(), "```sh\nnode scripts/run.mjs\n```\n"), "kaal", /scripts\/run\.mjs, which the skill does not carry/);
+    only(skill("my-skill", ok(), "Run ./scripts/build.mjs first.\n"), "kaal", /\.\/scripts\/build\.mjs, which the skill does not carry/);
+    assert.deepEqual(check(skill("my-skill", ok(), "Run `./scripts/build.mjs`.\n", { "scripts/build.mjs": "b" })), clean);
     // Escaped brackets are not a link.
     assert.deepEqual(check(skill("my-skill", ok(), "\\[not a link\\](nowhere.md)\n")), clean);
   });

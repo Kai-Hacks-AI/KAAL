@@ -107,7 +107,7 @@ function references(body) {
       const target = node.destination.split("#")[0];
       if (target && !/^[a-z][a-z0-9+.-]+:/i.test(target) && !target.startsWith("//")) found.add(decoded(target));
     } else if (node.literal) {
-      for (const m of node.literal.matchAll(/(?<=^|[\s`("'])((?:scripts|references|assets)\/[\w.\-/]*\w)/gm)) found.add(m[1]);
+      for (const m of node.literal.matchAll(/(?<=^|[\s`("'])((?:\.\/)?(?:scripts|references|assets)\/[\w.\-/]*\w)/gm)) found.add(m[1]);
     }
   }
   return [...found].sort();
