@@ -1,0 +1,29 @@
+{
+  "name": "kaal-sealing",
+  "version": "0.0.1",
+  "description": "KAAL Sealing: the deterministic identity of a file or directory, Seals that bind it, and verification against the intended Seal.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./skills/kaal-sealing/scripts/sealing.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kaal-sealing": "skills/kaal-sealing/scripts/kaal-sealing.mjs"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/sealing.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  }
+}
