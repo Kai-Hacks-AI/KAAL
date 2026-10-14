@@ -1,0 +1,38 @@
+# Promotion Source: the default branch accepts pull requests only from kaal/* lineages of this
+# repository. A pull request into any other branch passes, so kaal/* lines stay open to ordinary
+# engineering branches and to synchronization from the default branch.
+#
+# This is a provider-side promotion gate, separate from Change Isolation's changed-path judgment.
+# It reads only the event's base and head refs: nothing is checked out, fetched or run. It runs on
+# every pull request so that, once required, it reports on every one.
+name: Promotion Source
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions: {}
+
+jobs:
+  promotion-source:
+    name: Promotion Source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Judge the source against the target
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$BASE_REF" != "$DEFAULT" ]; then
+            echo "Not a promotion: $BASE_REF is not $DEFAULT."
+            exit 0
+          fi
+          if [ "$HEAD_REPO" = "$REPO" ] && [[ "$HEAD_REF" == kaal/* ]]; then
+            echo "Promotion from $HEAD_REF."
+            exit 0
+          fi
+          echo "::error::$DEFAULT accepts pull requests only from kaal/* branches of $REPO, not from $HEAD_REPO:$HEAD_REF"
+          exit 1
