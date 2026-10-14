@@ -1,0 +1,93 @@
+#!/bin/sh
+# Early local feedback before a push, from the same KAAL checkers CI runs: Branching and Promotion
+# Source (engineering/github/lineage.ts, as the default branch holds it) and Change Isolation
+# (engineering/change-isolation/check.mjs, as the target holds it). Rules, verdicts and guidance live
+# only there and in engineering/github/branching.md; this hook supplies Git facts and reports. CI
+# stays the authority.
+#
+# Enable once per clone: git config core.hooksPath .githooks
+# Target: the pull request base a branch is meant for, named once per branch:
+#   git config branch.<branch>.kaalTarget origin/kaal/<lineage>
+# A kaal/* branch without one targets the default branch, its promotion. Any other branch without
+# one is not verified until its target is named. Judged against your last fetch; skip once with
+# git push --no-verify.
+remote=${1:-origin}
+default_ref=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null || echo "$remote/main")
+default=${default_ref#"$remote/"}
+repo=$(git remote get-url "$remote" 2>/dev/null | sed -E 's#(\.git)?/*$##; s#^.*[:/]([^/]+/[^/]+)$#\1#')
+guide=engineering/github/branching.md
+tmp=$(mktemp -d) || exit 1
+trap 'rm -rf "$tmp"' EXIT
+status=0
+say() { echo "$*" >&2; }
+fail() { say "$*"; status=1; }
+# run <label> <script> <args...>: a checker's verdict; 0 pass, 1 fail, 3 not applicable, else cannot judge.
+run() {
+  label=$1; shift
+  node "$@" >"$tmp/verdict" 2>&1 && rc=0 || rc=$?
+  case $rc in
+    0) say "$label: $(cat "$tmp/verdict")" ;;
+    1) fail "$label: $(cat "$tmp/verdict")" ;;
+    3) say "$label: not applicable: $(cat "$tmp/verdict")" ;;
+    *) fail "$label: cannot judge: $(cat "$tmp/verdict")" ;;
+  esac
+  return $rc
+}
+while read -r local_ref head remote_ref remote_head; do
+  case $head in *[!0]*) ;; *) continue ;; esac # a deleted ref carries no change
+  branch=${local_ref#refs/heads/}
+  target=
+  [ "$branch" != "$local_ref" ] && target=$(git config "branch.$branch.kaalTarget")
+  if [ -z "$target" ]; then
+    case $branch in
+      kaal/*) target=$default_ref ;; # a lineage's only pull request is its promotion
+      *)
+        if [ "$branch" != "$local_ref" ]; then
+          fail "Not verified: $local_ref has no named pull request target. Name the lineage it is meant for:"
+          say "  git config branch.$branch.kaalTarget $remote/kaal/<lineage>   See $guide#engineer"
+        else
+          fail "Not verified: $local_ref is not a branch, so it has no pull request target. Push it from a branch and name that branch's target. See $guide"
+        fi
+        continue ;;
+    esac
+  fi
+  if ! git rev-parse --quiet --verify "$target^{commit}" >/dev/null; then
+    fail "Not verified: target $target of $local_ref is not known here. Fetch it, or name an existing ref in branch.$branch.kaalTarget."
+    continue
+  fi
+  name=${target#"$remote/"}
+  say "$local_ref -> $name:"
+  case $branch:$remote_head in kaal/*:*[!0]*) ;; kaal/*:*)
+    say "  Establishing $branch: judged as the promotion it will become. See $guide#establish" ;;
+  esac
+  change="$target...$head"
+  rm -f "$tmp/resolved"
+  if git show "$default_ref:engineering/github/lineage.ts" >"$tmp/lineage.ts" 2>/dev/null; then
+    if [ "$name" = "$default" ]; then
+      run "  Promotion Source" "$tmp/lineage.ts" source "$repo" "$default" "$name" "$repo" "$branch" </dev/null
+      run "  Branching" "$tmp/lineage.ts" freshness "$default" "$default_ref" "$branch" "$head" </dev/null
+    elif run "  Branching" "$tmp/lineage.ts" synchronization "$default" "$name" "$default_ref" "$target" "$head" \
+      --resolutions "$tmp/resolved" </dev/null; then
+      change= # a verified synchronization: only its explicit resolutions are its own Change
+    fi
+  else
+    fail "  Branching: cannot judge: $default_ref does not hold engineering/github/lineage.ts"
+  fi
+  if ! git show "$target:engineering/change-isolation/check.mjs" >"$tmp/check.mjs" 2>/dev/null; then
+    fail "  Change Isolation: not verified: $target does not hold engineering/change-isolation/check.mjs"
+  elif [ -n "$change" ] && git merge-base --is-ancestor "$head" "$default_ref" 2>/dev/null; then
+    say "  Change Isolation: not applicable: $head is already admitted on $default."
+  elif [ -n "$change" ]; then
+    if git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$change" >"$tmp/paths"; then
+      run "  Change Isolation" "$tmp/check.mjs" <"$tmp/paths"
+    else
+      fail "  Change Isolation: cannot judge: no complete change between $target and $head"
+    fi
+  elif [ -s "$tmp/resolved" ]; then
+    run "  Change Isolation" "$tmp/check.mjs" <"$tmp/resolved"
+  else
+    say "  Change Isolation: a synchronization with no explicit resolutions; nothing of its own to judge."
+  fi
+done
+[ $status = 0 ] || say "Local feedback only; CI decides. Fix and push again, or skip once with git push --no-verify."
+exit $status
