@@ -155,12 +155,27 @@ describe("embedding Sealing into a fresh Engine", () => {
     assert.match(await run(sealing, ["verify", "bundle", "--seal", dirRef, "--engine", ENGINE], host), /^ok/);
   });
 
-  it("runs from wherever the host places the Agent Skill, outside any repository, and after relocation", async () => {
-    const placed = join(host, "agent-skills", "kaal-sealing");
-    cpSync(join(installed, "skills", "kaal-sealing"), placed, { recursive: true });
-    const script = join(placed, "scripts", "kaal-sealing.mjs");
+  it("runs from wherever the host places the Agent Skill, from any working directory, outside any repository", async () => {
     assert.ok(!existsSync(join(work, ".git")) && !existsSync(join(host, ".git")));
-    assert.match(await run(process.execPath, [script, "verify", "bundle", "--seal", dirRef, "--engine", ENGINE], host), /^ok/);
+    const elsewhere = join(work, "unrelated", "cwd");
+    mkdirSync(elsewhere, { recursive: true });
+    for (const where of ["agent-skills", join("deep", "x", "skills")]) {
+      const placed = join(host, where, "kaal-sealing");
+      mkdirSync(dirname(placed), { recursive: true });
+      cpSync(join(installed, "skills", "kaal-sealing"), placed, { recursive: true });
+      const script = join(placed, "scripts", "kaal-sealing.mjs");
+      // From the host, with paths relative to the working directory.
+      assert.match(await run(process.execPath, [script, "verify", "bundle", "--seal", dirRef, "--engine", ENGINE], host), /^ok/);
+      // From the skill's own directory and from an unrelated one, with absolute paths.
+      for (const cwd of [placed, elsewhere]) {
+        assert.match(await run(process.execPath, [script, "verify", join(host, "bundle"), "--seal", dirRef, "--engine", engineDir], cwd), /^ok/);
+      }
+    }
+    // The installed command, from an unrelated working directory.
+    assert.match(await run(sealing, ["verify", join(host, "bundle"), "--seal", dirRef, "--engine", engineDir], elsewhere), /^ok/);
+  });
+
+  it("verifies after everything is relocated", async () => {
     const moved = join(mkdtempSync(join(tmpdir(), "kaal-sealing-relocated-")), "anywhere");
     cpSync(work, moved, { recursive: true, verbatimSymlinks: true });
     const there = join(moved, "host");

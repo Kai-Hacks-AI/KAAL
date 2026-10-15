@@ -44,7 +44,7 @@ Because the caller names the Seal, a later version sealed separately never satis
 
 In a KAAL Engine, each Seal is retained at `seals/<ref>/seal`. `seal(engine, artifact, form)` publishes it through kaal-hosting's `update`: one writer at a time, all or nothing, never replacing what exists, and never through a link. `verifySeal(engine, artifact, ref)` and `sealed(engine)` read the Engine through kaal-hosting's `read`, which refuses a link to a directory anywhere in the Engine, `seals/` included. A link to a file reads as that file. Since the ref is the hash of the Seal's bytes, such a link verifies only if it supplies exactly the intended Seal, so it cannot redirect verification. Core does not read Seals, because they are not Nodes. Every operation first asks Core whether the Engine holds the Sealing Node.
 
-`readArtifact(path)` reads a directory through kaal-hosting's `read`. A single file is read directly, because Hosting reads directories only.
+`readArtifact(path)` reads a directory through kaal-hosting's `read`. Reading a single file is not yet a Hosting operation, so it is read directly for now. That is a known gap, not Sealing's design: Sealing will read single files through Hosting once Hosting provides that operation.
 
 ## Use
 

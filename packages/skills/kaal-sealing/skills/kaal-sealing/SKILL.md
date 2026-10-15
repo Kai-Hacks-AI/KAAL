@@ -17,14 +17,16 @@ Use this to seal an artifact, or to check that it is still exactly what was seal
 
 ## Steps
 
-1. **Choose the form.** An artifact is a file or a directory, and it is *unnamed* (only what is inside it) or *named* (its own name as well). Parent, location and storage never take part, so a Git commit, a Drive file ID or a URL is not an identity. Every form except an unnamed file needs a `--domain`, a single line naming the kind of artifact, such as `Release Bundle v1`. An unnamed file without a domain is the SHA-256 of its exact bytes, the same as a Node's id.
-2. **Seal it**: `node scripts/kaal-sealing.mjs seal <path> [--named] [--domain <domain>] --engine <engine>`. It prints the **Seal ref**. Keep that ref: it names the Seal you will verify against.
-3. **Verify it**: `node scripts/kaal-sealing.mjs verify <path> --seal <ref> --engine <engine>`. The form comes from the Seal. The result is one of these:
+Every command below runs this skill's `scripts/kaal-sealing.mjs`. Resolve the script from this skill's own directory, not from the working directory, or use the `kaal-sealing` command when the package is installed. Paths you pass are relative to your working directory, as usual.
+
+1. **Choose the form.** An artifact is a file or a directory, and it is *unnamed* (only what is inside it) or *named* (its own name as well). Parent, location and storage never take part, so a Git commit, a Drive file ID or a URL is not an identity. Every form except an unnamed file needs a domain, a single line naming the kind of artifact, such as `Release Bundle v1`. An unnamed file without a domain is the SHA-256 of its exact bytes, the same as a Node's id.
+2. **Seal it** with `seal <path> [--named] [--domain <domain>] --engine <engine>`. It prints the **Seal ref**. Keep that ref: it names the Seal you will verify against.
+3. **Verify it** with `verify <path> --seal <ref> --engine <engine>`. The form comes from the Seal. The result is one of these:
    - `ok`: the artifact is exactly what the Seal binds.
    - `mismatch`: the artifact has changed, or is not the sealed artifact.
    - `corrupt`: the retained Seal is not the Seal its ref names.
    - `missing`: no Seal is retained under that ref.
-4. **Get an identity only**: `node scripts/kaal-sealing.mjs id <path> [--named] [--domain <domain>]`.
+4. **Get an identity only** with `id <path> [--named] [--domain <domain>]`.
 
 ## Rules
 
