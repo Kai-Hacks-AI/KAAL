@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/check-skill.test.mjs"
+    "test": "node --test test/check-skill.test.mjs test/conformance.test.mjs"
   },
   "engines": {
     "node": ">=24"
