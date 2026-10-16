@@ -40,7 +40,7 @@ async function skillsRef(command, dir, root) {
   return { verdict: r.status === 0 ? "ok" : "fail", messages };
 }
 
-const cell = (s) => s.replace(/\|/g, "\\|").replace(/\n/g, " ");
+const cell = (s) => s.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
 
 async function main(argv) {
   const o = options(argv);
