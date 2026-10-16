@@ -123,6 +123,32 @@ export async function readFile(path: string): Promise<Buffer> {
   }
 }
 
+/** What `kind` finds at a path. */
+export type Kind = "directory" | "file" | "missing" | "other";
+
+/**
+ * What is at a path, following links as `read` and `readFile` do: a link to a
+ * directory, a junction included, is `directory`, and a link to a file is
+ * `file`. Nothing, a path below a file, and a dangling link are `missing`, as
+ * `readFile` reports them. Anything that exists but is neither, a cycle of
+ * links or a socket, pipe or device, is `other`. Any other failure to look,
+ * a denied permission among them, is thrown as the host reports it, never
+ * taken for an answer. Like `read`, it takes no lock.
+ */
+export async function kind(path: string): Promise<Kind> {
+  let target: Stats;
+  try {
+    target = await stat(resolve(path));
+  } catch (e) {
+    if (absent(e)) return "missing";
+    if ((e as NodeJS.ErrnoException).code === "ELOOP") return "other";
+    throw e;
+  }
+  if (target.isDirectory()) return "directory";
+  if (target.isFile()) return "file";
+  return "other";
+}
+
 // Names Windows cannot hold: reserved characters, a trailing dot or space,
 // and device names, with or without an extension.
 const RESERVED_CHARS = /[<>:"|?*\u0000-\u001f\\]/;
