@@ -7,71 +7,80 @@ Whatever can be decided deterministically is decided once, in [`lineage.ts`](lin
 ## Branches
 
 - `main` is the promoted state.
-- `kaal/*` are engineering lineages.
-- Every other branch, such as `claude/*`, is a working branch. Working branches are not protected, and their authors may rebase them.
+- `kaal/<capability>` is a collector. It carries a Branch Intent: one capability, durable. It accumulates Changes, is promoted deliberately, and lives on after a promotion, because the capability keeps evolving.
+- Every other branch, such as `claude/*`, is a working branch. It carries a PR Intent: one bounded Change, after which it may be deleted. Working branches are not protected, and their authors may rebase them.
 
-`main` and `kaal/*` are protected. They change only through pull requests, which merge by squash or rebase after their required checks pass and review is complete. They accept no direct push, force-push or deletion, and nothing bypasses this.
+`main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push, force-push or deletion, and nothing bypasses this. Only a `kaal/*` branch of this repository may open a pull request into `main`.
+
+Each flow lands with one merge method:
+
+| Flow | Pull request | Lands by |
+|---|---|---|
+| [Engineer](#engineer) | working branch → `kaal/<capability>` | squash |
+| [Synchronize](#synchronize) | working branch holding a merge of `main` → `kaal/<capability>` | merge commit |
+| [Promote](#promote) | `kaal/<capability>` → `main` | squash |
+
+GitHub allows all three methods on `kaal/*` and cannot tie one to a pull request, so the Branching check names the method for each one (see [Telling a synchronization from a Change](#telling-a-synchronization-from-a-change)).
 
 ## Flows
 
 ### Establish
 
-A new lineage is a `kaal/*` ref created at `main`'s current tip. It adds no content, so it is not a pull request.
+A new collector is a `kaal/*` ref created at `main`'s current tip. It adds no content, so it is not a pull request. An existing collector is never re-established under a new name to get past staleness: it is synchronized.
 
-Reasoning: a lineage builds on what has been promoted, so its Changes are developed and verified against that state.
+Reasoning: a collector builds on what has been promoted, so its Changes are developed and verified against that state.
 
 ### Engineer
 
-A Change is proposed from any branch through a pull request into a lineage, and joins it after its required checks pass and its review is complete. Change Isolation (`engineering/change-isolation/`) decides what a Change may contain.
+A Change is proposed from a working branch built on the collector's tip, through a pull request into the collector, and lands by squash after its required checks pass and its review is complete. Change Isolation (`engineering/change-isolation/`) decides what a Change may contain.
 
-Reasoning: each Change is verified on its own before it is integrated with others.
+A Change does not bring `main` with it. A working branch from `main`, or one that merged `main` and then added work, is neither a Change nor a synchronization, and the Branching check fails it: rebase the Change onto the collector's tip, and bring `main` in through a synchronization.
 
-### Promote
-
-A lineage promotes into `main` through a pull request from that `kaal/*` branch of this repository. The promotion must be fresh: merging it gives `main` exactly the state validated on its head.
-
-Reasoning: `main` receives only Changes that were integrated and verified in a lineage, in exactly the state that was verified.
-
-#### Refresh a stale promotion
-
-A promotion that is no longer fresh is refreshed, not merged stale and not synchronized in place:
-
-1. In a working branch from `main`'s tip, rebase the promotion's Change onto it and resolve any conflicts.
-2. Establish a new lineage at that same tip.
-3. Engineer the working branch into the new lineage through its pull request.
-4. Promote the new lineage. The new promotion supersedes the stale one.
+Reasoning: each Change is verified on its own before it is integrated with others, and squash keeps the collector's history one commit per Change.
 
 ### Synchronize
 
-An existing lineage receives a newer state of `main` while keeping its own outstanding Changes. Synchronization is a pull request into the lineage like any other, so it passes the same required checks.
-
-A synchronization may take `main` all the way to its tip, which leaves the lineage fully current, or only to an earlier `main` commit that is still newer than the one it last incorporated. That second kind is a valid intermediate step: the lineage stays behind until a later synchronization takes it further. Each step is its own pull request with its own required checks, and every step must move forward. Promotion is different: it is always judged against `main`'s latest tip.
-
-Squash and rebase never record `main` as a parent of the lineage, so Git's merge base does not follow synchronizations. The lineage's commit message carries `Synchronized-with: <main commit>` to state which `main` state it took in. That line states intent only: the checker verifies it against the actual Git state before relying on it, and an unverified line is ignored.
+A collector receives a newer state of `main` while keeping its own Changes. Synchronization is a pull request into the collector like any other, so it passes the same required checks, but it lands with a merge commit. That commit makes the merged `main` commit an ancestor of the collector, so Git's merge base, GitHub's up-to-date rule and every later merge follow it.
 
 Procedure, with ordinary Git:
 
 ```sh
-git switch -c <working branch> origin/<lineage>
-base=$(node engineering/github/lineage.ts incorporated origin/<lineage> origin/main)
-target=$(git rev-parse origin/main)   # or an earlier main commit after $base, to take a step
-git diff --binary "$base" "$target" | git apply --3way --index
-# resolve every conflict explicitly, keeping the lineage's intent; git add the results
-git commit -m "Synchronize <lineage> with main" -m "Synchronized-with: $target"
+git switch -c <working branch> origin/kaal/<capability>
+git merge origin/main      # or an earlier main commit, to take a step
+# resolve every conflict explicitly, keeping the collector's intent, in this merge commit
+git push -u origin <working branch>
 ```
 
-Take a step rather than the whole way when the resolutions would otherwise not travel alone. For example, if `main` brought a `.github` Change and a root Change that both conflict with the lineage, synchronize to the first one, land it, and then synchronize to the tip.
+Then open its pull request into the collector, and land it with a merge commit.
 
-Then push the working branch and open its pull request into the lineage. It may take more than one commit; the last states `Synchronized-with`.
+- The head is the merge commit itself. Nothing follows it on the working branch: a commit after it would carry `main` as an ordinary Change. A resolution is corrected by amending the merge commit; a fix that the merge needs beyond its conflicts is a separate Change after the synchronization lands.
+- The branch starts from the collector's tip because a `kaal/*` pull request must be up to date with its target. A pull request from `main` itself never is: `main` does not contain the collector's Changes.
+- A synchronization may take `main` to its tip, which leaves the collector fully current, or to an earlier `main` commit that is still newer than the one it last incorporated. That is a valid intermediate step. Take a step when the resolutions would otherwise not travel alone: if `main` brought a `.github` Change and a root Change that both conflict with the collector, merge the first, land it, then merge the tip. Every step must move forward.
 
-Why this shape:
+The paths where `main` and the collector conflicted are the synchronization's explicit resolutions. They are its own Change, and Change Isolation judges only them. Everything else must be exactly `main` with the collector's Changes, and the checker verifies that. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the collector's tests and review decide it. If `main` advances before the pull request lands, the synchronization is still a valid step; the next one brings the collector current.
 
-- The branch builds on the lineage's tip because a `kaal/*` pull request must be up to date with its target, which GitHub decides by ancestry. A branch rebased onto `main` does not contain the lineage's tip and stays behind it.
-- `main`'s Changes are applied from the incorporated state rather than merged with `git merge`, because Git's merge base for a squash-synchronized lineage is still its original fork point. Merging from there conflicts again on every path an earlier synchronization already settled and the lineage edited since.
+Reasoning: the collector keeps building on what has been promoted without losing work in flight, and every synchronization is verified before it lands.
 
-The paths where `main` and the lineage conflicted are the synchronization's explicit resolutions. They are its own Change and Change Isolation judges them. Everything else must be exactly `main` with the lineage's outstanding Changes, and the checker verifies that. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the lineage's tests and review decide it. If `main` advances before the pull request merges, the synchronization is still a valid step; the next one brings the lineage current.
+### Promote
 
-Reasoning: the lineage keeps building on what has been promoted without losing work in flight, and every synchronization is verified before it lands.
+A collector promotes into `main` through a pull request from its `kaal/*` branch, landed by squash. The promotion must be fresh: its head contains `main`'s tip, and merging it gives `main` exactly the state validated on its head. A collector that is not fresh is [synchronized](#synchronize), and the promotion is judged again on its new head.
+
+A squash promotion records the collector's state in `main` without making the collector an ancestor of `main`. So after every promotion, synchronize `main` back into the collector before its next promotion. That synchronization has no conflicts; it only gives the collector `main`'s new ancestry. From then on the collector may change or delete content it already promoted, and its next promotion carries exactly that.
+
+Reasoning: `main` receives only Changes that were integrated and verified in a collector, in exactly the state that was verified, one commit per promotion; the collector stays the durable home of its capability.
+
+## Telling a synchronization from a Change
+
+The Branching check judges every pull request into a collector before it lands, from Git facts alone:
+
+- **A synchronization** is a head that is a merge commit whose first parent contains the collector's tip and whose second parent is a commit on `main`'s first-parent history newer than the state the collector last incorporated. The check verifies that everything outside the conflicts is exactly that merge, passes, names the explicit resolutions, and says: land with a merge commit.
+- **An ordinary Change** is a head that carries no `main` commit the collector lacks. The check does not apply to it, and says: land by squash.
+- **Anything else fails**: a head that carries `main` commits outside such a merge, a merge of a state not on `main`'s first-parent history or not newer than what the collector holds, or a `Synchronized-with: <sha>` line on anything but a merge commit of that commit. Such a line is never proof; it was the marker of earlier squash synchronizations, and the checker only reads it on commits whose Git state it verifies.
+
+Agents and the pre-push hook run the same checker, so an agent knows the method before it opens the pull request, and states it there. Whoever lands the pull request uses the method the check names. A mistake does not reach `main`:
+
+- A synchronization landed by squash leaves the collector without `main`'s ancestry, so its next promotion fails freshness and GitHub's up-to-date rule, often with the very conflict it resolved. A new synchronization repairs it.
+- A Change landed with a merge commit leaves the verified tree unchanged and only adds history.
 
 ## Future
 
