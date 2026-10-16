@@ -19,7 +19,9 @@ describe("payload", () => {
   it("keeps conversation state in its latest messages, with marks that never change", () => {
     const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
     assert.match(text, /latest messages are its current coordination context; nothing else tracks its state/);
-    assert.match(text, /never changed or removed afterwards, and it never stands for the state of the conversation/);
+    for (const event of ["seen", "taken", "done", "blocked"]) assert.match(text, new RegExp(`\\*\\*${event}\\*\\*`));
+    assert.match(text, /Marks are additive historical facts: none is ever changed, removed or replaced/);
+    assert.match(text, /A mark is not authorship, approval, authority or permission/);
   });
 
   it("registers into a fresh Engine, where Transport is admitted", () => {

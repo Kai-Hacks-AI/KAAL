@@ -30,7 +30,7 @@ When a conversation reaches a decision that must last, put it where it lasts: in
 - When you hand work over, name who is asked, what is asked and the result expected.
 - To pass the turn to someone, write a new message that addresses them and says what you ask. The latest messages are the conversation's state; there is no other.
 - When nothing more is expected, say so in a concluding reply.
-- Where the Transport offers a mark on a single message, you may use it to acknowledge that message. Never change or remove a mark, and never use one to show the state of the conversation or who acts next.
+- Where the Transport offers marks on a single message, mark the request in that message as you act on it: **seen** when you have read it, **taken** when you take responsibility for it, **done** when it is completed, after you reply with the result, and **blocked** only together with a reply that explains why. Only add marks: never change, remove or replace one. A mark never declares authorship, approves anything or grants permission, and never stands for the conversation's state or who acts next.
 - A send that may have failed can still have been delivered. Read the conversation before you retry.
 
 ## Rules
