@@ -20,4 +20,4 @@ A fix follows the repository's established Change governance (see `engineering/g
 
 A valid alert stays open while it is being remediated. An alert is dismissed only with a justified, written reason in GitHub, such as a false positive or an accepted risk stated explicitly. That dismissal is the record of the exception; there is no separate exception list.
 
-Code scanning (CodeQL) is advisory: its results are triaged as above and do not block merges.
+CodeQL analysis is required for applicable pull requests. Missing or failed analysis, and findings exceeding the established security threshold, prevent integration. Enforcement is governed by the repository's security controls.
