@@ -155,6 +155,25 @@ describe("resolution", () => {
     assert.match(e.rejected.find((r) => r.path === "b/orphan.md")!.reason, /not admitted/);
   });
 
+  it("admits in time linear in Nodes and type references, whatever the file order", () => {
+    // A chain of types whose deepest Node sorts first: a pass-by-pass rescan
+    // would admit one Node per pass and take quadratic time.
+    const files: Record<string, Buffer> = { ...payload() };
+    let type: Ref = f.definition;
+    const depth = 20000;
+    for (let i = 0; i < depth; i++) {
+      const bytes = Buffer.from(node(`Link ${i}`, type));
+      files[`chain/${String(depth - i).padStart(6, "0")}.md`] = bytes;
+      type = { name: `Link ${i}`, id: sha256(bytes) };
+    }
+    const started = performance.now();
+    const e = evaluate(files);
+    const elapsed = performance.now() - started;
+    assert.equal(e.nodes.length, depth + 4);
+    assert.deepEqual(e.rejected, []);
+    assert.ok(elapsed < 5000, `admitting ${depth} chained Nodes took ${Math.round(elapsed)} ms`);
+  });
+
   it("allows several Nodes with one name, distinguished by id", () => {
     const one = node("Twin", f.definition, "one\n");
     const two = node("Twin", f.definition, "two\n");
