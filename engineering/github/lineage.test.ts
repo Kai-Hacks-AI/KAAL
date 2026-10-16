@@ -1,6 +1,6 @@
-// Lineage verdicts: each on its own over fixed facts, then the synchronization scenarios from #46
-// end to end on real Git repositories: a divergent lineage, overlapping edits, repeated upstream
-// advances, a stale default branch, and markers that do not hold.
+// Lineage verdicts: each on its own over fixed facts, then end to end on real Git repositories: a
+// divergent lineage, overlapping edits, repeated upstream advances, a stale default branch, claims that
+// do not hold, and one collector promoted again and again, including content it already promoted.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -28,47 +28,63 @@ describe("promotionSource", () => {
 });
 
 describe("promotionFreshness", () => {
-  const f = { defaultBranch: "main", defaultTip: A, headRef: "kaal/x", head: B, headTree: C };
-  it("passes when the merge is exactly the head's tree", () =>
-    assert.equal(promotionFreshness({ ...f, merge: { clean: true, tree: C, conflicts: [] } }).kind, "pass"));
-  it("fails a clean merge that was never validated", () => {
-    const v = promotionFreshness({ ...f, merge: { clean: true, tree: D, conflicts: [] } });
+  const f = { defaultBranch: "main", defaultTip: A, headRef: "kaal/x", head: B, headTree: C, containsTip: true };
+  const fails = (g: object, re: RegExp) => {
+    const v = promotionFreshness({ ...f, merge: { clean: true, tree: C, conflicts: [] }, ...g });
     assert.equal(v.kind, "fail");
-    assert.match(v.message, /never validated on its head\. Refresh it: rebase its Change onto aaaaaaa/);
-    assert.ok(v.message.endsWith(`${GUIDE}#refresh-a-stale-promotion`));
-  });
+    assert.match(v.message, re);
+    assert.match(v.message, /Synchronize kaal\/x with main at aaaaaaa: on a branch from its tip, git merge aaaaaaa, .* with a merge commit\./);
+    assert.ok(v.message.endsWith(`${GUIDE}#synchronize`));
+  };
+  it("passes when it contains the tip and the merge is exactly the head's tree", () =>
+    assert.equal(promotionFreshness({ ...f, merge: { clean: true, tree: C, conflicts: [] } }).kind, "pass"));
+  it("fails a head without the default branch's tip, whatever the merge would give", () =>
+    fails({ containsTip: false }, /is not fresh: it does not contain main's tip aaaaaaa\./));
+  it("fails a clean merge that was never validated", () => fails({ merge: { clean: true, tree: D, conflicts: [] } }, /never validated on its head/));
   it("fails a conflict and names the paths", () =>
-    assert.match(promotionFreshness({ ...f, merge: { clean: false, tree: D, conflicts: ["p", "q"] } }).message, /conflicts with main at aaaaaaa on p q/));
+    fails({ containsTip: false, merge: { clean: false, tree: D, conflicts: ["p", "q"] } }, /conflicts with main at aaaaaaa on p q/));
 });
 
 describe("synchronization", () => {
   const f: SyncFacts = {
-    defaultBranch: "main", lineage: "kaal/x", defaultTip: A, lineageTip: B, head: C, marker: A,
-    onLineageTip: true, markerOnDefault: true, advances: true, incorporated: D,
+    defaultBranch: "main", lineage: "kaal/x", defaultTip: A, lineageTip: B, head: C, merged: A, marker: null,
+    onLineageTip: true, carriesDefault: true, markerOnDefault: true, advances: true, incorporated: D,
     expected: { clean: false, tree: D, conflicts: ["package.json"] }, differing: [],
   };
   const fails = (g: Partial<SyncFacts>, re: RegExp) => {
     const v = synchronization({ ...f, ...g });
     assert.equal(v.kind, "fail");
     assert.match(v.message, re);
-    assert.match(v.message, /Rebuild it on a branch from kaal\/x's tip bbbbbbb: choose a main commit S after ddddddd .*git apply --3way --index.* with the line "Synchronized-with: <S>"/);
+    assert.match(v.message, /on a branch from kaal\/x's tip bbbbbbb, git merge a main commit S after ddddddd .* resolve every conflict explicitly in that merge commit, and land the pull request with a merge commit/);
     assert.ok(v.message.endsWith(`${GUIDE}#synchronize`));
   };
   it("passes fully current and names its explicit resolutions, as structure only", () => {
     const v = synchronization(f);
     assert.deepEqual([v.kind, v.current, v.resolutions], ["pass", true, ["package.json"]]);
     assert.match(v.message, /^Synchronized, fully current/);
+    assert.match(v.message, /Land it with a merge commit, never by squash or rebase/);
     assert.match(v.message, /Structure verified; whether each resolution is right is for the lineage's tests and review/);
   });
-  it("does not apply without a marker", () => assert.equal(synchronization({ ...f, marker: null }).kind, "not-applicable"));
+  it("accepts a Synchronized-with line that names the merged commit", () => assert.equal(synchronization({ ...f, marker: A }).kind, "pass"));
+  it("treats a proposal that merges nothing from main and carries none of it as an ordinary Change, landed by squash", () => {
+    const v = synchronization({ ...f, merged: null, carriesDefault: false });
+    assert.equal(v.kind, "not-applicable");
+    assert.match(v.message, /an ordinary Change into kaal\/x\. Land it by squash\./);
+  });
+  it("fails an ordinary Change that carries main's commits", () =>
+    fails({ merged: null }, /carries main commits that kaal\/x does not hold, so it is neither an ordinary Change nor a synchronization/));
+  it("fails a Synchronized-with line on anything but a merge commit of it", () => {
+    fails({ merged: null, marker: A }, /states Synchronized-with aaaaaaa but is not a merge commit of it/);
+    fails({ marker: D }, /Synchronized-with ddddddd is not the main commit aaaaaaa this merge brings in/);
+  });
   it("fails when it does not build on the lineage's tip", () => fails({ onLineageTip: false }, /does not build on kaal\/x's tip bbbbbbb/));
-  it("fails a marker that is not an admitted default-branch state", () => fails({ markerOnDefault: false }, /is not a commit on main's first-parent history/));
+  it("fails a merged commit that is not an admitted default-branch state", () => fails({ markerOnDefault: false }, /is not a commit on main's first-parent history/));
   it("passes an intermediate step and says the lineage is still behind", () => {
-    const v = synchronization({ ...f, marker: C });
+    const v = synchronization({ ...f, merged: C });
     assert.deepEqual([v.kind, v.current], ["pass", false]);
     assert.match(v.message, /^Synchronized, a valid intermediate step: .* main is at aaaaaaa: synchronize again from ccccccc/);
   });
-  it("fails a marker that does not advance the incorporated state", () => fails({ advances: false }, /No progress: Synchronized-with aaaaaaa is not newer than ddddddd/));
+  it("fails a merge that does not advance the incorporated state", () => fails({ advances: false }, /No progress: the merged aaaaaaa is not newer than ddddddd/));
   it("fails any other difference and names it", () => fails({ differing: ["AGENTS.md"] }, /on: AGENTS\.md\. Only paths where the two conflict may differ/));
 });
 
@@ -80,7 +96,7 @@ describe("marker", () => {
   });
 });
 
-// ---- Acceptance: the #46 scenarios on real repositories -------------------------------------
+// ---- Acceptance: on real repositories -------------------------------------
 
 function repo() {
   const dir = mkdtempSync(join(tmpdir(), "lineage-"));
@@ -109,23 +125,27 @@ function repo() {
     else g("checkout", "-q", "--detach");
     return g("rev-parse", branch);
   };
-  /** Land a proposed commit on branch by squash: same tree, one parent (the tip), its message kept. */
+  /** Land a pull request on branch by squash, as GitHub does: the merge of its head into the branch
+   *  over Git's merge base, one parent (the tip), its message kept. Throws on a conflict. */
   const squash = (branch: string, head: string) => {
-    const c = g("commit-tree", `${head}^{tree}`, "-p", branch, "-m", g("log", "-1", "--format=%B", head));
-    g("branch", "-f", branch, c);
+    const m = merge(dir, g("rev-parse", branch), head);
+    if (!m.clean) throw new Error(`squash of ${head} into ${branch} conflicts on ${m.conflicts.join(" ")}`);
+    g("branch", "-f", branch, g("commit-tree", m.tree, "-p", branch, "-m", g("log", "-1", "--format=%B", head)));
+  };
+  /** Land a pull request on branch with a merge commit, as GitHub does: both parents kept. */
+  const mergeCommit = (branch: string, head: string) => {
+    const m = merge(dir, g("rev-parse", branch), head);
+    if (!m.clean) throw new Error(`merge of ${head} into ${branch} conflicts on ${m.conflicts.join(" ")}`);
+    g("branch", "-f", branch, g("commit-tree", m.tree, "-p", branch, "-p", head, "-m", "Merge pull request"));
   };
   /** The agent's procedure (branching.md#synchronize), with ordinary Git only: a branch from the
-   *  lineage's tip; main's Changes since the lineage's incorporated state applied with a three-way
-   *  merge; conflicts resolved by `resolve`; one commit stating Synchronized-with. */
+   *  lineage's tip, git merge of a main commit, conflicts resolved by `resolve` in that merge commit. */
   const synchronize = (lineage: string, resolve: (conflicts: string[]) => Record<string, string | null> = () => ({}), to = "main") => {
-    const tip = g("rev-parse", to);
-    const inc = incorporated(dir, g("rev-parse", lineage), g("rev-parse", "main"));
     g("checkout", "-q", "-B", "work", lineage);
-    const diff = spawnSync("git", ["diff", "--binary", inc, tip], { cwd: dir, encoding: "utf8" }).stdout;
-    const applied = spawnSync("git", ["apply", "--3way", "--index"], { cwd: dir, input: diff, encoding: "utf8" });
-    if (applied.status !== 0) put(resolve(g("diff", "--name-only", "--diff-filter=U").split("\n").filter(Boolean)));
+    const merged = spawnSync("git", ["merge", "-q", "--no-ff", "--no-commit", g("rev-parse", to)], { cwd: dir, encoding: "utf8" });
+    if (merged.status !== 0) put(resolve(g("diff", "--name-only", "--diff-filter=U").split("\n").filter(Boolean)));
     g("add", "-A");
-    g("commit", "-q", "--allow-empty", "-m", "Synchronize", "-m", `Synchronized-with: ${tip}`);
+    g("commit", "-q", "--no-edit", "-m", `Synchronize ${lineage} with main`);
     const head = g("rev-parse", "HEAD");
     g("checkout", "-q", "--detach", "main");
     return head;
@@ -133,7 +153,7 @@ function repo() {
   const judge = (lineage: string, head: string) =>
     synchronization(readSync(dir, "main", lineage, g("rev-parse", "main"), g("rev-parse", lineage), head));
   const fresh = (lineage: string) => promotionFreshness(readFreshness(dir, "main", g("rev-parse", "main"), lineage, g("rev-parse", lineage)));
-  return { dir, g, put, land, squash, synchronize, judge, fresh };
+  return { dir, g, put, land, squash, mergeCommit, synchronize, judge, fresh };
 }
 
 const pkg = (scripts: string[], name = "Engineering repository for KAAL") =>
@@ -164,7 +184,7 @@ describe("acceptance: synchronizing a divergent lineage", () => {
   it("fails a synchronization that drops a lineage Change", () => {
     r.g("checkout", "-q", "--detach", s1);
     r.g("rm", "-q", "AGENTS.md");
-    const bad = r.g("commit-tree", r.g("write-tree"), "-p", "kaal/genesis", "-m", `S\n\nSynchronized-with: ${r.g("rev-parse", "main")}`);
+    const bad = r.g("commit-tree", r.g("write-tree"), "-p", "kaal/genesis", "-p", "main", "-m", "S");
     r.g("checkout", "-q", "-f", "main");
     const v = r.judge("kaal/genesis", bad);
     assert.equal(v.kind, "fail");
@@ -175,18 +195,29 @@ describe("acceptance: synchronizing a divergent lineage", () => {
     r.g("checkout", "-q", "--detach", s1);
     r.put({ "EXTRA.md": "extra\n" });
     r.g("add", "-A");
-    const bad = r.g("commit-tree", r.g("write-tree"), "-p", "kaal/genesis", "-m", `S\n\nSynchronized-with: ${r.g("rev-parse", "main")}`);
+    const bad = r.g("commit-tree", r.g("write-tree"), "-p", "kaal/genesis", "-p", "main", "-m", "S");
     r.g("checkout", "-q", "-f", "main");
     assert.match(r.judge("kaal/genesis", bad).message, /on: EXTRA\.md\./);
   });
 
-  it("treats the main-based working branch without a marker as an ordinary Change, and fails it with one", () => {
-    r.g("checkout", "-q", "-B", "rebased", "main");
-    r.g("commit", "-q", "--allow-empty", "-m", "rebased lineage");
-    assert.equal(r.judge("kaal/genesis", r.g("rev-parse", "rebased")).kind, "not-applicable");
-    r.g("checkout", "-q", "--detach", "main");
-    const onMain = r.g("commit-tree", `${s1}^{tree}`, "-p", "main", "-m", `S\n\nSynchronized-with: ${r.g("rev-parse", "main")}`);
-    assert.match(r.judge("kaal/genesis", onMain).message, /does not build on kaal\/genesis's tip/);
+  it("tells an ordinary Change from a synchronization, and fails one that brings main in any other way", () => {
+    const change = r.g("commit-tree", "kaal/genesis^{tree}", "-p", "kaal/genesis", "-m", "a Change");
+    const v = r.judge("kaal/genesis", change);
+    assert.equal(v.kind, "not-applicable");
+    assert.match(v.message, /Land it by squash/);
+    const onMain = r.g("commit-tree", "main^{tree}", "-p", "main", "-m", "a branch from main");
+    assert.match(r.judge("kaal/genesis", onMain).message, /carries main commits that kaal\/genesis does not hold/);
+    const after = r.g("commit-tree", `${s1}^{tree}`, "-p", s1, "-m", "more after the merge");
+    assert.match(r.judge("kaal/genesis", after).message, /neither an ordinary Change nor a synchronization/);
+    const reversed = r.g("commit-tree", `${s1}^{tree}`, "-p", fork, "-p", "main", "-m", "S");
+    assert.match(r.judge("kaal/genesis", reversed).message, /does not build on kaal\/genesis's tip/);
+  });
+
+  it("fails a squash-style synchronization: main's content in one commit, without main's ancestry", () => {
+    const flat = r.g("commit-tree", `${s1}^{tree}`, "-p", "kaal/genesis", "-m", `S\n\nSynchronized-with: ${r.g("rev-parse", "main")}`);
+    assert.match(r.judge("kaal/genesis", flat).message, /states Synchronized-with \w+ but is not a merge commit of it/);
+    const unmarked = r.g("commit-tree", `${s1}^{tree}`, "-p", "kaal/genesis", "-m", "S");
+    assert.equal(r.judge("kaal/genesis", unmarked).kind, "not-applicable", "an unmarked one reads as an ordinary Change; freshness catches it at promotion");
   });
 
   it("remains a valid intermediate step once main advances, and is current once rebuilt", () => {
@@ -197,22 +228,16 @@ describe("acceptance: synchronizing a divergent lineage", () => {
     assert.deepEqual([r.judge("kaal/genesis", s1).kind, r.judge("kaal/genesis", s1).current], ["pass", true]);
   });
 
-  it("accepts a synchronization committed in more than one step", () => {
-    r.g("checkout", "-q", "--detach", "kaal/genesis");
-    r.g("restore", "--source", s1, "--staged", "--worktree", "--", ".github");
-    r.g("commit", "-q", "-m", "Take main's .github");
-    r.g("restore", "--source", s1, "--staged", "--worktree", "--", ":/");
-    r.g("commit", "-q", "-m", "Resolve package.json", "-m", `Synchronized-with: ${r.g("rev-parse", "main")}`);
-    const v = r.judge("kaal/genesis", r.g("rev-parse", "HEAD"));
-    r.g("checkout", "-q", "--detach", "main");
-    assert.equal(v.kind, "pass", v.message);
+  it("is not fresh for promotion when the synchronization lands by squash", () => {
+    r.g("branch", "-f", "kaal/squashed", "kaal/genesis");
+    r.squash("kaal/squashed", s1);
+    assert.equal(r.g("rev-parse", "kaal/squashed^{tree}"), r.g("rev-parse", `${s1}^{tree}`), "the very same tree");
+    assert.match(r.fresh("kaal/squashed").message, /conflicts with main at \w+ on package\.json/, "the conflict it resolved returns");
   });
 
-  it("does not make the synchronized lineage a fresh promotion: promotion is a refresh", () => {
-    r.squash("kaal/genesis", s1);
-    const v = r.fresh("kaal/genesis");
-    assert.equal(v.kind, "fail");
-    assert.match(v.message, /Refresh it: rebase its Change onto/);
+  it("is fresh for promotion when the synchronization lands with a merge commit", () => {
+    r.mergeCommit("kaal/genesis", s1);
+    assert.equal(r.fresh("kaal/genesis").kind, "pass");
   });
 
   it("advances the incorporated state only through a verified synchronization", () => {
@@ -228,12 +253,13 @@ describe("acceptance: synchronizing a divergent lineage", () => {
     r.land("main", { "package.json": pkg(MAIN_SCRIPTS, "Engineering repository of KAAL") }, "main root Change");
     const tip = r.g("rev-parse", "main"), lineage = r.g("rev-parse", "kaal/genesis");
     assert.deepEqual(merge(r.dir, tip, lineage, incorporated(r.dir, lineage, tip)).conflicts, []);
-    assert.ok(merge(r.dir, tip, lineage, fork).conflicts.includes(".github/workflows/source.yml"), "the Git fork point would conflict");
+    assert.ok(merge(r.dir, tip, lineage, fork).conflicts.includes(".github/workflows/source.yml"), "the original fork point would conflict");
+    assert.equal(r.g("merge-base", tip, lineage), incorporated(r.dir, lineage, tip), "Git's own merge base already knows the synchronization");
     s2 = r.synchronize("kaal/genesis");
     const v = r.judge("kaal/genesis", s2);
     assert.equal(v.kind, "pass", v.message);
     assert.deepEqual(v.resolutions, []);
-    r.squash("kaal/genesis", s2);
+    r.mergeCommit("kaal/genesis", s2);
   });
 
   it("names a true conflict on a later advance as the explicit resolution", () => {
@@ -270,20 +296,22 @@ describe("acceptance: stepwise synchronization", () => {
     const v1 = r.judge("kaal/l", step1);
     assert.deepEqual([v1.kind, v1.current, v1.resolutions], ["pass", false, [".github/workflows/ci.yml"]]);
     assert.equal(isolation(v1.resolutions), 0);
-    r.squash("kaal/l", step1);
+    r.mergeCommit("kaal/l", step1);
     assert.equal(incorporated(r.dir, r.g("rev-parse", "kaal/l"), root), github, "the incorporated state advanced to step 1");
 
     const step2 = r.synchronize("kaal/l", keepLineage);
     const v2 = r.judge("kaal/l", step2);
     assert.deepEqual([v2.kind, v2.current, v2.resolutions], ["pass", true, ["package.json"]]);
     assert.equal(isolation(v2.resolutions), 0);
-    r.squash("kaal/l", step2);
+    r.mergeCommit("kaal/l", step2);
     assert.equal(incorporated(r.dir, r.g("rev-parse", "kaal/l"), root), root, "and then to main's tip");
   });
 
-  it("rejects a synchronization that does not move forward", () => {
-    const stamp = (s: string) => r.g("commit-tree", "kaal/l^{tree}", "-p", "kaal/l", "-m", `S\n\nSynchronized-with: ${s}`);
-    for (const s of [root, github, fork]) assert.match(r.judge("kaal/l", stamp(s)).message, /^No progress: /);
+  it("treats a merge of what the lineage already holds as an ordinary Change, such as a working branch updated from it", () => {
+    const stamp = (s: string) => r.g("commit-tree", "kaal/l^{tree}", "-p", "kaal/l", "-p", s, "-m", "S");
+    for (const s of [root, github, fork]) assert.equal(r.judge("kaal/l", stamp(s)).kind, "not-applicable");
+    const work = r.g("commit-tree", "kaal/l^{tree}", "-p", fork, "-m", "a Change from an older state");
+    assert.equal(r.judge("kaal/l", r.g("commit-tree", "kaal/l^{tree}", "-p", work, "-p", "kaal/l", "-m", "Merge kaal/l")).kind, "not-applicable");
   });
 
   it("keeps a step valid but not current when main advances before it lands", () => {
@@ -296,14 +324,14 @@ describe("acceptance: stepwise synchronization", () => {
     assert.match(v.message, /synchronize again from/);
   });
 
-  it("never advances on a marker naming a state off main's first-parent history", () => {
+  it("never advances on a merge of a state off main's first-parent history", () => {
     r.g("checkout", "-q", "-B", "side", "main");
     r.g("commit", "-q", "--allow-empty", "-m", "side");
     const side = r.g("rev-parse", "HEAD");
     r.g("checkout", "-q", "--detach", "main");
     r.g("merge", "-q", "--no-ff", "-m", "a merge on main", side);
     r.g("branch", "-f", "main", "HEAD");
-    const v = r.judge("kaal/l", r.g("commit-tree", "kaal/l^{tree}", "-p", "kaal/l", "-m", `S\n\nSynchronized-with: ${side}`));
+    const v = r.judge("kaal/l", r.g("commit-tree", "kaal/l^{tree}", "-p", "kaal/l", "-p", side, "-m", "S"));
     assert.match(v.message, /is not a commit on main's first-parent history/);
   });
 });
@@ -326,10 +354,11 @@ describe("acceptance: a Synchronized-with line is never proof", () => {
     assert.equal(v.kind, "pass", v.message);
   });
 
-  it("fails a head whose marker names a commit outside main", () => {
+  it("fails a head whose marker names a commit outside main, even as a merge of it", () => {
     const off = r.land("kaal/x", { "z.txt": "z\n" });
-    const bad = r.g("commit-tree", `${off}^{tree}`, "-p", "kaal/x", "-m", `S\n\nSynchronized-with: ${off}`);
-    assert.match(r.judge("kaal/x", bad).message, /is not a commit on main's first-parent history/);
+    r.land("kaal/x", { "w.txt": "w\n" });
+    const bad = r.g("commit-tree", "kaal/x^{tree}", "-p", "kaal/x", "-p", off, "-m", `S\n\nSynchronized-with: ${off}`);
+    assert.match(r.judge("kaal/x", bad).message, /states Synchronized-with \w+ but is not a merge commit of it/);
   });
 });
 
@@ -341,11 +370,82 @@ describe("acceptance: promotion freshness", () => {
   it("passes a lineage established at main's tip", () => assert.equal(r.fresh("kaal/p").kind, "pass"));
   it("fails once main advances, even when the merge is clean", () => {
     r.land("main", { "b.txt": "b\n" });
-    assert.match(r.fresh("kaal/p").message, /never validated on its head/);
+    assert.match(r.fresh("kaal/p").message, /does not contain main's tip/);
   });
   it("fails a conflict and names it", () => {
     r.land("main", { "a.txt": "1\n2\nM\n" });
     assert.match(r.fresh("kaal/p").message, /conflicts with main at \w+ on a\.txt/);
+  });
+  it("passes again once a synchronization lands with a merge commit", () => {
+    r.mergeCommit("kaal/p", r.synchronize("kaal/p", () => ({ "a.txt": "1\n2\nM\nP\n" })));
+    assert.equal(r.fresh("kaal/p").kind, "pass");
+  });
+});
+
+describe("acceptance: one collector, promoted again and again", () => {
+  // The flow of branching.md on a simulated GitHub: Changes land on the collector by squash, the
+  // collector lands on main by squash, and main returns to the collector by a merge-commit synchronization.
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  r.g("branch", "kaal/c", "main");
+  const change = (files: Record<string, string | null>) => {
+    r.g("branch", "-f", "claude/work", "kaal/c");
+    const head = r.land("claude/work", files);
+    assert.equal(r.judge("kaal/c", head).kind, "not-applicable", "an ordinary Change");
+    r.squash("kaal/c", head);
+  };
+  const promote = () => {
+    const v = r.fresh("kaal/c");
+    assert.equal(v.kind, "pass", v.message);
+    r.squash("main", r.g("rev-parse", "kaal/c"));
+  };
+  const syncBack = (resolve?: (c: string[]) => Record<string, string | null>) => {
+    const s = r.synchronize("kaal/c", resolve);
+    const v = r.judge("kaal/c", s);
+    assert.equal(v.kind, "pass", v.message);
+    r.mergeCommit("kaal/c", s);
+    return v;
+  };
+  const show = (ref: string, path: string) => spawnSync("git", ["show", `${ref}:${path}`], { cwd: r.dir, encoding: "utf8" });
+
+  it("promotes its first Changes", () => {
+    change({ "cap/a.txt": "1\n2\n3\n", "cap/old.txt": "old\n" });
+    change({ "cap/b.txt": "b\n" });
+    promote();
+    assert.equal(show("main", "cap/a.txt").stdout, "1\n2\n3\n");
+  });
+
+  it("is not fresh after its own squash promotion until main is synchronized back, which needs no resolution", () => {
+    assert.match(r.fresh("kaal/c").message, /does not contain main's tip/);
+    assert.deepEqual(syncBack().resolutions, []);
+    assert.equal(r.fresh("kaal/c").kind, "pass");
+  });
+
+  it("promotes changed and deleted content it already promoted, with main moving meanwhile", () => {
+    change({ "cap/a.txt": "1\nTWO\n3\n", "cap/old.txt": null });
+    r.land("main", { "docs/other.md": "other\n" }, "another capability");
+    assert.match(r.fresh("kaal/c").message, /does not contain main's tip/);
+    syncBack();
+    promote();
+    assert.equal(show("main", "cap/a.txt").stdout, "1\nTWO\n3\n");
+    assert.notEqual(show("main", "cap/old.txt").status, 0, "the deleted file stays deleted");
+    assert.equal(show("main", "docs/other.md").stdout, "other\n");
+  });
+
+  it("does so a third time, deleting lines it promoted twice before", () => {
+    syncBack();
+    change({ "cap/a.txt": "1\n3\n", "cap/b.txt": null });
+    promote();
+    assert.equal(show("main", "cap/a.txt").stdout, "1\n3\n");
+    assert.notEqual(show("main", "cap/b.txt").status, 0);
+    assert.equal(r.g("rev-parse", "main^{tree}"), r.g("rev-parse", "kaal/c^{tree}"));
+  });
+
+  it("names the conflict when the sync-back is skipped and promoted content is edited again", () => {
+    r.g("branch", "-f", "kaal/skipped", "kaal/c");
+    r.g("branch", "-f", "claude/work", "kaal/skipped");
+    r.squash("kaal/skipped", r.land("claude/work", { "cap/a.txt": "1\nthree\n" }));
+    assert.match(r.fresh("kaal/skipped").message, /conflicts with main at \w+ on cap\/a\.txt/);
   });
 });
 
