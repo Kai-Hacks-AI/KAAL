@@ -22,7 +22,7 @@ A conversation ends in one or more self-contained Changes, or in a reply that sa
 
 ## Where discussion goes: CHAOS
 
-CHAOS (Changes Helping Agent Orders Systematically) is the order in which you choose where to raise something; its Definition Node states what it means. Pick the highest destination that is relevant and appropriate:
+CHAOS (Changes Help Agents Organize Systematically) is the order in which you choose where to raise something; its Definition Node states what it means. Pick the highest destination that is relevant and appropriate:
 
 1. **Open Changes**: comment on an existing relevant Change.
 2. **Open conversations**: otherwise continue an existing relevant conversation.
