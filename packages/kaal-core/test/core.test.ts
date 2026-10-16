@@ -424,6 +424,12 @@ describe("host boundary", () => {
     for (const p of sources) assert.doesNotMatch(readFileSync(join(SRC, p), "utf8"), /from "(node:)?fs(\/promises)?"|require\(/, p);
   });
 
+  it("takes what a path is from Hosting's kind: no Core source reads it from a refusal or a host error code", () => {
+    for (const p of readdirSync(SRC).filter((p) => p.endsWith(".ts"))) {
+      assert.doesNotMatch(readFileSync(join(SRC, p), "utf8"), /"(NOT_FILE|MISSING|ENOENT|ENOTDIR|EISDIR|ELOOP|EACCES|EPERM)"/, p);
+    }
+  });
+
   it("depends at runtime on kaal-hosting alone", () => {
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
     assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1" });

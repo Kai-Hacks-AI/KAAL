@@ -1,4 +1,4 @@
-import { HostingError, read, readFile } from "kaal-hosting";
+import { read } from "kaal-hosting";
 import { claimsForm, compareRefs, identify, KaalError, type Identity, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
@@ -87,18 +87,6 @@ function reasonFor(n: EngineNode, all: Map<string, EngineNode>, admitted: Map<st
   if (target.name !== n.type.name) return `type names ${n.type.name}, but Node ${n.type.id} is named ${target.name}`;
   if (!admitted.has(target.id)) return `type ${n.type.name} (${n.type.id}) is not admitted`;
   return "not admitted";
-}
-
-/** Whether `path` is a directory, as Hosting reads it: missing and a file are not. */
-export async function isDirectory(path: string): Promise<boolean> {
-  try {
-    await readFile(path);
-    return false;
-  } catch (e) {
-    if (e instanceof HostingError && e.code === "NOT_FILE") return true;
-    if (e instanceof HostingError && e.code === "MISSING") return false;
-    throw e;
-  }
 }
 
 /** Load the Engine held in an Engine directory (a host's `.kaal/`). */

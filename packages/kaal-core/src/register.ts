@@ -1,6 +1,6 @@
-import { read, update } from "kaal-hosting";
+import { kind as pathKind, read, update } from "kaal-hosting";
 import { check } from "./bootstrap.js";
-import { evaluate, isDirectory } from "./engine.js";
+import { evaluate } from "./engine.js";
 import { claimsForm, compareRefs, identify, KaalError, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
@@ -67,7 +67,7 @@ export async function register(dir: string, kind: Kind, capability: string, cont
       throw new KaalError(`${path}: ${(e as Error).message}`);
     }
   }
-  if (!(await isDirectory(dir))) throw new KaalError(`${dir} is not a valid Engine; nothing was written:\n  ${dir} is not an Engine directory`);
+  if ((await pathKind(dir)) !== "directory") throw new KaalError(`${dir} is not a valid Engine; nothing was written:\n  ${dir} is not an Engine directory`);
 
   const prefix = `${DIRS[kind]}/${capability}`;
   let ids: string[] = [];
@@ -115,7 +115,7 @@ export function registerExtension(dir: string, capability: string, contribution:
 
 /** Read a contribution from a source directory: every file, keyed by `/`-separated relative path. */
 export async function readContribution(source: string): Promise<Files> {
-  if (!(await isDirectory(source))) throw new KaalError(`${source} is not a directory`);
+  if ((await pathKind(source)) !== "directory") throw new KaalError(`${source} is not a directory`);
   return read(source);
 }
 

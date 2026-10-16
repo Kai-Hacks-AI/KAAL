@@ -1,5 +1,5 @@
-import { HostingError, initialize, read } from "kaal-hosting";
-import { evaluate, isDirectory, type Engine } from "./engine.js";
+import { HostingError, initialize, kind, read } from "kaal-hosting";
+import { evaluate, type Engine } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
 import { foundation, payload, type Files } from "./payload.js";
 
@@ -16,7 +16,7 @@ import { foundation, payload, type Files } from "./payload.js";
  * written.
  */
 export async function bootstrap(dir: string): Promise<string[]> {
-  if (await isDirectory(dir)) {
+  if ((await kind(dir)) === "directory") {
     const files = await read(dir);
     if (Object.keys(files).length > 0) {
       const existing = check(files);
@@ -61,7 +61,7 @@ export function check(files: Files): Verification {
  * claims to be a Node is admitted. Locations are not consulted.
  */
 export async function verify(dir: string): Promise<Verification> {
-  if (!(await isDirectory(dir))) return { ok: false, problems: [`${dir} is not an Engine directory`], engine: evaluate({}) };
+  if ((await kind(dir)) !== "directory") return { ok: false, problems: [`${dir} is not an Engine directory`], engine: evaluate({}) };
   return check(await read(dir));
 }
 
