@@ -9,10 +9,10 @@ type:
 
 Controls is the capability for understanding controls and for claiming no more assurance from a control than the evidence supports. Its scope is that alone. Which controls a capability needs, and what they must achieve, belong to that capability.
 
-A control is a measure taken toward an objective. Five facts about a control are kept apart, and none is inferred from another:
+A control is a measure taken toward an objective. Reasoning about a control keeps five analytical distinctions apart, and none is inferred from another. They are distinctions for reasoning and for claims, not a schema every control must fill in:
 
 - **Objective**: what must hold or must not happen. It belongs to the capability that owns the governed behaviour.
-- **Type**: what the control is designed to do about a violation. KAAL's minimal working vocabulary has four types. A **directive** control states the required behaviour, which may or may not be followed. A **preventive** control blocks a prohibited action within a specified actor or interface and enforcement boundary. A **detective** control reveals deviations. A **corrective** control restores the desired state. This vocabulary is not claimed to exhaust established control frameworks.
+- **Type**: what the control is designed to do about a violation. KAAL's initial vocabulary has four types. A **directive** control states the required behaviour, which may or may not be followed. A **preventive** control blocks a prohibited action within a specified actor or interface and enforcement boundary. A **detective** control reveals deviations. A **corrective** control restores the desired state. This is an initial vocabulary, not a closed taxonomy: it is not claimed to exhaust established control frameworks, and further types are added to it deliberately.
 - **Mechanism**: what realizes the control, such as written instruction, human review, an automated check, or enforcement by the system that performs the action. Type and mechanism are independent. A check that reports a violation is detective; a gate that requires that check to pass before a particular action takes effect prevents that action.
 - **Evidence**: what has actually been observed, such as the configuration of the system that enforces a control, a result produced for the specific subject, or an approval. Evidence that a control is configured is not evidence that it operated.
 - **Effectiveness**: whether the control, operating as designed, achieves its objective, within its stated limits.

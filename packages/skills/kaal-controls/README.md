@@ -11,7 +11,7 @@ The Node carries what Controls means to KAAL. The Agent Skill tells an Agent how
 
 ## What it teaches
 
-A control's objective, type, mechanism, evidence and effectiveness are separate facts. The types are KAAL's minimal working vocabulary: directive, preventive, detective and corrective. An assurance claim is no stronger than the type, the mechanism and the evidence observed: a documented rule is a directive, a configured control is not shown to operate, a scanner detects, and a required gate prevents only the particular action it governs. A preventive claim names the action, the actor or interface, and the enforcement boundary.
+A control's objective, type, mechanism, evidence and effectiveness are analytical distinctions, kept apart when reasoning and making claims; they are not a schema every control must fill in. Directive, preventive, detective and corrective are an initial vocabulary of types, not a closed taxonomy. Type is a matter of design and distinct from assurance: an assurance claim is no stronger than the evidence observed, so configured is not operating and operating once is not effective. A scanner detects, and a required gate prevents only the particular action it governs. A preventive claim names the action, the actor or interface, and the enforcement boundary, and never promises that the action is impossible.
 
 ## Boundaries
 

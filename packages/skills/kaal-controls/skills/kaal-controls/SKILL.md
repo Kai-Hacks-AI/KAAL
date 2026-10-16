@@ -8,9 +8,9 @@ license: MIT
 
 What Controls means is stated by the `Controls` Node in a KAAL Engine: read it there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work.
 
-## Keep five facts apart
+## Keep five distinctions apart
 
-For any control you describe, know each of these separately. Never infer one from another.
+When you reason or make a claim about a control, keep these apart and never infer one from another. They are distinctions to reason with, not fields to fill in for every control: use the ones your claim depends on.
 
 1. **Objective**: what must hold or must not happen. Take it from the capability that owns the behaviour; do not invent or restate it.
 2. **Type**: what the control is designed to do; one of four.
@@ -18,7 +18,7 @@ For any control you describe, know each of these separately. Never infer one fro
    - **Preventive**: blocks a prohibited action within a specified actor or interface and enforcement boundary.
    - **Detective**: reveals deviations. A scanner, a test, a report or a reviewer reading a proposal detects.
    - **Corrective**: restores the desired state.
-   These four are KAAL's minimal working vocabulary, not a complete account of every framework. Do not add types; describe what is left over in plain words.
+   These four are an initial vocabulary, not a closed taxonomy. Use them where they apply, and do not invent classifications they do not support: describe what does not fit in plain words. Further types are defined deliberately, in Controls, not introduced in passing.
 3. **Mechanism**: what realizes it: written instruction, human review, an automated check, or enforcement by the system that performs the action. The same check can serve different types: run on its own it detects, and a gate that requires it to pass prevents the action the gate governs. A check that can be skipped, or that runs only where someone installed it, stays detective.
 4. **Evidence**: what you have actually observed, such as the enforcing system's configuration, a result for this exact subject, or an approval. Note whether it shows the control is configured or that it operated.
 5. **Effectiveness**: whether, operating as designed, it achieves the objective, and its stated limits.

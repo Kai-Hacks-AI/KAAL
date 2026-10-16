@@ -16,15 +16,19 @@ describe("payload", () => {
     assert.deepEqual(identify(readFileSync(join(PAYLOAD, "Controls.md"))).type, foundation().skill);
   });
 
-  it("keeps objective, type, mechanism, evidence and effectiveness apart", () => {
+  it("keeps objective, type, mechanism, evidence and effectiveness apart, as distinctions rather than a schema", () => {
     for (const fact of ["Objective", "Type", "Mechanism", "Evidence", "Effectiveness"]) assert.match(node, new RegExp(`^- \\*\\*${fact}\\*\\*: `, "m"));
     assert.match(node, /none is inferred from another/);
+    assert.match(node, /They are distinctions for reasoning and for claims, not a schema every control must fill in/);
+    assert.match(skill, /They are distinctions to reason with, not fields to fill in for every control/);
     assert.match(node, /It belongs to the capability that owns the governed behaviour/);
   });
 
-  it("has four types as a minimal working vocabulary, not a closed taxonomy", () => {
+  it("has four types as an initial vocabulary, not a closed taxonomy", () => {
     for (const type of ["directive", "preventive", "detective", "corrective"]) assert.match(node, new RegExp(`\\*\\*${type}\\*\\* control`));
-    assert.match(node, /not claimed to exhaust established control frameworks/);
+    assert.match(node, /This is an initial vocabulary, not a closed taxonomy/);
+    assert.match(skill, /These four are an initial vocabulary, not a closed taxonomy\. Use them where they apply, and do not invent classifications they do not support/);
+    assert.doesNotMatch(skill, /Do not add types/);
   });
 
   it("calibrates claims to evidence and scopes preventive claims", () => {
