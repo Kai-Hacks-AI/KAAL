@@ -5,16 +5,18 @@
   "type": "module",
   "workspaces": [
     "packages/kaal-core",
-    "packages/extensions/kaal-hosting"
+    "packages/extensions/kaal-hosting",
+    "packages/skills/kaal-communication",
+    "packages/extensions/kaal-slack"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspaces --if-present",
     "test": "npm run test:hosting && npm run test:kaal && npm run test:engineering",
     "test:hosting": "npm test -w kaal-hosting",
     "test:kaal": "npm run test:workspaces && npm run test:acceptance",
     "test:workspaces": "npm run build -w kaal-hosting && node engineering/lanes/workspaces.mjs",
-    "test:acceptance": "npm run build -w kaal-hosting && node --test engineering/acceptance/embed.test.mjs",
-    "test:engineering": "node --test engineering/github/lineage.test.ts engineering/change-isolation/check.test.mjs",
+    "test:acceptance": "npm run build -w kaal-hosting && node --test engineering/acceptance/embed.test.mjs engineering/acceptance/communication.test.mjs",
+    "test:engineering": "node --test engineering/github/lineage.test.ts engineering/change-isolation/check.test.mjs engineering/privacy/check.test.mjs",
     "test:github": "node --test engineering/github/lineage.test.ts",
     "pack": "npm pack -w kaal-core --pack-destination engineering/out"
   },

@@ -1,0 +1,29 @@
+{
+  "name": "kaal-communication",
+  "version": "0.0.1",
+  "description": "KAAL Communication: how Agents and people exchange messages and hand over work, independent of the system that carries the messages.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./skills/kaal-communication/scripts/handovers.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kaal-open-handovers": "skills/kaal-communication/scripts/open-handovers.mjs"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  }
+}
