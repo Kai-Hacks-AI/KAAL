@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
-import { loadEngine, readTree, type Engine } from "./engine.js";
+import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { evaluate, loadEngine, makeStaging, readTree, type Engine } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
 import { foundation, payload, type Files } from "./payload.js";
 
@@ -13,20 +13,22 @@ function writeFiles(dir: string, files: Files): void {
 
 /**
  * Materialize an Engine from the foundational payload into `dir` (a host's
- * `.kaal/`). A new Engine is written whole into a staging directory beside
- * it and renamed into place, so it appears complete or not at all; an empty
- * directory is treated as new. An existing Engine is recognized by identity,
- * not layout: if it already verifies (the Kernel present by its exact bytes,
- * the four foundational Nodes admitted by their exact ids, every Node
- * admitted), nothing is written, wherever its files are. Any other existing
- * directory is refused and nothing is written. Returns the paths written.
+ * `.kaal/`). The payload is written whole into a staging directory first. A
+ * missing directory is created by renaming the staging directory into place,
+ * so it appears complete or not at all. An existing empty directory is kept,
+ * never removed or replaced (it may be the current directory): the staged
+ * files are moved into it, and moved back out if any move fails. An existing
+ * Engine is recognized by identity, not layout: if it already verifies (the
+ * Kernel present by its exact bytes, the four foundational Nodes admitted by
+ * their exact ids, every Node admitted), nothing is written, wherever its
+ * files are. Any other existing directory is refused and nothing is written.
+ * Returns the paths written.
  */
 export function bootstrap(dir: string): string[] {
   const files = payload();
-  if (existsSync(dir) && statSync(dir).isDirectory() && readdirSync(dir).length === 0) rmdirSync(dir);
   if (!existsSync(dir)) {
     mkdirSync(dirname(dir), { recursive: true });
-    const staging = mkdtempSync(join(dirname(dir), `${basename(dir)}.staging-`));
+    const staging = makeStaging(dirname(dir));
     try {
       writeFiles(staging, files);
       renameSync(staging, dir);
@@ -37,6 +39,23 @@ export function bootstrap(dir: string): string[] {
     return Object.keys(files);
   }
   if (!statSync(dir).isDirectory()) throw new KaalError(`${dir} exists and is not a directory`);
+  if (readdirSync(dir).length === 0) {
+    const staging = makeStaging(dir);
+    const moved: string[] = [];
+    try {
+      writeFiles(staging, files);
+      for (const entry of readdirSync(staging)) {
+        renameSync(join(staging, entry), join(dir, entry));
+        moved.push(entry);
+      }
+    } catch (e) {
+      for (const entry of moved) renameSync(join(dir, entry), join(staging, entry));
+      throw e;
+    } finally {
+      rmSync(staging, { recursive: true, force: true });
+    }
+    return Object.keys(files);
+  }
   const existing = verify(dir);
   if (existing.ok) return [];
   throw new KaalError(`${dir} exists and is not a valid Engine; nothing was written:\n  ${existing.problems.join("\n  ")}`);
@@ -57,7 +76,7 @@ export function verify(dir: string): Verification {
   const problems: string[] = [];
   if (!existsSync(dir) || !statSync(dir).isDirectory()) {
     problems.push(`${dir} is not an Engine directory`);
-    return { ok: false, problems, engine: loadEngine(dir) };
+    return { ok: false, problems, engine: evaluate({}) };
   }
   const files = readTree(dir);
   const f = foundation();

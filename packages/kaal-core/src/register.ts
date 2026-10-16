@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { evaluate, readTree, STAGING_PREFIX } from "./engine.js";
+import { verify } from "./bootstrap.js";
+import { evaluate, makeStaging, readTree } from "./engine.js";
 import { claimsForm, compareRefs, identify, KaalError, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
@@ -23,7 +24,7 @@ function toFiles(contribution: Record<string, string | Uint8Array>): Files {
 }
 
 function checkPath(path: string): void {
-  if (path.startsWith("/") || path.includes("\\") || path.split("/").some((s) => s === "" || s === "." || s === ".." || s.startsWith(STAGING_PREFIX)))
+  if (path.startsWith("/") || path.includes("\\") || path.split("/").some((s) => s === "" || s === "." || s === ".."))
     throw new KaalError(`${path} is not a path within the capability`);
   if (!path.endsWith(".md")) throw new KaalError(`${path} is not a Markdown file: a contribution is Nodes and nothing else`);
 }
@@ -47,8 +48,8 @@ export interface Registration {
  * Node in Form at a relative `.md` path; every Node declares a type that
  * resolves, by id with the name checked, against the Engine and the
  * contribution together; at least one Node is typed by Core's own Node of this
- * kind, and none by the other kind; and the Engine itself verifies its
- * foundation. Registering the identical contribution again is a no-op; a
+ * kind, and none by the other kind; and the Engine itself verifies as a
+ * whole (see `verify`). Registering the identical contribution again is a no-op; a
  * capability already registered with other content is refused.
  */
 export function register(dir: string, kind: Kind, capability: string, contribution: Record<string, string | Uint8Array>): Registration {
@@ -66,16 +67,9 @@ export function register(dir: string, kind: Kind, capability: string, contributi
     }
   }
 
+  const base = verify(dir);
+  if (!base.ok) throw new KaalError(`${dir} is not a valid Engine; nothing was written:\n  ${base.problems.join("\n  ")}`);
   const present = readTree(dir);
-  const base = evaluate(present);
-  const f = foundation();
-  for (const ref of [f.node, f.definition, f.skill, f.extension]) {
-    try {
-      base.resolve(ref);
-    } catch {
-      throw new KaalError(`${dir} is not a bootstrapped Engine: foundational Node ${ref.name} is not admitted`);
-    }
-  }
 
   const prefix = `${DIRS[kind]}/${capability}/`;
   const existing = Object.keys(present).filter((p) => p.startsWith(prefix));
@@ -105,7 +99,7 @@ export function register(dir: string, kind: Kind, capability: string, contributi
   const ids = [...new Set(typed.map((n) => n.id))].sort();
   if (existsSync(target)) return { ids, written: false };
 
-  const staging = mkdtempSync(join(dir, STAGING_PREFIX));
+  const staging = makeStaging(dir);
   try {
     for (const p of paths) {
       mkdirSync(dirname(join(staging, p)), { recursive: true });

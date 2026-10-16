@@ -2,7 +2,7 @@
 
 KAAL Core: the smallest working KAAL. It carries the five foundational documents, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
-Core depends on no Git host and no agent provider. It has no runtime dependencies and needs Node.js 20 or later.
+Core depends on no Git host and no agent provider. It has no runtime dependencies and needs Node.js 20.1 or later.
 
 ## Install and bootstrap
 
@@ -41,6 +41,7 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 
 ```
 <engine>/                   ./.kaal/ unless --engine names another directory
+  AGENTS.md                   entry point for an Agent working with this Engine
   KAAL-KERNEL.md
   core/Node.md, KAAL-Definition.md, KAAL-Skill.md, KAAL-Extension.md
   skills/<capability>/        registered Skill contributions
@@ -49,7 +50,7 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 
 This layout is how Core delivers files, not part of any identity. The Engine is found by content: you may move or rename any file, keeping its bytes, and every Node keeps its id, its type resolution and its discovery.
 
-`kaal init` materializes the payload into a missing or empty Engine directory, staged and renamed into place in one step. If the directory already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If it holds anything else, init refuses and writes nothing.
+`kaal init` materializes the payload into a missing or empty Engine directory. A missing directory is staged and renamed into place in one step. An existing empty directory, such as the current one, is kept and filled in place, never removed. If the directory already holds a valid Engine, recognized by identity whatever its layout, init writes nothing. If it holds anything else, init refuses and writes nothing.
 
 ## CLI
 
