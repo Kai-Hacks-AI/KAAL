@@ -26,10 +26,10 @@
     "prepack": "npm run build"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "typescript": "^5.6.0"
   }
 }
