@@ -8,6 +8,7 @@ Whatever can be decided deterministically is decided once, in [`lineage.ts`](lin
 
 - `main` is the promoted state.
 - `kaal/<capability>` is a collector. It carries a Branch Intent: one capability, durable. It accumulates Changes, is promoted deliberately, and lives on after a promotion, because the capability keeps evolving.
+- `kaal/hotfix` is the collector for urgent corrections of existing capabilities (see [Hotfix](#hotfix)).
 - Every other branch, such as `claude/*`, is a working branch. It carries a PR Intent: one bounded Change, after which it may be deleted. Working branches are not protected, and their authors may rebase them.
 
 `main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push, force-push or deletion, and nothing bypasses this. Only a `kaal/*` branch of this repository may open a pull request into `main`.
@@ -57,7 +58,7 @@ Then open its pull request into the collector, and land it with a merge commit.
 - The branch starts from the collector's tip because a `kaal/*` pull request must be up to date with its target. A pull request from `main` itself never is: `main` does not contain the collector's Changes.
 - A synchronization may take `main` to its tip, which leaves the collector fully current, or to an earlier `main` commit that is still newer than the one it last incorporated. That is a valid intermediate step. Take a step when the resolutions would otherwise not travel alone: if `main` brought a `.github` Change and a root Change that both conflict with the collector, merge the first, land it, then merge the tip. Every step must move forward.
 
-The paths where `main` and the collector conflicted are the synchronization's explicit resolutions. They are its own Change, and Change Isolation judges only them. Everything else must be exactly `main` with the collector's Changes, and the checker verifies that. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the collector's tests and review decide it. If `main` advances before the pull request lands, the synchronization is still a valid step; the next one brings the collector current.
+The paths where `main` and the collector conflicted are the synchronization's explicit resolutions. A resolution that takes `main`'s content unchanged adopts what `main` already admitted, with its own Change Isolation, and introduces nothing; the checker proves it from Git, path by path, by the exact tree entry (mode and object; absent in both counts as unchanged) and names it as adopted. Every other resolution, keeping the collector's side, combining both or writing anything new, is the synchronization's own Change, and Change Isolation judges only those. Adoption narrows nothing else: everything outside the conflicts must still be exactly `main` with the collector's Changes, and the checker verifies that; and every required check still runs on the whole resulting tree. It proves structure only. Whether a resolution keeps the right meaning is not something Git can decide: the collector's tests and review decide it. If `main` advances before the pull request lands, the synchronization is still a valid step; the next one brings the collector current.
 
 Reasoning: the collector keeps building on what has been promoted without losing work in flight, and every synchronization is verified before it lands.
 
@@ -68,6 +69,21 @@ A collector promotes into `main` through a pull request from its `kaal/*` branch
 A squash promotion records the collector's state in `main` without making the collector an ancestor of `main`. So after every promotion, synchronize `main` back into the collector before its next promotion. That synchronization has no conflicts; it only gives the collector `main`'s new ancestry. From then on the collector may change or delete content it already promoted, and its next promotion carries exactly that.
 
 Reasoning: `main` receives only Changes that were integrated and verified in a collector, in exactly the state that was verified, one commit per promotion; the collector stays the durable home of its capability.
+
+### Hotfix
+
+A hotfix is an urgency-driven correction to an existing capability. Urgency alone decides that a correction takes this route. The capability being corrected keeps ownership of the behavior: a hotfix is neither a new capability nor a separate owner.
+
+The route is for when the owning collector holds unfinished Changes and cannot be promoted just to ship the correction. Its Git realization is `kaal/hotfix`, a durable collector [established](#establish) once, which holds one correction at a time and nothing beyond `main` between hotfixes. It uses only the flows above:
+
+1. [Synchronize](#synchronize) `kaal/hotfix` to `main`'s tip if it is behind.
+2. [Engineer](#engineer) the correction as one Change into `kaal/hotfix`, landed by squash.
+3. [Promote](#promote) `kaal/hotfix` into `main`, landed by squash.
+4. Synchronize `main` back into `kaal/hotfix` and into every collector that owns the corrected behavior.
+
+Nothing is relaxed. The same required checks, Change Isolation, independent review and approval, and freshness apply as on any collector. A hotfix is not a bypass or an exemption.
+
+Reasoning: an urgent correction reaches `main` without waiting for, or carrying, unrelated work in its owner's collector, and returns to that collector through the same verified synchronization as any promoted state.
 
 ## Telling a synchronization from a Change
 
