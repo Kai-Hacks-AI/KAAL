@@ -25,6 +25,31 @@ describe("payload", () => {
   });
 });
 
+describe("signals", () => {
+  const text = readFileSync(join(PAYLOAD, "Slack-Transport.md"), "utf8");
+  const skill = readFileSync(fileURLToPath(new URL("../skills/kaal-slack/SKILL.md", import.meta.url)), "utf8");
+  const defaults = readFileSync(fileURLToPath(new URL("../skills/kaal-slack/references/defaults.md", import.meta.url)), "utf8");
+
+  it("realizes every point of the current Transport", () => {
+    const points = [...readFileSync(join(COMMUNICATION, "Transport.md"), "utf8").matchAll(/^- \*\*(\w+)\*\*:/gm)].map((m) => m[1]);
+    assert.ok(points.includes("Signals"));
+    assert.deepEqual([...text.matchAll(/^- \*\*(\w+)\*\*:/gm)].map((m) => m[1]), points);
+  });
+
+  it("names a reaction for every state and for a person as next actor, the same in Node and defaults", () => {
+    for (const [state, emoji] of [["active", "large_green_circle"], ["waiting", "large_yellow_circle"], ["blocked", "red_circle"], ["concluded", "white_check_mark"], ["person", "bust_in_silhouette"]]) {
+      assert.match(text, new RegExp(`\`${emoji}\` \\(${state}\\)|\`${emoji}\` for a ${state}`));
+      assert.match(defaults, new RegExp(`\`${emoji}\``));
+    }
+  });
+
+  it("counts only the signalling account, and never treats a signal as approval", () => {
+    assert.match(text, /only the account that added a reaction remove it/);
+    assert.match(skill, /can both add and remove reactions/);
+    assert.match(skill, /Never treat a signal as approval/);
+  });
+});
+
 describe("registration", () => {
   it("is refused without kaal-communication, and writes nothing", () => {
     const dir = engine();

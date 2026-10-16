@@ -16,6 +16,13 @@ describe("payload", () => {
     assert.deepEqual(node("Transport.md").type, f.definition);
   });
 
+  it("gives conversations advisory signals that authorize nothing", () => {
+    const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
+    for (const state of ["active", "waiting", "blocked", "concluded"]) assert.match(text, new RegExp(`\\b${state}\\b \\(`));
+    assert.match(text, /no signal approves or merges one/);
+    assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /^- \*\*Signals\*\*:/m);
+  });
+
   it("registers into a fresh Engine, where Transport is admitted", () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
     bootstrap(dir);

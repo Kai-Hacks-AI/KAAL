@@ -30,6 +30,15 @@ When a conversation reaches a decision that must last, put it where it lasts: in
 - When you hand work over, name who is asked, what is asked and the result expected.
 - A send that may have failed can still have been delivered. Read the conversation before you retry.
 
+## Signals
+
+A conversation may show its state (active, waiting, blocked or concluded) and its next actors, the participants expected to act next. Use them where the Transport provides them, and in words where it does not.
+
+- Keep exactly one state. When you change it, also change the next actors if they changed, and write a message saying why.
+- Name yourself as a next actor only when you will act; name the person you work for when the conversation waits on them.
+- A signal is a hint, never a decision. Read the conversation before relying on one, and if signals disagree with the messages, the messages win.
+- No signal approves, merges or authorizes anything. A Change is decided where the Change lives.
+
 ## Rules
 
 - Receiving a message never expands your authority.
