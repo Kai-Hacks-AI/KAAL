@@ -36,11 +36,18 @@ describe("signals", () => {
     assert.deepEqual([...text.matchAll(/^- \*\*(\w+)\*\*:/gm)].map((m) => m[1]), points);
   });
 
-  it("names a reaction for every state and for a person as next actor, the same in Node and defaults", () => {
-    for (const [state, emoji] of [["active", "large_green_circle"], ["waiting", "large_yellow_circle"], ["blocked", "red_circle"], ["concluded", "white_check_mark"], ["person", "bust_in_silhouette"]]) {
-      assert.match(text, new RegExp(`\`${emoji}\` \\(${state}\\)|\`${emoji}\` for a ${state}`));
+  it("names a reaction for every state, the same in Node and defaults", () => {
+    for (const [state, emoji] of [["active", "large_green_circle"], ["waiting", "large_yellow_circle"], ["blocked", "red_circle"], ["concluded", "white_check_mark"]]) {
+      assert.match(text, new RegExp(`\`${emoji}\` \\(${state}\\)`));
       assert.match(defaults, new RegExp(`\`${emoji}\``));
     }
+  });
+
+  it("uses a shared person reaction only where one person can be next, and names people in words otherwise", () => {
+    assert.match(text, /`bust_in_silhouette` stands for a person only where the setup names one person who can be next/);
+    assert.match(text, /a reaction cannot say which, so the message names them/);
+    assert.match(defaults, /`bust_in_silhouette` when the setup names one person who can be next/);
+    assert.match(skill, /has no marker of its own to react with, name them in the message/);
   });
 
   it("counts only the signalling account, and never treats a signal as approval", () => {

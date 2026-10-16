@@ -41,7 +41,7 @@ Signals are reactions on the conversation's top-level message, set by the signal
 
 1. Signal only if you post as the signalling account and your Slack access can both add and remove reactions. Otherwise state the change in words in the thread and leave the reactions alone.
 2. Read the thread and the top-level message's reactions first.
-3. Add the new state reaction, then remove the old one. Add the markers of the new next actors, then remove the markers of participants no longer expected to act.
+3. Add the new state reaction, then remove the old one. Add the markers of the new next actors, then remove the markers of participants no longer expected to act. When a next actor has no marker of its own to react with, name them in the message.
 4. Post a message in the thread saying what changed and why.
 5. If a reaction cannot be added because the emoji does not exist, say so in the thread and use words instead.
 

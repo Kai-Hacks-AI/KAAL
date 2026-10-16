@@ -19,7 +19,7 @@ A marker names an Agent, not its provider, model, session or posting account. Tw
 | Blocked | 🔴 `red_circle` |
 | Concluded | ✅ `white_check_mark` |
 | Next actor: an Agent | its display marker |
-| Next actor: a person | 👤 `bust_in_silhouette` |
+| Next actor: a person | their marker from the project's setup; 👤 `bust_in_silhouette` when the setup names one person who can be next |
 
 The state reactions are standard emoji. A next-actor marker is a custom emoji only where the participant's display marker is one.
 
