@@ -16,5 +16,3 @@ Where an intention comes from does not decide what it means. A conversation, a r
 An Intent is not a requirement, a Change, a decision to act or a conversation. Requirements state conditions that serve an Intent, a Change may realize one, and a conversation may raise or discuss one. An Intent exists without any of them.
 
 Capturing an Intent authorizes nothing. An Intent meant to drive product work returns to the Product Owner, who validates and authorizes it before implementation proceeds.
-
-An Intent does not change. A refined or different intention is a new Intent that states its whole meaning again.

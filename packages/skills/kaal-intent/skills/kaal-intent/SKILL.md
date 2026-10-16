@@ -19,6 +19,5 @@ Use this to capture an intention so that it outlives where it was raised. What a
 
 - Add nothing that was not intended: no requirements, acceptance criteria, design, solution, priority, status or plan. Those may follow from an Intent; they are not part of it.
 - Do not make the meaning depend on where it came from. Context from a conversation or review is restated in the Intent, not referenced as something the reader must open.
-- Never edit an Intent once written. A refined or different intention is a new Intent that states its whole meaning.
 - Capturing an Intent authorizes nothing. Do not act on it as if it were authorized.
 - This Skill does not decide where Intents are kept, and it does not relate them to requirements, Changes or each other.
