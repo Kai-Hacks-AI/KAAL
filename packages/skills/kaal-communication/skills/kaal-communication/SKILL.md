@@ -6,15 +6,30 @@ license: MIT
 
 # Communicating as a KAAL Agent
 
-What Communication and Transport mean is stated by those Nodes in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. A Transport Extension tells you how its system realizes each step.
+What Communication, Transport and CHAOS mean is stated by those Nodes in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. A Transport Extension tells you how its system realizes each step.
 
 ## Conversation or Change
 
 Conversation is for coordination: discussion, questions, alignment, handing work over. It is throwaway. Do not persist, copy, synchronize or try to recover it.
 
-A Change is durable: its intent, implementation, evidence, checks, review and approval live with the Change itself, for example in a pull request. Write a Change so it stands on its own. You may link the conversation that led to it as optional context, but never make that link required evidence, and never let the Change's correctness depend on it.
+A Change is durable: its intent, implementation, evidence, checks, review and approval live with the Change itself, for example in a pull request. Write a Change so it stands on its own: put its intent, design, constraints, evidence and validation in the Change. Never link the conversation, transcript or handover it came from.
 
 When a conversation reaches a decision that must last, put it where it lasts: in the Change, or in the capability's definitions. Then reference that from the conversation.
+
+## Converging
+
+A conversation ends in one or more self-contained Changes, or in a reply that says no Change is needed. Conclude it as soon as its Changes are defined; it need not wait for them to merge. From then on, discuss each Change's implementation and review with the Change itself.
+
+## Where discussion goes: CHAOS
+
+CHAOS (Changes Help Agents Organize Systematically) is the order in which you choose where to raise something; its Definition Node states what it means. Pick the highest destination that is relevant and appropriate:
+
+1. **Open Changes**: comment on an existing relevant Change.
+2. **Open conversations**: otherwise continue an existing relevant conversation.
+3. **New conversations**: otherwise start a new shared conversation.
+4. **Agent chat**: only as a last resort, a direct and transient discussion with an Agent.
+
+Not everything belongs with a Change; the order exists to avoid random routing and fragmentation. If a direct chat produces something worth keeping, route it to a suitable shared home rather than leaving it only in your session. CHAOS decides where discussion happens; it does not decide how intentions are captured or managed.
 
 ## Before you write
 

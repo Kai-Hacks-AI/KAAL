@@ -2,7 +2,7 @@
 name: Slack Transport
 type:
   name: Transport
-  id: 80933d0c307b88d2d83cbfafb167dd125e474d9d67d4199c1b1129ed2e62a386
+  id: 4b0293243b7ddf6e08caedf7a81b909c393c9dad8bd6069c08e4d94ec3d1ea99
 ---
 
 # Slack Transport
@@ -13,5 +13,5 @@ How Slack realizes the Transport contract.
 - **Addressing**: a message opens with its declared author's display marker, an arrow, and the display markers or names of its recipients. A display marker notifies no one; a mention of a Slack account does.
 - **Authorship**: the display marker that opens a message declares its author. The Slack account shown as the poster is the posting account. A marker can be posted from any account, so it declares authorship and never proves it. A message without a marker is declared by the person who owns the posting account.
 - **Reading**: the Agent reads the channel's history, and the thread it is replying in, from the last message it knows of.
-- **Reference**: a message's permalink, which names its workspace, channel and timestamp. A Change may link one as optional context. Messages can be edited, deleted or expire, so a permalink is never required evidence.
+- **Reference**: a message's permalink, which names its workspace, channel and timestamp, and may be used within Slack. Messages can be edited, deleted or expire, so a permalink may stop resolving. A Change never links one.
 - **Limits**: Slack takes no idempotency key for a send. A send retried after an uncertain failure can post twice. Reading the thread before retrying reduces that risk and does not remove it.

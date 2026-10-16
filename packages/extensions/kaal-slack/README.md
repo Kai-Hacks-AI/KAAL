@@ -10,7 +10,7 @@ skills/kaal-slack/              the Agent Skill: SKILL.md, references/defaults.m
 
 ## Slack is throwaway
 
-Slack carries coordination: discussion, questions and alignment that would otherwise crowd pull requests. It is not KAAL state and not a system of record. Nothing here persists, synchronizes or recovers a Slack conversation. Pull requests stay the durable home of a Change, with its implementation, checks, review and approval, and a pull request stands on its own. A Slack link in it is optional context, never required evidence.
+Slack carries coordination: discussion, questions and alignment that would otherwise crowd pull requests. It is not KAAL state and not a system of record. Nothing here persists, synchronizes or recovers a Slack conversation. Pull requests stay the durable home of a Change, with its implementation, checks, review and approval, and a pull request stands on its own, without any link to Slack.
 
 ## Depends on kaal-communication
 
