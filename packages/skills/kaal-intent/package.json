@@ -1,0 +1,23 @@
+{
+  "name": "kaal-intent",
+  "version": "0.0.1",
+  "description": "KAAL Intent: capturing what someone wants to achieve, and why, as a self-contained Intent whatever its source.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/intent.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  }
+}

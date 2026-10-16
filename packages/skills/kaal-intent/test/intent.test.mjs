@@ -1,0 +1,57 @@
+import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
+import { bootstrap, capabilities, foundation, identify, readContribution, register, verify } from "kaal-core";
+import { checkSkill } from "kaal-engineer-skill";
+import { read } from "kaal-hosting";
+
+const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const SKILL = join(PACKAGE, "skills", "kaal-intent");
+
+/** The fenced blocks of a Markdown file, in order. */
+function fences(text) {
+  return [...text.matchAll(/^```\n([\s\S]*?)^```$/gm)].map((m) => m[1]);
+}
+
+describe("the Skill Node", () => {
+  const bytes = readFileSync(join(PACKAGE, "payload", "Intent.md"));
+
+  it("is typed by Core's KAAL Skill", () => {
+    const node = identify(bytes);
+    assert.equal(node.name, "Intent");
+    assert.deepEqual(node.type, foundation().skill);
+  });
+
+  it("is admitted as a Skill by Core alone", () => {
+    const engine = join(mkdtempSync(join(tmpdir(), "kaal-intent-")), "engine");
+    bootstrap(engine);
+    const r = register(engine, "skill", "kaal-intent", readContribution(join(PACKAGE, "payload")));
+    assert.deepEqual(r.ids, [identify(bytes).id]);
+    assert.deepEqual(capabilities(engine).skills, [{ name: "Intent", id: identify(bytes).id }]);
+    assert.equal(verify(engine).ok, true);
+  });
+});
+
+describe("the Agent Skill", () => {
+  it("conforms to the Agent Skills standard and KAAL's rules", async () => {
+    assert.deepEqual(checkSkill("kaal-intent", await read(SKILL)), { standard: [], kaal: [], warnings: [] });
+  });
+});
+
+describe("the Intent form", () => {
+  const reference = readFileSync(join(SKILL, "references", "intent.md"), "utf8");
+  const [, example] = fences(reference);
+
+  it("is in the Kernel's Form with a name and nothing else", () => {
+    const intent = identify(Buffer.from(example));
+    assert.equal(intent.name, "Intent capture");
+    assert.equal(intent.type, undefined);
+  });
+
+  it("carries only what is wanted and why", () => {
+    assert.match(example, /^---\nname: [^\n]+\n---\n\n# Intent capture\n\n[^\n#]+\n\n## Why\n\n[^\n#]+\n$/);
+  });
+});
