@@ -105,8 +105,8 @@ export async function read(dir: string): Promise<Files> {
 
 /**
  * Read one file: its exact bytes. A link to a file reads as that file, as
- * in `read`. A directory, a link to one, or anything else that is not a
- * file is refused with `NOT_FILE`; a missing path, a dangling link
+ * in `read`. A directory, a link to one, a cycle of links, or anything else
+ * that is not a file is refused with `NOT_FILE`; a missing path, a dangling link
  * included, with `MISSING`, since a single file has no empty reading.
  */
 export async function readFile(path: string): Promise<Buffer> {
@@ -118,6 +118,7 @@ export async function readFile(path: string): Promise<Buffer> {
     return await readBytes(at);
   } catch (e) {
     if (absent(e)) throw new HostingError(`${path} does not exist`, "MISSING");
+    if ((e as NodeJS.ErrnoException).code === "ELOOP") throw new HostingError(`${path} is a link that never reaches a file`, "NOT_FILE");
     throw e;
   }
 }

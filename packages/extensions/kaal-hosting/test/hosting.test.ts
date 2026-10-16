@@ -118,6 +118,13 @@ describe("readFile", () => {
     await assert.rejects(readFile(join(dir, "elsewhere")), code("NOT_FILE"));
   });
 
+  it("refuses a cycle of links with NOT_FILE", async () => {
+    const dir = tmp();
+    symlinkSync(join(dir, "b.md"), join(dir, "a.md"), "file");
+    symlinkSync(join(dir, "a.md"), join(dir, "b.md"), "file");
+    await assert.rejects(readFile(join(dir, "a.md")), code("NOT_FILE"));
+  });
+
   it("refuses a missing path with MISSING: below a missing directory, below a file, and through a dangling link", async () => {
     const dir = tmp();
     writeFileSync(join(dir, "file.md"), "f");
