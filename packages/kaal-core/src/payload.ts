@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { identify, sha256, type Ref } from "./node.js";
+import { claimsForm, identify, sha256, type Ref } from "./node.js";
 
 /** The foundational payload this package carries, laid out as it deploys into `.kaal/`. */
 const PAYLOAD = new URL("../payload/", import.meta.url);
@@ -8,8 +8,8 @@ export type Files = Record<string, Buffer>;
 
 /**
  * The foundational Core payload as files, keyed by `/`-separated path
- * relative to the Engine directory: the Kernel and the four foundational
- * Nodes, as carried. Nothing here authors or rewrites a byte.
+ * relative to the Engine directory: the Kernel, the four foundational Nodes
+ * and the Engine's `AGENTS.md`, as carried. Nothing here authors or rewrites a byte.
  */
 export function payload(): Files {
   const files: Files = {};
@@ -35,7 +35,7 @@ export function foundation(): Foundation {
   if (cached) return cached;
   const files = payload();
   const nodes = Object.entries(files)
-    .filter(([path]) => path !== "KAAL-KERNEL.md")
+    .filter(([, bytes]) => claimsForm(bytes))
     .map(([, bytes]) => identify(bytes));
   const ref = (name: string): Ref => {
     const found = nodes.filter((n) => n.name === name);
