@@ -23,11 +23,10 @@ export function sections(text) {
   return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.join("\n").trim()]));
 }
 
-/** The reference in an Answers section: `- name: <name>` and `- id: <64 hex>`. */
+/** The reference in an Answers section: exactly `- name: <name>` then `- id: <64 hex>`, nothing else. */
 function answered(text) {
-  const name = /^- name: (\S(?:.*\S)?)$/m.exec(text)?.[1];
-  const id = /^- id: ([0-9a-f]{64})$/m.exec(text)?.[1];
-  return name && id ? { name, id } : undefined;
+  const m = /^- name: (\S(?:[^\n]*\S)?)\n- id: ([0-9a-f]{64})$/.exec(text);
+  return m ? { name: m[1], id: m[2] } : undefined;
 }
 
 /**
@@ -76,8 +75,8 @@ export function judge(engine, records) {
     const missing = ["From", "To", s.Answers === undefined ? "Request" : "Outcome"].filter((k) => !s[k]);
     if (missing.length) problems.push(`${path}: missing ${missing.join(", ")}`);
     const answers = s.Answers === undefined ? undefined : answered(s.Answers);
-    if (s.Answers !== undefined && !answers) problems.push(`${path}: Answers needs "- name: <name>" and "- id: <id>"`);
-    list.push({ path, id: identity.id, name: identity.name, from: s.From ?? "", to: s.To ?? "", request: s.Request ?? "", evidence: s.Evidence ?? "", answers, outcome: s.Outcome });
+    if (s.Answers !== undefined && !answers) problems.push(`${path}: Answers holds exactly "- name: <name>" and "- id: <id>"`);
+    list.push({ path, id: identity.id, name: identity.name, from: s.From ?? "", to: s.To ?? "", request: s.Request ?? "", evidence: s.Evidence ?? "", answering: s.Answers !== undefined, answers, outcome: s.Outcome });
   }
 
   const byId = new Map(list.map((r) => [r.id, r]));
@@ -89,8 +88,8 @@ export function judge(engine, records) {
     else closed.add(target.id);
   }
   return {
-    open: list.filter((r) => !r.answers && !closed.has(r.id)),
-    answered: list.filter((r) => !r.answers && closed.has(r.id)),
+    open: list.filter((r) => !r.answering && !closed.has(r.id)),
+    answered: list.filter((r) => !r.answering && closed.has(r.id)),
     problems,
   };
 }

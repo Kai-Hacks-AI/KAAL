@@ -129,5 +129,8 @@ describe("command line", () => {
     assert.ok(!leak.stderr.includes(CAUGHT.credential.slice(4)));
     const misuse = await execute(process.execPath, [CHECK, "--local", CHECK, dir], { cwd: dir });
     assert.equal(misuse.status, 2);
+    const missing = await execute(process.execPath, [CHECK, join(dir, "no-such-dir")], { cwd: dir });
+    assert.equal(missing.status, 2, "a scan of nothing must not pass");
+    assert.match(missing.stderr, /not a directory/);
   });
 });

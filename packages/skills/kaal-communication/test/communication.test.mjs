@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { bootstrap, capabilities, foundation, identify, loadEngine, readContribution, registerSkill } from "kaal-core";
-import { read } from "kaal-hosting";
+import { execute, read } from "kaal-hosting";
 import { judge, sections } from "../skills/kaal-communication/scripts/handovers.mjs";
 
 const PAYLOAD = new URL("../payload/", import.meta.url);
@@ -46,6 +47,28 @@ describe("payload", () => {
     );
     const e = loadEngine(dir);
     for (const file of ["Transport.md", "Handover.md"]) assert.ok(e.nodes.some((n) => n.id === node(file).id), file);
+  });
+});
+
+describe("the command", () => {
+  const SCRIPT = fileURLToPath(new URL("../skills/kaal-communication/scripts/open-handovers.mjs", import.meta.url));
+
+  it("refuses a records directory or Engine that does not exist", async () => {
+    const dir = registered();
+    const missing = await execute(process.execPath, [SCRIPT, join(dir, "no-such-records"), "--engine", dir], { cwd: dir });
+    assert.equal(missing.status, 2);
+    assert.match(missing.stderr, /no-such-records is not a directory/);
+    const noEngine = await execute(process.execPath, [SCRIPT, dir, "--engine", join(dir, "no-such-engine")], { cwd: dir });
+    assert.equal(noEngine.status, 2);
+  });
+
+  it("prints every open record before exiting", async () => {
+    const dir = registered();
+    const records = mkdtempSync(join(tmpdir(), "kaal-records-"));
+    for (let i = 0; i < 400; i++) writeFileSync(join(records, `r${i}.md`), request(`Request number ${i} ${"x".repeat(150)}`));
+    const r = await execute(process.execPath, [SCRIPT, records, "--engine", dir], { cwd: dir });
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(r.stdout.trim().split("\n").length, 400);
   });
 });
 
@@ -93,6 +116,19 @@ describe("handover records", () => {
     const r = judge(await read(registered()), { "fake.md": record("Fake", "## From\n\nA\n", fake) });
     assert.match(r.problems.join("\n"), /fake\.md: /);
     assert.deepEqual(r.open, []);
+  });
+
+  it("close nothing when Answers holds more than its two lines", async () => {
+    const files = await read(registered());
+    const first = request("First request");
+    const ref = identify(first);
+    const loose = record("Loose answer", `## From\n\nB\n\n## To\n\nA\n\n## Answers\n\n- name: Other\n- name: ${ref.name}\n- id: ${ref.id}\n\n## Outcome\n\nDone.\n`);
+    const r = judge(files, { "a.md": first, "b.md": loose });
+    assert.match(r.problems.join("\n"), /b\.md: Answers holds exactly/);
+    assert.deepEqual(
+      r.open.map((x) => x.name),
+      ["First request"],
+    );
   });
 
   it("read only their own sections", () => {

@@ -15,7 +15,7 @@
 //
 // Limitation: these are pattern checks. A clean result does not establish that prose is free of
 // private information; review still decides that.
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
@@ -179,6 +179,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const findings = [];
   let count = 0;
   for (const dir of dirs) {
+    // Hosting reads a missing directory as empty; a scan of nothing must not pass.
+    if (!statSync(resolve(dir), { throwIfNoEntry: false })?.isDirectory()) refuse(`${dir} is not a directory`);
     const files = await read(resolve(dir)).catch((e) => refuse(`${dir}: ${e.message}`));
     const kept = Object.fromEntries(Object.entries(files).filter(([p]) => !/(?:^|\/)(?:node_modules|dist|dist-test|\.git)\//.test(p)));
     count += Object.keys(kept).length;
@@ -204,6 +206,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     findings.push(...scan(files, { local: literals }).map((f) => ({ ...f, path: `${pack}!${f.path}` })));
   }
   for (const f of findings) console.error(`${f.rule}: ${f.path}${f.line ? `:${f.line}` : ""}: ${f.masked}`);
-  if (findings.length) process.exit(1);
-  console.log(`ok: ${count} files scanned, nothing found`);
+  if (!findings.length) console.log(`ok: ${count} files scanned, nothing found`);
+  // Let the output drain: process.exit could cut off what is still buffered.
+  process.exitCode = findings.length ? 1 : 0;
 }
