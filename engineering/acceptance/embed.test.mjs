@@ -1,8 +1,9 @@
 // Acceptance: Engineering -> Package -> Embed.
 //
-// Packs kaal-core as npm would publish it, inspects the actual tarball,
-// installs it into a fresh, otherwise empty host outside this repository,
-// and operates the Engine there through the installed package alone.
+// Inspects the kaal-core tarball the Acceptance lane packed as npm would
+// publish it, installs it into a fresh, otherwise empty host outside this
+// repository, and operates the Engine there through the installed package
+// alone.
 import assert from "node:assert/strict";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -11,9 +12,9 @@ import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { execute } from "kaal-hosting";
+import { install, tarball as packed } from "./packages.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const PACKAGE = join(REPO, "packages", "kaal-core");
 const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
 
 const EXPECTED_TARBALL = [
@@ -92,17 +93,14 @@ let host;
 let kaal;
 
 before(async () => {
-  const out = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], PACKAGE));
-  tarball = join(work, out[0].filename);
+  tarball = packed("kaal-core");
   host = join(work, "host");
-  mkdirSync(host);
-  writeFileSync(join(host, "package.json"), JSON.stringify({ name: "fresh-host", version: "1.0.0", private: true }, null, 2));
-  await run("npm", ["install", "--offline", "--no-package-lock", tarball], host);
+  await install(host, ["kaal-core"], { offline: true });
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
 describe("package", () => {
-  it("is a clean build packed into a tarball of exactly the intended contents", () => {
+  it("is a tarball of exactly the intended contents", () => {
     const listed = tarEntries(tarball).sort();
     assert.deepEqual(listed, EXPECTED_TARBALL);
   });
