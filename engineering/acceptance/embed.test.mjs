@@ -113,7 +113,7 @@ describe("package", () => {
     assert.equal(pkg.name, "kaal-core");
     assert.equal(pkg.license, "MIT");
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
-    assert.equal(pkg.dependencies, undefined, "kaal-core has no runtime dependencies");
+    assert.deepEqual(pkg.dependencies, { yaml: "2.9.1" }, "kaal-core's only runtime dependency is its pinned YAML parser");
   });
 });
 

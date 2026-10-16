@@ -25,7 +25,7 @@ import {
  * a visible, reviewed change to this table.
  */
 const PINNED = {
-  kernel: "6122198d786686964863a8c81237fb30d0a2e29c1efe7473c366c7c20791b20b",
+  kernel: "9ffe7f82c0fd0c8c233a3ed37b6ae5a4a3e622010f241b3d879d309baec1d28c",
   node: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
   definition: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
   skill: "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
@@ -110,14 +110,72 @@ describe("identity", () => {
     for (const bad of [
       "no frontmatter\n",
       "---\r\nname: A\r\n---\r\n",
-      "---\nname:  A\n---\n",
-      "---\nname: A \n---\n",
-      "---\ntype:\n  name: Node\n  id: " + f.node.id + "\nname: A\n---\n",
+      "---\nname: A\r\n---\n",
+      "---\nname: A\n",
+      "---\nname: A\n---",
+      "---\n---\n",
+      "---\n- A\n---\n",
+      "---\nname: \"A \"\n---\n",
+      "---\nname: \"A\\nB\"\n---\n",
+      "---\nname: [A]\n---\n",
+      "---\ntitle: A\n---\n",
+      "---\nname: A\nname: B\n---\n",
       "---\nname: A\ntype:\n  name: Node\n  id: XYZ\n---\n",
-      "---\nname: A\nextra: 1\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id.toUpperCase() + "\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id + "\n  note: x\n---\n",
+      "---\nname: A\ntype: Node\n---\n",
+      "---\nname: A\nk: !!str v\n---\n",
+      "---\nname: A\nk: &a v\nl: *a\n---\n",
+      "---\nname: A\n? [k]\n: v\n---\n",
     ])
-      assert.throws(() => identify(Buffer.from(bad)), bad);
+      assert.throws(() => identify(Buffer.from(bad)), /not in Form/, bad);
     assert.throws(() => identify(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff, 0xfe])));
+  });
+
+  it("accepts capability-owned frontmatter without interpreting it", () => {
+    const target = { name: "Intent capture", id: "1".repeat(64) };
+    const bytes = Buffer.from(
+      `---\nname: Requirement A\ntype:\n  name: ${f.definition.name}\n  id: ${f.definition.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"2".repeat(64)}\n    targets:\n      - name: ${target.name}\n        id: ${target.id}\nnote: 42\n---\n\n# Requirement A\n`,
+    );
+    const n = identify(bytes);
+    assert.equal(n.id, sha256(bytes));
+    assert.equal(n.name, "Requirement A");
+    assert.deepEqual(n.type, f.definition);
+    assert.deepEqual(n.frontmatter, {
+      name: "Requirement A",
+      type: { name: f.definition.name, id: f.definition.id },
+      edges: [{ type: { name: "Serves", id: "2".repeat(64) }, targets: [target] }],
+      note: "42",
+    });
+    assert.ok(Object.isFrozen(n.frontmatter));
+    const dir = engine();
+    writeFileSync(join(dir, "requirement.md"), bytes);
+    assert.equal(loadEngine(dir).resolve({ name: "Requirement A", id: n.id }).name, "Requirement A");
+    assert.equal(verify(dir).ok, true);
+  });
+
+  it("reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes", () => {
+    const block = node("A", f.definition);
+    const flow = `---\ntype: {name: ${f.definition.name}, id: ${f.definition.id}}\nname: 'A'\n---\n\n# A\n`;
+    assert.deepEqual([identify(Buffer.from(flow)).name, identify(Buffer.from(flow)).type], [identify(Buffer.from(block)).name, identify(Buffer.from(block)).type]);
+    assert.notEqual(identify(Buffer.from(flow)).id, identify(Buffer.from(block)).id);
+  });
+
+  it("keeps the id, name and type of every Node in this repository", () => {
+    const root = join(dirname(new URL(import.meta.url).pathname), "..", "..", "..");
+    const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
+      readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
+        .filter((p) => p.endsWith(".md") && !p.includes("node_modules") && !p.includes("/skills/") && statSync(join(root, top, p)).isFile())
+        .map((p) => readFileSync(join(root, top, p)))
+        .filter((b) => b.subarray(0, 4).toString() === "---\n" && /^---\nname: /.test(b.toString())),
+    );
+    assert.ok(nodes.length >= 6);
+    const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+    for (const bytes of nodes) {
+      const [, name, typeName, typeId] = legacy.exec(bytes.toString())!;
+      const n = identify(bytes);
+      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, typeName ? { name: typeName, id: typeId } : undefined]);
+    }
   });
 });
 
