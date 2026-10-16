@@ -16,6 +16,14 @@ describe("payload", () => {
     assert.deepEqual(node("Transport.md").type, f.definition);
   });
 
+  it("keeps conversation state in its latest messages, with marks that never change", () => {
+    const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
+    assert.match(text, /latest messages are its current coordination context; nothing else tracks its state/);
+    for (const event of ["seen", "taken", "done", "blocked"]) assert.match(text, new RegExp(`\\*\\*${event}\\*\\*`));
+    assert.match(text, /Marks are additive historical facts: none is ever changed, removed or replaced/);
+    assert.match(text, /A mark is not authorship, approval, authority or permission/);
+  });
+
   it("registers into a fresh Engine, where Transport is admitted", () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
     bootstrap(dir);

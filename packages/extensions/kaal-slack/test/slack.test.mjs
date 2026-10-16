@@ -25,6 +25,24 @@ describe("payload", () => {
   });
 });
 
+describe("reactions", () => {
+  it("mark events on one message, are only added, and never carry a thread's state", () => {
+    const text = readFileSync(join(PAYLOAD, "Slack-Transport.md"), "utf8");
+    const skill = readFileSync(fileURLToPath(new URL("../skills/kaal-slack/SKILL.md", import.meta.url)), "utf8");
+    const defaults = readFileSync(fileURLToPath(new URL("../skills/kaal-slack/references/defaults.md", import.meta.url)), "utf8");
+    assert.match(text, /Reactions are added, never removed, and never carry the state of a thread or who acts next/);
+    assert.match(skill, /Only add reactions: never remove or change one/);
+    for (const [event, emoji] of [["Seen", "`eyes`"], ["Taken", "the participant's display marker"], ["Done", "`white_check_mark`"], ["Blocked", "`no_entry`"]]) {
+      assert.match(defaults, new RegExp(`^\\| ${event} \\| [^|]*${emoji.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "m"));
+      assert.ok(text.includes(emoji.replace("the participant's", "a participant's")), `Slack Transport names ${emoji}`);
+    }
+    assert.match(skill, /A reaction is never authorship/);
+    assert.match(text, /the reaction the project's setup assigns to that event, by default/);
+    assert.match(skill, /^compatibility: .*Adding reactions is optional\./m);
+    assert.match(skill, /If your Slack access cannot add reactions, say the same in a reply instead/);
+  });
+});
+
 describe("registration", () => {
   it("is refused without kaal-communication, and writes nothing", () => {
     const dir = engine();

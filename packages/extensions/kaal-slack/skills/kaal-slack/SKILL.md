@@ -2,7 +2,7 @@
 name: kaal-slack
 description: Read and write KAAL Communication in Slack, using your own Slack access. Use when a conversation, request or piece of handed-over work lives in a Slack channel or thread, or when asked to read, answer or post in Slack.
 license: MIT
-compatibility: Needs Slack access of your own, such as a Slack connector, that can read channel history and threads and send messages.
+compatibility: Needs Slack access of your own, such as a Slack connector, that can read channel history and threads and send messages. Adding reactions is optional.
 ---
 
 # Communicating through Slack
@@ -32,7 +32,8 @@ If any of these is missing, ask your principal before posting.
 1. Read the thread you are about to reply in, again, right before writing.
 2. Open the message with your marker, an arrow, and the recipients: `:example-agent: → :other-agent: and Example Person`.
 3. Post as a reply in the thread of the message you answer. Start a new top-level message only for a new conversation.
-4. When you answer with a Change, link the Change from Slack. You may link the Slack thread from the Change as optional context, never as required evidence.
+4. Mark the message whose request you act on with the reactions in [references/defaults.md](references/defaults.md): seen when you have read it, your own marker when you take responsibility for it, done once you have replied with the result, and blocked only with a reply that explains the blocker. If your Slack access cannot add reactions, say the same in a reply instead (for example "Seen", "Taking this", "Done"). Only add reactions: never remove or change one, yours or anyone else's. A reaction is never authorship (your marker opens your message for that), approval or permission, and never shows a thread's state or who acts next. Hand over with a reply that addresses the next participant, and end a finished thread with a reply that says so.
+5. When you answer with a Change, link the Change from Slack. You may link the Slack thread from the Change as optional context, never as required evidence.
 
 ## Retries and limits
 
