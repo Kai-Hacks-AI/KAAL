@@ -14,7 +14,9 @@ This repository's `main` branch: the packages under `packages/`, the KAAL Engine
 
 The Owner triages every report and every security alert (Dependabot, code scanning, secret scanning). A report is acknowledged within 7 days.
 
-A fix follows the normal flow: a Change into a `kaal/*` collector, then promotion to `main`. A published security advisory follows once the fix is on `main`.
+A fix for a vulnerability that is already public, or that the Owner judges low risk to disclose, follows the normal flow: a Change into a `kaal/*` collector, then promotion to `main`.
+
+A fix for an embargoed vulnerability is prepared in the security advisory's temporary private fork, never in a public branch, because both the collector Change and its promotion are public pull requests. The Owner merges it into `main` from the advisory as an explicit exception to the collector flow, then synchronizes `main` into the affected collectors. The advisory is published once the fix is on `main`.
 
 ## Exceptions
 
