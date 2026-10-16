@@ -24,6 +24,14 @@ describe("payload", () => {
     assert.match(text, /A mark is not authorship, approval, authority or permission/);
   });
 
+  it("converges into self-contained Changes, and routes ideas to where their discussion lives", () => {
+    const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
+    assert.match(text, /does not reference the conversation, transcript or handover it came from/);
+    assert.match(text, /ends in one or more self-contained Changes, or concludes explicitly that none is needed/);
+    assert.match(text, /an existing relevant Change first, otherwise an existing relevant conversation, and only otherwise a new conversation/);
+    assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /A Change never references a conversation\./);
+  });
+
   it("registers into a fresh Engine, where Transport is admitted", () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
     bootstrap(dir);

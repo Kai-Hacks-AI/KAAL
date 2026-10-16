@@ -12,9 +12,23 @@ What Communication and Transport mean is stated by those Nodes in a KAAL Engine:
 
 Conversation is for coordination: discussion, questions, alignment, handing work over. It is throwaway. Do not persist, copy, synchronize or try to recover it.
 
-A Change is durable: its intent, implementation, evidence, checks, review and approval live with the Change itself, for example in a pull request. Write a Change so it stands on its own. You may link the conversation that led to it as optional context, but never make that link required evidence, and never let the Change's correctness depend on it.
+A Change is durable: its intent, implementation, evidence, checks, review and approval live with the Change itself, for example in a pull request. Write a Change so it stands on its own: put its intent, design, constraints, evidence and validation in the Change. Never link the conversation, transcript or handover it came from.
 
 When a conversation reaches a decision that must last, put it where it lasts: in the Change, or in the capability's definitions. Then reference that from the conversation.
+
+## Converging
+
+A conversation ends in one or more self-contained Changes, or in a reply that says no Change is needed. Conclude it as soon as its Changes are defined; it need not wait for them to merge. From then on, discuss each Change's implementation and review with the Change itself.
+
+## Where an idea goes
+
+When an actionable idea is worth keeping, put it where its discussion already lives:
+
+1. an existing relevant Change, as a comment there;
+2. otherwise an existing relevant conversation;
+3. only otherwise a new conversation.
+
+Do not keep ideas anywhere else, such as a backlog of your own or only in your session.
 
 ## Before you write
 

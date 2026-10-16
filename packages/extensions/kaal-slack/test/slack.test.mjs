@@ -43,6 +43,16 @@ describe("reactions", () => {
   });
 });
 
+describe("changes", () => {
+  it("never link Slack: no file in the package offers a conversation link as context for a Change", () => {
+    const root = fileURLToPath(new URL("../", import.meta.url));
+    for (const file of ["README.md", "payload/Slack.md", "payload/Slack-Transport.md", "skills/kaal-slack/SKILL.md", "skills/kaal-slack/references/defaults.md"]) {
+      assert.doesNotMatch(readFileSync(join(root, file), "utf8"), /optional context/, file);
+    }
+    assert.match(readFileSync(join(PAYLOAD, "Slack-Transport.md"), "utf8"), /A Change never links one\./);
+  });
+});
+
 describe("registration", () => {
   it("is refused without kaal-communication, and writes nothing", () => {
     const dir = engine();
