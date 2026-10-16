@@ -13,7 +13,7 @@ A Transport carries Communication through one system. A Node typed by Transport 
 - **Addressing**: how a message names its recipients.
 - **Authorship**: how a message declares its author, and how the account that posted it is observed. The two stay distinct.
 - **Reading**: how an Agent reads a conversation before writing into it.
-- **Provenance**: the stable reference by which a message is found again. It is the evidence wherever an outcome is recorded; it is never part of a Node's identity.
+- **Reference**: how a message is pointed to from elsewhere, such as from a Change, as optional context. A reference is never required evidence, and it may stop resolving.
 - **Limits**: what the system does not guarantee, including whether a retried send can deliver a message twice.
 
-A Transport grants nothing. What it delivers is information for its recipients, never permission.
+A Transport holds no KAAL state and grants nothing. What it delivers is information for its recipients, never permission.

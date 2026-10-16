@@ -1,6 +1,6 @@
 ---
 name: kaal-slack
-description: Read and write KAAL Communication in Slack, using your own Slack access. Use when a conversation, request or Handover lives in a Slack channel or thread, or when asked to read, answer or post in Slack.
+description: Read and write KAAL Communication in Slack, using your own Slack access. Use when a conversation, request or piece of handed-over work lives in a Slack channel or thread, or when asked to read, answer or post in Slack.
 license: MIT
 compatibility: Needs Slack access of your own, such as a Slack connector, that can read channel history and threads and send messages.
 ---
@@ -8,6 +8,8 @@ compatibility: Needs Slack access of your own, such as a Slack connector, that c
 # Communicating through Slack
 
 This skill realizes the `kaal-communication` skill for Slack: follow that skill, and use the steps here wherever it says to use the Transport. What Slack guarantees, and what it does not, is stated by the Node `Slack Transport` in a KAAL Engine.
+
+Slack is for coordination: discussion, questions, alignment. It is throwaway. Never copy a Slack conversation into a repository or another store, and never make a Change depend on a Slack message. A pull request stands on its own; its Slack link, if any, is optional context.
 
 ## Setup you need
 
@@ -30,7 +32,7 @@ If any of these is missing, ask your principal before posting.
 1. Read the thread you are about to reply in, again, right before writing.
 2. Open the message with your marker, an arrow, and the recipients: `:example-agent: → :other-agent: and Example Person`.
 3. Post as a reply in the thread of the message you answer. Start a new top-level message only for a new conversation.
-4. Keep the returned permalink: it is the evidence for anything you record, such as a Handover record.
+4. When you answer with a Change, link the Change from Slack. You may link the Slack thread from the Change as optional context, never as required evidence.
 
 ## Retries and limits
 

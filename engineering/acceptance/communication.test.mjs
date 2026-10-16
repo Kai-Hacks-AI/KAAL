@@ -3,8 +3,8 @@
 // Packs both packages with kaal-core and kaal-hosting as npm would publish them, inspects and
 // privacy-checks the actual tarballs, installs them into a fresh host outside this repository,
 // and operates them there through the installed packages alone: registration with and without
-// the communication prerequisite, and a Handover recovered by a fresh process. It also checks
-// that communication stays independent of every Transport Extension that depends on it.
+// the communication prerequisite. It also checks that communication stays independent of every
+// Transport Extension that depends on it.
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -24,12 +24,8 @@ const EXPECTED = {
     "package/README.md",
     "package/package.json",
     "package/payload/Communication.md",
-    "package/payload/Handover.md",
     "package/payload/Transport.md",
     "package/skills/kaal-communication/SKILL.md",
-    "package/skills/kaal-communication/references/handover-record.md",
-    "package/skills/kaal-communication/scripts/handovers.mjs",
-    "package/skills/kaal-communication/scripts/open-handovers.mjs",
   ],
   "kaal-slack": [
     "package/LICENSE",
@@ -167,31 +163,6 @@ describe("registration in a fresh host", () => {
       listed.map(([kind, , name]) => `${kind} ${name}`),
       ["skill Communication", "extension Slack"],
     );
-    assert.match(await run(kaal, ["verify"], host), /ok: 9 Nodes admitted/);
-  });
-});
-
-describe("a Handover recovered in a fresh session", () => {
-  it("lists exactly the open records, from the installed packages alone", async () => {
-    const [id, name] = (await run(kaal, ["resolve", "Handover"], host)).trim().split("\t");
-    const record = (title, body) => `---\nname: ${title}\ntype:\n  name: ${name}\n  id: ${id}\n---\n\n# ${title}\n\n${body}`;
-    const records = join(host, "handovers");
-    mkdirSync(records);
-    const evidence = "## Evidence\n\n- https://example.slack.com/archives/C0EXAMPLE1/p1000000000000001\n";
-    writeFileSync(join(records, "1-review.md"), record("Review the structure", `## From\n\nExample Agent A\n\n## To\n\nExample Agent B\n\n## Request\n\nReview the structure.\n\n${evidence}`));
-    writeFileSync(join(records, "2-implement.md"), record("Implement the slice", `## From\n\nExample Person\n\n## To\n\nExample Agent B\n\n## Request\n\nImplement the agreed slice.\n\n${evidence}`));
-    const reviewed = (await run(kaal, ["identify", join(records, "1-review.md")], host)).split("\t")[0];
-    writeFileSync(
-      join(records, "3-reviewed.md"),
-      record("Structure reviewed", `## From\n\nExample Agent B\n\n## To\n\nExample Agent A\n\n## Answers\n\n- name: Review the structure\n- id: ${reviewed}\n\n## Outcome\n\nReviewed.\n\n${evidence}`),
-    );
-    // A fresh session: a new process that knows only the Engine and the records directory.
-    const out = await run(join(host, "node_modules", ".bin", "kaal-open-handovers"), ["handovers", "--engine", ".kaal"], host);
-    const lines = out.trim().split("\n").map((l) => l.split("\t"));
-    assert.deepEqual(
-      lines.map(([state, , title]) => `${state} ${title}`),
-      ["open Implement the slice", "answered Review the structure"],
-    );
-    assert.equal(lines[1][1], reviewed);
+    assert.match(await run(kaal, ["verify"], host), /ok: 8 Nodes admitted/);
   });
 });

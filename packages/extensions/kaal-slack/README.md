@@ -8,6 +8,10 @@ payload/Slack-Transport.md      Slack's realization of Communication's Transport
 skills/kaal-slack/              the Agent Skill: SKILL.md, references/defaults.md
 ```
 
+## Slack is throwaway
+
+Slack carries coordination: discussion, questions and alignment that would otherwise crowd pull requests. It is not KAAL state and not a system of record. Nothing here persists, synchronizes or recovers a Slack conversation. Pull requests stay the durable home of a Change, with its implementation, checks, review and approval, and a pull request stands on its own. A Slack link in it is optional context, never required evidence.
+
 ## Depends on kaal-communication
 
 `Slack Transport` is typed by `Transport` from kaal-communication. Core admits a Node only when its type resolves, so registering this Extension into an Engine without kaal-communication is refused and writes nothing. Register both, in this order:
