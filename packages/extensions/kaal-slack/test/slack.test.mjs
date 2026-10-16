@@ -37,6 +37,7 @@ describe("reactions", () => {
       assert.ok(text.includes(emoji.replace("the participant's", "a participant's")), `Slack Transport names ${emoji}`);
     }
     assert.match(skill, /A reaction is never authorship/);
+    assert.match(text, /the reaction the project's setup assigns to that event, by default/);
     assert.match(skill, /^compatibility: .*Adding reactions is optional\./m);
     assert.match(skill, /If your Slack access cannot add reactions, say the same in a reply instead/);
   });
