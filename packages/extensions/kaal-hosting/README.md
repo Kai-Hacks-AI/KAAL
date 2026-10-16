@@ -24,6 +24,24 @@ Writers are serialized with [`proper-lockfile`](https://www.npmjs.com/package/pr
 
 The API is asynchronous: both guarantees above depend on it.
 
+## Boundary conformance
+
+`kaal-hosting/conformance` lets a capability gather evidence about whether its own code stays inside the Hosting boundary it declares. It is a separate entry point: importing `kaal-hosting` does not load it.
+
+`inspect(files, { builtins })` reads the JavaScript modules among `files` (as `read` returns them, for example from the directory a package ships). It checks them against the Node builtins that the consumer declares its code may import directly. Hosting knows only what a host module is. Which host modules are acceptable, and what a capability's boundary is, are the consumer's to declare. The same input always gives the same report.
+
+The report keeps three kinds of finding apart:
+
+| Kind | Meaning |
+| --- | --- |
+| `violations` | Mechanically verified: a static import, an export-from, or an `import()` with a literal specifier names a builtin that was not declared. Each carries its file, line, column, specifier and the builtin's `node:` name. |
+| `validation` | Undecidable mechanically, so for an Agent or a person to judge: `import()` with a computed specifier, `process.getBuiltinModule`, `process.binding`, `process._linkedBinding`, `process.dlopen`, `eval`, `new Function`, and any file that cannot be read as a module. These may over-report, since they ask for judgment and claim nothing. |
+| `outside` | Packages imported from outside the inspected files. Their own host access is not inspected here. |
+
+Every report also carries `coverage` and `exclusions`, a fixed statement of what was and was not examined. The exclusions include other global access, CommonJS, native and other indirect loading, TypeScript sources, and whether relative imports resolve. A report without violations means that none was found within that coverage. It is never a statement that the code complies with its boundary.
+
+The parser is [`es-module-lexer`](https://www.npmjs.com/package/es-module-lexer).
+
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
