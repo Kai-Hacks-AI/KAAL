@@ -12,7 +12,7 @@ The Nodes carry what Communication means to KAAL. The Agent Skill tells an Agent
 
 ## Conversation is throwaway
 
-Communication is for coordination: discussion, questions, alignment, handing work over. It is not KAAL state and not a system of record, so this package persists, synchronizes and recovers nothing. Durable work lives with the Change that carries it (its intent, implementation, evidence, review and approval) and in the capability's definitions. A Change stands on its own, with everything it needs inside it, and never references the conversation behind it. A conversation ends in self-contained Changes or concludes that none is needed, and an idea goes to an existing Change, then an existing conversation, before a new one.
+Communication is for coordination: discussion, questions, alignment, handing work over. It is not KAAL state and not a system of record, so this package persists, synchronizes and recovers nothing. Durable work lives with the Change that carries it (its intent, implementation, evidence, review and approval) and in the capability's definitions. A Change stands on its own, with everything it needs inside it, and never references the conversation behind it. A conversation ends in self-contained Changes or concludes that none is needed, and discussion is routed by CHAOS (Changes Helping Agent Orders Systematically): an open Change, then an open conversation, then a new one, and a direct Agent chat only as a last resort.
 
 ## Boundaries
 

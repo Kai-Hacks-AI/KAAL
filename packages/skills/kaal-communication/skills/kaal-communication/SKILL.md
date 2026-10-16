@@ -20,15 +20,16 @@ When a conversation reaches a decision that must last, put it where it lasts: in
 
 A conversation ends in one or more self-contained Changes, or in a reply that says no Change is needed. Conclude it as soon as its Changes are defined; it need not wait for them to merge. From then on, discuss each Change's implementation and review with the Change itself.
 
-## Where an idea goes
+## Where discussion goes: CHAOS
 
-When an actionable idea is worth keeping, put it where its discussion already lives:
+CHAOS (Changes Helping Agent Orders Systematically) is the order in which you choose where to raise something. Pick the highest destination that is relevant and appropriate:
 
-1. an existing relevant Change, as a comment there;
-2. otherwise an existing relevant conversation;
-3. only otherwise a new conversation.
+1. **Open Changes**: comment on an existing relevant Change.
+2. **Open conversations**: otherwise continue an existing relevant conversation.
+3. **New conversations**: otherwise start a new shared conversation.
+4. **Agent chat**: only as a last resort, a direct and transient discussion with an Agent.
 
-Do not keep ideas anywhere else, such as a backlog of your own or only in your session.
+Not everything belongs with a Change; the order exists to avoid random routing and fragmentation. If a direct chat produces something worth keeping, route it to a suitable shared home rather than leaving it only in your session. CHAOS decides where discussion happens; it does not decide how intentions are captured or managed.
 
 ## Before you write
 
