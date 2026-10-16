@@ -50,7 +50,7 @@ export function checkSkill(name, files) {
     else if (declared !== name) standard.push(`name ${declared} does not match its parent directory name ${name}`);
     if (!fields.has("description")) standard.push("description is required");
     else if (typeof description !== "string" || description.trim() === "" || length(description) > 1024) standard.push("description is not a string of 1-1024 characters");
-    if (fields.has("compatibility") && (typeof compatibility !== "string" || compatibility.trim() === "" || length(compatibility) > 500)) standard.push("compatibility is not a string of 1-500 characters");
+    if (fields.has("compatibility") && (typeof compatibility !== "string" || compatibility.length === 0 || length(compatibility) > 500)) standard.push("compatibility is not a string of 1-500 characters");
     if (fields.has("license") && (typeof license !== "string" || license.length === 0)) standard.push("license is not a non-empty string");
     if (fields.has("allowed-tools") && (typeof allowedTools !== "string" || allowedTools.length === 0)) standard.push("allowed-tools is not a non-empty space-separated string");
     if (fields.has("metadata")) {

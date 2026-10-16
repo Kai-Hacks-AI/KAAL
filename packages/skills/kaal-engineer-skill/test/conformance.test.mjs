@@ -71,7 +71,7 @@ describe("KAAL against the specification", () => {
 
   it("accepts everything the specification accepts, except by a KAAL rule or a recorded violation", () => {
     const refused = CASES.filter((c) => c.spec === "accept" && !accepts(observed.get(c.id).verdict) && !observed.get(c.id).verdict.startsWith("kaal"));
-    assert.deepEqual(refused.map((c) => c.id), ["compatibility-whitespace"]);
+    assert.deepEqual(refused.map((c) => c.id), []);
   });
 
   it("passes the packaged Engineer Skill", async () => {
