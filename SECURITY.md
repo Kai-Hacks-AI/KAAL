@@ -14,7 +14,7 @@ The whole current tree of this repository's `main` branch, including its depende
 
 The Owner triages every report and every security alert (Dependabot, code scanning, secret scanning). A report is acknowledged within 7 days.
 
-A fix follows the repository's established Change governance (see `engineering/github/branching.md`). The security advisory is published once the fix is on `main`.
+A fix follows the repository's established Change governance (see `engineering/github/branching.md`). Publishing the security advisory is a separate, Owner-led coordinated-disclosure decision. The fix reaching `main` is a condition for it, not a trigger: the Owner also weighs remediation readiness, affected parties, coordination with the reporter, and exposure risk.
 
 ## Exceptions
 
