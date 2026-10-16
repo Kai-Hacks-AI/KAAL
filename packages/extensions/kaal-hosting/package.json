@@ -11,6 +11,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./conformance": {
+      "types": "./dist/conformance.d.ts",
+      "default": "./dist/conformance.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -20,7 +24,7 @@
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/hosting.test.js",
+    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/hosting.test.js dist-test/conformance.test.js",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build"
   },
   "engines": {
@@ -28,6 +32,7 @@
   },
   "dependencies": {
     "cross-spawn": "^7.0.6",
+    "es-module-lexer": "^3.0.3",
     "graceful-fs": "^4.2.11",
     "proper-lockfile": "^4.1.2"
   },
