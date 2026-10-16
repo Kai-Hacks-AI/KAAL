@@ -12,13 +12,20 @@
 // realizes them.
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
 import { sha256 } from "../acceptance/packages.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const ACCEPTANCE = join(REPO, "engineering", "acceptance");
+
+/** Whether path is inside dir, or is dir itself. */
+function within(dir, path) {
+  const r = relative(dir, path);
+  return r === "" || (r !== ".." && !r.startsWith(`..${sep}`) && !isAbsolute(r));
+}
 
 async function npm(args, cwd) {
   const r = await execute("npm", args, { cwd });
@@ -55,7 +62,8 @@ for (const { name, path } of workspaces) {
   const [packed] = JSON.parse(await npm(["pack", "--json", "--pack-destination", packages], path));
   const tarball = join(packages, packed.filename);
   chmodSync(tarball, 0o444);
-  manifest[name] = { tarball, sha256: sha256(tarball) };
+  const integrity = `sha512-${createHash("sha512").update(readFileSync(tarball)).digest("base64")}`;
+  manifest[name] = { tarball, sha256: sha256(tarball), integrity };
 }
 writeFileSync(join(run, "manifest.json"), JSON.stringify(manifest, null, 2));
 const built = builds(workspaces);
@@ -74,7 +82,16 @@ for (const { scenario, host, consumed } of records) {
   for (const [name, hash] of Object.entries(consumed)) {
     if (hash !== manifest[name].sha256) problems.push(`${scenario} installed ${name} with bytes other than the packed tarball`);
   }
-  if (!relative(REPO, host).startsWith("..")) problems.push(`${scenario} installed into ${host}, inside the repository`);
+  if (within(REPO, host)) problems.push(`${scenario} installed into ${host}, inside the repository`);
+  // npm's record of what the host holds at the end: every workspace package
+  // there must be the run's tarball, however it got there.
+  const holds = JSON.parse(readFileSync(join(host, "node_modules", ".package-lock.json"), "utf8")).packages;
+  for (const [at, { name = at.split("node_modules/").pop(), resolved, integrity }] of Object.entries(holds)) {
+    const packed = manifest[name];
+    if (packed && (integrity !== packed.integrity || !resolved?.startsWith("file:") || resolve(host, resolved.slice(5)) !== packed.tarball)) {
+      problems.push(`${scenario} holds ${name} in ${host} from ${resolved}, not the packed tarball`);
+    }
+  }
 }
 const hosts = records.map((r) => r.host);
 for (const host of new Set(hosts)) {
@@ -89,7 +106,7 @@ for (const [name, { tarball, sha256: hash }] of Object.entries(manifest)) {
 const after = builds(workspaces);
 const changed = Object.keys({ ...built, ...after }).filter((p) => built[p] !== after[p]);
 for (const { name, path } of workspaces) {
-  if (changed.some((p) => p.startsWith(join(path, "dist")))) problems.push(`${name} was rebuilt during the run`);
+  if (changed.some((p) => within(join(path, "dist"), p))) problems.push(`${name} was rebuilt during the run`);
 }
 
 for (const p of problems) console.error(`acceptance: ${p}`);
