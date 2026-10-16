@@ -14,10 +14,10 @@ The whole current tree of this repository's `main` branch, including its depende
 
 The Owner triages every report and every security alert (Dependabot, code scanning, secret scanning). A report is acknowledged within 7 days.
 
-A fix goes through `kaal/hotfix`: a Change into `kaal/hotfix`, then its promotion to `main`, landed back to back so the fix is public for as short a time as possible before `main` carries it. The security advisory is published once the fix is on `main`.
+A fix follows the repository's established Change governance (see `engineering/github/branching.md`). The security advisory is published once the fix is on `main`.
 
 ## Exceptions
 
-An alert that is not fixed is dismissed in GitHub with a written reason. That dismissal is the record of the exception; there is no separate exception list.
+A valid alert stays open while it is being remediated. An alert is dismissed only with a justified, written reason in GitHub, such as a false positive or an accepted risk stated explicitly. That dismissal is the record of the exception; there is no separate exception list.
 
 Code scanning (CodeQL) is advisory: its results are triaged as above and do not block merges.
