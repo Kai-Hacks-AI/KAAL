@@ -12,11 +12,13 @@ import { foundation, payload, type Files } from "./payload.js";
  * identity, not layout: if it already verifies (the Kernel present by its
  * exact bytes, the four foundational Nodes admitted by their exact ids, every
  * Node admitted), nothing is written, wherever its files are. Any other
- * existing directory is refused and nothing is written. Returns the paths
- * written.
+ * existing directory, and anything at `dir` that is not a directory, is
+ * refused and nothing is written. Returns the paths written.
  */
 export async function bootstrap(dir: string): Promise<string[]> {
-  if ((await kind(dir)) === "directory") {
+  const what = await kind(dir);
+  if (what === "file" || what === "other") throw new KaalError(`${dir} exists and is not a valid Engine; nothing was written:\n  ${dir} is not a directory`);
+  if (what === "directory") {
     const files = await read(dir);
     if (Object.keys(files).length > 0) {
       const existing = check(files);
@@ -67,6 +69,8 @@ export async function verify(dir: string): Promise<Verification> {
 
 /** Write the foundational Core payload into `outDir`, which must not exist or be empty. Returns the paths written. */
 export async function exportPayload(outDir: string): Promise<string[]> {
+  const what = await kind(outDir);
+  if (what === "file" || what === "other") throw new KaalError(`${outDir} exists and is not an empty directory`);
   try {
     return await initialize(outDir, payload());
   } catch (e) {

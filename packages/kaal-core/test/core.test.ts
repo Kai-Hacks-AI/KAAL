@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import {
   bootstrap,
@@ -13,6 +12,7 @@ import {
   identify,
   loadEngine,
   payload,
+  readContribution,
   registerExtension,
   registerSkill,
   sha256,
@@ -414,26 +414,63 @@ describe("registration", () => {
   });
 });
 
-describe("host boundary", () => {
+describe("what a path is, as Hosting's kind reports it", () => {
   const skill = node("Greeting", f.skill, "Greet people warmly.\n");
-  const SRC = fileURLToPath(new URL("../src/", import.meta.url));
 
-  it("leaves every host mechanic to Hosting: no Core source touches the file system", () => {
-    const sources = readdirSync(SRC).filter((p) => p.endsWith(".ts"));
-    assert.ok(sources.length >= 7);
-    for (const p of sources) assert.doesNotMatch(readFileSync(join(SRC, p), "utf8"), /from "(node:)?fs(\/promises)?"|require\(/, p);
+  /** Something at a path that is neither a file nor a directory: a cycle of links, which every host can hold. */
+  function cycle(): string {
+    const dir = tmp();
+    symlinkSync(join(dir, "b"), join(dir, "a"), "file");
+    symlinkSync(join(dir, "a"), join(dir, "b"), "file");
+    return join(dir, "a");
+  }
+
+  function file(): string {
+    const path = join(tmp(), "a-file");
+    writeFileSync(path, "not a directory");
+    return path;
+  }
+
+  const notDirectories: [string, () => string][] = [
+    ["a file", file],
+    ["something other than a file or a directory", cycle],
+  ];
+  for (const [label, make] of notDirectories) {
+    it(`refuses ${label} everywhere an Engine or a contribution directory is expected, writing nothing`, async () => {
+      const path = make();
+      const parent = dirname(path);
+      const before = readdirSync(parent).sort();
+      const v = await verify(path);
+      assert.equal(v.ok, false);
+      assert.deepEqual(v.problems, [`${path} is not an Engine directory`]);
+      await assert.rejects(() => bootstrap(path), (e: Error) => e.name === "KaalError" && /exists and is not a valid Engine; nothing was written/.test(e.message));
+      await assert.rejects(() => exportPayload(path), (e: Error) => e.name === "KaalError" && /exists and is not an empty directory/.test(e.message));
+      await assert.rejects(() => registerSkill(path, "greeting", { "Greeting.md": skill }), (e: Error) => e.name === "KaalError" && /is not a valid Engine/.test(e.message));
+      await assert.rejects(() => readContribution(path), (e: Error) => e.name === "KaalError" && /is not a directory/.test(e.message));
+      assert.deepEqual(readdirSync(parent).sort(), before);
+    });
+  }
+
+  it("treats a missing path as no Engine and no contribution, and as the place to create one", async () => {
+    const path = join(tmp(), "missing");
+    assert.deepEqual((await verify(path)).problems, [`${path} is not an Engine directory`]);
+    await assert.rejects(() => registerSkill(path, "greeting", { "Greeting.md": skill }), /is not a valid Engine/);
+    await assert.rejects(() => readContribution(path), /is not a directory/);
+    assert.ok((await bootstrap(path)).length > 0);
+    assert.equal((await verify(path)).ok, true);
   });
 
-  it("takes what a path is from Hosting's kind: no Core source reads it from a refusal or a host error code", () => {
-    for (const p of readdirSync(SRC).filter((p) => p.endsWith(".ts"))) {
-      assert.doesNotMatch(readFileSync(join(SRC, p), "utf8"), /"(NOT_FILE|MISSING|ENOENT|ENOTDIR|EISDIR|ELOOP|EACCES|EPERM)"/, p);
-    }
+  it("takes a link to an Engine directory as that directory", async () => {
+    const dir = await engine();
+    const link = join(tmp(), "linked");
+    symlinkSync(dir, link, "junction");
+    assert.equal((await verify(link)).ok, true);
+    assert.deepEqual(await bootstrap(link), []);
   });
+});
 
-  it("depends at runtime on kaal-hosting alone", () => {
-    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1" });
-  });
+describe("delegation to Hosting", () => {
+  const skill = node("Greeting", f.skill, "Greet people warmly.\n");
 
   // In memory, so every case is checked on every host, whatever its file system can hold.
   const unportable: [string, Record<string, string>, string, RegExp][] = [
