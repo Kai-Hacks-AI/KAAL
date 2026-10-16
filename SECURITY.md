@@ -8,7 +8,7 @@ Include what is affected (package, Engine file or workflow, and the commit), how
 
 ## Scope
 
-This repository's `main` branch: the packages under `packages/`, the KAAL Engine under `.kaal/`, the engineering and acceptance code under `engineering/`, and the GitHub Actions workflows under `.github/workflows/`. Only the current state of `main` is supported; there are no maintained release lines.
+The whole current tree of this repository's `main` branch, including its dependency metadata (`package.json`, `package-lock.json`) and its GitHub Actions workflows. Only the current state of `main` is supported; there are no maintained release lines.
 
 ## Triage
 
