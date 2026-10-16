@@ -23,6 +23,7 @@ const EXPECTED = {
     "package/LICENSE",
     "package/README.md",
     "package/package.json",
+    "package/payload/CHAOS.md",
     "package/payload/Communication.md",
     "package/payload/Transport.md",
     "package/skills/kaal-communication/SKILL.md",
@@ -163,6 +164,6 @@ describe("registration in a fresh host", () => {
       listed.map(([kind, , name]) => `${kind} ${name}`),
       ["skill Communication", "extension Slack"],
     );
-    assert.match(await run(kaal, ["verify"], host), /ok: 8 Nodes admitted/);
+    assert.match(await run(kaal, ["verify"], host), /ok: 9 Nodes admitted/);
   });
 });

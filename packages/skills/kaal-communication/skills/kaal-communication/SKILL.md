@@ -6,7 +6,7 @@ license: MIT
 
 # Communicating as a KAAL Agent
 
-What Communication and Transport mean is stated by those Nodes in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. A Transport Extension tells you how its system realizes each step.
+What Communication, Transport and CHAOS mean is stated by those Nodes in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. A Transport Extension tells you how its system realizes each step.
 
 ## Conversation or Change
 
@@ -22,7 +22,7 @@ A conversation ends in one or more self-contained Changes, or in a reply that sa
 
 ## Where discussion goes: CHAOS
 
-CHAOS (Changes Helping Agent Orders Systematically) is the order in which you choose where to raise something. Pick the highest destination that is relevant and appropriate:
+CHAOS (Changes Helping Agent Orders Systematically) is the order in which you choose where to raise something; its Definition Node states what it means. Pick the highest destination that is relevant and appropriate:
 
 1. **Open Changes**: comment on an existing relevant Change.
 2. **Open conversations**: otherwise continue an existing relevant conversation.

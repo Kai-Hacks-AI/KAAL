@@ -10,10 +10,11 @@ const PAYLOAD = fileURLToPath(new URL("../payload/", import.meta.url));
 const node = (file) => identify(readFileSync(join(PAYLOAD, file)));
 
 describe("payload", () => {
-  it("is one Skill and the Transport Definition, typed by Core", () => {
+  it("is one Skill and the Transport and CHAOS Definitions, typed by Core", () => {
     const f = foundation();
     assert.deepEqual(node("Communication.md").type, f.skill);
     assert.deepEqual(node("Transport.md").type, f.definition);
+    assert.deepEqual(node("CHAOS.md").type, f.definition);
   });
 
   it("keeps conversation state in its latest messages, with marks that never change", () => {
@@ -28,14 +29,16 @@ describe("payload", () => {
     const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
     assert.match(text, /does not reference the conversation, transcript or handover it came from/);
     assert.match(text, /ends in one or more self-contained Changes, or concludes explicitly that none is needed/);
-    assert.match(text, /\*\*CHAOS\*\*, Changes Helping Agent Orders Systematically/);
-    assert.match(text, /\(1\) an open Change; \(2\) otherwise an open conversation; \(3\) otherwise a new shared conversation; \(4\) only as a last resort, a direct chat with an Agent/);
-    assert.match(text, /CHAOS governs only where discussion takes place, not how intentions are captured or managed/);
+    assert.match(text, /\*\*CHAOS\*\*, Changes Helping Agent Orders Systematically, as its Definition states/);
     assert.doesNotMatch(text, /Nothing else collects ideas/);
+    const chaos = readFileSync(join(PAYLOAD, "CHAOS.md"), "utf8");
+    assert.match(chaos, /^# CHAOS\n\nChanges Helping Agent Orders Systematically\.$/m);
+    assert.match(chaos, /\(1\) an open Change; \(2\) otherwise an open conversation; \(3\) otherwise a new shared conversation; \(4\) only as a last resort, a direct chat with an Agent/);
+    assert.match(chaos, /CHAOS governs only where discussion takes place, not how intentions are captured or managed/);
     assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /A Change never references a conversation\./);
   });
 
-  it("registers into a fresh Engine, where Transport is admitted", () => {
+  it("registers into a fresh Engine, where Transport and CHAOS are admitted", () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
     bootstrap(dir);
     registerSkill(dir, "kaal-communication", readContribution(PAYLOAD));
@@ -43,6 +46,6 @@ describe("payload", () => {
       capabilities(dir).skills.map((r) => r.name),
       ["Communication"],
     );
-    assert.ok(loadEngine(dir).nodes.some((n) => n.id === node("Transport.md").id));
+    for (const file of ["Transport.md", "CHAOS.md"]) assert.ok(loadEngine(dir).nodes.some((n) => n.id === node(file).id), file);
   });
 });
