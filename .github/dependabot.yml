@@ -1,0 +1,29 @@
+# Dependabot version updates, routed into KAAL collectors so each update
+# lands as an ordinary Change: the required checks, independent review,
+# squash, then promotion with the rest of its collector.
+#
+# target-branch applies to version updates only. Security updates are
+# always opened against main and cannot be redirected here; they are not
+# merged, but carried into a collector as a Change.
+version: 2
+updates:
+  # Workflow actions stay in the CI collector, so kaal/ci remains
+  # .github-only at promotion.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: kaal/ci
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # npm workspaces (root package.json and package-lock.json).
+  - package-ecosystem: npm
+    directory: /
+    target-branch: kaal/dependencies
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
