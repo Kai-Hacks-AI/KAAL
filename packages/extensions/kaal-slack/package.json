@@ -1,0 +1,27 @@
+{
+  "name": "kaal-slack",
+  "version": "0.0.1",
+  "description": "KAAL Slack: the Extension that carries KAAL Communication through Slack, using the Slack access an Agent already has.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "kaal-communication": "0.0.1"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1"
+  }
+}
