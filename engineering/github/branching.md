@@ -8,6 +8,7 @@ Whatever can be decided deterministically is decided once, in [`lineage.ts`](lin
 
 - `main` is the promoted state.
 - `kaal/<capability>` is a collector. It carries a Branch Intent: one capability, durable. It accumulates Changes, is promoted deliberately, and lives on after a promotion, because the capability keeps evolving.
+- `kaal/hotfix` is the collector for urgent corrections of existing capabilities (see [Hotfix](#hotfix)).
 - Every other branch, such as `claude/*`, is a working branch. It carries a PR Intent: one bounded Change, after which it may be deleted. Working branches are not protected, and their authors may rebase them.
 
 `main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push, force-push or deletion, and nothing bypasses this. Only a `kaal/*` branch of this repository may open a pull request into `main`.
@@ -68,6 +69,21 @@ A collector promotes into `main` through a pull request from its `kaal/*` branch
 A squash promotion records the collector's state in `main` without making the collector an ancestor of `main`. So after every promotion, synchronize `main` back into the collector before its next promotion. That synchronization has no conflicts; it only gives the collector `main`'s new ancestry. From then on the collector may change or delete content it already promoted, and its next promotion carries exactly that.
 
 Reasoning: `main` receives only Changes that were integrated and verified in a collector, in exactly the state that was verified, one commit per promotion; the collector stays the durable home of its capability.
+
+### Hotfix
+
+A hotfix is an urgency-driven correction to an existing capability. Urgency alone decides that a correction takes this route. The capability being corrected keeps ownership of the behavior: a hotfix is neither a new capability nor a separate owner.
+
+The route is for when the owning collector holds unfinished Changes and cannot be promoted just to ship the correction. Its Git realization is `kaal/hotfix`, a durable collector [established](#establish) once, which holds one correction at a time and nothing beyond `main` between hotfixes. It uses only the flows above:
+
+1. [Synchronize](#synchronize) `kaal/hotfix` to `main`'s tip if it is behind.
+2. [Engineer](#engineer) the correction as one Change into `kaal/hotfix`, landed by squash.
+3. [Promote](#promote) `kaal/hotfix` into `main`, landed by squash.
+4. Synchronize `main` back into `kaal/hotfix` and into every collector that owns the corrected behavior.
+
+Nothing is relaxed. The same required checks, Change Isolation, independent review and approval, and freshness apply as on any collector. A hotfix is not a bypass or an exemption.
+
+Reasoning: an urgent correction reaches `main` without waiting for, or carrying, unrelated work in its owner's collector, and returns to that collector through the same verified synchronization as any promoted state.
 
 ## Telling a synchronization from a Change
 
