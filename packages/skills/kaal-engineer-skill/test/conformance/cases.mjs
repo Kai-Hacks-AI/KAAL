@@ -617,10 +617,9 @@ export const CASES = [
     title: 'A compatibility of spaces only: "   "',
     files: skill(fields('compatibility: "   "\n')),
     spec: "accept",
-    why: '"Must be 1-500 characters if provided." Three spaces are three characters, and unlike description, compatibility carries no "Non-empty" requirement. KAAL trims before counting.',
-    kaal: "standard",
+    why: '"Must be 1-500 characters if provided." Three spaces are three characters, and unlike description, compatibility carries no "Non-empty" requirement.',
+    kaal: "ok",
     skillsRef: "ok",
-    class: "specification-violation",
   },
   {
     id: "compatibility-number",

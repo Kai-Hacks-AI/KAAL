@@ -68,7 +68,6 @@ describe("standard: the Agent Skills specification", () => {
     only(skill("my-skill", "name: my-skill\n"), "standard", /description is required/);
     only(skill("my-skill", "name: my-skill\ndescription:\n"), "standard", /description is not a string of 1-1024/);
     only(skill("my-skill", 'name: my-skill\ndescription: "   "\n'), "standard", /description is not a string of 1-1024/);
-    only(skill("my-skill", ok("my-skill", 'compatibility: " "\n')), "standard", /compatibility is not a string of 1-500/);
   });
 
   it("holds name to the grammar and to its parent directory", () => {
@@ -83,6 +82,8 @@ describe("standard: the Agent Skills specification", () => {
     only(skill("my-skill", d(1025)), "standard", /description is not a string of 1-1024/);
     assert.deepEqual(check(skill("my-skill", ok("my-skill", `compatibility: ${"x".repeat(500)}\n`))), clean);
     only(skill("my-skill", ok("my-skill", `compatibility: ${"x".repeat(501)}\n`)), "standard", /compatibility is not a string of 1-500/);
+    assert.deepEqual(check(skill("my-skill", ok("my-skill", 'compatibility: " "\n'))), clean);
+    only(skill("my-skill", ok("my-skill", 'compatibility: ""\n')), "standard", /compatibility is not a string of 1-500/);
   });
 
   it("refuses fields outside the standard and duplicate keys", () => {

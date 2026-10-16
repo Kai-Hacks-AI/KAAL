@@ -14,7 +14,7 @@ Evidence that `kaal-engineer-skill` conforms to the [Agent Skills specification]
 
 - **Specification**: the text of https://agentskills.io/specification, taken from its source, `docs/specification.mdx` in [agentskills/agentskills](https://github.com/agentskills/agentskills) at `69ef37e9424c0a7ea9dd2293b559e43ec8176379` (SHA-256 `b9079c0c10b7930e8c6a20ff2bc10cda2a3343c55185120e3f1116a1a529b220`, also recorded in results.md). The site itself was not reachable from the environment that produced this evidence; the page is built from that file.
 - **skills-ref 0.1.1** from PyPI (wheel SHA-256 `d35db5bb8de71ae301daf5ca9cb71f8a555e8c6f83a6d40e46a5bc09f8f461b5`), which parses with StrictYAML 1.7.3. It matches `skills-ref/src` at the commit above, except that it reads `SKILL.md` as UTF-8 explicitly. Its command is named `agentskills`.
-- **kaal-engineer-skill 0.0.1** as merged into `kaal/engineer-skill` by #70, unchanged: yaml 2.9.1 and commonmark 0.31.2.
+- **kaal-engineer-skill 0.0.1** as merged into `kaal/engineer-skill` by #70, with the compatibility correction that followed #71: yaml 2.9.1 and commonmark 0.31.2.
 
 ## Reproduce
 
@@ -44,7 +44,7 @@ Mandatory requirements are what the specification states with "must", "required"
 | [description field](https://agentskills.io/specification#description-field) | Required; 1-1024 characters; non-empty | mandatory | `description-missing`, `description-empty`, `description-whitespace`, `description-one-char`, `description-1024`, `description-1025`, `description-1024-astral`, `description-number` | enforced | enforced |
 | [description field](https://agentskills.io/specification#description-field) | Says what the skill does and when to use it, with keywords | recommendation | `description-poor` | not judged | not judged |
 | [license field](https://agentskills.io/specification#license-field) | Optional; a license name or a bundled file; keep it short | recommendation | `license-name`, `license-empty`, `license-sequence`, `dir-every-field` | requires a non-empty string | not checked |
-| [compatibility field](https://agentskills.io/specification#compatibility-field) | Optional; 1-500 characters if provided | mandatory | `compatibility-500`, `compatibility-501`, `compatibility-empty`, `compatibility-whitespace`, `compatibility-number` | enforced, but trims first | upper bound only |
+| [compatibility field](https://agentskills.io/specification#compatibility-field) | Optional; 1-500 characters if provided | mandatory | `compatibility-500`, `compatibility-501`, `compatibility-empty`, `compatibility-whitespace`, `compatibility-number` | enforced | upper bound only |
 | [metadata field](https://agentskills.io/specification#metadata-field) | Optional; a map from string keys to string values | mandatory | `dir-optional-example`, `metadata-empty-map`, `metadata-unquoted-number`, `metadata-number-key`, `metadata-nested`, `metadata-scalar`, `metadata-sequence`, `metadata-null` | enforced, YAML 1.2 types | not checked |
 | [allowed-tools field](https://agentskills.io/specification#allowed-tools-field) | Optional; a space-separated string (experimental) | mandatory | `allowed-tools-example`, `allowed-tools-sequence`, `allowed-tools-empty` | enforced, non-empty | not checked |
 | [Body content](https://agentskills.io/specification#body-content) | No format restrictions | mandatory | `fm-no-body` and every body | not restricted | not restricted |
@@ -55,9 +55,9 @@ Mandatory requirements are what the specification states with "must", "required"
 
 ## Differences, classified
 
-There are 30 cases where the verdicts differ from each other or from the specification. Each is classified in cases.mjs, with its reason.
+There are 29 cases where the verdicts differ from each other or from the specification. Each is classified in cases.mjs, with its reason.
 
-**Specification violation (1).** `compatibility-whitespace`: KAAL rejects `compatibility: "   "` as a `standard` finding. The specification's only requirement on compatibility is 1-500 characters, and unlike description it does not add "Non-empty", so three spaces are conformant. KAAL trims before counting (`validate.mjs`, the compatibility check), and #70 tests that rejection deliberately (`check-skill.test.mjs`, "requires name and description"). KAAL accepts nothing the specification rejects.
+**Specification violation (0).** #71 found one: KAAL rejected `compatibility: "   "`, because it trimmed before counting, while the specification's only requirement on compatibility is 1-500 characters and, unlike description, adds no "Non-empty". KAAL now counts compatibility untrimmed, so `compatibility-whitespace` passes and `compatibility-empty` still fails. KAAL accepts nothing the specification rejects and rejects nothing it requires accepting.
 
 **KAAL-specific rule (3).** `ref-example-absent`, `ref-outside`, `ref-absolute`: every relative file reference in `SKILL.md` must name a file the skill carries. The specification recommends relative paths but does not make other references invalid. KAAL reports these as kind `kaal`, never `standard`, as it should.
 
@@ -76,10 +76,9 @@ There are 30 cases where the verdicts differ from each other or from the specifi
 
 ## Conclusion
 
-KAAL's validator meets every mandatory requirement of the specification that a validator can check, with one exception: it rejects a compatibility of only whitespace, which the specification's text accepts. It never accepts what the specification rejects. Its one rule beyond the specification, that references resolve inside the skill, is reported as `kaal` as it should be. Every other difference from skills-ref is either skills-ref departing from the specification, StrictYAML's subset of YAML, or a point the specification leaves open.
+KAAL's validator meets every mandatory requirement of the specification that a validator can check. It never accepts what the specification rejects, and since the compatibility correction it never rejects what the specification accepts. Its one rule beyond the specification, that references resolve inside the skill, is reported as `kaal` as it should be. Every other difference from skills-ref is either skills-ref departing from the specification, StrictYAML's subset of YAML, or a point the specification leaves open.
 
 Unresolved, for the Owner:
 
-1. **Defect: whitespace-only compatibility.** The smallest corrective Change is separate from this one: in `validate.mjs`, count compatibility without trimming (`compatibility.length === 0` instead of `compatibility.trim() === ""`), turn the matching assertion in `check-skill.test.mjs` into an acceptance, and record `compatibility-whitespace` as `ok` here. With that applied, this suite and the existing tests pass with only those records changed.
-2. **`standard` findings where the specification is open.** An empty `license` or `allowed-tools`, a non-string `license`, an empty `metadata`, and a non-ASCII lowercase name are reported as violations of the standard, but its text does not settle them. Each is a reasonable reading. The Owner's ruling that the standard governs what is valid means each should either stay as KAAL's reading of the standard, become a `kaal` rule, or be accepted.
-3. **The YAML schema question.** KAAL's YAML 1.2 typing and skills-ref's all-strings reading differ on unquoted numbers and booleans. The specification's quoted `"1.0"` sides with KAAL; it would be settled upstream, not here.
+1. **`standard` findings where the specification is open.** An empty `license` or `allowed-tools`, a non-string `license`, an empty `metadata`, and a non-ASCII lowercase name are reported as violations of the standard, but its text does not settle them. Each is a reasonable reading. The Owner's ruling that the standard governs what is valid means each should either stay as KAAL's reading of the standard, become a `kaal` rule, or be accepted.
+2. **The YAML schema question.** KAAL's YAML 1.2 typing and skills-ref's all-strings reading differ on unquoted numbers and booleans. The specification's quoted `"1.0"` sides with KAAL; it would be settled upstream, not here.
