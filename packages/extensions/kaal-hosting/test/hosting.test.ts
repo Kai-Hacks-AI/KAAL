@@ -2,14 +2,14 @@
 // runs this suite. CI runs it on Linux, Windows and macOS.
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, read, update, type Files } from "kaal-hosting";
+import { contribution, execute, HostingError, initialize, read, readFile, update, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -86,6 +86,69 @@ describe("read", () => {
     assert.deepEqual(await read(dir), files({ "linked.md": "r" }));
     symlinkSync(outside, join(dir, "elsewhere"), "junction");
     await assert.rejects(read(dir), code("INVALID_PATH"));
+  });
+});
+
+describe("readFile", () => {
+  it("reads a file's exact bytes: empty, every byte value, and a non-ASCII NFC name", async () => {
+    const dir = tmp();
+    const every = Buffer.from(Array.from({ length: 256 }, (_, i) => i));
+    const name = "café-ü-日本.md".normalize("NFC");
+    writeFileSync(join(dir, "empty"), Buffer.alloc(0));
+    writeFileSync(join(dir, "bytes.bin"), every);
+    writeFileSync(join(dir, name), "n");
+    assert.deepEqual(await readFile(join(dir, "empty")), Buffer.alloc(0));
+    assert.deepEqual(await readFile(join(dir, "bytes.bin")), every);
+    assert.deepEqual(await readFile(join(dir, name)), Buffer.from("n"));
+  });
+
+  it("reads a link to a file as that file", async () => {
+    const dir = tmp();
+    const outside = tmp();
+    writeFileSync(join(outside, "real.md"), "r");
+    symlinkSync(join(outside, "real.md"), join(dir, "linked.md"), "file");
+    assert.deepEqual(await readFile(join(dir, "linked.md")), Buffer.from("r"));
+  });
+
+  it("refuses a directory and a link to one with NOT_FILE", async () => {
+    const dir = tmp();
+    const outside = tmp();
+    symlinkSync(outside, join(dir, "elsewhere"), "junction");
+    await assert.rejects(readFile(dir), code("NOT_FILE"));
+    await assert.rejects(readFile(join(dir, "elsewhere")), code("NOT_FILE"));
+  });
+
+  it("refuses a cycle of links with NOT_FILE", async () => {
+    const dir = tmp();
+    symlinkSync(join(dir, "b.md"), join(dir, "a.md"), "file");
+    symlinkSync(join(dir, "a.md"), join(dir, "b.md"), "file");
+    await assert.rejects(readFile(join(dir, "a.md")), code("NOT_FILE"));
+  });
+
+  it("refuses a missing path with MISSING: below a missing directory, below a file, and through a dangling link", async () => {
+    const dir = tmp();
+    writeFileSync(join(dir, "file.md"), "f");
+    writeFileSync(join(dir, "gone.md"), "g");
+    symlinkSync(join(dir, "gone.md"), join(dir, "dangling.md"), "file");
+    rmSync(join(dir, "gone.md"));
+    await assert.rejects(readFile(join(dir, "missing.md")), code("MISSING"));
+    await assert.rejects(readFile(join(dir, "missing", "x.md")), code("MISSING"));
+    await assert.rejects(readFile(join(dir, "file.md", "x.md")), code("MISSING"));
+    await assert.rejects(readFile(join(dir, "dangling.md")), code("MISSING"));
+  });
+
+  it("agrees with read for every file of a tree", async () => {
+    const dir = tmp();
+    const outside = tmp();
+    mkdirSync(join(dir, "a", "b"), { recursive: true });
+    writeFileSync(join(dir, "top.md"), "1");
+    writeFileSync(join(dir, "a", "b", "deep.bin"), Buffer.from([0, 255, 13, 10]));
+    writeFileSync(join(dir, "a", "ü.md".normalize("NFC")), "u");
+    writeFileSync(join(outside, "real.md"), "r");
+    symlinkSync(join(outside, "real.md"), join(dir, "a", "linked.md"), "file");
+    const tree = await read(dir);
+    assert.equal(Object.keys(tree).length, 4);
+    for (const [path, bytes] of Object.entries(tree)) assert.deepEqual(await readFile(join(dir, ...path.split("/"))), bytes, path);
   });
 });
 
