@@ -9,6 +9,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
+import "./within-evidence.js";
 import { contribution, execute, HostingError, initialize, read, readFile, update, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
