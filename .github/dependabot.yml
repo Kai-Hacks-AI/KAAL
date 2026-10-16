@@ -18,12 +18,22 @@ updates:
       actions:
         patterns: ["*"]
 
-  # npm workspaces (root package.json and package-lock.json).
+  # npm, from the workspace root: one package-lock.json serves every
+  # workspace. lockfile-only keeps each capability's package.json, and so
+  # its declared ranges and pins, untouched: an update that needs a
+  # manifest change gets no version-update PR and is left to the owning
+  # capability as its own Change. Two groups split the shared toolchain
+  # (devDependencies) from runtime dependencies.
   - package-ecosystem: npm
     directory: /
     target-branch: kaal/dependencies
+    versioning-strategy: lockfile-only
     schedule:
       interval: weekly
     groups:
-      npm:
+      npm-development:
+        dependency-type: development
+        patterns: ["*"]
+      npm-production:
+        dependency-type: production
         patterns: ["*"]
