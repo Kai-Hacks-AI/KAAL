@@ -14,10 +14,6 @@ The Nodes carry what Communication means to KAAL. The Agent Skill tells an Agent
 
 Communication is for coordination: discussion, questions, alignment, handing work over. It is not KAAL state and not a system of record, so this package persists, synchronizes and recovers nothing. Durable work lives with the Change that carries it (its intent, implementation, evidence, review and approval) and in the capability's definitions. A Change stands on its own: a reference to the conversation behind it is optional context, never required evidence.
 
-## Signals
-
-A conversation may show its state (active, waiting, blocked, concluded) and its next actors. Signals are advisory coordination: they hold no KAAL state, and none of them approves, merges or authorizes a Change. Each Transport states in its realization whether and how it shows them.
-
 ## Boundaries
 
 This package knows no Transport. It names no system, depends on no Transport Extension, and its examples use fictional participants only. A Transport Extension depends on it, never the other way around: its realization is a Node typed by `Transport`, which Core admits only into an Engine that already holds this package's `Transport`. Repository acceptance checks both directions.

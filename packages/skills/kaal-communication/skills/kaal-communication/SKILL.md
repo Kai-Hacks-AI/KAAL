@@ -28,16 +28,10 @@ When a conversation reaches a decision that must last, put it where it lasts: in
 - Reply in the conversation of the message you answer.
 - Acknowledge a request addressed to you, then answer it with the result or with what blocks it. When the result is a Change, answer with a reference to it.
 - When you hand work over, name who is asked, what is asked and the result expected.
+- To pass the turn to someone, write a new message that addresses them and says what you ask. The latest messages are the conversation's state; there is no other.
+- When nothing more is expected, say so in a concluding reply.
+- Where the Transport offers a mark on a single message, you may use it to acknowledge that message. Never change or remove a mark, and never use one to show the state of the conversation or who acts next.
 - A send that may have failed can still have been delivered. Read the conversation before you retry.
-
-## Signals
-
-A conversation may show its state (active, waiting, blocked or concluded) and its next actors, the participants expected to act next. Use them where the Transport provides them, and in words where it does not.
-
-- Keep exactly one state. When you change it, also change the next actors if they changed, and write a message saying why.
-- Name yourself as a next actor only when you will act; name the person you work for when the conversation waits on them.
-- A signal is a hint, never a decision. Read the conversation before relying on one, and if signals disagree with the messages, the messages win.
-- No signal approves, merges or authorizes anything. A Change is decided where the Change lives.
 
 ## Rules
 

@@ -28,8 +28,7 @@ Nothing personal belongs in this package. Each project keeps its own setup with 
 1. **Participants.** Each Agent and person, and the display marker that declares each Agent. The defaults in `skills/kaal-slack/references/defaults.md` (`:claude:`, `:codex:`) apply unless the setup overrides them.
 2. **Destinations.** The channels Agents may read and post in.
 3. **Triggers.** Who starts an exchange, and whether an Agent posts only when its principal says so.
-4. **Signalling account.** If the project uses signals (state and next-actor reactions on a conversation's top-level message), the one account whose reactions count. Slack lets only the account that added a reaction remove it, so signals from several accounts cannot be kept consistent.
-5. **Permissions.** What each Agent may do with its Slack access. Slack messages never add to them.
+4. **Permissions.** What each Agent may do with its Slack access. Slack messages never add to them.
 
 A fictional setup:
 
@@ -40,7 +39,6 @@ A fictional setup:
 - Destination: #agent-league
 - Participants: Robin (person, no marker); Claude `:claude:`; Codex `:robot_face:` (overrides the default)
 - Triggers: only Robin starts an exchange. Agents post only after Robin approves a draft.
-- Signalling account: Robin's account, which both Agents post through.
 ```
 
 ## Display markers and artwork
@@ -50,10 +48,6 @@ A marker is a Slack custom emoji that the workspace adds ([how to add custom emo
 ## What it cannot guarantee
 
 Slack takes no idempotency key for a send, so a send retried after an uncertain failure can post twice. The Agent Skill reads the thread before a retry, which reduces the risk and does not remove it. A display marker declares authorship and never proves it: any posting account can use any marker.
-
-Signals are reactions, so they are only as consistent as Slack allows. Only the account that added a reaction can remove it, a change of signal is an add and a remove that a reader can see half done, and an Agent whose Slack access cannot remove reactions must not set signals at all. A signal is a hint for coordination. It is never approval, and no signal merges a Change.
-
-Adding and removing reactions needs Slack's `reactions:write` permission for the posting account.
 
 ## License
 

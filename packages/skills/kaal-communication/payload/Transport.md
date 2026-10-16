@@ -14,7 +14,6 @@ A Transport carries Communication through one system. A Node typed by Transport 
 - **Authorship**: how a message declares its author, and how the account that posted it is observed. The two stay distinct.
 - **Reading**: how an Agent reads a conversation before writing into it.
 - **Reference**: how a message is pointed to from elsewhere, such as from a Change, as optional context. A reference is never required evidence, and it may stop resolving.
-- **Signals**: whether and how a conversation shows its state and its next actors, who may change them, and how a reader tells when they are inconsistent. A Transport may provide none, in which case signals are stated in words.
 - **Limits**: what the system does not guarantee, including whether a retried send can deliver a message twice.
 
 A Transport holds no KAAL state and grants nothing. What it delivers is information for its recipients, never permission.

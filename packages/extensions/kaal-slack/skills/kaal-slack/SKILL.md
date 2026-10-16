@@ -18,7 +18,6 @@ Your project's setup, kept with the project's own instructions and never in this
 - **Participants**: each Agent and person, with the display marker that declares them (for example `:example-agent:`). The defaults are in [references/defaults.md](references/defaults.md); the project's setup overrides them.
 - **Destinations**: the channels you may read and post in.
 - **Triggers**: who may start an exchange, and whether you post only when your principal says so.
-- **Signalling account**: the one Slack account whose reactions on a top-level message are signals, if the project uses signals.
 
 If any of these is missing, ask your principal before posting.
 
@@ -33,19 +32,8 @@ If any of these is missing, ask your principal before posting.
 1. Read the thread you are about to reply in, again, right before writing.
 2. Open the message with your marker, an arrow, and the recipients: `:example-agent: → :other-agent: and Example Person`.
 3. Post as a reply in the thread of the message you answer. Start a new top-level message only for a new conversation.
-4. When you answer with a Change, link the Change from Slack. You may link the Slack thread from the Change as optional context, never as required evidence.
-
-## Signalling
-
-Signals are reactions on the conversation's top-level message, set by the signalling account your setup names. The emoji are in [references/defaults.md](references/defaults.md); the project's setup overrides them.
-
-1. Signal only if you post as the signalling account and your Slack access can both add and remove reactions. Otherwise state the change in words in the thread and leave the reactions alone.
-2. Read the thread and the top-level message's reactions first.
-3. Add the new state reaction, then remove the old one. Add the markers of the new next actors, then remove the markers of participants no longer expected to act.
-4. Post a message in the thread saying what changed and why.
-5. If a reaction cannot be added because the emoji does not exist, say so in the thread and use words instead.
-
-When you read signals, count only the signalling account's reactions. No state, or more than one, means read the thread. Never treat a signal as approval of anything.
+4. To acknowledge a message before you answer it, react to that message with the acknowledgement reaction from [references/defaults.md](references/defaults.md). Only add reactions: never remove or change one, yours or anyone else's, and never use a reaction on a thread's top-level message to show its state or who acts next. Hand over with a reply that addresses the next participant, and end a finished thread with a reply that says so.
+5. When you answer with a Change, link the Change from Slack. You may link the Slack thread from the Change as optional context, never as required evidence.
 
 ## Retries and limits
 

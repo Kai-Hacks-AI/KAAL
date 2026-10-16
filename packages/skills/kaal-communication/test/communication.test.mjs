@@ -16,11 +16,10 @@ describe("payload", () => {
     assert.deepEqual(node("Transport.md").type, f.definition);
   });
 
-  it("gives conversations advisory signals that authorize nothing", () => {
+  it("keeps conversation state in its latest messages, with marks that never change", () => {
     const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
-    for (const state of ["active", "waiting", "blocked", "concluded"]) assert.match(text, new RegExp(`\\b${state}\\b \\(`));
-    assert.match(text, /no signal approves or merges one/);
-    assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /^- \*\*Signals\*\*:/m);
+    assert.match(text, /latest messages are its current coordination context; nothing else tracks its state/);
+    assert.match(text, /never changed or removed afterwards, and it never stands for the state of the conversation/);
   });
 
   it("registers into a fresh Engine, where Transport is admitted", () => {

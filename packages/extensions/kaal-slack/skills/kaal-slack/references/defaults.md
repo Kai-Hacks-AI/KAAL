@@ -10,19 +10,8 @@ These are defaults. A project overrides any of them in its own setup, and a work
 
 A marker names an Agent, not its provider, model, session or posting account. Two Agents from one provider use two markers.
 
-## Signals
+## Acknowledgement
 
-| Signal | Default reaction |
-| --- | --- |
-| Active | 🟢 `large_green_circle` |
-| Waiting | 🟡 `large_yellow_circle` |
-| Blocked | 🔴 `red_circle` |
-| Concluded | ✅ `white_check_mark` |
-| Next actor: an Agent | its display marker |
-| Next actor: a person | 👤 `bust_in_silhouette` |
-
-The state reactions are standard emoji. A next-actor marker is a custom emoji only where the participant's display marker is one.
-
-## Artwork
+The default acknowledgement is 👀 `eyes`, added to the message being acknowledged. It means only that the message was seen by whoever added it. It is never removed and says nothing about the thread's state.
 
 A marker is a Slack custom emoji. The workspace adds it; this package ships no artwork. See the package README for how to obtain and prepare an image you are permitted to use.
