@@ -14,7 +14,7 @@ This repository's `main` branch: the packages under `packages/`, the KAAL Engine
 
 The Owner triages every report and every security alert (Dependabot, code scanning, secret scanning). A report is acknowledged within 7 days.
 
-A fix follows the normal flow: a Change into a `kaal/*` collector, then promotion to `main`. A published security advisory follows once the fix is on `main`.
+A fix goes through `kaal/hotfix`: a Change into `kaal/hotfix`, then its promotion to `main`, landed back to back so the fix is public for as short a time as possible before `main` carries it. The security advisory is published once the fix is on `main`.
 
 ## Exceptions
 
