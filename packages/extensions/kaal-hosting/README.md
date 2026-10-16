@@ -7,6 +7,7 @@ KAAL Hosting is the host-facing KAAL Extension: it enables KAAL to operate withi
 | Operation | Guarantee |
 | --- | --- |
 | `read(dir)` | Every file of a tree, keyed by `/`-separated relative path, whatever its name. A missing directory reads as empty. |
+| `readFile(path)` | One file's exact bytes. A link to a file reads as that file, as in `read`. A directory, a link to one, or anything else that is not a file is refused with `NOT_FILE`; a missing path, a dangling link included, with `MISSING`: unlike a tree, a single file has no empty reading. Like `read`, it takes no lock. |
 | `update(dir, plan)` | One writer at a time, across processes. `plan` receives the directory as it is and returns the change to make, or nothing. The change is published all or nothing as a new directory: staged beside the directory, read back to confirm the host holds it exactly, and renamed into place, together with any parent directories it needs. Any failure leaves the directory exactly as it was. |
 | `initialize(dir, files)` | Populates a missing or empty directory as its only writer. A missing directory appears complete or not at all; an existing empty one (the current directory, say) is filled in place, never removed or replaced. Anything else is refused. |
 | `execute(command, args, { cwd, env })` | Runs an installed command, named on the PATH or by path, however the host realizes it (an executable, or on Windows a `.cmd` shim such as npm installs). Arguments reach the command exactly as given; no shell interprets them. Resolves with the exit status and everything written to stdout and stderr; rejects when the command cannot be started. |
@@ -16,7 +17,7 @@ Paths are refused before anything is written when they would not be held faithfu
 
 Hosting stages its writes beside the directory, never inside it, so the directory only ever holds published content. That requires the directory and its parent to be on one filesystem, as renaming into place does anyway.
 
-A link to a file reads as that file. A link to a directory is refused, by `read` and by `update` alike: Hosting neither reads nor publishes through one, so nothing it reads or writes lies outside the directory.
+A link to a file reads as that file. A link to a directory is refused, by `read`, `readFile` and `update` alike: Hosting neither reads nor publishes through one, so nothing it reads or writes lies outside the directory.
 
 Writers are serialized with [`proper-lockfile`](https://www.npmjs.com/package/proper-lockfile) (a lock directory beside the target, `<dir>.lock`, with stale-lock recovery). The lock is taken on the directory's canonical path, so every path that names one directory shares one lock. Commands are started with [`cross-spawn`](https://www.npmjs.com/package/cross-spawn), which on Windows finds `.cmd` shims through `PATHEXT` and escapes their arguments. File operations go through [`graceful-fs`](https://www.npmjs.com/package/graceful-fs), which on Windows retries renames blocked by antivirus or indexing.
 
