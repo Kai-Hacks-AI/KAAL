@@ -104,6 +104,27 @@ describe("artifact identity", () => {
   });
 });
 
+describe("reading an artifact through kaal-hosting", () => {
+  it("reads a file, a link to a file and a directory by Hosting's contract", async () => {
+    const dir = art();
+    symlinkSync(join(dir, "a.txt"), join(dir, "..", "link.txt"));
+    assert.deepEqual(await readArtifact(join(dir, "a.txt")), { kind: "file", name: "a.txt", bytes: Buffer.from("hello\n") });
+    assert.deepEqual(await readArtifact(join(dir, "..", "link.txt")), { kind: "file", name: "link.txt", bytes: Buffer.from("hello\n") });
+    const d = await readArtifact(dir);
+    assert.equal(d.kind, "directory");
+    assert.deepEqual(Object.keys(d.files).sort(), ["a.txt", "sub/B.md"]);
+  });
+
+  it("refuses a missing path with Hosting's MISSING", async () => {
+    await assert.rejects(readArtifact(join(tmp(), "absent")), (e) => e instanceof HostingError && e.code === "MISSING");
+  });
+
+  it("leaves host filesystem access to Hosting: the Agent Skill's scripts import no node:fs", () => {
+    const scripts = join(PACKAGE, "skills", "kaal-sealing", "scripts");
+    for (const f of readdirSync(scripts)) assert.doesNotMatch(readFileSync(join(scripts, f), "utf8"), /from "node:fs/, f);
+  });
+});
+
 describe("Seals", () => {
   it("bind kind, form and identity in canonical bytes named by their hash", () => {
     const { ref, bytes } = sealOf({ kind: "directory", name: "art", files: { "a.txt": Buffer.from("hello\n") } }, { domain: "D", named: true });

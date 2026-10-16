@@ -4,10 +4,9 @@
 // Retaining Seals in a KAAL Engine and reading artifacts from the local
 // filesystem go through kaal-hosting; whether an Engine holds Sealing is
 // decided by kaal-core.
-import { readFile, stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { evaluate, KaalError, sha256 } from "kaal-core";
-import { read, update } from "kaal-hosting";
+import { HostingError, read, readFile, update } from "kaal-hosting";
 
 /**
  * @typedef {{ named?: boolean, domain?: string }} Form
@@ -212,14 +211,20 @@ export async function sealed(engine) {
 // --- The local filesystem as an artifact source -----------------------------
 
 /**
- * Read an artifact from the local filesystem. A directory is read through
- * kaal-hosting, which decides how links are treated and refuses a link to a
- * directory. Its own name is its last path segment; where it lies is not read.
+ * Read an artifact from the local filesystem, entirely through kaal-hosting,
+ * which decides what is a file, how links are treated, and what is refused.
+ * A file is read with `readFile`; what Hosting says is not a file is read as a
+ * directory with `read`. A missing path is refused by Hosting (`MISSING`). Its
+ * own name is its last path segment; where it lies is not read.
  *
  * @param {string} path @returns {Promise<Artifact>}
  */
 export async function readArtifact(path) {
   const name = basename(resolve(path));
-  if ((await stat(path)).isDirectory()) return { kind: "directory", name, files: await read(path) };
-  return { kind: "file", name, bytes: await readFile(path) };
+  try {
+    return { kind: "file", name, bytes: await readFile(path) };
+  } catch (e) {
+    if (!(e instanceof HostingError && e.code === "NOT_FILE")) throw e;
+    return { kind: "directory", name, files: await read(path) };
+  }
 }
