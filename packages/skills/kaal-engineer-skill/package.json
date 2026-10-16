@@ -1,0 +1,33 @@
+{
+  "name": "kaal-engineer-skill",
+  "version": "0.0.1",
+  "description": "KAAL Engineer Skill: producing and updating KAAL Skills, including the conformance of their Agent Skills to the Agent Skills standard.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./skills/kaal-engineer-skill/scripts/validate.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kaal-engineer-skill": "skills/kaal-engineer-skill/scripts/check-skill.mjs"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/check-skill.test.mjs test/conformance.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "commonmark": "0.31.2",
+    "kaal-hosting": "0.0.1",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1"
+  }
+}
