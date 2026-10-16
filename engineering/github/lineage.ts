@@ -8,7 +8,8 @@
 //                        exactly the tree validated on its head.
 //   synchronization      Synchronize: a merge commit gives a lineage a state of the default branch newer
 //                        than the one it last incorporated, with its own outstanding Changes kept, and
-//                        names its explicit resolutions. It is fully current or a valid step. Anything
+//                        names its explicit resolutions, telling its own apart from those that adopt the
+//                        merged state's content unchanged. It is fully current or a valid step. Anything
 //                        else proposed to a lineage is an ordinary Change, which must not carry the
 //                        default branch's history.
 //
@@ -23,11 +24,13 @@
 //   lineage.ts incorporated <lineage-tip> <default-tip>    prints the state a synchronization starts from
 // Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable. A consumer must treat 2 as a failure and
 // 3 as "this verdict does not apply", never as a pass of it. --resolutions writes a verified
-// synchronization's explicit resolutions, NUL-separated, as input for Change Isolation.
+// synchronization's own resolutions, NUL-separated, as input for Change Isolation; resolutions that
+// adopt the merged state's content unchanged are named in the verdict but not written.
 //
 // A passing synchronization proves structure only: everything outside the explicit resolutions is
 // exactly the default branch with the lineage's outstanding Changes. Whether a resolution is right
-// is not judged here; the lineage's tests and review decide that.
+// is not judged here; the lineage's tests and review decide that. Adoption only narrows what Change
+// Isolation judges: the whole resulting tree still goes through every required check.
 import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -36,8 +39,9 @@ export const GUIDE = "engineering/github/branching.md";
 
 export type Verdict = { kind: "pass" | "fail" | "not-applicable"; message: string };
 /** A synchronization verdict. A pass is either fully current (it incorporates the default branch's
- *  tip) or a valid intermediate step that leaves the lineage behind; both name their resolutions. */
-export type SyncVerdict = Verdict & { resolutions: string[]; current: boolean };
+ *  tip) or a valid intermediate step that leaves the lineage behind; both name their resolutions:
+ *  `resolutions` are its own, `adopted` take the merged state's content unchanged. */
+export type SyncVerdict = Verdict & { resolutions: string[]; adopted: string[]; current: boolean };
 
 /** A three-way merge as Git computes it: the resulting tree and the paths it could not merge. */
 export interface MergeResult {
@@ -124,6 +128,9 @@ export interface SyncFacts {
   carriesDefault: boolean;
   /** The merged state is a commit on the default branch's first-parent history: a state it admitted. */
   markerOnDefault: boolean;
+  /** Conflicting paths the head resolves to exactly the merged default-branch state: content the
+   *  default branch already admitted, not the synchronization's own. */
+  adopted: string[];
   /** The merged state is strictly newer than the incorporated state: the incorporated state is its
    *  ancestor and not itself. */
   advances: boolean;
@@ -140,20 +147,20 @@ export function synchronization(f: SyncFacts): SyncVerdict {
     `on a branch from ${f.lineage}'s tip ${short(f.lineageTip)}, git merge a ${f.defaultBranch} commit S after ${short(f.incorporated)} ` +
     `(its tip ${short(f.defaultTip)}, or an earlier one so that each step's resolutions travel alone), resolve every conflict ` +
     `explicitly in that merge commit, and land the pull request with a merge commit. See ${GUIDE}#synchronize`;
-  const fail = (problem: string): SyncVerdict => ({ kind: "fail", resolutions: [], current: false, message: `${problem} To synchronize: ${howTo}` });
+  const fail = (problem: string): SyncVerdict => ({ kind: "fail", resolutions: [], adopted: [], current: false, message: `${problem} To synchronize: ${howTo}` });
   if (f.merged === null) {
     if (f.marker !== null) {
       return fail(`${short(f.head)} states Synchronized-with ${short(f.marker)} but is not a merge commit of it: a synchronization records ${f.defaultBranch}'s ancestry.`);
     }
     if (f.carriesDefault) {
       return {
-        kind: "fail", resolutions: [], current: false,
+        kind: "fail", resolutions: [], adopted: [], current: false,
         message:
           `${short(f.head)} carries ${f.defaultBranch} commits that ${f.lineage} does not hold, so it is neither an ordinary Change nor a synchronization. ` +
           `A Change builds on ${f.lineage}'s tip alone (rebase it there); ${f.defaultBranch} arrives only through a synchronization: ${howTo}`,
       };
     }
-    return { kind: "not-applicable", resolutions: [], current: false, message: `Not a synchronization: an ordinary Change into ${f.lineage}. Land it by squash.` };
+    return { kind: "not-applicable", resolutions: [], adopted: [], current: false, message: `Not a synchronization: an ordinary Change into ${f.lineage}. Land it by squash.` };
   }
   if (f.marker !== null && f.marker !== f.merged) return fail(`Synchronized-with ${short(f.marker)} is not the ${f.defaultBranch} commit ${short(f.merged)} this merge brings in.`);
   if (!f.onLineageTip) return fail(`This synchronization does not build on ${f.lineage}'s tip ${short(f.lineageTip)}.`);
@@ -167,16 +174,19 @@ export function synchronization(f: SyncFacts): SyncVerdict {
         `${list(f.differing)}. Only paths where the two conflict may differ.`,
     );
   }
-  const resolutions = f.expected.conflicts;
+  const adopted = f.expected.conflicts.filter((p) => f.adopted.includes(p));
+  const resolutions = f.expected.conflicts.filter((p) => !f.adopted.includes(p));
   const current = f.merged === f.defaultTip;
   return {
     kind: "pass",
     resolutions,
+    adopted,
     current,
     message:
       `${current ? "Synchronized, fully current" : "Synchronized, a valid intermediate step"}: ${f.lineage} receives ` +
       `${f.defaultBranch} at ${short(f.merged)} with its outstanding Changes since ${short(f.incorporated)}; explicit resolutions: ` +
-      `${resolutions.length ? list(resolutions) : "none"}. ` +
+      `${resolutions.length ? list(resolutions) : "none"}` +
+      (adopted.length ? `; adopted unchanged from ${f.defaultBranch} at ${short(f.merged)}: ${list(adopted)}` : "") + ". " +
       (current ? "" : `${f.defaultBranch} is at ${short(f.defaultTip)}: synchronize again from ${short(f.merged)} to bring ${f.lineage} current. `) +
       `Land it with a merge commit, never by squash or rebase: the merge commit is what keeps ${f.defaultBranch}'s ancestry. ` +
       `Structure verified; whether each resolution is right is for the lineage's tests and review.`,
@@ -196,6 +206,8 @@ function git(cwd: string, args: string[], ok: number[] = [0]): { status: number;
 const rev = (cwd: string, spec: string) => git(cwd, ["rev-parse", "--verify", "--end-of-options", spec]).stdout.trim();
 const isAncestor = (cwd: string, a: string, b: string) =>
   git(cwd, ["merge-base", "--is-ancestor", a, b], [0, 1, 128]).status === 0;
+/** A path's entry in a commit's tree, mode and object, or "" when the commit does not hold it. */
+const entry = (cwd: string, c: string, path: string) => git(cwd, ["ls-tree", "--full-tree", "-z", c, "--", path]).stdout.split("\t")[0];
 const parents = (cwd: string, c: string) => git(cwd, ["rev-list", "--parents", "-n", "1", c]).stdout.trim().split(" ").slice(1);
 
 export function merge(cwd: string, ours: string, theirs: string, base?: string): MergeResult {
@@ -267,12 +279,13 @@ export function readSync(cwd: string, defaultBranch: string, lineage: string, de
     onLineageTip: ps.length > 0 && isAncestor(cwd, lineageTip, ps[0]),
     carriesDefault: carried !== own,
     markerOnDefault, advances, incorporated: inc,
-    expected: { clean: true, tree: "", conflicts: [] }, differing: [],
+    expected: { clean: true, tree: "", conflicts: [] }, differing: [], adopted: [],
   };
   if (merged !== null && facts.onLineageTip && advances) {
     const { expected, differing } = synchronizes(cwd, head, lineageTip, merged, inc);
     facts.expected = expected;
     facts.differing = differing;
+    facts.adopted = expected.conflicts.filter((p) => entry(cwd, head, p) === entry(cwd, merged, p));
   }
   return facts;
 }
