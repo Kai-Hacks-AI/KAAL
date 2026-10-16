@@ -4,8 +4,8 @@
   "description": "Engineering repository for KAAL. The distributable packages are under packages/.",
   "type": "module",
   "workspaces": [
-    "packages/kaal-core",
     "packages/extensions/kaal-hosting",
+    "packages/kaal-core",
     "packages/skills/kaal-engineer-skill"
   ],
   "scripts": {

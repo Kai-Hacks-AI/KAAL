@@ -1,7 +1,6 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { verify } from "./bootstrap.js";
-import { evaluate, makeStaging, readTree } from "./engine.js";
+import { read, update } from "kaal-hosting";
+import { check } from "./bootstrap.js";
+import { evaluate, isDirectory } from "./engine.js";
 import { claimsForm, compareRefs, identify, KaalError, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
@@ -37,11 +36,13 @@ export interface Registration {
 }
 
 /**
- * Register a capability's contribution with an Engine. Every check runs on
- * the Engine as it would be with the contribution, before anything is
- * written; any failure refuses the whole contribution and writes nothing. The
- * contribution is written into a staging directory inside the Engine and
- * renamed into `<skills|extensions>/<capability>/` in one step.
+ * Register a capability's contribution with an Engine. Core decides and
+ * Hosting publishes: under Hosting's lock, every check runs on the Engine as
+ * it is and as it would be with the contribution, before anything is
+ * written, and any failure refuses the whole contribution and writes nothing.
+ * Hosting then publishes the contribution as `<skills|extensions>/<capability>/`
+ * all or nothing, refusing paths that are not portable to every supported
+ * host (case or Unicode collisions, names Windows cannot hold).
  *
  * A contribution is valid when: the capability is named in lowercase letters,
  * digits and single hyphens; it carries at least one file and every file is a
@@ -52,7 +53,7 @@ export interface Registration {
  * whole (see `verify`). Registering the identical contribution again is a no-op; a
  * capability already registered with other content is refused.
  */
-export function register(dir: string, kind: Kind, capability: string, contribution: Record<string, string | Uint8Array>): Registration {
+export async function register(dir: string, kind: Kind, capability: string, contribution: Record<string, string | Uint8Array>): Promise<Registration> {
   if (!CAPABILITY.test(capability)) throw new KaalError(`${capability} is not a capability name: lowercase letters, digits and single hyphens`);
   const files = toFiles(contribution);
   const paths = Object.keys(files).sort();
@@ -66,70 +67,56 @@ export function register(dir: string, kind: Kind, capability: string, contributi
       throw new KaalError(`${path}: ${(e as Error).message}`);
     }
   }
+  if (!(await isDirectory(dir))) throw new KaalError(`${dir} is not a valid Engine; nothing was written:\n  ${dir} is not an Engine directory`);
 
-  const base = verify(dir);
-  if (!base.ok) throw new KaalError(`${dir} is not a valid Engine; nothing was written:\n  ${base.problems.join("\n  ")}`);
-  const present = readTree(dir);
+  const prefix = `${DIRS[kind]}/${capability}`;
+  let ids: string[] = [];
+  const change = await update(dir, (present) => {
+    const base = check(present);
+    if (!base.ok) throw new KaalError(`${dir} is not a valid Engine; nothing was written:\n  ${base.problems.join("\n  ")}`);
 
-  const prefix = `${DIRS[kind]}/${capability}/`;
-  const existing = Object.keys(present).filter((p) => p.startsWith(prefix));
-  const target = join(dir, DIRS[kind], capability);
-  if (existsSync(target)) {
-    const same = existing.length === paths.length && paths.every((p) => present[prefix + p]?.equals(files[p]));
-    if (!same) throw new KaalError(`${prefix} is already registered with other content: nothing was written`);
-  }
-
-  const combined = evaluate({ ...present, ...Object.fromEntries(paths.map((p) => [prefix + p, files[p]])) });
-  const admitted = new Set(combined.nodes.map((n) => n.id));
-  const nodes = paths.map((p) => ({ path: p, ...identify(files[p]) }));
-  for (const n of nodes) {
-    if (!n.type) throw new KaalError(`${n.path} declares no type: only the genesis Node does`);
-    if (!admitted.has(n.id)) {
-      const why = combined.rejected.find((r) => r.path === prefix + n.path)?.reason ?? "not admitted";
-      throw new KaalError(`${n.path} is not admitted: ${why}`);
+    const existing = Object.keys(present).filter((p) => p.startsWith(`${prefix}/`));
+    const registered = existing.length > 0;
+    if (registered) {
+      const same = existing.length === paths.length && paths.every((p) => present[`${prefix}/${p}`]?.equals(files[p]));
+      if (!same) throw new KaalError(`${prefix}/ is already registered with other content: nothing was written`);
     }
-  }
-  const own = anchor(kind);
-  const other = anchor(kind === "skill" ? "extension" : "skill");
-  const typed = nodes.filter((n) => n.type?.id === own.id);
-  if (typed.length === 0) throw new KaalError(`${article(kind)} ${kind} contribution carries at least one Node typed by ${own.name} (${own.id})`);
-  const crossed = nodes.find((n) => n.type?.id === other.id);
-  if (crossed) throw new KaalError(`${crossed.path} is typed by ${other.name}: ${article(kind)} ${kind} contribution carries no ${other.name}`);
 
-  const ids = [...new Set(typed.map((n) => n.id))].sort();
-  if (existsSync(target)) return { ids, written: false };
-
-  const staging = makeStaging(dir);
-  try {
-    for (const p of paths) {
-      mkdirSync(dirname(join(staging, p)), { recursive: true });
-      writeFileSync(join(staging, p), files[p]);
+    const combined = evaluate({ ...present, ...Object.fromEntries(paths.map((p) => [`${prefix}/${p}`, files[p]])) });
+    const admitted = new Set(combined.nodes.map((n) => n.id));
+    const nodes = paths.map((p) => ({ path: p, ...identify(files[p]) }));
+    for (const n of nodes) {
+      if (!n.type) throw new KaalError(`${n.path} declares no type: only the genesis Node does`);
+      if (!admitted.has(n.id)) {
+        const why = combined.rejected.find((r) => r.path === `${prefix}/${n.path}`)?.reason ?? "not admitted";
+        throw new KaalError(`${n.path} is not admitted: ${why}`);
+      }
     }
-    mkdirSync(join(dir, DIRS[kind]), { recursive: true });
-    renameSync(staging, target);
-  } catch (e) {
-    rmSync(staging, { recursive: true, force: true });
-    throw e;
-  }
-  return { ids, written: true };
+    const own = anchor(kind);
+    const other = anchor(kind === "skill" ? "extension" : "skill");
+    const typed = nodes.filter((n) => n.type?.id === own.id);
+    if (typed.length === 0) throw new KaalError(`${article(kind)} ${kind} contribution carries at least one Node typed by ${own.name} (${own.id})`);
+    const crossed = nodes.find((n) => n.type?.id === other.id);
+    if (crossed) throw new KaalError(`${crossed.path} is typed by ${other.name}: ${article(kind)} ${kind} contribution carries no ${other.name}`);
+
+    ids = [...new Set(typed.map((n) => n.id))].sort();
+    return registered ? undefined : { prefix, files: Object.fromEntries(paths.map((p) => [p, files[p]])) };
+  });
+  return { ids, written: change !== undefined };
 }
 
-export function registerSkill(dir: string, capability: string, contribution: Record<string, string | Uint8Array>): Registration {
+export function registerSkill(dir: string, capability: string, contribution: Record<string, string | Uint8Array>): Promise<Registration> {
   return register(dir, "skill", capability, contribution);
 }
 
-export function registerExtension(dir: string, capability: string, contribution: Record<string, string | Uint8Array>): Registration {
+export function registerExtension(dir: string, capability: string, contribution: Record<string, string | Uint8Array>): Promise<Registration> {
   return register(dir, "extension", capability, contribution);
 }
 
 /** Read a contribution from a source directory: every file, keyed by `/`-separated relative path. */
-export function readContribution(source: string): Files {
-  if (!existsSync(source) || !statSync(source).isDirectory()) throw new KaalError(`${source} is not a directory`);
-  const files: Files = {};
-  for (const path of readdirSync(source, { recursive: true, encoding: "utf8" })) {
-    if (statSync(join(source, path)).isFile()) files[path.split("\\").join("/")] = readFileSync(join(source, path));
-  }
-  return files;
+export async function readContribution(source: string): Promise<Files> {
+  if (!(await isDirectory(source))) throw new KaalError(`${source} is not a directory`);
+  return read(source);
 }
 
 export interface Capabilities {
@@ -142,8 +129,8 @@ export interface Capabilities {
  * by Core's KAAL Skill and KAAL Extension Nodes. Found by type alone; no
  * registry, path or layout is consulted.
  */
-export function capabilities(dir: string): Capabilities {
-  const engine = evaluate(readTree(dir));
+export async function capabilities(dir: string): Promise<Capabilities> {
+  const engine = evaluate(await read(dir));
   const refs = (ref: Ref): Ref[] => engine.typedBy(ref).map(({ name, id }) => ({ name, id })).sort(compareRefs);
   return { skills: refs(foundation().skill), extensions: refs(foundation().extension) };
 }
