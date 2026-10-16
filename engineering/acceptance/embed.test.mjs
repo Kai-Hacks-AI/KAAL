@@ -8,6 +8,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, rea
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { execute } from "kaal-hosting";
@@ -97,7 +98,11 @@ before(async () => {
   host = join(work, "host");
   mkdirSync(host);
   writeFileSync(join(host, "package.json"), JSON.stringify({ name: "fresh-host", version: "1.0.0", private: true }, null, 2));
-  await run("npm", ["install", "--offline", "--no-package-lock", tarball], host);
+  // Core's one runtime dependency is packed from the workspace's own install,
+  // so the fresh host installs offline without asking the registry.
+  const yaml = dirname(createRequire(join(PACKAGE, "package.json")).resolve("yaml/package.json"));
+  const dep = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], yaml));
+  await run("npm", ["install", "--offline", "--no-package-lock", tarball, join(work, dep[0].filename)], host);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 

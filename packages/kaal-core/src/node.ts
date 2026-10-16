@@ -40,8 +40,8 @@ export function claimsForm(bytes: Uint8Array): boolean {
   return Buffer.from(bytes.subarray(0, 4)).toString("utf8") === "---\n" || Buffer.from(bytes.subarray(0, 5)).toString("utf8") === "---\r\n";
 }
 
-/** A name: no leading or trailing whitespace, and on one line. */
-const NAME = /^\S(?:[^\n]*\S)?$/;
+/** A name: on one line (no line break of any kind), with no leading or trailing whitespace. */
+const NAME = /^\S(?:[^\n\r\v\f\u0085\u2028\u2029]*\S)?$/u;
 const ID = /^[0-9a-f]{64}$/;
 
 const NOT_IN_FORM = "not in Form: a Node begins with `---`, one YAML mapping with a `name` and optionally a `type` (`name`, `id`), and `---`, LF line endings";
