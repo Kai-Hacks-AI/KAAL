@@ -28,10 +28,17 @@ describe("payload", () => {
   });
 
   it("calibrates claims to evidence and scopes preventive claims", () => {
-    assert.match(node, /An assurance claim is no stronger than the control's type, its mechanism and the evidence observed/);
-    assert.match(node, /A documented control is a directive until a mechanism that realizes it has been observed/);
+    assert.match(node, /An assurance claim is no stronger than the evidence observed/);
+    assert.doesNotMatch(node, /directive until/);
     assert.match(node, /A preventive claim names the action it prevents, the actor or interface it applies to, and the enforcement boundary within which it holds/);
     assert.match(node, /a gate that requires that check to pass before a particular action takes effect prevents that action/);
+  });
+
+  it("keeps type a matter of design, distinct from assurance", () => {
+    assert.match(node, /Type is a matter of design, distinct from assurance/);
+    assert.match(node, /a preventive design remains preventive while its operation is unobserved/);
+    assert.match(node, /It never promises that the action is impossible/);
+    assert.match(skill, /A preventive design you have not seen operate is still preventive: its prevention is unverified/);
   });
 
   it("stays semantic: no registry, framework mapping, assessment or enforcement", () => {

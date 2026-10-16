@@ -13,11 +13,11 @@ What Controls means is stated by the `Controls` Node in a KAAL Engine: read it t
 For any control you describe, know each of these separately. Never infer one from another.
 
 1. **Objective**: what must hold or must not happen. Take it from the capability that owns the behaviour; do not invent or restate it.
-2. **Type**: one of four.
-   - **Directive**: states the required behaviour. A written rule, policy or instruction is directive, however firmly it is worded.
-   - **Preventive**: stops a particular governed action before it takes effect.
-   - **Detective**: identifies a violation. A scanner, a test, a report or a reviewer reading a proposal detects.
-   - **Corrective**: remedies a violation once it has happened.
+2. **Type**: what the control is designed to do; one of four.
+   - **Directive**: states the required behaviour, which may or may not be followed. A written rule, policy or instruction is directive, however firmly it is worded.
+   - **Preventive**: blocks a prohibited action within a specified actor or interface and enforcement boundary.
+   - **Detective**: reveals deviations. A scanner, a test, a report or a reviewer reading a proposal detects.
+   - **Corrective**: restores the desired state.
    These four are KAAL's minimal working vocabulary, not a complete account of every framework. Do not add types; describe what is left over in plain words.
 3. **Mechanism**: what realizes it: written instruction, human review, an automated check, or enforcement by the system that performs the action. The same check can serve different types: run on its own it detects, and a gate that requires it to pass prevents the action the gate governs. A check that can be skipped, or that runs only where someone installed it, stays detective.
 4. **Evidence**: what you have actually observed, such as the enforcing system's configuration, a result for this exact subject, or an approval. Note whether it shows the control is configured or that it operated.
@@ -25,9 +25,9 @@ For any control you describe, know each of these separately. Never infer one fro
 
 ## Calibrate every claim
 
-Claim no more than the type, the mechanism and the evidence you have observed support.
+Classify by design; claim by evidence. The type says what a control is designed to do and does not change with what you have observed. A preventive design you have not seen operate is still preventive: its prevention is unverified. Claim no more than the evidence you have observed supports.
 
-- **Documented is not enforced.** A control you only know from its text is a directive. Say "the rule requires", not "it is impossible to".
+- **Documented is not enforced.** A description of a control is not evidence that it operates. For a directive, say "the rule requires", not "it is impossible to". For a preventive design you only know from its description, say what it is designed to block and that you have not observed it operating.
 - **Configured is not operating.** Having seen a setting shows design. To say it operates, cite a result it produced for the subject in question.
 - **Operating once is not effective.** One result shows that the control ran, not that it achieves its objective.
 - **Nothing found is not nothing there.** When a detective control reports no findings, say that it reported none, within its limits; do not say the problem is absent.
@@ -41,7 +41,7 @@ A preventive claim names three things:
 - **the actor or interface** it applies to,
 - **the enforcement boundary** within which it holds.
 
-Write "writes through this interface are rejected for a credential without write permission", not "writes are impossible". Write "integration is refused unless the required checks pass on the exact proposed state", not "broken work cannot get in". Anything outside the named boundary, such as another interface, an exempted actor or an administrator, is not covered by the claim. If you do not know the boundary, the claim is not preventive yet: state what you have observed.
+Write "writes through this interface are rejected for a credential without write permission", not "writes are impossible". Write "integration is refused unless the required checks pass on the exact proposed state", not "broken work cannot get in". Anything outside the named boundary, such as another interface, an exempted actor or an administrator able to bypass it, is not covered by the claim. Never promise that an action is impossible. If you do not know the boundary, you cannot make the preventive claim: state what you have observed, and that the boundary is unknown.
 
 ## What this Skill does not do
 
