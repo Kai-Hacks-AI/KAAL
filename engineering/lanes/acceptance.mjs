@@ -11,6 +11,7 @@
 // the scenarios ran. Commands run through Hosting, which owns how the host
 // realizes them.
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,15 +30,16 @@ async function npm(args, cwd) {
   return r.stdout;
 }
 
-/** Each file under every workspace's dist/, with its size and modification time. */
+/** Per workspace, each file under its dist/ with its size and modification time. */
 function builds(workspaces) {
   const out = {};
-  for (const { path } of workspaces) {
+  for (const { name, path } of workspaces) {
+    const files = (out[name] = {});
     const dist = join(path, "dist");
     if (!existsSync(dist)) continue;
-    for (const p of readdirSync(dist, { recursive: true, encoding: "utf8" })) {
+    for (const p of readdirSync(dist, { recursive: true, encoding: "utf8" }).sort()) {
       const s = statSync(join(dist, p));
-      if (s.isFile()) out[join(dist, p)] = `${s.size}:${s.mtimeMs}`;
+      if (s.isFile()) files[p] = `${s.size}:${s.mtimeMs}`;
     }
   }
   return out;
@@ -55,7 +57,8 @@ for (const { name, path } of workspaces) {
   const [packed] = JSON.parse(await npm(["pack", "--json", "--pack-destination", packages], path));
   const tarball = join(packages, packed.filename);
   chmodSync(tarball, 0o444);
-  manifest[name] = { tarball, sha256: sha256(tarball) };
+  const integrity = `sha512-${createHash("sha512").update(readFileSync(tarball)).digest("base64")}`;
+  manifest[name] = { tarball, sha256: sha256(tarball), integrity };
 }
 writeFileSync(join(run, "manifest.json"), JSON.stringify(manifest, null, 2));
 const built = builds(workspaces);
@@ -75,6 +78,14 @@ for (const { scenario, host, consumed } of records) {
     if (hash !== manifest[name].sha256) problems.push(`${scenario} installed ${name} with bytes other than the packed tarball`);
   }
   if (!relative(REPO, host).startsWith("..")) problems.push(`${scenario} installed into ${host}, inside the repository`);
+  // npm's own record of what the host holds at the end of the run: every
+  // workspace package there must carry the packed tarball's integrity,
+  // however it got there. This covers recorded hosts only; an installation a
+  // scenario makes elsewhere, without install(), is not proven absent.
+  const holds = JSON.parse(readFileSync(join(host, "node_modules", ".package-lock.json"), "utf8")).packages;
+  for (const [at, { name = at.split("node_modules/").pop(), resolved, integrity }] of Object.entries(holds)) {
+    if (manifest[name] && integrity !== manifest[name].integrity) problems.push(`${scenario} holds ${name} in ${host} from ${resolved}, not the packed tarball`);
+  }
 }
 const hosts = records.map((r) => r.host);
 for (const host of new Set(hosts)) {
@@ -87,9 +98,8 @@ for (const [name, { tarball, sha256: hash }] of Object.entries(manifest)) {
   if (sha256(tarball) !== hash) problems.push(`the ${name} tarball changed during the run`);
 }
 const after = builds(workspaces);
-const changed = Object.keys({ ...built, ...after }).filter((p) => built[p] !== after[p]);
-for (const { name, path } of workspaces) {
-  if (changed.some((p) => p.startsWith(join(path, "dist")))) problems.push(`${name} was rebuilt during the run`);
+for (const { name } of workspaces) {
+  if (JSON.stringify(built[name]) !== JSON.stringify(after[name])) problems.push(`${name} was rebuilt during the run`);
 }
 
 for (const p of problems) console.error(`acceptance: ${p}`);
