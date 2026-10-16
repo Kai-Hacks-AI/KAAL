@@ -21,6 +21,7 @@
     "payload"
   ],
   "scripts": {
+    "prebuild": "npm run build -w kaal-hosting",
     "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
     "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js",
     "prepack": "npm run build"
