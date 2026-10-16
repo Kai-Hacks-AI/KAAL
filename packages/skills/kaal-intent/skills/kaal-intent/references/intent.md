@@ -7,11 +7,11 @@ name: <what is wanted, in a few words>
 
 # <the same name>
 
-<What is wanted, in the holder's terms, complete enough to be understood alone.>
+<What is wanted, in the terms of whoever wants it, complete enough to be understood alone.>
 
 ## Why
 
-<Why the holder wants it.>
+<Why it is wanted.>
 ```
 
 The frontmatter holds `name` and nothing else. Use UTF-8 and LF line endings. The file is then in the Kernel's Form without a type, so `kaal identify <file>` gives its id: the SHA-256 of its exact bytes. That id names this exact Intent; any change to the file gives a different one.

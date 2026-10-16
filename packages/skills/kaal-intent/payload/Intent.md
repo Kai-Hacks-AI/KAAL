@@ -9,10 +9,12 @@ type:
 
 Intent is the capability for keeping what someone wants to achieve, and why, so that it is neither lost nor confused with what may come of it. Its scope is that alone.
 
-An Intent is held by whoever wants it achieved, a person or an Agent. It states what is wanted and why, completely enough to be understood from its own text.
+An Intent states what is wanted and why, completely enough to be understood from its own text. Anyone may capture one, a person or an Agent, from what someone says or from what is observed.
 
 Where an intention comes from does not decide what it means. A conversation, a review, a defect, an observation or another capability may raise one; none of them becomes part of the Intent, and none is needed to understand it.
 
-An Intent is not a requirement, a Change, a decision to act or a conversation. Requirements state conditions that serve an Intent, a Change may realize one, and a conversation may raise or discuss one. An Intent exists without any of them, and it authorizes nothing.
+An Intent is not a requirement, a Change, a decision to act or a conversation. Requirements state conditions that serve an Intent, a Change may realize one, and a conversation may raise or discuss one. An Intent exists without any of them.
+
+Capturing an Intent authorizes nothing. An Intent meant to drive product work returns to the Product Owner, who validates and authorizes it before implementation proceeds.
 
 An Intent does not change. A refined or different intention is a new Intent that states its whole meaning again.

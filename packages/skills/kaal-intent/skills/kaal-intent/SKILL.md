@@ -11,15 +11,14 @@ Use this to capture an intention so that it outlives where it was raised. What a
 ## Steps
 
 1. **Recognize the intention.** Someone wants something achieved. Most messages, decisions and tasks are not intentions worth keeping; capture one only when what is wanted has to outlive the place it was said.
-2. **Identify its holder.** The holder is whoever wants it achieved. You may capture an intention for its holder, but it stays theirs.
-3. **State what is wanted and why**, in the holder's terms, complete enough to be understood with nothing else at hand. Keep the constraints the holder gave as part of what they want.
-4. **Write it** in the form in [references/intent.md](references/intent.md).
-5. **Confirm it with the holder.** Only the holder can say the Intent says what they want.
+2. **State what is wanted and why**, in the terms of whoever wants it, complete enough to be understood with nothing else at hand. Keep the constraints they gave as part of what is wanted.
+3. **Write it** in the form in [references/intent.md](references/intent.md). Capturing needs no prior approval.
+4. **Return it for authorization when it is to drive product work.** The Product Owner validates and authorizes it before implementation proceeds.
 
 ## Keep it an Intent
 
-- Add nothing the holder did not intend: no requirements, acceptance criteria, design, solution, priority, status or plan. Those may follow from an Intent; they are not part of it.
+- Add nothing that was not intended: no requirements, acceptance criteria, design, solution, priority, status or plan. Those may follow from an Intent; they are not part of it.
 - Do not make the meaning depend on where it came from. Context from a conversation or review is restated in the Intent, not referenced as something the reader must open.
 - Never edit an Intent once written. A refined or different intention is a new Intent that states its whole meaning.
-- An Intent authorizes nothing. Whether anything is done about it is decided by its holder, outside the Intent.
+- Capturing an Intent authorizes nothing. Do not act on it as if it were authorized.
 - This Skill does not decide where Intents are kept, and it does not relate them to requirements, Changes or each other.
