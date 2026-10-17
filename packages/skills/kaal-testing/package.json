@@ -6,6 +6,7 @@
   "type": "module",
   "exports": {
     "./coverage": "./lib/coverage.mjs",
+    "./inventory": "./lib/inventory.mjs",
     "./package.json": "./package.json"
   },
   "files": [
@@ -15,7 +16,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/testing.test.mjs test/coverage.test.mjs test/boundary.test.mjs"
+    "test": "node --test test/testing.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs"
   },
   "engines": {
     "node": ">=24"
