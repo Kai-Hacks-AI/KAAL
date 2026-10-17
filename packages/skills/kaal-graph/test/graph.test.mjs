@@ -136,6 +136,41 @@ describe("the graph", () => {
     assert.match(findings.join("\n"), /target names Not Intent, but Node .* is named Intent capture/);
   });
 
+  it("answers every query with records the caller cannot use to change the graph", () => {
+    const g = new Graph([serves, refines, intent, r1, r2]);
+    const queries = [() => g.out(r2.id), () => g.in(intent.id), () => g.typed(f.definition), () => g.edges(ref(serves))];
+    const before = queries.map((q) => JSON.stringify(q()));
+    for (const q of queries) {
+      const list = q();
+      assert.notEqual(list, q(), "each call returns a fresh array");
+      for (const record of list) {
+        assert.ok(Object.isFrozen(record));
+        for (const v of Object.values(record)) if (typeof v === "object") assert.ok(Object.isFrozen(v));
+        assert.throws(() => {
+          record.id = "x";
+        }, TypeError);
+      }
+      list.length = 0;
+      list.push({ forged: true });
+    }
+    assert.deepEqual(queries.map((q) => JSON.stringify(q())), before);
+    assert.deepEqual(g.check(), []);
+    assert.deepEqual([...g.traverse(r2.id)].length, 3);
+    for (const e of edgesOf(r2).edges) assert.ok(Object.isFrozen(e) && Object.isFrozen(e.type) && Object.isFrozen(e.target));
+  });
+
+  it("answers queries with Edges as declared, which check() verifies", () => {
+    const misnamed = { name: "Not Intent", id: intent.id };
+    const ghost = { name: "Ghost", id: "f".repeat(64) };
+    const r = make("R", { groups: [{ type: ref(serves), targets: [ghost, misnamed] }] });
+    const g = new Graph([serves, intent, r]);
+    assert.deepEqual(g.out(r.id).map((e) => e.target), [ghost, misnamed].sort((x, y) => (x.id < y.id ? -1 : 1)));
+    assert.deepEqual(g.in(intent.id), [{ type: ref(serves), source: ref(r) }], "a misnamed Edge is still declared into its target's id");
+    assert.deepEqual(g.edges(ref(serves)).map((e) => e.target.name).sort(), ["Ghost", "Not Intent"]);
+    assert.deepEqual([...g.traverse(r.id)].map((s) => s.id), [r.id, intent.id], "traversal follows the id, and skips a Node not present");
+    assert.equal(g.check().length, 2, "check() reports both references the queries returned as declared");
+  });
+
   it("keeps an old Edge on the old meaning when the defining Node is revised", () => {
     const servesV2 = make("Serves", { raw: "note: revised meaning\n" });
     assert.notEqual(servesV2.id, serves.id);

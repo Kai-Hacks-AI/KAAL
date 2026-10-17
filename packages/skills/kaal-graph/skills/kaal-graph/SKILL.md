@@ -27,4 +27,5 @@ Work locally: read the Node you need, look at its outgoing types, follow the tar
 
 - Never edit a Node to add or change an Edge in place of writing the new Node it becomes.
 - A finding is fixed in the Node that carries it. Do not weaken the check to pass.
+- `out` and `in` list Edges as declared. Before relying on one as resolved, run `check`: it is what reports a reference to no Node or to a misnamed one.
 - Graph gives no relationship a meaning. What an Edge means is stated by the Node its `type` references.
