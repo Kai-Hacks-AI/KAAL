@@ -4,6 +4,7 @@ KAAL Engineer Skill: the capability for producing and updating valid KAAL Skills
 
 ```
 payload/Engineer-Skill.md         the Skill Node, typed by Core's KAAL Skill
+payload/BASS.md                   BASS, Bare < Agent < Skill < Script, typed by Core's KAAL Definition
 skills/kaal-engineer-skill/       the Agent Skill: SKILL.md, references/, scripts/check-skill.mjs
 ```
 
