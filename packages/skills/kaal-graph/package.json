@@ -1,11 +1,14 @@
 {
   "name": "kaal-graph",
   "version": "0.0.1",
-  "description": "KAAL Graph: Edges embedded in Nodes, their structural and reference checks, derived indexes and traversal.",
+  "description": "KAAL Graph: a Node's Form and identity, the Edges embedded in Nodes, their checks, derived indexes, lookup and traversal.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./skills/kaal-graph/scripts/edges.mjs",
+    ".": {
+      "types": "./skills/kaal-graph/scripts/edges.d.ts",
+      "default": "./skills/kaal-graph/scripts/edges.mjs"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -16,15 +19,15 @@
     "skills"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "pretest": "npm run build -w kaal-hosting",
     "test": "node --test test/graph.test.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "kaal-core": "0.0.1",
-    "kaal-hosting": "0.0.1"
+    "kaal-hosting": "0.0.1",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "kaal-engineer-skill": "0.0.1"

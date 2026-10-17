@@ -2,7 +2,7 @@
 name: kaal-graph
 description: Check and navigate the relationships between KAAL Nodes, as Edges embedded in each Node's frontmatter. Use when adding a relationship to a Node, checking that a set of Nodes is consistent, or finding what a Node relates to or what relates to it.
 license: MIT
-compatibility: The script needs Node.js 24 or later and the kaal-graph package's dependencies (kaal-core, kaal-hosting).
+compatibility: The script needs Node.js 24 or later and the kaal-graph package's dependencies (kaal-hosting, yaml).
 ---
 
 # Navigating KAAL Nodes

@@ -1,11 +1,12 @@
 # kaal-graph
 
-KAAL Graph: the capability for relating Nodes to one another and navigating those relationships. It is not part of Core. Core reads a Node's frontmatter and identifies its exact bytes; Graph interprets the `edges` in that frontmatter.
+KAAL Graph: the capability for relating Nodes to one another and navigating those relationships. It is not part of Core. Graph implements the Node Form and identity that the Kernel in Core's payload states, and interprets the `edges` in a Node's frontmatter. Core decides which Nodes an Engine admits and manages Capabilities, Agents, Skills and Extensions. Graph depends on Hosting alone.
 
 ```
 payload/Graph.md                         the Skill Node, typed by Core's KAAL Skill
 skills/kaal-graph/                       the Agent Skill: SKILL.md, references/edges.md,
-                                         scripts/edges.mjs (the API) and scripts/graph.mjs
+                                         scripts/edges.mjs (the API, typed by edges.d.ts),
+                                         scripts/node.mjs (Form and identity) and scripts/graph.mjs
 ```
 
 ## Edges
@@ -14,7 +15,9 @@ An Edge is embedded in the Node it goes out from, in the `edges` key of its fron
 
 ## API
 
-`scripts/edges.mjs` is the package's API. It works on Node identities as Core's `identify(bytes)` returns them, and touches no host.
+`scripts/edges.mjs` is the package's API, and touches no host.
+
+- `identify(bytes)` reads a Node's identity from its exact bytes, `{ id, name, type?, frontmatter }`, or throws a `FormError` if they are not in Form. The id is `sha256(bytes)`, the frontmatter is the complete YAML 1.2 mapping, frozen, and only `name` and `type` are interpreted. `claimsForm(bytes)` says whether bytes begin like frontmatter and so claim to be a Node; `isName` and `isId` say whether a value is a valid name or id.
 
 - `edgesOf(node)` gives a Node's outgoing Edges, sorted, or the problems that make them unusable.
 - `new Graph(nodes)` builds derived indexes. `add(node)` adds a Node, `node(id)` looks it up by id, `resolve(ref)` by reference (the Node with that id, if it has that name), `named(name)` lists the Nodes with a name as `{ name, id }`, `out(id)` and `in(id)` list Edges in either direction, `typed(ref)` lists the Nodes whose Core type is exactly that reference, `edges(ref)` lists the Edges of exactly that type as `{ source, target, type }` (both matched by id and name, both sorted), `check()` reports malformed and unresolved Edges, and `traverse(id, { direction, type })` walks breadth-first.
@@ -33,7 +36,7 @@ kaal-graph named <name> <dir>...
 kaal-graph resolve <name> <id> <dir>...
 ```
 
-Files are read through kaal-hosting. `check` exits 0 when there is nothing to report and 1 when there is. `named` and `resolve` print each Node found as its id, name and type, over any Node in Form under the directories; Core's `kaal resolve` remains the lookup over an Engine's admitted Nodes. Misuse, and a lookup that finds nothing, exit 2.
+Files are read through kaal-hosting. `check` exits 0 when there is nothing to report and 1 when there is. `named` and `resolve` print each Node found as its id, name and type, over any Node in Form under the directories, admitted or not. Misuse, and a lookup that finds nothing, exit 2.
 
 ## Register the Node
 

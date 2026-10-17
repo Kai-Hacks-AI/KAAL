@@ -4,15 +4,15 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, catalog, foundation, identify, readContribution, register, sha256 } from "kaal-core";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "kaal-hosting";
-import { edgesOf, Graph } from "kaal-graph";
+import { claimsForm, edgesOf, FormError, Graph, identify, isId, isName, sha256 } from "kaal-graph";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILL = join(PACKAGE, "skills", "kaal-graph");
 const SCRIPT = join(SKILL, "scripts", "graph.mjs");
-const f = foundation();
+// Any Node serves as a type here: Graph gives no type a meaning.
+const f = { definition: { name: "Definition", id: identify(Buffer.from("---\nname: Definition\n---\n\n# Definition\n")).id } };
 
 const ref = (n) => ({ name: n.name, id: n.id });
 const yamlRef = (r, indent) => `${indent}name: ${r.name}\n${indent.replace(/- $/, "  ")}id: ${r.id}\n`;
@@ -30,6 +30,94 @@ function bytes(name, { type = f.definition, groups = [], raw = "" } = {}) {
   return Buffer.from(`---\nname: ${name}\ntype:\n  name: ${type.name}\n  id: ${type.id}\n${edges}${raw}---\n\n# ${name}\n`);
 }
 const make = (...args) => identify(bytes(...args));
+
+describe("the Form", () => {
+  const T = { name: "Node", id: "c".repeat(64) };
+  const node = (name, type, body = `# ${name}\n`) => `---\nname: ${name}\n${type ? `type:\n  name: ${type.name}\n  id: ${type.id}\n` : ""}---\n\n${body}`;
+
+  it("gives a Node the SHA-256 of its exact bytes as its id, changing with any byte", () => {
+    const bytes = Buffer.from(node("A", T));
+    assert.deepEqual(identify(bytes), { id: sha256(bytes), name: "A", type: T, frontmatter: { name: "A", type: T } });
+    assert.notEqual(identify(Buffer.from(node("A", T) + " ")).id, identify(bytes).id);
+  });
+
+  it("reads the Form strictly", () => {
+    for (const bad of [
+      "no frontmatter\n",
+      "---\r\nname: A\r\n---\r\n",
+      "---\nname: A\r\n---\n",
+      "---\nname: A\n",
+      "---\nname: A\n---",
+      "---\n---\n",
+      "---\n- A\n---\n",
+      "---\nname: \"A \"\n---\n",
+      "---\nname: \"A\\nB\"\n---\n",
+      "---\nname: \"A\\rB\"\n---\n",
+      "---\nname: \"A\\LB\"\n---\n",
+      "---\nname: \"A\\NB\"\n---\n",
+      "---\nname: A\ntype:\n  name: \"No\\rde\"\n  id: " + T.id + "\n---\n",
+      "---\nname: [A]\n---\n",
+      "---\ntitle: A\n---\n",
+      "---\nname: A\nname: B\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: XYZ\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + T.id.toUpperCase() + "\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + T.id + "\n  note: x\n---\n",
+      "---\nname: A\ntype: Node\n---\n",
+      "---\nname: A\nk: !foo v\n---\n",
+      "---\nname: A\nk: !!binary aGk=\n---\n",
+      "---\nname: A\nk: !!set {v}\n---\n",
+      "---\nname: A\nk: !!timestamp 2001-12-14\n---\n",
+      "---\nname: !!int 3\n---\n",
+      "---\nname: A\nk: &a v\nl: *a\n---\n",
+      "---\nname: A\nk: &a v\n---\n",
+      "---\nname: A\nbase: {n: 1}\nm:\n  <<: {n: 2}\n---\n",
+      "---\nname: A\n? [k]\n: v\n---\n",
+      "---\nname: A\n3: v\n---\n",
+      "---\nname: A\ntrue: v\n---\n",
+    ])
+      assert.throws(() => identify(Buffer.from(bad)), (e) => e instanceof FormError && e.name === "FormError" && /^not in Form/.test(e.message), bad);
+    assert.throws(() => identify(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff, 0xfe])), (e) => e instanceof FormError && /^not UTF-8/.test(e.message));
+  });
+
+  it("reads reserved fields as written, whatever YAML would type them", () => {
+    for (const id of ["1234e5678".padEnd(64, "0"), "1".repeat(64)]) {
+      const n = identify(Buffer.from(`---\nname: 2024\ntype:\n  name: true\n  id: ${id}\n---\n`));
+      assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
+      assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
+    }
+    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
+    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${T.name}, id: ${T.id}}\n---\n`)).type, T);
+    assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${T.name}, ${T.id}]\n---\n`)), /not in Form/);
+  });
+
+  it("returns capability-owned frontmatter uninterpreted, typed by YAML 1.2 and frozen", () => {
+    const n = identify(Buffer.from(`---\nname: A\npriority: 3\nweight: 0.5\nenabled: true\nyes: no\nlabel: !!str 42\nowner:\nlist: !!seq [1, "1"]\n---\n`));
+    assert.deepEqual(n.frontmatter, { name: "A", priority: 3, weight: 0.5, enabled: true, yes: "no", label: "42", owner: null, list: [1, "1"] });
+    assert.ok(Object.isFrozen(n.frontmatter));
+  });
+
+  it("reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes", () => {
+    const block = identify(Buffer.from(node("A", T)));
+    const flow = identify(Buffer.from(`---\ntype: {name: ${T.name}, id: ${T.id}}\nname: 'A'\n---\n\n# A\n`));
+    assert.deepEqual([flow.name, flow.type], [block.name, block.type]);
+    assert.notEqual(flow.id, block.id);
+  });
+
+  it("says which bytes claim to be a Node, and which names and ids are valid", () => {
+    assert.deepEqual(["---\nname: A", "---\r\nname: A", "----\n", "--- \n", "# A\n", ""].map((t) => claimsForm(Buffer.from(t))), [true, true, false, false, false, false]);
+    assert.deepEqual(["A", "A b", "2024"].map(isName), [true, true, true]);
+    assert.deepEqual([" A", "A ", "", "A\nB", "A\rB", "A\vB", "A\fB", "A\u0085B", "A\u2028B", "A\u2029B", 3, undefined].map(isName), Array(12).fill(false));
+    assert.deepEqual(["a".repeat(64), "A".repeat(64), "a".repeat(63), 7].map(isId), [true, false, false, false]);
+  });
+
+  it("refuses an Edge reference whose name no Node can have", () => {
+    for (const name of ["A\rB", "A\u2028B"]) {
+      const r = identify(Buffer.from(`---\nname: R\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${JSON.stringify(name)}\n        id: ${"a".repeat(64)}\n---\n`));
+      assert.deepEqual(edgesOf(r), { edges: [], problems: ["edges[0].targets[0] has no valid name"] });
+    }
+  });
+});
 
 describe("edges", () => {
   const serves = make("Serves");
@@ -228,15 +316,6 @@ describe("the graph", () => {
 });
 
 describe("the package", () => {
-  it("has a Skill Node admitted by Core alone", async () => {
-    const node = identify(readFileSync(join(PACKAGE, "payload", "Graph.md")));
-    assert.deepEqual([node.name, node.type], ["Graph", f.skill]);
-    const engine = join(mkdtempSync(join(tmpdir(), "kaal-graph-")), "engine");
-    await bootstrap(engine);
-    await register(engine, "skill", "kaal-graph", await readContribution(join(PACKAGE, "payload")));
-    assert.deepEqual((await catalog(engine)).skills, [{ name: "Graph", id: node.id }]);
-  });
-
   it("has an Agent Skill that conforms", async () => {
     assert.deepEqual(checkSkill("kaal-graph", await read(SKILL)), { standard: [], kaal: [], warnings: [] });
   });
