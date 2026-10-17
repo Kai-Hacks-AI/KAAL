@@ -10,7 +10,7 @@ import { foundation, payload, type Files } from "./payload.js";
  * complete or not at all, and an empty one is kept, never removed or replaced
  * (it may be the current directory). An existing Engine is recognized by
  * identity, not layout: if it already verifies (the Kernel present by its
- * exact bytes, the four foundational Nodes admitted by their exact ids, every
+ * exact bytes, the six foundational Nodes admitted by their exact ids, every
  * Node admitted), nothing is written, wherever its files are. Any other
  * existing directory, and anything at `dir` that is not a directory, is
  * refused and nothing is written. Returns the paths written.
@@ -46,7 +46,7 @@ export function check(files: Files): Verification {
   const f = foundation();
   if (!Object.values(files).some((bytes) => sha256(bytes) === f.kernel)) problems.push(`the Kernel (${f.kernel}) is not present`);
   const engine = evaluate(files);
-  for (const ref of [f.node, f.definition, f.skill, f.extension]) {
+  for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.extension]) {
     try {
       engine.resolve(ref);
     } catch {
@@ -58,7 +58,7 @@ export function check(files: Files): Verification {
 }
 
 /**
- * Verify an Engine: the Kernel is present by its exact bytes, the four
+ * Verify an Engine: the Kernel is present by its exact bytes, the six
  * foundational Nodes are admitted by their exact ids, and every file that
  * claims to be a Node is admitted. Locations are not consulted.
  */
