@@ -2,12 +2,11 @@
 // own tests: Testing's reusable execution and evidence measurement. What is
 // delivered, and whether it is built, is packaging: the caller decides it and
 // passes the delivered files in. Hosting realizes the commands and reads.
-import { rmSync } from "node:fs";
-import { createRequire } from "node:module";
 import { join } from "node:path";
-import { execute, readFile } from "kaal-hosting";
+import { fileURLToPath } from "node:url";
+import { execute, kind, readFile } from "kaal-hosting";
 
-const C8 = createRequire(import.meta.url).resolve("c8/bin/c8.js");
+const C8 = fileURLToPath(import.meta.resolve("c8/bin/c8.js"));
 
 // Reading one c8 json-summary into coverage evidence. A summary that is
 // missing, unreadable or not a c8 summary is a failure of measurement for that
@@ -42,14 +41,15 @@ export function evidence(workspace, root, text) {
 
 /**
  * Runs `npm test -w name` from root under c8, counting only `delivered` (paths
- * relative to root, forward slashes), into report directory `dir`. Resolves to
+ * relative to root, forward slashes), into report directory `dir`, which must
+ * hold no coverage summary yet: the caller provides a fresh one. Resolves to
  * { tests: "pass"|"fail", lines, branches, functions, unexecuted, output } or,
  * when coverage cannot be measured, { tests, failed, output } naming the
- * workspace and what is missing.
+ * workspace and what is missing. It removes nothing.
  */
 export async function cover(name, delivered, { root, dir }) {
   // A report left by an earlier run is never evidence for this one.
-  rmSync(dir, { recursive: true, force: true });
+  if ((await kind(join(dir, "coverage-summary.json"))) !== "missing") return { failed: `${name}: ${dir} already holds a coverage summary; measurement needs a fresh report directory`, output: "" };
   const args = ["--all", "--exclude-node-modules=false", "--reporter=json-summary", `--report-dir=${dir}`, `--temp-directory=${join(dir, "tmp")}`, "--clean"];
   for (const p of delivered) args.push(`--include=${p}`);
   const r = await execute(process.execPath, [C8, ...args, "npm", "test", "--if-present", "-w", name], { cwd: root });
