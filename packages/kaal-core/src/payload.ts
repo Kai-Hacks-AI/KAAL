@@ -12,8 +12,8 @@ const CARRIED: Files = await read(fileURLToPath(new URL("../payload/", import.me
 
 /**
  * The foundational Core payload as files, keyed by `/`-separated path
- * relative to the Engine directory: the Kernel, the four foundational Nodes
- * and the Engine's `AGENTS.md`, as carried. Nothing here authors or rewrites a byte.
+ * relative to the Engine directory: the Kernel, the foundational Nodes, the
+ * `CASE` Definition and the Engine's `AGENTS.md`, as carried. Nothing here authors or rewrites a byte.
  */
 export function payload(): Files {
   return Object.fromEntries(
@@ -28,6 +28,8 @@ export interface Foundation {
   kernel: string;
   node: Ref;
   definition: Ref;
+  capability: Ref;
+  agent: Ref;
   skill: Ref;
   extension: Ref;
 }
@@ -50,6 +52,8 @@ export function foundation(): Foundation {
     kernel: sha256(files["KAAL-KERNEL.md"]),
     node: ref("Node"),
     definition: ref("KAAL Definition"),
+    capability: ref("KAAL Capability"),
+    agent: ref("KAAL Agent"),
     skill: ref("KAAL Skill"),
     extension: ref("KAAL Extension"),
   };
