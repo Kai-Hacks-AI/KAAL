@@ -30,7 +30,7 @@ Findings are verified failures, potential defects, architectural concerns or unk
 
 `kaal-testing/coverage` runs a workspace's own tests under V8 coverage (c8) and measures which delivered files and lines they executed:
 
-- `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names, into a report directory the caller provides fresh: one already holding a summary is refused, and `cover` removes nothing. It resolves to line, branch and function coverage plus the delivered files never executed, or to a failure naming the workspace and the missing evidence.
+- `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names, into a report directory the caller provides fresh: one already holding a summary is refused, and `cover` removes nothing. It resolves to line, branch and function coverage, each delivered file's executed and executable lines, and the delivered files never executed, or to a failure naming the workspace and the missing evidence.
 - `evidence(workspace, root, text)` reads one c8 JSON summary into that evidence, or into that failure.
 
 Which workspaces exist, building them and which files they deliver are packaging: the caller decides them. Commands, reads and every other host operation go through Hosting. Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests. Coverage is evidence of executed code, not of correctness, and no percentage is required.
@@ -62,6 +62,21 @@ Which files exist is the caller's answer. The count says how much text is tracke
 - **Accounting:** the repository's non-blank text lines always equal the singly attributed lines plus the unassigned lines. Binary and excluded files are attributed but carry no lines.
 
 `attribute(inventory, claimFiles, owners)` returns each owner's kind, files and lines, the unassigned and conflicting files, and every finding. A package or a directory is never taken as ownership: a capability may be delivered in any number of packages, or none, and a file belongs to an owner only when that owner claims it. Ownership is structural. It says which responsibility a file belongs to, not who is accountable for it or who verified it.
+
+## Reconciled report
+
+`kaal-testing/report` puts the two dimensions side by side. Neither is derived from the other.
+
+- **Package dimension:** each workspace's delivered JavaScript, executed by that workspace's own tests, from `cover`.
+- **Ownership dimension:** each owner's files and non-blank text lines, from `attribute`, unchanged.
+- **Reconciliation:** a delivered file joins an owner only when attribution gives that exact tracked path to exactly one owner. Every delivered file gets exactly one status:
+  - **attributed** to its owner;
+  - **unclaimed**;
+  - **conflicting claims**;
+  - **no tracked identity**, for a delivered file Git does not track, such as built output. No source is guessed for it.
+- **Metrics:** an owner's delivered files report executable lines executed, as V8 coverage counts them, beside its non-blank text lines. No ratio of one to the other is formed. A file in a workspace whose coverage failed counts as not measured, and the failure is a verified failure.
+
+`report(attribution, coverage)` takes `attribute`'s result and one coverage result per workspace, and returns the ownership dimension, the package dimension, the reconciliation per owner and per status, and every finding.
 
 ## Boundaries
 

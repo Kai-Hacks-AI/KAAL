@@ -32,6 +32,9 @@ export function evidence(workspace, root, text) {
     branches: summary.total.branches.pct,
     functions: summary.total.functions.pct,
     measured: files.map(([file]) => relative(file)).sort(),
+    files: files
+      .map(([file, s]) => ({ path: relative(file), lines: { covered: s.lines.covered, total: s.lines.total } }))
+      .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)),
     unexecuted: files
       .filter(([, s]) => s.functions.total > 0 && s.functions.covered === 0 && s.lines.covered === 0)
       .map(([file]) => relative(file))
@@ -43,7 +46,7 @@ export function evidence(workspace, root, text) {
  * Runs `npm test -w name` from root under c8, counting only `delivered` (paths
  * relative to root, forward slashes), into report directory `dir`, which must
  * hold no coverage summary yet: the caller provides a fresh one. Resolves to
- * { tests: "pass"|"fail", lines, branches, functions, unexecuted, output } or,
+ * { tests: "pass"|"fail", lines, branches, functions, unexecuted, files, output } or,
  * when coverage cannot be measured, { tests, failed, output } naming the
  * workspace and what is missing. It removes nothing.
  */
@@ -65,5 +68,6 @@ export async function cover(name, delivered, { root, dir }) {
   if (found.failed) return { tests, failed: found.failed, output };
   const missing = delivered.filter((p) => !found.measured.includes(p));
   if (missing.length) return { tests, failed: `${name}: no coverage was reported for delivered ${missing.join(", ")}`, output };
-  return { tests, lines: found.lines, branches: found.branches, functions: found.functions, unexecuted: found.unexecuted, output };
+  const files = found.files.filter((f) => delivered.includes(f.path));
+  return { tests, lines: found.lines, branches: found.branches, functions: found.functions, unexecuted: found.unexecuted, files, output };
 }

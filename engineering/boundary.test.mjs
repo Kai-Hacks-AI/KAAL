@@ -12,13 +12,13 @@ import { readFile } from "kaal-hosting";
 import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
 
 /** The drivers this declaration covers, by path under engineering/. */
-const DRIVERS = ["coverage/measure.mjs", "inventory/attribute.mjs", "inventory/measure.mjs"];
+const DRIVERS = ["coverage/measure.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "report/measure.mjs"];
 
 /** The host modules those drivers may import directly: path handling only. */
 const BOUNDARY = { builtins: ["node:path"] };
 
 /** The modules they may reach outside themselves: Hosting for the host, Testing for measurement, Core for admission. */
-const OUTSIDE = ["kaal-core", "kaal-hosting", "kaal-testing/attribution", "kaal-testing/coverage", "kaal-testing/inventory"];
+const OUTSIDE = ["kaal-core", "kaal-hosting", "kaal-testing/attribution", "kaal-testing/coverage", "kaal-testing/inventory", "kaal-testing/report"];
 
 /**
  * Findings that need validation and have been judged, each with its judgment.
