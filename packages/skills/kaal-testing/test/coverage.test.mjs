@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { evidence } from "./summary.mjs";
+import { evidence } from "kaal-testing/coverage";
 
 const m = (covered, total) => ({ total, covered, skipped: 0, pct: total ? Math.round((covered / total) * 10000) / 100 : 100 });
 const file = (l, b, f) => ({ lines: m(...l), statements: m(...l), branches: m(...b), functions: m(...f) });

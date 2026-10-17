@@ -22,11 +22,12 @@
 // workspace and what is missing.
 //
 // This script answers the packaging questions (which workspaces, built, which
-// files each delivers); execute.mjs runs the tests and measures the evidence.
+// files each delivers); Testing (kaal-testing/coverage) runs the tests and
+// measures the evidence.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execute } from "kaal-hosting";
-import { cover } from "./execute.mjs";
+import { cover } from "kaal-testing/coverage";
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, "engineering", "out", "coverage");
