@@ -15,16 +15,16 @@
 // acceptance or by other workspaces' tests. Coverage is evidence of executed
 // code, not of correctness, and no percentage is required here.
 //
-// Usage: measure.mjs [workspace ...]   (default: every workspace)
-// Writes engineering/out/coverage/<workspace>/coverage-summary.json and
-// engineering/out/coverage/summary.json, prints a table, and exits non-zero
-// when a workspace's tests fail or its coverage cannot be measured, naming the
-// workspace and what is missing.
+// Usage: measure.mjs [--json] [workspace ...]   (default: every workspace)
+// Prints a table, or with --json the results as JSON, and exits non-zero when
+// a workspace's tests fail or its coverage cannot be measured, naming the
+// workspace and what is missing. Each run's c8 reports go to a fresh directory,
+// engineering/out/coverage/<run>/<workspace>/, which c8 creates; nothing here
+// writes, replaces or removes a file itself.
 //
 // This script answers the packaging questions (which workspaces, built, which
 // files each delivers); Testing (kaal-testing/coverage) runs the tests and
 // measures the evidence.
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execute } from "kaal-hosting";
 import { cover } from "kaal-testing/coverage";
@@ -32,6 +32,7 @@ import { cover } from "kaal-testing/coverage";
 const ROOT = process.cwd();
 const OUT = join(ROOT, "engineering", "out", "coverage");
 const JS = /\.(m?js|cjs)$/;
+const RUN = join(OUT, `${new Date().toISOString().replace(/[:.]/g, "-")}-${process.pid}`);
 
 function run(command, args) {
   return execute(command, args, { cwd: ROOT });
@@ -51,7 +52,9 @@ if (listed.failed) {
   process.exit(1);
 }
 const workspaces = JSON.parse(listed.stdout).map(({ name, location }) => ({ name, location }));
-const wanted = process.argv.slice(2);
+const args = process.argv.slice(2);
+const json = args.includes("--json");
+const wanted = args.filter((a) => a !== "--json");
 const unknown = wanted.filter((name) => !workspaces.some((w) => w.name === name));
 if (unknown.length) {
   console.error(`not a workspace: ${unknown.join(", ")}`);
@@ -68,10 +71,8 @@ async function measure(name, location) {
     const r = await run("npm", ["test", "--if-present", "-w", name]);
     return { tests: r.status === 0 ? "pass" : "fail", delivered, note: "delivers no JavaScript; nothing to measure", output: r.status === 0 ? "" : r.stdout + r.stderr };
   }
-  const dir = join(OUT, name);
-  // Testing measures into a fresh report directory; clearing the last run's is this script's job.
-  rmSync(dir, { recursive: true, force: true });
-  return { delivered, ...(await cover(name, delivered, { root: ROOT, dir })) };
+  // Testing measures into a fresh report directory: this run's own.
+  return { delivered, ...(await cover(name, delivered, { root: ROOT, dir: join(RUN, name) })) };
 }
 
 const results = [];
@@ -81,8 +82,11 @@ for (const { name, location } of workspaces.filter((w) => wanted.length === 0 ||
   results.push({ workspace: name, ...result });
 }
 
-mkdirSync(OUT, { recursive: true });
-writeFileSync(join(OUT, "summary.json"), JSON.stringify(results, null, 2) + "\n");
+const failed = results.some((r) => r.failed || r.tests === "fail");
+if (json) {
+  console.log(JSON.stringify(results, null, 2));
+  process.exit(failed ? 1 : 0);
+}
 
 const show = (v) => (v === undefined ? "-" : `${v}%`);
 console.log("workspace | tests | delivered JS files | lines | branches | functions");
@@ -94,4 +98,4 @@ for (const r of results) for (const f of r.unexecuted ?? []) console.log(`${r.wo
 for (const r of results) if (r.failed) console.error(`failed: ${r.failed}`);
 for (const r of results) if (r.tests === "fail") console.error(`failed: ${r.workspace}: its tests failed`);
 console.log("scope: delivered JavaScript of each npm workspace, executed by that workspace's own tests, on this host; not per-capability coverage");
-if (results.some((r) => r.failed || r.tests === "fail")) process.exitCode = 1;
+if (failed) process.exitCode = 1;
