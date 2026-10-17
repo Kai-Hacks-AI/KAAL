@@ -26,7 +26,7 @@ import {
  * a visible, reviewed change to this table.
  */
 const PINNED = {
-  kernel: "6122198d786686964863a8c81237fb30d0a2e29c1efe7473c366c7c20791b20b",
+  kernel: "351ce54bd482ddf0a0602309ffe19840b7b9a2be9722cdfefcd958abc6b52d08",
   node: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
   definition: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
   skill: "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
@@ -111,14 +111,104 @@ describe("identity", () => {
     for (const bad of [
       "no frontmatter\n",
       "---\r\nname: A\r\n---\r\n",
-      "---\nname:  A\n---\n",
-      "---\nname: A \n---\n",
-      "---\ntype:\n  name: Node\n  id: " + f.node.id + "\nname: A\n---\n",
+      "---\nname: A\r\n---\n",
+      "---\nname: A\n",
+      "---\nname: A\n---",
+      "---\n---\n",
+      "---\n- A\n---\n",
+      "---\nname: \"A \"\n---\n",
+      "---\nname: \"A\\nB\"\n---\n",
+      "---\nname: \"A\\rB\"\n---\n",
+      "---\nname: \"A\\LB\"\n---\n",
+      "---\nname: \"A\\NB\"\n---\n",
+      "---\nname: A\ntype:\n  name: \"No\\rde\"\n  id: " + f.node.id + "\n---\n",
+      "---\nname: [A]\n---\n",
+      "---\ntitle: A\n---\n",
+      "---\nname: A\nname: B\n---\n",
       "---\nname: A\ntype:\n  name: Node\n  id: XYZ\n---\n",
-      "---\nname: A\nextra: 1\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id.toUpperCase() + "\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id + "\n  note: x\n---\n",
+      "---\nname: A\ntype: Node\n---\n",
+      "---\nname: A\nk: !foo v\n---\n",
+      "---\nname: A\nk: !!binary aGk=\n---\n",
+      "---\nname: A\nk: !!set {v}\n---\n",
+      "---\nname: A\nk: !!timestamp 2001-12-14\n---\n",
+      "---\nname: !!int 3\n---\n",
+      "---\nname: A\nk: &a v\nl: *a\n---\n",
+      "---\nname: A\nk: &a v\n---\n",
+      "---\nname: A\nbase: {n: 1}\nm:\n  <<: {n: 2}\n---\n",
+      "---\nname: A\n? [k]\n: v\n---\n",
+      "---\nname: A\n3: v\n---\n",
+      "---\nname: A\ntrue: v\n---\n",
     ])
-      assert.throws(() => identify(Buffer.from(bad)), bad);
+      assert.throws(() => identify(Buffer.from(bad)), /not in Form/, bad);
     assert.throws(() => identify(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff, 0xfe])));
+  });
+
+  it("reads reserved fields as written, whatever YAML would type them", () => {
+    const numeric = "1234e5678".padEnd(64, "0");
+    const digits = "1".repeat(64);
+    for (const id of [numeric, digits]) {
+      const n = identify(Buffer.from(`---\nname: 2024\ntype:\n  name: true\n  id: ${id}\n---\n`));
+      assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
+      assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
+    }
+    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
+    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${f.node.name}, id: ${f.node.id}}\n---\n`)).type, f.node);
+    assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${f.node.name}, ${f.node.id}]\n---\n`)), /not in Form/);
+  });
+
+  it("accepts capability-owned frontmatter without interpreting it", async () => {
+    const target = { name: "Intent capture", id: "a".repeat(64) };
+    const bytes = Buffer.from(
+      `---\nname: Requirement A\ntype:\n  name: ${f.definition.name}\n  id: ${f.definition.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${target.name}\n        id: ${target.id}\npriority: 3\nweight: 0.5\nenabled: true\nyes: no\nlabel: !!str 42\nowner:\nlist: !!seq [1, "1"]\n---\n\n# Requirement A\n`,
+    );
+    const n = identify(bytes);
+    assert.equal(n.id, sha256(bytes));
+    assert.equal(n.name, "Requirement A");
+    assert.deepEqual(n.type, f.definition);
+    assert.deepEqual(n.frontmatter, {
+      name: "Requirement A",
+      type: { name: f.definition.name, id: f.definition.id },
+      edges: [{ type: { name: "Serves", id: "b".repeat(64) }, targets: [target] }],
+      priority: 3,
+      weight: 0.5,
+      enabled: true,
+      yes: "no",
+      label: "42",
+      owner: null,
+      list: [1, "1"],
+    });
+    assert.ok(Object.isFrozen(n.frontmatter));
+    const dir = await engine();
+    writeFileSync(join(dir, "requirement.md"), bytes);
+    assert.equal((await loadEngine(dir)).resolve({ name: "Requirement A", id: n.id }).name, "Requirement A");
+    assert.equal((await verify(dir)).ok, true);
+  });
+
+  it("reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes", () => {
+    const block = node("A", f.definition);
+    const flow = `---\ntype: {name: ${f.definition.name}, id: ${f.definition.id}}\nname: 'A'\n---\n\n# A\n`;
+    assert.deepEqual([identify(Buffer.from(flow)).name, identify(Buffer.from(flow)).type], [identify(Buffer.from(block)).name, identify(Buffer.from(block)).type]);
+    assert.notEqual(identify(Buffer.from(flow)).id, identify(Buffer.from(block)).id);
+  });
+
+  it("keeps the id, name and type of every Node in this repository", () => {
+    const root = join(dirname(new URL(import.meta.url).pathname), "..", "..", "..");
+    const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
+      readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
+        .filter((p) => p.endsWith(".md") && !p.includes("node_modules") && !p.includes("/skills/") && statSync(join(root, top, p)).isFile())
+        .map((p) => readFileSync(join(root, top, p)))
+        .filter((b) => b.subarray(0, 4).toString() === "---\n" && /^---\nname: /.test(b.toString())),
+    );
+    assert.ok(nodes.length >= 6);
+    const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+    for (const bytes of nodes) {
+      const [, name, typeName, typeId] = legacy.exec(bytes.toString())!;
+      const n = identify(bytes);
+      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, typeName ? { name: typeName, id: typeId } : undefined]);
+    }
   });
 });
 
@@ -223,7 +313,7 @@ describe("bootstrap and verify", () => {
   it("reports what is wrong with an Engine", async () => {
     const dir = await engine();
     writeFileSync(join(dir, "KAAL-KERNEL.md"), "edited");
-    writeFileSync(join(dir, "stray.md"), node("Stray", { name: "Nothing", id: "2".repeat(64) }));
+    writeFileSync(join(dir, "stray.md"), node("Stray", { name: "Nothing", id: "b".repeat(64) }));
     const v = await verify(dir);
     assert.equal(v.ok, false);
     assert.equal(v.problems.length, 2);
@@ -264,7 +354,7 @@ describe("bootstrap and verify", () => {
     const left = await engine();
     mkdirSync(join(left, ".staging-left"));
     writeFileSync(join(left, ".staging-left", "Broken.md"), "---\nname: Broken\n");
-    assert.deepEqual((await verify(left)).problems, [".staging-left/Broken.md: not in Form: a Node begins with frontmatter of `name` and optionally `type` (`name`, `id`), LF line endings"]);
+    assert.deepEqual((await verify(left)).problems, [".staging-left/Broken.md: not in Form: a Node begins with `---`, one YAML mapping with a `name` and optionally a `type` (`name`, `id`), and `---`, LF line endings"]);
     const dir = await engine();
     await registerSkill(dir, "greeting", { "Greeting.md": greeting });
     assert.deepEqual(readdirSync(dirname(dir)), [".kaal"], "nothing is left beside the Engine");

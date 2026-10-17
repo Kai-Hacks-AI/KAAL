@@ -119,9 +119,9 @@ describe("package", () => {
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
   });
 
-  it("depends at runtime on kaal-hosting alone, which does not depend on kaal-core", () => {
+  it("depends at runtime on kaal-hosting, which does not depend on kaal-core, and its pinned YAML parser", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "kaal-hosting": "0.0.1" });
+    assert.deepEqual(core.dependencies, { "kaal-hosting": "0.0.1", yaml: "2.9.1" });
     const hosting = JSON.parse(readFileSync(join(host, "node_modules", "kaal-hosting", "package.json"), "utf8"));
     for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(hosting[field]?.["kaal-core"], undefined, `kaal-hosting ${field}`);
     assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-hosting, not a copy inside kaal-core");
