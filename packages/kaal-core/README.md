@@ -2,7 +2,7 @@
 
 KAAL Core: the smallest working KAAL. It carries the five foundational documents, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
-Core depends on no Git host and no agent provider. It has no runtime dependencies and needs Node.js 20.1 or later.
+Core depends on no Git host and no agent provider. Its one runtime dependency is `kaal-hosting`, which owns every host mechanic Core needs (reading files, staging, portable and faithful publication) and does not depend on Core. It needs Node.js 24 or later.
 
 ## Install and bootstrap
 
@@ -68,19 +68,21 @@ Every command takes `--engine <dir>`: the Engine directory itself, absolute or r
 
 ## Registration
 
-A contribution is a directory of Nodes registered under one capability name (lowercase letters, digits and single hyphens). It is accepted only as a whole. Every file must be a Node in Form at a relative `.md` path, every Node's type must resolve against the Engine and the contribution together, at least one Node must be typed by Core's `KAAL Skill` (or `KAAL Extension`), and a Skill contribution carries no Extension, nor the reverse. All checks run before anything is written, and the contribution is staged and renamed into place in one step, so a refused contribution leaves the Engine byte-for-byte unchanged. Registering the identical contribution again is a no-op; a capability already registered with other content is refused.
+A contribution is a directory of Nodes registered under one capability name (lowercase letters, digits and single hyphens). It is accepted only as a whole. Every file must be a Node in Form at a relative `.md` path, every Node's type must resolve against the Engine and the contribution together, at least one Node must be typed by Core's `KAAL Skill` (or `KAAL Extension`), and a Skill contribution carries no Extension, nor the reverse. All checks run before anything is written. Hosting then publishes the contribution all or nothing, refusing paths that would not be held faithfully on Linux, Windows and macOS (names that differ only by case or Unicode normalization, names Windows cannot hold), so a refused contribution leaves the Engine byte-for-byte unchanged. Registering the identical contribution again is a no-op; a capability already registered with other content is refused.
 
 ## API
+
+Functions that read or write an Engine go through Hosting and return promises; `identify`, `sha256`, `evaluate`, `payload` and `foundation` are pure and synchronous.
 
 ```js
 import { bootstrap, verify, loadEngine, registerSkill, registerExtension, capabilities, identify, payload, foundation, exportPayload } from "kaal-core";
 
-bootstrap(".kaal");
-verify(".kaal").ok;                                  // true
-const engine = loadEngine(".kaal");
+await bootstrap(".kaal");
+(await verify(".kaal")).ok;                          // true
+const engine = await loadEngine(".kaal");
 engine.resolve(foundation().skill);                  // the KAAL Skill Node
-registerSkill(".kaal", "greeting", { "Greeting.md": bytes });
-capabilities(".kaal");                               // { skills: [{ name, id }], extensions: [...] }
+await registerSkill(".kaal", "greeting", { "Greeting.md": bytes });
+await capabilities(".kaal");                         // { skills: [{ name, id }], extensions: [...] }
 ```
 
 ## License
