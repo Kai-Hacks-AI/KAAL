@@ -20,21 +20,32 @@
 /** The name of an owner's ownership file, wherever it is in its tree. */
 export const CLAIM_FILE = "ownership.kaal.json";
 
+/** The four CASE kinds an owner's Node may be typed by, as Core names them. */
+export const KINDS = ["capability", "agent", "skill", "extension"];
+
 const ID = /^[0-9a-f]{64}$/;
 const utf8 = new TextDecoder("utf-8", { fatal: true });
 const byPath = (a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 const byRef = (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 const sum = (entries) => entries.reduce((n, e) => n + e.lines, 0);
+const label = ({ kind, name, id }) => `${kind} ${name} (${id})`;
 
 /** Whether `path` is an ownership file: its last segment is CLAIM_FILE. */
 export function isClaimFile(path) {
   return path === CLAIM_FILE || path.endsWith(`/${CLAIM_FILE}`);
 }
 
+/** The scope an ownership file at `path` declares: the directory holding it, as a pattern ("" for the root). */
+export function scopeOf(path) {
+  return path.includes("/") ? path.slice(0, path.lastIndexOf("/") + 1) : "";
+}
+
 /**
  * Why `pattern` is not a path pattern, or undefined when it is. A pattern is a
  * repository-relative file path, or a directory path ending in `/` that covers
  * everything beneath it. Its characters are literal: there are no wildcards.
+ * These are the declaration's own strings, compared as written: which files
+ * exist, and how a host names them, is the caller's answer through Hosting.
  */
 function invalid(pattern) {
   if (typeof pattern !== "string" || pattern === "") return "is not a non-empty string";
@@ -47,7 +58,9 @@ const matches = (pattern, path) => (pattern.endsWith("/") ? path.startsWith(patt
 
 /**
  * Read the ownership file at `path`. Resolves to { claim } with { path,
- * owner: { name, id }, paths }, or to { finding } when it does not read.
+ * owner: { kind, name, id }, paths }, or to { finding } when it does not read.
+ * Every pattern must lie within the file's scope, the directory holding it: an
+ * owner claims only within its own tree.
  */
 export function readClaim(path, bytes) {
   const fail = (why) => ({ finding: { kind: "verified failure", subject: path, evidence: `ownership file ${why}` } });
@@ -57,28 +70,28 @@ export function readClaim(path, bytes) {
   } catch {
     return fail("is not UTF-8 JSON");
   }
-  const owner = data?.owner;
-  if (typeof owner !== "object" || owner === null || Object.keys(owner).sort().join() !== "id,name") return fail("does not name its owner by exactly { name, id }");
+  if (typeof data !== "object" || data === null || Object.keys(data).sort().join() !== "owner,paths") return fail("does not hold exactly owner and paths");
+  const owner = data.owner;
+  if (typeof owner !== "object" || owner === null || Object.keys(owner).sort().join() !== "id,kind,name") return fail("does not name its owner by exactly { kind, name, id }");
+  if (!KINDS.includes(owner.kind)) return fail(`names its owner's kind ${JSON.stringify(owner.kind)}, which is not one of ${KINDS.join(", ")}`);
   if (typeof owner.name !== "string" || owner.name === "" || typeof owner.id !== "string" || !ID.test(owner.id))
     return fail("names its owner with a name that is not a non-empty string or an id that is not a lowercase hex SHA-256");
   if (!Array.isArray(data.paths) || data.paths.length === 0) return fail("lists no path patterns");
+  const scope = scopeOf(path);
   for (const pattern of data.paths) {
     const why = invalid(pattern);
     if (why) return fail(`lists ${JSON.stringify(pattern)}, which ${why}`);
+    if (!pattern.startsWith(scope)) return fail(`lists ${JSON.stringify(pattern)}, which is outside its scope ${scope}`);
   }
-  if (Object.keys(data).sort().join() !== "owner,paths") return fail("holds keys other than owner and paths");
-  return { claim: { path, owner: { name: owner.name, id: owner.id }, paths: [...data.paths] } };
+  return { claim: { path, owner: { kind: owner.kind, name: owner.name, id: owner.id }, paths: [...data.paths] } };
 }
-
-/** The four CASE kinds an owner's Node may be typed by, as Core names them. */
-export const KINDS = ["capability", "agent", "skill", "extension"];
 
 /**
  * Attribute `inventory` (from kaal-testing/inventory) to the owners whose
  * ownership files are among `claimFiles`, an array of { path, bytes }, given
  * the admitted CASE Nodes `owners`, an array of { kind, name, id } with kind
- * one of KINDS. Lines are the inventory's: only text files carry them, so
- * binary and excluded files are attributed with none.
+ * one of KINDS, as Core types them. Lines are the inventory's: only text files
+ * carry them, so binary and excluded files are attributed with none.
  */
 export function attribute(inventory, claimFiles, owners) {
   const findings = [];
@@ -91,11 +104,13 @@ export function attribute(inventory, claimFiles, owners) {
       findings.push(read.finding);
       continue;
     }
-    const { name, id } = read.claim.owner;
-    const node = admitted.get(id);
-    if (!node) findings.push({ kind: "verified failure", subject: path, evidence: `claims for ${name} (${id}), which is no admitted Capability, Agent, Skill or Extension Node: its paths stay unassigned` });
-    else if (node.name !== name) findings.push({ kind: "verified failure", subject: path, evidence: `claims for ${name}, but ${node.kind} Node ${id} is named ${node.name}: its paths stay unassigned` });
-    else claims.push({ ...read.claim, owner: { kind: node.kind, name, id } });
+    const declared = read.claim.owner;
+    const node = admitted.get(declared.id);
+    const unresolved = (why) => findings.push({ kind: "verified failure", subject: path, evidence: `claims for ${label(declared)}, ${why}: its paths stay unassigned` });
+    if (!node) unresolved("which is no admitted Capability, Agent, Skill or Extension Node");
+    else if (node.name !== declared.name) unresolved(`but that Node is named ${node.name}`);
+    else if (node.kind !== declared.kind) unresolved(`but Core types that Node as a ${node.kind}`);
+    else claims.push(read.claim);
   }
 
   const entries = inventory.entries.map((e) => ({ path: e.path, lines: e.kind === "text" ? e.lines : 0 }));
@@ -120,7 +135,7 @@ export function attribute(inventory, claimFiles, owners) {
     } else {
       unassigned.push({ ...entry, reason: "conflicting claims" });
       conflicts.push({ ...entry, claimants });
-      findings.push({ kind: "architectural concern", subject: entry.path, evidence: `claimed by ${claimants.map((c) => `${c.kind} ${c.name} (${c.id})`).join(" and ")}: not attributed until the claims are fixed` });
+      findings.push({ kind: "architectural concern", subject: entry.path, evidence: `claimed by ${claimants.map(label).join(" and ")}: not attributed until the claims are fixed` });
     }
   }
 
