@@ -1,20 +1,21 @@
 // Acceptance: Engineering -> Package -> Embed.
 //
 // Packs kaal-core as npm would publish it, inspects the actual tarball,
-// installs it into a fresh, otherwise empty host outside this repository,
-// and operates the Engine there through the installed package alone.
+// installs it with its runtime dependency kaal-hosting, packed the same way,
+// into a fresh, otherwise empty host outside this repository, and operates
+// the Engine there through the installed packages alone.
 import assert from "node:assert/strict";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { execute } from "kaal-hosting";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const PACKAGE = join(REPO, "packages", "kaal-core");
+const HOSTING = join(REPO, "packages", "extensions", "kaal-hosting");
 const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
 
 const EXPECTED_TARBALL = [
@@ -95,14 +96,12 @@ let kaal;
 before(async () => {
   const out = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], PACKAGE));
   tarball = join(work, out[0].filename);
+  const hosting = join(work, JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], HOSTING))[0].filename);
   host = join(work, "host");
   mkdirSync(host);
   writeFileSync(join(host, "package.json"), JSON.stringify({ name: "fresh-host", version: "1.0.0", private: true }, null, 2));
-  // Core's one runtime dependency is packed from the workspace's own install,
-  // so the fresh host installs offline without asking the registry.
-  const yaml = dirname(createRequire(join(PACKAGE, "package.json")).resolve("yaml/package.json"));
-  const dep = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], yaml));
-  await run("npm", ["install", "--offline", "--no-package-lock", tarball, join(work, dep[0].filename)], host);
+  // kaal-hosting has registry dependencies, so the cache is preferred but not required.
+  await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball, hosting], host);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -118,7 +117,14 @@ describe("package", () => {
     assert.equal(pkg.name, "kaal-core");
     assert.equal(pkg.license, "MIT");
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
-    assert.deepEqual(pkg.dependencies, { yaml: "2.9.1" }, "kaal-core's only runtime dependency is its pinned YAML parser");
+  });
+
+  it("depends at runtime on kaal-hosting, which does not depend on kaal-core, and its pinned YAML parser", () => {
+    const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
+    assert.deepEqual(core.dependencies, { "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    const hosting = JSON.parse(readFileSync(join(host, "node_modules", "kaal-hosting", "package.json"), "utf8"));
+    for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(hosting[field]?.["kaal-core"], undefined, `kaal-hosting ${field}`);
+    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-hosting, not a copy inside kaal-core");
   });
 });
 
@@ -187,6 +193,31 @@ describe("embedding into a fresh host", () => {
     assert.deepEqual(tree(join(host, ".kaal")), before);
   });
 
+  // A host can only hold the contributions its file system can express; each
+  // case below is checked wherever the host holds both names as written, and
+  // reported as not expressible elsewhere. Hosting refuses the same paths in
+  // memory on every host, in its own conformance suite.
+  const collisions = [
+    ["case", ["Greeting.md", "greeting.md"], /COLLISION|same name where case/],
+    ["Unicode normalization", ["Caf\u00e9.md", "Cafe\u0301.md"], /same name where case or Unicode/],
+    ["a name Windows cannot hold", ["CON.md"], /not a portable name/],
+  ];
+  for (const [label, names, refused] of collisions) {
+    it(`refuses a contribution not portable to every host: ${label}`, async (t) => {
+      const dir = mkdtempSync(join(work, "contrib-unportable-"));
+      try {
+        names.forEach((name, i) => writeFileSync(join(dir, name), node(`Unportable ${i}`, skillType, `${label}\n`)));
+      } catch {
+        return t.skip(`this host cannot write ${names.join(" and ")}`);
+      }
+      if (readdirSync(dir).sort().join("|") !== [...names].sort().join("|")) return t.skip(`this host cannot hold ${names.join(" and ")} as written`);
+      const before = tree(join(host, ".kaal"));
+      assert.match(await fails(kaal, ["register", "skill", "kaal-unportable", dir], host), refused);
+      assert.deepEqual(tree(join(host, ".kaal")), before);
+      assert.ok(!existsSync(join(host, ".kaal", "skills", "kaal-unportable")));
+    });
+  }
+
   it("keeps identity, resolution and discovery when the Engine is rearranged, and init leaves it alone", async () => {
     const engine = join(host, ".kaal");
     const id = async (file) => (await run(kaal, ["identify", file], host)).split("\t")[0];
@@ -229,7 +260,7 @@ describe("embedding into a fresh host", () => {
     const there = join(moved, "node_modules", ".bin", "kaal");
     assert.match(await run(there, ["verify"], moved), /ok: 6 Nodes admitted/);
     assert.equal(await run(there, ["list"], moved), await run(kaal, ["list"], host));
-    const api = await run(process.execPath, ["--input-type=module", "-e", "import { capabilities } from 'kaal-core'; console.log(JSON.stringify(capabilities('.kaal')));"], moved);
+    const api = await run(process.execPath, ["--input-type=module", "-e", "import { capabilities } from 'kaal-core'; console.log(JSON.stringify(await capabilities('.kaal')));"], moved);
     assert.deepEqual(JSON.parse(api).skills.map((r) => r.name), ["Greeting"]);
   });
 
