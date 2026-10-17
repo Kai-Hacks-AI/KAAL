@@ -20,6 +20,8 @@ Run this skill's `scripts/graph.mjs`, resolved from this skill's own directory, 
 - `graph.mjs check <dir>...` reports every malformed or unresolved Edge in the Nodes under the directories. It exits 0 when there is nothing to report and 1 when there is.
 - `graph.mjs out <id> <dir>...` lists what the Node with that id relates to, one Edge per line: type, then target.
 - `graph.mjs in <id> <dir>...` lists what relates to the Node: type, then source.
+- `graph.mjs named <name> <dir>...` lists the Nodes with that name, one per line: id, name, type. A name alone may name several Nodes.
+- `graph.mjs resolve <name> <id> <dir>...` prints the Node a reference resolves to, and fails when no Node has the id or the Node has another name.
 
 Work locally: read the Node you need, look at its outgoing types, follow the targets that matter, and stop when you have enough context. You do not need to read the whole graph first.
 

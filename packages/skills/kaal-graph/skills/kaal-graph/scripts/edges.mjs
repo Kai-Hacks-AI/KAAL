@@ -4,9 +4,10 @@
 //
 // Complexity, with V Nodes and E Edges (one Edge per target): adding a Node with k
 // Edges is O(k log k) for sorting its own Edges, plus O(1) average per Edge; lookup is
-// O(1) average; outgoing Edges are O(k); incoming Edges are O(k) once sorted, the sort
-// done lazily on first read after a change; Nodes of a type and Edges of a type are
-// O(k) in what they return, likewise sorted lazily; check() and a traversal are O(V + E).
+// O(1) average, by id or by reference; outgoing Edges are O(k); incoming Edges are O(k)
+// once sorted, the sort done lazily on first read after a change; Nodes of a name, Nodes
+// of a type and Edges of a type are O(k) in what they return, likewise sorted lazily;
+// check() and a traversal are O(V + E).
 //
 // Every query answers with Edges as declared, read from their source Nodes. A declared
 // reference may resolve to no Node present, or to a Node of another name: check() reports
@@ -83,6 +84,8 @@ export function edgesOf(node) {
 /** A graph over Node identities. Indexes are derived from the Nodes and never replace them. */
 export class Graph {
   #nodes = new Map();
+  #named = new Map();
+  #namedUnsorted = new Set();
   #out = new Map();
   #in = new Map();
   #unsorted = new Set();
@@ -104,6 +107,7 @@ export class Graph {
     if (problems.length) this.#malformed.set(node.id, problems);
     this.#out.set(node.id, edges);
     const source = Object.freeze({ name: node.name, id: node.id });
+    index(this.#named, this.#namedUnsorted, node.name, source);
     if (node.type) index(this.#typed, this.#typedUnsorted, typeKey(node.type), source);
     for (const { type, target } of edges) {
       index(this.#in, this.#unsorted, target.id, Object.freeze({ type, source }));
@@ -115,6 +119,20 @@ export class Graph {
   /** The Node with this id, or undefined. */
   node(id) {
     return this.#nodes.get(id);
+  }
+
+  /**
+   * The Node this reference resolves to: the one with its id, if that Node has its
+   * name. Undefined when no Node present has the id, or when the reference misnames it.
+   */
+  resolve(ref) {
+    const node = this.#nodes.get(ref.id);
+    return node?.name === ref.name ? node : undefined;
+  }
+
+  /** The Nodes with exactly this name, as { name, id }, sorted by id: a name alone may name several. */
+  named(name) {
+    return [...indexed(this.#named, this.#namedUnsorted, name, byRef)];
   }
 
   /** The Edges going out of a Node as declared: { type, target }, sorted by type then target. */
