@@ -11,7 +11,7 @@ What Graph is, and what this capability means, is stated by the Node `Graph` in 
 
 ## Add a relationship
 
-Write the Edge into the frontmatter of the Node it goes out from, in the form in [references/edges.md](references/edges.md). Reference only Nodes that already exist, by name and id (`kaal identify <file>` gives the id). The Node then has new bytes and a new id: it is a new Node.
+Write the Edge into the frontmatter of the Node it goes out from, in the form in [references/edges.md](references/edges.md). Reference only Nodes that already exist, by name and id (`kaal identify <file>` gives the id). The Node then has new bytes and a new id: it is a new Node. From code, `createNode` in this skill's `scripts/edges.mjs` writes those bytes canonically.
 
 ## Check and navigate
 

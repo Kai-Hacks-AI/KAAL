@@ -40,6 +40,15 @@ export interface Edge {
   readonly target: Ref;
 }
 
+/** Construct a Node's exact, canonical bytes; throws a FormError if they would not be a Node in Form with well-formed Edges. Writes nothing. */
+export function createNode(spec: {
+  name: string;
+  type?: Ref;
+  edges?: readonly { type: Ref; targets: readonly Ref[] }[];
+  frontmatter?: Frontmatter;
+  body?: string;
+}): { bytes: Buffer; node: Identity };
+
 export function edgesOf(node: Identity): { edges: Edge[]; problems: string[] };
 
 export class Graph<N extends Identity = Identity> {

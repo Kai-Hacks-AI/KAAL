@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "kaal-hosting";
-import { claimsForm, edgesOf, FormError, Graph, identify, isId, isName, sha256 } from "kaal-graph";
+import { claimsForm, createNode, edgesOf, FormError, Graph, identify, isId, isName, sha256 } from "kaal-graph";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILL = join(PACKAGE, "skills", "kaal-graph");
@@ -155,6 +155,64 @@ describe("edges", () => {
       assert.deepEqual(new Graph([make("R", { raw })]).check().length > 0, true);
     });
   }
+});
+
+describe("constructing a Node", () => {
+  const A = { name: "A", id: "a".repeat(64) };
+  const B = { name: "B", id: "b".repeat(64) };
+  const serves = { name: "Serves", id: "1234e5678".padEnd(64, "0") };
+  const refines = { name: "Refines", id: "1".repeat(64) };
+
+  it("writes exact canonical bytes that read back as the Node given", () => {
+    const { bytes, node } = createNode({ name: "R", type: f.definition, edges: [{ type: serves, targets: [A] }], frontmatter: { priority: 3 } });
+    const q = JSON.stringify;
+    assert.equal(
+      bytes.toString(),
+      `---\nname: "R"\ntype:\n  name: ${q(f.definition.name)}\n  id: ${q(f.definition.id)}\nedges:\n  - type:\n      name: "Serves"\n      id: ${q(serves.id)}\n    targets:\n      - name: "A"\n        id: ${q(A.id)}\npriority: 3\n---\n\n# R\n`,
+    );
+    assert.deepEqual(node, identify(bytes));
+    assert.deepEqual([node.name, node.type, node.frontmatter.priority], ["R", f.definition, 3]);
+    assert.deepEqual(edgesOf(node).edges, [{ type: serves, target: A }], "an id that YAML would read as a number stays the string given");
+  });
+
+  it("gives the same bytes and id whatever order groups, targets and keys are given in", () => {
+    const one = createNode({ name: "R", edges: [{ type: serves, targets: [B, A] }, { type: refines, targets: [A] }], frontmatter: { b: { y: 1, x: [2, "2"] }, a: true } });
+    const two = createNode({ name: "R", edges: [{ type: refines, targets: [A] }, { type: serves, targets: [A, B] }], frontmatter: { a: true, b: { x: [2, "2"], y: 1 } } });
+    assert.ok(one.bytes.equals(two.bytes));
+    assert.equal(one.node.id, two.node.id);
+    assert.deepEqual(createNode({ name: "R" }).bytes, createNode({ name: "R" }).bytes);
+  });
+
+  it("builds Nodes a Graph relates, checks and traverses", () => {
+    const a = createNode({ name: "A" }).node;
+    const kind = createNode({ name: "Serves" }).node;
+    const r = createNode({ name: "R", edges: [{ type: ref(kind), targets: [ref(a)] }] }).node;
+    const g = new Graph([a, kind, r]);
+    assert.deepEqual(g.check(), []);
+    assert.deepEqual(g.in(a.id), [{ type: ref(kind), source: ref(r) }]);
+    assert.deepEqual([...g.traverse(r.id)].map((s) => s.id), [r.id, a.id]);
+  });
+
+  it("takes a body as given, or none", () => {
+    assert.equal(createNode({ name: "A", body: "Text.\n" }).bytes.toString(), '---\nname: "A"\n---\n\nText.\n');
+    assert.equal(createNode({ name: "A", body: "" }).bytes.toString(), '---\nname: "A"\n---\n');
+  });
+
+  it("refuses what would not be a Node in Form with well-formed Edges", () => {
+    for (const spec of [
+      { name: "A " },
+      { name: "A\nB" },
+      { name: "A", type: { name: "Node", id: "XYZ" } },
+      { name: "A", edges: [{ type: serves, targets: [A, A] }] },
+      { name: "A", edges: [{ type: serves, targets: [] }] },
+      { name: "A", edges: [{ type: serves, targets: [A] }, { type: serves, targets: [B] }] },
+      { name: "A", edges: [{ type: serves, targets: [{ name: "A\u2028B", id: A.id }] }] },
+      { name: "A", frontmatter: { name: "B" } },
+      { name: "A", frontmatter: { edges: [] } },
+      { name: "A", frontmatter: { type: null } },
+    ])
+      assert.throws(() => createNode(spec), FormError, JSON.stringify(spec));
+  });
 });
 
 describe("the graph", () => {
