@@ -20,10 +20,13 @@
 // engineering/out/coverage/summary.json, prints a table, and exits non-zero
 // when a workspace's tests fail or its coverage cannot be measured, naming the
 // workspace and what is missing.
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+//
+// This script answers the packaging questions (which workspaces, built, which
+// files each delivers); execute.mjs runs the tests and measures the evidence.
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { execute, readFile } from "kaal-hosting";
-import { evidence } from "./summary.mjs";
+import { execute } from "kaal-hosting";
+import { cover } from "./execute.mjs";
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, "engineering", "out", "coverage");
@@ -64,24 +67,7 @@ async function measure(name, location) {
     const r = await run("npm", ["test", "--if-present", "-w", name]);
     return { tests: r.status === 0 ? "pass" : "fail", delivered, note: "delivers no JavaScript; nothing to measure", output: r.status === 0 ? "" : r.stdout + r.stderr };
   }
-  const dir = join(OUT, name);
-  // A report left by an earlier run is never evidence for this one.
-  rmSync(dir, { recursive: true, force: true });
-  const args = ["c8", "--all", "--exclude-node-modules=false", "--reporter=json-summary", `--report-dir=${dir}`, `--temp-directory=${join(dir, "tmp")}`, "--clean"];
-  for (const p of delivered) args.push(`--include=${p}`);
-  const r = await run("npx", [...args, "npm", "test", "--if-present", "-w", name]);
-  let text;
-  try {
-    text = (await readFile(join(dir, "coverage-summary.json"))).toString("utf8");
-  } catch {
-    text = undefined;
-  }
-  const found = evidence(name, ROOT, text);
-  const output = r.status === 0 ? "" : r.stdout + r.stderr;
-  if (found.failed) return { tests: r.status === 0 ? "pass" : "fail", delivered, failed: found.failed, output };
-  const missing = delivered.filter((p) => !found.measured.includes(p));
-  if (missing.length) return { tests: r.status === 0 ? "pass" : "fail", delivered, failed: `${name}: no coverage was reported for delivered ${missing.join(", ")}`, output };
-  return { tests: r.status === 0 ? "pass" : "fail", delivered, lines: found.lines, branches: found.branches, functions: found.functions, unexecuted: found.unexecuted, output };
+  return { delivered, ...(await cover(name, delivered, { root: ROOT, dir: join(OUT, name) })) };
 }
 
 const results = [];
