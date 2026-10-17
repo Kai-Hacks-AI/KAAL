@@ -1,0 +1,26 @@
+{
+  "name": "kaal-testing",
+  "version": "0.0.1",
+  "description": "KAAL Testing: test design in three loops, and findings calibrated to their evidence.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core",
+    "test": "node --test test/testing.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  }
+}
