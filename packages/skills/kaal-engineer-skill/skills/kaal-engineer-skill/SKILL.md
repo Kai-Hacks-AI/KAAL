@@ -23,6 +23,7 @@ How the two are packaged and delivered is not part of this Skill.
 3. **Write the Agent Skill**, following [references/agent-skills.md](references/agent-skills.md). Its directory name is its `name`. The `description` is what makes it discoverable: say what it does and when to use it, in the words a task would use.
 4. **Check the Agent Skill**: run this skill's `scripts/check-skill.mjs` with `<skill-dir>`, the directory of the skill to check. Resolve the script from this skill's own directory, not from the working directory, or use the `kaal-engineer-skill` command when the package is installed.
 5. **Let Core decide the Node**: `kaal identify <node-file>` shows its id and type, and `kaal register skill <capability> <dir>` admits it into an Engine or says why not.
+6. **Demonstrate the Skill's contracts**: a Skill is not done until tests show that it meets the contracts it states. Design those tests, and read and report their findings, with the KAAL Skill `Testing` and its `kaal-testing` Agent Skill. This skill does not restate that guidance.
 
 ## Reading the checker
 
