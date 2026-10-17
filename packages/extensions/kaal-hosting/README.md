@@ -8,6 +8,7 @@ KAAL Hosting is the host-facing KAAL Extension: it enables KAAL to operate withi
 | --- | --- |
 | `read(dir)` | Every file of a tree, keyed by `/`-separated relative path, whatever its name. A missing directory reads as empty. |
 | `readFile(path)` | One file's exact bytes. A link to a file reads as that file, as in `read`. A directory, a link to one, a cycle of links, or anything else that is not a file is refused with `NOT_FILE`; a missing path, a dangling link included, with `MISSING`: unlike a tree, a single file has no empty reading. Like `read`, it takes no lock. |
+| `kind(path)` | What is at a path: `directory`, `file`, `missing` or `other`. Links are followed as `read` and `readFile` follow them: a link or junction to a directory is `directory`, a link to a file is `file`. Nothing, a path below a file, and a dangling link are `missing`, as for `readFile`. Something that exists but is neither, a cycle of links or a socket, pipe or device, is `other`. A failure to look, such as a denied permission, is thrown as the host reports it, never taken for an answer. It takes no lock. |
 | `update(dir, plan)` | One writer at a time, across processes. `plan` receives the directory as it is and returns the change to make, or nothing. The change is published all or nothing as a new directory: staged beside the directory, read back to confirm the host holds it exactly, and renamed into place, together with any parent directories it needs. Any failure leaves the directory exactly as it was. |
 | `initialize(dir, files)` | Populates a missing or empty directory as its only writer. A missing directory appears complete or not at all; an existing empty one (the current directory, say) is filled in place, never removed or replaced. Anything else is refused. |
 | `execute(command, args, { cwd, env })` | Runs an installed command, named on the PATH or by path, however the host realizes it (an executable, or on Windows a `.cmd` shim such as npm installs). Arguments reach the command exactly as given; no shell interprets them. Resolves with the exit status and everything written to stdout and stderr; rejects when the command cannot be started. |
@@ -22,6 +23,24 @@ A link to a file reads as that file. A link to a directory is refused, by `read`
 Writers are serialized with [`proper-lockfile`](https://www.npmjs.com/package/proper-lockfile) (a lock directory beside the target, `<dir>.lock`, with stale-lock recovery). The lock is taken on the directory's canonical path, so every path that names one directory shares one lock. Commands are started with [`cross-spawn`](https://www.npmjs.com/package/cross-spawn), which on Windows finds `.cmd` shims through `PATHEXT` and escapes their arguments. File operations go through [`graceful-fs`](https://www.npmjs.com/package/graceful-fs), which on Windows retries renames blocked by antivirus or indexing.
 
 The API is asynchronous: both guarantees above depend on it.
+
+## Boundary conformance
+
+`kaal-hosting/conformance` lets a capability gather evidence about whether its own code stays inside the Hosting boundary it declares. It is a separate entry point: importing `kaal-hosting` does not load it.
+
+`inspect(files, { builtins })` reads the JavaScript modules among `files` (as `read` returns them, for example from the directory a package ships). It checks them against the Node builtins that the consumer declares its code may import directly. Hosting knows only what a host module is. Which host modules are acceptable, and what a capability's boundary is, are the consumer's to declare. The same input always gives the same report.
+
+The report keeps three kinds of finding apart:
+
+| Kind | Meaning |
+| --- | --- |
+| `violations` | Mechanically verified: a static import, an export-from, or an `import()` with a literal specifier names a builtin that was not declared. Each carries its file, line, column, specifier and the builtin's `node:` name. |
+| `validation` | Undecidable mechanically, so for an Agent or a person to judge: `import()` with a computed specifier, `process.getBuiltinModule`, `process.binding`, `process._linkedBinding`, `process.dlopen`, `eval`, `new Function`, and any file that cannot be read as a module. These may over-report, since they ask for judgment and claim nothing. |
+| `outside` | Packages imported from outside the inspected files. Their own host access is not inspected here. |
+
+Every report also carries `coverage` and `exclusions`, a fixed statement of what was and was not examined. The exclusions include other global access, CommonJS, native and other indirect loading, TypeScript sources, and whether relative imports resolve. A report without violations means that none was found within that coverage. It is never a statement that the code complies with its boundary.
+
+The parser is [`es-module-lexer`](https://www.npmjs.com/package/es-module-lexer).
 
 ## License
 
