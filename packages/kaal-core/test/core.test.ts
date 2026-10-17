@@ -26,7 +26,7 @@ import {
  * a visible, reviewed change to this table.
  */
 const PINNED = {
-  kernel: "9ffe7f82c0fd0c8c233a3ed37b6ae5a4a3e622010f241b3d879d309baec1d28c",
+  kernel: "351ce54bd482ddf0a0602309ffe19840b7b9a2be9722cdfefcd958abc6b52d08",
   node: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
   definition: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
   skill: "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
@@ -129,18 +129,38 @@ describe("identity", () => {
       "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id.toUpperCase() + "\n---\n",
       "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id + "\n  note: x\n---\n",
       "---\nname: A\ntype: Node\n---\n",
-      "---\nname: A\nk: !!str v\n---\n",
+      "---\nname: A\nk: !foo v\n---\n",
+      "---\nname: A\nk: !!binary aGk=\n---\n",
+      "---\nname: A\nk: !!set {v}\n---\n",
+      "---\nname: A\nk: !!timestamp 2001-12-14\n---\n",
+      "---\nname: !!int 3\n---\n",
       "---\nname: A\nk: &a v\nl: *a\n---\n",
+      "---\nname: A\nk: &a v\n---\n",
+      "---\nname: A\nbase: {n: 1}\nm:\n  <<: {n: 2}\n---\n",
       "---\nname: A\n? [k]\n: v\n---\n",
+      "---\nname: A\n3: v\n---\n",
+      "---\nname: A\ntrue: v\n---\n",
     ])
       assert.throws(() => identify(Buffer.from(bad)), /not in Form/, bad);
     assert.throws(() => identify(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff, 0xfe])));
   });
 
+  it("reads reserved fields as written, whatever YAML would type them", () => {
+    const numeric = "1234e5678".padEnd(64, "0");
+    const digits = "1".repeat(64);
+    for (const id of [numeric, digits]) {
+      const n = identify(Buffer.from(`---\nname: 2024\ntype:\n  name: true\n  id: ${id}\n---\n`));
+      assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
+      assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
+    }
+    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
+    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+  });
+
   it("accepts capability-owned frontmatter without interpreting it", async () => {
-    const target = { name: "Intent capture", id: "1".repeat(64) };
+    const target = { name: "Intent capture", id: "a".repeat(64) };
     const bytes = Buffer.from(
-      `---\nname: Requirement A\ntype:\n  name: ${f.definition.name}\n  id: ${f.definition.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"2".repeat(64)}\n    targets:\n      - name: ${target.name}\n        id: ${target.id}\nnote: 42\n---\n\n# Requirement A\n`,
+      `---\nname: Requirement A\ntype:\n  name: ${f.definition.name}\n  id: ${f.definition.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${target.name}\n        id: ${target.id}\npriority: 3\nweight: 0.5\nenabled: true\nyes: no\nlabel: !!str 42\nowner:\nlist: !!seq [1, "1"]\n---\n\n# Requirement A\n`,
     );
     const n = identify(bytes);
     assert.equal(n.id, sha256(bytes));
@@ -149,8 +169,14 @@ describe("identity", () => {
     assert.deepEqual(n.frontmatter, {
       name: "Requirement A",
       type: { name: f.definition.name, id: f.definition.id },
-      edges: [{ type: { name: "Serves", id: "2".repeat(64) }, targets: [target] }],
-      note: "42",
+      edges: [{ type: { name: "Serves", id: "b".repeat(64) }, targets: [target] }],
+      priority: 3,
+      weight: 0.5,
+      enabled: true,
+      yes: "no",
+      label: "42",
+      owner: null,
+      list: [1, "1"],
     });
     assert.ok(Object.isFrozen(n.frontmatter));
     const dir = await engine();
@@ -285,7 +311,7 @@ describe("bootstrap and verify", () => {
   it("reports what is wrong with an Engine", async () => {
     const dir = await engine();
     writeFileSync(join(dir, "KAAL-KERNEL.md"), "edited");
-    writeFileSync(join(dir, "stray.md"), node("Stray", { name: "Nothing", id: "2".repeat(64) }));
+    writeFileSync(join(dir, "stray.md"), node("Stray", { name: "Nothing", id: "b".repeat(64) }));
     const v = await verify(dir);
     assert.equal(v.ok, false);
     assert.equal(v.problems.length, 2);

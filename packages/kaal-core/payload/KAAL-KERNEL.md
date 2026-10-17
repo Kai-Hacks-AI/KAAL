@@ -4,7 +4,7 @@ This is the bootstrap of KAAL. It is not a Node.
 
 ## Form
 
-A Node is a UTF-8 Markdown file that begins with frontmatter: a line `---`, YAML, and a closing line `---`, with LF line endings. The frontmatter is one YAML mapping in which every scalar is a string, with no repeated key, tag, anchor or alias. Its `name` is the Node's name, on one line without surrounding whitespace. Its optional `type` is a mapping of exactly `name` and `id` that references the Node's type. Any other key belongs to the capability that defines it, and the Kernel gives it no meaning. A Node contains neither its own id nor any location.
+A Node is a UTF-8 Markdown file that begins with frontmatter: a line `---`, YAML, and a closing line `---`, with LF line endings. The frontmatter is one YAML 1.2 mapping, read with the core schema, whose keys are strings and never repeat, with no anchor, alias or merge key and no tag outside the core schema. Its `name` is the Node's name, read as written, on one line without surrounding whitespace. Its optional `type` is a mapping of exactly `name` and `id`, read as written, that references the Node's type. Any other key belongs to the capability that defines it, and the Kernel gives it no meaning. A Node contains neither its own id nor any location.
 
 ## Identity
 
