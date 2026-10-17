@@ -1,13 +1,16 @@
 # kaal-testing
 
-KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Skill` type and admission, and this capability joins through them.
+KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Capability` and `KAAL Skill` types and admission, and this capability joins through them.
 
 ```
+capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
+lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
+ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 ```
 
 The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
@@ -43,15 +46,33 @@ Which workspaces exist, building them and which files they deliver are packaging
 
 Which files exist is the caller's answer. The count says how much text is tracked, not what runs or who owns it.
 
+## CASE-owned attribution
+
+`kaal-testing/attribution` attributes an inventory's files to the Capabilities, Agents, Skills and Extensions that claim them. Testing owns how claims are read, resolved and reported, with one rule for all four kinds. Each owner owns its own claim.
+
+- **A claim** is an ownership file named `ownership.kaal.json`, kept in its owner's own tree and found by that name. There is no central list. It names one typed owner: its CASE kind (`capability`, `agent`, `skill` or `extension`) and the exact `{ name, id }` of its own Node. It lists repository-relative path patterns. A pattern is a file path, or a directory path ending in `/` that covers everything beneath it. Patterns are literal: there are no wildcards.
+- **Scope:** an ownership file's scope is the directory holding it. Every pattern must lie within that scope, so an owner claims only within its own tree. An ownership file with a pattern outside its scope is a verified failure and claims nothing.
+- **Resolution:** the caller supplies the admitted CASE Nodes with their kinds, from Core. A claim resolves only when its kind, name and id all match one of them. Otherwise it is a verified failure, and its paths stay unassigned. So is an ownership file that does not read. An owner keeps the kind Core gives it: a Skill is never counted as a Capability.
+- **Host boundary:** Testing takes the inventory and the ownership files' bytes as given. Listing the files, reading their bytes and every host path operation are the caller's, through Hosting. Testing compares the declaration's repository-relative strings as written. A claim is a declaration: it attributes the tracked paths it names, within its scope, and nothing more.
+- **Attribution** of each file:
+  - claimed by exactly one owner: that owner's;
+  - claimed by none: unassigned;
+  - claimed by two or more: an architectural concern naming every claimant. It is not attributed by precedence, proximity or splitting. It is listed among the conflicts and counted as unassigned until the claims are fixed.
+- **Stale claims:** a pattern that matches no inventoried file is a potential defect.
+- **Accounting:** the repository's non-blank text lines always equal the singly attributed lines plus the unassigned lines. Binary and excluded files are attributed but carry no lines.
+
+`attribute(inventory, claimFiles, owners)` returns each owner's kind, files and lines, the unassigned and conflicting files, and every finding. A package or a directory is never taken as ownership: a capability may be delivered in any number of packages, or none, and a file belongs to an owner only when that owner claims it. Ownership is structural. It says which responsibility a file belongs to, not who is accountable for it or who verified it.
+
 ## Boundaries
 
 Testing keeps no registry. Its execution runs a capability's own cases as that capability defines them, and adds none.
 
 Each capability owns its contracts and its cases. The obligation to demonstrate them belongs to the capability and its engineering. So do builds, packaging, and when checks run and what they gate.
 
-## Register the Node
+## Register the Nodes
 
 ```sh
+npx kaal register capability testing node_modules/kaal-testing/capability
 npx kaal register skill kaal-testing node_modules/kaal-testing/payload
 ```
 

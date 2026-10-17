@@ -1,6 +1,6 @@
 // Architecture boundary of Engineering's measurement drivers: they decide
 // which workspaces and files are measured, and leave every host mechanic to
-// Hosting and every measurement to Testing. This is Engineering's own
+// Hosting, every measurement to Testing, and which Nodes are admitted to Core. This is Engineering's own
 // declaration for those drivers and its own evidence, checked with Hosting's
 // generic conformance inspection. Mechanical findings fail here; what cannot be
 // decided mechanically is listed for Agent or human validation, never taken as
@@ -12,13 +12,13 @@ import { readFile } from "kaal-hosting";
 import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
 
 /** The drivers this declaration covers, by path under engineering/. */
-const DRIVERS = ["coverage/measure.mjs", "inventory/measure.mjs"];
+const DRIVERS = ["coverage/measure.mjs", "inventory/attribute.mjs", "inventory/measure.mjs"];
 
 /** The host modules those drivers may import directly: path handling only. */
 const BOUNDARY = { builtins: ["node:path"] };
 
-/** The modules they may reach outside themselves: Hosting for the host, Testing for measurement. */
-const OUTSIDE = ["kaal-hosting", "kaal-testing/coverage", "kaal-testing/inventory"];
+/** The modules they may reach outside themselves: Hosting for the host, Testing for measurement, Core for admission. */
+const OUTSIDE = ["kaal-core", "kaal-hosting", "kaal-testing/attribution", "kaal-testing/coverage", "kaal-testing/inventory"];
 
 /**
  * Findings that need validation and have been judged, each with its judgment.
@@ -38,7 +38,7 @@ async function drivers() {
 const judged = (v) => v.map(({ file, construct }) => ({ file, construct }));
 
 describe("Engineering's measurement drivers: Hosting boundary", () => {
-  it("permitted: they import no undeclared host module, and reach outside only Hosting and Testing", async () => {
+  it("permitted: they import no undeclared host module, and reach outside only Hosting, Testing and Core", async () => {
     const report = await inspect(await drivers(), BOUNDARY);
     assert.deepEqual(report.inspected, DRIVERS);
     assert.deepEqual(report.violations, []);
