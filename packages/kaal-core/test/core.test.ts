@@ -246,6 +246,25 @@ describe("resolution", () => {
     assert.match(e.rejected.find((r) => r.path === "b/orphan.md")!.reason, /not admitted/);
   });
 
+  it("admits a chain of types whatever the order of its files", async () => {
+    // The deepest Node sorts first, so no Node's type is known when its file is
+    // read: admission must follow the types, not the files.
+    const files: Record<string, Buffer> = { ...payload() };
+    let type: Ref = f.definition;
+    const depth = 2000;
+    for (let i = 0; i < depth; i++) {
+      const bytes = Buffer.from(node(`Link ${i}`, type));
+      files[`chain/${String(depth - i).padStart(6, "0")}.md`] = bytes;
+      type = { name: `Link ${i}`, id: sha256(bytes) };
+    }
+    files["chain/broken.md"] = Buffer.from(node("Broken", { name: "Link 7", id: "1".repeat(64) }));
+    const e = evaluate(files);
+    assert.equal(e.nodes.length, depth + 4);
+    assert.deepEqual(e.typedBy(type), []);
+    assert.equal(e.resolve(type).name, `Link ${depth - 1}`);
+    assert.deepEqual(e.rejected.map((r) => r.path), ["chain/broken.md"]);
+  });
+
   it("allows several Nodes with one name, distinguished by id", async () => {
     const one = node("Twin", f.definition, "one\n");
     const two = node("Twin", f.definition, "two\n");
