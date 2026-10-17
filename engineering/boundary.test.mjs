@@ -12,13 +12,13 @@ import { readFile } from "kaal-hosting";
 import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
 
 /** The drivers this declaration covers, by path under engineering/. */
-const DRIVERS = ["coverage/measure.mjs"];
+const DRIVERS = ["coverage/measure.mjs", "inventory/measure.mjs"];
 
 /** The host modules those drivers may import directly: path handling only. */
 const BOUNDARY = { builtins: ["node:path"] };
 
 /** The modules they may reach outside themselves: Hosting for the host, Testing for measurement. */
-const OUTSIDE = ["kaal-hosting", "kaal-testing/coverage"];
+const OUTSIDE = ["kaal-hosting", "kaal-testing/coverage", "kaal-testing/inventory"];
 
 /**
  * Findings that need validation and have been judged, each with its judgment.
@@ -48,13 +48,13 @@ describe("Engineering's measurement drivers: Hosting boundary", () => {
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);
   });
 
-  it("prohibited: writing a report with node:fs, as an earlier revision did, fails verification with its location", async () => {
+  it("prohibited: writing a report with node:fs, as earlier revisions of both drivers did, fails verification with its location", async () => {
     const files = await drivers();
-    files["coverage/measure.mjs"] = Buffer.concat([Buffer.from('import { writeFileSync } from "node:fs";\n'), files["coverage/measure.mjs"]]);
+    for (const p of DRIVERS) files[p] = Buffer.concat([Buffer.from('import { mkdirSync, writeFileSync } from "node:fs";\n'), files[p]]);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(
       report.violations.map(({ file, line, builtin }) => ({ file, line, builtin })),
-      [{ file: "coverage/measure.mjs", line: 1, builtin: "node:fs" }],
+      DRIVERS.map((file) => ({ file, line: 1, builtin: "node:fs" })),
     );
   });
 

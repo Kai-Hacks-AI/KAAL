@@ -1,17 +1,23 @@
 #!/usr/bin/env node
-// Repository lines of code. Lists every file Git tracks (its index), inside and
-// outside packages, reads each from the working tree through Hosting, and has Testing
-// (kaal-testing/inventory) count them. Writes engineering/out/inventory.json
-// and prints the totals, the totals per top-level area, and every binary and
-// excluded file with its reason. Exits non-zero when the files cannot be
-// listed or read. Lines of code say how much text is tracked, not what runs.
-import { mkdirSync, writeFileSync } from "node:fs";
+// The repository's non-blank text lines. Lists every file Git tracks (its
+// index), inside and outside packages, reads each from the working tree
+// through Hosting, and has Testing (kaal-testing/inventory) count them.
+//
+// The metric is broad by design: any line with a non-whitespace character in
+// any text file, code, Markdown, YAML, JSON or configuration alike. It is not
+// executable lines of code and is never combined with coverage figures.
+//
+// Usage: measure.mjs [--json]
+// Prints the totals, the totals per top-level area, and every binary and
+// excluded file with its reason, or with --json the whole inventory as JSON.
+// Exits non-zero when the files cannot be listed or read. Nothing here writes
+// a file.
 import { join } from "node:path";
 import { execute, readFile } from "kaal-hosting";
 import { inventory } from "kaal-testing/inventory";
 
 const ROOT = process.cwd();
-const OUT = join(ROOT, "engineering", "out");
+const json = process.argv.includes("--json");
 
 const listed = await execute("git", ["ls-files", "-z", "--full-name"], { cwd: ROOT });
 if (listed.status !== 0) {
@@ -30,24 +36,26 @@ for (const path of paths) {
 }
 const result = inventory(files);
 
-mkdirSync(OUT, { recursive: true });
-writeFileSync(join(OUT, "inventory.json"), JSON.stringify(result, null, 2) + "\n");
+if (json) {
+  console.log(JSON.stringify(result, null, 2));
+  process.exit(0);
+}
 
 const area = (path) => (path.includes("/") ? path.slice(0, path.indexOf("/") + 1) : "(root files)");
 const areas = new Map();
 for (const e of result.entries) {
-  const a = areas.get(area(e.path)) ?? { files: 0, loc: 0 };
+  const a = areas.get(area(e.path)) ?? { files: 0, lines: 0 };
   a.files += 1;
-  if (e.kind === "text") a.loc += e.loc;
+  if (e.kind === "text") a.lines += e.lines;
   areas.set(area(e.path), a);
 }
-console.log("area | files | lines of code");
-for (const [name, a] of [...areas].sort()) console.log(`${name} | ${a.files} | ${a.loc}`);
-console.log(`total | ${result.files} | ${result.loc}`);
+console.log("area | files | non-blank text lines");
+for (const [name, a] of [...areas].sort()) console.log(`${name} | ${a.files} | ${a.lines}`);
+console.log(`total | ${result.files} | ${result.lines}`);
 for (const e of result.entries) {
-  if (e.kind === "binary") console.log(`binary, no lines of code: ${e.path}`);
-  if (e.kind === "excluded") console.log(`excluded, ${e.reason}: ${e.path} (${e.loc} lines)`);
+  if (e.kind === "binary") console.log(`binary, no text lines: ${e.path}`);
+  if (e.kind === "excluded") console.log(`excluded, ${e.reason}: ${e.path} (${e.lines} lines)`);
 }
 console.log(
-  `scope: ${result.files} files tracked by Git (${result.text} text, ${result.binary} binary, ${result.excluded.files} excluded); a line of code is a non-blank line of a text file; untracked and ignored files are outside it`,
+  `scope: ${result.files} files tracked by Git (${result.text} text, ${result.binary} binary, ${result.excluded.files} excluded); a non-blank text line is any line with a non-whitespace character in any text file, code or not; not executable lines of code; untracked and ignored files are outside it`,
 );
