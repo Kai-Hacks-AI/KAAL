@@ -1,0 +1,4 @@
+{
+  "capability": { "name": "Testing", "id": "be4d4a38073318e46d1d9c7351a44fab69aeb2044780ac53af2c11c2d1a9a185" },
+  "paths": ["packages/skills/kaal-testing/"]
+}

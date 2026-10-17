@@ -1,13 +1,16 @@
 # kaal-testing
 
-KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Skill` type and admission, and this capability joins through them.
+KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Capability` and `KAAL Skill` types and admission, and this capability joins through them.
 
 ```
+capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
+lib/attribution.mjs                    capability-owned file attribution: kaal-testing/attribution
+ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 ```
 
 The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
@@ -43,15 +46,31 @@ Which workspaces exist, building them and which files they deliver are packaging
 
 Which files exist is the caller's answer. The count says how much text is tracked, not what runs or who owns it.
 
+## Capability-owned attribution
+
+`kaal-testing/attribution` attributes an inventory's files to the capabilities that claim them. Testing owns how claims are read, resolved and reported. Each capability owns its own claim.
+
+- **A claim** is an ownership file named `ownership.kaal.json`, kept in its capability's own tree and found by that name. There is no central list. It names its capability by the exact `{ name, id }` of the capability's Node typed by Core's `KAAL Capability`, and lists repository-relative path patterns. A pattern is a file path, or a directory path ending in `/` that covers everything beneath it. Patterns are literal: there are no wildcards.
+- **Resolution:** the caller supplies the admitted Capability Nodes, from Core. A claim whose `{ name, id }` names none of them is a verified failure, and its paths stay unassigned. So is an ownership file that does not read.
+- **Attribution** of each file:
+  - claimed by exactly one capability: that capability's;
+  - claimed by none: unassigned;
+  - claimed by two or more: an architectural concern naming every claimant. It is not attributed by precedence, proximity or splitting. It is listed among the conflicts and counted as unassigned until the claims are fixed.
+- **Stale claims:** a pattern that matches no inventoried file is a potential defect.
+- **Accounting:** the repository's non-blank text lines always equal the singly attributed lines plus the unassigned lines. Binary and excluded files are attributed but carry no lines.
+
+`attribute(inventory, claimFiles, capabilities)` returns each capability's files and lines, the unassigned and conflicting files, and every finding. A package or a directory is never taken as ownership: a capability may be delivered in any number of packages, or none, and a file is a capability's only when that capability claims it.
+
 ## Boundaries
 
 Testing keeps no registry. Its execution runs a capability's own cases as that capability defines them, and adds none.
 
 Each capability owns its contracts and its cases. The obligation to demonstrate them belongs to the capability and its engineering. So do builds, packaging, and when checks run and what they gate.
 
-## Register the Node
+## Register the Nodes
 
 ```sh
+npx kaal register capability testing node_modules/kaal-testing/capability
 npx kaal register skill kaal-testing node_modules/kaal-testing/payload
 ```
 
