@@ -9,7 +9,7 @@ skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
-lib/attribution.mjs                    capability-owned file attribution: kaal-testing/attribution
+lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 ```
 
@@ -46,20 +46,20 @@ Which workspaces exist, building them and which files they deliver are packaging
 
 Which files exist is the caller's answer. The count says how much text is tracked, not what runs or who owns it.
 
-## Capability-owned attribution
+## CASE-owned attribution
 
-`kaal-testing/attribution` attributes an inventory's files to the capabilities that claim them. Testing owns how claims are read, resolved and reported. Each capability owns its own claim.
+`kaal-testing/attribution` attributes an inventory's files to the Capabilities, Agents, Skills and Extensions that claim them. Testing owns how claims are read, resolved and reported, with one rule for all four kinds. Each owner owns its own claim.
 
-- **A claim** is an ownership file named `ownership.kaal.json`, kept in its capability's own tree and found by that name. There is no central list. It names its capability by the exact `{ name, id }` of the capability's Node typed by Core's `KAAL Capability`, and lists repository-relative path patterns. A pattern is a file path, or a directory path ending in `/` that covers everything beneath it. Patterns are literal: there are no wildcards.
-- **Resolution:** the caller supplies the admitted Capability Nodes, from Core. A claim whose `{ name, id }` names none of them is a verified failure, and its paths stay unassigned. So is an ownership file that does not read.
+- **A claim** is an ownership file named `ownership.kaal.json`, kept in its owner's own tree and found by that name. There is no central list. It names its owner by the exact `{ name, id }` of the owner's own Node, typed by one of Core's `KAAL Capability`, `KAAL Agent`, `KAAL Skill` or `KAAL Extension`. It lists repository-relative path patterns. A pattern is a file path, or a directory path ending in `/` that covers everything beneath it. Patterns are literal: there are no wildcards.
+- **Resolution:** the caller supplies the admitted CASE Nodes with their kinds, from Core. A claim whose `{ name, id }` names none of them is a verified failure, and its paths stay unassigned. So is an ownership file that does not read. An owner keeps the kind Core gives it: a Skill is never counted as a Capability.
 - **Attribution** of each file:
-  - claimed by exactly one capability: that capability's;
+  - claimed by exactly one owner: that owner's;
   - claimed by none: unassigned;
   - claimed by two or more: an architectural concern naming every claimant. It is not attributed by precedence, proximity or splitting. It is listed among the conflicts and counted as unassigned until the claims are fixed.
 - **Stale claims:** a pattern that matches no inventoried file is a potential defect.
 - **Accounting:** the repository's non-blank text lines always equal the singly attributed lines plus the unassigned lines. Binary and excluded files are attributed but carry no lines.
 
-`attribute(inventory, claimFiles, capabilities)` returns each capability's files and lines, the unassigned and conflicting files, and every finding. A package or a directory is never taken as ownership: a capability may be delivered in any number of packages, or none, and a file is a capability's only when that capability claims it.
+`attribute(inventory, claimFiles, owners)` returns each owner's kind, files and lines, the unassigned and conflicting files, and every finding. A package or a directory is never taken as ownership: a capability may be delivered in any number of packages, or none, and a file belongs to an owner only when that owner claims it. Ownership is structural. It says which responsibility a file belongs to, not who is accountable for it or who verified it.
 
 ## Boundaries
 

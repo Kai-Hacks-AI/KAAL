@@ -8,12 +8,14 @@ import { attribute, CLAIM_FILE, isClaimFile, readClaim } from "kaal-testing/attr
 import { inventory } from "kaal-testing/inventory";
 
 const text = (s) => new TextEncoder().encode(s);
-const claim = (capability, paths, extra = {}) => text(JSON.stringify({ capability, paths, ...extra }));
+const claim = ({ name, id }, paths, extra = {}) => text(JSON.stringify({ owner: { name, id }, paths, ...extra }));
 const lines = (n) => text("x\n".repeat(n));
 
-const A = { name: "Alpha", id: "a".repeat(64) };
-const B = { name: "Beta", id: "b".repeat(64) };
-const C = { name: "Gamma", id: "c".repeat(64) };
+const A = { kind: "capability", name: "Alpha", id: "a".repeat(64) };
+const B = { kind: "skill", name: "Beta", id: "b".repeat(64) };
+const C = { kind: "agent", name: "Gamma", id: "c".repeat(64) };
+const D = { kind: "extension", name: "Delta", id: "d".repeat(64) };
+const ref = ({ name, id }) => ({ name, id });
 
 const files = inventory([
   { path: "alpha/a.js", bytes: lines(3) },
@@ -32,8 +34,8 @@ describe("ownership files", () => {
     assert.ok(!isClaimFile("packages/x/not-ownership.kaal.json") && !isClaimFile("ownership.kaal.json.bak"));
   });
 
-  it("read as a capability named by exactly { name, id } and repository-relative path patterns", () => {
-    assert.deepEqual(readClaim("a/ownership.kaal.json", claim(A, ["a/", "README.md"])), { claim: { path: "a/ownership.kaal.json", capability: A, paths: ["a/", "README.md"] } });
+  it("read as an owner named by exactly { name, id } and repository-relative path patterns", () => {
+    assert.deepEqual(readClaim("a/ownership.kaal.json", claim(A, ["a/", "README.md"])), { claim: { path: "a/ownership.kaal.json", owner: ref(A), paths: ["a/", "README.md"] } });
   });
 
   it("that do not read are verified failures naming the file, and claim nothing", () => {
@@ -41,9 +43,10 @@ describe("ownership files", () => {
     for (const bytes of [
       text("{"),
       new Uint8Array([0xff]),
-      claim({ name: "Alpha" }, ["a/"]),
-      claim({ ...A, extra: 1 }, ["a/"]),
-      claim({ name: "Alpha", id: "A".repeat(64) }, ["a/"]),
+      text(JSON.stringify({ owner: { name: "Alpha" }, paths: ["a/"] })),
+      text(JSON.stringify({ owner: { ...ref(A), extra: 1 }, paths: ["a/"] })),
+      text(JSON.stringify({ owner: { name: "Alpha", id: "A".repeat(64) }, paths: ["a/"] })),
+      text(JSON.stringify({ capability: ref(A), paths: ["a/"] })),
       claim(A, []),
       claim(A, ["/abs"]),
       claim(A, ["a/../b"]),
@@ -60,13 +63,13 @@ describe("ownership files", () => {
 });
 
 describe("attribution", () => {
-  it("gives a file claimed by exactly one capability to it, and leaves an unclaimed file unassigned", () => {
+  it("gives a file claimed by exactly one owner to it, of whichever CASE kind, and leaves an unclaimed file unassigned", () => {
     const r = attribute(files, [{ path: "alpha/ownership.kaal.json", bytes: claim(A, ["alpha/"]) }, { path: "beta/ownership.kaal.json", bytes: claim(B, ["beta/b.md"]) }], [A, B]);
     assert.deepEqual(
-      r.capabilities.map(({ name, files, lines, entries }) => ({ name, files, lines, paths: entries.map((e) => e.path) })),
+      r.owners.map(({ kind, name, files, lines, entries }) => ({ kind, name, files, lines, paths: entries.map((e) => e.path) })),
       [
-        { name: "Alpha", files: 4, lines: 4, paths: ["alpha/a.js", "alpha/logo.png", "alpha/ownership.kaal.json", "alpha/package-lock.json"] },
-        { name: "Beta", files: 1, lines: 2, paths: ["beta/b.md"] },
+        { kind: "capability", name: "Alpha", files: 4, lines: 4, paths: ["alpha/a.js", "alpha/logo.png", "alpha/ownership.kaal.json", "alpha/package-lock.json"] },
+        { kind: "skill", name: "Beta", files: 1, lines: 2, paths: ["beta/b.md"] },
       ],
     );
     assert.deepEqual(r.unassigned.entries, [
@@ -76,27 +79,35 @@ describe("attribution", () => {
     assert.deepEqual(r.findings, []);
   });
 
-  it("reports a file claimed by two capabilities as an architectural concern naming both, and attributes it to neither", () => {
+  it("reports a file claimed by two owners as an architectural concern naming both, and attributes it to neither", () => {
     const r = attribute(files, [{ path: "alpha/ownership.kaal.json", bytes: claim(A, ["alpha/", "shared/"]) }, { path: "beta/ownership.kaal.json", bytes: claim(B, ["beta/", "shared/s.js"]) }], [A, B]);
     assert.deepEqual(r.conflicts, { files: 1, lines: 4, entries: [{ path: "shared/s.js", lines: 4, claimants: [A, B] }] });
     assert.deepEqual(r.unassigned.entries.find((e) => e.path === "shared/s.js"), { path: "shared/s.js", lines: 4, reason: "conflicting claims" });
-    assert.ok(r.capabilities.every((c) => !c.entries.some((e) => e.path === "shared/s.js")));
-    assert.deepEqual(r.findings, [{ kind: "architectural concern", subject: "shared/s.js", evidence: `claimed by Alpha (${A.id}) and Beta (${B.id}): not attributed until the claims are fixed` }]);
+    assert.ok(r.owners.every((c) => !c.entries.some((e) => e.path === "shared/s.js")));
+    assert.deepEqual(r.findings, [{ kind: "architectural concern", subject: "shared/s.js", evidence: `claimed by capability Alpha (${A.id}) and skill Beta (${B.id}): not attributed until the claims are fixed` }]);
+  });
+
+  it("attributes the same way for all four CASE kinds, keeping each owner's kind, and reclassifies none", () => {
+    const owned = [A, B, C, D];
+    const tree = inventory(owned.map((o) => ({ path: `${o.name}/f.md`, bytes: lines(1) })));
+    const r = attribute(tree, owned.map((o) => ({ path: `${o.name}/ownership.kaal.json`, bytes: claim(o, [`${o.name}/`]) })), owned);
+    assert.deepEqual(r.owners.map(({ kind, name, files }) => ({ kind, name, files })), [A, B, D, C].map(({ kind, name }) => ({ kind, name, files: 1 })));
+    assert.throws(() => attribute(tree, [], [{ kind: "definition", name: "X", id: "e".repeat(64) }]), /not a CASE kind/);
   });
 
   it("counts a capability claiming the same file twice once, not as a conflict", () => {
     const r = attribute(files, [{ path: "alpha/ownership.kaal.json", bytes: claim(A, ["alpha/", "alpha/a.js"]) }, { path: "alpha/more/ownership.kaal.json", bytes: claim(A, ["alpha/a.js"]) }], [A]);
     assert.deepEqual(r.conflicts.entries, []);
-    assert.equal(r.capabilities[0].files, 4);
+    assert.equal(r.owners[0].files, 4);
   });
 
-  it("does not resolve a claim for no admitted Capability Node, or for a Node by the wrong name: its paths stay unassigned", () => {
+  it("does not resolve a claim for no admitted CASE Node, or for a Node by the wrong name: its paths stay unassigned", () => {
     const r = attribute(files, [{ path: "alpha/ownership.kaal.json", bytes: claim(C, ["alpha/"]) }, { path: "beta/ownership.kaal.json", bytes: claim({ name: "Bet", id: B.id }, ["beta/"]) }], [A, B]);
-    assert.deepEqual(r.capabilities, []);
+    assert.deepEqual(r.owners, []);
     assert.equal(r.unassigned.files, files.files);
     assert.deepEqual(r.findings, [
-      { kind: "verified failure", subject: "alpha/ownership.kaal.json", evidence: `claims for Gamma (${C.id}), which is no admitted Capability Node: its paths stay unassigned` },
-      { kind: "verified failure", subject: "beta/ownership.kaal.json", evidence: `claims for Bet, but Capability Node ${B.id} is named Beta: its paths stay unassigned` },
+      { kind: "verified failure", subject: "alpha/ownership.kaal.json", evidence: `claims for Gamma (${C.id}), which is no admitted Capability, Agent, Skill or Extension Node: its paths stay unassigned` },
+      { kind: "verified failure", subject: "beta/ownership.kaal.json", evidence: `claims for Bet, but skill Node ${B.id} is named Beta: its paths stay unassigned` },
     ]);
   });
 
@@ -106,7 +117,7 @@ describe("attribution", () => {
       { kind: "potential defect", subject: "alpha/ownership.kaal.json", evidence: 'pattern "alpha/gone.js" matches no inventoried file: a stale claim' },
       { kind: "potential defect", subject: "alpha/ownership.kaal.json", evidence: 'pattern "old/" matches no inventoried file: a stale claim' },
     ]);
-    assert.equal(r.capabilities[0].files, 4);
+    assert.equal(r.owners[0].files, 4);
   });
 
   it("accounts for every inventoried line: attributed plus unassigned, with conflicts inside unassigned and binary and excluded files carrying none", () => {
@@ -114,12 +125,12 @@ describe("attribution", () => {
     const r = attribute(files, claimFiles, [A, B]);
     assert.equal(r.metric, "non-blank text lines");
     assert.equal(r.lines, files.lines);
-    assert.equal(r.capabilities.reduce((n, c) => n + c.lines, 0) + r.unassigned.lines, files.lines);
+    assert.equal(r.owners.reduce((n, c) => n + c.lines, 0) + r.unassigned.lines, files.lines);
     assert.ok(r.conflicts.lines <= r.unassigned.lines);
-    assert.equal(r.capabilities.find((c) => c.name === "Alpha").lines, 4);
+    assert.equal(r.owners.find((c) => c.name === "Alpha").lines, 4);
   });
 
-  it("is deterministic: the order of ownership files and capabilities does not change the result", () => {
+  it("is deterministic: the order of ownership files and owners does not change the result", () => {
     const claimFiles = [{ path: "alpha/ownership.kaal.json", bytes: claim(A, ["alpha/", "shared/"]) }, { path: "beta/ownership.kaal.json", bytes: claim(B, ["beta/", "shared/"]) }];
     assert.deepEqual(attribute(files, claimFiles, [A, B]), attribute(files, [...claimFiles].reverse(), [B, A]));
   });
@@ -132,7 +143,7 @@ describe("Testing's own claim", () => {
     const node = identify(await readFile(join(PACKAGE, "capability", "Testing.md")));
     assert.deepEqual(node.type, foundation().capability);
     const { claim: own } = readClaim("packages/skills/kaal-testing/ownership.kaal.json", await readFile(join(PACKAGE, CLAIM_FILE)));
-    assert.deepEqual(own.capability, { name: node.name, id: node.id });
+    assert.deepEqual(own.owner, { name: node.name, id: node.id });
     assert.deepEqual(own.paths, ["packages/skills/kaal-testing/"]);
   });
 });

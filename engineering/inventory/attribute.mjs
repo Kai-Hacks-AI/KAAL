@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-// The repository's non-blank text lines, attributed to the capabilities that
-// claim them. Lists every file Git tracks, reads each through Hosting, and has
-// Testing count them (kaal-testing/inventory) and attribute them
-// (kaal-testing/attribution) by the ownership files among them. Which
-// Capability Nodes exist is Core's answer: the tracked files are admitted with
-// Core's evaluate, and a claim resolves only to a Node Core types by its
-// foundational KAAL Capability.
+// The repository's non-blank text lines, attributed to the Capabilities,
+// Agents, Skills and Extensions that claim them. Lists every file Git tracks,
+// reads each through Hosting, and has Testing count them
+// (kaal-testing/inventory) and attribute them (kaal-testing/attribution) by the
+// ownership files among them. Which CASE Nodes exist is Core's answer: the
+// tracked files are admitted with Core's evaluate, and a claim resolves only to
+// a Node Core types by one of its four foundational CASE kinds.
 //
 // Usage: attribute.mjs [--json]
-// Prints each capability's files and lines, the unassigned and conflicting
+// Prints each owner's kind, files and lines, the unassigned and conflicting
 // files, every finding, and the accounting, or with --json the whole
 // attribution as JSON. Exits non-zero when the files cannot be listed or read.
 // Findings do not change the exit status: they are reported, not gated.
@@ -16,7 +16,7 @@
 import { join } from "node:path";
 import { evaluate, foundation } from "kaal-core";
 import { execute, readFile } from "kaal-hosting";
-import { attribute, isClaimFile } from "kaal-testing/attribution";
+import { attribute, isClaimFile, KINDS } from "kaal-testing/attribution";
 import { inventory } from "kaal-testing/inventory";
 
 const ROOT = process.cwd();
@@ -37,23 +37,22 @@ for (const path of listed.stdout.split("\0").filter(Boolean)) {
   }
 }
 
-const capabilities = evaluate(Object.fromEntries(files.map(({ path, bytes }) => [path, bytes])))
-  .typedBy(foundation().capability)
-  .map(({ name, id }) => ({ name, id }));
-const result = attribute(inventory(files), files.filter(({ path }) => isClaimFile(path)), capabilities);
+const engine = evaluate(Object.fromEntries(files.map(({ path, bytes }) => [path, bytes])));
+const owners = KINDS.flatMap((kind) => engine.typedBy(foundation()[kind]).map(({ name, id }) => ({ kind, name, id })));
+const result = attribute(inventory(files), files.filter(({ path }) => isClaimFile(path)), owners);
 
 if (json) {
   console.log(JSON.stringify(result, null, 2));
   process.exit(0);
 }
 
-console.log("capability | files | non-blank text lines");
-for (const c of result.capabilities) console.log(`${c.name} (${c.id.slice(0, 12)}) | ${c.files} | ${c.lines}`);
+console.log("owner | files | non-blank text lines");
+for (const c of result.owners) console.log(`${c.kind} ${c.name} (${c.id.slice(0, 12)}) | ${c.files} | ${c.lines}`);
 console.log(`unassigned | ${result.unassigned.files} | ${result.unassigned.lines}`);
 console.log(`  of which conflicting claims | ${result.conflicts.files} | ${result.conflicts.lines}`);
-console.log(`total | ${result.capabilities.reduce((n, c) => n + c.files, 0) + result.unassigned.files} | ${result.lines}`);
+console.log(`total | ${result.owners.reduce((n, c) => n + c.files, 0) + result.unassigned.files} | ${result.lines}`);
 for (const e of result.conflicts.entries) console.log(`conflict: ${e.path} is claimed by ${e.claimants.map((c) => c.name).join(" and ")}`);
 for (const f of result.findings) console.log(`${f.kind}: ${f.subject}: ${f.evidence}`);
 console.log(
-  `accounting: ${result.lines} repository lines = ${result.capabilities.map((c) => `${c.lines} ${c.name}`).join(" + ") || "0 attributed"} + ${result.unassigned.lines} unassigned; ${capabilities.length} admitted Capability Nodes; files are attributed only by their capability's own claim, never by package or directory`,
+  `accounting: ${result.lines} repository lines = ${result.owners.map((c) => `${c.lines} ${c.name}`).join(" + ") || "0 attributed"} + ${result.unassigned.lines} unassigned; ${KINDS.map((k) => `${owners.filter((o) => o.kind === k).length} ${k}`).join(", ")} Nodes admitted; files are attributed only by their owner's own claim, never by package or directory`,
 );
