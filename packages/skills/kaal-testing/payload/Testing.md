@@ -23,7 +23,7 @@ A finding is one of four kinds, and the kinds are never merged:
 
 - **Verified failure**: a deterministic check failed on a named subject.
 - **Potential defect**: something may be wrong, and awaits validation.
-- **Architectural concern**: a judged doubt about a boundary or a duplicated responsibility.
+- **Architectural concern**: a doubt about an architectural boundary or a duplicated responsibility. It is suspected until validation decides it, and says which it is.
 - **Unknown**: what lies outside the coverage of the checks performed and the judgments made.
 
 Every finding names its subject, where it is, and the evidence it rests on. Passing tests show that the cases they exercise pass, within their coverage. A clean result is never a claim of complete correctness.
