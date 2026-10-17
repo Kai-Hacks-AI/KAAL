@@ -1,0 +1,118 @@
+# kaal-testing
+
+KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Capability` and `KAAL Skill` types and admission, and this capability joins through them.
+
+```
+capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
+payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
+skills/kaal-testing/                   the Agent Skill: SKILL.md
+skills/kaal-testing/references/        findings.md
+lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
+lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
+lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
+ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
+```
+
+The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
+
+## What it teaches
+
+A capability's evidence comes from three loops, and none stands in for another:
+- **Architecture conformance:** the capability respects the boundaries it declares. This is verified mechanically where possible, and validated by an Agent or a person where not.
+- **Capability acceptance:** the delivered capability behaves as its contract states.
+- **Implementation:** internal behaviour, test first.
+
+An invariant is tested exhaustively where it is owned, and its integration selectively where it is consumed.
+
+Findings are verified failures, potential defects, architectural concerns or unknowns, and the kinds are never merged. A clean result shows only what its checks cover.
+
+## Execution and evidence
+
+`kaal-testing/coverage` runs a workspace's own tests under V8 coverage (c8) and measures which delivered files and lines they executed:
+
+- `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names, into a report directory the caller provides fresh: one already holding a summary is refused, and `cover` removes nothing. It resolves to line, branch and function coverage, each delivered file's executed and executable lines, and the delivered files never executed, or to a failure naming the workspace and the missing evidence.
+- `evidence(workspace, root, text)` reads one c8 JSON summary into that evidence, or into that failure.
+
+Which workspaces exist, building them and which files they deliver are packaging: the caller decides them. Commands, reads and every other host operation go through Hosting. Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests. Coverage is evidence of executed code, not of correctness, and no percentage is required.
+
+## Acceptance runs
+
+`kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/acceptance/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
+
+- **Discovery:** `discover(workspaces)` finds the scenarios by that convention.
+- **Running:** `accept({ manifest, scenarios, run, cwd })` runs them in parallel. `run` is a missing or empty directory, which Testing initializes with the manifest, a ledger and the hosts. An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.
+- **Outcome:** the result keeps the runner's own exit status apart from `passed`. `passed` is false whenever there is a verified failure, even if the runner exited 0. Unknowns stay in the findings and do not decide `passed`; a gate that wants them to fail says so itself.
+- **Installing:** in a scenario, `install(names)` installs the manifest's tarballs into a fresh host of its own under the run, and records what it consumed. A tarball that no longer holds the bytes packed for it is refused. A scenario never builds or packs.
+- **Findings:** `findings(...)` reads the ledger, and npm's record of what each host holds, into findings. These are verified failures:
+  - bytes other than the packed tarball;
+  - a package this run did not pack;
+  - a host holding a packed package from elsewhere;
+  - a host shared by two installations;
+  - a scenario that installed nothing;
+  - a host whose record cannot be read;
+  - a failed scenario run.
+- **Unknowns:** two things stay unknown, never passed:
+  - whether the hosts lie physically outside the repository, until Hosting offers a portable containment contract;
+  - installations a scenario makes without `install()`.
+
+Whether any package was rebuilt, or a tarball changed during the run, is packaging's to check.
+
+## Non-blank text lines
+
+`kaal-testing/inventory` counts the files a caller lists. The metric is broad on purpose: a **non-blank text line** is any line with a non-whitespace character in any text file, whether code, Markdown, YAML, JSON or configuration. It is not executable lines of code, and it is never a denominator for coverage.
+
+`inventory(files)` takes `{ path, bytes }` for each file and returns every file once, with how it was counted:
+- **text:** its non-blank lines;
+- **binary:** NUL bytes or not UTF-8, so no text lines;
+- **excluded:** for example a `package-lock.json` generated by npm. It is counted, shown with its reason, and kept out of the total.
+
+Which files exist is the caller's answer. The count says how much text is tracked, not what runs or who owns it.
+
+## CASE-owned attribution
+
+`kaal-testing/attribution` attributes an inventory's files to the Capabilities, Agents, Skills and Extensions that claim them. Testing owns how claims are read, resolved and reported, with one rule for all four kinds. Each owner owns its own claim.
+
+- **A claim** is an ownership file named `ownership.kaal.json`, kept in its owner's own tree and found by that name. There is no central list. It names one typed owner: its CASE kind (`capability`, `agent`, `skill` or `extension`) and the exact `{ name, id }` of its own Node. It lists repository-relative path patterns. A pattern is a file path, or a directory path ending in `/` that covers everything beneath it. Patterns are literal: there are no wildcards.
+- **Scope:** an ownership file's scope is the directory holding it. Every pattern must lie within that scope, so an owner claims only within its own tree. An ownership file with a pattern outside its scope is a verified failure and claims nothing.
+- **Resolution:** the caller supplies the admitted CASE Nodes with their kinds, from Core. A claim resolves only when its kind, name and id all match one of them. Otherwise it is a verified failure, and its paths stay unassigned. So is an ownership file that does not read. An owner keeps the kind Core gives it: a Skill is never counted as a Capability.
+- **Host boundary:** Testing takes the inventory and the ownership files' bytes as given. Listing the files, reading their bytes and every host path operation are the caller's, through Hosting. Testing compares the declaration's repository-relative strings as written. A claim is a declaration: it attributes the tracked paths it names, within its scope, and nothing more.
+- **Attribution** of each file:
+  - claimed by exactly one owner: that owner's;
+  - claimed by none: unassigned;
+  - claimed by two or more: an architectural concern naming every claimant. It is not attributed by precedence, proximity or splitting. It is listed among the conflicts and counted as unassigned until the claims are fixed.
+- **Stale claims:** a pattern that matches no inventoried file is a potential defect.
+- **Accounting:** the repository's non-blank text lines always equal the singly attributed lines plus the unassigned lines. Binary and excluded files are attributed but carry no lines.
+
+`attribute(inventory, claimFiles, owners)` returns each owner's kind, files and lines, the unassigned and conflicting files, and every finding. A package or a directory is never taken as ownership: a capability may be delivered in any number of packages, or none, and a file belongs to an owner only when that owner claims it. Ownership is structural. It says which responsibility a file belongs to, not who is accountable for it or who verified it.
+
+## Reconciled report
+
+`kaal-testing/report` puts the two dimensions side by side. Neither is derived from the other.
+
+- **Package dimension:** each workspace's delivered JavaScript, executed by that workspace's own tests, from `cover`.
+- **Ownership dimension:** each owner's files and non-blank text lines, from `attribute`, unchanged.
+- **Reconciliation:** a delivered file joins an owner only when attribution gives that exact tracked path to exactly one owner. Every delivered file gets exactly one status:
+  - **attributed** to its owner;
+  - **unclaimed**;
+  - **conflicting claims**;
+  - **no tracked identity**, for a delivered file Git does not track, such as built output. No source is guessed for it.
+- **Metrics:** an owner's delivered files report executable lines executed, as V8 coverage counts them, beside its non-blank text lines. No ratio of one to the other is formed. A file in a workspace whose coverage failed counts as not measured, and the failure is a verified failure.
+
+`report(attribution, coverage)` takes `attribute`'s result and one coverage result per workspace, and returns the ownership dimension, the package dimension, the reconciliation per owner and per status, and every finding.
+
+## Boundaries
+
+Testing keeps no registry. Its execution runs a capability's own cases as that capability defines them, and adds none.
+
+Each capability owns its contracts and its cases. The obligation to demonstrate them belongs to the capability and its engineering. So do builds, packaging, and when checks run and what they gate.
+
+## Register the Nodes
+
+```sh
+npx kaal register capability testing node_modules/kaal-testing/capability
+npx kaal register skill kaal-testing node_modules/kaal-testing/payload
+```
+
+## License
+
+MIT. See `LICENSE`. The license covers this package's contents only.
