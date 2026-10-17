@@ -12,7 +12,7 @@
     "skills"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core",
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
     "test": "node --test test/*.test.mjs"
   },
   "engines": {
