@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, capabilities, foundation, identify, readContribution, register, sha256 } from "kaal-core";
+import { bootstrap, catalog, foundation, identify, readContribution, register, sha256 } from "kaal-core";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "kaal-hosting";
 import { edgesOf, Graph } from "kaal-graph";
@@ -136,9 +136,22 @@ describe("the graph", () => {
     assert.match(findings.join("\n"), /target names Not Intent, but Node .* is named Intent capture/);
   });
 
+  it("looks a Node up by name and by reference, the name checked", () => {
+    const twin = make("R1", { raw: "note: another R1\n" });
+    const twins = [r1, twin].map(ref).sort((a, b) => (a.id < b.id ? -1 : 1));
+    for (const g of [new Graph([serves, intent, r1, twin]), new Graph([twin, r1, intent, serves])]) {
+      assert.deepEqual(g.named("R1"), twins, "a name alone may name several Nodes, sorted by id");
+      assert.deepEqual(g.named("R"), []);
+      assert.equal(g.resolve(ref(r1)), r1);
+      assert.equal(g.resolve(ref(twin)), twin);
+      assert.equal(g.resolve({ name: "R2", id: r1.id }), undefined, "a misnamed reference resolves to nothing");
+      assert.equal(g.resolve({ name: "R1", id: "f".repeat(64) }), undefined);
+    }
+  });
+
   it("answers every query with records the caller cannot use to change the graph", () => {
     const g = new Graph([serves, refines, intent, r1, r2]);
-    const queries = [() => g.out(r2.id), () => g.in(intent.id), () => g.typed(f.definition), () => g.edges(ref(serves))];
+    const queries = [() => g.out(r2.id), () => g.in(intent.id), () => g.named(r1.name), () => g.typed(f.definition), () => g.edges(ref(serves))];
     const before = queries.map((q) => JSON.stringify(q()));
     for (const q of queries) {
       const list = q();
@@ -221,7 +234,7 @@ describe("the package", () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-graph-")), "engine");
     await bootstrap(engine);
     await register(engine, "skill", "kaal-graph", await readContribution(join(PACKAGE, "payload")));
-    assert.deepEqual((await capabilities(engine)).skills, [{ name: "Graph", id: node.id }]);
+    assert.deepEqual((await catalog(engine)).skills, [{ name: "Graph", id: node.id }]);
   });
 
   it("has an Agent Skill that conforms", async () => {
@@ -238,6 +251,12 @@ describe("the package", () => {
     const run = (...args) => execute(process.execPath, [SCRIPT, ...args], { cwd: dir });
     assert.equal((await run("check", dir)).status, 0);
     assert.equal((await run("in", sha256(intent), dir)).stdout, `Serves\t${sha256(serves)}\tR\t${sha256(req)}\n`);
+    const intentLine = `${sha256(intent)}\tIntent capture\t${f.definition.name} ${f.definition.id}\n`;
+    assert.equal((await run("named", "Intent capture", dir)).stdout, intentLine);
+    assert.equal((await run("resolve", "Intent capture", sha256(intent), dir)).stdout, intentLine);
+    const misnamed = await run("resolve", "Serves", sha256(intent), dir);
+    assert.deepEqual([misnamed.status, misnamed.stderr], [2, `Node ${sha256(intent)} is named Intent capture, not Serves\n`]);
+    assert.equal((await run("named", "Nobody", dir)).status, 2);
     writeFileSync(join(dir, "n/intent.md"), bytes("Intent capture", { raw: "note: changed\n" }));
     const broken = await run("check", dir);
     assert.equal(broken.status, 1);
