@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import {
   bootstrap,
   capabilities,
+  catalog,
   evaluate,
   exportPayload,
   foundation,
@@ -13,10 +14,12 @@ import {
   loadEngine,
   payload,
   readContribution,
+  register,
   registerExtension,
   registerSkill,
   sha256,
   verify,
+  type Kind,
   type Ref,
 } from "kaal-core";
 
@@ -65,8 +68,8 @@ const f = foundation();
 
 /**
  * Move every file of an Engine to another directory and filename, keeping its
- * exact bytes and dropping the packaged `core/`, `skills/` and `extensions/`
- * layout. Returns the moves, in path order.
+ * exact bytes and dropping the packaged `core/`, `capabilities/`, `agents/`,
+ * `skills/` and `extensions/` layout. Returns the moves, in path order.
  */
 function rearrange(dir: string): { from: string; to: string }[] {
   const moves = Object.keys(readTree(dir))
@@ -76,7 +79,7 @@ function rearrange(dir: string): { from: string; to: string }[] {
     mkdirSync(dirname(join(dir, to)), { recursive: true });
     renameSync(join(dir, from), join(dir, to));
   }
-  for (const top of ["core", "skills", "extensions"]) rmSync(join(dir, top), { recursive: true, force: true });
+  for (const top of ["core", "capabilities", "agents", "skills", "extensions"]) rmSync(join(dir, top), { recursive: true, force: true });
   return moves;
 }
 
@@ -418,6 +421,8 @@ describe("bootstrap and verify", () => {
 describe("registration", () => {
   const skill = node("Greeting", f.skill, "Greet people warmly.\n");
   const extension = node("Clock", f.extension, "Tell the time.\n");
+  const capability = node("Greeting People", f.capability, "Be responsible for greeting people.\n");
+  const agent = node("Greeter", f.agent, "Greet whoever arrives.\n");
 
   it("registers a valid Skill and Extension and enumerates them", async () => {
     const dir = await engine();
@@ -431,6 +436,27 @@ describe("registration", () => {
     });
     assert.equal(readFileSync(join(dir, "skills", "kaal-greeting", "Greeting.md"), "utf8"), skill);
     assert.ok((await verify(dir)).ok);
+  });
+
+  it("registers a Capability and an Agent by the same mechanism and catalogs all four kinds", async () => {
+    const dir = await engine();
+    assert.deepEqual(await register(dir, "capability", "greeting", { "Greeting-People.md": capability }), { ids: [sha256(capability)], written: true });
+    assert.deepEqual(await register(dir, "agent", "greeter", { "Greeter.md": agent }), { ids: [sha256(agent)], written: true });
+    await registerSkill(dir, "greeting", { "Greeting.md": skill });
+    await registerExtension(dir, "clock", { "Clock.md": extension });
+    assert.deepEqual(await catalog(dir), {
+      capabilities: [{ name: "Greeting People", id: sha256(capability) }],
+      agents: [{ name: "Greeter", id: sha256(agent) }],
+      skills: [{ name: "Greeting", id: sha256(skill) }],
+      extensions: [{ name: "Clock", id: sha256(extension) }],
+    });
+    assert.deepEqual(await capabilities(dir), { skills: [{ name: "Greeting", id: sha256(skill) }], extensions: [{ name: "Clock", id: sha256(extension) }] });
+    assert.equal(readFileSync(join(dir, "capabilities", "greeting", "Greeting-People.md"), "utf8"), capability);
+    assert.equal(readFileSync(join(dir, "agents", "greeter", "Greeter.md"), "utf8"), agent);
+    assert.deepEqual(await register(dir, "capability", "greeting", { "Greeting-People.md": capability }), { ids: [sha256(capability)], written: false });
+    rearrange(dir);
+    assert.deepEqual((await catalog(dir)).capabilities, [{ name: "Greeting People", id: sha256(capability) }], "found by type, not by layout");
+    assert.ok((await verify(dir)).ok, (await verify(dir)).problems.join("\n"));
   });
 
   it("registers a contribution whose Nodes type each other", async () => {
@@ -451,7 +477,8 @@ describe("registration", () => {
   });
 
   const invalid: [string, RegExp, () => [string, string, Record<string, string>]][] = [
-    ["bad capability name", /not a capability name/, () => ["skill", "Bad_Name", { "a.md": skill }]],
+    ["unknown kind", /not a kind: capability, agent, skill or extension/, () => ["plugin", "thing", { "a.md": skill }]],
+    ["bad contribution name", /not a contribution name/, () => ["skill", "Bad_Name", { "a.md": skill }]],
     ["empty contribution", /at least one Node/, () => ["skill", "empty", {}]],
     ["path escaping the capability", /not a path within/, () => ["skill", "escape", { "../a.md": skill }]],
     ["absolute path", /not a path within/, () => ["skill", "abs", { "/a.md": skill }]],
@@ -465,13 +492,20 @@ describe("registration", () => {
     ["Extension in a Skill contribution", /carries no KAAL Extension/, () => ["skill", "mixed", { "a.md": skill, "b.md": extension }]],
     ["Skill in an Extension contribution", /carries no KAAL Skill/, () => ["extension", "mixed", { "a.md": extension, "b.md": skill }]],
     ["no Extension-typed Node", /typed by KAAL Extension/, () => ["extension", "nothing", { "a.md": skill }]],
+    ["no Capability-typed Node", /a capability contribution carries at least one Node typed by KAAL Capability/, () => ["capability", "nothing", { "a.md": node("A", f.definition) }]],
+    ["Skill in a Capability contribution", /carries no KAAL Skill/, () => ["capability", "mixed", { "a.md": capability, "b.md": skill }]],
+    ["Agent in a Capability contribution", /carries no KAAL Agent/, () => ["capability", "mixed", { "a.md": capability, "b.md": agent }]],
+    ["no Agent-typed Node", /an agent contribution carries at least one Node typed by KAAL Agent/, () => ["agent", "nothing", { "a.md": capability }]],
+    ["Capability in an Agent contribution", /carries no KAAL Capability/, () => ["agent", "mixed", { "a.md": agent, "b.md": capability }]],
+    ["Capability in a Skill contribution", /carries no KAAL Capability/, () => ["skill", "mixed", { "a.md": skill, "b.md": capability }]],
+    ["Agent in an Extension contribution", /carries no KAAL Agent/, () => ["extension", "mixed", { "a.md": extension, "b.md": agent }]],
   ];
   for (const [label, reason, make] of invalid) {
     it(`refuses atomically: ${label}`, async () => {
       const dir = await engine();
       const before = snapshot(dir);
-      const [kind, capability, files] = make();
-      await assert.rejects(() => (kind === "skill" ? registerSkill : registerExtension)(dir, capability, files), reason);
+      const [kind, name, files] = make();
+      await assert.rejects(() => register(dir, kind as Kind, name, files), reason);
       assert.equal(snapshot(dir), before);
       assert.deepEqual(readdirSync(dir).sort(), ["AGENTS.md", "KAAL-KERNEL.md", "core"]);
     });

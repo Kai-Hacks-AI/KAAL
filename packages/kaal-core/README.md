@@ -1,6 +1,6 @@
 # kaal-core
 
-KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
+KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Capabilities, Agents, Skills and Extensions by one mechanism, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
 Core depends on no Git host and no agent provider. It has two runtime dependencies. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication) and does not depend on Core. [yaml](https://www.npmjs.com/package/yaml), pinned, reads frontmatter. It needs Node.js 24 or later.
 
@@ -54,8 +54,10 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
   KAAL-KERNEL.md
   core/Node.md, KAAL-Definition.md, KAAL-Capability.md, KAAL-Agent.md,
        KAAL-Skill.md, KAAL-Extension.md, CASE.md
-  skills/<capability>/        registered Skill contributions
-  extensions/<capability>/    registered Extension contributions
+  capabilities/<name>/        registered Capability contributions
+  agents/<name>/              registered Agent contributions
+  skills/<name>/              registered Skill contributions
+  extensions/<name>/          registered Extension contributions
 ```
 
 This layout is how Core delivers files, not part of any identity. The Engine is found by content: you may move or rename any file, keeping its bytes, and every Node keeps its id, its type resolution and its discovery.
@@ -67,10 +69,11 @@ This layout is how Core delivers files, not part of any identity. The Engine is 
 ```
 kaal init                                              bootstrap the Engine (see below)
 kaal verify                                            verify the Engine
-kaal list                                              list the Skills and Extensions the Engine holds
+kaal list                                              list the Capabilities, Agents, Skills and Extensions
 kaal resolve <name> [<id>]                             resolve a Node by name, or by name and id
 kaal identify <file>...                                print the id, name and type of Node files
-kaal register <skill|extension> <capability> <dir>     register a contribution, atomically
+kaal register <capability|agent|skill|extension> <name> <dir>
+                                                       register a contribution, atomically
 kaal export <out-dir>                                  write the foundational payload into an empty directory
 ```
 
@@ -78,22 +81,25 @@ Every command takes `--engine <dir>`: the Engine directory itself, absolute or r
 
 ## Registration
 
-A contribution is a directory of Nodes registered under one capability name (lowercase letters, digits and single hyphens). It is accepted only as a whole. Every file must be a Node in Form at a relative `.md` path, every Node's type must resolve against the Engine and the contribution together, at least one Node must be typed by Core's `KAAL Skill` (or `KAAL Extension`), and a Skill contribution carries no Extension, nor the reverse. All checks run before anything is written. Hosting then publishes the contribution all or nothing, refusing paths that would not be held faithfully on Linux, Windows and macOS (names that differ only by case or Unicode normalization, names Windows cannot hold), so a refused contribution leaves the Engine byte-for-byte unchanged. Registering the identical contribution again is a no-op; a capability already registered with other content is refused.
+A contribution is a directory of Nodes of one kind (capability, agent, skill or extension), registered under one name (lowercase letters, digits and single hyphens). It is accepted only as a whole. Every file must be a Node in Form at a relative `.md` path, every Node's type must resolve against the Engine and the contribution together, at least one Node must be typed by Core's Node of that kind (`KAAL Capability`, `KAAL Agent`, `KAAL Skill` or `KAAL Extension`), and none by the other three. All checks run before anything is written. Hosting then publishes the contribution all or nothing, refusing paths that would not be held faithfully on Linux, Windows and macOS (names that differ only by case or Unicode normalization, names Windows cannot hold), so a refused contribution leaves the Engine byte-for-byte unchanged. Registering the identical contribution again is a no-op; a name already registered for the kind with other content is refused. `registerSkill` and `registerExtension` remain as shorthands for `register` with that kind. Core does not relate a Capability to its Agents, Skills or Extensions; that relationship is an Edge, which belongs to Graph and the capabilities.
 
 ## API
 
 Functions that read or write an Engine go through Hosting and return promises; `identify`, `sha256`, `evaluate`, `payload` and `foundation` are pure and synchronous.
 
 ```js
-import { bootstrap, verify, loadEngine, registerSkill, registerExtension, capabilities, identify, payload, foundation, exportPayload } from "kaal-core";
+import { bootstrap, verify, loadEngine, register, registerSkill, registerExtension, catalog, identify, payload, foundation, exportPayload } from "kaal-core";
 
 await bootstrap(".kaal");
 (await verify(".kaal")).ok;                          // true
 const engine = await loadEngine(".kaal");
 engine.resolve(foundation().skill);                  // the KAAL Skill Node
 await registerSkill(".kaal", "greeting", { "Greeting.md": bytes });
-await capabilities(".kaal");                         // { skills: [{ name, id }], extensions: [...] }
+await register(".kaal", "capability", "greeting", { "Greeting-People.md": bytes });
+await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, extensions }
 ```
+
+`capabilities(dir)` is deprecated: it still returns `{ skills, extensions }`, and `catalog` replaces it.
 
 ## License
 
