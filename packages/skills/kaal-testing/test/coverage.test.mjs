@@ -9,13 +9,23 @@ const m = (covered, total) => ({ total, covered, skipped: 0, pct: total ? Math.r
 const file = (l, b, f) => ({ lines: m(...l), statements: m(...l), branches: m(...b), functions: m(...f) });
 
 describe("coverage evidence from a c8 summary", () => {
-  it("reports totals, the files measured and the delivered files never executed", () => {
+  it("reports totals, the files measured with their executed lines, and the delivered files never executed", () => {
     const text = JSON.stringify({
       total: file([3, 4], [1, 2], [1, 2]),
       "/r/w/dist/a.js": file([3, 3], [1, 1], [1, 1]),
       "/r/w/dist/b.js": file([0, 1], [0, 1], [0, 1]),
     });
-    assert.deepEqual(evidence("w", "/r", text), { lines: 75, branches: 50, functions: 50, measured: ["w/dist/a.js", "w/dist/b.js"], unexecuted: ["w/dist/b.js"] });
+    assert.deepEqual(evidence("w", "/r", text), {
+      lines: 75,
+      branches: 50,
+      functions: 50,
+      measured: ["w/dist/a.js", "w/dist/b.js"],
+      files: [
+        { path: "w/dist/a.js", lines: { covered: 3, total: 3 } },
+        { path: "w/dist/b.js", lines: { covered: 0, total: 1 } },
+      ],
+      unexecuted: ["w/dist/b.js"],
+    });
   });
 
   it("fails, naming the workspace, when no summary was produced", () => {
