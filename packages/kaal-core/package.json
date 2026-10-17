@@ -32,7 +32,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "kaal-hosting": "0.0.1"
+    "kaal-hosting": "0.0.1",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
