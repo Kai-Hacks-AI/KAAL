@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import {
   bootstrap,
   capabilities,
+  catalog,
   evaluate,
   exportPayload,
   foundation,
@@ -13,10 +14,12 @@ import {
   loadEngine,
   payload,
   readContribution,
+  register,
   registerExtension,
   registerSkill,
   sha256,
   verify,
+  type Kind,
   type Ref,
 } from "kaal-core";
 
@@ -26,9 +29,11 @@ import {
  * a visible, reviewed change to this table.
  */
 const PINNED = {
-  kernel: "6122198d786686964863a8c81237fb30d0a2e29c1efe7473c366c7c20791b20b",
+  kernel: "45de65738c1c01633b33da82fc18f54768329ae2046b98b754b1d76a1390dafe",
   node: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
   definition: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
+  capability: "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e",
+  agent: "d632c1fb4c4201d65c7834d4af0463cd1bd3928dd0fb8cc0b503521a4d2cf447",
   skill: "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
   extension: "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94",
 };
@@ -63,8 +68,8 @@ const f = foundation();
 
 /**
  * Move every file of an Engine to another directory and filename, keeping its
- * exact bytes and dropping the packaged `core/`, `skills/` and `extensions/`
- * layout. Returns the moves, in path order.
+ * exact bytes and dropping the packaged `core/`, `capabilities/`, `agents/`,
+ * `skills/` and `extensions/` layout. Returns the moves, in path order.
  */
 function rearrange(dir: string): { from: string; to: string }[] {
   const moves = Object.keys(readTree(dir))
@@ -74,25 +79,35 @@ function rearrange(dir: string): { from: string; to: string }[] {
     mkdirSync(dirname(join(dir, to)), { recursive: true });
     renameSync(join(dir, from), join(dir, to));
   }
-  for (const top of ["core", "skills", "extensions"]) rmSync(join(dir, top), { recursive: true, force: true });
+  for (const top of ["core", "capabilities", "agents", "skills", "extensions"]) rmSync(join(dir, top), { recursive: true, force: true });
   return moves;
 }
 
 describe("identity", () => {
   it("is the SHA-256 of exact bytes, and the foundation is deterministic", async () => {
     assert.deepEqual(
-      { kernel: f.kernel, node: f.node.id, definition: f.definition.id, skill: f.skill.id, extension: f.extension.id },
+      { kernel: f.kernel, node: f.node.id, definition: f.definition.id, capability: f.capability.id, agent: f.agent.id, skill: f.skill.id, extension: f.extension.id },
       PINNED,
     );
     for (const [path, bytes] of Object.entries(payload())) if (path.startsWith("core/")) assert.equal(identify(bytes).id, sha256(bytes));
   });
 
-  it("carries exactly five foundational documents and the Engine's AGENTS.md, neither the Kernel nor AGENTS.md a Node", async () => {
+  it("carries exactly the Kernel, six foundational Nodes, the CASE Definition and the Engine's AGENTS.md, neither the Kernel nor AGENTS.md a Node", async () => {
     const files = payload();
-    assert.deepEqual(Object.keys(files).sort(), ["AGENTS.md", "KAAL-KERNEL.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.deepEqual(Object.keys(files).sort(), [
+      "AGENTS.md",
+      "KAAL-KERNEL.md",
+      "core/CASE.md",
+      "core/KAAL-Agent.md",
+      "core/KAAL-Capability.md",
+      "core/KAAL-Definition.md",
+      "core/KAAL-Extension.md",
+      "core/KAAL-Skill.md",
+      "core/Node.md",
+    ]);
     assert.throws(() => identify(files["KAAL-KERNEL.md"]));
     assert.throws(() => identify(files["AGENTS.md"]));
-    assert.equal(evaluate(files).nodes.length, 4);
+    assert.equal(evaluate(files).nodes.length, 7);
   });
 
   it("does not depend on filename or location", async () => {
@@ -111,28 +126,119 @@ describe("identity", () => {
     for (const bad of [
       "no frontmatter\n",
       "---\r\nname: A\r\n---\r\n",
-      "---\nname:  A\n---\n",
-      "---\nname: A \n---\n",
-      "---\ntype:\n  name: Node\n  id: " + f.node.id + "\nname: A\n---\n",
+      "---\nname: A\r\n---\n",
+      "---\nname: A\n",
+      "---\nname: A\n---",
+      "---\n---\n",
+      "---\n- A\n---\n",
+      "---\nname: \"A \"\n---\n",
+      "---\nname: \"A\\nB\"\n---\n",
+      "---\nname: \"A\\rB\"\n---\n",
+      "---\nname: \"A\\LB\"\n---\n",
+      "---\nname: \"A\\NB\"\n---\n",
+      "---\nname: A\ntype:\n  name: \"No\\rde\"\n  id: " + f.node.id + "\n---\n",
+      "---\nname: [A]\n---\n",
+      "---\ntitle: A\n---\n",
+      "---\nname: A\nname: B\n---\n",
       "---\nname: A\ntype:\n  name: Node\n  id: XYZ\n---\n",
-      "---\nname: A\nextra: 1\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id.toUpperCase() + "\n---\n",
+      "---\nname: A\ntype:\n  name: Node\n  id: " + f.node.id + "\n  note: x\n---\n",
+      "---\nname: A\ntype: Node\n---\n",
+      "---\nname: A\nk: !foo v\n---\n",
+      "---\nname: A\nk: !!binary aGk=\n---\n",
+      "---\nname: A\nk: !!set {v}\n---\n",
+      "---\nname: A\nk: !!timestamp 2001-12-14\n---\n",
+      "---\nname: !!int 3\n---\n",
+      "---\nname: A\nk: &a v\nl: *a\n---\n",
+      "---\nname: A\nk: &a v\n---\n",
+      "---\nname: A\nbase: {n: 1}\nm:\n  <<: {n: 2}\n---\n",
+      "---\nname: A\n? [k]\n: v\n---\n",
+      "---\nname: A\n3: v\n---\n",
+      "---\nname: A\ntrue: v\n---\n",
     ])
-      assert.throws(() => identify(Buffer.from(bad)), bad);
+      assert.throws(() => identify(Buffer.from(bad)), /not in Form/, bad);
     assert.throws(() => identify(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff, 0xfe])));
+  });
+
+  it("reads reserved fields as written, whatever YAML would type them", () => {
+    const numeric = "1234e5678".padEnd(64, "0");
+    const digits = "1".repeat(64);
+    for (const id of [numeric, digits]) {
+      const n = identify(Buffer.from(`---\nname: 2024\ntype:\n  name: true\n  id: ${id}\n---\n`));
+      assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
+      assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
+    }
+    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
+    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${f.node.name}, id: ${f.node.id}}\n---\n`)).type, f.node);
+    assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${f.node.name}, ${f.node.id}]\n---\n`)), /not in Form/);
+  });
+
+  it("accepts capability-owned frontmatter without interpreting it", async () => {
+    const target = { name: "Intent capture", id: "a".repeat(64) };
+    const bytes = Buffer.from(
+      `---\nname: Requirement A\ntype:\n  name: ${f.definition.name}\n  id: ${f.definition.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${target.name}\n        id: ${target.id}\npriority: 3\nweight: 0.5\nenabled: true\nyes: no\nlabel: !!str 42\nowner:\nlist: !!seq [1, "1"]\n---\n\n# Requirement A\n`,
+    );
+    const n = identify(bytes);
+    assert.equal(n.id, sha256(bytes));
+    assert.equal(n.name, "Requirement A");
+    assert.deepEqual(n.type, f.definition);
+    assert.deepEqual(n.frontmatter, {
+      name: "Requirement A",
+      type: { name: f.definition.name, id: f.definition.id },
+      edges: [{ type: { name: "Serves", id: "b".repeat(64) }, targets: [target] }],
+      priority: 3,
+      weight: 0.5,
+      enabled: true,
+      yes: "no",
+      label: "42",
+      owner: null,
+      list: [1, "1"],
+    });
+    assert.ok(Object.isFrozen(n.frontmatter));
+    const dir = await engine();
+    writeFileSync(join(dir, "requirement.md"), bytes);
+    assert.equal((await loadEngine(dir)).resolve({ name: "Requirement A", id: n.id }).name, "Requirement A");
+    assert.equal((await verify(dir)).ok, true);
+  });
+
+  it("reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes", () => {
+    const block = node("A", f.definition);
+    const flow = `---\ntype: {name: ${f.definition.name}, id: ${f.definition.id}}\nname: 'A'\n---\n\n# A\n`;
+    assert.deepEqual([identify(Buffer.from(flow)).name, identify(Buffer.from(flow)).type], [identify(Buffer.from(block)).name, identify(Buffer.from(block)).type]);
+    assert.notEqual(identify(Buffer.from(flow)).id, identify(Buffer.from(block)).id);
+  });
+
+  it("keeps the id, name and type of every Node in this repository", () => {
+    const root = join(dirname(new URL(import.meta.url).pathname), "..", "..", "..");
+    const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
+      readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
+        .filter((p) => p.endsWith(".md") && !p.includes("node_modules") && !p.includes("/skills/") && statSync(join(root, top, p)).isFile())
+        .map((p) => readFileSync(join(root, top, p)))
+        .filter((b) => b.subarray(0, 4).toString() === "---\n" && /^---\nname: /.test(b.toString())),
+    );
+    assert.ok(nodes.length >= 6);
+    const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+    for (const bytes of nodes) {
+      const [, name, typeName, typeId] = legacy.exec(bytes.toString())!;
+      const n = identify(bytes);
+      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, typeName ? { name: typeName, id: typeId } : undefined]);
+    }
   });
 });
 
 describe("resolution", () => {
   it("resolves types and references by name and identity", async () => {
     const e = evaluate(payload());
-    assert.equal(e.nodes.length, 4);
+    assert.equal(e.nodes.length, 7);
     assert.equal(e.resolve(f.skill).name, "KAAL Skill");
     assert.deepEqual(e.resolve(f.skill).type, f.definition);
     assert.deepEqual(e.resolve(f.definition).type, f.node);
     assert.equal(e.resolve(f.node).type, undefined);
     assert.throws(() => e.resolve({ name: "KAAL Extension", id: f.skill.id }), /named KAAL Skill/);
     assert.throws(() => e.resolve({ name: "KAAL Skill", id: "0".repeat(64) }), /no admitted Node/);
-    assert.deepEqual(e.typedBy(f.definition).map((n) => n.name), ["KAAL Extension", "KAAL Skill"]);
+    assert.deepEqual(e.typedBy(f.definition).map((n) => n.name).sort(), ["CASE", "KAAL Agent", "KAAL Capability", "KAAL Extension", "KAAL Skill"]);
+    for (const kind of [f.capability, f.agent, f.skill, f.extension]) assert.deepEqual(e.resolve(kind).type, f.definition, "the four CASE kinds are parallel, each typed by KAAL Definition");
   });
 
   it("admits a chain of types and rejects what does not resolve", async () => {
@@ -150,10 +256,29 @@ describe("resolution", () => {
       "notes.md": Buffer.from("# just prose, not a Node\n"),
     };
     const e = evaluate(files);
-    assert.deepEqual(e.nodes.map((n) => n.name), ["Concept", "Instance", "KAAL Definition", "KAAL Extension", "KAAL Skill", "Node"]);
+    assert.deepEqual(e.nodes.map((n) => n.name), ["CASE", "Concept", "Instance", "KAAL Agent", "KAAL Capability", "KAAL Definition", "KAAL Extension", "KAAL Skill", "Node"]);
     assert.deepEqual(e.rejected.map((r) => r.path), ["b/malformed.md", "b/orphan.md", "b/second-genesis.md", "b/unknown.md", "b/wrong-name.md"]);
     assert.match(e.rejected.find((r) => r.path === "b/wrong-name.md")!.reason, /is named Concept/);
     assert.match(e.rejected.find((r) => r.path === "b/orphan.md")!.reason, /not admitted/);
+  });
+
+  it("admits a chain of types whatever the order of its files", async () => {
+    // The deepest Node sorts first, so no Node's type is known when its file is
+    // read: admission must follow the types, not the files.
+    const files: Record<string, Buffer> = { ...payload() };
+    let type: Ref = f.definition;
+    const depth = 2000;
+    for (let i = 0; i < depth; i++) {
+      const bytes = Buffer.from(node(`Link ${i}`, type));
+      files[`chain/${String(depth - i).padStart(6, "0")}.md`] = bytes;
+      type = { name: `Link ${i}`, id: sha256(bytes) };
+    }
+    files["chain/broken.md"] = Buffer.from(node("Broken", { name: "Link 7", id: "1".repeat(64) }));
+    const e = evaluate(files);
+    assert.equal(e.nodes.length, depth + 7);
+    assert.deepEqual(e.typedBy(type), []);
+    assert.equal(e.resolve(type).name, `Link ${depth - 1}`);
+    assert.deepEqual(e.rejected.map((r) => r.path), ["chain/broken.md"]);
   });
 
   it("allows several Nodes with one name, distinguished by id", async () => {
@@ -174,7 +299,7 @@ describe("resolution", () => {
 describe("bootstrap and verify", () => {
   it("materializes and verifies a fresh Engine, idempotently", async () => {
     const dir = join(tmp(), ".kaal");
-    assert.equal((await bootstrap(dir)).length, 6);
+    assert.equal((await bootstrap(dir)).length, 9);
     assert.deepEqual(await bootstrap(dir), []);
     const v = await verify(dir);
     assert.deepEqual(v.problems, []);
@@ -206,13 +331,27 @@ describe("bootstrap and verify", () => {
     }
   });
 
+  it("does not verify an Engine bootstrapped before CASE: the Kernel differs and KAAL Capability and KAAL Agent are missing", async () => {
+    const earlier = await engine();
+    rmSync(join(earlier, "core", "KAAL-Capability.md"));
+    rmSync(join(earlier, "core", "KAAL-Agent.md"));
+    rmSync(join(earlier, "core", "CASE.md"));
+    writeFileSync(join(earlier, "KAAL-KERNEL.md"), "an earlier Kernel\n");
+    assert.deepEqual((await verify(earlier)).problems, [
+      `the Kernel (${f.kernel}) is not present`,
+      `foundational Node KAAL Capability (${f.capability.id}) is not admitted`,
+      `foundational Node KAAL Agent (${f.agent.id}) is not admitted`,
+    ]);
+    await assert.rejects(() => bootstrap(earlier), /not a valid Engine; nothing was written/);
+  });
+
   it("bootstraps an empty existing directory in place, never removing or replacing it", async () => {
     const dir = join(tmp(), ".kaal");
     mkdirSync(dir);
     const cwd = process.cwd();
     process.chdir(dir);
     try {
-      assert.equal((await bootstrap(".")).length, 6);
+      assert.equal((await bootstrap(".")).length, 9);
       assert.deepEqual(Object.keys(readTree(".")).sort(), Object.keys(payload()).sort(), "the current directory still holds the Engine");
     } finally {
       process.chdir(cwd);
@@ -223,7 +362,7 @@ describe("bootstrap and verify", () => {
   it("reports what is wrong with an Engine", async () => {
     const dir = await engine();
     writeFileSync(join(dir, "KAAL-KERNEL.md"), "edited");
-    writeFileSync(join(dir, "stray.md"), node("Stray", { name: "Nothing", id: "2".repeat(64) }));
+    writeFileSync(join(dir, "stray.md"), node("Stray", { name: "Nothing", id: "b".repeat(64) }));
     const v = await verify(dir);
     assert.equal(v.ok, false);
     assert.equal(v.problems.length, 2);
@@ -264,7 +403,7 @@ describe("bootstrap and verify", () => {
     const left = await engine();
     mkdirSync(join(left, ".staging-left"));
     writeFileSync(join(left, ".staging-left", "Broken.md"), "---\nname: Broken\n");
-    assert.deepEqual((await verify(left)).problems, [".staging-left/Broken.md: not in Form: a Node begins with frontmatter of `name` and optionally `type` (`name`, `id`), LF line endings"]);
+    assert.deepEqual((await verify(left)).problems, [".staging-left/Broken.md: not in Form: a Node begins with `---`, one YAML mapping with a `name` and optionally a `type` (`name`, `id`), and `---`, LF line endings"]);
     const dir = await engine();
     await registerSkill(dir, "greeting", { "Greeting.md": greeting });
     assert.deepEqual(readdirSync(dirname(dir)), [".kaal"], "nothing is left beside the Engine");
@@ -273,7 +412,7 @@ describe("bootstrap and verify", () => {
 
   it("exports the foundational payload", async () => {
     const out = join(tmp(), "export");
-    assert.equal((await exportPayload(out)).length, 6);
+    assert.equal((await exportPayload(out)).length, 9);
     assert.deepEqual(readTree(out), payload());
     await assert.rejects(() => exportPayload(out), /not an empty directory/);
   });
@@ -282,6 +421,8 @@ describe("bootstrap and verify", () => {
 describe("registration", () => {
   const skill = node("Greeting", f.skill, "Greet people warmly.\n");
   const extension = node("Clock", f.extension, "Tell the time.\n");
+  const capability = node("Greeting People", f.capability, "Be responsible for greeting people.\n");
+  const agent = node("Greeter", f.agent, "Greet whoever arrives.\n");
 
   it("registers a valid Skill and Extension and enumerates them", async () => {
     const dir = await engine();
@@ -295,6 +436,27 @@ describe("registration", () => {
     });
     assert.equal(readFileSync(join(dir, "skills", "kaal-greeting", "Greeting.md"), "utf8"), skill);
     assert.ok((await verify(dir)).ok);
+  });
+
+  it("registers a Capability and an Agent by the same mechanism and catalogs all four kinds", async () => {
+    const dir = await engine();
+    assert.deepEqual(await register(dir, "capability", "greeting", { "Greeting-People.md": capability }), { ids: [sha256(capability)], written: true });
+    assert.deepEqual(await register(dir, "agent", "greeter", { "Greeter.md": agent }), { ids: [sha256(agent)], written: true });
+    await registerSkill(dir, "greeting", { "Greeting.md": skill });
+    await registerExtension(dir, "clock", { "Clock.md": extension });
+    assert.deepEqual(await catalog(dir), {
+      capabilities: [{ name: "Greeting People", id: sha256(capability) }],
+      agents: [{ name: "Greeter", id: sha256(agent) }],
+      skills: [{ name: "Greeting", id: sha256(skill) }],
+      extensions: [{ name: "Clock", id: sha256(extension) }],
+    });
+    assert.deepEqual(await capabilities(dir), { skills: [{ name: "Greeting", id: sha256(skill) }], extensions: [{ name: "Clock", id: sha256(extension) }] });
+    assert.equal(readFileSync(join(dir, "capabilities", "greeting", "Greeting-People.md"), "utf8"), capability);
+    assert.equal(readFileSync(join(dir, "agents", "greeter", "Greeter.md"), "utf8"), agent);
+    assert.deepEqual(await register(dir, "capability", "greeting", { "Greeting-People.md": capability }), { ids: [sha256(capability)], written: false });
+    rearrange(dir);
+    assert.deepEqual((await catalog(dir)).capabilities, [{ name: "Greeting People", id: sha256(capability) }], "found by type, not by layout");
+    assert.ok((await verify(dir)).ok, (await verify(dir)).problems.join("\n"));
   });
 
   it("registers a contribution whose Nodes type each other", async () => {
@@ -315,7 +477,8 @@ describe("registration", () => {
   });
 
   const invalid: [string, RegExp, () => [string, string, Record<string, string>]][] = [
-    ["bad capability name", /not a capability name/, () => ["skill", "Bad_Name", { "a.md": skill }]],
+    ["unknown kind", /not a kind: capability, agent, skill or extension/, () => ["plugin", "thing", { "a.md": skill }]],
+    ["bad contribution name", /not a contribution name/, () => ["skill", "Bad_Name", { "a.md": skill }]],
     ["empty contribution", /at least one Node/, () => ["skill", "empty", {}]],
     ["path escaping the capability", /not a path within/, () => ["skill", "escape", { "../a.md": skill }]],
     ["absolute path", /not a path within/, () => ["skill", "abs", { "/a.md": skill }]],
@@ -329,13 +492,20 @@ describe("registration", () => {
     ["Extension in a Skill contribution", /carries no KAAL Extension/, () => ["skill", "mixed", { "a.md": skill, "b.md": extension }]],
     ["Skill in an Extension contribution", /carries no KAAL Skill/, () => ["extension", "mixed", { "a.md": extension, "b.md": skill }]],
     ["no Extension-typed Node", /typed by KAAL Extension/, () => ["extension", "nothing", { "a.md": skill }]],
+    ["no Capability-typed Node", /a capability contribution carries at least one Node typed by KAAL Capability/, () => ["capability", "nothing", { "a.md": node("A", f.definition) }]],
+    ["Skill in a Capability contribution", /carries no KAAL Skill/, () => ["capability", "mixed", { "a.md": capability, "b.md": skill }]],
+    ["Agent in a Capability contribution", /carries no KAAL Agent/, () => ["capability", "mixed", { "a.md": capability, "b.md": agent }]],
+    ["no Agent-typed Node", /an agent contribution carries at least one Node typed by KAAL Agent/, () => ["agent", "nothing", { "a.md": capability }]],
+    ["Capability in an Agent contribution", /carries no KAAL Capability/, () => ["agent", "mixed", { "a.md": agent, "b.md": capability }]],
+    ["Capability in a Skill contribution", /carries no KAAL Capability/, () => ["skill", "mixed", { "a.md": skill, "b.md": capability }]],
+    ["Agent in an Extension contribution", /carries no KAAL Agent/, () => ["extension", "mixed", { "a.md": extension, "b.md": agent }]],
   ];
   for (const [label, reason, make] of invalid) {
     it(`refuses atomically: ${label}`, async () => {
       const dir = await engine();
       const before = snapshot(dir);
-      const [kind, capability, files] = make();
-      await assert.rejects(() => (kind === "skill" ? registerSkill : registerExtension)(dir, capability, files), reason);
+      const [kind, name, files] = make();
+      await assert.rejects(() => register(dir, kind as Kind, name, files), reason);
       assert.equal(snapshot(dir), before);
       assert.deepEqual(readdirSync(dir).sort(), ["AGENTS.md", "KAAL-KERNEL.md", "core"]);
     });

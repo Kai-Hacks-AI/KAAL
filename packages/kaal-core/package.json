@@ -25,13 +25,15 @@
     "build": "tsc -b tsconfig.json",
     "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js",
     "test:boundary": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/boundary.test.js",
-    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build"
+    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build",
+    "bench": "npm run build && node bench/admission.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "kaal-hosting": "0.0.1"
+    "kaal-hosting": "0.0.1",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
