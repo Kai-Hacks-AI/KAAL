@@ -7,6 +7,12 @@
 // O(1) average; outgoing Edges are O(k); incoming Edges are O(k) once sorted, the sort
 // done lazily on first read after a change; Nodes of a type and Edges of a type are
 // O(k) in what they return, likewise sorted lazily; check() and a traversal are O(V + E).
+//
+// Every query answers with Edges as declared, read from their source Nodes. A declared
+// reference may resolve to no Node present, or to a Node of another name: check() reports
+// both, and nothing else verifies them, so a caller that needs resolved Edges runs check()
+// first. What a query returns is the caller's own: a fresh array of frozen records, so
+// changing it never changes the indexes.
 
 const ID = /^[0-9a-f]{64}$/;
 const NAME = /^\S(?:[^\n]*\S)?$/;
@@ -39,7 +45,7 @@ function reference(v, where) {
   if (!isMapping(v) || keys(v) !== "id,name") return { problem: `${where} is not a reference of exactly name and id` };
   if (typeof v.name !== "string" || !NAME.test(v.name)) return { problem: `${where} has no valid name` };
   if (typeof v.id !== "string" || !ID.test(v.id)) return { problem: `${where} has no lowercase hex SHA-256 id` };
-  return { ref: { name: v.name, id: v.id } };
+  return { ref: Object.freeze({ name: v.name, id: v.id }) };
 }
 
 /**
@@ -67,7 +73,7 @@ export function edgesOf(node) {
       if (target.problem) return problems.push(target.problem);
       if (seen.has(target.ref.id)) return problems.push(`${at}.targets[${i}] repeats target ${target.ref.name}`);
       seen.add(target.ref.id);
-      edges.push({ type: type.ref, target: target.ref });
+      edges.push(Object.freeze({ type: type.ref, target: target.ref }));
     });
   });
   if (problems.length) return { edges: [], problems };
@@ -97,11 +103,11 @@ export class Graph {
     const { edges, problems } = edgesOf(node);
     if (problems.length) this.#malformed.set(node.id, problems);
     this.#out.set(node.id, edges);
-    const source = { name: node.name, id: node.id };
+    const source = Object.freeze({ name: node.name, id: node.id });
     if (node.type) index(this.#typed, this.#typedUnsorted, typeKey(node.type), source);
     for (const { type, target } of edges) {
-      index(this.#in, this.#unsorted, target.id, { type, source });
-      index(this.#edges, this.#edgesUnsorted, typeKey(type), { source, target, type });
+      index(this.#in, this.#unsorted, target.id, Object.freeze({ type, source }));
+      index(this.#edges, this.#edgesUnsorted, typeKey(type), Object.freeze({ source, target, type }));
     }
     return this;
   }
@@ -111,14 +117,14 @@ export class Graph {
     return this.#nodes.get(id);
   }
 
-  /** The Edges going out of a Node: { type, target }, sorted by type then target. */
+  /** The Edges going out of a Node as declared: { type, target }, sorted by type then target. */
   out(id) {
-    return this.#out.get(id) ?? [];
+    return [...(this.#out.get(id) ?? [])];
   }
 
-  /** The Edges coming into a Node: { type, source }, sorted by type then source. */
+  /** The Edges declared into a Node: { type, source }, sorted by type then source. */
   in(id) {
-    return indexed(this.#in, this.#unsorted, id, byEdge("source"));
+    return [...indexed(this.#in, this.#unsorted, id, byEdge("source"))];
   }
 
   /**
@@ -126,15 +132,15 @@ export class Graph {
    * { name, id }, sorted by id. A misnamed reference matches none.
    */
   typed(ref) {
-    return indexed(this.#typed, this.#typedUnsorted, typeKey(ref), byRef);
+    return [...indexed(this.#typed, this.#typedUnsorted, typeKey(ref), byRef)];
   }
 
   /**
-   * The Edges whose type is exactly this reference, by id and name, as
+   * The Edges declared with exactly this type reference, by id and name, as
    * { source, target, type }, sorted by source then target. A misnamed reference matches none.
    */
   edges(ref) {
-    return indexed(this.#edges, this.#edgesUnsorted, typeKey(ref), byTypedEdge);
+    return [...indexed(this.#edges, this.#edgesUnsorted, typeKey(ref), byTypedEdge)];
   }
 
   /**
@@ -151,7 +157,7 @@ export class Graph {
     for (const id of [...this.#nodes.keys()].sort()) {
       const at = `${this.#nodes.get(id).name} (${id})`;
       for (const problem of this.#malformed.get(id) ?? []) findings.push(`${at}: ${problem}`);
-      for (const { type, target } of this.out(id)) {
+      for (const { type, target } of this.#out.get(id)) {
         for (const problem of [resolve(type, "type"), resolve(target, "target")]) if (problem) findings.push(`${at}: ${problem}`);
       }
     }
@@ -159,8 +165,10 @@ export class Graph {
   }
 
   /**
-   * Breadth-first from a Node, following Edges `out` (default) or `in`, optionally
-   * only those of one type id. Yields { id, depth } once per reachable Node present.
+   * Breadth-first from a Node, following declared Edges `out` (default) or `in`,
+   * optionally only those of one type id. Yields { id, depth } once per reachable
+   * Node present. It follows an Edge by its target's id, whatever name the Edge gives
+   * it: check() is what reports a misnamed reference.
    */
   *traverse(start, { direction = "out", type } = {}) {
     if (!this.#nodes.has(start)) return;
@@ -169,7 +177,7 @@ export class Graph {
     for (let head = 0; head < queue.length; head++) {
       const step = queue[head];
       yield step;
-      const next = direction === "in" ? this.in(step.id).map((e) => ({ t: e.type, n: e.source })) : this.out(step.id).map((e) => ({ t: e.type, n: e.target }));
+      const next = direction === "in" ? indexed(this.#in, this.#unsorted, step.id, byEdge("source")).map((e) => ({ t: e.type, n: e.source })) : this.#out.get(step.id).map((e) => ({ t: e.type, n: e.target }));
       for (const { t, n } of next) {
         if ((type && t.id !== type) || seen.has(n.id) || !this.#nodes.has(n.id)) continue;
         seen.add(n.id);

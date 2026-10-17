@@ -19,6 +19,8 @@ An Edge is embedded in the Node it goes out from, in the `edges` key of its fron
 - `edgesOf(node)` gives a Node's outgoing Edges, sorted, or the problems that make them unusable.
 - `new Graph(nodes)` builds derived indexes. `add(node)` adds a Node, `node(id)` looks it up, `out(id)` and `in(id)` list Edges in either direction, `typed(ref)` lists the Nodes whose Core type is exactly that reference, `edges(ref)` lists the Edges of exactly that type as `{ source, target, type }` (both matched by id and name, both sorted), `check()` reports malformed and unresolved Edges, and `traverse(id, { direction, type })` walks breadth-first.
 
+Every query answers with Edges as declared in their source Nodes. A declared reference may resolve to no Node present, or to a Node of another name; `check()` reports both, and nothing else verifies them, so run `check()` first when you need resolved Edges. `traverse` follows an Edge by its target's id and skips a target that is not present. Each query returns a fresh array of frozen records: changing what it returns never changes the graph.
+
 With V Nodes and E Edges, adding a Node with k Edges is O(k log k) to sort them, plus O(1) average per Edge. Lookup is O(1) average, and outgoing and incoming Edges are O(k), with incoming lists sorted lazily once after a change. `check()` and a traversal are O(V + E). Graph gives no relationship a meaning, and it applies no cardinality or other constraint beyond the structure above.
 
 ## Command
