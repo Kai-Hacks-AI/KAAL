@@ -1,19 +1,20 @@
 // Acceptance: kaal-graph, Engineering -> Package -> Embed.
 //
-// Installs kaal-core, kaal-hosting and kaal-graph from their packed tarballs
-// into a fresh host outside this repository, as the repository's other
-// acceptance does. Graph stands on Hosting alone, Core alone admits Graph's
+// Installs kaal-core, kaal-hosting and kaal-graph from the tarballs the
+// Acceptance lane packed into a fresh host of this scenario's own, through
+// Testing's install(). Graph stands on Hosting alone, Core alone admits Graph's
 // Skill Node, and Graph's identity of every Node in this repository is
 // Core's, byte for byte, refusals included.
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
+import { install } from "kaal-testing/acceptance";
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-graph-acceptance-"));
 
 // Commands run through Hosting, which owns how the host realizes them.
@@ -23,24 +24,13 @@ async function run(cmd, args, cwd) {
   return r.stdout;
 }
 
-async function pack(...path) {
-  const out = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], join(REPO, "packages", ...path)));
-  return join(work, out[0].filename);
-}
-
 let host;
 let installed;
 let kaal;
 
 before(async () => {
-  const core = await pack("kaal-core");
-  const hosting = await pack("extensions", "kaal-hosting");
-  const graph = await pack("skills", "kaal-graph");
-  host = join(work, "host");
-  mkdirSync(host);
-  writeFileSync(join(host, "package.json"), JSON.stringify({ name: "fresh-host", version: "1.0.0", private: true }, null, 2));
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  await run("npm", ["install", "--prefer-offline", "--no-package-lock", core, hosting, graph], host);
+  host = await install(["kaal-core", "kaal-hosting", "kaal-graph"]);
   installed = join(host, "node_modules", "kaal-graph");
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
