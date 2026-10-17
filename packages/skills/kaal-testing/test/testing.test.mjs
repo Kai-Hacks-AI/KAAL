@@ -26,6 +26,12 @@ describe("kaal-testing", () => {
     assert.deepEqual(node.type, foundation().skill);
   });
 
+  it("delivers HOW in Form, typed by Core's KAAL Definition", async () => {
+    const node = identify(await readFile(join(PAYLOAD, "HOW.md")));
+    assert.equal(node.name, "HOW");
+    assert.deepEqual(node.type, foundation().definition);
+  });
+
   it("delivers its Capability Node in Form, typed by Core's KAAL Capability", async () => {
     const node = identify(await readFile(join(CAPABILITY, "Testing.md")));
     assert.equal(node.name, "Testing");
@@ -58,6 +64,7 @@ describe("kaal-testing", () => {
       "lib/inventory.mjs",
       "lib/report.mjs",
       "package.json",
+      "payload/HOW.md",
       "payload/Testing.md",
       "skills/kaal-testing/SKILL.md",
       "skills/kaal-testing/references/findings.md",

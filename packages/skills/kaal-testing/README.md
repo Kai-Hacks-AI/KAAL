@@ -5,6 +5,7 @@ KAAL Testing: how a capability's tests are designed and executed, and how their 
 ```
 capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
+payload/HOW.md                         HOW, Human Observed Work, typed by Core's KAAL Definition
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
