@@ -50,14 +50,22 @@ export function evaluate(files: Files): Engine {
     else byId.set(identity.id, { ...identity, paths: [path] });
   }
 
+  // Admission walks the type graph outward from genesis: each Node is reached
+  // through the Nodes it types, so every Node and type reference is visited once.
+  const typedBy = new Map<string, EngineNode[]>();
+  for (const n of byId.values()) {
+    if (!n.type) continue;
+    const siblings = typedBy.get(n.type.id);
+    if (siblings) siblings.push(n);
+    else typedBy.set(n.type.id, [n]);
+  }
   const admitted = new Map<string, EngineNode>();
-  for (const n of byId.values()) if (!n.type && n.id === genesis.id && n.name === genesis.name) admitted.set(n.id, n);
-  for (let grew = true; grew; ) {
-    grew = false;
-    for (const n of byId.values()) {
-      if (admitted.has(n.id) || !n.type) continue;
-      const type = admitted.get(n.type.id);
-      if (type && type.name === n.type.name) (admitted.set(n.id, n), (grew = true));
+  const pending: EngineNode[] = [];
+  for (const n of byId.values()) if (!n.type && n.id === genesis.id && n.name === genesis.name) (admitted.set(n.id, n), pending.push(n));
+  while (pending.length) {
+    const type = pending.pop()!;
+    for (const n of typedBy.get(type.id) ?? []) {
+      if (!admitted.has(n.id) && n.type!.name === type.name) (admitted.set(n.id, n), pending.push(n));
     }
   }
   for (const n of byId.values()) {
