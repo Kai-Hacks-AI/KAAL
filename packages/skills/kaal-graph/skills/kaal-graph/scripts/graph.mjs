@@ -6,12 +6,13 @@
 //        graph.mjs in <id> <dir>...
 //        graph.mjs named <name> <dir>...
 //        graph.mjs resolve <name> <id> <dir>...
-// Files are read through kaal-hosting; Core decides what is a Node and its identity.
+// Files are read through kaal-hosting. A Markdown file that begins like frontmatter
+// claims to be a Node; one that is not in Form is reported as refused.
 // Exits 0 on success, 1 when check reports findings, 2 on misuse, unreadable input or
 // a Node not found.
-import { identify } from "kaal-core";
 import { read } from "kaal-hosting";
 import { Graph } from "./edges.mjs";
+import { claimsForm, identify } from "./node.mjs";
 
 const USAGE = "usage: graph.mjs check <dir>... | graph.mjs out <id> <dir>... | graph.mjs in <id> <dir>... | graph.mjs named <name> <dir>... | graph.mjs resolve <name> <id> <dir>...";
 
@@ -24,8 +25,7 @@ async function load(dirs) {
   for (const dir of dirs) {
     const files = await read(dir);
     for (const path of Object.keys(files).sort()) {
-      // Only files that begin like frontmatter claim to be Nodes; whether they are is Core's call.
-      if (!path.endsWith(".md") || !Buffer.from(files[path].subarray(0, 3)).equals(Buffer.from("---"))) continue;
+      if (!path.endsWith(".md") || !claimsForm(files[path])) continue;
       try {
         graph.add(identify(files[path]));
       } catch (e) {

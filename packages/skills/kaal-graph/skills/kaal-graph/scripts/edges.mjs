@@ -1,6 +1,6 @@
 // kaal-graph: the Edges embedded in Nodes, their structural and reference checks,
-// derived indexes and traversal. It works on Node identities as Core's
-// identify(bytes) returns them ({ id, name, type?, frontmatter }) and touches no host.
+// derived indexes, lookup and traversal. It works on Node identities as identify(bytes)
+// returns them ({ id, name, type?, frontmatter }; see node.mjs) and touches no host.
 //
 // Complexity, with V Nodes and E Edges (one Edge per target): adding a Node with k
 // Edges is O(k log k) for sorting its own Edges, plus O(1) average per Edge; lookup is
@@ -15,8 +15,9 @@
 // first. What a query returns is the caller's own: a fresh array of frozen records, so
 // changing it never changes the indexes.
 
-const ID = /^[0-9a-f]{64}$/;
-const NAME = /^\S(?:[^\n]*\S)?$/;
+import { isId, isName } from "./node.mjs";
+
+export { claimsForm, FormError, identify, isId, isName, sha256 } from "./node.mjs";
 
 const byRef = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 const byEdge = (key) => (a, b) => byRef(a.type, b.type) || byRef(a[key], b[key]);
@@ -44,8 +45,8 @@ function indexed(map, unsorted, key, compare) {
 /** A reference, or why it is not one. */
 function reference(v, where) {
   if (!isMapping(v) || keys(v) !== "id,name") return { problem: `${where} is not a reference of exactly name and id` };
-  if (typeof v.name !== "string" || !NAME.test(v.name)) return { problem: `${where} has no valid name` };
-  if (typeof v.id !== "string" || !ID.test(v.id)) return { problem: `${where} has no lowercase hex SHA-256 id` };
+  if (!isName(v.name)) return { problem: `${where} has no valid name` };
+  if (!isId(v.id)) return { problem: `${where} has no lowercase hex SHA-256 id` };
   return { ref: Object.freeze({ name: v.name, id: v.id }) };
 }
 
