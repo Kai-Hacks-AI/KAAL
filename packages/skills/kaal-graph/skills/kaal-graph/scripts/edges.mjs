@@ -1,5 +1,5 @@
 // kaal-graph: the Edges embedded in Nodes, their structural and reference checks,
-// derived indexes, lookup and traversal. It works on Node identities as identify(bytes)
+// derived indexes, lookup, traversal and Node construction. It works on Node identities as identify(bytes)
 // returns them ({ id, name, type?, frontmatter }; see node.mjs) and touches no host.
 //
 // Complexity, with V Nodes and E Edges (one Edge per target): adding a Node with k
@@ -15,7 +15,9 @@
 // first. What a query returns is the caller's own: a fresh array of frozen records, so
 // changing it never changes the indexes.
 
-import { isId, isName } from "./node.mjs";
+import { isDeepStrictEqual } from "node:util";
+import { stringify } from "yaml";
+import { FormError, identify, isId, isName } from "./node.mjs";
 
 export { claimsForm, FormError, identify, isId, isName, sha256 } from "./node.mjs";
 
@@ -204,4 +206,41 @@ export class Graph {
       }
     }
   }
+}
+
+/** A string in YAML's double-quoted style, which JSON's escapes are a subset of: read back exactly, never as another type. */
+const quoted = (v) => JSON.stringify(v);
+const refLines = (r, indent) => `${indent}name: ${quoted(r.name)}\n${indent.replace(/- $/, "  ")}id: ${quoted(r.id)}\n`;
+
+/**
+ * Construct a Node's exact bytes: { bytes, node }, the node being identify(bytes).
+ * The frontmatter is `name`, then `type` if given, then `edges` if any, then every
+ * other key in `frontmatter`, sorted. Edge groups are sorted by type and targets
+ * within a group by reference; names and ids are always double-quoted, so an id
+ * of digits stays a string. The body follows a blank line, `# <name>` by default.
+ * Throws if the result would not be a Node in Form with well-formed Edges, or if
+ * `frontmatter` names `name`, `type` or `edges`. Writes nothing and gives no
+ * Node or Edge a meaning: publishing the bytes is the caller's.
+ */
+export function createNode({ name, type, edges = [], frontmatter = {}, body = `# ${name}\n` }) {
+  for (const key of ["name", "type", "edges"]) if (Object.hasOwn(frontmatter, key)) throw new FormError(`frontmatter cannot set ${key}: it is its own argument`);
+  let text = `---\nname: ${quoted(name)}\n`;
+  if (type !== undefined) text += `type:\n${refLines(type, "  ")}`;
+  const groups = [...edges].sort((a, b) => byRef(a.type, b.type));
+  if (groups.length) {
+    text += "edges:\n";
+    for (const g of groups) {
+      text += `  - type:\n${refLines(g.type, "      ")}    targets:\n`;
+      for (const t of [...(g.targets ?? [])].sort(byRef)) text += refLines(t, "      - ");
+    }
+  }
+  const rest = Object.fromEntries(Object.keys(frontmatter).sort().map((k) => [k, frontmatter[k]]));
+  if (Object.keys(rest).length) text += stringify(rest, { version: "1.2", sortMapEntries: true, aliasDuplicateObjects: false, lineWidth: 0 });
+  const bytes = Buffer.from(`${text}---\n${body === "" ? "" : `\n${body}`}`, "utf8");
+  const node = identify(bytes);
+  if (node.name !== name || node.type?.id !== type?.id || node.type?.name !== type?.name) throw new FormError("the name or type would not read back as given");
+  const declared = edgesOf(node);
+  if (declared.problems.length) throw new FormError(`the edges are not well-formed: ${declared.problems.join("; ")}`);
+  if (!isDeepStrictEqual(Object.fromEntries(Object.keys(rest).map((k) => [k, node.frontmatter[k]])), rest)) throw new FormError("the frontmatter would not read back as given");
+  return { bytes, node };
 }
