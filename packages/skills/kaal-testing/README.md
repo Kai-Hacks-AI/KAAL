@@ -35,6 +35,28 @@ Findings are verified failures, potential defects, architectural concerns or unk
 
 Which workspaces exist, building them and which files they deliver are packaging: the caller decides them. Commands, reads and every other host operation go through Hosting. Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests. Coverage is evidence of executed code, not of correctness, and no percentage is required.
 
+## Acceptance runs
+
+`kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/acceptance/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
+
+- **Discovery:** `discover(workspaces)` finds the scenarios by that convention.
+- **Running:** `accept({ manifest, scenarios, run, cwd })` runs them in parallel. `run` is a missing or empty directory, which Testing initializes with the manifest, a ledger and the hosts. An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.
+- **Outcome:** the result keeps the runner's own exit status apart from `passed`. `passed` is false whenever there is a verified failure, even if the runner exited 0. Unknowns stay in the findings and do not decide `passed`; a gate that wants them to fail says so itself.
+- **Installing:** in a scenario, `install(names)` installs the manifest's tarballs into a fresh host of its own under the run, and records what it consumed. A tarball that no longer holds the bytes packed for it is refused. A scenario never builds or packs.
+- **Findings:** `findings(...)` reads the ledger, and npm's record of what each host holds, into findings. These are verified failures:
+  - bytes other than the packed tarball;
+  - a package this run did not pack;
+  - a host holding a packed package from elsewhere;
+  - a host shared by two installations;
+  - a scenario that installed nothing;
+  - a host whose record cannot be read;
+  - a failed scenario run.
+- **Unknowns:** two things stay unknown, never passed:
+  - whether the hosts lie physically outside the repository, until Hosting offers a portable containment contract;
+  - installations a scenario makes without `install()`.
+
+Whether any package was rebuilt, or a tarball changed during the run, is packaging's to check.
+
 ## Non-blank text lines
 
 `kaal-testing/inventory` counts the files a caller lists. The metric is broad on purpose: a **non-blank text line** is any line with a non-whitespace character in any text file, whether code, Markdown, YAML, JSON or configuration. It is not executable lines of code, and it is never a denominator for coverage.

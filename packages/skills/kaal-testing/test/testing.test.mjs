@@ -52,6 +52,7 @@ describe("kaal-testing", () => {
       "LICENSE",
       "README.md",
       "capability/Testing.md",
+      "lib/acceptance.mjs",
       "lib/attribution.mjs",
       "lib/coverage.mjs",
       "lib/inventory.mjs",
