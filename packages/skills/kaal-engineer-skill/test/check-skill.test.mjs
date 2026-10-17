@@ -186,10 +186,13 @@ describe("responsibility boundaries", () => {
   it("does not judge KAAL Nodes: Core does", () => {
     // A file Core would refuse as a Node does not affect Agent Skill conformance.
     assert.deepEqual(check(skill("my-skill", ok(), "# Body\n", { "Broken-Node.md": "---\nname: Broken\ntype:\n  name: Ghost\n  id: nothing\n---\n" })), clean);
-    // This package's own Node is judged by Core alone.
+    // This package's own Nodes are judged by Core alone.
     const id = identify(readFileSync(join(PACKAGE, "payload", "Engineer-Skill.md")));
     assert.equal(id.name, "Engineer Skill");
     assert.deepEqual(id.type, foundation().skill);
+    const bass = identify(readFileSync(join(PACKAGE, "payload", "BASS.md")));
+    assert.equal(bass.name, "BASS");
+    assert.deepEqual(bass.type, foundation().definition);
   });
 
   it("reaches the host only in the entry point, and only through kaal-hosting's read()", () => {
