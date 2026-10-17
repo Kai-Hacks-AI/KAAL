@@ -4,16 +4,16 @@ import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
 import { identify, KaalError } from "./node.js";
-import { capabilities, readContribution, register } from "./register.js";
+import { catalog, isKind, readContribution, register } from "./register.js";
 
 const USAGE = `usage: kaal <command> [--engine <dir>]
 
   init                                     materialize the Engine from the kaal-core payload
   verify                                   verify the Engine
-  list                                     list the Skills and Extensions the Engine holds
+  list                                     list the Capabilities, Agents, Skills and Extensions the Engine holds
   resolve <name> [<id>]                    resolve a Node of the Engine by name, or by name and id
   identify <file>...                       print the id, name and type of Node files
-  register <skill|extension> <capability> <source-dir>
+  register <capability|agent|skill|extension> <name> <source-dir>
                                            register a contribution, atomically
   export <out-dir>                         write the foundational Core payload into an empty directory
 
@@ -48,7 +48,9 @@ async function main(argv: string[]): Promise<number> {
       return v.ok ? 0 : 1;
     }
     case "list": {
-      const c = await capabilities(engine);
+      const c = await catalog(engine);
+      for (const r of c.capabilities) console.log(`capability\t${r.id}\t${r.name}`);
+      for (const r of c.agents) console.log(`agent\t${r.id}\t${r.name}`);
       for (const r of c.skills) console.log(`skill\t${r.id}\t${r.name}`);
       for (const r of c.extensions) console.log(`extension\t${r.id}\t${r.name}`);
       return 0;
@@ -71,10 +73,10 @@ async function main(argv: string[]): Promise<number> {
       return 0;
     }
     case "register": {
-      const [kind, capability, source] = rest;
-      if ((kind !== "skill" && kind !== "extension") || !capability || !source) break;
-      const r = await register(engine, kind, capability, await readContribution(source));
-      console.log(`${r.written ? "registered" : "already registered"} ${kind} ${capability}: ${r.ids.join(" ")}`);
+      const [kind, name, source] = rest;
+      if (!kind || !isKind(kind) || !name || !source) break;
+      const r = await register(engine, kind, name, await readContribution(source));
+      console.log(`${r.written ? "registered" : "already registered"} ${kind} ${name}: ${r.ids.join(" ")}`);
       return 0;
     }
     case "export": {
