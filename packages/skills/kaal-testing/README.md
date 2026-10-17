@@ -40,7 +40,8 @@ Which workspaces exist, building them and which files they deliver are packaging
 `kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/acceptance/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
 
 - **Discovery:** `discover(workspaces)` finds the scenarios by that convention.
-- **Running:** `accept({ manifest, scenarios, run, cwd })` runs them in parallel. `run` is a missing or empty directory, which Testing initializes with the manifest, a ledger and the hosts.
+- **Running:** `accept({ manifest, scenarios, run, cwd })` runs them in parallel. `run` is a missing or empty directory, which Testing initializes with the manifest, a ledger and the hosts. An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.
+- **Outcome:** the result keeps the runner's own exit status apart from `passed`. `passed` is false whenever there is a verified failure, even if the runner exited 0. Unknowns stay in the findings and do not decide `passed`; a gate that wants them to fail says so itself.
 - **Installing:** in a scenario, `install(names)` installs the manifest's tarballs into a fresh host of its own under the run, and records what it consumed. A tarball that no longer holds the bytes packed for it is refused. A scenario never builds or packs.
 - **Findings:** `findings(...)` reads the ledger, and npm's record of what each host holds, into findings. These are verified failures:
   - bytes other than the packed tarball;

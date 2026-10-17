@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -110,7 +110,8 @@ describe("running acceptance", () => {
     );
     const run = join(dir, "run");
     const result = await accept({ manifest, scenarios: scenarios.map((s) => s.path), run, cwd: dir });
-    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(result.runner.status, 0, result.runner.stdout + result.runner.stderr);
+    assert.equal(result.passed, true);
     assert.equal(result.records.length, 2);
     assert.equal(new Set(result.records.map((r) => r.host)).size, 2);
     assert.ok(result.records.every((r) => r.host.startsWith(join(run, "hosts"))));
@@ -130,17 +131,39 @@ describe("running acceptance", () => {
     const location = workspace(dir, ["one"]);
     const scenarios = (await discover([{ name: "ws", location }])).map((s) => s.path);
     const result = await accept({ manifest, scenarios, run: join(dir, "run"), cwd: dir });
-    assert.notEqual(result.status, 0);
-    assert.match(result.stdout + result.stderr, /no longer holds the bytes packed for kaal-acceptance-fixture/);
+    assert.notEqual(result.runner.status, 0);
+    assert.equal(result.passed, false);
+    assert.match(result.runner.stdout + result.runner.stderr, /no longer holds the bytes packed for kaal-acceptance-fixture/);
     assert.deepEqual(failures(result.findings), [
-      { subject: "one.test.mjs", evidence: `the scenarios failed (node --test exited ${result.status})` },
+      { subject: "one.test.mjs", evidence: `the scenarios failed (node --test exited ${result.runner.status})` },
       { subject: scenarios[0], evidence: "installed no packed package" },
     ]);
+  });
+
+  it("does not pass a run whose runner exits 0 when its evidence holds a verified failure", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-testing-acceptance-"));
+    const manifest = await packed(dir);
+    const location = workspace(dir, ["one"]);
+    const idle = join(location, "test", "acceptance", "idle.test.mjs");
+    writeFileSync(idle, 'import { it } from "node:test";\nit("passes without installing anything", () => {});\n');
+    const scenarios = (await discover([{ name: "ws", location }])).map((s) => s.path);
+    const result = await accept({ manifest, scenarios, run: join(dir, "run"), cwd: dir });
+    assert.equal(result.runner.status, 0, result.runner.stdout + result.runner.stderr);
+    assert.equal(result.passed, false);
+    assert.deepEqual(failures(result.findings), [{ subject: idle, evidence: "installed no packed package" }]);
+  });
+
+  it("refuses an empty scenario list before writing or running anything, so the runner never discovers tests of its own", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-testing-acceptance-"));
+    writeFileSync(join(dir, "stray.test.mjs"), 'import { it } from "node:test";\nit("must never run", () => { throw new Error("ran"); });\n');
+    const run = join(dir, "run");
+    await assert.rejects(accept({ manifest: {}, scenarios: [], run, cwd: dir }), /no acceptance scenarios to run/);
+    assert.equal(existsSync(run), false);
   });
 
   it("refuses a run directory that is already in use", async () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-testing-acceptance-"));
     writeFileSync(join(dir, "left-over"), "");
-    await assert.rejects(accept({ manifest: {}, scenarios: [], run: dir, cwd: dir }), /not empty/);
+    await assert.rejects(accept({ manifest: {}, scenarios: [join(dir, "left-over")], run: dir, cwd: dir }), /not empty/);
   });
 });

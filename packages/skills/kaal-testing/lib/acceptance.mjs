@@ -129,11 +129,20 @@ export function findings({ manifest, scenarios, records, holds }) {
 /**
  * Run `scenarios` (paths, as discover() finds them) in parallel against the
  * packed tarballs in `manifest`, from `cwd`, with `run` as this run's
- * directory: it must be missing or empty. Resolves to the scenarios' exit
- * status and output, the ledger's records and the findings read from them. A
- * scenario run that fails is itself a verified failure.
+ * directory: it must be missing or empty. Resolves to { passed, runner,
+ * records, findings }:
+ * - `runner` is the test runner's own { status, stdout, stderr };
+ * - `findings` are read from the ledger, with a failed runner added as a
+ *   verified failure;
+ * - `passed` is true only when there is no verified failure, so a runner that
+ *   exits 0 does not pass a run whose evidence fails. Unknowns stay visible
+ *   in `findings` and do not decide `passed`: a gate that treats them as
+ *   failures says so itself.
+ * An empty `scenarios` is refused before anything is written or run, because
+ * the runner given no files would discover tests of its own.
  */
 export async function accept({ manifest, scenarios, run, cwd }) {
+  if (scenarios.length === 0) throw new Error("no acceptance scenarios to run: accept() needs at least one, and runs nothing it was not given");
   await initialize(run, { "manifest.json": json(manifest) });
   await initialize(join(run, "ledger"), {});
   await initialize(join(run, "hosts"), {});
@@ -155,5 +164,10 @@ export async function accept({ manifest, scenarios, run, cwd }) {
   }
   const found = findings({ manifest, scenarios, records, holds });
   if (r.status !== 0) found.unshift({ kind: "verified failure", subject: scenarios.map((s) => basename(s)).join(", "), evidence: `the scenarios failed (node --test exited ${r.status})` });
-  return { status: r.status, stdout: r.stdout, stderr: r.stderr, records, findings: found };
+  return {
+    passed: !found.some((f) => f.kind === "verified failure"),
+    runner: { status: r.status, stdout: r.stdout, stderr: r.stderr },
+    records,
+    findings: found,
+  };
 }
