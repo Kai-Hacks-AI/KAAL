@@ -68,11 +68,13 @@ before(async () => {
 describe("embedding into an Engine", () => {
   it("is admitted as a Skill by Core alone", async () => {
     assert.match(await run(kaal, ["init", "--engine", engine], host), /bootstrapped/);
+    const admitted = async () => Number(/^ok: (\d+) Nodes admitted/.exec(await run(kaal, ["verify", "--engine", engine], host))?.[1]);
+    const foundational = await admitted();
     assert.match(await run(kaal, ["register", "skill", "kaal-engineer-skill", join(installed, "payload"), "--engine", engine], host), /^registered skill kaal-engineer-skill/);
     const [kind, id, name] = (await run(kaal, ["list", "--engine", engine], host)).trim().split("\t");
     assert.deepEqual([kind, name], ["skill", "Engineer Skill"]);
     assert.equal((await run(kaal, ["identify", join(installed, "payload", "Engineer-Skill.md")], host)).split("\t")[0], id);
-    assert.match(await run(kaal, ["verify", "--engine", engine], host), /ok: 5 Nodes admitted/);
+    assert.equal(await admitted(), foundational + 1, "the Skill adds exactly its one Node to however many Core carries");
   });
 
   it("leaves Core untouched", () => {
