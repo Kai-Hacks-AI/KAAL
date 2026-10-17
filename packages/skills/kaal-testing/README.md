@@ -26,10 +26,10 @@ Findings are verified failures, potential defects, architectural concerns or unk
 
 `kaal-testing/coverage` runs a workspace's own tests under V8 coverage (c8) and measures which delivered files and lines they executed:
 
-- `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names. It resolves to line, branch and function coverage plus the delivered files never executed, or to a failure naming the workspace and the missing evidence.
+- `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names, into a report directory the caller provides fresh: one already holding a summary is refused, and `cover` removes nothing. It resolves to line, branch and function coverage plus the delivered files never executed, or to a failure naming the workspace and the missing evidence.
 - `evidence(workspace, root, text)` reads one c8 JSON summary into that evidence, or into that failure.
 
-Which workspaces exist, building them and which files they deliver are packaging: the caller decides them. Commands and reads go through Hosting. Coverage is evidence of executed code, not of correctness, and no percentage is required.
+Which workspaces exist, building them and which files they deliver are packaging: the caller decides them. Commands, reads and every other host operation go through Hosting. Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests. Coverage is evidence of executed code, not of correctness, and no percentage is required.
 
 ## Boundaries
 

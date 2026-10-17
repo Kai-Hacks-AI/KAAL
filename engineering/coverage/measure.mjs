@@ -24,7 +24,7 @@
 // This script answers the packaging questions (which workspaces, built, which
 // files each delivers); Testing (kaal-testing/coverage) runs the tests and
 // measures the evidence.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execute } from "kaal-hosting";
 import { cover } from "kaal-testing/coverage";
@@ -68,7 +68,10 @@ async function measure(name, location) {
     const r = await run("npm", ["test", "--if-present", "-w", name]);
     return { tests: r.status === 0 ? "pass" : "fail", delivered, note: "delivers no JavaScript; nothing to measure", output: r.status === 0 ? "" : r.stdout + r.stderr };
   }
-  return { delivered, ...(await cover(name, delivered, { root: ROOT, dir: join(OUT, name) })) };
+  const dir = join(OUT, name);
+  // Testing measures into a fresh report directory; clearing the last run's is this script's job.
+  rmSync(dir, { recursive: true, force: true });
+  return { delivered, ...(await cover(name, delivered, { root: ROOT, dir })) };
 }
 
 const results = [];
