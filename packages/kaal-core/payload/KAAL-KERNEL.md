@@ -16,4 +16,4 @@ A Node's id is the SHA-256, in lowercase hexadecimal, of its exact bytes. Filena
 
 ## Foundation
 
-`KAAL Definition` is typed by `Node`. `KAAL Skill` and `KAAL Extension` are typed by `KAAL Definition`. A Node typed by `KAAL Skill` is a Skill, and a Node typed by `KAAL Extension` is an Extension. With these four admitted, the bootstrap is complete.
+`KAAL Definition` is typed by `Node`. `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension` are typed by `KAAL Definition`. A Node typed by one of them is, respectively, a Capability, an Agent, a Skill or an Extension. With these six admitted, the bootstrap is complete.

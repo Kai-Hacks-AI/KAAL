@@ -1,6 +1,6 @@
 # kaal-core
 
-KAAL Core: the smallest working KAAL. It carries the five foundational documents, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
+KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Skills and Extensions, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
 Core depends on no Git host and no agent provider. It has two runtime dependencies. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication) and does not depend on Core. [yaml](https://www.npmjs.com/package/yaml), pinned, reads frontmatter. It needs Node.js 24 or later.
 
@@ -9,7 +9,7 @@ Core depends on no Git host and no agent provider. It has two runtime dependenci
 ```sh
 npm install kaal-core
 npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
-npx kaal verify    # checks the Kernel and the four foundational Nodes by identity
+npx kaal verify    # checks the Kernel and the six foundational Nodes by identity
 ```
 
 Installing the package writes nothing into your repository. `kaal init` does, and only when you run it.
@@ -21,8 +21,15 @@ Installing the package writes nothing into your repository. `kaal init` does, an
 | `KAAL-KERNEL.md`     | The bootstrap. Not a Node: it brings the first Nodes into being.      |
 | `Node.md`            | Node 1, the genesis exception. It declares no type.                   |
 | `KAAL-Definition.md` | A Node typed by `Node`.                                                |
+| `KAAL-Capability.md` | A Node typed by `KAAL Definition`. Nodes it types are Capabilities.   |
+| `KAAL-Agent.md`      | A Node typed by `KAAL Definition`. Nodes it types are Agents.         |
 | `KAAL-Skill.md`      | A Node typed by `KAAL Definition`. Nodes it types are Skills.         |
 | `KAAL-Extension.md`  | A Node typed by `KAAL Definition`. Nodes it types are Extensions.     |
+| `CASE.md`            | A Node typed by `KAAL Definition`, naming the four parallel kinds.    |
+
+CASE stands for Capabilities, Agents, Skills and Extensions: four parallel kinds, none a kind of another. A Capability is a responsibility that overlaps with no other, delivered in any number of packages or none. `CASE` is a Definition like any other; it types nothing, and Core gives it no machinery.
+
+These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so there is no migration; bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Extension`, and of every Node typed by them, are unchanged.
 
 A Node is a UTF-8 Markdown file that begins with frontmatter in the Kernel's Form, for example:
 
@@ -45,7 +52,8 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
 <engine>/                   ./.kaal/ unless --engine names another directory
   AGENTS.md                   entry point for an Agent working with this Engine
   KAAL-KERNEL.md
-  core/Node.md, KAAL-Definition.md, KAAL-Skill.md, KAAL-Extension.md
+  core/Node.md, KAAL-Definition.md, KAAL-Capability.md, KAAL-Agent.md,
+       KAAL-Skill.md, KAAL-Extension.md, CASE.md
   skills/<capability>/        registered Skill contributions
   extensions/<capability>/    registered Extension contributions
 ```
