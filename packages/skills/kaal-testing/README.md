@@ -1,11 +1,12 @@
 # kaal-testing
 
-KAAL Testing: how a capability's tests are designed, and how their evidence is reported. It is not part of Core. Core provides the `KAAL Skill` type and admission, and this capability joins through them.
+KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Skill` type and admission, and this capability joins through them.
 
 ```
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
+lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 ```
 
 The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
@@ -21,11 +22,20 @@ An invariant is tested exhaustively where it is owned, and its integration selec
 
 Findings are verified failures, potential defects, architectural concerns or unknowns, and the kinds are never merged. A clean result shows only what its checks cover.
 
+## Execution and evidence
+
+`kaal-testing/coverage` runs a workspace's own tests under V8 coverage (c8) and measures which delivered files and lines they executed:
+
+- `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names, into a report directory the caller provides fresh: one already holding a summary is refused, and `cover` removes nothing. It resolves to line, branch and function coverage plus the delivered files never executed, or to a failure naming the workspace and the missing evidence.
+- `evidence(workspace, root, text)` reads one c8 JSON summary into that evidence, or into that failure.
+
+Which workspaces exist, building them and which files they deliver are packaging: the caller decides them. Commands, reads and every other host operation go through Hosting. Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests. Coverage is evidence of executed code, not of correctness, and no percentage is required.
+
 ## Boundaries
 
-Testing is semantic and behavioural only. It is no test runner or framework, keeps no registry, and runs nothing.
+Testing keeps no registry. Its execution runs a capability's own cases as that capability defines them, and adds none.
 
-Each capability owns its contracts and its cases. The obligation to demonstrate them belongs to engineering, and so do running tests, builds and checks.
+Each capability owns its contracts and its cases. The obligation to demonstrate them belongs to the capability and its engineering. So do builds, packaging, and when checks run and what they gate.
 
 ## Register the Node
 

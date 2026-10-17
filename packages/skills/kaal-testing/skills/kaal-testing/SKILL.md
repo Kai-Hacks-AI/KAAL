@@ -27,6 +27,10 @@ Record each judged validation item with its judgment, and make an unjudged one f
 
 **Implementation.** Write the smallest test that fails for the right reason, make it pass, then refactor with every test green. Test behaviour, not structure.
 
+## Measuring coverage
+
+To measure which delivered code a capability's own tests execute, use the `kaal-testing` package's `cover` from `kaal-testing/coverage`. Pass the workspace and the files it delivers. Report a delivered file never executed by name. Report a coverage figure as executed code within that run, never as correctness.
+
 ## Reporting
 
 Report findings in four kinds, never merged: verified failure, potential defect, architectural concern, unknown. The form for each, and how to state a clean result, is in [references/findings.md](references/findings.md).

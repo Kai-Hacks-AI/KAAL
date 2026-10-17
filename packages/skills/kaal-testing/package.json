@@ -5,22 +5,27 @@
   "license": "MIT",
   "type": "module",
   "exports": {
+    "./coverage": "./lib/coverage.mjs",
     "./package.json": "./package.json"
   },
   "files": [
+    "lib",
     "payload",
     "skills"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core",
-    "test": "node --test test/testing.test.mjs"
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/testing.test.mjs test/coverage.test.mjs test/boundary.test.mjs"
   },
   "engines": {
     "node": ">=24"
   },
+  "dependencies": {
+    "c8": "12.0.0",
+    "kaal-hosting": "0.0.1"
+  },
   "devDependencies": {
     "kaal-core": "0.0.1",
-    "kaal-engineer-skill": "0.0.1",
-    "kaal-hosting": "0.0.1"
+    "kaal-engineer-skill": "0.0.1"
   }
 }

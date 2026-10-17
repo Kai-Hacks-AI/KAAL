@@ -7,7 +7,7 @@ type:
 
 # Testing
 
-Testing is the capability for designing tests and for interpreting the evidence they produce, claiming no more than that evidence supports. Its scope is that alone. Which contracts a capability has, which cases demonstrate them, and the obligation to demonstrate them belong to that capability and to its engineering. Running tests, builds and checks is engineering mechanics, not Testing.
+Testing is the capability for designing tests, executing them reusably, and measuring and interpreting the evidence they produce, claiming no more than that evidence supports. Its scope is that alone. Which contracts a capability has, which cases demonstrate them, and the obligation to demonstrate them belong to that capability and to its engineering. Building and packaging what is delivered, and deciding when checks run and what they gate, is engineering. Host mechanics belong to the host's capability.
 
 A capability's evidence comes from three loops. Each answers its own question, and none stands in for another:
 
@@ -28,4 +28,4 @@ A finding is one of four kinds, and the kinds are never merged:
 
 Every finding names its subject, where it is, and the evidence it rests on. Passing tests show that the cases they exercise pass, within their coverage. A clean result is never a claim of complete correctness.
 
-Testing is semantic and behavioural only. It is no test runner or framework, keeps no registry of tests or findings, and runs nothing.
+Testing keeps no registry of tests or findings. Its execution runs a capability's own cases as that capability defines them, and adds none.
