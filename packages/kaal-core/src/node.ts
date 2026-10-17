@@ -117,7 +117,7 @@ export function identify(bytes: Uint8Array): Identity {
   let ref: Ref | undefined;
   if (reserved.has("type")) {
     const t = reserved.get("type");
-    const fields = isMap(t) && !(t as { tag?: string }).tag ? new Map(t.items.map((p) => [isScalar(p.key) ? p.key.value : undefined, literal(p.value)])) : new Map();
+    const fields = isMap(t) && [undefined, "tag:yaml.org,2002:map"].includes((t as { tag?: string }).tag) ? new Map(t.items.map((p) => [isScalar(p.key) ? p.key.value : undefined, literal(p.value)])) : new Map();
     const [tname, tid] = [fields.get("name"), fields.get("id")];
     if (fields.size !== 2 || tname === undefined || !NAME.test(tname) || tid === undefined || !ID.test(tid))
       throw new KaalError(`${NOT_IN_FORM}: \`type\` is a mapping of exactly \`name\` and a lowercase hex SHA-256 \`id\``);

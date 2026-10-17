@@ -155,6 +155,8 @@ describe("identity", () => {
     }
     assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
     assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${f.node.name}, id: ${f.node.id}}\n---\n`)).type, f.node);
+    assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${f.node.name}, ${f.node.id}]\n---\n`)), /not in Form/);
   });
 
   it("accepts capability-owned frontmatter without interpreting it", async () => {
