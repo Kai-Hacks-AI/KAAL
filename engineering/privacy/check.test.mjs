@@ -1,9 +1,9 @@
 // Synthetic fixtures only. Every value that a rule must catch is assembled at run time, so this
 // file itself passes the check it tests. None of them is anyone's real value.
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
@@ -11,6 +11,7 @@ import { execute } from "kaal-hosting";
 import { localList, mask, scan, unpack } from "./check.mjs";
 
 const CHECK = fileURLToPath(new URL("./check.mjs", import.meta.url));
+const REPO = resolve(dirname(CHECK), "../..");
 const j = (...parts) => parts.join("");
 
 const CAUGHT = {
@@ -113,6 +114,20 @@ describe("packed contents", () => {
     const files = unpack(gzipSync(tar));
     assert.deepEqual(Object.keys(files), ["package/README.md"]);
     assert.equal(scan(files)[0].rule, "email");
+  });
+});
+
+describe("repository", () => {
+  it("holds nothing private in any tracked file, so no package packs any", async () => {
+    const r = await execute("git", ["ls-files", "-z"], { cwd: REPO });
+    assert.equal(r.status, 0, r.stderr);
+    const files = Object.fromEntries(
+      r.stdout
+        .split("\0")
+        .filter(Boolean)
+        .map((p) => [p, readFileSync(join(REPO, p))]),
+    );
+    assert.deepEqual(scan(files), []);
   });
 });
 
