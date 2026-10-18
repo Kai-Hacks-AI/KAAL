@@ -28,6 +28,7 @@
     "yaml": "2.9.1"
   },
   "devDependencies": {
-    "kaal-core": "0.0.1"
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1"
   }
 }
