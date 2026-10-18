@@ -11,6 +11,8 @@ import { join } from "node:path";
 import { before, describe, it } from "node:test";
 import { execute } from "kaal-hosting";
 import { install } from "kaal-testing/acceptance";
+// The repository's privacy check, applied to the bytes this run packed.
+import { scan, unpack } from "../../../../../engineering/privacy/check.mjs";
 
 const COMMUNICATION = "kaal-communication";
 
@@ -56,6 +58,12 @@ describe("the installed package", () => {
   it("depends at runtime on nothing", () => {
     const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
     for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) assert.deepEqual(Object.keys(pkg[field] ?? {}), [], field);
+  });
+
+  it("packs nothing private", () => {
+    const manifest = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"));
+    const findings = scan(unpack(readFileSync(manifest[COMMUNICATION].tarball)));
+    assert.deepEqual(findings, [], JSON.stringify(findings));
   });
 });
 

@@ -12,6 +12,8 @@ import { join } from "node:path";
 import { before, describe, it } from "node:test";
 import { execute } from "kaal-hosting";
 import { install } from "kaal-testing/acceptance";
+// The repository's privacy check, applied to the bytes this run packed.
+import { scan, unpack } from "../../../../../engineering/privacy/check.mjs";
 
 const COMMUNICATION = "kaal-communication";
 const SLACK = "kaal-slack";
@@ -65,6 +67,12 @@ describe("the installed package", () => {
       "skills/kaal-slack/SKILL.md",
       "skills/kaal-slack/references/defaults.md",
     ]);
+  });
+
+  it("packs nothing private", () => {
+    const manifest = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"));
+    const findings = scan(unpack(readFileSync(manifest[SLACK].tarball)));
+    assert.deepEqual(findings, [], JSON.stringify(findings));
   });
 });
 
