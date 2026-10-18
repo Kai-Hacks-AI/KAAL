@@ -1,7 +1,9 @@
 # Runs KAAL's tests. Each check calls one npm script; what a lane tests is
 # defined there and in the code it runs, never here.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
-# supported OS. Everything else is checked once, on a reference host.
+# supported OS. Acceptance, a fresh install of the packed packages, also runs
+# on every supported OS: Linux in the lanes below, Windows and macOS here.
+# Everything else is checked once, on a reference host.
 name: KAAL
 
 on:
@@ -30,6 +32,23 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run test:hosting
+
+  acceptance:
+    name: Acceptance (${{ matrix.host }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { host: Windows, os: windows-latest }
+          - { host: macOS, os: macos-latest }
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run test:acceptance
 
   lane:
     name: ${{ matrix.check }}
