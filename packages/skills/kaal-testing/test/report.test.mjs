@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { attribute } from "kaal-testing/attribution";
 import { inventory } from "kaal-testing/inventory";
-import { report, STATUSES } from "kaal-testing/report";
+import { markdown, report, STATUSES } from "kaal-testing/report";
 
 const ID = (c) => c.repeat(64);
 const A = { kind: "capability", name: "Alpha", id: ID("a") };
@@ -136,5 +136,58 @@ describe("reconciling package coverage with CASE ownership", () => {
   it("refuses a workspace that reports the same delivered file twice", () => {
     const twice = { ...W, delivered: [...W.delivered, "w/lib/a.mjs"] };
     assert.throws(() => report(attribution(), [twice]), /w reports w\/lib\/a\.mjs as delivered more than once/);
+  });
+
+  it("reports a workspace with no evidence as unknown: no figures, no delivered count, never zero", () => {
+    const r = report(attribution(), [W, { workspace: "v", unknown: "v: no evidence was captured for this run" }]);
+    assert.deepEqual(r.packages.find((p) => p.workspace === "v"), { workspace: "v", tests: undefined, unknown: "v: no evidence was captured for this run" });
+    assert.deepEqual(r.findings.at(-1), { kind: "unknown", subject: "v", evidence: "v: no evidence was captured for this run" });
+    assert.equal(r.reconciliation.entries.length, W.delivered.length);
+  });
+});
+
+describe("the report in Markdown", () => {
+  const LINUX = { workspace: "w", commit: "c".repeat(40), platform: "linux", arch: "x64", node: "v24.0.0" };
+  const PROVENANCE = { commit: "c".repeat(40), run: "123", attempt: "2", captured: [LINUX] };
+
+  it("opens with the commit, the run and where coverage was captured", () => {
+    const md = markdown(report(attribution(), [W]), PROVENANCE);
+    assert.match(md, new RegExp(`^## Testing evidence\n\nCommit \`${"c".repeat(40)}\`, run 123 attempt 2\.\nCoverage was captured on linux x64, Node v24\.0\.0 only\.\n`));
+  });
+
+  it("keeps coverage, ownership, reconciliation, findings and capability contracts in separate sections, each saying what it is not", () => {
+    const md = markdown(report(attribution(), [W]), PROVENANCE);
+    const headings = md.split("\n").filter((l) => l.startsWith("#"));
+    assert.deepEqual(headings, ["## Testing evidence", "### Code coverage", "### CASE ownership", "### Reconciliation", "### Findings", "### Capability contracts"]);
+    assert.match(md, /This is execution, not correctness\./);
+    assert.match(md, /not obligations met\./);
+    assert.match(md, /never combined\./);
+    assert.match(md, /### Capability contracts\n\nNot reported here\./);
+  });
+
+  it("shows a failed and an unknown measurement as such, never as a figure", () => {
+    const failed = { workspace: "f", tests: "fail", delivered: ["f/x.js"], failed: "f: no coverage summary was produced" };
+    const unknown = { workspace: "u", unknown: "u: no evidence was captured for this run" };
+    const md = markdown(report(attribution(), [W, failed, unknown]), PROVENANCE);
+    assert.match(md, /^\| f \| fail \| 1 \| not measured \| not measured \| not measured \|$/m);
+    assert.match(md, /^\| u \| unknown \| unknown \| unknown \| unknown \| unknown \|$/m);
+    assert.match(md, /\*\*verified failure\*\* \(2\)\n\n- f: f: no coverage summary was produced\n- f: f: its tests failed/);
+    assert.match(md, /\*\*unknown\*\* \(1\)\n\n- u: u: no evidence was captured for this run/);
+  });
+
+  it("shows no percentage but coverage's own", () => {
+    const md = markdown(report(attribution(), [W]), PROVENANCE);
+    assert.deepEqual(md.match(/\d+(\.\d+)?%/g), ["50%", "50%", "50%"]);
+  });
+
+  it("says when nothing was captured, and that the commit is unknown", () => {
+    const md = markdown(report(attribution(), []), { captured: [] });
+    assert.match(md, /Commit `unknown`\.\nNo coverage was captured\./);
+  });
+
+  it("keeps a table intact when a value holds a pipe or a line break", () => {
+    const odd = { workspace: "o", unknown: "o: a | b\nc" };
+    const md = markdown(report(attribution(), [odd]), PROVENANCE);
+    assert.match(md, /- o: o: a \\\| b c$/m);
   });
 });
