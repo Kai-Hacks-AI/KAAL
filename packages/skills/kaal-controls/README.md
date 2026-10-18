@@ -19,7 +19,7 @@ A control's objective, type, mechanism, evidence and effectiveness are analytica
 
 VARISC names the roles actors hold on an activity: Responsible, Accountable, Consulted, Informed, Verify (deterministic verification) and Sign-off (the Accountable actor's decision). Roles are distinct from structural ownership, which belongs to capabilities, Agents, Skills and Extensions, never to actors.
 
-HAPTIC (Human < Agent < Program To Improve Controls) is an escalation ladder for how a control is realized: performed by a person, by an Agent, or by a program. Moving up makes a control more repeatable, not more correct, authoritative or effective; an improvement is claimed only from evidence, and Controls executes nothing at any level. It is distinct from BASS, which orders how an Agent's own work is realized.
+HAPTIC (Human < Agent < Program To Improve Controls) is an escalation ladder for how a control is realized: performed by a person, by an Agent, or by a program. Determinism increases up the ladder, and increasing determinism alone establishes neither correctness, effectiveness nor authority; an improvement is claimed only from evidence, and Controls executes nothing at any level. BASS (Bare < Agent < Skill < Script), owned by Engineer Skill, shares only increasing determinism, applied to how an Agent's own work is realized; neither ladder redefines the other.
 
 ## Documenting a specific control
 

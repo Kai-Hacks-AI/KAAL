@@ -57,12 +57,12 @@ When you say who did what on an activity, such as a Change, use the roles of the
 
 ## Improve a control
 
-To improve how a control is realized, use the ladder of the `HAPTIC` Node: **Human** (a person performs it), **Agent** (an Agent performs it, guided by instructions), **Program** (a program performs it the same way every time). Moving up makes the control more repeatable, nothing more.
+To improve how a control is realized, use the ladder of the `HAPTIC` Node: **Human** (a person performs it), **Agent** (an Agent performs it, guided by instructions), **Program** (a program performs it the same way every time). Determinism increases up the ladder, and that is all moving up gives you.
 
-- Never infer from the level that a control is more correct, authoritative or effective. A program repeats a flawed check faithfully, and judgment stays with people.
+- Increasing determinism alone establishes neither correctness, effectiveness nor authority. Never infer them from the level. A program repeats a flawed check faithfully, and judgment stays with people.
 - Moving a control up changes its mechanism, not its type or objective. Say it is improved only when evidence shows it achieves its objective at least as well as before.
 - Leave the choice of level and the work to the capability that owns the behaviour. Who proposes or signs off the change is a role on the activity, not part of HAPTIC.
-- HAPTIC's levels are not BASS's: HAPTIC orders who or what performs a control, BASS orders how an Agent's own work is realized.
+- HAPTIC and BASS (Bare < Agent < Skill < Script, owned by Engineer Skill) share only increasing determinism, applied to different concerns: HAPTIC to who or what performs a control, BASS to how an Agent's own work is realized. Use each ladder's own terms, and never describe one in the other's.
 
 ## Document a specific control
 
