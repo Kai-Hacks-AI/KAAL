@@ -1,22 +1,26 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { claimsForm, identify, sha256, type Ref } from "./node.js";
-
-/** The foundational payload this package carries, laid out as it deploys into `.kaal/`. */
-const PAYLOAD = new URL("../payload/", import.meta.url);
+import { fileURLToPath } from "node:url";
+import { read } from "kaal-hosting";
+import { claimsForm, identify, identifyRoot, sha256, type Ref } from "./node.js";
 
 export type Files = Record<string, Buffer>;
 
 /**
+ * The foundational payload this package carries, laid out as it deploys into
+ * `.kaal/`, read once through Hosting when Core is loaded.
+ */
+const CARRIED: Files = await read(fileURLToPath(new URL("../payload/", import.meta.url)));
+
+/**
  * The foundational Core payload as files, keyed by `/`-separated path
- * relative to the Engine directory: the Kernel, the four foundational Nodes
- * and the Engine's `AGENTS.md`, as carried. Nothing here authors or rewrites a byte.
+ * relative to the Engine directory: the Kernel, the foundational Nodes, the
+ * `CASE` Definition and the Engine's `AGENTS.md`, as carried. Nothing here authors or rewrites a byte.
  */
 export function payload(): Files {
-  const files: Files = {};
-  for (const path of readdirSync(PAYLOAD, { recursive: true, encoding: "utf8" }).sort()) {
-    if (statSync(new URL(path, PAYLOAD)).isFile()) files[path.split("\\").join("/")] = readFileSync(new URL(path, PAYLOAD));
-  }
-  return files;
+  return Object.fromEntries(
+    Object.keys(CARRIED)
+      .sort()
+      .map((path) => [path, Buffer.from(CARRIED[path])]),
+  );
 }
 
 export interface Foundation {
@@ -24,9 +28,14 @@ export interface Foundation {
   kernel: string;
   node: Ref;
   definition: Ref;
+  capability: Ref;
+  agent: Ref;
   skill: Ref;
   extension: Ref;
 }
+
+/** The genesis Node `Node`: the foundation's one root, which declares no type. */
+const GENESIS = "core/Node.md";
 
 let cached: Foundation | undefined;
 
@@ -36,7 +45,7 @@ export function foundation(): Foundation {
   const files = payload();
   const nodes = Object.entries(files)
     .filter(([, bytes]) => claimsForm(bytes))
-    .map(([, bytes]) => identify(bytes));
+    .map(([path, bytes]) => (path === GENESIS ? identifyRoot : identify)(bytes));
   const ref = (name: string): Ref => {
     const found = nodes.filter((n) => n.name === name);
     if (found.length !== 1) throw new Error(`payload carries ${found.length} Nodes named ${name}`);
@@ -46,6 +55,8 @@ export function foundation(): Foundation {
     kernel: sha256(files["KAAL-KERNEL.md"]),
     node: ref("Node"),
     definition: ref("KAAL Definition"),
+    capability: ref("KAAL Capability"),
+    agent: ref("KAAL Agent"),
     skill: ref("KAAL Skill"),
     extension: ref("KAAL Extension"),
   };
