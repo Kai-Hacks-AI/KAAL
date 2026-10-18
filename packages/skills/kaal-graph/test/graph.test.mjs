@@ -97,6 +97,20 @@ describe("the Form", () => {
     assert.ok(Object.isFrozen(n.frontmatter));
   });
 
+  it("returns an identity frozen throughout, sequences and type included", () => {
+    const n = identify(Buffer.from(`---\nname: A\ntype:\n  name: ${T.name}\n  id: ${T.id}\nlist: [1, [2, {k: [3]}]]\n---\n`));
+    const frozen = (v) => typeof v !== "object" || v === null || (Object.isFrozen(v) && Object.values(v).every(frozen));
+    assert.ok(frozen(n));
+    assert.equal(n.type, n.frontmatter.type, "one type reference, frozen once");
+    assert.throws(() => {
+      n.name = "B";
+    }, TypeError);
+    assert.throws(() => n.frontmatter.list[1].push(4), TypeError);
+    assert.throws(() => {
+      n.type.id = "d".repeat(64);
+    }, TypeError);
+  });
+
   it("reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes", () => {
     const block = identify(Buffer.from(node("A", T)));
     const flow = identify(Buffer.from(`---\ntype: {name: ${T.name}, id: ${T.id}}\nname: 'A'\n---\n\n# A\n`));
@@ -316,6 +330,40 @@ describe("the graph", () => {
     assert.deepEqual(g.check(), []);
     assert.deepEqual([...g.traverse(r2.id)].length, 3);
     for (const e of edgesOf(r2).edges) assert.ok(Object.isFrozen(e) && Object.isFrozen(e.type) && Object.isFrozen(e.target));
+  });
+
+  it("holds only Nodes that cannot change, so its indexes always agree with them", () => {
+    const g = new Graph([serves, intent, r1]);
+    const view = () => JSON.stringify([g.named("Intent capture"), g.resolve(ref(intent)) === intent, g.out(r1.id), g.in(intent.id), g.typed(f.definition), g.edges(ref(serves)), g.check()]);
+    const before = view();
+    assert.throws(() => {
+      g.node(intent.id).name = "Renamed";
+    }, TypeError);
+    assert.throws(() => g.node(r1.id).frontmatter.edges[0].targets.push(ref(serves)), TypeError);
+    assert.throws(() => {
+      g.node(r1.id).type = ref(serves);
+    }, TypeError);
+    assert.equal(view(), before);
+  });
+
+  it("refuses a Node that could still change, adding nothing", () => {
+    const g = new Graph([serves, intent]);
+    const before = JSON.stringify([g.named("R1"), g.in(intent.id), g.check()]);
+    const thawed = [
+      ["an open Node", { ...r1 }],
+      ["an open type", Object.freeze({ ...r1, type: { ...r1.type } })],
+      ["open frontmatter", Object.freeze({ ...r1, frontmatter: { ...r1.frontmatter } })],
+      ["an open sequence in the frontmatter", Object.freeze({ ...r1, frontmatter: Object.freeze({ ...r1.frontmatter, edges: [...r1.frontmatter.edges] }) })],
+    ];
+    for (const [label, node] of thawed) {
+      assert.throws(() => g.add(node), (e) => e instanceof TypeError && /only frozen Nodes/.test(e.message), label);
+      assert.throws(() => new Graph([node]), TypeError, label);
+    }
+    assert.equal(JSON.stringify([g.named("R1"), g.in(intent.id), g.check()]), before);
+    const carried = Object.freeze({ ...r1, path: "elsewhere/R1.md", bytes: Buffer.from("not read") });
+    g.add(carried);
+    assert.equal(g.node(r1.id), carried, "a frozen Node may carry the caller's own fields, which Graph never reads");
+    assert.deepEqual(g.in(intent.id), [{ type: ref(serves), source: ref(r1) }]);
   });
 
   it("answers queries with Edges as declared, which check() verifies", () => {
