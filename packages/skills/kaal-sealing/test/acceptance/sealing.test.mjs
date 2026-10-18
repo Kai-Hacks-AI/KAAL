@@ -74,7 +74,7 @@ before(async () => {
 
 describe("package", () => {
   it("is a tarball of exactly the intended contents, with its own MIT license", async () => {
-    assert.deepEqual((await run("tar", ["-tzf", tarball], work)).split("\n").filter(Boolean).sort(), EXPECTED_TARBALL);
+    assert.deepEqual((await run("tar", ["-tzf", tarball], work)).split(/\r?\n/).filter(Boolean).sort(), EXPECTED_TARBALL);
     const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
     assert.equal(pkg.license, "MIT");
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
