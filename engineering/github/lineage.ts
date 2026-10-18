@@ -16,12 +16,13 @@
 //                        its flow names.
 //   landing              Audit, after a pull request has landed: it landed by that method. A landing cannot
 //                        be gated after the fact; this verdict reports it, with the repair.
-//   establishment        Audit, when a kaal/* branch is created: it starts at a state of the default branch.
+//   establishment        Audit, when a kaal/* branch is created: it starts at the default branch's tip as it
+//                        was at that moment, as the activity recorded then shows.
 //   collector            Audit, at any time: a collector holds unpromoted work or is newly established. One
-//                        whose work is all promoted is deleted, unless the Owner holds it and the hold is
-//                        evidenced in holds.json beside this file; a held collector is reported as held,
-//                        never as a pass.
-//   workingBranch        Audit, at any time: a working branch whose Change merged is deleted.
+//                        that a promotion of it took in full is deleted, unless the Owner holds it and the
+//                        hold is evidenced in holds.json beside this file; a held collector is reported as
+//                        held, never as a pass.
+//   workingBranch        Audit, at any time: a working branch whose Change merged is deleted, not reused.
 //
 // Deletion cannot be gated: the audits report what is due, and the Owner deletes.
 //
@@ -38,12 +39,16 @@
 //   lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>
 // pulls.json is what GitHub reports of the pull requests associated with <after>, as
 // [{ number, base, head, merge }]: base ref, head commit and merge commit (null while unmerged).
-//   lineage.ts establishment <default> <default-tip> <ref> <tip>
-//   lineage.ts collectors <default> <default-tip> <ref-prefix> <holds.json> <open-targets.json>
+//   lineage.ts establishment <default> <ref> <activity.json>
+//   lineage.ts collectors <default> <default-tip> <ref-prefix> <holds.json> <collectors.json>
 //   lineage.ts working-branches <default> <branches.json>
-// The JSON inputs are facts the caller reads from GitHub: open-targets.json maps a collector to the
-// numbers of the open pull requests into it; branches.json lists each branch with its tip and the
-// merged pull requests whose head was that branch, as [{ branch, tip, merged: [{ number, head }] }].
+// The other JSON inputs are facts the caller reads from GitHub, complete or not at all:
+// activity.json is the repository activity of the default branch and the ref, as GitHub records it
+// ([{ ref, before, after, timestamp, activity_type }]); collectors.json maps each collector to
+// { open: [numbers], promotions: [{ number, head, merge }] }, its open pull requests and its merged
+// pull requests into the default branch; branches.json lists each branch with its tip and the merged
+// pull requests whose head ref it was, as [{ branch, tip, merged: [{ number, head }] }]. A fact a
+// verdict needs and does not get fails it as cannot judge, never passes it.
 // Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable, 4 held (collectors only: nothing fails and an
 // evidenced Owner hold keeps at least one collector). A consumer must treat 2 as a failure and
 // 3 as "this verdict does not apply", never as a pass of it. --resolutions writes a verified
@@ -341,24 +346,51 @@ export function landing(f: LandingFacts): Verdict {
   return { kind: "fail", message: `${seen}, so ${by}, but its flow lands by ${METHOD_NAME[f.expected]}. ${repair}` };
 }
 
-export interface EstablishmentFacts {
-  defaultBranch: string;
-  defaultTip: string;
+/** A change to a branch as GitHub's repository activity records it, at the time it happened. */
+export interface Activity {
   ref: string;
-  tip: string;
-  /** The tip is a commit on the default branch's first-parent history: a state it admitted. */
-  onDefault: boolean;
+  before: string;
+  after: string;
+  timestamp: string;
+  activity_type: string;
 }
 
-export function establishment(f: EstablishmentFacts): Verdict {
-  if (!f.ref.startsWith("kaal/")) return { kind: "not-applicable", message: `Not a collector: ${f.ref}.` };
-  if (f.tip === f.defaultTip) return { kind: "pass", message: `${f.ref} is established at ${f.defaultBranch}'s tip ${short(f.tip)}.` };
-  if (f.onDefault) {
-    return { kind: "pass", message: `${f.ref} is established at ${f.defaultBranch}'s earlier state ${short(f.tip)}; ${f.defaultBranch} is at ${short(f.defaultTip)}.` };
+const ZERO = "0".repeat(40);
+const heads = (branch: string) => `refs/heads/${branch}`;
+
+/** The states the default branch was at when `at` happened, from its recorded activity: the state
+ *  after its last change before `at`, and both sides of any change in that same second, which the
+ *  record cannot order against `at`. A string says why the record cannot tell: it does not reach
+ *  back that far, or a link in it is missing. */
+export function stateAt(defaultBranch: string, activity: Activity[], at: string): string[] | string {
+  const pushes = activity.filter((a) => a.ref === heads(defaultBranch)).sort((x, y) => x.timestamp.localeCompare(y.timestamp));
+  for (let i = 1; i < pushes.length; i++) {
+    if (pushes[i].before !== pushes[i - 1].after) {
+      return `${defaultBranch}'s recorded activity is missing a change between ${short(pushes[i - 1].after)} and ${short(pushes[i].before)}`;
+    }
   }
+  const earlier = pushes.filter((p) => p.timestamp < at);
+  const same = pushes.filter((p) => p.timestamp === at);
+  if (!earlier.length && !(same.length && same[0].before === ZERO)) return `${defaultBranch}'s recorded activity does not reach back to ${at}`;
+  return [...new Set([...(earlier.length ? [earlier[earlier.length - 1].after] : []), ...same.flatMap((p) => [p.before, p.after])])].filter((c) => c !== ZERO);
+}
+
+/** Establish: a collector is created at the default branch's tip as it was at that moment, judged
+ *  from the activity recorded when it happened, never from the default branch's tip at audit time. */
+export function establishment(defaultBranch: string, ref: string, activity: Activity[]): Verdict {
+  if (!ref.startsWith("kaal/")) return { kind: "not-applicable", message: `Not a collector: ${ref}.` };
+  const created = activity.filter((a) => a.ref === heads(ref) && a.activity_type === "branch_creation")
+    .sort((x, y) => x.timestamp.localeCompare(y.timestamp)).at(-1);
+  if (!created) return { kind: "fail", message: `Cannot judge where ${ref} was established: GitHub's activity records no creation of it. See ${GUIDE}#establish` };
+  const then = stateAt(defaultBranch, activity, created.timestamp);
+  const what = `${ref} was established at ${short(created.after)} on ${created.timestamp}`;
+  if (typeof then === "string") return { kind: "fail", message: `Cannot judge where ${ref} was established: ${then}. See ${GUIDE}#establish` };
+  if (then.includes(created.after)) return { kind: "pass", message: `${what}, ${defaultBranch}'s tip at that moment.` };
   return {
     kind: "fail",
-    message: `${f.ref} was created at ${short(f.tip)}, which is not a state of ${f.defaultBranch}. Delete it and establish it again at ${f.defaultBranch}'s tip. See ${GUIDE}#establish`,
+    message:
+      `${what}, but ${defaultBranch}'s tip at that moment was ${then.map(short).join(" or ")}. A collector starts at ${defaultBranch}'s tip. ` +
+      `If it holds no Change yet, delete it and establish it again at ${defaultBranch}'s tip; otherwise synchronize it before its promotion. See ${GUIDE}#establish`,
   };
 }
 
@@ -385,23 +417,28 @@ export interface CollectorFacts {
   tip: string;
   /** The tip is a commit on the default branch's first-parent history: established, with no Change yet. */
   onDefault: boolean;
-  /** The newest default-branch commit, on its first-parent history, with exactly the tip's tree: the
-   *  collector holds nothing the default branch lacks. null when there is none. */
-  promoted: string | null;
+  /** The promotion that took everything the collector holds: the newest merged pull request from it
+   *  into the default branch whose head the tip contains, when the tip's tree is a state of the
+   *  default branch at or after that promotion's merge commit. Tree equality alone is never a
+   *  promotion. null when there is none. */
+  promoted: { number: number; merge: string } | null;
   /** Open pull requests into the collector. */
   openTargets: number[];
   hold: Hold | null;
+  /** Why its facts are not complete enough to judge it, or null. */
+  unknown: string | null;
 }
 
 export function collector(f: CollectorFacts): AuditVerdict {
   const c = f.collector;
+  if (f.unknown !== null) return { kind: "fail", message: `Cannot judge ${c}: ${f.unknown}. See ${GUIDE}#promote` };
   if (f.hold !== null) {
     const why = unevidenced(f.hold);
     if (why !== null) return { kind: "fail", message: `The hold on ${c} is not evidenced: ${why}. See ${GUIDE}#promote` };
   }
   if (f.onDefault) return { kind: "pass", message: `${c} is established at ${f.defaultBranch}'s state ${short(f.tip)} and holds no Change yet.` };
-  if (f.promoted === null) return { kind: "pass", message: `${c} holds work ${f.defaultBranch} does not have.` };
-  const done = `${c} is fully promoted: ${f.defaultBranch} at ${short(f.promoted)} has its exact tree`;
+  if (f.promoted === null) return { kind: "pass", message: `${c} holds work no promotion of it has taken to ${f.defaultBranch}.` };
+  const done = `${c} is fully promoted: #${f.promoted.number} took it to ${f.defaultBranch} at ${short(f.promoted.merge)}, and it holds nothing since`;
   if (f.hold !== null) return { kind: "held", message: `${done}. It is kept because the Owner holds it: ${f.hold.reason} (${f.hold.ruling}).` };
   if (f.openTargets.length) {
     return {
@@ -418,17 +455,36 @@ export interface WorkingBranchFacts {
   defaultBranch: string;
   branch: string;
   tip: string;
-  /** Merged pull requests whose head was this branch, with the head each merged. */
-  merged: { number: number; head: string }[];
+  /** Merged pull requests whose head was this branch: the head each merged, and whether the tip is
+   *  that head ("at"), contains it and moved on ("past"), or does not contain it ("apart": a branch
+   *  created again under the same name). */
+  merged: { number: number; head: string; tip: "at" | "past" | "apart" }[];
+  /** Why its facts are not complete enough to judge it, or null. */
+  unknown: string | null;
 }
 
+/** A working branch is deleted when its Change merges. Reusing it for another Change is not allowed;
+ *  only a branch created again under the same name, apart from the merged head, is a new one. */
 export function workingBranch(f: WorkingBranchFacts): Verdict {
   if (f.branch === f.defaultBranch || f.branch.startsWith("kaal/")) return { kind: "not-applicable", message: `Not a working branch: ${f.branch}.` };
-  const landed = f.merged.find((m) => m.head === f.tip);
-  if (landed) {
-    return { kind: "fail", message: `${f.branch}: its Change merged as #${landed.number} at ${short(f.tip)}. Delete the branch. See ${GUIDE}#branches` };
+  if (f.unknown !== null) return { kind: "fail", message: `Cannot judge ${f.branch}: ${f.unknown}. See ${GUIDE}#branches` };
+  const at = f.merged.find((m) => m.tip === "at");
+  if (at) return { kind: "fail", message: `${f.branch}: its Change merged as #${at.number} at ${short(f.tip)}. Delete the branch. See ${GUIDE}#branches` };
+  const past = f.merged.filter((m) => m.tip === "past");
+  if (past.length) {
+    return {
+      kind: "fail",
+      message:
+        `${f.branch} was reused: it still carries the head of ${past.map((m) => `#${m.number}`).join(" ")}, merged, and moved on to ${short(f.tip)}. ` +
+        `A working branch is deleted when its Change merges. Move its new work to a new branch from the collector's tip, and delete this one. See ${GUIDE}#branches`,
+    };
   }
-  return { kind: "pass", message: `${f.branch} carries work no merged pull request landed.` };
+  return {
+    kind: "pass",
+    message: f.merged.length
+      ? `${f.branch} is a new branch under a name that ${f.merged.map((m) => `#${m.number}`).join(" ")} used: it does not carry their heads.`
+      : `${f.branch} carries work no merged pull request landed.`,
+  };
 }
 
 // ---- Facts: read from Git ------------------------------------------------------------------
@@ -581,36 +637,71 @@ export function readLanding(
 const onFirstParent = (cwd: string, c: string, defaultTip: string) =>
   isAncestor(cwd, c, defaultTip) && git(cwd, ["rev-list", "--first-parent", defaultTip]).stdout.split("\n").includes(c);
 
-export function readEstablishment(cwd: string, defaultBranch: string, defaultTip: string, ref: string, tip: string): EstablishmentFacts {
-  return { defaultBranch, defaultTip, ref, tip, onDefault: onFirstParent(cwd, tip, defaultTip) };
+/** What GitHub reports of a collector: the open pull requests into it, and its merged promotions
+ *  into the default branch with their heads and merge commits. */
+export interface CollectorRecord {
+  open: number[];
+  promotions: { number: number; head: string; merge: string }[];
 }
 
-/** Every collector under refPrefix, with the facts its audit needs. */
+/** Every collector under refPrefix, with the facts its audit needs. A collector GitHub reported
+ *  nothing for, or whose promotion is not in this repository, cannot be judged. */
 export function readCollectors(
-  cwd: string, defaultBranch: string, defaultTip: string, refPrefix: string, holds: Hold[], open: Record<string, number[]>,
+  cwd: string, defaultBranch: string, defaultTip: string, refPrefix: string, holds: Hold[], records: Record<string, CollectorRecord>,
 ): CollectorFacts[] {
   const firstParent = git(cwd, ["log", "--first-parent", "--format=%H %T", defaultTip]).stdout.split("\n").filter(Boolean).map((l) => l.split(" "));
-  const commits = new Set(firstParent.map(([c]) => c));
-  const byTree = new Map<string, string>();
-  for (const [c, t] of firstParent) if (!byTree.has(t)) byTree.set(t, c);
+  const order = new Map(firstParent.map(([c], i) => [c, i])); // 0 is the tip: a lower index is newer
   const refs = git(cwd, ["for-each-ref", "--format=%(refname) %(objectname)", refPrefix]).stdout.split("\n").filter(Boolean);
   return refs.map((l) => {
     const [ref, tip] = l.split(" ");
     const name = `kaal/${ref.slice(refPrefix.length)}`;
-    return {
-      defaultBranch, collector: name, tip,
-      onDefault: commits.has(tip),
-      promoted: byTree.get(rev(cwd, `${tip}^{tree}`)) ?? null,
-      openTargets: open[name] ?? [],
-      hold: holds.find((h) => h.collector === name) ?? null,
+    const record = records[name];
+    const facts: CollectorFacts = {
+      defaultBranch, collector: name, tip, onDefault: order.has(tip), promoted: null,
+      openTargets: record?.open ?? [], hold: holds.find((h) => h.collector === name) ?? null,
+      unknown: record ? null : "GitHub reported no pull requests for it",
     };
+    if (!record || facts.onDefault) return facts;
+    const tree = rev(cwd, `${tip}^{tree}`);
+    for (const p of [...record.promotions].sort((x, y) => (order.get(x.merge) ?? Infinity) - (order.get(y.merge) ?? Infinity))) {
+      if (!exists(cwd, p.head) || !order.has(p.merge)) {
+        facts.unknown = `its promotion #${p.number} is not in this repository as ${defaultBranch} holds it`;
+        return facts;
+      }
+      if (!isAncestor(cwd, p.head, tip)) continue;
+      const since = firstParent.slice(0, order.get(p.merge)! + 1);
+      if (since.some(([, t]) => t === tree)) facts.promoted = { number: p.number, merge: p.merge };
+      break;
+    }
+    return facts;
   });
+}
+
+/** What GitHub reports of a working branch: its tip, and the merged pull requests whose head ref it was. */
+export interface BranchRecord {
+  branch: string;
+  tip: string;
+  merged: { number: number; head: string }[];
+}
+
+export function readWorkingBranch(cwd: string, defaultBranch: string, b: BranchRecord): WorkingBranchFacts {
+  const missing = [b.tip, ...b.merged.map((m) => m.head)].find((c) => !exists(cwd, c));
+  if (missing) return { defaultBranch, branch: b.branch, tip: b.tip, merged: [], unknown: `${short(missing)} is not in this repository` };
+  return {
+    defaultBranch, branch: b.branch, tip: b.tip, unknown: null,
+    merged: b.merged.map((m) => ({ ...m, tip: m.head === b.tip ? "at" : isAncestor(cwd, m.head, b.tip) ? "past" : "apart" })),
+  };
 }
 
 // ---- CLI ----------------------------------------------------------------------------------
 
 const EXIT = { pass: 0, fail: 1, "not-applicable": 3 } as const;
 const json = (path: string): unknown => JSON.parse(readFileSync(path, "utf8"));
+function jsonList<T>(path: string, ok: (x: any) => boolean): T[] {
+  const xs = json(path);
+  if (!Array.isArray(xs) || !xs.every(ok)) throw new Error(`${path} is not the list this verdict reads`);
+  return xs as T[];
+}
 
 function main(argv: string[]): number {
   const [verdict, ...args] = argv;
@@ -645,23 +736,21 @@ function main(argv: string[]): number {
       throw new Error(`${file} is not a list of pull requests`);
     }
     v = landing(readLanding(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, before), rev(cwd, after), pulls as Pull[]));
-  } else if (verdict === "establishment" && args.length === 4) {
-    const [def, defaultTip, ref, tip] = args;
-    v = establishment(readEstablishment(cwd, def, rev(cwd, defaultTip), ref, rev(cwd, tip)));
+  } else if (verdict === "establishment" && args.length === 3) {
+    const [def, ref, file] = args;
+    v = establishment(def, ref, jsonList<Activity>(file, (a) => typeof a?.ref === "string" && typeof a.timestamp === "string"));
   } else if (verdict === "collectors" && args.length === 5) {
-    const [def, defaultTip, prefix, holdsFile, openFile] = args;
+    const [def, defaultTip, prefix, holdsFile, recordsFile] = args;
     if (!prefix.endsWith("/")) throw new Error(`not a ref prefix: ${prefix}`);
-    const holds = json(holdsFile);
-    if (!Array.isArray(holds)) throw new Error(`${holdsFile} is not a list of holds`);
-    const open = json(openFile) as Record<string, number[]>;
-    const verdicts = readCollectors(cwd, def, rev(cwd, defaultTip), prefix, holds as Hold[], open).map(collector);
+    const holds = jsonList<Hold>(holdsFile, (h) => typeof h?.collector === "string");
+    const records = json(recordsFile) as Record<string, CollectorRecord>;
+    const verdicts = readCollectors(cwd, def, rev(cwd, defaultTip), prefix, holds, records).map(collector);
     for (const a of verdicts) (a.kind === "fail" ? console.error : console.log)(`${a.kind}: ${a.message}`);
     return verdicts.some((a) => a.kind === "fail") ? 1 : verdicts.some((a) => a.kind === "held") ? 4 : 0;
   } else if (verdict === "working-branches" && args.length === 2) {
     const [def, file] = args;
-    const branches = json(file);
-    if (!Array.isArray(branches)) throw new Error(`${file} is not a list of branches`);
-    const verdicts = (branches as Omit<WorkingBranchFacts, "defaultBranch">[]).map((b) => workingBranch({ ...b, defaultBranch: def }));
+    const branches = jsonList<BranchRecord>(file, (b) => typeof b?.branch === "string" && typeof b.tip === "string" && Array.isArray(b.merged));
+    const verdicts = branches.map((b) => workingBranch(readWorkingBranch(cwd, def, b)));
     for (const a of verdicts) if (a.kind !== "not-applicable") (a.kind === "fail" ? console.error : console.log)(`${a.kind}: ${a.message}`);
     return verdicts.some((a) => a.kind === "fail") ? 1 : 0;
   } else {
@@ -671,8 +760,8 @@ function main(argv: string[]): number {
       "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
       "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>\n" +
       "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>\n" +
-      "       lineage.ts establishment <default> <default-tip> <ref> <tip>\n" +
-      "       lineage.ts collectors <default> <default-tip> <ref-prefix> <holds.json> <open-targets.json>\n" +
+      "       lineage.ts establishment <default> <ref> <activity.json>\n" +
+      "       lineage.ts collectors <default> <default-tip> <ref-prefix> <holds.json> <collectors.json>\n" +
       "       lineage.ts working-branches <default> <branches.json>");
     return 2;
   }
