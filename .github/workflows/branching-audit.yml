@@ -1,0 +1,150 @@
+# Branching audit: runs the branching checker, engineering/github/lineage.ts, after the fact, on what
+# no pull request check can gate. The verdicts and their guidance live only in the checker and
+# engineering/github/branching.md; this workflow reads facts from Git and GitHub and reports the
+# outcome. Nothing here deletes, synchronizes or merges: a failing audit says what is due, and the
+# Owner acts.
+#
+#   Landing        a push that lands a pull request on main or a collector: it landed by the method its
+#                  flow names.
+#   Establishment  a push that creates a collector: it starts at a state of main.
+#   Lifecycle      every collector and working branch, daily, on demand and whenever main moves: a fully
+#                  promoted collector is due for deletion unless an evidenced Owner hold in
+#                  engineering/github/holds.json keeps it (reported as a warning, never as a pass), and
+#                  a working branch whose Change merged is due for deletion.
+#
+# The checker and holds.json are always read from the default branch; nothing of a pushed branch is
+# checked out, built, installed or run.
+name: KAAL
+
+on:
+  push:
+    branches: [main, "kaal/**"]
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  landing:
+    name: Landing
+    if: github.event_name == 'push' && !github.event.created && !github.event.deleted
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Audit the landing with the default branch's checker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+          BASE_REF: ${{ github.ref_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: |
+          # The pull request that landed it, as GitHub associates it with the pushed commit.
+          gh api "repos/$REPO/commits/$AFTER/pulls" --jq \
+            "[.[] | select(.merged_at != null and .base.ref == \"$BASE_REF\")][0] | select(.) | \"\(.number) \(.head.sha)\"" > "$RUNNER_TEMP/pull"
+          read -r PULL HEAD < "$RUNNER_TEMP/pull" || true
+          git init -q lineage && cd lineage
+          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" "$BEFORE" "$AFTER" \
+            ${PULL:+"+refs/pull/$PULL/head:refs/remotes/pull/$PULL"}
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+            echo "::error title=Landing::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+          RC=0; node "$RUNNER_TEMP/lineage.ts" landing "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" "$BEFORE" "$AFTER" \
+            "${PULL:-none}" "${HEAD:-none}" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+          cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
+          case $RC in
+            0) cat "$RUNNER_TEMP/verdict" ;;
+            1) echo "::error title=Landing::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            *) echo "::error title=Landing: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+          esac
+
+  establishment:
+    name: Establishment
+    if: github.event_name == 'push' && github.event.created && startsWith(github.ref_name, 'kaal/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Audit where the collector starts with the default branch's checker
+        env:
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+          REF: ${{ github.ref_name }}
+          TIP: ${{ github.event.after }}
+        run: |
+          git init -q lineage && cd lineage
+          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" "$TIP"
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+            echo "::error title=Establishment::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+          RC=0; node "$RUNNER_TEMP/lineage.ts" establishment "$DEFAULT" "refs/remotes/origin/$DEFAULT" "$REF" "$TIP" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
+          cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
+          case $RC in
+            0) cat "$RUNNER_TEMP/verdict" ;;
+            1) echo "::error title=Establishment::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+            *) echo "::error title=Establishment: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+          esac
+
+  lifecycle:
+    name: Lifecycle
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Audit every collector and working branch with the default branch's checker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          # Facts from GitHub, for the checker to judge: open pull requests per collector, and each
+          # branch with its tip and the merged pull requests whose head was that branch.
+          gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" --jq '.[] | {base: .base.ref, number}' \
+            | jq -s 'map(select(.base | startswith("kaal/"))) | group_by(.base) | map({key: .[0].base, value: map(.number)}) | from_entries' > "$RUNNER_TEMP/open.json"
+          gh api --paginate "repos/$REPO/pulls?state=closed&per_page=100" \
+            --jq ".[] | select(.merged_at != null and .head.repo.full_name == \"$REPO\") | {ref: .head.ref, number, head: .head.sha}" > "$RUNNER_TEMP/merged"
+          gh api --paginate "repos/$REPO/branches?per_page=100" --jq '.[] | {branch: .name, tip: .commit.sha}' \
+            | jq -s --slurpfile m <(jq -s . "$RUNNER_TEMP/merged") \
+              'map(. as $b | . + {merged: [$m[0][] | select(.ref == $b.branch) | {number, head}]})' > "$RUNNER_TEMP/branches.json"
+          git init -q lineage && cd lineage
+          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" "+refs/heads/kaal/*:refs/remotes/origin/kaal/*"
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
+            echo "::error title=Lifecycle::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
+          git show "refs/remotes/origin/$DEFAULT:engineering/github/holds.json" > "$RUNNER_TEMP/holds.json" || {
+            echo "::error title=Lifecycle::cannot judge: $DEFAULT does not hold engineering/github/holds.json"; exit 1; }
+          FAILED=0
+          RC=0; node "$RUNNER_TEMP/lineage.ts" collectors "$DEFAULT" "refs/remotes/origin/$DEFAULT" refs/remotes/origin/kaal/ \
+            "$RUNNER_TEMP/holds.json" "$RUNNER_TEMP/open.json" > "$RUNNER_TEMP/collectors" 2>&1 || RC=$?
+          # 0 pass; 4 an evidenced Owner hold keeps a collector, reported as a warning; 1 a collector is due
+          # for deletion or a hold is not evidenced; 2 or anything else cannot judge, which fails.
+          case $RC in 0|1|4) ;; *) echo "::error title=Lifecycle: cannot judge collectors::$(cat "$RUNNER_TEMP/collectors")"; FAILED=1 ;; esac
+          RC2=0; node "$RUNNER_TEMP/lineage.ts" working-branches "$DEFAULT" "$RUNNER_TEMP/branches.json" > "$RUNNER_TEMP/working" 2>&1 || RC2=$?
+          case $RC2 in 0|1) ;; *) echo "::error title=Lifecycle: cannot judge working branches::$(cat "$RUNNER_TEMP/working")"; FAILED=1 ;; esac
+          cat "$RUNNER_TEMP/collectors" "$RUNNER_TEMP/working" >> "$GITHUB_STEP_SUMMARY"
+          while IFS= read -r line; do
+            case $line in
+              fail:*) echo "::error title=Lifecycle::${line#fail: }"; FAILED=1 ;;
+              held:*) echo "::warning title=Lifecycle: held by the Owner::${line#held: }" ;;
+              *) echo "$line" ;;
+            esac
+          done < <(cat "$RUNNER_TEMP/collectors" "$RUNNER_TEMP/working")
+          exit $FAILED
