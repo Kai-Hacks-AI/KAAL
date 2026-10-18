@@ -250,20 +250,34 @@ export interface LandingFacts {
   /** The method its flow names, judged on the base as it stood before the landing; null when its
    *  Branching verdict fails. */
   expected: "squash" | "merge" | null;
+  /** The default-branch state the head states Synchronized-with when the default tip it was judged
+   *  against does not hold it: the facts are too old to judge the flow. null otherwise. */
+  unseen: string | null;
   /** Commits on the base's first-parent history from `before` to `after`. */
   commits: number;
   /** The parents of `after`. */
   parents: string[];
 }
 
-/** The method a landing used, read from its shape: one commit with the head as second parent is a
- *  merge commit, one commit with one parent is a squash (a one-commit rebase lands the same tree the
- *  same way), and several commits are a rebase. null when the shape is none of these. */
-export function landedBy(f: Pick<LandingFacts, "commits" | "parents" | "head">): Method | null {
-  if (f.commits > 1) return "rebase";
+/** What Git shows of a landing. GitHub records no merge method on the commits it writes, so the
+ *  method is read from their shape, and one shape is ambiguous: a single commit with one parent is
+ *  what a squash leaves, and also what a rebase of a one-commit head leaves. */
+export type Shape = "merge-commit" | "one-commit" | "several-commits";
+const SHAPE_NAME: Record<Shape, string> = {
+  "merge-commit": "a merge commit of its head",
+  "one-commit": "one single-parent commit",
+  "several-commits": "several commits",
+};
+/** The method each shape is consistent with: the only one, except a one-commit rebase also leaves one commit. */
+const SHAPE_METHOD: Record<Shape, Method> = { "merge-commit": "merge", "one-commit": "squash", "several-commits": "rebase" };
+
+/** The shape a landing left: one commit with the head as second parent, one commit with one parent,
+ *  or several commits. null when it is none of these. */
+export function landedAs(f: Pick<LandingFacts, "commits" | "parents" | "head">): Shape | null {
+  if (f.commits > 1) return "several-commits";
   if (f.commits !== 1) return null;
-  if (f.parents.length === 2 && f.parents[1] === f.head) return "merge";
-  return f.parents.length === 1 ? "squash" : null;
+  if (f.parents.length === 2 && f.parents[1] === f.head) return "merge-commit";
+  return f.parents.length === 1 ? "one-commit" : null;
 }
 
 export function landing(f: LandingFacts): Verdict {
@@ -272,17 +286,37 @@ export function landing(f: LandingFacts): Verdict {
     return { kind: "fail", message: `No pull request landed ${what}. ${f.baseRef} changes only through pull requests. See ${GUIDE}#branches` };
   }
   const pr = `#${f.pull}`;
+  if (f.unseen !== null) {
+    return {
+      kind: "fail",
+      message:
+        `Cannot judge how ${pr} should have landed: its head states Synchronized-with ${short(f.unseen)}, which ${f.defaultBranch} ` +
+        `as given does not hold. Audit it against ${f.defaultBranch}'s current tip. See ${TELLING}`,
+    };
+  }
   if (f.expected === null) return { kind: "fail", message: `${pr} landed into ${f.baseRef} although its Branching verdict fails. See ${TELLING}` };
-  const used = landedBy(f);
-  if (used === null) return { kind: "fail", message: `${pr} landed ${what} in a shape that is no method its flow allows. See ${TELLING}` };
-  if (used === f.expected) return { kind: "pass", message: `${pr} landed into ${f.baseRef} by ${METHOD_NAME[used]}, as its flow names.` };
+  const shape = landedAs(f);
+  if (shape === null) return { kind: "fail", message: `${pr} landed ${what} in a shape that is no method its flow allows. See ${TELLING}` };
+  const used = SHAPE_METHOD[shape];
+  const seen = `${pr} landed into ${f.baseRef} as ${SHAPE_NAME[shape]}`;
+  if (used === f.expected) {
+    return {
+      kind: "pass",
+      message:
+        `${seen}, the shape ${METHOD_NAME[used]} leaves, as its flow names. ` +
+        (shape === "one-commit"
+          ? `Git cannot tell a squash from a rebase of a one-commit head; both land the same single commit, so either meets the flow.`
+          : `Only the shape is verified; GitHub records no method.`),
+    };
+  }
   const repair =
     f.expected === "merge"
       ? `${f.baseRef} now lacks ${f.defaultBranch}'s ancestry, so its next promotion fails freshness. Synchronize it again. See ${GUIDE}#synchronize`
       : used === "merge"
         ? `The verified tree landed unchanged, with ${f.defaultBranch}-side history added; nothing needs repair. Land the next one by squash. See ${TELLING}`
         : `It landed as ${f.commits} commits instead of one. Land the next one by squash. See ${TELLING}`;
-  return { kind: "fail", message: `${pr} landed into ${f.baseRef} by ${METHOD_NAME[used]}, but its flow lands by ${METHOD_NAME[f.expected]}. ${repair}` };
+  const by = shape === "one-commit" ? "by squash or a one-commit rebase" : `by ${METHOD_NAME[used]}`;
+  return { kind: "fail", message: `${seen}, so ${by}, but its flow lands by ${METHOD_NAME[f.expected]}. ${repair}` };
 }
 
 // ---- Facts: read from Git ------------------------------------------------------------------
@@ -388,11 +422,16 @@ export function readExpected(cwd: string, defaultBranch: string, baseRef: string
   return methodFor(defaultBranch, baseRef, synchronization(readSync(cwd, defaultBranch, baseRef, defaultTip, baseTip, head)));
 }
 
+/** The facts of a landing, judged on the base as it stood before it and on the default tip given,
+ *  which may be later than the landing: the default branch only moves forward, and every state a
+ *  head can merge in stays on its first-parent history. */
 export function readLanding(
   cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, before: string, after: string, pull: number | null, head: string | null,
 ): LandingFacts {
+  const claimed = head === null ? null : markerOf(cwd, head);
+  const unseen = claimed !== null && !isAncestor(cwd, claimed, defaultTip) ? claimed : null;
   return {
-    defaultBranch, baseRef, before, after, pull, head,
+    defaultBranch, baseRef, before, after, pull, head, unseen,
     expected: head === null ? null : readExpected(cwd, defaultBranch, baseRef, defaultTip, before, head),
     commits: Number(git(cwd, ["rev-list", "--first-parent", "--count", after, `^${before}`]).stdout.trim()),
     parents: parents(cwd, after),
