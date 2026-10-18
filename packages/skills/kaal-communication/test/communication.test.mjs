@@ -7,14 +7,14 @@ import { fileURLToPath } from "node:url";
 import { bootstrap, capabilities, foundation, identify, loadEngine, readContribution, registerSkill } from "kaal-core";
 
 const PAYLOAD = fileURLToPath(new URL("../payload/", import.meta.url));
-const node = (file) => identify(readFileSync(join(PAYLOAD, file)));
+const node = async (file) => identify(readFileSync(join(PAYLOAD, file)));
 
 describe("payload", () => {
-  it("is one Skill and the Transport and CHAOS Definitions, typed by Core", () => {
-    const f = foundation();
-    assert.deepEqual(node("Communication.md").type, f.skill);
-    assert.deepEqual(node("Transport.md").type, f.definition);
-    assert.deepEqual(node("CHAOS.md").type, f.definition);
+  it("is one Skill and the Transport and CHAOS Definitions, typed by Core", async () => {
+    const f = await foundation();
+    assert.deepEqual((await node("Communication.md")).type, f.skill);
+    assert.deepEqual((await node("Transport.md")).type, f.definition);
+    assert.deepEqual((await node("CHAOS.md")).type, f.definition);
   });
 
   it("keeps conversation state in its latest messages, with marks that never change", () => {
@@ -38,14 +38,18 @@ describe("payload", () => {
     assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /A Change never references a conversation\./);
   });
 
-  it("registers into a fresh Engine, where Transport and CHAOS are admitted", () => {
+  it("registers into a fresh Engine, where Transport and CHAOS are admitted", async () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
-    bootstrap(dir);
-    registerSkill(dir, "kaal-communication", readContribution(PAYLOAD));
+    await bootstrap(dir);
+    await registerSkill(dir, "kaal-communication", await readContribution(PAYLOAD));
     assert.deepEqual(
-      capabilities(dir).skills.map((r) => r.name),
+      (await capabilities(dir)).skills.map((r) => r.name),
       ["Communication"],
     );
-    for (const file of ["Transport.md", "CHAOS.md"]) assert.ok(loadEngine(dir).nodes.some((n) => n.id === node(file).id), file);
+    const { nodes } = await loadEngine(dir);
+    for (const file of ["Transport.md", "CHAOS.md"]) {
+      const { id } = await node(file);
+      assert.ok(nodes.some((n) => n.id === id), file);
+    }
   });
 });
