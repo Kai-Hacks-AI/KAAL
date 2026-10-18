@@ -1,5 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { read } from "kaal-hosting";
 import { claimsForm, compareRefs, identify, KaalError, type Identity, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
@@ -24,21 +23,6 @@ export interface Engine {
   named(name: string): EngineNode[];
   /** The admitted Nodes whose type is exactly this reference. */
   typedBy(ref: Ref): EngineNode[];
-}
-
-/** Directories inside an Engine that belong to Core's own atomic writes, never to the graph. */
-export const STAGING_PREFIX = ".staging-";
-
-/** The files of an Engine directory, keyed by `/`-separated relative path. */
-export function readTree(dir: string): Files {
-  const files: Files = {};
-  if (!existsSync(dir)) return files;
-  for (const path of readdirSync(dir, { recursive: true, encoding: "utf8" })) {
-    const rel = path.split("\\").join("/");
-    if (rel.split("/")[0].startsWith(STAGING_PREFIX)) continue;
-    if (statSync(join(dir, path)).isFile()) files[rel] = readFileSync(join(dir, path));
-  }
-  return files;
 }
 
 /**
@@ -66,14 +50,22 @@ export function evaluate(files: Files): Engine {
     else byId.set(identity.id, { ...identity, paths: [path] });
   }
 
+  // Admission walks the type graph outward from genesis: each Node is reached
+  // through the Nodes it types, so every Node and type reference is visited once.
+  const typedBy = new Map<string, EngineNode[]>();
+  for (const n of byId.values()) {
+    if (!n.type) continue;
+    const siblings = typedBy.get(n.type.id);
+    if (siblings) siblings.push(n);
+    else typedBy.set(n.type.id, [n]);
+  }
   const admitted = new Map<string, EngineNode>();
-  for (const n of byId.values()) if (!n.type && n.id === genesis.id && n.name === genesis.name) admitted.set(n.id, n);
-  for (let grew = true; grew; ) {
-    grew = false;
-    for (const n of byId.values()) {
-      if (admitted.has(n.id) || !n.type) continue;
-      const type = admitted.get(n.type.id);
-      if (type && type.name === n.type.name) (admitted.set(n.id, n), (grew = true));
+  const pending: EngineNode[] = [];
+  for (const n of byId.values()) if (!n.type && n.id === genesis.id && n.name === genesis.name) (admitted.set(n.id, n), pending.push(n));
+  while (pending.length) {
+    const type = pending.pop()!;
+    for (const n of typedBy.get(type.id) ?? []) {
+      if (!admitted.has(n.id) && n.type!.name === type.name) (admitted.set(n.id, n), pending.push(n));
     }
   }
   for (const n of byId.values()) {
@@ -106,6 +98,6 @@ function reasonFor(n: EngineNode, all: Map<string, EngineNode>, admitted: Map<st
 }
 
 /** Load the Engine held in an Engine directory (a host's `.kaal/`). */
-export function loadEngine(dir: string): Engine {
-  return evaluate(readTree(dir));
+export async function loadEngine(dir: string): Promise<Engine> {
+  return evaluate(await read(dir));
 }

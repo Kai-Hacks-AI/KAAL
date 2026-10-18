@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": "test",
     "outDir": "dist-test",
-    "declaration": false
+    "declaration": false,
+    "tsBuildInfoFile": null
   },
   "include": ["test"]
 }
