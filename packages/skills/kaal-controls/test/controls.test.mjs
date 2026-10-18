@@ -54,6 +54,16 @@ describe("payload", () => {
   });
 });
 
+describe("HAPTIC", () => {
+  it("keeps the Owner's mnemonic verbatim and its three levels in ladder order", () => {
+    const text = readFileSync(join(PAYLOAD, "HAPTIC.md"), "utf8");
+    assert.match(text, /^Human < Agent < Program To Improve Controls\.$/m);
+    const levels = ["Human", "Agent", "Program"].map((level) => text.indexOf(`- **${level}**:`));
+    assert.ok(levels.every((at) => at > 0), "each level is defined");
+    assert.deepEqual([...levels].sort((a, b) => a - b), levels);
+  });
+});
+
 describe("a documented control", () => {
   it("is admitted with the capability that documents it, once Controls is registered", async () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-controls-documented-"));

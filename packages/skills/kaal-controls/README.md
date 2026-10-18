@@ -7,7 +7,7 @@ payload/Controls.md            the Skill Node, typed by Core's KAAL Skill
 payload/Control.md             the Definition a documented control is typed by
 payload/Realized-by.md         the Definition of the Edge from a control to where it is realized
 payload/VARISC.md              the Definition of the roles actors hold on an activity
-payload/HAPTIC.md              the Definition of the practice of improving controls
+payload/HAPTIC.md              the Definition of the ladder for realizing and improving controls
 skills/kaal-controls/          the Agent Skill: SKILL.md
 ```
 
@@ -19,7 +19,7 @@ A control's objective, type, mechanism, evidence and effectiveness are analytica
 
 VARISC names the roles actors hold on an activity: Responsible, Accountable, Consulted, Informed, Verify (deterministic verification) and Sign-off (the Accountable actor's decision). Roles are distinct from structural ownership, which belongs to capabilities, Agents, Skills and Extensions, never to actors.
 
-HAPTIC (Human Agent Program To Improve Controls) is the practice in which an Agent proposes a change to a control and a human decides on it; the owning capability builds the change, and a control counts as improved only when evidence supports the claim. Controls does not run the practice.
+HAPTIC (Human < Agent < Program To Improve Controls) is an escalation ladder for how a control is realized: performed by a person, by an Agent, or by a program. Moving up makes a control more repeatable, not more correct, authoritative or effective; an improvement is claimed only from evidence, and Controls executes nothing at any level. It is distinct from BASS, which orders how an Agent's own work is realized.
 
 ## Documenting a specific control
 

@@ -57,7 +57,12 @@ When you say who did what on an activity, such as a Change, use the roles of the
 
 ## Improve a control
 
-When you work on improving a control, follow the `HAPTIC` Node. Start from a gap you can point to, such as a test finding, a review observation or evidence that no longer supports a claim. Propose the change as the Responsible Agent; a human is Accountable and signs it off. Leave building the change to the capability that owns the behaviour, and its evidence to wherever evidence is produced. Say a control is improved only when evidence supports it, not because the change was proposed, signed off or made.
+To improve how a control is realized, use the ladder of the `HAPTIC` Node: **Human** (a person performs it), **Agent** (an Agent performs it, guided by instructions), **Program** (a program performs it the same way every time). Moving up makes the control more repeatable, nothing more.
+
+- Never infer from the level that a control is more correct, authoritative or effective. A program repeats a flawed check faithfully, and judgment stays with people.
+- Moving a control up changes its mechanism, not its type or objective. Say it is improved only when evidence shows it achieves its objective at least as well as before.
+- Leave the choice of level and the work to the capability that owns the behaviour. Who proposes or signs off the change is a role on the activity, not part of HAPTIC.
+- HAPTIC's levels are not BASS's: HAPTIC orders who or what performs a control, BASS orders how an Agent's own work is realized.
 
 ## Document a specific control
 

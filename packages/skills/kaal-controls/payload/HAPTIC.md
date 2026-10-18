@@ -7,10 +7,16 @@ type:
 
 # HAPTIC
 
-Human Agent Program To Improve Controls.
+Human < Agent < Program To Improve Controls.
 
-HAPTIC is a practice in which humans and Agents improve controls together. It starts from a gap: a finding from a test, an observation from a review, or a control whose evidence no longer supports what is claimed for it. An Agent proposes a change to the control and is Responsible for it, in the terms of `VARISC`. A human is Accountable for the change and signs it off. The capability that owns the governed behaviour realizes the change, the evidence that the changed control operates comes from where evidence is produced, and what may then be claimed about the control is calibrated as `Controls` states.
+HAPTIC is an escalation ladder for how a control is realized, and for improving a control by moving its realization up the ladder:
 
-HAPTIC moves no responsibility: each part stays with its owner. A control is improved when evidence supports that claim, not because a change was proposed, signed off or made.
+- **Human**: a person performs the control, such as a review or a manual check.
+- **Agent**: an Agent performs the control, guided by instructions.
+- **Program**: a program performs the control, the same way on every run.
 
-HAPTIC is something people and Agents do. Controls does not run it: it keeps no backlog, registry or cadence, and it assesses and enforces nothing.
+Each step toward Program makes the control's operation more repeatable. That is all the ladder orders. A higher level is not more correct, more authoritative or more effective: a program repeats a flawed check as faithfully as a sound one, and some controls, such as a judgment of whether a change is right, are realized by a person because they rest on judgment. Moving a control up the ladder changes its mechanism, not its type or objective, and it is an improvement only when evidence shows the control achieves its objective at least as well as before. Claims about the result are calibrated as `Controls` states.
+
+HAPTIC's levels are who or what performs a control. They are distinct from BASS, which orders how an Agent's own work is realized, from conversation up to a script. HAPTIC's Agent is any Agent performing a control, not necessarily a CASE `KAAL Agent`.
+
+Who proposes, decides or signs off a change to a control is a matter of the activity, in the terms of `VARISC`, not part of HAPTIC. The capability that owns the governed behaviour realizes its controls at whatever level it chooses. Controls executes nothing at any level: it keeps no backlog or registry, and it assesses and enforces nothing.
