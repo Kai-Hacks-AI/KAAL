@@ -1,8 +1,8 @@
 // Acceptance: Engineering -> Package -> Embed.
 //
 // Inspects the kaal-core tarball the Acceptance lane packed as npm would
-// publish it, installs it with its runtime dependency kaal-hosting, packed the
-// same way, into a fresh, otherwise empty host outside this repository, and
+// publish it, installs it with its runtime dependencies kaal-graph and
+// kaal-hosting, packed the same way, into a fresh, otherwise empty host outside this repository, and
 // operates the Engine there through the installed packages alone.
 import assert from "node:assert/strict";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -98,7 +98,7 @@ let kaal;
 before(async () => {
   tarball = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"))["kaal-core"].tarball;
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-hosting"]);
+  host = await install(["kaal-core", "kaal-graph", "kaal-hosting"]);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -116,12 +116,14 @@ describe("package", () => {
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
   });
 
-  it("depends at runtime on kaal-hosting, which does not depend on kaal-core, and its pinned YAML parser", () => {
+  it("depends at runtime on kaal-graph and kaal-hosting, neither of which depends on kaal-core", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "kaal-hosting": "0.0.1", yaml: "2.9.1" });
-    const hosting = JSON.parse(readFileSync(join(host, "node_modules", "kaal-hosting", "package.json"), "utf8"));
-    for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(hosting[field]?.["kaal-core"], undefined, `kaal-hosting ${field}`);
-    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-hosting, not a copy inside kaal-core");
+    assert.deepEqual(core.dependencies, { "kaal-graph": "0.0.1", "kaal-hosting": "0.0.1" });
+    for (const dependency of ["kaal-graph", "kaal-hosting"]) {
+      const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));
+      for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `${dependency} ${field}`);
+    }
+    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-graph and one kaal-hosting, not copies inside kaal-core");
   });
 });
 
