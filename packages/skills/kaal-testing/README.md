@@ -10,7 +10,9 @@ skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
 lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
+lib/contracts.mjs                      contract evidence: kaal-testing/contracts
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
+evidence.kaal.json                     Testing's own contract evidence mapping (repository data, not delivered)
 ```
 
 The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
@@ -99,6 +101,16 @@ Which files exist is the caller's answer. The count says how much text is tracke
 - **Metrics:** an owner's delivered files report executable lines executed, as V8 coverage counts them, beside its non-blank text lines. No ratio of one to the other is formed. A file in a workspace whose coverage failed counts as not measured, and the failure is a verified failure.
 
 `report(attribution, coverage)` takes `attribute`'s result and one coverage result per workspace, and returns the ownership dimension, the package dimension, the reconciliation per owner and per status, and every finding.
+
+## Contract evidence
+
+`kaal-testing/contracts` reads what a capability's own mapping shows about its contracts in one run. The capability owns the mapping, `evidence.kaal.json` beside its ownership claim. Each entry quotes one of its authoritative statements verbatim, pinned by the quote's sha256, and offers conformance or acceptance tests for it, each pinned by its file's sha256 and its full suite path. Implementation tests are never offered. Each entry also states the inference from those tests to the statement, its limits, and a review record or `null`.
+
+- **Mechanical facts:** the statement is present verbatim; each test file holds its pinned bytes; and the run's per-test result for exactly that path, in exactly those bytes, passed or failed.
+- **Judgment:** the inference is "proposed, not reviewed" until a review record names its reviewer, pull request, commit and the hashes reviewed. Once a pin changes, the review is stale.
+- **Unknown, never a pass:** a statement no longer present, a stale pin, no per-test results, a test that did not run, ran more than once or was skipped, and a statement with no evidence offered.
+
+`problems(mapping, owner)` says why a mapping does not read. `classify(mapping, files, results)` classifies each statement. At most a statement reads "evidence verified, inference validated", within its limits. It is never reported as met, and there is no percentage, ratio or gate. Per-test results come only from a run's captured evidence; nothing here runs a test.
 
 ## Boundaries
 
