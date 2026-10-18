@@ -42,7 +42,7 @@ type:
 ---
 ```
 
-The Form is Graph's, and Core reads every Node through it. The frontmatter is one YAML 1.2 mapping read with the core schema, with LF line endings. Keys are strings and never repeat, and there is no anchor, alias, merge key (`<<`) or tag outside the core schema (`!!str`, `!!int`, `!!float`, `!!bool`, `!!null`, `!!seq`, `!!map`). Core interprets `name` and `type` (exactly `name` and `id`), and reads them as written: `id: 1234e5678…` stays that string and never becomes a number. Any other key belongs to the capability that defines it. Core accepts it and returns it uninterpreted, with its YAML 1.2 type (`priority: 3` is the number 3, `enabled: true` the boolean), in `identify(bytes).frontmatter`, the complete parsed mapping.
+The Form is Graph's, and Core reads every Node through it. The frontmatter is one YAML 1.2 mapping read with the core schema, with LF line endings. Keys are strings and never repeat, and there is no anchor, alias, merge key (`<<`) or tag outside the core schema (`!!str`, `!!int`, `!!float`, `!!bool`, `!!null`, `!!seq`, `!!map`). Core interprets `name` and `type` (exactly `name` and `id`), and reads them as written: `id: 1234e5678…` stays that string and never becomes a number. Any other key belongs to the capability that defines it. Core accepts it and returns it uninterpreted, with its YAML 1.2 type (`priority: 3` is the number 3, `enabled: true` the boolean), in the Node's `frontmatter`, the complete parsed mapping, as Graph's `identify(bytes)` reads it.
 
 A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not part of identity: the Engine finds Nodes by scanning, so a Node is the same Node wherever it is stored. A Node is admitted when its type resolves, by id with the name checked, to an admitted Node. Only Core's own `Node` may declare no type: Graph reads an ordinary Node with `identify` and a root with `identifyRoot`, and Core admits exactly one root, its genesis.
 
@@ -85,15 +85,16 @@ A contribution is a directory of Nodes of one kind (capability, agent, skill or 
 
 ## API
 
-Functions that read or write an Engine go through Hosting and return promises; `identify`, `sha256`, `evaluate`, `payload` and `foundation` are pure and synchronous.
+Functions that read or write an Engine go through Hosting and return promises; `evaluate`, `payload` and `foundation` are pure and synchronous. An Engine is what admission found, `{ nodes, rejected }`: looking its Nodes up, and reading a Node's identity, are Graph's (`kaal-graph`).
 
 ```js
-import { bootstrap, verify, loadEngine, register, registerSkill, registerExtension, catalog, identify, payload, foundation, exportPayload } from "kaal-core";
+import { bootstrap, verify, loadEngine, register, registerSkill, registerExtension, catalog, payload, foundation, exportPayload } from "kaal-core";
+import { Graph } from "kaal-graph";
 
 await bootstrap(".kaal");
 (await verify(".kaal")).ok;                          // true
-const engine = await loadEngine(".kaal");
-engine.resolve(foundation().skill);                  // the KAAL Skill Node
+const engine = await loadEngine(".kaal");            // { nodes, rejected }
+new Graph(engine.nodes).resolve(foundation().skill); // the KAAL Skill Node
 await registerSkill(".kaal", "greeting", { "Greeting.md": bytes });
 await register(".kaal", "capability", "greeting", { "Greeting-People.md": bytes });
 await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, extensions }
