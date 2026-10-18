@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "kaal-hosting";
-import { claimsForm, createNode, edgesOf, FormError, Graph, identify, isId, isName, sha256 } from "kaal-graph";
+import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, sha256 } from "kaal-graph";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILL = join(PACKAGE, "skills", "kaal-graph");
@@ -39,6 +39,17 @@ describe("the Form", () => {
     const bytes = Buffer.from(node("A", T));
     assert.deepEqual(identify(bytes), { id: sha256(bytes), name: "A", type: T, frontmatter: { name: "A", type: T } });
     assert.notEqual(identify(Buffer.from(node("A", T) + " ")).id, identify(bytes).id);
+  });
+
+  it("reads a root, the Node that declares no type, only through identifyRoot", () => {
+    const bytes = Buffer.from(node("Node"));
+    const root = identifyRoot(bytes);
+    assert.deepEqual(root, { id: sha256(bytes), name: "Node", frontmatter: { name: "Node" } });
+    assert.ok(Object.isFrozen(root) && Object.isFrozen(root.frontmatter));
+    assert.deepEqual(root, identify(bytes), "a root's identity is read exactly as any Node's");
+    assert.throws(() => identifyRoot(Buffer.from(node("A", T))), (e) => e instanceof FormError && /not a root: A declares a type, Node/.test(e.message));
+    assert.throws(() => identifyRoot(Buffer.from("---\ntitle: A\n---\n")), FormError);
+    assert.ok(new Graph([root]).resolve({ name: "Node", id: root.id }) === root, "a root is held and resolved like any Node");
   });
 
   it("reads the Form strictly", () => {
@@ -190,17 +201,17 @@ describe("constructing a Node", () => {
   });
 
   it("gives the same bytes and id whatever order groups, targets and keys are given in", () => {
-    const one = createNode({ name: "R", edges: [{ type: serves, targets: [B, A] }, { type: refines, targets: [A] }], frontmatter: { b: { y: 1, x: [2, "2"] }, a: true } });
-    const two = createNode({ name: "R", edges: [{ type: refines, targets: [A] }, { type: serves, targets: [A, B] }], frontmatter: { a: true, b: { x: [2, "2"], y: 1 } } });
+    const one = createNode({ name: "R", type: f.definition, edges: [{ type: serves, targets: [B, A] }, { type: refines, targets: [A] }], frontmatter: { b: { y: 1, x: [2, "2"] }, a: true } });
+    const two = createNode({ name: "R", type: f.definition, edges: [{ type: refines, targets: [A] }, { type: serves, targets: [A, B] }], frontmatter: { a: true, b: { x: [2, "2"], y: 1 } } });
     assert.ok(one.bytes.equals(two.bytes));
     assert.equal(one.node.id, two.node.id);
-    assert.deepEqual(createNode({ name: "R" }).bytes, createNode({ name: "R" }).bytes);
+    assert.deepEqual(createNode({ name: "R", type: f.definition }).bytes, createNode({ name: "R", type: f.definition }).bytes);
   });
 
   it("builds Nodes a Graph relates, checks and traverses", () => {
-    const a = createNode({ name: "A" }).node;
-    const kind = createNode({ name: "Serves" }).node;
-    const r = createNode({ name: "R", edges: [{ type: ref(kind), targets: [ref(a)] }] }).node;
+    const a = createNode({ name: "A", type: f.definition }).node;
+    const kind = createNode({ name: "Serves", type: f.definition }).node;
+    const r = createNode({ name: "R", type: f.definition, edges: [{ type: ref(kind), targets: [ref(a)] }] }).node;
     const g = new Graph([a, kind, r]);
     assert.deepEqual(g.check(), []);
     assert.deepEqual(g.in(a.id), [{ type: ref(kind), source: ref(r) }]);
@@ -208,8 +219,13 @@ describe("constructing a Node", () => {
   });
 
   it("takes a body as given, or none", () => {
-    assert.equal(createNode({ name: "A", body: "Text.\n" }).bytes.toString(), '---\nname: "A"\n---\n\nText.\n');
-    assert.equal(createNode({ name: "A", body: "" }).bytes.toString(), '---\nname: "A"\n---\n');
+    const type = `type:\n  name: "${f.definition.name}"\n  id: "${f.definition.id}"\n`;
+    assert.equal(createNode({ name: "A", type: f.definition, body: "Text.\n" }).bytes.toString(), `---\nname: "A"\n${type}---\n\nText.\n`);
+    assert.equal(createNode({ name: "A", type: f.definition, body: "" }).bytes.toString(), `---\nname: "A"\n${type}---\n`);
+  });
+
+  it("constructs only ordinary Nodes: a Node with no type is refused, never written as a root", () => {
+    assert.throws(() => createNode({ name: "A" }), (e) => e instanceof FormError && /A declares no type/.test(e.message));
   });
 
   it("refuses what would not be a Node in Form with well-formed Edges", () => {
