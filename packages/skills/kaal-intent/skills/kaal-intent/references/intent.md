@@ -3,6 +3,9 @@
 ```
 ---
 name: <what is wanted, in a few words>
+type:
+  name: Intent
+  id: 5242eba5542a63b6fa193ac42ccf68d791e98d922880c7660cbdf4c054a114bc
 ---
 
 # <the same name>
@@ -14,13 +17,16 @@ name: <what is wanted, in a few words>
 <Why it is wanted.>
 ```
 
-The frontmatter holds `name` and nothing else. Use UTF-8 and LF line endings. The file is then in the Kernel's Form without a type, so `kaal identify <file>` gives its id: the SHA-256 of its exact bytes.
+The frontmatter holds `name` and `type`, and nothing else. The `type` references the `Intent` Definition Node that `kaal-intent` delivers, by its name and exact id. Use UTF-8 and LF line endings. The file is then a Node in Form, so `kaal identify <file>` gives its id: the SHA-256 of its exact bytes.
 
 ## Example
 
 ```
 ---
 name: Intent capture
+type:
+  name: Intent
+  id: 5242eba5542a63b6fa193ac42ccf68d791e98d922880c7660cbdf4c054a114bc
 ---
 
 # Intent capture
