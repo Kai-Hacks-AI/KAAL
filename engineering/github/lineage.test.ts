@@ -8,8 +8,9 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
-  GUIDE, autoMerge, attribute, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness, promotionSource, readExpected,
-  readFreshness, readLanding, readSync, synchronization, type LandingFacts, type Pull, type SyncFacts,
+  GUIDE, attribute, autoMerge, collector, establishment, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness,
+  promotionSource, readCollectors, readEstablishment, readExpected, readFreshness, readLanding, readSync, synchronization, unevidenced,
+  workingBranch, type CollectorFacts, type Hold, type LandingFacts, type Pull, type SyncFacts,
 } from "./lineage.ts";
 
 const A = "a".repeat(40), B = "b".repeat(40), C = "c".repeat(40), D = "d".repeat(40);
@@ -176,6 +177,66 @@ describe("attribute", () => {
   });
   it("attributes nothing when several claim the same landing", () => {
     assert.match(attribute([p(7), p(9)], "kaal/x", B) as string, /^GitHub names #7 #9, each with merge commit bbbbbbb, so none is attributable alone$/);
+  });
+});
+
+describe("establishment", () => {
+  const f = { defaultBranch: "main", defaultTip: A, ref: "kaal/x", tip: A, onDefault: true };
+  it("passes a collector created at the default branch's tip, or at an earlier state of it", () => {
+    assert.equal(establishment(f).kind, "pass");
+    assert.match(establishment({ ...f, tip: B }).message, /earlier state bbbbbbb; main is at aaaaaaa/);
+  });
+  it("fails a collector created anywhere else", () => {
+    const v = establishment({ ...f, tip: B, onDefault: false });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /created at bbbbbbb, which is not a state of main\. Delete it and establish it again at main's tip/);
+    assert.ok(v.message.endsWith(`${GUIDE}#establish`));
+  });
+  it("does not apply to other branches", () => assert.equal(establishment({ ...f, ref: "claude/x" }).kind, "not-applicable"));
+});
+
+describe("collector", () => {
+  const f: CollectorFacts = { defaultBranch: "main", collector: "kaal/x", tip: B, onDefault: false, promoted: null, openTargets: [], hold: null };
+  const hold = { collector: "kaal/x", reason: "Graph's next Change needs it", ruling: "https://github.com/o/r/pull/1#r" };
+  it("passes a collector that holds unpromoted work, and one newly established", () => {
+    assert.equal(collector(f).kind, "pass");
+    assert.match(collector({ ...f, onDefault: true, promoted: B }).message, /established at main's state bbbbbbb and holds no Change yet/);
+  });
+  it("fails a fully promoted collector: it is due for deletion", () => {
+    const v = collector({ ...f, promoted: A });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^kaal\/x is fully promoted: main at aaaaaaa has its exact tree\. Delete it/);
+    assert.ok(v.message.endsWith(`${GUIDE}#promote`));
+  });
+  it("names the open pull requests that would be stranded", () =>
+    assert.match(collector({ ...f, promoted: A, openTargets: [4, 5] }).message, /but #4 #5 still target it\. Land them and promote again, or delete kaal\/x and rebase each/));
+  it("reports an evidenced hold as held, with its reason and ruling, never as a pass", () => {
+    const v = collector({ ...f, promoted: A, hold });
+    assert.equal(v.kind, "held");
+    assert.match(v.message, /kept because the Owner holds it: Graph's next Change needs it \(https:\/\/github\.com\/o\/r\/pull\/1#r\)/);
+  });
+  it("fails a hold that does not evidence itself", () => {
+    assert.equal(unevidenced(hold), null);
+    assert.equal(unevidenced({ ...hold, reason: " " }), "it states no reason");
+    assert.equal(unevidenced({ ...hold, ruling: "Kai said so" }), "it links no ruling");
+    assert.match(collector({ ...f, promoted: A, hold: { ...hold, ruling: "" } }).message, /^The hold on kaal\/x is not evidenced: it links no ruling/);
+  });
+});
+
+describe("workingBranch", () => {
+  const f = { defaultBranch: "main", branch: "claude/x", tip: A, merged: [{ number: 9, head: A }] };
+  it("fails a working branch whose Change merged at its tip", () => {
+    const v = workingBranch(f);
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^claude\/x: its Change merged as #9 at aaaaaaa\. Delete the branch/);
+  });
+  it("passes one that moved on since, or never merged", () => {
+    assert.equal(workingBranch({ ...f, tip: B }).kind, "pass");
+    assert.equal(workingBranch({ ...f, merged: [] }).kind, "pass");
+  });
+  it("does not apply to the default branch or a collector", () => {
+    assert.equal(workingBranch({ ...f, branch: "main" }).kind, "not-applicable");
+    assert.equal(workingBranch({ ...f, branch: "kaal/x" }).kind, "not-applicable");
   });
 });
 
@@ -685,6 +746,40 @@ describe("acceptance: the method a pull request lands by", () => {
     assert.match(stale.message, /^Cannot judge how #1 should have landed: its head states Synchronized-with/);
     const unmarked = later(rev(`${atReview}~1`), syncBefore, rev("kaal/w~1"), merged);
     assert.equal(unmarked.kind, "fail", "a synchronization that states no marker still never passes on a main older than it");
+  });
+});
+
+describe("acceptance: a collector's lifecycle", () => {
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  const rev = (ref: string) => r.g("rev-parse", ref);
+  const audit = (holds: Hold[] = [], open: Record<string, number[]> = {}) =>
+    Object.fromEntries(readCollectors(r.dir, "main", rev("main"), "refs/heads/kaal/", holds, open).map((c) => [c.collector, collector(c)]));
+
+  it("judges where a collector is established", () => {
+    r.g("branch", "kaal/x", "main");
+    assert.equal(establishment(readEstablishment(r.dir, "main", rev("main"), "kaal/x", rev("kaal/x"))).kind, "pass");
+    const elsewhere = r.g("commit-tree", "main^{tree}", "-m", "unrelated root");
+    assert.equal(establishment(readEstablishment(r.dir, "main", rev("main"), "kaal/y", elsewhere)).kind, "fail");
+  });
+
+  it("passes it while it holds unpromoted work, and is due for deletion once promoted", () => {
+    assert.match(audit()["kaal/x"].message, /holds no Change yet/);
+    r.land("kaal/x", { "a.md": "a\n" });
+    assert.equal(audit()["kaal/x"].kind, "pass");
+    r.squash("main", rev("kaal/x"));
+    assert.match(audit()["kaal/x"].message, /fully promoted/);
+    r.land("main", { "b.md": "b\n" }, "main advances");
+    assert.equal(audit()["kaal/x"].kind, "fail", "still due after main advances");
+  });
+
+  it("is due for deletion after a synchronization that only gives it main's ancestry, unless held", () => {
+    r.mergeCommit("kaal/x", r.synchronize("kaal/x"));
+    assert.equal(audit()["kaal/x"].kind, "fail");
+    const held = audit([{ collector: "kaal/x", reason: "held for its next Change", ruling: "https://example.org/r" }]);
+    assert.equal(held["kaal/x"].kind, "held");
+    r.land("kaal/x", { "c.md": "c\n" });
+    assert.equal(audit()["kaal/x"].kind, "pass", "new work keeps it");
   });
 });
 
