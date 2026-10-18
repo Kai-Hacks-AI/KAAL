@@ -1,0 +1,28 @@
+{
+  "name": "kaal-controls",
+  "version": "0.0.1",
+  "description": "KAAL Controls: the semantics of controls, and assurance claims calibrated to the evidence.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-hosting -w kaal-core",
+    "test": "node --test test/controls.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
