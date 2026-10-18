@@ -1,7 +1,7 @@
 import { kind as pathKind, read, update } from "kaal-hosting";
 import { check } from "./bootstrap.js";
 import { evaluate } from "./engine.js";
-import { claimsForm, compareRefs, identify, KaalError, type Ref } from "./node.js";
+import { claimsForm, compareRefs, KaalError, readNode, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
 export type Kind = "capability" | "agent" | "skill" | "extension";
@@ -72,7 +72,7 @@ export async function register(dir: string, kind: Kind, name: string, contributi
   for (const path of paths) {
     if (!claimsForm(files[path])) throw new KaalError(`${path} is not a Node: a contribution is Nodes and nothing else`);
     try {
-      identify(files[path]);
+      readNode(files[path]);
     } catch (e) {
       throw new KaalError(`${path}: ${(e as Error).message}`);
     }
@@ -94,7 +94,7 @@ export async function register(dir: string, kind: Kind, name: string, contributi
 
     const combined = evaluate({ ...present, ...Object.fromEntries(paths.map((p) => [`${prefix}/${p}`, files[p]])) });
     const admitted = new Set(combined.nodes.map((n) => n.id));
-    const nodes = paths.map((p) => ({ path: p, ...identify(files[p]) }));
+    const nodes = paths.map((p) => ({ path: p, ...readNode(files[p]) }));
     for (const n of nodes) {
       if (!n.type) throw new KaalError(`${n.path} declares no type: only the genesis Node does`);
       if (!admitted.has(n.id)) {
