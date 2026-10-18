@@ -32,8 +32,8 @@ async function mapping(extra = {}, evidence) {
   };
 }
 const FILES = { [SOURCE]: Buffer.from(`# Alpha\n\n${QUOTE}\n`), [TEST]: TEST_BYTES };
-const result = async (status, extra = {}) => ({ file: TEST, sha256: await sha256(TEST_BYTES), test: PATH, status, ...extra });
-const only = async (m, files, results) => (await classify(m, files, results))[0];
+const UNATTESTED = "no per-test result is accepted: a result record is a claim, and none comes from a runner execution with established provenance";
+const only = async (m, files, ...rest) => (await classify(m, files, ...rest))[0];
 
 describe("contract evidence: reading a mapping", () => {
   it("reads a capability's own mapping, and refuses one whose owner is not its claim's", async () => {
@@ -53,55 +53,48 @@ describe("contract evidence: reading a mapping", () => {
 });
 
 describe("contract evidence: classifying a statement", () => {
-  it("never reports a statement as met: verified evidence with an unreviewed inference stays unknown", async () => {
-    const s = await only(await mapping(), FILES, [await result("pass")]);
+  it("never reports a statement as met, nor an offered test as verified", async () => {
+    const s = await only(await mapping(), FILES);
     assert.equal(s.class, "unknown");
-    assert.equal(s.reason, "evidence verified; inference proposed, not reviewed");
-    assert.deepEqual(s.evidence.map((e) => e.class), ["verified"]);
+    assert.equal(s.reason, "no offered test is verified; inference proposed, not reviewed");
+    assert.deepEqual(s.evidence.map((e) => [e.class, e.reason]), [["unknown", UNATTESTED]]);
   });
 
-  it("reports verified evidence and an inference validated at review, at exactly the reviewed hashes, with its limits", async () => {
+  it("does not accept a hand-crafted per-test record, even one naming the exact file, hash and test path as passed", async () => {
+    const crafted = [{ file: TEST, sha256: await sha256(TEST_BYTES), test: PATH, status: "pass" }];
+    const s = await only(await mapping(), FILES, crafted);
+    assert.equal(s.class, "unknown");
+    assert.deepEqual(s.evidence.map((e) => [e.class, e.reason]), [["unknown", UNATTESTED]]);
+    assert.deepEqual(await classify(await mapping(), FILES, crafted), await classify(await mapping(), FILES));
+  });
+
+  it("reports a review the mapping declares at its pinned hashes as declared, not verified, and the statement stays unknown", async () => {
     const m = await mapping();
     const st = m.statements[0];
     st.review = { reviewer: "owner", pr: 1, commit: "c", statement: st.sha256, evidence: [st.evidence[0].sha256] };
-    const s = await only(m, FILES, [await result("pass")]);
-    assert.equal(s.class, "evidence verified, inference validated");
-    assert.match(s.reason, /validated at review by owner in #1 at c; limits: One input only\.$/);
+    const s = await only(m, FILES);
+    assert.equal(s.class, "unknown");
+    assert.equal(s.inference, "review declared by the mapping (owner, #1 at c), not verified");
+    assert.doesNotMatch(JSON.stringify(s), /validated/);
   });
 
-  it("drops a review made at other hashes to unknown", async () => {
+  it("reports a review declared at other hashes as stale", async () => {
     const m = await mapping();
     m.statements[0].review = { reviewer: "owner", pr: 1, commit: "c", statement: m.statements[0].sha256, evidence: ["0".repeat(64)] };
-    const s = await only(m, FILES, [await result("pass")]);
-    assert.equal(s.class, "unknown");
-    assert.equal(s.inference, "reviewed at other hashes (stale)");
+    assert.equal((await only(m, FILES)).inference, "review declared at other hashes (stale)");
   });
 
-  it("reports a failed offered test as a verified failure", async () => {
-    assert.equal((await only(await mapping(), FILES, [await result("fail")])).class, "verified failure");
-  });
-
-  it("fails closed: every gap is unknown with its reason, never a pass", async () => {
+  it("gives each gap in this tree its own reason", async () => {
     const m = await mapping();
-    const reason = async (files, results) => (await only(m, files, results)).evidence[0]?.reason ?? (await only(m, files, results)).reason;
-    assert.equal(await reason(FILES, undefined), "this run's evidence carries no per-test results");
-    assert.equal(await reason(FILES, []), "the test did not run in this run");
-    assert.equal(await reason(FILES, [await result("pass"), await result("pass")]), "the test path names 2 results: ambiguous");
-    assert.equal(await reason(FILES, [await result("skip")]), "the test was skip, not run to a result");
-    assert.equal(await reason(FILES, [await result("pass", { sha256: "0".repeat(64) })]), "the run executed other bytes of the file than the pinned ones");
-    assert.equal(await reason({ ...FILES, [TEST]: Buffer.from("changed") }, [await result("pass")]), `${TEST} no longer holds the pinned bytes (stale)`);
-    assert.equal(await reason({ [SOURCE]: FILES[SOURCE] }, [await result("pass")]), `${TEST} is missing`);
-    assert.equal(await reason({ ...FILES, [SOURCE]: Buffer.from("# Alpha\n") }, [await result("pass")]), `the statement is no longer in ${SOURCE} (stale)`);
-    assert.equal((await only({ ...m, statements: [{ ...m.statements[0], quote: "edited" }] }, FILES, [])).reason, "the quote does not match its pinned sha256");
-  });
-
-  it("matches a result by file and full test path, not by the test's name alone", async () => {
-    const s = await only(await mapping(), FILES, [await result("pass", { test: ["Other", "refuses"] })]);
-    assert.equal(s.evidence[0].reason, "the test did not run in this run");
+    const reason = async (files) => (await only(m, files)).evidence[0]?.reason ?? (await only(m, files)).reason;
+    assert.equal(await reason({ ...FILES, [TEST]: Buffer.from("changed") }), `${TEST} no longer holds the pinned bytes (stale)`);
+    assert.equal(await reason({ [SOURCE]: FILES[SOURCE] }), `${TEST} is missing`);
+    assert.equal(await reason({ ...FILES, [SOURCE]: Buffer.from("# Alpha\n") }), `the statement is no longer in ${SOURCE} (stale)`);
+    assert.equal((await only({ ...m, statements: [{ ...m.statements[0], quote: "edited" }] }, FILES)).reason, "the quote does not match its pinned sha256");
   });
 
   it("reports a statement with no evidence offered as unknown", async () => {
-    assert.equal((await only(await mapping({}, []), FILES, [])).reason, "no evidence is offered for it");
+    assert.equal((await only(await mapping({}, []), FILES)).reason, "no evidence is offered for it");
   });
 });
 
@@ -118,11 +111,11 @@ describe("Testing's own mapping", () => {
     }
   });
 
-  it("without a run's per-test results, classifies every statement as unknown: stale pins also read as unknown, never as a failure of this suite", async () => {
+  it("classifies every statement as unknown: stale pins also read as unknown, never as a failure of this suite", async () => {
     const root = fileURLToPath(new URL("../../../../", import.meta.url));
     const files = {};
     for (const p of new Set(own.statements.flatMap((s) => [s.source, ...s.evidence.map((e) => e.file)]))) if (existsSync(root + p)) files[p] = readFileSync(root + p);
-    const classified = await classify(own, files, undefined);
+    const classified = await classify(own, files);
     assert.equal(classified.length, own.statements.length);
     for (const s of classified) assert.equal(s.class, "unknown", s.quote);
   });

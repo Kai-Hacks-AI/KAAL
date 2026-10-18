@@ -106,11 +106,11 @@ Which files exist is the caller's answer. The count says how much text is tracke
 
 `kaal-testing/contracts` reads what a capability's own mapping shows about its contracts in one run. The capability owns the mapping, `evidence.kaal.json` beside its ownership claim. Each entry quotes one of its authoritative statements verbatim, pinned by the quote's sha256, and offers conformance or acceptance tests for it, each pinned by its file's sha256 and its full suite path. Implementation tests are never offered. Each entry also states the inference from those tests to the statement, its limits, and a review record or `null`.
 
-- **Mechanical facts:** the statement is present verbatim; each test file holds its pinned bytes; and the run's per-test result for exactly that path, in exactly those bytes, passed or failed.
-- **Judgment:** the inference is "proposed, not reviewed" until a review record names its reviewer, pull request, commit and the hashes reviewed. Once a pin changes, the review is stale.
-- **Unknown, never a pass:** a statement no longer present, a stale pin, no per-test results, a test that did not run, ran more than once or was skipped, and a statement with no evidence offered.
+- **Mechanical facts:** the statement is present verbatim, and each test file holds its pinned bytes.
+- **Judgment:** the inference is "proposed, not reviewed". A review record in the mapping is the owner's own claim, so it is reported as declared, not verified, and as stale once a pin changes.
+- **Unknown, never a pass:** every offered test. No per-test result is accepted from any record, however exactly it names the file, its hash and the test: a record is a claim, not an observation of a run. Per-test results need a runner execution with established provenance, which does not exist yet.
 
-`problems(mapping, owner)` says why a mapping does not read. `classify(mapping, files, results)` classifies each statement. At most a statement reads "evidence verified, inference validated", within its limits. It is never reported as met, and there is no percentage, ratio or gate. Per-test results come only from a run's captured evidence; nothing here runs a test.
+`problems(mapping, owner)` says why a mapping does not read. `classify(mapping, files)` classifies each statement, and every statement is unknown, with its reason. None is reported as met, and there is no percentage, ratio or gate. Nothing here runs a test.
 
 ## Boundaries
 
