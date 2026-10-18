@@ -767,7 +767,8 @@ describe("acceptance: a collector's lifecycle", () => {
     assert.match(audit()["kaal/x"].message, /holds no Change yet/);
     r.land("kaal/x", { "a.md": "a\n" });
     assert.equal(audit()["kaal/x"].kind, "pass");
-    r.squash("main", rev("kaal/x"));
+    // A squash promotion, titled as GitHub titles it: the same tree, one parent, a message of its own.
+    r.g("branch", "-f", "main", r.g("commit-tree", "kaal/x^{tree}", "-p", "main", "-m", "Promote kaal/x"));
     assert.match(audit()["kaal/x"].message, /fully promoted/);
     r.land("main", { "b.md": "b\n" }, "main advances");
     assert.equal(audit()["kaal/x"].kind, "fail", "still due after main advances");
