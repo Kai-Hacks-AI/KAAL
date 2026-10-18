@@ -4,12 +4,12 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, capabilities, foundation, identify, loadEngine, readContribution, registerExtension, registerSkill } from "kaal-core";
+import { bootstrap, capabilities, foundation, loadEngine, readContribution, registerExtension, registerSkill } from "kaal-core";
 
 const PAYLOAD = fileURLToPath(new URL("../payload/", import.meta.url));
 // The prerequisite, resolved as an installed dependency would be.
 const COMMUNICATION = join(dirname(fileURLToPath(import.meta.resolve("kaal-communication/package.json"))), "payload");
-const node = async (dir, file) => identify(readFileSync(join(dir, file)));
+const at = (nodes, path) => nodes.find((n) => n.paths.includes(path));
 
 async function engine() {
   const dir = mkdtempSync(join(tmpdir(), "kaal-slack-"));
@@ -17,11 +17,20 @@ async function engine() {
   return dir;
 }
 
+// A fresh Engine with Communication and Slack registered.
+async function registered() {
+  const dir = await engine();
+  await registerSkill(dir, "kaal-communication", await readContribution(COMMUNICATION));
+  await registerExtension(dir, "kaal-slack", await readContribution(PAYLOAD));
+  return dir;
+}
+
 describe("payload", () => {
   it("is one Extension and one Transport realization", async () => {
-    assert.deepEqual((await node(PAYLOAD, "Slack.md")).type, (await foundation()).extension);
-    const transport = await node(COMMUNICATION, "Transport.md");
-    assert.deepEqual((await node(PAYLOAD, "Slack-Transport.md")).type, { name: transport.name, id: transport.id }, "Slack Transport must be typed by the current Transport");
+    const { nodes } = await loadEngine(await registered());
+    assert.deepEqual({ ...at(nodes, "extensions/kaal-slack/Slack.md").type }, { ...(await foundation()).extension });
+    const transport = at(nodes, "skills/kaal-communication/Transport.md");
+    assert.deepEqual({ ...at(nodes, "extensions/kaal-slack/Slack-Transport.md").type }, { name: transport.name, id: transport.id }, "Slack Transport must be typed by the current Transport");
   });
 });
 
@@ -62,15 +71,13 @@ describe("registration", () => {
   });
 
   it("succeeds once kaal-communication is registered", async () => {
-    const dir = await engine();
-    await registerSkill(dir, "kaal-communication", await readContribution(COMMUNICATION));
-    await registerExtension(dir, "kaal-slack", await readContribution(PAYLOAD));
+    const dir = await registered();
     assert.deepEqual(
       (await capabilities(dir)).extensions.map((r) => r.name),
       ["Slack"],
     );
     const e = await loadEngine(dir);
-    const transport = await node(COMMUNICATION, "Transport.md");
+    const transport = at(e.nodes, "skills/kaal-communication/Transport.md");
     assert.deepEqual(
       e.nodes.filter((n) => n.type?.name === transport.name && n.type.id === transport.id).map((n) => n.name),
       ["Slack Transport"],
