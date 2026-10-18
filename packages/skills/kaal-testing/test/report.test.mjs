@@ -152,7 +152,7 @@ describe("the report in Markdown", () => {
 
   it("opens with the commit, the run and where coverage was captured", () => {
     const md = markdown(report(attribution(), [W]), PROVENANCE);
-    assert.match(md, new RegExp(`^## Testing evidence\n\nCommit \`${"c".repeat(40)}\`, run 123 attempt 2\.\nCoverage was captured on linux x64, Node v24\.0\.0 only\.\n`));
+    assert.match(md, new RegExp(`^## Testing evidence\n\nCommit \`${"c".repeat(40)}\`, run 123 attempt 2\\.\nCoverage was captured on linux x64, Node v24\\.0\\.0 only\\.\n`));
   });
 
   it("keeps coverage, ownership, reconciliation, findings and capability contracts in separate sections, each saying what it is not", () => {
