@@ -84,4 +84,21 @@ describe("identity", () => {
     }
     assert.ok(results.filter((r) => r.core.node).length >= 10);
   });
+
+  it("reads Core's genesis Node, the one Node that declares no type, as a root, and refuses every typed Node as one", async () => {
+    const script = `
+      import { readFileSync } from "node:fs";
+      import * as core from "kaal-core";
+      import * as graph from "kaal-graph";
+      const genesis = readFileSync(new URL("./payload/core/Node.md", import.meta.resolve("kaal-core/package.json")));
+      const root = graph.identifyRoot(genesis);
+      const typed = JSON.parse(process.argv[1]).map((p) => readFileSync(p)).filter((b) => { try { return core.identify(b).type; } catch { return false; } });
+      const refused = typed.filter((b) => { try { graph.identifyRoot(b); return false; } catch (e) { return e instanceof graph.FormError; } }).length;
+      console.log(JSON.stringify({ root, core: core.identify(genesis), foundation: core.foundation().node, typed: typed.length, refused }));`;
+    const r = JSON.parse(await run(process.execPath, ["--input-type=module", "-e", script, JSON.stringify(claimants().map((p) => join(REPO, p)))], host));
+    assert.deepEqual(r.root, r.core);
+    assert.deepEqual({ name: r.root.name, id: r.root.id }, r.foundation, "the root Graph reads is the Node Core's foundation names");
+    assert.ok(r.typed >= 10);
+    assert.equal(r.refused, r.typed);
+  });
 });
