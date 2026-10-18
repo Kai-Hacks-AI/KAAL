@@ -12,12 +12,12 @@ import { read, type Files } from "kaal-hosting";
 import { EXCLUSIONS, inspect, type Expectation, type Validation } from "kaal-hosting/conformance";
 
 /**
- * The host modules Core may import directly: hashing for identity, and the
- * path and URL handling with which Core names its own payload and the CLI
- * names an Engine location. Everything else that touches the host goes
- * through kaal-hosting.
+ * The host modules Core may import directly: the path and URL handling with
+ * which Core names its own payload and the CLI names an Engine location.
+ * Identity, hashing included, is Graph's. Everything else that touches the
+ * host goes through kaal-hosting.
  */
-const BOUNDARY: Expectation = { builtins: ["node:crypto", "node:path", "node:url"] };
+const BOUNDARY: Expectation = { builtins: ["node:path", "node:url"] };
 
 /**
  * Findings that need validation and have been judged, each with its reason.
@@ -41,12 +41,12 @@ function judged(v: Validation[]): { file: string; construct: string }[] {
 }
 
 describe("Core's Hosting boundary", () => {
-  it("permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its one other import is its YAML parser", async () => {
+  it("permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its one other import is Graph, for Node mechanics", async () => {
     const files = await shipped();
     assert.ok(Object.keys(files).length >= 7);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))], ["kaal-hosting", "yaml"]);
+    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["kaal-graph", "kaal-hosting"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);
@@ -83,8 +83,8 @@ describe("Core's Hosting boundary", () => {
     }
   });
 
-  it("depends at runtime on kaal-hosting and its pinned YAML parser alone", () => {
+  it("depends at runtime on kaal-graph and kaal-hosting alone", () => {
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    assert.deepEqual(pkg.dependencies, { "kaal-graph": "0.0.1", "kaal-hosting": "0.0.1" });
   });
 });
