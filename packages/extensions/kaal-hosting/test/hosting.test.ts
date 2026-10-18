@@ -10,7 +10,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, kind, read, readFile, update, type Files } from "kaal-hosting";
+import { contribution, execute, HostingError, initialize, kind, read, readFile, update, within, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -224,6 +224,77 @@ describe("kind", () => {
       await assert.rejects(kind(join(dir, "closed", "x.md")), (e) => (e as NodeJS.ErrnoException).code === "EACCES");
     } finally {
       chmodSync(join(dir, "closed"), 0o700);
+    }
+  });
+});
+
+describe("within", () => {
+  /** A root and a sibling whose name starts with the root's, in a parent of their own. */
+  function tree(): { parent: string; root: string; sibling: string } {
+    const parent = tmp();
+    const root = join(parent, "repo");
+    const sibling = join(parent, "repo2");
+    mkdirSync(join(root, "a", "b"), { recursive: true });
+    mkdirSync(sibling);
+    writeFileSync(join(root, "a", "file.md"), "f");
+    return { parent, root, sibling };
+  }
+
+  it("holds the root itself and everything below it, a file included", async () => {
+    const { root } = tree();
+    assert.equal(await within(root, root), true);
+    assert.equal(await within(root, join(root, "a", "b")), true);
+    assert.equal(await within(root, join(root, "a", "file.md")), true);
+  });
+
+  it("compares whole segments: a sibling sharing the root's name as a prefix is outside", async () => {
+    const { root, sibling, parent } = tree();
+    assert.equal(await within(root, sibling), false);
+    assert.equal(await within(root, parent), false);
+  });
+
+  it("resolves .. before comparing", async () => {
+    const { root, sibling } = tree();
+    assert.equal(await within(root, join(root, "a", "..", "a", "b")), true);
+    assert.equal(await within(root, join(root, "..", "repo2")), false);
+    assert.equal(await within(root, join(sibling, "..", "repo", "a")), true);
+  });
+
+  it("follows links: one inside pointing out is outside, one outside pointing in is inside", async () => {
+    const { root, parent } = tree();
+    const outside = tmp();
+    writeFileSync(join(outside, "real.md"), "r");
+    symlinkSync(outside, join(root, "escape"), "junction");
+    symlinkSync(join(outside, "real.md"), join(root, "a", "linked.md"), "file");
+    symlinkSync(root, join(parent, "alias"), "junction");
+    assert.equal(await within(root, join(root, "escape")), false);
+    assert.equal(await within(root, join(root, "a", "linked.md")), false);
+    assert.equal(await within(root, join(parent, "alias", "a")), true);
+    assert.equal(await within(join(parent, "alias"), join(root, "a")), true);
+  });
+
+  it("refuses a missing path, a dangling link and a cycle of links, root or candidate", async () => {
+    const { root } = tree();
+    writeFileSync(join(root, "gone.md"), "g");
+    symlinkSync(join(root, "gone.md"), join(root, "dangling.md"), "file");
+    rmSync(join(root, "gone.md"));
+    symlinkSync(join(root, "y"), join(root, "x"), "file");
+    symlinkSync(join(root, "x"), join(root, "y"), "file");
+    for (const path of [join(root, "missing"), join(root, "a", "file.md", "below"), join(root, "dangling.md"), join(root, "x")]) {
+      await assert.rejects(within(root, path), code("MISSING"), path);
+      await assert.rejects(within(path, root), code("MISSING"), path);
+    }
+  });
+
+  it("throws a failure to resolve, never taking it for an answer", async () => {
+    const { root } = tree();
+    const original = gfs.realpath.native;
+    gfs.realpath.native = ((_path: string, cb: (e: Error) => void) =>
+      cb(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }))) as typeof gfs.realpath.native;
+    try {
+      await assert.rejects(within(root, root), (e) => (e as NodeJS.ErrnoException).code === "EACCES");
+    } finally {
+      gfs.realpath.native = original;
     }
   });
 });
