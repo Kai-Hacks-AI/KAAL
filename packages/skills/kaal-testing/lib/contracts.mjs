@@ -30,6 +30,9 @@ export const LOOPS = ["conformance", "acceptance"];
 
 const same = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
+/** A path inside the repository, written relative to its root with forward slashes: nothing a reader could resolve outside it. */
+const repoPath = (p) => typeof p === "string" && !p.includes("\\") && p.split("/").every((seg) => seg !== "" && seg !== "." && seg !== "..");
+
 /**
  * The problems that make `mapping` unreadable, as one-line messages; none
  * means it reads. `owner` is the claim's owner from the same directory.
@@ -43,12 +46,14 @@ export function problems(mapping, owner) {
   mapping.statements.forEach((s, i) => {
     const at = `statement ${i + 1}`;
     if (typeof s?.source !== "string" || typeof s.quote !== "string" || s.quote === "" || !/^[0-9a-f]{64}$/.test(s.sha256 ?? "")) found.push(`${at}: needs a source, a nonempty quote and its sha256`);
+    if (typeof s?.source === "string" && !repoPath(s.source)) found.push(`${at}: source must be a path inside the repository`);
     if (!LOOPS.includes(s?.loop)) found.push(`${at}: loop must be ${LOOPS.join(" or ")}`);
     if (!Array.isArray(s?.evidence)) found.push(`${at}: evidence must be a list`);
     else
       s.evidence.forEach((e, j) => {
         if (typeof e?.file !== "string" || !/^[0-9a-f]{64}$/.test(e.sha256 ?? "") || !Array.isArray(e.test) || e.test.length === 0 || !e.test.every((n) => typeof n === "string"))
           found.push(`${at}, evidence ${j + 1}: needs a file, its sha256 and a test path`);
+        else if (!repoPath(e.file)) found.push(`${at}, evidence ${j + 1}: file must be a path inside the repository`);
       });
     if (s?.evidence?.length && (typeof s.inference !== "string" || s.inference === "" || typeof s.limits !== "string" || s.limits === "")) found.push(`${at}: offered evidence needs an inference and its limits`);
     if (s?.review !== null && s?.review !== undefined) {
