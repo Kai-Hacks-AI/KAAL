@@ -1,6 +1,6 @@
 import { Graph } from "kaal-graph";
 import { read } from "kaal-hosting";
-import { claimsForm, compareRefs, identify, KaalError, type Identity, type Ref } from "./node.js";
+import { claimsForm, compareRefs, KaalError, readNode, type Identity, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
 /** An admitted Node, frozen as Graph holds it, with where the Engine's files happen to hold it (not part of the Node). */
@@ -46,7 +46,7 @@ export function evaluate(files: Files): Engine {
     if (!claimsForm(bytes)) continue;
     let identity: Identity;
     try {
-      identity = identify(bytes);
+      identity = readNode(bytes);
     } catch (e) {
       rejected.push({ path, reason: (e as Error).message });
       continue;
