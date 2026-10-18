@@ -92,13 +92,16 @@ function literal(n) {
 }
 
 /**
- * Read a Node's identity from its exact bytes: { id, name, type?, frontmatter },
+ * Read an ordinary Node's identity from its exact bytes: { id, name, type, frontmatter },
  * the frontmatter complete, uninterpreted beyond `name` and `type`. The identity
  * is frozen throughout, as its bytes are: nothing in it can be changed.
- * Throws a FormError if the bytes are not in Form.
+ * Throws a FormError if the bytes are not in Form, or if they declare no type:
+ * an ordinary Node references its type, and only a root declares none.
  */
 export function identify(bytes) {
-  return identity(bytes);
+  const node = identity(bytes);
+  if (!node.type) throw new FormError(`untyped: ${node.name} declares no type; an ordinary Node references its type, and only a root, read with identifyRoot(), declares none`);
+  return node;
 }
 
 /**
