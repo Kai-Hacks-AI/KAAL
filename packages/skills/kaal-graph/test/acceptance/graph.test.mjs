@@ -94,9 +94,10 @@ describe("identity", () => {
       const root = graph.identifyRoot(genesis);
       const typed = JSON.parse(process.argv[1]).map((p) => readFileSync(p)).filter((b) => { try { return core.identify(b).type; } catch { return false; } });
       const refused = typed.filter((b) => { try { graph.identifyRoot(b); return false; } catch (e) { return e instanceof graph.FormError; } }).length;
-      console.log(JSON.stringify({ root, core: core.identify(genesis), foundation: core.foundation().node, typed: typed.length, refused }));`;
+      const ordinary = (() => { try { graph.identify(genesis); return "read"; } catch (e) { return e instanceof graph.FormError && e.message.startsWith("untyped: ") ? "untyped" : e.message; } })();
+      console.log(JSON.stringify({ root, ordinary, foundation: core.foundation().node, typed: typed.length, refused }));`;
     const r = JSON.parse(await run(process.execPath, ["--input-type=module", "-e", script, JSON.stringify(claimants().map((p) => join(REPO, p)))], host));
-    assert.deepEqual(r.root, r.core);
+    assert.equal(r.ordinary, "untyped", "identify() refuses the root: it reads only ordinary Nodes");
     assert.deepEqual({ name: r.root.name, id: r.root.id }, r.foundation, "the root Graph reads is the Node Core's foundation names");
     assert.ok(r.typed >= 10);
     assert.equal(r.refused, r.typed);
