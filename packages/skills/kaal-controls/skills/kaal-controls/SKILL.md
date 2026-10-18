@@ -55,6 +55,15 @@ When you say who did what on an activity, such as a Change, use the roles of the
 - **Verify** means deterministic verification. Call review and other judgment validation, not verification.
 - An approval record shows that a review happened. Call it a sign-off only when the approver is the Accountable actor. A passing check, an approval, a sign-off and the merge or other execution are four different things; name the one you have evidence of.
 
+## Improve a control
+
+To improve how a control is realized, use the ladder of the `HAPTIC` Node: **Human** (a person performs it), **Agent** (an Agent performs it, guided by instructions), **Program** (a program performs it the same way every time). Determinism increases up the ladder, and that is all moving up gives you.
+
+- Increasing determinism alone establishes neither correctness, effectiveness nor authority. Never infer them from the level. A program repeats a flawed check faithfully, and judgment stays with people.
+- Moving a control up changes its mechanism, not its type or objective. Say it is improved only when evidence shows it achieves its objective at least as well as before.
+- Leave the choice of level and the work to the capability that owns the behaviour. Who proposes or signs off the change is a role on the activity, not part of HAPTIC.
+- HAPTIC and BASS (Bare < Agent < Skill < Script, owned by Engineer Skill) share only increasing determinism, applied to different concerns: HAPTIC to who or what performs a control, BASS to how an Agent's own work is realized. Use each ladder's own terms, and never describe one in the other's.
+
 ## Document a specific control
 
 When a capability asks you to document one of its controls, write a Node typed by `Control`: its name names the control, and its text states what the control is meant to do in the terms above, keeping the owning capability's objective and wording. Point to where the control is realized with an Edge typed by `Realized by`, one target per realization: the Node of the capability, Skill or Extension that owns the mechanism, or a Node that documents it. Write the Edge as the `kaal-graph` Agent Skill describes, and check that its references resolve.

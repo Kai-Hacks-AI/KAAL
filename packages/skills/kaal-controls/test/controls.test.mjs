@@ -1,7 +1,8 @@
 // The package's deterministic contracts: its payload is the Controls Skill
 // Node, the two Definitions a documented control uses and the VARISC
-// Definition, typed as Core types them; Core admits them into a fresh Engine, and admits a control a
-// capability documents with them; Graph finds that control's Edges well
+// and HAPTIC Definitions, typed as Core types them; Core admits them
+// into a fresh Engine, and admits a control a capability documents with
+// them; Graph finds that control's Edges well
 // formed and resolved; the Agent Skill conforms. What the Nodes and the
 // Agent Skill mean is validated by reading them, not here.
 import assert from "node:assert/strict";
@@ -34,12 +35,13 @@ function documented() {
 }
 
 describe("payload", () => {
-  it("is the Controls Skill Node and the Control, Realized by and VARISC Definitions", async () => {
-    assert.deepEqual(Object.keys(await readContribution(PAYLOAD)).sort(), ["Control.md", "Controls.md", "Realized-by.md", "VARISC.md"]);
+  it("is the Controls Skill Node and the Control, Realized by, VARISC and HAPTIC Definitions", async () => {
+    assert.deepEqual(Object.keys(await readContribution(PAYLOAD)).sort(), ["Control.md", "Controls.md", "HAPTIC.md", "Realized-by.md", "VARISC.md"]);
     assert.deepEqual(node("Controls.md").type, foundation().skill);
     assert.deepEqual([node("Control.md").name, node("Control.md").type], ["Control", foundation().definition]);
     assert.deepEqual([node("Realized-by.md").name, node("Realized-by.md").type], ["Realized by", foundation().definition]);
     assert.deepEqual([node("VARISC.md").name, node("VARISC.md").type], ["VARISC", foundation().definition]);
+    assert.deepEqual([node("HAPTIC.md").name, node("HAPTIC.md").type], ["HAPTIC", foundation().definition]);
   });
 
   it("registers into a fresh Engine", async () => {
@@ -49,6 +51,16 @@ describe("payload", () => {
     assert.deepEqual((await capabilities(dir)).skills.map((r) => r.name), ["Controls"]);
     const verification = await verify(dir);
     assert.deepEqual([verification.ok, verification.problems], [true, []]);
+  });
+});
+
+describe("HAPTIC", () => {
+  it("keeps the Owner's mnemonic verbatim and its three levels in ladder order", () => {
+    const text = readFileSync(join(PAYLOAD, "HAPTIC.md"), "utf8");
+    assert.match(text, /^Human < Agent < Program To Improve Controls\.$/m);
+    const levels = ["Human", "Agent", "Program"].map((level) => text.indexOf(`- **${level}**:`));
+    assert.ok(levels.every((at) => at > 0), "each level is defined");
+    assert.deepEqual([...levels].sort((a, b) => a - b), levels);
   });
 });
 

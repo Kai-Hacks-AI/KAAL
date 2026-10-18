@@ -7,6 +7,7 @@ payload/Controls.md            the Skill Node, typed by Core's KAAL Skill
 payload/Control.md             the Definition a documented control is typed by
 payload/Realized-by.md         the Definition of the Edge from a control to where it is realized
 payload/VARISC.md              the Definition of the roles actors hold on an activity
+payload/HAPTIC.md              the Definition of the ladder for realizing and improving controls
 skills/kaal-controls/          the Agent Skill: SKILL.md
 ```
 
@@ -17,6 +18,8 @@ The Node carries what Controls means to KAAL. The Agent Skill tells an Agent how
 A control's objective, type, mechanism, evidence and effectiveness are analytical distinctions, kept apart when reasoning and making claims; they are not a schema every control must fill in. Directive, preventive, detective and corrective are an initial vocabulary of types, not a closed taxonomy. Type is a matter of design and distinct from assurance: an assurance claim is no stronger than the evidence observed, so configured is not operating and operating once is not effective. A scanner detects, and a required gate prevents only the particular action it governs. A preventive claim names the action, the actor or interface, and the enforcement boundary, and never promises that the action is impossible. Independent controls stay independent when a gate combines them.
 
 VARISC names the roles actors hold on an activity: Responsible, Accountable, Consulted, Informed, Verify (deterministic verification) and Sign-off (the Accountable actor's decision). Roles are distinct from structural ownership, which belongs to capabilities, Agents, Skills and Extensions, never to actors.
+
+HAPTIC (Human < Agent < Program To Improve Controls) is an escalation ladder for how a control is realized: performed by a person, by an Agent, or by a program. Determinism increases up the ladder, and increasing determinism alone establishes neither correctness, effectiveness nor authority; an improvement is claimed only from evidence, and Controls executes nothing at any level. BASS (Bare < Agent < Skill < Script), owned by Engineer Skill, shares only increasing determinism, applied to how an Agent's own work is realized; neither ladder redefines the other.
 
 ## Documenting a specific control
 
