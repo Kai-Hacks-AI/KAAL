@@ -89,7 +89,8 @@ describe("identity", () => {
       { kernel: f.kernel, node: f.node.id, definition: f.definition.id, capability: f.capability.id, agent: f.agent.id, skill: f.skill.id, extension: f.extension.id },
       PINNED,
     );
-    for (const [path, bytes] of Object.entries(payload())) if (path.startsWith("core/")) assert.equal(identify(bytes).id, sha256(bytes));
+    const files = payload();
+    for (const n of evaluate(files).nodes) for (const path of n.paths) assert.equal(n.id, sha256(files[path]));
   });
 
   it("carries exactly the Kernel, six foundational Nodes, the CASE Definition and the Engine's AGENTS.md, neither the Kernel nor AGENTS.md a Node", async () => {
@@ -168,8 +169,9 @@ describe("identity", () => {
       assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
       assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
     }
-    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
-    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    const typed = `type:\n  name: ${f.node.name}\n  id: ${f.node.id}\n`;
+    assert.equal(identify(Buffer.from(`---\nname: !!str 0x1F\n${typed}---\n`)).name, "0x1F");
+    assert.equal(identify(Buffer.from(`---\nname: null\n${typed}---\n`)).name, "null");
     assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${f.node.name}, id: ${f.node.id}}\n---\n`)).type, f.node);
     assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${f.node.name}, ${f.node.id}]\n---\n`)), /not in Form/);
   });
@@ -209,7 +211,7 @@ describe("identity", () => {
     assert.notEqual(identify(Buffer.from(flow)).id, identify(Buffer.from(block)).id);
   });
 
-  it("keeps the id, name and type of every Node in this repository", () => {
+  it("keeps the id, name and type of every Node in this repository, and only the genesis has no type", () => {
     const root = join(dirname(new URL(import.meta.url).pathname), "..", "..", "..");
     const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
       readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
@@ -221,8 +223,13 @@ describe("identity", () => {
     const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
     for (const bytes of nodes) {
       const [, name, typeName, typeId] = legacy.exec(bytes.toString())!;
+      // The one Node without a type is Core's genesis; every other Node is read by identify().
+      if (!typeName) {
+        assert.deepEqual([sha256(bytes), name], [f.node.id, f.node.name]);
+        continue;
+      }
       const n = identify(bytes);
-      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, typeName ? { name: typeName, id: typeId } : undefined]);
+      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, { name: typeName, id: typeId }]);
     }
   });
 });

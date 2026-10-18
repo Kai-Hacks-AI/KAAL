@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
-import { FormError, identify, KaalError } from "./node.js";
+import { FormError, KaalError, readNode } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
 const USAGE = `usage: kaal <command> [--engine <dir>]
@@ -67,7 +67,7 @@ async function main(argv: string[]): Promise<number> {
     case "identify": {
       if (rest.length === 0) break;
       for (const file of rest) {
-        const n = identify(await readFile(file));
+        const n = readNode(await readFile(file));
         console.log(`${n.id}\t${n.name}\t${n.type ? `${n.type.name} ${n.type.id}` : "-"}`);
       }
       return 0;
