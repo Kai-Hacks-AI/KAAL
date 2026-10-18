@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "skill", "name": "Review", "id": "d2618f44022904e786c150fd68f5ab528a14b3954fddadd182d464218180d659" },
+  "paths": ["packages/skills/kaal-review/"]
+}
