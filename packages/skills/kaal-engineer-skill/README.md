@@ -13,6 +13,8 @@ The Node carries what the capability means to KAAL. The Agent Skill tells an age
 
 This Skill checks an Agent Skill against the standard, plus the KAAL engineering rules beyond it. It does not decide how a Skill is packaged or delivered. It does not re-check what Core decides, either: a Node's identity, its type resolution and its admission into an Engine stay with Core (`kaal identify`, `kaal register`).
 
+Producing a Skill includes demonstrating that it meets its contracts. How those tests are designed, and how their findings are read and reported, belongs to the KAAL Skill Testing (`kaal-testing`), which this Skill references and does not restate. The reference is between Agent Skills, not a package dependency.
+
 ## Check an Agent Skill
 
 ```
