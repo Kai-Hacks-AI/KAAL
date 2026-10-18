@@ -6,7 +6,9 @@
   "workspaces": [
     "packages/extensions/kaal-hosting",
     "packages/kaal-core",
-    "packages/skills/kaal-engineer-skill"
+    "packages/skills/kaal-engineer-skill",
+    "packages/skills/kaal-graph",
+    "packages/skills/kaal-testing"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -14,8 +16,12 @@
     "test:hosting": "npm test -w kaal-hosting",
     "test:kaal": "npm run test:workspaces && npm run test:acceptance",
     "test:workspaces": "npm run build -w kaal-hosting && node engineering/lanes/workspaces.mjs",
-    "test:acceptance": "npm run build -w kaal-hosting && node --test engineering/acceptance/embed.test.mjs engineering/acceptance/engineer-skill.test.mjs",
-    "test:engineering": "node --test engineering/github/lineage.test.ts engineering/change-isolation/check.test.mjs",
+    "test:acceptance": "npm run build -w kaal-hosting && node engineering/lanes/acceptance.mjs",
+    "test:engineering": "npm run build -w kaal-hosting && node --test engineering/github/lineage.test.ts engineering/change-isolation/check.test.mjs engineering/boundary.test.mjs engineering/delivery/pack.test.mjs",
+    "coverage": "npm run build -w kaal-hosting && node engineering/coverage/measure.mjs",
+    "inventory": "npm run build -w kaal-hosting && node engineering/inventory/measure.mjs",
+    "attribution": "npm run build -w kaal-hosting -w kaal-core && node engineering/inventory/attribute.mjs",
+    "report": "npm run build -w kaal-hosting -w kaal-core && node engineering/report/measure.mjs",
     "test:github": "node --test engineering/github/lineage.test.ts",
     "test:boundary": "npm run test:boundary -w kaal-core",
     "pack": "node -e \"require('fs').mkdirSync('engineering/out',{recursive:true})\" && npm pack -w kaal-core --pack-destination engineering/out"
