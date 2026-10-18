@@ -12,6 +12,10 @@
 //                        merged state's content unchanged. It is fully current or a valid step. Anything
 //                        else proposed to a lineage is an ordinary Change, which must not carry the
 //                        default branch's history.
+//   autoMerge            Gate, before a pull request lands: auto-merge, when enabled, is set to the method
+//                        its flow names.
+//   landing              Audit, after a pull request has landed: it landed by that method. A landing cannot
+//                        be gated after the fact; this verdict reports it, with the repair.
 //
 // A synchronization lands with a merge commit, so the lineage keeps the default branch's ancestry; an
 // ordinary Change lands by squash. Each verdict says which. A `Synchronized-with: <sha>` line, from the
@@ -22,6 +26,8 @@
 //   lineage.ts freshness <default> <default-tip> <head-ref> <head>
 //   lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]
 //   lineage.ts incorporated <lineage-tip> <default-tip>    prints the state a synchronization starts from
+//   lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>
+//   lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pull|none> <head|none>
 // Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable. A consumer must treat 2 as a failure and
 // 3 as "this verdict does not apply", never as a pass of it. --resolutions writes a verified
 // synchronization's own resolutions, NUL-separated, as input for Change Isolation; resolutions that
@@ -193,6 +199,92 @@ export function synchronization(f: SyncFacts): SyncVerdict {
   };
 }
 
+/** How GitHub lands a pull request. */
+export type Method = "squash" | "merge" | "rebase";
+const METHOD_NAME: Record<Method, string> = { squash: "squash", merge: "a merge commit", rebase: "rebase" };
+const TELLING = `${GUIDE}#telling-a-synchronization-from-a-change`;
+
+/** The method a pull request's flow lands by: squash into the default branch; into a lineage, a merge
+ *  commit for a passing synchronization and squash for an ordinary Change. A synchronization verdict
+ *  that fails names none: that pull request must not land. */
+export function methodFor(defaultBranch: string, baseRef: string, sync: Verdict | null): "squash" | "merge" | null {
+  if (baseRef === defaultBranch) return "squash";
+  if (sync === null) return null;
+  return sync.kind === "pass" ? "merge" : sync.kind === "not-applicable" ? "squash" : null;
+}
+
+export interface AutoMergeFacts {
+  baseRef: string;
+  head: string;
+  /** The method its flow names, or null when its Branching verdict fails. */
+  expected: "squash" | "merge" | null;
+  /** The method auto-merge is enabled with, or null when auto-merge is off. */
+  enabled: Method | null;
+}
+
+export function autoMerge(f: AutoMergeFacts): Verdict {
+  if (f.expected === null) {
+    return { kind: "fail", message: `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right. See ${TELLING}` };
+  }
+  if (f.enabled === null) {
+    return { kind: "not-applicable", message: `Auto-merge is off. Whoever lands this pull request into ${f.baseRef} uses ${METHOD_NAME[f.expected]}.` };
+  }
+  if (f.enabled === f.expected) return { kind: "pass", message: `Auto-merge lands this pull request into ${f.baseRef} by ${METHOD_NAME[f.expected]}, as its flow names.` };
+  return {
+    kind: "fail",
+    message:
+      `Auto-merge would land this pull request into ${f.baseRef} by ${METHOD_NAME[f.enabled]}, but its flow lands by ${METHOD_NAME[f.expected]}. ` +
+      `Disable auto-merge and enable it again with ${METHOD_NAME[f.expected]}. See ${TELLING}`,
+  };
+}
+
+export interface LandingFacts {
+  defaultBranch: string;
+  baseRef: string;
+  /** The base branch's tip before the landing, and after it. */
+  before: string;
+  after: string;
+  /** The pull request that landed it and its head, or null when none did. */
+  pull: number | null;
+  head: string | null;
+  /** The method its flow names, judged on the base as it stood before the landing; null when its
+   *  Branching verdict fails. */
+  expected: "squash" | "merge" | null;
+  /** Commits on the base's first-parent history from `before` to `after`. */
+  commits: number;
+  /** The parents of `after`. */
+  parents: string[];
+}
+
+/** The method a landing used, read from its shape: one commit with the head as second parent is a
+ *  merge commit, one commit with one parent is a squash (a one-commit rebase lands the same tree the
+ *  same way), and several commits are a rebase. null when the shape is none of these. */
+export function landedBy(f: Pick<LandingFacts, "commits" | "parents" | "head">): Method | null {
+  if (f.commits > 1) return "rebase";
+  if (f.commits !== 1) return null;
+  if (f.parents.length === 2 && f.parents[1] === f.head) return "merge";
+  return f.parents.length === 1 ? "squash" : null;
+}
+
+export function landing(f: LandingFacts): Verdict {
+  const what = `${f.baseRef} at ${short(f.after)}`;
+  if (f.pull === null || f.head === null) {
+    return { kind: "fail", message: `No pull request landed ${what}. ${f.baseRef} changes only through pull requests. See ${GUIDE}#branches` };
+  }
+  const pr = `#${f.pull}`;
+  if (f.expected === null) return { kind: "fail", message: `${pr} landed into ${f.baseRef} although its Branching verdict fails. See ${TELLING}` };
+  const used = landedBy(f);
+  if (used === null) return { kind: "fail", message: `${pr} landed ${what} in a shape that is no method its flow allows. See ${TELLING}` };
+  if (used === f.expected) return { kind: "pass", message: `${pr} landed into ${f.baseRef} by ${METHOD_NAME[used]}, as its flow names.` };
+  const repair =
+    f.expected === "merge"
+      ? `${f.baseRef} now lacks ${f.defaultBranch}'s ancestry, so its next promotion fails freshness. Synchronize it again. See ${GUIDE}#synchronize`
+      : used === "merge"
+        ? `The verified tree landed unchanged, with ${f.defaultBranch}-side history added; nothing needs repair. Land the next one by squash. See ${TELLING}`
+        : `It landed as ${f.commits} commits instead of one. Land the next one by squash. See ${TELLING}`;
+  return { kind: "fail", message: `${pr} landed into ${f.baseRef} by ${METHOD_NAME[used]}, but its flow lands by ${METHOD_NAME[f.expected]}. ${repair}` };
+}
+
 // ---- Facts: read from Git ------------------------------------------------------------------
 
 function git(cwd: string, args: string[], ok: number[] = [0]): { status: number; stdout: string } {
@@ -290,6 +382,23 @@ export function readSync(cwd: string, defaultBranch: string, lineage: string, de
   return facts;
 }
 
+/** The method a pull request into baseRef lands by, judged against the base at baseTip. */
+export function readExpected(cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, baseTip: string, head: string): "squash" | "merge" | null {
+  if (baseRef === defaultBranch) return "squash";
+  return methodFor(defaultBranch, baseRef, synchronization(readSync(cwd, defaultBranch, baseRef, defaultTip, baseTip, head)));
+}
+
+export function readLanding(
+  cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, before: string, after: string, pull: number | null, head: string | null,
+): LandingFacts {
+  return {
+    defaultBranch, baseRef, before, after, pull, head,
+    expected: head === null ? null : readExpected(cwd, defaultBranch, baseRef, defaultTip, before, head),
+    commits: Number(git(cwd, ["rev-list", "--first-parent", "--count", after, `^${before}`]).stdout.trim()),
+    parents: parents(cwd, after),
+  };
+}
+
 // ---- CLI ----------------------------------------------------------------------------------
 
 const EXIT = { pass: 0, fail: 1, "not-applicable": 3 } as const;
@@ -312,11 +421,26 @@ function main(argv: string[]): number {
     const s = synchronization(readSync(cwd, def, lineage, rev(cwd, defaultTip), rev(cwd, lineageTip), rev(cwd, head)));
     if (out) writeFileSync(out, s.kind === "pass" ? s.resolutions.map((p) => `${p}\0`).join("") : "");
     v = s;
+  } else if (verdict === "auto-merge" && args.length === 6) {
+    const [def, baseRef, defaultTip, baseTip, head, enabled] = args;
+    if (enabled !== "none" && !["squash", "merge", "rebase"].includes(enabled)) throw new Error(`not a merge method: ${enabled}`);
+    const h = rev(cwd, head);
+    v = autoMerge({
+      baseRef, head: h, enabled: enabled === "none" ? null : (enabled as Method),
+      expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
+    });
+  } else if (verdict === "landing" && args.length === 7) {
+    const [def, baseRef, defaultTip, before, after, pull, head] = args;
+    if (pull !== "none" && !/^[1-9][0-9]*$/.test(pull)) throw new Error(`not a pull request number: ${pull}`);
+    v = landing(readLanding(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, before), rev(cwd, after),
+      pull === "none" ? null : Number(pull), head === "none" ? null : rev(cwd, head)));
   } else {
     console.error("usage: lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref>\n" +
       "       lineage.ts freshness <default> <default-tip> <head-ref> <head>\n" +
       "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]\n" +
-      "       lineage.ts incorporated <lineage-tip> <default-tip>");
+      "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
+      "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>\n" +
+      "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pull|none> <head|none>");
     return 2;
   }
   (v.kind === "fail" ? console.error : console.log)(v.message);

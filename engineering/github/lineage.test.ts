@@ -8,8 +8,8 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
-  GUIDE, incorporated, marker, merge, promotionFreshness, promotionSource, readFreshness, readSync, synchronization,
-  type SyncFacts,
+  GUIDE, autoMerge, incorporated, landedBy, landing, marker, merge, methodFor, promotionFreshness, promotionSource, readExpected,
+  readFreshness, readLanding, readSync, synchronization, type LandingFacts, type SyncFacts,
 } from "./lineage.ts";
 
 const A = "a".repeat(40), B = "b".repeat(40), C = "c".repeat(40), D = "d".repeat(40);
@@ -95,6 +95,63 @@ describe("synchronization", () => {
   });
   it("fails a merge that does not advance the incorporated state", () => fails({ advances: false }, /No progress: the merged aaaaaaa is not newer than ddddddd/));
   it("fails any other difference and names it", () => fails({ differing: ["AGENTS.md"] }, /on: AGENTS\.md\. Only paths where the two conflict may differ/));
+});
+
+describe("methodFor", () => {
+  const v = (kind: "pass" | "fail" | "not-applicable") => ({ kind, message: "" });
+  it("names squash for a promotion, whatever else", () => assert.equal(methodFor("main", "main", null), "squash"));
+  it("names a merge commit for a passing synchronization and squash for an ordinary Change", () => {
+    assert.equal(methodFor("main", "kaal/x", v("pass")), "merge");
+    assert.equal(methodFor("main", "kaal/x", v("not-applicable")), "squash");
+  });
+  it("names none when the synchronization verdict fails", () => assert.equal(methodFor("main", "kaal/x", v("fail")), null));
+});
+
+describe("autoMerge", () => {
+  const f = { baseRef: "kaal/x", head: A, expected: "merge" as const, enabled: "merge" as const };
+  it("passes auto-merge set to the method the flow names", () => assert.equal(autoMerge(f).kind, "pass"));
+  it("does not apply while auto-merge is off, and names the method", () => {
+    const v = autoMerge({ ...f, enabled: null });
+    assert.equal(v.kind, "not-applicable");
+    assert.match(v.message, /uses a merge commit\.$/);
+  });
+  it("fails auto-merge set to another method, and says how to fix it", () => {
+    const v = autoMerge({ ...f, enabled: "squash" });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /would land this pull request into kaal\/x by squash, but its flow lands by a merge commit\. Disable auto-merge and enable it again with a merge commit\./);
+    assert.ok(v.message.endsWith(`${GUIDE}#telling-a-synchronization-from-a-change`));
+    assert.equal(autoMerge({ ...f, expected: "squash", enabled: "rebase" }).kind, "fail");
+  });
+  it("fails any method when the Branching verdict fails", () => assert.equal(autoMerge({ ...f, expected: null }).kind, "fail"));
+});
+
+describe("landing", () => {
+  const f: LandingFacts = { defaultBranch: "main", baseRef: "kaal/x", before: A, after: B, pull: 7, head: C, expected: "squash", commits: 1, parents: [A] };
+  it("reads the method from the landing's shape", () => {
+    assert.equal(landedBy(f), "squash");
+    assert.equal(landedBy({ ...f, parents: [A, C] }), "merge");
+    assert.equal(landedBy({ ...f, commits: 3 }), "rebase");
+    assert.equal(landedBy({ ...f, parents: [A, D] }), null, "a second parent that is not the head is no method");
+    assert.equal(landedBy({ ...f, commits: 0 }), null);
+  });
+  it("passes a landing by the method the flow names", () => {
+    assert.equal(landing(f).kind, "pass");
+    assert.equal(landing({ ...f, expected: "merge", parents: [A, C] }).kind, "pass");
+  });
+  it("fails a synchronization landed by squash and says to synchronize again", () => {
+    const v = landing({ ...f, expected: "merge" });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^#7 landed into kaal\/x by squash, but its flow lands by a merge commit\. kaal\/x now lacks main's ancestry/);
+    assert.ok(v.message.endsWith(`${GUIDE}#synchronize`));
+  });
+  it("fails a Change landed with a merge commit or by rebase, and says what that cost", () => {
+    assert.match(landing({ ...f, parents: [A, C] }).message, /by a merge commit, but its flow lands by squash\. The verified tree landed unchanged/);
+    assert.match(landing({ ...f, commits: 2 }).message, /by rebase, .* It landed as 2 commits instead of one/);
+  });
+  it("fails a landing without a pull request, and one whose Branching verdict fails", () => {
+    assert.match(landing({ ...f, pull: null, head: null }).message, /^No pull request landed kaal\/x at bbbbbbb\./);
+    assert.match(landing({ ...f, expected: null }).message, /^#7 landed into kaal\/x although its Branching verdict fails/);
+  });
 });
 
 describe("marker", () => {
@@ -494,6 +551,48 @@ describe("command line", () => {
   it("exits 2 when it cannot judge", () => {
     assert.equal(cli(r.dir, "freshness", "main", "main", "kaal/x", "no-such-ref").status, 2);
     assert.equal(cli(r.dir, "nonsense").status, 2);
+  });
+});
+
+describe("acceptance: the method a pull request lands by", () => {
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  r.g("branch", "kaal/x", "main");
+  r.land("main", { "docs/a.md": "a\n" }, "main advances");
+  const rev = (ref: string) => r.g("rev-parse", ref);
+  const expected = (base: string, head: string) => readExpected(r.dir, "main", base, rev("main"), rev(base), head);
+  const audit = (base: string, before: string, head: string) => landing(readLanding(r.dir, "main", base, rev("main"), before, rev(base), 1, head));
+
+  it("names a merge commit for a synchronization and squash for a Change, before either lands", () => {
+    const sync = r.synchronize("kaal/x");
+    const change = r.g("commit-tree", "kaal/x^{tree}", "-p", "kaal/x", "-m", "a Change");
+    assert.deepEqual([expected("kaal/x", sync), expected("kaal/x", change), expected("main", change)], ["merge", "squash", "squash"]);
+    const onMain = r.g("commit-tree", "main^{tree}", "-p", "main", "-m", "from main");
+    assert.equal(expected("kaal/x", onMain), null);
+  });
+
+  it("passes a synchronization landed with a merge commit, and fails one landed by squash", () => {
+    const sync = r.synchronize("kaal/x");
+    r.g("branch", "kaal/y", "kaal/x");
+    const before = rev("kaal/x");
+    r.mergeCommit("kaal/x", sync);
+    assert.equal(audit("kaal/x", before, sync).kind, "pass", audit("kaal/x", before, sync).message);
+    const squashed = r.synchronize("kaal/y");
+    r.squash("kaal/y", squashed);
+    assert.match(audit("kaal/y", before, squashed).message, /by squash, but its flow lands by a merge commit/);
+  });
+
+  it("passes a Change landed by squash, and fails one landed by rebase", () => {
+    r.g("checkout", "-q", "-B", "work", "kaal/x");
+    r.put({ "x.md": "1\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "one");
+    r.put({ "x.md": "2\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "two");
+    const head = rev("HEAD");
+    r.g("checkout", "-q", "--detach", "main");
+    const before = rev("kaal/x");
+    r.squash("kaal/x", head);
+    assert.equal(audit("kaal/x", before, head).kind, "pass");
+    r.g("branch", "-f", "kaal/z", head); // a rebase: the head's two commits on the base, as they are
+    assert.match(audit("kaal/z", before, head).message, /by rebase, .* landed as 2 commits instead of one/);
   });
 });
 
