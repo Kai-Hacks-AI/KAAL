@@ -1,6 +1,6 @@
 import { Graph } from "kaal-graph";
 import { read } from "kaal-hosting";
-import { claimsForm, compareRefs, KaalError, readNode, type Identity, type Ref } from "./node.js";
+import { claimsForm, compareRefs, readNode, type Identity } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
 /** An admitted Node, frozen as Graph holds it, with where the Engine's files happen to hold it (not part of the Node). */
@@ -14,16 +14,11 @@ export interface Rejection {
   reason: string;
 }
 
+/** What admission found: the admitted Nodes and the rejected files. Looking Nodes up is Graph's: hold `nodes` in a Graph. */
 export interface Engine {
-  /** The admitted Nodes, in name then id order. */
+  /** The admitted Nodes, in name then id order, each frozen as Graph takes it. */
   nodes: EngineNode[];
   rejected: Rejection[];
-  /** The admitted Node with exactly this id, its name checked; throws if there is none. */
-  resolve(ref: Ref): EngineNode;
-  /** The admitted Nodes with this name: a name alone may name several Nodes. */
-  named(name: string): EngineNode[];
-  /** The admitted Nodes whose type is exactly this reference. */
-  typedBy(ref: Ref): EngineNode[];
 }
 
 /**
@@ -35,8 +30,8 @@ export interface Engine {
  *
  * Reading a Node and looking Nodes up are Graph's: the candidates are
  * identified and held, frozen, in one Graph, which finds the Nodes a type
- * reference names, exactly by id and name. Admission is Core's alone, and
- * resolve, named and typedBy answer only with admitted Nodes.
+ * reference names, exactly by id and name. Admission is Core's alone: the
+ * Engine holds only admitted Nodes.
  */
 export function evaluate(files: Files): Engine {
   const genesis = foundation().node;
@@ -78,19 +73,9 @@ export function evaluate(files: Files): Engine {
     for (const path of found.get(identity.id)!.paths) rejected.push({ path, reason: reasonFor(identity, candidates, admitted) });
   }
 
-  const nodes = [...admitted.values()].sort(compareRefs);
-  const only = (refs: Ref[]) => refs.flatMap((r) => admitted.get(r.id) ?? []).sort(compareRefs);
   return {
-    nodes,
+    nodes: [...admitted.values()].sort(compareRefs),
     rejected: rejected.sort((a, b) => (a.path < b.path ? -1 : 1)),
-    resolve(ref: Ref): EngineNode {
-      const n = admitted.get(ref.id);
-      if (!n) throw new KaalError(`no admitted Node has id ${ref.id}`);
-      if (n.name !== ref.name) throw new KaalError(`Node ${ref.id} is named ${n.name}, not ${ref.name}`);
-      return n;
-    },
-    named: (name) => only(candidates.named(name)),
-    typedBy: (ref) => only(candidates.typed(ref)),
   };
 }
 
