@@ -47,6 +47,14 @@ Write "writes through this interface are rejected for a credential without write
 
 A review, an automated check, a sign-off and the execution of the action they govern are separate. A passing check is not an approval, an approval is not a passing check, and neither is the decision to proceed or the act of proceeding. A gate that requires several of them combines them without any one standing in for another. Call a review or verification independent only when you know whoever performed it did not do the work; two account names show two credentials, not two people.
 
+## Name the roles on an activity
+
+When you say who did what on an activity, such as a Change, use the roles of the `VARISC` Node: **Responsible** performs the work, **Accountable** answers for the outcome, **Consulted** gives input, **Informed** is told, **Verify** verifies, and **Sign-off** accepts the outcome. Read the Node for what each means.
+
+- A role belongs to an actor on an activity. Never use a role to say who owns an artifact, and never call a capability, Agent, Skill or Extension accountable.
+- **Verify** means deterministic verification. Call review and other judgment validation, not verification.
+- An approval record shows that a review happened. Call it a sign-off only when the approver is the Accountable actor. A passing check, an approval, a sign-off and the merge or other execution are four different things; name the one you have evidence of.
+
 ## Document a specific control
 
 When a capability asks you to document one of its controls, write a Node typed by `Control`: its name names the control, and its text states what the control is meant to do in the terms above, keeping the owning capability's objective and wording. Point to where the control is realized with an Edge typed by `Realized by`, one target per realization: the Node of the capability, Skill or Extension that owns the mechanism, or a Node that documents it. Write the Edge as the `kaal-graph` Agent Skill describes, and check that its references resolve.
