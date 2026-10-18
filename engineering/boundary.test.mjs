@@ -1,6 +1,7 @@
-// Architecture boundary of Engineering's measurement drivers: they decide
-// which workspaces and files are measured, and leave every host mechanic to
-// Hosting, every measurement to Testing, and which Nodes are admitted to Core. This is Engineering's own
+// Architecture boundary of Engineering's measurement and delivery drivers:
+// they decide which workspaces and files are measured or packed, and leave
+// every host mechanic to Hosting, every measurement and acceptance run to
+// Testing, and which Nodes are admitted to Core. This is Engineering's own
 // declaration for those drivers and its own evidence, checked with Hosting's
 // generic conformance inspection. Mechanical findings fail here; what cannot be
 // decided mechanically is listed for Agent or human validation, never taken as
@@ -12,13 +13,13 @@ import { readFile } from "kaal-hosting";
 import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
 
 /** The drivers this declaration covers, by path under engineering/. */
-const DRIVERS = ["coverage/measure.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "report/measure.mjs"];
+const DRIVERS = ["coverage/measure.mjs", "delivery/pack.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "report/measure.mjs"];
 
 /** The host modules those drivers may import directly: path handling only. */
 const BOUNDARY = { builtins: ["node:path"] };
 
-/** The modules they may reach outside themselves: Hosting for the host, Testing for measurement, Core for admission. */
-const OUTSIDE = ["kaal-core", "kaal-hosting", "kaal-testing/attribution", "kaal-testing/coverage", "kaal-testing/inventory", "kaal-testing/report"];
+/** The modules they may reach outside themselves: Hosting for the host, Testing for measurement and acceptance runs, Core for admission. */
+const OUTSIDE = ["kaal-core", "kaal-hosting", "kaal-testing/acceptance", "kaal-testing/attribution", "kaal-testing/coverage", "kaal-testing/inventory", "kaal-testing/report"];
 
 /**
  * Findings that need validation and have been judged, each with its judgment.
