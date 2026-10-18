@@ -5,7 +5,8 @@
 // (kaal-testing/inventory) and attribute them (kaal-testing/attribution) by the
 // ownership files among them. Which CASE Nodes exist is Core's answer: the
 // tracked files are admitted with Core's evaluate, and a claim resolves only to
-// a Node Core types by one of its four foundational CASE kinds.
+// a Node Core types by one of its four foundational CASE kinds. Graph finds the
+// admitted Nodes of each kind.
 //
 // Usage: attribute.mjs [--json]
 // Prints each owner's kind, files and lines, the unassigned and conflicting
@@ -15,6 +16,7 @@
 // Nothing here writes a file.
 import { join } from "node:path";
 import { evaluate, foundation } from "kaal-core";
+import { Graph } from "kaal-graph";
 import { execute, readFile } from "kaal-hosting";
 import { attribute, isClaimFile, KINDS } from "kaal-testing/attribution";
 import { inventory } from "kaal-testing/inventory";
@@ -38,7 +40,8 @@ for (const path of listed.stdout.split("\0").filter(Boolean)) {
 }
 
 const engine = evaluate(Object.fromEntries(files.map(({ path, bytes }) => [path, bytes])));
-const owners = KINDS.flatMap((kind) => engine.typedBy(foundation()[kind]).map(({ name, id }) => ({ kind, name, id })));
+const admitted = new Graph(engine.nodes);
+const owners = KINDS.flatMap((kind) => admitted.typed(foundation()[kind]).map(({ name, id }) => ({ kind, name, id })));
 const result = attribute(inventory(files), files.filter(({ path }) => isClaimFile(path)), owners);
 
 if (json) {
