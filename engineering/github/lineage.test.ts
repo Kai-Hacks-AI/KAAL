@@ -855,7 +855,8 @@ describe("acceptance: a working branch after its Change merges", () => {
   r.put({ "w.md": "1\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "first Change");
   const first = rev("HEAD");
   r.g("checkout", "-q", "--detach", "main");
-  r.squash("kaal/x", first);
+  // The squash GitHub writes, under its own title, so it is never the head's own commit.
+  r.g("branch", "-f", "kaal/x", r.g("commit-tree", `${first}^{tree}`, "-p", "kaal/x", "-m", "first Change (#40)"));
 
   it("is due for deletion once its Change merged", () => assert.match(judge("claude/w", [{ number: 40, head: first }]).message, /merged as #40 .* Delete the branch/));
 
