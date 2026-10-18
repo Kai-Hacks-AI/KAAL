@@ -1,17 +1,22 @@
 // Reading the coverage evidence the test lanes captured (lanes/evidence.mjs)
 // into the coverage results Testing's report reconciles, without running
-// anything. A capture is evidence for this tree only when it was taken at this
-// tree's commit. A workspace with no capture, or only a capture of another
-// commit, is unknown: it is reported as such, never as zero and never as a
-// pass. A capture whose measurement failed stays a failed measurement.
+// anything. A capture is evidence for this report only when it was taken at
+// this tree's commit, in this report's run: the same GitHub Actions run and
+// attempt, or outside Actions, no run on either side. A commit alone does not
+// make two runs one. A workspace with no capture, or only a capture of another
+// commit or run, is unknown: it is reported as such, never as zero and never as
+// a pass. A capture whose measurement failed stays a failed measurement.
 
 /**
  * The coverage results for `workspaces` (names), from `files`, a captures
  * directory as Hosting reads it ({ "<workspace>/capture.json": bytes }), for
- * the tree at `commit`. Returns { coverage, captured }: one result per
- * workspace, and the provenance of each capture used, by workspace.
+ * the report at `at`, { commit, run?, attempt? }. Returns { coverage,
+ * captured }: one result per workspace, and the provenance of each capture
+ * used, by workspace.
  */
-export function fromCaptures(files, workspaces, commit) {
+export function fromCaptures(files, workspaces, at) {
+  const { commit } = at;
+  const runOf = (p) => (p?.run === undefined ? "no run" : `run ${p.run} attempt ${p.attempt ?? "unknown"}`);
   const coverage = [];
   const captured = [];
   for (const workspace of [...workspaces].sort()) {
@@ -27,9 +32,13 @@ export function fromCaptures(files, workspaces, commit) {
       coverage.push({ workspace, failed: `${workspace}: its capture is not JSON (${e.message})` });
       continue;
     }
-    const at = capture?.provenance?.commit;
-    if (commit === undefined || at !== commit) {
-      coverage.push({ workspace, unknown: `${workspace}: its capture was taken at ${at ?? "an unknown commit"}, not at ${commit ?? "an unknown commit"}` });
+    const taken = capture?.provenance;
+    if (commit === undefined || taken?.commit !== commit) {
+      coverage.push({ workspace, unknown: `${workspace}: its capture was taken at ${taken?.commit ?? "an unknown commit"}, not at ${commit ?? "an unknown commit"}` });
+      continue;
+    }
+    if (taken.run !== at.run || taken.attempt !== at.attempt) {
+      coverage.push({ workspace, unknown: `${workspace}: its capture was taken in ${runOf(taken)}, not in ${runOf(at)}` });
       continue;
     }
     if (capture.workspace !== workspace || capture.result?.workspace !== workspace) {

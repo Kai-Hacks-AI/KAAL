@@ -10,8 +10,9 @@
 // Prints the ownership dimension, the package dimension, the reconciliation
 // and every finding, or with --json the whole report as JSON. Exits non-zero
 // when either driver produces no result, or when coverage reports a failed
-// measurement or failing tests, as coverage/measure.mjs does. Other findings do
-// not change the exit status: they are reported, not gated.
+// measurement or failing tests, as coverage/measure.mjs does; from captures,
+// only failing tests do, since the capturing lanes already gate. Other
+// findings do not change the exit status: they are reported, not gated.
 //
 // With --coverage, no test runs: coverage is read from the evidence the test
 // lanes captured into <captures> as they ran (lanes/evidence.mjs), one capture
@@ -23,7 +24,7 @@
 import { join, resolve } from "node:path";
 import { execute, initialize, read } from "kaal-hosting";
 import { markdown, report } from "kaal-testing/report";
-import { commit } from "../lanes/evidence.mjs";
+import { commit, run } from "../lanes/evidence.mjs";
 import { fromCaptures } from "./captures.mjs";
 
 const ROOT = process.cwd();
@@ -72,16 +73,16 @@ else {
     process.exit(1);
   }
   const workspaces = JSON.parse(listed.stdout).map(({ name }) => name);
-  const found = fromCaptures(await read(captures), workspaces, head);
+  const found = fromCaptures(await read(captures), workspaces, { commit: head, ...run() });
   captured = found.captured;
-  const failed = found.coverage.some((r) => r.failed || r.tests === "fail");
-  coverage = { result: found.coverage, status: failed ? 1 : 0 };
+  // The lanes that captured this evidence are the gate: a failed measurement
+  // or an unknown is reported here, and only failing tests change the status.
+  coverage = { result: found.coverage, status: found.coverage.some((r) => r.tests === "fail") ? 1 : 0 };
 }
 const result = report(attribution.result, coverage.result);
 
 if (out !== undefined) {
-  const env = process.env;
-  const provenance = { commit: head, ...(env.GITHUB_RUN_ID ? { run: env.GITHUB_RUN_ID, attempt: env.GITHUB_RUN_ATTEMPT } : {}), captured };
+  const provenance = { commit: head, ...run(), captured };
   await initialize(out, {
     "report.json": Buffer.from(JSON.stringify({ provenance, ...result }, null, 2) + "\n"),
     "report.md": Buffer.from(markdown(result, provenance)),

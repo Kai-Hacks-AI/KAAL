@@ -9,6 +9,14 @@
 // observed is never a pass. A measurement that fails while the tests pass is
 // recorded in the capture as a failed measurement and does not fail the lane:
 // the evidence shows it, and the gate stays what it was.
+//
+// A capture names the run that took it, not only the commit: the GitHub
+// Actions run and attempt, when there is one. Two runs of one commit are two
+// runs, and a report reads only captures of its own (report/captures.mjs).
+// Captures never overwrite each other: each is published whole, under
+// Hosting's lock, as a directory that must not exist yet, so lanes capturing
+// into one directory at once each add their own, and a second capture of a
+// workspace is refused.
 import { join } from "node:path";
 import { execute, HostingError, initialize, kind, update } from "kaal-hosting";
 
@@ -18,6 +26,11 @@ const ROOT = process.cwd();
 export async function commit(root = ROOT) {
   const r = await execute("git", ["rev-parse", "HEAD"], { cwd: root });
   return r.status === 0 ? r.stdout.trim() : undefined;
+}
+
+/** The GitHub Actions run and attempt `env` names, or {} outside one. */
+export function run(env = process.env) {
+  return env.GITHUB_RUN_ID ? { run: env.GITHUB_RUN_ID, attempt: env.GITHUB_RUN_ATTEMPT } : {};
 }
 
 /**
@@ -30,7 +43,7 @@ export function passes(result) {
 }
 
 /** Run `name`'s tests once under coverage; the driver's result for it, or { workspace, failed } when it gave none. */
-async function measure(name) {
+async function measureWorkspace(name) {
   const r = await execute(process.execPath, [join(ROOT, "engineering", "coverage", "measure.mjs"), "--json", name], { cwd: ROOT });
   process.stderr.write(r.stderr);
   try {
@@ -45,9 +58,11 @@ async function measure(name) {
 /**
  * Run the tests of `names`, one workspace at a time, capturing each one's
  * evidence under `dir`, which may already hold other workspaces' captures but
- * none for these. Returns whether every workspace's tests passed.
+ * none for these. Returns whether every workspace's tests passed. `measure`
+ * runs one workspace's tests and resolves to the driver's result for it; it is
+ * Engineering's coverage driver unless a test gives another.
  */
-export async function lane(names, dir) {
+export async function lane(names, dir, measure = measureWorkspace) {
   if ((await kind(dir)) === "missing") {
     try {
       await initialize(dir, {});
@@ -57,7 +72,7 @@ export async function lane(names, dir) {
     }
   }
   for (const name of names) if ((await kind(join(dir, name))) !== "missing") throw new Error(`${join(dir, name)} already holds evidence: capture into a fresh directory`);
-  const provenance = { commit: await commit(), platform: process.platform, arch: process.arch, node: process.version };
+  const provenance = { commit: await commit(), ...run(), platform: process.platform, arch: process.arch, node: process.version };
   let ok = true;
   for (const name of names) {
     const result = await measure(name);
