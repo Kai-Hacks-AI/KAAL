@@ -21,7 +21,7 @@ import { isDeepStrictEqual } from "node:util";
 import { stringify } from "yaml";
 import { FormError, identify, isId, isName } from "./node.mjs";
 
-export { claimsForm, FormError, identify, isId, isName, sha256 } from "./node.mjs";
+export { claimsForm, FormError, identify, identifyRoot, isId, isName, sha256 } from "./node.mjs";
 
 const byRef = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 const byEdge = (key) => (a, b) => byRef(a.type, b.type) || byRef(a[key], b[key]);
@@ -243,13 +243,15 @@ const refLines = (r, indent) => `${indent}name: ${quoted(r.name)}\n${indent.repl
  * other key in `frontmatter`, sorted. Edge groups are sorted by type and targets
  * within a group by reference; names and ids are always double-quoted, so an id
  * of digits stays a string. The body follows a blank line, `# <name>` by default.
- * Throws if the result would not be a Node in Form with well-formed Edges, or if
- * `frontmatter` names `name`, `type` or `edges`. It guarantees the Form and the
+ * Throws if the result would not be a Node in Form with well-formed Edges, if no
+ * `type` is given, or if `frontmatter` names `name`, `type` or `edges`: every
+ * Node it constructs is an ordinary Node, never a root. It guarantees the Form and the
  * Edges' structure only: not that any reference resolves to a Node, nor that a
  * relationship is permitted. Writes nothing and gives no Node or Edge a meaning:
  * publishing the bytes is the caller's.
  */
 export function createNode({ name, type, edges = [], frontmatter = {}, body = `# ${name}\n` }) {
+  if (type === undefined) throw new FormError(`${name} declares no type: an ordinary Node references its type, and createNode constructs no root`);
   for (const key of ["name", "type", "edges"]) if (Object.hasOwn(frontmatter, key)) throw new FormError(`frontmatter cannot set ${key}: it is its own argument`);
   let text = `---\nname: ${quoted(name)}\n`;
   if (type !== undefined) text += `type:\n${refLines(type, "  ")}`;
