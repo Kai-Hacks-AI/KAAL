@@ -27,7 +27,9 @@
 //   lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]
 //   lineage.ts incorporated <lineage-tip> <default-tip>    prints the state a synchronization starts from
 //   lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>
-//   lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pull|none> <head|none>
+//   lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>
+// pulls.json is what GitHub reports of the pull requests associated with <after>, as
+// [{ number, base, head, merge }]: base ref, head commit and merge commit (null while unmerged).
 // Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable. A consumer must treat 2 as a failure and
 // 3 as "this verdict does not apply", never as a pass of it. --resolutions writes a verified
 // synchronization's own resolutions, NUL-separated, as input for Change Isolation; resolutions that
@@ -38,7 +40,7 @@
 // is not judged here; the lineage's tests and review decide that. Adoption only narrows what Change
 // Isolation judges: the whole resulting tree still goes through every required check.
 import { spawnSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const GUIDE = "engineering/github/branching.md";
@@ -244,9 +246,11 @@ export interface LandingFacts {
   /** The base branch's tip before the landing, and after it. */
   before: string;
   after: string;
-  /** The pull request that landed it and its head, or null when none did. */
+  /** The pull request that landed it and its head, or null when none is attributable. */
   pull: number | null;
   head: string | null;
+  /** Why no pull request is attributable, when GitHub reports none or several; null otherwise. */
+  unattributed: string | null;
   /** The method its flow names, judged on the base as it stood before the landing; null when its
    *  Branching verdict fails. */
   expected: "squash" | "merge" | null;
@@ -283,7 +287,10 @@ export function landedAs(f: Pick<LandingFacts, "commits" | "parents" | "head">):
 export function landing(f: LandingFacts): Verdict {
   const what = `${f.baseRef} at ${short(f.after)}`;
   if (f.pull === null || f.head === null) {
-    return { kind: "fail", message: `No pull request landed ${what}. ${f.baseRef} changes only through pull requests. See ${GUIDE}#branches` };
+    return {
+      kind: "fail",
+      message: `No pull request is attributable to ${what}: ${f.unattributed ?? "none landed it"}. ${f.baseRef} changes only through pull requests. See ${GUIDE}#branches`,
+    };
   }
   const pr = `#${f.pull}`;
   if (f.unseen !== null) {
@@ -363,9 +370,11 @@ function synchronizes(cwd: string, c: string, from: string, s: string, base: str
   return { ok: differing.length === 0, expected, differing };
 }
 
+const exists = (cwd: string, c: string) => git(cwd, ["cat-file", "-e", `${c}^{commit}`], [0, 1, 128]).status === 0;
+
 /** Whether s is a state the default branch admitted: a commit on its first-parent history. */
 function admitted(cwd: string, s: string, defaultTip: string): boolean {
-  if (git(cwd, ["cat-file", "-e", `${s}^{commit}`], [0, 1, 128]).status !== 0 || !isAncestor(cwd, s, defaultTip)) return false;
+  if (!exists(cwd, s) || !isAncestor(cwd, s, defaultTip)) return false;
   return git(cwd, ["rev-list", "--first-parent", defaultTip]).stdout.split("\n").includes(s);
 }
 
@@ -422,16 +431,42 @@ export function readExpected(cwd: string, defaultBranch: string, baseRef: string
   return methodFor(defaultBranch, baseRef, synchronization(readSync(cwd, defaultBranch, baseRef, defaultTip, baseTip, head)));
 }
 
+/** A pull request as GitHub reports it: its base ref, its head commit, and its merge commit, which
+ *  is the base's new tip for every method; null while it is unmerged. */
+export interface Pull {
+  number: number;
+  base: string;
+  head: string;
+  merge: string | null;
+}
+
+/** The one pull request that landed `after` on baseRef, or why there is none: GitHub's association
+ *  of a commit with pull requests is not unique, so only a merged pull request into baseRef whose
+ *  merge commit is `after` counts, and it must be the only one. */
+export function attribute(pulls: Pull[], baseRef: string, after: string): Pull | string {
+  const landed = pulls.filter((p) => p.base === baseRef && p.merge === after);
+  if (landed.length === 1) return landed[0];
+  if (landed.length > 1) return `GitHub names ${landed.map((p) => `#${p.number}`).join(" ")}, each with merge commit ${short(after)}, so none is attributable alone`;
+  return pulls.length
+    ? `GitHub associates ${pulls.map((p) => `#${p.number}`).join(" ")} with it, but none merged into ${baseRef} with merge commit ${short(after)}`
+    : "GitHub associates no pull request with it";
+}
+
 /** The facts of a landing, judged on the base as it stood before it and on the default tip given,
  *  which may be later than the landing: the default branch only moves forward, and every state a
  *  head can merge in stays on its first-parent history. */
 export function readLanding(
-  cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, before: string, after: string, pull: number | null, head: string | null,
+  cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, before: string, after: string, pulls: Pull[],
 ): LandingFacts {
+  const found = attribute(pulls, baseRef, after);
+  let unattributed = typeof found === "string" ? found : null;
+  if (typeof found !== "string" && !exists(cwd, found.head)) unattributed = `the head ${short(found.head)} of #${found.number} is not in this repository`;
+  const pull = unattributed === null && typeof found !== "string" ? found.number : null;
+  const head = pull !== null && typeof found !== "string" ? rev(cwd, found.head) : null;
   const claimed = head === null ? null : markerOf(cwd, head);
   const unseen = claimed !== null && !isAncestor(cwd, claimed, defaultTip) ? claimed : null;
   return {
-    defaultBranch, baseRef, before, after, pull, head, unseen,
+    defaultBranch, baseRef, before, after, pull, head, unattributed, unseen,
     expected: head === null ? null : readExpected(cwd, defaultBranch, baseRef, defaultTip, before, head),
     commits: Number(git(cwd, ["rev-list", "--first-parent", "--count", after, `^${before}`]).stdout.trim()),
     parents: parents(cwd, after),
@@ -468,18 +503,20 @@ function main(argv: string[]): number {
       baseRef, head: h, enabled: enabled === "none" ? null : (enabled as Method),
       expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
     });
-  } else if (verdict === "landing" && args.length === 7) {
-    const [def, baseRef, defaultTip, before, after, pull, head] = args;
-    if (pull !== "none" && !/^[1-9][0-9]*$/.test(pull)) throw new Error(`not a pull request number: ${pull}`);
-    v = landing(readLanding(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, before), rev(cwd, after),
-      pull === "none" ? null : Number(pull), head === "none" ? null : rev(cwd, head)));
+  } else if (verdict === "landing" && args.length === 6) {
+    const [def, baseRef, defaultTip, before, after, file] = args;
+    const pulls = JSON.parse(readFileSync(file, "utf8"));
+    if (!Array.isArray(pulls) || !pulls.every((p) => Number.isInteger(p?.number) && typeof p.base === "string" && typeof p.head === "string")) {
+      throw new Error(`${file} is not a list of pull requests`);
+    }
+    v = landing(readLanding(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, before), rev(cwd, after), pulls as Pull[]));
   } else {
     console.error("usage: lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref>\n" +
       "       lineage.ts freshness <default> <default-tip> <head-ref> <head>\n" +
       "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]\n" +
       "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
       "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>\n" +
-      "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pull|none> <head|none>");
+      "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>");
     return 2;
   }
   (v.kind === "fail" ? console.error : console.log)(v.message);
