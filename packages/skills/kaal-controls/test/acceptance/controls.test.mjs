@@ -45,7 +45,7 @@ before(async () => {
 
 describe("the installed package", () => {
   it("holds exactly its intended files and has no runtime dependencies", () => {
-    assert.deepEqual(files(installed), ["LICENSE", "README.md", "package.json", "payload/Control.md", "payload/Controls.md", "payload/Realized-by.md", "payload/VARISC.md", "skills/kaal-controls/SKILL.md"]);
+    assert.deepEqual(files(installed), ["LICENSE", "README.md", "package.json", "payload/Control.md", "payload/Controls.md", "payload/HAPTIC.md", "payload/Realized-by.md", "payload/VARISC.md", "skills/kaal-controls/SKILL.md"]);
     assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).dependencies, undefined);
   });
 

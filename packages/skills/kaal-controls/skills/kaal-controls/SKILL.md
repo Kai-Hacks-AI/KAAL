@@ -55,6 +55,10 @@ When you say who did what on an activity, such as a Change, use the roles of the
 - **Verify** means deterministic verification. Call review and other judgment validation, not verification.
 - An approval record shows that a review happened. Call it a sign-off only when the approver is the Accountable actor. A passing check, an approval, a sign-off and the merge or other execution are four different things; name the one you have evidence of.
 
+## Improve a control
+
+When you work on improving a control, follow the `HAPTIC` Node. Start from a gap you can point to, such as a test finding, a review observation or evidence that no longer supports a claim. Propose the change as the Responsible Agent; a human is Accountable and signs it off. Leave building the change to the capability that owns the behaviour, and its evidence to wherever evidence is produced. Say a control is improved only when evidence supports it, not because the change was proposed, signed off or made.
+
 ## Document a specific control
 
 When a capability asks you to document one of its controls, write a Node typed by `Control`: its name names the control, and its text states what the control is meant to do in the terms above, keeping the owning capability's objective and wording. Point to where the control is realized with an Edge typed by `Realized by`, one target per realization: the Node of the capability, Skill or Extension that owns the mechanism, or a Node that documents it. Write the Edge as the `kaal-graph` Agent Skill describes, and check that its references resolve.
