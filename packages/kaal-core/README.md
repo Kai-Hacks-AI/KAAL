@@ -44,7 +44,7 @@ type:
 
 The Form is Graph's, and Core reads every Node through it. The frontmatter is one YAML 1.2 mapping read with the core schema, with LF line endings. Keys are strings and never repeat, and there is no anchor, alias, merge key (`<<`) or tag outside the core schema (`!!str`, `!!int`, `!!float`, `!!bool`, `!!null`, `!!seq`, `!!map`). Core interprets `name` and `type` (exactly `name` and `id`), and reads them as written: `id: 1234e5678…` stays that string and never becomes a number. Any other key belongs to the capability that defines it. Core accepts it and returns it uninterpreted, with its YAML 1.2 type (`priority: 3` is the number 3, `enabled: true` the boolean), in `identify(bytes).frontmatter`, the complete parsed mapping.
 
-A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not part of identity: the Engine finds Nodes by scanning, so a Node is the same Node wherever it is stored. A Node is admitted when its type resolves, by id with the name checked, to an admitted Node. Only Core's own `Node` may declare no type.
+A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not part of identity: the Engine finds Nodes by scanning, so a Node is the same Node wherever it is stored. A Node is admitted when its type resolves, by id with the name checked, to an admitted Node. Only Core's own `Node` may declare no type: Graph reads an ordinary Node with `identify` and a root with `identifyRoot`, and Core admits exactly one root, its genesis.
 
 ## Engine layout
 
