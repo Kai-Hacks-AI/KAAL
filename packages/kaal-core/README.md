@@ -2,7 +2,7 @@
 
 KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Capabilities, Agents, Skills and Extensions by one mechanism, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
-Core depends on no Git host and no agent provider. It has two runtime dependencies. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication) and does not depend on Core. [yaml](https://www.npmjs.com/package/yaml), pinned, reads frontmatter. It needs Node.js 24 or later.
+Core depends on no Git host and no agent provider. It has two runtime dependencies, and neither depends on Core. `kaal-graph` owns the general Node mechanics Core uses: a Node's Form and identity, and finding Nodes by id, name and type. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
 
 ## Install and bootstrap
 
@@ -42,7 +42,7 @@ type:
 ---
 ```
 
-The frontmatter is one YAML 1.2 mapping read with the core schema, with LF line endings. Keys are strings and never repeat, and there is no anchor, alias, merge key (`<<`) or tag outside the core schema (`!!str`, `!!int`, `!!float`, `!!bool`, `!!null`, `!!seq`, `!!map`). Core interprets `name` and `type` (exactly `name` and `id`), and reads them as written: `id: 1234e5678…` stays that string and never becomes a number. Any other key belongs to the capability that defines it. Core accepts it and returns it uninterpreted, with its YAML 1.2 type (`priority: 3` is the number 3, `enabled: true` the boolean), in `identify(bytes).frontmatter`, the complete parsed mapping.
+The Form is Graph's, and Core reads every Node through it. The frontmatter is one YAML 1.2 mapping read with the core schema, with LF line endings. Keys are strings and never repeat, and there is no anchor, alias, merge key (`<<`) or tag outside the core schema (`!!str`, `!!int`, `!!float`, `!!bool`, `!!null`, `!!seq`, `!!map`). Core interprets `name` and `type` (exactly `name` and `id`), and reads them as written: `id: 1234e5678…` stays that string and never becomes a number. Any other key belongs to the capability that defines it. Core accepts it and returns it uninterpreted, with its YAML 1.2 type (`priority: 3` is the number 3, `enabled: true` the boolean), in `identify(bytes).frontmatter`, the complete parsed mapping.
 
 A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not part of identity: the Engine finds Nodes by scanning, so a Node is the same Node wherever it is stored. A Node is admitted when its type resolves, by id with the name checked, to an admitted Node. Only Core's own `Node` may declare no type.
 

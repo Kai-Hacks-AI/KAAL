@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
-import { identify, KaalError } from "./node.js";
+import { FormError, identify, KaalError } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
 const USAGE = `usage: kaal <command> [--engine <dir>]
@@ -98,7 +98,7 @@ async function main(argv: string[]): Promise<number> {
 try {
   process.exitCode = await main(process.argv.slice(2));
 } catch (e) {
-  if (!(e instanceof KaalError) && !(e as NodeJS.ErrnoException).code) throw e;
+  if (!(e instanceof KaalError) && !(e instanceof FormError) && !(e as NodeJS.ErrnoException).code) throw e;
   console.error(`kaal: ${(e as Error).message}`);
   process.exitCode = 1;
 }
