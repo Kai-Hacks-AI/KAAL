@@ -4,7 +4,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, capabilities, foundation, identify, readContribution, register, verify } from "kaal-core";
+import { bootstrap, catalog, foundation, readContribution, register, verify } from "kaal-core";
+import { identify } from "kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
 import { read } from "kaal-hosting";
 
@@ -25,13 +26,21 @@ describe("the Skill Node", () => {
     assert.deepEqual(node.type, foundation().skill);
   });
 
-  it("is admitted as a Skill by Core alone", () => {
+  it("is admitted as a Skill by Core alone", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-intent-")), "engine");
-    bootstrap(engine);
-    const r = register(engine, "skill", "kaal-intent", readContribution(join(PACKAGE, "payload")));
+    await bootstrap(engine);
+    const r = await register(engine, "skill", "kaal-intent", await readContribution(join(PACKAGE, "payload")));
     assert.deepEqual(r.ids, [identify(bytes).id]);
-    assert.deepEqual(capabilities(engine).skills, [{ name: "Intent", id: identify(bytes).id }]);
-    assert.equal(verify(engine).ok, true);
+    assert.deepEqual((await catalog(engine)).skills, [{ name: "Intent", id: identify(bytes).id }]);
+    assert.equal((await verify(engine)).ok, true);
+  });
+});
+
+describe("the IDEA Definition Node", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const node = identify(readFileSync(join(PACKAGE, "payload", "IDEA.md")));
+    assert.equal(node.name, "IDEA");
+    assert.deepEqual(node.type, foundation().definition);
   });
 });
 
