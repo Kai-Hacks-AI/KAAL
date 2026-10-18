@@ -8,7 +8,8 @@
     "packages/kaal-core",
     "packages/skills/kaal-engineer-skill",
     "packages/skills/kaal-graph",
-    "packages/skills/kaal-testing"
+    "packages/skills/kaal-testing",
+    "packages/skills/kaal-controls"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
