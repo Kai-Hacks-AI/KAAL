@@ -1,8 +1,10 @@
 // Acceptance: kaal-engineer-skill, Engineering -> Package -> Embed.
 //
-// Installs kaal-core, kaal-hosting and kaal-engineer-skill from their packed
-// tarballs into a fresh host outside this repository, as the repository's
-// other acceptance does. Core alone admits the Engineer Skill Node into an
+// Installs kaal-core, kaal-graph, kaal-hosting and kaal-engineer-skill from
+// the tarballs the Acceptance lane packed into a fresh host outside this
+// repository, as the repository's other acceptance does. kaal-graph is
+// installed from its tarball because it is not published, so the host holds
+// it once Core depends on it for Node mechanics. Core alone admits the Engineer Skill Node into an
 // Engine at an arbitrary location. The shipped Agent Skill's checker, which
 // reads the skill through the installed kaal-hosting, runs from wherever in
 // the host the skill is placed.
@@ -13,8 +15,9 @@ import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
+import { install } from "kaal-testing/acceptance";
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-engineer-skill-acceptance-"));
 
 // Commands run through Hosting, which owns how the host realizes them.
@@ -39,11 +42,6 @@ function tree(dir) {
   return out;
 }
 
-async function pack(...path) {
-  const out = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", work], join(REPO, "packages", ...path)));
-  return join(work, out[0].filename);
-}
-
 let host;
 let installed;
 let kaal;
@@ -51,14 +49,8 @@ let checker;
 let engine;
 
 before(async () => {
-  const core = await pack("kaal-core");
-  const hosting = await pack("extensions", "kaal-hosting");
-  const tarball = await pack("skills", "kaal-engineer-skill");
-  host = join(work, "host");
-  mkdirSync(host);
-  writeFileSync(join(host, "package.json"), JSON.stringify({ name: "fresh-host", version: "1.0.0", private: true }, null, 2));
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  await run("npm", ["install", "--prefer-offline", "--no-package-lock", core, hosting, tarball], host);
+  host = await install(["kaal-core", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
   installed = join(host, "node_modules", "kaal-engineer-skill");
   kaal = join(host, "node_modules", ".bin", "kaal");
   checker = join(host, "node_modules", ".bin", "kaal-engineer-skill");
