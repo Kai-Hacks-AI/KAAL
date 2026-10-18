@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Change", "id": "3c9d10e9f1302463c0ae49fdef3f78351db2f28614d5e1c506eabb502e71deaf" },
+  "paths": ["packages/skills/kaal-change/"]
+}

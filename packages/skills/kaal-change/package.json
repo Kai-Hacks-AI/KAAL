@@ -1,0 +1,23 @@
+{
+  "name": "kaal-change",
+  "version": "0.0.1",
+  "description": "KAAL Change: what a Change is, what makes it self-contained, and its lifecycle, independent of the technology that carries it.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "capability"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/change.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
