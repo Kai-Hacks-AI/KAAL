@@ -7,11 +7,11 @@ Whatever can be decided deterministically is decided once, in [`lineage.ts`](lin
 ## Branches
 
 - `main` is the promoted state.
-- `kaal/<capability>` is a collector. It carries a Branch Intent: one capability, durable. It accumulates Changes, is promoted deliberately, and lives on after a promotion, because the capability keeps evolving.
+- `kaal/<capability>` is a collector. It carries a Branch Intent: one capability. It accumulates Changes and is promoted deliberately. The capability is durable and its collector is not: a collector is deleted after its promotion to `main`, and established again from `main` when new work on the capability begins (see [Promote](#promote)).
 - `kaal/hotfix` is the collector for urgent corrections of existing capabilities (see [Hotfix](#hotfix)).
-- Every other branch, such as `claude/*`, is a working branch. It carries a PR Intent: one bounded Change, after which it may be deleted. Working branches are not protected, and their authors may rebase them.
+- Every other branch, such as `claude/*`, is a working branch. It carries a PR Intent: one bounded Change, and is deleted after that Change's pull request merges. Working branches are not protected, and their authors may rebase them.
 
-`main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push, force-push or deletion, and nothing bypasses this. Only a `kaal/*` branch of this repository may open a pull request into `main`.
+`main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push or force-push, and nothing bypasses this. `main` is never deleted, and a collector is deleted only as [Promote](#promote) says. Only a `kaal/*` branch of this repository may open a pull request into `main`.
 
 Each flow lands with one merge method:
 
@@ -27,7 +27,7 @@ GitHub allows all three methods on `kaal/*` and cannot tie one to a pull request
 
 ### Establish
 
-A new collector is a `kaal/*` ref created at `main`'s current tip. It adds no content, so it is not a pull request. An existing collector is never re-established under a new name to get past staleness: it is synchronized.
+A new collector is a `kaal/*` ref created at `main`'s current tip. It adds no content, so it is not a pull request. A collector deleted after its promotion is established again, under the same name, when new work on its capability begins. A collector that still holds unpromoted Changes is never re-established, under any name, to get past staleness: it is synchronized.
 
 Reasoning: a collector builds on what has been promoted, so its Changes are developed and verified against that state.
 
@@ -66,20 +66,24 @@ Reasoning: the collector keeps building on what has been promoted without losing
 
 A collector promotes into `main` through a pull request from its `kaal/*` branch, landed by squash. The promotion must be fresh: its head contains `main`'s tip, and merging it gives `main` exactly the state validated on its head. A collector that is not fresh is [synchronized](#synchronize), and the promotion is judged again on its new head.
 
-A squash promotion records the collector's state in `main` without making the collector an ancestor of `main`. So after every promotion, synchronize `main` back into the collector before its next promotion. That synchronization has no conflicts; it only gives the collector `main`'s new ancestry. From then on the collector may change or delete content it already promoted, and its next promotion carries exactly that.
+A squash promotion records the collector's state in `main` without making the collector an ancestor of `main`. So after it lands, the collector is deleted, and the next work on its capability starts from a collector [established](#establish) again at `main`'s tip.
 
-Reasoning: `main` receives only Changes that were integrated and verified in a collector, in exactly the state that was verified, one commit per promotion; the collector stays the durable home of its capability.
+When a base branch is deleted, GitHub retargets its open pull requests to `main`, where they cannot land. So a Change still open against the collector either lands before the promotion and is promoted with it, or is rebased onto the re-established collector (`git rebase --onto kaal/<capability> <old collector tip>`) and retargeted to it.
+
+A collector that has to stay, because the Owner holds it, is synchronized with `main` before its next promotion instead. That synchronization has no conflicts; it only gives the collector `main`'s new ancestry. From then on the collector may change or delete content it already promoted, and its next promotion carries exactly that.
+
+Reasoning: `main` receives only Changes that were integrated and verified in a collector, in exactly the state that was verified, one commit per promotion. The capability is the durable home, so a collector lives only while it holds work, and no synchronization is made just to keep an empty collector current.
 
 ### Hotfix
 
 A hotfix is an urgency-driven correction to an existing capability. Urgency alone decides that a correction takes this route. The capability being corrected keeps ownership of the behavior: a hotfix is neither a new capability nor a separate owner.
 
-The route is for when the owning collector holds unfinished Changes and cannot be promoted just to ship the correction. Its Git realization is `kaal/hotfix`, a durable collector [established](#establish) once, which holds one correction at a time and nothing beyond `main` between hotfixes. It uses only the flows above:
+The route is for when the owning collector holds unfinished Changes and cannot be promoted just to ship the correction. Its Git realization is `kaal/hotfix`, a collector [established](#establish) for each correction, which holds one correction at a time. It uses only the flows above:
 
-1. [Synchronize](#synchronize) `kaal/hotfix` to `main`'s tip if it is behind.
+1. [Establish](#establish) `kaal/hotfix` at `main`'s tip.
 2. [Engineer](#engineer) the correction as one Change into `kaal/hotfix`, landed by squash.
 3. [Promote](#promote) `kaal/hotfix` into `main`, landed by squash.
-4. Synchronize `main` back into `kaal/hotfix` and into every collector that owns the corrected behavior.
+4. Delete `kaal/hotfix` as [Promote](#promote) says, and synchronize `main` into every existing collector that owns the corrected behavior.
 
 Nothing is relaxed. The same required checks, Change Isolation, independent review and approval, and freshness apply as on any collector. A hotfix is not a bypass or an exemption.
 
