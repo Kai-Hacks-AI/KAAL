@@ -49,7 +49,7 @@ describe("synchronization", () => {
   const f: SyncFacts = {
     defaultBranch: "main", lineage: "kaal/x", defaultTip: A, lineageTip: B, head: C, merged: A, marker: null,
     onLineageTip: true, carriesDefault: true, markerOnDefault: true, advances: true, incorporated: D,
-    expected: { clean: false, tree: D, conflicts: ["package.json"] }, differing: [],
+    expected: { clean: false, tree: D, conflicts: ["package.json"] }, differing: [], adopted: [],
   };
   const fails = (g: Partial<SyncFacts>, re: RegExp) => {
     const v = synchronization({ ...f, ...g });
@@ -65,6 +65,15 @@ describe("synchronization", () => {
     assert.match(v.message, /Land it with a merge commit, never by squash or rebase/);
     assert.match(v.message, /Structure verified; whether each resolution is right is for the lineage's tests and review/);
   });
+  it("does not count a resolution adopted unchanged from the merged state as its own, and names it", () => {
+    const v = synchronization({ ...f, expected: { ...f.expected, conflicts: [".gitattributes", "package.json"] }, adopted: [".gitattributes"] });
+    assert.deepEqual([v.kind, v.resolutions, v.adopted], ["pass", ["package.json"], [".gitattributes"]]);
+    assert.match(v.message, /explicit resolutions: package\.json; adopted unchanged from main at aaaaaaa: \.gitattributes\./);
+    const all = synchronization({ ...f, adopted: ["package.json"] });
+    assert.deepEqual([all.resolutions, all.adopted], [[], ["package.json"]]);
+    assert.match(all.message, /explicit resolutions: none; adopted unchanged/);
+  });
+  it("adopts nothing for a synchronization that fails", () => assert.deepEqual(synchronization({ ...f, differing: ["x"], adopted: ["package.json"] }).adopted, []));
   it("accepts a Synchronized-with line that names the merged commit", () => assert.equal(synchronization({ ...f, marker: A }).kind, "pass"));
   it("treats a proposal that merges nothing from main and carries none of it as an ordinary Change, landed by squash", () => {
     const v = synchronization({ ...f, merged: null, carriesDefault: false });
@@ -485,5 +494,59 @@ describe("command line", () => {
   it("exits 2 when it cannot judge", () => {
     assert.equal(cli(r.dir, "freshness", "main", "main", "kaal/x", "no-such-ref").status, 2);
     assert.equal(cli(r.dir, "nonsense").status, 2);
+  });
+});
+
+describe("acceptance: resolutions adopted from main", () => {
+  const r = repo();
+  const isolation = (paths: string[]) =>
+    spawnSync(process.execPath, [join(import.meta.dirname, "../change-isolation/check.mjs")], { input: paths.join("\0"), encoding: "utf8" }).status;
+  r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4\n", "package.json": pkg(MAIN_SCRIPTS), "core/x.ts": "x\n", "old.md": "old\n" }, "initial");
+  r.g("branch", "kaal/l", "main");
+  r.land("kaal/l", { ".github/workflows/ci.yml": "uses: checkout@v5\n" }, "lineage .github Change");
+  r.land("kaal/l", { "package.json": pkg(KAAL_SCRIPTS) }, "lineage root Change");
+  r.land("kaal/l", { "old.md": "lineage edit\n" }, "lineage edits a file main deletes");
+  r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4.2\n" }, "main .github Change");
+  r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace kaal-hosting"']), "old.md": null }, "main root Change");
+  const main = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("ls-tree", "main", "--", p) ? r.g("show", `main:${p}`) + "\n" : null]));
+  const lineage = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("show", `kaal/l:${p}`) + "\n"]));
+
+  it("names no own resolution when every conflict takes main's exact content, a deletion included", () => {
+    const v = r.judge("kaal/l", r.synchronize("kaal/l", main));
+    assert.deepEqual([v.kind, v.current, v.resolutions, v.adopted], ["pass", true, [], [".github/workflows/ci.yml", "old.md", "package.json"]]);
+  });
+
+  it("keeps a resolution to the lineage's side, or to anything new, as its own, judged by Change Isolation", () => {
+    const v = r.judge("kaal/l", r.synchronize("kaal/l", (ps) => ({ ...main(ps), ...lineage(["package.json"]), "old.md": "merged by hand\n" })));
+    assert.deepEqual([v.kind, v.resolutions, v.adopted], ["pass", ["old.md", "package.json"], [".github/workflows/ci.yml"]]);
+    assert.equal(isolation(v.resolutions), 0);
+    const mixed = r.judge("kaal/l", r.synchronize("kaal/l", (ps) => ({ ...main(ps), ...lineage([".github/workflows/ci.yml", "package.json"]) })));
+    assert.deepEqual(mixed.resolutions, [".github/workflows/ci.yml", "package.json"]);
+    assert.equal(isolation(mixed.resolutions), 1, "own resolutions still travel alone");
+  });
+
+  it("never relaxes the structural verdict: a fully adopted synchronization that changes anything else still fails", () => {
+    r.g("checkout", "-q", "-B", "work", "kaal/l");
+    spawnSync("git", ["merge", "-q", "--no-ff", "--no-commit", "main"], { cwd: r.dir });
+    r.put({ ...main([".github/workflows/ci.yml", "package.json", "old.md"]), "core/x.ts": "slipped in\n" });
+    r.g("add", "-A");
+    r.g("commit", "-q", "--no-edit", "-m", "Synchronize");
+    const head = r.g("rev-parse", "HEAD");
+    r.g("checkout", "-q", "-f", "--detach", "main");
+    const v = r.judge("kaal/l", head);
+    assert.deepEqual([v.kind, v.resolutions, v.adopted], ["fail", [], []]);
+    assert.match(v.message, /differs from main .* on: core\/x\.ts/);
+  });
+
+  it("adopts only an exact entry: the same bytes with another mode stay its own", () => {
+    r.g("checkout", "-q", "-B", "work", "kaal/l");
+    spawnSync("git", ["merge", "-q", "--no-ff", "--no-commit", "main"], { cwd: r.dir });
+    r.put(main([".github/workflows/ci.yml", "package.json", "old.md"]));
+    r.g("add", "-A");
+    r.g("update-index", "--chmod=+x", "package.json");
+    r.g("commit", "-q", "--no-edit", "-m", "Synchronize");
+    const head = r.g("rev-parse", "HEAD");
+    r.g("checkout", "-q", "-f", "--detach", "main");
+    assert.deepEqual(r.judge("kaal/l", head).resolutions, ["package.json"]);
   });
 });
