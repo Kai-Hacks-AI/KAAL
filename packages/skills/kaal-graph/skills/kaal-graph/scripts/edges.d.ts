@@ -15,14 +15,15 @@ export interface Frontmatter {
 }
 
 /** What a Node says about itself, read from its exact bytes. */
+/** A Node's identity, frozen throughout as identify() returns it. */
 export interface Identity {
   /** SHA-256, lowercase hex, of the exact bytes. */
-  id: string;
-  name: string;
+  readonly id: string;
+  readonly name: string;
   /** Absent only for a Node that declares no type. */
-  type?: Ref;
-  /** The complete frontmatter, `name` and `type` included, frozen. */
-  frontmatter: Frontmatter;
+  readonly type?: Ref;
+  /** The complete frontmatter, `name` and `type` included, frozen throughout. */
+  readonly frontmatter: Frontmatter;
 }
 
 /** Bytes that are not a Node in Form. */
@@ -40,7 +41,7 @@ export interface Edge {
   readonly target: Ref;
 }
 
-/** Construct a Node's exact, canonical bytes; throws a FormError if they would not be a Node in Form with well-formed Edges. Writes nothing. */
+/** Construct a Node's exact, canonical bytes; throws a FormError if they would not be a Node in Form with well-formed Edges. Guarantees Form and Edge structure only, not that references resolve or that a relationship is permitted. Writes nothing. */
 export function createNode(spec: {
   name: string;
   type?: Ref;
@@ -53,6 +54,7 @@ export function edgesOf(node: Identity): { edges: Edge[]; problems: string[] };
 
 export class Graph<N extends Identity = Identity> {
   constructor(nodes?: Iterable<N>);
+  /** Adds a frozen Node, as identify() returns it; throws a TypeError for one that could still change. */
   add(node: N): this;
   node(id: string): N | undefined;
   resolve(ref: Ref): N | undefined;

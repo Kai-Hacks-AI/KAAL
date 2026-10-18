@@ -64,7 +64,7 @@ function value(n) {
   if (n?.anchor) throw new FormError(`${NOT_IN_FORM}: anchors are not allowed`);
   if (n?.tag && !TAGS.has(n.tag)) throw new FormError(`${NOT_IN_FORM}: the tag ${n.tag} is not allowed`);
   if (isScalar(n)) return n.value;
-  if (isSeq(n)) return n.items.map(value);
+  if (isSeq(n)) return Object.freeze(n.items.map(value));
   if (isMap(n)) {
     const map = {};
     for (const pair of n.items) {
@@ -93,7 +93,8 @@ function literal(n) {
 
 /**
  * Read a Node's identity from its exact bytes: { id, name, type?, frontmatter },
- * the frontmatter complete and frozen, uninterpreted beyond `name` and `type`.
+ * the frontmatter complete, uninterpreted beyond `name` and `type`. The identity
+ * is frozen throughout, as its bytes are: nothing in it can be changed.
  * Throws a FormError if the bytes are not in Form.
  */
 export function identify(bytes) {
@@ -112,8 +113,8 @@ export function identify(bytes) {
     const fields = isMap(t) && [undefined, "tag:yaml.org,2002:map"].includes(t.tag) ? new Map(t.items.map((p) => [isScalar(p.key) ? p.key.value : undefined, literal(p.value)])) : new Map();
     const [tname, tid] = [fields.get("name"), fields.get("id")];
     if (fields.size !== 2 || !isName(tname) || !isId(tid)) throw new FormError(`${NOT_IN_FORM}: \`type\` is a mapping of exactly \`name\` and a lowercase hex SHA-256 \`id\``);
-    ref = { name: tname, id: tid };
+    ref = Object.freeze({ name: tname, id: tid });
   }
-  const frontmatter = Object.freeze({ ...parsed, name, ...(ref ? { type: Object.freeze({ ...ref }) } : {}) });
-  return { id: sha256(bytes), name, ...(ref ? { type: ref } : {}), frontmatter };
+  const frontmatter = Object.freeze({ ...parsed, name, ...(ref ? { type: ref } : {}) });
+  return Object.freeze({ id: sha256(bytes), name, ...(ref ? { type: ref } : {}), frontmatter });
 }

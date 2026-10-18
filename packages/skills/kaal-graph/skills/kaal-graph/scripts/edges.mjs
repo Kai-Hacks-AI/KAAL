@@ -12,8 +12,10 @@
 // Every query answers with Edges as declared, read from their source Nodes. A declared
 // reference may resolve to no Node present, or to a Node of another name: check() reports
 // both, and nothing else verifies them, so a caller that needs resolved Edges runs check()
-// first. What a query returns is the caller's own: a fresh array of frozen records, so
-// changing it never changes the indexes.
+// first: queries expose declared relationships, and check() is the resolver. What a query
+// returns is the caller's own: a fresh array of frozen records, so changing it never
+// changes the indexes. What a Graph holds cannot change either: it takes only frozen
+// Nodes, as identify() returns them, so a Node and the indexes derived from it always agree.
 
 import { isDeepStrictEqual } from "node:util";
 import { stringify } from "yaml";
@@ -84,6 +86,11 @@ export function edgesOf(node) {
   return { edges: edges.sort(byEdge("target")), problems: [] };
 }
 
+/** Whether nothing in `v` can be changed: a primitive, or a frozen object or array whose values are too. */
+function immutable(v) {
+  return typeof v !== "object" || v === null || (Object.isFrozen(v) && Object.values(v).every(immutable));
+}
+
 /** A graph over Node identities. Indexes are derived from the Nodes and never replace them. */
 export class Graph {
   #nodes = new Map();
@@ -102,8 +109,17 @@ export class Graph {
     for (const node of nodes) this.add(node);
   }
 
-  /** Add a Node. Adding the same id again is a no-op. */
+  /**
+   * Add a Node. Adding the same id again is a no-op. The Node must be frozen, and
+   * its type and frontmatter frozen throughout, as identify() returns it: a Node is
+   * immutable content, and the indexes are read from it once. A Node may carry fields
+   * of the caller's own beside its identity; Graph never reads them. Throws a
+   * TypeError, adding nothing, for a Node that could still change.
+   */
   add(node) {
+    if (!Object.isFrozen(node) || !immutable(node.type) || !immutable(node.frontmatter)) {
+      throw new TypeError(`Graph takes only frozen Nodes, as identify() returns them: ${node?.name} (${node?.id}) could still change`);
+    }
     if (this.#nodes.has(node.id)) return this;
     this.#nodes.set(node.id, node);
     const { edges, problems } = edgesOf(node);
@@ -219,8 +235,10 @@ const refLines = (r, indent) => `${indent}name: ${quoted(r.name)}\n${indent.repl
  * within a group by reference; names and ids are always double-quoted, so an id
  * of digits stays a string. The body follows a blank line, `# <name>` by default.
  * Throws if the result would not be a Node in Form with well-formed Edges, or if
- * `frontmatter` names `name`, `type` or `edges`. Writes nothing and gives no
- * Node or Edge a meaning: publishing the bytes is the caller's.
+ * `frontmatter` names `name`, `type` or `edges`. It guarantees the Form and the
+ * Edges' structure only: not that any reference resolves to a Node, nor that a
+ * relationship is permitted. Writes nothing and gives no Node or Edge a meaning:
+ * publishing the bytes is the caller's.
  */
 export function createNode({ name, type, edges = [], frontmatter = {}, body = `# ${name}\n` }) {
   for (const key of ["name", "type", "edges"]) if (Object.hasOwn(frontmatter, key)) throw new FormError(`frontmatter cannot set ${key}: it is its own argument`);
