@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "skill", "name": "Graph", "id": "f1b5b4861dc19e0b18b67cfc8fcf95771c8d50e6eb51cfb6c535b7a4031994c4" },
+  "paths": ["packages/skills/kaal-graph/"]
+}
