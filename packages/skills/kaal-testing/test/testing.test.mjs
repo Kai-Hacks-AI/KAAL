@@ -10,7 +10,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, catalog, foundation, identify, readContribution, register, registerSkill } from "kaal-core";
+import { bootstrap, catalog, foundation, readContribution, register } from "kaal-core";
+import { identify } from "kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read, readFile } from "kaal-hosting";
 
@@ -40,7 +41,7 @@ describe("kaal-testing", () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-testing-"));
     await bootstrap(dir);
     await register(dir, "capability", "testing", await readContribution(CAPABILITY));
-    await registerSkill(dir, "kaal-testing", await readContribution(PAYLOAD));
+    await register(dir, "skill", "kaal-testing", await readContribution(PAYLOAD));
     const found = await catalog(dir);
     assert.deepEqual([found.capabilities.map((r) => r.name), found.skills.map((r) => r.name)], [["Testing"], ["Testing"]]);
   });
@@ -54,6 +55,7 @@ describe("kaal-testing", () => {
       "capability/Testing.md",
       "lib/acceptance.mjs",
       "lib/attribution.mjs",
+      "lib/contracts.mjs",
       "lib/coverage.mjs",
       "lib/inventory.mjs",
       "lib/report.mjs",

@@ -7,6 +7,7 @@
   "exports": {
     "./acceptance": "./lib/acceptance.mjs",
     "./attribution": "./lib/attribution.mjs",
+    "./contracts": "./lib/contracts.mjs",
     "./coverage": "./lib/coverage.mjs",
     "./inventory": "./lib/inventory.mjs",
     "./package.json": "./package.json",
@@ -20,7 +21,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs"
+    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs"
   },
   "engines": {
     "node": ">=24"
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "kaal-core": "0.0.1",
-    "kaal-engineer-skill": "0.0.1"
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-graph": "0.0.1"
   }
 }
