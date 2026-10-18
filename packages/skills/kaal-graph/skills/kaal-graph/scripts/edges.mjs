@@ -86,9 +86,18 @@ export function edgesOf(node) {
   return { edges: edges.sort(byEdge("target")), problems: [] };
 }
 
-/** Whether nothing in `v` can be changed: a primitive, or a frozen object or array whose values are too. */
-function immutable(v) {
-  return typeof v !== "object" || v === null || (Object.isFrozen(v) && Object.values(v).every(immutable));
+/**
+ * Whether `v` is immutable data as identify() returns it: a primitive, or a frozen
+ * object or array whose values are too, with no object inside itself. A cycle is not
+ * Form, so it is refused rather than followed.
+ */
+function immutable(v, path = new WeakSet()) {
+  if (typeof v !== "object" || v === null) return true;
+  if (!Object.isFrozen(v) || path.has(v)) return false;
+  path.add(v);
+  const ok = Object.values(v).every((x) => immutable(x, path));
+  path.delete(v);
+  return ok;
 }
 
 /** A graph over Node identities. Indexes are derived from the Nodes and never replace them. */

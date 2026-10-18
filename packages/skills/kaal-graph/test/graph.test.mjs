@@ -354,6 +354,11 @@ describe("the graph", () => {
       ["an open type", Object.freeze({ ...r1, type: { ...r1.type } })],
       ["open frontmatter", Object.freeze({ ...r1, frontmatter: { ...r1.frontmatter } })],
       ["an open sequence in the frontmatter", Object.freeze({ ...r1, frontmatter: Object.freeze({ ...r1.frontmatter, edges: [...r1.frontmatter.edges] }) })],
+      ["frozen frontmatter that contains itself", (() => {
+        const frontmatter = { ...r1.frontmatter };
+        frontmatter.self = frontmatter;
+        return Object.freeze({ ...r1, frontmatter: Object.freeze(frontmatter) });
+      })()],
     ];
     for (const [label, node] of thawed) {
       assert.throws(() => g.add(node), (e) => e instanceof TypeError && /only frozen Nodes/.test(e.message), label);
