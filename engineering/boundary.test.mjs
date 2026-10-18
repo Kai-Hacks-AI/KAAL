@@ -13,7 +13,7 @@ import { readFile } from "kaal-hosting";
 import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
 
 /** The drivers this declaration covers, by path under engineering/. */
-const DRIVERS = ["contracts/measure.mjs", "coverage/measure.mjs", "delivery/pack.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "report/measure.mjs"];
+const DRIVERS = ["contracts/measure.mjs", "coverage/measure.mjs", "delivery/pack.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "lanes/evidence.mjs", "report/captures.mjs", "report/measure.mjs"];
 
 /** The host modules those drivers may import directly: path handling only. */
 const BOUNDARY = { builtins: ["node:path"] };
