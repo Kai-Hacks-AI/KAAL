@@ -40,7 +40,7 @@ Today the two kinds of evidence are owned by Testing ([Testing](../packages/skil
 
 Added by the Owner on 2026-10-18. It is not part of the v2 text.
 
-The currently accepted, deployed KAAL develops its own successor, not merely its source code. KAAL *x* is not merely a baseline or a destination for completed work. It is the actor that drives its own evolution. The capabilities and experience accepted at *x* engineer, verify and validate the proposed successor, *x+1*. Once *x+1* is accepted, it becomes the actor and develops *x+2*.
+The currently accepted, deployed KAAL, not merely its source code, develops its own successor. KAAL *x* is not merely a baseline or a destination for completed work. It is the actor that drives its own evolution. The capabilities and experience accepted at *x* engineer, verify and validate the proposed successor, *x+1*. Once *x+1* is accepted, it becomes the actor and develops *x+2*.
 
 A constraint follows from this. A capability of the successor that is not yet accepted is never assumed to be available to establish its own acceptance.
 
