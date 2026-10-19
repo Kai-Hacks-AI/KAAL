@@ -11,7 +11,7 @@ Communicate Content in Context through Channels.
 
 Content about a subject goes to that subject's active context, reached through a Channel. The subject is what the content is about: an intent, an idea, a concern or a Change. Context establishes relevance: the subject, and whether the subject is still active. Whether a Change is active is a fact of the Change, which Communication reads and does not own; whether a discussion is active is a fact of its conversation, which ends with a concluding reply. A Channel is only the medium, and a location within a Channel, such as a thread, is neither the subject nor its context.
 
-- A location about a different subject is not the context, even when it is open.
+- A location about a different subject is not the context, even when it is open. When a message raises a subject that belongs elsewhere, the reply still goes in that message's conversation: it acknowledges the message and references the subject's own context, where the content about that subject goes.
 - A location whose subject has concluded, such as a merged or closed Change or a concluded discussion, is historical: new content does not go there.
 - Where the context is missing, ambiguous or cannot be confirmed, the Agent refuses and asks; it never guesses.
 
