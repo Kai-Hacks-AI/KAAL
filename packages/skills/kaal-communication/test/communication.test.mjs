@@ -18,10 +18,11 @@ async function registered() {
 const at = (nodes, file) => nodes.find((n) => n.paths.includes(`skills/kaal-communication/${file}`));
 
 describe("payload", () => {
-  it("is one Skill and the Transport and CHAOS Definitions, typed by Core", async () => {
+  it("is one Skill and the Channel, Transport and CHAOS Definitions, typed by Core", async () => {
     const f = await foundation();
     const { nodes } = await registered();
     assert.deepEqual({ ...at(nodes, "Communication.md").type }, { ...f.skill });
+    assert.deepEqual({ ...at(nodes, "Channel.md").type }, { ...f.definition });
     assert.deepEqual({ ...at(nodes, "Transport.md").type }, { ...f.definition });
     assert.deepEqual({ ...at(nodes, "CHAOS.md").type }, { ...f.definition });
   });
@@ -47,12 +48,21 @@ describe("payload", () => {
     assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /A Change never references a conversation\./);
   });
 
-  it("registers into a fresh Engine, where Transport and CHAOS are admitted", async () => {
+  it("defines a Channel as the medium, apart from the context that makes content relevant", () => {
+    const text = readFileSync(join(PAYLOAD, "Channel.md"), "utf8");
+    assert.match(text, /^A Channel is a medium through which Communication carries content in context\. Context establishes what content is relevant to; the Channel is only the medium\./m);
+    assert.match(text, /A location within a Channel, such as a thread or a pull request, holds one conversation\./);
+    for (const aspect of ["Location", "Addressing", "Authorship", "Reading", "Reference", "Limits"]) assert.match(text, new RegExp(`\\*\\*${aspect}\\*\\*`), aspect);
+    assert.match(text, /A Change never references a conversation\./);
+    assert.match(text, /the Change and its facts remain Change's/);
+  });
+
+  it("registers into a fresh Engine, where Channel, Transport and CHAOS are admitted", async () => {
     const { dir, nodes } = await registered();
     assert.deepEqual(
       (await capabilities(dir)).skills.map((r) => r.name),
       ["Communication"],
     );
-    for (const file of ["Transport.md", "CHAOS.md"]) assert.ok(at(nodes, file), file);
+    for (const file of ["Channel.md", "Transport.md", "CHAOS.md"]) assert.ok(at(nodes, file), file);
   });
 });
