@@ -4,12 +4,17 @@
   "description": "KAAL Change: orchestrating the work around a Change: what a Change is and what makes it self-contained, independent of the technology that carries it.",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    "./record": "./lib/record.mjs",
+    "./package.json": "./package.json"
+  },
   "files": [
-    "capability"
+    "capability",
+    "lib"
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/change.test.mjs"
+    "test": "node --test test/change.test.mjs test/record.test.mjs"
   },
   "engines": {
     "node": ">=24"

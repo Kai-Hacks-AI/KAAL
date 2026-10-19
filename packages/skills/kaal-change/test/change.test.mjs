@@ -81,14 +81,16 @@ describe("Change's own claim", () => {
 });
 
 describe("the package", () => {
-  it("packs its Nodes and nothing else beyond its metadata", async () => {
+  it("packs its Nodes, the record path syntax, and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
     assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
       "capability/Change-Definition.md",
+      "capability/Change-Record.md",
       "capability/Change.md",
+      "lib/record.mjs",
       "package.json",
     ]);
   });
