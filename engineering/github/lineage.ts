@@ -23,6 +23,10 @@
 //                        hold is evidenced in holds.json beside this file; a held collector is reported as
 //                        held, never as a pass.
 //   workingBranch        Audit, at any time: a working branch whose Change merged is deleted, not reused.
+//   claim                Gate, before a Change lands in a collector: the Change Record it claims is free in
+//                        the collector's current tip. Numbering and collision are Change's rules, applied
+//                        as accepted on the default branch; this verdict supplies the facts, and the
+//                        required strict up-to-date check runs it again at each new tip.
 //
 // Deletion cannot be gated: the audits report what is due, and the Owner deletes.
 //
@@ -37,6 +41,7 @@
 //   lineage.ts incorporated <lineage-tip> <default-tip>    prints the state a synchronization starts from
 //   lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>
 //   lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>
+//   lineage.ts claim <default> <base-ref> <default-tip> <base-tip> <head>
 // pulls.json is what GitHub reports of the pull requests associated with <after>, as
 // [{ number, base, head, merge }]: base ref, head commit and merge commit (null while unmerged).
 //   lineage.ts establishment <default> <ref> <activity.json>
@@ -60,8 +65,10 @@
 // is not judged here; the lineage's tests and review decide that. Adoption only narrows what Change
 // Isolation judges: the whole resulting tree still goes through every required check.
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const GUIDE = "engineering/github/branching.md";
 
@@ -487,6 +494,50 @@ export function workingBranch(f: WorkingBranchFacts): Verdict {
   };
 }
 
+/** Change's numbering rule, as kaal-change/record exports it: of the files a Change adds, the
+ *  Change Record it claims, and why that claim does not hold in the collector. */
+export type CheckClaim = (files: { added: string[]; base: string[]; collector: string[] }) => { claimed: string[]; findings: string[] };
+
+/** Where the default branch holds Change's numbering rule. */
+export const RULES = "packages/skills/kaal-change/lib/record.mjs";
+
+export interface ClaimFacts {
+  defaultBranch: string;
+  baseRef: string;
+  /** The collector's tip the Change is judged against. */
+  baseTip: string;
+  /** Change's rule as accepted on the default branch, or null while the default branch holds none. */
+  rules: CheckClaim | null;
+  /** The files the pull request adds, since its fork point. */
+  added: string[];
+  /** The files it already held: at its fork point, and on the default branch's tip, whose records
+   *  are accepted already, so a synchronization claims none. */
+  base: string[];
+  /** The files at the collector's current tip. */
+  collector: string[];
+}
+
+/** A Change claims at most one Change Record, free in its collector's current tip. The number is
+ *  provisional until the Change lands: one closed without landing consumes none, and a claim taken
+ *  in the meantime is renamed and checked again. Which record a Change claims, and when a claim
+ *  collides, are Change's rules; this verdict applies them to the collector's tip as it is now. */
+export function claim(f: ClaimFacts): Verdict {
+  if (!f.baseRef.startsWith("kaal/")) return { kind: "not-applicable", message: `Change Records are claimed in a collector, not in ${f.baseRef}.` };
+  if (f.rules === null) {
+    return { kind: "not-applicable", message: `Change Record numbering is not in force: ${f.defaultBranch} holds no ${RULES}. A rule applies once it is accepted on ${f.defaultBranch}.` };
+  }
+  const { claimed, findings } = f.rules({ added: f.added, base: f.base, collector: f.collector });
+  if (findings.length) {
+    return { kind: "fail", message: `The Change Record claim does not hold in ${f.baseRef} at ${short(f.baseTip)}: ${findings.join("; ")}. See ${GUIDE}#claim` };
+  }
+  return {
+    kind: "pass",
+    message: claimed.length
+      ? `Claims ${claimed.join(", ")}, free in ${f.baseRef} at ${short(f.baseTip)}. The number is provisional until it lands; a newer tip is checked again.`
+      : "Claims no Change Record.",
+  };
+}
+
 // ---- Facts: read from Git ------------------------------------------------------------------
 
 function git(cwd: string, args: string[], ok: number[] = [0]): { status: number; stdout: string } {
@@ -693,6 +744,34 @@ export function readWorkingBranch(cwd: string, defaultBranch: string, b: BranchR
   };
 }
 
+const files = (cwd: string, c: string) => git(cwd, ["ls-tree", "-r", "-z", "--name-only", c]).stdout.split("\0").filter(Boolean);
+
+/** Change's rule as the default branch's tip holds it, or null when it holds none. */
+async function rulesAt(cwd: string, defaultTip: string): Promise<CheckClaim | null> {
+  if (git(cwd, ["cat-file", "-e", `${defaultTip}:${RULES}`], [0, 1, 128]).status !== 0) return null;
+  const dir = mkdtempSync(join(tmpdir(), "claim-"));
+  try {
+    const file = join(dir, "record.mjs");
+    writeFileSync(file, git(cwd, ["show", `${defaultTip}:${RULES}`]).stdout);
+    const rules = (await import(pathToFileURL(file).href)).checkClaim;
+    if (typeof rules !== "function") throw new Error(`${RULES} at ${short(defaultTip)} exports no checkClaim`);
+    return rules as CheckClaim;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+export async function readClaim(cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, baseTip: string, head: string): Promise<ClaimFacts> {
+  const fork = git(cwd, ["merge-base", baseTip, head]).stdout.trim();
+  return {
+    defaultBranch, baseRef, baseTip,
+    rules: await rulesAt(cwd, defaultTip),
+    added: git(cwd, ["diff", "--no-renames", "--diff-filter=A", "--name-only", "-z", fork, head]).stdout.split("\0").filter(Boolean),
+    base: [...new Set([...files(cwd, fork), ...files(cwd, defaultTip)])],
+    collector: files(cwd, baseTip),
+  };
+}
+
 // ---- CLI ----------------------------------------------------------------------------------
 
 const EXIT = { pass: 0, fail: 1, "not-applicable": 3 } as const;
@@ -703,7 +782,7 @@ function jsonList<T>(path: string, ok: (x: any) => boolean): T[] {
   return xs as T[];
 }
 
-function main(argv: string[]): number {
+async function main(argv: string[]): Promise<number> {
   const [verdict, ...args] = argv;
   const cwd = process.cwd();
   let v: Verdict | SyncVerdict;
@@ -736,6 +815,9 @@ function main(argv: string[]): number {
       throw new Error(`${file} is not a list of pull requests`);
     }
     v = landing(readLanding(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, before), rev(cwd, after), pulls as Pull[]));
+  } else if (verdict === "claim" && args.length === 5) {
+    const [def, baseRef, defaultTip, baseTip, head] = args;
+    v = claim(await readClaim(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), rev(cwd, head)));
   } else if (verdict === "establishment" && args.length === 3) {
     const [def, ref, file] = args;
     v = establishment(def, ref, jsonList<Activity>(file, (a) => typeof a?.ref === "string" && typeof a.timestamp === "string"));
@@ -760,6 +842,7 @@ function main(argv: string[]): number {
       "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
       "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>\n" +
       "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>\n" +
+      "       lineage.ts claim <default> <base-ref> <default-tip> <base-tip> <head>\n" +
       "       lineage.ts establishment <default> <ref> <activity.json>\n" +
       "       lineage.ts collectors <default> <default-tip> <ref-prefix> <holds.json> <collectors.json>\n" +
       "       lineage.ts working-branches <default> <branches.json>");
@@ -771,7 +854,7 @@ function main(argv: string[]): number {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    process.exitCode = main(process.argv.slice(2));
+    process.exitCode = await main(process.argv.slice(2));
   } catch (e) {
     console.error(`cannot judge: ${(e as Error).message}`);
     process.exitCode = 2;

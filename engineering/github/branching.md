@@ -39,6 +39,12 @@ A Change does not bring `main` with it. A working branch from `main`, or one tha
 
 Reasoning: each Change is verified on its own before it is integrated with others, and squash keeps the collector's history one commit per Change.
 
+### Claim
+
+A Change that keeps a Change Record claims its folder by adding it. The number is provisional until the Change lands in its collector: one closed without landing consumes none, and there is no allocator, lock or registry. A required merge check, kept strictly up to date, judges the claim against the collector's current tip with Change's numbering rule as accepted on `main` (`packages/skills/kaal-change/lib/record.mjs`). If another Change took the record first, the check fails and names the next free one: rename the folder, update its references, and the check runs again. Changes land one at a time, and each new tip is checked again before the next lands. While `main` holds no such rule, the check does not apply.
+
+Reasoning: Change owns numbering and collision; Branching owns when the claim is judged, against which tip; a rule a collector has not yet promoted does not judge its own acceptance.
+
 ### Synchronize
 
 A collector receives a newer state of `main` while keeping its own Changes. Synchronization is a pull request into the collector like any other, so it passes the same required checks, but it lands with a merge commit. That commit makes the merged `main` commit an ancestor of the collector, so Git's merge base, GitHub's up-to-date rule and every later merge follow it.
