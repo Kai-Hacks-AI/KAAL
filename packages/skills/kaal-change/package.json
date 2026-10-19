@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
+    "./lifecycle": "./lib/lifecycle.mjs",
     "./record": "./lib/record.mjs",
     "./package.json": "./package.json"
   },
@@ -14,7 +15,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/change.test.mjs test/record.test.mjs test/numbering.test.mjs"
+    "test": "node --test test/change.test.mjs test/record.test.mjs test/numbering.test.mjs test/lifecycle.test.mjs"
   },
   "engines": {
     "node": ">=24"
