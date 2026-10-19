@@ -49,6 +49,7 @@ describe("the installed package", () => {
       "README.md",
       "package.json",
       "payload/CHAOS.md",
+      "payload/Channel.md",
       "payload/Communication.md",
       "payload/Transport.md",
       "skills/kaal-communication/SKILL.md",

@@ -4,6 +4,7 @@ KAAL Communication: how Agents and people coordinate through conversation, with 
 
 ```
 payload/Communication.md            the Skill Node, typed by Core's KAAL Skill
+payload/Channel.md                  the Definition of a Channel, the medium Communication carries content through
 payload/Transport.md                the Definition every Transport Extension realizes
 payload/CHAOS.md                    the Definition of where discussion is routed
 skills/kaal-communication/          the Agent Skill: SKILL.md
