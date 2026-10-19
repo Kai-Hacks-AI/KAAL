@@ -7,7 +7,7 @@ type:
 
 # Change Lifecycle
 
-A Change's state is read from facts its realization already keeps; Change stores no state of its own. It has four states.
+A Change's state is read from facts its realization already keeps; Change stores no state of its own. It has four states. What they say of a record number applies to a substantive Change; a synchronization claims no number of its own.
 
 A Change is Proposed while it is open against its collector. Its record number is provisional.
 

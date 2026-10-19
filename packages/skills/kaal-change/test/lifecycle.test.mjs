@@ -21,6 +21,10 @@ describe("the Change Lifecycle Definition", () => {
     assert.match(text, /A Change's state is read from facts its realization already keeps; Change stores no state of its own\./);
   });
 
+  it("ties record numbers to substantive Changes only", () => {
+    assert.match(text, /What they say of a record number applies to a substantive Change; a synchronization claims no number of its own\./);
+  });
+
   it("never undoes acceptance, and lets an Accepted Change move on only to Promoted", () => {
     assert.match(text, /acceptance is never undone: it can only move on to Promoted, and undoing its work is a new Change\./);
   });
