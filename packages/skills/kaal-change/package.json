@@ -1,7 +1,7 @@
 {
   "name": "kaal-change",
   "version": "0.0.1",
-  "description": "KAAL Change: what a Change is, what makes it self-contained, and its lifecycle, independent of the technology that carries it.",
+  "description": "KAAL Change: orchestrating the work around a Change: what a Change is and what makes it self-contained, independent of the technology that carries it.",
   "license": "MIT",
   "type": "module",
   "files": [
