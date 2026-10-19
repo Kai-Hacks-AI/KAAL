@@ -11,7 +11,7 @@ A Change's state is read from facts its realization already keeps; Change stores
 
 A Change is Proposed while it is open against its collector. Its record number is provisional.
 
-A Change is Accepted once it merges into its collector. Its record number is consumed, and it never leaves this state: undoing it is a new Change.
+A Change is Accepted once it merges into its collector. Its record number is consumed and acceptance is never undone: it can only move on to Promoted, and undoing its work is a new Change.
 
 A Change is Withdrawn when it closes without merging. It consumes no record number, and reopening it makes it Proposed again.
 

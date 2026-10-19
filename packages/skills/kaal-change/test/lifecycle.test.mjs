@@ -21,6 +21,10 @@ describe("the Change Lifecycle Definition", () => {
     assert.match(text, /A Change's state is read from facts its realization already keeps; Change stores no state of its own\./);
   });
 
+  it("never undoes acceptance, and lets an Accepted Change move on only to Promoted", () => {
+    assert.match(text, /acceptance is never undone: it can only move on to Promoted, and undoing its work is a new Change\./);
+  });
+
   it("keeps approval, verification and validation out of the states", () => {
     assert.match(text, /Approval, verification and validation are not states\./);
     assert.match(text, /does not prove that the Intent a Change realizes achieved its Outcome/);
