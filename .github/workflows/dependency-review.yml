@@ -1,0 +1,20 @@
+# Dependency review for every pull request into main and kaal/*: reports
+# dependencies the pull request introduces that carry known vulnerabilities.
+# A detective check: the job fails on such a dependency so the finding is
+# visible in review, but it is not a required check, so it does not block
+# integration. Making it a gate is a ruleset decision, not this workflow's.
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main, "kaal/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
