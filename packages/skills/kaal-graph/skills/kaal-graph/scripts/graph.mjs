@@ -7,17 +7,33 @@
 //        graph.mjs named <name> <dir>...
 //        graph.mjs resolve <name> <id> <dir>...
 // Files are read through kaal-hosting. A Markdown file that begins like frontmatter
-// claims to be a Node; one that is not in Form is reported as refused.
+// claims to be a Node. It is read as an ordinary Node, or else, when it declares no type,
+// as a root; which root a foundation admits is its owner's decision, not this command's.
+// One that is neither is reported as refused.
 // Exits 0 on success, 1 when check reports findings, 2 on misuse, unreadable input or
 // a Node not found.
 import { read } from "kaal-hosting";
 import { Graph } from "./edges.mjs";
-import { claimsForm, identify } from "./node.mjs";
+import { claimsForm, FormError, identify, identifyRoot } from "./node.mjs";
 
 const USAGE = "usage: graph.mjs check <dir>... | graph.mjs out <id> <dir>... | graph.mjs in <id> <dir>... | graph.mjs named <name> <dir>... | graph.mjs resolve <name> <id> <dir>...";
 
 /** One Node per line: id, name, then its type or `-`. */
 const line = (n) => `${n.id}\t${n.name}\t${n.type ? `${n.type.name} ${n.type.id}` : "-"}`;
+
+/** An ordinary Node, or else a root; throws identify()'s FormError if the bytes are neither. */
+function readNode(bytes) {
+  try {
+    return identify(bytes);
+  } catch (e) {
+    if (!(e instanceof FormError)) throw e;
+    try {
+      return identifyRoot(bytes);
+    } catch {
+      throw e;
+    }
+  }
+}
 
 async function load(dirs) {
   const graph = new Graph();
@@ -27,7 +43,7 @@ async function load(dirs) {
     for (const path of Object.keys(files).sort()) {
       if (!path.endsWith(".md") || !claimsForm(files[path])) continue;
       try {
-        graph.add(identify(files[path]));
+        graph.add(readNode(files[path]));
       } catch (e) {
         refused.push(`${dir}/${path}: ${e.message}`);
       }

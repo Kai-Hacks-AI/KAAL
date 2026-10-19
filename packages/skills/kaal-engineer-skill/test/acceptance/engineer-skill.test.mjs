@@ -1,8 +1,10 @@
 // Acceptance: kaal-engineer-skill, Engineering -> Package -> Embed.
 //
-// Installs kaal-core, kaal-hosting and kaal-engineer-skill from the tarballs
-// the Acceptance lane packed into a fresh host outside this repository, as the
-// repository's other acceptance does. Core alone admits the Engineer Skill Node into an
+// Installs kaal-core, kaal-graph, kaal-hosting and kaal-engineer-skill from
+// the tarballs the Acceptance lane packed into a fresh host outside this
+// repository, as the repository's other acceptance does. kaal-graph is
+// installed from its tarball because it is not published, so the host holds
+// it once Core depends on it for Node mechanics. Core alone admits the Engineer Skill Node into an
 // Engine at an arbitrary location. The shipped Agent Skill's checker, which
 // reads the skill through the installed kaal-hosting, runs from wherever in
 // the host the skill is placed.
@@ -15,7 +17,7 @@ import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-engineer-skill-acceptance-"));
 
 // Commands run through Hosting, which owns how the host realizes them.
@@ -48,7 +50,7 @@ let engine;
 
 before(async () => {
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-hosting", "kaal-engineer-skill"]);
+  host = await install(["kaal-core", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
   installed = join(host, "node_modules", "kaal-engineer-skill");
   kaal = join(host, "node_modules", ".bin", "kaal");
   checker = join(host, "node_modules", ".bin", "kaal-engineer-skill");
