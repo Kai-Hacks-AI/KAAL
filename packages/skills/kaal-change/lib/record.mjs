@@ -101,7 +101,13 @@ export function checkClaim({ kind, changed, collector }) {
   const occupied = records(collector);
   for (const record of claimed) {
     const { capability, date } = readRecordPath(record);
-    const next = nextRecordPath({ capability, date }, collector);
+    let next;
+    try {
+      next = nextRecordPath({ capability, date }, collector);
+    } catch {
+      findings.push(`${record}: ${capability} has no record number left on ${date} in the collector`);
+      continue;
+    }
     if (record === next) continue;
     const why = occupied.has(record) ? "is already taken in the collector" : "is not the next free number in the collector";
     findings.push(`${record} ${why}: rename the folder to ${next}, update its references and check again`);
