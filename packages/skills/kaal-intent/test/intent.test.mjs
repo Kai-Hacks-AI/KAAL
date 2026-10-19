@@ -53,6 +53,14 @@ describe("the IDEA Definition Node", () => {
   });
 });
 
+describe("the I WON Definition Node", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const node = identify(readFileSync(join(PACKAGE, "payload", "I-WON.md")));
+    assert.equal(node.name, "I WON");
+    assert.deepEqual(node.type, foundation().definition);
+  });
+});
+
 describe("the Agent Skill", () => {
   it("conforms to the Agent Skills standard and KAAL's rules", async () => {
     assert.deepEqual(checkSkill("kaal-intent", await read(SKILL)), { standard: [], kaal: [], warnings: [] });

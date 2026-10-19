@@ -6,6 +6,7 @@ KAAL Intent: the capability for capturing what a person or Agent wants to achiev
 payload/Intent.md                          the Skill Node, typed by Core's KAAL Skill
 payload/Intent-Definition.md               the Intent Definition, typed by KAAL Definition: the type of every captured Intent
 payload/IDEA.md                            the IDEA Definition, typed by KAAL Definition
+payload/I-WON.md                           the I WON Definition, typed by KAAL Definition
 skills/kaal-intent/                        the Agent Skill: SKILL.md and references/intent.md
 ```
 
