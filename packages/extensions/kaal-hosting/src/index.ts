@@ -2,7 +2,7 @@ import spawn from "cross-spawn";
 import gfs from "graceful-fs";
 import lockfile from "proper-lockfile";
 import type { Dirent, Stats } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -39,6 +39,7 @@ const rm = (path: string) => promisify(gfs.rm)(path, { recursive: true, force: t
 const stat = (path: string) => promisify(gfs.stat)(path);
 const lstat = (path: string) => promisify(gfs.lstat)(path);
 const realpath = (path: string) => promisify(gfs.realpath)(path);
+const realpathNative = (path: string) => promisify(gfs.realpath.native)(path);
 
 function missing(e: unknown): boolean {
   return (e as NodeJS.ErrnoException).code === "ENOENT";
@@ -147,6 +148,40 @@ export async function kind(path: string): Promise<Kind> {
   if (target.isDirectory()) return "directory";
   if (target.isFile()) return "file";
   return "other";
+}
+
+/**
+ * Whether `candidate` lies within `root`: the host's native canonical path of
+ * `root` (links, junctions, `..` and the host's own spelling resolved) is the
+ * candidate's own, or an exact prefix of its path segments. Segments are
+ * compared exactly, with no case folding and no string prefix, so `/repo2`
+ * is not within `/repo`. Both paths must exist: a missing path, a dangling
+ * link or a cycle of links is refused with `MISSING`, never answered `false`.
+ * Any other failure to resolve is thrown as the host reports it.
+ *
+ * This is canonical-path containment, not physical-object containment: a
+ * bind mount, a hard link or another alias can reach the same object from
+ * outside `root`. It is a check, not a lock: a link changed between this
+ * check and a later read is not prevented.
+ */
+export async function within(root: string, candidate: string): Promise<boolean> {
+  const outer = segments(await resolved(root));
+  const inner = segments(await resolved(candidate));
+  return outer.length <= inner.length && outer.every((s, i) => s === inner[i]);
+}
+
+async function resolved(path: string): Promise<string> {
+  try {
+    return await realpathNative(resolve(path));
+  } catch (e) {
+    if (absent(e)) throw new HostingError(`${path} does not exist`, "MISSING");
+    if ((e as NodeJS.ErrnoException).code === "ELOOP") throw new HostingError(`${path} is a link that never resolves`, "MISSING");
+    throw e;
+  }
+}
+
+function segments(path: string): string[] {
+  return path.split(sep).filter((s) => s !== "");
 }
 
 // Names Windows cannot hold: reserved characters, a trailing dot or space,
