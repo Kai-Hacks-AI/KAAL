@@ -26,24 +26,24 @@ async function registered() {
 }
 
 describe("payload", () => {
-  it("is one Extension and one Transport realization", async () => {
+  it("is one Extension and one Channel realization", async () => {
     const { nodes } = await loadEngine(await registered());
     assert.deepEqual({ ...at(nodes, "extensions/kaal-slack/Slack.md").type }, { ...(await foundation()).extension });
-    const transport = at(nodes, "skills/kaal-communication/Transport.md");
-    assert.deepEqual({ ...at(nodes, "extensions/kaal-slack/Slack-Transport.md").type }, { name: transport.name, id: transport.id }, "Slack Transport must be typed by the current Transport");
+    const channel = at(nodes, "skills/kaal-communication/Channel.md");
+    assert.deepEqual({ ...at(nodes, "extensions/kaal-slack/Slack-Channel.md").type }, { name: channel.name, id: channel.id }, "Slack Channel must be typed by the current Channel");
   });
 });
 
 describe("reactions", () => {
   it("mark events on one message, are only added, and never carry a thread's state", () => {
-    const text = readFileSync(join(PAYLOAD, "Slack-Transport.md"), "utf8");
+    const text = readFileSync(join(PAYLOAD, "Slack-Channel.md"), "utf8");
     const skill = readFileSync(fileURLToPath(new URL("../skills/kaal-slack/SKILL.md", import.meta.url)), "utf8");
     const defaults = readFileSync(fileURLToPath(new URL("../skills/kaal-slack/references/defaults.md", import.meta.url)), "utf8");
     assert.match(text, /Reactions are added, never removed, and never carry the state of a thread or who acts next/);
     assert.match(skill, /Only add reactions: never remove or change one/);
     for (const [event, emoji] of [["Seen", "`eyes`"], ["Taken", "the participant's display marker"], ["Done", "`white_check_mark`"], ["Blocked", "`no_entry`"]]) {
       assert.match(defaults, new RegExp(`^\\| ${event} \\| [^|]*${emoji.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "m"));
-      assert.ok(text.includes(emoji.replace("the participant's", "a participant's")), `Slack Transport names ${emoji}`);
+      assert.ok(text.includes(emoji.replace("the participant's", "a participant's")), `Slack Channel names ${emoji}`);
     }
     assert.match(skill, /A reaction is never authorship/);
     assert.match(text, /the reaction the project's setup assigns to that event, by default/);
@@ -55,10 +55,10 @@ describe("reactions", () => {
 describe("changes", () => {
   it("never link Slack: no file in the package offers a conversation link as context for a Change", () => {
     const root = fileURLToPath(new URL("../", import.meta.url));
-    for (const file of ["README.md", "payload/Slack.md", "payload/Slack-Transport.md", "skills/kaal-slack/SKILL.md", "skills/kaal-slack/references/defaults.md"]) {
+    for (const file of ["README.md", "payload/Slack.md", "payload/Slack-Channel.md", "skills/kaal-slack/SKILL.md", "skills/kaal-slack/references/defaults.md"]) {
       assert.doesNotMatch(readFileSync(join(root, file), "utf8"), /optional context/, file);
     }
-    assert.match(readFileSync(join(PAYLOAD, "Slack-Transport.md"), "utf8"), /A Change never links one\./);
+    assert.match(readFileSync(join(PAYLOAD, "Slack-Channel.md"), "utf8"), /A Change never links one\./);
   });
 });
 
@@ -66,7 +66,7 @@ describe("registration", () => {
   it("is refused without kaal-communication, and writes nothing", async () => {
     const dir = await engine();
     const contribution = await readContribution(PAYLOAD);
-    await assert.rejects(async () => registerExtension(dir, "kaal-slack", contribution), /Slack-Transport\.md is not admitted: type Transport \(\w+\) resolves to no Node/);
+    await assert.rejects(async () => registerExtension(dir, "kaal-slack", contribution), /Slack-Channel\.md is not admitted: type Channel \(\w+\) resolves to no Node/);
     assert.deepEqual((await capabilities(dir)).extensions, []);
   });
 
@@ -77,10 +77,10 @@ describe("registration", () => {
       ["Slack"],
     );
     const e = await loadEngine(dir);
-    const transport = at(e.nodes, "skills/kaal-communication/Transport.md");
+    const channel = at(e.nodes, "skills/kaal-communication/Channel.md");
     assert.deepEqual(
-      e.nodes.filter((n) => n.type?.name === transport.name && n.type.id === transport.id).map((n) => n.name),
-      ["Slack Transport"],
+      e.nodes.filter((n) => n.type?.name === channel.name && n.type.id === channel.id).map((n) => n.name),
+      ["Slack Channel"],
     );
   });
 });

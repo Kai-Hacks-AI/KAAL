@@ -5,7 +5,7 @@
 // this scenario's own, through Testing's install(), and operates them there
 // through the installed packages alone: registration with and without the
 // communication prerequisite. It also checks that communication stays
-// independent of the Transport Extension that depends on it.
+// independent of the Channel Extension that depends on it.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -62,7 +62,7 @@ describe("the installed package", () => {
       "LICENSE",
       "README.md",
       "package.json",
-      "payload/Slack-Transport.md",
+      "payload/Slack-Channel.md",
       "payload/Slack.md",
       "skills/kaal-slack/SKILL.md",
       "skills/kaal-slack/references/defaults.md",
@@ -98,7 +98,7 @@ describe("registration in a fresh host", () => {
   it("refuses kaal-slack while kaal-communication is absent, writing nothing", async () => {
     const before = tree(engine);
     const r = await fails(kaal, ["register", "extension", SLACK, payload(SLACK)], host);
-    assert.match(r.stderr, /Slack-Transport\.md is not admitted: type Transport \(\w+\) resolves to no Node/);
+    assert.match(r.stderr, /Slack-Channel\.md is not admitted: type Channel \(\w+\) resolves to no Node/);
     assert.deepEqual(tree(engine), before);
   });
 

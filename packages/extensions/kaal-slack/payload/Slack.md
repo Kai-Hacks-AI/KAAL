@@ -7,4 +7,4 @@ type:
 
 # Slack
 
-Slack enables KAAL Communication through Slack workspaces. It realizes the Transport contract for Slack as the Node Slack Transport, and it operates through the Slack access an Agent already has. Slack conversations are coordination only: KAAL keeps no state in Slack and depends on nothing posted there. The Extension adds no meaning to Communication, and it grants no authority.
+Slack enables KAAL Communication through Slack workspaces. It realizes the Channel contract for Slack as the Node Slack Channel, and it operates through the Slack access an Agent already has. Slack conversations are coordination only: KAAL keeps no state in Slack and depends on nothing posted there. The Extension adds no meaning to Communication, and it grants no authority.
