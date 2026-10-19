@@ -494,9 +494,9 @@ export function workingBranch(f: WorkingBranchFacts): Verdict {
   };
 }
 
-/** Change's numbering rule, as kaal-change/record exports it: of the files a Change adds, the
+/** Change's numbering rule, as kaal-change/record exports it: of the files a Change changes, the
  *  Change Record it claims, and why that claim does not hold in the collector. */
-export type CheckClaim = (files: { added: string[]; base: string[]; collector: string[] }) => { claimed: string[]; findings: string[] };
+export type CheckClaim = (files: { changed: string[]; collector: string[] }) => { claimed: string[]; findings: string[] };
 
 /** Where the default branch holds Change's numbering rule. */
 export const RULES = "packages/skills/kaal-change/lib/record.mjs";
@@ -508,11 +508,10 @@ export interface ClaimFacts {
   baseTip: string;
   /** Change's rule as accepted on the default branch, or null while the default branch holds none. */
   rules: CheckClaim | null;
-  /** The files the pull request adds, since its fork point. */
-  added: string[];
-  /** The files it already held: at its fork point, and on the default branch's tip, whose records
-   *  are accepted already, so a synchronization claims none. */
-  base: string[];
+  /** The files the pull request adds, modifies or deletes since its fork point, except those it
+   *  leaves as the default branch's tip holds them: accepted already, so a synchronization claims
+   *  none. */
+  changed: string[];
   /** The files at the collector's current tip. */
   collector: string[];
 }
@@ -526,7 +525,7 @@ export function claim(f: ClaimFacts): Verdict {
   if (f.rules === null) {
     return { kind: "not-applicable", message: `Change Record numbering is not in force: ${f.defaultBranch} holds no ${RULES}. A rule applies once it is accepted on ${f.defaultBranch}.` };
   }
-  const { claimed, findings } = f.rules({ added: f.added, base: f.base, collector: f.collector });
+  const { claimed, findings } = f.rules({ changed: f.changed, collector: f.collector });
   if (findings.length) {
     return { kind: "fail", message: `The Change Record claim does not hold in ${f.baseRef} at ${short(f.baseTip)}: ${findings.join("; ")}. See ${GUIDE}#claim` };
   }
@@ -744,6 +743,7 @@ export function readWorkingBranch(cwd: string, defaultBranch: string, b: BranchR
   };
 }
 
+const diffed = (cwd: string, a: string, b: string) => git(cwd, ["diff", "--no-renames", "--name-only", "-z", a, b]).stdout.split("\0").filter(Boolean);
 const files = (cwd: string, c: string) => git(cwd, ["ls-tree", "-r", "-z", "--name-only", c]).stdout.split("\0").filter(Boolean);
 
 /** Change's rule as the default branch's tip holds it, or null when it holds none. */
@@ -763,11 +763,11 @@ async function rulesAt(cwd: string, defaultTip: string): Promise<CheckClaim | nu
 
 export async function readClaim(cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, baseTip: string, head: string): Promise<ClaimFacts> {
   const fork = git(cwd, ["merge-base", baseTip, head]).stdout.trim();
+  const fromDefault = new Set(diffed(cwd, defaultTip, head));
   return {
     defaultBranch, baseRef, baseTip,
     rules: await rulesAt(cwd, defaultTip),
-    added: git(cwd, ["diff", "--no-renames", "--diff-filter=A", "--name-only", "-z", fork, head]).stdout.split("\0").filter(Boolean),
-    base: [...new Set([...files(cwd, fork), ...files(cwd, defaultTip)])],
+    changed: diffed(cwd, fork, head).filter((p) => fromDefault.has(p)),
     collector: files(cwd, baseTip),
   };
 }

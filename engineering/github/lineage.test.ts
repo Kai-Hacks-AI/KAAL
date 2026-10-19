@@ -274,7 +274,7 @@ describe("workingBranch", () => {
 
 
 describe("claim", () => {
-  const f: ClaimFacts = { defaultBranch: "main", baseRef: "kaal/x", baseTip: B, rules: () => ({ claimed: [], findings: [] }), added: [], base: [], collector: [] };
+  const f: ClaimFacts = { defaultBranch: "main", baseRef: "kaal/x", baseTip: B, rules: () => ({ claimed: [], findings: [] }), changed: [], collector: [] };
   it("does not apply outside a collector", () => assert.equal(claim({ ...f, baseRef: "main" }).kind, "not-applicable"));
   it("does not apply while the default branch holds no numbering rule", () => {
     const v = claim({ ...f, rules: null });
@@ -284,8 +284,8 @@ describe("claim", () => {
   it("hands Change's rule exactly the files it read", () => {
     let seen: unknown;
     const rules: CheckClaim = (x) => ((seen = x), { claimed: [], findings: [] });
-    claim({ ...f, rules, added: ["a"], base: ["b"], collector: ["c"] });
-    assert.deepEqual(seen, { added: ["a"], base: ["b"], collector: ["c"] });
+    claim({ ...f, rules, changed: ["a"], collector: ["c"] });
+    assert.deepEqual(seen, { changed: ["a"], collector: ["c"] });
   });
   it("passes a claim the rule finds free, saying the number is provisional", () => {
     const v = claim({ ...f, rules: () => ({ claimed: [".kaal/changes/x/26/10/19/01/"], findings: [] }) });
@@ -963,14 +963,14 @@ describe("acceptance: resolutions adopted from main", () => {
   });
 });
 
-/** A stand-in for Change's numbering rule, with its signature: a Change claims the records it adds
- *  that it did not hold, and a claim collides with a record the collector holds. The real rule and
- *  its collision semantics are Change's, tested in kaal-change; here the facts and the tip are judged. */
+/** A stand-in for Change's numbering rule, with its signature: a Change claims the records it
+ *  changes, and a claim collides with a record the collector holds. The real rule and its collision
+ *  semantics are Change's, tested in kaal-change; here the facts and the tip are judged. */
 const STAND_IN = `const record = (p) => p.split("/").slice(0, 7).join("/") + "/";
 const records = (ps) => new Set(ps.filter((p) => p.startsWith(".kaal/changes/")).map(record));
-export function checkClaim({ added, base, collector }) {
-  const held = records(base), taken = records(collector);
-  const claimed = [...records(added)].filter((r) => !held.has(r));
+export function checkClaim({ changed, collector }) {
+  const taken = records(collector);
+  const claimed = [...records(changed)];
   const findings = claimed.filter((r) => taken.has(r)).map((r) => r + " is already taken");
   if (claimed.length > 1) findings.push("a Change claims one record, not " + claimed.join(", "));
   return { claimed, findings };
@@ -1016,6 +1016,13 @@ describe("acceptance: claiming a Change Record, one landing at a time", () => {
     assert.equal(v.kind, "fail");
     assert.match(v.message, /\.kaal\/changes\/x\/26\/10\/19\/01\/ is already taken/);
     assert.ok(v.message.endsWith(`${GUIDE}#claim`));
+  });
+
+  it("fails it as well when rebased onto the first, which puts the first's record at its fork point", async () => {
+    r.g("checkout", "-q", "-B", "claude/b-rebased", "kaal/x");
+    r.put({ [rec("01")]: "b\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "claude/b, rebased");
+    r.g("checkout", "-q", "--detach", "main");
+    assert.match((await judge(r.g("rev-parse", "claude/b-rebased"))).message, /\.kaal\/changes\/x\/26\/10\/19\/01\/ is already taken/);
   });
 
   it("passes it again once it renames its folder to a free record and retries", async () => {
