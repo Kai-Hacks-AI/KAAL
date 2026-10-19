@@ -4,17 +4,26 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, capabilities, foundation, identify, loadEngine, readContribution, registerSkill } from "kaal-core";
+import { bootstrap, capabilities, foundation, loadEngine, readContribution, registerSkill } from "kaal-core";
 
 const PAYLOAD = fileURLToPath(new URL("../payload/", import.meta.url));
-const node = async (file) => identify(readFileSync(join(PAYLOAD, file)));
+
+// A fresh Engine with Communication registered; its Nodes are read back as the Engine admitted them.
+async function registered() {
+  const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
+  await bootstrap(dir);
+  await registerSkill(dir, "kaal-communication", await readContribution(PAYLOAD));
+  return { dir, nodes: (await loadEngine(dir)).nodes };
+}
+const at = (nodes, file) => nodes.find((n) => n.paths.includes(`skills/kaal-communication/${file}`));
 
 describe("payload", () => {
   it("is one Skill and the Transport and CHAOS Definitions, typed by Core", async () => {
     const f = await foundation();
-    assert.deepEqual((await node("Communication.md")).type, f.skill);
-    assert.deepEqual((await node("Transport.md")).type, f.definition);
-    assert.deepEqual((await node("CHAOS.md")).type, f.definition);
+    const { nodes } = await registered();
+    assert.deepEqual({ ...at(nodes, "Communication.md").type }, { ...f.skill });
+    assert.deepEqual({ ...at(nodes, "Transport.md").type }, { ...f.definition });
+    assert.deepEqual({ ...at(nodes, "CHAOS.md").type }, { ...f.definition });
   });
 
   it("keeps conversation state in its latest messages, with marks that never change", () => {
@@ -39,17 +48,11 @@ describe("payload", () => {
   });
 
   it("registers into a fresh Engine, where Transport and CHAOS are admitted", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "kaal-communication-"));
-    await bootstrap(dir);
-    await registerSkill(dir, "kaal-communication", await readContribution(PAYLOAD));
+    const { dir, nodes } = await registered();
     assert.deepEqual(
       (await capabilities(dir)).skills.map((r) => r.name),
       ["Communication"],
     );
-    const { nodes } = await loadEngine(dir);
-    for (const file of ["Transport.md", "CHAOS.md"]) {
-      const { id } = await node(file);
-      assert.ok(nodes.some((n) => n.id === id), file);
-    }
+    for (const file of ["Transport.md", "CHAOS.md"]) assert.ok(at(nodes, file), file);
   });
 });
