@@ -30,7 +30,7 @@ import { Graph, identify, sha256 } from "kaal-graph";
  * a visible, reviewed change to this table.
  */
 const PINNED = {
-  kernel: "45de65738c1c01633b33da82fc18f54768329ae2046b98b754b1d76a1390dafe",
+  kernel: "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc",
   node: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
   definition: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
   capability: "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e",
