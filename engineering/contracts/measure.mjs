@@ -3,12 +3,17 @@
 // beside its ownership claim), what this tree shows about each statement it
 // pins. Testing reads and classifies
 // (kaal-testing/contracts); this driver only finds the mappings among the
-// tracked files and reads, through Hosting, the bytes they pin. Before reading
-// a path it asks Hosting whether the path lies within the repository; a path
-// that leads outside, through a link, is never read and is reported unknown
-// with that reason. That is Hosting's canonical-path containment, with the
-// limits Hosting states: an alias such as a bind mount or hard link is not
-// detected, and a link changed between the check and the read is not prevented.
+// tracked files and reads, through Hosting, the bytes they pin. For each path
+// it consults Hosting's kind() first; for a path that is a file, it then asks
+// Hosting's within() whether the path lies within the repository, and reads it
+// only if it does. A path that leads outside, through a link, is never read and
+// is reported unknown with that reason; so is a file that disappears between
+// kind() and within() (Hosting: MISSING). For a mapping or its ownership claim,
+// either is reported as that mapping's problem. Any other Hosting failure ends
+// the measurement as an error. That is Hosting's canonical-path containment,
+// with the limits Hosting states: an alias such as a bind mount or hard link is
+// not detected, and a link changed between the check and the read is not
+// prevented.
 //
 // Usage: measure.mjs [--json]
 // No test runs here, and no per-test result is read from any file: a result
@@ -18,7 +23,7 @@
 // trusting a capture. Findings are reported, not gated: the exit status is
 // non-zero only when the mappings cannot be found.
 import { join } from "node:path";
-import { execute, kind, readFile, within } from "kaal-hosting";
+import { HostingError, execute, kind, readFile, within } from "kaal-hosting";
 import { classify, problems } from "kaal-testing/contracts";
 
 const ROOT = process.cwd();
@@ -37,27 +42,38 @@ if (listed.status !== 0) {
 }
 const mappings = listed.stdout.split("\0").filter((p) => p === "evidence.kaal.json" || p.endsWith("/evidence.kaal.json")).sort();
 
-/** Repository paths that lead outside the repository, so were never read. */
-const outside = new Set();
+/** Repository paths that were never read, with why: each leads outside the repository, or
+ *  disappeared before Hosting could say whether it lies within. */
+const unread = new Map();
 const OUTSIDE = (p) => `${p} leads outside the repository (Hosting: not within); not read`;
+const VANISHED = (p) => `${p} disappeared before Hosting could check it lies within the repository (Hosting: MISSING); not read`;
 
-/** This tree's bytes at a repository path, or undefined when there is no such file or when the path
- *  leads outside the repository. Containment is Hosting's to judge, never decided here. */
+/** This tree's bytes at a repository path, or undefined when there is no such file, when the path
+ *  leads outside the repository, or when it disappears before containment is checked. Containment
+ *  is Hosting's to judge, never decided here. */
 async function bytes(path) {
   const full = join(ROOT, path);
   if ((await kind(full)) !== "file") return undefined;
-  if (!(await within(ROOT, full))) {
-    outside.add(path);
+  let inside;
+  try {
+    inside = await within(ROOT, full);
+  } catch (e) {
+    if (!(e instanceof HostingError && e.code === "MISSING")) throw e;
+    unread.set(path, VANISHED(path));
+    return undefined;
+  }
+  if (!inside) {
+    unread.set(path, OUTSIDE(path));
     return undefined;
   }
   return readFile(full);
 }
 
-/** A classified statement, with the reason for each path not read because it leads outside: the
- *  classification still stands as unknown, but "missing" or "stale" would misname why. */
+/** A classified statement, with the reason for each path not read: the classification still
+ *  stands as unknown, but "missing" or "stale" would misname why. */
 function located(s) {
-  const evidence = s.evidence.map((e) => (outside.has(e.file) ? { ...e, class: "unknown", reason: OUTSIDE(e.file) } : e));
-  return outside.has(s.source) ? { ...s, class: "unknown", reason: OUTSIDE(s.source), evidence } : { ...s, evidence };
+  const evidence = s.evidence.map((e) => (unread.has(e.file) ? { ...e, class: "unknown", reason: unread.get(e.file) } : e));
+  return unread.has(s.source) ? { ...s, class: "unknown", reason: unread.get(s.source), evidence } : { ...s, evidence };
 }
 
 const report = [];
@@ -65,9 +81,9 @@ for (const path of mappings) {
   const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/") + 1) : "";
   const claimBytes = await bytes(`${dir}ownership.kaal.json`);
   const mappingBytes = await bytes(path);
-  const away = [path, `${dir}ownership.kaal.json`].filter((p) => outside.has(p));
+  const away = [path, `${dir}ownership.kaal.json`].filter((p) => unread.has(p));
   if (away.length) {
-    report.push({ mapping: path, problems: away.map(OUTSIDE) });
+    report.push({ mapping: path, problems: away.map((p) => unread.get(p)) });
     continue;
   }
   let mapping;
