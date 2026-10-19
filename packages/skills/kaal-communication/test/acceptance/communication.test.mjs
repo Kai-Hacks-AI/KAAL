@@ -51,7 +51,6 @@ describe("the installed package", () => {
       "payload/CHAOS.md",
       "payload/Channel.md",
       "payload/Communication.md",
-      "payload/Transport.md",
       "skills/kaal-communication/SKILL.md",
     ]);
   });
