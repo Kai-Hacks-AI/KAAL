@@ -45,9 +45,10 @@ describe("payload", () => {
     assert.match(cccc, /^# CCCC\n\nCommunicate Content in Context through Channels\.$/m);
     assert.match(cccc, /Content about a subject goes to that subject's active context, reached through a Channel\./);
     assert.match(cccc, /A location about a different subject is not the context, even when it is open\./);
-    assert.match(cccc, /the reply still goes in that message's conversation: it acknowledges the message and references the subject's own context/);
+    assert.match(cccc, /because it is about a different subject or the location is historical, the reply still goes in that message's conversation: it acknowledges the message and references the subject's active context/);
     assert.match(cccc, /is historical: new content does not go there/);
     assert.match(cccc, /the Agent refuses and asks; it never guesses/);
+    assert.match(cccc, /more than one context matches at the highest applicable level of the order below/);
     assert.match(cccc, /A subject that has no context yet is not unknown: its content starts a new shared conversation/);
     assert.match(cccc, /\(1\) the context of an open Change; \(2\) otherwise an open conversation; \(3\) otherwise a new shared conversation; \(4\) only as a last resort, a direct chat with an Agent/);
   });

@@ -24,9 +24,10 @@ A conversation ends in one or more self-contained Changes, or in a reply that sa
 
 CCCC (Communicate Content in Context through Channels) decides where you raise something; its Definition Node states what it means. Name the subject your content is about, then find the subject's active context:
 
-- A location about a different subject is not the context, even when it is open. If a message you answer raises a subject that belongs elsewhere, reply in its conversation to acknowledge it and point to the subject's own context, then put the content there.
+- A location about a different subject is not the context, even when it is open.
 - A merged or closed Change, or a concluded discussion, is historical: do not add new content there.
-- If you cannot tell which context is right, or cannot confirm that it is still active, do not guess. Ask your principal. If you know the subject has no context yet, that is not this case: start a new shared conversation.
+- If a message you answer is off-subject or sits in a historical location, reply in its conversation to acknowledge it and point to the subject's active context, or to the new one you start for it, then put the content there.
+- Rank by the order below first: an open Change outranks an open conversation about the same subject. If you still cannot tell which context is right, or cannot confirm that it is still active, do not guess. Ask your principal. If you know the subject has no context yet, that is not this case: start a new shared conversation.
 
 Among the relevant, active contexts, pick the highest:
 
