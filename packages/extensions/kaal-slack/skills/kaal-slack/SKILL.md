@@ -7,7 +7,7 @@ compatibility: Needs Slack access of your own, such as a Slack connector, that c
 
 # Communicating through Slack
 
-This skill realizes the `kaal-communication` skill for Slack: follow that skill, and use the steps here wherever it says to use the Transport. What Slack guarantees, and what it does not, is stated by the Node `Slack Channel` in a KAAL Engine.
+This skill realizes the `kaal-communication` skill for Slack: follow that skill, and use the steps here wherever it says to use the Channel. What Slack guarantees, and what it does not, is stated by the Node `Slack Channel` in a KAAL Engine.
 
 Slack is for coordination: discussion, questions, alignment. It is throwaway. Never copy a Slack conversation into a repository or another store, and never make a Change depend on a Slack message. A pull request stands on its own and never links to Slack.
 

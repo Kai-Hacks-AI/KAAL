@@ -4,13 +4,12 @@ KAAL Communication: how Agents and people coordinate through conversation, with 
 
 ```
 payload/Communication.md            the Skill Node, typed by Core's KAAL Skill
-payload/Channel.md                  the Definition of a Channel, the medium Communication carries content through
-payload/Transport.md                the Definition every Transport Extension realizes
+payload/Channel.md                  the Definition every Channel Extension realizes: the medium Communication carries content through
 payload/CHAOS.md                    the Definition of where discussion is routed
 skills/kaal-communication/          the Agent Skill: SKILL.md
 ```
 
-The Nodes carry what Communication means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Nodes. It assumes no host and no particular Transport.
+The Nodes carry what Communication means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Nodes. It assumes no host and no particular Channel.
 
 ## Conversation is throwaway
 
@@ -18,9 +17,9 @@ Communication is for coordination: discussion, questions, alignment, handing wor
 
 ## Boundaries
 
-This package knows no Transport. It names no system, depends on no Transport Extension, and its examples use fictional participants only. A Transport Extension depends on it, never the other way around: its realization is a Node typed by `Transport`, which Core admits only into an Engine that already holds this package's `Transport`. Repository acceptance checks both directions.
+This package knows no particular Channel. It names no system, depends on no Channel Extension, and its examples use fictional participants only. A Channel Extension depends on it, never the other way around: its realization is a Node typed by `Channel`, which Core admits only into an Engine that already holds this package's `Channel`. Repository acceptance checks both directions.
 
-`Transport` is deliberately small. Every Transport realization is typed by its exact id, so any change to it is a new `Transport` that every realization must be re-pinned to.
+`Channel` is deliberately small. Every Channel realization is typed by its exact id, so any change to it is a new `Channel` that every realization must be re-pinned to.
 
 ## Register the Nodes
 

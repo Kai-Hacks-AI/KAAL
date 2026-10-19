@@ -18,12 +18,11 @@ async function registered() {
 const at = (nodes, file) => nodes.find((n) => n.paths.includes(`skills/kaal-communication/${file}`));
 
 describe("payload", () => {
-  it("is one Skill and the Channel, Transport and CHAOS Definitions, typed by Core", async () => {
+  it("is one Skill and the Channel and CHAOS Definitions, typed by Core", async () => {
     const f = await foundation();
     const { nodes } = await registered();
     assert.deepEqual({ ...at(nodes, "Communication.md").type }, { ...f.skill });
     assert.deepEqual({ ...at(nodes, "Channel.md").type }, { ...f.definition });
-    assert.deepEqual({ ...at(nodes, "Transport.md").type }, { ...f.definition });
     assert.deepEqual({ ...at(nodes, "CHAOS.md").type }, { ...f.definition });
   });
 
@@ -45,7 +44,6 @@ describe("payload", () => {
     assert.match(chaos, /^# CHAOS\n\nChanges Help Agents Organize Systematically\.$/m);
     assert.match(chaos, /\(1\) an open Change; \(2\) otherwise an open conversation; \(3\) otherwise a new shared conversation; \(4\) only as a last resort, a direct chat with an Agent/);
     assert.match(chaos, /CHAOS governs only where discussion takes place, not how intentions are captured or managed/);
-    assert.match(readFileSync(join(PAYLOAD, "Transport.md"), "utf8"), /A Change never references a conversation\./);
   });
 
   it("defines a Channel as the medium, apart from the context that makes content relevant", () => {
@@ -57,12 +55,13 @@ describe("payload", () => {
     assert.match(text, /the Change and its facts remain Change's/);
   });
 
-  it("registers into a fresh Engine, where Channel, Transport and CHAOS are admitted", async () => {
+  it("registers into a fresh Engine, where Channel and CHAOS are admitted, and Transport is gone", async () => {
     const { dir, nodes } = await registered();
     assert.deepEqual(
       (await capabilities(dir)).skills.map((r) => r.name),
       ["Communication"],
     );
-    for (const file of ["Channel.md", "Transport.md", "CHAOS.md"]) assert.ok(at(nodes, file), file);
+    for (const file of ["Channel.md", "CHAOS.md"]) assert.ok(at(nodes, file), file);
+    assert.ok(!nodes.some((n) => n.name === "Transport"), "Transport is removed");
   });
 });
