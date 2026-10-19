@@ -50,13 +50,18 @@ MOVE states the principle and takes over no one's responsibilities. The Change l
 
 This part describes the current realization. It is not a requirement of the principle, and Git `main` is not the principle itself.
 
-Today the accepted KAAL is what is deployed from `main`, not only the source held there. Three things are kept distinct:
+Today the accepted KAAL is meant to be what is deployed from `main`, not only the source held there. Three things are kept distinct:
 
 - `engineering/` engineers KAAL.
 - `packages/` holds the distributable components.
 - Deployment produces the deployed KAAL. That is the KAAL Engine in `.kaal/` ([AGENTS.md](../.kaal/AGENTS.md)), agent-facing `AGENTS.md` guidance, and Agent Skills folders that conform to the Agent Skills specification (`SKILL.md` and its prescribed structure).
 
-The deployment is deliberately oriented toward agents. `.kaal/` carries only the governance, identity and registration that are specific to KAAL. Agents work through the standard guidance and skill interfaces, which are native agent interfaces and not a proprietary KAAL format. KAAL consumes its own deployed structure on the same terms as any other consumer, with no privileged hidden path.
+The intended deployment is oriented toward agents. `.kaal/` carries only the governance, identity and registration that are specific to KAAL. Agents work through the standard guidance and skill interfaces, which are native agent interfaces and not a proprietary KAAL format. KAAL is to consume its own deployed structure on the same terms as any other consumer, with no privileged hidden path.
+
+What is demonstrated, and what is not yet:
+
+- Demonstrated: the KAAL Engine is deployed into this repository as `.kaal/`, with `AGENTS.md` guidance at the root and in `.kaal/`. A packed `kaal-core` installs into a fresh host (`engineering/acceptance/embed.test.mjs`). Each skill package carries an Agent Skills folder (`packages/skills/*/skills/*/SKILL.md`).
+- Not yet demonstrated: deploying those Agent Skills folders, and KAAL consuming its own deployed Skills on the same terms as other consumers. Until that is shown, this part of the realization is intended, not proven.
 
 Candidates for *x+1* are built on working branches and collected on `kaal/*`. Only `kaal/*` reaches `main`, through required checks ([branching](github/branching.md)). One concrete instance is how the Change Isolation, Lineage Synchronization and Promotion Source checks run `engineering/github/lineage.ts`. They take it from `main` with `git show`, never from the candidate. So *x* judges *x+1*, and a candidate cannot certify itself with its own checker.
 
