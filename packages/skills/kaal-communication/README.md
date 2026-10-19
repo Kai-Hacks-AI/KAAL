@@ -5,7 +5,7 @@ KAAL Communication: how Agents and people coordinate through conversation, with 
 ```
 payload/Communication.md            the Skill Node, typed by Core's KAAL Skill
 payload/Channel.md                  the Definition every Channel Extension realizes: the medium Communication carries content through
-payload/CHAOS.md                    the Definition of where discussion is routed
+payload/CCCC.md                     the Definition of where content goes: its subject's active context
 skills/kaal-communication/          the Agent Skill: SKILL.md
 ```
 
@@ -13,7 +13,7 @@ The Nodes carry what Communication means to KAAL. The Agent Skill tells an Agent
 
 ## Conversation is throwaway
 
-Communication is for coordination: discussion, questions, alignment, handing work over. It is not KAAL state and not a system of record, so this package persists, synchronizes and recovers nothing. Durable work lives with the Change that carries it (its intent, implementation, evidence, review and approval) and in the capability's definitions. A Change stands on its own, with everything it needs inside it, and never references the conversation behind it. A conversation ends in self-contained Changes or concludes that none is needed, and discussion is routed by CHAOS (Changes Help Agents Organize Systematically), a Definition of its own: an open Change, then an open conversation, then a new one, and a direct Agent chat only as a last resort.
+Communication is for coordination: discussion, questions, alignment, handing work over. It is not KAAL state and not a system of record, so this package persists, synchronizes and recovers nothing. Durable work lives with the Change that carries it (its intent, implementation, evidence, review and approval) and in the capability's definitions. A Change stands on its own, with everything it needs inside it, and never references the conversation behind it. A conversation ends in self-contained Changes or concludes that none is needed, and content goes where CCCC (Communicate Content in Context through Channels), a Definition of its own, says: to its subject's active context, from an open Change, then an open conversation, then a new one, to a direct Agent chat only as a last resort, and never to a guessed context.
 
 ## Boundaries
 

@@ -6,7 +6,7 @@ license: MIT
 
 # Communicating as a KAAL Agent
 
-What Communication, Channel and CHAOS mean is stated by those Nodes in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. A Channel Extension tells you how its system realizes each step.
+What Communication, Channel and CCCC mean is stated by those Nodes in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. A Channel Extension tells you how its system realizes each step.
 
 ## Conversation or Change
 
@@ -20,16 +20,24 @@ When a conversation reaches a decision that must last, put it where it lasts: in
 
 A conversation ends in one or more self-contained Changes, or in a reply that says no Change is needed. Conclude it as soon as its Changes are defined; it need not wait for them to merge. From then on, discuss each Change's implementation and review with the Change itself.
 
-## Where discussion goes: CHAOS
+## Where content goes: CCCC
 
-CHAOS (Changes Help Agents Organize Systematically) is the order in which you choose where to raise something; its Definition Node states what it means. Pick the highest destination that is relevant and appropriate:
+CCCC (Communicate Content in Context through Channels) decides where you raise something; its Definition Node states what it means. Name the subject your content is about, then find the subject's active context:
 
-1. **Open Changes**: comment on an existing relevant Change.
-2. **Open conversations**: otherwise continue an existing relevant conversation.
+- A location about a different subject is not the context, even when it is open.
+- A merged or closed Change, or a concluded discussion, is historical: do not add new content there.
+- Rank by the order below first: an open Change outranks an open conversation about the same subject.
+- If a message you answer is off-subject, sits in a historical location, or belongs to a higher-ranked context, reply in its conversation to acknowledge it and point to that context, or to the new one you start for it, then put the content there.
+- If you still cannot tell which context is right, or cannot confirm that it is still active, do not guess. Ask whoever can resolve it, usually the participant who raised it; questions about your authority go to your principal. If you know the subject has no context yet, that is not this case: start a new shared conversation.
+
+Among the relevant, active contexts, pick the highest:
+
+1. **Open Changes**: the context of an open Change about the subject.
+2. **Open conversations**: otherwise an existing conversation about the subject.
 3. **New conversations**: otherwise start a new shared conversation.
 4. **Agent chat**: only as a last resort, a direct and transient discussion with an Agent.
 
-Not everything belongs with a Change; the order exists to avoid random routing and fragmentation. If a direct chat produces something worth keeping, route it to a suitable shared home rather than leaving it only in your session. CHAOS decides where discussion happens; it does not decide how intentions are captured or managed.
+If a direct chat produces something worth keeping, route it to a suitable shared home rather than leaving it only in your session.
 
 ## Before you write
 

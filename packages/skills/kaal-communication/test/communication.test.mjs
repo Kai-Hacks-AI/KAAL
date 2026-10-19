@@ -18,12 +18,12 @@ async function registered() {
 const at = (nodes, file) => nodes.find((n) => n.paths.includes(`skills/kaal-communication/${file}`));
 
 describe("payload", () => {
-  it("is one Skill and the Channel and CHAOS Definitions, typed by Core", async () => {
+  it("is one Skill and the Channel and CCCC Definitions, typed by Core", async () => {
     const f = await foundation();
     const { nodes } = await registered();
     assert.deepEqual({ ...at(nodes, "Communication.md").type }, { ...f.skill });
     assert.deepEqual({ ...at(nodes, "Channel.md").type }, { ...f.definition });
-    assert.deepEqual({ ...at(nodes, "CHAOS.md").type }, { ...f.definition });
+    assert.deepEqual({ ...at(nodes, "CCCC.md").type }, { ...f.definition });
   });
 
   it("keeps conversation state in its latest messages, with marks that never change", () => {
@@ -38,12 +38,19 @@ describe("payload", () => {
     const text = readFileSync(join(PAYLOAD, "Communication.md"), "utf8");
     assert.match(text, /does not reference the conversation, transcript or handover it came from/);
     assert.match(text, /ends in one or more self-contained Changes, or concludes explicitly that none is needed/);
-    assert.match(text, /\*\*CHAOS\*\*, Changes Help Agents Organize Systematically, as its Definition states/);
+    assert.match(text, /\*\*CCCC\*\*, Communicate Content in Context through Channels, as its Definition states/);
     assert.doesNotMatch(text, /Nothing else collects ideas/);
-    const chaos = readFileSync(join(PAYLOAD, "CHAOS.md"), "utf8");
-    assert.match(chaos, /^# CHAOS\n\nChanges Help Agents Organize Systematically\.$/m);
-    assert.match(chaos, /\(1\) an open Change; \(2\) otherwise an open conversation; \(3\) otherwise a new shared conversation; \(4\) only as a last resort, a direct chat with an Agent/);
-    assert.match(chaos, /CHAOS governs only where discussion takes place, not how intentions are captured or managed/);
+    assert.doesNotMatch(text, /CHAOS/);
+    const cccc = readFileSync(join(PAYLOAD, "CCCC.md"), "utf8");
+    assert.match(cccc, /^# CCCC\n\nCommunicate Content in Context through Channels\.$/m);
+    assert.match(cccc, /Content about a subject goes to that subject's active context, reached through a Channel\./);
+    assert.match(cccc, /A location about a different subject is not the context, even when it is open\./);
+    assert.match(cccc, /because it is about a different subject, the location is historical or a higher-ranked context exists, the reply still goes in that message's conversation/);
+    assert.match(cccc, /is historical: new content does not go there/);
+    assert.match(cccc, /the Agent refuses and asks the participant who can resolve it, usually whoever raised the content; it never guesses/);
+    assert.match(cccc, /more than one context matches at the highest applicable level of the order below/);
+    assert.match(cccc, /A subject that has no context yet is not unknown: its content starts a new shared conversation/);
+    assert.match(cccc, /\(1\) the context of an open Change; \(2\) otherwise an open conversation; \(3\) otherwise a new shared conversation; \(4\) only as a last resort, a direct chat with an Agent/);
   });
 
   it("defines a Channel as the medium, apart from the context that makes content relevant", () => {
@@ -55,13 +62,13 @@ describe("payload", () => {
     assert.match(text, /the Change and its facts remain Change's/);
   });
 
-  it("registers into a fresh Engine, where Channel and CHAOS are admitted, and Transport is gone", async () => {
+  it("registers into a fresh Engine, where Channel and CCCC are admitted, and neither Transport nor CHAOS is", async () => {
     const { dir, nodes } = await registered();
     assert.deepEqual(
       (await capabilities(dir)).skills.map((r) => r.name),
       ["Communication"],
     );
-    for (const file of ["Channel.md", "CHAOS.md"]) assert.ok(at(nodes, file), file);
-    assert.ok(!nodes.some((n) => n.name === "Transport"), "Transport is removed");
+    for (const file of ["Channel.md", "CCCC.md"]) assert.ok(at(nodes, file), file);
+    for (const name of ["Transport", "CHAOS"]) assert.ok(!nodes.some((n) => n.name === name), `${name} is not Communication's`);
   });
 });
