@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, renameSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, renameSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -39,34 +39,17 @@ function tree({ away = [], aside = [] } = {}) {
   return root;
 }
 
-/** Node options under which the driver's Hosting, between kind() and within(), removes the file at
- *  `vanish` (the race a concurrent writer causes) or throws a HostingError with code `fail` there. */
-function race({ vanish, fail }) {
-  const dir = mkdtempSync(join(tmpdir(), "contracts-race-"));
-  const hosting = join(dir, "hosting.mjs");
-  writeFileSync(hosting, [
-    `import { rmSync } from "node:fs";`,
-    `import { HostingError, within as asked } from ${JSON.stringify(import.meta.resolve("kaal-hosting"))};`,
-    `export * from ${JSON.stringify(import.meta.resolve("kaal-hosting"))};`,
-    `export async function within(root, candidate) {`,
-    `  if (${JSON.stringify(vanish ?? null)} && candidate.endsWith(${JSON.stringify(vanish ?? null)})) rmSync(candidate);`,
-    `  if (${JSON.stringify(fail ?? null)} && candidate.endsWith(${JSON.stringify(TEST)})) throw new HostingError("refused", ${JSON.stringify(fail ?? null)});`,
-    `  return asked(root, candidate);`,
-    `}`,
-  ].join("\n"));
-  const hooks = join(dir, "hooks.mjs");
-  writeFileSync(hooks, `export async function resolve(s, c, next) { return s === "kaal-hosting" && c.parentURL === ${JSON.stringify(pathToFileURL(DRIVER).href)} ? { url: ${JSON.stringify(pathToFileURL(hosting).href)}, shortCircuit: true } : next(s, c); }`);
-  const register = join(dir, "register.mjs");
-  writeFileSync(register, `import { register } from "node:module"; register(${JSON.stringify(pathToFileURL(hooks).href)});`);
-  return ["--import", pathToFileURL(register).href];
+/** How the driver is run so that Hosting, between kind() and within(), removes the file at `vanish`
+ *  (the race a concurrent writer causes) or refuses the pinned test file with the HostingError code `fail`. */
+const RACE = pathToFileURL(join(import.meta.dirname, "race/register.mjs")).href;
+const race = ({ vanish = "", fail = "" }) => ({ options: ["--import", RACE], env: { RACE_VANISH: vanish, RACE_PATH: TEST, RACE_FAIL: fail } });
+
+function run(root, { options = [], env = {} } = {}) {
+  return spawnSync(process.execPath, [...options, DRIVER, "--json"], { cwd: root, encoding: "utf8", env: { ...process.env, ...env } });
 }
 
-function run(root, options = []) {
-  return spawnSync(process.execPath, [...options, DRIVER, "--json"], { cwd: root, encoding: "utf8" });
-}
-
-function measure(root, options) {
-  const r = run(root, options);
+function measure(root, how) {
+  const r = run(root, how);
   assert.equal(r.status, 0, r.stderr);
   return JSON.parse(r.stdout).mappings;
 }
