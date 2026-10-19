@@ -12,6 +12,11 @@ const files = (record) => [`${record}README.md`, `${record}evidence.md`];
 describe("the Change Record Definition on numbering", () => {
   const text = readFileSync(new URL("../capability/Change-Record.md", import.meta.url), "utf8");
 
+  it("makes every pull request a Change and gives a synchronization no new number", () => {
+    assert.match(text, /Every pull request into a collector is a Change\. A substantive Change, one that brings new work into its collector, claims exactly one record folder/);
+    assert.match(text, /A synchronization is a Change that carries work already accepted elsewhere, together with the records it was accepted with; it claims no new number/);
+  });
+
   it("makes the number provisional until merge and leaves the gate to Branching", () => {
     assert.match(text, /The number is provisional until the Change is accepted into its collector/);
     assert.match(text, /A pull request closed without merging consumes no number\./);
@@ -48,15 +53,15 @@ describe("checkClaim", () => {
     const first = nextRecordPath(DAY, base);
     const a = files(first);
     const b = files(first);
-    assert.deepEqual(checkClaim({ changed: a, collector: base }), { claimed: [first], findings: [] });
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: a, collector: base }), { claimed: [first], findings: [] });
     const collector = [...base, ...a];
 
-    const collision = checkClaim({ changed: b, collector });
+    const collision = checkClaim({ kind: "substantive", changed: b, collector });
     assert.equal(collision.findings.length, 1);
     assert.match(collision.findings[0], /^\.kaal\/changes\/change\/26\/10\/19\/01\/ is already taken in the collector: rename the folder to \.kaal\/changes\/change\/26\/10\/19\/02\//);
 
     const renamed = files(nextRecordPath(DAY, collector));
-    assert.deepEqual(checkClaim({ changed: renamed, collector }), { claimed: [".kaal/changes/change/26/10/19/02/"], findings: [] });
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: renamed, collector }), { claimed: [".kaal/changes/change/26/10/19/02/"], findings: [] });
     assert.equal(nextRecordPath(DAY, [...collector, ...renamed]), ".kaal/changes/change/26/10/19/03/");
   });
 
@@ -65,30 +70,40 @@ describe("checkClaim", () => {
     const collector = [...base, ...files(first)];
     // Rebased, the second pull request's files at 01 now modify the first Change's record.
     const rebased = [`${first}README.md`, `${first}evidence.md`];
-    assert.match(checkClaim({ changed: rebased, collector }).findings[0], /is already taken in the collector: rename the folder to \.kaal\/changes\/change\/26\/10\/19\/02\//);
+    assert.match(checkClaim({ kind: "substantive", changed: rebased, collector }).findings[0], /is already taken in the collector: rename the folder to \.kaal\/changes\/change\/26\/10\/19\/02\//);
   });
 
   it("lets a pull request closed without merging consume no number", () => {
     const abandoned = files(nextRecordPath(DAY, base));
-    assert.deepEqual(checkClaim({ changed: abandoned, collector: base }).findings, []);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: abandoned, collector: base }).findings, []);
     const next = nextRecordPath(DAY, base);
     assert.equal(next, ".kaal/changes/change/26/10/19/01/");
-    assert.deepEqual(checkClaim({ changed: files(next), collector: base }), { claimed: [next], findings: [] });
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: files(next), collector: base }), { claimed: [next], findings: [] });
   });
 
   it("refuses a later Change that changes a record the collector already holds", () => {
     const held = [...base, ...files(".kaal/changes/change/26/10/19/01/")];
-    assert.match(checkClaim({ changed: [".kaal/changes/change/26/10/19/01/review.md"], collector: held }).findings[0], /already taken/);
+    assert.match(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/01/review.md"], collector: held }).findings[0], /already taken/);
   });
 
-  it("claims nothing for a pull request that changes no record", () => {
-    assert.deepEqual(checkClaim({ changed: ["packages/x.mjs"], collector: base }), { claimed: [], findings: [] });
+  it("fails a substantive Change that claims no record", () => {
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: ["packages/x.mjs"], collector: base }), { claimed: [], findings: ["a substantive Change claims exactly one record under .kaal/changes/, and this one claims none"] });
+  });
+
+  it("lets a synchronization claim no number, and refuses one that brings a record of its own", () => {
+    assert.deepEqual(checkClaim({ kind: "synchronization", changed: [], collector: base }), { claimed: [], findings: [] });
+    assert.deepEqual(checkClaim({ kind: "synchronization", changed: ["packages/x.mjs"], collector: base }), { claimed: [], findings: [] });
+    assert.match(checkClaim({ kind: "synchronization", changed: files(".kaal/changes/change/26/10/19/01/"), collector: base }).findings[0], /a synchronization carries accepted records and claims none/);
+  });
+
+  it("refuses a Change of no known kind", () => {
+    assert.deepEqual(checkClaim({ changed: [], collector: base }).findings, ["a Change is substantive or a synchronization, not undefined"]);
   });
 
   it("refuses more than one record, malformed record paths, and a file standing where a CC folder belongs", () => {
     const two = [...files(".kaal/changes/change/26/10/19/01/"), ...files(".kaal/changes/change/26/10/19/02/")];
-    assert.match(checkClaim({ changed: two, collector: base }).findings[0], /a Change claims one record/);
-    assert.match(checkClaim({ changed: [".kaal/changes/change/26/10/19/1/a.md"], collector: base }).findings[0], /is not a record number/);
-    assert.deepEqual(checkClaim({ changed: [".kaal/changes/change/26/10/19/01"], collector: base }), { claimed: [], findings: [".kaal/changes/change/26/10/19/01: a record's files lie inside its CC folder"] });
+    assert.match(checkClaim({ kind: "substantive", changed: two, collector: base }).findings[0], /a substantive Change claims exactly one record, not/);
+    assert.match(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/1/a.md"], collector: base }).findings[0], /is not a record number/);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/01"], collector: base }), { claimed: [], findings: [".kaal/changes/change/26/10/19/01: a record's files lie inside its CC folder", "a substantive Change claims exactly one record under .kaal/changes/, and this one claims none"] });
   });
 });

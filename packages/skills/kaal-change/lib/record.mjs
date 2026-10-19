@@ -37,8 +37,9 @@ export function recordPath({ capability, date, number }) {
   return path;
 }
 
-// Numbering. A Change claims the one record folder its pull request
-// changes; the number is provisional until the Change is accepted into its
+// Numbering. Every pull request into a collector is a Change. A substantive
+// Change claims the one record folder it changes; a synchronization carries
+// accepted records and claims none. The number is provisional until the Change is accepted into its
 // collector, so a pull request closed without merging consumes none. A
 // record the collector holds belongs to the Change accepted with it, so no
 // later pull request changes it, rebased or not. Listing the files is
@@ -70,15 +71,21 @@ export function nextRecordPath({ capability, date }, collector) {
 }
 
 /**
- * Checks a Change's claim against its collector. `changed` are the files the
- * pull request adds, modifies or deletes against the collector it is checked
- * against, and `collector` the files at the collector's current tip. A Change
- * claims the record its changed files lie in, and at most one. A claim
- * collides when the collector already holds that record: the Change renames
- * its folder to the next free number, updates its references and is checked
- * again. Returns `{ claimed, findings }`.
+ * Checks a Change's claim against its collector. Every pull request into a
+ * collector is a Change. `kind` says which: a "substantive" Change brings new
+ * work and claims exactly one record; a "synchronization" carries work
+ * already accepted, with the records it was accepted with, and claims none.
+ * `changed` are the files the Change adds, modifies or deletes, less any it
+ * carries unchanged from where they were already accepted, and `collector`
+ * the files at the collector's current tip. A claim collides when the
+ * collector already holds that record: the Change renames its folder to the
+ * next free number, updates its references and is checked again. Returns
+ * `{ claimed, findings }`.
  */
-export function checkClaim({ changed, collector }) {
+export function checkClaim({ kind, changed, collector }) {
+  if (kind !== "substantive" && kind !== "synchronization") {
+    return { claimed: [], findings: [`a Change is substantive or a synchronization, not ${kind}`] };
+  }
   const findings = [];
   const claimed = new Set();
   for (const path of changed) {
@@ -87,7 +94,9 @@ export function checkClaim({ changed, collector }) {
     if (read.finding) findings.push(read.finding);
     else claimed.add(read.record);
   }
-  if (claimed.size > 1) findings.push(`a Change claims one record, not ${[...claimed].join(", ")}`);
+  if (kind === "synchronization" && claimed.size > 0) findings.push(`a synchronization carries accepted records and claims none, not ${[...claimed].join(", ")}`);
+  if (kind === "substantive" && claimed.size === 0) findings.push(`a substantive Change claims exactly one record under ${ROOT}/, and this one claims none`);
+  if (kind === "substantive" && claimed.size > 1) findings.push(`a substantive Change claims exactly one record, not ${[...claimed].join(", ")}`);
   const occupied = records(collector);
   for (const record of claimed) {
     if (!occupied.has(record)) continue;
