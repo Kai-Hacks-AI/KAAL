@@ -15,11 +15,11 @@ export interface Change {
   files: Files;
 }
 
-/** A host operation refused before anything was written. */
+/** A host operation refused: before anything was written, or, for a read, before anything was returned. */
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING",
   ) {
     super(message);
     this.name = "HostingError";
@@ -30,7 +30,7 @@ export class HostingError extends Error {
 // antivirus and indexer locks), so every call goes through it, looked up at
 // call time.
 const readdir = (path: string) => promisify(gfs.readdir)(path, { withFileTypes: true }) as Promise<Dirent[]>;
-const readFile = (path: string) => promisify(gfs.readFile)(path) as Promise<Buffer>;
+const readBytes = (path: string) => promisify(gfs.readFile)(path) as Promise<Buffer>;
 const writeFile = (path: string, data: Uint8Array) => promisify(gfs.writeFile)(path, data);
 const mkdir = (path: string) => promisify(gfs.mkdir)(path, { recursive: true });
 const mkdtemp = (prefix: string) => promisify(gfs.mkdtemp)(prefix);
@@ -42,6 +42,12 @@ const realpath = (path: string) => promisify(gfs.realpath)(path);
 
 function missing(e: unknown): boolean {
   return (e as NodeJS.ErrnoException).code === "ENOENT";
+}
+
+// Nothing is at a path whose parent is a file: Windows says ENOENT, the
+// others ENOTDIR, and Hosting says the same on every host.
+function absent(e: unknown): boolean {
+  return missing(e) || (e as NodeJS.ErrnoException).code === "ENOTDIR";
 }
 
 async function exists(path: string): Promise<boolean> {
@@ -83,7 +89,7 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
     }
     if (target.isDirectory()) throw new HostingError(`${path} is a link to a directory; Hosting does not follow one`, "INVALID_PATH");
     // Defined, not assigned: a file named `__proto__` is a file like any other.
-    if (target.isFile()) Object.defineProperty(files, path, { value: await readFile(join(root, path)), enumerable: true, writable: true, configurable: true });
+    if (target.isFile()) Object.defineProperty(files, path, { value: await readBytes(join(root, path)), enumerable: true, writable: true, configurable: true });
   }
 }
 
@@ -95,6 +101,52 @@ export async function read(dir: string): Promise<Files> {
   const files: Files = {};
   await walk(resolve(dir), "", files);
   return files;
+}
+
+/**
+ * Read one file: its exact bytes. A link to a file reads as that file, as
+ * in `read`. A directory, a link to one, a cycle of links, or anything else
+ * that is not a file is refused with `NOT_FILE`; a missing path, a dangling link
+ * included, with `MISSING`, since a single file has no empty reading.
+ */
+export async function readFile(path: string): Promise<Buffer> {
+  const at = resolve(path);
+  try {
+    const target = await stat(at);
+    if (target.isDirectory()) throw new HostingError(`${path} is a directory, or a link to one; Hosting does not follow one`, "NOT_FILE");
+    if (!target.isFile()) throw new HostingError(`${path} is not a file`, "NOT_FILE");
+    return await readBytes(at);
+  } catch (e) {
+    if (absent(e)) throw new HostingError(`${path} does not exist`, "MISSING");
+    if ((e as NodeJS.ErrnoException).code === "ELOOP") throw new HostingError(`${path} is a link that never reaches a file`, "NOT_FILE");
+    throw e;
+  }
+}
+
+/** What `kind` finds at a path. */
+export type Kind = "directory" | "file" | "missing" | "other";
+
+/**
+ * What is at a path, following links as `read` and `readFile` do: a link to a
+ * directory, a junction included, is `directory`, and a link to a file is
+ * `file`. Nothing, a path below a file, and a dangling link are `missing`, as
+ * `readFile` reports them. Anything that exists but is neither, a cycle of
+ * links or a socket, pipe or device, is `other`. Any other failure to look,
+ * a denied permission among them, is thrown as the host reports it, never
+ * taken for an answer. Like `read`, it takes no lock.
+ */
+export async function kind(path: string): Promise<Kind> {
+  let target: Stats;
+  try {
+    target = await stat(resolve(path));
+  } catch (e) {
+    if (absent(e)) return "missing";
+    if ((e as NodeJS.ErrnoException).code === "ELOOP") return "other";
+    throw e;
+  }
+  if (target.isDirectory()) return "directory";
+  if (target.isFile()) return "file";
+  return "other";
 }
 
 // Names Windows cannot hold: reserved characters, a trailing dot or space,
@@ -317,5 +369,5 @@ export function execute(command: string, args: string[], options: { cwd: string;
 
 /** Hosting's own contribution: its Extension Node, as carried in this package. */
 export async function contribution(): Promise<Files> {
-  return { "Hosting.md": await readFile(fileURLToPath(new URL("../payload/Hosting.md", import.meta.url))) };
+  return { "Hosting.md": await readBytes(fileURLToPath(new URL("../payload/Hosting.md", import.meta.url))) };
 }
