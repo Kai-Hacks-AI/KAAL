@@ -496,7 +496,11 @@ export function workingBranch(f: WorkingBranchFacts): Verdict {
 
 /** Change's numbering rule, as kaal-change/record exports it: of the files a Change changes, the
  *  Change Record it claims, and why that claim does not hold in the collector. */
-export type CheckClaim = (files: { changed: string[]; collector: string[] }) => { claimed: string[]; findings: string[] };
+export type CheckClaim = (files: { kind: ChangeKind; changed: string[]; collector: string[] }) => { claimed: string[]; findings: string[] };
+
+/** What a Change brings its collector, as its flow decides: a substantive Change lands by squash; a
+ *  synchronization carries work main already accepted and lands with a merge commit. */
+export type ChangeKind = "substantive" | "synchronization";
 
 /** Where the default branch holds Change's numbering rule. */
 export const RULES = "packages/skills/kaal-change/lib/record.mjs";
@@ -506,6 +510,8 @@ export interface ClaimFacts {
   baseRef: string;
   /** The collector's tip the Change is judged against. */
   baseTip: string;
+  /** The Change's kind, from its flow, or null when its Branching verdict fails, so it has none. */
+  kind: ChangeKind | null;
   /** Change's rule as accepted on the default branch, or null while the default branch holds none. */
   rules: CheckClaim | null;
   /** The files the pull request adds, modifies or deletes since its fork point, except those it
@@ -525,7 +531,10 @@ export function claim(f: ClaimFacts): Verdict {
   if (f.rules === null) {
     return { kind: "not-applicable", message: `Change Record numbering is not in force: ${f.defaultBranch} holds no ${RULES}. A rule applies once it is accepted on ${f.defaultBranch}.` };
   }
-  const { claimed, findings } = f.rules({ changed: f.changed, collector: f.collector });
+  if (f.kind === null) {
+    return { kind: "fail", message: `Cannot judge its Change Record claim: its Branching verdict fails, so it is neither a substantive Change nor a synchronization. See ${TELLING}` };
+  }
+  const { claimed, findings } = f.rules({ kind: f.kind, changed: f.changed, collector: f.collector });
   if (findings.length) {
     return { kind: "fail", message: `The Change Record claim does not hold in ${f.baseRef} at ${short(f.baseTip)}: ${findings.join("; ")}. See ${GUIDE}#claim` };
   }
@@ -533,7 +542,7 @@ export function claim(f: ClaimFacts): Verdict {
     kind: "pass",
     message: claimed.length
       ? `Claims ${claimed.join(", ")}, free in ${f.baseRef} at ${short(f.baseTip)}. The number is provisional until it lands; a newer tip is checked again.`
-      : "Claims no Change Record.",
+      : `A ${f.kind} Change, claiming no Change Record.`,
   };
 }
 
@@ -743,6 +752,7 @@ export function readWorkingBranch(cwd: string, defaultBranch: string, b: BranchR
   };
 }
 
+const KIND = { squash: "substantive", merge: "synchronization", none: null } as const;
 const diffed = (cwd: string, a: string, b: string) => git(cwd, ["diff", "--no-renames", "--name-only", "-z", a, b]).stdout.split("\0").filter(Boolean);
 const files = (cwd: string, c: string) => git(cwd, ["ls-tree", "-r", "-z", "--name-only", c]).stdout.split("\0").filter(Boolean);
 
@@ -766,6 +776,7 @@ export async function readClaim(cwd: string, defaultBranch: string, baseRef: str
   const fromDefault = new Set(diffed(cwd, defaultTip, head));
   return {
     defaultBranch, baseRef, baseTip,
+    kind: KIND[readExpected(cwd, defaultBranch, baseRef, defaultTip, baseTip, head) ?? "none"],
     rules: await rulesAt(cwd, defaultTip),
     changed: diffed(cwd, fork, head).filter((p) => fromDefault.has(p)),
     collector: files(cwd, baseTip),

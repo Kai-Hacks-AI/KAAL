@@ -274,7 +274,7 @@ describe("workingBranch", () => {
 
 
 describe("claim", () => {
-  const f: ClaimFacts = { defaultBranch: "main", baseRef: "kaal/x", baseTip: B, rules: () => ({ claimed: [], findings: [] }), changed: [], collector: [] };
+  const f: ClaimFacts = { defaultBranch: "main", baseRef: "kaal/x", baseTip: B, kind: "substantive", rules: () => ({ claimed: [], findings: [] }), changed: [], collector: [] };
   it("does not apply outside a collector", () => assert.equal(claim({ ...f, baseRef: "main" }).kind, "not-applicable"));
   it("does not apply while the default branch holds no numbering rule", () => {
     const v = claim({ ...f, rules: null });
@@ -284,13 +284,18 @@ describe("claim", () => {
   it("hands Change's rule exactly the files it read", () => {
     let seen: unknown;
     const rules: CheckClaim = (x) => ((seen = x), { claimed: [], findings: [] });
-    claim({ ...f, rules, changed: ["a"], collector: ["c"] });
-    assert.deepEqual(seen, { changed: ["a"], collector: ["c"] });
+    claim({ ...f, kind: "synchronization", rules, changed: ["a"], collector: ["c"] });
+    assert.deepEqual(seen, { kind: "synchronization", changed: ["a"], collector: ["c"] });
   });
   it("passes a claim the rule finds free, saying the number is provisional", () => {
     const v = claim({ ...f, rules: () => ({ claimed: [".kaal/changes/x/26/10/19/01/"], findings: [] }) });
     assert.deepEqual([v.kind, v.message], ["pass", "Claims .kaal/changes/x/26/10/19/01/, free in kaal/x at bbbbbbb. The number is provisional until it lands; a newer tip is checked again."]);
-    assert.equal(claim(f).message, "Claims no Change Record.");
+    assert.equal(claim({ ...f, kind: "synchronization" }).message, "A synchronization Change, claiming no Change Record.");
+  });
+  it("cannot judge a pull request whose Branching verdict fails, since it has no kind", () => {
+    const v = claim({ ...f, kind: null });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /neither a substantive Change nor a synchronization\. See .*#telling-a-synchronization-from-a-change$/);
   });
   it("fails on any finding of the rule, naming each, pointing to the guide", () => {
     const v = claim({ ...f, rules: () => ({ claimed: ["r/"], findings: ["r/ is already taken: rename the folder to s/", "and another"] }) });
@@ -963,16 +968,18 @@ describe("acceptance: resolutions adopted from main", () => {
   });
 });
 
-/** A stand-in for Change's numbering rule, with its signature: a Change claims the records it
- *  changes, and a claim collides with a record the collector holds. The real rule and its collision
- *  semantics are Change's, tested in kaal-change; here the facts and the tip are judged. */
+/** A stand-in for Change's numbering rule, with its signature: a substantive Change claims exactly
+ *  one record it changes, a synchronization none, and a claim collides with a record the collector
+ *  holds. The real rule is Change's, tested in kaal-change; here the facts, the kind and the tip are
+ *  judged. */
 const STAND_IN = `const record = (p) => p.split("/").slice(0, 7).join("/") + "/";
 const records = (ps) => new Set(ps.filter((p) => p.startsWith(".kaal/changes/")).map(record));
-export function checkClaim({ changed, collector }) {
+export function checkClaim({ kind, changed, collector }) {
   const taken = records(collector);
   const claimed = [...records(changed)];
   const findings = claimed.filter((r) => taken.has(r)).map((r) => r + " is already taken");
-  if (claimed.length > 1) findings.push("a Change claims one record, not " + claimed.join(", "));
+  if (kind === "synchronization" && claimed.length) findings.push("a synchronization claims no record");
+  if (kind === "substantive" && claimed.length !== 1) findings.push("a substantive Change claims exactly one record, not " + claimed.length);
   return { claimed, findings };
 }
 `;
@@ -1037,15 +1044,16 @@ describe("acceptance: claiming a Change Record, one landing at a time", () => {
     assert.match((await judge(d)).message, /^Claims \.kaal\/changes\/x\/26\/10\/19\/03\//);
   });
 
-  it("fails a Change claiming two records", async () => {
+  it("fails a substantive Change claiming two records, or none", async () => {
     const e = change("claude/e", { [rec("04")]: "e\n", [rec("05")]: "e\n" });
-    assert.match((await judge(e)).message, /a Change claims one record, not/);
+    assert.match((await judge(e)).message, /a substantive Change claims exactly one record, not 2/);
+    assert.match((await judge(change("claude/none", { "notes.md": "no record\n" }))).message, /exactly one record, not 0/);
   });
 
   it("claims nothing for a synchronization that brings records accepted on main", async () => {
     r.land("main", { [rec("01", "y")]: "y\n" }, "promoted y");
     const head = r.synchronize("kaal/x");
-    assert.equal((await judge(head)).message, "Claims no Change Record.");
+    assert.equal((await judge(head)).message, "A synchronization Change, claiming no Change Record.");
   });
 
   it("exits 0, 1 and 3 on the command line", () => {
