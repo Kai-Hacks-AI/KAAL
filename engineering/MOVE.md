@@ -9,7 +9,7 @@ type:
 
 Main Offers Valuable Experience. KAAL's self-evolution principle.
 
-**The currently accepted KAAL develops its own successor.** KAAL *x* develops KAAL *x+1*. The successor becomes the actor only once it is accepted, and then it develops *x+2*.
+**The currently accepted, deployed KAAL develops its own successor.** KAAL *x* develops KAAL *x+1*. The successor becomes the actor only once it is accepted, and then it develops *x+2*.
 
 The three parts below are kept apart so that the source of each claim stays visible. The first two state the principle. The third describes how it is realized today.
 
@@ -40,7 +40,7 @@ Today the two kinds of evidence are owned by Testing ([Testing](../packages/skil
 
 Added by the Owner on 2026-10-18. It is not part of the v2 text.
 
-The currently accepted KAAL develops its own successor. KAAL *x* is not merely a baseline or a destination for completed work. It is the actor that drives its own evolution. The capabilities and experience accepted at *x* engineer, verify and validate the proposed successor, *x+1*. Once *x+1* is accepted, it becomes the actor and develops *x+2*.
+The currently accepted, deployed KAAL develops its own successor, not merely its source code. KAAL *x* is not merely a baseline or a destination for completed work. It is the actor that drives its own evolution. The capabilities and experience accepted at *x* engineer, verify and validate the proposed successor, *x+1*. Once *x+1* is accepted, it becomes the actor and develops *x+2*.
 
 A constraint follows from this. A capability of the successor that is not yet accepted is never assumed to be available to establish its own acceptance.
 
@@ -50,4 +50,14 @@ MOVE states the principle and takes over no one's responsibilities. The Change l
 
 This part describes the current realization. It is not a requirement of the principle, and Git `main` is not the principle itself.
 
-Today `main` represents the accepted KAAL, *x*. Candidates are built on working branches and collected on `kaal/*`. Only `kaal/*` reaches `main`, through required checks ([branching](github/branching.md)). One concrete instance of the clarification is how the Change Isolation, Lineage Synchronization and Promotion Source checks run `engineering/github/lineage.ts`. They take it from `main` with `git show`, never from the candidate. So *x* judges *x+1*, and a candidate cannot certify itself with its own checker.
+Today the accepted KAAL is what is deployed from `main`, not only the source held there. Three things are kept distinct:
+
+- `engineering/` engineers KAAL.
+- `packages/` holds the distributable components.
+- Deployment produces the deployed KAAL. That is the KAAL Engine in `.kaal/` ([AGENTS.md](../.kaal/AGENTS.md)), agent-facing `AGENTS.md` guidance, and Agent Skills folders that conform to the Agent Skills specification (`SKILL.md` and its prescribed structure).
+
+The deployment is deliberately oriented toward agents. `.kaal/` carries only the governance, identity and registration that are specific to KAAL. Agents work through the standard guidance and skill interfaces, which are native agent interfaces and not a proprietary KAAL format. KAAL consumes its own deployed structure on the same terms as any other consumer, with no privileged hidden path.
+
+Candidates for *x+1* are built on working branches and collected on `kaal/*`. Only `kaal/*` reaches `main`, through required checks ([branching](github/branching.md)). One concrete instance is how the Change Isolation, Lineage Synchronization and Promotion Source checks run `engineering/github/lineage.ts`. They take it from `main` with `git show`, never from the candidate. So *x* judges *x+1*, and a candidate cannot certify itself with its own checker.
+
+MOVE owns none of this realization. Engineering, packaging, hosting, Change and Testing each keep their own.
