@@ -73,6 +73,10 @@ describe("checkClaim", () => {
     assert.match(checkClaim({ kind: "substantive", changed: rebased, collector }).findings[0], /is already taken in the collector: rename the folder to \.kaal\/changes\/change\/26\/10\/19\/02\//);
   });
 
+  it("fails a claim that skips the next free number", () => {
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: files(".kaal/changes/change/26/10/19/99/"), collector: base }).findings, [".kaal/changes/change/26/10/19/99/ is not the next free number in the collector: rename the folder to .kaal/changes/change/26/10/19/01/, update its references and check again"]);
+  });
+
   it("lets a pull request closed without merging consume no number", () => {
     const abandoned = files(nextRecordPath(DAY, base));
     assert.deepEqual(checkClaim({ kind: "substantive", changed: abandoned, collector: base }).findings, []);

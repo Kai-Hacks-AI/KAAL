@@ -77,9 +77,10 @@ export function nextRecordPath({ capability, date }, collector) {
  * already accepted, with the records it was accepted with, and claims none.
  * `changed` are the files the Change adds, modifies or deletes, less any it
  * carries unchanged from where they were already accepted, and `collector`
- * the files at the collector's current tip. A claim collides when the
- * collector already holds that record: the Change renames its folder to the
- * next free number, updates its references and is checked again. Returns
+ * the files at the collector's current tip. A claim must be the next free
+ * number for its capability's day: when the collector already holds it, or
+ * it skips ahead, the Change renames its folder to the next free number,
+ * updates its references and is checked again. Returns
  * `{ claimed, findings }`.
  */
 export function checkClaim({ kind, changed, collector }) {
@@ -99,9 +100,11 @@ export function checkClaim({ kind, changed, collector }) {
   if (kind === "substantive" && claimed.size > 1) findings.push(`a substantive Change claims exactly one record, not ${[...claimed].join(", ")}`);
   const occupied = records(collector);
   for (const record of claimed) {
-    if (!occupied.has(record)) continue;
     const { capability, date } = readRecordPath(record);
-    findings.push(`${record} is already taken in the collector: rename the folder to ${nextRecordPath({ capability, date }, collector)}, update its references and check again`);
+    const next = nextRecordPath({ capability, date }, collector);
+    if (record === next) continue;
+    const why = occupied.has(record) ? "is already taken in the collector" : "is not the next free number in the collector";
+    findings.push(`${record} ${why}: rename the folder to ${next}, update its references and check again`);
   }
   return { claimed: [...claimed], findings };
 }
