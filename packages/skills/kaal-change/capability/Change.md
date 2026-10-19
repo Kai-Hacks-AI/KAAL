@@ -7,8 +7,10 @@ type:
 
 # Change
 
-Change is the responsibility for what a Change is: its meaning, what it must contain to stand on its own, and the lifecycle it passes through, independent of any technology that carries it. Its scope is that alone.
+Change is the responsibility for orchestrating the work around a Change: what a Change is, what makes it self-contained, and how its distributed work is coordinated toward integration, independent of any technology that carries it. Its scope is that alone.
 
-It provides the Change Definition. It requires Core's KAAL Capability and KAAL Definition, and nothing else.
+A Change coordinates the concerns of engineering, as Engineering's GLUE names them: Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects. It coordinates them; it does not own their semantics, artifacts, implementations or tests, and they are not stages it must run in order.
 
-Its boundaries are where other responsibilities begin. What someone wants and the Outcome they want are Intent's; a Change may realize an Intent, and its lifecycle never decides whether the Outcome came about. Branches, collectors, pull requests and merge methods are realizations of a Change, and how they move is engineering. Evidence that a Change works is Testing's, judgments about it are Review's, and communicating about it in the right context and channel is Communication's. Each of these consumes the facts this capability defines without owning them.
+It provides the Change Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
+
+Its functional relationships are uses, not ownership. A Change may realize an Intent, whose meaning and Outcome are Intent's; integrating a Change does not prove the Outcome. It uses Testing for verification and Review for validation, tracking their status and referencing their evidence and judgments without owning or repeating either. Filesystem access and containment are Hosting's. How a pull request realizes a Change is Engineering's Branching. Communication consumes the facts of a Change without owning them.

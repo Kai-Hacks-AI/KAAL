@@ -1,6 +1,6 @@
 // Deterministic verification of what can be decided mechanically: the Nodes'
 // Form and type, admission into an Engine, the ownership claim, what the
-// package delivers, and the lifecycle's states and transitions as written.
+// package delivers, and the contract's key statements as written.
 // Whether the Nodes say the right thing is validation, by independent Agent
 // or human review.
 import assert from "node:assert/strict";
@@ -26,9 +26,17 @@ describe("the Capability Node", () => {
     assert.deepEqual(capability.type, foundation().capability);
   });
 
-  it("declares what it provides and what it requires", () => {
+  it("declares what it provides and what admission requires, apart from what it uses", () => {
     const text = readFileSync(join(CAPABILITY, "Change.md"), "utf8");
-    assert.match(text, /^It provides the Change Definition\. It requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text, /^It provides the Change Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text, /^Its functional relationships are uses, not ownership\./m);
+    assert.match(text, /It uses Testing for verification and Review for validation/);
+  });
+
+  it("coordinates GLUE's concerns without owning them or ordering them", () => {
+    const text = readFileSync(join(CAPABILITY, "Change.md"), "utf8");
+    assert.match(text, /Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects/);
+    assert.match(text, /it does not own their semantics, artifacts, implementations or tests, and they are not stages it must run in order/);
   });
 });
 
@@ -40,19 +48,14 @@ describe("the Change Definition", () => {
     assert.notEqual(change.id, node("Change.md").id);
   });
 
-  it("names exactly five states, in order", () => {
-    const states = [...definition().matchAll(/^- \*\*(\w+)\*\*: /gm)].map((m) => m[1]);
-    assert.deepEqual(states, ["Defined", "Proposed", "Approved", "Integrated", "Withdrawn"]);
-  });
-
-  it("returns an altered approved Change to Proposed, and ends in Integrated or Withdrawn", () => {
-    assert.match(definition(), /A Change altered after it was Approved is Proposed again/);
-    assert.match(definition(), /Integrated and Withdrawn are final; correcting either takes a new Change\./);
+  it("is self-contained by being judgeable on its own, with the work kept by its owners", () => {
+    assert.match(definition(), /it can be understood and judged on its own/);
+    assert.match(definition(), /The work stays where the capability that owns it keeps it; the record is not a second copy of it\./);
   });
 
   it("keeps the Change apart from its realization and from the Outcome", () => {
     assert.match(definition(), /a pull request is one realization of a Change/);
-    assert.match(definition(), /Integration does not prove that the Intent it realizes achieved its Outcome\./);
+    assert.match(definition(), /Integrating a Change does not prove that the Intent it realizes achieved its Outcome\./);
   });
 });
 
