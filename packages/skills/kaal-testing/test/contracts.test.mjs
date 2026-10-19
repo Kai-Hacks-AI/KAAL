@@ -50,6 +50,14 @@ describe("contract evidence: reading a mapping", () => {
     assert.deepEqual(problems(await mapping({ inference: "" }), OWNER), ["statement 1: offered evidence needs an inference and its limits"]);
     assert.deepEqual(problems(await mapping({ review: { reviewer: "someone" } }), OWNER), ["statement 1: a review records its reviewer, pr, commit and the statement and evidence hashes reviewed"]);
   });
+
+  it("refuses a source or evidence file not written as a repository-relative path (syntax only, not containment)", async () => {
+    for (const path of ["../../etc/passwd", "/etc/passwd", "x//README.md", "x/./README.md", "x\\README.md", ""]) {
+      assert.deepEqual(problems(await mapping({ source: path }), OWNER), ["statement 1: source must be a repository-relative path"], path);
+      const file = await sha256(TEST_BYTES);
+      assert.deepEqual(problems(await mapping({}, [{ file: path, sha256: file, test: PATH }]), OWNER), ["statement 1, evidence 1: file must be a repository-relative path"], path);
+    }
+  });
 });
 
 describe("contract evidence: classifying a statement", () => {
