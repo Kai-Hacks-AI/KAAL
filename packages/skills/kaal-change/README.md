@@ -6,7 +6,7 @@ KAAL Change: the capability for orchestrating the work around a Change: what a C
 capability/Change.md              the Capability Node, typed by Core's KAAL Capability
 capability/Change-Definition.md   the Change Definition, typed by KAAL Definition: meaning and self-containment
 capability/Change-Record.md       the Change Record Definition, typed by KAAL Definition: where a Change's supporting material lives
-lib/record.mjs                    the record path syntax: kaal-change/record
+lib/record.mjs                    the record path syntax and numbering: kaal-change/record
 ownership.kaal.json               Change's own ownership claim (repository data, not delivered)
 ```
 
