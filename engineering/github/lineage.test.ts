@@ -8,8 +8,9 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
-  GUIDE, incorporated, marker, merge, promotionFreshness, promotionSource, readFreshness, readSync, synchronization,
-  type SyncFacts,
+  GUIDE, attribute, autoMerge, collector, establishment, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness,
+  promotionSource, readCollectors, readExpected, readFreshness, readLanding, readSync, readWorkingBranch, stateAt, synchronization, unevidenced,
+  workingBranch, type WorkingBranchFacts, type CollectorFacts, type CollectorRecord, type Hold, type LandingFacts, type Pull, type SyncFacts,
 } from "./lineage.ts";
 
 const A = "a".repeat(40), B = "b".repeat(40), C = "c".repeat(40), D = "d".repeat(40);
@@ -96,6 +97,181 @@ describe("synchronization", () => {
   it("fails a merge that does not advance the incorporated state", () => fails({ advances: false }, /No progress: the merged aaaaaaa is not newer than ddddddd/));
   it("fails any other difference and names it", () => fails({ differing: ["AGENTS.md"] }, /on: AGENTS\.md\. Only paths where the two conflict may differ/));
 });
+
+describe("methodFor", () => {
+  const v = (kind: "pass" | "fail" | "not-applicable") => ({ kind, message: "" });
+  it("names squash for a promotion, whatever else", () => assert.equal(methodFor("main", "main", null), "squash"));
+  it("names a merge commit for a passing synchronization and squash for an ordinary Change", () => {
+    assert.equal(methodFor("main", "kaal/x", v("pass")), "merge");
+    assert.equal(methodFor("main", "kaal/x", v("not-applicable")), "squash");
+  });
+  it("names none when the synchronization verdict fails", () => assert.equal(methodFor("main", "kaal/x", v("fail")), null));
+});
+
+describe("autoMerge", () => {
+  const f = { baseRef: "kaal/x", head: A, expected: "merge" as const, enabled: "merge" as const };
+  it("passes auto-merge set to the method the flow names", () => assert.equal(autoMerge(f).kind, "pass"));
+  it("does not apply while auto-merge is off, and names the method", () => {
+    const v = autoMerge({ ...f, enabled: null });
+    assert.equal(v.kind, "not-applicable");
+    assert.match(v.message, /uses a merge commit\.$/);
+  });
+  it("fails auto-merge set to another method, and says how to fix it", () => {
+    const v = autoMerge({ ...f, enabled: "squash" });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /would land this pull request into kaal\/x by squash, but its flow lands by a merge commit\. Disable auto-merge and enable it again with a merge commit\./);
+    assert.ok(v.message.endsWith(`${GUIDE}#telling-a-synchronization-from-a-change`));
+    assert.equal(autoMerge({ ...f, expected: "squash", enabled: "rebase" }).kind, "fail");
+  });
+  it("fails any method when the Branching verdict fails", () => assert.equal(autoMerge({ ...f, expected: null }).kind, "fail"));
+});
+
+describe("landing", () => {
+  const f: LandingFacts = { defaultBranch: "main", baseRef: "kaal/x", before: A, after: B, pull: 7, head: C, unattributed: null, expected: "squash", unseen: null, commits: 1, parents: [A] };
+  it("reads the landing's shape, not a method GitHub never records", () => {
+    assert.equal(landedAs(f), "one-commit");
+    assert.equal(landedAs({ ...f, parents: [A, C] }), "merge-commit");
+    assert.equal(landedAs({ ...f, commits: 3 }), "several-commits");
+    assert.equal(landedAs({ ...f, parents: [A, D] }), null, "a second parent that is not the head is no method");
+    assert.equal(landedAs({ ...f, commits: 0 }), null);
+  });
+  it("passes a landing in the shape the flow's method leaves, and names what the shape cannot tell", () => {
+    const v = landing(f);
+    assert.equal(v.kind, "pass");
+    assert.match(v.message, /^#7 landed into kaal\/x as one single-parent commit, the shape squash leaves, as its flow names\. Git cannot tell a squash from a rebase of a one-commit head/);
+    const m = landing({ ...f, expected: "merge", parents: [A, C] });
+    assert.equal(m.kind, "pass");
+    assert.match(m.message, /as a merge commit of its head, the shape a merge commit leaves, .* Only the shape is verified; GitHub records no method\./);
+  });
+  it("fails a synchronization landed as one commit, naming both methods that leave it, and says to synchronize again", () => {
+    const v = landing({ ...f, expected: "merge" });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^#7 landed into kaal\/x as one single-parent commit, so by squash or a one-commit rebase, but its flow lands by a merge commit\. kaal\/x now lacks main's ancestry/);
+    assert.ok(v.message.endsWith(`${GUIDE}#synchronize`));
+  });
+  it("fails a Change landed with a merge commit or by rebase, and says what that cost", () => {
+    assert.match(landing({ ...f, parents: [A, C] }).message, /so by a merge commit, but its flow lands by squash\. The verified tree landed unchanged/);
+    assert.match(landing({ ...f, commits: 2 }).message, /as several commits, so by rebase, .* It landed as 2 commits instead of one/);
+  });
+  it("fails a landing without a pull request, and one whose Branching verdict fails", () => {
+    assert.match(landing({ ...f, pull: null, head: null, unattributed: "GitHub associates no pull request with it" }).message,
+      /^No pull request is attributable to kaal\/x at bbbbbbb: GitHub associates no pull request with it\. kaal\/x changes only through pull requests\./);
+    assert.match(landing({ ...f, expected: null }).message, /^#7 landed into kaal\/x although its Branching verdict fails/);
+  });
+  it("fails closed when the default tip given does not hold the state the head synchronizes with", () => {
+    const v = landing({ ...f, expected: "merge", parents: [A, C], unseen: D });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^Cannot judge how #7 should have landed: its head states Synchronized-with ddddddd, which main as given does not hold\./);
+  });
+});
+
+describe("attribute", () => {
+  const p = (number: number, base = "kaal/x", merge: string | null = B): Pull => ({ number, base, head: C, merge });
+  it("takes the one merged pull request into the base whose merge commit is the new tip", () => {
+    assert.deepEqual(attribute([p(3, "kaal/y", D), p(7), p(8, "kaal/x", null)], "kaal/x", B), p(7));
+  });
+  it("attributes nothing when GitHub reports none, or none merged there with that merge commit", () => {
+    assert.equal(attribute([], "kaal/x", B), "GitHub associates no pull request with it");
+    assert.equal(attribute([p(3, "kaal/y"), p(8, "kaal/x", D)], "kaal/x", B),
+      "GitHub associates #3 #8 with it, but none merged into kaal/x with merge commit bbbbbbb");
+  });
+  it("attributes nothing when several claim the same landing", () => {
+    assert.match(attribute([p(7), p(9)], "kaal/x", B) as string, /^GitHub names #7 #9, each with merge commit bbbbbbb, so none is attributable alone$/);
+  });
+});
+
+describe("establishment", () => {
+  const Z = "0".repeat(40);
+  const at = (t: string) => `2026-10-18T${t}Z`;
+  const main = (before: string, after: string, t: string, type = "pr_merge") => ({ ref: "refs/heads/main", before, after, timestamp: at(t), activity_type: type });
+  const created = (ref: string, after: string, t: string) => ({ ref: `refs/heads/${ref}`, before: Z, after, timestamp: at(t), activity_type: "branch_creation" });
+  const history = [main(Z, A, "08:00:00", "branch_creation"), main(A, B, "09:00:00"), main(B, C, "11:00:00")];
+  it("passes a collector created at main's tip as it was then, however far main has moved since", () => {
+    const v = establishment("main", "kaal/x", [...history, created("kaal/x", B, "10:00:00")]);
+    assert.equal(v.kind, "pass");
+    assert.equal(v.message, "kaal/x was established at bbbbbbb on 2026-10-18T10:00:00Z, main's tip at that moment.");
+  });
+  it("fails a collector created at an earlier state of main, or at no state of it", () => {
+    const v = establishment("main", "kaal/x", [...history, created("kaal/x", A, "10:00:00")]);
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /established at aaaaaaa on .*, but main's tip at that moment was bbbbbbb\. A collector starts at main's tip\./);
+    assert.ok(v.message.endsWith(`${GUIDE}#establish`));
+    assert.equal(establishment("main", "kaal/x", [...history, created("kaal/x", D, "10:00:00")]).kind, "fail");
+  });
+  it("judges the latest creation of a collector established again under the same name", () => {
+    const again = [...history, created("kaal/x", A, "08:30:00"), created("kaal/x", C, "12:00:00")];
+    assert.equal(establishment("main", "kaal/x", again).kind, "pass");
+  });
+  it("accepts either side of a change to main in the same second, which the record cannot order", () => {
+    assert.deepEqual(stateAt("main", history, at("11:00:00")), [B, C]);
+    assert.equal(establishment("main", "kaal/x", [...history, created("kaal/x", B, "11:00:00")]).kind, "pass");
+  });
+  it("cannot judge without the creation, or with main's record incomplete or too short", () => {
+    assert.match(establishment("main", "kaal/x", history).message, /^Cannot judge where kaal\/x was established: GitHub's activity records no creation of it\./);
+    const gap = [history[0], history[2], created("kaal/x", B, "12:00:00")];
+    assert.match(establishment("main", "kaal/x", gap).message, /main's recorded activity is missing a change between aaaaaaa and bbbbbbb/);
+    const short = [history[2], created("kaal/x", B, "10:00:00")];
+    assert.match(establishment("main", "kaal/x", short).message, /main's recorded activity does not reach back to 2026-10-18T10:00:00Z/);
+    for (const v of [gap, short]) assert.equal(establishment("main", "kaal/x", v).kind, "fail");
+  });
+  it("does not apply to other branches", () => assert.equal(establishment("main", "claude/x", history).kind, "not-applicable"));
+});
+
+describe("collector", () => {
+  const f: CollectorFacts = { defaultBranch: "main", collector: "kaal/x", tip: B, onDefault: false, promoted: null, openTargets: [], hold: null, unknown: null };
+  const hold = { collector: "kaal/x", reason: "Graph's next Change needs it", ruling: "https://github.com/o/r/pull/1#r" };
+  const promoted = { number: 12, merge: A };
+  it("passes a collector that holds unpromoted work, and one newly established", () => {
+    assert.match(collector(f).message, /^kaal\/x holds work no promotion of it has taken to main\.$/);
+    assert.match(collector({ ...f, onDefault: true }).message, /established at main's state bbbbbbb and holds no Change yet/);
+  });
+  it("fails a fully promoted collector, naming the promotion: it is due for deletion", () => {
+    const v = collector({ ...f, promoted });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^kaal\/x is fully promoted: #12 took it to main at aaaaaaa, and it holds nothing since\. Delete it/);
+    assert.ok(v.message.endsWith(`${GUIDE}#promote`));
+  });
+  it("names the open pull requests that would be stranded", () =>
+    assert.match(collector({ ...f, promoted, openTargets: [4, 5] }).message, /but #4 #5 still target it\. Land them and promote again, or delete kaal\/x and rebase each/));
+  it("reports an evidenced hold as held, with its reason and ruling, never as a pass", () => {
+    const v = collector({ ...f, promoted, hold });
+    assert.equal(v.kind, "held");
+    assert.match(v.message, /kept because the Owner holds it: Graph's next Change needs it \(https:\/\/github\.com\/o\/r\/pull\/1#r\)/);
+  });
+  it("fails a hold that does not evidence itself", () => {
+    assert.equal(unevidenced(hold), null);
+    assert.equal(unevidenced({ ...hold, reason: " " }), "it states no reason");
+    assert.equal(unevidenced({ ...hold, ruling: "Kai said so" }), "it links no ruling");
+    assert.match(collector({ ...f, promoted, hold: { ...hold, ruling: "" } }).message, /^The hold on kaal\/x is not evidenced: it links no ruling/);
+  });
+  it("cannot judge a collector whose facts are incomplete", () =>
+    assert.match(collector({ ...f, unknown: "GitHub reported no pull requests for it" }).message, /^Cannot judge kaal\/x: GitHub reported no pull requests for it\./));
+});
+
+describe("workingBranch", () => {
+  const f: WorkingBranchFacts = { defaultBranch: "main", branch: "claude/x", tip: A, merged: [{ number: 9, head: A, tip: "at" }], unknown: null };
+  it("fails a working branch whose Change merged at its tip", () => {
+    const v = workingBranch(f);
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^claude\/x: its Change merged as #9 at aaaaaaa\. Delete the branch/);
+  });
+  it("fails a branch reused after its Change merged: it moved on from the merged head", () => {
+    const v = workingBranch({ ...f, tip: B, merged: [{ number: 9, head: A, tip: "past" }] });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^claude\/x was reused: it still carries the head of #9, merged, and moved on to bbbbbbb\. A working branch is deleted when its Change merges\./);
+  });
+  it("passes one that never merged, or a new branch under a merged one's name", () => {
+    assert.equal(workingBranch({ ...f, merged: [] }).kind, "pass");
+    const v = workingBranch({ ...f, tip: B, merged: [{ number: 9, head: A, tip: "apart" }] });
+    assert.deepEqual([v.kind, v.message], ["pass", "claude/x is a new branch under a name that #9 used: it does not carry their heads."]);
+  });
+  it("cannot judge without its commits, and does not apply to the default branch or a collector", () => {
+    assert.match(workingBranch({ ...f, unknown: "ddddddd is not in this repository" }).message, /^Cannot judge claude\/x: ddddddd is not in this repository\./);
+    assert.equal(workingBranch({ ...f, branch: "main" }).kind, "not-applicable");
+    assert.equal(workingBranch({ ...f, branch: "kaal/x" }).kind, "not-applicable");
+  });
+});
+
 
 describe("marker", () => {
   it("reads one Synchronized-with line", () => assert.equal(marker(`t\n\nSynchronized-with: ${A}\nCo-Authored-By: x`), A));
@@ -495,6 +671,216 @@ describe("command line", () => {
     assert.equal(cli(r.dir, "freshness", "main", "main", "kaal/x", "no-such-ref").status, 2);
     assert.equal(cli(r.dir, "nonsense").status, 2);
   });
+});
+
+describe("acceptance: the method a pull request lands by", () => {
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  r.g("branch", "kaal/x", "main");
+  r.land("main", { "docs/a.md": "a\n" }, "main advances");
+  const rev = (ref: string) => r.g("rev-parse", ref);
+  const expected = (base: string, head: string) => readExpected(r.dir, "main", base, rev("main"), rev(base), head);
+  const audit = (base: string, before: string, head: string, pulls: Pull[] = [{ number: 1, base, head, merge: rev(base) }]) =>
+    landing(readLanding(r.dir, "main", base, rev("main"), before, rev(base), pulls));
+
+  it("names a merge commit for a synchronization and squash for a Change, before either lands", () => {
+    const sync = r.synchronize("kaal/x");
+    const change = r.g("commit-tree", "kaal/x^{tree}", "-p", "kaal/x", "-m", "a Change");
+    assert.deepEqual([expected("kaal/x", sync), expected("kaal/x", change), expected("main", change)], ["merge", "squash", "squash"]);
+    const onMain = r.g("commit-tree", "main^{tree}", "-p", "main", "-m", "from main");
+    assert.equal(expected("kaal/x", onMain), null);
+  });
+
+  it("passes a synchronization landed with a merge commit, and fails one landed by squash", () => {
+    const sync = r.synchronize("kaal/x");
+    r.g("branch", "kaal/y", "kaal/x");
+    const before = rev("kaal/x");
+    r.mergeCommit("kaal/x", sync);
+    assert.equal(audit("kaal/x", before, sync).kind, "pass", audit("kaal/x", before, sync).message);
+    const squashed = r.synchronize("kaal/y");
+    r.squash("kaal/y", squashed);
+    assert.match(audit("kaal/y", before, squashed).message, /as one single-parent commit, so by squash or a one-commit rebase, but its flow lands by a merge commit/);
+  });
+
+  it("passes a Change landed by squash, and fails one landed by rebase", () => {
+    r.g("checkout", "-q", "-B", "work", "kaal/x");
+    r.put({ "x.md": "1\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "one");
+    r.put({ "x.md": "2\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "two");
+    const head = rev("HEAD");
+    r.g("checkout", "-q", "--detach", "main");
+    const before = rev("kaal/x");
+    r.squash("kaal/x", head);
+    assert.equal(audit("kaal/x", before, head).kind, "pass");
+    r.g("branch", "-f", "kaal/z", head); // a rebase: the head's two commits on the base, as they are
+    assert.match(audit("kaal/z", before, head).message, /by rebase, .* landed as 2 commits instead of one/);
+  });
+
+  it("fails closed when the landing is not attributable to one pull request, or its head cannot be read", () => {
+    r.g("checkout", "-q", "-B", "work", "kaal/x");
+    r.put({ "q.md": "q\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "q");
+    const head = rev("HEAD");
+    r.g("checkout", "-q", "--detach", "main");
+    r.g("branch", "-f", "kaal/q", "kaal/x");
+    const before = rev("kaal/q");
+    r.squash("kaal/q", head);
+    const after = rev("kaal/q");
+    assert.equal(audit("kaal/q", before, head).kind, "pass");
+    const none = audit("kaal/q", before, head, []);
+    assert.match(none.message, /^No pull request is attributable to kaal\/q at [0-9a-f]{7}: GitHub associates no pull request with it\./);
+    const two = audit("kaal/q", before, head, [{ number: 1, base: "kaal/q", head, merge: after }, { number: 2, base: "kaal/q", head, merge: after }]);
+    assert.match(two.message, /GitHub names #1 #2, each with merge commit/);
+    const lost = audit("kaal/q", before, head, [{ number: 1, base: "kaal/q", head: D, merge: after }]);
+    assert.match(lost.message, /: the head ddddddd of #1 is not in this repository\./);
+    assert.deepEqual([none.kind, two.kind, lost.kind], ["fail", "fail", "fail"]);
+  });
+
+  it("passes a one-commit Change landed by rebase as what it is: the same shape as a squash", () => {
+    r.g("checkout", "-q", "-B", "work", "kaal/x");
+    r.put({ "r.md": "r\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "one commit");
+    const head = rev("HEAD");
+    r.g("checkout", "-q", "--detach", "main");
+    const before = rev("kaal/x");
+    r.g("branch", "-f", "kaal/r", head); // a rebase of a one-commit head onto the base's tip: that commit, as it is
+    r.g("branch", "-f", "kaal/s", before);
+    r.squash("kaal/s", head);
+    const rebased = audit("kaal/r", before, head);
+    const squashed = audit("kaal/s", before, head);
+    assert.deepEqual([rebased.kind, squashed.kind], ["pass", "pass"]);
+    assert.equal(rebased.message.replace("kaal/r", "kaal/s"), squashed.message, "Git shows the two alike, and the verdict says no more than that");
+    assert.match(rebased.message, /Git cannot tell a squash from a rebase of a one-commit head/);
+  });
+
+  it("classifies a landing the same when main has advanced since, and fails closed on a main older than it", () => {
+    r.g("branch", "-f", "kaal/w", "kaal/x");
+    r.land("main", { "docs/b.md": "b\n" }, "main advances again");
+    const atReview = rev("main");
+    const merged = r.synchronize("kaal/w");
+    const sync = r.g("commit-tree", `${merged}^{tree}`, "-p", `${merged}^1`, "-p", `${merged}^2`, "-m", `Synchronize kaal/w with main\n\nSynchronized-with: ${atReview}`);
+    const syncBefore = rev("kaal/w");
+    r.mergeCommit("kaal/w", sync);
+    r.g("checkout", "-q", "-B", "work", "kaal/w");
+    r.put({ "w.md": "w\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "a Change after the synchronization");
+    const change = rev("HEAD");
+    r.g("checkout", "-q", "--detach", "main");
+    const changeBefore = rev("kaal/w");
+    r.squash("kaal/w", change);
+    const later = (tip: string, before: string, after: string, head: string) =>
+      landing(readLanding(r.dir, "main", "kaal/w", tip, before, after, [{ number: 1, base: "kaal/w", head, merge: after }]));
+    const judged = () => [later(rev("main"), syncBefore, rev("kaal/w~1"), sync), later(rev("main"), changeBefore, rev("kaal/w"), change)];
+    const atLanding = judged().map((v) => [v.kind, v.message]);
+    assert.deepEqual(atLanding.map(([k]) => k), ["pass", "pass"], atLanding.join("\n"));
+    r.land("main", { "docs/c.md": "c\n" }, "an unrelated Change lands on main");
+    r.g("branch", "kaal/v", "main");
+    r.land("kaal/v", { "v.md": "v\n" }, "another capability's Change");
+    r.g("branch", "-f", "main", r.g("commit-tree", "kaal/v^{tree}", "-p", "main", "-m", "Promote kaal/v"));
+    assert.deepEqual(judged().map((v) => [v.kind, v.message]), atLanding, "main advanced: the same verdicts, word for word");
+    const stale = later(rev(`${atReview}~1`), syncBefore, rev("kaal/w~1"), sync);
+    assert.equal(stale.kind, "fail");
+    assert.match(stale.message, /^Cannot judge how #1 should have landed: its head states Synchronized-with/);
+    const unmarked = later(rev(`${atReview}~1`), syncBefore, rev("kaal/w~1"), merged);
+    assert.equal(unmarked.kind, "fail", "a synchronization that states no marker still never passes on a main older than it");
+  });
+});
+
+describe("acceptance: a collector's lifecycle", () => {
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  const rev = (ref: string) => r.g("rev-parse", ref);
+  const records: Record<string, CollectorRecord> = {};
+  const audit = (holds: Hold[] = []) =>
+    Object.fromEntries(readCollectors(r.dir, "main", rev("main"), "refs/heads/kaal/", holds, records).map((c) => [c.collector, collector(c)]));
+  /** A squash promotion as GitHub lands it, recorded as the merged pull request GitHub reports. */
+  const promote = (c: string, number: number) => {
+    r.g("branch", "-f", "main", r.g("commit-tree", `${c}^{tree}`, "-p", "main", "-m", `Promote ${c} (#${number})`));
+    records[c].promotions.push({ number, head: rev(c), merge: rev("main") });
+  };
+
+  it("passes it while it holds unpromoted work, and is due for deletion once a promotion of it took everything", () => {
+    r.g("branch", "kaal/x", "main");
+    records["kaal/x"] = { open: [], promotions: [] };
+    assert.match(audit()["kaal/x"].message, /holds no Change yet/);
+    r.land("kaal/x", { "a.md": "a\n" });
+    assert.equal(audit()["kaal/x"].kind, "pass");
+    promote("kaal/x", 20);
+    assert.match(audit()["kaal/x"].message, /^kaal\/x is fully promoted: #20 took it to main/);
+    r.land("main", { "b.md": "b\n" }, "main advances");
+    assert.equal(audit()["kaal/x"].kind, "fail", "still due after main advances");
+  });
+
+  it("is due for deletion after a synchronization that only gives it main's ancestry, unless held", () => {
+    r.mergeCommit("kaal/x", r.synchronize("kaal/x"));
+    assert.match(audit()["kaal/x"].message, /fully promoted: #20/);
+    const held = audit([{ collector: "kaal/x", reason: "held for its next Change", ruling: "https://example.org/r" }]);
+    assert.equal(held["kaal/x"].kind, "held");
+    r.land("kaal/x", { "c.md": "c\n" });
+    assert.equal(audit()["kaal/x"].kind, "pass", "new work keeps it");
+  });
+
+  it("never takes a tree that main happens to share for a promotion", () => {
+    r.g("branch", "kaal/y", "main");
+    records["kaal/y"] = { open: [], promotions: [] };
+    r.land("kaal/y", { "y.md": "y\n" }, "a Change on kaal/y");
+    r.land("main", { "y.md": "y\n" }, "the same content reaches main another way");
+    assert.equal(rev("kaal/y^{tree}"), rev("main^{tree}"), "the trees coincide");
+    assert.match(audit()["kaal/y"].message, /^kaal\/y holds work no promotion of it has taken to main\.$/);
+  });
+
+  it("does not count an earlier collector's promotion for one established again under its name", () => {
+    promote("kaal/x", 21);
+    r.g("branch", "-f", "kaal/x", "main");
+    r.land("kaal/x", { "d.md": "d\n" }, "new work after re-establishing");
+    r.land("main", { "d.md": "d\n" }, "main has the same content another way");
+    assert.match(audit()["kaal/x"].message, /holds work no promotion of it has taken/);
+  });
+
+  it("cannot judge a collector GitHub reported nothing for, or whose promotion is missing", () => {
+    r.g("branch", "kaal/z", "main");
+    r.land("kaal/z", { "z.md": "z\n" });
+    assert.match(audit()["kaal/z"].message, /^Cannot judge kaal\/z: GitHub reported no pull requests for it\./);
+    records["kaal/z"] = { open: [], promotions: [{ number: 30, head: D, merge: rev("main") }] };
+    assert.match(audit()["kaal/z"].message, /^Cannot judge kaal\/z: its promotion #30 is not in this repository/);
+    assert.equal(audit()["kaal/z"].kind, "fail");
+  });
+});
+
+describe("acceptance: a working branch after its Change merges", () => {
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  r.g("branch", "kaal/x", "main");
+  const rev = (ref: string) => r.g("rev-parse", ref);
+  const judge = (branch: string, merged: { number: number; head: string }[]) =>
+    workingBranch(readWorkingBranch(r.dir, "main", { branch, tip: rev(branch), merged }));
+  r.land("kaal/x", {}, "collector work");
+  r.g("checkout", "-q", "-B", "claude/w", "kaal/x");
+  r.put({ "w.md": "1\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "first Change");
+  const first = rev("HEAD");
+  r.g("checkout", "-q", "--detach", "main");
+  // The squash GitHub writes, under its own title, so it is never the head's own commit.
+  r.g("branch", "-f", "kaal/x", r.g("commit-tree", `${first}^{tree}`, "-p", "kaal/x", "-m", "first Change (#40)"));
+
+  it("is due for deletion once its Change merged", () => assert.match(judge("claude/w", [{ number: 40, head: first }]).message, /merged as #40 .* Delete the branch/));
+
+  it("fails when reused for a second Change, open or merged", () => {
+    r.g("checkout", "-q", "claude/w");
+    r.put({ "w.md": "2\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "second Change on the same branch");
+    r.g("checkout", "-q", "--detach", "main");
+    const v = judge("claude/w", [{ number: 40, head: first }]);
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /^claude\/w was reused: it still carries the head of #40/);
+    const second = rev("claude/w");
+    assert.match(judge("claude/w", [{ number: 40, head: first }, { number: 41, head: second }]).message, /merged as #41/);
+  });
+
+  it("passes a new branch created again under the name, from the collector's tip", () => {
+    r.g("branch", "-f", "claude/w", "kaal/x");
+    r.g("checkout", "-q", "claude/w");
+    r.put({ "w.md": "3\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "a new Change on a new branch");
+    r.g("checkout", "-q", "--detach", "main");
+    assert.match(judge("claude/w", [{ number: 40, head: first }]).message, /is a new branch under a name that #40 used/);
+  });
+
+  it("cannot judge a merged head that is not in this repository", () =>
+    assert.match(judge("claude/w", [{ number: 42, head: D }]).message, /^Cannot judge claude\/w: ddddddd is not in this repository/));
 });
 
 describe("acceptance: resolutions adopted from main", () => {
