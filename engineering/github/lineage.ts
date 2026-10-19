@@ -12,6 +12,10 @@
 //                        merged state's content unchanged. It is fully current or a valid step. Anything
 //                        else proposed to a lineage is an ordinary Change, which must not carry the
 //                        default branch's history.
+//   autoMerge            Gate, before a pull request lands: auto-merge, when enabled, is set to the method
+//                        its flow names.
+//   landing              Audit, after a pull request has landed: it landed by that method. A landing cannot
+//                        be gated after the fact; this verdict reports it, with the repair.
 //
 // A synchronization lands with a merge commit, so the lineage keeps the default branch's ancestry; an
 // ordinary Change lands by squash. Each verdict says which. A `Synchronized-with: <sha>` line, from the
@@ -22,6 +26,10 @@
 //   lineage.ts freshness <default> <default-tip> <head-ref> <head>
 //   lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]
 //   lineage.ts incorporated <lineage-tip> <default-tip>    prints the state a synchronization starts from
+//   lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>
+//   lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>
+// pulls.json is what GitHub reports of the pull requests associated with <after>, as
+// [{ number, base, head, merge }]: base ref, head commit and merge commit (null while unmerged).
 // Exits 0 pass, 1 fail, 2 cannot judge, 3 not applicable. A consumer must treat 2 as a failure and
 // 3 as "this verdict does not apply", never as a pass of it. --resolutions writes a verified
 // synchronization's own resolutions, NUL-separated, as input for Change Isolation; resolutions that
@@ -32,7 +40,7 @@
 // is not judged here; the lineage's tests and review decide that. Adoption only narrows what Change
 // Isolation judges: the whole resulting tree still goes through every required check.
 import { spawnSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const GUIDE = "engineering/github/branching.md";
@@ -193,6 +201,131 @@ export function synchronization(f: SyncFacts): SyncVerdict {
   };
 }
 
+/** How GitHub lands a pull request. */
+export type Method = "squash" | "merge" | "rebase";
+const METHOD_NAME: Record<Method, string> = { squash: "squash", merge: "a merge commit", rebase: "rebase" };
+const TELLING = `${GUIDE}#telling-a-synchronization-from-a-change`;
+
+/** The method a pull request's flow lands by: squash into the default branch; into a lineage, a merge
+ *  commit for a passing synchronization and squash for an ordinary Change. A synchronization verdict
+ *  that fails names none: that pull request must not land. */
+export function methodFor(defaultBranch: string, baseRef: string, sync: Verdict | null): "squash" | "merge" | null {
+  if (baseRef === defaultBranch) return "squash";
+  if (sync === null) return null;
+  return sync.kind === "pass" ? "merge" : sync.kind === "not-applicable" ? "squash" : null;
+}
+
+export interface AutoMergeFacts {
+  baseRef: string;
+  head: string;
+  /** The method its flow names, or null when its Branching verdict fails. */
+  expected: "squash" | "merge" | null;
+  /** The method auto-merge is enabled with, or null when auto-merge is off. */
+  enabled: Method | null;
+}
+
+export function autoMerge(f: AutoMergeFacts): Verdict {
+  if (f.expected === null) {
+    return { kind: "fail", message: `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right. See ${TELLING}` };
+  }
+  if (f.enabled === null) {
+    return { kind: "not-applicable", message: `Auto-merge is off. Whoever lands this pull request into ${f.baseRef} uses ${METHOD_NAME[f.expected]}.` };
+  }
+  if (f.enabled === f.expected) return { kind: "pass", message: `Auto-merge lands this pull request into ${f.baseRef} by ${METHOD_NAME[f.expected]}, as its flow names.` };
+  return {
+    kind: "fail",
+    message:
+      `Auto-merge would land this pull request into ${f.baseRef} by ${METHOD_NAME[f.enabled]}, but its flow lands by ${METHOD_NAME[f.expected]}. ` +
+      `Disable auto-merge and enable it again with ${METHOD_NAME[f.expected]}. See ${TELLING}`,
+  };
+}
+
+export interface LandingFacts {
+  defaultBranch: string;
+  baseRef: string;
+  /** The base branch's tip before the landing, and after it. */
+  before: string;
+  after: string;
+  /** The pull request that landed it and its head, or null when none is attributable. */
+  pull: number | null;
+  head: string | null;
+  /** Why no pull request is attributable, when GitHub reports none or several; null otherwise. */
+  unattributed: string | null;
+  /** The method its flow names, judged on the base as it stood before the landing; null when its
+   *  Branching verdict fails. */
+  expected: "squash" | "merge" | null;
+  /** The default-branch state the head states Synchronized-with when the default tip it was judged
+   *  against does not hold it: the facts are too old to judge the flow. null otherwise. */
+  unseen: string | null;
+  /** Commits on the base's first-parent history from `before` to `after`. */
+  commits: number;
+  /** The parents of `after`. */
+  parents: string[];
+}
+
+/** What Git shows of a landing. GitHub records no merge method on the commits it writes, so the
+ *  method is read from their shape, and one shape is ambiguous: a single commit with one parent is
+ *  what a squash leaves, and also what a rebase of a one-commit head leaves. */
+export type Shape = "merge-commit" | "one-commit" | "several-commits";
+const SHAPE_NAME: Record<Shape, string> = {
+  "merge-commit": "a merge commit of its head",
+  "one-commit": "one single-parent commit",
+  "several-commits": "several commits",
+};
+/** The method each shape is consistent with: the only one, except a one-commit rebase also leaves one commit. */
+const SHAPE_METHOD: Record<Shape, Method> = { "merge-commit": "merge", "one-commit": "squash", "several-commits": "rebase" };
+
+/** The shape a landing left: one commit with the head as second parent, one commit with one parent,
+ *  or several commits. null when it is none of these. */
+export function landedAs(f: Pick<LandingFacts, "commits" | "parents" | "head">): Shape | null {
+  if (f.commits > 1) return "several-commits";
+  if (f.commits !== 1) return null;
+  if (f.parents.length === 2 && f.parents[1] === f.head) return "merge-commit";
+  return f.parents.length === 1 ? "one-commit" : null;
+}
+
+export function landing(f: LandingFacts): Verdict {
+  const what = `${f.baseRef} at ${short(f.after)}`;
+  if (f.pull === null || f.head === null) {
+    return {
+      kind: "fail",
+      message: `No pull request is attributable to ${what}: ${f.unattributed ?? "none landed it"}. ${f.baseRef} changes only through pull requests. See ${GUIDE}#branches`,
+    };
+  }
+  const pr = `#${f.pull}`;
+  if (f.unseen !== null) {
+    return {
+      kind: "fail",
+      message:
+        `Cannot judge how ${pr} should have landed: its head states Synchronized-with ${short(f.unseen)}, which ${f.defaultBranch} ` +
+        `as given does not hold. Audit it against ${f.defaultBranch}'s current tip. See ${TELLING}`,
+    };
+  }
+  if (f.expected === null) return { kind: "fail", message: `${pr} landed into ${f.baseRef} although its Branching verdict fails. See ${TELLING}` };
+  const shape = landedAs(f);
+  if (shape === null) return { kind: "fail", message: `${pr} landed ${what} in a shape that is no method its flow allows. See ${TELLING}` };
+  const used = SHAPE_METHOD[shape];
+  const seen = `${pr} landed into ${f.baseRef} as ${SHAPE_NAME[shape]}`;
+  if (used === f.expected) {
+    return {
+      kind: "pass",
+      message:
+        `${seen}, the shape ${METHOD_NAME[used]} leaves, as its flow names. ` +
+        (shape === "one-commit"
+          ? `Git cannot tell a squash from a rebase of a one-commit head; both land the same single commit, so either meets the flow.`
+          : `Only the shape is verified; GitHub records no method.`),
+    };
+  }
+  const repair =
+    f.expected === "merge"
+      ? `${f.baseRef} now lacks ${f.defaultBranch}'s ancestry, so its next promotion fails freshness. Synchronize it again. See ${GUIDE}#synchronize`
+      : used === "merge"
+        ? `The verified tree landed unchanged, with ${f.defaultBranch}-side history added; nothing needs repair. Land the next one by squash. See ${TELLING}`
+        : `It landed as ${f.commits} commits instead of one. Land the next one by squash. See ${TELLING}`;
+  const by = shape === "one-commit" ? "by squash or a one-commit rebase" : `by ${METHOD_NAME[used]}`;
+  return { kind: "fail", message: `${seen}, so ${by}, but its flow lands by ${METHOD_NAME[f.expected]}. ${repair}` };
+}
+
 // ---- Facts: read from Git ------------------------------------------------------------------
 
 function git(cwd: string, args: string[], ok: number[] = [0]): { status: number; stdout: string } {
@@ -237,9 +370,11 @@ function synchronizes(cwd: string, c: string, from: string, s: string, base: str
   return { ok: differing.length === 0, expected, differing };
 }
 
+const exists = (cwd: string, c: string) => git(cwd, ["cat-file", "-e", `${c}^{commit}`], [0, 1, 128]).status === 0;
+
 /** Whether s is a state the default branch admitted: a commit on its first-parent history. */
 function admitted(cwd: string, s: string, defaultTip: string): boolean {
-  if (git(cwd, ["cat-file", "-e", `${s}^{commit}`], [0, 1, 128]).status !== 0 || !isAncestor(cwd, s, defaultTip)) return false;
+  if (!exists(cwd, s) || !isAncestor(cwd, s, defaultTip)) return false;
   return git(cwd, ["rev-list", "--first-parent", defaultTip]).stdout.split("\n").includes(s);
 }
 
@@ -290,6 +425,54 @@ export function readSync(cwd: string, defaultBranch: string, lineage: string, de
   return facts;
 }
 
+/** The method a pull request into baseRef lands by, judged against the base at baseTip. */
+export function readExpected(cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, baseTip: string, head: string): "squash" | "merge" | null {
+  if (baseRef === defaultBranch) return "squash";
+  return methodFor(defaultBranch, baseRef, synchronization(readSync(cwd, defaultBranch, baseRef, defaultTip, baseTip, head)));
+}
+
+/** A pull request as GitHub reports it: its base ref, its head commit, and its merge commit, which
+ *  is the base's new tip for every method; null while it is unmerged. */
+export interface Pull {
+  number: number;
+  base: string;
+  head: string;
+  merge: string | null;
+}
+
+/** The one pull request that landed `after` on baseRef, or why there is none: GitHub's association
+ *  of a commit with pull requests is not unique, so only a merged pull request into baseRef whose
+ *  merge commit is `after` counts, and it must be the only one. */
+export function attribute(pulls: Pull[], baseRef: string, after: string): Pull | string {
+  const landed = pulls.filter((p) => p.base === baseRef && p.merge === after);
+  if (landed.length === 1) return landed[0];
+  if (landed.length > 1) return `GitHub names ${landed.map((p) => `#${p.number}`).join(" ")}, each with merge commit ${short(after)}, so none is attributable alone`;
+  return pulls.length
+    ? `GitHub associates ${pulls.map((p) => `#${p.number}`).join(" ")} with it, but none merged into ${baseRef} with merge commit ${short(after)}`
+    : "GitHub associates no pull request with it";
+}
+
+/** The facts of a landing, judged on the base as it stood before it and on the default tip given,
+ *  which may be later than the landing: the default branch only moves forward, and every state a
+ *  head can merge in stays on its first-parent history. */
+export function readLanding(
+  cwd: string, defaultBranch: string, baseRef: string, defaultTip: string, before: string, after: string, pulls: Pull[],
+): LandingFacts {
+  const found = attribute(pulls, baseRef, after);
+  let unattributed = typeof found === "string" ? found : null;
+  if (typeof found !== "string" && !exists(cwd, found.head)) unattributed = `the head ${short(found.head)} of #${found.number} is not in this repository`;
+  const pull = unattributed === null && typeof found !== "string" ? found.number : null;
+  const head = pull !== null && typeof found !== "string" ? rev(cwd, found.head) : null;
+  const claimed = head === null ? null : markerOf(cwd, head);
+  const unseen = claimed !== null && !isAncestor(cwd, claimed, defaultTip) ? claimed : null;
+  return {
+    defaultBranch, baseRef, before, after, pull, head, unattributed, unseen,
+    expected: head === null ? null : readExpected(cwd, defaultBranch, baseRef, defaultTip, before, head),
+    commits: Number(git(cwd, ["rev-list", "--first-parent", "--count", after, `^${before}`]).stdout.trim()),
+    parents: parents(cwd, after),
+  };
+}
+
 // ---- CLI ----------------------------------------------------------------------------------
 
 const EXIT = { pass: 0, fail: 1, "not-applicable": 3 } as const;
@@ -312,11 +495,28 @@ function main(argv: string[]): number {
     const s = synchronization(readSync(cwd, def, lineage, rev(cwd, defaultTip), rev(cwd, lineageTip), rev(cwd, head)));
     if (out) writeFileSync(out, s.kind === "pass" ? s.resolutions.map((p) => `${p}\0`).join("") : "");
     v = s;
+  } else if (verdict === "auto-merge" && args.length === 6) {
+    const [def, baseRef, defaultTip, baseTip, head, enabled] = args;
+    if (enabled !== "none" && !["squash", "merge", "rebase"].includes(enabled)) throw new Error(`not a merge method: ${enabled}`);
+    const h = rev(cwd, head);
+    v = autoMerge({
+      baseRef, head: h, enabled: enabled === "none" ? null : (enabled as Method),
+      expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
+    });
+  } else if (verdict === "landing" && args.length === 6) {
+    const [def, baseRef, defaultTip, before, after, file] = args;
+    const pulls = JSON.parse(readFileSync(file, "utf8"));
+    if (!Array.isArray(pulls) || !pulls.every((p) => Number.isInteger(p?.number) && typeof p.base === "string" && typeof p.head === "string")) {
+      throw new Error(`${file} is not a list of pull requests`);
+    }
+    v = landing(readLanding(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, before), rev(cwd, after), pulls as Pull[]));
   } else {
     console.error("usage: lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref>\n" +
       "       lineage.ts freshness <default> <default-tip> <head-ref> <head>\n" +
       "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]\n" +
-      "       lineage.ts incorporated <lineage-tip> <default-tip>");
+      "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
+      "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>\n" +
+      "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>");
     return 2;
   }
   (v.kind === "fail" ? console.error : console.log)(v.message);
