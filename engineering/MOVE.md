@@ -9,7 +9,9 @@ type:
 
 Main Offers Valuable Experience. KAAL's self-evolution principle.
 
-The three parts below are kept apart so that the source of each claim stays visible. Only the first two state the principle. The third describes how it is realized today.
+**The currently accepted KAAL develops its own successor.** KAAL *x* develops KAAL *x+1*. The successor becomes the actor only once it is accepted, and then it develops *x+2*.
+
+The three parts below are kept apart so that the source of each claim stays visible. The first two state the principle. The third describes how it is realized today.
 
 ## Provenance
 
@@ -38,7 +40,9 @@ Today the two kinds of evidence are owned by Testing ([Testing](../packages/skil
 
 Added by the Owner on 2026-10-18. It is not part of the v2 text.
 
-KAAL *x*, as accepted on `main`, develops KAAL *x+1*, the next accepted state. The capabilities and experience accepted at *x* engineer, verify and validate the proposed successor. A capability of the successor that is not yet accepted is never assumed to be available to establish its own acceptance.
+The currently accepted KAAL develops its own successor. KAAL *x* is not merely a baseline or a destination for completed work. It is the actor that drives its own evolution. The capabilities and experience accepted at *x* engineer, verify and validate the proposed successor, *x+1*. Once *x+1* is accepted, it becomes the actor and develops *x+2*.
+
+A constraint follows from this. A capability of the successor that is not yet accepted is never assumed to be available to establish its own acceptance.
 
 MOVE states the principle and takes over no one's responsibilities. The Change lifecycle, including the transition from candidate to accepted state, belongs to Change. Evidence and governance belong to Testing and Controls.
 
@@ -46,4 +50,4 @@ MOVE states the principle and takes over no one's responsibilities. The Change l
 
 This part describes the current realization. It is not a requirement of the principle, and Git `main` is not the principle itself.
 
-Candidates are built on working branches and collected on `kaal/*`. Only `kaal/*` reaches `main`, through required checks ([branching](github/branching.md)). One concrete instance of the clarification is how the Change Isolation, Lineage Synchronization and Promotion Source checks run `engineering/github/lineage.ts`. They take it from `main` with `git show`, never from the candidate. So *x* judges *x+1*, and a candidate cannot certify itself with its own checker.
+Today `main` represents the accepted KAAL, *x*. Candidates are built on working branches and collected on `kaal/*`. Only `kaal/*` reaches `main`, through required checks ([branching](github/branching.md)). One concrete instance of the clarification is how the Change Isolation, Lineage Synchronization and Promotion Source checks run `engineering/github/lineage.ts`. They take it from `main` with `git show`, never from the candidate. So *x* judges *x+1*, and a candidate cannot certify itself with its own checker.
