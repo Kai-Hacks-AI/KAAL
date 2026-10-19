@@ -37,17 +37,21 @@ export function recordPath({ capability, date, number }) {
   return path;
 }
 
-// Numbering. A Change claims the record folder its pull request adds; the
-// number is provisional until the Change is accepted into its collector, so
-// a pull request closed without merging consumes none. Listing the files at
-// the fork point and at the collector's tip is Hosting's; running the check
-// at merge time, fresh against the tip, is Engineering's Branching.
+// Numbering. A Change claims the one record folder its pull request
+// changes; the number is provisional until the Change is accepted into its
+// collector, so a pull request closed without merging consumes none. A
+// record the collector holds belongs to the Change accepted with it, so no
+// later pull request changes it, rebased or not. Listing the files is
+// Hosting's; running the check at merge, fresh against the tip, is
+// Engineering's Branching.
 
-/** The record a repository-relative file lies in, or `{ finding }`. */
+/** The record a repository-relative file lies in, or `{ finding }`. A file lies inside the CC folder, never at it. */
 export function recordOf(path) {
   const parts = typeof path === "string" ? path.split("/") : [];
   const read = readRecordPath(parts.slice(0, 7).join("/"));
-  return read.finding ? read : { record: `${parts.slice(0, 7).join("/")}/`, ...read };
+  if (read.finding) return read;
+  if (parts.length < 8 || parts.slice(7).some((part) => part === "")) return { finding: `${path}: a record's files lie inside its CC folder` };
+  return { record: `${parts.slice(0, 7).join("/")}/`, ...read };
 }
 
 function records(paths) {
@@ -66,23 +70,22 @@ export function nextRecordPath({ capability, date }, collector) {
 }
 
 /**
- * Checks a Change's claim against its collector. `added` are the files the
- * pull request adds, `base` the files at its fork point and `collector` the
- * files at the collector's current tip. A Change claims the records it adds
- * that its fork point did not hold, and at most one. A claim collides when
- * the collector already holds that record: the Change renames its folder to
- * the next free number, updates its references and is checked again.
- * Returns `{ claimed, findings }`.
+ * Checks a Change's claim against its collector. `changed` are the files the
+ * pull request adds, modifies or deletes against the collector it is checked
+ * against, and `collector` the files at the collector's current tip. A Change
+ * claims the record its changed files lie in, and at most one. A claim
+ * collides when the collector already holds that record: the Change renames
+ * its folder to the next free number, updates its references and is checked
+ * again. Returns `{ claimed, findings }`.
  */
-export function checkClaim({ added, base, collector }) {
+export function checkClaim({ changed, collector }) {
   const findings = [];
-  const held = records(base);
   const claimed = new Set();
-  for (const path of added) {
+  for (const path of changed) {
     if (!path.startsWith(`${ROOT}/`)) continue;
     const read = recordOf(path);
     if (read.finding) findings.push(read.finding);
-    else if (!held.has(read.record)) claimed.add(read.record);
+    else claimed.add(read.record);
   }
   if (claimed.size > 1) findings.push(`a Change claims one record, not ${[...claimed].join(", ")}`);
   const occupied = records(collector);
