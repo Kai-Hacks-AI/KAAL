@@ -13,6 +13,6 @@ Content about a subject goes to that subject's active context, reached through a
 
 - A location about a different subject is not the context, even when it is open. When a message raises a subject that belongs elsewhere, the reply still goes in that message's conversation: it acknowledges the message and references the subject's own context, where the content about that subject goes.
 - A location whose subject has concluded, such as a merged or closed Change or a concluded discussion, is historical: new content does not go there.
-- Where the context is missing, ambiguous or cannot be confirmed, the Agent refuses and asks; it never guesses.
+- Where the Agent cannot determine the subject's context, because the subject is unclear, more than one context matches, a lookup failed or a context's state cannot be confirmed, the Agent refuses and asks; it never guesses. A subject that has no context yet is not unknown: its content starts a new shared conversation, as the order below says.
 
 Among the contexts that are relevant and active, content goes to the highest: (1) the context of an open Change; (2) otherwise an open conversation; (3) otherwise a new shared conversation; (4) only as a last resort, a direct chat with an Agent, which is transient. Anything worth keeping from a direct chat is routed to a suitable shared home and not left in a session.

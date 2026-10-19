@@ -26,7 +26,7 @@ CCCC (Communicate Content in Context through Channels) decides where you raise s
 
 - A location about a different subject is not the context, even when it is open. If a message you answer raises a subject that belongs elsewhere, reply in its conversation to acknowledge it and point to the subject's own context, then put the content there.
 - A merged or closed Change, or a concluded discussion, is historical: do not add new content there.
-- If you cannot tell which context is right, or cannot confirm that it is still active, do not guess. Ask your principal.
+- If you cannot tell which context is right, or cannot confirm that it is still active, do not guess. Ask your principal. If you know the subject has no context yet, that is not this case: start a new shared conversation.
 
 Among the relevant, active contexts, pick the highest:
 
