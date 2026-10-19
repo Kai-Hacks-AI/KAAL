@@ -4,7 +4,7 @@ KAAL Slack: the Extension that carries KAAL Communication (the `kaal-communicati
 
 ```
 payload/Slack.md                the Extension Node, typed by Core's KAAL Extension
-payload/Slack-Transport.md      Slack's realization of Communication's Transport
+payload/Slack-Channel.md        Slack's realization of Communication's Channel
 skills/kaal-slack/              the Agent Skill: SKILL.md, references/defaults.md
 ```
 
@@ -14,7 +14,7 @@ Slack carries coordination: discussion, questions and alignment that would other
 
 ## Depends on kaal-communication
 
-`Slack Transport` is typed by `Transport` from kaal-communication. Core admits a Node only when its type resolves, so registering this Extension into an Engine without kaal-communication is refused and writes nothing. Register both, in this order:
+`Slack Channel` is typed by `Channel` from kaal-communication. Core admits a Node only when its type resolves, so registering this Extension into an Engine without kaal-communication is refused and writes nothing. Register both, in this order:
 
 ```sh
 npx kaal register skill kaal-communication node_modules/kaal-communication/payload
