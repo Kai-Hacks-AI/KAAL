@@ -8,9 +8,9 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
-  GUIDE, attribute, autoMerge, collector, establishment, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness,
-  promotionSource, readCollectors, readExpected, readFreshness, readLanding, readSync, readWorkingBranch, stateAt, synchronization, unevidenced,
-  workingBranch, type WorkingBranchFacts, type CollectorFacts, type CollectorRecord, type Hold, type LandingFacts, type Pull, type SyncFacts,
+  GUIDE, RULES, attribute, autoMerge, claim, collector, establishment, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness,
+  promotionSource, readClaim, readCollectors, readExpected, readFreshness, readLanding, readSync, readWorkingBranch, stateAt, synchronization, unevidenced,
+  workingBranch, type CheckClaim, type ClaimFacts, type WorkingBranchFacts, type CollectorFacts, type CollectorRecord, type Hold, type LandingFacts, type Pull, type SyncFacts,
 } from "./lineage.ts";
 
 const A = "a".repeat(40), B = "b".repeat(40), C = "c".repeat(40), D = "d".repeat(40);
@@ -272,6 +272,37 @@ describe("workingBranch", () => {
   });
 });
 
+
+describe("claim", () => {
+  const f: ClaimFacts = { defaultBranch: "main", baseRef: "kaal/x", baseTip: B, kind: "substantive", rules: () => ({ claimed: [], findings: [] }), changed: [], collector: [] };
+  it("does not apply outside a collector", () => assert.equal(claim({ ...f, baseRef: "main" }).kind, "not-applicable"));
+  it("does not apply while the default branch holds no numbering rule", () => {
+    const v = claim({ ...f, rules: null });
+    assert.equal(v.kind, "not-applicable");
+    assert.match(v.message, /not in force: main holds no packages\/skills\/kaal-change\/lib\/record\.mjs/);
+  });
+  it("hands Change's rule exactly the files it read", () => {
+    let seen: unknown;
+    const rules: CheckClaim = (x) => ((seen = x), { claimed: [], findings: [] });
+    claim({ ...f, kind: "synchronization", rules, changed: ["a"], collector: ["c"] });
+    assert.deepEqual(seen, { kind: "synchronization", changed: ["a"], collector: ["c"] });
+  });
+  it("passes a claim the rule finds free, saying the number is provisional", () => {
+    const v = claim({ ...f, rules: () => ({ claimed: [".kaal/changes/x/26/10/19/01/"], findings: [] }) });
+    assert.deepEqual([v.kind, v.message], ["pass", "Claims .kaal/changes/x/26/10/19/01/, free in kaal/x at bbbbbbb. The number is provisional until it lands; a newer tip is checked again."]);
+    assert.equal(claim({ ...f, kind: "synchronization" }).message, "A synchronization Change, claiming no Change Record.");
+  });
+  it("cannot judge a pull request whose Branching verdict fails, since it has no kind", () => {
+    const v = claim({ ...f, kind: null });
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /neither a substantive Change nor a synchronization\. See .*#telling-a-synchronization-from-a-change$/);
+  });
+  it("fails on any finding of the rule, naming each, pointing to the guide", () => {
+    const v = claim({ ...f, rules: () => ({ claimed: ["r/"], findings: ["r/ is already taken: rename the folder to s/", "and another"] }) });
+    assert.equal(v.kind, "fail");
+    assert.equal(v.message, `The Change Record claim does not hold in kaal/x at bbbbbbb: r/ is already taken: rename the folder to s/; and another. See ${GUIDE}#claim`);
+  });
+});
 
 describe("marker", () => {
   it("reads one Synchronized-with line", () => assert.equal(marker(`t\n\nSynchronized-with: ${A}\nCo-Authored-By: x`), A));
@@ -934,5 +965,103 @@ describe("acceptance: resolutions adopted from main", () => {
     const head = r.g("rev-parse", "HEAD");
     r.g("checkout", "-q", "-f", "--detach", "main");
     assert.deepEqual(r.judge("kaal/l", head).resolutions, ["package.json"]);
+  });
+});
+
+/** A stand-in for Change's numbering rule, with its signature: a substantive Change claims exactly
+ *  one record it changes, a synchronization none, and a claim collides with a record the collector
+ *  holds. The real rule is Change's, tested in kaal-change; here the facts, the kind and the tip are
+ *  judged. */
+const STAND_IN = `const record = (p) => p.split("/").slice(0, 7).join("/") + "/";
+const records = (ps) => new Set(ps.filter((p) => p.startsWith(".kaal/changes/")).map(record));
+export function checkClaim({ kind, changed, collector }) {
+  const taken = records(collector);
+  const claimed = [...records(changed)];
+  const findings = claimed.filter((r) => taken.has(r)).map((r) => r + " is already taken");
+  if (kind === "synchronization" && claimed.length) findings.push("a synchronization claims no record");
+  if (kind === "substantive" && claimed.length !== 1) findings.push("a substantive Change claims exactly one record, not " + claimed.length);
+  return { claimed, findings };
+}
+`;
+
+describe("acceptance: claiming a Change Record, one landing at a time", () => {
+  const r = repo();
+  r.land("main", { "README.md": "KAAL\n" }, "initial");
+  r.land("main", { [RULES]: STAND_IN }, "Change's numbering rule accepted");
+  r.g("branch", "kaal/x", "main");
+  const rec = (n: string, cap = "x") => `.kaal/changes/${cap}/26/10/19/${n}/README.md`;
+  /** A Change on its own working branch from the collector's tip as it is now. */
+  const change = (name: string, files: Record<string, string | null>) => {
+    r.g("checkout", "-q", "-B", name, "kaal/x");
+    r.put(files); r.g("add", "-A"); r.g("commit", "-q", "-m", name);
+    r.g("checkout", "-q", "--detach", "main");
+    return r.g("rev-parse", name);
+  };
+  /** Another commit on a Change's branch: the rename an agent makes after a collision. */
+  const amend = (name: string, files: Record<string, string | null>) => {
+    r.g("checkout", "-q", name);
+    r.put(files); r.g("add", "-A"); r.g("commit", "-q", "-m", `${name}: rename`);
+    r.g("checkout", "-q", "--detach", "main");
+    return r.g("rev-parse", name);
+  };
+  const judge = async (head: string, defaultTip = "main") =>
+    claim(await readClaim(r.dir, "main", "kaal/x", r.g("rev-parse", defaultTip), r.g("rev-parse", "kaal/x"), head));
+
+  const a = change("claude/a", { [rec("01")]: "a\n" });
+  const b = change("claude/b", { [rec("01")]: "b\n" });
+
+  it("does not apply while main holds no numbering rule", async () => assert.equal((await judge(a, "main~1")).kind, "not-applicable"));
+
+  it("passes two competing Changes claiming the same record, each against the tip they started from", async () => {
+    assert.match((await judge(a)).message, /^Claims \.kaal\/changes\/x\/26\/10\/19\/01\/, free in kaal\/x/);
+    assert.equal((await judge(b)).kind, "pass");
+  });
+
+  it("fails the second once the first lands, checked again against the new tip", async () => {
+    r.squash("kaal/x", a);
+    const v = await judge(b);
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /\.kaal\/changes\/x\/26\/10\/19\/01\/ is already taken/);
+    assert.ok(v.message.endsWith(`${GUIDE}#claim`));
+  });
+
+  it("fails it as well when rebased onto the first, which puts the first's record at its fork point", async () => {
+    r.g("checkout", "-q", "-B", "claude/b-rebased", "kaal/x");
+    r.put({ [rec("01")]: "b\n" }); r.g("add", "-A"); r.g("commit", "-q", "-m", "claude/b, rebased");
+    r.g("checkout", "-q", "--detach", "main");
+    assert.match((await judge(r.g("rev-parse", "claude/b-rebased"))).message, /\.kaal\/changes\/x\/26\/10\/19\/01\/ is already taken/);
+  });
+
+  it("passes it again once it renames its folder to a free record and retries", async () => {
+    const renamed = amend("claude/b", { [rec("01")]: null, [rec("02")]: "b\n" });
+    assert.match((await judge(renamed)).message, /^Claims \.kaal\/changes\/x\/26\/10\/19\/02\//);
+    r.squash("kaal/x", renamed);
+  });
+
+  it("lets an abandoned Change consume no number", async () => {
+    change("claude/c", { [rec("03")]: "c, closed without landing\n" });
+    const d = change("claude/d", { [rec("03")]: "d\n" });
+    assert.match((await judge(d)).message, /^Claims \.kaal\/changes\/x\/26\/10\/19\/03\//);
+  });
+
+  it("fails a substantive Change claiming two records, or none", async () => {
+    const e = change("claude/e", { [rec("04")]: "e\n", [rec("05")]: "e\n" });
+    assert.match((await judge(e)).message, /a substantive Change claims exactly one record, not 2/);
+    assert.match((await judge(change("claude/none", { "notes.md": "no record\n" }))).message, /exactly one record, not 0/);
+  });
+
+  it("claims nothing for a synchronization that brings records accepted on main", async () => {
+    r.land("main", { [rec("01", "y")]: "y\n" }, "promoted y");
+    const head = r.synchronize("kaal/x");
+    assert.equal((await judge(head)).message, "A synchronization Change, claiming no Change Record.");
+  });
+
+  it("exits 0, 1 and 3 on the command line", () => {
+    const cli = (...args: string[]) => spawnSync(process.execPath, [join(import.meta.dirname, "lineage.ts"), "claim", "main", ...args], { cwd: r.dir, encoding: "utf8" });
+    assert.equal(cli("kaal/x", "main", "kaal/x", change("claude/g", { [rec("09")]: "g\n" })).status, 0);
+    const failed = cli("kaal/x", "main", "kaal/x", b);
+    assert.equal(failed.status, 1);
+    assert.match(failed.stderr, /already taken/);
+    assert.equal(cli("main", "main", "main", b).status, 3);
   });
 });
