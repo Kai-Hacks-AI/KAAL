@@ -13,11 +13,15 @@
 # rulesets' strict up-to-date requirement makes a promotion that does not contain the new tip
 # unmergeable, and the only way back is a new head, which runs this check again. A synchronization's
 # verdict does not depend on the default branch's tip: once valid, it stays a valid step.
+#
+# It also gates the merge method: when auto-merge is enabled, the checker's auto-merge verdict says
+# whether it is set to the method the pull request's flow lands by. Enabling or disabling auto-merge
+# runs this check again. What actually landed is audited after the fact by branching-audit.yml.
 name: KAAL
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, auto_merge_enabled, auto_merge_disabled]
 
 permissions: {}
 
@@ -28,7 +32,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -41,6 +45,7 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           HEAD: ${{ github.event.pull_request.head.sha }}
+          AUTO_MERGE: ${{ github.event.pull_request.auto_merge.merge_method }}
         run: |
           git init -q lineage && cd lineage
           git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" \
@@ -62,4 +67,15 @@ jobs:
             3) echo "Not applicable: $(cat "$RUNNER_TEMP/verdict")" ;;
             1) echo "::error title=Branching::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
             *) echo "::error title=Branching: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
+          esac
+          RC=0; node "$RUNNER_TEMP/lineage.ts" auto-merge "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" \
+            "refs/remotes/origin/$BASE_REF" "$HEAD" "${AUTO_MERGE:-none}" > "$RUNNER_TEMP/method" 2>&1 || RC=$?
+          cat "$RUNNER_TEMP/method" >> "$GITHUB_STEP_SUMMARY"
+          # 0 auto-merge uses the method the flow names; 3 auto-merge is off, reported with that method;
+          # 1 fail; 2 or anything else cannot judge, which fails closed.
+          case $RC in
+            0) cat "$RUNNER_TEMP/method" ;;
+            3) echo "Not applicable: $(cat "$RUNNER_TEMP/method")" ;;
+            1) echo "::error title=Branching: merge method::$(cat "$RUNNER_TEMP/method")"; exit 1 ;;
+            *) echo "::error title=Branching: cannot judge the merge method::$(cat "$RUNNER_TEMP/method")"; exit 1 ;;
           esac

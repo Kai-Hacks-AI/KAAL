@@ -20,7 +20,7 @@ export interface Identity {
   /** SHA-256, lowercase hex, of the exact bytes. */
   readonly id: string;
   readonly name: string;
-  /** Absent only for a Node that declares no type. */
+  /** Absent only for a root, the Node that declares no type, as identifyRoot() returns it. */
   readonly type?: Ref;
   /** The complete frontmatter, `name` and `type` included, frozen throughout. */
   readonly frontmatter: Frontmatter;
@@ -33,18 +33,20 @@ export function sha256(bytes: string | Uint8Array): string;
 export function claimsForm(bytes: Uint8Array): boolean;
 export function isName(value: unknown): value is string;
 export function isId(value: unknown): value is string;
-/** Throws a FormError if the bytes are not in Form. */
-export function identify(bytes: Uint8Array): Identity;
+/** An ordinary Node's identity, which always references its type. Throws a FormError if the bytes are not in Form or declare no type. */
+export function identify(bytes: Uint8Array): Identity & { readonly type: Ref };
+/** A root Node's identity: the one Node of a foundation that declares no type. Which Node that is, is the foundation owner's to decide. Throws a FormError if the bytes are not in Form or declare a type. */
+export function identifyRoot(bytes: Uint8Array): Identity & { readonly type?: undefined };
 
 export interface Edge {
   readonly type: Ref;
   readonly target: Ref;
 }
 
-/** Construct a Node's exact, canonical bytes; throws a FormError if they would not be a Node in Form with well-formed Edges. Guarantees Form and Edge structure only, not that references resolve or that a relationship is permitted. Writes nothing. */
+/** Construct an ordinary Node's exact, canonical bytes; throws a FormError if no type is given or if they would not be a Node in Form with well-formed Edges. Guarantees Form and Edge structure only, not that references resolve or that a relationship is permitted. Writes nothing. */
 export function createNode(spec: {
   name: string;
-  type?: Ref;
+  type: Ref;
   edges?: readonly { type: Ref; targets: readonly Ref[] }[];
   frontmatter?: Frontmatter;
   body?: string;

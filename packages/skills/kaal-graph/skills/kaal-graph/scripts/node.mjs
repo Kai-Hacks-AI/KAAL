@@ -92,12 +92,33 @@ function literal(n) {
 }
 
 /**
- * Read a Node's identity from its exact bytes: { id, name, type?, frontmatter },
+ * Read an ordinary Node's identity from its exact bytes: { id, name, type, frontmatter },
  * the frontmatter complete, uninterpreted beyond `name` and `type`. The identity
  * is frozen throughout, as its bytes are: nothing in it can be changed.
- * Throws a FormError if the bytes are not in Form.
+ * Throws a FormError if the bytes are not in Form, or if they declare no type:
+ * an ordinary Node references its type, and only a root declares none.
  */
 export function identify(bytes) {
+  const node = identity(bytes);
+  if (!node.type) throw new FormError(`untyped: ${node.name} declares no type; an ordinary Node references its type, and only a root, read with identifyRoot(), declares none`);
+  return node;
+}
+
+/**
+ * Read a root Node's identity from its exact bytes, as identify() reads any
+ * Node: { id, name, frontmatter }, with no type. A root is the one Node of a
+ * foundation that declares no type, because the other Nodes' types lead back
+ * to it; which Node is a foundation's root is that foundation's owner's to
+ * decide, never Graph's. Throws a FormError if the bytes are not in Form, or
+ * if they declare a type, which makes them an ordinary Node for identify().
+ */
+export function identifyRoot(bytes) {
+  const node = identity(bytes);
+  if (node.type) throw new FormError(`not a root: ${node.name} declares a type, ${node.type.name} (${node.type.id}); read it with identify()`);
+  return node;
+}
+
+function identity(bytes) {
   let text;
   try {
     text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);

@@ -38,8 +38,8 @@ function executed(entries) {
  * Reconcile `attribution` (from kaal-testing/attribution's attribute) with
  * `coverage`, an array with one result per workspace: { workspace, tests,
  * delivered, lines, branches, functions, unexecuted, files, failed?, note? },
- * as Engineering's coverage driver reports them. Both must describe the same
- * tree.
+ * as Engineering's coverage driver reports them, or { workspace, unknown } for
+ * a workspace with no evidence. Both must describe the same tree.
  */
 export function report(attribution, coverage) {
   const owner = new Map();
@@ -50,13 +50,15 @@ export function report(attribution, coverage) {
   const packages = [];
   const entries = [];
   for (const w of [...coverage].sort((a, b) => (a.workspace < b.workspace ? -1 : a.workspace > b.workspace ? 1 : 0))) {
-    const measured = !w.failed && !w.note;
+    const measured = !w.failed && !w.note && !w.unknown;
     if (w.failed) findings.push({ kind: "verified failure", subject: w.workspace, evidence: w.failed });
     if (w.tests === "fail") findings.push({ kind: "verified failure", subject: w.workspace, evidence: `${w.workspace}: its tests failed` });
+    if (w.unknown) findings.push({ kind: "unknown", subject: w.workspace, evidence: w.unknown });
     packages.push({
       workspace: w.workspace,
       tests: w.tests,
-      deliveredFiles: w.delivered?.length ?? 0,
+      // Of a workspace with no evidence, not even the delivered files are known: never zero.
+      ...(w.unknown ? { unknown: w.unknown } : { deliveredFiles: w.delivered?.length ?? 0 }),
       ...(measured ? { lines: w.lines, branches: w.branches, functions: w.functions, unexecuted: [...w.unexecuted] } : {}),
       ...(w.failed ? { failed: w.failed } : {}),
       ...(w.note ? { note: w.note } : {}),
@@ -114,4 +116,62 @@ export function report(attribution, coverage) {
     },
     findings,
   };
+}
+
+const cell = (v) => String(v).replaceAll("|", "\\|").replaceAll("\n", " ");
+const pct = (v) => (v === undefined ? "-" : `${v}%`);
+const lines = ({ executed, total, unmeasured }) => `${executed} of ${total}${unmeasured ? ` (${unmeasured} files not measured)` : ""}`;
+const short = (id) => id.slice(0, 12);
+const FINDINGS = ["verified failure", "potential defect", "architectural concern", "unknown"];
+
+/**
+ * The report as GitHub-flavoured Markdown, from one `report()` result and the
+ * run it came from: `provenance` = { commit?, run?, attempt?, captured: [{
+ * workspace, commit, platform, arch, node }] }. Each section says what its
+ * figures are and are not; a failed or unknown measurement is shown as such,
+ * never as a figure; and no percentage appears but coverage's own.
+ */
+export function markdown(result, provenance) {
+  const out = [];
+  const add = (...l) => out.push(...l);
+  const { ownership, packages, reconciliation, findings } = result;
+  const platforms = [...new Set(provenance.captured.map((c) => `${c.platform} ${c.arch}, Node ${c.node}`))].sort();
+
+  add("## Testing evidence", "");
+  add(`Commit \`${provenance.commit ?? "unknown"}\`${provenance.run ? `, run ${provenance.run}${provenance.attempt ? ` attempt ${provenance.attempt}` : ""}` : ""}.`);
+  add(platforms.length ? `Coverage was captured on ${platforms.join("; ")} only.` : "No coverage was captured.");
+  add("");
+
+  add("### Code coverage", "", "Delivered JavaScript of each workspace, executed by that workspace's own tests. This is execution, not correctness. Acceptance runs installed packages and is not counted.", "");
+  add("| workspace | tests | delivered JS files | lines | branches | functions |", "| --- | --- | --- | --- | --- | --- |");
+  for (const p of packages) {
+    const figures = p.unknown ? "unknown | unknown | unknown" : p.failed ? "not measured | not measured | not measured" : p.note ? "N/A | N/A | N/A" : `${pct(p.lines)} | ${pct(p.branches)} | ${pct(p.functions)}`;
+    add(`| ${cell(p.workspace)} | ${p.unknown ? "unknown" : (p.tests ?? "not observed")} | ${p.unknown ? "unknown" : p.deliveredFiles} | ${figures} |`);
+  }
+  add("");
+
+  add("### CASE ownership", "", `Metric: ${ownership.metric}. These are the owners' own claims, not obligations met.`, "");
+  add("| owner | files | non-blank text lines |", "| --- | --- | --- |");
+  for (const o of ownership.owners) add(`| ${o.kind} ${cell(o.name)} (\`${short(o.id)}\`) | ${o.files} | ${o.nonBlankLines} |`);
+  add(`| unassigned | ${ownership.unassigned.files} | ${ownership.unassigned.nonBlankLines} |`);
+  add(`| of which conflicting claims | ${ownership.conflicts.files} | ${ownership.conflicts.nonBlankLines} |`);
+  add("");
+
+  add("### Reconciliation", "", `A delivered file joins an owner only by its exact tracked path. Executable lines and non-blank text lines are never combined. Metric: ${reconciliation.metric}.`, "");
+  add("| owner or status | delivered files | executable lines executed |", "| --- | --- | --- |");
+  for (const o of reconciliation.owners) add(`| ${o.kind} ${cell(o.name)} (\`${short(o.id)}\`) | ${o.deliveredFiles} | ${lines(o.executableLines)} |`);
+  for (const s of reconciliation.statuses) add(`| ${s.status} | ${s.deliveredFiles} | ${lines(s.executableLines)} |`);
+  add("");
+
+  add("### Findings", "");
+  if (findings.length === 0) add("None reported. That is not evidence of correctness.", "");
+  for (const kind of FINDINGS) {
+    const of = findings.filter((f) => f.kind === kind);
+    if (of.length === 0) continue;
+    add(`**${kind}** (${of.length})`, "");
+    for (const f of of) add(`- ${cell(f.subject)}: ${cell(f.evidence)}`);
+    add("");
+  }
+  add("### Capability contracts", "", "Not reported here. Coverage, ownership and their reconciliation do not show whether any capability meets its contracts.");
+  return out.join("\n") + "\n";
 }
