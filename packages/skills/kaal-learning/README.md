@@ -9,8 +9,6 @@ skills/kaal-learning/     the Agent Skill: SKILL.md
 
 This package establishes the capability only. It holds no knowledge, keeps no store, index or records, and defines no relationship type. The Owner's Learning mnemonics, BRAIN, CEIL, ROAD and WORK, each come in as a KAAL Definition of their own, in Changes of their own.
 
-KAAL.g2 had a `kaal-learning` package. None of it is carried over: neither its Nodes nor its implementation.
-
 ## Register the Nodes
 
 ```sh
