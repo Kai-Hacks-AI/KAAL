@@ -10,18 +10,19 @@ import {
   evaluate,
   exportPayload,
   foundation,
-  identify,
   loadEngine,
   payload,
   readContribution,
   register,
   registerExtension,
   registerSkill,
-  sha256,
   verify,
+  type EngineNode,
   type Kind,
   type Ref,
 } from "kaal-core";
+import * as core from "kaal-core";
+import { Graph, identify, sha256 } from "kaal-graph";
 
 /**
  * The foundational identities, pinned. Changing a foundational document's
@@ -89,7 +90,8 @@ describe("identity", () => {
       { kernel: f.kernel, node: f.node.id, definition: f.definition.id, capability: f.capability.id, agent: f.agent.id, skill: f.skill.id, extension: f.extension.id },
       PINNED,
     );
-    for (const [path, bytes] of Object.entries(payload())) if (path.startsWith("core/")) assert.equal(identify(bytes).id, sha256(bytes));
+    const files = payload();
+    for (const n of evaluate(files).nodes) for (const path of n.paths) assert.equal(n.id, sha256(files[path]));
   });
 
   it("carries exactly the Kernel, six foundational Nodes, the CASE Definition and the Engine's AGENTS.md, neither the Kernel nor AGENTS.md a Node", async () => {
@@ -114,7 +116,7 @@ describe("identity", () => {
     const bytes = Buffer.from(node("Thing", f.definition));
     const a = evaluate({ ...payload(), "x/a.md": bytes });
     const b = evaluate({ ...payload(), "deep/er/b.md": bytes });
-    assert.equal(a.named("Thing")[0].id, b.named("Thing")[0].id);
+    assert.equal(new Graph(a.nodes).named("Thing")[0].id, new Graph(b.nodes).named("Thing")[0].id);
   });
 
   it("changes with any byte", async () => {
@@ -168,8 +170,9 @@ describe("identity", () => {
       assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
       assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
     }
-    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
-    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    const typed = `type:\n  name: ${f.node.name}\n  id: ${f.node.id}\n`;
+    assert.equal(identify(Buffer.from(`---\nname: !!str 0x1F\n${typed}---\n`)).name, "0x1F");
+    assert.equal(identify(Buffer.from(`---\nname: null\n${typed}---\n`)).name, "null");
     assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${f.node.name}, id: ${f.node.id}}\n---\n`)).type, f.node);
     assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${f.node.name}, ${f.node.id}]\n---\n`)), /not in Form/);
   });
@@ -198,7 +201,7 @@ describe("identity", () => {
     assert.ok(Object.isFrozen(n.frontmatter));
     const dir = await engine();
     writeFileSync(join(dir, "requirement.md"), bytes);
-    assert.equal((await loadEngine(dir)).resolve({ name: "Requirement A", id: n.id }).name, "Requirement A");
+    assert.equal(new Graph((await loadEngine(dir)).nodes).resolve({ name: "Requirement A", id: n.id })?.name, "Requirement A");
     assert.equal((await verify(dir)).ok, true);
   });
 
@@ -209,7 +212,7 @@ describe("identity", () => {
     assert.notEqual(identify(Buffer.from(flow)).id, identify(Buffer.from(block)).id);
   });
 
-  it("keeps the id, name and type of every Node in this repository", () => {
+  it("keeps the id, name and type of every Node in this repository, and only the genesis has no type", () => {
     const root = join(dirname(new URL(import.meta.url).pathname), "..", "..", "..");
     const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
       readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
@@ -221,24 +224,35 @@ describe("identity", () => {
     const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
     for (const bytes of nodes) {
       const [, name, typeName, typeId] = legacy.exec(bytes.toString())!;
+      // The one Node without a type is Core's genesis; every other Node is read by identify().
+      if (!typeName) {
+        assert.deepEqual([sha256(bytes), name], [f.node.id, f.node.name]);
+        continue;
+      }
       const n = identify(bytes);
-      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, typeName ? { name: typeName, id: typeId } : undefined]);
+      assert.deepEqual([n.id, n.name, n.type], [sha256(bytes), name, { name: typeName, id: typeId }]);
     }
   });
 });
 
 describe("resolution", () => {
+  it("leaves reading and looking up Nodes to Graph: Core exports no identity of its own, and an Engine is what admission found", () => {
+    for (const name of ["identify", "sha256"]) assert.equal(name in core, false, `kaal-core exports no ${name}`);
+    assert.deepEqual(Object.keys(evaluate(payload())).sort(), ["nodes", "rejected"]);
+  });
+
   it("resolves types and references by name and identity", async () => {
     const e = evaluate(payload());
     assert.equal(e.nodes.length, 7);
-    assert.equal(e.resolve(f.skill).name, "KAAL Skill");
-    assert.deepEqual(e.resolve(f.skill).type, f.definition);
-    assert.deepEqual(e.resolve(f.definition).type, f.node);
-    assert.equal(e.resolve(f.node).type, undefined);
-    assert.throws(() => e.resolve({ name: "KAAL Extension", id: f.skill.id }), /named KAAL Skill/);
-    assert.throws(() => e.resolve({ name: "KAAL Skill", id: "0".repeat(64) }), /no admitted Node/);
-    assert.deepEqual(e.typedBy(f.definition).map((n) => n.name).sort(), ["CASE", "KAAL Agent", "KAAL Capability", "KAAL Extension", "KAAL Skill"]);
-    for (const kind of [f.capability, f.agent, f.skill, f.extension]) assert.deepEqual(e.resolve(kind).type, f.definition, "the four CASE kinds are parallel, each typed by KAAL Definition");
+    const g = new Graph<EngineNode>(e.nodes);
+    assert.equal(g.resolve(f.skill)?.name, "KAAL Skill");
+    assert.deepEqual(g.resolve(f.skill)?.type, f.definition);
+    assert.deepEqual(g.resolve(f.definition)?.type, f.node);
+    assert.equal(g.resolve(f.node)?.type, undefined);
+    assert.equal(g.resolve({ name: "KAAL Extension", id: f.skill.id }), undefined, "a reference that misnames its Node resolves to nothing");
+    assert.equal(g.resolve({ name: "KAAL Skill", id: "0".repeat(64) }), undefined);
+    assert.deepEqual(g.typed(f.definition).map((n) => n.name).sort(), ["CASE", "KAAL Agent", "KAAL Capability", "KAAL Extension", "KAAL Skill"]);
+    for (const kind of [f.capability, f.agent, f.skill, f.extension]) assert.deepEqual(g.resolve(kind)?.type, f.definition, "the four CASE kinds are parallel, each typed by KAAL Definition");
   });
 
   it("admits a chain of types and rejects what does not resolve", async () => {
@@ -276,8 +290,9 @@ describe("resolution", () => {
     files["chain/broken.md"] = Buffer.from(node("Broken", { name: "Link 7", id: "1".repeat(64) }));
     const e = evaluate(files);
     assert.equal(e.nodes.length, depth + 7);
-    assert.deepEqual(e.typedBy(type), []);
-    assert.equal(e.resolve(type).name, `Link ${depth - 1}`);
+    const g = new Graph(e.nodes);
+    assert.deepEqual(g.typed(type), []);
+    assert.equal(g.resolve(type)?.name, `Link ${depth - 1}`);
     assert.deepEqual(e.rejected.map((r) => r.path), ["chain/broken.md"]);
   });
 
@@ -285,8 +300,9 @@ describe("resolution", () => {
     const one = node("Twin", f.definition, "one\n");
     const two = node("Twin", f.definition, "two\n");
     const e = evaluate({ ...payload(), "1.md": Buffer.from(one), "2.md": Buffer.from(two) });
-    assert.equal(e.named("Twin").length, 2);
-    assert.equal(e.resolve({ name: "Twin", id: sha256(two) }).paths[0], "2.md");
+    const g = new Graph<EngineNode>(e.nodes);
+    assert.equal(g.named("Twin").length, 2);
+    assert.equal(g.resolve({ name: "Twin", id: sha256(two) })?.paths[0], "2.md");
   });
 
   it("admits nothing without Core's genesis Node", async () => {
@@ -389,8 +405,9 @@ describe("bootstrap and verify", () => {
     for (const { from, to } of moves) assert.ok(!existsSync(join(dir, from)) && existsSync(join(dir, to)), `${from} -> ${to}`);
     const after = await loadEngine(dir);
     assert.deepEqual(after.nodes.map(({ id, name, type }) => ({ id, name, type })), before);
-    assert.deepEqual(after.resolve(f.skill).paths, [moves.find((m) => m.from === "core/KAAL-Skill.md")!.to]);
-    assert.deepEqual(after.resolve({ name: "Greeting", id: sha256(skill) }).type, f.skill);
+    const g = new Graph<EngineNode>(after.nodes);
+    assert.deepEqual(g.resolve(f.skill)?.paths, [moves.find((m) => m.from === "core/KAAL-Skill.md")!.to]);
+    assert.deepEqual(g.resolve({ name: "Greeting", id: sha256(skill) })?.type, f.skill);
     assert.deepEqual(await capabilities(dir), caps);
     assert.ok((await verify(dir)).ok, (await verify(dir)).problems.join("\n"));
   });
@@ -465,7 +482,7 @@ describe("registration", () => {
     const uses = node("Formal Greeting", { name: "Greeting Style", id: sha256(part) });
     const r = await registerSkill(dir, "styled", { "a.md": skill, "b.md": part, "c.md": uses });
     assert.deepEqual(r.ids, [sha256(skill)]);
-    assert.equal((await loadEngine(dir)).resolve({ name: "Formal Greeting", id: sha256(uses) }).name, "Formal Greeting");
+    assert.equal(new Graph((await loadEngine(dir)).nodes).resolve({ name: "Formal Greeting", id: sha256(uses) })?.name, "Formal Greeting");
   });
 
   it("treats the identical contribution again as a no-op", async () => {

@@ -1,0 +1,74 @@
+{
+  "owner": {
+    "kind": "capability",
+    "name": "Testing",
+    "id": "be4d4a38073318e46d1d9c7351a44fab69aeb2044780ac53af2c11c2d1a9a185"
+  },
+  "statements": [
+    {
+      "source": "packages/skills/kaal-testing/README.md",
+      "quote": "Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests.",
+      "sha256": "7abd8bd0c7a87cb334eeef18e14dc9133edb46855b8f824d10872a0e8019735c",
+      "loop": "conformance",
+      "evidence": [
+        {
+          "file": "packages/skills/kaal-testing/test/boundary.test.mjs",
+          "sha256": "f8a6b1af4519c42be986592124167a1470972aed1fe2392326da09f5ad2b4cce",
+          "test": [
+            "Testing's Hosting boundary",
+            "permitted: the delivered JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting"
+          ]
+        }
+      ],
+      "inference": "The test runs Hosting's conformance inspection over every file in lib/ against the declared host modules, node:path and node:url, and asserts no violation and no other outside module than kaal-hosting.",
+      "limits": "The inspection is static and covers only the constructs it lists; its exclusions and anything it reports for validation are not shown by this test to conform.",
+      "review": null
+    },
+    {
+      "source": "packages/skills/kaal-testing/README.md",
+      "quote": "An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.",
+      "sha256": "d575e356ea9574ba38ccf15e4edc7b835259dd8aaf68a53044cdafcc1b861faf",
+      "loop": "acceptance",
+      "evidence": [
+        {
+          "file": "packages/skills/kaal-testing/test/acceptance.test.mjs",
+          "sha256": "4def46e9cef9911d16d66389286c36342b39657d051404dce5dd6debc009c69b",
+          "test": [
+            "running acceptance",
+            "refuses an empty scenario list before writing or running anything, so the runner never discovers tests of its own"
+          ]
+        }
+      ],
+      "inference": "The test calls accept() with an empty scenario list, beside a stray test file, and asserts that it is refused and that the run directory was never created.",
+      "limits": "It exercises the workspace's lib, not the installed package, and shows the refusal for an empty list only.",
+      "review": null
+    },
+    {
+      "source": "packages/skills/kaal-testing/README.md",
+      "quote": "An ownership file with a pattern outside its scope is a verified failure and claims nothing.",
+      "sha256": "39fd9688c94ea622103ffb0f22bdd5f5f6911548d57ebd3713a6acade1985817",
+      "loop": "acceptance",
+      "evidence": [
+        {
+          "file": "packages/skills/kaal-testing/test/attribution.test.mjs",
+          "sha256": "1132584521073102d1f3e7019c9c3f9af9a94c835bfa798a90452a7b79db8dad",
+          "test": [
+            "ownership files",
+            "refuse a pattern outside their own scope: an owner claims only within its own tree"
+          ]
+        }
+      ],
+      "inference": "The test reads ownership files whose patterns lie outside their directory, four of them, and asserts that each is a verified failure naming the pattern.",
+      "limits": "It exercises the workspace's lib with the patterns it constructs, and asserts the finding only: that such a file then claims nothing is not asserted by this test.",
+      "review": null
+    },
+    {
+      "source": "packages/skills/kaal-testing/capability/Testing.md",
+      "quote": "It does not own any other capability's contracts, cases, tests or ownership claims.",
+      "sha256": "15115541668981c2f8a91fa372b476f7ca7b64d264a70e9d8efd393f995467bc",
+      "loop": "conformance",
+      "evidence": [],
+      "review": null
+    }
+  ]
+}

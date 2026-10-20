@@ -1,11 +1,12 @@
 // Architecture boundary of Engineering's measurement and delivery drivers:
 // they decide which workspaces and files are measured or packed, and leave
 // every host mechanic to Hosting, every measurement and acceptance run to
-// Testing, and which Nodes are admitted to Core. This is Engineering's own
-// declaration for those drivers and its own evidence, checked with Hosting's
-// generic conformance inspection. Mechanical findings fail here; what cannot be
-// decided mechanically is listed for Agent or human validation, never taken as
-// a pass. Engineering's other scripts are outside this declaration.
+// Testing, which Nodes are admitted to Core, and lookup among the admitted
+// Nodes to Graph. This is Engineering's own declaration for those drivers and
+// its own evidence, checked with Hosting's generic conformance inspection.
+// Mechanical findings fail here; what cannot be decided mechanically is listed
+// for Agent or human validation, never taken as a pass. Engineering's other
+// scripts are outside this declaration.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -13,13 +14,13 @@ import { readFile } from "kaal-hosting";
 import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
 
 /** The drivers this declaration covers, by path under engineering/. */
-const DRIVERS = ["coverage/measure.mjs", "delivery/pack.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "report/measure.mjs"];
+const DRIVERS = ["contracts/measure.mjs", "coverage/measure.mjs", "delivery/pack.mjs", "inventory/attribute.mjs", "inventory/measure.mjs", "lanes/evidence.mjs", "report/captures.mjs", "report/measure.mjs"];
 
 /** The host modules those drivers may import directly: path handling only. */
 const BOUNDARY = { builtins: ["node:path"] };
 
-/** The modules they may reach outside themselves: Hosting for the host, Testing for measurement and acceptance runs, Core for admission. */
-const OUTSIDE = ["kaal-core", "kaal-hosting", "kaal-testing/acceptance", "kaal-testing/attribution", "kaal-testing/coverage", "kaal-testing/inventory", "kaal-testing/report"];
+/** The modules they may reach outside themselves: Hosting for the host, Testing for measurement and acceptance runs, Core for admission, Graph for lookup. */
+const OUTSIDE = ["kaal-core", "kaal-graph", "kaal-hosting", "kaal-testing/acceptance", "kaal-testing/attribution", "kaal-testing/contracts", "kaal-testing/coverage", "kaal-testing/inventory", "kaal-testing/report"];
 
 /**
  * Findings that need validation and have been judged, each with its judgment.
@@ -39,7 +40,7 @@ async function drivers() {
 const judged = (v) => v.map(({ file, construct }) => ({ file, construct }));
 
 describe("Engineering's measurement drivers: Hosting boundary", () => {
-  it("permitted: they import no undeclared host module, and reach outside only Hosting, Testing and Core", async () => {
+  it("permitted: they import no undeclared host module, and reach outside only Hosting, Testing, Core and Graph", async () => {
     const report = await inspect(await drivers(), BOUNDARY);
     assert.deepEqual(report.inspected, DRIVERS);
     assert.deepEqual(report.violations, []);
