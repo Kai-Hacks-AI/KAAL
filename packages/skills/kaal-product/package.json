@@ -1,0 +1,26 @@
+{
+  "name": "kaal-product",
+  "version": "0.0.1",
+  "description": "KAAL Product: Product Management, supporting the Product Owner's product direction and preparing the decisions the Product Owner makes.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "capability"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/product.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
