@@ -13,7 +13,8 @@ describe("the Change Record Definition on numbering", () => {
   const text = readFileSync(new URL("../capability/Change-Record.md", import.meta.url), "utf8");
 
   it("makes every pull request a Change and gives a synchronization no new number", () => {
-    assert.match(text, /Every pull request into a collector is a Change\. A substantive Change, one that brings new work into its collector, claims exactly one record folder/);
+    assert.match(text, /Every pull request into a collector is a Change\. A substantive Change, one that brings new work into its collector, claims at most one record folder/);
+    assert.match(text, /Whether every substantive Change must claim one is the embedding repository's choice; KAAL's own repository requires it, so there a substantive Change claims exactly one\./);
     assert.match(text, /A synchronization is a Change that carries work already accepted elsewhere, together with the records it was accepted with; it claims no new number/);
   });
 
@@ -114,5 +115,43 @@ describe("checkClaim", () => {
     assert.match(checkClaim({ kind: "substantive", changed: two, collector: base }).findings[0], /a substantive Change claims exactly one record, not/);
     assert.match(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/1/a.md"], collector: base }).findings[0], /is not a record number/);
     assert.deepEqual(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/01"], collector: base }), { claimed: [], findings: [".kaal/changes/change/26/10/19/01: a record's files lie inside its CC folder", "a substantive Change claims exactly one record under .kaal/changes/, and this one claims none"] });
+  });
+});
+
+describe("a repository's own choices", () => {
+  const root = "docs/changes";
+  const base = ["README.md"];
+
+  it("numbers and checks records under the root it chooses", () => {
+    const first = nextRecordPath(DAY, base, { root });
+    assert.equal(first, "docs/changes/change/26/10/19/01/");
+    assert.equal(recordOf(`${first}README.md`, { root }).record, first);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: files(first), collector: base, root }), { claimed: [first], findings: [] });
+    const collector = [...base, ...files(first)];
+    assert.equal(nextRecordPath(DAY, collector, { root }), "docs/changes/change/26/10/19/02/");
+    assert.match(checkClaim({ kind: "substantive", changed: files(first), collector, root }).findings[0], /is already taken in the collector: rename the folder to docs\/changes\/change\/26\/10\/19\/02\//);
+  });
+
+  it("ignores files under another root, the default included", () => {
+    const elsewhere = files(".kaal/changes/change/26/10/19/01/");
+    assert.equal(nextRecordPath(DAY, elsewhere, { root }), "docs/changes/change/26/10/19/01/");
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: elsewhere, collector: base, root }).findings, ["a substantive Change claims exactly one record under docs/changes/, and this one claims none"]);
+  });
+
+  it("requires a record by default, and lets a repository that chooses otherwise claim none", () => {
+    assert.equal(checkClaim({ kind: "substantive", changed: ["packages/x.mjs"], collector: base }).findings.length, 1);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: ["packages/x.mjs"], collector: base, required: false }), { claimed: [], findings: [] });
+  });
+
+  it("still checks a claim, and allows at most one, when a record is not required", () => {
+    const taken = [...base, ...files(".kaal/changes/change/26/10/19/01/")];
+    assert.match(checkClaim({ kind: "substantive", changed: files(".kaal/changes/change/26/10/19/01/"), collector: taken, required: false }).findings[0], /already taken/);
+    const two = [...files(".kaal/changes/change/26/10/19/01/"), ...files(".kaal/changes/change/26/10/19/02/")];
+    assert.match(checkClaim({ kind: "substantive", changed: two, collector: base, required: false }).findings[0], /a substantive Change claims at most one record, not/);
+  });
+
+  it("refuses a root or a requirement it cannot read", () => {
+    assert.match(checkClaim({ kind: "substantive", changed: [], collector: base, root: "/abs" }).findings[0], /a record root is a repository-relative folder path/);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: [], collector: base, required: "no" }).findings, ["whether a record is required is true or false, not no"]);
   });
 });
