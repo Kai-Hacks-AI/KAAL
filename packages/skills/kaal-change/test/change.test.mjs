@@ -28,7 +28,7 @@ describe("the Capability Node", () => {
 
   it("declares what it provides and what admission requires, apart from what it uses", () => {
     const text = readFileSync(join(CAPABILITY, "Change.md"), "utf8");
-    assert.match(text, /^It provides the Change Definition, the Change Record Definition and the Change Lifecycle Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text, /^It provides the Change Definition, the Change Record Definition, the Change Lifecycle Definition and the CHAOS Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
     assert.match(text, /^Its functional relationships are uses, not ownership\./m);
     assert.match(text, /It uses Testing for verification and Review for validation/);
   });
@@ -87,6 +87,7 @@ describe("the package", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/CHAOS.md",
       "capability/Change-Definition.md",
       "capability/Change-Lifecycle.md",
       "capability/Change-Record.md",
