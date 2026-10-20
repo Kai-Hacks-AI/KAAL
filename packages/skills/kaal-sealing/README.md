@@ -4,6 +4,7 @@ KAAL Sealing: the capability for establishing and verifying the immutable identi
 
 ```
 payload/Sealing.md          the Skill Node, typed by Core's KAAL Skill
+payload/SEAL.md             the SEAL Definition, typed by Core's KAAL Definition
 skills/kaal-sealing/        the Agent Skill: SKILL.md, scripts/sealing.mjs, scripts/kaal-sealing.mjs
 ```
 

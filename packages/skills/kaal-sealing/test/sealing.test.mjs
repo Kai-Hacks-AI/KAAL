@@ -43,9 +43,9 @@ const sealAt = async (e, path, form) => seal(e, await readArtifact(path), form);
 const verifyAt = async (e, path, ref) => verifySeal(e, await readArtifact(path), ref);
 
 describe("the Sealing Node", () => {
-  it("is one Node typed by Core's KAAL Skill, pinned in the Agent Skill", async () => {
+  it("is the Skill Node typed by Core's KAAL Skill, pinned in the Agent Skill", async () => {
     const files = await readContribution(PAYLOAD);
-    assert.deepEqual(Object.keys(files), ["Sealing.md"]);
+    assert.deepEqual(Object.keys(files).sort(), ["SEAL.md", "Sealing.md"]);
     const n = identify(files["Sealing.md"]);
     assert.deepEqual(n.type, foundation().skill);
     assert.deepEqual({ name: n.name, id: n.id }, SEALING);
@@ -58,6 +58,21 @@ describe("the Sealing Node", () => {
     await sealAt(e, join(art(), "a.txt"));
     assert.ok((await verify(e)).ok);
     assert.deepEqual((await loadEngine(e)).nodes.map((n) => n.id), before);
+  });
+});
+
+describe("the SEAL Definition Node", () => {
+  it("is typed by Core's KAAL Definition and admitted with Sealing", async () => {
+    const node = identify(readFileSync(join(PAYLOAD, "SEAL.md")));
+    assert.equal(node.name, "SEAL");
+    assert.deepEqual(node.type, foundation().definition);
+    assert.ok((await loadEngine(await engine())).resolve({ name: node.name, id: node.id }));
+  });
+
+  it("keeps integrity apart from finality", () => {
+    const text = readFileSync(join(PAYLOAD, "SEAL.md"), "utf8");
+    assert.match(text, /^Secure Each Adaption Leaving\.$/m);
+    assert.match(text, /integrity, not finality/);
   });
 });
 
