@@ -7,7 +7,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation } from "kaal-core";
 import { identify } from "kaal-graph";
-import { readRecordPath, recordPath } from "kaal-change/record";
+import { DEFAULT_ROOT, readRecordPath, recordPath } from "kaal-change/record";
 
 const CAPABILITY = fileURLToPath(new URL("../capability/", import.meta.url));
 
@@ -26,9 +26,23 @@ describe("the Change Record Definition", () => {
   });
 
   it("is an address, not an identity, and leaves files to Hosting", () => {
-    assert.match(text, /^A record is the folder `\.kaal\/changes\/<capability>\/YY\/MM\/DD\/CC\/`\./m);
+    assert.match(text, /^A record is the folder `<root>\/<capability>\/YY\/MM\/DD\/CC\/`\./m);
     assert.match(text, /Core does not admit anything as a Node because it lies under this path/);
     assert.match(text, /reading and writing files there is Hosting's/);
+  });
+});
+
+describe("the Change Record Definition on placement", () => {
+  const text = readFileSync(join(CAPABILITY, "Change-Record.md"), "utf8");
+
+  it("leaves the root to the consuming context, with .kaal/changes/ as KAAL's own local convention", () => {
+    assert.match(text, /The consuming context chooses the root, the folder where its Change Records belong; no placement is universal\./);
+    assert.match(text, /KAAL's own repository keeps its records under `\.kaal\/changes\/`, a local convention/);
+  });
+
+  it("keeps transition documentation apart from the resulting state's, linked and not duplicated", () => {
+    assert.match(text, /A record documents the transition: why and how the Change was made, and the evidence for it\./);
+    assert.match(text, /The two are distinct and linked, never duplicated\./);
   });
 });
 
@@ -61,6 +75,30 @@ describe("readRecordPath", () => {
   it("numbers records from 01 to 99", () => {
     for (const cc of ["00", "1", "100", "ab"]) {
       assert.ok(readRecordPath(`.kaal/changes/change/26/10/19/${cc}/`).finding, cc);
+    }
+  });
+});
+
+describe("a chosen root", () => {
+  it("reads and writes record paths under it, and nowhere else", () => {
+    const address = { capability: "change", date: "2026-10-20", number: 3 };
+    for (const root of ["changes", "changes/", "docs/kaal/changes"]) {
+      const path = recordPath(address, { root });
+      assert.equal(path, `${root.replace(/\/$/, "")}/change/26/10/20/03/`);
+      assert.deepEqual(readRecordPath(path, { root }), address);
+      assert.ok(readRecordPath(recordPath(address), { root }).finding, root);
+    }
+    assert.match(readRecordPath("changes/change/26/10/20/03/").finding, /a record lies under \.kaal\/changes\//);
+  });
+
+  it("is .kaal/changes unless chosen otherwise", () => {
+    assert.equal(DEFAULT_ROOT, ".kaal/changes");
+    assert.equal(recordPath({ capability: "change", date: "2026-10-20", number: 1 }), ".kaal/changes/change/26/10/20/01/");
+  });
+
+  it("is refused unless it is a repository-relative folder in forward slashes", () => {
+    for (const root of ["", "/changes", "a//b", "../changes", "./changes", "a\\b", undefined, 7]) {
+      assert.throws(() => readRecordPath("changes/change/26/10/20/01/", { root }), /is not a record root/, String(root));
     }
   });
 });

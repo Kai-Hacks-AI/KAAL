@@ -12,3 +12,5 @@ A Change is one bounded alteration proposed to what KAAL holds, and the coordina
 A Change is self-contained: it can be understood and judged on its own, without the conversation, transcript or handover it came from. Its record holds what supports it, such as coordination, rationale, decisions, references and evidence, and references the work itself. The work stays where the capability that owns it keeps it; the record is not a second copy of it.
 
 Integrating a Change does not prove that the Intent it realizes achieved its Outcome.
+
+Change defines the available ways to manage Changes. A repository that embeds KAAL chooses which of them it applies and how strictly it enforces them.

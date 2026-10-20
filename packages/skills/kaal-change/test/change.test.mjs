@@ -53,6 +53,10 @@ describe("the Change Definition", () => {
     assert.match(definition(), /The work stays where the capability that owns it keeps it; the record is not a second copy of it\./);
   });
 
+  it("offers ways to manage Changes and leaves which, and how strictly, to the embedding repository", () => {
+    assert.match(definition(), /^Change defines the available ways to manage Changes\. A repository that embeds KAAL chooses which of them it applies and how strictly it enforces them\.$/m);
+  });
+
   it("keeps the Change apart from its realization and from the Outcome", () => {
     assert.match(definition(), /a pull request is one realization of a Change/);
     assert.match(definition(), /Integrating a Change does not prove that the Intent it realizes achieved its Outcome\./);

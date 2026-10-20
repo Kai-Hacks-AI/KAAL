@@ -12,6 +12,10 @@ const files = (record) => [`${record}README.md`, `${record}evidence.md`];
 describe("the Change Record Definition on numbering", () => {
   const text = readFileSync(new URL("../capability/Change-Record.md", import.meta.url), "utf8");
 
+  it("leaves whether records are required, and how strictly, to the embedding repository", () => {
+    assert.match(text, /Whether a repository requires records, and how strictly it enforces them, is the embedding repository's choice\. KAAL's own repository requires them/);
+  });
+
   it("makes every pull request a Change and gives a synchronization no new number", () => {
     assert.match(text, /Every pull request into a collector is a Change\. A substantive Change, one that brings new work into its collector, claims exactly one record folder/);
     assert.match(text, /A synchronization is a Change that carries work already accepted elsewhere, together with the records it was accepted with; it claims no new number/);
@@ -114,5 +118,28 @@ describe("checkClaim", () => {
     assert.match(checkClaim({ kind: "substantive", changed: two, collector: base }).findings[0], /a substantive Change claims exactly one record, not/);
     assert.match(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/1/a.md"], collector: base }).findings[0], /is not a record number/);
     assert.deepEqual(checkClaim({ kind: "substantive", changed: [".kaal/changes/change/26/10/19/01"], collector: base }), { claimed: [], findings: [".kaal/changes/change/26/10/19/01: a record's files lie inside its CC folder", "a substantive Change claims exactly one record under .kaal/changes/, and this one claims none"] });
+  });
+});
+
+describe("checkClaim under a repository's choices", () => {
+  const ROOT = { root: "changes" };
+  const day = (number) => `changes/change/26/10/20/${number}/`;
+
+  it("judges claims under the chosen root, and ignores .kaal/changes there", () => {
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: files(day("01")), collector: [], ...ROOT }), { claimed: [day("01")], findings: [] });
+    const collector = files(day("01"));
+    assert.match(checkClaim({ kind: "substantive", changed: files(day("01")), collector, ...ROOT }).findings[0], /^changes\/change\/26\/10\/20\/01\/ is already taken in the collector: rename the folder to changes\/change\/26\/10\/20\/02\//);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: files(".kaal/changes/change/26/10/20/01/"), collector: [], ...ROOT }).findings, ["a substantive Change claims exactly one record under changes/, and this one claims none"]);
+  });
+
+  it("requires a record by default, and lets a repository that does not require one accept a Change without it", () => {
+    assert.equal(checkClaim({ kind: "substantive", changed: ["packages/x.mjs"], collector: [] }).findings.length, 1);
+    assert.deepEqual(checkClaim({ kind: "substantive", changed: ["packages/x.mjs"], collector: [], required: false }), { claimed: [], findings: [] });
+  });
+
+  it("still numbers, and still refuses more than one record, where records are optional", () => {
+    const two = [...files(".kaal/changes/change/26/10/20/01/"), ...files(".kaal/changes/change/26/10/20/02/")];
+    assert.match(checkClaim({ kind: "substantive", changed: two, collector: [], required: false }).findings[0], /a substantive Change claims at most one record, not/);
+    assert.match(checkClaim({ kind: "substantive", changed: files(".kaal/changes/change/26/10/20/05/"), collector: [], required: false }).findings[0], /is not the next free number/);
   });
 });

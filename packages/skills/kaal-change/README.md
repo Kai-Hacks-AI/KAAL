@@ -8,13 +8,13 @@ capability/Change-Definition.md   the Change Definition, typed by KAAL Definitio
 capability/Change-Lifecycle.md    the Change Lifecycle Definition, typed by KAAL Definition: a Change's states, read from facts
 capability/Change-Record.md       the Change Record Definition, typed by KAAL Definition: where a Change's supporting material lives
 lib/lifecycle.mjs                 the lifecycle reader: kaal-change/lifecycle
-lib/record.mjs                    the record path syntax and numbering: kaal-change/record
+lib/record.mjs                    the record path syntax and numbering, under a chosen root: kaal-change/record
 ownership.kaal.json               Change's own ownership claim (repository data, not delivered)
 ```
 
 ## Responsibilities
 
-A Change coordinates engineering's concerns (GLUE's Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects) without owning them. It uses Testing for verification and Review for validation, and references their evidence and judgments. Its record, `.kaal/changes/<capability>/YY/MM/DD/CC/`, holds supporting material and references the work, which stays with its owners. The path is an address, not an identity, and Core admits nothing from it. A pull request is one realization of a Change, and integrating a Change never proves that the Intent it realizes achieved its Outcome.
+A Change coordinates engineering's concerns (GLUE's Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects) without owning them. It uses Testing for verification and Review for validation, and references their evidence and judgments. Its record, `<root>/<capability>/YY/MM/DD/CC/`, holds supporting material and references the work, which stays with its owners. The consuming context chooses the root, and the embedding repository chooses how strictly it requires records; KAAL's own repository keeps them under `.kaal/changes/` and requires them. The path is an address, not an identity, and Core admits nothing from it. A pull request is one realization of a Change, and integrating a Change never proves that the Intent it realizes achieved its Outcome.
 
 ## Register the Nodes
 
