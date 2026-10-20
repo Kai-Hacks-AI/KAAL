@@ -44,6 +44,7 @@ const EXPECTED_TARBALL = [
   "package/LICENSE",
   "package/README.md",
   "package/package.json",
+  "package/payload/SEAL.md",
   "package/payload/Sealing.md",
   "package/skills/kaal-sealing/SKILL.md",
   "package/skills/kaal-sealing/scripts/kaal-sealing.mjs",
@@ -108,7 +109,7 @@ describe("embedding Sealing into a fresh Engine", () => {
     const [kind, id, name] = (await run(kaal, ["list", "--engine", ENGINE], host)).trim().split("\t");
     assert.deepEqual([kind, name], ["skill", "Sealing"]);
     assert.equal((await run(kaal, ["identify", join(installed, "payload", "Sealing.md")], host)).split("\t")[0], id);
-    assert.match(await run(kaal, ["verify", "--engine", ENGINE], host), new RegExp(`ok: ${foundation + 1} Nodes admitted`));
+    assert.match(await run(kaal, ["verify", "--engine", ENGINE], host), new RegExp(`ok: ${foundation + 2} Nodes admitted`));
   });
 
   it("seals a file and a directory and verifies each against its intended Seal", async () => {
@@ -123,7 +124,7 @@ describe("embedding Sealing into a fresh Engine", () => {
     assert.match(await run(sealing, ["verify", "bundle", "--seal", dirRef, "--engine", ENGINE], host), /^ok\t/);
     assert.deepEqual((await run(sealing, ["list", "--engine", ENGINE], host)).trim().split("\n"), [fileRef, dirRef].sort());
     // Core still sees the same Engine.
-    assert.match(await run(kaal, ["verify", "--engine", ENGINE], host), new RegExp(`ok: ${foundation + 1} Nodes admitted`));
+    assert.match(await run(kaal, ["verify", "--engine", ENGINE], host), new RegExp(`ok: ${foundation + 2} Nodes admitted`));
     assert.match(await run(kaal, ["init", "--engine", ENGINE], host), /already holds the foundation/);
   });
 
