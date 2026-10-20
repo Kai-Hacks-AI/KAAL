@@ -70,7 +70,7 @@ describe("a chosen root", () => {
   });
 
   it("refuses a root that is not a repository-relative folder path", () => {
-    for (const bad of ["", "/changes", "changes/", "a//b", "./changes", "../changes", "a\\b", 7]) {
+    for (const bad of ["", "/changes", "changes/", "a//b", "./changes", "../changes", "a\\b", "C:/changes", "C:changes", "docs/c:x", 7]) {
       assert.ok(readRecordPath("changes/change/26/10/20/01/", { root: bad }).finding, String(bad));
       assert.throws(() => recordPath({ capability: "change", date: "2026-10-20", number: 1 }, { root: bad }), String(bad));
     }

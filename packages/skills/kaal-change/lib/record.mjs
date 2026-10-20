@@ -12,8 +12,9 @@ const TWO = /^\d{2}$/;
 function readRoot(root) {
   if (typeof root !== "string" || root === "") return { finding: "a record root is a repository-relative folder path" };
   const parts = root.split("/");
-  if (root.includes("\\") || parts.some((part) => part === "" || part === "." || part === "..")) {
-    return { finding: `${root}: a record root is a repository-relative folder path, without a leading or trailing slash` };
+  // A colon would let a root name a drive (`C:/changes`, `C:changes`), so no segment holds one.
+  if (root.includes("\\") || parts.some((part) => part === "" || part === "." || part === ".." || part.includes(":"))) {
+    return { finding: `${root}: a record root is a repository-relative folder path, without a leading or trailing slash or a drive` };
   }
   return { parts };
 }
