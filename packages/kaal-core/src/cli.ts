@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
+import { Graph } from "kaal-graph";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
-import { identify, KaalError } from "./node.js";
+import { FormError, KaalError, readNode } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
 const USAGE = `usage: kaal <command> [--engine <dir>]
@@ -58,16 +59,16 @@ async function main(argv: string[]): Promise<number> {
     case "resolve": {
       const [name, id] = rest;
       if (!name) break;
-      const e = await loadEngine(engine);
-      const found = id ? [e.resolve({ name, id })] : e.named(name);
-      if (found.length === 0) throw new KaalError(`no admitted Node is named ${name}`);
+      const admitted = new Graph((await loadEngine(engine)).nodes);
+      const found = (id ? [{ name, id }] : admitted.named(name)).flatMap((ref) => admitted.resolve(ref) ?? []);
+      if (found.length === 0) throw new KaalError(id ? `no admitted Node is ${name} (${id})` : `no admitted Node is named ${name}`);
       for (const n of found) console.log(`${n.id}\t${n.name}\t${n.type ? `${n.type.name} ${n.type.id}` : "-"}\t${n.paths.join(",")}`);
       return 0;
     }
     case "identify": {
       if (rest.length === 0) break;
       for (const file of rest) {
-        const n = identify(await readFile(file));
+        const n = readNode(await readFile(file));
         console.log(`${n.id}\t${n.name}\t${n.type ? `${n.type.name} ${n.type.id}` : "-"}`);
       }
       return 0;
@@ -98,7 +99,7 @@ async function main(argv: string[]): Promise<number> {
 try {
   process.exitCode = await main(process.argv.slice(2));
 } catch (e) {
-  if (!(e instanceof KaalError) && !(e as NodeJS.ErrnoException).code) throw e;
+  if (!(e instanceof KaalError) && !(e instanceof FormError) && !(e as NodeJS.ErrnoException).code) throw e;
   console.error(`kaal: ${(e as Error).message}`);
   process.exitCode = 1;
 }
