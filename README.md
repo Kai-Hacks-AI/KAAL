@@ -39,7 +39,7 @@ Not yet demonstrated: each skill package carries an Agent Skills folder (`packag
 
 ## External
 
-External means KAAL working outside its own repository and hosts, with others. It is exploratory. Nothing here is a commitment, and there is no `external/` area. The only prior evidence is KAAL.v2's learning records 0013 and 0014.
+External means using KAAL to work on something else without bringing KAAL into that subject. KAAL remains outside the subject it works on. External is exploratory; no particular realization or workflow is prescribed yet. There is no `external/` area. The only prior evidence is KAAL.v2's learning records 0013 and 0014.
 
 ## Feedback
 
@@ -56,6 +56,6 @@ Each capability owns its own contract. This README only points to them.
 | The host and its paths | Hosting: [Hosting](packages/extensions/kaal-hosting/payload/Hosting.md) |
 | Tested evidence | Testing: [Testing](packages/skills/kaal-testing/payload/Testing.md) |
 | The Change lifecycle, from candidate to accepted | Change (not yet on `main`) |
-| Judged evidence and governance | Controls (not yet on `main`) |
+| Control requirements and assurance | Controls (not yet on `main`) |
 | How candidates reach `main` | Engineering: [branching](engineering/github/branching.md) |
 | The self-evolution principle | Engineering: [MOVE](engineering/MOVE.md) |
