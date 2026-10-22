@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Data", "id": "c6e1b37d8ad64fcc6583fc568e8aede26594f565a5007652d0239e5a2ec1b99e" },
+  "paths": ["packages/skills/kaal-data/"]
+}
