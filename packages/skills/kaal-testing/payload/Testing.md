@@ -15,6 +15,10 @@ A capability's evidence comes from three loops. Each answers its own question, a
 - **Capability acceptance**: does the capability, as it is delivered, behave as its contract states, observed from outside?
 - **Implementation**: focused tests for internal behaviour, each written to fail before the code that makes it pass.
 
+Some tests are established in PLAN, before any code is written. Intent, Requirements and Architecture each own the tests PLAN establishes for them, and their content; Testing owns what those tests mean as evidence. A PLAN-established test is immutable to DO and CHECK, whatever the motivation: neither changes it, nor the fixtures, expectations, configuration and helpers that give it its meaning. Implementation tests may evolve with the design, as long as they never weaken the planned boundary.
+
+Before coding, a planned test stands clean RED: it fails for the intended missing behaviour, and for no other reason. A failure caused by a missing import, a missing fixture or a typo is not clean RED and shows nothing; neither does an assertion failure alone, unless it is the assertion of the intended behaviour. GREEN is bounded test evidence: the planned tests pass, within their coverage. It is not proof that the intended outcome is achieved. A defect found in a planned test is a planning defect: DO and CHECK do not correct it. It belongs to ACT, and possibly to a new PLAN.
+
 Verification is deterministic and reproducible: the same check on the same subject gives the same result. Validation is reasoned judgment by an Agent or a person. Neither is presented as the other, and what neither has decided stays open.
 
 An invariant is tested exhaustively where it is owned, and its integration selectively where it is consumed. A consumer demonstrates that it uses the owner's contract correctly; it does not repeat the owner's cases.
