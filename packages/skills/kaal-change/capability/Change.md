@@ -11,6 +11,6 @@ Change is the responsibility for orchestrating the work around a Change: what a 
 
 A Change coordinates the concerns of engineering, as Engineering's GLUE names them: Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects. It coordinates them; it does not own their semantics, artifacts, implementations or tests, and they are not stages it must run in order.
 
-It provides the Change Definition, the Change Record Definition and the Change Lifecycle Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
+It provides the Change Definition, the Change Record Definition, the Change Lifecycle Definition and the RATIFICATION Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
 
 Its functional relationships are uses, not ownership. A Change may realize an Intent, whose meaning and Outcome are Intent's; integrating a Change does not prove the Outcome. It uses Testing for verification and Review for validation, tracking their status and referencing their evidence and judgments without owning or repeating either. Filesystem access and containment are Hosting's. How a pull request realizes a Change is Engineering's Branching. Communication consumes the facts of a Change without owning them.

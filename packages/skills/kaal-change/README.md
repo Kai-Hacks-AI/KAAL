@@ -7,6 +7,7 @@ capability/Change.md              the Capability Node, typed by Core's KAAL Capa
 capability/Change-Definition.md   the Change Definition, typed by KAAL Definition: meaning and self-containment
 capability/Change-Lifecycle.md    the Change Lifecycle Definition, typed by KAAL Definition: a Change's states, read from facts
 capability/Change-Record.md       the Change Record Definition, typed by KAAL Definition: where a Change's supporting material lives
+capability/RATIFICATION.md        the RATIFICATION Definition, typed by KAAL Definition: a repository-selectable Change discipline
 lib/lifecycle.mjs                 the lifecycle reader: kaal-change/lifecycle
 lib/record.mjs                    the record path syntax and numbering: kaal-change/record
 ownership.kaal.json               Change's own ownership claim (repository data, not delivered)
