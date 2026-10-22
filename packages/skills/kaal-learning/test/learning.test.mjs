@@ -20,6 +20,12 @@ describe("kaal-learning", () => {
     assert.deepEqual(node.type, foundation().capability);
   });
 
+  it("delivers CICERO in Form, typed by Core's KAAL Definition", () => {
+    const node = identify(readFileSync(join(PAYLOAD, "CICERO.md")));
+    assert.equal(node.name, "CICERO");
+    assert.deepEqual(node.type, foundation().definition);
+  });
+
   it("delivers WORK in Form, typed by Core's KAAL Definition", () => {
     const node = identify(readFileSync(join(PAYLOAD, "WORK.md")));
     assert.equal(node.name, "WORK");
@@ -42,13 +48,13 @@ describe("kaal-learning", () => {
     assert.deepEqual(checkSkill("kaal-retro", await read(join(PACKAGE, "skills", "kaal-retro"))), { standard: [], kaal: [], warnings: [] });
   });
 
-  it("is admitted into a fresh Engine with both its Nodes, and discovered there as a Capability", async () => {
+  it("is admitted into a fresh Engine with all its Nodes, and discovered there as a Capability", async () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-learning-"));
     await bootstrap(dir);
     const before = new Set((await loadEngine(dir)).nodes.map((n) => n.id));
     await register(dir, "capability", "kaal-learning", await readContribution(PAYLOAD));
     const added = (await loadEngine(dir)).nodes.map((n) => n.id).filter((id) => !before.has(id));
-    const ids = ["Learning.md", "WORK.md"].map((f) => identify(readFileSync(join(PAYLOAD, f))).id);
+    const ids = ["Learning.md", "CICERO.md", "WORK.md"].map((f) => identify(readFileSync(join(PAYLOAD, f))).id);
     assert.deepEqual(added.sort(), ids.sort());
     assert.deepEqual((await catalog(dir)).capabilities.map((r) => r.name), ["Learning"]);
   });
@@ -60,6 +66,7 @@ describe("kaal-learning", () => {
       "LICENSE",
       "README.md",
       "package.json",
+      "payload/CICERO.md",
       "payload/Learning.md",
       "payload/WORK.md",
       "skills/kaal-learning/SKILL.md",

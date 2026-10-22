@@ -6,7 +6,7 @@ license: MIT
 
 # Learning in KAAL
 
-What Learning is, and what this capability means, is stated by the Node `Learning` in a KAAL Engine: read it there, starting from the Engine's `AGENTS.md`. This file only tells you how to do the work.
+What Learning is, and what this capability means, is stated by the Node `Learning` in a KAAL Engine, and how content is found again by the Node `CICERO`: read them there, starting from the Engine's `AGENTS.md`. This file only tells you how to do the work.
 
 ## What belongs here
 
@@ -18,6 +18,11 @@ Use this capability for what KAAL has come to understand from its work. Take the
 - the course of a Change: the capability for Changes;
 - a retrospective on completed work: this capability's `kaal-retro` Agent Skill;
 - a decision about what to do: the capability that makes it.
+
+## Content in its context
+
+- Leave content where its context keeps it. To make it findable elsewhere, refer to it; do not copy or move it.
+- Trust what you find through an overview only as far as its own context establishes it. Where they disagree, the context holds, and absence from an overview says nothing.
 
 ## Rules
 
