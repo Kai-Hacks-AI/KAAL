@@ -18,6 +18,8 @@ const PACKAGE = fileURLToPath(new URL("../", import.meta.url));
 const CAPABILITY = join(PACKAGE, "capability");
 const node = () => identify(readFileSync(join(CAPABILITY, "Agents.md")));
 const text = () => readFileSync(join(CAPABILITY, "Agents.md"), "utf8");
+const newNode = () => identify(readFileSync(join(CAPABILITY, "NEW.md")));
+const newText = () => readFileSync(join(CAPABILITY, "NEW.md"), "utf8");
 
 describe("the Capability Node", () => {
   it("is typed by Core's KAAL Capability and distinct from Core's KAAL Agent", () => {
@@ -36,18 +38,38 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and requires, keeps no state and relies on no host activation", () => {
-    assert.match(text(), /^It provides no Definition yet\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
+    assert.match(text(), /^It provides the NEW Definition\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
     assert.match(text(), /it keeps no session state of its own\./);
     assert.match(text(), /Readiness does not depend on any host loading anything without being asked, and it authorizes nothing\.$/m);
   });
 });
 
+describe("the NEW Definition", () => {
+  it("is typed by Core's KAAL Definition and distinct from the Capability Node", () => {
+    assert.equal(newNode().name, "NEW");
+    assert.deepEqual(newNode().type, foundation().definition);
+    assert.notEqual(newNode().id, node().id);
+  });
+
+  it("carries its expansion and the readiness ambition with little or no prompting, in every setting", () => {
+    assert.match(newText(), /^Next Experience Works\.$/m);
+    assert.match(newText(), /An Agent reaches productive work with little or no prompting\./);
+    assert.match(newText(), /KAAL engineered in the repository, embedded there, or used from outside it\./);
+    assert.match(newText(), /from durable sources rather than from memory of earlier sessions\./);
+  });
+
+  it("states an ambition, not a promise of host activation", () => {
+    assert.match(newText(), /^NEW states the ambition\. It does not promise that any host loads anything without being asked\.$/m);
+  });
+});
+
 describe("admission", () => {
-  it("is admitted as a Capability by Core alone", async () => {
+  it("is admitted as a Capability by Core alone, with the NEW Definition admitted alongside", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-agents-")), "engine");
     await bootstrap(engine);
     const r = await register(engine, "capability", "agents", await readContribution(CAPABILITY));
     assert.deepEqual(r.ids, [node().id]);
+    assert.deepEqual(readFileSync(join(engine, "capabilities", "agents", "NEW.md")), readFileSync(join(CAPABILITY, "NEW.md")));
     assert.deepEqual((await catalog(engine)).capabilities, [{ name: "Agents", id: node().id }]);
     assert.deepEqual((await catalog(engine)).agents, []);
     assert.equal((await verify(engine)).ok, true);
@@ -71,6 +93,7 @@ describe("the package", () => {
       "LICENSE",
       "README.md",
       "capability/Agents.md",
+      "capability/NEW.md",
       "package.json",
     ]);
   });
