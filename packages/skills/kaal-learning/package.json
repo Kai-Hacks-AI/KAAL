@@ -1,0 +1,28 @@
+{
+  "name": "kaal-learning",
+  "version": "0.0.1",
+  "description": "KAAL Learning: retaining what KAAL has understood from its work, improving it, and letting later work start from it.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/learning.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
