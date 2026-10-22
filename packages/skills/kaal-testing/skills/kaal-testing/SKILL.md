@@ -27,6 +27,14 @@ Record each judged validation item with its judgment, and make an unjudged one f
 
 **Implementation.** Write the smallest test that fails for the right reason, make it pass, then refactor with every test green. Test behaviour, not structure.
 
+## Tests planned before the code
+
+Intent, Requirements and Architecture establish their tests in PLAN. In DO and CHECK, never change a planned test, or the fixtures, expectations, configuration and helpers that give it its meaning, for any reason. Your own implementation tests may change with the design, but never so that they weaken what the planned tests demand.
+
+- **Before coding**, run the planned tests and confirm each fails for the intended missing behaviour. A failure from a missing import, a fixture or a typo is not clean RED. If clearing it would touch a planned test or what gives it its meaning, report it as a planning defect.
+- **At GREEN**, say that the planned tests pass within their coverage, never that the outcome is achieved.
+- **If a planned test is wrong**, stop and report it as a planning defect for ACT. Do not correct it yourself.
+
 ## Running acceptance
 
 Keep a capability's acceptance scenarios in its own workspace, under `test/acceptance/`. Run them with `accept` from `kaal-testing/acceptance`, against a manifest of tarballs packed once by the caller. In a scenario, get packages only through `install`, never by building or packing. Report each ledger finding with its kind. State host containment and unrecorded installations as unknown, never as passed.

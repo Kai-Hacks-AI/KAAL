@@ -69,6 +69,14 @@
       "loop": "conformance",
       "evidence": [],
       "review": null
+    },
+    {
+      "source": "packages/skills/kaal-testing/payload/Testing.md",
+      "quote": "A PLAN-established test is immutable to DO and CHECK, whatever the motivation: neither changes it, nor the fixtures, expectations, configuration and helpers that give it its meaning.",
+      "sha256": "838cc7d8e849e9e5d9aaa1121f0c2ac074002a042f74ff9eea58749a4e46964b",
+      "loop": "conformance",
+      "evidence": [],
+      "review": null
     }
   ]
 }

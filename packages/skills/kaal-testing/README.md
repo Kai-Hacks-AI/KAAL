@@ -24,6 +24,8 @@ A capability's evidence comes from three loops, and none stands in for another:
 - **Capability acceptance:** the delivered capability behaves as its contract states.
 - **Implementation:** internal behaviour, test first.
 
+Intent, Requirements and Architecture each own the tests PLAN establishes for them. Those tests are immutable to DO and CHECK; implementation tests may evolve without weakening them. A planned test stands clean RED before coding, failing for the intended missing behaviour alone, and GREEN is bounded evidence, not proof of the outcome. A defect in a planned test belongs to ACT.
+
 An invariant is tested exhaustively where it is owned, and its integration selectively where it is consumed.
 
 Findings are verified failures, potential defects, architectural concerns or unknowns, and the kinds are never merged. A clean result shows only what its checks cover.
