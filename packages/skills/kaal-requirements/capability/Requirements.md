@@ -7,9 +7,9 @@ type:
 
 # Requirements
 
-Requirements is the responsibility for stating what must hold of what is built: the functional and non-functional requirements that a Change or a product is to satisfy, each stated so that it can be verified. Its scope is that alone.
+Requirements is the responsibility for stating what must hold: the functional and non-functional conditions that what is built is to satisfy, each with the context responsible for it and precise enough to be verified. Its scope is that alone.
 
-It starts where an Intent ends. An Intent states what someone wants to achieve, and why, and is Intent's; a Requirement states what must hold for it to be achieved. It ends where the behaviour a Requirement asks for is given its place, which is architecture's, and where the cases that verify it are designed and their evidence judged, which is Testing's. Neither placement, nor tests, nor evidence is a Requirement.
+A Requirement may arise from an Intent, a regulation, a contract, a constraint or a limitation, and none of them is a prerequisite; what someone wants to achieve, and why, stays Intent's. Its responsibility ends where the behaviour a Requirement asks for is given its place, which is architecture's, and where it is verified, by test, inspection, analysis or measurement; designing tests and judging their evidence are Testing's. Neither placement, nor tests, nor evidence is a Requirement.
 
 It provides no Definition yet. For admission it requires Core's KAAL Capability, and nothing else.
 

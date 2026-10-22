@@ -25,14 +25,14 @@ describe("the Capability Node", () => {
     assert.deepEqual(node().type, foundation().capability);
   });
 
-  it("states a positive responsibility, functional and non-functional, stated so that it can be verified", () => {
-    assert.match(text(), /^Requirements is the responsibility for stating what must hold of what is built: the functional and non-functional requirements that a Change or a product is to satisfy, each stated so that it can be verified\. Its scope is that alone\.$/m);
+  it("states a positive responsibility: functional and non-functional conditions, a responsible context, precise enough to verify", () => {
+    assert.match(text(), /^Requirements is the responsibility for stating what must hold: the functional and non-functional conditions that what is built is to satisfy, each with the context responsible for it and precise enough to be verified\. Its scope is that alone\.$/m);
   });
 
-  it("starts where an Intent ends and ends at placement and verification", () => {
-    assert.match(text(), /^It starts where an Intent ends\./m);
+  it("takes no Intent as a prerequisite and ends at placement and verification", () => {
+    assert.match(text(), /^A Requirement may arise from an Intent, a regulation, a contract, a constraint or a limitation, and none of them is a prerequisite; what someone wants to achieve, and why, stays Intent's\./m);
     assert.match(text(), /which is architecture's/);
-    assert.match(text(), /their evidence judged, which is Testing's\. Neither placement, nor tests, nor evidence is a Requirement\./);
+    assert.match(text(), /by test, inspection, analysis or measurement; designing tests and judging their evidence are Testing's\. Neither placement, nor tests, nor evidence is a Requirement\./);
   });
 
   it("declares what it provides and what admission requires, apart from what it uses", () => {
