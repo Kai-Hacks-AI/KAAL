@@ -11,6 +11,6 @@ Agents is the responsibility for an Agent's readiness and operation within KAAL:
 
 It starts where Core ends. What a KAAL Agent is, and its admission, registration and discovery, are Core's. It ends where the work an Agent takes up begins: what is wanted is Intent's, the course of a Change is Change's, where content goes is Communication's, and producing Skills is the Engineer Skill's.
 
-It provides no Definition yet. For admission it requires Core's KAAL Capability, and nothing else.
+It provides the NEW Definition. For admission it requires Core's KAAL Capability, and nothing else.
 
 Its functional relationships are uses, not ownership. It reads what other capabilities keep and keeps no copy of it, and it keeps no session state of its own. Readiness does not depend on any host loading anything without being asked, and it authorizes nothing.
