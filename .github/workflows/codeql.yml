@@ -36,3 +36,22 @@ jobs:
       - uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           category: /language:${{ matrix.language }}
+
+  # Transitional: the rulesets still require the former check names
+  # Analyze (actions) and Analyze (javascript-typescript). These jobs run no
+  # analysis; each passes only when every CodeQL analysis above succeeded.
+  # They are removed once the rulesets require the CodeQL (...) names.
+  analyze-compatibility:
+    name: Analyze (${{ matrix.language }})
+    needs: analyze
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    strategy:
+      matrix:
+        language: [actions, javascript-typescript]
+    steps:
+      - name: Require the CodeQL analyses to have succeeded
+        run: test "$RESULT" = success
+        env:
+          RESULT: ${{ needs.analyze.result }}
