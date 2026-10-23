@@ -1,0 +1,9 @@
+{
+  "checks": {
+    "push": {
+      "command": "sh engineering/github/push-check.sh",
+      "runs": ["local"],
+      "facts": ["head", "base", "base-ref"]
+    }
+  }
+}
