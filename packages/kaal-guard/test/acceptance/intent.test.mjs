@@ -51,6 +51,7 @@ describe("Intent outcome validation", () => {
     c.commit("guard");
 
     c.write("more.txt", "x\n");
+    own.push("more.txt"); // the consumer's own change, pushed through the hook
     c.commit("more");
     const push = c.git("push", "origin", "main");
     assert.equal(push.status, 0, push.output);
