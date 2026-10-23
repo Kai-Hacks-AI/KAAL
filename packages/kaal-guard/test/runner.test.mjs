@@ -120,7 +120,7 @@ describe("trusted checker", () => {
   const judge = (trusted, command = "node checks/judge.mjs") => ({ j: { command, runs: ["ci"], trusted } });
   const verdict = (dir, base) => run(dir, { check: "j" }, { base }).results[0];
 
-  it("trusts a directory: the base's helper is used, not the candidate's", () => {
+  it("takes a trusted directory from the base: the base's helper runs, not the candidate's", () => {
     const { dir, base, git } = based(judge("checks"), {
       "checks/judge.mjs": 'import { status } from "./helper.mjs"; process.exit(status);\n',
       "checks/helper.mjs": "export const status = 1;\n",
@@ -130,36 +130,17 @@ describe("trusted checker", () => {
     assert.equal(verdict(dir, base).verdict, "fail");
   });
 
-  it("is cannot judge when the trusted file imports a file it does not trust", () => {
-    const { dir, base } = based(judge("checks/judge.mjs"), {
-      "checks/judge.mjs": 'import { status } from "./helper.mjs"; process.exit(status);\n',
-      "checks/helper.mjs": "export const status = 0;\n",
-    });
+  it("names the base revision that supplied the checker in its evidence", () => {
+    const { dir, base } = based(judge("checks/judge.mjs"), { "checks/judge.mjs": 'console.log("judged"); process.exit(0);\n' });
     const r = verdict(dir, base);
-    assert.equal(r.verdict, "cannot judge");
-    assert.match(r.evidence, /imports \.\/helper\.mjs, which is not among the trusted files/);
+    assert.equal(r.verdict, "pass");
+    assert.equal(r.evidence, `judged (checks/judge.mjs from base ${base})`);
   });
 
-  it("is cannot judge for a package import, a computed import or a non-module file", () => {
-    for (const [file, text, said] of [
-      ["checks/judge.mjs", 'import x from "some-package";\n', /some-package/],
-      ["checks/judge.mjs", "const m = await import(process.env.X);\n", /names at run time/],
-      ["checks/judge.mjs", "const m = require(name);\n", /names at run time/],
-      ["checks/judge.sh", "exit 0\n", /not a JavaScript or TypeScript module/],
-    ]) {
-      const { dir, base } = based(judge(file, `node ${file}`), { [file]: text });
-      const r = verdict(dir, base);
-      assert.equal(r.verdict, "cannot judge", file);
-      assert.match(r.evidence, said);
-    }
-  });
-
-  it("allows node: built-ins and literal imports inside the trusted files", () => {
-    const { dir, base } = based(judge("checks"), {
-      "checks/judge.mjs": 'import { readFileSync } from "node:fs";\nconst { ok } = await import("./sub/ok.mjs");\nprocess.exit(ok);\n',
-      "checks/sub/ok.mjs": "export const ok = 0;\n",
-    });
-    assert.equal(verdict(dir, base).verdict, "pass");
+  it("is cannot judge when the base or the checker on it cannot be obtained", () => {
+    const { dir, base } = based(judge("checks/judge.mjs"), { "checks/other.mjs": "process.exit(0);\n" });
+    assert.match(verdict(dir, base).evidence, /does not hold checks\/judge\.mjs/);
+    assert.match(verdict(dir, "0000000000000000000000000000000000000000").evidence, /is not a commit here/);
   });
 
   it("is cannot judge when no word of the command names the trusted path", () => {

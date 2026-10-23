@@ -1,7 +1,7 @@
 // The runner: runs a set of the repository's checks and reads their verdicts. It knows the check list
 // (guard.json) and the facts it is given, and nothing of branches, remotes, pull requests, hosting
-// platforms or the adapters that call it. It reads Git objects only to take a trusted checker from
-// the base commit (trusted.mjs).
+// platforms or the adapters that call it. It reads Git objects only to take a trusted checker's files
+// from the base revision (trusted.mjs).
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -81,12 +81,14 @@ export function runCheck(root, list, name, facts) {
   }
   let argv = words(check.command);
   let scratch;
+  let provenance;
   try {
     if (check.trusted !== undefined) {
       if (facts.base === undefined) return result(name, "cannot judge", `its trusted checker ${check.trusted} needs the fact base, which was not supplied`, "supply --base");
       scratch = mkdtempSync(join(tmpdir(), "kaal-guard-trusted-"));
       const taken = materialize(root, facts.base, check.trusted, scratch);
       if (taken.problem) return result(name, "cannot judge", `trusted checker: ${taken.problem}`, taken.todo);
+      provenance = `${check.trusted} from base ${taken.commit}`;
       argv = redirect(argv, check.trusted, scratch);
       if (!argv) return result(name, "cannot judge", `the command does not name its trusted checker ${check.trusted} as a word`, `name ${check.trusted} as an argument of the command`);
     }
@@ -98,7 +100,8 @@ export function runCheck(root, list, name, facts) {
     if (r.error || r.status === null) {
       return result(name, "cannot judge", `the command cannot start: ${r.error?.message ?? `ended by ${r.signal}`}`, `make "${check.command}" start from the repository root`);
     }
-    const evidence = evidenceOf(`${r.stdout}${r.stderr}`) || `exit status ${r.status}`;
+    const output = evidenceOf(`${r.stdout}${r.stderr}`) || `exit status ${r.status}`;
+    const evidence = provenance ? `${output} (${provenance})` : output;
     const verdict = VERDICTS[r.status] ?? check.outcomes?.[r.status];
     if (verdict === "fail") return result(name, verdict, evidence, `fix what ${name} reports, then run kaal-guard run --check ${name}`);
     if (verdict === "cannot judge") return result(name, verdict, evidence, `fix the cause ${name} names; it blocks until ${name} can judge`);

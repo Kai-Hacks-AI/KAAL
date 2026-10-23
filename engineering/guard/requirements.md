@@ -28,10 +28,10 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 
 **F6 Narrow adapters.** [I3] The hook and the workflow jobs pass facts and act only on verdicts.
 
-**F7 Trusted checker.** [I1, I2] A check can name a `trusted` file or directory. The runner then runs it as it stands on the target ref (`base`), never the candidate's version, so a candidate cannot certify itself.
-- Exactly the files under `trusted` are taken from the base. The checker still reads the candidate's tree, from the repository root, as its input, and runs on the interpreter found on `PATH`.
-- So that nothing it loads comes from elsewhere, a trusted checker must be JavaScript or TypeScript modules whose every import is a Node built-in (`node:…`) or a literal relative path to another trusted file.
-- Where that cannot be established (another file type, a package import, an import outside the trusted files, a specifier computed at run time, no word of the command naming the trusted path), the check is cannot judge.
+**F7 Trusted checker.** [I1, I2] A check can name a `trusted` file or directory. The runner then takes exactly those files as the target revision (`base`) holds them, never the candidate's version, and runs them in place of the candidate's, so a candidate cannot certify itself.
+- Guard establishes Git provenance only. The verdict's evidence names the base commit that supplied the checker's files.
+- What the checker imports from elsewhere, its interpreter and its environment are outside Guard's guarantee. They belong to the environment the check runs in.
+- When the base or the designated files on it cannot be obtained, or no word of the command names the trusted path, the check is cannot judge.
 
 **F8 Safe lifecycle.** [I5, I6]
 - The package provides `init`, `upgrade` and `remove`.
