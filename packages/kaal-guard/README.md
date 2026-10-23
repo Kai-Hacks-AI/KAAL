@@ -44,7 +44,7 @@ The checks are yours: any program your repository already runs. List them in `gu
   - `head` is `GUARD_HEAD`, the candidate commit.
   - `base` is `GUARD_BASE`, and `base-ref` is `GUARD_BASE_REF`: the target commit and its name.
   - `changed` is `GUARD_CHANGED`, a file listing the changed paths, NUL-separated.
-- **`trusted`** (optional): a file or directory the check runs as the base commit holds it, never the candidate's version, so a change cannot certify itself. It needs the `base` fact.
+- **`trusted`** (optional): a file or directory Guard takes as the base commit holds it, never the candidate's version, and runs in place of the candidate's. It needs the `base` fact, and the verdict names the base commit that supplied it. That is Git provenance for exactly the designated files, and nothing more: what they import from outside the designation, the interpreter and the environment the check runs in are not covered. Designate everything the checker's judgement depends on.
 - **`outcomes`** (optional): `{ "4": "held" }` names exit status 4 as held. Held is shown as held, never as a pass and never as a fail.
 
 After changing the `ci` checks, run `npx kaal-guard upgrade`. It rewrites the generated workflow while that file is still unmodified.
