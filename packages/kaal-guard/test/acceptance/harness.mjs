@@ -12,6 +12,9 @@ import { fileURLToPath } from "node:url";
 /** The package under test: two directories up from here. */
 export const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
+/** The name the package is published under (N6), in the Owner's npm scope; its command is kaal-guard. */
+export const NAME = "@kaihacksai/kaal-guard";
+
 const WINDOWS = process.platform === "win32";
 
 /** Runs a program; never throws, returns { status, stdout, stderr }. */
@@ -97,10 +100,12 @@ export function consumer({ install = true } = {}) {
     },
     /** Runs the installed kaal-guard command. */
     guard(args, extra = {}, cwd = dir) {
-      const manifest = JSON.parse(readFileSync(join(dir, "node_modules", "kaal-guard", "package.json"), "utf8"));
+      const installed = join(dir, "node_modules", ...NAME.split("/"));
+      assert.ok(existsSync(join(installed, "package.json")), `${NAME} is not installed under its name`);
+      const manifest = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
       const bin = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.["kaal-guard"];
       assert.ok(bin, "kaal-guard declares no kaal-guard command");
-      return exec(cwd, process.execPath, [join(dir, "node_modules", "kaal-guard", bin), ...args], { ...env, ...extra });
+      return exec(cwd, process.execPath, [join(installed, bin), ...args], { ...env, ...extra });
     },
     /** Every file in the working tree outside .git and node_modules, repository-relative. */
     files() {
@@ -126,8 +131,8 @@ export function consumer({ install = true } = {}) {
   must(git("remote", "add", "origin", remote), "git remote add");
   must(git("push", "-q", "-u", "origin", "main"), "git push");
   if (install) {
-    must(exec(dir, "npm", ["install", "--save-dev", "--no-audit", "--no-fund", "--offline", packed()], env), "npm install kaal-guard");
-    repo.commit("install kaal-guard");
+    must(exec(dir, "npm", ["install", "--save-dev", "--no-audit", "--no-fund", "--offline", packed()], env), `npm install ${NAME}`);
+    repo.commit(`install ${NAME}`);
   }
   return repo;
 }

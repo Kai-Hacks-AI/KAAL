@@ -28,7 +28,7 @@ KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`,
 
 ## External: naked delivery by KAAL Engineering
 
-KAAL Engineering implements Guard in the target from the target's own commands, adapting it where needed, and delivers it as one Change, normally a pull request. The Change contains a working `.githooks/pre-push`, working CI jobs (in the target's existing workflows or a new one) and the local docs to maintain them. It contains neither the `kaal-guard` package nor any other KAAL element, and never overwrites the target's existing files.
+KAAL Engineering implements Guard in the target from the target's own commands, adapting it where needed, and delivers it as one Change, normally a pull request. The Change contains a working `.githooks/pre-push`, working CI jobs (in the target's existing workflows or a new one) and the local docs to maintain them. It contains neither the `kaal-guard` package nor any other KAAL element, and never overwrites the target's existing files. From C5 the tooling is `engineering/guard/external/deliver.mjs`; [its page](external/README.md) says how to deliver.
 
 ## Verify
 
