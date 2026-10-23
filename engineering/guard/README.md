@@ -22,6 +22,6 @@ The six concerns, written outside-in:
 5. [Change](change.md): the bounded Changes C0a–C5, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
 6. [Run](run.md)
 
-State: DO (C1). The runner and `kaal-guard run` exist in the package; the outer tests that need only `run` are GREEN, and the rest stay RED until their Changes ([Change](change.md)). The RED evidence of C0a is recorded in [Testing](testing.md#red-evidence).
+State: DO (C3a). The runner and `kaal-guard run` exist in the package, KAAL installs it as a development dependency, and KAAL's pre-push hook runs KAAL's local check through it. The outer tests that need only `run`, and T5, are GREEN; the rest stay RED until their Changes ([Change](change.md)). The RED evidence of C0a is recorded in [Testing](testing.md#red-evidence).
 
 Guard realizes the Git-hook and CI mechanisms behind two KAAL-wide mnemonics, HITMAN (Hooks Integrating Tests, Making Agents Nervous) and CLAUSE (CI Lets Agents Update Service Errors), and its documents use KAAL's FANATIC identifiers. Guard owns none of the three.

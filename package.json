@@ -29,6 +29,9 @@
     "test:boundary": "npm run test:boundary -w kaal-core",
     "pack": "node -e \"require('fs').mkdirSync('engineering/out',{recursive:true})\" && npm pack -w kaal-core --pack-destination engineering/out"
   },
+  "devDependencies": {
+    "kaal-guard": "file:packages/kaal-guard"
+  },
   "engines": {
     "node": ">=24"
   }
