@@ -1,0 +1,70 @@
+# Guard Acceptance Boundary (engineering/guard/testing.md, "Integrity of the outer contract"): keeps
+# kaal-guard's planned outer tests fixed while DO makes them GREEN. A pull request into kaal/guard
+# that changes the boundary must change nothing else, so a changed boundary is always its own
+# reviewed PLAN Change, and a DO Change that touches it fails.
+#
+# The boundary is packages/kaal-guard/test/acceptance/ and engineering/guard/acceptance/, each with
+# its tests, fixtures and helpers. The judgment uses only Git.
+#
+# The job runs as the target branch holds it: .github travels alone (Change Isolation), so a Change
+# that touches the boundary cannot also change this workflow. The candidate is never built or run;
+# only its changed paths are read.
+#
+# Synchronization: a candidate head already contained in the default branch carries only Changes
+# each admitted there, so the boundary check does not apply to its aggregate.
+name: Guard
+
+on:
+  pull_request:
+    branches: [kaal/guard]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance-boundary:
+    name: Guard Acceptance Boundary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the target branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
+      - name: Judge the change against the boundary
+        env:
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          set -o pipefail
+          BASE=$(git rev-parse HEAD)
+          git fetch --no-tags origin "$HEAD" || {
+            echo "::error title=Guard Acceptance Boundary: cannot judge::the candidate $HEAD cannot be fetched"; exit 2; }
+          if git merge-base --is-ancestor "$HEAD" "origin/$DEFAULT"; then
+            echo "not applicable: Guard Acceptance Boundary: synchronization; candidate $HEAD is already admitted on $DEFAULT."
+            exit 0
+          fi
+          git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$BASE...$HEAD" \
+            | tr '\0' '\n' > "$RUNNER_TEMP/changed" || {
+            echo "::error title=Guard Acceptance Boundary: cannot judge::the change $BASE...$HEAD cannot be listed"; exit 2; }
+          grep -E '^(packages/kaal-guard/test/acceptance|engineering/guard/acceptance)/' "$RUNNER_TEMP/changed" > "$RUNNER_TEMP/inside" || true
+          grep -vE '^(packages/kaal-guard/test/acceptance|engineering/guard/acceptance)/' "$RUNNER_TEMP/changed" > "$RUNNER_TEMP/outside" || true
+          if [ ! -s "$RUNNER_TEMP/inside" ]; then
+            echo "pass: Guard Acceptance Boundary: the Change does not touch the boundary."
+            exit 0
+          fi
+          if [ ! -s "$RUNNER_TEMP/outside" ]; then
+            echo "pass: Guard Acceptance Boundary: a PLAN Change; it touches only the boundary:"
+            sed 's/^/  /' "$RUNNER_TEMP/inside"
+            exit 0
+          fi
+          echo "fail: Guard Acceptance Boundary: the Change touches the boundary and other paths."
+          echo "  boundary:"; sed 's/^/    /' "$RUNNER_TEMP/inside"
+          echo "  other:"; sed 's/^/    /' "$RUNNER_TEMP/outside"
+          echo "  do: leave the planned outer tests as they are, or move the boundary change into its own PLAN Change."
+          echo "::error title=Guard Acceptance Boundary::the Change touches the boundary and other paths; a changed boundary is its own PLAN Change"
+          exit 1
