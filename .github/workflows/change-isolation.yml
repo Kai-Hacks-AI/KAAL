@@ -21,7 +21,7 @@
 # (engineering/github/lineage.ts, as the default branch holds it) verifies the synchronization and
 # names those paths, and only they are judged here. A candidate it does not verify is an ordinary
 # Change, judged whole; Branching reports what is wrong with it.
-name: KAAL
+name: Change Isolation
 
 on:
   pull_request_target:
