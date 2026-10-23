@@ -49,12 +49,17 @@ jobs:
       - run: npm ci --ignore-scripts
 
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
+      - name: Read the target's current tip
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          BASE=$(git rev-parse --verify "origin/$BASE_REF^{commit}") || {
+            echo "::error title=Change Isolation: cannot judge::the target $BASE_REF cannot be read"; exit 2; }
+          echo "BASE=$BASE" >> "$GITHUB_ENV"
+
       - name: Judge the complete change against the target
         env:
           HEAD: ${{ github.event.pull_request.head.sha }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
-        run: |
-          BASE=$(git rev-parse --verify "origin/$BASE_REF^{commit}") || {
-            echo "::error title=Change Isolation: cannot judge::the target $BASE_REF cannot be read"; exit 2; }
-          npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
+        run: npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
