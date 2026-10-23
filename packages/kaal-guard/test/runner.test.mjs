@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { annotations, summarize } from "../lib/github.mjs";
+import { annotations, summarize, verify } from "../lib/github.mjs";
 import { plan, words } from "../lib/command.mjs";
 import { findRoot, lines, readList, run, status } from "../lib/runner.mjs";
 
@@ -183,5 +183,34 @@ describe("GitHub reporting", () => {
     const text = readFileSync(file, "utf8");
     assert.match(text, /\| x \| not applicable \| a \\\| b \|/);
     assert.ok(text.includes("| y | pass | C:\\\\dir\\\\\\| z |"), text);
+  });
+});
+
+describe("verify", () => {
+  /** A repository with these checks and these workflow files; returns verify's verdict per check. */
+  const verdicts = (checks, workflows) => {
+    const dir = repo(checks);
+    for (const [file, text] of Object.entries(workflows)) {
+      mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
+      writeFileSync(join(dir, ".github", "workflows", file), text);
+    }
+    return Object.fromEntries(verify(dir, readList(dir).list).results.map((r) => [r.name, r.verdict]));
+  };
+  const ci = { command: "x", runs: ["ci"] };
+
+  it("passes a ci check a job runs by name, and fails one no job runs", () => {
+    const wf = "on: push\njobs:\n  a:\n    steps:\n      - run: npx kaal-guard run --check named --github\n";
+    assert.deepEqual(verdicts({ named: ci, orphan: ci, mine: { command: "x", runs: ["local"] } }, { "ci.yml": wf }), { named: "pass", orphan: "fail" });
+  });
+
+  it("reads a matrix job's check from its matrix", () => {
+    const wf = "jobs:\n  lane:\n    strategy:\n      matrix:\n        include:\n          - { check: one, script: \"x\" }\n          - { check: \"two\" }\n    steps:\n      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github\n";
+    assert.deepEqual(verdicts({ one: ci, two: ci, three: ci }, { "ci.yaml": wf }), { one: "pass", two: "pass", three: "fail" });
+  });
+
+  it("does not count a commented-out step, a step outside jobs, or a missing workflows directory", () => {
+    const wf = "# kaal-guard run --check top\njobs:\n  a:\n    steps:\n      # - run: kaal-guard run --check commented\n      - run: echo\n";
+    assert.deepEqual(verdicts({ top: ci, commented: ci }, { "ci.yml": wf }), { top: "fail", commented: "fail" });
+    assert.deepEqual(verdicts({ any: ci }, {}), { any: "fail" });
   });
 });
