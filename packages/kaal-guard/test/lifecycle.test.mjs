@@ -50,6 +50,33 @@ describe("lifecycle", () => {
     assert.deepEqual(guard(dir), { checks: { a: { command: "x", runs: ["ci"] } } });
   });
 
+  it("says apart what it installed, what it left untouched and what is still to do, and claims no execution", () => {
+    const dir = tree();
+    mkdirSync(join(dir, ".githooks"));
+    writeFileSync(join(dir, ".githooks", "pre-push"), "#!/bin/sh\n");
+    const out = init(dir).lines.join("\n");
+    assert.match(out, /installed by Guard:\n {2}\.github\/workflows\/guard\.yml\n/);
+    assert.match(out, /left untouched:\n {2}\.githooks\/pre-push: it was there before Guard\n/);
+    assert.match(out, /still to do in this repository:\n {2}To run Guard's local checks from \.githooks\/pre-push/);
+    assert.match(out, /does not show that Git runs the hook, that CI runs these jobs, or that a merge requires them/);
+    assert.match(out, /declared integration only/);
+    assert.deepEqual(Object.keys(guard(dir).managed), [".github/workflows/guard.yml"]);
+  });
+
+  it("does not set core.hooksPath over hooks Git already runs, nor for a hook it did not install", () => {
+    const dir = tree();
+    writeFileSync(join(dir, ".git", "hooks", "pre-commit"), "#!/bin/sh\n");
+    assert.match(init(dir).lines.join("\n"), /core\.hooksPath: unset, so Git runs pre-commit from \.git\/hooks; setting it would turn them off/);
+    assert.equal(hooksPath(dir), "");
+    assert.equal(guard(dir).config, undefined);
+
+    const other = tree();
+    mkdirSync(join(other, ".githooks"));
+    writeFileSync(join(other, ".githooks", "pre-push"), "#!/bin/sh\n");
+    assert.match(init(other).lines.join("\n"), /git config core\.hooksPath \.githooks/);
+    assert.equal(hooksPath(other), "");
+  });
+
   it("leaves a core.hooksPath that equals its own but that it did not set", () => {
     const dir = tree();
     spawnSync("git", ["config", "core.hooksPath", ".githooks"], { cwd: dir });

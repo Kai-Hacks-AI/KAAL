@@ -86,35 +86,73 @@ const local = (root) => {
   return r.status === 0 ? r.out : "";
 };
 
-/** Writes the hook and the workflow where none exists, and sets core.hooksPath where it is unset. Returns { lines } or { problem }. */
+/** Git's default hooks directory, where hooks run while core.hooksPath is unset, as Git names it from the root. */
+const hooksDir = (root) => (git(root, "rev-parse", "--git-path", "hooks").out || ".git/hooks").split("\\").join("/");
+
+/** The hooks a repository already runs from Git's default directory: any file there but Git's samples. */
+function ownHooks(root) {
+  const dir = resolve(root, hooksDir(root));
+  return existsSync(dir) ? readdirSync(dir).filter((n) => !n.endsWith(".sample")).sort() : [];
+}
+
+/** Said after every init: installing files shows nothing runs, nor that anything is required. */
+const NOT_PROOF = [
+  "init writes files and configuration only. It does not show that Git runs the hook, that CI runs these jobs, or that a merge requires them.",
+  "kaal-guard verify shows declared integration only; that CI ran a check is its job's evidence, and that a merge requires it is the repository's branch protection.",
+];
+
+/**
+ * Writes the hook and the workflow where none exists. Sets core.hooksPath only where it is unset, the
+ * hook there is Guard's own, and Git runs no hooks of the repository's own that setting it would turn off.
+ * Returns { lines } or { problem }. The lines say, apart, what Guard installed, what it left
+ * untouched, and what the repository still has to do itself.
+ */
 export function init(root) {
   const { list, problem } = readGuard(root);
   if (problem) return { problem };
   const managed = { ...(list.managed ?? {}) };
-  const lines = [];
+  const installed = [];
+  const untouched = [];
+  const todo = [];
   for (const [path, text] of Object.entries(contents(list))) {
-    if (managed[path]) lines.push(`kept ${path}: Guard manages it already; kaal-guard upgrade updates it`);
+    if (managed[path]) untouched.push(`${path}: Guard installed it before; kaal-guard upgrade updates it`);
     else if (existsSync(join(root, path))) {
-      lines.push(`kept ${path}, which Guard did not write.`);
-      if (path === HOOK) lines.push("  To run Guard's local checks from it, add this line before it ends:", ...ADD_HOOK_LINE);
-      else lines.push(`  For each ci check, give a job the step "- run: npx kaal-guard run --check <name> --github", then run kaal-guard verify.`);
+      untouched.push(`${path}: it was there before Guard`);
+      if (path === HOOK) todo.push(`To run Guard's local checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
+      else todo.push(`For each ci check, give a job in ${path} or another workflow the step "- run: npx kaal-guard run --check <name> --github", then run kaal-guard verify.`);
     } else {
       managed[path] = writeManaged(root, path, text);
-      lines.push(`wrote ${path}`);
+      installed.push(path);
     }
   }
   const config = { ...(list.config ?? {}) };
   const current = local(root);
-  if (!current) {
+  const own = ownHooks(root);
+  if (!current && !managed[HOOK]) {
+    untouched.push(`core.hooksPath: unset; Guard sets it only to run a ${HOOK} it installed`);
+    todo.push(`Once ${HOOK} runs Guard's line, enable it with: git config core.hooksPath ${HOOKS_PATH}`);
+  } else if (!current && own.length) {
+    untouched.push(`core.hooksPath: unset, so Git runs ${own.join(", ")} from ${hooksDir(root)}; setting it would turn them off`);
+    todo.push(`To run Guard's local checks, add this line to ${hooksDir(root)}/pre-push, or move those hooks to ${HOOKS_PATH} and run git config core.hooksPath ${HOOKS_PATH}:`, ...ADD_HOOK_LINE);
+  } else if (!current) {
     if (git(root, "config", "--local", "core.hooksPath", HOOKS_PATH).status !== 0) return { problem: "git config core.hooksPath could not be set" };
     config["core.hooksPath"] = HOOKS_PATH;
-    lines.push(`set core.hooksPath to ${HOOKS_PATH}`);
+    installed.push(`core.hooksPath = ${HOOKS_PATH}`);
   } else if (current !== HOOKS_PATH) {
-    lines.push(`kept core.hooksPath ${current}, which Guard did not set, so Git does not run ${HOOK}.`);
-    lines.push(`  To run Guard's local checks, add this line to ${current}/pre-push:`, ...ADD_HOOK_LINE);
+    untouched.push(`core.hooksPath = ${current}: Guard did not set it, so Git does not run ${HOOK}`);
+    todo.push(`To run Guard's local checks, add this line to ${current}/pre-push:`, ...ADD_HOOK_LINE);
   }
+  todo.push("If a merge should depend on Guard's jobs, make them required checks in branch protection.");
   writeGuard(root, { ...list, checks: list.checks ?? {}, managed, ...(Object.keys(config).length ? { config } : {}) });
-  return { lines };
+  const section = (title, items) => (items.length ? [title, ...items.map((i) => `  ${i}`)] : [title, "  nothing"]);
+  return {
+    lines: [
+      ...section("installed by Guard:", installed),
+      ...section("left untouched:", untouched),
+      ...section("still to do in this repository:", todo),
+      ...NOT_PROOF,
+    ],
+  };
 }
 
 /** Rewrites each managed file that is unmodified to this version's content. Returns { lines } or { problem }. */
