@@ -6,17 +6,17 @@ Lift what already works in KAAL: the exit-status verdicts, the narrow-adapter ru
 
 ## Change map, in dependency order
 
-Each Change (`C…`) is a KAAL Change, carried by a pull request. It names the contracts it affects and the tests that are its evidence.
+Each Change (`C…`) is a KAAL Change, carried by a pull request. A Change carries zero or more Intents: that is its only traceability link. Its Requirements, Architecture and Tests are reached through those Intents and are not linked again. A Change may carry none, as bounded technical or corrective work does.
 
-| Change | Scope | Done when |
-| --- | --- | --- |
-| **C0a** PLAN | The Guard Capability Node, these six concerns, and both parts of the outer acceptance boundary. No Guard code. | Every outer test that is not guarding what exists is RED, blocked or behavioural as [Testing](testing.md#red-evidence) reports, and the Owner accepts the boundary. |
-| **C0b** Boundary | The `Guard Acceptance Boundary` job, for pull requests into `kaal/guard`. It travels alone. | It fails a test DO Change that touches the boundary. It lands before any DO Change. |
-| **C1** Runner | The runner and `kaal-guard run`, with `guard.json`, named outcomes and GitHub reporting (A3, A5, A7). | T6, T7, T11–T13, T15, T19, T21–T23, T25 and T27–T31 are GREEN. |
-| **C2** KAAL Git adapter | KAAL's `.githooks/pre-push` calls Guard with KAAL's `guard.json` (A11). It travels alone. | T5 is GREEN, with today's verdicts on today's scenarios. |
-| **C3** KAAL CI integration | KAAL's existing jobs call `kaal-guard run --check`; names, matrices and triggers are unchanged; the `Guard` job is added (A11). It travels alone. | T32–T35 are GREEN, and every pre-migration check identity still reports. |
-| **C4** Embed | `verify`, `init`, `upgrade` and `remove`, the adapter templates, and the consumer docs (A4–A6). | T1, T2, T4, T8–T10, T14, T16–T18, T20, T24 and T26 are GREEN on all three OSes (N1), from the packed package alone; ready to publish as `kaal-guard@0.0.1`. |
-| **C5** External | The External tooling and its instructions (A10). | T3 is GREEN, and a delivered Change contains no KAAL element. |
+| Change | Carries | Scope | Done when |
+| --- | --- | --- | --- |
+| **C0a** PLAN | I1–I6 | The Guard Capability Node, these six concerns, and both parts of the outer acceptance boundary. No Guard code. | The outer tests are RED as [Testing](testing.md#red-evidence) reports, and the Owner accepts the boundary. |
+| **C0b** Boundary | — | The `Guard Acceptance Boundary` job, for pull requests into `kaal/guard`. It travels alone. | It fails a test DO Change that touches the boundary. It lands before any DO Change. |
+| **C1** Runner | I1, I2 | The runner and `kaal-guard run`, with `guard.json`, named outcomes and GitHub reporting. | The outer tests that need only `run` are GREEN. |
+| **C2** KAAL Git adapter | I4 | KAAL's `.githooks/pre-push` calls Guard with KAAL's `guard.json`. It travels alone. | KAAL's hook gives today's verdicts on today's scenarios, through Guard. |
+| **C3** KAAL CI integration | I4 | KAAL's existing jobs call `kaal-guard run --check`; names, matrices and triggers are unchanged; the `Guard` job is added. It travels alone. | Every pre-migration check identity still reports, through Guard. |
+| **C4** Embed | I3, I5 | `verify`, `init`, `upgrade` and `remove`, the adapter templates, and the consumer docs. | The packed package alone passes its outer tests on Linux, macOS and Windows, ready to publish as `kaal-guard@0.0.1`. |
+| **C5** External | I6 | The External tooling and its instructions. | A delivered Change works in a fresh target and contains no KAAL element. |
 
 ## Stopping conditions
 

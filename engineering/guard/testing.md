@@ -13,7 +13,7 @@ PLAN establishes the outer three loops and their stable acceptance boundary. DO 
 
 ## Traceability
 
-Functional and Nonfunctional Requirements name the Intent outcomes they serve. Architecture elements name the Requirements they serve. Each planned test is titled with its `T` identifier and, in brackets, the I, F, N or A identifiers it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. A Change (`C…`) is KAAL's existing Change, the bounded delivery unit, carried on GitHub by a pull request. It names the contracts it affects and the tests that are its evidence, and it is not a further traceability layer. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+Functional and Nonfunctional Requirements name the Intent outcomes they serve. Architecture elements name the Requirements they serve. Each planned test is titled with its `T` identifier and, in brackets, the I, F, N or A identifiers it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. A Change (`C…`) is KAAL's existing Change, the bounded delivery unit, carried on GitHub by a pull request. A Change carries zero or more Intents, and that is its only traceability link: its Requirements, Architecture and Tests are reached through those Intents, never linked again. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
 
 ## Where the tests live
 
