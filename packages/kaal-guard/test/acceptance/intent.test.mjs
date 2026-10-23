@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { consumer, verdicts } from "./harness.mjs";
+import { consumer, NAME, verdicts } from "./harness.mjs";
 
 describe("Intent outcome validation", () => {
   it("T1 [I2, I3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
@@ -40,7 +40,9 @@ describe("Intent outcome validation", () => {
     const c = consumer();
     const own = c.files();
     const foreign = () => {
-      const modules = readdirSync(join(c.dir, "node_modules")).filter((n) => /^kaal-/.test(n) && n !== "kaal-guard");
+      // Installed packages, scoped ones as @scope/name: any KAAL element but the package itself is foreign.
+      const installed = readdirSync(join(c.dir, "node_modules")).flatMap((n) => (n.startsWith("@") ? readdirSync(join(c.dir, "node_modules", n)).map((m) => `${n}/${m}`) : [n]));
+      const modules = installed.filter((n) => /^(@[^/]+\/)?kaal-/.test(n) && n !== NAME);
       const paths = c.files().filter((p) => /^(\.kaal|engineering)\//.test(p));
       return [...modules, ...paths];
     };

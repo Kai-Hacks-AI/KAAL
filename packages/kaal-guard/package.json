@@ -1,5 +1,5 @@
 {
-  "name": "kaal-guard",
+  "name": "@kaihacksai/kaal-guard",
   "version": "0.0.1",
   "description": "Connects a repository's own checks to its local Git hooks and to GitHub CI, with one meaning per check.",
   "license": "MIT",
