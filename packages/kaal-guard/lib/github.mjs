@@ -30,47 +30,88 @@ export function summarize(results, file) {
   appendFileSync(file, ["### kaal-guard", "", "| Check | Verdict | Evidence |", "| --- | --- | --- |", ...rows, ""].join("\n") + "\n");
 }
 
-/** Each job's text in a workflow, from its key under jobs: to the next job's key. */
+/**
+ * The reference convention verify reads, and nothing else (run.md). Under a workflow's `jobs:`, a job
+ * references a check when one of its steps' `run:` commands, inline or as a line of a `|` or `>` block,
+ * begins with `kaal-guard run` (or `npx kaal-guard run`, or `npx --no kaal-guard run`) and gives
+ * `--check <name>` as a plain word, or as exactly `${{ matrix.check }}`; then each `check: <name>`
+ * entry of that job's `matrix:` is referenced. Any other form references nothing, so verify reports
+ * that check as not referenced rather than guess.
+ */
+const COMMAND = /^(?:npx (?:--no )?)?kaal-guard run(?: \S+)*? --check (\$\{\{ matrix\.check \}\}(?=\s|$)|\S+)/;
+const MATRIX = "${{ matrix.check }}";
+
+/** Each job under `jobs:`, as its key and its lines, without blank or comment lines. */
 function jobs(text) {
-  const start = text.search(/^jobs:\s*$/m);
-  if (start < 0) return [];
-  const body = text.slice(start).split(/\r?\n/).slice(1);
+  const lines = text.split(/\r?\n/);
+  const start = lines.findIndex((l) => /^jobs:\s*$/.test(l));
   const found = [];
-  for (const line of body) {
+  for (const line of start < 0 ? [] : lines.slice(start + 1)) {
     if (/^\S/.test(line)) break;
-    if (/^  [^\s#][^:]*:\s*(#.*)?$/.test(line)) found.push([]);
-    if (found.length && !/^\s*#/.test(line)) found[found.length - 1].push(line);
+    if (!line.trim() || /^\s*#/.test(line)) continue;
+    const key = /^  ([A-Za-z_][A-Za-z0-9_-]*):\s*$/.exec(line)?.[1];
+    if (key) found.push({ key, lines: [] });
+    else if (found.length) found[found.length - 1].lines.push(line);
   }
-  return found.map((lines) => lines.join("\n"));
+  return found;
 }
 
-/** The checks one job names: `kaal-guard run --check <name>`, or `--check ${{ matrix.<key> }}` with its matrix's values. */
-function named(job) {
+const indent = (line) => line.length - line.trimStart().length;
+const plain = (word) => (/^[^\s"'{}$,#]+$/.test(word) ? word : undefined);
+
+/** The check names one job references under the convention. */
+function referenced(job) {
   const names = new Set();
-  for (const [, word] of job.matchAll(/kaal-guard run(?:\s+\S+)*?\s+--check\s+("[^"]*"|'[^']*'|\$\{\{[^}]*\}\}|\S+)/g)) {
-    const key = /^\$\{\{\s*matrix\.([A-Za-z0-9_-]+)\s*\}\}$/.exec(word)?.[1];
-    if (key) for (const [, value] of job.matchAll(new RegExp(`(?:^|[\\s{,-])${key}:\\s*("[^"]*"|'[^']*'|[^\\s,}]+)`, "gm"))) names.add(value.replace(/^["']|["']$/g, ""));
-    else names.add(word.replace(/^["']|["']$/g, ""));
+  let viaMatrix = false;
+  const commands = [];
+  job.lines.forEach((line, i) => {
+    const run = /^\s*(?:- )?run:\s*(.*)$/.exec(line);
+    if (!run) return;
+    if (/^[|>][+-]?\s*$/.test(run[1])) {
+      const own = indent(line);
+      for (const next of job.lines.slice(i + 1)) {
+        if (indent(next) <= own) break;
+        commands.push(next.trim());
+      }
+    } else commands.push(run[1].trim());
+  });
+  for (const command of commands) {
+    const word = COMMAND.exec(command)?.[1];
+    if (word === MATRIX) viaMatrix = true;
+    else if (plain(word)) names.add(word);
+  }
+  if (viaMatrix) {
+    const at = job.lines.findIndex((l) => /^\s*matrix:\s*$/.test(l));
+    const own = at < 0 ? 0 : indent(job.lines[at]);
+    for (const line of at < 0 ? [] : job.lines.slice(at + 1)) {
+      if (indent(line) <= own) break;
+      const value = /(?:^\s*(?:- )?\{?\s*|,\s*)check:\s*([^\s,}]+)/.exec(line)?.[1];
+      const name = plain(value?.replace(/^"([^"]*)"$|^'([^']*)'$/, "$1$2"));
+      if (name) names.add(name);
+    }
   }
   return names;
 }
 
 /**
- * Whether the workflow files under .github/workflows name a job for every ci check in the list.
- * Returns { results }, one per ci check, read from the files alone.
+ * Which ci checks in the list a job in .github/workflows references under the convention. Static
+ * only: a reference is not proof that the job runs, that its step is reached, or that the job is
+ * required. Returns { results }, one per ci check.
  */
 export function verify(root, list) {
   const dir = join(root, ".github", "workflows");
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
-  const covered = new Map();
+  const where = new Map();
   for (const file of files) {
-    for (const job of jobs(readFileSync(join(dir, file), "utf8"))) for (const name of named(job)) if (!covered.has(name)) covered.set(name, file);
+    for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
+      for (const name of referenced(job)) if (!where.has(name)) where.set(name, `job ${job.key} in .github/workflows/${file}`);
+    }
   }
   const ci = Object.keys(list.checks).filter((name) => list.checks[name].runs.includes("ci"));
   return {
     results: ci.map((name) =>
-      covered.has(name)
-        ? { name, verdict: "pass", evidence: `a job in .github/workflows/${covered.get(name)} runs it (static; not proof that it ran or is required)` }
-        : { name, verdict: "fail", evidence: "no workflow job runs it", do: `add a step running kaal-guard run --check ${name} --github to a job, and make that job required` }),
+      where.has(name)
+        ? { name, verdict: "pass", evidence: `statically referenced by ${where.get(name)}; whether GitHub runs or requires that job is outside verify` }
+        : { name, verdict: "fail", evidence: "no workflow job references it", do: `add a step "run: npx kaal-guard run --check ${name} --github" to a job, and make that job required` }),
   };
 }

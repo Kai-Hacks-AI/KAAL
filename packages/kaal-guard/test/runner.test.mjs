@@ -187,30 +187,55 @@ describe("GitHub reporting", () => {
 });
 
 describe("verify", () => {
-  /** A repository with these checks and these workflow files; returns verify's verdict per check. */
-  const verdicts = (checks, workflows) => {
+  /** A repository with these checks and these workflow files; returns verify's results by check. */
+  const verified = (checks, workflows) => {
     const dir = repo(checks);
     for (const [file, text] of Object.entries(workflows)) {
       mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
       writeFileSync(join(dir, ".github", "workflows", file), text);
     }
-    return Object.fromEntries(verify(dir, readList(dir).list).results.map((r) => [r.name, r.verdict]));
+    return Object.fromEntries(verify(dir, readList(dir).list).results.map((r) => [r.name, r]));
   };
+  const verdicts = (checks, workflows) => Object.fromEntries(Object.entries(verified(checks, workflows)).map(([n, r]) => [n, r.verdict]));
   const ci = { command: "x", runs: ["ci"] };
+  const job = (...lines) => `on: push\njobs:\n  a:\n${lines.map((l) => `    ${l}`).join("\n")}\n`;
 
-  it("passes a ci check a job runs by name, and fails one no job runs", () => {
-    const wf = "on: push\njobs:\n  a:\n    steps:\n      - run: npx kaal-guard run --check named --github\n";
-    assert.deepEqual(verdicts({ named: ci, orphan: ci, mine: { command: "x", runs: ["local"] } }, { "ci.yml": wf }), { named: "pass", orphan: "fail" });
+  it("passes a ci check a step's run: command references, inline or in a block, and fails one nothing references", () => {
+    const wf = job("steps:", "  - run: npx kaal-guard run --check inline --github", "  - run: |", "      B=$(git rev-parse HEAD)", "      npx --no kaal-guard run --check block --base \"$B\"");
+    assert.deepEqual(verdicts({ inline: ci, block: ci, orphan: ci, mine: { command: "x", runs: ["local"] } }, { "ci.yml": wf }), { inline: "pass", block: "pass", orphan: "fail" });
   });
 
-  it("reads a matrix job's check from its matrix", () => {
-    const wf = "jobs:\n  lane:\n    strategy:\n      matrix:\n        include:\n          - { check: one, script: \"x\" }\n          - { check: \"two\" }\n    steps:\n      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github\n";
+  it("reads --check ${{ matrix.check }} from the job's matrix check: entries", () => {
+    const wf = job("strategy:", "  matrix:", "    include:", "      - { check: one, script: \"x\" }", "      - check: two", "steps:", "  - run: npx --no kaal-guard run --check ${{ matrix.check }} --github");
     assert.deepEqual(verdicts({ one: ci, two: ci, three: ci }, { "ci.yaml": wf }), { one: "pass", two: "pass", three: "fail" });
   });
 
-  it("does not count a commented-out step, a step outside jobs, or a missing workflows directory", () => {
-    const wf = "# kaal-guard run --check top\njobs:\n  a:\n    steps:\n      # - run: kaal-guard run --check commented\n      - run: echo\n";
-    assert.deepEqual(verdicts({ top: ci, commented: ci }, { "ci.yml": wf }), { top: "fail", commented: "fail" });
+  it("references nothing outside the convention, rather than guess", () => {
+    const wf = job(
+      "name: kaal-guard run --check named",
+      "env:",
+      "  X: kaal-guard run --check env",
+      "strategy:",
+      "  matrix:",
+      "    name: [other]",
+      "steps:",
+      "  - run: echo kaal-guard run --check echoed",
+      "  - run: npx kaal-guard run --check \"quoted\"",
+      "  - run: npx kaal-guard run --check ${{ inputs.check }}",
+      "  - run: npx kaal-guard run --check ${{ matrix.name }}",
+      "  - run: |",
+      "      # npx kaal-guard run --check commented",
+      "      true",
+    );
+    const top = "# kaal-guard run --check top\non: push\n" + wf.replace("on: push\n", "");
+    const checks = Object.fromEntries(["named", "env", "echoed", "quoted", "other", "commented", "top"].map((n) => [n, ci]));
+    assert.ok(Object.values(verdicts(checks, { "ci.yml": top })).every((v) => v === "fail"));
     assert.deepEqual(verdicts({ any: ci }, {}), { any: "fail" });
+  });
+
+  it("claims a static reference only, never that the job runs or is required", () => {
+    const r = verified({ c: ci }, { "ci.yml": job("if: false", "steps:", "  - if: false", "    run: npx kaal-guard run --check c") }).c;
+    assert.equal(r.verdict, "pass");
+    assert.equal(r.evidence, "statically referenced by job a in .github/workflows/ci.yml; whether GitHub runs or requires that job is outside verify");
   });
 });
