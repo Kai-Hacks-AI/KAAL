@@ -1,6 +1,6 @@
 # Guard: Run
 
-The commands are intended. None exists yet.
+`kaal-guard run` exists from C1, so far only in this repository; the other commands are intended.
 
 ## Embed: shipped in the package
 

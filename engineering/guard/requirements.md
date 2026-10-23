@@ -28,7 +28,10 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 
 **F6 Narrow adapters.** [I3] The hook and the workflow jobs pass facts and act only on verdicts.
 
-**F7 Trusted checker.** [I1, I2] A check can name a `trusted` file. The runner then runs that file as it stands on the target ref (`base`), never the candidate's version, so a candidate cannot certify itself.
+**F7 Trusted checker.** [I1, I2] A check can name a `trusted` file or directory. The runner then takes exactly those files as the target revision (`base`) holds them, never the candidate's version, and runs them in place of the candidate's, so a candidate cannot certify itself.
+- Guard establishes Git provenance only. The verdict's evidence names the base commit that supplied the checker's files.
+- What the checker imports from elsewhere, its interpreter and its environment are outside Guard's guarantee. They belong to the environment the check runs in.
+- When the base or the designated files on it cannot be obtained, or no word of the command names the trusted path, the check is cannot judge.
 
 **F8 Safe lifecycle.** [I5, I6]
 - The package provides `init`, `upgrade` and `remove`.
@@ -39,7 +42,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 - A modified managed file is left in place and reported.
 - An External delivery follows the same rule for the target's existing files.
 
-**F9 Execution contract.** [I2] An adapter supplies facts to `kaal-guard run` as `--head`, `--base`, `--base-ref` and `--changed <file>`. A check runs as a command, from the repository root, with no stdin. It receives only these facts, as environment variables, when the adapter supplied them:
+**F9 Execution contract.** [I2] A `command` is a program and its arguments, written as words separated by spaces, with double or single quotes grouping a word. It has no shell features: no pipes, redirection, variables or comments. The program is started directly. On Windows a `.cmd` or `.bat` program, such as npm, runs only under `cmd`, so each of its words is quoted, and a word holding a character `cmd` reads as syntax (`" & | < > ^ % !`) is cannot judge. An adapter supplies facts to `kaal-guard run` as `--head`, `--base`, `--base-ref` and `--changed <file>`. A check runs as a command, from the repository root, with no stdin. It receives only these facts, as environment variables, when the adapter supplied them:
 - `GUARD_HEAD`, the candidate commit;
 - `GUARD_BASE` and `GUARD_BASE_REF`, the target commit and its name;
 - `GUARD_CHANGED`, a file listing the changed paths, NUL-separated.
