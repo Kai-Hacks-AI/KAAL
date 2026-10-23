@@ -1,13 +1,13 @@
-# kaal-guard
+# @kaihacksai/kaal-guard
 
 Connects a repository's own checks to its local Git `pre-push` hook and to GitHub CI, with one meaning per check. Guard runs the checks you list and reads their verdicts. It never interprets what a check tests or what it prints.
 
-Node 20 or later and Git. The hook is POSIX `sh`, which Git for Windows provides.
+The command is `kaal-guard`. Node 20 or later and Git. The hook is POSIX `sh`, which Git for Windows provides.
 
 ## Start
 
 ```sh
-npm install --save-dev kaal-guard
+npm install --save-dev @kaihacksai/kaal-guard
 npx kaal-guard init
 ```
 
@@ -89,15 +89,15 @@ When Git cannot give a fact, such as an unfetched base or changed paths it canno
 A repository with a `pre-push` hook of its own adds this line to it:
 
 ```sh
-sh node_modules/kaal-guard/templates/pre-push "$@" || exit 1
+sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1
 ```
 
 ## CI, and what verify does not say
 
-A job declares a check with a step whose whole `run:` line is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`:
+A job declares a check with a step whose whole `run:` line is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`. Prefer `npx --no`: where the package is not installed it fails, instead of fetching whatever the registry holds under the command's name:
 
 ```yaml
-- run: npx kaal-guard run --check unit --github
+- run: npx --no kaal-guard run --check unit --github
 ```
 
 `--check ${{ matrix.check }}` declares each check the job lists as a line `- { check: <name> }`. Nothing else declares a check, and `verify` infers nothing from scripts or other YAML.
@@ -127,7 +127,7 @@ Neither `init` nor `verify` makes a job required, or proves that it ran. To have
 
 ```sh
 npx kaal-guard remove
-npm uninstall kaal-guard
+npm uninstall @kaihacksai/kaal-guard
 ```
 
 `remove` deletes the managed files you haven't changed. It unsets `core.hooksPath` only if Guard set it. `guard.json` and your checks stay.

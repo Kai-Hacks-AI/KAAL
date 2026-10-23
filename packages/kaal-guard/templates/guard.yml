@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: lts/*
       - run: npm ci
-      - run: npx kaal-guard verify --github
+      - run: npx --no kaal-guard verify --github
   check:
     name: ${{ matrix.check }}
     runs-on: ubuntu-latest
@@ -33,4 +33,4 @@ jobs:
           node-version: lts/*
       - run: npm ci
       - run: git diff --name-only -z ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} > "$RUNNER_TEMP/changed"
-      - run: npx kaal-guard run --check ${{ matrix.check }} --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed
+      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed

@@ -14,7 +14,7 @@ const WORKFLOW = ".github/workflows/guard.yml";
 const HOOKS_PATH = ".githooks";
 
 /** The line a pre-existing hook adds to run Guard's own: it runs kaal-guard run --local with the push's facts. */
-const HOOK_LINE = `sh node_modules/kaal-guard/templates/pre-push "$@" || exit 1`;
+const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1`;
 const ADD_HOOK_LINE = [
   `  ${HOOK_LINE}`,
   "  It runs kaal-guard run --local with the push's facts, reading the push's lines on standard input.",
@@ -119,7 +119,7 @@ export function init(root) {
     else if (existsSync(join(root, path))) {
       untouched.push(`${path}: it was there before Guard`);
       if (path === HOOK) todo.push(`To run Guard's local checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
-      else todo.push(`For each ci check, give a job in ${path} or another workflow the step "- run: npx kaal-guard run --check <name> --github", then run kaal-guard verify.`);
+      else todo.push(`For each ci check, give a job in ${path} or another workflow the step "- run: npx --no kaal-guard run --check <name> --github", then run kaal-guard verify.`);
     } else {
       managed[path] = writeManaged(root, path, text);
       installed.push(path);
