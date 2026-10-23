@@ -1,19 +1,29 @@
 # Guard: Testing
 
-Testing owns what evidence means. Guard's concerns form a chain: Intent says why (I…), Requirements say what, as Functional (F…) and Nonfunctional (N…) obligations, Architecture says where (A…), and Code says how. Tests (T…) trace back to the concerns they check. They do not form a rigid linear pipeline: one test may check several concerns.
+Testing owns what evidence means. Guard's documents are written outside-in: Intent first, the *why* (I…); then the Requirements, the *what*, as Functional (F…) and Nonfunctional (N…) obligations, each tracing to the Intent it serves; then Architecture, the *where* (A…), each element tracing to the Requirements it answers. The planned tests follow from these documents in PLAN. Code, the *how*, is written in DO to turn those tests from RED to GREEN.
+
+The relationships are exactly these, and no others:
+
+- F and N → I: each Requirement traces to the Intent it serves.
+- A → F and N: each Architecture element traces to the Requirements it answers.
+- T → I, F, N or A: each test names the contracts it validates or verifies. Tests are not children of Architecture: they answer each of the three outer concerns on their own terms.
+- Code → the tests it turns from RED to GREEN, with inner Code tests that evolve in DO. Code has no structural trace to Architecture.
+- C → zero or more I: a Change carries Intents, and nothing else is linked to it.
+
+There is no tree beyond these links and no cardinality beyond what each states.
 
 | Loop | Checks | Planned in | Changed in |
 | --- | --- | --- | --- |
 | Intent | the outcomes I1–I6 hold for a user of Guard | PLAN | only a new PLAN Change |
 | Requirements | each obligation F1–F10, N1–N7 holds | PLAN | only a new PLAN Change |
 | Architecture | each element A1–A11 keeps its placement, ownership, boundaries and dependencies | PLAN | only a new PLAN Change |
-| Code | the implementation behaves as built, test first | DO | DO, freely |
+| Code | the implementation, test first, as it turns the outer tests from RED to GREEN | DO | DO, freely |
 
 PLAN establishes the outer three loops and their stable acceptance boundary. DO develops the Code tests. The loops are a concept, not four frameworks or pipelines: every test is a plain `node:test` file, and none needs Testing, Sealing or any other KAAL element.
 
 ## Traceability
 
-Functional and Nonfunctional Requirements name the Intent outcomes they serve. Architecture elements name the Requirements they serve. Each planned test is titled with its `T` identifier and, in brackets, the I, F, N or A identifiers it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. A Change (`C…`) is KAAL's existing Change, the bounded delivery unit, carried on GitHub by a pull request. A Change carries zero or more Intents, and that is its only traceability link: its Requirements, Architecture and Tests are reached through those Intents, never linked again. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+Each identifier states its relationships where it is defined: a Requirement names its Intents in brackets, an Architecture element its Requirements, and each planned test, in its title, the I, F, N or A contracts it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. A Change (`C…`) is KAAL's existing Change, carried on GitHub by a pull request. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
 
 ## Where the tests live
 

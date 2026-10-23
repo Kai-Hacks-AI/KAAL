@@ -1,6 +1,6 @@
 # Guard: Code (how)
 
-Code implements Guard within the boundaries of [Architecture](architecture.md), test first: Code tests are the fourth loop, written in DO. Guard is developed in KAAL Engineering. Nothing is implemented before the Owner authorizes it.
+Code is the *how*. It is written in DO, test first, to turn the planned outer tests from RED to GREEN; its own inner Code tests, the fourth loop, evolve with it. Code has no identifier series and no structural trace to Architecture: the Architecture conformance tests are what hold it to Architecture. Guard is developed in KAAL Engineering. Nothing is implemented before the Owner authorizes it.
 
 Lift what already works in KAAL: the exit-status verdicts, the narrow-adapter rule ("supply facts, act on the exit code") and the trusted checker read from the target ref all run today in `.githooks/pre-push` and the workflows.
 

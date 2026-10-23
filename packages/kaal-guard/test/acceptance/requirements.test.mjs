@@ -1,5 +1,6 @@
 // kaal-guard outer acceptance, Requirements verification: each test (T…) names the Functional (F…)
-// or Nonfunctional (N…) Requirement it verifies; each describe names the Intent (I…) it serves. N1 is
+// or Nonfunctional (N…) Requirement it verifies; each describe repeats that Requirement's own trace to
+// Intent (I…), for reading only. N1 is
 // these tests on Linux, macOS and Windows; N6 is verified by T30. Planned in PLAN; DO and CHECK do not change them.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
