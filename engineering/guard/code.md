@@ -6,7 +6,7 @@ Lift what already works in KAAL: the exit-status verdicts, the narrow-adapter ru
 
 ## Change map, in dependency order
 
-A Change (`C…`) is the bounded delivery unit. Each names the contracts it affects and the tests that are its evidence.
+Each Change (`C…`) is a KAAL Change, carried by a pull request. It names the contracts it affects and the tests that are its evidence.
 
 | Change | Scope | Done when |
 | --- | --- | --- |

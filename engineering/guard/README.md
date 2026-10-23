@@ -24,4 +24,4 @@ The six concerns:
 
 State: PLAN (C0a). The outer tests are planned and RED, most of them blocked before behavioural assertion ([Testing](testing.md#red-evidence)). No Guard code exists yet.
 
-Mnemonics, not names: HITMAN, Hooks Integrating Tests, Making Agents Nervous; CLAUSE, CI Lets Agents Update Service Errors (agents propose Changes but cannot certify their own work); FANATIC, Functional And Nonfunctional Architecture Tests Intended Change, the identifiers I, F, N, A, T and the Changes C.
+Guard realizes the Git-hook and CI mechanisms behind two KAAL-wide mnemonics, HITMAN (Hooks Integrating Tests, Making Agents Nervous) and CLAUSE (CI Lets Agents Update Service Errors), and its documents use KAAL's FANATIC identifiers. Guard owns none of the three.
