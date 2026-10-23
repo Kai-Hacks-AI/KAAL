@@ -10,7 +10,7 @@ The package is published to npm as `kaal-guard`, first as `kaal-guard@0.0.1`.
 npm install --save-dev kaal-guard
 npx kaal-guard init        # writes guard.json and missing adapters only; reports any it left alone
 npx kaal-guard run --local # what the hook runs
-npx kaal-guard verify      # a workflow job references every ci check (static wiring only)
+npx kaal-guard verify      # a workflow job declares every ci check in Guard's form (declared integration only)
 npx kaal-guard upgrade     # replaces only unmodified managed files
 npx kaal-guard remove      # deletes only unmodified managed files; keeps guard.json and your tests
 ```
@@ -27,9 +27,22 @@ KAAL Engineering implements Guard in the target from the target's own commands, 
 
 ## Verify
 
-`verify` reads `.github/workflows/*.yml` and `*.yaml` as text and recognizes one form only. Under `jobs:`, a job references a check when one of its steps' `run:` commands, inline or as a line of a `|` or `>` block, begins with `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` and gives `--check <name>` as a plain word. With `--check ${{ matrix.check }}`, each `check: <name>` entry in that job's `matrix:` is referenced. Any other form, such as a quoted name, another expression or another matrix key, references nothing, and `verify` reports that check as not referenced rather than guess.
+Guard owns one integration contract, and `verify` checks only that: whether each `ci` check is **declared** in Guard's declared form. It reads `.github/workflows/*.yml` and `*.yaml` as lines and infers nothing from scripts or other YAML.
 
-A pass means static wiring only: `statically referenced by job <key> in <file>`. Whether GitHub runs that job, reaches that step (an `if:` is not read) or requires it is outside `verify`.
+- The jobs are the `  <key>:` lines indented two spaces directly under a top-level `jobs:` line.
+- A job declares a check with a step whose whole `run:` value, on that one line, is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`, the name a plain word, as in `- run: npx kaal-guard run --check <name> --github`.
+- `--check ${{ matrix.check }}` declares each check the job lists on a line of its own as `- { check: <name>, … }`.
+- Nothing else declares anything: a block script, a chained command, a quoted name, another expression or matrix key, `echo`, `name:` or `env:` text, a comment.
+
+Three claims stay separate:
+
+| Claim | Established by |
+| --- | --- |
+| **Declared integration**: the check is wired in Guard's declared form | `verify` |
+| **Observed execution**: GitHub Actions ran the check | CI execution evidence: the job's run and its verdict line |
+| **Merge enforcement**: GitHub requires the check | repository governance: branch protection or rulesets |
+
+A pass says `declared by job <key> in <file>; declared integration only, not that GitHub ran or requires that job`.
 
 ## Diagnosis
 
@@ -39,6 +52,6 @@ A pass means static wiring only: `statically referenced by job <key> in <file>`.
 | `not applicable: …` | nothing; it is reported as not applicable, not as a pass |
 | `held: …` | the Owner's evidenced hold; the check's own output in the log says why |
 | the hook passes but CI fails | compare the base the hook printed with CI's; `git fetch`, then rerun |
-| `verify` names a ci check no job references | add a step `run: npx kaal-guard run --check <name> --github` to a job ([the form verify reads](#verify)); `verify` reads files only, so also make that job required |
+| `verify` names a ci check no job declares | give a job the step `- run: npx kaal-guard run --check <name> --github` ([the declared form](#verify)), and make that job required; `verify` does not check either |
 | `init` left a file alone | it existed before Guard; add the printed line yourself |
 | the hook doesn't run | `git config core.hooksPath .githooks` |
