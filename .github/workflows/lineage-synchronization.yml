@@ -20,7 +20,7 @@
 # It also gates the merge method: when auto-merge is enabled, the checker's auto-merge verdict says
 # whether it is set to the method the pull request's flow lands by. Enabling or disabling auto-merge
 # runs this check again. What actually landed is audited after the fact by branching-audit.yml.
-name: KAAL
+name: Branching
 
 on:
   pull_request_target:
