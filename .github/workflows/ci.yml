@@ -1,6 +1,7 @@
 # Runs KAAL's tests. Each job runs one check that KAAL lists in guard.json through kaal-guard, which
 # reports its verdict; what a check tests is defined there and in the code it runs, never here. The
-# Guard job runs kaal-guard's own tests.
+# Guard job runs kaal-guard's own tests and kaal-guard verify, which shows that a job declares every
+# ci check in Guard's declared form (declared integration only).
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -78,4 +79,6 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      - run: npm ci
       - run: node --test packages/kaal-guard/test/*.test.mjs
+      - run: npx --no kaal-guard verify --github
