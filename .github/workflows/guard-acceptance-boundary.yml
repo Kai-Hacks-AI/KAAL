@@ -1,7 +1,10 @@
 # Guard Acceptance Boundary (engineering/guard/testing.md, "Integrity of the outer contract"): keeps
 # kaal-guard's planned outer tests fixed while DO makes them GREEN. A pull request into kaal/guard
-# that changes the boundary must change nothing else, so a changed boundary is always its own
-# reviewed PLAN Change, and a DO Change that touches it fails.
+# that changes the boundary must change nothing else, so a changed boundary is always isolated in its
+# own Change, and a Change that touches the boundary and anything else fails.
+#
+# Isolation is all this check establishes. It cannot tell whether a PLAN Change was authorized;
+# that stays with KAAL's Change governance: the PR's review and the Owner.
 #
 # The boundary is packages/kaal-guard/test/acceptance/ and engineering/guard/acceptance/, each with
 # its tests, fixtures and helpers. The judgment uses only Git.
@@ -10,8 +13,15 @@
 # that touches the boundary cannot also change this workflow. The candidate is never built or run;
 # only its changed paths are read.
 #
+# Enforcement prerequisite: this check protects the boundary only when the branch rules for
+# kaal/guard require "Guard Acceptance Boundary". A green run alone enforces nothing. The `lineage`
+# ruleset covers every kaal/* collector and does not require it; requiring it there would block the
+# other collectors, where this job never runs, so it belongs in a ruleset for kaal/guard alone.
+#
 # Synchronization: a candidate head already contained in the default branch carries only Changes
-# each admitted there, so the boundary check does not apply to its aggregate.
+# each admitted there, so the check does not apply to its aggregate. This exemption is KAAL's
+# branching and Change policy, held in this KAAL workflow only; it is not part of the kaal-guard
+# package.
 name: Guard
 
 on:
@@ -58,13 +68,13 @@ jobs:
             exit 0
           fi
           if [ ! -s "$RUNNER_TEMP/outside" ]; then
-            echo "pass: Guard Acceptance Boundary: a PLAN Change; it touches only the boundary:"
+            echo "pass: Guard Acceptance Boundary: isolated; the Change touches only the boundary (its PLAN authorization is for review, not this check):"
             sed 's/^/  /' "$RUNNER_TEMP/inside"
             exit 0
           fi
           echo "fail: Guard Acceptance Boundary: the Change touches the boundary and other paths."
           echo "  boundary:"; sed 's/^/    /' "$RUNNER_TEMP/inside"
           echo "  other:"; sed 's/^/    /' "$RUNNER_TEMP/outside"
-          echo "  do: leave the planned outer tests as they are, or move the boundary change into its own PLAN Change."
-          echo "::error title=Guard Acceptance Boundary::the Change touches the boundary and other paths; a changed boundary is its own PLAN Change"
+          echo "  do: leave the planned outer tests as they are, or isolate the boundary change in its own Change."
+          echo "::error title=Guard Acceptance Boundary::the Change touches the boundary and other paths; a boundary change travels alone"
           exit 1
