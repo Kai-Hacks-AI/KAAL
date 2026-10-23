@@ -1,4 +1,5 @@
-// Guard outer acceptance, Engineering part: External (outcome 6, I3, N5, and G8 for a target).
+// Guard outer acceptance, Engineering part: External. Intent validation I3 [O6], with N5 and G8 verified
+// for a target and A10 conformance.
 // KAAL Engineering delivers Guard naked into a fresh target as one Change. Planned in PLAN; DO and
 // CHECK do not change it.
 import assert from "node:assert/strict";
@@ -42,9 +43,9 @@ function target() {
   return { dir, env, git, write, read: (p) => readFileSync(join(dir, p), "utf8") };
 }
 
-describe("I3: External delivers Guard naked", () => {
-  it("delivers one Change with working hooks and CI and local docs, and leaves nothing from KAAL", () => {
-    assert.ok(existsSync(DELIVER), "missing behaviour: there is no External delivery tooling (engineering/guard/external/deliver.mjs)");
+describe("I3 [O6] External delivers Guard naked", () => {
+  it("I3 [O6], N5, G8, A10: delivers one Change with working hooks and CI and local docs, and leaves nothing from KAAL", () => {
+    assert.ok(existsSync(DELIVER), "blocked before behavioural assertion: there is no External delivery tooling (engineering/guard/external/deliver.mjs)");
     const t = target();
     const build = t.read(".github/workflows/build.yml");
     const before = t.read("package.json");

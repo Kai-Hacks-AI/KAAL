@@ -22,10 +22,10 @@ export function exec(cwd, file, args, env = {}, input = "") {
 
 let tarball;
 
-/** The packed kaal-guard tarball. Fails, naming the missing behaviour, while there is no package. */
+/** The packed kaal-guard tarball. While there is no package, a scenario is blocked here, before any behavioural assertion. */
 export function packed() {
   if (tarball) return tarball;
-  assert.ok(existsSync(join(PACKAGE, "package.json")), "missing behaviour: there is no kaal-guard package to pack (packages/kaal-guard/package.json)");
+  assert.ok(existsSync(join(PACKAGE, "package.json")), "blocked before behavioural assertion: there is no kaal-guard package to pack (packages/kaal-guard/package.json)");
   const out = mkdtempSync(join(tmpdir(), "kaal-guard-pack-"));
   const r = exec(PACKAGE, "npm", ["pack", "--pack-destination", out, "--silent"]);
   assert.equal(r.status, 0, `npm pack failed: ${r.output}`);

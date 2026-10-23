@@ -1,12 +1,13 @@
-// kaal-guard outer acceptance: Intent. Planned in PLAN; DO and CHECK do not change it.
+// kaal-guard outer acceptance, Intent outcome validation: each test names the outcomes it validates.
+// Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { consumer, verdicts } from "./harness.mjs";
 
-describe("Intent", () => {
-  it("I1: one check gives the same verdict through the hook and through CI, for the same facts", () => {
+describe("Intent outcome validation", () => {
+  it("I1 [O2, O3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
     c.checks({ same: { command: "node checks/exit.mjs 1 broken", runs: ["local", "ci"] } });
@@ -25,7 +26,7 @@ describe("Intent", () => {
     assert.equal(ci.verdict, local.verdict);
   });
 
-  it("I2: removing Guard leaves the repository's own tests intact", () => {
+  it("I2 [O1]: removing Guard leaves the repository's own tests intact", () => {
     const c = consumer();
     const before = c.read("test/own.test.mjs");
     assert.equal(c.guard(["init"]).status, 0);
@@ -35,7 +36,7 @@ describe("Intent", () => {
     assert.ok(c.exists("checks/exit.mjs") && c.exists("checks/facts.mjs"));
   });
 
-  it("I4: the packed package alone installs, operates and removes cleanly, and no other KAAL element appears", () => {
+  it("I4 [O5]: the packed package alone installs, operates and removes cleanly, and no other KAAL element appears", () => {
     const c = consumer();
     const own = c.files();
     const foreign = () => {

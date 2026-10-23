@@ -1,4 +1,5 @@
-// kaal-guard outer acceptance: Architecture. Planned in PLAN; DO and CHECK do not change it.
+// kaal-guard outer acceptance, Architecture conformance: each test names the Architecture elements it
+// checks. Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -27,27 +28,27 @@ const specifiers = (source) => [...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s
 
 const source = (path) => readFileSync(join(PACKAGE, path), "utf8");
 
-/** Fails, naming the missing behaviour, while the package has no such file. */
+/** While the package has no such file, the test is blocked here, before any conformance assertion. */
 function present(path) {
-  assert.ok(existsSync(join(PACKAGE, path)), `missing behaviour: kaal-guard has no ${path}`);
+  assert.ok(existsSync(join(PACKAGE, path)), `blocked before behavioural assertion: kaal-guard has no ${path}`);
 }
 
-describe("Architecture", () => {
-  it("the runner knows nothing of the adapters or GitHub", () => {
+describe("Architecture conformance", () => {
+  it("A3, A7: the runner knows nothing of the adapters or GitHub", () => {
     present("lib/runner.mjs");
     const runner = source("lib/runner.mjs");
     for (const s of specifiers(runner)) assert.doesNotMatch(s, /github|templates/, `the runner imports ${s}`);
     assert.doesNotMatch(runner, /GITHUB_|\.github\/|\.githooks|::(error|warning|notice)/, "the runner holds GitHub or hook knowledge");
   });
 
-  it("nothing depends on an adapter", () => {
+  it("A7: nothing depends on an adapter", () => {
     present("templates/pre-push");
     for (const f of files(PACKAGE).filter((f) => /\.(mjs|js|cjs)$/.test(f) && !f.startsWith("test/acceptance/"))) {
       for (const s of specifiers(source(f))) assert.doesNotMatch(s, /templates\//, `${f} imports the adapter ${s}`);
     }
   });
 
-  it("the package declares and imports no KAAL element and references no Engineering path", () => {
+  it("A8 [N6]: the package declares and imports no KAAL element and references no Engineering path", () => {
     present("package.json");
     const manifest = JSON.parse(source("package.json"));
     assert.equal(manifest.name, "kaal-guard");
@@ -66,7 +67,7 @@ describe("Architecture", () => {
     }
   });
 
-  it("the acceptance boundary is closed: its files import only Node built-ins and files inside it", () => {
+  it("A8 [N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it", () => {
     for (const f of files(HERE).filter((f) => f.endsWith(".mjs"))) {
       for (const s of specifiers(readFileSync(join(HERE, f), "utf8"))) {
         assert.ok(s.startsWith("node:") || (s.startsWith("./") && !s.includes("..")), `${f} imports ${s}, outside the boundary`);

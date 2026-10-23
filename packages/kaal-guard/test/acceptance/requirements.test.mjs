@@ -1,5 +1,6 @@
-// kaal-guard outer acceptance: Requirements G1 to G10 and N2 to N4. N1 is the same tests on Linux,
-// macOS and Windows. Planned in PLAN; DO and CHECK do not change them.
+// kaal-guard outer acceptance, Requirements verification: G1 to G10 and N2 to N4, each named with the
+// Intent outcomes it traces to. N1 is these tests on Linux, macOS and Windows; N6 is verified by the
+// Architecture conformance test of A8. Planned in PLAN; DO and CHECK do not change them.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,7 +17,7 @@ function given(checks) {
   return c;
 }
 
-describe("G1 check list", () => {
+describe("G1 [O1] check list", () => {
   it("runs the local checks for the hook and only the named check for CI", () => {
     const c = given({ a: { command: exit(0), runs: ["local"] }, b: { command: exit(0), runs: ["ci"] }, both: { command: exit(0), runs: ["local", "ci"] } });
     assert.deepEqual(Object.keys(verdicts(c.guard(["run", "--local"]).output)).sort(), ["a", "both"]);
@@ -25,7 +26,7 @@ describe("G1 check list", () => {
   });
 });
 
-describe("G2 verdicts", () => {
+describe("G2 [O2] verdicts", () => {
   it("names every exit status by its own verdict and never collapses one into another", () => {
     const c = given({
       s0: { command: exit(0), runs: ["local"] },
@@ -45,7 +46,7 @@ describe("G2 verdicts", () => {
   });
 });
 
-describe("G3 one runner", () => {
+describe("G3 [O2, O3] one runner", () => {
   it("serves the hook and CI from the same runner and the same list", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
@@ -54,7 +55,7 @@ describe("G3 one runner", () => {
   });
 });
 
-describe("G4 local hook", () => {
+describe("G4 [O2, O3] local hook", () => {
   it("blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify", () => {
     for (const status of [1, 2]) {
       const c = consumer();
@@ -79,7 +80,7 @@ describe("G4 local hook", () => {
   });
 });
 
-describe("G5 CI gate", () => {
+describe("G5 [O2, O3] CI gate", () => {
   const ci = (status, outcomes) => {
     const c = given({ x: { command: exit(status, "evidence"), runs: ["ci"], ...(outcomes ? { outcomes } : {}) } });
     const summary = join(c.root, "summary.md");
@@ -112,7 +113,7 @@ describe("G5 CI gate", () => {
   });
 });
 
-describe("G6 narrow adapters", () => {
+describe("G6 [O3] narrow adapters", () => {
   it("the hook follows guard.json without being changed, and names no check", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
@@ -128,7 +129,7 @@ describe("G6 narrow adapters", () => {
   });
 });
 
-describe("G7 trusted checker", () => {
+describe("G7 [O1, O2] trusted checker", () => {
   it("runs the trusted checker as it stands on the base, never the candidate's version", () => {
     const c = consumer();
     c.write("checks/judge.mjs", "process.exit(1);\n");
@@ -141,7 +142,7 @@ describe("G7 trusted checker", () => {
   });
 });
 
-describe("G8 safe lifecycle", () => {
+describe("G8 [O5, O6] safe lifecycle", () => {
   it("records every file init writes, with its SHA-256", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
@@ -182,7 +183,7 @@ describe("G8 safe lifecycle", () => {
   });
 });
 
-describe("G9 execution contract", () => {
+describe("G9 [O2] execution contract", () => {
   it("gives a check only its facts, from the repository root, with no stdin, wherever it is started", () => {
     const c = given({ facts: { command: "node checks/facts.mjs facts.json", runs: ["local", "ci"] } });
     c.write("changed.txt", "a.txt\0dir/b.txt\0");
@@ -213,7 +214,7 @@ describe("G9 execution contract", () => {
   });
 });
 
-describe("G10 no silent gate", () => {
+describe("G10 [O2, O4] no silent gate", () => {
   it("a command that cannot start is cannot judge, and it blocks", () => {
     const c = given({ ghost: { command: "a-command-that-does-not-exist-anywhere", runs: ["local"] } });
     const r = c.guard(["run", "--local"]);
@@ -233,7 +234,7 @@ describe("G10 no silent gate", () => {
     assert.notEqual(r.status, 0);
   });
 
-  it("verify fails on a ci check that no workflow job runs", () => {
+  it("verify fails on a ci check that no workflow job names (static configuration coverage only)", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
     c.checks({ orphan: { command: exit(0), runs: ["ci"] } });
@@ -246,12 +247,12 @@ describe("G10 no silent gate", () => {
 });
 
 describe("N2 to N4", () => {
-  it("N2: the same run twice prints the same verdicts", () => {
+  it("N2 [O2]: the same run twice prints the same verdicts", () => {
     const c = given({ a: { command: exit(1, "same"), runs: ["local"] }, b: { command: exit(3, "same"), runs: ["local"] } });
     assert.equal(c.guard(["run", "--local"]).output, c.guard(["run", "--local"]).output);
   });
 
-  it("N3: no state beyond the repository and core.hooksPath", () => {
+  it("N3 [O5]: no state beyond the repository and core.hooksPath", () => {
     const c = consumer();
     const config = () => c.git("config", "--local", "--list").stdout.split(/\r?\n/).filter(Boolean).sort();
     const before = config();
@@ -265,7 +266,7 @@ describe("N2 to N4", () => {
     assert.deepEqual(readdirSync(c.home).sort(), home);
   });
 
-  it("N4: every fail or cannot-judge verdict says what to do next", () => {
+  it("N4 [O2, O5]: every fail or cannot-judge verdict says what to do next", () => {
     const c = given({ f: { command: exit(1), runs: ["local"] }, cj: { command: exit(2), runs: ["local"] } });
     const lines = c.guard(["run", "--local"]).output.split(/\r?\n/);
     for (const name of ["f", "cj"]) {

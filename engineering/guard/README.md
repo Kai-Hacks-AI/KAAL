@@ -15,11 +15,11 @@ Engineering-time dependencies never become package dependencies. Multi-loop TDD 
 
 The six concerns:
 
-1. [Intent](intent.md)
-2. [Requirements](requirements.md)
-3. [Architecture](architecture.md)
-4. [Testing](testing.md)
-5. [Code](code.md)
+1. [Intent](intent.md): why, outcomes O1–O6
+2. [Requirements](requirements.md): what, obligations G1–G10 and N1–N7, each tracing to Intent
+3. [Architecture](architecture.md): where, elements A1–A11, each tracing to Requirements
+4. [Testing](testing.md): the four loops, and the planned tests tracing to all three
+5. [Code](code.md): how, within the Architecture
 6. [Run](run.md)
 
-State: PLAN (C0a). The outer acceptance tests are planned and RED. No Guard code exists yet.
+State: PLAN (C0a). The outer tests are planned and RED, most of them blocked before behavioural assertion ([Testing](testing.md#red-evidence)). No Guard code exists yet.

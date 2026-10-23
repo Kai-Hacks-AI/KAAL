@@ -1,5 +1,6 @@
-// Guard outer acceptance, Engineering part: KAAL as Guard's first consumer (outcome 4, I5) and the
-// preservation of KAAL's check identities. Planned in PLAN; DO and CHECK do not change it.
+// Guard outer acceptance, Engineering part: KAAL as Guard's first consumer. Intent validation I5 [O4],
+// Requirements verification N7 [O4] and Architecture conformance A11. Planned in PLAN; DO and CHECK do
+// not change it.
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -35,13 +36,13 @@ const JOBS = [
   ["branching-audit.yml", "audit"],
 ];
 
-/** KAAL's guard.json; fails, naming the missing behaviour, while there is none. */
+/** KAAL's guard.json. While there is none, the test is blocked here, before its assertions. */
 function guard() {
-  assert.ok(existsSync(join(REPO, "guard.json")), "missing behaviour: KAAL lists no checks for Guard (guard.json)");
+  assert.ok(existsSync(join(REPO, "guard.json")), "blocked before behavioural assertion: KAAL lists no checks for Guard (guard.json)");
   return JSON.parse(read("guard.json"));
 }
 
-describe("KAAL's check identities", () => {
+describe("N7 [O4] KAAL's check identities", () => {
   it("every check identity and OS matrix entry on main before migration is still present", () => {
     for (const [workflow, expected] of Object.entries(FIXTURE.workflows)) {
       const present = lines(readFileSync(join(WORKFLOWS, workflow), "utf8"));
@@ -52,8 +53,8 @@ describe("KAAL's check identities", () => {
   });
 });
 
-describe("I5: KAAL's own checks run through Guard", () => {
-  it("KAAL lists its checks in guard.json, its branching checkers trusted and 4 declared as held", () => {
+describe("KAAL's own checks run through Guard", () => {
+  it("A11 [N7]: KAAL lists its checks in guard.json, its branching checkers trusted and 4 declared as held", () => {
     const { checks } = guard();
     assert.ok(checks && Object.keys(checks).length > 0);
     const branching = Object.entries(checks).filter(([, c]) => /lineage\.ts/.test(c.command));
@@ -64,11 +65,11 @@ describe("I5: KAAL's own checks run through Guard", () => {
     }
   });
 
-  it("the pre-push hook runs the local checks through Guard", () => {
+  it("I5 [O4]: the pre-push hook runs the local checks through Guard", () => {
     assert.match(read(".githooks/pre-push"), /kaal-guard run --local/);
   });
 
-  it("every Guard-run job keeps its name and runs its check through Guard", () => {
+  it("A11 [N7, G5]: every Guard-run job keeps its name and runs its check through Guard", () => {
     const { checks } = guard();
     for (const [workflow, key] of JOBS) {
       const text = job(workflow, key);
@@ -78,7 +79,7 @@ describe("I5: KAAL's own checks run through Guard", () => {
     }
   });
 
-  it("the Guard job verifies that every ci check is run by a job", () => {
+  it("A11 [G10]: the Guard job checks that the workflow files name a job for every ci check", () => {
     const all = Object.keys(guard().checks);
     assert.ok(all.length > 0);
     const workflows = ["ci.yml", "change-isolation.yml", "promotion-source.yml", "lineage-synchronization.yml", "branching-audit.yml"].map((w) => readFileSync(join(WORKFLOWS, w), "utf8")).join("\n");
