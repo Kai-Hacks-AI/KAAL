@@ -4,10 +4,10 @@
 
 ## Embed: shipped in the package
 
-The package is published to npm as `kaal-guard`, first as `kaal-guard@0.0.1`.
+The package is published to npm as `@kaihacksai/kaal-guard`, first as `@kaihacksai/kaal-guard@0.0.1`, once the Owner authorizes it (R1). Its command is `kaal-guard`.
 
 ```sh
-npm install --save-dev kaal-guard
+npm install --save-dev @kaihacksai/kaal-guard
 npx kaal-guard init        # writes guard.json and missing adapters only; reports any it left alone
 npx kaal-guard run --local # what the hook runs
 npx kaal-guard verify      # a workflow job declares every ci check in Guard's form (declared integration only)
@@ -15,7 +15,7 @@ npx kaal-guard upgrade     # replaces only unmodified managed files
 npx kaal-guard remove      # deletes only unmodified managed files; keeps guard.json and your tests
 ```
 
-`init` reports apart what it installed, what it left untouched and what is still to do. It sets `core.hooksPath` to `.githooks` only if it is unset, the hook there is Guard's own and Git runs no hooks of the repository's own from `.git/hooks`, and records that. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the line to add: `sh node_modules/kaal-guard/templates/pre-push "$@" || exit 1` in the hook, or a step `npx kaal-guard run --check <name> --github` in a job.
+`init` reports apart what it installed, what it left untouched and what is still to do. It sets `core.hooksPath` to `.githooks` only if it is unset, the hook there is Guard's own and Git runs no hooks of the repository's own from `.git/hooks`, and records that. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the line to add: `sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1` in the hook, or a step `npx --no kaal-guard run --check <name> --github` in a job.
 
 The generated workflow is not enforcement. Three claims stay apart:
 - `verify` shows declared integration only: a workflow job names each ci check in Guard's form.
@@ -24,7 +24,7 @@ The generated workflow is not enforcement. Three claims stay apart:
 
 ## Engineer: KAAL itself
 
-KAAL installs `kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and lists its checks in `guard.json`. Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
+KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and lists its checks in `guard.json`. Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
 
 ## External: naked delivery by KAAL Engineering
 

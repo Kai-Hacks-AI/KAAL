@@ -85,6 +85,6 @@ export function verify(root, list) {
     results: ci.map((name) =>
       where.has(name)
         ? { name, verdict: "pass", evidence: `declared by ${where.get(name)}; declared integration only, not that GitHub ran or requires that job` }
-        : { name, verdict: "fail", evidence: "no workflow job declares it in Guard's declared form", do: `give a job the step "- run: npx kaal-guard run --check ${name} --github", and make that job required` }),
+        : { name, verdict: "fail", evidence: "no workflow job declares it in Guard's declared form", do: `give a job the step "- run: npx --no kaal-guard run --check ${name} --github", and make that job required` }),
   };
 }
