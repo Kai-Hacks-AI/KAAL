@@ -98,4 +98,4 @@ jobs:
           [ "$sha" = "$SHOWN" ] || {
             echo "::error title=Guard Release: cannot judge::the tarball packed here ($sha) is not the one Pack showed ($SHOWN)"; exit 2; }
           echo "tgz=$RUNNER_TEMP/$tgz" >> "$GITHUB_ENV"
-      - run: npm publish "$tgz"
+      - run: npm publish "$tgz" --access public
