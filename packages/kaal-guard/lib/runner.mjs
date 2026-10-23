@@ -1,11 +1,13 @@
 // The runner: runs a set of the repository's checks and reads their verdicts. It knows the check list
 // (guard.json) and the facts it is given, and nothing of branches, remotes, pull requests, hosting
-// platforms or the adapters that call it. It reads a Git object only to take a trusted checker from
-// the base commit.
+// platforms or the adapters that call it. It reads Git objects only to take a trusted checker from
+// the base commit (trusted.mjs).
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { plan, words } from "./command.mjs";
+import { materialize, redirect, safePath } from "./trusted.mjs";
 
 /** The verdict of each exit status; any other status is cannot judge unless a check names it. */
 const VERDICTS = { 0: "pass", 1: "fail", 2: "cannot judge", 3: "not applicable" };
@@ -47,7 +49,7 @@ export function readList(root) {
     if (check.facts !== undefined && !(Array.isArray(check.facts) && check.facts.every((f) => f in FACTS))) {
       return { problem: `${name}: facts may name only ${Object.keys(FACTS).join(", ")}` };
     }
-    if (check.trusted !== undefined && (typeof check.trusted !== "string" || !check.trusted)) return { problem: `${name}: trusted must name a file` };
+    if (check.trusted !== undefined && !safePath(check.trusted)) return { problem: `${name}: trusted must name a file or directory inside the repository` };
     for (const [status, outcome] of Object.entries(check.outcomes ?? {})) {
       if (!/^\d+$/.test(status) || status in VERDICTS || !NAMED.has(outcome)) return { problem: `${name}: outcomes may only name a further exit status held` };
     }
@@ -60,46 +62,6 @@ export function select(list, selection) {
   if (selection.check !== undefined) return [selection.check];
   const where = selection.local ? "local" : "ci";
   return Object.keys(list.checks).filter((name) => list.checks[name].runs.includes(where));
-}
-
-/**
- * A command's words: split on whitespace, with "double" or 'single' quotes grouping a word, and a
- * backslash escaping a character inside double quotes. A command is a program and its arguments; it
- * has no shell features, so it means the same under every shell.
- */
-export function words(command) {
-  const out = [];
-  let word;
-  let quote;
-  for (let i = 0; i < command.length; i++) {
-    const c = command[i];
-    if (quote) {
-      if (c === quote) quote = undefined;
-      else if (quote === '"' && c === "\\" && i + 1 < command.length) word += command[++i];
-      else word += c;
-    } else if (c === '"' || c === "'") {
-      quote = c;
-      word ??= "";
-    } else if (/\s/.test(c)) {
-      if (word !== undefined) out.push(word);
-      word = undefined;
-    } else word = (word ?? "") + c;
-  }
-  if (quote) return undefined;
-  if (word !== undefined) out.push(word);
-  return out;
-}
-
-const WINDOWS = process.platform === "win32";
-
-/**
- * Starts a command. On Windows it goes through cmd, which finds npm and other .cmd programs and
- * gives "#" no meaning; elsewhere its words are started directly, with no shell between.
- */
-function start(command, options) {
-  if (WINDOWS) return spawnSync(command, { ...options, shell: true });
-  const [program, ...args] = words(command);
-  return spawnSync(program, args, options);
 }
 
 const result = (name, verdict, evidence, todo) => ({ name, verdict, evidence, ...(todo ? { do: todo } : {}) });
@@ -117,24 +79,22 @@ export function runCheck(root, list, name, facts) {
   for (const fact of check.facts ?? []) {
     if (facts[fact] === undefined) return result(name, "cannot judge", `the fact ${fact} was not supplied`, `supply ${FACTS[fact].option}`);
   }
-  let command = check.command;
+  let argv = words(check.command);
   let scratch;
   try {
     if (check.trusted !== undefined) {
       if (facts.base === undefined) return result(name, "cannot judge", `its trusted checker ${check.trusted} needs the fact base, which was not supplied`, "supply --base");
-      if (!command.includes(check.trusted)) return result(name, "cannot judge", `the command does not name its trusted checker ${check.trusted}`, `name ${check.trusted} in the command`);
-      const object = spawnSync("git", ["show", `${facts.base}:./${check.trusted}`], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
-      if (object.status !== 0) {
-        return result(name, "cannot judge", `the base ${facts.base} does not hold ${check.trusted}`, `fetch the base commit, or add ${check.trusted} to the base first`);
-      }
       scratch = mkdtempSync(join(tmpdir(), "kaal-guard-trusted-"));
-      const copy = join(scratch, basename(check.trusted));
-      writeFileSync(copy, object.stdout);
-      command = command.split(check.trusted).join(WINDOWS ? `"${copy}"` : copy.includes(" ") ? `'${copy}'` : copy);
+      const taken = materialize(root, facts.base, check.trusted, scratch);
+      if (taken.problem) return result(name, "cannot judge", `trusted checker: ${taken.problem}`, taken.todo);
+      argv = redirect(argv, check.trusted, scratch);
+      if (!argv) return result(name, "cannot judge", `the command does not name its trusted checker ${check.trusted} as a word`, `name ${check.trusted} as an argument of the command`);
     }
+    const started = plan(argv, { root });
+    if (started.problem) return result(name, "cannot judge", started.problem, `call the program directly, or move the argument into a script`);
     const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GUARD_")));
     for (const [fact, value] of Object.entries(facts)) if (value !== undefined) env[FACTS[fact].variable] = value;
-    const r = start(command, { cwd: root, env, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
+    const r = spawnSync(started.file, started.args, { ...started.options, cwd: root, env, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
     if (r.error || r.status === null) {
       return result(name, "cannot judge", `the command cannot start: ${r.error?.message ?? `ended by ${r.signal}`}`, `make "${check.command}" start from the repository root`);
     }
