@@ -4,6 +4,48 @@
       "command": "sh engineering/github/push-check.sh",
       "runs": ["local"],
       "facts": ["head", "base", "base-ref"]
+    },
+    "Hosting": {
+      "command": "npm run test:hosting",
+      "runs": ["ci"]
+    },
+    "Workspaces": {
+      "command": "npm run test:workspaces",
+      "runs": ["ci"]
+    },
+    "Acceptance": {
+      "command": "npm run test:acceptance",
+      "runs": ["ci"]
+    },
+    "Engineering": {
+      "command": "npm run test:engineering",
+      "runs": ["ci"]
+    },
+    "Change-Isolation": {
+      "command": "bash engineering/github/change-isolation.sh",
+      "runs": ["ci"],
+      "facts": ["head", "base", "base-ref"]
+    },
+    "Promotion-Source": {
+      "command": "bash engineering/github/promotion-source.sh engineering/github/lineage.ts",
+      "runs": ["ci"],
+      "facts": ["base", "base-ref"],
+      "trusted": "engineering/github/lineage.ts",
+      "outcomes": { "4": "held" }
+    },
+    "Branching": {
+      "command": "bash engineering/github/branching.sh engineering/github/lineage.ts",
+      "runs": ["ci"],
+      "facts": ["head", "base", "base-ref"],
+      "trusted": "engineering/github/lineage.ts",
+      "outcomes": { "4": "held" }
+    },
+    "Branching-audit": {
+      "command": "bash engineering/github/branching-audit.sh engineering/github/lineage.ts",
+      "runs": ["ci"],
+      "facts": ["base"],
+      "trusted": "engineering/github/lineage.ts",
+      "outcomes": { "4": "held" }
     }
   }
 }
