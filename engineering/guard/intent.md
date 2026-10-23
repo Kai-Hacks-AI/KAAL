@@ -15,7 +15,7 @@ Requirements trace back to these identifiers.
 - **I5 Embed.** The self-contained `kaal-guard` package has no dependency on any other KAAL element. Packed, it installs into, operates in and removes cleanly from an unrelated repository, and its own tests pass there.
 - **I6 External.** KAAL Engineering delivers Guard naked into a target as an actual Change: working hooks, working CI and local docs, adding neither the package nor any KAAL element.
 
-The mission is met only when I1 to I6 all hold. Reaching some of them is a checkpoint, not completion ([Code](code.md)).
+The mission is met only when I1 to I6 all hold. Reaching some of them is a checkpoint, not completion ([Change](change.md#stopping-conditions)).
 
 ## Boundaries
 

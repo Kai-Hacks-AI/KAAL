@@ -19,7 +19,7 @@ The six concerns, written outside-in:
 2. [Requirements](requirements.md): what, obligations F1–F10 and N1–N7, each tracing to Intent
 3. [Architecture](architecture.md): where, elements A1–A11, each tracing to Requirements
 4. [Testing](testing.md): the four loops, and the planned tests T1–T35, each naming the I, F, N or A contracts it checks
-5. [Code](code.md): how, turning the planned tests from RED to GREEN, and the Change map (C0a…)
+5. [Change](change.md): the bounded Changes C0a–C5, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
 6. [Run](run.md)
 
 State: PLAN (C0a). The outer tests are planned and RED, most of them blocked before behavioural assertion ([Testing](testing.md#red-evidence)). No Guard code exists yet.

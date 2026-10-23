@@ -1,6 +1,6 @@
 # Guard: Architecture (where)
 
-Architecture places Guard's functions, gives each one positive ownership, and fixes its boundaries, relationships and dependencies. How each function is implemented is [Code](code.md)'s. Each element names, in brackets, the Requirements it serves.
+Architecture places Guard's functions, gives each one positive ownership, and fixes its boundaries, relationships and dependencies. How each function is implemented is Code's, written in DO; the Changes that deliver it are in [Change](change.md). Each element names, in brackets, the Requirements it serves.
 
 ## Elements
 
