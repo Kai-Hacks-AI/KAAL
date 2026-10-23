@@ -15,7 +15,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 }
 ```
 
-**F2 Verdicts.** [I2] A check's exit status is its verdict: `0` pass, `1` fail, `2` cannot judge, `3` not applicable. Any other status is cannot judge, unless the check declares a named outcome for it. The only named outcome is `held`: shown as held with its evidence, never as a pass and never as a fail. Guard prints each verdict by its own name, one line per check, as `<verdict>: <check>: <evidence>`, and never collapses one verdict into another. A fail or cannot-judge line is followed by an indented `do: <next step>` line (N4).
+**F2 Verdicts.** [I2] A check's exit status is its verdict: `0` pass, `1` fail, `2` cannot judge, `3` not applicable. Any other status is cannot judge, unless the check declares a named outcome for it. The only named outcome is `held`: shown as held, never as a pass and never as a fail. A check owns its diagnostics: its own output goes, unchanged and as it runs, to the hook's terminal or the CI log, and Guard neither captures nor interprets it. Guard prints each verdict by its own name, one line per check, as `<verdict>: <check>: <evidence>`, where the evidence is the check's exit status (with the trusted checker's provenance, F7), and never collapses one verdict into another. A fail or cannot-judge line is followed by an indented `do: <next step>` line (N4).
 
 **F3 One runner.** [I2, I3] The same runner and the same list serve both the hook and CI.
 
@@ -24,7 +24,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 **F5 CI gate.** [I2, I3] Each `ci` check runs in a named CI job that the repository can make required.
 - Fail and cannot judge fail the job.
 - Not applicable lets the job succeed, reported as not applicable in a notice and in the step summary, never as a pass.
-- Held lets the job succeed, with a warning carrying the hold's evidence.
+- Held lets the job succeed, with a warning naming the check as held; the hold's explanation is in the check's own output in the log.
 
 **F6 Narrow adapters.** [I3] The hook and the workflow jobs pass facts and act only on verdicts.
 
