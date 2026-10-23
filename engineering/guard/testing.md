@@ -90,6 +90,24 @@ H1, H2 and H3 are hypotheses read from the lifecycle's code, not established def
 
 A test K2 finds otherwise is reported as found, not adjusted to this table. Only a hypothesis K2 demonstrates becomes a package Change (K3).
 
+Recorded in K2b, against a `packed` candidate of the package at `kaal/guard` 16783c0, on Linux only (Node 22, npm 10, Git 2.43), by running `node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs` directly:
+
+| Test | Recorded evidence | Hypothesis |
+| --- | --- | --- |
+| T36 | GREEN: the clone's lockfile holds the registry's integrity for `0.0.1` | |
+| T37 | GREEN | |
+| T38 | exercised behavioural RED: upgrade did not install a managed asset the consumer does not have | H1 demonstrated |
+| T39 | exercised behavioural RED: `guard.json` does not record the version that wrote its managed assets | H2 demonstrated |
+| T40 | GREEN | H3 refuted |
+| T41 | GREEN | |
+| T42 | GREEN: the hook printed `pass: push: exit status 0`, the same line as `run --local` | |
+| T43 | exercised behavioural RED: `init` installed `.github/workflows/guard.yml` beside KAAL's workflows | H4 demonstrated |
+| T44 | exercised behavioural RED: Guard rewrote `guard.json` with its own formatting | H5 demonstrated |
+
+This evidence is bounded:
+- The `packed` candidate carries the same version and templates as `0.0.1`. T37 and T41 therefore show that the consumer's files are kept and that versions can be switched back and forth. They do not yet show an asset's content moving between versions; that needs a candidate whose templates differ.
+- It is simulated (N9). It was recorded on one OS, and it says nothing about KAAL's real GitHub enforcement.
+
 ## Integrity of the outer contract
 
 The boundary is fixed in PLAN, before DO, with plain Git.
@@ -106,4 +124,11 @@ The outer tests join a lane when Guard's code makes them executable. Until then 
 
 ```sh
 node --test packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/*.test.mjs
+```
+
+The consumer upgrade tests need the npm registry and sit outside the required jobs. They are run directly, one at a time:
+
+```sh
+node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+GUARD_CANDIDATE=registry:<version> node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
 ```
