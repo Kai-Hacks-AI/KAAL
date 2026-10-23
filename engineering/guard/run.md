@@ -1,6 +1,6 @@
 # Guard: Run
 
-`kaal-guard run` exists from C1, `verify` from C4a, and `init`, `upgrade` and `remove` from C4b, so far only in this repository, where KAAL's pre-push hook and CI use `run` from C3a and C3c.
+`kaal-guard run` exists from C1, `verify` from C4a, and `init`, `upgrade` and `remove` from C4b, so far only in this repository, where KAAL's pre-push hook and CI use `run` from C3a and C3c. The consumer docs ship in the package as its README (C4d); this page is the Engineering view.
 
 ## Embed: shipped in the package
 
