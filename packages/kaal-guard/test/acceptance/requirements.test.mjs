@@ -38,12 +38,14 @@ describe("F2 [I2] verdicts", () => {
       s4: { command: exit(4), runs: ["local"] },
       s7: { command: exit(7), runs: ["local"] },
     });
-    const v = verdicts(c.guard(["run", "--local"]).output);
+    const r = c.guard(["run", "--local"]);
+    const v = verdicts(r.output);
     assert.deepEqual(
       Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x.verdict])),
       { s0: "pass", s1: "fail", s2: "cannot judge", s3: "not applicable", s4held: "held", s4: "cannot judge", s7: "cannot judge" },
     );
-    assert.match(v.s4held.evidence, /held by the Owner, see #1/);
+    // The hold's explanation is the check's own: it stays visible in the run's output, wherever Guard puts it.
+    assert.match(r.output, /held by the Owner, see #1/);
   });
 });
 
@@ -106,10 +108,11 @@ describe("F5 [I2, I3] CI gate", () => {
     assert.doesNotMatch(r.summary, /\bpass/i);
   });
 
-  it("T13 [F5]: reports held as a warning carrying its evidence, never as a pass", () => {
+  it("T13 [F5]: reports held as a warning, never as a pass, with the check's own explanation visible", () => {
     const r = ci(4, { 4: "held" });
     assert.equal(r.status, 0);
-    assert.match(r.stdout, /::warning[^\n]*held[^\n]*evidence/);
+    assert.match(r.stdout, /::warning[^\n]*held/);
+    assert.match(r.output, /evidence/);
     assert.doesNotMatch(r.summary, /\bpass/i);
   });
 });
