@@ -19,6 +19,14 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - only the step that runs the check changes, to `kaal-guard run --check <name>`;
   - CodeQL and Dependency Review are GitHub's own checks and stay outside Guard.
 
+- **A12 Consumer acceptance** [F11–F16, N8, N9]. Engineering's acceptance of a published version, with KAAL as the consumer, in `engineering/guard/consumer/`. It belongs to Engineer (A9) and may use Hosting and Testing. Each run clones KAAL's commit into a disposable directory and changes nothing in KAAL's working tree. In the clone only:
+  - the development dependency is replaced by a published `@kaihacksai/kaal-guard` from the registry, and the lockfile records the registry's integrity;
+  - `init` runs with KAAL's real `guard.json`. It installs `.github/workflows/guard.yml` as a managed asset and leaves KAAL's own `.githooks/pre-push` untouched, as it was there before Guard;
+  - `core.hooksPath` is set as a KAAL developer sets it, and a local bare remote lets Git run the hook on a real push;
+  - the clone then moves to a candidate version, back to the earlier one, and forward again.
+
+  KAAL's own `guard.json` records no managed asset, so `upgrade` in KAAL itself changes nothing; the clone is where managed assets exist. A12 needs the network to reach the registry. That is A12's, not the package's, so N2 still holds for the package. What KAAL's real CI and branch protection show is A11's evidence, from the development package; A12 claims none of it.
+
 ## Relationships
 
 ```mermaid
@@ -36,4 +44,5 @@ flowchart LR
   E -->|A10 implement and deliver naked| X[External: Change in target, no KAAL element]
   P --> C[consumer installs; adapters call the runner]
   X --> T[target's hooks and CI call its own commands]
+  E -->|A12 clone KAAL, install published, upgrade| K[disposable KAAL clone: published-npm consumer]
 ```

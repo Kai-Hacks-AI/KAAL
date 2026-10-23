@@ -16,12 +16,12 @@ Engineering-time dependencies never become package dependencies. Multi-loop TDD 
 The six concerns, written outside-in:
 
 1. [Intent](intent.md): why, outcomes I1–I6
-2. [Requirements](requirements.md): what, obligations F1–F10 and N1–N7, each tracing to Intent
-3. [Architecture](architecture.md): where, elements A1–A11, each tracing to Requirements
-4. [Testing](testing.md): the four loops, and the planned tests T1–T35, each naming the I, F, N or A contracts it checks
-5. [Change](change.md): the bounded Changes C0a–C5, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
+2. [Requirements](requirements.md): what, obligations F1–F16 and N1–N9, each tracing to Intent
+3. [Architecture](architecture.md): where, elements A1–A12, each tracing to Requirements
+4. [Testing](testing.md): the four loops, and the planned tests T1–T42, each naming the I, F, N or A contracts it checks
+5. [Change](change.md): the bounded Changes C0a–C6, R1 and K1–K6, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
 6. [Run](run.md)
 
-State: DO (C5). Checkpoint M is reached: the package holds `run`, `verify`, the lifecycle, the adapter templates and its consumer docs, and its outer tests are GREEN on Linux, Windows and macOS. KAAL runs its pre-push hook and CI checks through it. The External tooling, [external/](external/README.md), delivers Guard naked into a target, and T3 is GREEN. The RED evidence of C0a is recorded in [Testing](testing.md#red-evidence).
+State: DO (C5). Checkpoint M is reached: the package holds `run`, `verify`, the lifecycle, the adapter templates and its consumer docs, and its outer tests are GREEN on Linux, Windows and macOS. KAAL runs its pre-push hook and CI checks through it. The External tooling, [external/](external/README.md), delivers Guard naked into a target, and T3 is GREEN. The RED evidence of C0a is recorded in [Testing](testing.md#red-evidence). The consumer upgrade is in PLAN (K1): KAAL accepts its published package in a disposable clone, A12, with the planned tests T36–T42 ([Testing](testing.md#consumer-upgrade)).
 
 Guard realizes the Git-hook and CI mechanisms behind two KAAL-wide mnemonics, HITMAN (Hooks Integrating Tests, Making Agents Nervous) and CLAUSE (CI Lets Agents Update Service Errors), and its documents use KAAL's FANATIC identifiers. Guard owns none of the three.

@@ -55,6 +55,20 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 - A check that is not in `guard.json` is cannot judge.
 - A `ci` check that no workflow job declares fails Guard's consistency check, `kaal-guard verify`, which runs in CI as the job `Guard`. `verify` checks only Guard's own integration contract: a check is declared when a workflow job invokes it in Guard's declared form ([Run](run.md#verify)), read deterministically from the workflow files; Guard infers nothing from scripts or other YAML. Declared integration is all `verify` claims. That GitHub ran the check is CI execution evidence, and that GitHub requires it is repository governance.
 
+**F11 Package code update.** [I5] Changing the installed version, through the consumer's dependency and lockfile, changes Guard's code and nothing in the repository. It rewrites no managed asset, no entry of `guard.json` and none of the consumer's checks.
+
+**F12 Asset upgrade.** [I5] `upgrade` moves each unmodified managed asset to the installed version's content. It keeps each modified asset and every file Guard did not write, and it never changes `checks` or any other consumer entry of `guard.json`. It reports each file as upgraded, current or kept.
+
+**F13 New assets.** [I5] An asset the installed version manages, which the repository does not have and `guard.json` does not record, is installed by `upgrade` under `init`'s rule (only where no file exists) and recorded under `managed`.
+
+**F14 Writer version.** [I5] `guard.json` records the package version that wrote its managed assets, and `upgrade` reports the version it moves them from and to.
+
+**F15 Older configuration.** [I5] A `guard.json` written by an earlier published version is read by a later one with the same meaning, or refused as cannot judge with a reason and a next step. It is never silently reinterpreted.
+
+**F16 Rollback.** [I5] Installing an earlier published version and running `upgrade` returns each unmodified managed asset to that version's content, and moving forward again works the same way. Modified and consumer-owned files are untouched both ways.
+
+F13, F14 and F15 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces, as the hypotheses H1, H2 and H3 ([Testing](testing.md#consumer-upgrade)); it is not assumed here.
+
 ## Nonfunctional (N)
 
 - **N1** [I4, I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node LTS.
@@ -64,3 +78,5 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 - **N5** [I6] An External delivery is a handful of readable files that the target can maintain on its own, with no KAAL element in them.
 - **N6** [I5] The Embed package depends on no other KAAL element, of any kind, and is published to npm as `@kaihacksai/kaal-guard`, under the Owner's npm scope, first as `@kaihacksai/kaal-guard@0.0.1`. Its command is `kaal-guard`. It is published only with the Owner's authorization.
 - **N7** [I4] Adopting Guard in KAAL keeps every check identity, OS matrix entry and the coverage of KAAL's existing CI.
+- **N8** [I4, I5] KAAL's development dependency stays `file:packages/kaal-guard`, and KAAL's hook, workflows and `guard.json` stay KAAL's own. A published version is accepted as a consumer would use it only in a disposable clone of KAAL (A12), never by switching KAAL's own dependency.
+- **N9** [I5] Consumer acceptance evidence names its candidate's source: `packed`, the package at a commit before publication, which is simulated; or `registry`, the published version with its registry integrity. Only `registry` evidence counts toward a Release. Neither claims anything about KAAL's real GitHub enforcement.

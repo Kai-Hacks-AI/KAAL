@@ -29,6 +29,19 @@ Each Change depends on the Changes above it and lands only after them. A Change 
 | **C6** Package identity | I5 | The package is named `@kaihacksai/kaal-guard` (N6); the command, the Capability and the repository keep their names. It lands as two Changes: the outer tests expecting the scoped name, which touch only the boundary and travel alone, then the package manifest, KAAL's development dependency and lockfile, the consumer docs and the hook line `init` prints. It is not part of C5: an External delivery leaves no package dependency at all. | T30 names the scoped package, and the packed package alone passes its outer tests on Linux, macOS and Windows. |
 | **R1** Release | — | Publication of `@kaihacksai/kaal-guard@0.0.1`, a bounded Change of its own: the packed contents inspected, a clean install and its tests verified, and a publishing workflow with the npm bootstrap and Trusted Publishing steps proposed to the Owner. Its workflow travels alone. No release framework, and no change to Guard's runtime. | The Owner accepts the proposal. Nothing is published and no npm credential is created without the Owner's explicit authorization. |
 
+### Consumer upgrade
+
+KAAL is the consumer of its published package, in a disposable clone (A12). KAAL's own development dependency, hook, workflows and `guard.json` do not change (N8).
+
+| Change | Carries | Scope | Verified when |
+| --- | --- | --- | --- |
+| **K1** PLAN | I5 | I5 extended to the consumer upgrade, F11–F16, N8–N9, A12, and the planned tests T36–T42 with their intended evidence. No code and no test file. | The Owner accepts the plan. |
+| **K2** Harness | I5 | The A12 harness and T36–T42, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. H1–H3 are each demonstrated or refuted. |
+| **K3** Fix | I5 | One bounded package Change for each hypothesis K2 demonstrates, RED to GREEN on Linux, macOS and Windows. | Its planned test is GREEN against a `packed` candidate, and no other outer test turns RED. |
+| **K4** Consumer job | — | A non-required job running A12 on the three OSes, so a registry outage cannot block a merge. It travels alone. A separate Engineering decision, not part of K1–K3. | Proposed to the Owner; not authorized. |
+| **K5** Publish | — | `0.0.2` through the Guard Release workflow, only with the Owner's authorization and only carrying a K3 Change. | The registry tarball equals the workflow's packed artifact. |
+| **K6** Release acceptance | I5 | T36–T42 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
+
 C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alone (Change Isolation): C3c's jobs need the command C3a installs and the checks C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in C4c, which travels alone, and T35 turns GREEN there. C4 lands as four Changes for the same reasons: `verify` (C4a) comes before the job that runs it (C4c), the lifecycle (C4b) is the largest piece and is reviewed on its own, and the docs (C4d) describe what C4a and C4b ship.
 
 ## Stopping conditions
@@ -36,6 +49,7 @@ C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alon
 - **Checkpoint E**, after C3c: I1 to I4 are met. A pause point, not completion.
 - **Checkpoint M**, after C4d: I5 is also met. Still a pause point.
 - **Completion**, after C5 and C6: I1 to I6 are all met, and every outer test is GREEN on all three OSes. Only this is done. Publication (R1) is a separate Owner decision.
+- A published version's Release is accepted only when its consumer acceptance (K6) is GREEN with `registry` evidence. Publishing alone is not acceptance.
 - Pausing at a checkpoint is the Owner's decision. While paused, the unmet outcomes are recorded as unmet.
 - A planned outer test that cannot pass without changing the boundary is a PLAN defect. It goes back to PLAN as a new PLAN Change.
 - A required check name or OS matrix entry on `main` never changes without the Owner.
