@@ -3,7 +3,7 @@
 // Intent (I…), for reading only. N1 is
 // these tests on Linux, macOS and Windows; N6 is verified by T30. Planned in PLAN; DO and CHECK do not change them.
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { consumer, sha256, verdicts } from "./harness.mjs";
@@ -198,7 +198,7 @@ describe("F9 [I2] execution contract", () => {
       seen.push(JSON.parse(c.read("facts.json")));
     }
     for (const s of seen) {
-      assert.equal(s.cwd, c.dir);
+      assert.equal(realpathSync(s.cwd), realpathSync(c.dir)); // the same directory, however the OS spells it (macOS: /var is /private/var)
       assert.equal(s.stdin, "");
       assert.deepEqual(Object.keys(s.guard).sort(), ["GUARD_BASE", "GUARD_BASE_REF", "GUARD_CHANGED", "GUARD_HEAD"]);
       assert.deepEqual([s.guard.GUARD_HEAD, s.guard.GUARD_BASE, s.guard.GUARD_BASE_REF], ["h", "b", "main"]);
