@@ -1,0 +1,30 @@
+# Guard: one job per check, each running the check through .githooks/guard.sh with the pull request's
+# facts. A merge depends on a job only once branch protection requires it. See GUARD.md.
+name: Guard
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    name: ${{ matrix.check }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+@MATRIX@
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+@SETUP@
+      - name: Facts
+        run: |
+          echo "GUARD_HEAD=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+          echo "GUARD_BASE=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_ENV"
+          echo "GUARD_BASE_REF=${{ github.base_ref }}" >> "$GITHUB_ENV"
+          if git diff --name-only -z "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > "$RUNNER_TEMP/changed"; then
+            echo "GUARD_CHANGED=$RUNNER_TEMP/changed" >> "$GITHUB_ENV"
+          fi
+      - run: sh .githooks/guard.sh --check ${{ matrix.check }}
