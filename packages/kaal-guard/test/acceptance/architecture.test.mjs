@@ -5,7 +5,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { PACKAGE } from "./harness.mjs";
+import { NAME, PACKAGE } from "./harness.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -51,7 +51,8 @@ describe("Architecture conformance", () => {
   it("T30 [A8, N6]: the package declares and imports no KAAL element and references no Engineering path", () => {
     present("package.json");
     const manifest = JSON.parse(source("package.json"));
-    assert.equal(manifest.name, "kaal-guard");
+    assert.equal(manifest.name, NAME);
+    assert.deepEqual(Object.keys(manifest.bin ?? {}), ["kaal-guard"], "the package's command is kaal-guard");
     for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
       const kaal = Object.keys(manifest[field] ?? {}).filter((n) => /^(@[^/]+\/)?kaal-/.test(n));
       assert.deepEqual(kaal, [], `${field} names a KAAL element`);
@@ -61,7 +62,7 @@ describe("Architecture conformance", () => {
     const engine = [".kaal", ""].join("/");
     for (const f of files(PACKAGE)) {
       const text = readFileSync(join(PACKAGE, f), "utf8");
-      if (/\.(mjs|js|cjs)$/.test(f)) for (const s of specifiers(text)) assert.ok(!/^(@[^/]+\/)?kaal-/.test(s) || s.startsWith("kaal-guard"), `${f} imports ${s}`);
+      if (/\.(mjs|js|cjs)$/.test(f)) for (const s of specifiers(text)) assert.ok(!/^(@[^/]+\/)?kaal-/.test(s) || s === NAME || s.startsWith(`${NAME}/`), `${f} imports ${s}`);
       assert.ok(!text.includes(engineering), `${f} references an Engineering path`);
       assert.ok(!text.includes(engine), `${f} references a KAAL Engine`);
     }
