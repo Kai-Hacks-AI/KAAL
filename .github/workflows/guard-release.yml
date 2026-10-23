@@ -3,8 +3,8 @@
 # repository and this workflow file, so no npm token exists in the repository, and npm attaches
 # provenance on its own.
 #
-# Only the Owner starts it, by hand. The Pack job tests the package and shows the tarball's contents
-# and SHA-256. With `publish`, the Publish job then waits for the `npm` environment's approval, packs
+# Only the Owner starts it, by hand. The Pack job tests the package, shows the tarball's contents
+# and SHA-256, and keeps the tarball's exact bytes as a run artifact. With `publish`, the Publish job then waits for the `npm` environment's approval, packs
 # the same commit again and publishes only a tarball with that SHA-256.
 #
 # Owner prerequisites, outside this file: the `npm` environment with the Owner as required reviewer,
@@ -62,6 +62,7 @@ jobs:
           tgz=$(npm pack --pack-destination "$RUNNER_TEMP" --silent)
           sha=$(sha256sum "$RUNNER_TEMP/$tgz" | cut -d' ' -f1)
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "path=$RUNNER_TEMP/$tgz" >> "$GITHUB_OUTPUT"
           {
             echo "### $tgz from $GITHUB_SHA"
             echo
@@ -70,6 +71,27 @@ jobs:
             echo '```'
             tar -tzvf "$RUNNER_TEMP/$tgz"
             echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      # The tarball's exact bytes, unzipped, so anyone can fetch and check them against the SHA-256 above.
+      - id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: ${{ steps.pack.outputs.path }}
+          archive: false
+          if-no-files-found: error
+      - name: The artifact holds the tarball Pack showed
+        env:
+          SHOWN: ${{ steps.pack.outputs.sha256 }}
+          DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          [ "$DIGEST" = "$SHOWN" ] || {
+            echo "::error title=Guard Release: cannot judge::the uploaded artifact ($DIGEST) is not the tarball Pack showed ($SHOWN)"; exit 2; }
+          {
+            echo
+            echo "Artifact (the exact bytes): $URL"
+            echo
+            echo 'Verify after download: `sha256sum <file>.tgz` must print the SHA-256 above.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   publish:
