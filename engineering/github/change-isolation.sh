@@ -1,12 +1,13 @@
 #!/bin/bash
 # KAAL's Change Isolation judgment of one pull request, as a KAAL-owned check that the Change
 # Isolation job runs through kaal-guard (guard.json: Change-Isolation). The job's former body, moved:
-# the rule and its verdict live in engineering/change-isolation/check.mjs as the target holds it, and
+# the rule and its verdict live in engineering/change-isolation/check.mjs as the target commit holds it
+# (read from Git, so the job may run from any checkout, such as the default branch's), and
 # a verified synchronization of a collector is judged by engineering/github/lineage.ts as the default
 # branch holds it.
 #
-# Facts from Guard: GUARD_HEAD, the candidate commit; GUARD_BASE, the target commit (the job's
-# checkout); GUARD_BASE_REF, the target branch. From KAAL's job: KAAL_DEFAULT, the default branch.
+# Facts from Guard: GUARD_HEAD, the candidate commit; GUARD_BASE, the target branch's current tip;
+# GUARD_BASE_REF, the target branch. From KAAL's job: KAAL_DEFAULT, the default branch.
 # Exits 0 when the Change conforms, 1 when it does not, 2 when it cannot be judged, 3 when it does not
 # apply (a synchronization already admitted on the default branch).
 set -o pipefail
@@ -34,14 +35,14 @@ if [[ "$BASE_REF" == kaal/* ]]; then
     *) cat "$T/verdict"; exit 2 ;;
   esac
 fi
-if [ ! -f engineering/change-isolation/check.mjs ]; then
+if ! git show "$BASE:engineering/change-isolation/check.mjs" > "$T/check.mjs" 2>/dev/null; then
   echo "not verified: the target does not hold engineering/change-isolation/check.mjs"
   exit 2
 fi
 if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
-  node engineering/change-isolation/check.mjs < "$T/resolved"
+  node "$T/check.mjs" < "$T/resolved"
 else
   git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
-    | node engineering/change-isolation/check.mjs
+    | node "$T/check.mjs"
 fi
