@@ -21,9 +21,14 @@ while read -r local_ref head remote_ref remote_head; do
   case $head in *[!0]*) ;; *) continue ;; esac # a deleted ref carries no change
   if [ -n "$base" ]; then
     say "$local_ref -> $target (base $base):"
-    git diff --name-only -z "$base...$head" >"$changed" 2>/dev/null || : >"$changed"
-    node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" --changed "$changed" </dev/null >&2 \
-      || status=1
+    if git diff --name-only -z "$base...$head" >"$changed" 2>/dev/null; then
+      node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" --changed "$changed" </dev/null >&2 \
+        || status=1
+    else
+      # Never an empty change set in place of one Git could not give: without the fact, a check that needs it cannot judge.
+      say "the changed paths between $target and $local_ref cannot be computed; a check that needs them cannot judge."
+      node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" </dev/null >&2 || status=1
+    fi
   else
     say "$local_ref: no base, $target is not known here; a check that needs the base cannot judge. Fetch $remote to give it one."
     node_modules/.bin/kaal-guard run --local --head "$head" </dev/null >&2 || status=1

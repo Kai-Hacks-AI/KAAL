@@ -1,9 +1,10 @@
 // Inner Code tests of the lifecycle and the workflow it renders. They evolve with the code, test first.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { verify } from "../lib/github.mjs";
 import { init, remove, upgrade, workflow } from "../lib/lifecycle.mjs";
@@ -99,5 +100,28 @@ describe("lifecycle", () => {
     const dir = tree();
     writeFileSync(join(dir, "guard.json"), "{");
     for (const step of [init, upgrade, remove]) assert.match(step(dir).problem, /guard\.json/);
+  });
+});
+
+describe("pre-push template", () => {
+  const BIN = resolve(dirname(fileURLToPath(import.meta.url)), "../bin/kaal-guard.mjs");
+  const TEMPLATE = resolve(dirname(fileURLToPath(import.meta.url)), "../templates/pre-push");
+
+  it("supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks", { skip: process.platform === "win32" }, () => {
+    const dir = tree({ scope: { command: "node -e 0", runs: ["local"], facts: ["changed"] } });
+    const g = (...args) => spawnSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd: dir, encoding: "utf8" });
+    mkdirSync(join(dir, "node_modules", ".bin"), { recursive: true });
+    writeFileSync(join(dir, "node_modules", ".bin", "kaal-guard"), `#!/bin/sh\nexec "${process.execPath}" "${BIN}" "$@"\n`);
+    chmodSync(join(dir, "node_modules", ".bin", "kaal-guard"), 0o755);
+    g("commit", "-q", "--allow-empty", "-m", "head");
+    const head = g("rev-parse", "HEAD").stdout.trim();
+    g("checkout", "-q", "--orphan", "unrelated");
+    g("commit", "-q", "--allow-empty", "-m", "unrelated base");
+    g("update-ref", "refs/remotes/origin/main", "HEAD"); // a base with no merge base: Git cannot give the changed paths
+    const r = spawnSync("sh", [TEMPLATE, "origin"], { cwd: dir, encoding: "utf8", input: `refs/heads/x ${head} refs/heads/x ${"0".repeat(40)}\n` });
+    assert.notEqual(r.status, 0, r.stderr);
+    assert.match(r.stderr, /changed paths .* cannot be computed/);
+    assert.match(r.stderr, /cannot judge: scope: the fact changed was not supplied/);
+    assert.match(r.stderr, /CI decides/);
   });
 });

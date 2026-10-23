@@ -15,7 +15,12 @@ npx kaal-guard upgrade     # replaces only unmodified managed files
 npx kaal-guard remove      # deletes only unmodified managed files; keeps guard.json and your tests
 ```
 
-`init` sets `core.hooksPath` to `.githooks` only if it is unset, and records that. Add the job names as required checks in branch protection. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the one line to add, such as `npx kaal-guard run --local` in the hook, or a step `npx kaal-guard run --check <name> --github` in a job.
+`init` reports apart what it installed, what it left untouched and what is still to do. It sets `core.hooksPath` to `.githooks` only if it is unset, the hook there is Guard's own and Git runs no hooks of the repository's own from `.git/hooks`, and records that. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the line to add: `sh node_modules/kaal-guard/templates/pre-push "$@" || exit 1` in the hook, or a step `npx kaal-guard run --check <name> --github` in a job.
+
+The generated workflow is not enforcement. Three claims stay apart:
+- `verify` shows declared integration only: a workflow job names each ci check in Guard's form.
+- That a check ran is the evidence of its CI job.
+- That a merge requires it holds only once branch protection names the job as a required check, which the repository sets itself; neither `init` nor `verify` does or proves it.
 
 ## Engineer: KAAL itself
 
