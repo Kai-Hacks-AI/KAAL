@@ -42,13 +42,15 @@ describe("the installed package", () => {
     for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `kaal-graph ${field}`);
   });
 
-  it("has a Skill Node admitted by Core alone", async () => {
+  it("has a Skill Node, and KNIFE beside it, admitted by Core alone", async () => {
     const engine = join(work, "elsewhere", "Engine");
     assert.match(await run(kaal, ["init", "--engine", engine], host), /bootstrapped/);
     assert.match(await run(kaal, ["register", "skill", "kaal-graph", join(installed, "payload"), "--engine", engine], host), /^registered skill kaal-graph/);
     const id = (await run(kaal, ["identify", join(installed, "payload", "Graph.md")], host)).split("\t")[0];
     const listed = (await run(kaal, ["list", "--engine", engine], host)).trim().split("\n").map((l) => l.split("\t"));
     assert.deepEqual(listed.filter(([, , name]) => name === "Graph"), [["skill", id, "Graph"]]);
+    const knife = (await run(kaal, ["identify", join(installed, "payload", "KNIFE.md")], host)).split("\t")[0];
+    assert.equal((await run(kaal, ["resolve", "KNIFE", knife, "--engine", engine], host)).split("\t")[0], knife, "KNIFE is admitted beside Graph");
     assert.match(await run(kaal, ["verify", "--engine", engine], host), /^ok/);
   });
 });
