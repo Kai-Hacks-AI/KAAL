@@ -35,12 +35,12 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 
 | Change | Carries | Scope | Verified when |
 | --- | --- | --- | --- |
-| **K1** PLAN | I5 | I5 extended to the consumer upgrade, F11–F16, N8–N9, A12, and the planned tests T36–T42 with their intended evidence. No code and no test file. | The Owner accepts the plan. |
-| **K2** Harness | I5 | The A12 harness and T36–T42, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. H1–H3 are each demonstrated or refuted. |
+| **K1** PLAN | I5 | I5 extended to the consumer upgrade and adoption, F11–F18, N8–N9, KAAL's adoption assessment in A11, A12, and the planned tests T36–T44 with their intended evidence. No code and no test file. | The Owner accepts the plan. |
+| **K2** Harness | I5 | The A12 harness and T36–T44, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. H1–H5 are each demonstrated or refuted. |
 | **K3** Fix | I5 | One bounded package Change for each hypothesis K2 demonstrates, RED to GREEN on Linux, macOS and Windows. | Its planned test is GREEN against a `packed` candidate, and no other outer test turns RED. |
 | **K4** Consumer job | — | A non-required job running A12 on the three OSes, so a registry outage cannot block a merge. It travels alone. A separate Engineering decision, not part of K1–K3. | Proposed to the Owner; not authorized. |
 | **K5** Publish | — | `0.0.2` through the Guard Release workflow, only with the Owner's authorization and only carrying a K3 Change. | The registry tarball equals the workflow's packed artifact. |
-| **K6** Release acceptance | I5 | T36–T42 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
+| **K6** Release acceptance | I5 | T36–T44 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
 
 C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alone (Change Isolation): C3c's jobs need the command C3a installs and the checks C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in C4c, which travels alone, and T35 turns GREEN there. C4 lands as four Changes for the same reasons: `verify` (C4a) comes before the job that runs it (C4c), the lifecycle (C4b) is the largest piece and is reviewed on its own, and the docs (C4d) describe what C4a and C4b ship.
 

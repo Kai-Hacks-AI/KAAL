@@ -15,17 +15,18 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 - **A9 Engineer** [N7, N5]. `engineering/guard/` holds Guard's engineering documentation, the Engineering-only outer tests and, later, the External tooling. It may use any useful KAAL element. Nothing it uses becomes a package dependency.
 - **A10 External** [F8, N5]. The External tooling, in `engineering/guard/external/`, produces and delivers a naked Guard Change for a target from the target's own commands. It uses no package internals and leaves no KAAL element in the target.
 - **A11 KAAL integration** [N7, F5, F10]. KAAL is Guard's first consumer and installs the package from its workspace. Its lineage, Change Isolation and branching checks become entries in KAAL's `guard.json`, with their checkers trusted and `4` named held. Guard joins KAAL's existing workflows without replacing or consolidating them:
+  - KAAL adopts Guard as an executor, not as a manager. **KAAL-owned:** the `checks` of `guard.json`, the check scripts and their policy, `.githooks/pre-push`, which holds KAAL's branching policy (it resolves each push's target), and every workflow's orchestration (names, OS matrices, triggers, trusted checkouts). **Guard-managed:** nothing; KAAL's `guard.json` has no `managed` or `config`. **Executed by Guard, not managed:** the hook's call to `kaal-guard run --local`, each job's `kaal-guard run --check` step and the `Guard` job's `verify`. KAAL keeps all three as they are and adopts no managed asset (N8, F17);
   - each existing job keeps its name, OS matrix and triggers: `Hosting (Windows/Linux/macOS)`, `Acceptance (Windows/macOS)`, `Workspaces`, `Acceptance`, `Engineering`, `Change Isolation`, `Promotion Source`, `Branching` and `Branching audit`;
   - only the step that runs the check changes, to `kaal-guard run --check <name>`;
   - CodeQL and Dependency Review are GitHub's own checks and stay outside Guard.
 
-- **A12 Consumer acceptance** [F11–F16, N8, N9]. Engineering's acceptance of a published version, with KAAL as the consumer, in `engineering/guard/consumer/`. It belongs to Engineer (A9) and may use Hosting and Testing. Each run clones KAAL's commit into a disposable directory and changes nothing in KAAL's working tree. In the clone only:
+- **A12 Consumer acceptance** [F11–F18, N8, N9]. Engineering's acceptance of a published version, with KAAL as the consumer, in `engineering/guard/consumer/`. It belongs to Engineer (A9) and may use Hosting and Testing. Each run clones KAAL's commit into a disposable directory and changes nothing in KAAL's working tree. In the clone only:
   - the development dependency is replaced by a published `@kaihacksai/kaal-guard` from the registry, and the lockfile records the registry's integrity;
-  - `init` runs with KAAL's real `guard.json`. It installs `.github/workflows/guard.yml` as a managed asset and leaves KAAL's own `.githooks/pre-push` untouched, as it was there before Guard;
   - `core.hooksPath` is set as a KAAL developer sets it, and a local bare remote lets Git run the hook on a real push;
-  - the clone then moves to a candidate version, back to the earlier one, and forward again.
+  - the clone moves to a candidate version, back to the earlier one, and forward again; for KAAL that is a package-code update only (F11), since KAAL has and adopts no managed asset;
+  - `init` and `remove` run with KAAL's real `guard.json`, to show how Guard treats an existing integration (F17, F18).
 
-  KAAL's own `guard.json` records no managed asset, so `upgrade` in KAAL itself changes nothing; the clone is where managed assets exist. A12 needs the network to reach the registry. That is A12's, not the package's, so N2 still holds for the package. What KAAL's real CI and branch protection show is A11's evidence, from the development package; A12 claims none of it.
+  The managed-asset cases (F12–F14, F16) need a consumer that has managed assets. KAAL has none and adopts none, so A12 creates a minimal repository beside the clone: a simulated consumer with its own check and no integration of its own, where `init` installs both assets. A12 needs the network to reach the registry. That is A12's, not the package's, so N2 still holds for the package. What KAAL's real CI and branch protection show is A11's evidence, from the development package; A12 claims none of it.
 
 ## Relationships
 

@@ -67,7 +67,11 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 **F16 Rollback.** [I5] Installing an earlier published version and running `upgrade` returns each unmodified managed asset to that version's content, and moving forward again works the same way. Modified and consumer-owned files are untouched both ways.
 
-F13, F14 and F15 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces, as the hypotheses H1, H2 and H3 ([Testing](testing.md#consumer-upgrade)); it is not assumed here.
+**F17 Existing integration.** [I1, I5] Adoption is not upgrade. When a repository's checks already run through Guard from its own hook and workflows, `init` adds no managed asset that duplicates that integration. It installs the workflow only for `ci` checks that no existing workflow job declares, and never with a job name an existing workflow already uses. It reports the existing integration as executed by Guard but not managed. Guard never takes ownership of a file it did not write. A consumer that wants a managed surface removes its own file, runs `init`, and undoes that through Git.
+
+**F18 Consumer bytes.** [I1, I5] Guard writes only its own entries of `guard.json`, `managed` and `config`. Every other byte stays as the consumer wrote it, and `init` followed by `remove` leaves `guard.json` as it was.
+
+F13–F15, F17 and F18 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces, as the hypotheses H1–H5 ([Testing](testing.md#consumer-upgrade)). It is not assumed here.
 
 ## Nonfunctional (N)
 
