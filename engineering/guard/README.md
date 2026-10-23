@@ -19,9 +19,9 @@ The six concerns:
 2. [Requirements](requirements.md): what, obligations F1–F10 and N1–N7, each tracing to Intent
 3. [Architecture](architecture.md): where, elements A1–A11, each tracing to Requirements
 4. [Testing](testing.md): the four loops, and the planned tests T1–T35 tracing to I, F, N and A
-5. [Code](code.md): how, Code elements C1–C8 within the Architecture, and the Change map (CH…)
+5. [Code](code.md): how, within the Architecture, and the Change map (C0a…)
 6. [Run](run.md)
 
-State: PLAN (CH0a, authorized as C0a). The outer tests are planned and RED, most of them blocked before behavioural assertion ([Testing](testing.md#red-evidence)). No Guard code exists yet.
+State: PLAN (C0a). The outer tests are planned and RED, most of them blocked before behavioural assertion ([Testing](testing.md#red-evidence)). No Guard code exists yet.
 
-Mnemonics, not names: HITMAN, Hooks Integrating Tests, Making Agents Nervous; CLAUSE, CI Lets Agents Update Service Errors (agents propose Changes but cannot certify their own work); FANATIC, the identifiers I, F, N, A, T and C.
+Mnemonics, not names: HITMAN, Hooks Integrating Tests, Making Agents Nervous; CLAUSE, CI Lets Agents Update Service Errors (agents propose Changes but cannot certify their own work); FANATIC, Functional And Nonfunctional Architecture Tests Intended Change, the identifiers I, F, N, A, T and the Changes C.
