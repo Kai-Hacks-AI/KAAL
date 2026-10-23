@@ -62,5 +62,5 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 - **N3** [I5] No state beyond the repository and `core.hooksPath`.
 - **N4** [I2, I5] Every fail or cannot-judge verdict says what to do next.
 - **N5** [I6] An External delivery is a handful of readable files that the target can maintain on its own, with no KAAL element in them.
-- **N6** [I5] The Embed package depends on no other KAAL element, of any kind, and is published to npm as `kaal-guard`, first as `kaal-guard@0.0.1`.
+- **N6** [I5] The Embed package depends on no other KAAL element, of any kind, and is published to npm as `@kaihacksai/kaal-guard`, under the Owner's npm scope, first as `@kaihacksai/kaal-guard@0.0.1`. Its command is `kaal-guard`. It is published only with the Owner's authorization.
 - **N7** [I4] Adopting Guard in KAAL keeps every check identity, OS matrix entry and the coverage of KAAL's existing CI.
