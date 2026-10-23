@@ -26,6 +26,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # One npm for both packs and the publish, so the SHA-256 compares like with like. 11.21.0 supports
+  # Trusted Publishing (>= 11.5.1) and `npm trust` (>= 11.15); the Owner packs 0.0.1 with the same.
+  NPM_VERSION: 11.21.0
+
 jobs:
   pack:
     name: Pack
@@ -40,6 +45,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      - run: npm install --global "npm@$NPM_VERSION"
       - run: npm ci
       - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs
       - name: The version is not on npm yet
@@ -83,6 +89,7 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+      - run: npm install --global "npm@$NPM_VERSION"
       - name: npm supports Trusted Publishing
         run: |
           v=$(npm --version)
