@@ -15,9 +15,15 @@
 remote=${1:-origin}
 default_ref=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null || echo "$remote/main")
 guide=engineering/github/branching.md
+guard=node_modules/.bin/kaal-guard # installed by npm ci from packages/kaal-guard; the call below names it in full
 status=0
 say() { echo "$*" >&2; }
 fail() { say "$*"; status=1; }
+if [ ! -x "$guard" ]; then
+  say "Not verified: kaal-guard is not installed in this clone. Run npm ci, then push again."
+  say "Local feedback only; CI decides. Skip once with git push --no-verify."
+  exit 1
+fi
 while read -r local_ref head remote_ref remote_head; do
   case $head in *[!0]*) ;; *) continue ;; esac # a deleted ref carries no change
   branch=${local_ref#refs/heads/}
@@ -42,7 +48,7 @@ while read -r local_ref head remote_ref remote_head; do
   fi
   say "$local_ref -> ${target#"$remote/"} (base $base):"
   KAAL_PUSH_REMOTE=$remote KAAL_PUSH_REF=$local_ref KAAL_PUSH_REMOTE_HEAD=$remote_head \
-    node packages/kaal-guard/bin/kaal-guard.mjs run --local --head "$head" --base "$base" --base-ref "$target" </dev/null >&2 \
+    node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" </dev/null >&2 \
     || status=1
 done
 [ $status = 0 ] || say "Local feedback only; CI decides. Fix and push again, or skip once with git push --no-verify."

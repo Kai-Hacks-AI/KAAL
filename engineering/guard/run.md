@@ -1,6 +1,6 @@
 # Guard: Run
 
-`kaal-guard run` exists from C1, so far only in this repository; the other commands are intended.
+`kaal-guard run` exists from C1, so far only in this repository, where KAAL's pre-push hook uses it from C3a; the other commands are intended.
 
 ## Embed: shipped in the package
 
@@ -19,7 +19,7 @@ npx kaal-guard remove      # deletes only unmodified managed files; keeps guard.
 
 ## Engineer: KAAL itself
 
-KAAL installs `kaal-guard` from its own workspace and lists its checks in `guard.json`. Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
+KAAL installs `kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and lists its checks in `guard.json`. Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
 
 ## External: naked delivery by KAAL Engineering
 
