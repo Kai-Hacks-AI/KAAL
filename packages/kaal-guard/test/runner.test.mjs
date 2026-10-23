@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { annotations, summarize } from "../lib/github.mjs";
 import { plan, words } from "../lib/command.mjs";
@@ -57,13 +58,25 @@ describe("run", () => {
     });
     const { results } = run(dir, { local: true }, {});
     assert.deepEqual(results.map((r) => r.verdict), ["pass", "not applicable", "held"]);
-    assert.equal(results[2].evidence, "on hold");
+    assert.equal(results[2].evidence, "exit status 4");
     assert.equal(status(results), 0);
     assert.equal(status([{ verdict: "cannot judge" }, { verdict: "fail" }]), 1);
     assert.equal(status([{ verdict: "cannot judge" }, { verdict: "pass" }]), 2);
   });
 
-  it("says that a check printed nothing", () => {
+  it("passes a check's output through on standard error and takes the verdict from its exit status alone", () => {
+    const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
+    const dir = repo({
+      s: { command: node("console.log('all is well');console.error('really');process.exit(1)"), runs: ["ci"] },
+    });
+    const r = spawnSync(process.execPath, [bin, "run", "--ci"], { cwd: dir, encoding: "utf8" });
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /all is well/);
+    assert.match(r.stderr, /really/);
+    assert.equal(r.stdout, "fail: s: exit status 1\n  do: fix what s reports, then run kaal-guard run --check s\n");
+  });
+
+  it("gives the exit status as evidence", () => {
     const { results } = run(repo({ q: { command: node("process.exit(1)"), runs: ["ci"] } }), { ci: true }, {});
     assert.deepEqual(lines(results), ["fail: q: exit status 1", "  do: fix what q reports, then run kaal-guard run --check q"]);
   });
@@ -134,7 +147,7 @@ describe("trusted checker", () => {
     const { dir, base } = based(judge("checks/judge.mjs"), { "checks/judge.mjs": 'console.log("judged"); process.exit(0);\n' });
     const r = verdict(dir, base);
     assert.equal(r.verdict, "pass");
-    assert.equal(r.evidence, `judged (checks/judge.mjs from base ${base})`);
+    assert.equal(r.evidence, `exit status 0 (checks/judge.mjs from base ${base})`);
   });
 
   it("is cannot judge when the base or the checker on it cannot be obtained", () => {

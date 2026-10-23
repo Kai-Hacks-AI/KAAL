@@ -66,11 +66,9 @@ export function select(list, selection) {
 
 const result = (name, verdict, evidence, todo) => ({ name, verdict, evidence, ...(todo ? { do: todo } : {}) });
 
-/** The check's own output as one line of evidence. */
-const evidenceOf = (output) => output.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).join(" / ");
-
 /**
- * Runs one check from the repository root with no stdin, giving it only the facts supplied.
+ * Runs one check from the repository root with no stdin, giving it only the facts supplied. The check's
+ * output is its own: it goes, unchanged and as it runs, to Guard's standard error, and Guard does not read it.
  * `facts` maps fact names to values; `changed` is already an absolute path.
  */
 export function runCheck(root, list, name, facts) {
@@ -96,17 +94,16 @@ export function runCheck(root, list, name, facts) {
     if (started.problem) return result(name, "cannot judge", started.problem, `call the program directly, or move the argument into a script`);
     const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GUARD_")));
     for (const [fact, value] of Object.entries(facts)) if (value !== undefined) env[FACTS[fact].variable] = value;
-    const r = spawnSync(started.file, started.args, { ...started.options, cwd: root, env, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
+    const r = spawnSync(started.file, started.args, { ...started.options, cwd: root, env, stdio: ["ignore", 2, 2] });
     if (r.error || r.status === null) {
       return result(name, "cannot judge", `the command cannot start: ${r.error?.message ?? `ended by ${r.signal}`}`, `make "${check.command}" start from the repository root`);
     }
-    const output = evidenceOf(`${r.stdout}${r.stderr}`) || `exit status ${r.status}`;
-    const evidence = provenance ? `${output} (${provenance})` : output;
+    const evidence = provenance ? `exit status ${r.status} (${provenance})` : `exit status ${r.status}`;
     const verdict = VERDICTS[r.status] ?? check.outcomes?.[r.status];
     if (verdict === "fail") return result(name, verdict, evidence, `fix what ${name} reports, then run kaal-guard run --check ${name}`);
     if (verdict === "cannot judge") return result(name, verdict, evidence, `fix the cause ${name} names; it blocks until ${name} can judge`);
     if (verdict) return result(name, verdict, evidence);
-    return result(name, "cannot judge", `exit status ${r.status} is not a verdict: ${evidence}`, `make "${check.command}" start and exit 0 to 3, or name status ${r.status} under outcomes`);
+    return result(name, "cannot judge", `exit status ${r.status} is not a verdict${provenance ? ` (${provenance})` : ""}`, `make "${check.command}" start and exit 0 to 3, or name status ${r.status} under outcomes`);
   } finally {
     if (scratch) rmSync(scratch, { recursive: true, force: true });
   }
