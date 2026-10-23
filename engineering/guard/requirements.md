@@ -53,7 +53,7 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 - A command that cannot start is cannot judge.
 - A fact a check declares and does not receive is cannot judge.
 - A check that is not in `guard.json` is cannot judge.
-- A `ci` check that no workflow job names fails Guard's consistency check, `kaal-guard verify`, which runs in CI as the job `Guard`. `verify` reads the workflow files only: it shows that the CI configuration covers every `ci` check. It does not prove that GitHub ran a job, nor that branch protection requires it.
+- A `ci` check that no workflow job declares fails Guard's consistency check, `kaal-guard verify`, which runs in CI as the job `Guard`. `verify` checks only Guard's own integration contract: a check is declared when a workflow job invokes it in Guard's declared form ([Run](run.md#verify)), read deterministically from the workflow files; Guard infers nothing from scripts or other YAML. Declared integration is all `verify` claims. That GitHub ran the check is CI execution evidence, and that GitHub requires it is repository governance.
 
 ## Nonfunctional (N)
 

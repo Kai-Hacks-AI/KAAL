@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // kaal-guard: runs a repository's own checks for its Git hook and its CI, with one meaning per check.
 import { resolve } from "node:path";
-import { annotations, summarize } from "../lib/github.mjs";
-import { FACTS, findRoot, lines, run, status } from "../lib/runner.mjs";
+import { annotations, summarize, verify } from "../lib/github.mjs";
+import { FACTS, findRoot, lines, readList, run, status } from "../lib/runner.mjs";
 
 const USAGE = `usage: kaal-guard run (--local | --ci | --check <name>) [--github]
-                       [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]`;
+                       [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
+       kaal-guard verify [--github]`;
 
 /** Prints a cannot-judge verdict about kaal-guard itself and exits 2. */
 function cannotJudge(evidence, todo) {
@@ -32,7 +33,28 @@ function parseRun(args) {
   return options;
 }
 
+/** Prints the results' verdict lines, and with --github their annotations and summary, then exits with the run's status. */
+function report(results, github) {
+  for (const line of lines(results)) console.log(line);
+  if (github) {
+    for (const line of annotations(results)) console.log(line);
+    summarize(results, process.env.GITHUB_STEP_SUMMARY);
+  }
+  process.exit(status(results));
+}
+
 const [command, ...args] = process.argv.slice(2);
+if (command === "verify") {
+  const unknown = args.find((a) => a !== "--github");
+  if (unknown) cannotJudge(`unknown option ${unknown}`, USAGE);
+  const root = findRoot(process.cwd());
+  if (!root) cannotJudge("there is no guard.json here or in any parent directory", "add guard.json at the repository root");
+  const { list, problem } = readList(root);
+  if (problem) cannotJudge(problem, "correct guard.json");
+  const { results } = verify(root, list);
+  if (results.length === 0) console.log("kaal-guard: guard.json lists no ci checks");
+  report(results, args.includes("--github"));
+}
 if (command !== "run") cannotJudge(command ? `${command} is not a kaal-guard command in this version` : "no command", USAGE);
 
 const { selection, facts, github } = parseRun(args);
@@ -41,10 +63,5 @@ if (!root) cannotJudge("there is no guard.json here or in any parent directory",
 const outcome = run(root, selection, facts);
 if (outcome.problem) cannotJudge(outcome.problem, "correct guard.json");
 const { results } = outcome;
-for (const line of lines(results)) console.log(line);
 if (results.length === 0) console.log(`kaal-guard: no checks run ${selection.local ? "--local" : "--ci"}`);
-if (github) {
-  for (const line of annotations(results)) console.log(line);
-  summarize(results, process.env.GITHUB_STEP_SUMMARY);
-}
-process.exit(status(results));
+report(results, github);

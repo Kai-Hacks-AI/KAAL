@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { annotations, summarize } from "../lib/github.mjs";
+import { annotations, summarize, verify } from "../lib/github.mjs";
 import { plan, words } from "../lib/command.mjs";
 import { findRoot, lines, readList, run, status } from "../lib/runner.mjs";
 
@@ -183,5 +183,61 @@ describe("GitHub reporting", () => {
     const text = readFileSync(file, "utf8");
     assert.match(text, /\| x \| not applicable \| a \\\| b \|/);
     assert.ok(text.includes("| y | pass | C:\\\\dir\\\\\\| z |"), text);
+  });
+});
+
+describe("verify", () => {
+  /** A repository with these checks and these workflow files; returns verify's results by check. */
+  const verified = (checks, workflows) => {
+    const dir = repo(checks);
+    for (const [file, text] of Object.entries(workflows)) {
+      mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
+      writeFileSync(join(dir, ".github", "workflows", file), text);
+    }
+    return Object.fromEntries(verify(dir, readList(dir).list).results.map((r) => [r.name, r]));
+  };
+  const verdicts = (checks, workflows) => Object.fromEntries(Object.entries(verified(checks, workflows)).map(([n, r]) => [n, r.verdict]));
+  const ci = { command: "x", runs: ["ci"] };
+  const job = (...lines) => `on: push\njobs:\n  a:\n${lines.map((l) => `    ${l}`).join("\n")}\n`;
+
+  it("passes a ci check a step declares in Guard's form, and fails one nothing declares", () => {
+    const wf = job("steps:", "  - run: npx kaal-guard run --check plain --github", "  - name: n", "    run: npx --no kaal-guard run --check named", "  - run: kaal-guard run --check bare");
+    assert.deepEqual(verdicts({ plain: ci, named: ci, bare: ci, orphan: ci, mine: { command: "x", runs: ["local"] } }, { "ci.yml": wf }), { plain: "pass", named: "pass", bare: "pass", orphan: "fail" });
+  });
+
+  it("reads --check ${{ matrix.check }} from the job's - { check: <name> } lines", () => {
+    const wf = job("strategy:", "  matrix:", "    include:", "      - { check: one, script: \"x\" }", "      - {check: two}", "      - check: three", "steps:", "  - run: npx --no kaal-guard run --check ${{ matrix.check }} --github");
+    assert.deepEqual(verdicts({ one: ci, two: ci, three: ci }, { "ci.yaml": wf }), { one: "pass", two: "pass", three: "fail" });
+  });
+
+  it("infers nothing from scripts or other YAML: only the declared form declares", () => {
+    const wf = job(
+      "name: kaal-guard run --check named",
+      "env:",
+      "  X: kaal-guard run --check env",
+      "strategy:",
+      "  matrix:",
+      "    include:",
+      "      - { name: other }",
+      "steps:",
+      "  - run: echo kaal-guard run --check echoed",
+      "  - run: npx kaal-guard run --check \"quoted\"",
+      "  - run: npx kaal-guard run --check ${{ inputs.check }}",
+      "  - run: npx kaal-guard run --check ${{ matrix.name }}",
+      "  - run: |",
+      "      npx kaal-guard run --check scripted",
+      "  - run: x && npx kaal-guard run --check chained",
+      "  # - run: npx kaal-guard run --check commented",
+    );
+    const top = "# - run: npx kaal-guard run --check top\non: push\n" + wf.replace("on: push\n", "");
+    const checks = Object.fromEntries(["named", "env", "echoed", "quoted", "other", "scripted", "chained", "commented", "top"].map((n) => [n, ci]));
+    assert.ok(Object.values(verdicts(checks, { "ci.yml": top })).every((v) => v === "fail"));
+    assert.deepEqual(verdicts({ any: ci }, {}), { any: "fail" });
+  });
+
+  it("claims declared integration only, never that GitHub ran or requires the job", () => {
+    const r = verified({ c: ci }, { "ci.yml": job("if: false", "steps:", "  - if: false", "    run: npx kaal-guard run --check c") }).c;
+    assert.equal(r.verdict, "pass");
+    assert.equal(r.evidence, "declared by job a in .github/workflows/ci.yml; declared integration only, not that GitHub ran or requires that job");
   });
 });
