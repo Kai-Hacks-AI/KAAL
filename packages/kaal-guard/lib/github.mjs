@@ -19,7 +19,7 @@ export function annotations(results) {
   return results.map(annotation).filter(Boolean);
 }
 
-const cell = (s) => s.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+const cell = (s) => s.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 
 /** Appends the run's verdicts, each by its own name, to the step summary file, if there is one. */
 export function summarize(results, file) {

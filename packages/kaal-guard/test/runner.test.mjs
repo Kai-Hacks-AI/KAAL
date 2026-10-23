@@ -91,7 +91,9 @@ describe("GitHub reporting", () => {
   it("writes each verdict to the step summary by its own name", () => {
     const file = join(mkdtempSync(join(tmpdir(), "kaal-guard-summary-")), "summary.md");
     writeFileSync(file, "");
-    summarize([{ name: "x", verdict: "not applicable", evidence: "a | b" }], file);
-    assert.match(readFileSync(file, "utf8"), /\| x \| not applicable \| a \\\| b \|/);
+    summarize([{ name: "x", verdict: "not applicable", evidence: "a | b" }, { name: "y", verdict: "pass", evidence: "C:\\dir\\| z" }], file);
+    const text = readFileSync(file, "utf8");
+    assert.match(text, /\| x \| not applicable \| a \\\| b \|/);
+    assert.ok(text.includes("| y | pass | C:\\\\dir\\\\\\| z |"), text);
   });
 });
