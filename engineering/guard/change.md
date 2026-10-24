@@ -12,35 +12,35 @@ Each Change depends on the Changes above it and lands only after them. A Change 
 
 | Change | Carries | Scope | Verified when |
 | --- | --- | --- | --- |
-| **C0a** PLAN | I1–I6 | The Guard Capability Node, these six concerns, and both parts of the outer acceptance boundary. No Guard code. | The outer tests are RED as [Testing](testing.md#red-evidence) reports, and the Owner accepts the boundary. |
-| **C0b** Boundary | — | The `Guard Acceptance Boundary` job, for pull requests into `kaal/guard`. It travels alone. | It fails a test DO Change that touches the boundary. It lands before any DO Change. |
-| **C1** Runner | I1, I2 | The runner and `kaal-guard run`, with `guard.json`, named outcomes and GitHub reporting. | The outer tests that need only `run` are GREEN. |
-| **C1b** Check output | I2 | The runner runs each check synchronously with its output inherited: the check's output goes, unchanged and as it runs, to the hook's terminal or the CI log, and Guard neither captures nor interprets it. Guard's evidence is the exit status, with a trusted checker's provenance (F2, F7). No Guard logging framework, no new dependency. It lands before C3c, whose test lanes print thousands of lines. | Guard's inner tests show a check's output passing through on standard error, Guard's standard output holding only its verdict lines, and the verdict taken from the exit status alone; the outer tests GREEN before stay GREEN. |
-| **C2** KAAL Git adapter | I4 | KAAL's `.githooks/pre-push` calls Guard with KAAL's `guard.json`. It travels alone. | KAAL's hook gives today's verdicts on today's scenarios, through Guard. |
-| **C3a** KAAL installs Guard | I4 | KAAL installs `kaal-guard` from `packages/kaal-guard` as a development dependency, as an Embed consumer would, and `.githooks/pre-push` calls the installed `kaal-guard run --local`. It is not a workspace, so Guard's outer tests stay out of KAAL's Workspaces and Acceptance lanes, which run every workspace's tests and `test/acceptance/` scenarios. | T5 is GREEN; the hook's verdicts are C2's. |
-| **C3b** KAAL CI checks | I4 | KAAL's `guard.json` lists its `ci` checks, and each Guard-run job's logic moves, unchanged, into a KAAL-owned check: the test lanes as their npm scripts, Change Isolation, Promotion Source, Branching and the Branching audit as scripts in `engineering/github/`. The branching checkers are `trusted`, taken from the revision KAAL supplies as `base`: the default branch's tip, as today. | T33 is GREEN; each moved check gives the job's verdicts on today's scenarios, run through Guard. |
-| **C3b2** Checks run from the default branch | I4 | Change Isolation reads its checker from the target commit through Git, as the other branching checks already read theirs, so every pull-request check can run from a checkout of the default branch. | Change Isolation gives the job's verdicts on today's scenarios when run from a default-branch checkout. |
-| **C3c** KAAL CI integration | I4 | KAAL's existing jobs call `kaal-guard run --check`; names, matrices and triggers are unchanged; the `Guard` job is added and runs Guard's own tests. The `pull_request_target` jobs check out the default branch, where GitHub always takes their workflow from. It travels alone. | Every pre-migration check identity still reports, through Guard (T34): the `push` and `pull_request` jobs and the Branching audit on `kaal/guard`; the `pull_request_target` jobs once they are on the default branch. |
-| **C4a** Verify | I2, I4 | `kaal-guard verify` in `lib/github.mjs`: per `ci` check, whether a workflow job declares it in Guard's declared form ([Run](run.md#verify)), by name or through `- { check: <name> }` matrix lines (F10). Declared integration only; it infers nothing from scripts or other YAML. | Guard's inner tests show a declared, a matrix-declared and an undeclared `ci` check, every form outside the contract declaring nothing, and a pass claiming declared integration only. On KAAL's tree, `verify` names the two jobs whose invocation sits in a script, Change Isolation and the Branching audit; C4c moves each to a step of its own. |
-| **C4b** Lifecycle | I5 | `init`, `upgrade` and `remove` in `lib/lifecycle.mjs`, `managed` in `guard.json`, and the adapter templates `templates/pre-push` and `templates/guard.yml` (F8). | The outer tests of `init`, `upgrade`, `remove` and `verify` are GREEN, T24 among them. |
-| **C4c** KAAL runs verify | I5 | KAAL's `Guard` job also runs `kaal-guard verify`, and the Change Isolation and Branching audit jobs invoke Guard in a step of its own, in the declared form, with their facts computed in the step before. Names, triggers and matrices are unchanged. It travels alone. | `verify` passes on KAAL's tree, and T35 is GREEN. |
-| **C4d** Embed docs | I3, I5 | The consumer docs shipped in the package. | The packed package alone passes its outer tests on Linux, macOS and Windows, ready to publish as `kaal-guard@0.0.1`. |
-| **C5** External | I6 | The External tooling and its instructions. | A delivered Change works in a fresh target and contains no KAAL element. |
-| **C6** Package identity | I5 | The package is named `@kaihacksai/kaal-guard` (N6); the command, the Capability and the repository keep their names. It lands as two Changes: the outer tests expecting the scoped name, which touch only the boundary and travel alone, then the package manifest, KAAL's development dependency and lockfile, the consumer docs and the hook line `init` prints. It is not part of C5: an External delivery leaves no package dependency at all. | T30 names the scoped package, and the packed package alone passes its outer tests on Linux, macOS and Windows. |
+| **guard/C0a** PLAN | guard/I1–guard/I6 | The Guard Capability Node, these six concerns, and both parts of the outer acceptance boundary. No Guard code. | The outer tests are RED as [Testing](testing.md#red-evidence) reports, and the Owner accepts the boundary. |
+| **guard/C0b** Boundary | — | The `Guard Acceptance Boundary` job, for pull requests into `kaal/guard`. It travels alone. | It fails a test DO Change that touches the boundary. It lands before any DO Change. |
+| **guard/C1** Runner | guard/I1, guard/I2 | The runner and `kaal-guard run`, with `guard.json`, named outcomes and GitHub reporting. | The outer tests that need only `run` are GREEN. |
+| **guard/C1b** Check output | guard/I2 | The runner runs each check synchronously with its output inherited: the check's output goes, unchanged and as it runs, to the hook's terminal or the CI log, and Guard neither captures nor interprets it. Guard's evidence is the exit status, with a trusted checker's provenance (guard/F2, guard/F7). No Guard logging framework, no new dependency. It lands before guard/C3c, whose test lanes print thousands of lines. | Guard's inner tests show a check's output passing through on standard error, Guard's standard output holding only its verdict lines, and the verdict taken from the exit status alone; the outer tests GREEN before stay GREEN. |
+| **guard/C2** KAAL Git adapter | guard/I4 | KAAL's `.githooks/pre-push` calls Guard with KAAL's `guard.json`. It travels alone. | KAAL's hook gives today's verdicts on today's scenarios, through Guard. |
+| **guard/C3a** KAAL installs Guard | guard/I4 | KAAL installs `kaal-guard` from `packages/kaal-guard` as a development dependency, as an Embed consumer would, and `.githooks/pre-push` calls the installed `kaal-guard run --local`. It is not a workspace, so Guard's outer tests stay out of KAAL's Workspaces and Acceptance lanes, which run every workspace's tests and `test/acceptance/` scenarios. | guard/T5 is GREEN; the hook's verdicts are guard/C2's. |
+| **guard/C3b** KAAL CI checks | guard/I4 | KAAL's `guard.json` lists its `ci` checks, and each Guard-run job's logic moves, unchanged, into a KAAL-owned check: the test lanes as their npm scripts, Change Isolation, Promotion Source, Branching and the Branching audit as scripts in `engineering/github/`. The branching checkers are `trusted`, taken from the revision KAAL supplies as `base`: the default branch's tip, as today. | guard/T33 is GREEN; each moved check gives the job's verdicts on today's scenarios, run through Guard. |
+| **guard/C3b2** Checks run from the default branch | guard/I4 | Change Isolation reads its checker from the target commit through Git, as the other branching checks already read theirs, so every pull-request check can run from a checkout of the default branch. | Change Isolation gives the job's verdicts on today's scenarios when run from a default-branch checkout. |
+| **guard/C3c** KAAL CI integration | guard/I4 | KAAL's existing jobs call `kaal-guard run --check`; names, matrices and triggers are unchanged; the `Guard` job is added and runs Guard's own tests. The `pull_request_target` jobs check out the default branch, where GitHub always takes their workflow from. It travels alone. | Every pre-migration check identity still reports, through Guard (guard/T34): the `push` and `pull_request` jobs and the Branching audit on `kaal/guard`; the `pull_request_target` jobs once they are on the default branch. |
+| **guard/C4a** Verify | guard/I2, guard/I4 | `kaal-guard verify` in `lib/github.mjs`: per `ci` check, whether a workflow job declares it in Guard's declared form ([Run](run.md#verify)), by name or through `- { check: <name> }` matrix lines (guard/F10). Declared integration only; it infers nothing from scripts or other YAML. | Guard's inner tests show a declared, a matrix-declared and an undeclared `ci` check, every form outside the contract declaring nothing, and a pass claiming declared integration only. On KAAL's tree, `verify` names the two jobs whose invocation sits in a script, Change Isolation and the Branching audit; guard/C4c moves each to a step of its own. |
+| **guard/C4b** Lifecycle | guard/I5 | `init`, `upgrade` and `remove` in `lib/lifecycle.mjs`, `managed` in `guard.json`, and the adapter templates `templates/pre-push` and `templates/guard.yml` (guard/F8). | The outer tests of `init`, `upgrade`, `remove` and `verify` are GREEN, guard/T24 among them. |
+| **guard/C4c** KAAL runs verify | guard/I5 | KAAL's `Guard` job also runs `kaal-guard verify`, and the Change Isolation and Branching audit jobs invoke Guard in a step of its own, in the declared form, with their facts computed in the step before. Names, triggers and matrices are unchanged. It travels alone. | `verify` passes on KAAL's tree, and guard/T35 is GREEN. |
+| **guard/C4d** Embed docs | guard/I3, guard/I5 | The consumer docs shipped in the package. | The packed package alone passes its outer tests on Linux, macOS and Windows, ready to publish as `kaal-guard@0.0.1`. |
+| **guard/C5** External | guard/I6 | The External tooling and its instructions. | A delivered Change works in a fresh target and contains no KAAL element. |
+| **guard/C6** Package identity | guard/I5 | The package is named `@kaihacksai/kaal-guard` (guard/N6); the command, the Capability and the repository keep their names. It lands as two Changes: the outer tests expecting the scoped name, which touch only the boundary and travel alone, then the package manifest, KAAL's development dependency and lockfile, the consumer docs and the hook line `init` prints. It is not part of guard/C5: an External delivery leaves no package dependency at all. | guard/T30 names the scoped package, and the packed package alone passes its outer tests on Linux, macOS and Windows. |
 | **R1** Release | — | Publication of `@kaihacksai/kaal-guard@0.0.1`, a bounded Change of its own: the packed contents inspected, a clean install and its tests verified, and a publishing workflow with the npm bootstrap and Trusted Publishing steps proposed to the Owner. Its workflow travels alone. No release framework, and no change to Guard's runtime. | The Owner accepts the proposal. Nothing is published and no npm credential is created without the Owner's explicit authorization. |
 
 ### Consumer upgrade
 
-KAAL is the consumer of its published package, in a disposable clone (A12). KAAL's own development dependency, hook, workflows and `guard.json` do not change (N8).
+KAAL is the consumer of its published package, in a disposable clone (guard/A12). KAAL's own development dependency, hook, workflows and `guard.json` do not change (guard/N8).
 
 | Change | Carries | Scope | Verified when |
 | --- | --- | --- | --- |
-| **K1** PLAN | I5 | I5 extended to the consumer upgrade and adoption, F11–F18, N8–N9, KAAL's adoption assessment in A11, A12, and the planned tests T36–T44 with their intended evidence. No code and no test file. | The Owner accepts the plan. |
-| **K2** Harness | I5 | The A12 harness and T36–T44, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. Each suspicion is established as a Defect or refuted by its test. |
-| **K3** Fix | I5 | One bounded package Change for each Defect K2 establishes ([Testing](testing.md#defects)) and the Owner selects, turning its Test Case from RED to GREEN. The tests already exist, so each is a DO Change outside the acceptance boundary. The [K3 Change map](#k3-change-map) gives each one's scope, dependencies and order. | The Defect's Test Case is GREEN against a `packed` candidate, T40 stays GREEN, no other outer test turns RED, and the package's outer tests stay GREEN on Linux, macOS and Windows. The Defect is then recorded as corrected. |
-| **K4** Consumer job | — | A non-required job running A12 on the three OSes, so a registry outage cannot block a merge. It travels alone. A separate Engineering decision, not part of K1–K3. | Proposed to the Owner; not authorized. |
+| **K1** PLAN | guard/I5 | guard/I5 extended to the consumer upgrade and adoption, guard/F11–guard/F18, guard/N8–guard/N9, KAAL's adoption assessment in guard/A11, guard/A12, and the planned tests guard/T36–guard/T44 with their intended evidence. No code and no test file. | The Owner accepts the plan. |
+| **K2** Harness | guard/I5 | The guard/A12 harness and guard/T36–guard/T44, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. Each suspicion is established as a Defect or refuted by its test. |
+| **K3** Fix | guard/I5 | One bounded package Change for each Defect K2 establishes ([Testing](testing.md#defects)) and the Owner selects, turning its Test Case from RED to GREEN. The tests already exist, so each is a DO Change outside the acceptance boundary. The [K3 Change map](#k3-change-map) gives each one's scope, dependencies and order. | The Defect's Test Case is GREEN against a `packed` candidate, guard/T40 stays GREEN, no other outer test turns RED, and the package's outer tests stay GREEN on Linux, macOS and Windows. The Defect is then recorded as corrected. |
+| **K4** Consumer job | — | A non-required job running guard/A12 on the three OSes, so a registry outage cannot block a merge. It travels alone. A separate Engineering decision, not part of K1–K3. | Proposed to the Owner; not authorized. |
 | **K5** Publish | — | `0.0.2` through the Guard Release workflow, only with the Owner's authorization and only carrying a K3 Change. | The registry tarball equals the workflow's packed artifact. |
-| **K6** Release acceptance | I5 | T36–T44 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
+| **K6** Release acceptance | guard/I5 | guard/T36–guard/T44 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
 
 ### K3 Change map
 
@@ -50,29 +50,29 @@ Each K3 Change corrects one Defect in `packages/kaal-guard` and lands in `kaal/g
 
 | Change | Corrects | Scope | Depends on |
 | --- | --- | --- | --- |
-| **`guard/C8`** (K3a) Consumer bytes | D4 (T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
-| **`guard/C9`** (K3b) New assets | D1 (T38) | In `upgrade`, a managed path with no recorded hash is installed under `init`'s rule and recorded, but only where no file exists. Where a file does exist, it is reported as left untouched. | `guard/C8` |
-| **`guard/C10`** (K3c) Existing integration | D3 (T43) | `init` and `upgrade` apply F17's rule: they read only Guard's declared integration contract, as `verify` does, and write the workflow for what remains undeclared, or none. They report each recognized declaration as executed by Guard but not managed. The command layer reads the declarations and passes them to the lifecycle, so the lifecycle still imports no adapter (A7, T29). | `guard/C8` |
-| **`guard/C11`** (K3d) Writer version | D2 (T39) | `managed` keeps its form, a path mapped to a hash, and `writers` maps each managed path to the version F14 names. `init` and `upgrade` write it, and `remove` deletes it with `managed`. | `guard/C8` |
+| **`guard/C8`** (K3a) Consumer bytes | guard/D4 (guard/T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
+| **`guard/C9`** (K3b) New assets | guard/D1 (guard/T38) | In `upgrade`, a managed path with no recorded hash is installed under `init`'s rule and recorded, but only where no file exists. Where a file does exist, it is reported as left untouched. | `guard/C8` |
+| **`guard/C10`** (K3c) Existing integration | guard/D3 (guard/T43) | `init` and `upgrade` apply guard/F17's rule: they read only Guard's declared integration contract, as `verify` does, and write the workflow for what remains undeclared, or none. They report each recognized declaration as executed by Guard but not managed. The command layer reads the declarations and passes them to the lifecycle, so the lifecycle still imports no adapter (guard/A7, guard/T29). | `guard/C8` |
+| **`guard/C11`** (K3d) Writer version | guard/D2 (guard/T39) | `managed` keeps its form, a path mapped to a hash, and `writers` maps each managed path to the version guard/F14 names. `init` and `upgrade` write it, and `remove` deletes it with `managed`. | `guard/C8` |
 
-This PLAN Change also amends F14, F17 and F18, so K3c and K3d need no PLAN Change of their own, and no planned test changes:
-- **K3c and F17.** The rule is limited to Guard's declared contract. In KAAL every `ci` check and the consistency check are declared, so `init` installs no workflow there and reports nine declarations as not managed. T43 asserts that unchanged. The rule's limit is that a consumer job running a check in another form, or a job named like Guard's but declaring nothing, is not recognized. Guard does not interpret GitHub workflow semantics, and KAAL's CI orchestration stays KAAL's (A11).
-- **K3d and F14.** Writer provenance is per asset, matching the per-asset SHA-256. It is a separate entry because changing `managed` to hold objects would make `0.0.1` treat every asset as modified on rollback, which breaks F16 and T41.
+This PLAN Change also amends guard/F14, guard/F17 and guard/F18, so K3c and K3d need no PLAN Change of their own, and no planned test changes:
+- **K3c and guard/F17.** The rule is limited to Guard's declared contract. In KAAL every `ci` check and the consistency check are declared, so `init` installs no workflow there and reports nine declarations as not managed. guard/T43 asserts that unchanged. The rule's limit is that a consumer job running a check in another form, or a job named like Guard's but declaring nothing, is not recognized. Guard does not interpret GitHub workflow semantics, and KAAL's CI orchestration stays KAAL's (guard/A11).
+- **K3d and guard/F14.** Writer provenance is per asset, matching the per-asset SHA-256. It is a separate entry because changing `managed` to hold objects would make `0.0.1` treat every asset as modified on rollback, which breaks guard/F16 and guard/T41.
 - **K3 and Guard's installation contract (#335).** K3 imports nothing of Core or Hosting. Its guarantees are standalone ones, and they are the ones an installation contract states: K3a fixes Guard's ownership record to `managed`, `config` and `writers`; K3b installs from the lifecycle's one list of assets, which B3 later moves into the contract; K3c recognizes integration by its declared invocation, not by who wrote it; and K3d records a Guard version, not an installer's, so an asset Core writes from Guard's contract records the same writer. Node stays as it is in K3; Node 24 is B5's.
   - **Mixed versions.** A kept, consumer-modified asset keeps its earlier writer while the others move forward.
   - **Older `guard.json`.** An asset with no writer reads as `0.0.1`.
   - **Rollback.** `0.0.1` keeps the unknown `writers` entry but does not update it, and `remove` under `0.0.1` leaves it behind. The next newer `upgrade` re-records each asset. That is the stated limit.
-  - **T39.** T39 holds as written: after `upgrade`, every unmodified asset records the installed version, and the report names `0.0.1` and that version.
+  - **guard/T39.** guard/T39 holds as written: after `upgrade`, every unmodified asset records the installed version, and the report names `0.0.1` and that version.
 
 The evidence stays bounded:
 - Each Test Case runs against a `packed` candidate, directly and on Linux, as in K2b. Consumer evidence on macOS and Windows needs K4 or a run by hand.
-- No version is bumped in K3. So `packed` still carries version `0.0.1`, and T37 and T41 still cannot show an asset's content moving between versions. That waits for K5 and K6.
+- No version is bumped in K3. So `packed` still carries version `0.0.1`, and guard/T37 and guard/T41 still cannot show an asset's content moving between versions. That waits for K5 and K6.
 
 ### Agent guidance
 
-I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond its PLAN Change, `guard/C12`.
+guard/I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond its PLAN Change, `guard/C12`.
 
-**One contract, two levels of realization** (N12). Core owns CASE installation and registration, and may embed Guard. Core owns the Installation Contract Definition, its schema and its outer conformance Test Cases. Guard supplies its installer-neutral instance (F27), and two installers realize it:
+**One contract, two levels of realization** (guard/N12). Core owns CASE installation and registration, and may embed Guard. Core owns the Installation Contract Definition, its schema and its outer conformance Test Cases. Guard supplies its installer-neutral instance (guard/F27), and two installers realize it:
 
 | Level | Who | Guarantees | Dependency |
 | --- | --- | --- | --- |
@@ -87,11 +87,11 @@ The two levels are not feature-equivalent. Standalone, Claude Code reaches the S
 - External: Engineering's tooling writes the canonical deployment, and may use Core at delivery for further ones. The target owns plain files.
 - Embedding: none toward KAAL. The earlier `Guard → kaal-core` dependency is withdrawn, because no Guard behaviour needs it.
 
-**Node.** `0.0.2` raises Guard's floor from 20 to 24, consistent with Core, Graph and Hosting. This is a breaking consumer prerequisite: N1 documents it, and T59 tests that an older Node is refused with that next step.
+**Node.** `0.0.2` raises Guard's floor from 20 to 24, consistent with Core, Graph and Hosting. This is a breaking consumer prerequisite: guard/N1 documents it, and guard/T59 tests that an older Node is refused with that next step.
 
-The Changes for this, with K3's and the release's, are mapped in [Change identities](#change-identities). KAAL stays a Guard executor (A11): it receives Guard's Skill through Core's realization, not through Guard's lifecycle.
+The Changes for this, with K3's and the release's, are mapped in [Change identities](#change-identities). KAAL stays a Guard executor (guard/A11): it receives Guard's Skill through Core's realization, not through Guard's lifecycle.
 
-C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alone (Change Isolation): C3c's jobs need the command C3a installs and the checks C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in C4c, which travels alone, and T35 turns GREEN there. C4 lands as four Changes for the same reasons: `verify` (C4a) comes before the job that runs it (C4c), the lifecycle (C4b) is the largest piece and is reviewed on its own, and the docs (C4d) describe what C4a and C4b ship.
+guard/C3 lands as four Changes, guard/C3a, guard/C3b, guard/C3b2 and guard/C3c, because `.github` travels alone (Change Isolation): guard/C3c's jobs need the command guard/C3a installs and the checks guard/C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (guard/C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. guard/T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in guard/C4c, which travels alone, and guard/T35 turns GREEN there. guard/C4 lands as four Changes for the same reasons: `verify` (guard/C4a) comes before the job that runs it (guard/C4c), the lifecycle (guard/C4b) is the largest piece and is reviewed on its own, and the docs (guard/C4d) describe what guard/C4a and guard/C4b ship.
 
 
 ## Change identities
@@ -101,21 +101,23 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | Change | Alias | Owner | Scope | Depends on | Pull request |
 | --- | --- | --- | --- | --- | --- |
 | — | R1 | Guard | `0.0.1` release workflow | — | #320–#326, merged |
-| — | K1, K2a, K2b | Guard | Consumer upgrade PLAN, its tests and the A12 harness | — | #329, #330, #332, merged; promoted in #333 |
-| `guard/C7` | K3 PLAN | Guard | The Defect map D1–D4 and the amendments of F14, F17 and F18 | — | #334, open |
-| `guard/C8` | K3a | Guard | D4 (T44): Guard writes only its own entries of `guard.json` | `guard/C7` | not created |
-| `guard/C9` | K3b | Guard | D1 (T38): `upgrade` installs a missing, unrecorded asset | `guard/C8` | not created |
-| `guard/C10` | K3c | Guard | D3 (T43): adoption by the declared integration contract | `guard/C8` | not created |
-| `guard/C11` | K3d | Guard | D2 (T39): per-asset writer provenance | `guard/C8` | not created |
-| `guard/C12` | B1 | Guard | This PLAN: I7, F19–F27, N1, N10–N12, A13–A17, T45–T59. No code and no test file | — | #335, open |
-| `guard/C13` | B2 | Guard | T45–T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | not created |
-| `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; T45, T46, T58 | `guard/C13`, `core/C3` | not created |
-| `guard/C15` | B4 | Guard | The reminder; T47–T49 | `guard/C14` | not created |
-| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; T50–T55, T57, T59 | `guard/C14`, `guard/C8`, `guard/C9`, `guard/C11` | not created |
-| `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; T56 | `guard/C14`; `core/C4` for Core's part | not created |
-| `guard/C18` | K4 | Guard | A non-required job running A12 on three OSes. Proposed, not authorized | — | not created |
+| — | K1, K2a, K2b | Guard | Consumer upgrade PLAN, its tests and the guard/A12 harness | — | #329, #330, #332, merged; promoted in #333 |
+| `guard/C7` | K3 PLAN | Guard | The Defect map guard/D1–guard/D4 and the amendments of guard/F14, guard/F17 and guard/F18 | — | #334, open |
+| `guard/C8` | K3a | Guard | guard/D4 (guard/T44): Guard writes only its own entries of `guard.json` | `guard/C7` | not created |
+| `guard/C9` | K3b | Guard | guard/D1 (guard/T38): `upgrade` installs a missing, unrecorded asset | `guard/C8` | not created |
+| `guard/C10` | K3c | Guard | guard/D3 (guard/T43): adoption by the declared integration contract | `guard/C8` | not created |
+| `guard/C11` | K3d | Guard | guard/D2 (guard/T39): per-asset writer provenance | `guard/C8` | not created |
+| `guard/C12` | B1 | Guard | This PLAN: guard/I7, guard/F19–guard/F27, guard/N1, guard/N10–guard/N12, guard/A13–guard/A17, guard/T45–guard/T59. No code and no test file | — | #335, open |
+| `guard/C13` | B2 | Guard | guard/T45–guard/T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | not created |
+| `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; guard/T45, guard/T46, guard/T58 | `guard/C13`, `core/C3` | not created |
+| `guard/C15` | B4 | Guard | The reminder; guard/T47–guard/T49 | `guard/C14` | not created |
+| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T55, guard/T57, guard/T59 | `guard/C14`, `guard/C8`, `guard/C9`, `guard/C11` | not created |
+| `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; guard/T56 | `guard/C14`; `core/C4` for Core's part | not created |
+| `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
-| `guard/C20` | K6 | Guard | Release acceptance: T36–T44 and T55 with `registry` evidence | `guard/C19` | not created |
+| `guard/C20` | K6 | Guard | Release acceptance: guard/T36–guard/T44 and guard/T55 with `registry` evidence | `guard/C19` | not created |
+| `guard/C21` | — | Guard | Every identifier in Guard's documents written Capability-qualified, as the Owner ruled on #334 and #335 | — | #337, open |
+| `guard/C22` | — | Guard | The titles of the test files inside the acceptance boundary qualified the same way. A PLAN Change of the boundary; it travels alone | `guard/C21` | not created |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
 | `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3` | not created |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
@@ -123,10 +125,10 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 
 ```mermaid
 graph LR
-  C7[guard/C7 K3 PLAN] --> C8[guard/C8 D4]
-  C8 --> C9[guard/C9 D1]
-  C8 --> C10[guard/C10 D3]
-  C8 --> C11[guard/C11 D2]
+  C7[guard/C7 K3 PLAN] --> C8[guard/C8 guard/D4]
+  C8 --> C9[guard/C9 guard/D1]
+  C8 --> C10[guard/C10 guard/D3]
+  C8 --> C11[guard/C11 guard/D2]
   C12[guard/C12 B1 PLAN] --> C13[guard/C13 tests]
   C13 --> C14[guard/C14 Skill and contract]
   CP[core/C3 PLAN] --> C14
@@ -157,9 +159,9 @@ A dotted edge is needed only for the Core-enriched part of a Change. Every Chang
 
 ## Stopping conditions
 
-- **Checkpoint E**, after C3c: I1 to I4 are met. A pause point, not completion.
-- **Checkpoint M**, after C4d: I5 is also met. Still a pause point.
-- **Completion**, after C5 and C6: I1 to I6 are all met, and every outer test is GREEN on all three OSes. Only this is done. Publication (R1) is a separate Owner decision.
+- **Checkpoint E**, after guard/C3c: guard/I1 to guard/I4 are met. A pause point, not completion.
+- **Checkpoint M**, after guard/C4d: guard/I5 is also met. Still a pause point.
+- **Completion**, after guard/C5 and guard/C6: guard/I1 to guard/I6 are all met, and every outer test is GREEN on all three OSes. Only this is done. Publication (R1) is a separate Owner decision.
 - A published version's Release is accepted only when its consumer acceptance (K6) is GREEN with `registry` evidence. Publishing alone is not acceptance.
 - Pausing at a checkpoint is the Owner's decision. While paused, the unmet outcomes are recorded as unmet.
 - A planned outer test that cannot pass without changing the boundary is a PLAN defect. It goes back to PLAN as a new PLAN Change.
