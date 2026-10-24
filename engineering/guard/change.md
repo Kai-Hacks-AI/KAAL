@@ -65,9 +65,11 @@ I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in
 - It plans the deployments and pointers from Core's placement table, and realizes them through Hosting: install, upgrade, keep modified, prune.
 - It returns what it wrote, kept and pruned.
 - Its modules import Hosting and Core's own Agent modules, and not the Engine, bootstrap or Graph. Agent Skills folders are not Nodes. Core's boundary test enforces this.
+- Core keeps its own record of what it manages, beside the repository's declaration (`agents.kaal.json`), and that record is the authority. Guard's `guard.json` only mirrors the deployed paths.
+- The `Agent Realization` Definition sits in Core's payload beside `CASE`, so the Kernel is unchanged.
 - `.` keeps exporting everything, so nothing else in Core changes.
 
-The subpath limits what Guard loads, not what npm installs.
+The subpath limits what Guard loads, not what it depends on: installing `kaal-core` still installs Graph and Hosting.
 
 **Consequences for Guard, for the Owner's decision.**
 - I5 and N6: "no KAAL dependency" becomes "one KAAL dependency, `kaal-core`, used only to install, upgrade and remove the Skill".
