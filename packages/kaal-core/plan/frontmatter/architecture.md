@@ -20,4 +20,4 @@ Each element names, in brackets, the Requirements it answers.
 | `testing/C3` conformance findings as evidence | Testing | `core/C5` |
 | `engineering/C…` applying validation | Engineering | `core/C6`, `testing/C3` |
 | `core/C4` Agent Realization, F7's rendering | Core | `core/C3`, `core/C5` |
-| `guard/C23` check definitions | Guard | `core/C5` |
+| `guard/C24` boundary tests, `guard/C25` implementation | Guard | `core/C5` |
