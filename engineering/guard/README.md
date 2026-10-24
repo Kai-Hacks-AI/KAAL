@@ -19,7 +19,7 @@ The six concerns, written outside-in:
 2. [Requirements](requirements.md): what, obligations guard/F1–guard/F27 and guard/N1–guard/N12, each tracing to Intent
 3. [Architecture](architecture.md): where, elements guard/A1–guard/A17, each tracing to Requirements
 4. [Testing](testing.md): the four loops, and the planned tests guard/T1–guard/T59, each naming the I, F, N or A contracts it checks
-5. [Change](change.md): the bounded Changes `guard/C0a`–`guard/C22`, with their aliases and the Core and Engineering Changes they depend on, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
+5. [Change](change.md): the bounded Changes `guard/C0a`–`guard/C25`, with their aliases and the Core and Engineering Changes they depend on, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
 6. [Run](run.md)
 
 State: DO (guard/C5). Checkpoint M is reached: the package holds `run`, `verify`, the lifecycle, the adapter templates and its consumer docs, and its outer tests are GREEN on Linux, Windows and macOS. KAAL runs its pre-push hook and CI checks through it. The External tooling, [external/](external/README.md), delivers Guard naked into a target, and guard/T3 is GREEN. The RED evidence of guard/C0a is recorded in [Testing](testing.md#red-evidence). The consumer upgrade is in PLAN (K1): KAAL accepts its published package in a disposable clone, guard/A12, with the planned tests guard/T36–guard/T44 ([Testing](testing.md#consumer-upgrade)).

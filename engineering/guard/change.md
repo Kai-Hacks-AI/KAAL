@@ -46,14 +46,14 @@ KAAL is the consumer of its published package, in a disposable clone (guard/A12)
 
 This PLAN Change is `guard/C7`. In FANATIC a Change's durable identity is `guard/C<number>`; K3 and K3a–K3d remain only as aliases, and the full map of Guard's Changes is planned in `guard/C12`.
 
-Each K3 Change corrects one Defect in `packages/kaal-guard` and lands in `kaal/guard` on its own. They land in this order, because each later one writes `guard.json` through the earlier ones.
+Each K3 Change corrects one Defect in `packages/kaal-guard` and lands in `kaal/guard` on its own. `guard/C23` withdrew `guard/C8`. `guard/C10` now depends on `guard/C23`, and `guard/C9` and `guard/C11` on `guard/C25`, because they record lifecycle state.
 
 | Change | Corrects | Scope | Depends on |
 | --- | --- | --- | --- |
-| **`guard/C8`** (K3a) Consumer bytes | guard/D4 (guard/T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
-| **`guard/C9`** (K3b) New assets | guard/D1 (guard/T38) | In `upgrade`, a managed path with no recorded hash is installed under `init`'s rule and recorded, but only where no file exists. Where a file does exist, it is reported as left untouched. | `guard/C8` |
-| **`guard/C10`** (K3c) Existing integration | guard/D3 (guard/T43) | `init` and `upgrade` apply guard/F17's rule: they read only Guard's declared integration contract, as `verify` does, and write the workflow for what remains undeclared, or none. They report each recognized declaration as executed by Guard but not managed. The command layer reads the declarations and passes them to the lifecycle, so the lifecycle still imports no adapter (guard/A7, guard/T29). | `guard/C8` |
-| **`guard/C11`** (K3d) Writer version | guard/D2 (guard/T39) | `managed` keeps its form, a path mapped to a hash, and `writers` maps each managed path to the version guard/F14 names. `init` and `upgrade` write it, and `remove` deletes it with `managed`. | `guard/C8` |
+| ~~**`guard/C8`** (K3a) Consumer bytes~~ Withdrawn by `guard/C23`, since guard/D4 is retracted | guard/D4 (guard/T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
+| **`guard/C9`** (K3b) New assets | guard/D1 (guard/T38) | In `upgrade`, a managed path that is missing and unregistered is installed under `init`'s rule and registered. A file at that path that the installation record does not register is reported as left untouched. Restated by `guard/C23`. | `guard/C25` |
+| **`guard/C10`** (K3c) Existing integration | guard/D3 (guard/T43) | `init` and `upgrade` apply guard/F17's rule: they read only Guard's declared integration contract, as `verify` does, and write the workflow for what remains undeclared, or none. They report each recognized declaration as executed by Guard but not managed. The command layer reads the declarations and passes them to the lifecycle, so the lifecycle still imports no adapter (guard/A7, guard/T29). | `guard/C23` |
+| **`guard/C11`** (K3d) Writer version | guard/D2 (guard/T39) | `init` and `upgrade` register each asset's version and SHA-256 in the installation record (guard/F29), and `upgrade` reports the versions it moves between. Restated by `guard/C23`. | `guard/C25` |
 
 This PLAN Change also amends guard/F14, guard/F17 and guard/F18, so K3c and K3d need no PLAN Change of their own, and no planned test changes:
 - **K3c and guard/F17.** The rule is limited to Guard's declared contract. In KAAL every `ci` check and the consistency check are declared, so `init` installs no workflow there and reports nine declarations as not managed. guard/T43 asserts that unchanged. The rule's limit is that a consumer job running a check in another form, or a job named like Guard's but declaring nothing, is not recognized. Guard does not interpret GitHub workflow semantics, and KAAL's CI orchestration stays KAAL's (guard/A11).
@@ -67,6 +67,44 @@ This PLAN Change also amends guard/F14, guard/F17 and guard/F18, so K3c and K3d 
 The evidence stays bounded:
 - Each Test Case runs against a `packed` candidate, directly and on Linux, as in K2b. Consumer evidence on macOS and Windows needs K4 or a run by hand.
 - No version is bumped in K3. So `packed` still carries version `0.0.1`, and guard/T37 and guard/T41 still cannot show an asset's content moving between versions. That waits for K5 and K6.
+
+### guard/C23 Configuration contract
+
+The Owner stopped K3a's DO on #336. Two rulings set the frame:
+- **6384007398.** Guard owns its configuration contract and its validation, not the consumer's formatting. It may retract a Requirement, a Test Case or a Defect whose contract was wrong, provided it keeps the evidence.
+- **6384194537.** Guard's configuration tells Guard what to guard. Location and format are reconsidered through BASS, with the `kaal-guard` Skill in view. Lifecycle state is kept apart unless that is justified. The format follows who maintains it.
+
+`guard/C23` is the PLAN Change that does this:
+- guard/I1 states the model.
+- guard/F18 keeps only obligations that hold for every option. Its byte-for-byte wording is superseded, and the old text is kept.
+- guard/D4 is retracted and guard/T44 with it, and their evidence is kept ([Testing](testing.md#defects)).
+- The options are compared in [Architecture](architecture.md#configuration-options-guardc23), against the Owner's criteria, and the configuration is planned there:
+  - `.kaal/config/guard/<name>.md`, Git-tracked, with frontmatter under `core/C5` and a guidance body;
+  - state in two scopes: a tracked installation record, `.kaal/state/guard/installation.json`, kept apart from the package's catalogue of published content; and the checkout state, in the Git metadata of the configuration scope Guard wrote;
+  - an explicit `--config` path, with the fixed convention as the fallback;
+  - strict refusal of undefined members, with diagnostics and a stated extensibility rule.
+- guard/F1, guard/F18, guard/A1, guard/A6 and every Requirement that named `guard.json` are restated, and guard/F28 and guard/F29 are added.
+
+It plans the configuration, and approving it accepts that plan. Implementation waits for `guard/C24` and `guard/C25`. Migration was settled by the Owner (#336, 6384215003): `0.0.2` breaks `0.0.1` deliberately, with no migration, dual format or rollback to `0.0.1`. The compatibility contracts are reassessed accordingly:
+- guard/I5, guard/F15 and guard/F16 are bounded to `0.0.2` and later.
+- guard/F14 no longer reads an unrecorded writer as `0.0.1`.
+- guard/T37–guard/T39 and guard/T41 are superseded and re-planned between candidates ([Testing](testing.md#defects)).
+- `guard/C11`'s constraint that `managed` keep its `0.0.1` shape falls away.
+
+`run.md`, the package README and the Skill text still describe `guard.json`. They change with the code in `guard/C25`.
+
+The K3 map is reconciled:
+- `guard/C8` is withdrawn, and #336 closes unmerged as its record.
+- `guard/C9` and `guard/C11` record lifecycle state, so they are rebuilt on `guard/C25`'s state file. `guard/C11`'s rule that `managed` keep its `0.0.1` shape falls away, because the state leaves the declarations.
+- `guard/C10` changes no state, so it is unaffected.
+
+| Change | Scope | Depends on |
+| --- | --- | --- |
+| **`guard/C23`** PLAN | The planned configuration: guard/I1, guard/F1, guard/F18, guard/A1 and guard/A6 restated; guard/F28 and guard/F29 added; guard/T61–guard/T73 planned; guard/D4 and guard/T44 retracted; and this map. No code and no test file | — |
+| **`guard/C24`** PLAN of the boundary | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T73 written, with the harness building two candidates, and their RED evidence recorded. It travels alone | `guard/C23`, `guard/C22`, `core/C5` |
+| **`guard/C25`** Configuration | `.kaal/config/guard/` in the package: the frontmatter parser and schema, the content catalogue in `contract.json`, the installation record, the scoped checkout state, `--config` and discovery, refusal with diagnostics, and the consumer docs and Skill text. It is kept to what `guard/C24`'s tests need. KAAL's `guard.json` becomes `.kaal/config/guard/` in the same Change | `guard/C24`, `core/C5` |
+
+`guard/C23` is not an interim correction. It is the configuration architecture for `0.0.2`, and nothing about location, format, ownership or discovery is left for a later PLAN Change.
 
 ### Agent guidance
 
@@ -102,43 +140,61 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | --- | --- | --- | --- | --- | --- |
 | — | R1 | Guard | `0.0.1` release workflow | — | #320–#326, merged |
 | — | K1, K2a, K2b | Guard | Consumer upgrade PLAN, its tests and the guard/A12 harness | — | #329, #330, #332, merged; promoted in #333 |
-| `guard/C7` | K3 PLAN | Guard | The Defect map guard/D1–guard/D4 and the amendments of guard/F14, guard/F17 and guard/F18 | — | #334, open |
-| `guard/C8` | K3a | Guard | guard/D4 (guard/T44): Guard writes only its own entries of `guard.json` | `guard/C7` | not created |
-| `guard/C9` | K3b | Guard | guard/D1 (guard/T38): `upgrade` installs a missing, unrecorded asset | `guard/C8` | not created |
-| `guard/C10` | K3c | Guard | guard/D3 (guard/T43): adoption by the declared integration contract | `guard/C8` | not created |
-| `guard/C11` | K3d | Guard | guard/D2 (guard/T39): per-asset writer provenance | `guard/C8` | not created |
-| `guard/C12` | B1 | Guard | This PLAN: guard/I7, guard/F19–guard/F27, guard/N1, guard/N10–guard/N12, guard/A13–guard/A17, guard/T45–guard/T59. No code and no test file | — | #335, open |
+| `guard/C7` | K3 PLAN | Guard | The Defect map guard/D1–guard/D4 and the amendments of guard/F14, guard/F17 and guard/F18 | — | #334, merged |
+| `guard/C8` | K3a | Guard | Withdrawn by `guard/C23`: guard/D4 is retracted | `guard/C7` | #336, withdrawn unmerged |
+| `guard/C9` | K3b | Guard | guard/D1 (guard/T38): `upgrade` installs a missing, unrecorded asset | `guard/C25` | not created |
+| `guard/C10` | K3c | Guard | guard/D3 (guard/T43): adoption by the declared integration contract | `guard/C23` | not created |
+| `guard/C11` | K3d | Guard | guard/D2 (guard/T39): writer version in the installation record | `guard/C25` | not created |
+| `guard/C12` | B1 | Guard | This PLAN: guard/I7, guard/F19–guard/F27, guard/N1, guard/N10–guard/N12, guard/A13–guard/A17, guard/T45–guard/T59. No code and no test file | — | #335, merged |
 | `guard/C13` | B2 | Guard | guard/T45–guard/T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | not created |
 | `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; guard/T45, guard/T46, guard/T58 | `guard/C13`, `core/C3` | not created |
 | `guard/C15` | B4 | Guard | The reminder; guard/T47–guard/T49 | `guard/C14` | not created |
-| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T55, guard/T57, guard/T59 | `guard/C14`, `guard/C8`, `guard/C9`, `guard/C11` | not created |
+| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T55, guard/T57, guard/T59 | `guard/C14`, `guard/C25`, `guard/C9`, `guard/C11` | not created |
 | `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; guard/T56 | `guard/C14`; `core/C4` for Core's part | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
-| `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
+| `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes and the fresh `0.0.2` setup | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance: guard/T36–guard/T44 and guard/T55 with `registry` evidence | `guard/C19` | not created |
-| `guard/C21` | — | Guard | Every identifier in Guard's documents written Capability-qualified, as the Owner ruled on #334 and #335 | — | #337, open |
-| `guard/C22` | — | Guard | The titles of the test files inside the acceptance boundary qualified the same way. A PLAN Change of the boundary; it travels alone | `guard/C21` | not created |
+| `guard/C21` | — | Guard | Every identifier in Guard's documents written Capability-qualified, as the Owner ruled on #334 and #335 | — | #337, merged |
+| `guard/C22` | — | Guard | The titles of the test files inside the acceptance boundary qualified the same way. A PLAN Change of the boundary; it travels alone | `guard/C21` | #338, open |
+| `guard/C23` | — | Guard | The `0.0.2` configuration: `.kaal/config/guard/` Markdown declarations, and state in two scopes (a tracked installation record apart from the package's content catalogue, and scoped checkout state in Git's metadata); guard/D4 and guard/T44 retracted; compatibility with `0.0.1` dropped | — | #339, open |
+| `guard/C24` | — | Guard | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T73 written in the boundary. It travels alone | `guard/C23`, `guard/C22`, `core/C5` | not created |
+| `guard/C25` | — | Guard | `.kaal/config/guard/` in the package, and KAAL's own declarations converted | `guard/C24`, `core/C5` | not created |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
-| `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3` | not created |
+| `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | not created |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
 | `engineering/C…` (pending) | A2 | Engineering | KAAL realizes its own Skills through Core (#258) | `core/C4` | not created |
+| `core/C5` | — | Core | PLAN for Deterministic Frontmatter: the KAAL-wide NFR, the Architecture and the outer conformance Test Cases (#337 comment 6383918695) | — | not created |
+| `core/C6` | — | Core | The generic frontmatter schema format and validator in `kaal-core` | `core/C5` | not created |
+| `testing/C3` | — | Testing | Evidence semantics for frontmatter conformance | `core/C5` | not created |
+| `engineering/C…` (pending) | — | Engineering | Applies the frontmatter conformance cases to Capability-owned artifacts, including Guard's declarations in `.kaal/config/guard/` | `core/C6`, `testing/C3`, `guard/C25` | not created |
 
 ```mermaid
 graph LR
-  C7[guard/C7 K3 PLAN] --> C8[guard/C8 guard/D4]
-  C8 --> C9[guard/C9 guard/D1]
-  C8 --> C10[guard/C10 guard/D3]
-  C8 --> C11[guard/C11 guard/D2]
+  C7[guard/C7 K3 PLAN] --> C23[guard/C23 configuration PLAN]
+  C25 --> C9[guard/C9 guard/D1]
+  C23 --> C10[guard/C10 guard/D3]
+  C25 --> C11[guard/C11 guard/D2]
+  C22[guard/C22 test titles] --> C24[guard/C24 boundary]
+  C23 --> C24
+  C24 --> C25[guard/C25 configuration]
+  FM5 --> C24
+  FM5 --> C25
+  C25 --> FE
   C12[guard/C12 B1 PLAN] --> C13[guard/C13 tests]
   C13 --> C14[guard/C14 Skill and contract]
   CP[core/C3 PLAN] --> C14
   C14 --> C15[guard/C15 reminder]
   C14 --> C16[guard/C16 standalone lifecycle]
-  C8 --> C16
+  C25 --> C16
   C9 --> C16
   C11 --> C16
   C14 --> C17[guard/C17 External]
   CP --> CR[core/C4 realization]
+  FM5[core/C5 frontmatter PLAN] --> CR
+  FM5 --> FM6[core/C6 validator]
+  FM5 --> TT[testing/C3]
+  FM6 --> FE[engineering frontmatter]
+  TT --> FE
   CR -.-> C17
   C14 --> EC[engineering conformance]
   CP --> EC
@@ -150,12 +206,13 @@ graph LR
   C11 --> C19
   C15 --> C19
   C16 --> C19
+  C25 --> C19
   C17 --> C19
   EC --> C19
   C19 --> C20[guard/C20 release acceptance]
 ```
 
-A dotted edge is needed only for the Core-enriched part of a Change. Every Change is separately owned and lands in its owner's collector. Nothing beyond `guard/C7` and `guard/C12` is authorized.
+A dotted edge is needed only for the Core-enriched part of a Change. Every Change is separately owned and lands in its owner's collector. Nothing beyond the PLAN Changes the Owner approved is authorized. `guard/C23` is proposed, and #336 (`guard/C8`) stays paused by the Owner.
 
 ## Stopping conditions
 
