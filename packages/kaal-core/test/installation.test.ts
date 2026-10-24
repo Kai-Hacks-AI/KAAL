@@ -69,6 +69,18 @@ describe("kaal-core/agent", () => {
     assert.deepEqual(plan.keep.map((k) => k.path), [path]);
   });
 
+  it("reports a target blocked by a file it must keep, and writes nothing beneath it", () => {
+    const skill = { name: "s", files: { "SKILL.md": Buffer.from("---\nname: s\n---\n\n## Description\n\nD.\n"), "references/a.md": Buffer.from("A\n") } };
+    const theirs = ".agents/skills/s/references";
+    const plan = realize({ skills: [skill], providers: [], record: {}, present: { [theirs]: "b".repeat(64) } });
+    assert.deepEqual(plan.write.map((w) => w.path), [".agents/skills/s/SKILL.md"]);
+    assert.ok(plan.keep.some((k) => k.path === `${theirs}/a.md` && k.reason.includes(theirs)));
+    assert.equal(plan.record[`${theirs}/a.md`], undefined);
+    const pruned = realize({ skills: [skill], providers: [], record: { [theirs]: "b".repeat(64) }, present: { [theirs]: "b".repeat(64) } });
+    assert.deepEqual(pruned.prune, [theirs], "an unmodified file Core deployed is pruned, and no longer blocks");
+    assert.ok(pruned.write.some((w) => w.path === `${theirs}/a.md`));
+  });
+
   it("refuses a Skill name or file path that would place a deployment outside its Skill", () => {
     const files = { "SKILL.md": Buffer.from("---\nname: s\n---\n\n## Description\n\nD.\n") };
     for (const skills of [[{ name: "s", files: { ...files, "AGENTS.md": Buffer.from("x") } }], [{ name: "s", files: { ...files, "docs/CLAUDE.md": Buffer.from("x") } }], [{ name: "../s", files }], [{ name: "s", files: { ...files, "../x.md": Buffer.from("x") } }], [{ name: "s", files }, { name: "s", files }]])

@@ -138,9 +138,28 @@ export function realize({ skills, providers, record, present }: RealizationInput
   const keep: { path: string; reason: string }[] = [];
   const prune: string[] = [];
   const next: Record<string, string> = {};
+  for (const path of Object.keys(record)) {
+    if (wanted.has(path) || !has(present, path)) continue;
+    if (isInstruction(path)) keep.push({ path, reason: "an instruction file, which Core never removes" });
+    else if (present[path] === record[path]) prune.push(path);
+    else {
+      keep.push({ path, reason: "changed since Core deployed it, and no longer needed" });
+      next[path] = record[path];
+    }
+  }
+
+  // A file that stays where a deployment needs a directory, or under a target Core would write as
+  // a file, blocks that target: writing it would need a file Core must keep to be removed.
+  const pruned = new Set(prune);
+  const staying = Object.keys(present).filter((p) => !pruned.has(p));
+  const blocker = (path: string) => staying.find((p) => path.startsWith(`${p}/`) || p.startsWith(`${path}/`));
   for (const [path, bytes] of wanted) {
     const digest = sha256(bytes);
-    if (has(record, path)) {
+    const blocked = blocker(path);
+    if (blocked !== undefined) {
+      keep.push({ path, reason: `${blocked} is in the way` });
+      if (has(record, path)) next[path] = record[path];
+    } else if (has(record, path)) {
       if (has(present, path) && present[path] !== record[path]) {
         keep.push({ path, reason: "changed since Core deployed it" });
         next[path] = record[path];
@@ -153,15 +172,6 @@ export function realize({ skills, providers, record, present }: RealizationInput
     } else {
       write.push({ path, bytes });
       next[path] = digest;
-    }
-  }
-  for (const path of Object.keys(record)) {
-    if (wanted.has(path) || !has(present, path)) continue;
-    if (isInstruction(path)) keep.push({ path, reason: "an instruction file, which Core never removes" });
-    else if (present[path] === record[path]) prune.push(path);
-    else {
-      keep.push({ path, reason: "changed since Core deployed it, and no longer needed" });
-      next[path] = record[path];
     }
   }
   return {
