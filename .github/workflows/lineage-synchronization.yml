@@ -1,10 +1,13 @@
-# Branching: runs the branching checker, engineering/github/lineage.ts, on the result a
+# Branching: runs KAAL's Branching check (guard.json, engineering/github/branching.sh) through
+# kaal-guard, which runs the branching checker, engineering/github/lineage.ts, on the result a
 # pull request proposes. Into the default branch it judges promotion freshness; into any other branch
 # it judges a synchronization (not applicable to an ordinary Change). The verdicts and their guidance
-# live only in the checker and engineering/github/branching.md; this workflow supplies Git data and
-# reports the outcome. Nothing here synchronizes, rebases or merges.
+# live only in the checker and engineering/github/branching.md; this workflow supplies the facts and
+# kaal-guard reports the outcome. Nothing here synchronizes, rebases or merges.
 #
-# pull_request_target runs this workflow, and the checker, as they stand on the default branch.
+# pull_request_target runs this workflow, and the commit it checks out, as they stand on the default
+# branch. The job checks out the default branch, which holds kaal-guard and KAAL's scripts, and
+# kaal-guard takes the checker from its tip (trusted).
 # Branches are read at their current tips when the run starts, never the event's base.sha; the
 # candidate's commits are fetched as Git data only: nothing of the candidate is checked out, built,
 # installed or run.
@@ -32,50 +35,25 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
+      - run: npm ci --ignore-scripts
+
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Judge the proposed result with the default branch's checker
         env:
-          SERVER: ${{ github.server_url }}
-          REPO: ${{ github.repository }}
-          DEFAULT: ${{ github.event.repository.default_branch }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
           HEAD: ${{ github.event.pull_request.head.sha }}
-          AUTO_MERGE: ${{ github.event.pull_request.auto_merge.merge_method }}
-        run: |
-          git init -q lineage && cd lineage
-          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/$DEFAULT:refs/remotes/origin/$DEFAULT" \
-            "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF" "$HEAD"
-          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$RUNNER_TEMP/lineage.ts" || {
-            echo "::error title=Branching::cannot judge: $DEFAULT does not hold engineering/github/lineage.ts"; exit 1; }
-          if [ "$BASE_REF" = "$DEFAULT" ]; then
-            set -- freshness "$DEFAULT" "refs/remotes/origin/$DEFAULT" "$HEAD_REF" "$HEAD"
-          else
-            set -- synchronization "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" "refs/remotes/origin/$BASE_REF" "$HEAD"
-          fi
-          RC=0; node "$RUNNER_TEMP/lineage.ts" "$@" > "$RUNNER_TEMP/verdict" 2>&1 || RC=$?
-          cat "$RUNNER_TEMP/verdict" >> "$GITHUB_STEP_SUMMARY"
-          # 0 pass (a synchronization says whether it is fully current or a valid intermediate step);
-          # 3 this verdict does not apply (an ordinary Change), reported as such; 1 fail; 2 or anything
-          # else cannot judge, which fails closed.
-          case $RC in
-            0) cat "$RUNNER_TEMP/verdict" ;;
-            3) echo "Not applicable: $(cat "$RUNNER_TEMP/verdict")" ;;
-            1) echo "::error title=Branching::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
-            *) echo "::error title=Branching: cannot judge::$(cat "$RUNNER_TEMP/verdict")"; exit 1 ;;
-          esac
-          RC=0; node "$RUNNER_TEMP/lineage.ts" auto-merge "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" \
-            "refs/remotes/origin/$BASE_REF" "$HEAD" "${AUTO_MERGE:-none}" > "$RUNNER_TEMP/method" 2>&1 || RC=$?
-          cat "$RUNNER_TEMP/method" >> "$GITHUB_STEP_SUMMARY"
-          # 0 auto-merge uses the method the flow names; 3 auto-merge is off, reported with that method;
-          # 1 fail; 2 or anything else cannot judge, which fails closed.
-          case $RC in
-            0) cat "$RUNNER_TEMP/method" ;;
-            3) echo "Not applicable: $(cat "$RUNNER_TEMP/method")" ;;
-            1) echo "::error title=Branching: merge method::$(cat "$RUNNER_TEMP/method")"; exit 1 ;;
-            *) echo "::error title=Branching: cannot judge the merge method::$(cat "$RUNNER_TEMP/method")"; exit 1 ;;
-          esac
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          KAAL_AUTO_MERGE: ${{ github.event.pull_request.auto_merge.merge_method }}
+        run: npx --no kaal-guard run --check Branching --github --head "$HEAD" --base "$(git rev-parse HEAD)" --base-ref "$BASE_REF"
