@@ -7,7 +7,7 @@ import { describe, it } from "node:test";
 import { consumer, NAME, verdicts } from "./harness.mjs";
 
 describe("Intent outcome validation", () => {
-  it("T1 [I2, I3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
+  it("guard/T1 [guard/I2, guard/I3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
     c.checks({ same: { command: "node checks/exit.mjs 1 broken", runs: ["local", "ci"] } });
@@ -26,7 +26,7 @@ describe("Intent outcome validation", () => {
     assert.equal(ci.verdict, local.verdict);
   });
 
-  it("T2 [I1]: removing Guard leaves the repository's own tests intact", () => {
+  it("guard/T2 [guard/I1]: removing Guard leaves the repository's own tests intact", () => {
     const c = consumer();
     const before = c.read("test/own.test.mjs");
     assert.equal(c.guard(["init"]).status, 0);
@@ -36,7 +36,7 @@ describe("Intent outcome validation", () => {
     assert.ok(c.exists("checks/exit.mjs") && c.exists("checks/facts.mjs"));
   });
 
-  it("T4 [I5]: the packed package alone installs, operates and removes cleanly, and no other KAAL element appears", () => {
+  it("guard/T4 [guard/I5]: the packed package alone installs, operates and removes cleanly, and no other KAAL element appears", () => {
     const c = consumer();
     const own = c.files();
     const foreign = () => {

@@ -42,8 +42,8 @@ function guard() {
   return JSON.parse(read("guard.json"));
 }
 
-describe("N7 [I4] KAAL's check identities", () => {
-  it("T32 [N7]: every check identity and OS matrix entry on main before migration is still present", () => {
+describe("guard/N7 [guard/I4] KAAL's check identities", () => {
+  it("guard/T32 [guard/N7]: every check identity and OS matrix entry on main before migration is still present", () => {
     for (const [workflow, expected] of Object.entries(FIXTURE.workflows)) {
       const present = lines(readFileSync(join(WORKFLOWS, workflow), "utf8"));
       for (const l of expected) assert.ok(present.includes(l), `${workflow} lost: ${l}`);
@@ -54,7 +54,7 @@ describe("N7 [I4] KAAL's check identities", () => {
 });
 
 describe("KAAL's own checks run through Guard", () => {
-  it("T33 [A11]: KAAL lists its checks in guard.json, its branching checkers trusted and 4 declared as held", () => {
+  it("guard/T33 [guard/A11]: KAAL lists its checks in guard.json, its branching checkers trusted and 4 declared as held", () => {
     const { checks } = guard();
     assert.ok(checks && Object.keys(checks).length > 0);
     const branching = Object.entries(checks).filter(([, c]) => /lineage\.ts/.test(c.command));
@@ -65,11 +65,11 @@ describe("KAAL's own checks run through Guard", () => {
     }
   });
 
-  it("T5 [I4]: the pre-push hook runs the local checks through Guard", () => {
+  it("guard/T5 [guard/I4]: the pre-push hook runs the local checks through Guard", () => {
     assert.match(read(".githooks/pre-push"), /kaal-guard run --local/);
   });
 
-  it("T34 [A11]: every Guard-run job keeps its name and runs its check through Guard", () => {
+  it("guard/T34 [guard/A11]: every Guard-run job keeps its name and runs its check through Guard", () => {
     const { checks } = guard();
     for (const [workflow, key] of JOBS) {
       const text = job(workflow, key);
@@ -79,7 +79,7 @@ describe("KAAL's own checks run through Guard", () => {
     }
   });
 
-  it("T35 [A11]: the Guard job checks that the workflow files name a job for every ci check", () => {
+  it("guard/T35 [guard/A11]: the Guard job checks that the workflow files name a job for every ci check", () => {
     const all = Object.keys(guard().checks);
     assert.ok(all.length > 0);
     const workflows = ["ci.yml", "change-isolation.yml", "promotion-source.yml", "lineage-synchronization.yml", "branching-audit.yml"].map((w) => readFileSync(join(WORKFLOWS, w), "utf8")).join("\n");
