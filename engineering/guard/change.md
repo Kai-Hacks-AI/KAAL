@@ -79,9 +79,9 @@ The Owner stopped K3a's DO on #336. Two rulings set the frame:
 - guard/F18 keeps only obligations that hold for every option. Its byte-for-byte wording is superseded, and the old text is kept.
 - guard/D4 is retracted and guard/T44 with it, and their evidence is kept ([Testing](testing.md#defects)).
 - The options are compared in [Architecture](architecture.md#configuration-options-guardc23), against the Owner's criteria, and the configuration is planned there:
-  - `.kaal-guard/checks/<name>.md`, with typed frontmatter and a guidance body;
-  - `.kaal-guard/state.json`, written only by Guard;
-  - an explicit `--config` path, with an upward search as the fallback;
+  - `.kaal/config/guard/<name>.md`, Git-tracked, with frontmatter under `core/C5` and a guidance body;
+  - state in two scopes: a provenance header in each managed asset, and checkout state in Git's common metadata;
+  - an explicit `--config` path, with the fixed convention as the fallback;
   - strict refusal of undefined members, with diagnostics and a stated extensibility rule.
 - guard/F1, guard/F18, guard/A1, guard/A6 and every Requirement that named `guard.json` are restated, and guard/F28 and guard/F29 are added.
 
@@ -100,9 +100,9 @@ The K3 map is reconciled:
 
 | Change | Scope | Depends on |
 | --- | --- | --- |
-| **`guard/C23`** PLAN | The planned configuration: guard/I1, guard/F1, guard/F18, guard/A1 and guard/A6 restated; guard/F28 and guard/F29 added; guard/T61–guard/T68 planned; guard/D4 and guard/T44 retracted; and this map. No code and no test file | — |
-| **`guard/C24`** PLAN of the boundary | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T68 written, with the harness building two candidates, and their RED evidence recorded. It travels alone | `guard/C23`, `guard/C22` |
-| **`guard/C25`** Configuration | `.kaal-guard/` in the package: the frontmatter parser and schema, the state file, `--config` and discovery, refusal with diagnostics, and the consumer docs and Skill text. It is kept to what `guard/C24`'s tests need. KAAL's `guard.json` becomes `.kaal-guard/checks/` in the same Change | `guard/C24`; `core/C5` for the conformance statement |
+| **`guard/C23`** PLAN | The planned configuration: guard/I1, guard/F1, guard/F18, guard/A1 and guard/A6 restated; guard/F28 and guard/F29 added; guard/T61–guard/T70 planned; guard/D4 and guard/T44 retracted; and this map. No code and no test file | — |
+| **`guard/C24`** PLAN of the boundary | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T70 written, with the harness building two candidates, and their RED evidence recorded. It travels alone | `guard/C23`, `guard/C22`, `core/C5` |
+| **`guard/C25`** Configuration | `.kaal/config/guard/` in the package: the frontmatter parser and schema, provenance headers, the checkout state, `--config` and discovery, refusal with diagnostics, and the consumer docs and Skill text. It is kept to what `guard/C24`'s tests need. KAAL's `guard.json` becomes `.kaal/config/guard/` in the same Change | `guard/C24`, `core/C5` |
 
 `guard/C23` is not an interim correction. It is the configuration architecture for `0.0.2`, and nothing about location, format, ownership or discovery is left for a later PLAN Change.
 
@@ -156,9 +156,9 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C20` | K6 | Guard | Release acceptance: guard/T36–guard/T44 and guard/T55 with `registry` evidence | `guard/C19` | not created |
 | `guard/C21` | — | Guard | Every identifier in Guard's documents written Capability-qualified, as the Owner ruled on #334 and #335 | — | #337, merged |
 | `guard/C22` | — | Guard | The titles of the test files inside the acceptance boundary qualified the same way. A PLAN Change of the boundary; it travels alone | `guard/C21` | #338, open |
-| `guard/C23` | — | Guard | The `0.0.2` configuration: `.kaal-guard/` with Markdown declarations and a separate state file; guard/D4 and guard/T44 retracted; compatibility with `0.0.1` dropped | — | #339, open |
-| `guard/C24` | — | Guard | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T68 written in the boundary. It travels alone | `guard/C23`, `guard/C22` | not created |
-| `guard/C25` | — | Guard | `.kaal-guard/` in the package, and KAAL's own declarations converted | `guard/C24` | not created |
+| `guard/C23` | — | Guard | The `0.0.2` configuration: `.kaal/config/guard/` Markdown declarations, and state in two scopes (provenance headers, checkout state in Git's metadata); guard/D4 and guard/T44 retracted; compatibility with `0.0.1` dropped | — | #339, open |
+| `guard/C24` | — | Guard | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T70 written in the boundary. It travels alone | `guard/C23`, `guard/C22`, `core/C5` | not created |
+| `guard/C25` | — | Guard | `.kaal/config/guard/` in the package, and KAAL's own declarations converted | `guard/C24`, `core/C5` | not created |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
 | `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | not created |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
@@ -166,7 +166,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `core/C5` | — | Core | PLAN for Deterministic Frontmatter: the KAAL-wide NFR, the Architecture and the outer conformance Test Cases (#337 comment 6383918695) | — | not created |
 | `core/C6` | — | Core | The generic frontmatter schema format and validator in `kaal-core` | `core/C5` | not created |
 | `testing/C3` | — | Testing | Evidence semantics for frontmatter conformance | `core/C5` | not created |
-| `engineering/C…` (pending) | — | Engineering | Applies the frontmatter conformance cases to Capability-owned artifacts | `core/C6`, `testing/C3` | not created |
+| `engineering/C…` (pending) | — | Engineering | Applies the frontmatter conformance cases to Capability-owned artifacts, including Guard's declarations in `.kaal/config/guard/` | `core/C6`, `testing/C3`, `guard/C25` | not created |
 
 ```mermaid
 graph LR
@@ -177,7 +177,9 @@ graph LR
   C22[guard/C22 test titles] --> C24[guard/C24 boundary]
   C23 --> C24
   C24 --> C25[guard/C25 configuration]
-  FM5 -.conformance.-> C25
+  FM5 --> C24
+  FM5 --> C25
+  C25 --> FE
   C12[guard/C12 B1 PLAN] --> C13[guard/C13 tests]
   C13 --> C14[guard/C14 Skill and contract]
   CP[core/C3 PLAN] --> C14

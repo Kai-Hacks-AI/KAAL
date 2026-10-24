@@ -4,7 +4,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 
 ## Functional (F)
 
-**guard/F1 Check list.** [guard/I1] A repository declares each check in its own file, `.kaal-guard/checks/<name>.md`. The file's name, without `.md`, is the check's stable name, so it contains no space or colon. The file is Markdown with typed frontmatter, and only the frontmatter is a declaration:
+**guard/F1 Check list.** [guard/I1] A repository declares each check in its own Git-tracked file, `.kaal/config/guard/<name>.md`. `.kaal/` is a namespace, not a runtime dependency on Core. The file's name, without `.md`, is the check's stable name, so it contains no space or colon. The file is Markdown with typed frontmatter, and only the frontmatter is a declaration:
 - `command`, the check's command;
 - `runs`, where it runs: `local`, `ci` or both;
 - optionally, the facts it needs (`facts`), a trusted checker file (`trusted`, guard/F7) and named outcomes for further exit statuses (`outcomes`, guard/F2).
@@ -22,13 +22,13 @@ outcomes: {4: held}
 Checks that a pull request lands on the lineage its base allows. When it is held, wait for the promotion it names.
 ```
 
-The frontmatter is a strict subset of YAML that Guard defines and parses itself, with no dependency:
+The file follows Core's deterministic-frontmatter contract (`core/C5`): typed values only, a schema per artifact kind, undefined members refused, and no meaning taken from the body. Guard's schema for this kind is the members above. Guard parses the frontmatter itself, with no dependency, as a strict subset of YAML:
 - `key: value` lines;
 - plain or double-quoted strings, and integers;
 - flow lists such as `[a, b]`;
 - for `outcomes`, a flow map such as `{4: held}`.
 
-Anything else is refused (guard/F18). The subset conforms to Core's generic frontmatter rule (`core/C5`) without depending on it at runtime, as `contract.json` conforms to Core's Installation Contract.
+Anything else is refused (guard/F18). Guard conforms to `core/C5` without depending on Core at runtime, as `contract.json` conforms to Core's Installation Contract. KAAL Engineering checks that conformance with Core's validator (`core/C6`).
 
 **guard/F2 Verdicts.** [guard/I2] A check's exit status is its verdict: `0` pass, `1` fail, `2` cannot judge, `3` not applicable. Any other status is cannot judge, unless the check declares a named outcome for it. The only named outcome is `held`: shown as held, never as a pass and never as a fail. A check owns its diagnostics: its own output goes, unchanged and as it runs, to the hook's terminal or the CI log, and Guard neither captures nor interprets it. Guard prints each verdict by its own name, one line per check, as `<verdict>: <check>: <evidence>`, where the evidence is the check's exit status (with the trusted checker's provenance, guard/F7), and never collapses one verdict into another. A fail or cannot-judge line is followed by an indented `do: <next step>` line (guard/N4).
 
@@ -50,9 +50,9 @@ Anything else is refused (guard/F18). The subset conforms to Core's generic fron
 
 **guard/F8 Safe lifecycle.** [guard/I5, guard/I6]
 - The package provides `init`, `upgrade` and `remove`.
-- Guard writes a file only where none exists. It records each file it writes, with its SHA-256, in its state under `managed` (guard/F29).
+- Guard writes a file only where none exists. It marks each file it writes with a provenance header (guard/F29).
 - `upgrade` replaces only managed files that are unmodified.
-- `remove` deletes only managed files that are unmodified, and unsets `core.hooksPath` only if Guard set it and recorded that.
+- `remove` deletes only managed files that are unmodified, and unsets `core.hooksPath` only if Guard set it and recorded that in its checkout state (guard/F29).
 - A pre-existing hook, workflow or `core.hooksPath` is never overwritten. Guard reports it and prints the one line to add.
 - A modified managed file is left in place and reported.
 - An External delivery follows the same rule for the target's existing files.
@@ -70,13 +70,13 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 - A check the configuration does not declare is cannot judge.
 - A `ci` check that no workflow job declares fails Guard's consistency check, `kaal-guard verify`, which runs in CI as the job `Guard`. `verify` checks only Guard's own integration contract: a check is declared when a workflow job invokes it in Guard's declared form ([Run](run.md#verify)), read deterministically from the workflow files; Guard infers nothing from scripts or other YAML. Declared integration is all `verify` claims. That GitHub ran the check is CI execution evidence, and that GitHub requires it is repository governance.
 
-**guard/F11 Package code update.** [guard/I5] Changing the installed version, through the consumer's dependency and lockfile, changes Guard's code and nothing in the repository. It rewrites no managed asset, nothing in `.kaal-guard/` and none of the consumer's checks.
+**guard/F11 Package code update.** [guard/I5] Changing the installed version, through the consumer's dependency and lockfile, changes Guard's code and nothing in the repository. It rewrites no managed asset, nothing in `.kaal/config/guard/` and none of the consumer's checks.
 
 **guard/F12 Asset upgrade.** [guard/I5] `upgrade` moves each unmodified managed asset to the installed version's content. It keeps each modified asset and every file Guard did not write, and it never changes a check's declaration (guard/F1). It reports each file as upgraded, current or kept.
 
-**guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have and Guard's state does not record, is installed by `upgrade` under `init`'s rule (only where no file exists) and recorded under `managed`.
+**guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have, is installed by `upgrade` under `init`'s rule (only where no file exists), with its provenance header.
 
-**guard/F14 Writer version.** [guard/I5] Guard's state records, for each managed asset, the Guard version whose content last wrote it or confirmed it unchanged, whichever installer did so. `upgrade` reports, for each asset, the version it moves it from and to. A modified asset keeps the version that last wrote it, so assets of different versions can coexist.
+**guard/F14 Writer version.** [guard/I5] Each managed asset's provenance header names the Guard version whose content last wrote it or confirmed it unchanged, whichever installer did so. `upgrade` reports, for each asset, the version it moves it from and to. A modified asset keeps the version that last wrote it, so assets of different versions can coexist.
 
 **guard/F15 Older configuration.** [guard/I5] A configuration written by an earlier published version is read by a later one with the same meaning, or refused as cannot judge with a reason and a next step. It is never silently reinterpreted. `0.0.1`'s root `guard.json` is refused, and the next step it names is the fresh `0.0.2` setup.
 
@@ -89,8 +89,8 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
   - **Why.** A misspelled or unsupported member would otherwise drop a protection silently. A `trustd` that is ignored, for instance, takes the checker from the candidate, against guard/F7 and guard/F10.
   - **Extensibility.** The schema is the installed version's. A new member arrives only with a Guard version that defines it, and an older Guard refuses it because it cannot honour it. A repository's own notes belong in the body, which Guard never reads.
 - A refused configuration is cannot judge. The diagnostic names the file, the member, the rule it breaks, and the nearest member the schema defines when one is close, as in `trustd: not defined; did you mean trusted?`. The next step is to correct the declaration, or to install the Guard version that defines the member. No command writes anything on the strength of a refused configuration, and `run` gives no other verdict.
-- Guard never writes a declaration. `init` creates `.kaal-guard/checks/` only where it is missing, and it writes no check. It reports how to declare the first check.
-- `init` followed by `remove` leaves every declaration as the repository wrote it, byte for byte. That holds by construction, because Guard writes only its state and its managed assets.
+- Guard never writes a declaration. `init` creates `.kaal/config/guard/` only where it is missing, and it writes no check. It reports how to declare the first check.
+- `init` followed by `remove` leaves every declaration as the repository wrote it, byte for byte. That holds by construction, because Guard writes only its managed assets and its checkout state.
 
 The earlier wording is superseded by `guard/C23`. It read: "Guard writes only its own entries of `guard.json`: `managed`, `config` and `writers` … Every other byte stays as the consumer wrote it, and `init` followed by `remove` leaves `guard.json` as it was" (`guard/C7`). It assumed that the consumer owned the serialization of a file that mixes declarations with Guard's bookkeeping. The editor that wording required (#336) showed the assumption to be wrong.
 
@@ -124,29 +124,37 @@ Which way a given supplier uses is observed, not asserted (guard/N9).
 
 **guard/F27 Installation contract.** [guard/I5, guard/I6, guard/I7] Guard ships one installer-neutral installation contract, `contract.json` in the package. It states what an installation of Guard is:
 - each asset (the hook, the workflow and the Skill): its source in the package, its path in the repository, and its rules (installed only where absent, kept when modified, removed only when unmodified, with the directories that removal empties);
-- the ownership record: Guard's state, `.kaal-guard/state.json` (`managed`, `config` and `writers`), and nothing else;
+- the ownership record: each managed asset's provenance header and Guard's checkout state (guard/F29), and nothing else;
 - the runtime prerequisite, Node 24 or later;
 - the provider requirement: an agent resolving a failing verdict reaches the Skill named `kaal-guard`. The canonical deployment and the reminder meet it, and the contract names no other supplier location.
 
 The contract is an instance of Core's Installation Contract: Core owns that Definition, its schema and its outer conformance Test Cases (`core/T1`…, defined in `core/C3`). Guard owns its instance, versioned with the package, and the implementation that realizes it. Guard's standalone lifecycle realizes exactly this instance. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse. Conformance is verified at engineering time (guard/N12), so the package gains no dependency.
 
-**guard/F28 Configuration discovery.** [guard/I2, guard/I3, guard/I5] The configuration is the directory `.kaal-guard/`.
-- `kaal-guard` takes it from `--config <dir>` when that is given. Otherwise it searches upwards from the working directory for the nearest `.kaal-guard/`, as `0.0.1` searched for `guard.json`.
-- The hook and the workflow Guard writes pass `--config` explicitly, so a reader sees where the configuration lives.
-- A consumer's own workflow may omit `--config`. KAAL's `kaal-guard run --check <name>` keeps working unchanged.
-- A `.kaal-guard/` found in neither way is cannot judge, naming `kaal-guard init` as the next step.
-- Embed and External use the same rule, and the rule names no KAAL element.
+**guard/F28 Configuration discovery.** [guard/I2, guard/I3, guard/I5] The configuration is the directory `.kaal/config/guard/`, holding the declarations.
+- `kaal-guard` takes the directory from `--config <dir>` when that is given. Otherwise it resolves the fixed convention, `.kaal/config/guard/` at the repository's top level (`git rev-parse --show-toplevel`), from any working directory.
+- The hook and the workflow Guard writes pass `--config` explicitly, so a reader sees where the configuration lives. A consumer's own workflow may omit it, so KAAL's `kaal-guard run --check <name>` keeps working unchanged.
+- The effective declarations are the `.md` files directly in that directory, in name order. The hook and CI therefore resolve the same declarations for the same tree.
+- A directory found in neither way is cannot judge, naming `kaal-guard init` as the next step.
+- Embed and External use the same rule. `.kaal/` is a namespace, and resolving it needs no KAAL element.
 
-**guard/F29 Lifecycle state.** [guard/I5] Guard's bookkeeping lives in `.kaal-guard/state.json`, a JSON file that only Guard's lifecycle writes. Its members are `managed` (each managed path and its SHA-256), `writers` (each managed path and the version guard/F14 names) and `config` (the `core.hooksPath` Guard set).
-- It is apart from the declarations, so recording an asset never touches a check.
-- `remove` deletes it with the last managed asset, and deletes `.kaal-guard/` only when nothing else is left in it.
-- When Core manages the installation, Core's installation record (`core/C3`) holds the same members.
+**guard/F29 Lifecycle state.** [guard/I5] Guard's bookkeeping has two scopes. Each lives where its lifecycle lives, and neither lives in the declarations.
+- **Repository scope: the provenance of managed assets.** It must travel with the committed hook, workflow and Skill files, because another clone cannot rely on the original checkout. So each managed asset carries it in a header written in the asset's own comment syntax: `# kaal-guard <version> sha256:<hash>` in the hook and the workflow, and `<!-- kaal-guard <version> sha256:<hash> -->` after the frontmatter in a Markdown asset. The hash covers the asset without its header.
+  - A matching hash means the asset is unmodified. A different hash means modified.
+  - A file at a managed path with no header is not Guard's, and it is left alone (guard/F8, guard/F13).
+  - The header is written, moved forward and removed together with its asset, so no separate record can fall out of step with the files.
+  - Core writes the same header when it installs from Guard's contract (guard/F27).
+- **Checkout scope: Guard's setup of this checkout.** That is whether Guard set `core.hooksPath`, and to what. It is never tracked. It lives in Git's own metadata, at `kaal/guard/state.json` under the directory `git rev-parse --git-common-dir` names. It is JSON that only the lifecycle writes.
+  - It sits in the common directory because `core.hooksPath` is set in the repository's shared configuration, which every worktree reads. `git rev-parse --git-path` resolves a per-worktree path for `kaal/…`, which a linked worktree's `remove` would not see (observed with Git 2.43).
+  - A fresh clone has no checkout state, so its `remove` deletes unmodified managed assets by their headers and leaves a `core.hooksPath` that Guard did not set in that checkout.
+  - `remove` deletes the checkout state.
+
+When Core manages the installation, Core's installation record (`core/C3`) holds the same facts.
 
 ## Nonfunctional (N)
 
 - **guard/N1** [guard/I4, guard/I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node 24 or later from `0.0.2`. Raising the floor from Node 20 is a breaking consumer prerequisite: it is stated in the package's README and in the release's notes, and an older Node is refused with that next step.
 - **guard/N2** [guard/I2] Deterministic: no network, no clock dependence and no polling of GitHub.
-- **guard/N3** [guard/I5] No state beyond the repository and `core.hooksPath`.
+- **guard/N3** [guard/I5] No state beyond the repository, `core.hooksPath` and Guard's checkout state in Git's metadata (guard/F29).
 - **guard/N4** [guard/I2, guard/I5] Every fail or cannot-judge verdict says what to do next.
 - **guard/N5** [guard/I6] An External delivery is a handful of readable files that the target can maintain on its own, with no KAAL element in them.
 - **guard/N6** [guard/I5] The Embed package depends on no other KAAL element, of any kind, and is published to npm as `@kaihacksai/kaal-guard`, under the Owner's npm scope, first as `@kaihacksai/kaal-guard@0.0.1`. Its command is `kaal-guard`. It is published only with the Owner's authorization.
