@@ -9,8 +9,8 @@ import { CONFIG, consumer, NAME, verdicts } from "./harness.mjs";
 describe("Intent outcome validation", () => {
   it("guard/T1 [guard/I2, guard/I3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
     const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
-    c.checks({ same: { command: "node checks/exit.mjs 1 broken", runs: ["local", "ci"] } });
+    assert.equal(c.guard(["init", "--hook"]).status, 0);
+    c.checks({ same: { command: "node checks/exit.mjs 1 broken", runs: ["hook", "ci"] } });
     const base = c.commit("guard");
     c.write("change.txt", "x\n");
     const head = c.commit("change");
@@ -48,9 +48,9 @@ describe("Intent outcome validation", () => {
       return [...modules, ...paths];
     };
 
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--hook"]).status, 0);
     assert.deepEqual(foreign(), []);
-    c.checks({ unit: { command: "node --test test/", runs: ["local", "ci"] } });
+    c.checks({ unit: { command: "node --test test/", runs: ["hook", "ci"] } });
     c.commit("guard");
 
     c.write("more.txt", "x\n");
@@ -58,7 +58,7 @@ describe("Intent outcome validation", () => {
     c.commit("more");
     const push = c.git("push", "origin", "main");
     assert.equal(push.status, 0, push.output);
-    assert.equal(verdicts(push.output).unit?.verdict, "pass", "the hook did not run the local check");
+    assert.equal(verdicts(push.output).unit?.verdict, "pass", "the hook did not run the hook check");
     assert.equal(c.guard(["run", "--ci"]).status, 0);
     assert.equal(c.guard(["upgrade"]).status, 0);
     assert.deepEqual(foreign(), []);
