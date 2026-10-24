@@ -144,6 +144,20 @@ describe("guard/F7 [guard/I1, guard/I2] trusted checker", () => {
     const r = c.guard(["run", "--check", "judge", "--head", head, "--base", base, "--base-ref", "main"]);
     assert.equal(verdicts(r.output).judge?.verdict, "fail");
   });
+
+  it("guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict", () => {
+    const windows = process.platform === "win32";
+    const c = consumer();
+    c.write("checks/judge.sh", "#!/bin/sh\nexit 0\n");
+    c.checks({ judge: { command: windows ? "sh checks/judge.sh" : "./checks/judge.sh", runs: ["ci"], facts: ["base"], trusted: "checks/judge.sh" } });
+    if (!windows) chmodSync(join(c.dir, "checks/judge.sh"), 0o755);
+    c.git("add", "checks/judge.sh");
+    c.git("update-index", "--chmod=+x", "checks/judge.sh");
+    const base = c.commit("an executable checker");
+    assert.match(c.git("ls-files", "-s", "checks/judge.sh").stdout, /^100755 /, "the fixture does not record the checker as executable");
+    const r = c.guard(["run", "--check", "judge", "--head", base, "--base", base, "--base-ref", "main"]);
+    assert.equal(verdicts(r.output).judge?.verdict, "pass", r.output);
+  });
 });
 
 describe("guard/F8 [guard/I5, guard/I6] safe lifecycle", () => {
