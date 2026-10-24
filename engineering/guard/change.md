@@ -44,18 +44,31 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 
 ### Agent guidance
 
-I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1.
+I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1. It depends on a new Core responsibility, Agent Realization, which the Core owner plans and Guard conforms to (N12).
 
-| Change | Carries | Scope | Depends on |
-| --- | --- | --- | --- |
-| **B1** PLAN | I7 | I7, F19–F26, N10–N11, A13–A16 and the planned tests T45–T56. No code and no test file. | — |
-| **B2** Tests | I7 | T45–T56, as a PLAN Change inside the acceptance boundary, with their expected RED recorded. | B1 |
-| **B3** Skill | I7 | The Embed Skill source at `skills/kaal-guard/` and its packaging. T45 and T46 turn GREEN. | B2 |
-| **B4** Reminder | I7 | The reminder line, the annotations and the summary. T47–T49 turn GREEN. | B3 |
-| **B5** Placement | I5, I7 | The lifecycle installs, upgrades and removes the Skill. T50–T54 turn GREEN, and T55 with a `packed` candidate. | B3, K3a, K3b |
-| **B6** External | I6, I7 | The External Skill variant at the canonical location, and the optional pointer in `GUARD.md`. T56, and T46 for the variant, turn GREEN. | B2 |
+**Dependency decision.** Guard needs Core's provider-placement capability. Three ways were compared:
 
-Publication of `0.0.2` stays K5's, with the Owner's authorization, and its acceptance stays K6's, which then includes T55 with `registry` evidence. KAAL itself stays an executor (A11). Its hook and CI remind with the package's copy of the Skill, and no Skill is installed into KAAL unless the Owner decides otherwise.
+| Option | What it means | Effect on Guard's contracts |
+| --- | --- | --- |
+| a | Engineering uses Core at engineering time, and Guard's outputs stay self-contained | none for External; Embed would need its own placement rules, duplicating Core's |
+| b | Guard depends on `kaal-core` at run time | breaks I5 and N6, raises Node from 20 to 24, and needs `kaal-core`, `kaal-graph` and `kaal-hosting` published first; External unaffected |
+| c | Guard conforms: Embed carries Core's placement table as checked data, and External uses Core at delivery time | none: I5, N6, Node 20 and External independence hold |
+
+The choice is c, with the Core owner's agreement. Publishing `kaal-core` stays a separate Owner decision.
+
+| Change | Owner | Carries | Scope | Depends on |
+| --- | --- | --- | --- | --- |
+| **A0** PLAN | Core | — | Agent Realization: a Definition beside `KAAL Agent`, the declaration of a repository's providers, the placement table and the pointer rules, with its planned tests | — |
+| **A1** Realization | Core | — | The Definition, a pure mechanism that returns a plan (Hosting writes), and the table. It travels alone | A0 |
+| **A2** KAAL applies it | Engineering (#258) | I4 | KAAL realizes its own Skills, Guard's among them, through Core | A1 |
+| **B1** PLAN | Guard | I7 | I7, F19–F26, N10–N12, A13–A16, T45–T58. No code and no test file | — |
+| **B2** Tests | Guard | I7 | T45–T58, as a PLAN Change inside the acceptance boundary | B1, A0 |
+| **B3** Skill | Guard | I7 | The Skill source and its packaging; T45, T46 | B2 |
+| **B4** Reminder | Guard | I7 | T47–T49 | B3 |
+| **B5** Placement | Guard | I5, I7 | The lifecycle deploys from Core's table; T50–T55, T57, T58 | B3, A1, K3a, K3b |
+| **B6** External | Guard | I6, I7 | Rendering with Core at delivery; T56, T46 for the variant | B2, A1 |
+
+Publication of `0.0.2` stays K5's, with the Owner's authorization, and its acceptance stays K6's, which then includes T55 with `registry` evidence. KAAL stays a Guard executor (A11): it receives Guard's Skill through Core's realization (A2), not through Guard's lifecycle.
 
 C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alone (Change Isolation): C3c's jobs need the command C3a installs and the checks C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in C4c, which travels alone, and T35 turns GREEN there. C4 lands as four Changes for the same reasons: `verify` (C4a) comes before the job that runs it (C4c), the lifecycle (C4b) is the largest piece and is reviewed on its own, and the docs (C4d) describe what C4a and C4b ship.
 
