@@ -6,7 +6,8 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "kaal-hosting";
-import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, sha256 } from "kaal-graph";
+import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, readFrontmatter, sha256 } from "kaal-graph";
+import * as form from "kaal-graph/form";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILL = join(PACKAGE, "skills", "kaal-graph");
@@ -141,6 +142,30 @@ describe("the Form", () => {
       const r = identify(Buffer.from(`---\nname: R\ntype:\n  name: ${T.name}\n  id: ${T.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${JSON.stringify(name)}\n        id: ${"a".repeat(64)}\n---\n`));
       assert.deepEqual(edgesOf(r), { edges: [], problems: ["edges[0].targets[0] has no valid name"] });
     }
+  });
+});
+
+describe("reading frontmatter", () => {
+  it("reads the frontmatter of any file in Form, a Node or not, and never the body", () => {
+    const one = readFrontmatter(Buffer.from("---\ntype: Sample/Record\nchange: core/C5\ngated: true\nfiles: [a.md]\n---\n\n# One\n"));
+    const two = readFrontmatter(Buffer.from("---\ntype: Sample/Record\nchange: core/C5\ngated: true\nfiles: [a.md]\n---\n\nanything: else\n"));
+    assert.deepEqual(one, { type: "Sample/Record", change: "core/C5", gated: true, files: ["a.md"] });
+    assert.deepEqual(two, one);
+    assert.ok(Object.isFrozen(one) && Object.isFrozen(one.files));
+  });
+
+  it("refuses what the Form refuses, with a FormError", () => {
+    for (const bad of ["# no frontmatter\n", "---\na: 1\n", "---\r\na: 1\r\n---\r\n", "---\n- a\n---\n", "---\na: &x 1\nb: *x\n---\n", "---\na: !!binary aGk=\n---\n", "---\na: 1\na: 2\n---\n"]) {
+      assert.throws(() => readFrontmatter(Buffer.from(bad)), (e) => e instanceof FormError && /^not in Form/.test(e.message), bad);
+    }
+    assert.throws(() => readFrontmatter(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff])), (e) => e instanceof FormError && /^not UTF-8/.test(e.message));
+  });
+
+  it("is offered alone as kaal-graph/form, which imports no host module", () => {
+    assert.equal(form.readFrontmatter, readFrontmatter);
+    assert.equal(form.FormError, FormError);
+    const source = readFileSync(join(SKILL, "scripts", "form.mjs"), "utf8");
+    assert.deepEqual([...source.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s+["']([^"']+)["']/g)].map((m) => m[1] ?? m[2] ?? m[3]), ["yaml"]);
   });
 });
 
