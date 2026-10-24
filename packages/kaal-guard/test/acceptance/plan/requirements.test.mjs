@@ -368,6 +368,23 @@ describe("guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract", () =
       writeFileSync(at, JSON.stringify({ ...JSON.parse(readFileSync(at, "utf8")), extra: 1 }));
     }), "state.json", "extra");
   });
+
+  it('guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {"4": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {"4": held}', () => {
+    const c = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook", "ci"], outcomes: { 4: "held" } } });
+    assert.match(c.read(`${CONFIG}/h.md`), /^outcomes: \{"4": held\}$/m, "the declaration does not quote the status key");
+    for (const args of [["run", "--hook"], ["run", "--check", "h"]]) {
+      const r = c.guard(args);
+      assert.equal(verdicts(r.output).h?.verdict, "held", `${args.join(" ")}:\n${r.output}`);
+    }
+
+    const file = `${CONFIG}/judge.md`;
+    const unquoted = broken((b) => b.write(file, b.read(file).replace(/^runs: .*$/m, (line) => `${line}\noutcomes: {4: held}`)));
+    refuses(unquoted, file, "outcomes");
+    for (const args of [["run", "--hook"], ["verify"]]) {
+      const r = unquoted.guard(args);
+      assert.ok(r.output.includes('{"4": held}'), `${args.join(" ")} does not name the quoted form:\n${r.output}`);
+    }
+  });
 });
 
 describe("guard/F28 [guard/I2, guard/I3, guard/I5] configuration discovery", () => {

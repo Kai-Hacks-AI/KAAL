@@ -1,5 +1,5 @@
 // Guard outer acceptance, Engineering part: KAAL as Guard's first consumer. Intent validation T5 [I4],
-// Requirements verification T32 [N7] and Architecture conformance T33–T35 [A11]. Planned in PLAN; DO and CHECK do
+// Requirements verification T32 [N7] and Architecture conformance T33–T35 and T80 [A11]. Planned in PLAN; DO and CHECK do
 // not change it.
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -84,6 +84,21 @@ describe("KAAL's own checks run through Guard", () => {
     for (const [name, c] of branching) {
       assert.match(c.trusted ?? "", /engineering\/github\/lineage\.ts$/, `${name} is not run from the target ref`);
       assert.equal(c.outcomes?.["4"], "held", `${name} does not declare 4 as held`);
+    }
+  });
+
+  it("guard/T80 [guard/F1, guard/A11]: every key in the frontmatter of KAAL's declarations is a string: each outcomes status is double-quoted", () => {
+    const dir = join(REPO, ".kaal", "config", "guard");
+    const files = readdirSync(dir).filter((f) => f.endsWith(".md"));
+    assert.ok(files.length > 0, "KAAL declares no check");
+    for (const f of files) {
+      const front = /^---\n([\s\S]*?)\n---\n/.exec(read(`.kaal/config/guard/${f}`).replace(/\r\n/g, "\n"));
+      assert.ok(front, `${f} has no frontmatter`);
+      for (const line of front[1].split("\n").filter((l) => /^outcomes:/.test(l))) {
+        const keys = [...line.slice(line.indexOf("{") + 1, line.lastIndexOf("}")).matchAll(/(?:^|,)\s*("[^"]*"|[^:,]+?)\s*:/g)].map((m) => m[1]);
+        assert.ok(keys.length > 0, `${f}: outcomes names no status`);
+        for (const k of keys) assert.match(k, /^"\d+"$/, `${f}: outcomes key ${k} is not a double-quoted exit status`);
+      }
     }
   });
 
