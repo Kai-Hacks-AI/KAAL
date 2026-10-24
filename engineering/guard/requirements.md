@@ -7,7 +7,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 **guard/F1 Check list.** [guard/I1] A repository declares each check in its own Git-tracked file, `.kaal/config/guard/<name>.md`. `.kaal/` is a namespace, not a runtime dependency on Core. The file's name, without `.md`, is the check's stable name, so it contains no space or colon. The file is Markdown with typed frontmatter, and only the frontmatter is a declaration:
 - `type`, the declaration's Type, always `Guard/Check`: Guard's own Business Language name, which selects its schema (`core/F6`; added in `guard/C30`);
 - `command`, the check's command;
-- `runs`, where it runs: `local`, `ci` or both;
+- `runs`, where it runs: `hook`, `ci` or both (restated from `local` in `guard/C35`; `local` is refused, naming `hook`);
 - optionally, the facts it needs (`facts`), a trusted checker file (`trusted`, guard/F7) and named outcomes for further exit statuses (`outcomes`, guard/F2).
 
 The body is free Markdown for people and agents: what the check proves, and how to resolve its failures. The Skill points a resolver to it (guard/I7). Guard never reads the body to run a check, to give a verdict or to order checks.
@@ -36,7 +36,7 @@ Anything else is refused (guard/F18). Guard conforms to `core/C5` without depend
 
 **guard/F3 One runner.** [guard/I2, guard/I3] The same runner and the same list serve both the hook and CI.
 
-**guard/F4 Local hook.** [guard/I2, guard/I3] `pre-push` runs the `local` checks. Fail and cannot judge block the push. `--no-verify` skips the hook once, and the hook says that CI decides.
+**guard/F4 Hook.** [guard/I2, guard/I3] `pre-push` runs the `hook` checks, as `kaal-guard run --hook`. Fail and cannot judge block the push. `--no-verify` skips the hook once, and the hook says that CI decides.
 
 **guard/F5 CI gate.** [guard/I2, guard/I3] Each `ci` check runs in a named CI job that the repository can make required.
 - Fail and cannot judge fail the job.
@@ -55,7 +55,7 @@ Anything else is refused (guard/F18). Guard conforms to `core/C5` without depend
 - Guard writes a file only where none exists. It writes each file byte for byte as a content the package catalogues, changes nothing in it, and registers it in the repository's installation record (guard/F29).
 - `upgrade` replaces only managed files that are unmodified.
 - `remove` deletes only managed files that are unmodified, and unsets `core.hooksPath` only if Guard set it and recorded that in its checkout state (guard/F29).
-- `init` installs the hook. It installs Guard's workflow only when the consumer opts in with `init --ci` (guard/F17).
+- `init` activates nothing; `init --hook` and `init --ci` activate one surface each, and `remove` undoes them (guard/F30).
 - A pre-existing hook, workflow or `core.hooksPath` is never overwritten. Guard reports it and prints the one line to add.
 - A modified managed file is left in place and reported.
 - An External delivery follows the same rule for the target's existing files.
@@ -77,7 +77,7 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 **guard/F12 Asset upgrade.** [guard/I5] `upgrade` moves each unmodified managed asset to the installed version's content. It keeps each modified asset and every file Guard did not write, and it never changes a check's declaration (guard/F1). It reports each file as upgraded, current or kept.
 
-**guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have, is installed by `upgrade` under `init`'s rule (only where no file exists). Guard's workflow is the exception: only `init --ci` installs it (guard/F17). `upgrade` moves it while the installation record registers it, and never installs it.
+**guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have, is installed by `upgrade` under `init`'s rule (only where no file exists). It does so only for a surface the record shows activated (guard/F30): `upgrade` never activates a surface, so it never installs the hook or Guard's workflow where the consumer has not activated them.
 
 **guard/F14 Writer version.** [guard/I5] The installation record registers, for each managed asset, the Guard version that wrote it or confirmed it unchanged, and the SHA-256 that version installed (guard/F29). `upgrade` reports, for each asset, the version it moves it from and to. A modified asset no longer matches its registered hash, so it is reported as modified and kept with its registered version, and assets of different versions can coexist.
 
@@ -86,7 +86,7 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 **guard/F16 Rollback.** [guard/I5] From `0.0.2` on, installing an earlier published version and running `upgrade` returns each unmodified managed asset to that version's content, and moving forward again works the same way. Modified and consumer-owned files are untouched both ways. Rollback to `0.0.1` is not supported.
 
 **guard/F17 Existing integration.** [guard/I1, guard/I5] Adoption is not upgrade, and Guard never takes over CI (Owner, #352). The consumer owns its Test Cases, their commands, its CI workflows and the assignment of each check's execution. A declaration's `runs: [ci]` states the check's intended scope, not who executes it. Guard recognizes integration only through its own declared integration contract, read exactly as `verify` reads it ([Run](run.md#verify)): a job declares a `ci` check with a step that runs `kaal-guard run --check <name>` in the declared form, declares every `ci` check with a step that runs `kaal-guard run --ci` in the declared form, and declares the consistency check with a step whose whole `run:` value is `kaal-guard verify`, `npx kaal-guard verify` or `npx --no kaal-guard verify`, optionally followed by `--config <dir>` (guard/F28) and then `--github`. Guard reads nothing else in a workflow: not job names, triggers, other matrices or scripts.
-- `init` installs no workflow unless the consumer opts in with `init --ci`. Guard's workflow is one fixed, catalogued content (guard/F29): the `Guard` job, which runs `verify`, and one job that runs `kaal-guard run --ci`. Opting in is the consumer's one decision to hand every `ci` check to that job, so no check is registered a second time.
+- `init` installs no workflow unless the consumer activates CI with `init --ci` (guard/F30). Guard's workflow is one fixed, catalogued content (guard/F29): the `Guard` job, which runs `verify`, and one job that runs `kaal-guard run --ci`. Opting in is the consumer's one decision to hand every `ci` check to that job, so no check is registered a second time.
 - `init --ci` installs it only where no file is at its path and no workflow of the repository declares a check or the consistency check. Otherwise it installs nothing for CI and reports what it found, because Guard's workflow would run those checks a second time.
 - Without the opt-in, `init` reports each `ci` check that no job declares as missing coverage, with the step to add to a job of the consumer's own workflow and `init --ci` as the alternative. `verify` fails on it with the same next step (guard/F10). Guard never fills the gap itself: it generates, lists or infers no job for an undeclared check.
 - `init` reports each recognized declaration as `executed by Guard, not managed: <check> in job <key> of <file>`, and records nothing for it. Guard never takes ownership of a file it did not write and never changes a workflow of the consumer's. A consumer that wants Guard's workflow in place of its own removes its own file, runs `init --ci`, and undoes that through Git.
@@ -146,7 +146,7 @@ The contract is an instance of Core's Installation Contract: Core owns that Defi
 - Embed and External use the same rule. `.kaal/` is a namespace, and resolving it needs no KAAL element.
 
 **guard/F29 Lifecycle state.** [guard/I5] Guard's bookkeeping has two scopes. Each lives where its lifecycle lives, and neither lives in the declarations or in a managed asset.
-- **Repository scope: what this repository installed.** A tracked JSON file, `.kaal/state/guard/installation.json`, which only Guard's lifecycle writes. It sits apart from the consumer's declarations in `.kaal/config/guard/` and from every managed asset. For each asset Guard installed, it registers the path, the SHA-256 and the version that wrote it. It travels with every clone, because it is committed with the assets it describes.
+- **Repository scope: what this repository installed.** A tracked JSON file, `.kaal/state/guard/installation.json`, which only Guard's lifecycle writes. It sits apart from the consumer's declarations in `.kaal/config/guard/` and from every managed asset. It holds the surfaces the consumer activated (`activated`, guard/F30) and, for each asset Guard installed, the path, the SHA-256 and the version that wrote it. It travels with every clone, because it is committed with the assets it describes.
   - An asset is Guard's in this repository only when the record registers it. It is unmodified only while its content's hash equals the registered one.
   - A file at a managed path that the record does not register is not Guard's, even when its bytes equal a published content, and it is left alone and reported. Matching published bytes alone proves neither who installed a file nor who authorized it.
   - A registered asset that is missing, or whose hash differs, is reported. Neither is silently re-registered.
@@ -161,6 +161,15 @@ The contract is an instance of Core's Installation Contract: Core owns that Defi
   - `remove` deletes the state it used.
 
 When Core manages the installation, Core's installation record (`core/C3`) holds the same facts.
+
+**guard/F30 Initialization, activation and execution.** [guard/I1, guard/I3, guard/I5] Three concerns stay apart (Owner, #355, 6386981735): initialization prepares Guard, registration declares what it may execute, and activation decides where it executes. The consumer, or an agent installing Guard on its behalf, makes every activation choice; neither activation implies the other, and a check registered for one surface is never promoted to the other.
+- **Registration.** A declaration's `runs` names the surfaces a check is registered for: `hook`, `ci` or both (guard/F1). The hook and CI may register different sets. The word is `hook`, not `local`, because it names the surface that executes the check: a check can run on a developer's machine through `run --check` or `run --ci` too, so `local` would not say which.
+- **Initialization.** `kaal-guard init` creates `.kaal/config/guard/` where it is missing and the installation record (guard/F29), and activates nothing: no hook, no `core.hooksPath`, no workflow. From `guard/C16` on it also installs the canonical Skill (guard/F23), which runs nothing.
+- **Activation.** `init --hook` initializes as needed, installs Guard's hook and sets `core.hooksPath` under guard/F29's rule; in a checkout where the hook is already Guard's registered one, it only sets `core.hooksPath`. `init --ci` initializes as needed and installs Guard's workflow under guard/F17's rule. `init --hook --ci` does both. The record lists each surface activated through Guard. Each form is idempotent: run again, it writes nothing that is already in place, and it never overwrites a consumer's file.
+- **Execution.** `kaal-guard run --hook` runs the checks registered for the hook, `run --ci` those registered for CI, and `run --check <name>` exactly one, for reproduction and for consumer-owned CI jobs that assign checks one by one. A consumer may run CI entirely through `run --check` steps of its own; `run --ci` is the form of Guard's workflow, never a compulsory delegation.
+- **Undo.** `kaal-guard remove --hook` deactivates the hook: it deletes Guard's hook if unmodified, unsets `core.hooksPath` only as guard/F29 allows, and drops `hook` and the hook's registration from the record. `remove --ci` deletes Guard's workflow if unmodified and drops `ci` and its registration. `remove` alone deactivates both, then deletes the record, the checkout state and the configuration directory if it is empty. No form deletes or changes a declaration, a check's Test Case or a file the record does not register; a modified asset is kept, reported, and from then on the consumer's.
+- **Upgrade.** `upgrade` moves registered, unmodified assets, and installs an asset a newer version adds only to a surface the record shows activated (guard/F13). It never activates a surface.
+- **Reports.** `init` says, for each surface not activated, how to activate it or integrate it by hand: the line for a hook of the consumer's own, and for each `ci` check no job runs, the step to add or `init --ci` (guard/F17).
 
 ## Nonfunctional (N)
 
