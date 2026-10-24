@@ -50,7 +50,7 @@ Anything else is refused (guard/F18). Guard conforms to `core/C5` without depend
 
 **guard/F8 Safe lifecycle.** [guard/I5, guard/I6]
 - The package provides `init`, `upgrade` and `remove`.
-- Guard writes a file only where none exists. It writes each file byte for byte as a content the package catalogues, and changes nothing in it (guard/F29).
+- Guard writes a file only where none exists. It writes each file byte for byte as a content the package catalogues, changes nothing in it, and registers it in the repository's installation record (guard/F29).
 - `upgrade` replaces only managed files that are unmodified.
 - `remove` deletes only managed files that are unmodified, and unsets `core.hooksPath` only if Guard set it and recorded that in its checkout state (guard/F29).
 - A pre-existing hook, workflow or `core.hooksPath` is never overwritten. Guard reports it and prints the one line to add.
@@ -76,7 +76,7 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 **guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have, is installed by `upgrade` under `init`'s rule (only where no file exists).
 
-**guard/F14 Writer version.** [guard/I5] For each managed asset, Guard reports the published version whose content the asset carries, read from the package's catalogue (guard/F29). `upgrade` reports, for each asset, the version it moves it from and to. A modified asset matches no catalogued content, so it is reported as modified and kept, and assets of different versions can coexist.
+**guard/F14 Writer version.** [guard/I5] The installation record registers, for each managed asset, the Guard version that wrote it or confirmed it unchanged, and the SHA-256 that version installed (guard/F29). `upgrade` reports, for each asset, the version it moves it from and to. A modified asset no longer matches its registered hash, so it is reported as modified and kept with its registered version, and assets of different versions can coexist.
 
 **guard/F15 Older configuration.** [guard/I5] A configuration written by an earlier published version is read by a later one with the same meaning, or refused as cannot judge with a reason and a next step. It is never silently reinterpreted. `0.0.1`'s root `guard.json` is refused, and the next step it names is the fresh `0.0.2` setup.
 
@@ -124,7 +124,8 @@ Which way a given supplier uses is observed, not asserted (guard/N9).
 
 **guard/F27 Installation contract.** [guard/I5, guard/I6, guard/I7] Guard ships one installer-neutral installation contract, `contract.json` in the package. It states what an installation of Guard is:
 - each asset (the hook, the workflow and the Skill): its source in the package, its path in the repository, and its rules (installed only where absent, kept when modified, removed only when unmodified, with the directories that removal empties);
-- the ownership record: the catalogue of every content each asset has had in a published version, and Guard's checkout state (guard/F29), and nothing else;
+- the catalogue of every content each asset path has had in a published version, which is knowledge about Guard, not about any repository;
+- the ownership record: the repository's installation record and Guard's checkout state (guard/F29), and nothing else;
 - the runtime prerequisite, Node 24 or later;
 - the provider requirement: an agent resolving a failing verdict reaches the Skill named `kaal-guard`. The canonical deployment and the reminder meet it, and the contract names no other supplier location.
 
@@ -138,13 +139,13 @@ The contract is an instance of Core's Installation Contract: Core owns that Defi
 - Embed and External use the same rule. `.kaal/` is a namespace, and resolving it needs no KAAL element.
 
 **guard/F29 Lifecycle state.** [guard/I5] Guard's bookkeeping has two scopes. Each lives where its lifecycle lives, and neither lives in the declarations or in a managed asset.
-- **Repository scope: which files are Guard's.** Guard identifies a managed asset by its content, not by a mark in it. The package's installation contract (guard/F27) catalogues, for each asset path, the SHA-256 of the content every published version from `0.0.2` on installs there.
-  - A file whose hash is in its path's catalogue is Guard's, unmodified, and carries that version's content.
-  - Any other file at that path, whether modified or never Guard's, is left alone and reported.
-  - A missing path is installed (guard/F13).
-  - So the provenance travels with every clone, because the package carries it. No asset is altered: the hook keeps its shebang as its first line and its executable mode, the workflow stays plain YAML, and `SKILL.md` begins with its required frontmatter, as the Agent Skills standard requires.
-  - A file that is byte-identical to a catalogued content at a Guard path counts as Guard's. That is the stated limit.
-  - Core reads the same catalogue when it installs from Guard's contract.
+- **Repository scope: what this repository installed.** A tracked JSON file, `.kaal/state/guard/installation.json`, which only Guard's lifecycle writes. It sits apart from the consumer's declarations in `.kaal/config/guard/` and from every managed asset. For each asset Guard installed, it registers the path, the SHA-256 and the version that wrote it. It travels with every clone, because it is committed with the assets it describes.
+  - An asset is Guard's in this repository only when the record registers it. It is unmodified only while its content's hash equals the registered one.
+  - A file at a managed path that the record does not register is not Guard's, even when its bytes equal a published content, and it is left alone and reported. Matching published bytes alone proves neither who installed a file nor who authorized it.
+  - A registered asset that is missing, or whose hash differs, is reported. Neither is silently re-registered.
+  - The package's **catalogue** in `contract.json` (guard/F27) is separate. It lists the SHA-256 of every content each asset path has had in a published version from `0.0.2` on. `init` and `upgrade` write only catalogued content, and `upgrade` reads the catalogue to know which registered version an unmodified asset holds.
+  - No mark is written into any asset. The hook keeps its shebang as its first line and its executable mode, the workflow stays plain YAML, and `SKILL.md` begins with its required frontmatter, as the Agent Skills standard requires.
+  - When Core manages the installation, Core's installation record (`core/C3`) takes this role, holding the same facts.
 - **Checkout scope: Guard's setup of the hook path.** That is whether Guard set `core.hooksPath`, in which Git configuration scope, and to what. It is never tracked. It is JSON that only the lifecycle writes, and it is kept in the Git metadata of the scope Guard wrote, with every path resolved through `git rev-parse`, never by assuming `.git` is a directory:
   - Without `extensions.worktreeConfig`, Guard sets `core.hooksPath` in the repository's shared configuration (`git config --local`), which every worktree reads. The state goes to `$(git rev-parse --git-common-dir)/kaal/guard/state.json`, where every worktree finds it.
   - With `extensions.worktreeConfig`, Guard sets it for the current worktree only (`git config --worktree`). The state goes to `$(git rev-parse --git-path kaal/guard/state.json)`, which Git resolves into that worktree's own metadata.
@@ -158,7 +159,7 @@ When Core manages the installation, Core's installation record (`core/C3`) holds
 
 - **guard/N1** [guard/I4, guard/I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node 24 or later from `0.0.2`. Raising the floor from Node 20 is a breaking consumer prerequisite: it is stated in the package's README and in the release's notes, and an older Node is refused with that next step.
 - **guard/N2** [guard/I2] Deterministic: no network, no clock dependence and no polling of GitHub.
-- **guard/N3** [guard/I5] No state beyond the repository, `core.hooksPath` and Guard's checkout state in Git's metadata (guard/F29).
+- **guard/N3** [guard/I5] No state beyond the repository (its installation record included), `core.hooksPath` and Guard's checkout state in Git's metadata (guard/F29).
 - **guard/N4** [guard/I2, guard/I5] Every fail or cannot-judge verdict says what to do next.
 - **guard/N5** [guard/I6] An External delivery is a handful of readable files that the target can maintain on its own, with no KAAL element in them.
 - **guard/N6** [guard/I5] The Embed package depends on no other KAAL element, of any kind, and is published to npm as `@kaihacksai/kaal-guard`, under the Owner's npm scope, first as `@kaihacksai/kaal-guard@0.0.1`. Its command is `kaal-guard`. It is published only with the Owner's authorization.
