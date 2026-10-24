@@ -96,6 +96,46 @@ describe("lifecycle", () => {
     assert.match(upgrade(dir).lines.join("\n"), /guard\.yml is current/);
   });
 
+  it("edits only its own entries of an existing guard.json, so init then remove leaves it byte for byte", () => {
+    const texts = {
+      pretty: '{\n    "$schema": "./guard.schema.json",\n    "checks": {\n        "a": { "command": "x", "runs": ["ci"] }\n    },\n    "note": "keep"\n}\n',
+      compact: '{"checks":{"a":{"command":"x","runs":["ci"]}},"z":1}',
+      crlf: '{\r\n  "checks": {},\r\n  "z": [1, 2]\r\n}\r\n',
+    };
+    for (const [name, text] of Object.entries(texts)) {
+      const dir = tree();
+      writeFileSync(join(dir, "guard.json"), text);
+      init(dir);
+      const written = readFileSync(join(dir, "guard.json"), "utf8");
+      assert.ok(written.startsWith(text.slice(0, text.lastIndexOf("}")).trimEnd()), `${name}: init keeps every byte before its own entries`);
+      assert.deepEqual(Object.keys(guard(dir).managed).sort(), [".githooks/pre-push", ".github/workflows/guard.yml"], name);
+      remove(dir);
+      assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), text, `${name}: remove restores it byte for byte`);
+    }
+  });
+
+  it("writes guard.json not at all when its own entries are unchanged", () => {
+    const dir = tree({ a: { command: "x", runs: ["ci"] } });
+    init(dir);
+    const text = '{ "checks":   { "a": { "command": "x", "runs": ["ci"] } }, "managed": ' + JSON.stringify(guard(dir).managed) + ', "config": {"core.hooksPath": ".githooks"} }';
+    writeFileSync(join(dir, "guard.json"), text);
+    upgrade(dir);
+    assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), text);
+  });
+
+  it("replaces the value of its own entry in place and keeps the rest", () => {
+    const dir = tree({});
+    init(dir);
+    const before = readFileSync(join(dir, "guard.json"), "utf8");
+    const edited = before.replace('"checks":{}', '"checks": { "a": { "command": "x", "runs": ["ci"] } }');
+    assert.notEqual(edited, before);
+    writeFileSync(join(dir, "guard.json"), edited);
+    upgrade(dir);
+    const after = readFileSync(join(dir, "guard.json"), "utf8");
+    assert.ok(after.startsWith(edited.slice(0, edited.indexOf('"managed"'))));
+    assert.notEqual(guard(dir).managed[".github/workflows/guard.yml"], JSON.parse(edited).managed[".github/workflows/guard.yml"]);
+  });
+
   it("names guard.json when it cannot be read", () => {
     const dir = tree();
     writeFileSync(join(dir, "guard.json"), "{");
