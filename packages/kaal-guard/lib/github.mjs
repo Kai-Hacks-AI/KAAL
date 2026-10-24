@@ -35,11 +35,16 @@ export function summarize(results, file) {
  * `  <key>:` lines indented two spaces directly under a top-level `jobs:` line. A job declares a check
  * with a step whose whole `run:` value, on that one line, is `kaal-guard run`, `npx kaal-guard run` or
  * `npx --no kaal-guard run` with `--check <name>`. `--check ${{ matrix.check }}` declares each check
- * the job lists on a line of its own as `- { check: <name>, … }`. Names are plain words. Nothing else
- * declares anything: verify infers nothing from scripts or other YAML.
+ * the job lists on a line of its own as `- { check: <name>, … }`; with the matrix line
+ * `check: ${{ fromJSON(needs.<key>.outputs.checks) }}`, where job <key> of the same workflow has a step
+ * whose whole `run:` value runs `kaal-guard list --undeclared`, it declares every ci check that no job
+ * declares by name. Names are plain words. Nothing else declares anything: verify infers nothing from
+ * scripts or other YAML.
  */
 const INVOCATION = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run(?: \S+)*? --check (\$\{\{ matrix\.check \}\}|[^\s"'{}$,#]+)(?: |$)/;
 const ENTRY = /^- \{ ?check: ([^\s"'{}$,#]+) ?[,}]/;
+const MATRIX = /^check: \$\{\{ fromJSON\(needs\.([A-Za-z_][A-Za-z0-9_-]*)\.outputs\.checks\) \}\}$/;
+const LIST = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard list --undeclared(?: [^\s"'{}$#;&|<>]+)*$/;
 
 /** Each job under `jobs:`, as its key and its trimmed lines, without blank or comment lines. */
 function jobs(text) {
@@ -58,20 +63,27 @@ function jobs(text) {
 /** The consistency check's declared form: a step whose whole `run:` value runs kaal-guard verify. */
 const VERIFY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard verify(?: --github)?$/;
 
-/** The checks one job declares in Guard's declared form. */
-function declared(job) {
+/** What one job declares in Guard's declared form: the checks it names, and whether it runs the undeclared rest. */
+function declared(job, all) {
   const names = new Set();
+  let rest = false;
   for (const line of job.lines) {
     const name = INVOCATION.exec(line)?.[1];
-    if (name === "${{ matrix.check }}") for (const entry of job.lines) ENTRY.test(entry) && names.add(ENTRY.exec(entry)[1]);
-    else if (name) names.add(name);
+    if (name !== "${{ matrix.check }}") {
+      if (name) names.add(name);
+      continue;
+    }
+    for (const entry of job.lines) ENTRY.test(entry) && names.add(ENTRY.exec(entry)[1]);
+    const from = job.lines.map((l) => MATRIX.exec(l)?.[1]).find(Boolean);
+    if (from && all.some((j) => j.key === from && j.lines.some((l) => LIST.test(l)))) rest = true;
   }
-  return names;
+  return { names, rest };
 }
 
 /**
  * Every declaration in Guard's declared form in .github/workflows, in file and job order: { name, job,
- * file } for a check, and { name: "verify", verify: true, job, file } for the consistency check. The
+ * file } for a check named, { name: "verify", verify: true, job, file } for the consistency check, and
+ * { name: "undeclared", rest: true, job, file } for a job that runs every check no job names. The
  * lifecycle reads these to recognize a repository's existing integration (F17); nothing else does.
  */
 export function declarations(root) {
@@ -79,13 +91,27 @@ export function declarations(root) {
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
   const found = [];
   for (const file of files) {
-    for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
+    const all = jobs(readFileSync(join(dir, file), "utf8"));
+    for (const job of all) {
       const at = { job: job.key, file: `.github/workflows/${file}` };
-      for (const name of declared(job)) found.push({ name, ...at });
+      const { names, rest } = declared(job, all);
+      for (const name of names) found.push({ name, ...at });
+      if (rest) found.push({ name: "undeclared", rest: true, ...at });
       if (job.lines.some((line) => VERIFY.test(line))) found.push({ name: "verify", verify: true, ...at });
     }
   }
   return found;
+}
+
+/** The ci checks that no job declares by name, in declaration order: what `kaal-guard list --undeclared` prints. */
+export function undeclared(list, found) {
+  const named = new Set(found.filter((d) => !d.verify && !d.rest).map((d) => d.name));
+  return Object.keys(list.checks).filter((name) => list.checks[name].runs.includes("ci") && !named.has(name));
+}
+
+/** Writes `checks=<JSON list>` to the step's outputs file, for a matrix to read. */
+export function output(names, file) {
+  if (file) appendFileSync(file, `checks=${JSON.stringify(names)}\n`);
 }
 
 /**
@@ -94,8 +120,11 @@ export function declarations(root) {
  * it is repository governance; verify establishes neither. Returns { results }, one per ci check.
  */
 export function verify(root, list) {
+  const found = declarations(root);
   const where = new Map();
-  for (const d of declarations(root)) if (!d.verify && !where.has(d.name)) where.set(d.name, `job ${d.job} in ${d.file}`);
+  for (const d of found) if (!d.verify && !d.rest && !where.has(d.name)) where.set(d.name, `job ${d.job} in ${d.file}`);
+  const rest = found.find((d) => d.rest);
+  if (rest) for (const name of undeclared(list, found)) where.set(name, `job ${rest.job} in ${rest.file}, which runs each check kaal-guard list --undeclared names`);
   const ci = Object.keys(list.checks).filter((name) => list.checks[name].runs.includes("ci"));
   return {
     results: ci.map((name) =>

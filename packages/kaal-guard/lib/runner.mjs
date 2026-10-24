@@ -1,61 +1,19 @@
-// The runner: runs a set of the repository's checks and reads their verdicts. It knows the check list
-// (guard.json) and the facts it is given, and nothing of branches, remotes, pull requests, hosting
+// The runner: runs a set of the repository's checks and reads their verdicts. It knows the declared
+// checks (config.mjs) and the facts it is given, and nothing of branches, remotes, pull requests, hosting
 // platforms or the adapters that call it. It reads Git objects only to take a trusted checker's files
 // from the base revision (trusted.mjs).
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join } from "node:path";
 import { plan, words } from "./command.mjs";
-import { materialize, redirect, safePath } from "./trusted.mjs";
+import { FACTS } from "./config.mjs";
+import { materialize, redirect } from "./trusted.mjs";
+
+export { FACTS };
 
 /** The verdict of each exit status; any other status is cannot judge unless a check names it. */
 const VERDICTS = { 0: "pass", 1: "fail", 2: "cannot judge", 3: "not applicable" };
-
-/** The only named outcome a check may declare for a further exit status. */
-const NAMED = new Set(["held"]);
-
-/** The facts an adapter may supply: the name a check declares, its option and its variable. */
-export const FACTS = {
-  head: { option: "--head", variable: "GUARD_HEAD" },
-  base: { option: "--base", variable: "GUARD_BASE" },
-  "base-ref": { option: "--base-ref", variable: "GUARD_BASE_REF" },
-  changed: { option: "--changed", variable: "GUARD_CHANGED" },
-};
-
-/** The nearest directory, from `start` upwards, that holds guard.json: the repository root. */
-export function findRoot(start) {
-  for (let dir = resolve(start); ; dir = dirname(dir)) {
-    if (existsSync(join(dir, "guard.json"))) return dir;
-    if (dirname(dir) === dir) return undefined;
-  }
-}
-
-/** Reads and checks guard.json. Returns { list } or { problem }. */
-export function readList(root) {
-  let list;
-  try {
-    list = JSON.parse(readFileSync(join(root, "guard.json"), "utf8"));
-  } catch (e) {
-    return { problem: `guard.json cannot be read: ${e.message}` };
-  }
-  if (!list || typeof list !== "object" || !list.checks || typeof list.checks !== "object" || Array.isArray(list.checks)) {
-    return { problem: "guard.json has no checks object" };
-  }
-  for (const [name, check] of Object.entries(list.checks)) {
-    if (!/^[^:\s]+$/.test(name)) return { problem: `guard.json names a check "${name}"; a name has no spaces or colons` };
-    if (!check || typeof check.command !== "string" || !words(check.command)?.length) return { problem: `${name} has no command, or its quotes are not closed` };
-    if (!Array.isArray(check.runs) || !check.runs.every((r) => r === "local" || r === "ci")) return { problem: `${name}: runs must list local, ci or both` };
-    if (check.facts !== undefined && !(Array.isArray(check.facts) && check.facts.every((f) => f in FACTS))) {
-      return { problem: `${name}: facts may name only ${Object.keys(FACTS).join(", ")}` };
-    }
-    if (check.trusted !== undefined && !safePath(check.trusted)) return { problem: `${name}: trusted must name a file or directory inside the repository` };
-    for (const [status, outcome] of Object.entries(check.outcomes ?? {})) {
-      if (!/^\d+$/.test(status) || status in VERDICTS || !NAMED.has(outcome)) return { problem: `${name}: outcomes may only name a further exit status held` };
-    }
-  }
-  return { list };
-}
 
 /** The names of the checks a selection asks for: { local }, { ci } or { check: name }. */
 export function select(list, selection) {
@@ -73,7 +31,7 @@ const result = (name, verdict, evidence, todo) => ({ name, verdict, evidence, ..
  */
 export function runCheck(root, list, name, facts) {
   const check = list.checks[name];
-  if (!check) return result(name, "cannot judge", "not in guard.json", `add ${name} to guard.json, or name a check it lists`);
+  if (!check) return result(name, "cannot judge", "not declared", `declare ${name} as ${name}.md in the configuration directory, or name a declared check`);
   for (const fact of check.facts ?? []) {
     if (facts[fact] === undefined) return result(name, "cannot judge", `the fact ${fact} was not supplied`, `supply ${FACTS[fact].option}`);
   }
@@ -109,10 +67,8 @@ export function runCheck(root, list, name, facts) {
   }
 }
 
-/** Runs the selected checks in order. Returns { results } or { problem } when guard.json cannot be used. */
-export function run(root, selection, facts) {
-  const { list, problem } = readList(root);
-  if (problem) return { problem };
+/** Runs the selected checks of the declared list in order. Returns { results }. */
+export function run(root, list, selection, facts) {
   return { results: select(list, selection).map((name) => runCheck(root, list, name, facts)) };
 }
 
