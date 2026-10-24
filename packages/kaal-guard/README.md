@@ -11,11 +11,12 @@ npm install --save-dev @kaihacksai/kaal-guard
 npx kaal-guard init
 ```
 
-`init` writes only what is missing and reports in three parts:
+`init` writes only what is missing and reports in up to four parts:
 
 - **installed by Guard:** `.githooks/pre-push`, `.github/workflows/guard.yml`, `guard.json` if there was none, and `core.hooksPath` set to `.githooks`.
 - **left untouched:** any of these the repository already had.
 - **still to do in this repository:** the line to add for each of those.
+- **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`). Guard's workflow then carries jobs only for what remains, and none when nothing does.
 
 `init` sets `core.hooksPath` only when all three of these hold:
 
