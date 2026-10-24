@@ -120,7 +120,7 @@ The PLAN conflicted with that in two places, and `guard/C25`'s DO had followed i
 
 `guard/C35` restates guard/F8, guard/F10, guard/F13 and guard/F17 and the declared forms in [Run](run.md#verify): Guard's workflow is one fixed, catalogued content the consumer opts into with `init --ci`, never installed beside a workflow that already declares a check, and never by `upgrade`; without the opt-in, missing coverage is reported with the step to add. `guard/C36` corrects the planned tests ([Testing](testing.md#planned-outer-tests)). `guard/C25` then drops `list --undeclared` and the dynamic matrix, and keeps its GREEN configuration work.
 
-**Published-`0.0.1` consumer evidence.** guard/T36 and guard/T42 install the published `0.0.1` in a KAAL clone, which now declares its checks in `.kaal/config/guard/`, so they fail there by design. They do not gate `guard/C25`. `guard/C37` moves their published spec to `0.0.2` inside the boundary, before `guard/C20`, which they gate.
+**Published-`0.0.1` consumer evidence (Owner, #352, 6386915109).** guard/T36 and guard/T42 install the published `0.0.1` in a KAAL clone. `guard/C25` converts KAAL to `.kaal/config/guard/`, which `0.0.1`'s root `guard.json` assumption cannot read, so they fail there. That is a version-specific fixture mismatch, not evidence against their obligations. Their failures are kept as explicit transitional evidence and are never counted GREEN, and `guard/C25` does not change them. `guard/C37`, a separate PLAN Change of the acceptance boundary, revises their consumer setup for the `0.0.2` configuration without weakening an assertion. `guard/C20` then proves both against the published `0.0.2` from the registry.
 
 The lane is a bounded transition with planned removal (`guard/C32`–`guard/C34`), agreed on #344 (6385044079, 6385265377). It is not the KAAL-wide model for controlled RED on `kaal/*`, which belongs to another workstream.
 
@@ -165,7 +165,7 @@ Accepting the first published `0.0.2` must not wait on a version that does not e
 
 | Test Case | Needs | `0.0.2` Release acceptance (`guard/C20`) |
 | --- | --- | --- |
-| guard/T36, guard/T42 | the published `0.0.2` in a KAAL clone; their published spec moves from `0.0.1` to `0.0.2` in `guard/C37`, a boundary Change before `guard/C20`. Until then they fail by design on the published `0.0.1`, without gating | gates |
+| guard/T36, guard/T42 | the published `0.0.2` in a KAAL clone; their consumer setup is revised for the `0.0.2` configuration in `guard/C37`, a PLAN Change of the boundary before `guard/C20`. Until then their failures on the published `0.0.1` are kept as transitional evidence, never counted GREEN, and gate nothing | gates |
 | guard/T40 | `0.0.1` and the published `0.0.2`: `0.0.1`'s `guard.json` is refused with the fresh setup as the next step | gates |
 | guard/T43 | the published `0.0.2` on KAAL | gates |
 | guard/T64 | the published `0.0.2` | gates |
@@ -211,7 +211,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C34` | — | Guard | The Guard lane and its scripts deleted | `guard/C32` | not created |
 | `guard/C35` | — | Guard | CI responsibility: guard/F8, guard/F10, guard/F13 and guard/F17 restated so that Guard's workflow is an explicit `init --ci` opt-in and missing coverage is reported, not filled; guard/T74 and guard/T75 planned. No code and no test file | `guard/C23` | not created |
 | `guard/C36` | — | Guard | guard/C35's correction of the planned tests in each boundary directory's `plan/`, and guard/T74 and guard/T75 written. It travels alone | `guard/C35`, `guard/C24` | not created |
-| `guard/C37` | — | Guard | guard/T36 and guard/T42's published spec moved from `0.0.1` to `0.0.2`. Boundary only; it travels alone | `guard/C19` | not created |
+| `guard/C37` | — | Guard | PLAN of the boundary: guard/T36 and guard/T42's consumer setup revised for the `0.0.2` configuration (`.kaal/config/guard/`), their assertions unchanged and their transitional failures recorded. It travels alone, and `guard/C20` proves both with the published `0.0.2` | `guard/C25` | not created |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
 | `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | not created |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
@@ -274,7 +274,7 @@ graph LR
   C25 --> C19
   C17 --> C19
   EC --> C19
-  C19 --> C37[guard/C37 published spec 0.0.2]
+  C25 --> C37[guard/C37 T36 and T42 setup]
   C37 --> C20[guard/C20 release acceptance]
   C19 --> C20
 ```
