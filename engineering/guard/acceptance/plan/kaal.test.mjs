@@ -45,7 +45,7 @@ function value(text) {
   if (/^-?\d+$/.test(t)) return Number(t);
   const items = (inner) => (inner.trim() ? inner.split(",").map((x) => x.trim()) : []);
   if (t.startsWith("[") && t.endsWith("]")) return items(t.slice(1, -1)).map(value);
-  if (t.startsWith("{") && t.endsWith("}")) return Object.fromEntries(items(t.slice(1, -1)).map((kv) => kv.split(/:\s*/).map((x) => x.trim())));
+  if (t.startsWith("{") && t.endsWith("}")) return Object.fromEntries(items(t.slice(1, -1)).map((kv) => kv.split(/:\s*/).map((x) => x.trim())).map(([k, v]) => [k.startsWith('"') ? JSON.parse(k) : k, v]));
   return t;
 }
 
