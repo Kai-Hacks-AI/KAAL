@@ -96,6 +96,97 @@ describe("lifecycle", () => {
     assert.match(upgrade(dir).lines.join("\n"), /guard\.yml is current/);
   });
 
+  it("edits only its own entries of an existing guard.json, so init then remove leaves it byte for byte", () => {
+    const texts = {
+      pretty: '{\n    "$schema": "./guard.schema.json",\n    "checks": {\n        "a": { "command": "x", "runs": ["ci"] }\n    },\n    "note": "keep"\n}\n',
+      compact: '{"checks":{"a":{"command":"x","runs":["ci"]}},"z":1}',
+      crlf: '{\r\n  "checks": {},\r\n  "z": [1, 2]\r\n}\r\n',
+    };
+    for (const [name, text] of Object.entries(texts)) {
+      const dir = tree();
+      writeFileSync(join(dir, "guard.json"), text);
+      init(dir);
+      const written = readFileSync(join(dir, "guard.json"), "utf8");
+      assert.ok(written.startsWith(text.slice(0, text.lastIndexOf("}")).trimEnd()), `${name}: init keeps every byte before its own entries`);
+      assert.deepEqual(Object.keys(guard(dir).managed).sort(), [".githooks/pre-push", ".github/workflows/guard.yml"], name);
+      remove(dir);
+      assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), text, `${name}: remove restores it byte for byte`);
+    }
+  });
+
+  it("deletes and replaces its own entries wherever they sit, alone or adjacent, in either order, keeping every other byte", () => {
+    const consumer = ['"$schema": "s"', '"checks": {}', '"z": [1, 2]'];
+    const guardOwn = { managed: '"managed": {}', config: '"config": {}' };
+    const layouts = {
+      "both first": ["managed", "config", 0, 1, 2],
+      "both first, swapped": ["config", "managed", 0, 1, 2],
+      "both in the middle": [0, "managed", "config", 1, 2],
+      "both in the middle, swapped": [0, "config", "managed", 1, 2],
+      "both last": [0, 1, 2, "managed", "config"],
+      "both last, swapped": [0, 1, 2, "config", "managed"],
+      "apart": ["managed", 0, 1, "config", 2],
+      "apart, swapped": [0, "config", 1, 2, "managed"],
+      "only Guard's": ["managed", "config"],
+    };
+    const render = (parts, pretty) => {
+      if (!parts.length) return "{}\n";
+      return pretty ? `{\n  ${parts.join(",\n  ")}\n}\n` : `{${parts.map((p) => p.replace(": ", ":")).join(",")}}`;
+    };
+    for (const [name, layout] of Object.entries(layouts)) {
+      for (const pretty of [true, false]) {
+        const parts = layout.map((p) => (typeof p === "number" ? consumer[p] : guardOwn[p]));
+        const without = layout.filter((p) => typeof p === "number").map((p) => consumer[p]);
+        const dir = tree();
+        writeFileSync(join(dir, "guard.json"), render(parts, pretty));
+        init(dir);
+        const between = guard(dir);
+        assert.equal(Object.keys(between.managed).length, 2, `${name}: init replaced managed in place`);
+        assert.deepEqual(between.config, { "core.hooksPath": ".githooks" }, `${name}: init replaced config in place`);
+        remove(dir);
+        const after = readFileSync(join(dir, "guard.json"), "utf8");
+        assert.doesNotThrow(() => JSON.parse(after), `${name}, ${pretty ? "pretty" : "compact"}: the result parses`);
+        const expected = !without.length && !pretty ? "{}" : render(without, pretty);
+        assert.equal(after, expected, `${name}, ${pretty ? "pretty" : "compact"}: only Guard's entries went`);
+      }
+    }
+  });
+
+  it("round-trips an empty object and an empty compact object, and writes nothing on a no-op", () => {
+    for (const text of ["{}\n", "{}", "{ }"]) {
+      const dir = tree();
+      writeFileSync(join(dir, "guard.json"), text);
+      init(dir);
+      const written = readFileSync(join(dir, "guard.json"), "utf8");
+      assert.match(written, /^\{\n {2}"managed": \{\n {4}"/, `${JSON.stringify(text)}: an empty object takes Guard's new-file format`);
+      assert.match(upgrade(dir).lines.join("\n"), /is current/);
+      assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), written, "an upgrade with nothing to change writes nothing");
+      remove(dir);
+      assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), text.trim() === "{ }" ? "{}" : text);
+    }
+  });
+
+  it("writes guard.json not at all when its own entries are unchanged", () => {
+    const dir = tree({ a: { command: "x", runs: ["ci"] } });
+    init(dir);
+    const text = '{ "checks":   { "a": { "command": "x", "runs": ["ci"] } }, "managed": ' + JSON.stringify(guard(dir).managed) + ', "config": {"core.hooksPath": ".githooks"} }';
+    writeFileSync(join(dir, "guard.json"), text);
+    upgrade(dir);
+    assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), text);
+  });
+
+  it("replaces the value of its own entry in place and keeps the rest", () => {
+    const dir = tree({});
+    init(dir);
+    const before = readFileSync(join(dir, "guard.json"), "utf8");
+    const edited = before.replace('"checks":{}', '"checks": { "a": { "command": "x", "runs": ["ci"] } }');
+    assert.notEqual(edited, before);
+    writeFileSync(join(dir, "guard.json"), edited);
+    upgrade(dir);
+    const after = readFileSync(join(dir, "guard.json"), "utf8");
+    assert.ok(after.startsWith(edited.slice(0, edited.indexOf('"managed"'))));
+    assert.notEqual(guard(dir).managed[".github/workflows/guard.yml"], JSON.parse(edited).managed[".github/workflows/guard.yml"]);
+  });
+
   it("names guard.json when it cannot be read", () => {
     const dir = tree();
     writeFileSync(join(dir, "guard.json"), "{");
