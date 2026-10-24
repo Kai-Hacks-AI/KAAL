@@ -7,7 +7,7 @@
 //     configuration scope and to what. Without extensions.worktreeConfig it is shared by every worktree
 //     in the common directory; with it, each worktree has its own.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { Refusal, undefinedMember } from "./config.mjs";
 import { safePath } from "./trusted.mjs";
@@ -21,10 +21,30 @@ export function git(cwd, ...args) {
   return { status: r.status, out: (r.stdout ?? "").trim() };
 }
 
-/** The repository's top-level directory, or undefined outside a Git working tree. */
+/** The canonical path of a directory, or undefined when it cannot be read. */
+const canonical = (path) => {
+  try {
+    return realpathSync.native(path);
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * The repository's top-level directory, or undefined outside a Git working tree. It is spelled as `start`
+ * spells it where they are the same directory (Windows short names, symlinked temporary directories), so a
+ * check sees the working directory its caller gave, and Git's own spelling otherwise.
+ */
 export function gitRoot(start) {
   const r = git(start, "rev-parse", "--show-toplevel");
-  return r.status === 0 && r.out ? resolve(r.out) : undefined;
+  if (r.status !== 0 || !r.out) return undefined;
+  const top = resolve(r.out);
+  const target = canonical(top);
+  for (let dir = resolve(start); target; dir = dirname(dir)) {
+    if (canonical(dir) === target) return dir;
+    if (dirname(dir) === dir) break;
+  }
+  return top;
 }
 
 /** Reads one of Guard's JSON files: the parsed object, or undefined when there is none. Throws a Refusal. */

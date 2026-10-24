@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { CONFIG, check, configDir, frontmatter, legacy, nearest, readDeclarations, Refusal } from "../lib/config.mjs";
 
@@ -102,8 +102,9 @@ describe("discovery", () => {
   const decl = "---\ntype: Guard/Check\ncommand: x\nruns: [ci]\n---\n";
 
   it("reads .kaal/config/guard at the top level unless --config names a directory from the working directory", () => {
-    assert.equal(configDir("/r", "/r/a", undefined), join("/r", CONFIG));
-    assert.equal(configDir("/r", "/r/a", "alt"), join("/r/a", "alt"));
+    const root = resolve("r");
+    assert.equal(configDir(root, join(root, "a"), undefined), join(root, CONFIG));
+    assert.equal(configDir(root, join(root, "a"), "alt"), join(root, "a", "alt"));
   });
 
   it("takes only the .md files directly in the directory, in name order", () => {
