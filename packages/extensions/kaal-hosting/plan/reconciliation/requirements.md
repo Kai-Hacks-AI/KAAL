@@ -1,0 +1,26 @@
+# Guarded File Reconciliation: Requirements
+
+Each Requirement names, in brackets, the Intents it serves.
+
+## Nonfunctional
+
+- **hosting/N1** [hosting/I3]: Every guarantee below holds on Linux, Windows and macOS. Hosting's conformance tests prove it on all three.
+- **hosting/N2** [hosting/I1, hosting/I2]: A reconciliation is one writer of its directory, serialized by the cross-process lock that `update` and `initialize` already take. One directory has one lock, whatever path names it.
+- **hosting/N3** [hosting/I2]: The same directory and the same reconciliation give the same report on every host.
+
+## Functional
+
+- **hosting/F1** [hosting/I1]: `reconcile(root, { write, remove })` takes a directory and two lists. Each entry of `write` is `{ path, expect, bytes }`, with an optional `executable`. Each entry of `remove` is `{ path, expect }`. `path` is relative to `root` and `/`-separated. `expect` guards the entry: either the lowercase hexadecimal SHA-256 of the bytes the caller expects at `path` now, or `"absent"`.
+- **hosting/F2** [hosting/I1]: An entry's precondition holds when `expect` is `"absent"` and nothing is at `path`, or when `expect` is a digest and a regular file is at `path` whose bytes have that SHA-256. Anything else fails it, such as other bytes, nothing where a digest is expected, a file where `"absent"` is expected, or a directory.
+- **hosting/F3** [hosting/I1, hosting/I2]: Every precondition is checked before anything is touched. If any fails, nothing in `root` changes, and the refusal (`HostingError`, code `STALE`) lists every failing path in path order, with what was expected and what was found: the SHA-256 of the file there, `"absent"`, or `"not a file"`.
+- **hosting/F4** [hosting/I1, hosting/I3]: Paths get the same refusals as `update`, before anything is touched. A path that is not relative or has an empty, `.` or `..` segment is refused (`INVALID_PATH`), and so is a name that is not portable to Windows, macOS and Linux. Two paths that collapse into one where names are compared without case or Unicode normalization are refused (`COLLISION`), whether both are in the reconciliation or one is already in `root`. A path that appears more than once in a reconciliation is refused (`INVALID_PATH`).
+- **hosting/F5** [hosting/I1]: A reconciliation never reads, writes or removes through a link. A link at a path, or at any directory segment above it, is refused (`INVALID_PATH`). Something that is not a directory where a segment needs one is refused (`EXISTS`). Nothing is ever written or removed outside `root`.
+- **hosting/F6** [hosting/I2]: Applying is all or nothing. The new bytes are staged beside `root` and read back to confirm the host holds them exactly (`UNFAITHFUL` otherwise). Every file replaced or removed is kept aside until every change is in place. If any step fails, `root` is restored exactly as it was, every file with the same bytes and every directory the reconciliation created removed again, and the failure is thrown. Nothing staged or kept aside remains beside `root` afterwards.
+- **hosting/F7** [hosting/I3]: A write marked `executable` leaves an executable file wherever the host has an executable mode, and a write without it leaves a file that is not executable, even when it replaces an executable one. On a host without an executable mode, the mark is accepted and changes nothing. The mode is never part of a precondition.
+- **hosting/F8** [hosting/I2]: A directory that a removal leaves empty is removed too, and so is each directory above it that becomes empty in turn, up to but never including `root`. A directory that was empty before, or still holds anything, stays.
+- **hosting/F9** [hosting/I2]: A reconciliation that applies resolves with a report `{ outcomes, pruned }`: `outcomes` holds each entry's `path` and its `outcome`, and `pruned` the directories it removed under F8, each list in path order. The outcome is `written` when a write created or replaced a file, `removed` when a removal removed one, and `unchanged` when a write found exactly its bytes and its executable mark already there, or a removal guarded by `"absent"` found nothing.
+- **hosting/F10** [hosting/I1]: `root` must exist and be a directory. Otherwise the reconciliation is refused (`MISSING`) before anything is touched.
+
+## Limits
+
+These are stated, not prevented. The lock serializes Hosting's writers only: a process that writes into `root` without Hosting can change a file between the precondition check and the apply, and that change is not detected. Readers take no lock, so a reader can see a reconciliation half applied. Rollback covers every failure Hosting observes, but not the end of the process itself: a reconciliation cut off by a kill or a power loss can leave `root` partly applied, with the staged and kept-aside files beside it.
