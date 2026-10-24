@@ -143,6 +143,13 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
+**Compatibility with `0.0.1` retracted.** The Owner ruled on #336 (6384215003) that `0.0.2` may break `0.0.1`, with no migration, no dual format and no rollback to it. The consumer Test Cases written against `0.0.1` are reassessed under `guard/C23`, and their K2b evidence stays recorded above:
+- **guard/T37, guard/T38, guard/T39 and guard/T41** run an upgrade or a rollback between `0.0.1` and a candidate, a path `0.0.2` no longer offers. Their obligations (guard/F12–guard/F14 and guard/F16) still hold from `0.0.2` on. The Test Cases are superseded and re-planned in `guard/C24`, to run between two candidates of the decided configuration.
+- **guard/D1 and guard/D2** stay established. They are defects in the lifecycle's rules, not in `0.0.1`'s format, and they trace to the re-planned guard/T38 and guard/T39.
+- **guard/T40** holds. guard/F15 now names refusal, with the fresh setup as the next step, as `0.0.1`'s answer.
+- **guard/T36 and guard/T42** keep their `0.0.1` evidence, and `guard/C20` points them at the published `0.0.2`.
+- **guard/T43** runs only the candidate, and it holds.
+
 **guard/D4 retracted.** The Owner ruled on #336 that Guard owns its configuration contract and its validation, not the consumer's formatting. The byte-for-byte wording of guard/F18 was therefore a wrong contract, not a gap in Guard's behaviour. `guard/C23` supersedes that wording, so guard/D4 is retracted rather than corrected, and its evidence stays recorded above. Its correction, the text-preserving editor of `guard/C8` (#336), is withdrawn unmerged. guard/T44's replacement depends on where the configuration lives and in what format, so it is planned with that decision and written in `guard/C24`. Whatever the replacement proves RED becomes a new Defect, numbered from guard/D5.
 
 ## Agent guidance

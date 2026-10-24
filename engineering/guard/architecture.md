@@ -65,7 +65,7 @@ This section is a comparison, and nothing in it is decided. The Owner asked on #
 | **Skill resources**: `SKILL.md` and its optional `scripts/`, `references/` and `assets/` | Guard, as a managed asset | installed, upgraded and removed by the lifecycle, and deployed further by Core (guard/A14, guard/A17) |
 
 **Criteria**, from the Owner's list:
-- migration from `0.0.1`;
+- migration from `0.0.1`, now settled by the Owner as none;
 - how hooks and CI find the configuration;
 - separation of lifecycle state;
 - schema validation;
@@ -77,7 +77,7 @@ This section is a comparison, and nothing in it is decided. The Owner asked on #
 
 | Option | For | Against |
 | --- | --- | --- |
-| L1: root `guard.json` (`0.0.1`) | No migration, and discovery is today's upward search for `guard.json` | It keeps the declarations beside Guard's state at the root, which is the mix the Owner questioned |
+| L1: root `guard.json` (`0.0.1`) | Discovery stays today's upward search for `guard.json` | It keeps the declarations beside Guard's state at the root, which is the mix the Owner questioned |
 | L2: inside the Skill installation, under `.agents/skills/kaal-guard/`, kept apart from the Skill resources | One Guard home, and an agent finds the declarations next to the Skill. The Agent Skills standard does not reserve a configuration name, so this is allowed | Consumer-owned live files sit inside a directory Guard manages and Core deploys. Core would have to deploy only the standard resources and exclude them (a `core/C3` rule). `remove` would leave a directory with no `SKILL.md`, so the ownership mix moves one level down |
 | L3: a location of its own, apart from the Skill, for example `.guard/` or `.agents/kaal-guard/` | The ownership of every directory is clear: Guard's Skill resources in one place, the repository's declarations in another. Core deploys the Skill unchanged | Two Guard paths instead of one, and a new name to settle |
 
@@ -102,15 +102,11 @@ S2 and S3 are compatible if Core's record and Guard's file hold the same fields.
 
 P2 with P1 as the fallback keeps `kaal-guard run --check <name>` working unchanged in KAAL.
 
-**Migration from `0.0.1`.** guard/F15 allows two answers:
-- refuse a root `guard.json` as cannot judge, with a next step;
-- have `upgrade` convert it once and record the conversion.
-
-No external consumer exists. KAAL's own `guard.json` would be converted by an Engineering Change, because in KAAL Guard is an executor and never writes KAAL's configuration.
+**Migration from `0.0.1`.** The Owner settled this on #336 (6384215003). `0.0.2` is a deliberate breaking change within `0.0.x`. There is no automatic migration, no dual format and no rollback to `0.0.1`. No external consumer is known, and if one appears, its transition is assessed separately. The release notes of `guard/C19` document the breaking changes and the fresh `0.0.2` setup. KAAL runs the development package, so KAAL's own configuration is converted in the same Change as `guard/C25`, and KAAL's CI never sees a format it cannot read.
 
 **The owner's recommendation**, for the Owner to decide:
 - **L3.** Ownership stays clear, and Core can deploy the Skill without exceptions.
 - **M, after `core/C5`.** The declarations are maintained by hand, and the body gives guard/I7 the per-check guidance it lacks. If a dependency-free parser is judged too costly, J, with Guard's own validation script, is the fallback.
 - **S2, aligned with S3.** The fields are agreed with `core/C3`.
 - **P2 with P1 as the fallback.**
-- **Refuse in the package, convert KAAL by an Engineering Change.**
+- **No migration.** `0.0.1`'s root `guard.json` is refused, naming the fresh setup (guard/F15).

@@ -80,7 +80,13 @@ The Owner stopped K3a's DO on #336. Two rulings set the frame:
 - guard/D4 is retracted and guard/T44 with it, and their evidence is kept ([Testing](testing.md#defects)).
 - The options are compared in [Architecture](architecture.md#configuration-options-guardc23), against the Owner's criteria.
 
-It decides nothing about location, format, migration or implementation.
+It decides nothing about location, format or implementation. Migration was settled by the Owner (#336, 6384215003): `0.0.2` breaks `0.0.1` deliberately, with no migration, dual format or rollback to `0.0.1`. The compatibility contracts are reassessed accordingly:
+- guard/I5, guard/F15 and guard/F16 are bounded to `0.0.2` and later.
+- guard/F14 no longer reads an unrecorded writer as `0.0.1`.
+- guard/T37–guard/T39 and guard/T41 are superseded and re-planned between candidates ([Testing](testing.md#defects)).
+- `guard/C11`'s constraint that `managed` keep its `0.0.1` shape falls away.
+
+guard/F12–guard/F14 and guard/F18 still name `guard.json` as today's location. They are restated for the decided location when the decision lands.
 
 The K3 map is reconciled:
 - `guard/C8` is withdrawn, and #336 closes unmerged as its record.
@@ -90,15 +96,14 @@ The K3 map is reconciled:
 | Change | Scope | Depends on |
 | --- | --- | --- |
 | **`guard/C23`** PLAN | guard/I1 and guard/F18 restated, guard/D4 and guard/T44 retracted, the configuration options compared, and this map. No code and no test file | — |
-| **`guard/C24`** PLAN of the boundary | guard/T44 retired, and the Test Cases of the decided configuration written and run against a `packed` candidate. It travels alone | the Owner's decision on `guard/C23`, `guard/C22` |
-| **`guard/C25`** Configuration | The decided location, format, state separation, discovery and migration in the package, kept to what `guard/C24`'s tests need | `guard/C24`; `core/C5` if format M is chosen |
+| **`guard/C24`** PLAN of the boundary | guard/T44 retired; guard/T37–guard/T39 and guard/T41 re-planned between two candidates; the Test Cases of the decided configuration written and run against a `packed` candidate. It travels alone | the Owner's decision on `guard/C23`, `guard/C22` |
+| **`guard/C25`** Configuration | The decided location, format, state separation and discovery in the package, kept to what `guard/C24`'s tests need. KAAL's own configuration is converted in the same Change | `guard/C24`; `core/C5` if format M is chosen |
 
 Owner decisions, each with the recommendation in [Architecture](architecture.md#configuration-options-guardc23):
 1. Location: L1, L2 or L3.
 2. Format: J, M or C.
 3. Lifecycle state: S1, S2 or S3.
 4. Discovery: P1, P2, or both.
-5. Migration of `0.0.1`'s root `guard.json`: refuse it, or convert it once.
 
 ### Agent guidance
 
@@ -146,7 +151,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T55, guard/T57, guard/T59 | `guard/C14`, `guard/C25`, `guard/C9`, `guard/C11` | not created |
 | `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; guard/T56 | `guard/C14`; `core/C4` for Core's part | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
-| `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
+| `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes and the fresh `0.0.2` setup | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance: guard/T36–guard/T44 and guard/T55 with `registry` evidence | `guard/C19` | not created |
 | `guard/C21` | — | Guard | Every identifier in Guard's documents written Capability-qualified, as the Owner ruled on #334 and #335 | — | #337, merged |
 | `guard/C22` | — | Guard | The titles of the test files inside the acceptance boundary qualified the same way. A PLAN Change of the boundary; it travels alone | `guard/C21` | #338, open |
