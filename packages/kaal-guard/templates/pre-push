@@ -1,0 +1,38 @@
+#!/bin/sh
+# kaal-guard's pre-push hook: early local feedback from the same checks CI runs. For each pushed ref
+# it takes the remote's default branch as the base, then runs the local checks in guard.json through
+# kaal-guard with the push's Git facts. It names no check and knows nothing of CI. CI decides.
+# Skip it once with git push --no-verify.
+remote=${1:-origin}
+guard=node_modules/.bin/kaal-guard
+status=0
+say() { echo "$*" >&2; }
+if [ ! -f "$guard" ]; then
+  say "cannot judge: kaal-guard is not installed here. Install the project's dependencies, then push again."
+  say "Local feedback only; CI decides. Skip once with git push --no-verify."
+  exit 1
+fi
+target=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null)
+[ -n "$target" ] || target=$remote/main
+base=$(git rev-parse --quiet --verify "$target^{commit}" 2>/dev/null)
+changed=$(mktemp) || exit 1
+trap 'rm -f "$changed"' EXIT
+while read -r local_ref head remote_ref remote_head; do
+  case $head in *[!0]*) ;; *) continue ;; esac # a deleted ref carries no change
+  if [ -n "$base" ]; then
+    say "$local_ref -> $target (base $base):"
+    if git diff --name-only -z "$base...$head" >"$changed" 2>/dev/null; then
+      node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" --changed "$changed" </dev/null >&2 \
+        || status=1
+    else
+      # Never an empty change set in place of one Git could not give: without the fact, a check that needs it cannot judge.
+      say "the changed paths between $target and $local_ref cannot be computed; a check that needs them cannot judge."
+      node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" </dev/null >&2 || status=1
+    fi
+  else
+    say "$local_ref: no base, $target is not known here; a check that needs the base cannot judge. Fetch $remote to give it one."
+    node_modules/.bin/kaal-guard run --local --head "$head" </dev/null >&2 || status=1
+  fi
+done
+[ $status = 0 ] || say "Local feedback only; CI decides. Fix and push again, or skip once with git push --no-verify."
+exit $status
