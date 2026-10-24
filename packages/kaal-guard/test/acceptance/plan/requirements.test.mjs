@@ -515,11 +515,13 @@ describe("guard/F29 [guard/I5] lifecycle state", () => {
 });
 
 describe("guard/F17 [guard/I1, guard/I5] CI responsibility", () => {
-  it("guard/T74 [guard/F17, guard/F10, guard/N4]: without --ci, init installs no workflow, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step", () => {
+  it("guard/T74 [guard/F17, guard/F10, guard/F30, guard/N4]: without --hook or --ci, init activates neither integration, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step", () => {
     const c = given({ build: { command: exit(0), runs: ["ci"] }, lint: { command: exit(0), runs: ["hook"] } });
     const init = c.guard(["init"]);
     assert.equal(init.status, 0, init.output);
     assert.deepEqual(c.files().filter((p) => p.startsWith(".github/")), [], "init wrote a workflow without --ci");
+    assert.equal(c.exists(".githooks/pre-push"), false, "init installed the hook without --hook");
+    assert.equal(c.git("config", "--get", "core.hooksPath").stdout.trim(), "", "init set core.hooksPath without --hook");
     assert.match(init.output, /kaal-guard run --check build\b/, "init does not name the step that would run the uncovered ci check");
     assert.match(init.output, /init --ci/, "init does not name the opt-in");
     assert.doesNotMatch(init.output, /--check lint\b/, "init reports a hook check as missing CI coverage");
