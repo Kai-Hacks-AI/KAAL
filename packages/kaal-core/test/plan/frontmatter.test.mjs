@@ -74,7 +74,7 @@ describe("Deterministic Frontmatter (core/C5)", () => {
     const cases = [
       ["change", "core/C5", "C5"],
       ["change", "guard/F23a", "guard/f23"],
-      ["owner", "KAAL Definition", "  padded "],
+      ["owner", "KAAL Definition", '"  padded "'],
       ["status", "accepted", "done"],
       ["target", `{ name: KAAL Definition, id: "${ID}" }`, "{ name: KAAL Definition }"],
       ["file", "packages/kaal-core/README.md", "../outside.md"],
