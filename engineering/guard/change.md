@@ -170,7 +170,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C27` | — | Guard | The `0.0.2` release boundary recorded in this document | — | #342, merged |
 | `guard/C28` | — | Guard | Proposed, awaiting the Owner (#344): the required `Guard` jobs narrowed to Guard's inner tests while `guard/C24` and `guard/C25` land. It travels alone | — | not created |
 | `guard/C29` | — | Guard | Proposed with `guard/C28`: the acceptance globs restored to the `Guard` jobs | `guard/C25` | not created |
-| `guard/C30` | — | Guard | guard/F1 names `kind: guard/K1` (core/F6); guard/C20 and K6 name the consumer tests `guard/C23` keeps; guard/T55 retired | `guard/C23`, `core/C5` | this Change |
+| `guard/C30` | — | Guard | guard/F1 names `kind: guard/K1` (core/F6); guard/C20 and K6 name the consumer tests `guard/C23` keeps; guard/T55 retired | `guard/C23`, `core/C5` | #345 |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
 | `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | not created |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
