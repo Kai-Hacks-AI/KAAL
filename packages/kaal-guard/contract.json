@@ -7,19 +7,20 @@
       "sources": {
         "hook": "templates/pre-push"
       },
-      "mode": "755"
+      "mode": "755",
+      "install": "by kaal-guard init, and by upgrade where the repository does not have it"
     },
     {
       "role": "workflow",
       "path": ".github/workflows/guard.yml",
       "sources": {
-        "with verify": "templates/guard.yml",
-        "without verify": "templates/guard-checks.yml"
-      }
+        "workflow": "templates/guard.yml"
+      },
+      "install": "only by kaal-guard init --ci, the consumer opting in; never by upgrade"
     }
   ],
   "rules": {
-    "install": "only where no file exists, byte for byte as catalogued content, registered in the installation record",
+    "install": "only where no file exists, byte for byte as catalogued content, registered in the installation record; the workflow only on the consumer's request (init --ci), and never beside a workflow that already declares a check or verify",
     "upgrade": "only a registered asset whose SHA-256 equals the registered one; a modified asset keeps its registered version",
     "remove": "only a registered asset whose SHA-256 equals the registered one, with the directories its removal empties"
   },
@@ -32,8 +33,7 @@
       "d0c3a6b78c2224dae59408ddd076f1f9d9b5e58aebe2b4e3273853518db5fe8c"
     ],
     ".github/workflows/guard.yml": [
-      "bc42fd0ab50e99d01f88627a45802d1696f518f4e6ff8e11677c9333c8d3f45e",
-      "153fad659920c7e5a568fd6e71cd81b7c01af984eb38520de36786d9622c6d72"
+      "6924a2e22d95a9dc40c11f7fc14548ce45b3b5d862f71ac6565a9263b2c618cf"
     ]
   }
 }

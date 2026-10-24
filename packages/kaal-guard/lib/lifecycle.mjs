@@ -9,6 +9,7 @@ import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, wr
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { shown } from "./config.mjs";
+import { declarations, step, uncovered } from "./github.mjs";
 import { deleteState, git, prune, writeRecord, writeState } from "./state.mjs";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -43,22 +44,8 @@ export function sources() {
  */
 const theirs = (declared, assets) => declared.filter((d) => !assets[d.file]);
 
-/**
- * What each asset holds for this repository: the hook always; the workflow with Guard's verify job unless
- * another workflow declares verify, without it while a ci check is left that no job of the repository
- * runs, and not at all when nothing is left (F17).
- */
-function wanted(list, declared) {
-  const all = sources();
-  const names = new Set(declared.filter((d) => !d.verify && !d.rest).map((d) => d.name));
-  const rest = declared.some((d) => d.rest);
-  const left = !rest && Object.keys(list.checks).some((n) => list.checks[n].runs.includes("ci") && !names.has(n));
-  const verify = declared.some((d) => d.verify);
-  const files = { [HOOK]: all[HOOK].hook };
-  if (!verify) files[WORKFLOW] = all[WORKFLOW]["with verify"];
-  else if (left) files[WORKFLOW] = all[WORKFLOW]["without verify"];
-  return files;
-}
+/** Guard's workflow, as the package holds it. Only init --ci installs it: CI is the consumer's to assign (F17). */
+const workflow = () => sources()[WORKFLOW].workflow;
 
 /** Writes catalogued content where no file is, and returns its registration. Throws when the catalogue lacks it. */
 function install(root, path, text) {
@@ -101,16 +88,18 @@ const NOT_PROOF = [
 const section = (title, items) => [title, ...(items.length ? items : ["nothing"]).map((i) => `  ${i}`)];
 
 /** The report of the repository's declarations that Guard executes and does not manage. */
-const executed = (declared) => declared.map((d) => (d.rest ? `every ci check no job names, in job ${d.job} of ${d.file}` : `${d.name} in job ${d.job} of ${d.file}`));
+const executed = (declared) => declared.map((d) => (d.every ? `every ci check, in job ${d.job} of ${d.file}` : `${d.name} in job ${d.job} of ${d.file}`));
 
 /**
- * Creates the configuration directory where it is missing, writes each wanted asset where no file
- * exists, and sets core.hooksPath only where it is unset in every scope, the hook there is Guard's
- * registered one, and Git runs no hooks of the repository's own that setting it would turn off. The
- * context is what the command read and validated: { dir, list, record, state, at, declared }.
- * Returns { lines }: what Guard installed, what it left untouched, and what is still to do.
+ * Creates the configuration directory where it is missing, writes the hook where no file exists, and
+ * sets core.hooksPath only where it is unset in every scope, the hook there is Guard's registered one,
+ * and Git runs no hooks of the repository's own that setting it would turn off. Guard's workflow is
+ * written only with `ci`, the consumer's opt-in, and only where no file is and no workflow of the
+ * repository declares a check or verify; otherwise each ci check no job runs is reported with the step
+ * to add (F17). The context is what the command read and validated: { dir, list, record, state, at,
+ * declared, ci }. Returns { lines }: what Guard installed, what it left untouched, and what is still to do.
  */
-export function init(root, { dir, list, record, state, at, declared }) {
+export function init(root, { dir, list, record, state, at, declared, ci = false }) {
   const assets = { ...record };
   const own = theirs(declared, assets);
   const installed = [];
@@ -121,18 +110,30 @@ export function init(root, { dir, list, record, state, at, declared }) {
     installed.push(`${shown(root, dir)}/, where each check is declared as <name>.md`);
     todo.push(`Declare each check as ${shown(root, dir)}/<name>.md, with type: Guard/Check, command and runs in its frontmatter; see the package's README.`);
   }
-  const files = wanted(list, own);
-  if (!files[WORKFLOW] && !assets[WORKFLOW]) untouched.push(`${WORKFLOW}: not installed; the repository's own workflows declare every ci check and verify`);
+  const files = { [HOOK]: sources()[HOOK].hook };
+  if (ci) {
+    if (own.length) untouched.push(`${WORKFLOW}: not installed; your workflows already run Guard (${executed(own).join("; ")}), and Guard's workflow would run those checks a second time`);
+    else files[WORKFLOW] = workflow();
+  }
   for (const [path, text] of Object.entries(files)) {
     if (assets[path]) untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
     else if (existsSync(join(root, path))) {
       untouched.push(`${path}: it was there before Guard, so it is not Guard's`);
       if (path === HOOK) todo.push(`To run Guard's local checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
-      else todo.push(`For each ci check, give a job in ${path} or another workflow the step "- run: npx --no kaal-guard run --check <name> --github", then run kaal-guard verify.`);
     } else {
       assets[path] = install(root, path, text);
       installed.push(path);
     }
+  }
+  const config = shown(root, dir);
+  const mine = declarations(root);
+  const missing = uncovered(list, mine);
+  if (missing.length) {
+    todo.push(`No workflow job runs these ci checks, and Guard does not run them in CI on its own. Give a job of your own workflow a step for each:`, ...missing.map((name) => `  ${step(name, config)}`));
+    if (!ci) todo.push("  or run kaal-guard init --ci to install Guard's workflow, which runs every ci check in one job and kaal-guard verify.");
+  }
+  if (!mine.some((d) => d.verify) && Object.values(list.checks).some((c) => c.runs.includes("ci"))) {
+    todo.push(`No workflow job runs kaal-guard verify, which shows that a job declares each ci check. Give a job the step:`, `  - run: npx --no kaal-guard verify --config ${config} --github`);
   }
   const set = hooksPaths(root);
   const ours = assets[HOOK] && condition(root, HOOK, assets[HOOK]) === "unmodified";
@@ -168,20 +169,20 @@ export function init(root, { dir, list, record, state, at, declared }) {
 
 /**
  * Moves each registered, unmodified asset to this version's content and registers this version for it;
- * installs a wanted asset the repository does not have (F13); reports and keeps everything else.
- * Returns { lines }, one per managed path.
+ * installs the hook where the repository does not have it (F13), but never Guard's workflow, which only
+ * init --ci installs (F17); reports and keeps everything else. Returns { lines }, one per managed path.
  */
-export function upgrade(root, { list, record, declared }) {
+export function upgrade(root, { record, declared }) {
   const assets = { ...record };
   const own = theirs(declared, assets);
-  const files = wanted(list, own);
+  const files = { [HOOK]: sources()[HOOK].hook, [WORKFLOW]: workflow() };
   const lines = [];
   for (const { path } of CONTRACT.assets) {
     const entry = assets[path];
     const text = files[path];
     if (!entry) {
       if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
-      else if (text !== undefined) {
+      else if (path !== WORKFLOW) {
         assets[path] = install(root, path, text);
         lines.push(`installed ${path}: ${VERSION}; the repository did not have it`);
       }
@@ -190,7 +191,6 @@ export function upgrade(root, { list, record, declared }) {
     const now = condition(root, path, entry);
     if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove drops it from the record)`);
     else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it keeps that registered version`);
-    else if (text === undefined) lines.push(`kept ${path}: ${entry.version}; the repository's own workflows now declare everything it runs, so delete it if it is no longer wanted`);
     else if (sha256(Buffer.from(text)) === entry.sha256) {
       lines.push(entry.version === VERSION ? `current ${path}: ${VERSION}` : `current ${path}: unchanged from ${entry.version} to ${VERSION}`);
       assets[path] = { sha256: entry.sha256, version: VERSION };

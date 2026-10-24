@@ -8,10 +8,10 @@ The package is published to npm as `@kaihacksai/kaal-guard`, first as `@kaihacks
 
 ```sh
 npm install --save-dev @kaihacksai/kaal-guard
-npx kaal-guard init        # creates .kaal/config/guard/ and writes missing adapters only; reports any it left alone
+npx kaal-guard init        # creates .kaal/config/guard/ and writes the hook where missing; reports missing CI coverage
+npx kaal-guard init --ci   # also installs Guard's workflow, on request only (guard/F17)
 npx kaal-guard run --local # what the hook runs
 npx kaal-guard verify      # a workflow job declares every ci check in Guard's form (declared integration only)
-npx kaal-guard list --undeclared  # the ci checks no job declares by name, for Guard's matrix job
 npx kaal-guard upgrade     # replaces only registered, unmodified managed files
 npx kaal-guard remove      # deletes only registered, unmodified managed files; keeps your declarations and tests
 ```
@@ -27,7 +27,7 @@ The generated workflow is not enforcement. Three claims stay apart:
 
 ## Engineer: KAAL itself
 
-KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and declares its checks in `.kaal/config/guard/`. Its own hook and workflows run them in the declared form, so `init` installs no workflow in KAAL (guard/F17). Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
+KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and declares its checks in `.kaal/config/guard/`. Its own hook and workflows run them in the declared form, so `init` reports them as executed by Guard, not managed, and `init --ci` installs nothing beside them (guard/F17). Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
 
 ## External: naked delivery by KAAL Engineering
 
@@ -40,8 +40,6 @@ Guard owns one integration contract, and `verify` checks only that: whether each
 - The jobs are the `  <key>:` lines indented two spaces directly under a top-level `jobs:` line.
 - A job declares a check with a step whose whole `run:` value, on that one line, is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`, the name a plain word, as in `- run: npx kaal-guard run --check <name> --github`.
 - `--check ${{ matrix.check }}` declares each check the job lists on a line of its own as `- { check: <name>, … }`.
-- With the matrix line `check: ${{ fromJSON(needs.<key>.outputs.checks) }}` instead, where job `<key>` of the same workflow has a step whose whole `run:` value runs `kaal-guard list --undeclared` (any of the three prefixes, options after it), `--check ${{ matrix.check }}` declares every ci check that no job declares by name. This is the form of the workflow Guard installs: its content is fixed and catalogued, and the checks it runs follow the declarations (guard/F17, guard/F29).
-- A job declares the consistency check with a step whose whole `run:` value is `kaal-guard verify`, with one of the same prefixes, optionally followed by `--config <dir>` and then `--github`.
 - Nothing else declares anything: a block script, a chained command, a quoted name, another expression or matrix key, `echo`, `name:` or `env:` text, a comment.
 
 Three claims stay separate:

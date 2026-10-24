@@ -8,7 +8,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { CONFIG, readDeclarations } from "../lib/config.mjs";
-import { declarations, undeclared, verify } from "../lib/github.mjs";
+import { declarations, verify } from "../lib/github.mjs";
 import { CONTRACT, init, remove, sha256, sources, upgrade, VERSION } from "../lib/lifecycle.mjs";
 import { checkout, readRecord, readState, RECORD } from "../lib/state.mjs";
 
@@ -34,7 +34,8 @@ function context(dir) {
   const read = readDeclarations(dir, join(dir, CONFIG));
   return { dir: join(dir, CONFIG), list: read.list ?? { checks: {} }, record: readRecord(dir), at, state: readState(at), declared: declarations(dir) };
 }
-const step = (fn, dir) => fn(dir, context(dir)).lines.join("\n");
+const step = (fn, dir, options = {}) => fn(dir, { ...context(dir), ...options }).lines.join("\n");
+const list = (dir) => readDeclarations(dir, join(dir, CONFIG)).list;
 
 const hooksPath = (dir) => spawnSync("git", ["config", "--local", "--get", "core.hooksPath"], { cwd: dir, encoding: "utf8" }).stdout.trim();
 const ci = { command: "x", runs: ["ci"] };
@@ -47,38 +48,39 @@ describe("installation contract", () => {
     assert.deepEqual(Object.keys(CONTRACT.catalogue).sort(), CONTRACT.assets.map((a) => a.path).sort());
   });
 
-  it("has the workflow without verify be the workflow with it, less the Guard job", () => {
-    const { "with verify": full, "without verify": checks } = sources()[WORKFLOW];
-    const job = /^ {2}guard:\n(?: {4}.*\n|\n)*/m;
-    assert.match(full, job);
-    assert.equal(full.replace(job, "").replace(/^#.*\n/gm, ""), checks.replace(/^#.*\n/gm, ""));
+  it("has one workflow, which runs verify and every ci check in one job, each in the declared form", () => {
+    const dir = tree({});
+    write(dir, WORKFLOW, sources()[WORKFLOW].workflow);
+    assert.deepEqual(declarations(dir).map((d) => [d.name, d.job]), [["verify", "guard"], ["ci", "checks"]]);
+    assert.doesNotMatch(sources()[WORKFLOW].workflow, /matrix|list/, "Guard's workflow computes which checks it runs");
   });
 });
 
-describe("the installed workflow", () => {
-  it("declares, through its list job, every ci check that no job declares by name, and verify", () => {
+describe("declared integration", () => {
+  it("credits a job that runs every ci check, after any job that names one", () => {
     const dir = tree({ a: ci, b: ci, l: { command: "x", runs: ["local"] } });
-    write(dir, WORKFLOW, sources()[WORKFLOW]["with verify"]);
+    write(dir, WORKFLOW, sources()[WORKFLOW].workflow);
     write(dir, ".github/workflows/own.yml", "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard run --check a\n");
-    const found = declarations(dir);
-    assert.deepEqual(found.map((d) => [d.name, d.job]), [["verify", "guard"], ["undeclared", "check"], ["a", "own"]]);
-    assert.deepEqual(undeclared(readDeclarations(dir, join(dir, CONFIG)).list, found), ["b"]);
-    const results = verify(dir, readDeclarations(dir, join(dir, CONFIG)).list).results;
+    const results = verify(dir, list(dir)).results;
     assert.deepEqual(results.map((r) => [r.name, r.verdict]), [["a", "pass"], ["b", "pass"]]);
-    assert.match(results[1].evidence, /job check in \.github\/workflows\/guard\.yml, which runs each check kaal-guard list --undeclared names/);
+    assert.match(results[0].evidence, /job own in \.github\/workflows\/own\.yml/);
+    assert.match(results[1].evidence, /job checks in \.github\/workflows\/guard\.yml, which runs every ci check \(kaal-guard run --ci\)/);
   });
 
-  it("declares nothing through a matrix from a job that does not run kaal-guard list --undeclared", () => {
+  it("reads no list a job computes: a matrix from another job's output declares nothing, and verify names the step to add", () => {
     const dir = tree({ a: ci });
-    write(dir, WORKFLOW, sources()[WORKFLOW]["with verify"].replace("kaal-guard list --undeclared", "kaal-guard list"));
-    assert.equal(verify(dir, readDeclarations(dir, join(dir, CONFIG)).list).results[0].verdict, "fail");
+    write(dir, ".github/workflows/own.yml", "jobs:\n  list:\n    steps:\n      - run: npx --no kaal-guard list --undeclared --github\n  check:\n    strategy:\n      matrix:\n        check: ${{ fromJSON(needs.list.outputs.checks) }}\n    steps:\n      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github\n");
+    const [result] = verify(dir, list(dir)).results;
+    assert.equal(result.verdict, "fail");
+    assert.match(result.do, /- run: npx --no kaal-guard run --check a --github/);
+    assert.match(result.do, /kaal-guard init --ci/);
   });
 });
 
 describe("lifecycle", () => {
   it("init writes, registers, sets and records; remove takes back exactly that and keeps the declarations", () => {
     const dir = tree({ a: ci });
-    const out = step(init, dir);
+    const out = step(init, dir, { ci: true });
     assert.match(out, /installed by Guard:\n {2}\.githooks\/pre-push\n {2}\.github\/workflows\/guard\.yml\n {2}core\.hooksPath = \.githooks in the local configuration\n/);
     assert.equal(hooksPath(dir), ".githooks");
     assert.deepEqual(Object.keys(readRecord(dir)).sort(), [HOOK, WORKFLOW]);
@@ -103,7 +105,7 @@ describe("lifecycle", () => {
   it("says apart what it installed, what it left untouched and what is still to do, and claims no execution", () => {
     const dir = tree({});
     write(dir, HOOK, "#!/bin/sh\n");
-    const out = step(init, dir);
+    const out = step(init, dir, { ci: true });
     assert.match(out, /installed by Guard:\n {2}\.github\/workflows\/guard\.yml\n/);
     assert.match(out, /left untouched:\n {2}\.githooks\/pre-push: it was there before Guard, so it is not Guard's\n/);
     assert.match(out, /still to do in this repository:\n {2}To run Guard's local checks from \.githooks\/pre-push/);
@@ -136,7 +138,7 @@ describe("lifecycle", () => {
 
   it("upgrade names the versions it moves between, keeps a modified asset with its registered version, and confirms an unchanged one", () => {
     const dir = tree({ a: ci });
-    step(init, dir);
+    step(init, dir, { ci: true });
     const record = readRecord(dir);
     write(dir, RECORD, JSON.stringify({ assets: { ...record, [WORKFLOW]: { sha256: record[WORKFLOW].sha256, version: "0.0.0-older" } } }));
     write(dir, HOOK, "#!/bin/sh\n# mine\n");
@@ -149,46 +151,70 @@ describe("lifecycle", () => {
 
   it("upgrade moves an unmodified asset to this version's content and registers it", () => {
     const dir = tree({ a: ci });
-    step(init, dir);
+    step(init, dir, { ci: true });
     const older = "name: Guard\njobs: {}\n";
     write(dir, WORKFLOW, older);
     write(dir, RECORD, JSON.stringify({ assets: { ...readRecord(dir), [WORKFLOW]: { sha256: sha256(Buffer.from(older)), version: "0.0.0-older" } } }));
     assert.ok(step(upgrade, dir).includes(`upgraded ${WORKFLOW}: from 0.0.0-older to ${VERSION}`));
-    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW]["with verify"]);
+    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW].workflow);
   });
 
-  it("init installs no workflow where the repository's own workflows declare every ci check and verify, and reports them as not managed", () => {
-    const dir = tree({ a: ci, b: ci });
-    write(dir, ".github/workflows/ci.yml", "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard run --check a --github\n      - run: kaal-guard run --check b\n  consistency:\n    steps:\n      - run: npx kaal-guard verify --github\n");
+  it("init without ci installs no workflow, and reports each ci check no job runs with the step to add, and init --ci", () => {
+    const dir = tree({ a: ci, b: ci, l: { command: "x", runs: ["local"] } });
+    write(dir, ".github/workflows/ci.yml", "jobs:\n  own:\n    steps:\n      - run: kaal-guard run --check a\n");
     const out = step(init, dir);
     assert.ok(!existsSync(join(dir, WORKFLOW)));
+    assert.deepEqual(Object.keys(readRecord(dir)), [HOOK]);
+    assert.match(out, /No workflow job runs these ci checks, and Guard does not run them in CI on its own[^\n]*\n {4}- run: npx --no kaal-guard run --check b --config \.kaal\/config\/guard --github\n {4}or run kaal-guard init --ci/);
+    assert.doesNotMatch(out, /--check (a|l) /);
+    assert.match(out, /No workflow job runs kaal-guard verify[^\n]*\n {4}- run: npx --no kaal-guard verify --config \.kaal\/config\/guard --github/);
+  });
+
+  it("init reports no missing coverage where the repository's own workflows run every ci check and verify", () => {
+    const dir = tree({ a: ci });
+    write(dir, ".github/workflows/ci.yml", "jobs:\n  own:\n    steps:\n      - run: kaal-guard run --check a\n      - run: kaal-guard verify\n");
+    assert.doesNotMatch(step(init, dir), /No workflow job runs/);
+  });
+
+  it("init with ci installs no workflow where the repository's own workflows run Guard, and reports them as not managed", () => {
+    const dir = tree({ a: ci, b: ci });
+    write(dir, ".github/workflows/ci.yml", "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard run --check a --github\n      - run: kaal-guard run --check b\n  consistency:\n    steps:\n      - run: npx kaal-guard verify --github\n");
+    const out = step(init, dir, { ci: true });
+    assert.ok(!existsSync(join(dir, WORKFLOW)));
     assert.equal(readRecord(dir)[WORKFLOW], undefined);
-    assert.match(out, /\.github\/workflows\/guard\.yml: not installed; the repository's own workflows declare every ci check and verify/);
+    assert.match(out, /\.github\/workflows\/guard\.yml: not installed; your workflows already run Guard \(a in job own of \.github\/workflows\/ci\.yml; [^)]*\), and Guard's workflow would run those checks a second time/);
     assert.match(out, /executed by Guard, not managed:\n {2}a in job own of \.github\/workflows\/ci\.yml\n {2}b in job own of \.github\/workflows\/ci\.yml\n {2}verify in job consistency of \.github\/workflows\/ci\.yml/);
   });
 
-  it("init installs the workflow without its Guard job where another workflow declares verify but a ci check is left", () => {
+  it("init with ci installs nothing beside a workflow that runs only verify, and names the step for each check left", () => {
     const dir = tree({ a: ci, b: ci });
-    write(dir, ".github/workflows/ci.yml", "jobs:\n  own:\n    steps:\n      - run: kaal-guard run --check a\n      - run: npx --no kaal-guard verify --config .kaal/config/guard --github\n");
-    step(init, dir);
-    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW]["without verify"]);
-    assert.deepEqual(verify(dir, readDeclarations(dir, join(dir, CONFIG)).list).results.map((r) => r.verdict), ["pass", "pass"]);
+    const own = "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard verify --config .kaal/config/guard --github\n";
+    write(dir, ".github/workflows/ci.yml", own);
+    const out = step(init, dir, { ci: true });
+    assert.ok(!existsSync(join(dir, WORKFLOW)));
+    assert.equal(readFileSync(join(dir, ".github/workflows/ci.yml"), "utf8"), own);
+    assert.match(out, /--check a --config \.kaal\/config\/guard --github\n {4}- run: npx --no kaal-guard run --check b /);
+    assert.doesNotMatch(out, /or run kaal-guard init --ci/);
   });
 
   it("does not count Guard's own registered workflow as the repository's declaration", () => {
     const dir = tree({ a: ci });
-    step(init, dir);
+    step(init, dir, { ci: true });
     assert.ok(step(upgrade, dir).includes(`current ${WORKFLOW}: ${VERSION}`));
-    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW]["with verify"]);
+    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW].workflow);
   });
 
-  it("upgrade installs a wanted asset the repository lacks, and leaves alone one at a managed path the record does not register", () => {
+  it("upgrade installs the hook the repository lacks but never Guard's workflow, and leaves alone a file at a managed path the record does not register", () => {
     const dir = tree({ a: ci });
-    write(dir, HOOK, sources()[HOOK].hook);
+    write(dir, WORKFLOW, sources()[WORKFLOW].workflow);
     const out = step(upgrade, dir);
-    assert.ok(out.includes(`installed ${WORKFLOW}: ${VERSION}; the repository did not have it`), out);
-    assert.match(out, /left alone \.githooks\/pre-push: not Guard's; the installation record does not register it/);
-    assert.deepEqual(Object.keys(readRecord(dir)), [WORKFLOW]);
+    assert.ok(out.includes(`installed ${HOOK}: ${VERSION}; the repository did not have it`), out);
+    assert.match(out, /left alone \.github\/workflows\/guard\.yml: not Guard's; the installation record does not register it/);
+    assert.deepEqual(Object.keys(readRecord(dir)), [HOOK]);
+
+    const bare = tree({ a: ci });
+    step(upgrade, bare);
+    assert.ok(!existsSync(join(bare, WORKFLOW)), "upgrade installed Guard's workflow, which only init --ci installs");
   });
 });
 

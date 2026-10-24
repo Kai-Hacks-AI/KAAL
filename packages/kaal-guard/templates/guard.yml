@@ -1,7 +1,7 @@
 name: Guard
-# Written by kaal-guard init. It runs kaal-guard verify, and runs as a job of its own each ci check
-# declared in .kaal/config/guard/ that no workflow job declares by name. While it is unmodified,
-# kaal-guard upgrade moves it to the installed version's content; once you change it, it is yours.
+# Written by kaal-guard init --ci, because you asked for it: it runs kaal-guard verify, and runs every ci
+# check declared in .kaal/config/guard/ in one job. While it is unmodified, kaal-guard upgrade moves it
+# to the installed version's content; once you change it, it is yours.
 on:
   pull_request:
 permissions:
@@ -17,28 +17,9 @@ jobs:
           node-version: lts/*
       - run: npm ci
       - run: npx --no kaal-guard verify --config .kaal/config/guard --github
-  list:
+  checks:
     name: Guard checks
     runs-on: ubuntu-latest
-    outputs:
-      checks: ${{ steps.list.outputs.checks }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - run: npm ci
-      - id: list
-        run: npx --no kaal-guard list --undeclared --config .kaal/config/guard --github
-  check:
-    name: ${{ matrix.check }}
-    needs: list
-    if: needs.list.outputs.checks != '[]'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        check: ${{ fromJSON(needs.list.outputs.checks) }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,4 +29,4 @@ jobs:
           node-version: lts/*
       - run: npm ci
       - run: git diff --name-only -z ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} > "$RUNNER_TEMP/changed"
-      - run: npx --no kaal-guard run --check ${{ matrix.check }} --config .kaal/config/guard --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed
+      - run: npx --no kaal-guard run --ci --config .kaal/config/guard --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed

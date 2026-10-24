@@ -2,7 +2,7 @@
 // kaal-guard: runs a repository's own checks for its Git hook and its CI, with one meaning per check.
 import { resolve } from "node:path";
 import { configDir, legacy, readDeclarations, Refusal, shown } from "../lib/config.mjs";
-import { annotations, declarations, output, summarize, undeclared, verify } from "../lib/github.mjs";
+import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
 import { init, remove, upgrade } from "../lib/lifecycle.mjs";
 import { FACTS, lines, run, status } from "../lib/runner.mjs";
 import { checkout, gitRoot, readRecord, readState } from "../lib/state.mjs";
@@ -10,8 +10,8 @@ import { checkout, gitRoot, readRecord, readState } from "../lib/state.mjs";
 const USAGE = `usage: kaal-guard run (--local | --ci | --check <name>) [--config <dir>] [--github]
                        [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
        kaal-guard verify [--config <dir>] [--github]
-       kaal-guard list --undeclared [--config <dir>] [--github]
-       kaal-guard (init | upgrade | remove) [--config <dir>]`;
+       kaal-guard init [--ci] [--config <dir>]
+       kaal-guard (upgrade | remove) [--config <dir>]`;
 
 /** Prints a cannot-judge verdict about kaal-guard itself and exits 2. */
 function cannotJudge(evidence, todo) {
@@ -73,11 +73,11 @@ function report(results, github) {
 const [command, ...args] = process.argv.slice(2);
 const LIFECYCLE = { init, upgrade, remove };
 if (command in LIFECYCLE) {
-  const options = parse(args, [], ["--config"]);
+  const options = parse(args, command === "init" ? ["--ci"] : [], ["--config"]);
   const context = load(options["--config"], { optional: true });
   let result;
   try {
-    result = LIFECYCLE[command](context.root, { ...context, declared: declarations(context.root) });
+    result = LIFECYCLE[command](context.root, { ...context, declared: declarations(context.root), ci: Boolean(options["--ci"]) });
   } catch (e) {
     cannotJudge(e.message, "reinstall the package, then run the command again");
   }
@@ -90,18 +90,6 @@ if (command === "verify") {
   const { results } = verify(root, list);
   if (results.length === 0) console.log("kaal-guard: no ci checks are declared");
   report(results, options["--github"]);
-}
-if (command === "list") {
-  const options = parse(args, ["--undeclared", "--github"], ["--config"]);
-  if (!options["--undeclared"]) cannotJudge("list needs --undeclared", USAGE);
-  const { root, list } = load(options["--config"]);
-  const names = undeclared(list, declarations(root));
-  console.log(JSON.stringify(names));
-  if (options["--github"]) {
-    if (!process.env.GITHUB_OUTPUT) cannotJudge("--github needs GITHUB_OUTPUT, which GitHub Actions sets for a step", "run it as a step of a GitHub Actions job, or leave out --github");
-    output(names, process.env.GITHUB_OUTPUT);
-  }
-  process.exit(0);
 }
 if (command !== "run") cannotJudge(command ? `${command} is not a kaal-guard command in this version` : "no command", USAGE);
 

@@ -237,26 +237,16 @@ describe("verify", () => {
   });
 });
 
-describe("list --undeclared", () => {
+describe("commands", () => {
   const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
 
-  it("prints the ci checks no job declares by name, and with --github writes them as the step's output", () => {
-    const dir = repo({ a: { command: "x", runs: ["ci"] }, b: { command: "x", runs: ["ci"] }, l: { command: "x", runs: ["local"] } });
-    mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
-    writeFileSync(join(dir, ".github", "workflows", "ci.yml"), "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard run --check a\n");
-    const out = join(dir, "..", `${dir.split(/[\\/]/).pop()}-output`);
-    writeFileSync(out, "");
-    const r = spawnSync(process.execPath, [bin, "list", "--undeclared", "--github"], { cwd: dir, encoding: "utf8", env: { ...process.env, GITHUB_OUTPUT: out } });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
-    assert.equal(r.stdout, '["b"]\n');
-    assert.equal(readFileSync(out, "utf8"), 'checks=["b"]\n');
-  });
-
-  it("is cannot judge without --undeclared, and with --github outside a step", () => {
+  it("has no command that lists checks for a workflow to run, and takes --ci only on init", () => {
     const dir = repo({});
-    assert.equal(spawnSync(process.execPath, [bin, "list"], { cwd: dir }).status, 2);
-    const r = spawnSync(process.execPath, [bin, "list", "--undeclared", "--github"], { cwd: dir, encoding: "utf8", env: { ...process.env, GITHUB_OUTPUT: "" } });
-    assert.equal(r.status, 2);
-    assert.match(r.stdout, /cannot judge: kaal-guard: --github needs GITHUB_OUTPUT/);
+    const list = spawnSync(process.execPath, [bin, "list", "--undeclared"], { cwd: dir, encoding: "utf8" });
+    assert.equal(list.status, 2);
+    assert.match(list.stdout, /cannot judge: kaal-guard: list is not a kaal-guard command in this version/);
+    const up = spawnSync(process.execPath, [bin, "upgrade", "--ci"], { cwd: dir, encoding: "utf8" });
+    assert.equal(up.status, 2);
+    assert.match(up.stdout, /unknown option --ci/);
   });
 });

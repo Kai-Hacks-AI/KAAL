@@ -8,15 +8,18 @@ The command is `kaal-guard`. Node 20 or later and Git 2.26 or later. The hook is
 
 ```sh
 npm install --save-dev @kaihacksai/kaal-guard
-npx kaal-guard init
+npx kaal-guard init        # the hook; your CI stays yours
+npx kaal-guard init --ci   # also Guard's workflow, only if you want it to run every ci check
 ```
 
-`init` writes only what is missing and reports in up to four parts:
+Your CI is yours: you decide which job runs each check. `init` never adds a workflow on its own. It writes only what is missing and reports in up to four parts:
 
-- **installed by Guard:** `.kaal/config/guard/`, where you declare your checks, `.githooks/pre-push`, `.github/workflows/guard.yml`, and `core.hooksPath` set to `.githooks`.
+- **installed by Guard:** `.kaal/config/guard/`, where you declare your checks, `.githooks/pre-push`, and `core.hooksPath` set to `.githooks`; with `--ci`, also `.github/workflows/guard.yml`.
 - **left untouched:** any of these the repository already had, and any file at those paths that Guard did not write.
-- **still to do in this repository:** the line to add for each of those.
-- **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`). Guard's workflow then runs only what remains, and is not installed when nothing does.
+- **still to do in this repository:** the line to add for each of those, and for each `ci` check that no workflow job runs, the step to add to a job of your own workflow ([CI](#ci-and-what-verify-does-not-say)).
+- **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`).
+
+`init --ci` is one decision: Guard's workflow runs `verify` and every `ci` check in one job, so you register nothing twice. It is installed only where no workflow of yours already runs a check or `verify` in Guard's declared form, since it would run those a second time; `init --ci` then installs nothing for CI and names what it found. `upgrade` never installs it.
 
 `init` sets `core.hooksPath` only when all three of these hold:
 
@@ -80,14 +83,14 @@ npx kaal-guard run --local            # the local checks, as the hook runs them
 npx kaal-guard run --ci               # the ci checks
 npx kaal-guard run --check <name> [--github] [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
 npx kaal-guard verify [--github]      # each ci check is declared by a workflow job
-npx kaal-guard list --undeclared      # the ci checks no workflow job declares by name, as a JSON list
+npx kaal-guard init [--ci]            # the hook, and with --ci Guard's workflow
 npx kaal-guard upgrade                # moves only registered, unmodified files to this version's content
 npx kaal-guard remove                 # deletes only registered, unmodified files; keeps your declarations
 ```
 
-Every command takes `--config <dir>`. `--github` adds GitHub annotations and a step-summary table; for `list`, it writes `checks=<list>` to the step's outputs.
+Every command takes `--config <dir>`. `--github` adds GitHub annotations and a step-summary table.
 
-`upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs a file this version manages that the repository does not have. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
+`upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs the hook where the repository does not have it, but never Guard's workflow: only `init --ci` does. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
 
 ## The hook
 
@@ -112,7 +115,7 @@ A job declares a check with a step whose whole `run:` line is `kaal-guard run`, 
 - run: npx --no kaal-guard run --check unit --github
 ```
 
-`--check ${{ matrix.check }}` declares each check the job lists as a line `- { check: <name> }`. With the matrix line `check: ${{ fromJSON(needs.<key>.outputs.checks) }}`, where job `<key>` runs `npx --no kaal-guard list --undeclared`, it declares every ci check no job declares by name: that is how Guard's own workflow runs your checks while its content stays fixed. A job declares `verify` with a step whose whole `run:` line is `kaal-guard verify`, with the same prefixes, optionally followed by `--config <dir>` and `--github`. Nothing else declares anything, and `verify` infers nothing from scripts or other YAML.
+`--check ${{ matrix.check }}` declares each check the job lists as a line `- { check: <name> }`. A step that runs `kaal-guard run --ci` declares every ci check: that is the form of Guard's own workflow, which you opt into with `init --ci`. A check no job declares is missing coverage: `init` and `verify` name the step to add, and Guard never runs it in CI on its own. A job declares `verify` with a step whose whole `run:` line is `kaal-guard verify`, with the same prefixes, optionally followed by `--config <dir>` and `--github`. Nothing else declares anything, and `verify` infers nothing from scripts or other YAML.
 
 Three claims stay apart:
 
