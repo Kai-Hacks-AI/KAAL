@@ -55,6 +55,9 @@ function jobs(text) {
   return found;
 }
 
+/** The consistency check's declared form: a step whose whole `run:` value runs kaal-guard verify. */
+const VERIFY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard verify(?: --github)?$/;
+
 /** The checks one job declares in Guard's declared form. */
 function declared(job) {
   const names = new Set();
@@ -67,19 +70,32 @@ function declared(job) {
 }
 
 /**
+ * Every declaration in Guard's declared form in .github/workflows, in file and job order: { name, job,
+ * file } for a check, and { name: "verify", verify: true, job, file } for the consistency check. The
+ * lifecycle reads these to recognize a repository's existing integration (F17); nothing else does.
+ */
+export function declarations(root) {
+  const dir = join(root, ".github", "workflows");
+  const files = existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
+  const found = [];
+  for (const file of files) {
+    for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
+      const at = { job: job.key, file: `.github/workflows/${file}` };
+      for (const name of declared(job)) found.push({ name, ...at });
+      if (job.lines.some((line) => VERIFY.test(line))) found.push({ name: "verify", verify: true, ...at });
+    }
+  }
+  return found;
+}
+
+/**
  * Which ci checks in the list a job in .github/workflows declares in Guard's declared form. This is
  * declared integration only: that GitHub ran the job is CI execution evidence, and that GitHub requires
  * it is repository governance; verify establishes neither. Returns { results }, one per ci check.
  */
 export function verify(root, list) {
-  const dir = join(root, ".github", "workflows");
-  const files = existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
   const where = new Map();
-  for (const file of files) {
-    for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
-      for (const name of declared(job)) if (!where.has(name)) where.set(name, `job ${job.key} in .github/workflows/${file}`);
-    }
-  }
+  for (const d of declarations(root)) if (!d.verify && !where.has(d.name)) where.set(d.name, `job ${d.job} in ${d.file}`);
   const ci = Object.keys(list.checks).filter((name) => list.checks[name].runs.includes("ci"));
   return {
     results: ci.map((name) =>

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // kaal-guard: runs a repository's own checks for its Git hook and its CI, with one meaning per check.
 import { resolve } from "node:path";
-import { annotations, summarize, verify } from "../lib/github.mjs";
+import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
 import { gitRoot, init, remove, upgrade } from "../lib/lifecycle.mjs";
 import { FACTS, findRoot, lines, readList, run, status } from "../lib/runner.mjs";
 
@@ -51,7 +51,7 @@ if (command in LIFECYCLE) {
   if (args.length) cannotJudge(`unknown option ${args[0]}`, USAGE);
   const root = gitRoot(process.cwd());
   if (!root) cannotJudge(`${command} needs a Git working tree`, "run it inside the repository");
-  const { lines, problem } = LIFECYCLE[command](root);
+  const { lines, problem } = LIFECYCLE[command](root, declarations(root));
   if (problem) cannotJudge(problem, "correct guard.json");
   for (const line of lines) console.log(line);
   process.exit(0);

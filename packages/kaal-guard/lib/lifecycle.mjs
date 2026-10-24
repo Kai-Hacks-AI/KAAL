@@ -27,21 +27,39 @@ const lf = (text) => text.replace(/\r\n/g, "\n");
  * The workflow for these ci checks: one matrix entry per check. With none, the check job is left as a
  * comment until guard.json lists one and upgrade rewrites the file.
  */
-export function workflow(checks) {
+export function workflow(checks, { verify = true } = {}) {
   const template = lf(readFileSync(join(TEMPLATES, "guard.yml"), "utf8"));
   const at = template.indexOf("\n  check:\n") + 1;
-  const [head, job] = [template.slice(0, at), template.slice(at)];
+  let [head, job] = [template.slice(0, at), template.slice(at)];
+  if (!verify) head = head.slice(0, head.indexOf("  guard:\n"));
   if (checks.length === 0) {
     return `${head}# guard.json lists no ci checks yet. List one, then run kaal-guard upgrade to give it this job.\n${job.replace(/^(?=.)/gm, "# ")}`;
   }
   return head + job.replace(/^( *)- \{ check: CHECK \}$/m, (_, indent) => checks.map((c) => `${indent}- { check: ${c} }`).join("\n"));
 }
 
-/** What each managed file holds in this version, given guard.json. */
-function contents(list) {
+/**
+ * The repository's own declarations, as the command reads them with verify's rule (F17): those in a
+ * workflow Guard manages are Guard's, not the repository's, and do not count.
+ */
+const theirs = (declared, managed) => declared.filter((d) => !managed[d.file]);
+
+/**
+ * What each managed file holds in this version, given guard.json and the repository's own declarations.
+ * The workflow carries jobs only for what they leave undeclared, and is absent when nothing remains.
+ */
+function contents(list, declared = []) {
   const ci = Object.keys(list.checks ?? {}).filter((n) => list.checks[n]?.runs?.includes?.("ci"));
-  return { [HOOK]: lf(readFileSync(join(TEMPLATES, "pre-push"), "utf8")), [WORKFLOW]: workflow(ci) };
+  const names = new Set(declared.map((d) => d.name));
+  const undeclared = ci.filter((n) => !names.has(n));
+  const verify = !declared.some((d) => d.verify);
+  const files = { [HOOK]: lf(readFileSync(join(TEMPLATES, "pre-push"), "utf8")) };
+  if (verify || undeclared.length) files[WORKFLOW] = workflow(undeclared, { verify });
+  return files;
 }
+
+/** The report of the repository's declarations that Guard executes and does not manage. */
+const executed = (declared) => declared.map((d) => `${d.name} in job ${d.job} of ${d.file}`);
 
 function git(root, ...args) {
   const r = spawnSync("git", args, { cwd: root, encoding: "utf8" });
@@ -206,15 +224,16 @@ const NOT_PROOF = [
  * Returns { lines } or { problem }. The lines say, apart, what Guard installed, what it left
  * untouched, and what the repository still has to do itself.
  */
-export function init(root) {
+export function init(root, declarations = []) {
   const read = readGuard(root);
   const { list, problem } = read;
   if (problem) return { problem };
   const managed = { ...(list.managed ?? {}) };
+  const declared = theirs(declarations, managed);
   const installed = [];
   const untouched = [];
   const todo = [];
-  for (const [path, text] of Object.entries(contents(list))) {
+  for (const [path, text] of Object.entries(contents(list, declared))) {
     if (managed[path]) untouched.push(`${path}: Guard installed it before; kaal-guard upgrade updates it`);
     else if (existsSync(join(root, path))) {
       untouched.push(`${path}: it was there before Guard`);
@@ -249,6 +268,7 @@ export function init(root) {
     lines: [
       ...section("installed by Guard:", installed),
       ...section("left untouched:", untouched),
+      ...(declared.length ? section("executed by Guard, not managed:", executed(declared)) : []),
       ...section("still to do in this repository:", todo),
       ...NOT_PROOF,
     ],
@@ -260,14 +280,17 @@ export function init(root) {
  * version manages that the repository lacks and guard.json does not record, only where no file exists
  * (F13). Adoption is not upgrade: where Guard manages nothing, it changes nothing. Returns { lines } or { problem }.
  */
-export function upgrade(root) {
+export function upgrade(root, declarations = []) {
   const read = readGuard(root);
   const { list, problem } = read;
   if (problem) return { problem };
   const managed = { ...(list.managed ?? {}) };
   if (!Object.keys(managed).length) return { lines: ["Guard manages nothing here; kaal-guard init installs it"] };
+  const declared = theirs(declarations, managed);
   const lines = [];
-  for (const [path, text] of Object.entries(contents(list))) {
+  const files = contents(list, declared);
+  if (managed[WORKFLOW] && !files[WORKFLOW]) lines.push(`kept ${WORKFLOW}: the repository's own workflows now declare everything it runs; delete it if it is no longer wanted`);
+  for (const [path, text] of Object.entries(files)) {
     const hash = managed[path];
     if (!hash) {
       if (existsSync(join(root, path))) lines.push(`left untouched ${path}: it is there and Guard did not write it`);
@@ -288,6 +311,7 @@ export function upgrade(root) {
     }
   }
   writeGuard(root, read, { managed });
+  if (declared.length) lines.push("executed by Guard, not managed:", ...executed(declared).map((l) => `  ${l}`));
   return { lines };
 }
 
