@@ -69,6 +69,13 @@ describe("kaal-core/agent", () => {
     assert.deepEqual(plan.keep.map((k) => k.path), [path]);
   });
 
+  it("finds the Description section only among headings outside fenced code", () => {
+    const fence = "```";
+    const source = Buffer.from(`---\nname: s\n---\n\n${fence}\n## Description\n${fence}\n\n## Description\n\nHandle this:\n\n${fence}md\n## Example\n${fence}\n\nThen go.\n\n## Steps\n\nGo.\n`);
+    const text = Buffer.from(renderSkill(source)).toString("utf8");
+    assert.ok(text.startsWith(`---\nname: "s"\ndescription: ${JSON.stringify(`Handle this:\n\n${fence}md\n## Example\n${fence}\n\nThen go.`)}\n---\n`), text);
+  });
+
   it("reports a target blocked by a file it must keep, and writes nothing beneath it", () => {
     const skill = { name: "s", files: { "SKILL.md": Buffer.from("---\nname: s\n---\n\n## Description\n\nD.\n"), "references/a.md": Buffer.from("A\n") } };
     const theirs = ".agents/skills/s/references";

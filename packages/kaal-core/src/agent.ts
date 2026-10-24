@@ -75,12 +75,30 @@ const byPath = <T extends { path: string }>(a: T, b: T) => (a.path < b.path ? -1
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
+/** Which lines of a Markdown body are headings: those outside fenced code blocks (``` or ~~~). */
+function headings(lines: string[]): boolean[] {
+  let fence: string | undefined;
+  return lines.map((line) => {
+    const open = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+    if (fence !== undefined) {
+      if (open && open[1][0] === fence[0] && open[1].length >= fence.length && line.trim() === open[1]) fence = undefined;
+      return false;
+    }
+    if (open) {
+      fence = open[1];
+      return false;
+    }
+    return /^#{1,6} /.test(line);
+  });
+}
+
 /** The canonical body's `## Description` section, as written, without its heading and surrounding blank lines. */
 function descriptionOf(body: string): string | undefined {
   const lines = body.split("\n");
-  const start = lines.findIndex((l) => l.trimEnd() === "## Description");
+  const heading = headings(lines);
+  const start = lines.findIndex((l, i) => heading[i] && l.trimEnd() === "## Description");
   if (start < 0) return undefined;
-  let end = lines.findIndex((l, i) => i > start && /^#{1,2} /.test(l));
+  let end = lines.findIndex((l, i) => i > start && heading[i] && /^#{1,2} /.test(l));
   if (end < 0) end = lines.length;
   const text = lines.slice(start + 1, end).join("\n").trim();
   return text === "" ? undefined : text;
