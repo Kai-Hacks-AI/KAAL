@@ -66,6 +66,8 @@ export interface Plan {
 
 /** A Skill's name, as Core registers one: lowercase letters, digits and single hyphens. */
 const SKILL = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+/** An instruction file, such as `AGENTS.md` or `CLAUDE.md`, which Core never writes, edits or removes (core/F20). */
+const isInstruction = (path: string) => /(^|\/)(AGENTS|CLAUDE)\.md$/i.test(path);
 /** A relative path written with `/`: no `\` or `:`, and no empty, `.` or `..` segment. */
 const isPath = (v: string) => !/[\\:]/.test(v) && v.split("/").every((s) => s !== "" && s !== "." && s !== "..");
 const has = (o: object, key: string) => Object.prototype.hasOwnProperty.call(o, key);
@@ -119,7 +121,10 @@ export function realize({ skills, providers, record, present }: RealizationInput
   for (const skill of skills) {
     if (!SKILL.test(skill.name) || names.has(skill.name)) throw new TypeError(`${skill.name} is not a Skill name, or names two Skills: lowercase letters, digits and single hyphens`);
     names.add(skill.name);
-    for (const path of Object.keys(skill.files)) if (!isPath(path)) throw new TypeError(`${skill.name}/${path} is not a path within the Skill`);
+    for (const path of Object.keys(skill.files)) {
+      if (!isPath(path)) throw new TypeError(`${skill.name}/${path} is not a path within the Skill`);
+      if (isInstruction(path)) throw new TypeError(`${skill.name}/${path} is an instruction file, which Core never writes (core/F20)`);
+    }
   }
   const wanted = new Map<string, Uint8Array>();
   for (const skill of [...skills].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
@@ -152,7 +157,8 @@ export function realize({ skills, providers, record, present }: RealizationInput
   }
   for (const path of Object.keys(record)) {
     if (wanted.has(path) || !has(present, path)) continue;
-    if (present[path] === record[path]) prune.push(path);
+    if (isInstruction(path)) keep.push({ path, reason: "an instruction file, which Core never removes" });
+    else if (present[path] === record[path]) prune.push(path);
     else {
       keep.push({ path, reason: "changed since Core deployed it, and no longer needed" });
       next[path] = record[path];

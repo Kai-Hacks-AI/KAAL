@@ -76,6 +76,12 @@ export function checkContract(contract: unknown): Finding[] {
         if (!isPath(target) || !owned) find(`catalogue.${target}`, "no asset");
         if (!Array.isArray(digests) || digests.length === 0 || !digests.every((d) => typeof d === "string" && SHA256.test(d))) find(`catalogue.${target}`, "sha256");
       }
+    // Every asset's published contents are catalogued: each file target, and at least one file of each directory.
+    if (isObject(c.catalogue)) {
+      const entries = Object.keys(c.catalogue);
+      for (const target of files) if (!entries.includes(target)) find(`catalogue.${target}`, "missing");
+      for (const dir of directories) if (!entries.some((e) => e.startsWith(`${dir}/`))) find(`catalogue.${dir}`, "missing");
+    }
   }
 
   if (has(c, "record") && !isPath(c.record)) find("record", "path");

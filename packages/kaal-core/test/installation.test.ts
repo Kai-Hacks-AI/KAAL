@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import { realize, renderSkill } from "kaal-core/agent";
-import { installationFormat } from "kaal-core/installation";
+import { checkContract, installationFormat } from "kaal-core/installation";
 import { evaluate, foundation, payload } from "kaal-core";
 
 const sha = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
@@ -20,6 +20,28 @@ describe("Installation Contract and Agent Realization Definitions", () => {
       assert.deepEqual(node?.type, foundation().definition, name);
     }
     assert.deepEqual(engine.rejected, []);
+  });
+});
+
+describe("kaal-core/installation", () => {
+  it("requires a catalogue entry for every file asset and for each directory asset", () => {
+    const contract = {
+      format: installationFormat(),
+      capability: "sample",
+      version: "0.0.2",
+      assets: [
+        { name: "hook", source: "assets/pre-push", target: ".githooks/pre-push", kind: "file" },
+        { name: "skill", source: "skills/sample", target: ".agents/skills/sample", kind: "directory" },
+      ],
+      catalogue: {},
+      record: ".kaal/state/sample/installation.json",
+      runtime: { node: 24 },
+      provides: [],
+    };
+    assert.deepEqual(checkContract(contract), [
+      { key: "catalogue..githooks/pre-push", rule: "missing" },
+      { key: "catalogue..agents/skills/sample", rule: "missing" },
+    ]);
   });
 });
 
@@ -40,9 +62,16 @@ describe("kaal-core/agent", () => {
     assert.throws(() => renderSkill(Buffer.from("---\nowner: x\n---\n\n## Description\n\nD.\n")), /name/);
   });
 
+  it("never prunes an instruction file, even one its record holds", () => {
+    const path = ".agents/skills/s/AGENTS.md";
+    const plan = realize({ skills: [], providers: [], record: { [path]: "a".repeat(64) }, present: { [path]: "a".repeat(64) } });
+    assert.deepEqual(plan.prune, []);
+    assert.deepEqual(plan.keep.map((k) => k.path), [path]);
+  });
+
   it("refuses a Skill name or file path that would place a deployment outside its Skill", () => {
     const files = { "SKILL.md": Buffer.from("---\nname: s\n---\n\n## Description\n\nD.\n") };
-    for (const skills of [[{ name: "../s", files }], [{ name: "s", files: { ...files, "../x.md": Buffer.from("x") } }], [{ name: "s", files }, { name: "s", files }]])
+    for (const skills of [[{ name: "s", files: { ...files, "AGENTS.md": Buffer.from("x") } }], [{ name: "s", files: { ...files, "docs/CLAUDE.md": Buffer.from("x") } }], [{ name: "../s", files }], [{ name: "s", files: { ...files, "../x.md": Buffer.from("x") } }], [{ name: "s", files }, { name: "s", files }]])
       assert.throws(() => realize({ skills, providers: [], record: {}, present: {} }), TypeError);
   });
 });
