@@ -246,6 +246,8 @@ A dotted edge is needed only for the Core-enriched part of a Change. Every Chang
 - **Checkpoint M**, after guard/C4d: guard/I5 is also met. Still a pause point.
 - **Completion**, after guard/C5 and guard/C6: guard/I1 to guard/I6 are all met, and every outer test is GREEN on all three OSes. Only this is done. Publication (R1) is a separate Owner decision.
 - A published version's Release is accepted only when its consumer acceptance (K6) is GREEN with `registry` evidence. Publishing alone is not acceptance.
+  - **First published `0.0.2`.** It is accepted on the tests feasible with `0.0.2` alone: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 (restated in `guard/C30`).
+  - **Cross-version upgrade acceptance.** guard/T65–guard/T68 need a second published version of the `0.0.2` line, so they are never a prerequisite for accepting the first `0.0.2`. Their `registry` evidence is part of the acceptance of the first version that has a published predecessor in the line.
 - Pausing at a checkpoint is the Owner's decision. While paused, the unmet outcomes are recorded as unmet.
 - A planned outer test that cannot pass without changing the boundary is a PLAN defect. It goes back to PLAN as a new PLAN Change.
 - A required check name or OS matrix entry on `main` never changes without the Owner.
