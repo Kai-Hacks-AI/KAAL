@@ -73,6 +73,28 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 F13–F15, F17 and F18 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces, as the hypotheses H1–H5 ([Testing](testing.md#consumer-upgrade)). It is not assumed here.
 
+**F19 Guard's Skill.** [I7] Guard has one Agent Skill, `kaal-guard`, that conforms to the Agent Skills standard. It is organized by BASS:
+- *Bare*: how to read a verdict line, its `do:` line and the check's own output, with no Skill needed;
+- *Agent*: how the repository's agent instruction files may point to the Skill;
+- *Skill*: the verdicts and what each asks of the resolver, how to reproduce a check with the same facts (`kaal-guard run --check <name>`), what belongs to the repository and what to Guard, and what never resolves a verdict (editing `guard.json` to silence a check, `--no-verify`, or changing a trusted checker in the candidate);
+- *Script*: none. A script is added only when a deterministic step justifies one, and never with a runtime or LLM dependency of its own.
+
+The Skill names no particular consumer and invents no consumer-specific fix.
+
+**F20 Diagnostic content.** [I1, I7] The Skill and the consumer docs recommend what a consumer's failing Test Case prints: the contract it checks, what was expected, what was observed, the evidence, and the next action or the command that reproduces it. This is guidance for people and agents, not a format. Guard parses none of it, and a check that ignores it loses nothing.
+
+**F21 Reminder.** [I7, N4] After the verdict lines of a run that has a fail or cannot judge, Guard adds one line naming the Skill's location, as a path that exists in the repository. In CI it also adds that line to the fail and cannot-judge annotations and to the step summary. A run of only pass, not applicable or held adds nothing. Where no Skill is found, the line says so and names the package's copy of it.
+
+**F22 Unchanged verdicts.** [I1, I2] Adding I7 changes no exit status, no verdict and no verdict line, and it does not change how a check's own stdout and stderr reach the terminal or the log.
+
+**F23 Embed installation.** [I5, I7] The package carries the Skill's source. `init` installs it into each supported discovery location (N10) under F8's rules: only where no file exists, recorded file by file under `managed`, with a pre-existing or modified file kept and reported. `upgrade` moves unmodified Skill files forward, and it installs Skill files a consumer lacks (F13). `remove` deletes only unmodified Skill files and the directories it leaves empty. A path inside the package alone does not meet F23.
+
+**F24 Discovery.** [I7] At each supported location, the installed Skill is a directory named `kaal-guard` holding a `SKILL.md` whose `name` is `kaal-guard`, as each supplier documents its discovery. Whether a given agent then loads it is that agent's behaviour, and it is observed, not asserted (N9).
+
+**F25 External delivery.** [I6, I7] An External delivery puts its own variant of the Skill in the target's supported discovery locations, as part of the same Change. That variant describes the delivered hook and runner, not the package, and names no KAAL element and no npm package. The target owns it afterwards. A later update is a new External Change. A Skill already at a location is kept and reported.
+
+**F26 Agent instruction files.** [I1, I7] Guard never creates or edits `AGENTS.md` or any supplier's agent instruction file. Where such a file exists, `init` and an External delivery report the one line to add that points to the Skill.
+
 ## Nonfunctional (N)
 
 - **N1** [I4, I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node LTS.
@@ -84,3 +106,5 @@ F13–F15, F17 and F18 state obligations the published lifecycle may not meet. W
 - **N7** [I4] Adopting Guard in KAAL keeps every check identity, OS matrix entry and the coverage of KAAL's existing CI.
 - **N8** [I4, I5] KAAL's development dependency stays `file:packages/kaal-guard`, and KAAL's hook, workflows and `guard.json` stay KAAL's own. A published version is accepted as a consumer would use it only in a disposable clone of KAAL (A12), never by switching KAAL's own dependency.
 - **N9** [I5] Consumer acceptance evidence names its candidate's source: `packed`, the package at a commit before publication, which is simulated; or `registry`, the published version with its registry integrity. Only `registry` evidence counts toward a Release. Neither claims anything about KAAL's real GitHub enforcement.
+- **N10** [I7] The supported Skill discovery locations are `.claude/skills/kaal-guard/` and `.agents/skills/kaal-guard/`. Claude Code reads the first ([docs](https://code.claude.com/docs/en/skills)), Codex reads the second ([docs](https://learn.chatgpt.com/docs/build-skills)), and GitHub Copilot reads either ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)). KAAL has no placement convention of its own: its Agent Skills assume no host, and #258 has not yet deployed any. This set is the Owner's decision, and changing it is a PLAN Change.
+- **N11** [I7] The Skill adds no runtime dependency. Guard needs no network and no LLM to install it, name it or report it.

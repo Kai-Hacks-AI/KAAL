@@ -59,6 +59,19 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T43 (H4): `init` in the clone adds no workflow job that duplicates one of KAAL's, and none named like an existing job, and reports KAAL's integration as executed but not managed | I5, F17 | Requirements | Engineering |
 | T44 (H5): `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it | I1, F18 | Requirements | Engineering |
 
+| T45: the packed package carries `skills/kaal-guard/SKILL.md`, named `kaal-guard`, with BASS sections and no script, and names no consumer | F19, A13, N11 | Requirements | package |
+| T46: `kaal-engineer-skill` finds no standard or KAAL violation in the Embed Skill or the External variant | F19, A13, A16 | Architecture | Engineering |
+| T47: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path | F21, F22 | Requirements | package |
+| T48: a run of only pass, not applicable or held adds no reminder | F21 | Requirements | package |
+| T49: with `--github`, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not | F21, A15 | Architecture | package |
+| T50: `init` in a fresh repository installs the Skill at both N10 locations, records every file under `managed`, and each file equals the package's | F23, F24, N10 | Requirements | package |
+| T51: `init` keeps a pre-existing `.claude/skills/kaal-guard/SKILL.md`, reports it, and still installs the other location | F23, F8 | Requirements | package |
+| T52: `upgrade` moves unmodified Skill files forward and keeps a modified one; `remove` deletes only unmodified Skill files and leaves other skills in `.claude/skills/` | F23, F12 | Requirements | package |
+| T53: at each N10 location, the Skill directory is named `kaal-guard` and its `SKILL.md` names `kaal-guard` | F24, N10 | Requirements | package |
+| T54: `init` creates and edits no agent instruction file, and with an `AGENTS.md` present it reports the line to add | F26 | Requirements | package |
+| T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at both locations | I5, F13, F23, A12 | Requirements | Engineering |
+| T56: an External delivery includes the Skill variant at both locations, naming neither KAAL nor npm; its hook's reminder names the delivered path; a target's existing Skill is kept and reported | I6, F25, F26, A16 | Requirements | Engineering |
+
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
 ## RED evidence
@@ -107,6 +120,10 @@ Recorded in K2b, against a `packed` candidate of the package at `kaal/guard` 167
 This evidence is bounded:
 - The `packed` candidate carries the same version and templates as `0.0.1`. T37 and T41 therefore show that the consumer's files are kept and that versions can be switched back and forth. They do not yet show an asset's content moving between versions; that needs a candidate whose templates differ.
 - It is simulated (N9). It was recorded on one OS, and it says nothing about KAAL's real GitHub enforcement.
+
+## Agent guidance
+
+T45–T56 are planned in B1. They are written as a PLAN Change of their own (B2) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. Discovery evidence is bounded: T50, T53 and T56 show placement as each supplier documents it. That a given agent loads the Skill is observed by hand per supplier, and the observation is labelled as such (N9).
 
 ## Integrity of the outer contract
 

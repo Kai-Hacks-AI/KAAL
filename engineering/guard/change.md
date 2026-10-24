@@ -42,6 +42,21 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 | **K5** Publish | — | `0.0.2` through the Guard Release workflow, only with the Owner's authorization and only carrying a K3 Change. | The registry tarball equals the workflow's packed artifact. |
 | **K6** Release acceptance | I5 | T36–T44 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
 
+### Agent guidance
+
+I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1.
+
+| Change | Carries | Scope | Depends on |
+| --- | --- | --- | --- |
+| **B1** PLAN | I7 | I7, F19–F26, N10–N11, A13–A16 and the planned tests T45–T56. No code and no test file. | — |
+| **B2** Tests | I7 | T45–T56, as a PLAN Change inside the acceptance boundary, with their expected RED recorded. | B1 |
+| **B3** Skill | I7 | The Embed Skill source at `skills/kaal-guard/` and its packaging. T45 and T46 turn GREEN. | B2 |
+| **B4** Reminder | I7 | The reminder line, the annotations and the summary. T47–T49 turn GREEN. | B3 |
+| **B5** Placement | I5, I7 | The lifecycle installs, upgrades and removes the Skill. T50–T54 turn GREEN, and T55 with a `packed` candidate. | B3, K3a, K3b |
+| **B6** External | I6, I7 | The External Skill variant and its delivery. T56 and T46 for the variant turn GREEN. | B2 |
+
+Publication of `0.0.2` stays K5's, with the Owner's authorization, and its acceptance stays K6's, which then includes T55 with `registry` evidence. KAAL itself stays an executor (A11). Its hook and CI remind with the package's copy of the Skill, and no Skill is installed into KAAL unless the Owner decides otherwise.
+
 C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alone (Change Isolation): C3c's jobs need the command C3a installs and the checks C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in C4c, which travels alone, and T35 turns GREEN there. C4 lands as four Changes for the same reasons: `verify` (C4a) comes before the job that runs it (C4c), the lifecycle (C4b) is the largest piece and is reviewed on its own, and the docs (C4d) describe what C4a and C4b ship.
 
 ## Stopping conditions
