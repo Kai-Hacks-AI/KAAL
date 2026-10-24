@@ -63,6 +63,8 @@ The frontmatter is a strict subset of YAML that Guard reads itself: one `key: va
 
 `kaal-guard` reads the directory `--config <dir>` names, or else `.kaal/config/guard/` at the repository's top level, from any directory inside it. Only the `.md` files directly in it are declarations, taken in name order. Where there is none, every command but `init`, `upgrade` and `remove` is cannot judge and says to run `kaal-guard init`.
 
+**Limitation: `Guard/Check` is not registered.** `type: Guard/Check` names the type Guard owns, and Guard's own validation above decides whether a declaration is valid; it always runs and is always required. KAAL Core has no registration machinery yet, so `Guard/Check` is *unregistered*: no Core verification has resolved the type or checked the declaration beyond Guard. That is not a defect in your declarations, and it does not make them globally verified. Once registration exists, Core can resolve and check them afterwards without changing them or how Guard runs them.
+
 A `guard.json` from `0.0.1` is refused, with the steps to set Guard up afresh: remove what `0.0.1` installed, declare each of its checks as a file, delete `guard.json` and run `kaal-guard init`.
 
 ## Verdicts
