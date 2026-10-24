@@ -24,7 +24,7 @@ outcomes: {4: held}
 Checks that a pull request lands on the lineage its base allows. When it is held, wait for the promotion it names.
 ```
 
-The file follows Core's deterministic-frontmatter contract (`core/C5`): typed values only, a schema per artifact kind, undefined members refused, and no meaning taken from the body. Guard's schema for this kind is the members above. Guard parses the frontmatter itself, with no dependency, as a strict subset of YAML:
+The file follows Core's deterministic-frontmatter contract (`core/C5`): typed values only, a schema per Type, undefined members refused, and no meaning taken from the body. Guard's schema for `Guard/Check` is the members above. Guard parses the frontmatter itself, with no dependency, as a strict subset of YAML:
 - `key: value` lines;
 - plain or double-quoted strings, and integers;
 - flow lists such as `[a, b]`;
