@@ -47,7 +47,7 @@ Anything else is refused (guard/F18). Guard conforms to `core/C5` without depend
 
 **guard/F6 Narrow adapters.** [guard/I3] The hook and the workflow jobs pass facts and act only on verdicts.
 
-**guard/F7 Trusted checker.** [guard/I1, guard/I2] A check can name a `trusted` file or directory. The runner then takes exactly those files as the target revision (`base`) holds them, never the candidate's version, and runs them in place of the candidate's, so a candidate cannot certify itself.
+**guard/F7 Trusted checker.** [guard/I1, guard/I2] A check can name a `trusted` file or directory. The runner then takes exactly those files as the target revision (`base`) holds them, never the candidate's version, and runs them in place of the candidate's, so a candidate cannot certify itself. Each base copy keeps the file mode the base records: a file Git records as executable (`100755`) is executable, so a check whose command is the checker itself, such as `./checker.sh`, runs as it does in a checkout. Where the host has no executable bit (Windows), the mode has no effect and the obligation is met by writing the bytes (restated in `guard/C40`).
 - Guard establishes Git provenance only. The verdict's evidence names the base commit that supplied the checker's files.
 - What the checker imports from elsewhere, its interpreter and its environment are outside Guard's guarantee. They belong to the environment the check runs in.
 - When the base or the designated files on it cannot be obtained, or no word of the command names the trusted path, the check is cannot judge.
