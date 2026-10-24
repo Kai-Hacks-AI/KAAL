@@ -70,7 +70,7 @@ C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alon
 
 ## Change identities
 
-A Change's durable identity is `<capability>/C<number>`, numbered by its owning Capability. Guard's Changes up to `guard/C6` keep their labels. Guard's numbers from `guard/C7` on are allocated here: no Guard Change in the repository uses them. The earlier labels R1, K1–K6 and B1–B7 remain only as aliases. Core and Engineering allocate their own numbers, so theirs are shown as pending until they do. A planned Change is not a pull request: the PR column shows only pull requests that exist.
+A Change's durable identity is `<capability>/C<number>`, numbered by its owning Capability. Guard's Changes up to `guard/C6` keep their labels. Guard's numbers from `guard/C7` on are allocated here: no Guard Change in the repository uses them. The earlier labels R1, K1–K6 and B1–B7 remain only as aliases. Core and Engineering allocate their own numbers: Core allocated `core/C3` and `core/C4`, provisional until each merges, and Engineering's are pending. A planned Change is not a pull request: the PR column shows only pull requests that exist.
 
 | Change | Alias | Owner | Scope | Depends on | Pull request |
 | --- | --- | --- | --- | --- | --- |
@@ -83,17 +83,17 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C11` | K3d | Guard | D2 (T39): per-asset writer provenance | `guard/C8` | not created |
 | `guard/C12` | B1 | Guard | This PLAN: I7, F19–F27, N1, N10–N12, A13–A17, T45–T59. No code and no test file | — | #335, open |
 | `guard/C13` | B2 | Guard | T45–T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | not created |
-| `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; T45, T46, T58 | `guard/C13`, Core's contract PLAN | not created |
+| `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; T45, T46, T58 | `guard/C13`, `core/C3` | not created |
 | `guard/C15` | B4 | Guard | The reminder; T47–T49 | `guard/C14` | not created |
 | `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; T50–T55, T57, T59 | `guard/C14`, `guard/C8`, `guard/C9`, `guard/C11` | not created |
-| `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; T56 | `guard/C14`; Core's realization for Core's part | not created |
+| `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; T56 | `guard/C14`; `core/C4` for Core's part | not created |
 | `guard/C18` | K4 | Guard | A non-required job running A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance: T36–T44 and T55 with `registry` evidence | `guard/C19` | not created |
-| `core/C…` (pending) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T…`), and Agent Realization | — | not created |
-| `core/C…` (pending) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | Core's PLAN | not created |
-| `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, Core's PLAN; `guard/C16` and Core's realization for the second part | not created |
-| `engineering/C…` (pending) | A2 | Engineering | KAAL realizes its own Skills through Core (#258) | Core's realization | not created |
+| `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
+| `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3` | not created |
+| `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
+| `engineering/C…` (pending) | A2 | Engineering | KAAL realizes its own Skills through Core (#258) | `core/C4` | not created |
 
 ```mermaid
 graph LR
@@ -103,14 +103,14 @@ graph LR
   C8 --> C11[guard/C11 D2]
   C12[guard/C12 B1 PLAN] --> C13[guard/C13 tests]
   C13 --> C14[guard/C14 Skill and contract]
-  CP[core PLAN] --> C14
+  CP[core/C3 PLAN] --> C14
   C14 --> C15[guard/C15 reminder]
   C14 --> C16[guard/C16 standalone lifecycle]
   C8 --> C16
   C9 --> C16
   C11 --> C16
   C14 --> C17[guard/C17 External]
-  CP --> CR[core realization]
+  CP --> CR[core/C4 realization]
   CR -.-> C17
   C14 --> EC[engineering conformance]
   CP --> EC

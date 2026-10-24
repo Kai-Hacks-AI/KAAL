@@ -105,7 +105,7 @@ Which way a given supplier uses is observed, not asserted (N9).
 - the runtime prerequisite, Node 24 or later;
 - the provider requirement: an agent resolving a failing verdict reaches the Skill named `kaal-guard`. The canonical deployment and the reminder meet it, and the contract names no other supplier location.
 
-The contract is an instance of Core's Installation Contract: Core owns that Definition, its schema and its outer conformance Test Cases (`core/T…`, allocated in Core's PLAN). Guard owns its instance, versioned with the package, and the implementation that realizes it. Guard's standalone lifecycle realizes exactly this instance. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse. Conformance is verified at engineering time (N12), so the package gains no dependency.
+The contract is an instance of Core's Installation Contract: Core owns that Definition, its schema and its outer conformance Test Cases (`core/T1`…, defined in `core/C3`). Guard owns its instance, versioned with the package, and the implementation that realizes it. Guard's standalone lifecycle realizes exactly this instance. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse. Conformance is verified at engineering time (N12), so the package gains no dependency.
 
 ## Nonfunctional (N)
 
