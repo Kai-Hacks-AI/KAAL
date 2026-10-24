@@ -87,8 +87,8 @@ describe("KAAL's own checks run through Guard", () => {
     }
   });
 
-  it("guard/T5 [guard/I4]: the pre-push hook runs the local checks through Guard", () => {
-    assert.match(read(".githooks/pre-push"), /kaal-guard run --local/);
+  it("guard/T5 [guard/I4]: the pre-push hook runs the hook checks through Guard", () => {
+    assert.match(read(".githooks/pre-push"), /kaal-guard run --hook/);
   });
 
   it("guard/T34 [guard/A11]: every Guard-run job keeps its name and runs its check through Guard", () => {
