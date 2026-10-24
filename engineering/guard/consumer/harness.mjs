@@ -27,10 +27,15 @@ function scratch(prefix) {
   return d;
 }
 
-// Git sees no system or user configuration, so a developer's settings cannot change a verdict. npm
-// keeps the environment it has, since registry access depends on it.
-const GIT_ENV = { GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: join(tmpdir(), "kaal-a12-empty-gitconfig") };
+// Git sees no system or user configuration, so a developer's settings cannot change a verdict. Each
+// execution of the harness has its own empty global configuration, in its own scratch directory, so
+// concurrent runs share nothing, and it is removed with the rest at exit. npm keeps the environment
+// it has, since registry access depends on it.
+const GIT_ENV = { GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: join(scratch("kaal-a12-run-"), "gitconfig") };
 writeFileSync(GIT_ENV.GIT_CONFIG_GLOBAL, "");
+
+/** This execution's own empty global Git configuration. */
+export const gitConfig = () => GIT_ENV.GIT_CONFIG_GLOBAL;
 
 function exec(cwd, file, args, env = {}) {
   const r = spawnSync(file, args, { cwd, env: { ...process.env, ...GIT_ENV, ...env }, encoding: "utf8", shell: process.platform === "win32" && file === "npm" });
