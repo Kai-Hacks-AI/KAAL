@@ -1,108 +1,87 @@
-// The lifecycle: init, upgrade and remove. It owns exactly the files it records in guard.json under
-// `managed`, each with its SHA-256, and the core.hooksPath it records under `config` when it set it.
-// Nothing else in a repository is its own: a file it did not write, or one changed since, is reported
-// and left in place. It reads the adapter templates as files and never imports them.
-import { spawnSync } from "node:child_process";
+// The lifecycle: init, upgrade and remove, realizing the package's installation contract (contract.json).
+// It owns exactly the assets the installation record registers (state.mjs), each only while its SHA-256
+// is the registered one, and the core.hooksPath its checkout state records. A file at a managed path that
+// the record does not register is not Guard's, even with Guard's bytes: it is reported and left alone.
+// It writes only content the contract's catalogue holds, and reads the adapter templates as files, never
+// importing them.
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { shown } from "./config.mjs";
+import { deleteState, git, prune, writeRecord, writeState } from "./state.mjs";
 
-const TEMPLATES = resolve(dirname(fileURLToPath(import.meta.url)), "../templates");
-const HOOK = ".githooks/pre-push";
-const WORKFLOW = ".github/workflows/guard.yml";
-const HOOKS_PATH = ".githooks";
+const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+/** The installation contract this version realizes, and this version. */
+export const CONTRACT = JSON.parse(readFileSync(join(PACKAGE, "contract.json"), "utf8"));
+export const VERSION = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).version;
+
+const asset = (role) => CONTRACT.assets.find((a) => a.role === role);
+const HOOK = asset("hook").path;
+const WORKFLOW = asset("workflow").path;
+const HOOKS_PATH = dirname(HOOK);
 
 /** The line a pre-existing hook adds to run Guard's own: it runs kaal-guard run --local with the push's facts. */
-const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1`;
+const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/${CONTRACT.assets.find((a) => a.role === "hook").sources.hook} "$@" || exit 1`;
 const ADD_HOOK_LINE = [
   `  ${HOOK_LINE}`,
   "  It runs kaal-guard run --local with the push's facts, reading the push's lines on standard input.",
 ];
 
-const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const lf = (text) => text.replace(/\r\n/g, "\n");
 
-/**
- * The workflow for these ci checks: one matrix entry per check. With none, the check job is left as a
- * comment until guard.json lists one and upgrade rewrites the file.
- */
-export function workflow(checks, { verify = true } = {}) {
-  const template = lf(readFileSync(join(TEMPLATES, "guard.yml"), "utf8"));
-  const at = template.indexOf("\n  check:\n") + 1;
-  let [head, job] = [template.slice(0, at), template.slice(at)];
-  if (!verify) head = head.slice(0, head.indexOf("  guard:\n"));
-  if (checks.length === 0) {
-    return `${head}# guard.json lists no ci checks yet. List one, then run kaal-guard upgrade to give it this job.\n${job.replace(/^(?=.)/gm, "# ")}`;
-  }
-  return head + job.replace(/^( *)- \{ check: CHECK \}$/m, (_, indent) => checks.map((c) => `${indent}- { check: ${c} }`).join("\n"));
+/** Every content this version installs, by asset path and source name. */
+export function sources() {
+  return Object.fromEntries(CONTRACT.assets.map((a) => [a.path, Object.fromEntries(Object.entries(a.sources).map(([name, file]) => [name, lf(readFileSync(join(PACKAGE, file), "utf8"))]))]));
 }
 
 /**
- * The repository's own declarations, as the command reads them with verify's rule (F17): those in a
- * workflow Guard manages are Guard's, not the repository's, and do not count.
+ * The repository's own declarations, read with verify's rule (F17): those in a file the record registers
+ * are Guard's, not the repository's, and do not count.
  */
-const theirs = (declared, managed) => declared.filter((d) => !managed[d.file]);
+const theirs = (declared, assets) => declared.filter((d) => !assets[d.file]);
 
 /**
- * What each managed file holds in this version, given guard.json and the repository's own declarations.
- * The workflow carries jobs only for what they leave undeclared, and is absent when nothing remains.
+ * What each asset holds for this repository: the hook always; the workflow with Guard's verify job unless
+ * another workflow declares verify, without it while a ci check is left that no job of the repository
+ * runs, and not at all when nothing is left (F17).
  */
-function contents(list, declared = []) {
-  const ci = Object.keys(list.checks ?? {}).filter((n) => list.checks[n]?.runs?.includes?.("ci"));
-  const names = new Set(declared.map((d) => d.name));
-  const undeclared = ci.filter((n) => !names.has(n));
-  const verify = !declared.some((d) => d.verify);
-  const files = { [HOOK]: lf(readFileSync(join(TEMPLATES, "pre-push"), "utf8")) };
-  if (verify || undeclared.length) files[WORKFLOW] = workflow(undeclared, { verify });
+function wanted(list, declared) {
+  const all = sources();
+  const names = new Set(declared.filter((d) => !d.verify && !d.rest).map((d) => d.name));
+  const rest = declared.some((d) => d.rest);
+  const left = !rest && Object.keys(list.checks).some((n) => list.checks[n].runs.includes("ci") && !names.has(n));
+  const verify = declared.some((d) => d.verify);
+  const files = { [HOOK]: all[HOOK].hook };
+  if (!verify) files[WORKFLOW] = all[WORKFLOW]["with verify"];
+  else if (left) files[WORKFLOW] = all[WORKFLOW]["without verify"];
   return files;
 }
 
-/** The report of the repository's declarations that Guard executes and does not manage. */
-const executed = (declared) => declared.map((d) => `${d.name} in job ${d.job} of ${d.file}`);
-
-function git(root, ...args) {
-  const r = spawnSync("git", args, { cwd: root, encoding: "utf8" });
-  return { status: r.status, out: (r.stdout ?? "").trim() };
-}
-
-/** The repository's top-level directory, or undefined outside a Git working tree. */
-export function gitRoot(start) {
-  const r = git(start, "rev-parse", "--show-toplevel");
-  return r.status === 0 && r.out ? resolve(r.out) : undefined;
-}
-
-/** guard.json as an object, a fresh one when there is none, or { problem }. */
-function readGuard(root) {
-  const path = join(root, "guard.json");
-  if (!existsSync(path)) return { list: { checks: {} } };
-  try {
-    const list = JSON.parse(readFileSync(path, "utf8"));
-    if (!list || typeof list !== "object" || Array.isArray(list)) return { problem: "guard.json is not an object" };
-    return { list };
-  } catch (e) {
-    return { problem: `guard.json cannot be read: ${e.message}` };
-  }
-}
-
-function writeGuard(root, list) {
-  writeFileSync(join(root, "guard.json"), JSON.stringify(list, null, 2) + "\n");
-}
-
-function writeManaged(root, path, text) {
+/** Writes catalogued content where no file is, and returns its registration. Throws when the catalogue lacks it. */
+function install(root, path, text) {
+  const hash = sha256(Buffer.from(text));
+  if (!(CONTRACT.catalogue[path] ?? []).includes(hash)) throw new Error(`kaal-guard ${VERSION} would write ${path} with content its catalogue does not hold; the package is inconsistent`);
   mkdirSync(dirname(join(root, path)), { recursive: true });
   writeFileSync(join(root, path), text);
-  if (path === HOOK) chmodSync(join(root, path), 0o755);
-  return sha256(Buffer.from(text));
+  const mode = CONTRACT.assets.find((a) => a.path === path)?.mode;
+  if (mode) chmodSync(join(root, path), parseInt(mode, 8));
+  return { sha256: hash, version: VERSION };
 }
 
-/** True when the managed file is as Guard wrote it. */
-const unmodified = (root, path, hash) => existsSync(join(root, path)) && sha256(readFileSync(join(root, path))) === hash;
+/** The registered asset as it is now: "unmodified", "modified" or "missing". */
+function condition(root, path, entry) {
+  if (!existsSync(join(root, path))) return "missing";
+  return sha256(readFileSync(join(root, path))) === entry.sha256 ? "unmodified" : "modified";
+}
 
-const local = (root) => {
-  const r = git(root, "config", "--local", "--get", "core.hooksPath");
-  return r.status === 0 ? r.out : "";
-};
+/** core.hooksPath in every Git configuration scope, as [scope, value] pairs. */
+function hooksPaths(root) {
+  const r = git(root, "config", "--show-scope", "--get-all", "core.hooksPath");
+  return r.status === 0 ? r.out.split(/\r?\n/).filter(Boolean).map((l) => l.split(/\t/)) : [];
+}
 
 /** Git's default hooks directory, where hooks run while core.hooksPath is unset, as Git names it from the root. */
 const hooksDir = (root) => (git(root, "rev-parse", "--git-path", "hooks").out || ".git/hooks").split("\\").join("/");
@@ -119,121 +98,147 @@ const NOT_PROOF = [
   "kaal-guard verify shows declared integration only; that CI ran a check is its job's evidence, and that a merge requires it is the repository's branch protection.",
 ];
 
+const section = (title, items) => [title, ...(items.length ? items : ["nothing"]).map((i) => `  ${i}`)];
+
+/** The report of the repository's declarations that Guard executes and does not manage. */
+const executed = (declared) => declared.map((d) => (d.rest ? `every ci check no job names, in job ${d.job} of ${d.file}` : `${d.name} in job ${d.job} of ${d.file}`));
+
 /**
- * Writes the hook and the workflow where none exists. Sets core.hooksPath only where it is unset, the
- * hook there is Guard's own, and Git runs no hooks of the repository's own that setting it would turn off.
- * Returns { lines } or { problem }. The lines say, apart, what Guard installed, what it left
- * untouched, and what the repository still has to do itself.
+ * Creates the configuration directory where it is missing, writes each wanted asset where no file
+ * exists, and sets core.hooksPath only where it is unset in every scope, the hook there is Guard's
+ * registered one, and Git runs no hooks of the repository's own that setting it would turn off. The
+ * context is what the command read and validated: { dir, list, record, state, at, declared }.
+ * Returns { lines }: what Guard installed, what it left untouched, and what is still to do.
  */
-export function init(root, declarations = []) {
-  const { list, problem } = readGuard(root);
-  if (problem) return { problem };
-  const managed = { ...(list.managed ?? {}) };
-  const declared = theirs(declarations, managed);
+export function init(root, { dir, list, record, state, at, declared }) {
+  const assets = { ...record };
+  const own = theirs(declared, assets);
   const installed = [];
   const untouched = [];
   const todo = [];
-  for (const [path, text] of Object.entries(contents(list, declared))) {
-    if (managed[path]) untouched.push(`${path}: Guard installed it before; kaal-guard upgrade updates it`);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+    installed.push(`${shown(root, dir)}/, where each check is declared as <name>.md`);
+    todo.push(`Declare each check as ${shown(root, dir)}/<name>.md, with type: Guard/Check, command and runs in its frontmatter; see the package's README.`);
+  }
+  const files = wanted(list, own);
+  if (!files[WORKFLOW] && !assets[WORKFLOW]) untouched.push(`${WORKFLOW}: not installed; the repository's own workflows declare every ci check and verify`);
+  for (const [path, text] of Object.entries(files)) {
+    if (assets[path]) untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
     else if (existsSync(join(root, path))) {
-      untouched.push(`${path}: it was there before Guard`);
+      untouched.push(`${path}: it was there before Guard, so it is not Guard's`);
       if (path === HOOK) todo.push(`To run Guard's local checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
       else todo.push(`For each ci check, give a job in ${path} or another workflow the step "- run: npx --no kaal-guard run --check <name> --github", then run kaal-guard verify.`);
     } else {
-      managed[path] = writeManaged(root, path, text);
+      assets[path] = install(root, path, text);
       installed.push(path);
     }
   }
-  const config = { ...(list.config ?? {}) };
-  const current = local(root);
-  const own = ownHooks(root);
-  if (!current && !managed[HOOK]) {
+  const set = hooksPaths(root);
+  const ours = assets[HOOK] && condition(root, HOOK, assets[HOOK]) === "unmodified";
+  const hooks = ownHooks(root);
+  if (set.length) {
+    const [scope, value] = set[set.length - 1];
+    const guards = state && state.scope === scope && state["core.hooksPath"] === value;
+    untouched.push(`core.hooksPath = ${value} in the ${scope} configuration${guards ? ": Guard set it" : ": Guard did not set it, and leaves it"}`);
+    if (value !== HOOKS_PATH || !ours) todo.push(`To run Guard's local checks, add this line to ${value}/pre-push:`, ...ADD_HOOK_LINE);
+  } else if (!ours) {
     untouched.push(`core.hooksPath: unset; Guard sets it only to run a ${HOOK} it installed`);
     todo.push(`Once ${HOOK} runs Guard's line, enable it with: git config core.hooksPath ${HOOKS_PATH}`);
-  } else if (!current && own.length) {
-    untouched.push(`core.hooksPath: unset, so Git runs ${own.join(", ")} from ${hooksDir(root)}; setting it would turn them off`);
+  } else if (hooks.length) {
+    untouched.push(`core.hooksPath: unset, so Git runs ${hooks.join(", ")} from ${hooksDir(root)}; setting it would turn them off`);
     todo.push(`To run Guard's local checks, add this line to ${hooksDir(root)}/pre-push, or move those hooks to ${HOOKS_PATH} and run git config core.hooksPath ${HOOKS_PATH}:`, ...ADD_HOOK_LINE);
-  } else if (!current) {
-    if (git(root, "config", "--local", "core.hooksPath", HOOKS_PATH).status !== 0) return { problem: "git config core.hooksPath could not be set" };
-    config["core.hooksPath"] = HOOKS_PATH;
-    installed.push(`core.hooksPath = ${HOOKS_PATH}`);
-  } else if (current !== HOOKS_PATH) {
-    untouched.push(`core.hooksPath = ${current}: Guard did not set it, so Git does not run ${HOOK}`);
-    todo.push(`To run Guard's local checks, add this line to ${current}/pre-push:`, ...ADD_HOOK_LINE);
+  } else {
+    if (git(root, "config", `--${at.scope}`, "core.hooksPath", HOOKS_PATH).status !== 0) throw new Error(`git config --${at.scope} core.hooksPath could not be set`);
+    writeState(at, HOOKS_PATH);
+    installed.push(`core.hooksPath = ${HOOKS_PATH} in the ${at.scope} configuration`);
   }
   todo.push("If a merge should depend on Guard's jobs, make them required checks in branch protection.");
-  writeGuard(root, { ...list, checks: list.checks ?? {}, managed, ...(Object.keys(config).length ? { config } : {}) });
-  const section = (title, items) => (items.length ? [title, ...items.map((i) => `  ${i}`)] : [title, "  nothing"]);
+  writeRecord(root, assets);
   return {
     lines: [
       ...section("installed by Guard:", installed),
       ...section("left untouched:", untouched),
-      ...(declared.length ? section("executed by Guard, not managed:", executed(declared)) : []),
+      ...(own.length ? section("executed by Guard, not managed:", executed(own)) : []),
       ...section("still to do in this repository:", todo),
       ...NOT_PROOF,
     ],
   };
 }
 
-/** Rewrites each managed file that is unmodified to this version's content. Returns { lines } or { problem }. */
-export function upgrade(root, declarations = []) {
-  const { list, problem } = readGuard(root);
-  if (problem) return { problem };
-  const managed = { ...(list.managed ?? {}) };
-  const declared = theirs(declarations, managed);
+/**
+ * Moves each registered, unmodified asset to this version's content and registers this version for it;
+ * installs a wanted asset the repository does not have (F13); reports and keeps everything else.
+ * Returns { lines }, one per managed path.
+ */
+export function upgrade(root, { list, record, declared }) {
+  const assets = { ...record };
+  const own = theirs(declared, assets);
+  const files = wanted(list, own);
   const lines = [];
-  const files = contents(list, declared);
-  if (managed[WORKFLOW] && !files[WORKFLOW]) lines.push(`kept ${WORKFLOW}: the repository's own workflows now declare everything it runs; delete it if it is no longer wanted`);
-  for (const [path, text] of Object.entries(files)) {
-    const hash = managed[path];
-    if (!hash) continue;
-    if (!unmodified(root, path, hash)) {
-      lines.push(`kept ${path}: changed since Guard wrote it, so it is yours now; Guard no longer updates it`);
+  for (const { path } of CONTRACT.assets) {
+    const entry = assets[path];
+    const text = files[path];
+    if (!entry) {
+      if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
+      else if (text !== undefined) {
+        assets[path] = install(root, path, text);
+        lines.push(`installed ${path}: ${VERSION}; the repository did not have it`);
+      }
       continue;
     }
-    if (sha256(Buffer.from(text)) === hash) lines.push(`${path} is current`);
-    else {
-      managed[path] = writeManaged(root, path, text);
-      lines.push(`upgraded ${path}`);
+    const now = condition(root, path, entry);
+    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove drops it from the record)`);
+    else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it keeps that registered version`);
+    else if (text === undefined) lines.push(`kept ${path}: ${entry.version}; the repository's own workflows now declare everything it runs, so delete it if it is no longer wanted`);
+    else if (sha256(Buffer.from(text)) === entry.sha256) {
+      lines.push(entry.version === VERSION ? `current ${path}: ${VERSION}` : `current ${path}: unchanged from ${entry.version} to ${VERSION}`);
+      assets[path] = { sha256: entry.sha256, version: VERSION };
+    } else {
+      assets[path] = install(root, path, text);
+      lines.push(`upgraded ${path}: from ${entry.version} to ${VERSION}`);
     }
   }
-  writeGuard(root, { ...list, managed });
-  if (declared.length) lines.push("executed by Guard, not managed:", ...executed(declared).map((l) => `  ${l}`));
+  writeRecord(root, assets);
+  if (own.length) lines.push(...section("executed by Guard, not managed:", executed(own)));
   return { lines };
-}
-
-/** Removes the parents of a removed file that it left empty, up to the repository root. */
-function prune(root, path) {
-  for (let d = dirname(join(root, path)); d !== root && d.startsWith(root); d = dirname(d)) {
-    if (readdirSync(d).length) return;
-    rmdirSync(d);
-  }
 }
 
 /**
- * Deletes each managed file that is unmodified, and unsets core.hooksPath if Guard set it. guard.json
- * stays: its checks are the repository's own. Returns { lines } or { problem }.
+ * Deletes each registered, unmodified asset and the directories that empties, unsets core.hooksPath only
+ * in the scope the checkout state records and only while it still holds the value Guard set, then deletes
+ * the record and the state. Declarations stay: they are the repository's own. Returns { lines }.
  */
-export function remove(root) {
-  const { list, problem } = readGuard(root);
-  if (problem) return { problem };
+export function remove(root, { dir, record, state, at }) {
   const lines = [];
-  for (const [path, hash] of Object.entries(list.managed ?? {})) {
-    if (!existsSync(join(root, path))) continue;
-    if (!unmodified(root, path, hash)) {
-      lines.push(`kept ${path}: changed since Guard wrote it, so it is yours`);
+  for (const { path } of CONTRACT.assets) {
+    const entry = record[path];
+    if (!entry) {
+      if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
       continue;
     }
-    rmSync(join(root, path));
-    prune(root, path);
-    lines.push(`removed ${path}`);
+    const now = condition(root, path, entry);
+    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but already deleted`);
+    else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it is yours`);
+    else {
+      rmSync(join(root, path));
+      prune(root, join(root, path));
+      lines.push(`removed ${path}`);
+    }
   }
-  const set = list.config?.["core.hooksPath"];
-  if (set && local(root) === set) {
-    git(root, "config", "--local", "--unset", "core.hooksPath");
-    lines.push("unset core.hooksPath");
+  writeRecord(root, {});
+  if (state) {
+    const value = state["core.hooksPath"];
+    if (git(root, "config", `--${state.scope}`, "--get", "core.hooksPath").out === value) {
+      git(root, "config", `--${state.scope}`, "--unset", "core.hooksPath");
+      lines.push(`unset core.hooksPath in the ${state.scope} configuration`);
+    } else lines.push(`left core.hooksPath: changed since Guard set it to ${value}`);
+    deleteState(at);
+  } else if (hooksPaths(root).length) lines.push("left core.hooksPath: Guard did not set it in this checkout");
+  if (existsSync(dir) && readdirSync(dir).length === 0) {
+    rmSync(dir, { recursive: true });
+    prune(root, dir);
   }
-  const { managed, config, ...rest } = list;
-  writeGuard(root, rest);
   return { lines };
 }
+

@@ -60,8 +60,8 @@ function jobs(text) {
   return found;
 }
 
-/** The consistency check's declared form: a step whose whole `run:` value runs kaal-guard verify. */
-const VERIFY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard verify(?: --github)?$/;
+/** The consistency check's declared form: a step whose whole `run:` value runs kaal-guard verify, optionally with --config <dir>, then --github. */
+const VERIFY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard verify(?: --config [^\s"'{}$#;&|<>]+)?(?: --github)?$/;
 
 /** What one job declares in Guard's declared form: the checks it names, and whether it runs the undeclared rest. */
 function declared(job, all) {

@@ -1,0 +1,39 @@
+{
+  "package": "@kaihacksai/kaal-guard",
+  "assets": [
+    {
+      "role": "hook",
+      "path": ".githooks/pre-push",
+      "sources": {
+        "hook": "templates/pre-push"
+      },
+      "mode": "755"
+    },
+    {
+      "role": "workflow",
+      "path": ".github/workflows/guard.yml",
+      "sources": {
+        "with verify": "templates/guard.yml",
+        "without verify": "templates/guard-checks.yml"
+      }
+    }
+  ],
+  "rules": {
+    "install": "only where no file exists, byte for byte as catalogued content, registered in the installation record",
+    "upgrade": "only a registered asset whose SHA-256 equals the registered one; a modified asset keeps its registered version",
+    "remove": "only a registered asset whose SHA-256 equals the registered one, with the directories its removal empties"
+  },
+  "record": {
+    "repository": ".kaal/state/guard/installation.json",
+    "checkout": "kaal/guard/state.json in Git's metadata: the common directory, or the worktree's own with extensions.worktreeConfig"
+  },
+  "catalogue": {
+    ".githooks/pre-push": [
+      "d0c3a6b78c2224dae59408ddd076f1f9d9b5e58aebe2b4e3273853518db5fe8c"
+    ],
+    ".github/workflows/guard.yml": [
+      "bc42fd0ab50e99d01f88627a45802d1696f518f4e6ff8e11677c9333c8d3f45e",
+      "153fad659920c7e5a568fd6e71cd81b7c01af984eb38520de36786d9622c6d72"
+    ]
+  }
+}

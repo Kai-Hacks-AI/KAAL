@@ -15,7 +15,8 @@
   "files": [
     "bin",
     "lib",
-    "templates"
+    "templates",
+    "contract.json"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs test/acceptance/*.test.mjs"

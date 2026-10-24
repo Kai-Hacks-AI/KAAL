@@ -1,7 +1,7 @@
 #!/bin/sh
 # Early local feedback before a push, from the same KAAL checkers CI runs. For each pushed ref this
 # hook resolves the pull request target (KAAL's branching policy, below) and runs KAAL's local checks
-# through kaal-guard, giving it the Git facts. KAAL's guard.json lists those checks; today
+# through kaal-guard, giving it the Git facts. KAAL declares those checks in .kaal/config/guard/; today
 # that is push, KAAL's branching and Change Isolation judgment (engineering/github/push-check.sh),
 # whose rules, verdicts and guidance live in engineering/github/lineage.ts,
 # engineering/change-isolation/check.mjs and engineering/github/branching.md. CI stays the authority.
