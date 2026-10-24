@@ -1,7 +1,7 @@
 // Inner Code tests of the lifecycle and the workflow it renders. They evolve with the code, test first.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -134,6 +134,30 @@ describe("lifecycle", () => {
     const after = readFileSync(join(dir, "guard.json"), "utf8");
     assert.ok(after.startsWith(edited.slice(0, edited.indexOf('"managed"'))));
     assert.notEqual(guard(dir).managed[".github/workflows/guard.yml"], JSON.parse(edited).managed[".github/workflows/guard.yml"]);
+  });
+
+  it("upgrade installs and records a managed asset the repository lacks, only where no file exists", () => {
+    const dir = tree({});
+    mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
+    writeFileSync(join(dir, ".github", "workflows", "guard.yml"), "name: Own\n");
+    init(dir);
+    assert.equal(guard(dir).managed[".github/workflows/guard.yml"], undefined);
+    const kept = upgrade(dir).lines.join("\n");
+    assert.match(kept, /left untouched \.github\/workflows\/guard\.yml: it is there and Guard did not write it/);
+    assert.equal(guard(dir).managed[".github/workflows/guard.yml"], undefined);
+
+    rmSync(join(dir, ".github", "workflows", "guard.yml"));
+    assert.match(upgrade(dir).lines.join("\n"), /installed \.github\/workflows\/guard\.yml/);
+    assert.equal(readFileSync(join(dir, ".github", "workflows", "guard.yml"), "utf8"), workflow([]));
+    assert.ok(guard(dir).managed[".github/workflows/guard.yml"]);
+  });
+
+  it("upgrade adopts nothing in a repository where Guard installed nothing", () => {
+    const dir = tree({ a: { command: "x", runs: ["ci"] } });
+    const before = readFileSync(join(dir, "guard.json"), "utf8");
+    assert.deepEqual(upgrade(dir).lines, ["Guard manages nothing here; kaal-guard init installs it"]);
+    assert.ok(!existsSync(join(dir, ".github")) && !existsSync(join(dir, ".githooks")));
+    assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), before);
   });
 
   it("names guard.json when it cannot be read", () => {

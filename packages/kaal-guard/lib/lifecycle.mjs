@@ -255,16 +255,28 @@ export function init(root) {
   };
 }
 
-/** Rewrites each managed file that is unmodified to this version's content. Returns { lines } or { problem }. */
+/**
+ * Rewrites each managed file that is unmodified to this version's content, and installs a file this
+ * version manages that the repository lacks and guard.json does not record, only where no file exists
+ * (F13). Adoption is not upgrade: where Guard manages nothing, it changes nothing. Returns { lines } or { problem }.
+ */
 export function upgrade(root) {
   const read = readGuard(root);
   const { list, problem } = read;
   if (problem) return { problem };
   const managed = { ...(list.managed ?? {}) };
+  if (!Object.keys(managed).length) return { lines: ["Guard manages nothing here; kaal-guard init installs it"] };
   const lines = [];
   for (const [path, text] of Object.entries(contents(list))) {
     const hash = managed[path];
-    if (!hash) continue;
+    if (!hash) {
+      if (existsSync(join(root, path))) lines.push(`left untouched ${path}: it is there and Guard did not write it`);
+      else {
+        managed[path] = writeManaged(root, path, text);
+        lines.push(`installed ${path}`);
+      }
+      continue;
+    }
     if (!unmodified(root, path, hash)) {
       lines.push(`kept ${path}: changed since Guard wrote it, so it is yours now; Guard no longer updates it`);
       continue;
