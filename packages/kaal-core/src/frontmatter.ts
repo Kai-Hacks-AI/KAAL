@@ -48,6 +48,9 @@ const TYPE_NAME = /^[A-Z][A-Za-z0-9]*\/[A-Z][A-Za-z0-9]*$/;
 /** A qualified identifier: `<capability>/<letters><number>`, with an optional lowercase suffix. */
 const QUALIFIED_ID = /^[a-z][a-z0-9-]*\/[A-Z]+[0-9]+[a-z]?$/;
 
+/** Whether `v` is a Type name, `<Capability>/<Type>` (core/F6): what makes a file a typed artifact (core/F23). */
+export const isTypeName = (v: unknown): v is string => typeof v === "string" && TYPE_NAME.test(v);
+
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const has = (o: object, key: string) => Object.prototype.hasOwnProperty.call(o, key);
 
