@@ -4,6 +4,8 @@ This is `core/C9`, a PLAN Change. Since `core/C5`, KAAL has two kinds of file th
 
 There is one type system. A Type is a Definition Node that its Capability owns and ships. An artifact refers to that Definition by name, and its owning Capability validates it (`core/F8`).
 
+The ownership this Change establishes is first-stage. Core resolves a Type Definition's `capability: {name, id}` reference and checks that the Capability's name matches the Type's prefix, and it does nothing more. That is not a globally enforced, exclusive claim on the Capability's namespace. Full namespace registration, collision detection and global graph integrity belong to Core's future Capability registration machinery, which `core/C9` does not supply.
+
 - **core/I6.** An Engine tells a typed artifact from a Node by a positive signal in the frontmatter, never by where the file is. Nothing that begins with frontmatter is skipped silently, and a mis-authored Node still fails Form.
 - **core/I7.** Every typed artifact's Type is in one precise state: registered, unregistered, unknown or invalid. A missing registration is a remediable finding, not proof that the contents are wrong.
 - **core/I8.** Registration and Type integrity can be checked afterwards. A repository may start with Capability-local validation, and once a Type is registered, Core resolves and checks the same artifacts without changing them or how their Capability runs them.
