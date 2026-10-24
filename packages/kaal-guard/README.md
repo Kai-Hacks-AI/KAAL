@@ -8,26 +8,30 @@ The command is `kaal-guard`. Node 20 or later and Git 2.26 or later. The hook is
 
 ```sh
 npm install --save-dev @kaihacksai/kaal-guard
-npx kaal-guard init        # the hook; your CI stays yours
-npx kaal-guard init --ci   # also Guard's workflow, only if you want it to run every ci check
+npx kaal-guard init              # prepares Guard; activates nothing
+npx kaal-guard init --hook       # also activates the Git hook
+npx kaal-guard init --ci         # also activates Guard's workflow, if you want it to run every ci check
+npx kaal-guard init --hook --ci  # both
 ```
 
-Your CI is yours: you decide which job runs each check. `init` never adds a workflow on its own. It writes only what is missing and reports in up to four parts:
+Three things stay apart. **Initialization** prepares Guard: `init` creates `.kaal/config/guard/`, where you declare your checks, and the installation record. **Registration** says what Guard may execute: each declaration's `runs` names `hook`, `ci` or both, and the two sets may differ. **Activation** says where it executes, and it is always your choice: `--hook` and `--ci` each activate one surface, and neither implies the other. Every form is safe to repeat.
 
-- **installed by Guard:** `.kaal/config/guard/`, where you declare your checks, `.githooks/pre-push`, and `core.hooksPath` set to `.githooks`; with `--ci`, also `.github/workflows/guard.yml`.
+Your CI is yours: you decide which job runs each check. `init` writes only what is missing and reports in up to four parts:
+
+- **installed by Guard:** `.kaal/config/guard/` and the installation record; with `--hook`, `.githooks/pre-push` and `core.hooksPath` set to `.githooks`; with `--ci`, `.github/workflows/guard.yml`.
 - **left untouched:** any of these the repository already had, and any file at those paths that Guard did not write.
-- **still to do in this repository:** the line to add for each of those, and for each `ci` check that no workflow job runs, the step to add to a job of your own workflow ([CI](#ci-and-what-verify-does-not-say)).
+- **still to do in this repository:** how to activate each surface you have not, the line to add for each file left untouched, and for each `ci` check that no workflow job runs, the step to add to a job of your own workflow ([CI](#ci-and-what-verify-does-not-say)).
 - **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`).
 
 `init --ci` is one decision: Guard's workflow runs `verify` and every `ci` check in one job, so you register nothing twice. It is installed only where no workflow of yours already runs a check or `verify` in Guard's declared form, since it would run those a second time; `init --ci` then installs nothing for CI and names what it found. `upgrade` never installs it.
 
-`init` sets `core.hooksPath` only when all three of these hold:
+`init --hook` sets `core.hooksPath` only when all three of these hold:
 
 - it is unset in every Git configuration scope,
 - the hook in `.githooks` is the one Guard installed,
 - Git runs no hooks of the repository's own from `.git/hooks`, which setting it would turn off.
 
-Every file Guard writes is content the package catalogues in its `contract.json`, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
+Every file Guard writes is content the package catalogues in its `contract.json`, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
 
 ## Declare the checks
 
@@ -47,7 +51,7 @@ Only the frontmatter, between the two `---` lines, is a declaration. The body is
 
 - **`type`**: always `Guard/Check`.
 - **`command`**: a program and its arguments, as words separated by spaces. Double or single quotes group a word. There are no shell features: no pipes, redirection, variables or comments. It runs from the repository root, with no stdin.
-- **`runs`**: `local`, for the hook, and/or `ci`, for a CI job.
+- **`runs`**: `hook`, for the Git hook, and/or `ci`, for a CI job. `local`, the word of `0.0.1`, is refused, naming `hook`.
 - **`facts`** (optional): the facts the check needs. A fact that is not supplied makes the check cannot judge. The facts it receives, as environment variables:
   - `head` is `GUARD_HEAD`, the candidate commit.
   - `base` is `GUARD_BASE`, and `base-ref` is `GUARD_BASE_REF`: the target commit and its name.
@@ -55,7 +59,7 @@ Only the frontmatter, between the two `---` lines, is a declaration. The body is
 - **`trusted`** (optional): a file or directory Guard takes as the base commit holds it, never the candidate's version, and runs in place of the candidate's. It needs the `base` fact, and the verdict names the base commit that supplied it. That is Git provenance for exactly the designated files, and nothing more: what they import from outside the designation, the interpreter and the environment the check runs in are not covered. To bring a helper file under it, designate a directory that holds the checker and the helper.
 - **`outcomes`** (optional): `{4: held}` names exit status 4 as held. Held is shown as held, never as a pass and never as a fail.
 
-The frontmatter is a strict subset of YAML that Guard reads itself: one `key: value` line per member; plain or double-quoted strings and integers; flow lists such as `[local, ci]`; and the flow map of `outcomes`. Anything else, a member Guard does not define, or a value of the wrong type is refused as cannot judge, naming the file, the member and the rule, and the member you probably meant (`trustd: not defined for Guard/Check; did you mean trusted?`). Nothing then runs and nothing is written. The installation record and the checkout state are held to the same rule.
+The frontmatter is a strict subset of YAML that Guard reads itself: one `key: value` line per member; plain or double-quoted strings and integers; flow lists such as `[hook, ci]`; and the flow map of `outcomes`. Anything else, a member Guard does not define, or a value of the wrong type is refused as cannot judge, naming the file, the member and the rule, and the member you probably meant (`trustd: not defined for Guard/Check; did you mean trusted?`). Nothing then runs and nothing is written. The installation record and the checkout state are held to the same rule.
 
 `kaal-guard` reads the directory `--config <dir>` names, or else `.kaal/config/guard/` at the repository's top level, from any directory inside it. Only the `.md` files directly in it are declarations, taken in name order. Where there is none, every command but `init`, `upgrade` and `remove` is cannot judge and says to run `kaal-guard init`.
 
@@ -79,25 +83,25 @@ Guard prints one line per check, `<verdict>: <check>: <evidence>`. A fail or can
 ## Commands
 
 ```sh
-npx kaal-guard run --local            # the local checks, as the hook runs them
-npx kaal-guard run --ci               # the ci checks
+npx kaal-guard run --hook             # the hook checks, as the hook runs them
+npx kaal-guard run --ci               # the ci checks, as Guard's workflow runs them
 npx kaal-guard run --check <name> [--github] [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
 npx kaal-guard verify [--github]      # each ci check is declared by a workflow job
-npx kaal-guard init [--ci]            # the hook, and with --ci Guard's workflow
+npx kaal-guard init [--hook] [--ci]   # prepares Guard, and activates the surfaces you name
 npx kaal-guard upgrade                # moves only registered, unmodified files to this version's content
-npx kaal-guard remove                 # deletes only registered, unmodified files; keeps your declarations
+npx kaal-guard remove [--hook] [--ci] # undoes the surfaces you name, or everything; keeps your declarations
 ```
 
 Every command takes `--config <dir>`. `--github` adds GitHub annotations and a step-summary table.
 
-`upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs the hook where the repository does not have it, but never Guard's workflow: only `init --ci` does. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
+`upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs a file a newer version adds only for a surface you activated, and never activates one: only `init --hook` and `init --ci` do. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
 
 ## The hook
 
 For each pushed branch, the hook:
 
 1. takes the remote's default branch (`<remote>/HEAD`, else `<remote>/main`) as the base and prints the commit it used;
-2. supplies `head`, `base`, `base-ref` and `changed`, and runs the `local` checks.
+2. supplies `head`, `base`, `base-ref` and `changed`, and runs the `hook` checks.
 
 When Git cannot give a fact, such as an unfetched base or changed paths it cannot compute, the hook supplies nothing in its place, so a check that needs it cannot judge. The hook is local feedback only: CI decides. `git push --no-verify` skips it once.
 
@@ -141,10 +145,12 @@ Neither `init` nor `verify` makes a job required, or proves that it ran. To have
 ## Remove
 
 ```sh
-npx kaal-guard remove
+npx kaal-guard remove --ci     # undoes CI only
+npx kaal-guard remove --hook   # undoes the hook only
+npx kaal-guard remove          # undoes both, and removes the installation record
 npm uninstall @kaihacksai/kaal-guard
 ```
 
-`remove` deletes the registered files you haven't changed, and the installation record. It unsets `core.hooksPath` only in the scope Guard's checkout state records, and only while it still holds the value Guard set; a clone or worktree without that state leaves it alone. Your declarations in `.kaal/config/guard/` stay.
+Each form deletes only the registered files of that surface you haven't changed and marks it no longer activated; a file you changed is kept and reported. Plain `remove` also deletes the installation record. It unsets `core.hooksPath` only in the scope Guard's checkout state records, and only while it still holds the value Guard set; a clone or worktree without that state leaves it alone. No form touches your declarations in `.kaal/config/guard/` or your Test Cases.
 
 MIT licensed.
