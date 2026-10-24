@@ -1,5 +1,6 @@
 // The lifecycle: init, upgrade and remove. It owns exactly the files it records in guard.json under
-// `managed`, each with its SHA-256, and the core.hooksPath it records under `config` when it set it.
+// `managed`, each with its SHA-256 and, under `writers`, the version that last wrote or confirmed it,
+// and the core.hooksPath it records under `config` when it set it.
 // Nothing else in a repository is its own: a file it did not write, or one changed since, is reported
 // and left in place. It reads the adapter templates as files and never imports them.
 import { spawnSync } from "node:child_process";
@@ -9,6 +10,12 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const TEMPLATES = resolve(dirname(fileURLToPath(import.meta.url)), "../templates");
+/** This version, recorded as the writer of each managed file it writes or confirms (F14). */
+const VERSION = JSON.parse(readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../package.json"), "utf8")).version;
+/** The version that wrote a managed file guard.json records no writer for: 0.0.1, the only one that recorded none. */
+const FIRST = "0.0.1";
+/** Guard's writers entry: undefined when it records none. */
+const entry = (writers) => (Object.keys(writers).length ? writers : undefined);
 const HOOK = ".githooks/pre-push";
 const WORKFLOW = ".github/workflows/guard.yml";
 const HOOKS_PATH = ".githooks";
@@ -230,6 +237,7 @@ export function init(root, declarations = []) {
   if (problem) return { problem };
   const managed = { ...(list.managed ?? {}) };
   const declared = theirs(declarations, managed);
+  const writers = { ...(list.writers ?? {}) };
   const installed = [];
   const untouched = [];
   const todo = [];
@@ -241,6 +249,7 @@ export function init(root, declarations = []) {
       else todo.push(`For each ci check, give a job in ${path} or another workflow the step "- run: npx --no kaal-guard run --check <name> --github", then run kaal-guard verify.`);
     } else {
       managed[path] = writeManaged(root, path, text);
+      writers[path] = VERSION;
       installed.push(path);
     }
   }
@@ -262,7 +271,7 @@ export function init(root, declarations = []) {
     todo.push(`To run Guard's local checks, add this line to ${current}/pre-push:`, ...ADD_HOOK_LINE);
   }
   todo.push("If a merge should depend on Guard's jobs, make them required checks in branch protection.");
-  writeGuard(root, read, { managed, config: Object.keys(config).length ? config : list.config });
+  writeGuard(root, read, { managed, config: Object.keys(config).length ? config : list.config, writers: entry(writers) });
   const section = (title, items) => (items.length ? [title, ...items.map((i) => `  ${i}`)] : [title, "  nothing"]);
   return {
     lines: [
@@ -287,6 +296,7 @@ export function upgrade(root, declarations = []) {
   const managed = { ...(list.managed ?? {}) };
   if (!Object.keys(managed).length) return { lines: ["Guard manages nothing here; kaal-guard init installs it"] };
   const declared = theirs(declarations, managed);
+  const writers = { ...(list.writers ?? {}) };
   const lines = [];
   const files = contents(list, declared);
   if (managed[WORKFLOW] && !files[WORKFLOW]) lines.push(`kept ${WORKFLOW}: the repository's own workflows now declare everything it runs; delete it if it is no longer wanted`);
@@ -296,7 +306,8 @@ export function upgrade(root, declarations = []) {
       if (existsSync(join(root, path))) lines.push(`left untouched ${path}: it is there and Guard did not write it`);
       else {
         managed[path] = writeManaged(root, path, text);
-        lines.push(`installed ${path}`);
+        writers[path] = VERSION;
+        lines.push(`installed ${path} at ${VERSION}`);
       }
       continue;
     }
@@ -304,13 +315,15 @@ export function upgrade(root, declarations = []) {
       lines.push(`kept ${path}: changed since Guard wrote it, so it is yours now; Guard no longer updates it`);
       continue;
     }
-    if (sha256(Buffer.from(text)) === hash) lines.push(`${path} is current`);
+    const from = writers[path] ?? FIRST;
+    if (sha256(Buffer.from(text)) === hash) lines.push(`${path} is current: written by ${from}, confirmed by ${VERSION}`);
     else {
       managed[path] = writeManaged(root, path, text);
-      lines.push(`upgraded ${path}`);
+      lines.push(`upgraded ${path} from ${from} to ${VERSION}`);
     }
+    writers[path] = VERSION;
   }
-  writeGuard(root, read, { managed });
+  writeGuard(root, read, { managed, writers: entry(writers) });
   if (declared.length) lines.push("executed by Guard, not managed:", ...executed(declared).map((l) => `  ${l}`));
   return { lines };
 }
@@ -347,6 +360,6 @@ export function remove(root) {
     git(root, "config", "--local", "--unset", "core.hooksPath");
     lines.push("unset core.hooksPath");
   }
-  writeGuard(root, read, { managed: undefined, config: undefined });
+  writeGuard(root, read, { managed: undefined, config: undefined, writers: undefined });
   return { lines };
 }

@@ -117,7 +117,7 @@ describe("lifecycle", () => {
   it("writes guard.json not at all when its own entries are unchanged", () => {
     const dir = tree({ a: { command: "x", runs: ["ci"] } });
     init(dir);
-    const text = '{ "checks":   { "a": { "command": "x", "runs": ["ci"] } }, "managed": ' + JSON.stringify(guard(dir).managed) + ', "config": {"core.hooksPath": ".githooks"} }';
+    const text = '{ "checks":   { "a": { "command": "x", "runs": ["ci"] } }, "managed": ' + JSON.stringify(guard(dir).managed) + ', "config": {"core.hooksPath": ".githooks"}, "writers": ' + JSON.stringify(guard(dir).writers) + " }";
     writeFileSync(join(dir, "guard.json"), text);
     upgrade(dir);
     assert.equal(readFileSync(join(dir, "guard.json"), "utf8"), text);
@@ -185,6 +185,23 @@ describe("lifecycle", () => {
     init(dir, declarations(dir));
     assert.match(upgrade(dir, declarations(dir)).lines.join("\n"), /guard\.yml is current/);
     assert.equal(readFileSync(join(dir, ".github", "workflows", "guard.yml"), "utf8"), workflow(["a"]));
+  });
+
+  it("records the version that wrote each managed asset, and upgrade names the versions it moves between", () => {
+    const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+    const dir = tree({});
+    init(dir);
+    assert.deepEqual(guard(dir).writers, { ".githooks/pre-push": version, ".github/workflows/guard.yml": version });
+    const list = guard(dir);
+    delete list.writers;
+    writeFileSync(join(dir, ".githooks", "pre-push"), "#!/bin/sh\n# mine\n");
+    writeFileSync(join(dir, "guard.json"), JSON.stringify({ ...list, checks: { a: { command: "x", runs: ["ci"] } } }));
+    const out = upgrade(dir).lines.join("\n");
+    assert.match(out, new RegExp(`upgraded \\.github/workflows/guard\\.yml from 0\\.0\\.1 to ${version.replaceAll(".", "\\.")}`));
+    assert.match(out, /kept \.githooks\/pre-push/);
+    assert.deepEqual(guard(dir).writers, { ".github/workflows/guard.yml": version });
+    remove(dir);
+    assert.equal(guard(dir).writers, undefined);
   });
 
   it("names guard.json when it cannot be read", () => {

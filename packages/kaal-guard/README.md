@@ -24,7 +24,7 @@ npx kaal-guard init
 - the hook in `.githooks` is Guard's own,
 - Git runs no hooks of the repository's own from `.git/hooks`, which setting it would turn off.
 
-`guard.json` records every file Guard wrote, with its SHA-256, under `managed`. A `core.hooksPath` Guard set is recorded under `config`.
+`guard.json` records every file Guard wrote, with its SHA-256, under `managed`, and the Guard version that last wrote or confirmed it under `writers`; a file with no writer was written by `0.0.1`. A `core.hooksPath` Guard set is recorded under `config`. Guard changes only these entries of `guard.json`, and every other byte stays as you wrote it.
 
 ## List the checks
 
