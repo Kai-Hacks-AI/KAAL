@@ -44,14 +44,16 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 
 ### K3 Change map
 
+This PLAN Change is `guard/C7`. In FANATIC a Change's durable identity is `guard/C<number>`; K3 and K3a–K3d remain only as aliases, and the full map of Guard's Changes is planned in `guard/C12`.
+
 Each K3 Change corrects one Defect in `packages/kaal-guard` and lands in `kaal/guard` on its own. They land in this order, because each later one writes `guard.json` through the earlier ones.
 
 | Change | Corrects | Scope | Depends on |
 | --- | --- | --- | --- |
-| **K3a** Consumer bytes | D4 (T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
-| **K3b** New assets | D1 (T38) | In `upgrade`, a managed path with no recorded hash is installed under `init`'s rule and recorded, but only where no file exists. Where a file does exist, it is reported as left untouched. | K3a |
-| **K3c** Existing integration | D3 (T43) | `init` and `upgrade` apply F17's rule: they read only Guard's declared integration contract, as `verify` does, and write the workflow for what remains undeclared, or none. They report each recognized declaration as executed by Guard but not managed. The command layer reads the declarations and passes them to the lifecycle, so the lifecycle still imports no adapter (A7, T29). | K3a |
-| **K3d** Writer version | D2 (T39) | `managed` keeps its form, a path mapped to a hash, and `writers` maps each managed path to the version F14 names. `init` and `upgrade` write it, and `remove` deletes it with `managed`. | K3a |
+| **`guard/C8`** (K3a) Consumer bytes | D4 (T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
+| **`guard/C9`** (K3b) New assets | D1 (T38) | In `upgrade`, a managed path with no recorded hash is installed under `init`'s rule and recorded, but only where no file exists. Where a file does exist, it is reported as left untouched. | `guard/C8` |
+| **`guard/C10`** (K3c) Existing integration | D3 (T43) | `init` and `upgrade` apply F17's rule: they read only Guard's declared integration contract, as `verify` does, and write the workflow for what remains undeclared, or none. They report each recognized declaration as executed by Guard but not managed. The command layer reads the declarations and passes them to the lifecycle, so the lifecycle still imports no adapter (A7, T29). | `guard/C8` |
+| **`guard/C11`** (K3d) Writer version | D2 (T39) | `managed` keeps its form, a path mapped to a hash, and `writers` maps each managed path to the version F14 names. `init` and `upgrade` write it, and `remove` deletes it with `managed`. | `guard/C8` |
 
 This PLAN Change also amends F14, F17 and F18, so K3c and K3d need no PLAN Change of their own, and no planned test changes:
 - **K3c and F17.** The rule is limited to Guard's declared contract. In KAAL every `ci` check and the consistency check are declared, so `init` installs no workflow there and reports nine declarations as not managed. T43 asserts that unchanged. The rule's limit is that a consumer job running a check in another form, or a job named like Guard's but declaring nothing, is not recognized. Guard does not interpret GitHub workflow semantics, and KAAL's CI orchestration stays KAAL's (A11).
