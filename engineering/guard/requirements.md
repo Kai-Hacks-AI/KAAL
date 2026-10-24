@@ -5,7 +5,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 ## Functional (F)
 
 **guard/F1 Check list.** [guard/I1] A repository declares each check in its own Git-tracked file, `.kaal/config/guard/<name>.md`. `.kaal/` is a namespace, not a runtime dependency on Core. The file's name, without `.md`, is the check's stable name, so it contains no space or colon. The file is Markdown with typed frontmatter, and only the frontmatter is a declaration:
-- `kind`, the artifact kind, always `guard/K1` (`core/F6`; added in `guard/C30`);
+- `type`, the declaration's Type, always `Guard/Check`: Guard's own Business Language name, which selects its schema (`core/F6`; added in `guard/C30`);
 - `command`, the check's command;
 - `runs`, where it runs: `local`, `ci` or both;
 - optionally, the facts it needs (`facts`), a trusted checker file (`trusted`, guard/F7) and named outcomes for further exit statuses (`outcomes`, guard/F2).
@@ -14,7 +14,7 @@ The body is free Markdown for people and agents: what the check proves, and how 
 
 ```markdown
 ---
-kind: guard/K1
+type: Guard/Check
 command: node engineering/github/lineage.ts
 runs: [ci]
 facts: [base, head]
