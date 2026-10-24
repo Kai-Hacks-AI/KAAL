@@ -44,29 +44,38 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 
 ### Agent guidance
 
-I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1. It depends on a new Core responsibility, Agent Realization, which the Core owner plans and Guard conforms to (N12).
+I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1. It depends on Core's Agent Realization, which Core owns as part of CASE and plans in A0 (N12).
 
-**Dependency decision.** Guard needs Core's provider-placement capability. Three ways were compared:
+**When Guard needs it.** Checking needs nothing of Core: `run`, `verify`, the hook and the reminder read the Skill's deployed paths from `guard.json`. Only `init`, `upgrade` and `remove` need a realization plan: which deployments and pointers the repository's declared providers require, and how a deployment is synced and pruned.
 
-| Option | What it means | Effect on Guard's contracts |
-| --- | --- | --- |
-| a | Engineering uses Core at engineering time, and Guard's outputs stay self-contained | none for External; Embed would need its own placement rules, duplicating Core's |
-| b | Guard depends on `kaal-core` at run time | breaks I5 and N6, raises Node from 20 to 24, and needs `kaal-core`, `kaal-graph` and `kaal-hosting` published first; External unaffected |
-| c | Guard conforms: Embed carries Core's placement table as checked data, and External uses Core at delivery time | none: I5, N6, Node 20 and External independence hold |
+**Dependency decision.** Each mode of use was compared:
 
-The choice is c, with the Core owner's agreement. Publishing `kaal-core` stays a separate Owner decision.
+| Option | Mode | What it means | Effect |
+| --- | --- | --- | --- |
+| a | Engineering and External only | Core runs only at engineering and delivery time, and Guard's outputs are generated and self-contained | External and KAAL are served. Embed is not: an Embed consumer's `init` and `upgrade` run in its repository, so Guard would need placement rules of its own, a hidden duplicate of Core's |
+| b | Embedding `kaal-core` | Guard depends on the full `kaal-core` | Brings `kaal-graph`, `kaal-hosting` and the Engine bootstrap, none of which the plan needs; raises Guard's Node floor from 20 to 24; needs all three published first |
+| c | Embedding a factored Core package | Core factors Agent Realization into `kaal-core-agent`: a pure plan from the Skill files, the declaration and the placement table, given as data, with no dependency and Node 20. `kaal-core` depends on it and re-exports it, holding no copy | The table lives in one Core-owned place. Guard declares it explicitly and loads it only in the lifecycle. Node 20 holds |
+
+The proposal is c, which the Core owner agrees to own. Option a still applies to External (B6), which calls the plan at delivery and emits plain files. Choosing c changes Guard's contracts, and that is the Owner's decision:
+- I5 and N6 change from "no KAAL dependency" to "no KAAL dependency except `kaal-core-agent`, used only to install, upgrade and remove the Skill".
+- A8 permits that one import, in the lifecycle only.
+- T4, T30 and T58 test it, including a check that runs without the package present.
+- Publishing: `kaal-core-agent` is published before Guard `0.0.2`, under a name and scope the Owner chooses, and both are published only with the Owner's authorization.
+- Versioning: Guard pins a caret range. A placement-table change is a minor release of `kaal-core-agent`, and a plan-shape change is a major one.
+- KAAL's own development dependency on Guard stays `file:` (N8), so the workspace resolves `kaal-core-agent` locally.
 
 | Change | Owner | Carries | Scope | Depends on |
 | --- | --- | --- | --- | --- |
-| **A0** PLAN | Core | — | Agent Realization: a Definition beside `KAAL Agent`, the declaration of a repository's providers, the placement table and the pointer rules, with its planned tests | — |
-| **A1** Realization | Core | — | The Definition, a pure mechanism that returns a plan (Hosting writes), and the table. It travels alone | A0 |
-| **A2** KAAL applies it | Engineering (#258) | I4 | KAAL realizes its own Skills, Guard's among them, through Core | A1 |
-| **B1** PLAN | Guard | I7 | I7, F19–F26, N10–N12, A13–A16, T45–T58. No code and no test file | — |
+| **A0** PLAN | Core | — | Agent Realization: a Definition, the repository's provider declaration, the placement table and the pointer rules; `kaal-core-agent`'s boundary (no imports, Node 20, the only table) and its planned tests | — |
+| **A1a** Package | Core | — | `kaal-core-agent`: the Definition, the pure plan and the table | A0 |
+| **A1b** Core uses it | Core | — | `kaal-core` depends on and re-exports `kaal-core-agent`. It travels alone | A1a |
+| **A2** KAAL applies it | Engineering (#258) | I4 | KAAL realizes its own Skills, Guard's among them, through Core | A1b |
+| **B1** PLAN | Guard | I5, I7 | I7, the I5/N6 amendment, F19–F26, N10–N12, A13–A16, T45–T58. No code and no test file | — |
 | **B2** Tests | Guard | I7 | T45–T58, as a PLAN Change inside the acceptance boundary | B1, A0 |
 | **B3** Skill | Guard | I7 | The Skill source and its packaging; T45, T46 | B2 |
 | **B4** Reminder | Guard | I7 | T47–T49 | B3 |
-| **B5** Placement | Guard | I5, I7 | The lifecycle deploys from Core's table; T50–T55, T57, T58 | B3, A1, K3a, K3b |
-| **B6** External | Guard | I6, I7 | Rendering with Core at delivery; T56, T46 for the variant | B2, A1 |
+| **B5** Placement | Guard | I5, I7 | The lifecycle deploys from `kaal-core-agent`'s plan; T50–T55, T57, T58, and T4 and T30 as amended | B3, A1a, K3a, K3b |
+| **B6** External | Guard | I6, I7 | Rendering with `kaal-core-agent` at delivery; T56, T46 for the variant | B2, A1a |
 
 Publication of `0.0.2` stays K5's, with the Owner's authorization, and its acceptance stays K6's, which then includes T55 with `registry` evidence. KAAL stays a Guard executor (A11): it receives Guard's Skill through Core's realization (A2), not through Guard's lifecycle.
 
