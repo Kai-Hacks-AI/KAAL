@@ -29,7 +29,7 @@ function contract(format) {
     capability: "sample",
     version: "0.0.2",
     assets: [
-      { name: "hook", source: "assets/pre-push", target: ".githooks/pre-push", kind: "file", executable: true, activation: "hook" },
+      { name: "hook", source: "assets/pre-push", target: ".githooks/pre-push", kind: "file", executable: true, surface: "hook" },
       { name: "skill", source: "skills/sample", target: ".agents/skills/sample", kind: "directory" },
     ],
     catalogue: { ".githooks/pre-push": [sha("hook 0.0.2")], ".agents/skills/sample/SKILL.md": [sha("skill 0.0.2")] },
@@ -42,11 +42,12 @@ function contract(format) {
 const SKILL_MD = ".agents/skills/sample/SKILL.md";
 const REF = ".agents/skills/sample/references/a.md";
 
+const entry = (text, version) => ({ sha256: sha(text), version });
+
 function record() {
   return {
     activated: ["hook"],
-    managed: { ".githooks/pre-push": sha("hook 0.0.1"), [SKILL_MD]: sha("skill 0.0.1") },
-    writers: { ".githooks/pre-push": "0.0.1", [SKILL_MD]: "0.0.1" },
+    assets: { ".githooks/pre-push": entry("hook 0.0.1", "0.0.1"), [SKILL_MD]: entry("skill 0.0.1", "0.0.1") },
   };
 }
 
@@ -55,23 +56,23 @@ const SKILL = { name: "sample", files: { "SKILL.md": SOURCE, "references/a.md": 
 const paths = (entries) => entries.map((e) => (typeof e === "string" ? e : e.path)).sort();
 
 describe("Installation record (core/C10)", () => {
-  it("core/T32 [core/F33, core/F38]: a record with matching managed and writers and the Capability's own members has no findings", async () => {
+  it("core/T32 [core/F33, core/F38]: a record with assets and the Capability's own members has no findings", async () => {
     const { checkRecord } = await installation();
     assert.deepEqual(checkRecord(record()), []);
-    assert.deepEqual(checkRecord({ managed: {}, writers: {} }), []);
+    assert.deepEqual(checkRecord({ assets: {} }), []);
   });
 
   it("core/T33 [core/F33, core/F38]: a malformed record is refused, and the finding names the member", async () => {
     const { checkRecord } = await installation();
-    const { managed, ...noManaged } = record();
-    const { writers, ...noWriters } = record();
+    const { assets, ...noAssets } = record();
     const cases = [
-      [noManaged, "managed"],
-      [noWriters, "writers"],
-      [{ ...record(), writers: { [SKILL_MD]: "0.0.1" } }, "writers"],
-      [{ ...record(), managed: { ...record().managed, [SKILL_MD]: "not a digest" } }, "managed"],
-      [{ managed: { "/etc/passwd": sha("x") }, writers: { "/etc/passwd": "0.0.1" } }, "managed"],
-      [{ managed: { "../outside": sha("x") }, writers: { "../outside": "0.0.1" } }, "managed"],
+      [noAssets, "assets"],
+      [{ assets: { [SKILL_MD]: { sha256: sha("x") } } }, "assets"],
+      [{ assets: { [SKILL_MD]: { version: "0.0.1" } } }, "assets"],
+      [{ assets: { [SKILL_MD]: { sha256: "not a digest", version: "0.0.1" } } }, "assets"],
+      [{ assets: { [SKILL_MD]: { ...entry("x", "0.0.1"), extra: 1 } } }, "assets"],
+      [{ assets: { "/etc/passwd": entry("x", "0.0.1") } }, "assets"],
+      [{ assets: { "../outside": entry("x", "0.0.1") } }, "assets"],
     ];
     for (const [value, member] of cases) assert.ok(keys(checkRecord(value)).includes(member), `${JSON.stringify(value)} names ${member}`);
     assert.notDeepEqual(checkRecord([]), []);
@@ -82,25 +83,24 @@ describe("Installation record (core/C10)", () => {
     const c = contract(installationFormat());
     const written = { [SKILL_MD]: sha("skill 0.0.2"), [REF]: sha("A\n") };
     assert.deepEqual(register({ contract: c, record: undefined, written }), {
-      managed: { [SKILL_MD]: sha("skill 0.0.2"), [REF]: sha("A\n") },
-      writers: { [SKILL_MD]: "0.0.2", [REF]: "0.0.2" },
+      assets: { [SKILL_MD]: entry("skill 0.0.2", "0.0.2"), [REF]: entry("A\n", "0.0.2") },
     });
     const before = record();
     const next = register({ contract: c, record: before, written });
     assert.deepEqual(before, record(), "the input record is not changed");
     assert.deepEqual(next.activated, ["hook"]);
-    assert.equal(next.managed[".githooks/pre-push"], sha("hook 0.0.1"));
-    assert.equal(next.writers[".githooks/pre-push"], "0.0.1");
-    assert.equal(next.managed[SKILL_MD], sha("skill 0.0.2"));
-    assert.equal(next.writers[REF], "0.0.2");
+    assert.deepEqual(next.assets[".githooks/pre-push"], entry("hook 0.0.1", "0.0.1"));
+    assert.deepEqual(next.assets[SKILL_MD], entry("skill 0.0.2", "0.0.2"));
+    assert.deepEqual(next.assets[REF], entry("A\n", "0.0.2"));
+    assert.deepEqual(Object.keys(next).sort(), ["activated", "assets"], "Core adds no member of its own");
   });
 
   it("core/T35 [core/F35]: register never registers a path Core did not write, or a path that is no asset of the contract", async () => {
     const { register, installationFormat } = await installation();
     const c = contract(installationFormat());
     const next = register({ contract: c, record: undefined, written: { [SKILL_MD]: sha("skill 0.0.2"), ".claude/skills/sample/SKILL.md": sha("x"), "README.md": sha("y") } });
-    assert.deepEqual(Object.keys(next.managed), [SKILL_MD]);
-    assert.ok(!(REF in next.managed), "a file Core did not write is not registered");
+    assert.deepEqual(Object.keys(next.assets), [SKILL_MD]);
+    assert.ok(!(REF in next.assets), "a file Core did not write is not registered");
   });
 });
 
@@ -118,13 +118,13 @@ describe("Cross-installer realization (core/C10)", () => {
     assert.deepEqual(Object.keys(owned.record).filter((p) => !p.startsWith(".claude/skills/sample/")), []);
   });
 
-  it("core/T37 [core/F37]: an activation-gated asset is accepted by checkContract and never appears in a plan", async () => {
+  it("core/T37 [core/F37]: a surface-gated asset is accepted by checkContract and never appears in a plan", async () => {
     const { checkContract, installationFormat, register } = await installation();
     const c = contract(installationFormat());
     assert.deepEqual(checkContract(c), []);
-    assert.ok(keys(checkContract({ ...c, assets: [{ ...c.assets[0], activation: 7 }, c.assets[1]] })).includes("activation"));
+    assert.ok(keys(checkContract({ ...c, assets: [{ ...c.assets[0], surface: 7 }, c.assets[1]] })).includes("surface"));
     const next = register({ contract: c, record: undefined, written: { ".githooks/pre-push": sha("hook 0.0.2"), [SKILL_MD]: sha("skill 0.0.2") } });
-    assert.ok(!(".githooks/pre-push" in next.managed), "Core never registers an activation-gated asset");
+    assert.ok(!(".githooks/pre-push" in next.assets), "Core never registers a surface-gated asset");
   });
 
   it("core/T38 [core/N10]: the same inputs give the same record, and the record functions import no host module", async () => {
