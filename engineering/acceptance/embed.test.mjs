@@ -26,6 +26,8 @@ const EXPECTED_TARBALL = [
   "package/dist/cli.js",
   "package/dist/engine.d.ts",
   "package/dist/engine.js",
+  "package/dist/frontmatter.d.ts",
+  "package/dist/frontmatter.js",
   "package/dist/index.d.ts",
   "package/dist/index.js",
   "package/dist/node.d.ts",
