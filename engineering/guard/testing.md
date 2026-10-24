@@ -64,13 +64,13 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T47: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path | F21, F22 | Requirements | package |
 | T48: a run of only pass, not applicable or held adds no reminder | F21 | Requirements | package |
 | T49: with `--github`, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not | F21, A15 | Architecture | package |
-| T50: `init` in a fresh repository installs the Skill at both N10 locations, records every file under `managed`, and each file equals the package's | F23, F24, N10 | Requirements | package |
-| T51: `init` keeps a pre-existing `.claude/skills/kaal-guard/SKILL.md`, reports it, and still installs the other location | F23, F8 | Requirements | package |
-| T52: `upgrade` moves unmodified Skill files forward and keeps a modified one; `remove` deletes only unmodified Skill files and leaves other skills in `.claude/skills/` | F23, F12 | Requirements | package |
-| T53: at each N10 location, the Skill directory is named `kaal-guard` and its `SKILL.md` names `kaal-guard` | F24, N10 | Requirements | package |
-| T54: `init` creates and edits no agent instruction file, and with an `AGENTS.md` present it reports the line to add | F26 | Requirements | package |
-| T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at both locations | I5, F13, F23, A12 | Requirements | Engineering |
-| T56: an External delivery includes the Skill variant at both locations, naming neither KAAL nor npm; its hook's reminder names the delivered path; a target's existing Skill is kept and reported | I6, F25, F26, A16 | Requirements | Engineering |
+| T50: `init` in a fresh repository installs the Skill at `.agents/skills/kaal-guard/`, records every file under `managed` and `writers`, equals the package's source, and writes nothing under `.claude/` or any other supplier directory | F23, F24, N10 | Requirements | package |
+| T51: `init` keeps a pre-existing `.agents/skills/kaal-guard/SKILL.md`, reports it, and installs no other Skill file | F23, F8 | Requirements | package |
+| T52: `upgrade` moves unmodified Skill files forward and keeps a modified one; `remove` deletes only unmodified Skill files and the directories it emptied, and leaves other skills in `.agents/skills/` untouched | F23, F12 | Requirements | package |
+| T53: the installed Skill directory is named `kaal-guard`, its `SKILL.md` names `kaal-guard`, and no other copy of it exists in the repository | F24, N10 | Requirements | package |
+| T54: `init`, `upgrade` and `remove` create, edit and remove no `AGENTS.md`, `CLAUDE.md` or other instruction file; with an `AGENTS.md` that does not name the Skill path, `init` reports the one optional pointer line, and with one that does, it reports none | F26 | Requirements | package |
+| T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location | I5, F13, F23, A12 | Requirements | Engineering |
+| T56: an External delivery includes the Skill variant at the canonical location only, naming neither KAAL nor npm; its hook's reminder names that path; `GUARD.md` presents the optional `AGENTS.md` pointer; a target's existing Skill and instruction files are kept and untouched | I6, F25, F26, A16 | Requirements | Engineering |
 
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
@@ -123,7 +123,18 @@ This evidence is bounded:
 
 ## Agent guidance
 
-T45–T56 are planned in B1. They are written as a PLAN Change of their own (B2) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. Discovery evidence is bounded: T50, T53 and T56 show placement as each supplier documents it. That a given agent loads the Skill is observed by hand per supplier, and the observation is labelled as such (N9).
+T45–T56 are planned in B1. They are written as a PLAN Change of their own (B2) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. T50, T53 and T56 show placement only. How a supplier's agent then reaches the Skill is observed by hand and labelled as an observation (N9).
+
+**Observation O1, Claude Code, recorded in B1.** This was run with Claude Code 2.1.310 in headless mode (`claude -p`), with read-only tools. Each run used a scratch repository holding a minimal `kaal-guard` Skill at `.agents/skills/kaal-guard/`, and the Skill told the agent to begin its answer with a marker token. Each setup was asked twice what to do about a pasted `fail: unit` verdict:
+
+| Setup | Followed the Skill | Listed among its skills |
+| --- | --- | --- |
+| no pointer and no reminder | 0 of 2 | — |
+| `CLAUDE.md` holding `@AGENTS.md`, and `AGENTS.md` naming the Skill path | 2 of 2 | no |
+| the verdict followed by a reminder line naming the path, with no pointer | 2 of 2 | — |
+| a copy in `.claude/skills/kaal-guard/`, as a control | 2 of 2 | yes |
+
+So instruction-based access, through the reminder or through a pointer, gives the behaviour I7 needs when a verdict is shown. It is not native discovery: Claude Code neither lists the canonical Skill nor activates it unprompted, and `/kaal-guard` does not exist. That is the stated limit. The sample is small, uses one model and runs headless; it is evidence for the placement decision, not a guarantee. Codex and Copilot are expected to discover the Skill natively (N10), and that is still to be observed by hand.
 
 ## Integrity of the outer contract
 

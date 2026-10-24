@@ -53,7 +53,7 @@ I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in
 | **B3** Skill | I7 | The Embed Skill source at `skills/kaal-guard/` and its packaging. T45 and T46 turn GREEN. | B2 |
 | **B4** Reminder | I7 | The reminder line, the annotations and the summary. T47–T49 turn GREEN. | B3 |
 | **B5** Placement | I5, I7 | The lifecycle installs, upgrades and removes the Skill. T50–T54 turn GREEN, and T55 with a `packed` candidate. | B3, K3a, K3b |
-| **B6** External | I6, I7 | The External Skill variant and its delivery. T56 and T46 for the variant turn GREEN. | B2 |
+| **B6** External | I6, I7 | The External Skill variant at the canonical location, and the optional pointer in `GUARD.md`. T56, and T46 for the variant, turn GREEN. | B2 |
 
 Publication of `0.0.2` stays K5's, with the Owner's authorization, and its acceptance stays K6's, which then includes T55 with `registry` evidence. KAAL itself stays an executor (A11). Its hook and CI remind with the package's copy of the Skill, and no Skill is installed into KAAL unless the Owner decides otherwise.
 
