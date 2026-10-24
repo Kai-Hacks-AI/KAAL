@@ -37,14 +37,14 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T1: one check gives the same verdict through the hook and through CI, for the same facts | I2, I3 | Intent | package |
 | T2: removing Guard leaves the repository's own tests intact | I1 | Intent | package |
 | T3: an External delivery works in a fresh repository and leaves nothing from KAAL in it | I6, N5, F8, A10 | Intent | Engineering |
-| T4: the packed tarball, with its declared dependencies only, runs `init`, a push, the `ci` subset, `upgrade` and `remove` in a fresh repository, and no KAAL element other than `kaal-core-agent` appears | I5 | Intent | package |
+| T4: the packed tarball, with its declared dependencies only, runs `init`, a push, the `ci` subset, `upgrade` and `remove` in a fresh repository, and no KAAL element other than `kaal-core` and its own dependencies appears | I5 | Intent | package |
 | T5: KAAL's pre-push hook runs its local checks through Guard | I4 | Intent | Engineering |
 | T6–T24: one or more tests for each of F1–F10 | F1–F10 | Requirements | package |
 | T25–T27: N2, N3, N4 | N2–N4 | Requirements | package |
 | N1: T1–T31 pass on Linux, macOS and Windows | N1 | Requirements | CI matrix, from C1 |
 | T28: the runner knows nothing of the adapters or GitHub | A3, A7 | Architecture | package |
 | T29: nothing depends on an adapter | A7 | Architecture | package |
-| T30: the package declares and imports no KAAL element except `kaal-core-agent`, imported only by the lifecycle, and references no Engineering path | A8, N6, N12 | Architecture | package |
+| T30: the package declares no KAAL element except `kaal-core`, imports only `kaal-core/agent`, and only in the lifecycle, and references no Engineering path | A8, N6, N12 | Architecture | package |
 | T31: the acceptance boundary is closed: its files import only Node built-ins and files inside it | A8, N6 | Architecture | package |
 | T32: every KAAL check identity and OS matrix entry on `main` before migration is still present | N7 | Requirements | Engineering |
 | T33–T35: KAAL's `guard.json`, its Guard-run jobs and its `Guard` job | A11 | Architecture | Engineering |
@@ -72,7 +72,7 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location | I5, F13, F23, A12 | Requirements | Engineering |
 | T57: a modified deployment is kept and reported while the others move forward, and `remove` leaves it | F23, F8 | Requirements | package |
 | T56: an External delivery writes the Skill variant where Core computes for the passed declaration, names neither KAAL nor npm, and lists the pointers in `GUARD.md`; its hook's reminder names the default path; a target's existing Skill and instruction files are untouched | I6, F25, F26, A16 | Requirements | Engineering |
-| T58: with `kaal-core-agent` absent, `run`, `verify`, the hook and the reminder give the same verdicts and output, and Guard declares `kaal-core-agent` with a caret range | N12, A8, A14 | Architecture | package |
+| T58: with `kaal-core` absent, `run`, `verify`, the hook and the reminder give the same verdicts and output; Guard's declared Node floor equals `kaal-core`'s | N12, A8, A14 | Architecture | package |
 
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
