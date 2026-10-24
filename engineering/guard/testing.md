@@ -59,7 +59,9 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T41: rollback from the candidate to `0.0.1`, then forward again, each through the dependency, the lockfile and `upgrade`, restores each unmodified managed asset in the minimal repository to that version's content, and leaves modified, consumer-owned and KAAL-owned files untouched | guard/I5, guard/F16 | Requirements | Engineering |
 | guard/T42: a real `git push` in the clone runs KAAL's hook through the installed published Guard, and its verdicts equal `kaal-guard run --local` with the same facts | guard/I2, guard/I5, guard/A12 | Architecture | Engineering |
 | guard/T43: `init` in the clone adds no workflow job that duplicates one of KAAL's, and none named like an existing job, and reports KAAL's integration as executed but not managed | guard/I5, guard/F17 | Requirements | Engineering |
-| guard/T44: `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it | guard/I1, guard/F18 | Requirements | Engineering |
+| guard/T44: `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it. Superseded by guard/T61 in `guard/C23`; retired from the boundary in `guard/C24` | guard/I1, guard/F18 (superseded wording) | Requirements | Engineering |
+| guard/T61: `init` then `remove` in the clone leaves every declaration of KAAL's `guard.json` with the meaning KAAL wrote, in Guard's canonical serialization; an `upgrade` that changes none of Guard's entries writes nothing | guard/I1, guard/F18 | Requirements | Engineering |
+| guard/T62: in the minimal repository, a `guard.json` with a member the schema does not define, or a check the schema rejects, is cannot judge for `run`, `init`, `upgrade` and `remove`, naming the member and the rule; the lifecycle writes nothing | guard/F1, guard/F18, guard/A6 | Requirements | Engineering |
 
 | guard/T45: the packed package carries `skills/kaal-guard/SKILL.md`, named `kaal-guard`, with BASS sections and no script, and names no consumer | guard/F19, guard/A13, guard/N11 | Requirements | package |
 | guard/T46: `kaal-engineer-skill` finds no standard or KAAL violation in the Embed Skill or the External variant | guard/F19, guard/A13, guard/A16 | Architecture | Engineering |
@@ -139,9 +141,11 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 | guard/D1 | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux) |
 | guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux) |
 | guard/D3 | guard/T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
-| guard/D4 | guard/T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux) |
+| guard/D4 | guard/T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux); retracted in `guard/C23` |
 
-guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15. The titles of guard/T38–guard/T44 in `engineering/guard/acceptance/consumer/consumer.test.mjs` still carry the earlier labels H1–H5. They sit inside the acceptance boundary and are not changed here.
+guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
+
+**guard/D4 retracted.** The Owner ruled on #336 that `guard.json` is Guard's configuration language, so the byte-for-byte wording of guard/F18 was a wrong contract, not a gap in Guard's behaviour. `guard/C23` corrects guard/F18, and so guard/D4 is retracted, not corrected. Its evidence stays recorded above. Its correction, the text-preserving editor of `guard/C8` (#336), is withdrawn unmerged. guard/T44 is superseded by guard/T61 and guard/T62, and leaves the boundary only in `guard/C24`. Those two tests are evidence for the corrected contract. Whatever they prove RED is a new Defect, numbered from guard/D5. A GREEN result refutes the suspicion. The titles of guard/T38–guard/T44 in `engineering/guard/acceptance/consumer/consumer.test.mjs` still carry the earlier labels H1–H5. They sit inside the acceptance boundary and are not changed here.
 
 ## Agent guidance
 
