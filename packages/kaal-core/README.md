@@ -100,7 +100,32 @@ await register(".kaal", "capability", "greeting", { "Greeting-People.md": bytes 
 await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, extensions }
 ```
 
+### Typed artifacts
+
+A file whose frontmatter names its Type as a string `<Capability>/<Type>` (for example `type: Guard/Check`) is a typed artifact, not a Node. Where the file is never decides: a Node may be anywhere in an Engine, `.kaal/config/<capability>/` included, and so may a typed artifact. Any other string `type`, such as `KAAL Skill` or `guard/check`, leaves the file a claimed Node, rejected as not in Form. `evaluate(files, { types })` returns `{ nodes, rejected, artifacts }`, and each artifact is `{ path, type, state, findings }`:
+
+- `registered`: the Engine admits exactly one Type Definition of that name. That is a Node typed by `KAAL Definition` whose `capability: { name, id }` resolves to an admitted `KAAL Capability` named as the Type's prefix. This is first-stage ownership, not an exclusive namespace claim. Namespace registration and collision detection belong to future Capability registration.
+- `unregistered`: the Engine admits no Node of that name. This is not invalid, and the finding gives the next step.
+- `unknown`: identity or ownership cannot be established. Either several Nodes share the name, or the Node is not a Type Definition, or its Capability is another one.
+- `invalid`: a supplied schema (`types`, in `kaal-core/frontmatter`'s shape) fails, whatever the registration state.
+
+The state depends only on the admitted Nodes, the artifact's frontmatter and the supplied Types, so registering a Type Definition later turns the same unchanged bytes from unregistered to registered. `verify(dir, { types })` and `kaal verify` fail on an unknown artifact, and on an invalid one when Types are supplied. They pass on an unregistered one. `kaal verify` lists every typed artifact with its state, and Core never changes one.
+
 `capabilities(dir)` is deprecated: it still returns `{ skills, extensions }`, and `catalog` replaces it.
+
+### Frontmatter
+
+`kaal-core/frontmatter` validates the YAML frontmatter of KAAL's collaborative Markdown artifacts, deterministically and from the frontmatter alone: the body never changes the result. Each Capability owns its Types and their schemas and supplies them as a mapping from Type name, `<Capability>/<Type>`, to schema. A schema lists every key the Type allows, each with one value kind (`id`, `name`, `enum`, `ref`, `path`, `boolean`, `number` or `parameter`), optionally as a list or required; there is no free-text kind, prose keys such as `description` are refused, and `type`, which names the artifact's Type, is never declared. Reading the YAML is Graph's (`kaal-graph/form`). The module is pure, and imports no host module.
+
+```js
+import { checkSchema, validate } from "kaal-core/frontmatter";
+
+const types = { "Sample/Record": { keys: { change: { value: "id", required: true } } } };
+checkSchema("Sample/Record", types["Sample/Record"]); // []
+validate(bytes, types); // { verdict: "valid" | "invalid" | "unknown", findings: [{ key, rule }] }
+```
+
+An artifact that names no Type the mapping holds is `unknown`, never `valid`. `validate` throws a `TypeError` if a supplied Type or schema is itself invalid.
 
 ## License
 
