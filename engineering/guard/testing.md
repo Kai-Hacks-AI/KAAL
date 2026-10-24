@@ -37,14 +37,14 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T1: one check gives the same verdict through the hook and through CI, for the same facts | I2, I3 | Intent | package |
 | T2: removing Guard leaves the repository's own tests intact | I1 | Intent | package |
 | T3: an External delivery works in a fresh repository and leaves nothing from KAAL in it | I6, N5, F8, A10 | Intent | Engineering |
-| T4: the packed tarball, with its declared dependencies only, runs `init`, a push, the `ci` subset, `upgrade` and `remove` in a fresh repository, and no KAAL element other than `kaal-core` and its own dependencies appears | I5 | Intent | package |
+| T4: the packed tarball alone runs `init`, a push, the `ci` subset, `upgrade` and `remove` in a fresh repository, and no other KAAL element appears | I5 | Intent | package |
 | T5: KAAL's pre-push hook runs its local checks through Guard | I4 | Intent | Engineering |
 | T6–T24: one or more tests for each of F1–F10 | F1–F10 | Requirements | package |
 | T25–T27: N2, N3, N4 | N2–N4 | Requirements | package |
 | N1: T1–T31 pass on Linux, macOS and Windows | N1 | Requirements | CI matrix, from C1 |
 | T28: the runner knows nothing of the adapters or GitHub | A3, A7 | Architecture | package |
 | T29: nothing depends on an adapter | A7 | Architecture | package |
-| T30: the package declares no KAAL element except `kaal-core`, imports only `kaal-core/agent`, and only in the lifecycle, and references no Engineering path | A8, N6, N12 | Architecture | package |
+| T30: the package declares and imports no KAAL element and references no Engineering path | A8, N6 | Architecture | package |
 | T31: the acceptance boundary is closed: its files import only Node built-ins and files inside it | A8, N6 | Architecture | package |
 | T32: every KAAL check identity and OS matrix entry on `main` before migration is still present | N7 | Requirements | Engineering |
 | T33–T35: KAAL's `guard.json`, its Guard-run jobs and its `Guard` job | A11 | Architecture | Engineering |
@@ -64,15 +64,17 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T47: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path | F21, F22 | Requirements | package |
 | T48: a run of only pass, not applicable or held adds no reminder | F21 | Requirements | package |
 | T49: with `--github`, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not | F21, A15 | Architecture | package |
-| T50: `init` in a fresh repository with no provider declaration installs the Skill only at `.agents/skills/kaal-guard/`, mirrors its paths into `guard.json` while Core's record holds the managed state, and equals the package's source | F23, F24, N10 | Requirements | package |
+| T50: standalone `init` in a fresh repository installs the Skill only at `.agents/skills/kaal-guard/`, records every file under `managed` and `writers`, and equals the package's source | F23, F24, N10 | Requirements | package |
 | T51: `init` keeps a pre-existing `.agents/skills/kaal-guard/SKILL.md`, reports it, and installs no other Skill file | F23, F8 | Requirements | package |
 | T52: `upgrade` moves unmodified Skill files forward and keeps a modified one; `remove` deletes only unmodified Skill files and the directories it emptied, and leaves other skills in `.agents/skills/` untouched | F23, F12 | Requirements | package |
-| T53: with Claude Code declared, `init` also deploys `.claude/skills/kaal-guard/` from the same source, and `upgrade` moves both deployments together; each Skill directory is named `kaal-guard` and its `SKILL.md` names `kaal-guard` | F23, F24, N10 | Requirements | package |
-| T54: `init`, `upgrade` and `remove` create, edit and remove no `AGENTS.md`, `CLAUDE.md` or other instruction file; `init` reports exactly the missing optional pointers Core computes, none circular | F26 | Requirements | package |
+| T53: the standalone lifecycle writes no supplier-specific location (`.claude/skills/`, `.github/skills/` and the like), even where such directories exist, and its report names the canonical path | F23, N10, N12 | Requirements | package |
+| T54: `init`, `upgrade` and `remove` create, edit and remove no `AGENTS.md`, `CLAUDE.md` or other instruction file; `init` reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer | F26 | Requirements | package |
 | T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location | I5, F13, F23, A12 | Requirements | Engineering |
 | T57: a modified deployment is kept and reported while the others move forward, and `remove` leaves it | F23, F8 | Requirements | package |
-| T56: an External delivery writes the Skill variant where Core computes for the passed declaration, names neither KAAL nor npm, and lists the pointers in `GUARD.md`; its hook's reminder names the default path; a target's existing Skill and instruction files are untouched | I6, F25, F26, A16 | Requirements | Engineering |
-| T58: with `kaal-core` absent, `run`, `verify`, the hook and the reminder give the same verdicts and output; Guard's declared Node floor equals `kaal-core`'s | N12, A8, A14 | Architecture | package |
+| T56: an External delivery writes the Skill variant at the canonical location and, where Core is used at delivery, where Core computes for the passed declaration; it names neither KAAL nor npm; its hook's reminder names the canonical path; a target's existing Skill and instruction files are untouched | I6, F25, F26, A16 | Requirements | Engineering |
+| T58: `contract.json` and the lifecycle agree: every asset and `guard.json` entry standalone `init` writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one | F27, A17 | Architecture | package |
+| T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | N1, F27 | Requirements | package |
+| T60: Core's realization accepts Guard's shipped contract and realizes the canonical deployment plus a declared Claude Code deployment; afterwards Guard's standalone `upgrade` and `remove` handle the canonical assets as if Guard had installed them, and leave Core's further deployment untouched | F27, N12, A17 | Architecture | Engineering |
 
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
@@ -125,7 +127,7 @@ This evidence is bounded:
 
 ## Agent guidance
 
-T45–T58 are planned in B1. They are written as a PLAN Change of their own (B2) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. T50, T53 and T56 show placement only. How a supplier's agent then reaches the Skill is observed by hand and labelled as an observation (N9).
+T45–T60 are planned in B1. They are written as a PLAN Change of their own (B2) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. T50, T53, T56 and T60 show placement only. How a supplier's agent then reaches the Skill is observed by hand and labelled as an observation (N9).
 
 **Observation O1, Claude Code, recorded in B1.** This was run with Claude Code 2.1.310 in headless mode (`claude -p`), with read-only tools. Each run used a scratch repository holding a minimal `kaal-guard` Skill at `.agents/skills/kaal-guard/`, and the Skill told the agent to begin its answer with a marker token. Each setup was asked twice what to do about a pasted `fail: unit` verdict:
 

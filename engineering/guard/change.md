@@ -44,56 +44,37 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 
 ### Agent guidance
 
-I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1. It depends on Core's Agent Realization, which Core owns as part of CASE, inside `kaal-core`, and plans in A0 (N12).
+I7 is a separately scoped `0.0.2` improvement. It is planned here and nothing in it is authorized beyond B1.
 
-**When Guard needs it.** Checking needs nothing of Core: `run`, `verify`, the hook and the reminder read the Skill's deployed paths from `guard.json`. Only `init`, `upgrade` and `remove` need Agent Realization: which deployments and pointers the repository's declared providers require, and how a deployment is synced and pruned.
+**One contract, two levels of realization** (N12). Core owns CASE installation and registration, and may embed Guard. Guard supplies one installer-neutral installation contract (F27), and two installers realize it:
+
+| Level | Who | Guarantees | Dependency |
+| --- | --- | --- | --- |
+| Contract | Guard | What an installation of Guard is: its assets, the Skill, ownership and lifecycle rules, the Node prerequisite and the provider requirement | none; data in the package |
+| Standalone conformance | Guard's lifecycle | Local correctness within the contract: the hook, the workflow and the Skill at `.agents/skills/kaal-guard/`, with the reminder naming it | none; Embed keeps zero KAAL dependencies |
+| Core enrichment | Core, through Hosting where Core chooses | CASE registration, provider-aware deployments and pointers, dependency and conflict handling, cross-Capability verification | Core reads Guard's contract; Guard never imports Core |
+
+The two levels are not feature-equivalent. Standalone, Claude Code reaches the Skill through the reminder or a consumer's pointer (O1). Native discovery for Claude Code needs Core enrichment.
 
 **Modes.**
-- Engineering: KAAL realizes its own Skills, Guard's among them, through Core (A2, #258).
-- External: Engineering's tooling uses Core from KAAL's workspace at delivery and writes plain files the target owns, with no KAAL dependency.
-- Embedding: Guard declares `kaal-core` as an explicit, versioned dependency, because an Embed consumer's lifecycle runs in its own repository. Guard holds no copy of Core's rules or table.
+- Engineering: KAAL realizes its own Skills, Guard's among them, through Core (A2, #258), and Engineering checks that Core and Guard agree on the contract (T60).
+- External: Engineering's tooling writes the canonical deployment, and may use Core at delivery for further ones. The target owns plain files.
+- Embedding: none toward KAAL. The earlier `Guard → kaal-core` dependency is withdrawn, because no Guard behaviour needs it.
 
-**What `kaal-core` brings today.**
-- One entry point, `.`, re-exports everything: Engine loading and evaluation, bootstrap and export of `.kaal/`, and Skill and Extension registration. Each module imports `kaal-graph` or `kaal-hosting` statically, so importing `kaal-core` loads both.
-- Node `>=24`, as do `kaal-graph` and `kaal-hosting`.
-- Installed dependencies: `kaal-graph` and `kaal-hosting` at exactly `0.0.1`, which bring `yaml`, `graceful-fs`, `proper-lockfile`, `cross-spawn` and `es-module-lexer`. It also ships the `kaal` command.
-- None of the three is published.
-
-**Proposed boundary inside `kaal-core`.** This is Core's to decide in A0.
-- A subpath export, `kaal-core/agent`, is Core's Agent interface.
-- It takes a Skill's files, the repository's provider declaration and its directory.
-- It plans the deployments and pointers from Core's placement table, and realizes them through Hosting: install, upgrade, keep modified, prune.
-- It returns what it wrote, kept and pruned.
-- Its modules import Hosting and Core's own Agent modules, and not the Engine, bootstrap or Graph. Agent Skills folders are not Nodes. Core's boundary test enforces this.
-- Core keeps its own record of what it manages, beside the repository's declaration (`agents.kaal.json`), and that record is the authority. Guard's `guard.json` only mirrors the deployed paths.
-- The `Agent Realization` Definition sits in Core's payload beside `CASE`, so the Kernel is unchanged.
-- `.` keeps exporting everything, so nothing else in Core changes.
-
-The subpath limits what Guard loads, not what it depends on: installing `kaal-core` still installs Graph and Hosting.
-
-**Consequences for Guard, for the Owner's decision.**
-- I5 and N6: "no KAAL dependency" becomes "one KAAL dependency, `kaal-core`, used only to install, upgrade and remove the Skill".
-- A8 permits that one import, `kaal-core/agent`, in the lifecycle only.
-- T4, T30 and T58 test it. T58 runs every check with `kaal-core` absent.
-- Node: Guard's floor rises from 20 to 24, Core's floor. Node 20 is already end-of-life; Node 22 consumers lose Guard upgrades.
-- Install footprint: every Embed consumer installs Core, Graph, Hosting and their dependencies, though checking loads none of them.
-- Publishing: `kaal-hosting`, `kaal-graph` and `kaal-core` are published before Guard `0.0.2`, under names and scopes the Owner chooses, and each only with the Owner's authorization. Guard's package name stays `@kaihacksai/kaal-guard`.
-- Versioning: under `0.0.x`, a caret range admits one version, so Guard pins Core exactly, as Core pins Graph and Hosting. Each Core release that Guard should follow is a Guard release.
-- Acceptance: the A12 harness packs Core, Graph and Hosting with the candidate, and `registry` evidence needs all four published.
-- KAAL's own development dependency on Guard stays `file:` (N8), and the workspace resolves `kaal-core` locally.
+**Node.** `0.0.2` raises Guard's floor from 20 to 24, consistent with Core, Graph and Hosting. This is a breaking consumer prerequisite: N1 documents it, and T59 tests that an older Node is refused with that next step.
 
 | Change | Owner | Carries | Scope | Depends on |
 | --- | --- | --- | --- | --- |
-| **A0** PLAN | Core | — | Agent Realization in `kaal-core`: a Definition, the provider declaration, the placement table, the pointer rules, the `kaal-core/agent` interface and its boundary, with their planned tests | — |
-| **A1** Realization | Core | — | The Definition, the table and `kaal-core/agent`. It travels alone | A0 |
+| **A0** PLAN | Core | — | Core's realization of an embedded Capability's installation contract and Agent Realization (provider declaration, placement table, pointers, Core's own record), with its planned tests. Its own PR | — |
+| **A1** Realization | Core | — | What A0 plans, inside `kaal-core`. It travels alone | A0 |
 | **A2** KAAL applies it | Engineering (#258) | I4 | KAAL realizes its own Skills, Guard's among them, through Core | A1 |
-| **P** Publication | Owner | — | `kaal-hosting`, `kaal-graph` and `kaal-core`, names and scopes decided by the Owner | A1 |
-| **B1** PLAN | Guard | I5, I7 | I7, the I5/N6 amendment, F19–F26, N10–N12, A13–A16, T45–T58. No code and no test file | — |
-| **B2** Tests | Guard | I7 | T45–T58, as a PLAN Change inside the acceptance boundary | B1, A0 |
-| **B3** Skill | Guard | I7 | The Skill source and its packaging; T45, T46 | B2 |
+| **B1** PLAN | Guard | I5, I7 | I7, F19–F27, N1, N10–N12, A13–A17, T45–T60. No code and no test file | — |
+| **B2** Tests | Guard | I7 | T45–T59, as a PLAN Change inside the acceptance boundary | B1 |
+| **B3** Skill and contract | Guard | I7 | The Skill source, `contract.json` and their packaging; T45, T46, T58 | B2 |
 | **B4** Reminder | Guard | I7 | T47–T49 | B3 |
-| **B5** Placement | Guard | I5, I7 | Guard declares `kaal-core` and Node 24; the lifecycle deploys through `kaal-core/agent`; T50–T55, T57, T58, and T4 and T30 as amended | B3, A1, K3a, K3b |
-| **B6** External | Guard | I6, I7 | Rendering with Core at delivery; T56, T46 for the variant | B2, A1 |
+| **B5** Standalone lifecycle | Guard | I5, I7 | The lifecycle realizes the contract; Node 24; T50–T55, T57, T59 | B3, K3a, K3b |
+| **B6** External | Guard | I6, I7 | The canonical variant at delivery, and Core's further deployments once A1 exists; T56 | B3; A1 for Core's part |
+| **B7** Agreement | Engineering | I7 | T60: Core's realization and Guard's lifecycle agree on the contract | B5, A1 |
 
 Publication of `0.0.2` stays K5's, with the Owner's authorization, and its acceptance stays K6's, which then includes T55 with `registry` evidence. KAAL stays a Guard executor (A11): it receives Guard's Skill through Core's realization (A2), not through Guard's lifecycle.
 
