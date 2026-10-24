@@ -52,9 +52,9 @@ describe("guard/F2 [guard/I2] verdicts", () => {
 describe("guard/F3 [guard/I2, guard/I3] one runner", () => {
   it("guard/T8 [guard/F3]: serves the hook and CI from the same runner and the same list", () => {
     const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
     assert.match(c.read(".githooks/pre-push"), /kaal-guard run --local/);
-    assert.match(c.read(".github/workflows/guard.yml"), /kaal-guard run --check/);
+    assert.match(c.read(".github/workflows/guard.yml"), /kaal-guard run --ci/);
   });
 });
 
@@ -167,7 +167,7 @@ describe("guard/F8 [guard/I5, guard/I6] safe lifecycle", () => {
     c.write(".github/workflows/guard.yml", "name: mine\n");
     c.git("config", "core.hooksPath", "hooks-of-mine");
     c.commit("mine");
-    const r = c.guard(["init"]);
+    const r = c.guard(["init", "--ci"]);
     assert.equal(c.read(".githooks/pre-push"), "#!/bin/sh\necho mine\n");
     assert.equal(c.read(".github/workflows/guard.yml"), "name: mine\n");
     assert.equal(c.git("config", "--get", "core.hooksPath").stdout.trim(), "hooks-of-mine");
@@ -177,7 +177,7 @@ describe("guard/F8 [guard/I5, guard/I6] safe lifecycle", () => {
 
   it("guard/T18 [guard/F8]: upgrade and remove touch only unmodified managed files, and remove unsets only the core.hooksPath it set", () => {
     const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
     assert.equal(c.git("config", "--get", "core.hooksPath").stdout.trim(), ".githooks");
     c.write(".github/workflows/guard.yml", "name: edited by the consumer\n");
     c.commit("edit");
@@ -378,7 +378,7 @@ describe("guard/F28 [guard/I2, guard/I3, guard/I5] configuration discovery", () 
     assert.match(none.output, /kaal-guard init/);
 
     const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
     for (const asset of [".githooks/pre-push", ".github/workflows/guard.yml"]) {
       assert.match(c.read(asset), /kaal-guard run [^\n]*--config \.kaal\/config\/guard\b/, `${asset} does not pass --config`);
     }
@@ -415,7 +415,7 @@ describe("guard/F29 [guard/I5] lifecycle state", () => {
 
   it("guard/T70 [guard/F29, guard/F8, guard/F12]: in a fresh clone, upgrade and remove judge each asset by the tracked installation record alone, and leave a core.hooksPath Guard did not set there", () => {
     const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
     c.checks({ ok: { command: exit(0), runs: ["local"] } });
     c.commit("set up");
     assert.equal(c.git("push", "--no-verify", "origin", "main").status, 0);
@@ -454,8 +454,8 @@ describe("guard/F29 [guard/I5] lifecycle state", () => {
 
   it("guard/T72 [guard/F29, guard/F8, guard/F19]: every asset init and upgrade install is byte-identical to catalogued content and valid in its format", () => {
     const c = consumer();
-    for (const command of ["init", "upgrade"]) {
-      assert.equal(c.guard([command]).status, 0, command);
+    for (const [command, ...options] of [["init", "--ci"], ["upgrade"]]) {
+      assert.equal(c.guard([command, ...options]).status, 0, command);
       const catalogue = c.catalogue();
       for (const path of Object.keys(c.installation())) {
         const bytes = readFileSync(join(c.dir, path));
@@ -489,7 +489,7 @@ describe("guard/F29 [guard/I5] lifecycle state", () => {
     c.write(".githooks/pre-push", published);
     if (process.platform !== "win32") chmodSync(join(c.dir, ".githooks", "pre-push"), 0o755);
     c.commit("a hook of the consumer's own, with Guard's bytes");
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
     assert.equal(c.installation()[".githooks/pre-push"], undefined, "init registered a file it did not write");
     for (const command of ["upgrade", "remove"]) {
       const r = c.guard([command]);
@@ -499,7 +499,7 @@ describe("guard/F29 [guard/I5] lifecycle state", () => {
     }
 
     const d = consumer();
-    assert.equal(d.guard(["init"]).status, 0);
+    assert.equal(d.guard(["init", "--ci"]).status, 0);
     const registered = d.installation()[".githooks/pre-push"];
     d.write(".githooks/pre-push", `${published}# the consumer's line\n`);
     const up = d.guard(["upgrade"]);
@@ -511,5 +511,44 @@ describe("guard/F29 [guard/I5] lifecycle state", () => {
     assert.equal(rm.status, 0, rm.output);
     assert.match(rm.output, /\.githooks\/pre-push/, "remove does not report the changed asset");
     assert.match(rm.output, /\.github\/workflows\/guard\.yml/, "remove does not report the missing registered asset");
+  });
+});
+
+describe("guard/F17 [guard/I1, guard/I5] CI responsibility", () => {
+  it("guard/T74 [guard/F17, guard/F10, guard/N4]: without --ci, init installs no workflow, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step", () => {
+    const c = given({ build: { command: exit(0), runs: ["ci"] }, lint: { command: exit(0), runs: ["local"] } });
+    const init = c.guard(["init"]);
+    assert.equal(init.status, 0, init.output);
+    assert.deepEqual(c.files().filter((p) => p.startsWith(".github/")), [], "init wrote a workflow without --ci");
+    assert.match(init.output, /kaal-guard run --check build\b/, "init does not name the step that would run the uncovered ci check");
+    assert.match(init.output, /init --ci/, "init does not name the opt-in");
+    assert.doesNotMatch(init.output, /--check lint\b/, "init reports a local check as missing CI coverage");
+    c.commit("init");
+    const r = c.guard(["verify"]);
+    assert.equal(verdicts(r.output).build?.verdict, "fail", r.output);
+    assert.match(r.output, /kaal-guard run --check build\b/, "verify does not name the step to add");
+  });
+
+  it("guard/T75 [guard/F17, guard/F8]: init --ci installs Guard's workflow only where no workflow of the consumer's declares a check or verify, and never changes one", () => {
+    const fresh = given({ build: { command: exit(0), runs: ["ci"] } });
+    assert.equal(fresh.guard(["init", "--ci"]).status, 0);
+    const workflow = fresh.read(".github/workflows/guard.yml");
+    assert.match(workflow, /kaal-guard verify/);
+    assert.match(workflow, /kaal-guard run --ci/);
+    assert.ok(fresh.installation()[".github/workflows/guard.yml"], "init --ci did not register the workflow it installed");
+    fresh.commit("init");
+    assert.equal(verdicts(fresh.guard(["verify"]).output).build?.verdict, "pass", "verify does not read Guard's workflow as running every ci check");
+
+    const own = "name: Own\non: pull_request\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: npx --no kaal-guard run --check build --github\n";
+    for (const steps of [own, own.replace("run --check build --github", "verify --github")]) {
+      const c = given({ build: { command: exit(0), runs: ["ci"] }, test: { command: exit(0), runs: ["ci"] } });
+      c.write(".github/workflows/own.yml", steps);
+      c.commit("own workflow");
+      const r = c.guard(["init", "--ci"]);
+      assert.equal(r.status, 0, r.output);
+      assert.ok(!c.exists(".github/workflows/guard.yml"), "init --ci installed Guard's workflow beside one that already runs Guard");
+      assert.equal(c.read(".github/workflows/own.yml"), steps, "init --ci changed the consumer's workflow");
+      assert.match(r.output, /own\.yml/, "init --ci does not report the workflow it found");
+    }
   });
 });

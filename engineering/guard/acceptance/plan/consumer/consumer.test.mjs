@@ -159,15 +159,15 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     announce(t, newer);
     const reference = { older: h.minimalRepo({ declarations: true }), newer: h.minimalRepo({ declarations: true }) };
     reference.older.install(older.spec);
-    reference.older.guard("init");
+    reference.older.guard("init", "--ci");
     reference.newer.install(newer.spec);
-    reference.newer.guard("init");
+    reference.newer.guard("init", "--ci");
     const workflow = ".github/workflows/guard.yml";
     assert.notEqual(reference.newer.read(workflow), reference.older.read(workflow), "the candidates' workflows do not differ, so nothing can be seen to move");
 
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
+    assert.equal(m.guard("init", "--ci").status, 0);
     m.write(".githooks/pre-push", `${m.read(".githooks/pre-push")}# the consumer's own line\n`);
     m.write("README.md", "the consumer's own file\n");
     m.git("add", "-A");
@@ -189,19 +189,20 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const { older, newer } = two(h);
     announce(t, newer);
-    const workflow = ".github/workflows/guard.yml";
+    const hook = ".githooks/pre-push";
     const m = h.minimalRepo({ declarations: true });
-    m.write(workflow, "name: Own\non: push\njobs: {}\n");
+    m.write(hook, "#!/bin/sh\necho own\n");
     m.install(older.spec);
     assert.equal(m.guard("init").status, 0);
-    assert.equal(record(m)[workflow], undefined, "init registered a file it did not write");
-    m.remove(workflow);
+    assert.equal(m.exists(RECORD) ? record(m)[hook] : undefined, undefined, "init registered a file it did not write");
+    m.remove(hook);
 
     m.install(newer.spec);
     const up = m.guard("upgrade");
     assert.equal(up.status, 0, up.output);
-    assert.ok(m.exists(workflow), "upgrade did not install a managed asset the repository does not have");
-    assert.equal(record(m)[workflow]?.version, newer.version, "upgrade did not register the asset it installed");
+    assert.ok(m.exists(hook), "upgrade did not install a managed asset the repository does not have");
+    assert.equal(record(m)[hook]?.version, newer.version, "upgrade did not register the asset it installed");
+    assert.ok(!m.exists(".github/workflows/guard.yml"), "upgrade installed Guard's workflow, which only init --ci installs");
   });
 
   it("guard/T67 [guard/F14]: between two candidates, the record registers each unmodified asset's new version and hash, upgrade names both versions, and a modified asset keeps its registered version", async (t) => {
@@ -210,7 +211,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     announce(t, newer);
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
+    assert.equal(m.guard("init", "--ci").status, 0);
     const registered = record(m)[".githooks/pre-push"];
     assert.equal(registered?.version, older.version);
     m.write(".githooks/pre-push", `${m.read(".githooks/pre-push")}# the consumer's own line\n`);
@@ -234,7 +235,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const workflow = ".github/workflows/guard.yml";
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
+    assert.equal(m.guard("init", "--ci").status, 0);
     m.write("README.md", "the consumer's own file\n");
     const old = m.read(workflow);
     const before = declarations(m);
