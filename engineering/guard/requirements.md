@@ -73,9 +73,43 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 F13–F15, F17 and F18 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces: a suspected Defect is established only by the Test Case that proves it RED ([Testing](testing.md#defects)). It is not assumed here.
 
+**F19 Guard's Skill.** [I7] Guard has one Agent Skill, `kaal-guard`, that conforms to the Agent Skills standard. It is organized by BASS:
+- *Bare*: how to read a verdict line, its `do:` line and the check's own output, with no Skill needed;
+- *Agent*: how the repository's agent instruction files may point to the Skill;
+- *Skill*: the verdicts and what each asks of the resolver, how to reproduce a check with the same facts (`kaal-guard run --check <name>`), what belongs to the repository and what to Guard, and what never resolves a verdict (editing `guard.json` to silence a check, `--no-verify`, or changing a trusted checker in the candidate);
+- *Script*: none. A script is added only when a deterministic step justifies one, and never with a runtime or LLM dependency of its own.
+
+The Skill names no particular consumer and invents no consumer-specific fix.
+
+**F20 Diagnostic content.** [I1, I7] The Skill and the consumer docs recommend what a consumer's failing Test Case prints: the contract it checks, what was expected, what was observed, the evidence, and the next action or the command that reproduces it. This is guidance for people and agents, not a format. Guard parses none of it, and a check that ignores it loses nothing.
+
+**F21 Reminder.** [I7, N4] After the verdict lines of a run that has a fail or cannot judge, Guard adds one line naming the Skill's location, as a path that exists in the repository. In CI it also adds that line to the fail and cannot-judge annotations and to the step summary. A run of only pass, not applicable or held adds nothing. Where no Skill is found, the line says so and names the package's copy of it.
+
+**F22 Unchanged verdicts.** [I1, I2] Adding I7 changes no exit status, no verdict and no verdict line, and it does not change how a check's own stdout and stderr reach the terminal or the log.
+
+**F23 Standalone installation.** [I5, I7] The package carries the Skill's one source, and Guard's own lifecycle installs it without Core, as its installation contract (F27) states: only at `.agents/skills/kaal-guard/`, as a whole, and only where none of its files exists. Every file is recorded under `managed`, with its writer under `writers`. A pre-existing or modified file is kept and reported, and then nothing else of the Skill is installed. `upgrade` moves the unmodified Skill to the installed version's source and installs it where a consumer lacks it (F13). `remove` deletes only unmodified Skill files, and only the directories it leaves empty. Guard never writes or removes another skill beside it, and never writes a supplier-specific location. That is Core enrichment (N12). A path inside the package alone does not meet F23.
+
+**F24 Discovery.** [I7] At the canonical location, the installed Skill is a directory named `kaal-guard` holding a `SKILL.md` whose `name` is `kaal-guard`. An agent reaches it in one of two ways, which are reported apart and never claimed as equal:
+- *native discovery*: the agent lists and activates the Skill from that directory by itself;
+- *instruction-based access*: the reminder (F21), or an instruction pointer the consumer adopts (F26), names the path, and the agent reads it.
+
+Which way a given supplier uses is observed, not asserted (N9).
+
+**F25 External delivery.** [I6, I7] An External delivery puts its own variant of the Skill at `.agents/skills/kaal-guard/` in the target, as part of the same Change. Where Engineering's delivery tooling uses Core at delivery time, Core adds the deployments the target's declared providers need. Either way the delivered files are plain and self-contained. That variant describes the delivered hook and runner, not the package, and names no KAAL element and no npm package. The target owns it afterwards, and a later update is a new External Change. A Skill already at a location is kept and reported. The delivery writes no instruction file.
+
+**F26 Agent instruction files.** [I1, I7] Guard never creates, edits or removes `AGENTS.md` or any supplier's instruction file (`CLAUDE.md` and the like). They are the consumer's. Standalone, `init` reports the Skill's canonical path and says that an agent which does not discover `.agents/skills/` reaches it through the reminder or a pointer the consumer adds. Provider-specific pointers are Core enrichment (N12). No pointer points back from the Skill, none is circular, and none duplicates the Skill's content.
+
+**F27 Installation contract.** [I5, I6, I7] Guard ships one installer-neutral installation contract, `contract.json` in the package. It states what an installation of Guard is:
+- each asset (the hook, the workflow and the Skill): its source in the package, its path in the repository, and its rules (installed only where absent, kept when modified, removed only when unmodified, with the directories that removal empties);
+- the ownership record: Guard's own entries of `guard.json` (`managed`, `config` and `writers`), and nothing else;
+- the runtime prerequisite, Node 24 or later;
+- the provider requirement: an agent resolving a failing verdict reaches the Skill named `kaal-guard`. The canonical deployment and the reminder meet it, and the contract names no other supplier location.
+
+The contract is an instance of Core's Installation Contract: Core owns that Definition, its schema and its outer conformance Test Cases (`core/T1`…, defined in `core/C3`). Guard owns its instance, versioned with the package, and the implementation that realizes it. Guard's standalone lifecycle realizes exactly this instance. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse. Conformance is verified at engineering time (N12), so the package gains no dependency.
+
 ## Nonfunctional (N)
 
-- **N1** [I4, I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node LTS.
+- **N1** [I4, I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node 24 or later from `0.0.2`. Raising the floor from Node 20 is a breaking consumer prerequisite: it is stated in the package's README and in the release's notes, and an older Node is refused with that next step.
 - **N2** [I2] Deterministic: no network, no clock dependence and no polling of GitHub.
 - **N3** [I5] No state beyond the repository and `core.hooksPath`.
 - **N4** [I2, I5] Every fail or cannot-judge verdict says what to do next.
@@ -84,3 +118,11 @@ F13–F15, F17 and F18 state obligations the published lifecycle may not meet. W
 - **N7** [I4] Adopting Guard in KAAL keeps every check identity, OS matrix entry and the coverage of KAAL's existing CI.
 - **N8** [I4, I5] KAAL's development dependency stays `file:packages/kaal-guard`, and KAAL's hook, workflows and `guard.json` stay KAAL's own. A published version is accepted as a consumer would use it only in a disposable clone of KAAL (A12), never by switching KAAL's own dependency.
 - **N9** [I5] Consumer acceptance evidence names its candidate's source: `packed`, the package at a commit before publication, which is simulated; or `registry`, the published version with its registry integrity. Only `registry` evidence counts toward a Release. Neither claims anything about KAAL's real GitHub enforcement.
+- **N10** [I7] The Skill has one canonical source, `skills/kaal-guard/` in the package, and one standalone deployment, `.agents/skills/kaal-guard/`. Which further deployments and instruction pointers a repository needs is decided only by Core's Agent Realization, when Core manages the installation. As documented: Codex discovers `.agents/skills/` ([docs](https://learn.chatgpt.com/docs/build-skills)), Claude Code discovers natively only `.claude/skills/` ([docs](https://code.claude.com/docs/en/skills)), and GitHub Copilot discovers both ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)). Claude Code's behaviour is also observed (O1). Standalone, Claude Code reaches the Skill through instruction-based access (F24).
+- **N11** [I7] The Skill adds no runtime dependency. Guard needs no network and no LLM to install it, name it or report it.
+- **N12** [I5, I6, I7] Contract, standalone conformance and Core enrichment are distinct, and are not required to be feature-equivalent:
+  - the contract: Core owns the Installation Contract Definition, schema and outer conformance Test Cases; Guard owns its instance, `contract.json` (F27);
+  - standalone conformance is Guard's own lifecycle, which guarantees local correctness within the instance, with no KAAL dependency;
+  - Core enrichment is Core's realization of the same instance, through Hosting where Core chooses. It adds CASE registration, provider-aware deployments and pointers, dependency and conflict handling and cross-Capability verification. Core keeps its additional deployments in its own record, and Guard's lifecycle never touches them.
+
+  KAAL Engineering executes Core's conformance Test Cases against Guard's instance at engineering time, and the evidence is Guard's; the Test Case definitions stay Core's and are not copied. Guard holds no placement table, schema or CASE coordination of its own, and Core holds no Guard asset rule beyond what it reads from the instance. External delivery may use Core and Hosting at delivery time, and nothing of either reaches the target.

@@ -23,7 +23,9 @@ PLAN establishes the outer three loops and their stable acceptance boundary. DO 
 
 ## Traceability
 
-Each identifier states its relationships where it is defined: a Requirement names its Intents in brackets, an Architecture element its Requirements, and each planned test, in its title, the I, F, N or A contracts it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. A Change (`C…`) is KAAL's existing Change, carried on GitHub by a pull request. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+Each identifier states its relationships where it is defined: a Requirement names its Intents in brackets, an Architecture element its Requirements, and each planned test, in its title, the I, F, N or A contracts it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+
+Identifiers are numbered locally, per type, within Guard, and an unqualified identifier in these documents is Guard's. Its qualified form is `guard/<id>`, for example `guard/F27` or `guard/T58`. A reference to another Capability is always qualified, for example `core/T…`. A Change (C) is KAAL's existing Change, carried on GitHub by a pull request, and its durable identity is `guard/C<number>`. Earlier labels (R1, K1–K6, B1–B7) remain only as aliases ([Change](change.md#change-identities)). A Defect (D) traces only to the Test Case that proves it RED.
 
 ## Where the tests live
 
@@ -58,6 +60,24 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T42: a real `git push` in the clone runs KAAL's hook through the installed published Guard, and its verdicts equal `kaal-guard run --local` with the same facts | I2, I5, A12 | Architecture | Engineering |
 | T43: `init` in the clone adds no workflow job that duplicates one of KAAL's, and none named like an existing job, and reports KAAL's integration as executed but not managed | I5, F17 | Requirements | Engineering |
 | T44: `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it | I1, F18 | Requirements | Engineering |
+
+| T45: the packed package carries `skills/kaal-guard/SKILL.md`, named `kaal-guard`, with BASS sections and no script, and names no consumer | F19, A13, N11 | Requirements | package |
+| T46: `kaal-engineer-skill` finds no standard or KAAL violation in the Embed Skill or the External variant | F19, A13, A16 | Architecture | Engineering |
+| T47: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path | F21, F22 | Requirements | package |
+| T48: a run of only pass, not applicable or held adds no reminder | F21 | Requirements | package |
+| T49: with `--github`, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not | F21, A15 | Architecture | package |
+| T50: standalone `init` in a fresh repository installs the Skill only at `.agents/skills/kaal-guard/`, records every file under `managed` and `writers`, and equals the package's source | F23, F24, N10 | Requirements | package |
+| T51: `init` keeps a pre-existing `.agents/skills/kaal-guard/SKILL.md`, reports it, and installs no other Skill file | F23, F8 | Requirements | package |
+| T52: `upgrade` moves unmodified Skill files forward and keeps a modified one; `remove` deletes only unmodified Skill files and the directories it emptied, and leaves other skills in `.agents/skills/` untouched | F23, F12 | Requirements | package |
+| T53: the standalone lifecycle writes no supplier-specific location (`.claude/skills/`, `.github/skills/` and the like), even where such directories exist, and its report names the canonical path | F23, N10, N12 | Requirements | package |
+| T54: `init`, `upgrade` and `remove` create, edit and remove no `AGENTS.md`, `CLAUDE.md` or other instruction file; `init` reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer | F26 | Requirements | package |
+| T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location | I5, F13, F23, A12 | Requirements | Engineering |
+| T57: a modified deployment is kept and reported while the others move forward, and `remove` leaves it | F23, F8 | Requirements | package |
+| T56: an External delivery writes the Skill variant at the canonical location and, where Core is used at delivery, where Core computes for the passed declaration; it names neither KAAL nor npm; its hook's reminder names the canonical path; a target's existing Skill and instruction files are untouched | I6, F25, F26, A16 | Requirements | Engineering |
+| T58: `contract.json` and the lifecycle agree: every asset and `guard.json` entry standalone `init` writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one | F27, A17 | Architecture | package |
+| T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | N1, F27 | Requirements | package |
+
+**Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T1`…, defined in `core/C3`), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. T58 stays Guard's own: it checks that the instance and the lifecycle agree.
 
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
@@ -122,6 +142,21 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 | D4 | T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux) |
 
 T40's suspicion was refuted, so it has no D, and T40 keeps guarding F15. The titles of T38–T44 in `engineering/guard/acceptance/consumer/consumer.test.mjs` still carry the earlier labels H1–H5. They sit inside the acceptance boundary and are not changed here.
+
+## Agent guidance
+
+T45–T59 are planned in `guard/C12`. They are written as a PLAN Change of their own (`guard/C13`) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. T50, T53 and T56 show placement only. How a supplier's agent then reaches the Skill is observed by hand and labelled as an observation (N9).
+
+**Observation O1, Claude Code, recorded in `guard/C12`.** This was run with Claude Code 2.1.310 in headless mode (`claude -p`), with read-only tools. Each run used a scratch repository holding a minimal `kaal-guard` Skill at `.agents/skills/kaal-guard/`, and the Skill told the agent to begin its answer with a marker token. Each setup was asked twice what to do about a pasted `fail: unit` verdict:
+
+| Setup | Followed the Skill | Listed among its skills |
+| --- | --- | --- |
+| no pointer and no reminder | 0 of 2 | — |
+| `CLAUDE.md` holding `@AGENTS.md`, and `AGENTS.md` naming the Skill path | 2 of 2 | no |
+| the verdict followed by a reminder line naming the path, with no pointer | 2 of 2 | — |
+| a copy in `.claude/skills/kaal-guard/`, as a control | 2 of 2 | yes |
+
+So instruction-based access, through the reminder or through a pointer, gives the behaviour I7 needs when a verdict is shown. It is not native discovery: Claude Code neither lists the canonical Skill nor activates it unprompted, and `/kaal-guard` does not exist. That is the stated limit. The sample is small, uses one model and runs headless; it is evidence for the placement decision, not a guarantee. Codex and Copilot are expected to discover the Skill natively (N10), and that is still to be observed by hand.
 
 ## Integrity of the outer contract
 

@@ -28,6 +28,12 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 
   The managed-asset cases (F12–F14, F16) need a consumer that has managed assets. KAAL has none and adopts none, so A12 creates a minimal repository beside the clone: a simulated consumer with its own check and no integration of its own, where `init` installs both assets. A12 needs the network to reach the registry. That is A12's, not the package's, so N2 still holds for the package. What KAAL's real CI and branch protection show is A11's evidence, from the development package; A12 claims none of it.
 
+- **A13 Skill source** [F19, F20, N11]. The Embed Skill is in the package at `skills/kaal-guard/`, and the package ships it (`files`). Its text names the package's commands. It assumes no host, as KAAL's Agent Skills do, and Engineering checks it with `kaal-engineer-skill` (A9). The package itself never depends on that check.
+- **A14 Skill placement** [F23, F24, F26, F27, N10, N12]. The lifecycle (A6) installs, upgrades and removes the Skill as a managed asset at its canonical location, as the contract (A17) states. It holds no provider convention and reads no provider declaration. The Skill's text depends on no location. It never writes an instruction file.
+- **A15 Reminder** [F21, F22]. The reminder is reporting, so it sits with the command and the GitHub reporting (A5). It reads the Skill paths recorded under `managed`, or else the package's copy. The runner (A3) and the hook (A4) are unchanged, and the hook shows the reminder only because it forwards `kaal-guard`'s output.
+- **A16 External Skill** [F25, F26, N12]. The External tooling (A10) carries its own variant of the Skill as a template and writes it at the canonical location with the hook and the workflow. Where Core's realization is available in KAAL's workspace, the tooling may ask it at delivery for the target's further deployments and pointers, write the deployments, and list the pointers in `GUARD.md`. It uses no package internals, and no Core or Hosting element reaches the target.
+- **A17 Installation contract** [F27, N12]. `contract.json` is in the package, and the package ships it. It is Guard's instance of Core's Installation Contract schema, which Guard neither copies nor imports. The lifecycle (A6) reads its assets and rules from it, so no second list of assets exists in Guard's code. Core reads the same file when it realizes Guard. KAAL Engineering (A9) runs Core's conformance Test Cases against it, at engineering time only.
+
 ## Relationships
 
 ```mermaid
