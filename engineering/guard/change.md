@@ -167,7 +167,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C24` | — | Guard | guard/T37–guard/T39, guard/T41 and guard/T44 retired; guard/T61–guard/T73 written in the boundary. It travels alone | `guard/C23`, `guard/C22`, `core/C5` | not created |
 | `guard/C25` | — | Guard | `.kaal/config/guard/` in the package, and KAAL's own declarations converted | `guard/C24`, `core/C5` | not created |
 | `guard/C26` | — | Guard | Test Case registration: Guard invokes and reports registered consumer Test Cases, coordinated with Testing, Sealing, Change and Change Isolation. A `0.0.3` candidate, outside the `0.0.2` critical path | Testing, Sealing and Change PLANs | Issue #340; not created |
-| `guard/C27` | — | Guard | The `0.0.2` release boundary recorded in this document | — | this Change |
+| `guard/C27` | — | Guard | The `0.0.2` release boundary recorded in this document | — | #342 |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
 | `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | not created |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
