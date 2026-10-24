@@ -1,6 +1,6 @@
 # Guard: External delivery
 
-KAAL Engineering delivers Guard naked into a target repository as one Change (A10, I6). The target gets working hooks, working CI and local docs, and neither the `kaal-guard` package nor any other KAAL element. This tooling is Engineering's own; it is not part of the Embed package and uses none of its internals.
+KAAL Engineering delivers Guard naked into a target repository as one Change (guard/A10, guard/I6). The target gets working hooks, working CI and local docs, and neither the `kaal-guard` package nor any other KAAL element. This tooling is Engineering's own; it is not part of the Embed package and uses none of its internals.
 
 ## Deliver
 
@@ -29,5 +29,5 @@ KAAL Engineering delivers Guard naked into a target repository as one Change (A1
 
 ## Verified by
 
-- T3 (`engineering/guard/acceptance/external.test.mjs`): a delivery into a fresh target is one commit of a handful of files, with a hook, CI and docs, nothing from KAAL, nothing of the target's overwritten, and a hook that blocks a failing check and lets a passing one through.
+- guard/T3 (`engineering/guard/acceptance/external.test.mjs`): a delivery into a fresh target is one commit of a handful of files, with a hook, CI and docs, nothing from KAAL, nothing of the target's overwritten, and a hook that blocks a failing check and lets a passing one through.
 - `deliver.test.mjs`: what is delivered for local-only and Node targets, kept and refused files, the delivered runner's verdicts, and that a fact Git cannot give stays unset.

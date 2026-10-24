@@ -1,6 +1,6 @@
 # Guard: Run
 
-`kaal-guard run` exists from C1, `verify` from C4a, and `init`, `upgrade` and `remove` from C4b, so far only in this repository, where KAAL's pre-push hook and CI use `run` from C3a and C3c. The consumer docs ship in the package as its README (C4d); this page is the Engineering view.
+`kaal-guard run` exists from guard/C1, `verify` from guard/C4a, and `init`, `upgrade` and `remove` from guard/C4b, so far only in this repository, where KAAL's pre-push hook and CI use `run` from guard/C3a and guard/C3c. The consumer docs ship in the package as its README (guard/C4d); this page is the Engineering view.
 
 ## Embed: shipped in the package
 
@@ -28,7 +28,7 @@ KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`,
 
 ## External: naked delivery by KAAL Engineering
 
-KAAL Engineering implements Guard in the target from the target's own commands, adapting it where needed, and delivers it as one Change, normally a pull request. The Change contains a working `.githooks/pre-push`, working CI jobs (in the target's existing workflows or a new one) and the local docs to maintain them. It contains neither the `kaal-guard` package nor any other KAAL element, and never overwrites the target's existing files. From C5 the tooling is `engineering/guard/external/deliver.mjs`; [its page](external/README.md) says how to deliver.
+KAAL Engineering implements Guard in the target from the target's own commands, adapting it where needed, and delivers it as one Change, normally a pull request. The Change contains a working `.githooks/pre-push`, working CI jobs (in the target's existing workflows or a new one) and the local docs to maintain them. It contains neither the `kaal-guard` package nor any other KAAL element, and never overwrites the target's existing files. From guard/C5 the tooling is `engineering/guard/external/deliver.mjs`; [its page](external/README.md) says how to deliver.
 
 ## Verify
 
