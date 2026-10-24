@@ -102,6 +102,20 @@ await catalog(".kaal");                              // { capabilities: [{ name,
 
 `capabilities(dir)` is deprecated: it still returns `{ skills, extensions }`, and `catalog` replaces it.
 
+### Frontmatter
+
+`kaal-core/frontmatter` validates the YAML frontmatter of KAAL's collaborative Markdown artifacts, deterministically and from the frontmatter alone: the body never changes the result. Each Capability owns its Types and their schemas and supplies them as a mapping from Type name, `<Capability>/<Type>`, to schema. A schema lists every key the Type allows, each with one value kind (`id`, `name`, `enum`, `ref`, `path`, `boolean`, `number` or `parameter`), optionally as a list or required; there is no free-text kind, prose keys such as `description` are refused, and `type`, which names the artifact's Type, is never declared. Reading the YAML is Graph's (`kaal-graph/form`). The module is pure, and imports no host module.
+
+```js
+import { checkSchema, validate } from "kaal-core/frontmatter";
+
+const types = { "Sample/Record": { keys: { change: { value: "id", required: true } } } };
+checkSchema("Sample/Record", types["Sample/Record"]); // []
+validate(bytes, types); // { verdict: "valid" | "invalid" | "unknown", findings: [{ key, rule }] }
+```
+
+An artifact that names no Type the mapping holds is `unknown`, never `valid`. `validate` throws a `TypeError` if a supplied Type or schema is itself invalid.
+
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
