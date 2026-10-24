@@ -36,11 +36,27 @@ KAAL is the consumer of its published package, in a disposable clone (A12). KAAL
 | Change | Carries | Scope | Verified when |
 | --- | --- | --- | --- |
 | **K1** PLAN | I5 | I5 extended to the consumer upgrade and adoption, F11–F18, N8–N9, KAAL's adoption assessment in A11, A12, and the planned tests T36–T44 with their intended evidence. No code and no test file. | The Owner accepts the plan. |
-| **K2** Harness | I5 | The A12 harness and T36–T44, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. H1–H5 are each demonstrated or refuted. |
-| **K3** Fix | I5 | One bounded package Change for each hypothesis K2 demonstrates, RED to GREEN on Linux, macOS and Windows. | Its planned test is GREEN against a `packed` candidate, and no other outer test turns RED. |
+| **K2** Harness | I5 | The A12 harness and T36–T44, from `0.0.1` to a `packed` candidate. The boundary rule applies: the tests land as a PLAN Change of their own, before the harness. | Each test's evidence is recorded as found. Each suspicion is established as a Defect or refuted by its test. |
+| **K3** Fix | I5 | One bounded package Change for each Defect K2 establishes ([Testing](testing.md#defects)) and the Owner selects, turning its Test Case from RED to GREEN. The tests already exist, so each is a DO Change outside the acceptance boundary. The [K3 Change map](#k3-change-map) gives each one's scope, dependencies and order. | The Defect's Test Case is GREEN against a `packed` candidate, T40 stays GREEN, no other outer test turns RED, and the package's outer tests stay GREEN on Linux, macOS and Windows. The Defect is then recorded as corrected. |
 | **K4** Consumer job | — | A non-required job running A12 on the three OSes, so a registry outage cannot block a merge. It travels alone. A separate Engineering decision, not part of K1–K3. | Proposed to the Owner; not authorized. |
 | **K5** Publish | — | `0.0.2` through the Guard Release workflow, only with the Owner's authorization and only carrying a K3 Change. | The registry tarball equals the workflow's packed artifact. |
 | **K6** Release acceptance | I5 | T36–T44 from `0.0.1` to the `registry` `0.0.2`. | All GREEN with `registry` evidence. Only then is the `0.0.2` Release accepted. |
+
+### K3 Change map
+
+Each K3 Change corrects one Defect in `packages/kaal-guard` and lands in `kaal/guard` on its own. They land in this order, because each later one writes `guard.json` through the earlier ones.
+
+| Change | Corrects | Scope | Depends on |
+| --- | --- | --- | --- |
+| **K3a** Consumer bytes | D4 (T44) | Guard edits only its own top-level entries in the text of an existing `guard.json`, inserting, replacing or deleting them, and keeps every other byte. It writes nothing when its entries are unchanged. A `guard.json` that Guard creates keeps today's format. `init`, `upgrade` and `remove` all write through this. | nothing |
+| **K3b** New assets | D1 (T38) | In `upgrade`, a managed path with no recorded hash is installed under `init`'s rule and recorded, but only where no file exists. Where a file does exist, it is reported as left untouched. | K3a |
+| **K3c** Existing integration | D3 (T43) | `init` installs the workflow only for `ci` checks that no existing workflow job declares in Guard's declared form, and never with a job name an existing workflow already uses. It reports the hook and workflows it found as executed by Guard but not managed. The declared checks come from the same reading `verify` uses. The command layer passes them to the lifecycle, so the lifecycle still imports no adapter (A7, T29). `upgrade` writes the workflow for the same set. | K3a |
+| **K3d0** PLAN | D2 (T39) | F18 is amended to name a third Guard-owned entry of `guard.json`: `writer`, the version that wrote the managed assets. A PLAN Change touching only the requirements, with no test and no code. | nothing |
+| **K3d** Writer version | D2 (T39) | `init` and `upgrade` record `writer`. `upgrade` reports the version it moves from and to. When no `writer` is recorded, the assets were written by `0.0.1`, the only published version that recorded none. A `guard.json` without `writer` keeps its meaning (F15, T40), and `0.0.1` keeps an unknown top-level entry on rollback (F16, T41). | K3a, K3d0 |
+
+The evidence stays bounded:
+- Each Test Case runs against a `packed` candidate, directly and on Linux, as in K2b. Consumer evidence on macOS and Windows needs K4 or a run by hand.
+- No version is bumped in K3. So `packed` still carries version `0.0.1`, and T37 and T41 still cannot show an asset's content moving between versions. That waits for K5 and K6.
 
 C3 lands as four Changes, C3a, C3b, C3b2 and C3c, because `.github` travels alone (Change Isolation): C3c's jobs need the command C3a installs and the checks C3b lists, and its `pull_request_target` jobs run from the default branch (GitHub's rule since December 2025), so their checks must run from a default-branch checkout (C3b2) and can only be observed once promoted. The Owner accepted the first split on #293. T35 needs `kaal-guard verify`, so the `Guard` job gains `verify` in C4c, which travels alone, and T35 turns GREEN there. C4 lands as four Changes for the same reasons: `verify` (C4a) comes before the job that runs it (C4c), the lifecycle (C4b) is the largest piece and is reviewed on its own, and the docs (C4d) describe what C4a and C4b ship.
 

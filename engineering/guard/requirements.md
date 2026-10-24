@@ -71,7 +71,7 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 **F18 Consumer bytes.** [I1, I5] Guard writes only its own entries of `guard.json`, `managed` and `config`. Every other byte stays as the consumer wrote it, and `init` followed by `remove` leaves `guard.json` as it was.
 
-F13–F15, F17 and F18 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces, as the hypotheses H1–H5 ([Testing](testing.md#consumer-upgrade)). It is not assumed here.
+F13–F15, F17 and F18 state obligations the published lifecycle may not meet. Whether it does is evidence the consumer acceptance (A12) produces: a suspected Defect is established only by the Test Case that proves it RED ([Testing](testing.md#defects)). It is not assumed here.
 
 ## Nonfunctional (N)
 

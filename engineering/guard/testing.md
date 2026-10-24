@@ -51,13 +51,13 @@ Each identifier states its relationships where it is defined: a Requirement name
 
 | T36: a disposable KAAL clone installs the published `0.0.1` from the registry; its lockfile integrity equals the registry's; KAAL's own tree keeps `file:packages/kaal-guard`; `verify` passes and a local check gives KAAL's verdict | I5, F11, N8, N9, A12 | Intent | Engineering |
 | T37: in the minimal repository, a dependency and lockfile change to the candidate, then `upgrade`, moves an unmodified managed asset forward and keeps a modified managed asset, a consumer-owned file and every entry of `checks`; in the clone, the same change alters no file | I5, F11, F12 | Requirements | Engineering |
-| T38 (H1): a managed asset the candidate manages, missing from the minimal repository and not recorded in `guard.json`, is installed and recorded by `upgrade` | F13 | Requirements | Engineering |
-| T39 (H2): after `upgrade` to the candidate, `guard.json` records the writing version and `upgrade` reported the versions it moved from and to | F14 | Requirements | Engineering |
-| T40 (H3): the candidate reads a `guard.json` written by `0.0.1` with the same checks, verdicts and managed assets, or refuses it as cannot judge with a next step | F15 | Requirements | Engineering |
+| T38: a managed asset the candidate manages, missing from the minimal repository and not recorded in `guard.json`, is installed and recorded by `upgrade` | F13 | Requirements | Engineering |
+| T39: after `upgrade` to the candidate, `guard.json` records the writing version and `upgrade` reported the versions it moved from and to | F14 | Requirements | Engineering |
+| T40: the candidate reads a `guard.json` written by `0.0.1` with the same checks, verdicts and managed assets, or refuses it as cannot judge with a next step | F15 | Requirements | Engineering |
 | T41: rollback from the candidate to `0.0.1`, then forward again, each through the dependency, the lockfile and `upgrade`, restores each unmodified managed asset in the minimal repository to that version's content, and leaves modified, consumer-owned and KAAL-owned files untouched | I5, F16 | Requirements | Engineering |
 | T42: a real `git push` in the clone runs KAAL's hook through the installed published Guard, and its verdicts equal `kaal-guard run --local` with the same facts | I2, I5, A12 | Architecture | Engineering |
-| T43 (H4): `init` in the clone adds no workflow job that duplicates one of KAAL's, and none named like an existing job, and reports KAAL's integration as executed but not managed | I5, F17 | Requirements | Engineering |
-| T44 (H5): `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it | I1, F18 | Requirements | Engineering |
+| T43: `init` in the clone adds no workflow job that duplicates one of KAAL's, and none named like an existing job, and reports KAAL's integration as executed but not managed | I5, F17 | Requirements | Engineering |
+| T44: `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it | I1, F18 | Requirements | Engineering |
 
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
@@ -74,39 +74,54 @@ At C0a, 32 of the 33 RED tests are blocked: T1, T2, T4 and T6–T27 (25 package 
 
 T36–T44 are written in K1 and implemented with the A12 harness in K2, in `engineering/guard/acceptance/`. Each runs from `0.0.1` to a candidate. Its evidence names the candidate's source (N9): `packed` is simulated, and only `registry` counts toward a Release. No test claims that KAAL's real GitHub CI or branch protection enforces a published version.
 
-H1, H2 and H3 are hypotheses read from the lifecycle's code, not established defects; K2 demonstrates or refutes each. H4 and H5 come from an assessment of KAAL's adoption: `init` and `remove` were run once by hand in an isolated clone of `main` (`636abbd`) with the development package. `init` installed `.github/workflows/guard.yml` with a job named `Guard` and one job for each of KAAL's eight `ci` checks, named `Hosting`, `Workspaces`, `Branching` and so on. Those are the names of KAAL's existing jobs, so every check would run twice and two check runs would share each name. `remove` deleted the workflow but left `guard.json` reformatted. These are observations, not yet test evidence; K2 records them as T43 and T44. The evidence K2 is expected to record, against a `packed` candidate of today's package:
+The suspicions behind T38, T39 and T40 were read from the lifecycle's code, not established defects; K2 establishes or refutes each by its test. Those behind T43 and T44 come from an assessment of KAAL's adoption: `init` and `remove` were run once by hand in an isolated clone of `main` (`636abbd`) with the development package. `init` installed `.github/workflows/guard.yml` with a job named `Guard` and one job for each of KAAL's eight `ci` checks, named `Hosting`, `Workspaces`, `Branching` and so on. Those are the names of KAAL's existing jobs, so every check would run twice and two check runs would share each name. `remove` deleted the workflow but left `guard.json` reformatted. These are observations, not yet test evidence; K2 records them as T43 and T44. The evidence K2 is expected to record, against a `packed` candidate of today's package:
 
 | Test | Intended evidence | Why |
 | --- | --- | --- |
 | T36 | GREEN | it guards what `0.0.1` does |
 | T37 | GREEN | F12 restates F8, which `upgrade` already meets |
-| T38 (H1) | exercised behavioural RED | `upgrade` skips every asset `guard.json` does not record, so a deleted unrecorded workflow never returns |
-| T39 (H2) | exercised behavioural RED | `guard.json` records hashes, not the writing version, and `upgrade` reports no versions |
-| T40 (H3) | GREEN | the format of `guard.json` has not changed since `0.0.1`; GREEN means H3 is not a defect and the test guards F15 |
+| T38 | exercised behavioural RED | `upgrade` skips every asset `guard.json` does not record, so a deleted unrecorded workflow never returns |
+| T39 | exercised behavioural RED | `guard.json` records hashes, not the writing version, and `upgrade` reports no versions |
+| T40 | GREEN | the format of `guard.json` has not changed since `0.0.1`; GREEN refutes the suspicion and the test guards F15 |
 | T41 | GREEN | rollback follows from F12 for unmodified assets |
 | T42 | GREEN | KAAL's hook calls whichever Guard is installed |
-| T43 (H4) | exercised behavioural RED | observed: `init` judges existing files by path, not existing integration by declared check |
-| T44 (H5) | exercised behavioural RED | observed: Guard rewrites the whole of `guard.json` with its own formatting |
+| T43 | exercised behavioural RED | observed: `init` judges existing files by path, not existing integration by declared check |
+| T44 | exercised behavioural RED | observed: Guard rewrites the whole of `guard.json` with its own formatting |
 
-A test K2 finds otherwise is reported as found, not adjusted to this table. Only a hypothesis K2 demonstrates becomes a package Change (K3).
+A test K2 finds otherwise is reported as found, not adjusted to this table. Only a Defect K2 establishes becomes a package Change (K3).
 
 Recorded in K2b, against a `packed` candidate of the package at `kaal/guard` 16783c0, on Linux only (Node 22, npm 10, Git 2.43), by running `node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs` directly:
 
-| Test | Recorded evidence | Hypothesis |
+| Test | Recorded evidence | Suspicion |
 | --- | --- | --- |
 | T36 | GREEN: the clone's lockfile holds the registry's integrity for `0.0.1` | |
 | T37 | GREEN | |
-| T38 | exercised behavioural RED: upgrade did not install a managed asset the consumer does not have | H1 demonstrated |
-| T39 | exercised behavioural RED: `guard.json` does not record the version that wrote its managed assets | H2 demonstrated |
-| T40 | GREEN | H3 refuted |
+| T38 | exercised behavioural RED: upgrade did not install a managed asset the consumer does not have | established: D1 |
+| T39 | exercised behavioural RED: `guard.json` does not record the version that wrote its managed assets | established: D2 |
+| T40 | GREEN | refuted |
 | T41 | GREEN | |
 | T42 | GREEN: the hook printed `pass: push: exit status 0`, the same line as `run --local` | |
-| T43 | exercised behavioural RED: `init` installed `.github/workflows/guard.yml` beside KAAL's workflows | H4 demonstrated |
-| T44 | exercised behavioural RED: Guard rewrote `guard.json` with its own formatting | H5 demonstrated |
+| T43 | exercised behavioural RED: `init` installed `.github/workflows/guard.yml` beside KAAL's workflows | established: D3 |
+| T44 | exercised behavioural RED: Guard rewrote `guard.json` with its own formatting | established: D4 |
 
 This evidence is bounded:
 - The `packed` candidate carries the same version and templates as `0.0.1`. T37 and T41 therefore show that the consumer's files are kept and that versions can be switched back and forth. They do not yet show an asset's content moving between versions; that needs a candidate whose templates differ.
 - It is simulated (N9). It was recorded on one OS, and it says nothing about KAAL's real GitHub enforcement.
+
+## Defects
+
+A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
+
+These four are defects in behaviour the published `0.0.1` already ships, measured against I5's consumer upgrade. None is a regression, because no published version met these obligations. None is an expected RED of planned implementation either, because no Change has implemented them yet.
+
+| Defect | Traces to | Gap | Status |
+| --- | --- | --- | --- |
+| D1 | T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux) |
+| D2 | T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux) |
+| D3 | T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
+| D4 | T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux) |
+
+T40's suspicion was refuted, so it has no D, and T40 keeps guarding F15. The titles of T38–T44 in `engineering/guard/acceptance/consumer/consumer.test.mjs` still carry the earlier labels H1–H5. They sit inside the acceptance boundary and are not changed here.
 
 ## Integrity of the outer contract
 
