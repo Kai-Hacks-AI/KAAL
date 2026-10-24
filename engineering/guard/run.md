@@ -37,6 +37,8 @@ Guard owns one integration contract, and `verify` checks only that: whether each
 - The jobs are the `  <key>:` lines indented two spaces directly under a top-level `jobs:` line.
 - A job declares a check with a step whose whole `run:` value, on that one line, is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`, the name a plain word, as in `- run: npx kaal-guard run --check <name> --github`.
 - `--check ${{ matrix.check }}` declares each check the job lists on a line of its own as `- { check: <name>, … }`.
+- A job declares every `ci` check with a step whose whole `run:` value is `kaal-guard run --ci`, with one of the same prefixes and options after it. This is the form of Guard's own workflow, which the consumer opts into with `init --ci` (guard/F17): the step is the consumer's one assignment of every `ci` check to that job.
+- A job declares the consistency check with a step whose whole `run:` value is `kaal-guard verify`, with one of the same prefixes, optionally followed by `--config <dir>` and then `--github`.
 - Nothing else declares anything: a block script, a chained command, a quoted name, another expression or matrix key, `echo`, `name:` or `env:` text, a comment.
 
 Three claims stay separate:
@@ -57,6 +59,6 @@ A pass says `declared by job <key> in <file>; declared integration only, not tha
 | `not applicable: …` | nothing; it is reported as not applicable, not as a pass |
 | `held: …` | the Owner's evidenced hold; the check's own output in the log says why |
 | the hook passes but CI fails | compare the base the hook printed with CI's; `git fetch`, then rerun |
-| `verify` names a ci check no job declares | give a job the step `- run: npx kaal-guard run --check <name> --github` ([the declared form](#verify)), and make that job required; `verify` does not check either |
+| `verify` names a ci check no job declares | give a job of your workflow the step `- run: npx kaal-guard run --check <name> --github` ([the declared form](#verify)), or run `kaal-guard init --ci` to hand every ci check to Guard's workflow; then make that job required. `verify` checks neither; Guard never adds the job itself |
 | `init` left a file alone | it existed before Guard; add the printed line yourself |
 | the hook doesn't run | `git config core.hooksPath .githooks` |
