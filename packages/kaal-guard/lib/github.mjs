@@ -35,11 +35,14 @@ export function summarize(results, file) {
  * `  <key>:` lines indented two spaces directly under a top-level `jobs:` line. A job declares a check
  * with a step whose whole `run:` value, on that one line, is `kaal-guard run`, `npx kaal-guard run` or
  * `npx --no kaal-guard run` with `--check <name>`. `--check ${{ matrix.check }}` declares each check
- * the job lists on a line of its own as `- { check: <name>, … }`. Names are plain words. Nothing else
- * declares anything: verify infers nothing from scripts or other YAML.
+ * the job lists on a line of its own as `- { check: <name>, … }`. `run --ci` declares every ci check:
+ * the consumer's one assignment of all of them to that job, as in the workflow init --ci installs (F17).
+ * Names are plain words. Nothing else declares anything: verify infers nothing from scripts or other
+ * YAML, and Guard never fills in a check no job declares.
  */
 const INVOCATION = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run(?: \S+)*? --check (\$\{\{ matrix\.check \}\}|[^\s"'{}$,#]+)(?: |$)/;
 const ENTRY = /^- \{ ?check: ([^\s"'{}$,#]+) ?[,}]/;
+const EVERY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run --ci(?: |$)/;
 
 /** Each job under `jobs:`, as its key and its trimmed lines, without blank or comment lines. */
 function jobs(text) {
@@ -55,11 +58,11 @@ function jobs(text) {
   return found;
 }
 
-/** The consistency check's declared form: a step whose whole `run:` value runs kaal-guard verify. */
-const VERIFY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard verify(?: --github)?$/;
+/** The consistency check's declared form: a step whose whole `run:` value runs kaal-guard verify, optionally with --config <dir>, then --github. */
+const VERIFY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard verify(?: --config [^\s"'{}$#;&|<>]+)?(?: --github)?$/;
 
-/** The checks one job declares in Guard's declared form. */
-function declared(job) {
+/** The checks one job names in Guard's declared form. */
+function named(job) {
   const names = new Set();
   for (const line of job.lines) {
     const name = INVOCATION.exec(line)?.[1];
@@ -71,8 +74,9 @@ function declared(job) {
 
 /**
  * Every declaration in Guard's declared form in .github/workflows, in file and job order: { name, job,
- * file } for a check, and { name: "verify", verify: true, job, file } for the consistency check. The
- * lifecycle reads these to recognize a repository's existing integration (F17); nothing else does.
+ * file } for a check named, { name: "ci", every: true, job, file } for a job that runs every ci check, and
+ * { name: "verify", verify: true, job, file } for the consistency check. The lifecycle reads these to
+ * recognize a repository's existing integration (F17); nothing else does.
  */
 export function declarations(root) {
   const dir = join(root, ".github", "workflows");
@@ -81,11 +85,22 @@ export function declarations(root) {
   for (const file of files) {
     for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
       const at = { job: job.key, file: `.github/workflows/${file}` };
-      for (const name of declared(job)) found.push({ name, ...at });
+      for (const name of named(job)) found.push({ name, ...at });
+      if (job.lines.some((line) => EVERY.test(line))) found.push({ name: "ci", every: true, ...at });
       if (job.lines.some((line) => VERIFY.test(line))) found.push({ name: "verify", verify: true, ...at });
     }
   }
   return found;
+}
+
+/** The step that runs one ci check in a job of the consumer's own workflow, in the declared form. */
+export const step = (name, config) => `- run: npx --no kaal-guard run --check ${name}${config ? ` --config ${config}` : ""} --github`;
+
+/** The ci checks in the list that no declaration runs, in declaration order: missing coverage, which Guard reports and never fills. */
+export function uncovered(list, found) {
+  if (found.some((d) => d.every)) return [];
+  const named = new Set(found.filter((d) => !d.verify).map((d) => d.name));
+  return Object.keys(list.checks).filter((name) => list.checks[name].runs.includes("ci") && !named.has(name));
 }
 
 /**
@@ -94,13 +109,16 @@ export function declarations(root) {
  * it is repository governance; verify establishes neither. Returns { results }, one per ci check.
  */
 export function verify(root, list) {
+  const found = declarations(root);
   const where = new Map();
-  for (const d of declarations(root)) if (!d.verify && !where.has(d.name)) where.set(d.name, `job ${d.job} in ${d.file}`);
+  for (const d of found) if (!d.verify && !d.every && !where.has(d.name)) where.set(d.name, `job ${d.job} in ${d.file}`);
+  const every = found.find((d) => d.every);
   const ci = Object.keys(list.checks).filter((name) => list.checks[name].runs.includes("ci"));
+  if (every) for (const name of ci) if (!where.has(name)) where.set(name, `job ${every.job} in ${every.file}, which runs every ci check (kaal-guard run --ci)`);
   return {
     results: ci.map((name) =>
       where.has(name)
         ? { name, verdict: "pass", evidence: `declared by ${where.get(name)}; declared integration only, not that GitHub ran or requires that job` }
-        : { name, verdict: "fail", evidence: "no workflow job declares it in Guard's declared form", do: `give a job the step "- run: npx --no kaal-guard run --check ${name} --github", and make that job required` }),
+        : { name, verdict: "fail", evidence: "no workflow job declares it in Guard's declared form; Guard does not run it in CI on its own", do: `give a job of your workflow the step "${step(name)}", or run kaal-guard init --ci to hand every ci check to Guard's workflow; then make that job required` }),
   };
 }

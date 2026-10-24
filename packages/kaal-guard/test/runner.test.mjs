@@ -8,14 +8,29 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { annotations, summarize, verify } from "../lib/github.mjs";
 import { plan, words } from "../lib/command.mjs";
-import { findRoot, lines, readList, run, status } from "../lib/runner.mjs";
+import { CONFIG, readDeclarations } from "../lib/config.mjs";
+import { lines, run, status } from "../lib/runner.mjs";
 
-/** A directory holding guard.json with these checks. */
+/** One declaration's file for a check, in the frontmatter subset. */
+function declare(check) {
+  const l = ["type: Guard/Check", `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
+  if (check.facts) l.push(`facts: [${check.facts.join(", ")}]`);
+  if (check.trusted !== undefined) l.push(`trusted: ${JSON.stringify(check.trusted)}`);
+  if (check.outcomes) l.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${JSON.stringify(String(k))}: ${v}`).join(", ")}}`);
+  return `---\n${l.join("\n")}\n---\n`;
+}
+
+/** A Git working tree declaring these checks in its configuration directory. */
 function repo(checks) {
   const dir = mkdtempSync(join(tmpdir(), "kaal-guard-inner-"));
-  writeFileSync(join(dir, "guard.json"), JSON.stringify({ checks }));
+  spawnSync("git", ["init", "-q", dir]);
+  mkdirSync(join(dir, CONFIG), { recursive: true });
+  for (const [name, check] of Object.entries(checks)) writeFileSync(join(dir, CONFIG, `${name}.md`), declare(check));
   return dir;
 }
+
+/** The declared list of a repository from repo(). */
+const declared = (dir) => readDeclarations(dir, join(dir, CONFIG)).list;
 
 const node = (code) => `node -e "${code}"`;
 
@@ -31,34 +46,16 @@ describe("words", () => {
   });
 });
 
-describe("guard.json", () => {
-  it("is found from a subdirectory", () => {
-    const dir = repo({});
-    assert.equal(findRoot(join(dir, "a", "b")), dir);
-  });
-
-  it("names what is wrong with a check", () => {
-    for (const [check, said] of [
-      [{ runs: ["ci"] }, /no command/],
-      [{ command: "x", runs: ["nightly"] }, /runs/],
-      [{ command: "x", runs: ["ci"], facts: ["time"] }, /facts/],
-      [{ command: "x", runs: ["ci"], outcomes: { 1: "held" } }, /outcomes/],
-      [{ command: "x", runs: ["ci"], outcomes: { 4: "ignored" } }, /outcomes/],
-    ]) assert.match(readList(repo({ c: check })).problem, said);
-    assert.match(readList(repo({ "a b": { command: "x", runs: ["ci"] } })).problem, /no spaces or colons/);
-  });
-});
-
 describe("run", () => {
   it("gives each verdict its own name and the run the worst status", () => {
     const dir = repo({
-      p: { command: node("process.exit(0)"), runs: ["local"] },
-      n: { command: node("process.exit(3)"), runs: ["local"] },
-      h: { command: node("console.log('on hold');process.exit(4)"), runs: ["local"], outcomes: { 4: "held" } },
+      p: { command: node("process.exit(0)"), runs: ["hook"] },
+      n: { command: node("process.exit(3)"), runs: ["hook"] },
+      h: { command: node("console.log('on hold');process.exit(4)"), runs: ["hook"], outcomes: { 4: "held" } },
     });
-    const { results } = run(dir, { local: true }, {});
-    assert.deepEqual(results.map((r) => r.verdict), ["pass", "not applicable", "held"]);
-    assert.equal(results[2].evidence, "exit status 4");
+    const { results } = run(dir, declared(dir), { hook: true }, {});
+    assert.deepEqual(results.map((r) => [r.name, r.verdict]), [["h", "held"], ["n", "not applicable"], ["p", "pass"]], "not in name order");
+    assert.equal(results[0].evidence, "exit status 4");
     assert.equal(status(results), 0);
     assert.equal(status([{ verdict: "cannot judge" }, { verdict: "fail" }]), 1);
     assert.equal(status([{ verdict: "cannot judge" }, { verdict: "pass" }]), 2);
@@ -77,12 +74,14 @@ describe("run", () => {
   });
 
   it("gives the exit status as evidence", () => {
-    const { results } = run(repo({ q: { command: node("process.exit(1)"), runs: ["ci"] } }), { ci: true }, {});
+    const dir = repo({ q: { command: node("process.exit(1)"), runs: ["ci"] } });
+    const { results } = run(dir, declared(dir), { ci: true }, {});
     assert.deepEqual(lines(results), ["fail: q: exit status 1", "  do: fix what q reports, then run kaal-guard run --check q"]);
   });
 
   it("is cannot judge when a trusted checker has no base", () => {
-    const { results } = run(repo({ t: { command: "node t.mjs", runs: ["ci"], trusted: "t.mjs" } }), { check: "t" }, {});
+    const dir = repo({ t: { command: "node t.mjs", runs: ["ci"], trusted: "t.mjs" } });
+    const { results } = run(dir, declared(dir), { check: "t" }, {});
     assert.equal(results[0].verdict, "cannot judge");
     assert.match(results[0].do, /--base/);
   });
@@ -117,11 +116,10 @@ describe("command", () => {
 });
 
 describe("trusted checker", () => {
-  /** A Git repository with guard.json and these files committed as the base; returns { dir, base }. */
+  /** A Git repository with these checks declared and these files committed as the base; returns { dir, base }. */
   function based(checks, files) {
     const dir = repo(checks);
     const git = (...args) => assert.equal(spawnSync("git", args, { cwd: dir }).status, 0, args.join(" "));
-    git("init", "-q");
     git("config", "user.email", "t@example.invalid");
     git("config", "user.name", "t");
     for (const [path, text] of Object.entries(files)) write(dir, path, text);
@@ -131,7 +129,7 @@ describe("trusted checker", () => {
   }
   const write = (dir, path, text) => (mkdirSync(join(dir, path, ".."), { recursive: true }), writeFileSync(join(dir, path), text));
   const judge = (trusted, command = "node checks/judge.mjs") => ({ j: { command, runs: ["ci"], trusted } });
-  const verdict = (dir, base) => run(dir, { check: "j" }, { base }).results[0];
+  const verdict = (dir, base) => run(dir, declared(dir), { check: "j" }, { base }).results[0];
 
   it("takes a trusted directory from the base: the base's helper runs, not the candidate's", () => {
     const { dir, base, git } = based(judge("checks"), {
@@ -161,9 +159,6 @@ describe("trusted checker", () => {
     assert.match(verdict(dir, base).evidence, /does not name its trusted checker/);
   });
 
-  it("refuses a trusted path outside the repository", () => {
-    assert.match(readList(repo({ j: { command: "node x.mjs", runs: ["ci"], trusted: "../x.mjs" } })).problem, /inside the repository/);
-  });
 });
 
 describe("GitHub reporting", () => {
@@ -194,7 +189,7 @@ describe("verify", () => {
       mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
       writeFileSync(join(dir, ".github", "workflows", file), text);
     }
-    return Object.fromEntries(verify(dir, readList(dir).list).results.map((r) => [r.name, r]));
+    return Object.fromEntries(verify(dir, declared(dir)).results.map((r) => [r.name, r]));
   };
   const verdicts = (checks, workflows) => Object.fromEntries(Object.entries(verified(checks, workflows)).map(([n, r]) => [n, r.verdict]));
   const ci = { command: "x", runs: ["ci"] };
@@ -202,7 +197,7 @@ describe("verify", () => {
 
   it("passes a ci check a step declares in Guard's form, and fails one nothing declares", () => {
     const wf = job("steps:", "  - run: npx kaal-guard run --check plain --github", "  - name: n", "    run: npx --no kaal-guard run --check named", "  - run: kaal-guard run --check bare");
-    assert.deepEqual(verdicts({ plain: ci, named: ci, bare: ci, orphan: ci, mine: { command: "x", runs: ["local"] } }, { "ci.yml": wf }), { plain: "pass", named: "pass", bare: "pass", orphan: "fail" });
+    assert.deepEqual(verdicts({ plain: ci, named: ci, bare: ci, orphan: ci, mine: { command: "x", runs: ["hook"] } }, { "ci.yml": wf }), { plain: "pass", named: "pass", bare: "pass", orphan: "fail" });
   });
 
   it("reads --check ${{ matrix.check }} from the job's - { check: <name> } lines", () => {
@@ -239,5 +234,19 @@ describe("verify", () => {
     const r = verified({ c: ci }, { "ci.yml": job("if: false", "steps:", "  - if: false", "    run: npx kaal-guard run --check c") }).c;
     assert.equal(r.verdict, "pass");
     assert.equal(r.evidence, "declared by job a in .github/workflows/ci.yml; declared integration only, not that GitHub ran or requires that job");
+  });
+});
+
+describe("commands", () => {
+  const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
+
+  it("has no command that lists checks for a workflow to run, and takes --ci only on init", () => {
+    const dir = repo({});
+    const list = spawnSync(process.execPath, [bin, "list", "--undeclared"], { cwd: dir, encoding: "utf8" });
+    assert.equal(list.status, 2);
+    assert.match(list.stdout, /cannot judge: kaal-guard: list is not a kaal-guard command in this version/);
+    const up = spawnSync(process.execPath, [bin, "upgrade", "--ci"], { cwd: dir, encoding: "utf8" });
+    assert.equal(up.status, 2);
+    assert.match(up.stdout, /unknown option --ci/);
   });
 });

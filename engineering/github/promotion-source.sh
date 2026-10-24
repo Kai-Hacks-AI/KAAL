@@ -1,6 +1,6 @@
 #!/bin/bash
 # KAAL's Promotion Source judgment of one pull request, as a KAAL-owned check that the Promotion
-# Source job runs through kaal-guard (guard.json: Promotion-Source). The job's former body, moved: the
+# Source job runs through kaal-guard (.kaal/config/guard/Promotion-Source.md). The job's former body, moved: the
 # rule and its verdict live in engineering/github/lineage.ts. Its first argument is that checker, which
 # Guard takes from the base revision KAAL's job supplies: the default branch's tip (trusted).
 #

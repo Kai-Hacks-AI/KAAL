@@ -1,6 +1,7 @@
-# Written by kaal-guard from guard.json. While it is unmodified, kaal-guard upgrade rewrites it from
-# guard.json's ci checks; once you change it, it is yours, and kaal-guard verify shows what it declares.
 name: Guard
+# Written by kaal-guard init --ci, because you asked for it: it runs kaal-guard verify, and runs every ci
+# check declared in .kaal/config/guard/ in one job. While it is unmodified, kaal-guard upgrade moves it
+# to the installed version's content; once you change it, it is yours.
 on:
   pull_request:
 permissions:
@@ -15,15 +16,10 @@ jobs:
         with:
           node-version: lts/*
       - run: npm ci
-      - run: npx --no kaal-guard verify --github
-  check:
-    name: ${{ matrix.check }}
+      - run: npx --no kaal-guard verify --config .kaal/config/guard --github
+  checks:
+    name: Guard checks
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { check: CHECK }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,4 +29,4 @@ jobs:
           node-version: lts/*
       - run: npm ci
       - run: git diff --name-only -z ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} > "$RUNNER_TEMP/changed"
-      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed
+      - run: npx --no kaal-guard run --ci --config .kaal/config/guard --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed

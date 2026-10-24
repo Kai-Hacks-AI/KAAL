@@ -8,14 +8,17 @@ The package is published to npm as `@kaihacksai/kaal-guard`, first as `@kaihacks
 
 ```sh
 npm install --save-dev @kaihacksai/kaal-guard
-npx kaal-guard init        # writes guard.json and missing adapters only; reports any it left alone
-npx kaal-guard run --local # what the hook runs
+npx kaal-guard init        # creates .kaal/config/guard/ and the installation record; activates nothing (guard/F30)
+npx kaal-guard init --hook # also activates the hook; --ci activates Guard's workflow, on request only (guard/F17)
+npx kaal-guard run --hook  # what the hook runs; run --ci what Guard's workflow runs
 npx kaal-guard verify      # a workflow job declares every ci check in Guard's form (declared integration only)
-npx kaal-guard upgrade     # replaces only unmodified managed files
-npx kaal-guard remove      # deletes only unmodified managed files; keeps guard.json and your tests
+npx kaal-guard upgrade     # replaces only registered, unmodified managed files
+npx kaal-guard remove      # --hook or --ci undoes one surface; alone, both and the record; keeps your declarations and tests
 ```
 
-`init` reports apart what it installed, what it left untouched and what is still to do. It sets `core.hooksPath` to `.githooks` only if it is unset, the hook there is Guard's own and Git runs no hooks of the repository's own from `.git/hooks`, and records that. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the line to add: `sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1` in the hook, or a step `npx --no kaal-guard run --check <name> --github` in a job.
+Each check is declared as `.kaal/config/guard/<name>.md`, its frontmatter in Guard's strict YAML subset (guard/F1); every command refuses a declaration, installation record or checkout state outside its contract as cannot judge, naming the file, the member and the rule (guard/F18). `kaal-guard` reads the directory `--config` names, or `.kaal/config/guard/` at the top level (guard/F28). A root `guard.json` from `0.0.1` is refused, naming the fresh setup (guard/F15).
+
+`init` reports apart what it installed, what it left untouched and what is still to do, including how to activate each surface not yet activated. It writes only catalogued content (`contract.json`) and registers each file it writes in `.kaal/state/guard/installation.json` (guard/F29); a file the record does not register is never Guard's. `init --hook` sets `core.hooksPath` to `.githooks` only if it is unset in every scope, the hook there is Guard's registered one and Git runs no hooks of the repository's own from `.git/hooks`, and records that in its checkout state in Git's metadata. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the line to add: `sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1` in the hook, or a step `npx --no kaal-guard run --check <name> --github` in a job.
 
 The generated workflow is not enforcement. Three claims stay apart:
 - `verify` shows declared integration only: a workflow job names each ci check in Guard's form.
@@ -24,7 +27,7 @@ The generated workflow is not enforcement. Three claims stay apart:
 
 ## Engineer: KAAL itself
 
-KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and lists its checks in `guard.json`. Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
+KAAL installs `@kaihacksai/kaal-guard` from its own tree, `packages/kaal-guard`, as a development dependency (not a workspace) and declares its checks in `.kaal/config/guard/`. Its own hook and workflows run them in the declared form, so `init` reports them as executed by Guard, not managed, and `init --ci` installs nothing beside them (guard/F17). Development, the full documentation and the Engineering-only outer tests live here, in `engineering/guard/`.
 
 ## External: naked delivery by KAAL Engineering
 
@@ -60,5 +63,5 @@ A pass says `declared by job <key> in <file>; declared integration only, not tha
 | `held: …` | the Owner's evidenced hold; the check's own output in the log says why |
 | the hook passes but CI fails | compare the base the hook printed with CI's; `git fetch`, then rerun |
 | `verify` names a ci check no job declares | give a job of your workflow the step `- run: npx kaal-guard run --check <name> --github` ([the declared form](#verify)), or run `kaal-guard init --ci` to hand every ci check to Guard's workflow; then make that job required. `verify` checks neither; Guard never adds the job itself |
-| `init` left a file alone | it existed before Guard; add the printed line yourself |
-| the hook doesn't run | `git config core.hooksPath .githooks` |
+| `init` left a file alone | it existed before Guard, or the installation record does not register it; add the printed line yourself |
+| the hook doesn't run | `kaal-guard init --hook`, or `git config core.hooksPath .githooks` |

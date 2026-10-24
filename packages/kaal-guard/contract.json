@@ -1,0 +1,41 @@
+{
+  "package": "@kaihacksai/kaal-guard",
+  "assets": [
+    {
+      "role": "hook",
+      "surface": "hook",
+      "path": ".githooks/pre-push",
+      "sources": {
+        "hook": "templates/pre-push"
+      },
+      "mode": "755",
+      "install": "only by kaal-guard init --hook, the consumer activating the hook"
+    },
+    {
+      "role": "workflow",
+      "surface": "ci",
+      "path": ".github/workflows/guard.yml",
+      "sources": {
+        "workflow": "templates/guard.yml"
+      },
+      "install": "only by kaal-guard init --ci, the consumer activating CI"
+    }
+  ],
+  "rules": {
+    "install": "init activates nothing; init --hook and init --ci each install their surface's assets only where no file exists, byte for byte as catalogued content, registered in the installation record; the workflow never beside a workflow that already declares a check or verify; upgrade installs a new asset only for an activated surface",
+    "upgrade": "only a registered asset whose SHA-256 equals the registered one; a modified asset keeps its registered version",
+    "remove": "remove --hook and remove --ci deactivate one surface, remove both: only a registered asset whose SHA-256 equals the registered one, with the directories its removal empties; never a declaration or a Test Case"
+  },
+  "record": {
+    "repository": ".kaal/state/guard/installation.json",
+    "checkout": "kaal/guard/state.json in Git's metadata: the common directory, or the worktree's own with extensions.worktreeConfig"
+  },
+  "catalogue": {
+    ".githooks/pre-push": [
+      "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95"
+    ],
+    ".github/workflows/guard.yml": [
+      "6924a2e22d95a9dc40c11f7fc14548ce45b3b5d862f71ac6565a9263b2c618cf"
+    ]
+  }
+}
