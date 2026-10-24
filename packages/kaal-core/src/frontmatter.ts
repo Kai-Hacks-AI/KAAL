@@ -100,7 +100,8 @@ function conforms(spec: KeySchema, v: unknown): boolean {
     case "ref":
       return isObject(v) && Object.keys(v).length === 2 && isName(v.name) && isId(v.id);
     case "path":
-      return typeof v === "string" && !v.includes("\\") && v.split("/").every((s) => s !== "" && s !== "." && s !== "..");
+      // Relative on every host: no backslash, and no `:`, so no Windows drive (`C:/…`) or stream.
+      return typeof v === "string" && !/[\\:]/.test(v) && v.split("/").every((s) => s !== "" && s !== "." && s !== "..");
     case "boolean":
       return typeof v === "boolean";
     case "number":
