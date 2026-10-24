@@ -240,7 +240,7 @@ describe("identity", () => {
 describe("resolution", () => {
   it("leaves reading and looking up Nodes to Graph: Core exports no identity of its own, and an Engine is what admission found", () => {
     for (const name of ["identify", "sha256"]) assert.equal(name in core, false, `kaal-core exports no ${name}`);
-    assert.deepEqual(Object.keys(evaluate(payload())).sort(), ["nodes", "rejected"]);
+    assert.deepEqual(Object.keys(evaluate(payload())).sort(), ["artifacts", "nodes", "rejected"]);
   });
 
   it("resolves types and references by name and identity", async () => {
