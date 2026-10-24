@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { verify } from "../lib/github.mjs";
+import { declarations, verify } from "../lib/github.mjs";
 import { init, remove, upgrade, workflow } from "../lib/lifecycle.mjs";
 
 /** A fresh Git working tree with guard.json holding these checks, when given. */
@@ -94,6 +94,33 @@ describe("lifecycle", () => {
     assert.match(upgrade(dir).lines.join("\n"), /upgraded \.github\/workflows\/guard\.yml/);
     assert.equal(readFileSync(join(dir, ".github", "workflows", "guard.yml"), "utf8"), workflow(["a"]));
     assert.match(upgrade(dir).lines.join("\n"), /guard\.yml is current/);
+  });
+
+  it("init installs no workflow where the repository's own workflows declare every ci check and verify, and reports them as not managed", () => {
+    const dir = tree({ a: { command: "x", runs: ["ci"] }, b: { command: "x", runs: ["ci"] } });
+    mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
+    writeFileSync(join(dir, ".github", "workflows", "ci.yml"), "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard run --check a --github\n      - run: kaal-guard run --check b\n  consistency:\n    steps:\n      - run: npx kaal-guard verify --github\n");
+    const out = init(dir, declarations(dir)).lines.join("\n");
+    assert.ok(!existsSync(join(dir, ".github", "workflows", "guard.yml")));
+    assert.equal(guard(dir).managed[".github/workflows/guard.yml"], undefined);
+    assert.match(out, /executed by Guard, not managed:\n {2}a in job own of \.github\/workflows\/ci\.yml\n {2}b in job own of \.github\/workflows\/ci\.yml\n {2}verify in job consistency of \.github\/workflows\/ci\.yml/);
+  });
+
+  it("init's workflow carries jobs only for what the repository does not declare", () => {
+    const dir = tree({ a: { command: "x", runs: ["ci"] }, b: { command: "x", runs: ["ci"] } });
+    mkdirSync(join(dir, ".github", "workflows"), { recursive: true });
+    writeFileSync(join(dir, ".github", "workflows", "ci.yml"), "jobs:\n  own:\n    steps:\n      - run: kaal-guard run --check a\n");
+    init(dir, declarations(dir));
+    const text = readFileSync(join(dir, ".github", "workflows", "guard.yml"), "utf8");
+    assert.equal(text, workflow(["b"]));
+    assert.deepEqual(verify(dir, guard(dir)).results.map((r) => r.verdict), ["pass", "pass"]);
+  });
+
+  it("does not count Guard's own managed workflow as the repository's declaration", () => {
+    const dir = tree({ a: { command: "x", runs: ["ci"] } });
+    init(dir, declarations(dir));
+    assert.match(upgrade(dir, declarations(dir)).lines.join("\n"), /guard\.yml is current/);
+    assert.equal(readFileSync(join(dir, ".github", "workflows", "guard.yml"), "utf8"), workflow(["a"]));
   });
 
   it("names guard.json when it cannot be read", () => {
