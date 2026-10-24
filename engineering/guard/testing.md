@@ -78,6 +78,7 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T76: `init` prepares `.kaal/config/guard/` and the installation record and activates nothing: no hook, no `core.hooksPath`, no workflow. It names `init --hook` and `init --ci`, and a second `init` changes nothing. Added in `guard/C35` | guard/F30, guard/N4 | Requirements | package |
 | guard/T77: `init --hook` and `init --ci` each activate one surface and neither implies the other; repeating either changes nothing. `run --hook` runs the `hook` checks, `run --ci` the `ci` checks and `run --check <name>` one check, whatever its `runs`. Added in `guard/C35` | guard/F30, guard/F4, guard/F17 | Requirements | package |
 | guard/T79: `outcomes: {"4": held}` makes exit status 4 held, as before; `outcomes: {4: held}` is cannot judge for `run` and `verify`, naming the declaration, `outcomes` and `{"4": held}`, and runs nothing. Added in `guard/C38` | guard/F1, guard/F2, guard/F18 | Requirements | package |
+| guard/T81: a trusted checker Git records as executable keeps that mode in its base copy, so a check whose command is `./checks/judge.sh`, with `trusted: checks/judge.sh`, passes on the base's verdict instead of cannot judge. On Windows, which has no executable bit, the check runs the base copy through `sh` and passes. Added in `guard/C40` | guard/F7 | Requirements | package |
 | guard/T80: every key in the frontmatter of KAAL's own declarations is a string to YAML 1.2's core schema: each `outcomes` status is double-quoted. Added in `guard/C38` | guard/F1, guard/A11 | Architecture | Engineering |
 | guard/T78: `remove --ci` undoes CI only, `remove --hook` the hook only, and `remove` the rest; none touches a declaration or a Test Case. `runs: [local]` is cannot judge, naming `hook`, and `run --local` is cannot judge, naming `--hook`. Added in `guard/C35` | guard/F30, guard/F18, guard/N4 | Requirements | package |
 
@@ -170,6 +171,12 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 | guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux) |
 | guard/D3 | guard/T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
 | guard/D4 | guard/T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux); retracted in `guard/C23` |
+
+guard/D5 is a defect in guard/F7 as `0.0.1` ships it, found by Codex on #366 (r4368693892), outside the consumer upgrade:
+
+| Defect | Traces to | Gap | Status |
+| --- | --- | --- | --- |
+| guard/D5 | guard/T81 | the base copy of a trusted checker is written without the mode the base records, so an executable checker run as `./checker.sh` fails to start (EACCES) and its check is cannot judge | suspected (Codex on #366, r4368693892; reproduced directly against `materialize`); established once guard/T81 is recorded RED in `guard/C41` |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
