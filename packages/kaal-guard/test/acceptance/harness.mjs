@@ -23,15 +23,15 @@ export const CONFIG = ".kaal/config/guard";
 /** The repository's installation record (guard/F29), which only Guard writes. */
 export const RECORD = ".kaal/state/guard/installation.json";
 
-/** The artifact kind every declaration names in its `kind` member (core/F6). */
-export const KIND = "guard/K1";
+/** The Type every declaration names in its `type` member (core/F6): Guard's own Business Language name. */
+export const TYPE = "Guard/Check";
 
 /**
  * One declaration's file: typed frontmatter in guard/F1's strict YAML subset, then a body of guidance
  * Guard never reads. Strings are double-quoted, lists and the outcomes map are flow-style.
  */
 export function declaration(check, body = "Guidance for people and agents; Guard never reads it.\n") {
-  const lines = [`kind: ${KIND}`, `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
+  const lines = [`type: ${TYPE}`, `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
   if (check.facts) lines.push(`facts: [${check.facts.join(", ")}]`);
   if (check.trusted) lines.push(`trusted: ${JSON.stringify(check.trusted)}`);
   if (check.outcomes) lines.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${k}: ${v}`).join(", ")}}`);
