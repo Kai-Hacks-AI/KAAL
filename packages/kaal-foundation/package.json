@@ -15,6 +15,9 @@
   "files": [
     "lib"
   ],
+  "scripts": {
+    "test": "node --test test/plan/sha256.test.mjs"
+  },
   "engines": {
     "node": ">=24"
   }
