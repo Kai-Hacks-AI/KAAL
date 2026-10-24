@@ -124,34 +124,47 @@ function edit(text, list, own) {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   const first = found[0];
   const lead = first ? text.slice(open + 1, first.start) : "";
-  const pretty = lead.includes("\n");
-  const indent = pretty ? lead.slice(lead.lastIndexOf("\n") + 1) : "";
-  const colon = first ? text.slice(first.keyEnd, first.valueStart) : pretty ? ": " : ":";
+  // An object with no members has no style of its own, so it takes the format Guard gives a new file.
+  const pretty = !first || lead.includes("\n");
+  const indent = !first ? "  " : pretty ? lead.slice(lead.lastIndexOf("\n") + 1) : "";
+  const colon = first ? text.slice(first.keyEnd, first.valueStart) : ": ";
   const value = (v) => (pretty ? JSON.stringify(v, null, indent || "  ").split("\n").join(eol + indent) : JSON.stringify(v));
-  const ops = [];
+  const replaced = new Map();
+  const deleted = new Set();
   const added = [];
   for (const [key, v] of Object.entries(own)) {
-    const at = found.findIndex((m) => m.key === key);
     if (JSON.stringify(list[key]) === JSON.stringify(v)) continue;
-    if (at < 0) {
-      if (v !== undefined) added.push(`${JSON.stringify(key)}${colon}${value(v)}`);
-      continue;
-    }
-    const m = found[at];
-    if (v !== undefined) ops.push([m.valueStart, m.valueEnd, value(v)]);
-    else if (at > 0) ops.push([found[at - 1].valueEnd, m.valueEnd, ""]);
-    else if (found[1]) ops.push([m.start, found[1].start, ""]);
-    else ops.push([open + 1, close, ""]);
+    const at = found.findIndex((m) => m.key === key);
+    if (at < 0) added.push(`${JSON.stringify(key)}${colon}${value(v)}`);
+    else if (v === undefined) deleted.add(at);
+    else replaced.set(at, value(v));
   }
+  if (!replaced.size && !deleted.size && !added.length) return null;
+  const kept = found.map((_, at) => at).filter((at) => !deleted.has(at));
+  if (!kept.length) {
+    const inner = !added.length ? "" : pretty ? `${eol}${indent}${added.join(`,${eol}${indent}`)}${eol}` : added.join(",");
+    return text.slice(0, open + 1) + inner + text.slice(close);
+  }
+  // Each run of adjacent deleted members goes as one span, with the separator before it, or else, at
+  // the start, the separator after it, so no two spans overlap and every kept byte stays.
+  const ops = [];
+  for (let at = 0; at < found.length; at++) {
+    if (!deleted.has(at)) continue;
+    let end = at;
+    while (deleted.has(end + 1)) end++;
+    if (at > 0) ops.push([found[at - 1].valueEnd, found[end].valueEnd, ""]);
+    else ops.push([found[at].start, found[end + 1].start, ""]);
+    at = end;
+  }
+  for (const [at, v] of replaced) ops.push([found[at].valueStart, found[at].valueEnd, v]);
   if (added.length) {
     const sep = pretty ? `,${eol}${indent}` : ",";
-    const tail = found.at(-1);
-    if (tail) ops.push([tail.valueEnd, tail.valueEnd, sep + added.join(sep)]);
-    else ops.push([open + 1, close, `${eol}  ${added.join(`,${eol}  `)}${eol}`]);
+    const after = found[kept.at(-1)].valueEnd;
+    ops.push([after, after, sep + added.join(sep)]);
   }
-  if (!ops.length) return null;
+  // From the end backwards; at one offset, a deletion goes before the insertion that follows it.
   let out = text;
-  for (const [from, to, insert] of ops.sort((a, b) => b[0] - a[0])) out = out.slice(0, from) + insert + out.slice(to);
+  for (const [from, to, insert] of ops.sort((a, b) => b[0] - a[0] || b[1] - a[1])) out = out.slice(0, from) + insert + out.slice(to);
   return out;
 }
 
