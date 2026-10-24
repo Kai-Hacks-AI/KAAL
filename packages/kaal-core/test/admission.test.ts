@@ -5,7 +5,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { bootstrap, evaluate, foundation, payload, verify, type Files } from "kaal-core";
+import { bootstrap, evaluate, foundation, payload, register, verify, type Files } from "kaal-core";
+import { readdirSync } from "node:fs";
 
 const sha = (text: string) => createHash("sha256").update(text).digest("hex");
 const ref = (r: { name: string; id: string }) => `\n  name: ${JSON.stringify(r.name)}\n  id: ${r.id}`;
@@ -45,6 +46,26 @@ describe("kaal-core typed artifacts", () => {
       const typed = await verify(dir, { types });
       assert.equal(typed.ok, false);
       assert.match(typed.problems.join("\n"), /config\/push\.md: Guard\/Check is invalid: runs \(value\)/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a registration that would leave a typed artifact unknown, writing nothing", async () => {
+    const root = mkdtempSync(join(tmpdir(), "kaal-c11-"));
+    try {
+      const dir = join(root, ".kaal");
+      await bootstrap(dir);
+      writeFileSync(join(dir, "push.md"), ARTIFACT);
+      const before = readdirSync(dir).sort();
+      await assert.rejects(register(dir, "capability", "guard", { "Guard.md": GUARD, "Check.md": check(`{ name: Guard }`) }), /would leave push\.md with an unknown Type.*nothing was written/);
+      assert.deepEqual(readdirSync(dir).sort(), before);
+      assert.equal((await verify(dir)).ok, true);
+      const owner = `{ name: Guard, id: "${sha(GUARD)}" }`;
+      await register(dir, "capability", "guard", { "Guard.md": GUARD, "Check.md": check(owner) });
+      const after = await verify(dir);
+      assert.equal(after.ok, true, after.problems.join("\n"));
+      assert.equal(after.engine.artifacts[0].state, "registered");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
