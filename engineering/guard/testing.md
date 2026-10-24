@@ -23,7 +23,9 @@ PLAN establishes the outer three loops and their stable acceptance boundary. DO 
 
 ## Traceability
 
-Each identifier states its relationships where it is defined: a Requirement names its Intents in brackets, an Architecture element its Requirements, and each planned test, in its title, the I, F, N or A contracts it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. A Change (`C…`) is KAAL's existing Change, carried on GitHub by a pull request. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+Each identifier states its relationships where it is defined: a Requirement names its Intents in brackets, an Architecture element its Requirements, and each planned test, in its title, the I, F, N or A contracts it checks, for example `T1 [I2, I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+
+Identifiers are numbered locally, per type, within Guard, and an unqualified identifier in these documents is Guard's. Its qualified form is `guard/<id>`, for example `guard/F27` or `guard/T58`. A reference to another Capability is always qualified, for example `core/T…`. A Change (C) is KAAL's existing Change, carried on GitHub by a pull request, and its durable identity is `guard/C<number>`. Earlier labels (R1, K1–K6, B1–B7) remain only as aliases ([Change](change.md#change-identities)). A Defect (D) traces only to the Test Case that proves it RED.
 
 ## Where the tests live
 
@@ -74,7 +76,8 @@ Each identifier states its relationships where it is defined: a Requirement name
 | T56: an External delivery writes the Skill variant at the canonical location and, where Core is used at delivery, where Core computes for the passed declaration; it names neither KAAL nor npm; its hook's reminder names the canonical path; a target's existing Skill and instruction files are untouched | I6, F25, F26, A16 | Requirements | Engineering |
 | T58: `contract.json` and the lifecycle agree: every asset and `guard.json` entry standalone `init` writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one | F27, A17 | Architecture | package |
 | T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | N1, F27 | Requirements | package |
-| T60: Core's realization accepts Guard's shipped contract and realizes the canonical deployment plus a declared Claude Code deployment; afterwards Guard's standalone `upgrade` and `remove` handle the canonical assets as if Guard had installed them, and leave Core's further deployment untouched | F27, N12, A17 | Architecture | Engineering |
+
+**Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T…`, allocated by Core), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. T58 stays Guard's own: it checks that the instance and the lifecycle agree.
 
 `verify` (F10, T24, T35) checks static CI configuration coverage only: the workflow files name a job for every `ci` check. No test claims that GitHub ran a job or that branch protection requires it.
 
@@ -127,9 +130,9 @@ This evidence is bounded:
 
 ## Agent guidance
 
-T45–T60 are planned in B1. They are written as a PLAN Change of their own (B2) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. T50, T53, T56 and T60 show placement only. How a supplier's agent then reaches the Skill is observed by hand and labelled as an observation (N9).
+T45–T59 are planned in `guard/C12`. They are written as a PLAN Change of their own (`guard/C13`) before any code, and they are expected RED, blocked or exercised, as C0a records. T55 also needs K3b (D1), because a `0.0.1` consumer gains the Skill only through `upgrade` installing assets it lacks. T50, T53 and T56 show placement only. How a supplier's agent then reaches the Skill is observed by hand and labelled as an observation (N9).
 
-**Observation O1, Claude Code, recorded in B1.** This was run with Claude Code 2.1.310 in headless mode (`claude -p`), with read-only tools. Each run used a scratch repository holding a minimal `kaal-guard` Skill at `.agents/skills/kaal-guard/`, and the Skill told the agent to begin its answer with a marker token. Each setup was asked twice what to do about a pasted `fail: unit` verdict:
+**Observation O1, Claude Code, recorded in `guard/C12`.** This was run with Claude Code 2.1.310 in headless mode (`claude -p`), with read-only tools. Each run used a scratch repository holding a minimal `kaal-guard` Skill at `.agents/skills/kaal-guard/`, and the Skill told the agent to begin its answer with a marker token. Each setup was asked twice what to do about a pasted `fail: unit` verdict:
 
 | Setup | Followed the Skill | Listed among its skills |
 | --- | --- | --- |

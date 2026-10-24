@@ -105,7 +105,7 @@ Which way a given supplier uses is observed, not asserted (N9).
 - the runtime prerequisite, Node 24 or later;
 - the provider requirement: an agent resolving a failing verdict reaches the Skill named `kaal-guard`. The canonical deployment and the reminder meet it, and the contract names no other supplier location.
 
-The contract is Guard's, versioned with the package, and its format is Guard's own. Guard's standalone lifecycle realizes exactly this contract. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse.
+The contract is an instance of Core's Installation Contract: Core owns that Definition, its schema and its outer conformance Test Cases (`core/T…`, allocated in Core's PLAN). Guard owns its instance, versioned with the package, and the implementation that realizes it. Guard's standalone lifecycle realizes exactly this instance. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse. Conformance is verified at engineering time (N12), so the package gains no dependency.
 
 ## Nonfunctional (N)
 
@@ -121,8 +121,8 @@ The contract is Guard's, versioned with the package, and its format is Guard's o
 - **N10** [I7] The Skill has one canonical source, `skills/kaal-guard/` in the package, and one standalone deployment, `.agents/skills/kaal-guard/`. Which further deployments and instruction pointers a repository needs is decided only by Core's Agent Realization, when Core manages the installation. As documented: Codex discovers `.agents/skills/` ([docs](https://learn.chatgpt.com/docs/build-skills)), Claude Code discovers natively only `.claude/skills/` ([docs](https://code.claude.com/docs/en/skills)), and GitHub Copilot discovers both ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)). Claude Code's behaviour is also observed (O1). Standalone, Claude Code reaches the Skill through instruction-based access (F24).
 - **N11** [I7] The Skill adds no runtime dependency. Guard needs no network and no LLM to install it, name it or report it.
 - **N12** [I5, I6, I7] Contract, standalone conformance and Core enrichment are distinct, and are not required to be feature-equivalent:
-  - the contract (F27) is Guard's and installer-neutral;
-  - standalone conformance is Guard's own lifecycle, which guarantees local correctness within the contract, with no KAAL dependency;
-  - Core enrichment is Core's realization of the same contract, through Hosting where Core chooses. It adds CASE registration, provider-aware deployments and pointers, dependency and conflict handling and cross-Capability verification. Core keeps its additional deployments in its own record, and Guard's lifecycle never touches them.
+  - the contract: Core owns the Installation Contract Definition, schema and outer conformance Test Cases; Guard owns its instance, `contract.json` (F27);
+  - standalone conformance is Guard's own lifecycle, which guarantees local correctness within the instance, with no KAAL dependency;
+  - Core enrichment is Core's realization of the same instance, through Hosting where Core chooses. It adds CASE registration, provider-aware deployments and pointers, dependency and conflict handling and cross-Capability verification. Core keeps its additional deployments in its own record, and Guard's lifecycle never touches them.
 
-  Guard holds no placement table or CASE coordination of its own, and Core holds no Guard asset rule beyond what it reads from the contract. External delivery may use Core and Hosting at delivery time, and nothing of either reaches the target.
+  KAAL Engineering executes Core's conformance Test Cases against Guard's instance at engineering time, and the evidence is Guard's; the Test Case definitions stay Core's and are not copied. Guard holds no placement table, schema or CASE coordination of its own, and Core holds no Guard asset rule beyond what it reads from the instance. External delivery may use Core and Hosting at delivery time, and nothing of either reaches the target.
