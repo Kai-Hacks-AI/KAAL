@@ -6,11 +6,12 @@ Each element names, in brackets, the Requirements it answers.
   - `installationFormat()`, the Definition's reference;
   - `checkContract(contract)`, the findings for one instance, empty when it conforms.
 - **core/A6** [core/F16–core/F22, core/N4, core/N6]: Agent Realization is a `KAAL Definition`, `Agent Realization`, beside `KAAL Agent` in `payload/core/`. Its mechanism is offered as `kaal-core/agent`, which provides:
+  - `declaration`, the repository-relative path of the provider declaration, `.kaal/config/core/agents.json`;
   - `realize({ skills, providers, record, present })`, a pure plan from the Skills to install (name and canonical source files), the declared providers, Core's record, and the SHA-256 of what is present at each target. It returns `{ write, keep, prune, pointers, unknown, record }`;
   - `renderSkill(bytes)`, a supplier `SKILL.md` rendered from a canonical source.
   
-  The placement table is a constant in `kaal-core/agent`, and the only one (`core/N6`). Provider entries come only from suppliers' documentation, as `guard/N10` records it.
-- **core/A7** [core/N4, core/F18]: Core plans and Hosting realizes. `core/C4` reads `agents.kaal.json` and the present files through Hosting, applies the plan through Hosting, and keeps Core's record at `.kaal/state/core/installation.json`.
+  The placement table is a constant in `kaal-core/agent`, and Core's only one (`core/N6`). It governs Core's own deployments and nothing else. For each provider it records the location Core deploys to, and whether that provider is reached by a deployment or by a pointer. Provider entries come only from suppliers' documentation, as `guard/N10` records it.
+- **core/A7** [core/N4, core/F18]: Core plans and Hosting realizes. `core/C4` reads `.kaal/config/core/agents.json` and the present files through Hosting, applies the plan through Hosting, and keeps Core's record at `.kaal/state/core/installation.json`.
 - **core/A8** [core/N5, core/F15]: Conformance is verified at engineering time. Engineering runs Core's conformance Test Cases against each Capability's instance, for example Guard's `contract.json` (`engineering/C…`, numbered by Engineering). No Capability package imports `kaal-core/installation` to conform.
 - **core/A9** [core/I4]: A Capability's standalone lifecycle and Core's enrichment are not feature-equivalent (`guard/N12`). Standalone, a Capability realizes its own instance at the canonical locations only. Core adds registration, provider-aware deployments, pointers, and conflict handling.
 

@@ -3,7 +3,6 @@
 // (plan/installation/*.md). They use kaal-core's public interface only. core/T10-core/T13
 // are Core's conformance Test Cases, which Engineering also runs against each instance.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
@@ -86,14 +85,15 @@ describe("Installation Contract (core/C3)", () => {
 });
 
 describe("Agent Realization (core/C3)", () => {
-  it("core/T14 [core/F16]: with no declared provider, a Skill is deployed only to .agents/skills/<name>/", async () => {
-    const { realize } = await subpath("agent");
+  it("core/T14 [core/F16]: providers are declared in .kaal/config/core/agents.json, and with none declared a Skill is deployed only to .agents/skills/<name>/", async () => {
+    const { declaration, realize } = await subpath("agent");
+    assert.equal(declaration, ".kaal/config/core/agents.json");
     const plan = realize({ skills: [SKILL], providers: [], record: {}, present: {} });
     assert.deepEqual(paths(plan.write), [`${CANON}SKILL.md`, `${CANON}references/a.md`]);
     assert.deepEqual([plan.keep, plan.prune, plan.unknown], [[], [], []]);
   });
 
-  it("core/T15 [core/F17]: declaring Claude Code adds .claude/skills/<name>/, from the same source", async () => {
+  it("core/T15 [core/F17]: declaring Claude Code adds a Core-generated copy at .claude/skills/<name>/, from the same source", async () => {
     const { realize } = await subpath("agent");
     const plan = realize({ skills: [SKILL], providers: ["claude-code"], record: {}, present: {} });
     assert.deepEqual(paths(plan.write), [`${CANON}SKILL.md`, `${CANON}references/a.md`, ".claude/skills/sample/SKILL.md", ".claude/skills/sample/references/a.md"].sort());
@@ -177,15 +177,16 @@ describe("Installation boundaries (core/C3)", () => {
     assert.deepEqual(host, []);
   });
 
-  it("core/T22 [core/N6]: no source outside kaal-core carries a provider location", async () => {
-    await subpath("agent");
-    const root = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
-    let found = "";
-    try {
-      found = execFileSync("git", ["grep", "-l", "-F", ".claude/skills", "--", "*.mjs", "*.js", "*.ts", "*.json", ":!packages/kaal-core/src/", ":!packages/kaal-core/test/plan/"], { cwd: root, encoding: "utf8" });
-    } catch (e) {
-      if (e.status !== 1) throw e;
-    }
-    assert.deepEqual(found.split("\n").filter(Boolean), []);
+  it("core/T22 [core/N6, core/F18]: Core claims only what it deployed, and keeps a consumer's own file at a supplier location", async () => {
+    const { realize } = await subpath("agent");
+    const own = ".claude/skills/sample/SKILL.md";
+    const other = ".claude/skills/theirs/SKILL.md";
+    const present = { [own]: sha("the consumer's own\n"), [other]: sha("another of theirs\n") };
+    const plan = realize({ skills: [SKILL], providers: ["claude-code"], record: {}, present });
+    assert.ok(!paths(plan.write).includes(own), "a consumer's file is never written over");
+    assert.ok(paths(plan.keep).includes(own), "a consumer's file at a deployment target is kept and reported");
+    assert.ok(plan.keep.every((k) => typeof k.reason === "string" && k.reason.length > 0));
+    assert.ok(![...paths(plan.write), ...paths(plan.prune), ...paths(plan.keep)].includes(other), "Core plans nothing for a file it never deployed");
+    assert.deepEqual(plan.prune, []);
   });
 });
