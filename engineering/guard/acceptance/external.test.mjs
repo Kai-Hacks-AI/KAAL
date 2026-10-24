@@ -43,8 +43,8 @@ function target() {
   return { dir, env, git, write, read: (p) => readFileSync(join(dir, p), "utf8") };
 }
 
-describe("I6 External delivers Guard naked", () => {
-  it("T3 [I6, N5, F8, A10]: delivers one Change with working hooks and CI and local docs, and leaves nothing from KAAL", () => {
+describe("guard/I6 External delivers Guard naked", () => {
+  it("guard/T3 [guard/I6, guard/N5, guard/F8, guard/A10]: delivers one Change with working hooks and CI and local docs, and leaves nothing from KAAL", () => {
     assert.ok(existsSync(DELIVER), "blocked before behavioural assertion: there is no External delivery tooling (engineering/guard/external/deliver.mjs)");
     const t = target();
     const build = t.read(".github/workflows/build.yml");
