@@ -11,6 +11,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./frontmatter": {
+      "types": "./dist/frontmatter.d.ts",
+      "default": "./dist/frontmatter.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -23,7 +27,7 @@
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js",
+    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js test/plan/frontmatter.test.mjs",
     "test:boundary": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/boundary.test.js",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build",
     "bench": "npm run build && node bench/admission.mjs",
