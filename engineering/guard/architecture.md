@@ -9,7 +9,7 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 - **guard/A3 Runner** [guard/F2, guard/F3, guard/F7, guard/F9, guard/F10, guard/N2, guard/N4]. The runner, in the package at `lib/runner.mjs`, runs a set of checks and reads their verdicts. It knows nothing of branches, remotes, pull requests, GitHub, the adapters or KAAL. It reads a Git object only to take a trusted checker from the base commit (guard/F7).
 - **guard/A4 Git adapter** [guard/F4, guard/F6]. The `pre-push` hook, shipped in the package as `templates/pre-push`, passes Git facts to the runner and acts on its verdicts. It knows nothing of GitHub and names no check.
 - **guard/A5 GitHub adapter** [guard/F5, guard/F6, guard/F10]. A workflow job passes pull request facts to the runner and acts on its verdicts. Reporting to GitHub (annotations and the step summary, `run --github`) and the static coverage check (`verify`) sit beside the runner, in `lib/github.mjs`. A new consumer is offered `templates/guard.yml`.
-- **guard/A6 Lifecycle** [guard/F8, guard/N3]. `init`, `upgrade` and `remove`, in the package at `lib/lifecycle.mjs`, own exactly the files recorded under `managed` and the `core.hooksPath` they set. Nothing else in a repository is theirs. They read `guard.json` through the same schema as `run` (guard/F1, guard/F18), refuse a file it rejects before writing anything, and write it only in Guard's canonical serialization, only when Guard's own entries change.
+- **guard/A6 Lifecycle** [guard/F8, guard/N3]. `init`, `upgrade` and `remove`, in the package at `lib/lifecycle.mjs`, own exactly the files recorded under `managed` and the `core.hooksPath` they set. Nothing else in a repository is theirs.
 - **guard/A7 Dependency direction** [guard/F3, guard/F6]. The command (`bin/kaal-guard.mjs`) and the adapters depend on the runner; the runner depends on `guard.json`; `guard.json` names the checks. Nothing depends on an adapter, and the runner depends on neither guard/A5 nor the templates.
 - **guard/A8 Package independence** [guard/N6]. The `kaal-guard` package, in `packages/kaal-guard/`, depends on no other KAAL element, declares none, imports none and references no Engineering path or KAAL Engine. It carries its own tests in `test/`.
 - **guard/A9 Engineer** [guard/N7, guard/N5]. `engineering/guard/` holds Guard's engineering documentation, the Engineering-only outer tests and, later, the External tooling. It may use any useful KAAL element. Nothing it uses becomes a package dependency.
@@ -53,3 +53,64 @@ flowchart LR
   X --> T[target's hooks and CI call its own commands]
   E -->|guard/A12 clone KAAL, install published, upgrade| K[disposable KAAL clone: published-npm consumer]
 ```
+
+## Configuration options (guard/C23)
+
+This section is a comparison, and nothing in it is decided. The Owner asked on #336 (comments 6384007398 and 6384194537) for location and format to be reconsidered from Intent, now that Guard ships the `kaal-guard` Skill. `0.0.1`'s root `guard.json` is one candidate, not a premise. Three concerns are separated here, each with its own owner and lifecycle:
+
+| Concern | Owner | Lifecycle |
+| --- | --- | --- |
+| **Declarations**: what to guard, meaning each check's command, `runs`, `facts`, `trusted` and `outcomes` | the repository | written by people and agents. Guard only validates them |
+| **Lifecycle state**: `managed`, `config` and `writers` | Guard | written only by Guard's deterministic functions |
+| **Skill resources**: `SKILL.md` and its optional `scripts/`, `references/` and `assets/` | Guard, as a managed asset | installed, upgraded and removed by the lifecycle, and deployed further by Core (guard/A14, guard/A17) |
+
+**Criteria**, from the Owner's list:
+- migration from `0.0.1`;
+- how hooks and CI find the configuration;
+- separation of lifecycle state;
+- schema validation;
+- checks owned by the consumer;
+- independence of Embed and External from KAAL;
+- Core's provider deployments of the Skill.
+
+**Location of the declarations**
+
+| Option | For | Against |
+| --- | --- | --- |
+| L1: root `guard.json` (`0.0.1`) | No migration, and discovery is today's upward search for `guard.json` | It keeps the declarations beside Guard's state at the root, which is the mix the Owner questioned |
+| L2: inside the Skill installation, under `.agents/skills/kaal-guard/`, kept apart from the Skill resources | One Guard home, and an agent finds the declarations next to the Skill. The Agent Skills standard does not reserve a configuration name, so this is allowed | Consumer-owned live files sit inside a directory Guard manages and Core deploys. Core would have to deploy only the standard resources and exclude them (a `core/C3` rule). `remove` would leave a directory with no `SKILL.md`, so the ownership mix moves one level down |
+| L3: a location of its own, apart from the Skill, for example `.guard/` or `.agents/kaal-guard/` | The ownership of every directory is clear: Guard's Skill resources in one place, the repository's declarations in another. Core deploys the Skill unchanged | Two Guard paths instead of one, and a new name to settle |
+
+**Format of the declarations.** The format follows who maintains it:
+
+| Option | Fits when | Notes |
+| --- | --- | --- |
+| J: JSON, created, validated and edited by Guard's deterministic Skill scripts or commands | Guard's functions maintain it | Guard has no command that edits checks today, and KAAL's checks are written by hand |
+| M: one Markdown file per check, with typed frontmatter for the declaration and a body for that check's resolution guidance | people and agents maintain it directly | This matches the frontmatter direction on #337 (`core/C5`). The body gives guard/I7 guidance for each check, while the verdict comes only from the frontmatter and the exit status. Guard, with no dependencies, needs a strict frontmatter parser of its own and conforms to Core's schema without a runtime dependency, as `contract.json` does |
+| C: a conventional configuration format, such as YAML or TOML, in one file | people maintain one list | It is readable, but it has no natural place for per-check guidance, and it needs a parser |
+
+**Lifecycle state.**
+- S1: inside the declarations, as in `0.0.1`.
+- S2: a separate JSON file that only Guard writes, beside the declarations or at Guard's own path.
+- S3: the installation record of Core's Installation Contract (`core/C3`) when Core manages the installation, and S2 when Guard runs standalone.
+
+S2 and S3 are compatible if Core's record and Guard's file hold the same fields.
+
+**How hooks and CI find the configuration.**
+- P1: one fixed rule from the repository root.
+- P2: an explicit path that the hook and workflow Guard writes pass to it. A consumer's own workflows, such as KAAL's, would need the same path or fall back to P1.
+
+P2 with P1 as the fallback keeps `kaal-guard run --check <name>` working unchanged in KAAL.
+
+**Migration from `0.0.1`.** guard/F15 allows two answers:
+- refuse a root `guard.json` as cannot judge, with a next step;
+- have `upgrade` convert it once and record the conversion.
+
+No external consumer exists. KAAL's own `guard.json` would be converted by an Engineering Change, because in KAAL Guard is an executor and never writes KAAL's configuration.
+
+**The owner's recommendation**, for the Owner to decide:
+- **L3.** Ownership stays clear, and Core can deploy the Skill without exceptions.
+- **M, after `core/C5`.** The declarations are maintained by hand, and the body gives guard/I7 the per-check guidance it lacks. If a dependency-free parser is judged too costly, J, with Guard's own validation script, is the fallback.
+- **S2, aligned with S3.** The fields are agreed with `core/C3`.
+- **P2 with P1 as the fallback.**
+- **Refuse in the package, convert KAAL by an Engineering Change.**

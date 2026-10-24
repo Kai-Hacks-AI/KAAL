@@ -8,7 +8,7 @@ Guard connects a repository's own tests and checks to local Git hooks and to rem
 
 Requirements trace back to these identifiers.
 
-- **guard/I1 The repository owns its checks.** Guard runs what the repository names. It adds no tests and judges no evidence.
+- **guard/I1 The repository owns its checks.** Guard runs what the repository names. It adds no tests and judges no evidence. Guard's configuration tells Guard what to guard. The repository owns its checks and their implementations, and Guard owns the configuration contract and its deterministic validation.
 - **guard/I2 One meaning per check.** For equivalent facts and execution conditions, a check gives the same verdict locally and in CI. Locally it is early feedback; CI is the authority.
 - **guard/I3 Narrow adapters.** Git's hook and GitHub's workflow jobs pass facts to Guard and act on its verdict. Neither contains a rule.
 - **guard/I4 Engineer.** KAAL's own checks run through Guard, locally and in KAAL's existing CI, with no loss of check identity, OS matrix or coverage.
