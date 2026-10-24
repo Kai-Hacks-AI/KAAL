@@ -159,15 +159,15 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     announce(t, newer);
     const reference = { older: h.minimalRepo({ declarations: true }), newer: h.minimalRepo({ declarations: true }) };
     reference.older.install(older.spec);
-    reference.older.guard("init");
+    reference.older.guard("init", "--hook", "--ci");
     reference.newer.install(newer.spec);
-    reference.newer.guard("init");
+    reference.newer.guard("init", "--hook", "--ci");
     const workflow = ".github/workflows/guard.yml";
     assert.notEqual(reference.newer.read(workflow), reference.older.read(workflow), "the candidates' workflows do not differ, so nothing can be seen to move");
 
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
+    assert.equal(m.guard("init", "--hook", "--ci").status, 0);
     m.write(".githooks/pre-push", `${m.read(".githooks/pre-push")}# the consumer's own line\n`);
     m.write("README.md", "the consumer's own file\n");
     m.git("add", "-A");
@@ -185,23 +185,35 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read(workflow), reference.newer.read(workflow), "the unmodified workflow did not move to the newer candidate's content");
   });
 
-  it("guard/T66 [guard/F13]: between two candidates, upgrade installs a managed asset the repository does not have", async (t) => {
+  it("guard/T66 [guard/F13, guard/F30]: between two candidates, upgrade installs an asset the newer one adds only to a surface the consumer activated", async (t) => {
     const h = await a12();
     const { older, newer } = two(h);
     announce(t, newer);
-    const workflow = ".github/workflows/guard.yml";
-    const m = h.minimalRepo({ declarations: true });
-    m.write(workflow, "name: Own\non: push\njobs: {}\n");
-    m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
-    assert.equal(record(m)[workflow], undefined, "init registered a file it did not write");
-    m.remove(workflow);
+    const contract = (c) => json(c.read("node_modules/@kaihacksai/kaal-guard/contract.json")).assets;
+    const hooked = h.minimalRepo({ declarations: true });
+    hooked.install(older.spec);
+    assert.equal(hooked.guard("init", "--hook").status, 0);
+    const ciOnly = h.minimalRepo({ declarations: true });
+    ciOnly.install(older.spec);
+    assert.equal(ciOnly.guard("init", "--ci").status, 0);
+    const known = contract(hooked).map((a) => a.path);
 
-    m.install(newer.spec);
-    const up = m.guard("upgrade");
-    assert.equal(up.status, 0, up.output);
-    assert.ok(m.exists(workflow), "upgrade did not install a managed asset the repository does not have");
-    assert.equal(record(m)[workflow]?.version, newer.version, "upgrade did not register the asset it installed");
+    hooked.install(newer.spec);
+    ciOnly.install(newer.spec);
+    const added = contract(hooked).filter((a) => !known.includes(a.path));
+    assert.ok(added.some((a) => a.surface === "hook"), "blocked before behavioural assertion: the newer candidate adds no asset to the hook surface");
+    for (const [c, active] of [[hooked, "hook"], [ciOnly, "ci"]]) {
+      const up = c.guard("upgrade");
+      assert.equal(up.status, 0, up.output);
+      for (const asset of added) {
+        if (asset.surface === active) {
+          assert.ok(c.exists(asset.path), `upgrade did not install ${asset.path}, which the newer candidate adds to the activated ${active} surface`);
+          assert.equal(record(c)[asset.path]?.version, newer.version, `upgrade did not register ${asset.path}`);
+        } else assert.ok(!c.exists(asset.path), `upgrade installed ${asset.path} on the ${asset.surface} surface, which this consumer did not activate`);
+      }
+    }
+    assert.ok(!ciOnly.exists(".githooks/pre-push"), "upgrade activated the hook");
+    assert.ok(!hooked.exists(".github/workflows/guard.yml"), "upgrade activated CI");
   });
 
   it("guard/T67 [guard/F14]: between two candidates, the record registers each unmodified asset's new version and hash, upgrade names both versions, and a modified asset keeps its registered version", async (t) => {
@@ -210,7 +222,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     announce(t, newer);
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
+    assert.equal(m.guard("init", "--hook", "--ci").status, 0);
     const registered = record(m)[".githooks/pre-push"];
     assert.equal(registered?.version, older.version);
     m.write(".githooks/pre-push", `${m.read(".githooks/pre-push")}# the consumer's own line\n`);
@@ -234,7 +246,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const workflow = ".github/workflows/guard.yml";
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
-    assert.equal(m.guard("init").status, 0);
+    assert.equal(m.guard("init", "--hook", "--ci").status, 0);
     m.write("README.md", "the consumer's own file\n");
     const old = m.read(workflow);
     const before = declarations(m);
