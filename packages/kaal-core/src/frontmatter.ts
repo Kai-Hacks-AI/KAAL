@@ -98,7 +98,7 @@ function conforms(spec: KeySchema, v: unknown): boolean {
     case "enum":
       return typeof v === "string" && (spec.values ?? []).includes(v);
     case "ref":
-      return isObject(v) && Object.keys(v).length === 2 && isName(v.name) && isId(v.id);
+      return isObject(v) && Object.keys(v).sort().join() === "id,name" && isName(v.name) && isId(v.id);
     case "path":
       // Relative on every host: no backslash, and no `:`, so no Windows drive (`C:/…`) or stream.
       return typeof v === "string" && !/[\\:]/.test(v) && v.split("/").every((s) => s !== "" && s !== "." && s !== "..");
