@@ -23,7 +23,7 @@ const front = (...lines) => `---\n${lines.join("\n")}\n---\nbody\n`;
 
 describe("frontmatter", () => {
   it("reads key: value lines: plain and double-quoted strings, integers, flow lists and flow maps", () => {
-    assert.deepEqual(frontmatter(front("a: node x.mjs test:unit", 'b: "q \\" #1"', "c: 4", "d: [local, ci]", "e: {4: held}", "f: []", "", "g: Guard/Check"), "f.md"), {
+    assert.deepEqual(frontmatter(front("a: node x.mjs test:unit", 'b: "q \\" #1"', "c: 4", "d: [local, ci]", 'e: {"4": held}', "f: []", "", "g: Guard/Check"), "f.md"), {
       a: "node x.mjs test:unit",
       b: 'q " #1',
       c: 4,
@@ -53,7 +53,8 @@ describe("frontmatter", () => {
       [front("a: x: y"), /f\.md: a: .*": "/],
       [front("a: [x, [y]]"), /f\.md: a: a flow collection inside another/],
       [front("a: [x, ]"), /f\.md: a: an item is empty/],
-      [front("a: {4: held, 4: held}"), /f\.md: a: 4 is a key twice/],
+      [front('a: {"4": held, "4": held}'), /f\.md: a: 4 is a key twice/],
+      [front("a: {4: held}"), /f\.md: a: 4 is an unquoted key[^\n]*write \{"4": held\}/],
       [front('a: "open'), /f\.md: a: .*not one double-quoted string/],
     ]) assert.match(refusal(() => frontmatter(text, "f.md")), said);
   });

@@ -16,7 +16,7 @@ function declare(check) {
   const l = ["type: Guard/Check", `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
   if (check.facts) l.push(`facts: [${check.facts.join(", ")}]`);
   if (check.trusted !== undefined) l.push(`trusted: ${JSON.stringify(check.trusted)}`);
-  if (check.outcomes) l.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${k}: ${v}`).join(", ")}}`);
+  if (check.outcomes) l.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${JSON.stringify(String(k))}: ${v}`).join(", ")}}`);
   return `---\n${l.join("\n")}\n---\n`;
 }
 

@@ -133,6 +133,7 @@ function value(text) {
     for (const i of split.items) {
       const m = /^("(?:[^"\\]|\\.)*"|[^:"]+):(?: (.*))?$/.exec(i);
       if (!m || m[2] === undefined) return { problem: `${i} is not a key: value entry` };
+      if (!m[1].trim().startsWith('"')) return { problem: `${m[1].trim()} is an unquoted key, which YAML may read as other than a string, and KAAL's frontmatter keys are strings; write {${JSON.stringify(m[1].trim())}: ${m[2].trim()}}` };
       const k = scalar(m[1].trim());
       const v = scalar(m[2].trim());
       if (k.problem || v.problem) return k.problem ? k : v;
@@ -171,7 +172,7 @@ export function frontmatter(text, file) {
     if (key in members) throw new Refusal(`${file}: ${key}: declared twice`, `keep one ${key} line`);
     if (raw.trim() === "") throw new Refusal(`${file}: ${key}: has no value on its line; block-style YAML is outside Guard's subset`, `write ${key}'s whole value on its own line, such as ${key}: [a, b]`);
     const v = value(raw.trim());
-    if (v.problem) throw new Refusal(`${file}: ${key}: ${v.problem}`, "write the value as a plain or double-quoted string, an integer, [a, b] or {4: held}");
+    if (v.problem) throw new Refusal(`${file}: ${key}: ${v.problem}`, 'write the value as a plain or double-quoted string, an integer, [a, b] or {"4": held}');
     members[key] = v.value;
   }
   return members;
@@ -209,7 +210,7 @@ const SCHEMA = {
   },
   outcomes: (v, at) => {
     const ok = v && typeof v === "object" && !Array.isArray(v) && Object.entries(v).every(([s, o]) => /^\d+$/.test(s) && Number(s) <= 255 && !OWN.has(Number(s)) && o === "held");
-    if (!ok) throw new Refusal(`${at}: outcomes: may only name a further exit status, 4 to 255, as held`, "write outcomes: {4: held}");
+    if (!ok) throw new Refusal(`${at}: outcomes: may only name a further exit status, 4 to 255, as held`, 'write outcomes: {"4": held}');
   },
 };
 const REQUIRED = ["type", "command", "runs"];
