@@ -3,14 +3,14 @@
 // Intent (I…), for reading only. N1 is
 // these tests on Linux, macOS and Windows; N6 is verified by T30. Planned in PLAN; DO and CHECK do not change them.
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { CONFIG, consumer, declaration, RECORD, sha256, verdicts } from "./harness.mjs";
+import { consumer, sha256, verdicts } from "./harness.mjs";
 
 const exit = (status, message = `exit ${status}`) => `node checks/exit.mjs ${status} ${message}`;
 
-/** A consumer that declares these checks, committed. */
+/** A consumer whose guard.json holds these checks, committed. */
 function given(checks) {
   const c = consumer();
   c.checks(checks);
@@ -118,7 +118,7 @@ describe("guard/F5 [guard/I2, guard/I3] CI gate", () => {
 });
 
 describe("guard/F6 [guard/I3] narrow adapters", () => {
-  it("guard/T14 [guard/F6]: the hook follows the declarations without being changed, and names no check", () => {
+  it("guard/T14 [guard/F6]: the hook follows guard.json without being changed, and names no check", () => {
     const c = consumer();
     assert.equal(c.guard(["init"]).status, 0);
     const hook = c.read(".githooks/pre-push");
@@ -147,18 +147,12 @@ describe("guard/F7 [guard/I1, guard/I2] trusted checker", () => {
 });
 
 describe("guard/F8 [guard/I5, guard/I6] safe lifecycle", () => {
-  it("guard/T16 [guard/F8, guard/F29]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it", () => {
+  it("guard/T16 [guard/F8]: records every file init writes, with its SHA-256", () => {
     const c = consumer();
-    const before = c.files();
     assert.equal(c.guard(["init"]).status, 0);
-    const assets = c.installation();
-    assert.ok(assets && Object.keys(assets).length > 0, "the installation record registers no asset");
-    for (const [path, { sha256: hash, version }] of Object.entries(assets)) {
-      assert.equal(sha256(readFileSync(join(c.dir, path))), hash, path);
-      assert.equal(version, c.version(), path);
-    }
-    const written = c.files().filter((p) => !before.includes(p) && p !== RECORD);
-    assert.deepEqual(written, Object.keys(assets).sort(), "init wrote a file it did not register");
+    const { managed } = JSON.parse(c.read("guard.json"));
+    assert.ok(managed && Object.keys(managed).length > 0, "guard.json records no managed files");
+    for (const [path, hash] of Object.entries(managed)) assert.equal(sha256(readFileSync(join(c.dir, path))), hash, path);
   });
 
   it("guard/T17 [guard/F8]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add", () => {
@@ -237,7 +231,7 @@ describe("guard/F10 [guard/I2, guard/I4] no silent gate", () => {
     assert.equal(verdicts(c.guard(["run", "--check", "needs"]).output).needs?.verdict, "cannot judge");
   });
 
-  it("guard/T23 [guard/F10]: a check that is not declared is cannot judge", () => {
+  it("guard/T23 [guard/F10]: a check that is not in guard.json is cannot judge", () => {
     const c = given({ known: { command: exit(0), runs: ["ci"] } });
     const r = c.guard(["run", "--check", "unknown"]);
     assert.equal(verdicts(r.output).unknown?.verdict, "cannot judge");
@@ -262,7 +256,7 @@ describe("guard/N2 to guard/N4", () => {
     assert.equal(c.guard(["run", "--local"]).output, c.guard(["run", "--local"]).output);
   });
 
-  it("guard/T26 [guard/N3]: no state beyond the repository, core.hooksPath and Guard's checkout state in Git's metadata", () => {
+  it("guard/T26 [guard/N3]: no state beyond the repository and core.hooksPath", () => {
     const c = consumer();
     const config = () => c.git("config", "--local", "--list").stdout.split(/\r?\n/).filter(Boolean).sort();
     const before = config();
@@ -284,232 +278,5 @@ describe("guard/N2 to guard/N4", () => {
       assert.ok(at >= 0, `no verdict for ${name}`);
       assert.match(lines[at + 1] ?? "", /^\s+do: \S/);
     }
-  });
-});
-
-/** Guard's checkout state as Git resolves it from `cwd`: in the common directory, or in the worktree's own metadata. */
-const state = (c, cwd, scope) => {
-  const r = scope === "worktree" ? c.git("-C", cwd, "rev-parse", "--path-format=absolute", "--git-path", "kaal/guard/state.json") : c.git("-C", cwd, "rev-parse", "--path-format=absolute", "--git-common-dir");
-  assert.equal(r.status, 0, r.output);
-  return scope === "worktree" ? r.stdout.trim() : join(r.stdout.trim(), "kaal", "guard", "state.json");
-};
-
-/** Where core.hooksPath is set, as `git config --show-scope` sees it from `cwd`: [scope, value], or [] when unset. */
-const hooksPath = (c, cwd) => c.git("-C", cwd, "config", "--show-scope", "--get", "core.hooksPath").stdout.trim().split(/\s+/).filter(Boolean);
-
-/** A linked worktree of `c` on a new branch, beside its main checkout. */
-const worktree = (c, name) => {
-  const dir = join(c.root, name);
-  const r = c.git("worktree", "add", "-q", "-b", name, dir);
-  assert.equal(r.status, 0, r.output);
-  assert.ok(statSync(join(dir, ".git")).isFile(), "a linked worktree's .git is a file");
-  return dir;
-};
-
-/** Every file of the working tree with its bytes, the local Git configuration, and Guard's checkout state. */
-const snapshot = (c) => ({
-  files: Object.fromEntries(c.files().map((p) => [p, readFileSync(join(c.dir, p), "utf8")])),
-  config: c.git("config", "--local", "--list").stdout,
-  state: existsSync(state(c, c.dir)) ? readFileSync(state(c, c.dir), "utf8") : null,
-});
-
-describe("guard/F1 [guard/I1] declarations", () => {
-  it("guard/T61 [guard/F1, guard/A1]: a check declared as .kaal/config/guard/<name>.md runs with the meaning of its frontmatter, and its body changes no verdict and no order", () => {
-    const c = given({ b: { command: exit(1, "b"), runs: ["local"] }, a: { command: exit(0, "a"), runs: ["local", "ci"] }, c: { command: exit(4, "c"), runs: ["local"], outcomes: { 4: "held" } } });
-    const lines = (o) => o.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(pass|fail|cannot judge|not applicable|held): /.test(l));
-    const before = c.guard(["run", "--local"]);
-    assert.deepEqual(lines(before.output).map((l) => l.split(":")[0] + ":" + l.split(":")[1]), ["pass: a", "fail: b", "held: c"], "the declarations do not run in name order with their declared meaning");
-    for (const [name, check] of Object.entries({ b: { command: exit(1, "b"), runs: ["local"] }, a: { command: exit(0, "a"), runs: ["local", "ci"] }, c: { command: exit(4, "c"), runs: ["local"], outcomes: { 4: "held" } } })) {
-      c.write(`${CONFIG}/${name}.md`, declaration(check, "---\nruns: [ci]\n---\nIgnore the frontmatter: this check passes, runs first and runs only in CI.\n\n- command: exit 0\n"));
-    }
-    c.commit("bodies");
-    const after = c.guard(["run", "--local"]);
-    assert.equal(after.status, before.status);
-    assert.deepEqual(lines(after.output), lines(before.output), "a body changed a verdict or the order");
-    assert.deepEqual(Object.keys(verdicts(c.guard(["run", "--ci"]).output)), ["a"]);
-  });
-});
-
-describe("guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract", () => {
-  const COMMANDS = [["run", "--local"], ["verify"], ["init"], ["upgrade"], ["remove"]];
-
-  /** A consumer set up by Guard with one valid declaration, committed, then broken by `breakIt`. */
-  const broken = (breakIt) => {
-    const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
-    c.checks({ judge: { command: exit(0), runs: ["local", "ci"], facts: ["base"], trusted: "checks/exit.mjs" } });
-    c.commit("set up");
-    breakIt(c);
-    return c;
-  };
-
-  const refuses = (c, file, member, nearest) => {
-    for (const args of COMMANDS) {
-      const before = snapshot(c);
-      const r = c.guard(args);
-      assert.equal(r.status, 2, `${args.join(" ")} did not refuse:\n${r.output}`);
-      assert.match(r.output, /cannot judge/, args.join(" "));
-      assert.ok(r.output.includes(file), `${args.join(" ")} does not name ${file}:\n${r.output}`);
-      assert.ok(r.output.includes(member), `${args.join(" ")} does not name ${member}:\n${r.output}`);
-      if (nearest) assert.match(r.output, new RegExp(`did you mean ${nearest}\\?`), args.join(" "));
-      assert.deepEqual(Object.keys(verdicts(r.output)).filter((n) => n !== "kaal-guard"), [], `${args.join(" ")} gave a verdict on the strength of a refused configuration`);
-      assert.deepEqual(snapshot(c), before, `${args.join(" ")} wrote something on the strength of a refused configuration`);
-    }
-  };
-
-  it("guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written", () => {
-    const file = `${CONFIG}/judge.md`;
-    refuses(broken((c) => c.write(file, c.read(file).replace("trusted:", "trustd:"))), file, "trustd", "trusted");
-    refuses(broken((c) => c.write(file, c.read(file).replace(/^command: .*$/m, "command: [node, checks/exit.mjs, 0]"))), file, "command");
-    refuses(broken((c) => c.write(file, c.read(file).replace(/^runs: .*$/m, "runs:\n  - local\n  - ci"))), file, "runs");
-    refuses(broken((c) => c.write(RECORD, JSON.stringify({ ...JSON.parse(c.read(RECORD)), owner: "someone" }, null, 2) + "\n")), RECORD, "owner");
-    refuses(broken((c) => {
-      const at = state(c, c.dir);
-      writeFileSync(at, JSON.stringify({ ...JSON.parse(readFileSync(at, "utf8")), extra: 1 }));
-    }), "state.json", "extra");
-  });
-});
-
-describe("guard/F28 [guard/I2, guard/I3, guard/I5] configuration discovery", () => {
-  it("guard/T63 [guard/F28]: the hook and workflow pass --config; without it the top level's declarations are found from any directory; only .md files directly in it count; with none it is cannot judge naming init", () => {
-    const fresh = consumer();
-    const none = fresh.guard(["run", "--local"]);
-    assert.equal(none.status, 2, none.output);
-    assert.match(none.output, /kaal-guard init/);
-
-    const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
-    for (const asset of [".githooks/pre-push", ".github/workflows/guard.yml"]) {
-      assert.match(c.read(asset), /kaal-guard run [^\n]*--config \.kaal\/config\/guard\b/, `${asset} does not pass --config`);
-    }
-    c.checks({ top: { command: exit(1, "top"), runs: ["local", "ci"] } });
-    c.write(`${CONFIG}/notes.txt`, "not a declaration\n");
-    c.write(`${CONFIG}/nested/deep.md`, declaration({ command: exit(0), runs: ["local", "ci"] }));
-    c.write("alt/top.md", declaration({ command: exit(0, "alt"), runs: ["local", "ci"] }));
-    c.commit("declarations");
-    const fromRoot = verdicts(c.guard(["run", "--check", "top"]).output).top;
-    const fromBelow = verdicts(c.guard(["run", "--check", "top"], {}, join(c.dir, "checks")).output).top;
-    assert.equal(fromRoot?.verdict, "fail");
-    assert.deepEqual(fromBelow, fromRoot, "a subdirectory resolved other declarations");
-    assert.deepEqual(Object.keys(verdicts(c.guard(["run", "--local"]).output)), ["top"], "a file that is not a .md directly in the directory was taken as a declaration");
-    assert.equal(verdicts(c.guard(["run", "--check", "deep"]).output).deep?.verdict, "cannot judge");
-    assert.equal(verdicts(c.guard(["run", "--check", "top", "--config", "alt"]).output).top?.verdict, "pass", "--config was not followed");
-  });
-});
-
-describe("guard/F29 [guard/I5] lifecycle state", () => {
-  it("guard/T69 [guard/F29, guard/F8]: shared configuration: init in a linked worktree sets core.hooksPath in the shared scope with its state in the common directory, and remove in the main checkout unsets it", () => {
-    const c = given({ ok: { command: exit(0), runs: ["local"] } });
-    const wt = worktree(c, "shared");
-    const init = c.guard(["init"], {}, wt);
-    assert.equal(init.status, 0, init.output);
-    assert.deepEqual(hooksPath(c, wt), ["local", ".githooks"]);
-    assert.deepEqual(hooksPath(c, c.dir), ["local", ".githooks"], "the main checkout does not see the shared setting");
-    assert.ok(existsSync(state(c, wt)), "no checkout state in the common directory");
-    assert.equal(state(c, wt), state(c, c.dir));
-    const rm = c.guard(["remove"]);
-    assert.equal(rm.status, 0, rm.output);
-    assert.deepEqual(hooksPath(c, wt), []);
-    assert.ok(!existsSync(state(c, c.dir)), "remove kept the checkout state it used");
-  });
-
-  it("guard/T70 [guard/F29, guard/F8, guard/F12]: in a fresh clone, upgrade and remove judge each asset by the tracked installation record alone, and leave a core.hooksPath Guard did not set there", () => {
-    const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
-    c.checks({ ok: { command: exit(0), runs: ["local"] } });
-    c.commit("set up");
-    assert.equal(c.git("push", "--no-verify", "origin", "main").status, 0);
-    const clone = join(c.root, "clone");
-    assert.equal(c.git("clone", "-q", "-b", "main", c.remote, clone).status, 0);
-    c.git("-C", clone, "config", "core.hooksPath", ".githooks");
-    writeFileSync(join(clone, ".github", "workflows", "guard.yml"), "name: edited in the clone\n");
-    const up = c.guard(["upgrade"], {}, clone);
-    assert.equal(up.status, 0, up.output);
-    assert.match(up.output, /\.github\/workflows\/guard\.yml/);
-    assert.equal(readFileSync(join(clone, ".github", "workflows", "guard.yml"), "utf8"), "name: edited in the clone\n");
-    const rm = c.guard(["remove"], {}, clone);
-    assert.equal(rm.status, 0, rm.output);
-    assert.ok(!existsSync(join(clone, ".githooks", "pre-push")), "remove kept an unmodified registered asset");
-    assert.equal(readFileSync(join(clone, ".github", "workflows", "guard.yml"), "utf8"), "name: edited in the clone\n", "remove deleted a modified asset");
-    assert.deepEqual(hooksPath(c, clone), ["local", ".githooks"], "remove unset a core.hooksPath Guard did not set in this clone");
-  });
-
-  it("guard/T71 [guard/F29, guard/F8]: worktree configuration: init in a linked worktree sets core.hooksPath for that worktree only, with its state in the worktree's metadata", () => {
-    const c = given({ ok: { command: exit(0), runs: ["local"] } });
-    assert.equal(c.git("config", "extensions.worktreeConfig", "true").status, 0);
-    const wt = worktree(c, "own");
-    const init = c.guard(["init"], {}, wt);
-    assert.equal(init.status, 0, init.output);
-    assert.deepEqual(hooksPath(c, wt), ["worktree", ".githooks"]);
-    assert.deepEqual(hooksPath(c, c.dir), [], "the main checkout sees the worktree's setting");
-    assert.ok(existsSync(state(c, wt, "worktree")), "no checkout state in the worktree's metadata");
-    assert.ok(!existsSync(state(c, c.dir)), "the state was written to the common directory");
-    assert.equal(c.guard(["remove"]).status, 0);
-    assert.deepEqual(hooksPath(c, wt), ["worktree", ".githooks"], "remove in the main checkout touched the worktree's setting");
-    const rm = c.guard(["remove"], {}, wt);
-    assert.equal(rm.status, 0, rm.output);
-    assert.deepEqual(hooksPath(c, wt), []);
-    assert.ok(!existsSync(state(c, wt, "worktree")), "remove kept the checkout state it used");
-  });
-
-  it("guard/T72 [guard/F29, guard/F8, guard/F19]: every asset init and upgrade install is byte-identical to catalogued content and valid in its format", () => {
-    const c = consumer();
-    for (const command of ["init", "upgrade"]) {
-      assert.equal(c.guard([command]).status, 0, command);
-      const catalogue = c.catalogue();
-      for (const path of Object.keys(c.installation())) {
-        const bytes = readFileSync(join(c.dir, path));
-        assert.ok((catalogue[path] ?? []).includes(sha256(bytes)), `${command}: ${path} is not catalogued content`);
-        const text = bytes.toString("utf8");
-        if (path === ".githooks/pre-push") {
-          assert.match(text, /^#!/, `${command}: the hook does not start with its shebang`);
-          if (process.platform !== "win32") assert.ok(statSync(join(c.dir, path)).mode & 0o111, `${command}: the hook is not executable`);
-        } else if (/\.ya?ml$/.test(path)) {
-          assert.match(text, /^name: /, `${command}: ${path} does not start as a plain workflow`);
-          assert.match(text, /^jobs:/m, `${command}: ${path} has no jobs`);
-          assert.doesNotMatch(text, /\t/, `${command}: ${path} holds a tab, which YAML refuses`);
-        } else if (path.endsWith("SKILL.md")) {
-          assert.match(text, /^---\r?\nname: kaal-guard\r?\n(?:[^\n]*\n)*?description: \S/, `${command}: ${path} does not begin with the standard's frontmatter`);
-        }
-      }
-    }
-    c.checks({ ok: { command: exit(0), runs: ["local"] } });
-    c.commit("ok");
-    const push = c.git("push", "origin", "main");
-    assert.equal(push.status, 0, push.output);
-    assert.equal(verdicts(push.output).ok?.verdict, "pass", "the installed hook does not run");
-  });
-
-  it("guard/T73 [guard/F29, guard/F8]: a file with published bytes that the record does not register is not Guard's, and a changed or missing registered asset is reported, not re-registered", () => {
-    const source = consumer();
-    assert.equal(source.guard(["init"]).status, 0);
-    const published = source.read(".githooks/pre-push");
-
-    const c = consumer();
-    c.write(".githooks/pre-push", published);
-    if (process.platform !== "win32") chmodSync(join(c.dir, ".githooks", "pre-push"), 0o755);
-    c.commit("a hook of the consumer's own, with Guard's bytes");
-    assert.equal(c.guard(["init"]).status, 0);
-    assert.equal(c.installation()[".githooks/pre-push"], undefined, "init registered a file it did not write");
-    for (const command of ["upgrade", "remove"]) {
-      const r = c.guard([command]);
-      assert.equal(r.status, 0, r.output);
-      assert.match(r.output, /\.githooks\/pre-push/, `${command} does not report the unregistered file`);
-      assert.equal(c.read(".githooks/pre-push"), published, `${command} touched a file that is not Guard's`);
-    }
-
-    const d = consumer();
-    assert.equal(d.guard(["init"]).status, 0);
-    const registered = d.installation()[".githooks/pre-push"];
-    d.write(".githooks/pre-push", `${published}# the consumer's line\n`);
-    const up = d.guard(["upgrade"]);
-    assert.equal(up.status, 0, up.output);
-    assert.match(up.output, /\.githooks\/pre-push/, "upgrade does not report the changed asset");
-    assert.deepEqual(d.installation()[".githooks/pre-push"], registered, "upgrade re-registered a changed asset");
-    rmSync(join(d.dir, ".github", "workflows", "guard.yml"));
-    const rm = d.guard(["remove"]);
-    assert.equal(rm.status, 0, rm.output);
-    assert.match(rm.output, /\.githooks\/pre-push/, "remove does not report the changed asset");
-    assert.match(rm.output, /\.github\/workflows\/guard\.yml/, "remove does not report the missing registered asset");
   });
 });

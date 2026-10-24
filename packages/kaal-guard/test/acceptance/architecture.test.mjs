@@ -64,9 +64,7 @@ describe("Architecture conformance", () => {
       const text = readFileSync(join(PACKAGE, f), "utf8");
       if (/\.(mjs|js|cjs)$/.test(f)) for (const s of specifiers(text)) assert.ok(!/^(@[^/]+\/)?kaal-/.test(s) || s === NAME || s.startsWith(`${NAME}/`), `${f} imports ${s}`);
       assert.ok(!text.includes(engineering), `${f} references an Engineering path`);
-      // The .kaal namespace is not a KAAL Engine (guard/F1): only Guard's own config and state directories in it are allowed.
-      const own = text.replaceAll(`${engine}config/guard`, "").replaceAll(`${engine}state/guard`, "");
-      assert.ok(!own.includes(engine), `${f} references a KAAL Engine`);
+      assert.ok(!text.includes(engine), `${f} references a KAAL Engine`);
     }
   });
 

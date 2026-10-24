@@ -43,8 +43,7 @@ describe("Intent outcome validation", () => {
       // Installed packages, scoped ones as @scope/name: any KAAL element but the package itself is foreign.
       const installed = readdirSync(join(c.dir, "node_modules")).flatMap((n) => (n.startsWith("@") ? readdirSync(join(c.dir, "node_modules", n)).map((m) => `${n}/${m}`) : [n]));
       const modules = installed.filter((n) => /^(@[^/]+\/)?kaal-/.test(n) && n !== NAME);
-      // The .kaal namespace is not a KAAL element (guard/F1): Guard's own config and state directories in it are allowed.
-      const paths = c.files().filter((p) => /^(\.kaal|engineering)\//.test(p) && !/^\.kaal\/(config|state)\/guard\//.test(p));
+      const paths = c.files().filter((p) => /^(\.kaal|engineering)\//.test(p));
       return [...modules, ...paths];
     };
 
@@ -66,7 +65,7 @@ describe("Intent outcome validation", () => {
     assert.equal(c.guard(["remove"]).status, 0);
     assert.deepEqual(foreign(), []);
     const left = c.files().filter((p) => !own.includes(p));
-    assert.deepEqual(left, [".kaal/config/guard/unit.md"], "remove left files other than the consumer's declaration");
+    assert.deepEqual(left, ["guard.json"], "remove left files other than the consumer's guard.json");
     assert.equal(c.git("config", "--local", "--get", "core.hooksPath").stdout.trim(), "");
   });
 });
