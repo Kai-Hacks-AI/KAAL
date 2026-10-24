@@ -19,7 +19,7 @@ command: node engineering/github/lineage.ts
 runs: [ci]
 facts: [base, head]
 trusted: engineering/github/lineage.ts
-outcomes: {4: held}
+outcomes: {"4": held}
 ---
 Checks that a pull request lands on the lineage its base allows. When it is held, wait for the promotion it names.
 ```
@@ -28,7 +28,9 @@ The file follows Core's deterministic-frontmatter contract (`core/C5`): typed va
 - `key: value` lines;
 - plain or double-quoted strings, and integers;
 - flow lists such as `[a, b]`;
-- for `outcomes`, a flow map such as `{4: held}`.
+- for `outcomes`, a flow map whose keys are exit statuses written as double-quoted strings, such as `{"4": held}` (restated in `guard/C38`).
+
+Every key is a string. KAAL has one frontmatter parsing contract (`core/C11`, Owner on #360, 6389758902): Graph's Form reader, which Core uses to recognize a typed artifact, refuses a key that YAML 1.2's core schema reads as anything but a string, and `{4: held}` has an integer key. So Guard refuses an unquoted status key such as `{4: held}` as cannot judge, naming `{"4": held}`, rather than accept what KAAL's Engine rejects. An outcome's meaning and verdict are unchanged.
 
 Anything else is refused (guard/F18). Guard conforms to `core/C5` without depending on Core at runtime, as `contract.json` conforms to Core's Installation Contract. KAAL Engineering checks that conformance with Core's validator (`core/C6`).
 
