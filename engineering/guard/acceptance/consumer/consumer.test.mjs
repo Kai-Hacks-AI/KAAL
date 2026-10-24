@@ -1,6 +1,8 @@
 // Guard outer acceptance, Engineering part: the consumer upgrade. guard/T36, guard/T40, guard/T42 and
 // guard/T43 check guard/I5 for a consumer of the published 0.0.1, with KAAL as that consumer (guard/A12).
-// guard/T64–guard/T68 (guard/C24) check it between two candidates of 0.0.2's configuration (guard/C23):
+// guard/T64 (guard/C24) checks one candidate of 0.0.2's configuration (guard/C23), so it can gate the
+// first published 0.0.2; guard/T65–guard/T68 check it between two candidates, so their `registry` evidence
+// needs a second published version of the 0.0.2 line:
 // 0.0.2 breaks 0.0.1 deliberately, so guard/T37–guard/T39, guard/T41 and guard/T44 are retired.
 // Each test runs in a disposable clone of KAAL, or in a minimal repository beside it, never in KAAL's
 // own tree (N8). It moves from the published 0.0.1 to a candidate: `packed` (the package at this
@@ -126,10 +128,10 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
 
   it("guard/T64 [guard/I1, guard/F18, guard/F29]: init then remove leaves every declaration byte for byte, and Guard writes only catalogued assets, its record and its checkout state", async (t) => {
     const h = await a12();
-    const { newer } = two(h);
-    announce(t, newer);
+    const candidate = h.candidate();
+    announce(t, candidate);
     for (const c of [h.kaalClone(), h.minimalRepo({ declarations: true })]) {
-      c.install(newer.spec);
+      c.install(candidate.spec);
       c.git("add", "-A");
       c.git("commit", "-q", "-m", "candidate");
       const before = declarations(c);
