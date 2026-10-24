@@ -86,15 +86,20 @@ const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
 /**
  * A copy of the package in this tree, as version `version`, whose workflow sources end with a line
- * naming that version, so its managed workflow differs from any other candidate's. Its catalogue holds
- * its own contents and those of `after`'s catalogue. Returns { dir, version, catalogue }.
+ * naming that version, so its managed workflow differs from any other candidate's. With `adds`, its
+ * contract also manages one asset more on the hook surface, which an older candidate lacks (F13). Its
+ * catalogue holds its own contents and those of `after`'s catalogue. Returns { dir, version, catalogue }.
  */
-function variant(version, after = {}) {
+function variant(version, after = {}, adds = false) {
   const dir = join(scratch("kaal-a12-candidate-"), "kaal-guard");
   cpSync(join(KAAL, "packages", "kaal-guard"), dir, { recursive: true, filter: (p) => !/[\\/]node_modules([\\/]|$)/.test(p) });
   const manifest = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
   writeFileSync(join(dir, "package.json"), JSON.stringify({ ...manifest, version }, null, 2) + "\n");
   const contract = JSON.parse(readFileSync(join(dir, "contract.json"), "utf8"));
+  if (adds) {
+    writeFileSync(join(dir, "templates", "candidate.md"), `Added to the hook surface by the candidate ${version}.\n`);
+    contract.assets.push({ role: "candidate", surface: "hook", path: ".githooks/candidate.md", sources: { candidate: "templates/candidate.md" } });
+  }
   const catalogue = {};
   for (const asset of contract.assets) {
     const own = Object.values(asset.sources).map((source) => {
@@ -114,13 +119,14 @@ function variant(version, after = {}) {
 let two;
 /**
  * Two `packed` candidates of the planned configuration, { older, newer }: different versions whose
- * managed workflows differ in content, newer's catalogue holding older's content as well as its own.
+ * managed workflows differ in content, newer's catalogue holding older's content as well as its own,
+ * and newer managing one hook-surface asset that older lacks.
  */
 export function candidates() {
   if (!two) {
     const base = JSON.parse(readFileSync(join(KAAL, "packages", "kaal-guard", "package.json"), "utf8")).version;
     const older = variant(`${base}-candidate.1`);
-    const newer = variant(`${base}-candidate.2`, older.catalogue);
+    const newer = variant(`${base}-candidate.2`, older.catalogue, true);
     two = Object.fromEntries(Object.entries({ older, newer }).map(([k, v]) => [k, { source: "packed", spec: pack(v.dir), version: v.version }]));
   }
   return two;
@@ -207,7 +213,7 @@ export function minimalRepo({ declarations = false } = {}) {
   c.write("package.json", JSON.stringify({ name: "consumer", version: "1.0.0", private: true }, null, 2) + "\n");
   c.write(".gitignore", "node_modules/\n");
   c.write("checks/unit.mjs", "process.exit(Number(process.env.UNIT_STATUS ?? 0));\n");
-  if (declarations) c.write(".kaal/config/guard/unit.md", '---\ntype: Guard/Check\ncommand: "node checks/unit.mjs"\nruns: [local, ci]\n---\n\nThe consumer\'s own unit check.\n');
+  if (declarations) c.write(".kaal/config/guard/unit.md", '---\ntype: Guard/Check\ncommand: "node checks/unit.mjs"\nruns: [hook, ci]\n---\n\nThe consumer\'s own unit check.\n');
   else c.write("guard.json", JSON.stringify({ checks: { unit: { command: "node checks/unit.mjs", runs: ["local", "ci"] } } }, null, 2) + "\n");
   c.git("add", "-A");
   must(c.git("commit", "-q", "-m", "consumer"), "git commit");

@@ -1,15 +1,15 @@
 // Guard's bookkeeping, in its two scopes (guard/F29). Only the lifecycle writes either, and each reader
 // refuses a member it does not define, as it does in a declaration.
-//   - The installation record, .kaal/state/guard/installation.json, tracked: the assets this repository
-//     installed, each with its SHA-256 and the version that wrote it. A file is Guard's only while the
-//     record registers it.
+//   - The installation record, .kaal/state/guard/installation.json, tracked: the surfaces this repository
+//     activated through Guard, and the assets it installed, each with its SHA-256 and the version that
+//     wrote it. A file is Guard's only while the record registers it.
 //   - The checkout state, untracked, in Git's metadata: whether Guard set core.hooksPath, in which
 //     configuration scope and to what. Without extensions.worktreeConfig it is shared by every worktree
 //     in the common directory; with it, each worktree has its own.
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { Refusal, undefinedMember } from "./config.mjs";
+import { Refusal, SURFACES, undefinedMember } from "./config.mjs";
 import { safePath } from "./trusted.mjs";
 
 /** The installation record, from the repository's top level. */
@@ -70,11 +70,19 @@ export function prune(stop, path) {
 
 const HASH = /^[0-9a-f]{64}$/;
 
-/** The record's assets, by path: { sha256, version } each; none when there is no record. Throws a Refusal. */
+/**
+ * The record: { activated, assets, exists }. `activated` lists the surfaces the consumer activated through
+ * Guard (F30), `assets` registers each installed asset by path as { sha256, version }. Without a record,
+ * nothing is activated or registered. Throws a Refusal.
+ */
 export function readRecord(root) {
-  const data = readJson(join(root, RECORD), RECORD) ?? { assets: {} };
-  for (const member of Object.keys(data)) if (member !== "assets") throw undefinedMember(RECORD, member, ["assets"], "Guard's installation record");
-  const { assets } = data;
+  const data = readJson(join(root, RECORD), RECORD);
+  if (!data) return { activated: [], assets: {}, exists: false };
+  for (const member of Object.keys(data)) if (member !== "activated" && member !== "assets") throw undefinedMember(RECORD, member, ["activated", "assets"], "Guard's installation record");
+  const { activated = [], assets = {} } = data;
+  if (!Array.isArray(activated) || !activated.every((s) => SURFACES.includes(s)) || new Set(activated).size !== activated.length) {
+    throw new Refusal(`${RECORD}: activated: is not a list of ${SURFACES.join(", ")}`, `restore ${RECORD} from Git`);
+  }
   if (!assets || typeof assets !== "object" || Array.isArray(assets)) throw new Refusal(`${RECORD}: assets: is not a map of paths`, `restore ${RECORD} from Git`);
   for (const [path, entry] of Object.entries(assets)) {
     const at = `${RECORD}: assets: ${path}`;
@@ -84,23 +92,23 @@ export function readRecord(root) {
     if (!HASH.test(entry.sha256 ?? "")) throw new Refusal(`${at}: sha256: is not a SHA-256`, `restore ${RECORD} from Git`);
     if (typeof entry.version !== "string" || !entry.version) throw new Refusal(`${at}: version: is not a version`, `restore ${RECORD} from Git`);
   }
-  return { ...assets };
+  return { activated: [...activated], assets: { ...assets }, exists: true };
 }
 
-/** Writes the record with these assets in path order, or deletes it, and the directories it empties, when it registers none. */
-export function writeRecord(root, assets) {
+/** Writes the record: the activated surfaces in their order, and the assets in path order. */
+export function writeRecord(root, { activated, assets }) {
   const path = join(root, RECORD);
-  const paths = Object.keys(assets).sort();
-  if (!paths.length) {
-    if (existsSync(path)) {
-      rmSync(path);
-      prune(root, path);
-    }
-    return;
-  }
+  const sorted = Object.fromEntries(Object.keys(assets).sort().map((p) => [p, { sha256: assets[p].sha256, version: assets[p].version }]));
   mkdirSync(dirname(path), { recursive: true });
-  const sorted = Object.fromEntries(paths.map((p) => [p, { sha256: assets[p].sha256, version: assets[p].version }]));
-  writeFileSync(path, JSON.stringify({ assets: sorted }, null, 2) + "\n");
+  writeFileSync(path, JSON.stringify({ activated: SURFACES.filter((s) => activated.includes(s)), assets: sorted }, null, 2) + "\n");
+}
+
+/** Deletes the record and the directories its removal empties. */
+export function deleteRecord(root) {
+  const path = join(root, RECORD);
+  if (!existsSync(path)) return;
+  rmSync(path);
+  prune(root, path);
 }
 
 /**

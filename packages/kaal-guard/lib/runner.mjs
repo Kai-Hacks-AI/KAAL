@@ -15,10 +15,10 @@ export { FACTS };
 /** The verdict of each exit status; any other status is cannot judge unless a check names it. */
 const VERDICTS = { 0: "pass", 1: "fail", 2: "cannot judge", 3: "not applicable" };
 
-/** The names of the checks a selection asks for: { local }, { ci } or { check: name }. */
+/** The names of the checks a selection asks for: { hook }, { ci } or { check: name }. */
 export function select(list, selection) {
   if (selection.check !== undefined) return [selection.check];
-  const where = selection.local ? "local" : "ci";
+  const where = selection.hook ? "hook" : "ci";
   return Object.keys(list.checks).filter((name) => list.checks[name].runs.includes(where));
 }
 

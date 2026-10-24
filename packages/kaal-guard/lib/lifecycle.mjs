@@ -1,5 +1,6 @@
 // The lifecycle: init, upgrade and remove, realizing the package's installation contract (contract.json).
-// It owns exactly the assets the installation record registers (state.mjs), each only while its SHA-256
+// init prepares Guard and activates nothing; init --hook and init --ci each activate one surface, and
+// remove --hook and remove --ci undo them, never touching a declaration (F30). It owns exactly the assets the installation record registers (state.mjs), each only while its SHA-256
 // is the registered one, and the core.hooksPath its checkout state records. A file at a managed path that
 // the record does not register is not Guard's, even with Guard's bytes: it is reported and left alone.
 // It writes only content the contract's catalogue holds, and reads the adapter templates as files, never
@@ -8,9 +9,9 @@ import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { shown } from "./config.mjs";
+import { shown, SURFACES } from "./config.mjs";
 import { declarations, step, uncovered } from "./github.mjs";
-import { deleteState, git, prune, writeRecord, writeState } from "./state.mjs";
+import { deleteRecord, deleteState, git, prune, RECORD, writeRecord, writeState } from "./state.mjs";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -23,11 +24,14 @@ const HOOK = asset("hook").path;
 const WORKFLOW = asset("workflow").path;
 const HOOKS_PATH = dirname(HOOK);
 
-/** The line a pre-existing hook adds to run Guard's own: it runs kaal-guard run --local with the push's facts. */
+/** The contract's assets of one surface (F30). */
+const of = (surface) => CONTRACT.assets.filter((a) => a.surface === surface);
+
+/** The line a pre-existing hook adds to run Guard's own: it runs kaal-guard run --hook with the push's facts. */
 const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/${CONTRACT.assets.find((a) => a.role === "hook").sources.hook} "$@" || exit 1`;
 const ADD_HOOK_LINE = [
   `  ${HOOK_LINE}`,
-  "  It runs kaal-guard run --local with the push's facts, reading the push's lines on standard input.",
+  "  It runs kaal-guard run --hook with the push's facts, reading the push's lines on standard input.",
 ];
 
 export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -43,9 +47,6 @@ export function sources() {
  * are Guard's, not the repository's, and do not count.
  */
 const theirs = (declared, assets) => declared.filter((d) => !assets[d.file]);
-
-/** Guard's workflow, as the package holds it. Only init --ci installs it: CI is the consumer's to assign (F17). */
-const workflow = () => sources()[WORKFLOW].workflow;
 
 /** Writes catalogued content where no file is, and returns its registration. Throws when the catalogue lacks it. */
 function install(root, path, text) {
@@ -91,71 +92,61 @@ const section = (title, items) => [title, ...(items.length ? items : ["nothing"]
 const executed = (declared) => declared.map((d) => (d.every ? `every ci check, in job ${d.job} of ${d.file}` : `${d.name} in job ${d.job} of ${d.file}`));
 
 /**
- * Creates the configuration directory where it is missing, writes the hook where no file exists, and
- * sets core.hooksPath only where it is unset in every scope, the hook there is Guard's registered one,
- * and Git runs no hooks of the repository's own that setting it would turn off. Guard's workflow is
- * written only with `ci`, the consumer's opt-in, and only where no file is and no workflow of the
- * repository declares a check or verify; otherwise each ci check no job runs is reported with the step
- * to add (F17). The context is what the command read and validated: { dir, list, record, state, at,
- * declared, ci }. Returns { lines }: what Guard installed, what it left untouched, and what is still to do.
+ * Prepares Guard: creates the configuration directory where it is missing and the installation record,
+ * and activates only the surfaces asked for (F30). With `hook`, it writes Guard's hook where no file is and
+ * sets core.hooksPath only where it is unset in every scope, the hook there is Guard's registered one, and
+ * Git runs no hooks of the repository's own that setting it would turn off. With `ci`, it writes Guard's
+ * workflow only where no file is and no workflow of the repository declares a check or verify (F17).
+ * Without them it reports how to activate each surface, and each ci check no job runs with the step to
+ * add. The context is what the command read and validated: { dir, list, record, state, at, declared,
+ * hook, ci }. Returns { lines }: what Guard installed, what it left untouched, and what is still to do.
  */
-export function init(root, { dir, list, record, state, at, declared, ci = false }) {
-  const assets = { ...record };
+export function init(root, { dir, list, record, state, at, declared, hook = false, ci = false }) {
+  const assets = { ...record.assets };
+  const activated = new Set(record.activated);
   const own = theirs(declared, assets);
   const installed = [];
   const untouched = [];
   const todo = [];
+  const config = shown(root, dir);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
-    installed.push(`${shown(root, dir)}/, where each check is declared as <name>.md`);
-    todo.push(`Declare each check as ${shown(root, dir)}/<name>.md, with type: Guard/Check, command and runs in its frontmatter; see the package's README.`);
+    installed.push(`${config}/, where each check is declared as <name>.md`);
+    todo.push(`Declare each check as ${config}/<name>.md, with type: Guard/Check, command and runs in its frontmatter; see the package's README.`);
   }
-  const files = { [HOOK]: sources()[HOOK].hook };
+  if (!record.exists) installed.push(`${RECORD}, Guard's installation record`);
+  const files = {};
+  if (hook) for (const a of of("hook")) files[a.path] = { surface: "hook", text: Object.values(sources()[a.path])[0] };
   if (ci) {
     if (own.length) untouched.push(`${WORKFLOW}: not installed; your workflows already run Guard (${executed(own).join("; ")}), and Guard's workflow would run those checks a second time`);
-    else files[WORKFLOW] = workflow();
+    else for (const a of of("ci")) files[a.path] = { surface: "ci", text: Object.values(sources()[a.path])[0] };
   }
-  for (const [path, text] of Object.entries(files)) {
-    if (assets[path]) untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
-    else if (existsSync(join(root, path))) {
+  for (const [path, { surface, text }] of Object.entries(files)) {
+    if (assets[path]) {
+      untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
+      activated.add(surface);
+    } else if (existsSync(join(root, path))) {
       untouched.push(`${path}: it was there before Guard, so it is not Guard's`);
-      if (path === HOOK) todo.push(`To run Guard's local checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
+      if (path === HOOK) todo.push(`To run Guard's hook checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
     } else {
       assets[path] = install(root, path, text);
       installed.push(path);
+      activated.add(surface);
     }
   }
-  const config = shown(root, dir);
+  if (hook) hooksPath(root, { assets, state, at, installed, untouched, todo });
+  else if (!activated.has("hook")) todo.push(`The hook is not activated. Run kaal-guard init --hook to install Guard's ${HOOK}, or add this line to a pre-push hook of your own:`, ...ADD_HOOK_LINE);
   const mine = declarations(root);
   const missing = uncovered(list, mine);
   if (missing.length) {
     todo.push(`No workflow job runs these ci checks, and Guard does not run them in CI on its own. Give a job of your own workflow a step for each:`, ...missing.map((name) => `  ${step(name, config)}`));
-    if (!ci) todo.push("  or run kaal-guard init --ci to install Guard's workflow, which runs every ci check in one job and kaal-guard verify.");
+    if (!activated.has("ci") && !own.length) todo.push("  or run kaal-guard init --ci to install Guard's workflow, which runs every ci check in one job and kaal-guard verify.");
   }
   if (!mine.some((d) => d.verify) && Object.values(list.checks).some((c) => c.runs.includes("ci"))) {
     todo.push(`No workflow job runs kaal-guard verify, which shows that a job declares each ci check. Give a job the step:`, `  - run: npx --no kaal-guard verify --config ${config} --github`);
   }
-  const set = hooksPaths(root);
-  const ours = assets[HOOK] && condition(root, HOOK, assets[HOOK]) === "unmodified";
-  const hooks = ownHooks(root);
-  if (set.length) {
-    const [scope, value] = set[set.length - 1];
-    const guards = state && state.scope === scope && state["core.hooksPath"] === value;
-    untouched.push(`core.hooksPath = ${value} in the ${scope} configuration${guards ? ": Guard set it" : ": Guard did not set it, and leaves it"}`);
-    if (value !== HOOKS_PATH || !ours) todo.push(`To run Guard's local checks, add this line to ${value}/pre-push:`, ...ADD_HOOK_LINE);
-  } else if (!ours) {
-    untouched.push(`core.hooksPath: unset; Guard sets it only to run a ${HOOK} it installed`);
-    todo.push(`Once ${HOOK} runs Guard's line, enable it with: git config core.hooksPath ${HOOKS_PATH}`);
-  } else if (hooks.length) {
-    untouched.push(`core.hooksPath: unset, so Git runs ${hooks.join(", ")} from ${hooksDir(root)}; setting it would turn them off`);
-    todo.push(`To run Guard's local checks, add this line to ${hooksDir(root)}/pre-push, or move those hooks to ${HOOKS_PATH} and run git config core.hooksPath ${HOOKS_PATH}:`, ...ADD_HOOK_LINE);
-  } else {
-    if (git(root, "config", `--${at.scope}`, "core.hooksPath", HOOKS_PATH).status !== 0) throw new Error(`git config --${at.scope} core.hooksPath could not be set`);
-    writeState(at, HOOKS_PATH);
-    installed.push(`core.hooksPath = ${HOOKS_PATH} in the ${at.scope} configuration`);
-  }
-  todo.push("If a merge should depend on Guard's jobs, make them required checks in branch protection.");
-  writeRecord(root, assets);
+  if (activated.size) todo.push("If a merge should depend on Guard's jobs, make them required checks in branch protection.");
+  writeRecord(root, { activated: [...activated], assets });
   return {
     lines: [
       ...section("installed by Guard:", installed),
@@ -167,56 +158,88 @@ export function init(root, { dir, list, record, state, at, declared, ci = false 
   };
 }
 
+/** Sets core.hooksPath to Guard's hook directory where that is safe, and records it in the checkout state; reports otherwise. */
+function hooksPath(root, { assets, state, at, installed, untouched, todo }) {
+  const set = hooksPaths(root);
+  const ours = assets[HOOK] && condition(root, HOOK, assets[HOOK]) === "unmodified";
+  const hooks = ownHooks(root);
+  if (set.length) {
+    const [scope, value] = set[set.length - 1];
+    const guards = state && state.scope === scope && state["core.hooksPath"] === value;
+    untouched.push(`core.hooksPath = ${value} in the ${scope} configuration${guards ? ": Guard set it" : ": Guard did not set it, and leaves it"}`);
+    if (value !== HOOKS_PATH || !ours) todo.push(`To run Guard's hook checks, add this line to ${value}/pre-push:`, ...ADD_HOOK_LINE);
+  } else if (!ours) {
+    untouched.push(`core.hooksPath: unset; Guard sets it only to run a ${HOOK} it installed`);
+    todo.push(`Once ${HOOK} runs Guard's line, enable it with: git config core.hooksPath ${HOOKS_PATH}`);
+  } else if (hooks.length) {
+    untouched.push(`core.hooksPath: unset, so Git runs ${hooks.join(", ")} from ${hooksDir(root)}; setting it would turn them off`);
+    todo.push(`To run Guard's hook checks, add this line to ${hooksDir(root)}/pre-push, or move those hooks to ${HOOKS_PATH} and run git config core.hooksPath ${HOOKS_PATH}:`, ...ADD_HOOK_LINE);
+  } else {
+    if (git(root, "config", `--${at.scope}`, "core.hooksPath", HOOKS_PATH).status !== 0) throw new Error(`git config --${at.scope} core.hooksPath could not be set`);
+    writeState(at, HOOKS_PATH);
+    installed.push(`core.hooksPath = ${HOOKS_PATH} in the ${at.scope} configuration`);
+  }
+}
+
 /**
  * Moves each registered, unmodified asset to this version's content and registers this version for it;
- * installs the hook where the repository does not have it (F13), but never Guard's workflow, which only
- * init --ci installs (F17); reports and keeps everything else. Returns { lines }, one per managed path.
+ * installs an asset this version adds only to a surface the record shows activated (F13), and never
+ * activates one (F30); reports and keeps everything else. Returns { lines }, one per managed path.
  */
 export function upgrade(root, { record, declared }) {
-  const assets = { ...record };
+  const assets = { ...record.assets };
   const own = theirs(declared, assets);
-  const files = { [HOOK]: sources()[HOOK].hook, [WORKFLOW]: workflow() };
   const lines = [];
-  for (const { path } of CONTRACT.assets) {
+  let changed = false;
+  for (const { path, surface } of CONTRACT.assets) {
     const entry = assets[path];
-    const text = files[path];
+    const text = Object.values(sources()[path])[0];
     if (!entry) {
       if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
-      else if (path !== WORKFLOW) {
+      else if (record.activated.includes(surface)) {
         assets[path] = install(root, path, text);
-        lines.push(`installed ${path}: ${VERSION}; the repository did not have it`);
+        changed = true;
+        lines.push(`installed ${path}: ${VERSION}; the activated ${surface} surface did not have it`);
       }
       continue;
     }
     const now = condition(root, path, entry);
-    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove drops it from the record)`);
+    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove --${surface} drops it from the record)`);
     else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it keeps that registered version`);
     else if (sha256(Buffer.from(text)) === entry.sha256) {
       lines.push(entry.version === VERSION ? `current ${path}: ${VERSION}` : `current ${path}: unchanged from ${entry.version} to ${VERSION}`);
+      if (entry.version !== VERSION) changed = true;
       assets[path] = { sha256: entry.sha256, version: VERSION };
     } else {
       assets[path] = install(root, path, text);
+      changed = true;
       lines.push(`upgraded ${path}: from ${entry.version} to ${VERSION}`);
     }
   }
-  writeRecord(root, assets);
+  if (record.exists || changed) writeRecord(root, { activated: record.activated, assets });
   if (own.length) lines.push(...section("executed by Guard, not managed:", executed(own)));
   return { lines };
 }
 
 /**
- * Deletes each registered, unmodified asset and the directories that empties, unsets core.hooksPath only
- * in the scope the checkout state records and only while it still holds the value Guard set, then deletes
- * the record and the state. Declarations stay: they are the repository's own. Returns { lines }.
+ * Deactivates the surfaces asked for, or both: deletes each of their registered, unmodified assets and
+ * the directories that empties, and drops them from the record; for the hook, unsets core.hooksPath only
+ * in the scope the checkout state records and only while it still holds the value Guard set. Without a
+ * surface named, it then deletes the record, the state and an empty configuration directory. Declarations
+ * and Test Cases stay: they are the repository's own (F30). Returns { lines }.
  */
-export function remove(root, { dir, record, state, at }) {
+export function remove(root, { dir, record, state, at, hook = false, ci = false }) {
+  const all = !hook && !ci;
+  const surfaces = SURFACES.filter((s) => all || (s === "hook" ? hook : ci));
+  const assets = { ...record.assets };
   const lines = [];
-  for (const { path } of CONTRACT.assets) {
-    const entry = record[path];
+  for (const { path, surface } of CONTRACT.assets.filter((a) => surfaces.includes(a.surface))) {
+    const entry = assets[path];
     if (!entry) {
       if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
       continue;
     }
+    delete assets[path];
     const now = condition(root, path, entry);
     if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but already deleted`);
     else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it is yours`);
@@ -226,19 +249,24 @@ export function remove(root, { dir, record, state, at }) {
       lines.push(`removed ${path}`);
     }
   }
-  writeRecord(root, {});
-  if (state) {
-    const value = state["core.hooksPath"];
-    if (git(root, "config", `--${state.scope}`, "--get", "core.hooksPath").out === value) {
-      git(root, "config", `--${state.scope}`, "--unset", "core.hooksPath");
-      lines.push(`unset core.hooksPath in the ${state.scope} configuration`);
-    } else lines.push(`left core.hooksPath: changed since Guard set it to ${value}`);
-    deleteState(at);
-  } else if (hooksPaths(root).length) lines.push("left core.hooksPath: Guard did not set it in this checkout");
-  if (existsSync(dir) && readdirSync(dir).length === 0) {
-    rmSync(dir, { recursive: true });
-    prune(root, dir);
+  if (surfaces.includes("hook")) {
+    if (state) {
+      const value = state["core.hooksPath"];
+      if (git(root, "config", `--${state.scope}`, "--get", "core.hooksPath").out === value) {
+        git(root, "config", `--${state.scope}`, "--unset", "core.hooksPath");
+        lines.push(`unset core.hooksPath in the ${state.scope} configuration`);
+      } else lines.push(`left core.hooksPath: changed since Guard set it to ${value}`);
+      deleteState(at);
+    } else if (hooksPaths(root).length) lines.push("left core.hooksPath: Guard did not set it in this checkout");
   }
+  for (const s of surfaces) if (record.activated.includes(s)) lines.push(`deactivated ${s}`);
+  if (all) {
+    deleteRecord(root);
+    if (existsSync(dir) && readdirSync(dir).length === 0) {
+      rmSync(dir, { recursive: true });
+      prune(root, dir);
+    }
+  } else if (record.exists) writeRecord(root, { activated: record.activated.filter((s) => !surfaces.includes(s)), assets });
+  lines.push("declarations and Test Cases: kept; they are the repository's own");
   return { lines };
 }
-

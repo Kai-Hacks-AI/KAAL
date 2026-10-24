@@ -1,7 +1,7 @@
 ---
 type: Guard/Check
 command: sh engineering/github/push-check.sh
-runs: [local]
+runs: [hook]
 facts: [head, base, base-ref]
 ---
 

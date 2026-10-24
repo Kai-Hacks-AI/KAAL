@@ -179,6 +179,9 @@ export function frontmatter(text, file) {
 
 const kind = (v) => (Array.isArray(v) ? "a list" : v === null ? "null" : typeof v === "object" ? "a map" : typeof v === "number" ? "an integer" : "a string");
 
+/** The surfaces a check is registered for, each activated apart (F30). */
+export const SURFACES = ["hook", "ci"];
+
 /** The schema of Guard/Check: each member's check, which throws a Refusal for a value it does not accept. */
 const SCHEMA = {
   type: (v, at) => {
@@ -189,8 +192,11 @@ const SCHEMA = {
     if (!words(v)?.length) throw new Refusal(`${at}: command: names no program, or a quote in it is not closed`, "write a program and its arguments as words");
   },
   runs: (v, at) => {
-    if (!Array.isArray(v) || !v.length || !v.every((r) => r === "local" || r === "ci") || new Set(v).size !== v.length) {
-      throw new Refusal(`${at}: runs: must be a list of local, ci or both`, "write runs: [local], runs: [ci] or runs: [local, ci]");
+    if (Array.isArray(v) && v.includes("local")) {
+      throw new Refusal(`${at}: runs: local is not a surface of Guard/Check; did you mean hook?`, "write hook for a check the Git hook runs: runs: [hook], runs: [ci] or runs: [hook, ci]");
+    }
+    if (!Array.isArray(v) || !v.length || !v.every((r) => SURFACES.includes(r)) || new Set(v).size !== v.length) {
+      throw new Refusal(`${at}: runs: must be a list of hook, ci or both`, "write runs: [hook], runs: [ci] or runs: [hook, ci]");
     }
   },
   facts: (v, at) => {

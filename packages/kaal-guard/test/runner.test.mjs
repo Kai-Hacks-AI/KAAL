@@ -49,11 +49,11 @@ describe("words", () => {
 describe("run", () => {
   it("gives each verdict its own name and the run the worst status", () => {
     const dir = repo({
-      p: { command: node("process.exit(0)"), runs: ["local"] },
-      n: { command: node("process.exit(3)"), runs: ["local"] },
-      h: { command: node("console.log('on hold');process.exit(4)"), runs: ["local"], outcomes: { 4: "held" } },
+      p: { command: node("process.exit(0)"), runs: ["hook"] },
+      n: { command: node("process.exit(3)"), runs: ["hook"] },
+      h: { command: node("console.log('on hold');process.exit(4)"), runs: ["hook"], outcomes: { 4: "held" } },
     });
-    const { results } = run(dir, declared(dir), { local: true }, {});
+    const { results } = run(dir, declared(dir), { hook: true }, {});
     assert.deepEqual(results.map((r) => [r.name, r.verdict]), [["h", "held"], ["n", "not applicable"], ["p", "pass"]], "not in name order");
     assert.equal(results[0].evidence, "exit status 4");
     assert.equal(status(results), 0);
@@ -197,7 +197,7 @@ describe("verify", () => {
 
   it("passes a ci check a step declares in Guard's form, and fails one nothing declares", () => {
     const wf = job("steps:", "  - run: npx kaal-guard run --check plain --github", "  - name: n", "    run: npx --no kaal-guard run --check named", "  - run: kaal-guard run --check bare");
-    assert.deepEqual(verdicts({ plain: ci, named: ci, bare: ci, orphan: ci, mine: { command: "x", runs: ["local"] } }, { "ci.yml": wf }), { plain: "pass", named: "pass", bare: "pass", orphan: "fail" });
+    assert.deepEqual(verdicts({ plain: ci, named: ci, bare: ci, orphan: ci, mine: { command: "x", runs: ["hook"] } }, { "ci.yml": wf }), { plain: "pass", named: "pass", bare: "pass", orphan: "fail" });
   });
 
   it("reads --check ${{ matrix.check }} from the job's - { check: <name> } lines", () => {

@@ -7,11 +7,11 @@ import { init, remove, upgrade } from "../lib/lifecycle.mjs";
 import { FACTS, lines, run, status } from "../lib/runner.mjs";
 import { checkout, gitRoot, readRecord, readState } from "../lib/state.mjs";
 
-const USAGE = `usage: kaal-guard run (--local | --ci | --check <name>) [--config <dir>] [--github]
+const USAGE = `usage: kaal-guard run (--hook | --ci | --check <name>) [--config <dir>] [--github]
                        [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
        kaal-guard verify [--config <dir>] [--github]
-       kaal-guard init [--ci] [--config <dir>]
-       kaal-guard (upgrade | remove) [--config <dir>]`;
+       kaal-guard (init | remove) [--hook] [--ci] [--config <dir>]
+       kaal-guard upgrade [--config <dir>]`;
 
 /** Prints a cannot-judge verdict about kaal-guard itself and exits 2. */
 function cannotJudge(evidence, todo) {
@@ -73,11 +73,11 @@ function report(results, github) {
 const [command, ...args] = process.argv.slice(2);
 const LIFECYCLE = { init, upgrade, remove };
 if (command in LIFECYCLE) {
-  const options = parse(args, command === "init" ? ["--ci"] : [], ["--config"]);
+  const options = parse(args, command === "upgrade" ? [] : ["--hook", "--ci"], ["--config"]);
   const context = load(options["--config"], { optional: true });
   let result;
   try {
-    result = LIFECYCLE[command](context.root, { ...context, declared: declarations(context.root), ci: Boolean(options["--ci"]) });
+    result = LIFECYCLE[command](context.root, { ...context, declared: declarations(context.root), hook: Boolean(options["--hook"]), ci: Boolean(options["--ci"]) });
   } catch (e) {
     cannotJudge(e.message, "reinstall the package, then run the command again");
   }
@@ -94,15 +94,16 @@ if (command === "verify") {
 if (command !== "run") cannotJudge(command ? `${command} is not a kaal-guard command in this version` : "no command", USAGE);
 
 const byOption = Object.fromEntries(Object.entries(FACTS).map(([fact, { option }]) => [option, fact]));
-const options = parse(args, ["--local", "--ci", "--github"], ["--check", "--config", ...Object.keys(byOption)]);
+if (args.includes("--local")) cannotJudge("--local is not an option of run in this version; did you mean --hook? A check the Git hook runs is registered as runs: [hook]", USAGE);
+const options = parse(args, ["--hook", "--ci", "--github"], ["--check", "--config", ...Object.keys(byOption)]);
 const selection = {};
-if (options["--local"]) selection.local = true;
+if (options["--hook"]) selection.hook = true;
 if (options["--ci"]) selection.ci = true;
 if (options["--check"] !== undefined) selection.check = options["--check"];
-if (Object.keys(selection).length !== 1) cannotJudge("run needs exactly one of --local, --ci or --check <name>", USAGE);
+if (Object.keys(selection).length !== 1) cannotJudge("run needs exactly one of --hook, --ci or --check <name>", USAGE);
 const facts = {};
 for (const [option, fact] of Object.entries(byOption)) if (options[option] !== undefined) facts[fact] = fact === "changed" ? resolve(options[option]) : options[option];
 const { root, list } = load(options["--config"]);
 const { results } = run(root, list, selection, facts);
-if (results.length === 0) console.log(`kaal-guard: no checks run ${selection.local ? "--local" : "--ci"}`);
+if (results.length === 0) console.log(`kaal-guard: no checks run ${selection.hook ? "--hook" : "--ci"}`);
 report(results, options["--github"]);

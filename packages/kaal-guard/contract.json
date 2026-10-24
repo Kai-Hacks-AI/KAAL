@@ -3,26 +3,28 @@
   "assets": [
     {
       "role": "hook",
+      "surface": "hook",
       "path": ".githooks/pre-push",
       "sources": {
         "hook": "templates/pre-push"
       },
       "mode": "755",
-      "install": "by kaal-guard init, and by upgrade where the repository does not have it"
+      "install": "only by kaal-guard init --hook, the consumer activating the hook"
     },
     {
       "role": "workflow",
+      "surface": "ci",
       "path": ".github/workflows/guard.yml",
       "sources": {
         "workflow": "templates/guard.yml"
       },
-      "install": "only by kaal-guard init --ci, the consumer opting in; never by upgrade"
+      "install": "only by kaal-guard init --ci, the consumer activating CI"
     }
   ],
   "rules": {
-    "install": "only where no file exists, byte for byte as catalogued content, registered in the installation record; the workflow only on the consumer's request (init --ci), and never beside a workflow that already declares a check or verify",
+    "install": "init activates nothing; init --hook and init --ci each install their surface's assets only where no file exists, byte for byte as catalogued content, registered in the installation record; the workflow never beside a workflow that already declares a check or verify; upgrade installs a new asset only for an activated surface",
     "upgrade": "only a registered asset whose SHA-256 equals the registered one; a modified asset keeps its registered version",
-    "remove": "only a registered asset whose SHA-256 equals the registered one, with the directories its removal empties"
+    "remove": "remove --hook and remove --ci deactivate one surface, remove both: only a registered asset whose SHA-256 equals the registered one, with the directories its removal empties; never a declaration or a Test Case"
   },
   "record": {
     "repository": ".kaal/state/guard/installation.json",
@@ -30,7 +32,7 @@
   },
   "catalogue": {
     ".githooks/pre-push": [
-      "d0c3a6b78c2224dae59408ddd076f1f9d9b5e58aebe2b4e3273853518db5fe8c"
+      "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95"
     ],
     ".github/workflows/guard.yml": [
       "6924a2e22d95a9dc40c11f7fc14548ce45b3b5d862f71ac6565a9263b2c618cf"

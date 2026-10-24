@@ -1,6 +1,6 @@
 #!/bin/sh
 # Early local feedback before a push, from the same KAAL checkers CI runs. For each pushed ref this
-# hook resolves the pull request target (KAAL's branching policy, below) and runs KAAL's local checks
+# hook resolves the pull request target (KAAL's branching policy, below) and runs KAAL's hook checks
 # through kaal-guard, giving it the Git facts. KAAL declares those checks in .kaal/config/guard/; today
 # that is push, KAAL's branching and Change Isolation judgment (engineering/github/push-check.sh),
 # whose rules, verdicts and guidance live in engineering/github/lineage.ts,
@@ -48,7 +48,7 @@ while read -r local_ref head remote_ref remote_head; do
   fi
   say "$local_ref -> ${target#"$remote/"} (base $base):"
   KAAL_PUSH_REMOTE=$remote KAAL_PUSH_REF=$local_ref KAAL_PUSH_REMOTE_HEAD=$remote_head \
-    node_modules/.bin/kaal-guard run --local --head "$head" --base "$base" --base-ref "$target" </dev/null >&2 \
+    node_modules/.bin/kaal-guard run --hook --head "$head" --base "$base" --base-ref "$target" </dev/null >&2 \
     || status=1
 done
 [ $status = 0 ] || say "Local feedback only; CI decides. Fix and push again, or skip once with git push --no-verify."

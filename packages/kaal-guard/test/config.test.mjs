@@ -60,7 +60,7 @@ describe("frontmatter", () => {
 });
 
 describe("Guard/Check", () => {
-  const valid = { type: "Guard/Check", command: "node x.mjs", runs: ["local"] };
+  const valid = { type: "Guard/Check", command: "node x.mjs", runs: ["hook"] };
 
   it("is the members of a check, without its type", () => {
     const full = { ...valid, facts: ["base", "changed"], trusted: "checks", outcomes: { 4: "held" } };
@@ -81,7 +81,8 @@ describe("Guard/Check", () => {
       [{ ...valid, command: ["node", "x"] }, /c\.md: command: is a list, not a string/],
       [{ ...valid, command: 7 }, /c\.md: command: is an integer, not a string/],
       [{ ...valid, command: '"open' }, /c\.md: command: names no program, or a quote/],
-      [{ ...valid, runs: "local" }, /c\.md: runs: must be a list/],
+      [{ ...valid, runs: "hook" }, /c\.md: runs: must be a list/],
+      [{ ...valid, runs: ["local"] }, /c\.md: runs: local is not a surface of Guard\/Check; did you mean hook\?/],
       [{ ...valid, runs: [] }, /c\.md: runs: must be a list/],
       [{ ...valid, runs: ["nightly"] }, /c\.md: runs: must be a list/],
       [{ ...valid, runs: ["ci", "ci"] }, /c\.md: runs: must be a list/],
