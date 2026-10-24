@@ -22,6 +22,8 @@ async function installation() {
 
 const sha = (text) => createHash("sha256").update(text).digest("hex");
 const keys = (findings) => findings.map((f) => f.key);
+/** Whether a finding names `member`, or a member inside it, such as `assets.0.surface` inside `assets`. */
+const names = (findings, member) => keys(findings).some((k) => k === member || k.startsWith(`${member}.`));
 
 function contract(format) {
   return {
@@ -74,7 +76,7 @@ describe("Installation record (core/C10)", () => {
       [{ assets: { "/etc/passwd": entry("x", "0.0.1") } }, "assets"],
       [{ assets: { "../outside": entry("x", "0.0.1") } }, "assets"],
     ];
-    for (const [value, member] of cases) assert.ok(keys(checkRecord(value)).includes(member), `${JSON.stringify(value)} names ${member}`);
+    for (const [value, member] of cases) assert.ok(names(checkRecord(value), member), `${JSON.stringify(value)} names ${member}`);
     assert.notDeepEqual(checkRecord([]), []);
   });
 
@@ -122,7 +124,7 @@ describe("Cross-installer realization (core/C10)", () => {
     const { checkContract, installationFormat, register } = await installation();
     const c = contract(installationFormat());
     assert.deepEqual(checkContract(c), []);
-    assert.ok(keys(checkContract({ ...c, assets: [{ ...c.assets[0], surface: 7 }, c.assets[1]] })).includes("surface"));
+    assert.ok(names(checkContract({ ...c, assets: [{ ...c.assets[0], surface: 7 }, c.assets[1]] }), "assets.0.surface"));
     const next = register({ contract: c, record: undefined, written: { ".githooks/pre-push": sha("hook 0.0.2"), [SKILL_MD]: sha("skill 0.0.2") } });
     assert.ok(!(".githooks/pre-push" in next.assets), "Core never registers a surface-gated asset");
   });
