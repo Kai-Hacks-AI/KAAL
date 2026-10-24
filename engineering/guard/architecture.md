@@ -4,18 +4,18 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 
 ## Elements
 
-- **guard/A1 Check list** [guard/F1, guard/F7]. `guard.json`, at the repository root, is owned by the repository. It says which checks exist, their commands, where they run, which facts they need, which checker is trusted and which outcomes are named. It knows nothing of how a check decides.
+- **guard/A1 Check list** [guard/F1, guard/F7, guard/F18, guard/F28]. The declarations, `.kaal-guard/checks/<name>.md`, are owned by the repository. Their frontmatter says which checks exist, their commands, where they run, which facts they need, which checker is trusted and which outcomes are named. It knows nothing of how a check decides.
 - **guard/A2 Checks** [guard/F1, guard/F9]. The checks and their test content are the repository's. They know nothing of Git, GitHub or Guard beyond the facts guard/F9 gives them.
 - **guard/A3 Runner** [guard/F2, guard/F3, guard/F7, guard/F9, guard/F10, guard/N2, guard/N4]. The runner, in the package at `lib/runner.mjs`, runs a set of checks and reads their verdicts. It knows nothing of branches, remotes, pull requests, GitHub, the adapters or KAAL. It reads a Git object only to take a trusted checker from the base commit (guard/F7).
 - **guard/A4 Git adapter** [guard/F4, guard/F6]. The `pre-push` hook, shipped in the package as `templates/pre-push`, passes Git facts to the runner and acts on its verdicts. It knows nothing of GitHub and names no check.
 - **guard/A5 GitHub adapter** [guard/F5, guard/F6, guard/F10]. A workflow job passes pull request facts to the runner and acts on its verdicts. Reporting to GitHub (annotations and the step summary, `run --github`) and the static coverage check (`verify`) sit beside the runner, in `lib/github.mjs`. A new consumer is offered `templates/guard.yml`.
-- **guard/A6 Lifecycle** [guard/F8, guard/N3]. `init`, `upgrade` and `remove`, in the package at `lib/lifecycle.mjs`, own exactly the files recorded under `managed` and the `core.hooksPath` they set. Nothing else in a repository is theirs.
-- **guard/A7 Dependency direction** [guard/F3, guard/F6]. The command (`bin/kaal-guard.mjs`) and the adapters depend on the runner; the runner depends on `guard.json`; `guard.json` names the checks. Nothing depends on an adapter, and the runner depends on neither guard/A5 nor the templates.
+- **guard/A6 Lifecycle** [guard/F8, guard/N3]. `init`, `upgrade` and `remove`, in the package at `lib/lifecycle.mjs`, own exactly the files recorded under `managed`, the `core.hooksPath` they set, and their state, `.kaal-guard/state.json` (guard/F29). Nothing else in a repository is theirs, and they never write a declaration.
+- **guard/A7 Dependency direction** [guard/F3, guard/F6]. The command (`bin/kaal-guard.mjs`) and the adapters depend on the runner; the runner depends on the declarations, and the declarations name the checks. Nothing depends on an adapter, and the runner depends on neither guard/A5 nor the templates.
 - **guard/A8 Package independence** [guard/N6]. The `kaal-guard` package, in `packages/kaal-guard/`, depends on no other KAAL element, declares none, imports none and references no Engineering path or KAAL Engine. It carries its own tests in `test/`.
 - **guard/A9 Engineer** [guard/N7, guard/N5]. `engineering/guard/` holds Guard's engineering documentation, the Engineering-only outer tests and, later, the External tooling. It may use any useful KAAL element. Nothing it uses becomes a package dependency.
 - **guard/A10 External** [guard/F8, guard/N5]. The External tooling, in `engineering/guard/external/`, produces and delivers a naked Guard Change for a target from the target's own commands. It uses no package internals and leaves no KAAL element in the target.
-- **guard/A11 KAAL integration** [guard/N7, guard/F5, guard/F10]. KAAL is Guard's first consumer and installs the package from its workspace. Its lineage, Change Isolation and branching checks become entries in KAAL's `guard.json`, with their checkers trusted and `4` named held. Guard joins KAAL's existing workflows without replacing or consolidating them:
-  - KAAL adopts Guard as an executor, not as a manager. **KAAL-owned:** the `checks` of `guard.json`, the check scripts and their policy, `.githooks/pre-push`, which holds KAAL's branching policy (it resolves each push's target), and every workflow's orchestration (names, OS matrices, triggers, trusted checkouts). **Guard-managed:** nothing; KAAL's `guard.json` has no `managed` or `config`. **Executed by Guard, not managed:** the hook's call to `kaal-guard run --local`, each job's `kaal-guard run --check` step and the `Guard` job's `verify`. KAAL keeps all three as they are and adopts no managed asset (guard/N8, guard/F17). The target is consumer-owned, not Guard-managed and not mixed, because Guard's templates cannot carry what KAAL's surfaces hold: the hook resolves each push's target by KAAL's branching policy, and the workflows carry the OS matrices, `pull_request_target` trusted checkouts and check identities KAAL's rulesets require (guard/N7). Managing either would move KAAL policy into Guard or lose an identity. KAAL therefore needs no adoption of pre-existing assets, and migration stays separate from the published-version upgrade;
+- **guard/A11 KAAL integration** [guard/N7, guard/F5, guard/F10]. KAAL is Guard's first consumer and installs the package from its workspace. Its lineage, Change Isolation and branching checks become declarations in KAAL's `.kaal-guard/checks/`, with their checkers trusted and `4` named held. Guard joins KAAL's existing workflows without replacing or consolidating them:
+  - KAAL adopts Guard as an executor, not as a manager. **KAAL-owned:** its check declarations, the check scripts and their policy, `.githooks/pre-push`, which holds KAAL's branching policy (it resolves each push's target), and every workflow's orchestration (names, OS matrices, triggers, trusted checkouts). **Guard-managed:** nothing; KAAL has no `.kaal-guard/state.json`. **Executed by Guard, not managed:** the hook's call to `kaal-guard run --local`, each job's `kaal-guard run --check` step and the `Guard` job's `verify`. KAAL keeps all three as they are and adopts no managed asset (guard/N8, guard/F17). The target is consumer-owned, not Guard-managed and not mixed, because Guard's templates cannot carry what KAAL's surfaces hold: the hook resolves each push's target by KAAL's branching policy, and the workflows carry the OS matrices, `pull_request_target` trusted checkouts and check identities KAAL's rulesets require (guard/N7). Managing either would move KAAL policy into Guard or lose an identity. KAAL therefore needs no adoption of pre-existing assets, and migration stays separate from the published-version upgrade;
   - each existing job keeps its name, OS matrix and triggers: `Hosting (Windows/Linux/macOS)`, `Acceptance (Windows/macOS)`, `Workspaces`, `Acceptance`, `Engineering`, `Change Isolation`, `Promotion Source`, `Branching` and `Branching audit`;
   - only the step that runs the check changes, to `kaal-guard run --check <name>`;
   - CodeQL and Dependency Review are GitHub's own checks and stay outside Guard.
@@ -24,7 +24,7 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - the development dependency is replaced by a published `@kaihacksai/kaal-guard` from the registry, and the lockfile records the registry's integrity;
   - `core.hooksPath` is set as a KAAL developer sets it, and a local bare remote lets Git run the hook on a real push;
   - the clone moves to a candidate version, back to the earlier one, and forward again; for KAAL that is a package-code update only (guard/F11), since KAAL has and adopts no managed asset;
-  - `init` and `remove` run with KAAL's real `guard.json`, to show how Guard treats an existing integration (guard/F17, guard/F18).
+  - `init` and `remove` run with KAAL's real configuration, to show how Guard treats an existing integration (guard/F17, guard/F18).
 
   The managed-asset cases (guard/F12–guard/F14, guard/F16) need a consumer that has managed assets. KAAL has none and adopts none, so guard/A12 creates a minimal repository beside the clone: a simulated consumer with its own check and no integration of its own, where `init` installs both assets. guard/A12 needs the network to reach the registry. That is guard/A12's, not the package's, so guard/N2 still holds for the package. What KAAL's real CI and branch protection show is guard/A11's evidence, from the development package; guard/A12 claims none of it.
 
@@ -40,7 +40,7 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 flowchart BT
   Hook[guard/A4 Git adapter] --> Runner[guard/A3 runner]
   WF[guard/A5 GitHub adapter] --> Runner
-  Runner --> List[guard/A1 guard.json]
+  Runner --> List[guard/A1 declarations]
   List --> Checks[guard/A2 repository checks]
 ```
 
@@ -56,7 +56,7 @@ flowchart LR
 
 ## Configuration options (guard/C23)
 
-This section is a comparison, and nothing in it is decided. The Owner asked on #336 (comments 6384007398 and 6384194537) for location and format to be reconsidered from Intent, now that Guard ships the `kaal-guard` Skill. `0.0.1`'s root `guard.json` is one candidate, not a premise. Three concerns are separated here, each with its own owner and lifecycle:
+This section records the options `guard/C23` considered and the configuration it plans. Approving `guard/C23` accepts it. The resulting obligations are guard/F1, guard/F18, guard/F28 and guard/F29. The Owner asked on #336 (comments 6384007398 and 6384194537) for location and format to be reconsidered from Intent, now that Guard ships the `kaal-guard` Skill. `0.0.1`'s root `guard.json` is one candidate, not a premise. Three concerns are separated here, each with its own owner and lifecycle:
 
 | Concern | Owner | Lifecycle |
 | --- | --- | --- |
@@ -104,9 +104,9 @@ P2 with P1 as the fallback keeps `kaal-guard run --check <name>` working unchang
 
 **Migration from `0.0.1`.** The Owner settled this on #336 (6384215003). `0.0.2` is a deliberate breaking change within `0.0.x`. There is no automatic migration, no dual format and no rollback to `0.0.1`. No external consumer is known, and if one appears, its transition is assessed separately. The release notes of `guard/C19` document the breaking changes and the fresh `0.0.2` setup. KAAL runs the development package, so KAAL's own configuration is converted in the same Change as `guard/C25`, and KAAL's CI never sees a format it cannot read.
 
-**The owner's recommendation**, for the Owner to decide:
-- **L3.** Ownership stays clear, and Core can deploy the Skill without exceptions.
-- **M, after `core/C5`.** The declarations are maintained by hand, and the body gives guard/I7 the per-check guidance it lacks. If a dependency-free parser is judged too costly, J, with Guard's own validation script, is the fallback.
-- **S2, aligned with S3.** The fields are agreed with `core/C3`.
-- **P2 with P1 as the fallback.**
-- **No migration.** `0.0.1`'s root `guard.json` is refused, naming the fresh setup (guard/F15).
+**Planned configuration.**
+- **L3, `.kaal-guard/`.** Ownership stays clear: Guard's Skill resources are in `.agents/skills/kaal-guard/`, the repository's declarations in `.kaal-guard/checks/` and Guard's state in `.kaal-guard/state.json`. Core deploys the Skill without exceptions. Hooks and CI find one directory.
+- **M.** Declarations are maintained by people and agents, not by Guard's functions. Guard has no command that edits checks, and KAAL's checks are written by hand. Each check's body gives guard/I7 the per-check guidance it lacked. Verdicts stay deterministic: frontmatter and exit status only. J is not chosen, because it would make Guard's functions the maintainers, which they are not.
+- **S2, aligned with S3.** `.kaal-guard/state.json` holds the same members as Core's installation record, which `core/C3` agrees.
+- **P2 with P1 as the fallback** (guard/F28).
+- **No migration**, as the Owner ruled. `0.0.1`'s root `guard.json` is refused, naming the fresh setup (guard/F15).

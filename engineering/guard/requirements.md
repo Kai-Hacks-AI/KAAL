@@ -4,16 +4,31 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 
 ## Functional (F)
 
-**guard/F1 Check list.** [guard/I1] A repository lists its checks in `guard.json`, under `checks`, keyed by a stable name. Each check gives a `command`, where it runs (`runs`: `local`, `ci` or both), and optionally the facts it needs (`facts`), a trusted checker file (`trusted`, guard/F7) and named outcomes for further exit statuses (`outcomes`, guard/F2).
+**guard/F1 Check list.** [guard/I1] A repository declares each check in its own file, `.kaal-guard/checks/<name>.md`. The file's name, without `.md`, is the check's stable name, so it contains no space or colon. The file is Markdown with typed frontmatter, and only the frontmatter is a declaration:
+- `command`, the check's command;
+- `runs`, where it runs: `local`, `ci` or both;
+- optionally, the facts it needs (`facts`), a trusted checker file (`trusted`, guard/F7) and named outcomes for further exit statuses (`outcomes`, guard/F2).
 
-```json
-{
-  "checks": {
-    "unit": { "command": "node --test", "runs": ["local", "ci"] },
-    "lineage": { "command": "node engineering/github/lineage.ts", "runs": ["ci"], "facts": ["base", "head"], "trusted": "engineering/github/lineage.ts", "outcomes": { "4": "held" } }
-  }
-}
+The body is free Markdown for people and agents: what the check proves, and how to resolve its failures. The Skill points a resolver to it (guard/I7). Guard never reads the body to run a check, to give a verdict or to order checks.
+
+```markdown
+---
+command: node engineering/github/lineage.ts
+runs: [ci]
+facts: [base, head]
+trusted: engineering/github/lineage.ts
+outcomes: {4: held}
+---
+Checks that a pull request lands on the lineage its base allows. When it is held, wait for the promotion it names.
 ```
+
+The frontmatter is a strict subset of YAML that Guard defines and parses itself, with no dependency:
+- `key: value` lines;
+- plain or double-quoted strings, and integers;
+- flow lists such as `[a, b]`;
+- for `outcomes`, a flow map such as `{4: held}`.
+
+Anything else is refused (guard/F18). The subset conforms to Core's generic frontmatter rule (`core/C5`) without depending on it at runtime, as `contract.json` conforms to Core's Installation Contract.
 
 **guard/F2 Verdicts.** [guard/I2] A check's exit status is its verdict: `0` pass, `1` fail, `2` cannot judge, `3` not applicable. Any other status is cannot judge, unless the check declares a named outcome for it. The only named outcome is `held`: shown as held, never as a pass and never as a fail. A check owns its diagnostics: its own output goes, unchanged and as it runs, to the hook's terminal or the CI log, and Guard neither captures nor interprets it. Guard prints each verdict by its own name, one line per check, as `<verdict>: <check>: <evidence>`, where the evidence is the check's exit status (with the trusted checker's provenance, guard/F7), and never collapses one verdict into another. A fail or cannot-judge line is followed by an indented `do: <next step>` line (guard/N4).
 
@@ -35,7 +50,7 @@ Each obligation names, in brackets, the Intent outcomes it serves. Architecture 
 
 **guard/F8 Safe lifecycle.** [guard/I5, guard/I6]
 - The package provides `init`, `upgrade` and `remove`.
-- Guard writes a file only where none exists. It records each file it writes, with its SHA-256, in `guard.json` under `managed`.
+- Guard writes a file only where none exists. It records each file it writes, with its SHA-256, in its state under `managed` (guard/F29).
 - `upgrade` replaces only managed files that are unmodified.
 - `remove` deletes only managed files that are unmodified, and unsets `core.hooksPath` only if Guard set it and recorded that.
 - A pre-existing hook, workflow or `core.hooksPath` is never overwritten. Guard reports it and prints the one line to add.
@@ -52,16 +67,16 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 **guard/F10 No silent gate.** [guard/I2, guard/I4] Missing verification never satisfies a gate.
 - A command that cannot start is cannot judge.
 - A fact a check declares and does not receive is cannot judge.
-- A check that is not in `guard.json` is cannot judge.
+- A check the configuration does not declare is cannot judge.
 - A `ci` check that no workflow job declares fails Guard's consistency check, `kaal-guard verify`, which runs in CI as the job `Guard`. `verify` checks only Guard's own integration contract: a check is declared when a workflow job invokes it in Guard's declared form ([Run](run.md#verify)), read deterministically from the workflow files; Guard infers nothing from scripts or other YAML. Declared integration is all `verify` claims. That GitHub ran the check is CI execution evidence, and that GitHub requires it is repository governance.
 
-**guard/F11 Package code update.** [guard/I5] Changing the installed version, through the consumer's dependency and lockfile, changes Guard's code and nothing in the repository. It rewrites no managed asset, no entry of `guard.json` and none of the consumer's checks.
+**guard/F11 Package code update.** [guard/I5] Changing the installed version, through the consumer's dependency and lockfile, changes Guard's code and nothing in the repository. It rewrites no managed asset, nothing in `.kaal-guard/` and none of the consumer's checks.
 
-**guard/F12 Asset upgrade.** [guard/I5] `upgrade` moves each unmodified managed asset to the installed version's content. It keeps each modified asset and every file Guard did not write, and it never changes `checks` or any other consumer entry of `guard.json`. It reports each file as upgraded, current or kept.
+**guard/F12 Asset upgrade.** [guard/I5] `upgrade` moves each unmodified managed asset to the installed version's content. It keeps each modified asset and every file Guard did not write, and it never changes a check's declaration (guard/F1). It reports each file as upgraded, current or kept.
 
-**guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have and `guard.json` does not record, is installed by `upgrade` under `init`'s rule (only where no file exists) and recorded under `managed`.
+**guard/F13 New assets.** [guard/I5] An asset the installed version manages, which the repository does not have and Guard's state does not record, is installed by `upgrade` under `init`'s rule (only where no file exists) and recorded under `managed`.
 
-**guard/F14 Writer version.** [guard/I5] `guard.json` records, for each managed asset, the Guard version whose content last wrote it or confirmed it unchanged, whichever installer did so. `upgrade` reports, for each asset, the version it moves it from and to. A modified asset keeps the version that last wrote it, so assets of different versions can coexist.
+**guard/F14 Writer version.** [guard/I5] Guard's state records, for each managed asset, the Guard version whose content last wrote it or confirmed it unchanged, whichever installer did so. `upgrade` reports, for each asset, the version it moves it from and to. A modified asset keeps the version that last wrote it, so assets of different versions can coexist.
 
 **guard/F15 Older configuration.** [guard/I5] A configuration written by an earlier published version is read by a later one with the same meaning, or refused as cannot judge with a reason and a next step. It is never silently reinterpreted. `0.0.1`'s root `guard.json` is refused, and the next step it names is the fresh `0.0.2` setup.
 
@@ -69,11 +84,13 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 **guard/F17 Existing integration.** [guard/I1, guard/I5] Adoption is not upgrade. When a repository's checks already run through Guard from its own hook and workflows, `init` adds no managed asset that duplicates that integration. Guard recognizes existing integration only through its own declared integration contract, read exactly as `verify` reads it ([Run](run.md#verify)): a job declares a `ci` check with a step that runs `kaal-guard run --check <name>` in the declared form, and a job declares the consistency check with a step whose whole `run:` value is `kaal-guard verify`, `npx kaal-guard verify` or `npx --no kaal-guard verify`, optionally followed by `--github`. The workflow Guard installs carries a job only for a `ci` check that no other workflow declares, and the `Guard` job only when no other workflow declares the consistency check. When neither remains, `init` installs no workflow. Guard reads nothing else in a workflow: not job names, triggers, matrices or scripts. A job of the consumer's that runs a check in any other form is not recognized, so the consumer either writes the step in the declared form or keeps Guard's job. `init` reports each recognized declaration as `executed by Guard, not managed: <check> in job <key> of <file>`, and records nothing for it. Guard never takes ownership of a file it did not write. A consumer that wants a managed surface removes its own file, runs `init`, and undoes that through Git.
 
-**guard/F18 Configuration contract.** [guard/I1, guard/I5] Guard owns its configuration contract: the schema, where the configuration is found, and its deterministic validation. The repository owns its check declarations and their implementations.
-- A configuration the contract rejects is cannot judge, naming what fails, the rule it breaks and a next step. No command writes anything on the strength of it.
-- Guard preserves the meaning of the repository's declarations, not their layout.
-- Lifecycle bookkeeping (`managed`, `config`, `writers`) is not part of the declaration of what to guard, unless `guard/C23` justifies combining them.
-- Where the configuration lives, its format, how hooks and CI find it, and whether Guard writes it at all are decided in `guard/C23` ([Architecture](architecture.md#configuration-options-guardc23)).
+**guard/F18 Configuration contract.** [guard/I1, guard/I2, guard/I5] Guard owns its configuration contract: the schema of the declarations (guard/F1) and of its state (guard/F29), where they are found (guard/F28), and their deterministic validation. The repository owns its declarations and the checks they name.
+- A member the schema does not define is refused, in a declaration's frontmatter or in Guard's state. So is a value of the wrong type, or a frontmatter outside guard/F1's subset.
+  - **Why.** A misspelled or unsupported member would otherwise drop a protection silently. A `trustd` that is ignored, for instance, takes the checker from the candidate, against guard/F7 and guard/F10.
+  - **Extensibility.** The schema is the installed version's. A new member arrives only with a Guard version that defines it, and an older Guard refuses it because it cannot honour it. A repository's own notes belong in the body, which Guard never reads.
+- A refused configuration is cannot judge. The diagnostic names the file, the member, the rule it breaks, and the nearest member the schema defines when one is close, as in `trustd: not defined; did you mean trusted?`. The next step is to correct the declaration, or to install the Guard version that defines the member. No command writes anything on the strength of a refused configuration, and `run` gives no other verdict.
+- Guard never writes a declaration. `init` creates `.kaal-guard/checks/` only where it is missing, and it writes no check. It reports how to declare the first check.
+- `init` followed by `remove` leaves every declaration as the repository wrote it, byte for byte. That holds by construction, because Guard writes only its state and its managed assets.
 
 The earlier wording is superseded by `guard/C23`. It read: "Guard writes only its own entries of `guard.json`: `managed`, `config` and `writers` … Every other byte stays as the consumer wrote it, and `init` followed by `remove` leaves `guard.json` as it was" (`guard/C7`). It assumed that the consumer owned the serialization of a file that mixes declarations with Guard's bookkeeping. The editor that wording required (#336) showed the assumption to be wrong.
 
@@ -82,7 +99,7 @@ guard/F13–guard/F15, guard/F17 and guard/F18 state obligations the published l
 **guard/F19 Guard's Skill.** [guard/I7] Guard has one Agent Skill, `kaal-guard`, that conforms to the Agent Skills standard. It is organized by BASS:
 - *Bare*: how to read a verdict line, its `do:` line and the check's own output, with no Skill needed;
 - *Agent*: how the repository's agent instruction files may point to the Skill;
-- *Skill*: the verdicts and what each asks of the resolver, how to reproduce a check with the same facts (`kaal-guard run --check <name>`), what belongs to the repository and what to Guard, and what never resolves a verdict (editing `guard.json` to silence a check, `--no-verify`, or changing a trusted checker in the candidate);
+- *Skill*: the verdicts and what each asks of the resolver, how to reproduce a check with the same facts (`kaal-guard run --check <name>`), what belongs to the repository and what to Guard, and what never resolves a verdict (editing a check's declaration to silence it, `--no-verify`, or changing a trusted checker in the candidate);
 - *Script*: none. A script is added only when a deterministic step justifies one, and never with a runtime or LLM dependency of its own.
 
 The Skill names no particular consumer and invents no consumer-specific fix.
@@ -107,11 +124,23 @@ Which way a given supplier uses is observed, not asserted (guard/N9).
 
 **guard/F27 Installation contract.** [guard/I5, guard/I6, guard/I7] Guard ships one installer-neutral installation contract, `contract.json` in the package. It states what an installation of Guard is:
 - each asset (the hook, the workflow and the Skill): its source in the package, its path in the repository, and its rules (installed only where absent, kept when modified, removed only when unmodified, with the directories that removal empties);
-- the ownership record: Guard's own entries of `guard.json` (`managed`, `config` and `writers`), and nothing else;
+- the ownership record: Guard's state, `.kaal-guard/state.json` (`managed`, `config` and `writers`), and nothing else;
 - the runtime prerequisite, Node 24 or later;
 - the provider requirement: an agent resolving a failing verdict reaches the Skill named `kaal-guard`. The canonical deployment and the reminder meet it, and the contract names no other supplier location.
 
 The contract is an instance of Core's Installation Contract: Core owns that Definition, its schema and its outer conformance Test Cases (`core/T1`…, defined in `core/C3`). Guard owns its instance, versioned with the package, and the implementation that realizes it. Guard's standalone lifecycle realizes exactly this instance. Any installer that realizes it, Core among them, leaves a repository that Guard's lifecycle can upgrade and remove, and the reverse. Conformance is verified at engineering time (guard/N12), so the package gains no dependency.
+
+**guard/F28 Configuration discovery.** [guard/I2, guard/I3, guard/I5] The configuration is the directory `.kaal-guard/`.
+- `kaal-guard` takes it from `--config <dir>` when that is given. Otherwise it searches upwards from the working directory for the nearest `.kaal-guard/`, as `0.0.1` searched for `guard.json`.
+- The hook and the workflow Guard writes pass `--config` explicitly, so a reader sees where the configuration lives.
+- A consumer's own workflow may omit `--config`. KAAL's `kaal-guard run --check <name>` keeps working unchanged.
+- A `.kaal-guard/` found in neither way is cannot judge, naming `kaal-guard init` as the next step.
+- Embed and External use the same rule, and the rule names no KAAL element.
+
+**guard/F29 Lifecycle state.** [guard/I5] Guard's bookkeeping lives in `.kaal-guard/state.json`, a JSON file that only Guard's lifecycle writes. Its members are `managed` (each managed path and its SHA-256), `writers` (each managed path and the version guard/F14 names) and `config` (the `core.hooksPath` Guard set).
+- It is apart from the declarations, so recording an asset never touches a check.
+- `remove` deletes it with the last managed asset, and deletes `.kaal-guard/` only when nothing else is left in it.
+- When Core manages the installation, Core's installation record (`core/C3`) holds the same members.
 
 ## Nonfunctional (N)
 
@@ -122,7 +151,7 @@ The contract is an instance of Core's Installation Contract: Core owns that Defi
 - **guard/N5** [guard/I6] An External delivery is a handful of readable files that the target can maintain on its own, with no KAAL element in them.
 - **guard/N6** [guard/I5] The Embed package depends on no other KAAL element, of any kind, and is published to npm as `@kaihacksai/kaal-guard`, under the Owner's npm scope, first as `@kaihacksai/kaal-guard@0.0.1`. Its command is `kaal-guard`. It is published only with the Owner's authorization.
 - **guard/N7** [guard/I4] Adopting Guard in KAAL keeps every check identity, OS matrix entry and the coverage of KAAL's existing CI.
-- **guard/N8** [guard/I4, guard/I5] KAAL's development dependency stays `file:packages/kaal-guard`, and KAAL's hook, workflows and `guard.json` stay KAAL's own. A published version is accepted as a consumer would use it only in a disposable clone of KAAL (guard/A12), never by switching KAAL's own dependency.
+- **guard/N8** [guard/I4, guard/I5] KAAL's development dependency stays `file:packages/kaal-guard`, and KAAL's hook, workflows and check declarations stay KAAL's own. A published version is accepted as a consumer would use it only in a disposable clone of KAAL (guard/A12), never by switching KAAL's own dependency.
 - **guard/N9** [guard/I5] Consumer acceptance evidence names its candidate's source: `packed`, the package at a commit before publication, which is simulated; or `registry`, the published version with its registry integrity. Only `registry` evidence counts toward a Release. Neither claims anything about KAAL's real GitHub enforcement.
 - **guard/N10** [guard/I7] The Skill has one canonical source, `skills/kaal-guard/` in the package, and one standalone deployment, `.agents/skills/kaal-guard/`. Which further deployments and instruction pointers a repository needs is decided only by Core's Agent Realization, when Core manages the installation. As documented: Codex discovers `.agents/skills/` ([docs](https://learn.chatgpt.com/docs/build-skills)), Claude Code discovers natively only `.claude/skills/` ([docs](https://code.claude.com/docs/en/skills)), and GitHub Copilot discovers both ([docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills)). Claude Code's behaviour is also observed (O1). Standalone, Claude Code reaches the Skill through instruction-based access (guard/F24).
 - **guard/N11** [guard/I7] The Skill adds no runtime dependency. Guard needs no network and no LLM to install it, name it or report it.
