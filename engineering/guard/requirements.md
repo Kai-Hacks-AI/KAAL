@@ -61,7 +61,7 @@ Guard does not tell a check where it is running. Equal facts, the same tree, the
 
 **F13 New assets.** [I5] An asset the installed version manages, which the repository does not have and `guard.json` does not record, is installed by `upgrade` under `init`'s rule (only where no file exists) and recorded under `managed`.
 
-**F14 Writer version.** [I5] `guard.json` records, for each managed asset, the package version that last wrote it or confirmed it unchanged as that version's content. `upgrade` reports, for each asset, the version it moves it from and to. An asset with a recorded hash and no recorded version was written by `0.0.1`, the only published version that recorded none. A modified asset keeps the version that last wrote it, so assets of different versions can coexist.
+**F14 Writer version.** [I5] `guard.json` records, for each managed asset, the Guard version whose content last wrote it or confirmed it unchanged, whichever installer did so. `upgrade` reports, for each asset, the version it moves it from and to. An asset with a recorded hash and no recorded version was written by `0.0.1`, the only published version that recorded none. A modified asset keeps the version that last wrote it, so assets of different versions can coexist.
 
 **F15 Older configuration.** [I5] A `guard.json` written by an earlier published version is read by a later one with the same meaning, or refused as cannot judge with a reason and a next step. It is never silently reinterpreted.
 
