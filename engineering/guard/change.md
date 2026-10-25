@@ -198,7 +198,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C13` | B2 | Guard | guard/T45–guard/T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | #381, merged |
 | `guard/C14` | B3 | Guard | The Skill source, shipped by the package; guard/T45, and guard/T46 for the Embed Skill. Guard's `contract.json` instance moved to `guard/C51` (the Owner's review 5643704078 on #402) | `guard/C13` | #402, merged |
 | `guard/C15` | B4 | Guard | The reminder; guard/T47–guard/T49, and guard/T82 with `guard/C16` | `guard/C14` | #407, merged |
-| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T54, guard/T57, guard/T59, and guard/T82 with `guard/C15` | `guard/C14`, `guard/C51`, `guard/C25` | not created |
+| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T54, guard/T57, guard/T59, and guard/T82 with `guard/C15` | `guard/C14`, `guard/C51`, `guard/C25` | #428, merged |
 | `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; guard/T56, guard/T83 for Core's part, and guard/T46 for the External variant | `guard/C14`; `core/C4` for Core's part | #414, merged |
 | `guard/C45` | — | Guard | The Guard lane holds the Feature REDs registered in `engineering/guard/red.json` on `kaal/guard`, and fails any other target while one is registered (the Owner's reviews 5643242085 and 5643271116 on #381 and #389) | `guard/C29` | #389, merged |
 | `guard/C46` | — | Guard | The placements the Owner decided on #381 (5643242085): guard/T46 runs only where KAAL's workspace is installed; guard/T56's Core-at-delivery part becomes guard/T83; guard/T82 for the reminder naming the deployed Skill; guard/T58's and guard/A15's stale texts. No code and no test file | `guard/C13`, `guard/C45` | #390, merged |
@@ -206,11 +206,16 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C48` | — | Guard | guard/T46 moved to `engineering/guard/acceptance/plan/workspace.test.mjs`, guard/T56 without Core at delivery, guard/T82 and guard/T83 written in the boundary. It travels alone | `guard/C47` | #392, merged |
 | `guard/C49` | — | Guard | The Guard lane builds KAAL's workspace (`npm run build`) before it runs `engineering/guard/acceptance/plan/workspace.test.mjs`; a failed build is cannot run, never a held Feature RED | `guard/C47` | #394, merged |
 | `guard/C50` | — | Guard | This map update: `guard/C46`–`guard/C49` merged, `guard/C49` allocated. `main` reached `kaal/guard` for `guard/C14`, `guard/C17` and guard/T83 by the synchronization #393 | `guard/C49` | #401, merged |
-| `guard/C51` | — | Guard | Guard's `contract.json` as an instance of Core's Installation Contract format, the Skill among its assets, and the lifecycle reading its assets only from it, with no second list in Guard's code; guard/T58. Mandatory before `guard/C16` and the `0.0.2` release (the Owner's review 5643704078 on #402) | `guard/C14`; `core/C13` on `main` and synchronized into `kaal/guard` | not created |
+| `guard/C51` | — | Guard | Guard's `contract.json` as an instance of Core's Installation Contract format, the Skill among its assets, and the lifecycle reading its assets only from it, with no second list in Guard's code; guard/T58. Mandatory before `guard/C16` and the `0.0.2` release (the Owner's review 5643704078 on #402) | `guard/C14`; `core/C13` on `main` and synchronized into `kaal/guard` | #424, merged |
 | `guard/C52` | — | Guard | This map update: the split of `guard/C14` and `guard/C51` | `guard/C50` | #403, merged |
 | `guard/C53` | — | Guard | guard/D1 and guard/D2 after `guard/C25`: their obligations hold (guard/T66, guard/T67 GREEN, `packed`), their traces stay on guard/T38 and guard/T39, and `guard/C9` and `guard/C11` are absorbed | `guard/C52` | #406, merged |
 | `guard/C54` | — | Guard | The pre-plan copy of guard/T3 (`engineering/guard/acceptance/external.test.mjs`) retired; the planned guard/T3 in `plan/external.test.mjs` holds, and accepts the Skill's own name and canonical path. A boundary change, so it travels alone, before `guard/C17` | `guard/C13` | #410, merged |
-| `guard/C55` | — | Guard | This map update: `guard/C14`, `guard/C15`, `guard/C17` and `guard/C50`–`guard/C54` merged; `guard/C54` allocated | `guard/C53` | not created |
+| `guard/C55` | — | Guard | This map update: `guard/C14`, `guard/C15`, `guard/C17` and `guard/C50`–`guard/C54` merged; `guard/C54` allocated | `guard/C53` | #415, merged |
+| `guard/C56` | — | Guard | guard/T58 and guard/T66 read an asset's location as Core's format names it (`target`). A boundary change, so it travels alone, before `guard/C51` | `guard/C13` | #421, merged |
+| `guard/C57` | — | Guard | The Skill's source bytes kept exact on every host (`packages/kaal-guard/.gitattributes`: `skills/** -text`), so guard/T50 holds on Windows | `guard/C51` | #425, merged |
+| `guard/C58` | — | Guard | guard/T52 expects the files `remove` keeps in the order the harness lists them; the expected set is unchanged. A boundary change, so it travels alone | `guard/C51` | #427, merged |
+| `guard/C59` | — | Guard | guard/T52 leaves `engineering/guard/red.json`, as the Owner's review 5643976113 on #427 asks of a separate Guard Change | `guard/C58` | #429, merged |
+| `guard/C60` | — | Guard | This map update: `guard/C16`, `guard/C51`, `guard/C55` and `guard/C56`–`guard/C59` merged; `guard/C56`–`guard/C60` allocated. The Feature RED register is empty | `guard/C59` | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C10`, `guard/C25` for `guard/C9` and `guard/C11`, `guard/C15`–`guard/C17`, `guard/C51`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance of `0.0.2`: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 with `registry` evidence for the published `0.0.2`. guard/T65–guard/T68 do not gate it (restated in `guard/C30`) | `guard/C19`, `guard/C37` | not created |
@@ -284,6 +289,10 @@ graph LR
   C14 --> C51[guard/C51 contract instance]
   C13C[core/C13] --> C51
   C51 --> C16
+  C56[guard/C56 T58, T66 read target] --> C51
+  C51 --> C57[guard/C57 Skill bytes exact]
+  C51 --> C58[guard/C58 T52 order]
+  C58 --> C59[guard/C59 T52 leaves red.json]
   C14 --> C15[guard/C15 reminder]
   C14 --> C16[guard/C16 standalone lifecycle]
   C25 --> C16
