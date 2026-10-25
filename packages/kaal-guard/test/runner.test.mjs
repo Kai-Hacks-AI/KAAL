@@ -70,7 +70,11 @@ describe("run", () => {
     assert.equal(r.status, 1);
     assert.match(r.stderr, /all is well/);
     assert.match(r.stderr, /really/);
-    assert.equal(r.stdout, "fail: s: exit status 1\n  do: fix what s reports, then run kaal-guard run --check s\n");
+    // The verdict lines are unchanged (F22); one reminder line follows them (F21).
+    const [verdict, todo, reminder, ...rest] = r.stdout.split("\n");
+    assert.deepEqual([verdict, todo], ["fail: s: exit status 1", "  do: fix what s reports, then run kaal-guard run --check s"]);
+    assert.match(reminder, /^kaal-guard: .*skills[\\/]kaal-guard[\\/]SKILL\.md$/);
+    assert.deepEqual(rest, [""]);
   });
 
   it("gives the exit status as evidence", () => {

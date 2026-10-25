@@ -80,7 +80,7 @@ A check's exit status is its verdict:
 | a status named `held` | held | lets the push through | succeeds, with a warning |
 | any other | cannot judge | blocks | fails |
 
-Guard prints one line per check, `<verdict>: <check>: <evidence>`. A fail or cannot-judge line is followed by `do: <next step>`. The check's own output goes, unchanged, to the terminal or the CI log.
+Guard prints one line per check, `<verdict>: <check>: <evidence>`. A fail or cannot-judge line is followed by `do: <next step>`. The check's own output goes, unchanged, to the terminal or the CI log. A run with a fail or cannot judge ends with one more line naming where the `kaal-guard` Skill is, which explains each verdict and what resolves it; with `--github`, its error annotations and step summary name it too. Where no Skill is deployed in the repository, that line names the package's own copy.
 
 ## Commands
 

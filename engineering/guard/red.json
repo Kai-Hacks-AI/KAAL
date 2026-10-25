@@ -8,18 +8,6 @@
       "authority": "the Owner's review 5643242085 on #381"
     },
     {
-      "test": "guard/T47",
-      "class": "Feature RED",
-      "until": "guard/C15",
-      "authority": "the Owner's review 5643242085 on #381"
-    },
-    {
-      "test": "guard/T49",
-      "class": "Feature RED",
-      "until": "guard/C15",
-      "authority": "the Owner's review 5643242085 on #381"
-    },
-    {
       "test": "guard/T50",
       "class": "Feature RED",
       "until": "guard/C16",
