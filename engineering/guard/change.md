@@ -297,6 +297,7 @@ graph LR
   C41 --> C42[guard/C42 trusted mode fixed]
   C25 --> C42
   C25 --> C43[guard/C43 record under Core]
+  CRC[core/C10 record PLAN] --> C43
   C25 --> C37[guard/C37 T36 and T42 setup]
   C37 --> C20[guard/C20 release acceptance]
   C19 --> C20
