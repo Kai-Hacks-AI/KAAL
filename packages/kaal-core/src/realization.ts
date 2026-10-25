@@ -4,7 +4,7 @@
 // reconciliation, so a precondition that fails leaves the repository unchanged.
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { kind, read, readFile, reconcile, type Removal, type Write } from "kaal-hosting";
+import { kind, read, readFile, reconcile, type Leftover, type Removal, type Write } from "kaal-hosting";
 import { declaration, realize, type Contracted, type Digests, type Plan, type SkillSource } from "./agent.js";
 import { checkContract, checkRecord, register, type InstallationRecord } from "./installation.js";
 import { KaalError } from "./node.js";
@@ -34,6 +34,8 @@ export interface Realized {
   readonly pruned: string[];
   /** The records this realization wrote, Core's own and the contracts', in path order. */
   readonly records: string[];
+  /** What Hosting staged or kept aside and could not remove, in path order; absent when nothing is left. */
+  readonly leftovers?: Leftover[];
 }
 
 interface Contract {
@@ -205,5 +207,5 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
   }
 
   const done = await reconcile(root, { write, remove });
-  return { plan, outcomes: done.outcomes, pruned: done.pruned, records: records.sort() };
+  return { plan, outcomes: done.outcomes, pruned: done.pruned, records: records.sort(), ...(done.leftovers && { leftovers: done.leftovers }) };
 }

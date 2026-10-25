@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import gfs from "graceful-fs";
 import { afterEach, describe, it } from "node:test";
 import { renderSkill } from "kaal-core/agent";
 import { installationFormat } from "kaal-core/installation";
@@ -192,6 +193,25 @@ describe("Hosting application (core/C13)", () => {
     await realizeIn(root, { skills: [SKILL], contracts: [contract()] });
     assert.deepEqual(Object.keys(json(root, RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/references"]);
     assert.deepEqual(json(root, CORE_RECORD), { assets: {} });
+  });
+
+  it("reports what Hosting could not clean up, and the realization still stands", async () => {
+    const root = repo();
+    type Rm = (path: string, options: unknown, cb: (e: NodeJS.ErrnoException | null) => void) => void;
+    const rm = gfs.rm as unknown as Rm;
+    (gfs as unknown as { rm: Rm }).rm = (path, options, cb) =>
+      /\.(staging|aside)-/.test(String(path)) ? cb(Object.assign(new Error("EBUSY: refused"), { code: "EBUSY" })) : rm(path, options, cb);
+    let done;
+    try {
+      done = await realizeIn(root, { skills: [SKILL] });
+    } finally {
+      (gfs as unknown as { rm: Rm }).rm = rm;
+    }
+    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
+    assert.ok(done.leftovers !== undefined && done.leftovers.length > 0, "the leftovers are reported");
+    for (const l of done.leftovers) assert.match(String((l.error as Error).message), /EBUSY/);
+    const clean = await realizeIn(repo(), { skills: [SKILL] });
+    assert.ok(!("leftovers" in clean), "nothing is reported when nothing is left");
   });
 
   it("refuses a record that does not conform and changes nothing", async () => {
