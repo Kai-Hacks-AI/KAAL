@@ -4,7 +4,7 @@ Each element names, in brackets, the Requirements it answers.
 
 - **hosting/A1** [hosting/F1, hosting/F9, hosting/F10, hosting/F11, hosting/F12]: `reconcile` is exported from `kaal-hosting`'s main entry, beside `update`, with its types `Reconciliation` (the input) and `Reconciled` (the report). `HostingError` gains the code `STALE`, carrying the failing entries as `findings`, each with its `path`, `expected` and `found`. It also gains the code `UNRESTORED` (hosting/F11), carrying the recovery location as `kept` and the original failure as `cause`. A new exported type, `Leftover` `{ path: string; error: unknown }`, describes a directory left beside the root (hosting/F12). `Reconciled` gains an optional `leftovers?: Leftover[]`, and `HostingError` gains the same optional `leftovers`. A rejection with an error that is not a `HostingError` carries `leftovers` as a property added to that same error.
 - **hosting/A2** [hosting/N2, hosting/F6, hosting/F11, hosting/F12]: It reuses what `update` already relies on. It takes the same lock (`proper-lockfile` on the root's canonical path), stages beside the root, reads back to confirm the host holds the staged files exactly, and does all file access through `graceful-fs`. Files are put in place and kept aside by renames, so the root and its parent must be on one filesystem, as for `update`.
-- **hosting/A3** [hosting/F4, hosting/F5]: A reconciliation never walks the whole root. A root is typically a repository, which can be large. Collisions with what is present are checked against the entries of each directory on an entry's path, and links and non-directories are found by looking at each segment without following it.
+- **hosting/A3** [hosting/F4, hosting/F5, hosting/F13]: A reconciliation never walks the whole root. A directory turned into a file is the one subtree it reads in full, to check that nothing under it would stay. A root is typically a repository, which can be large. Collisions with what is present are checked against the entries of each directory on an entry's path, and links and non-directories are found by looking at each segment without following it.
 - **hosting/A4** [hosting/F2] (Option A below, decided on #374): Hosting computes the SHA-256 of present bytes with the host's own (`node:crypto`). Hosting is the host layer, so this is the host's primitive, not a KAAL implementation competing with Foundation's. The digest is standard SHA-256, so it equals what Foundation, Graph and Core compute for the same bytes. Hosting takes no dependency on Foundation, and Foundation none on Hosting.
 - **hosting/A5** [hosting/I3, hosting/F7]: What `executable` means on each host is decided only inside `kaal-hosting`. Callers state the mark, and no caller branches on the OS.
 
@@ -26,5 +26,17 @@ Each element names, in brackets, the Requirements it answers.
 | `hosting/C2` DO: `reconcile`, A1–A5, and the planned tests in Hosting's lanes on all three hosts | Hosting | `hosting/C1`, `hosting/C3` |
 | `hosting/C4` PLAN amendment: F12, a cleanup failure is reported as `leftovers` and never decides the outcome; hosting/T13 proving hosting/D1 | Hosting | `hosting/C2` |
 | `hosting/C5` DO: fix hosting/D1 and move hosting/T13 into Hosting's lanes | Hosting | `hosting/C4` |
+| `hosting/C6` PLAN amendment: F13, a file and a directory exchange places in one reconciliation; hosting/T14–T17 | Hosting | `hosting/C5` |
+| `hosting/C7` DO: F13, and hosting/T14–T17 in Hosting's lanes | Hosting | `hosting/C6` |
 | `core/C10` PLAN: Core applies plans through `reconcile` (`core/A7`, `core/A14`) | Core | `hosting/C1` |
 | `core/C13` DO: Core's application through `reconcile` | Core | `core/C10`, and `hosting/C2` on `main` |
+
+## Options considered for hosting/F13
+
+Core asked for this under the Owner's #399 review: a filesystem primitive Core lacks belongs in Hosting, not in a second Hosting implementation inside Core.
+
+| Option | What happens | Cost |
+| --- | --- | --- |
+| **A. Two nesting shapes in one reconciliation** (proposed) | Core states the removals and writes of a file↔directory change in one `reconcile`, and one lock, one precondition check and one rollback cover all of it. | `reconcile` accepts two exact nesting shapes, and reads in full only a directory being turned into a file. |
+| B. A separate `replace` operation | Core calls a dedicated operation for each kind change. | Another entry point with its own lock and rollback, and a kind change still cannot be guarded together with the rest of an installation. |
+| C. Leave it to the caller | Core keeps two reconciliations and compensates between them. | The caller re-implements rollback, which the Owner ruled out on #399. |
