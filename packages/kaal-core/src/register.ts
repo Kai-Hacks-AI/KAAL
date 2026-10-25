@@ -112,6 +112,10 @@ export async function register(dir: string, kind: Kind, name: string, contributi
       if (crossed) throw new KaalError(`${crossed.path} is typed by ${other.name}: ${article} ${kind} contribution carries no ${other.name}`);
     }
 
+    // The Engine verified before; a typed artifact the contribution leaves unknown would make it fail (core/F32).
+    const unknown = combined.artifacts.find((a) => a.state === "unknown");
+    if (unknown) throw new KaalError(`${prefix}/ would leave ${unknown.path} with an unknown Type: ${unknown.findings.map((f) => f.rule).join("; ")}; nothing was written`);
+
     ids = [...new Set(typed.map((n) => n.id))].sort();
     return registered ? undefined : { prefix, files: Object.fromEntries(paths.map((p) => [p, files[p]])) };
   });
