@@ -16,9 +16,9 @@ The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/reco
 | hosting/T10: a missing root, or a root that is a file, is refused with `MISSING` | hosting/F10 | Requirements |
 | hosting/T11: the same root and reconciliation give equal reports | hosting/N3 | Requirements |
 | hosting/T12: when the rollback fails too, the refusal is `UNRESTORED`, never the original failure, and the displaced original is kept with its bytes at its own path in the reported `.aside-*` location, while nothing staged remains | hosting/I2, hosting/F6, hosting/F11 | Intent |
-| hosting/T13: when the host refuses to remove the staging and aside directories, the outcome still stands: an applied reconciliation resolves with its report, a held rollback rethrows the original failure, and a failed rollback is `UNRESTORED` | hosting/I2, hosting/F12 | Requirements |
+| hosting/T13: when the host refuses to remove the staging and aside directories, the outcome stands and every leftover is reported. An applied reconciliation resolves with its report plus `leftovers`, a held rollback rejects with the original failure plus `leftovers`, and a failed rollback rejects with `UNRESTORED`, its `cause` and `kept` intact, plus `leftovers`. Each leftover names a directory still beside the root and the host's error | hosting/I2, hosting/F9, hosting/F11, hosting/F12 | Requirements |
 
-hosting/N1 follows from these tests running in the three Hosting lanes, which `hosting/C2` adds them to. hosting/A1–A5 are placements, validated by review. The Limits in the Requirements are stated, not tested: no test asserts crash atomicity, isolation from readers, protection against writers that do not use Hosting, or any metadata beyond what F6 promises.
+hosting/T1, T8 and T11 compare whole reports. They stay as they are and stay valid, because `leftovers` is present only when the host refuses a removal, and none of them makes it refuse. hosting/N1 follows from these tests running in the three Hosting lanes, which `hosting/C2` adds them to. hosting/A1–A5 are placements, validated by review. The Limits in the Requirements are stated, not tested: no test asserts crash atomicity, isolation from readers, protection against writers that do not use Hosting, or any metadata beyond what F6 promises.
 
 ## RED evidence
 
@@ -30,4 +30,4 @@ At `hosting/C1`, all eleven tests were RED, and at `hosting/C3` all twelve are. 
 | --- | --- | --- |
 | hosting/D1: when removing the staging or aside directory fails after the outcome is settled, `reconcile` rejects with that removal error instead. An applied reconciliation then looks failed, and an `UNRESTORED` refusal and its `kept` location are lost. | hosting/T13 | Review of #398, at the `finally` in `src/index.ts` that removes staging and aside |
 
-At `hosting/C4`, hosting/T13 is RED by behavioural assertion: with the removal refused, an applied reconciliation rejects with the removal's own error, `EBUSY`. It is not in Hosting's `npm test`, so the lanes stay green. Run it with `npm run test:plan -w kaal-hosting`. `hosting/C5` fixes hosting/D1 and adds hosting/T13 to the lanes.
+At `hosting/C4`, hosting/T13 is RED by behavioural assertion: with the removal refused, an applied reconciliation rejects with the removal's own error, `EBUSY`, instead of resolving with its report and `leftovers`. It is not in Hosting's `npm test`, so the lanes stay green. Run it with `npm run test:plan -w kaal-hosting`. `hosting/C5` fixes hosting/D1 and adds hosting/T13 to the lanes.
