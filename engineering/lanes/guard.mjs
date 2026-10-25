@@ -15,6 +15,8 @@
 // guard/T46's file needs KAAL's workspace installed and built (guard/C46, guard/C47). The planned suite
 // includes it only where the workspace is installed, as the Linux Guard job installs it before the lane;
 // elsewhere, as in the Windows and macOS Guard jobs, the lane names it as not run here, never as passed.
+// Where it includes the file, the lane first builds the workspace with npm run build (guard/C49), and a
+// build that fails is cannot run, never a test failure the register could hold.
 //
 // The lane runs every selected test as it is, with no marker, then judges the failures (guard/C45, the
 // Owner's reviews 5643242085 and 5643271116 on #381 and #389). A failure is held, never passed, only when
@@ -251,6 +253,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // An inherited NODE_TEST_CONTEXT makes node --test skip every file and pass; the lane never inherits it.
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;
+  if (chosen.files.includes(WORKSPACE)) {
+    console.log(`guard lane: building KAAL's workspace for ${WORKSPACE}`);
+    const b = spawnSync("npm", ["run", "build"], { cwd: root, env, encoding: "utf8", stdio: ["ignore", "inherit", "inherit"], shell: process.platform === "win32" });
+    if (b.error || b.status !== 0) {
+      console.error(`guard lane: cannot build KAAL's workspace, which ${WORKSPACE} needs: ${b.error?.message ?? `npm run build exited ${b.status ?? b.signal}`}`);
+      console.error("  do: make npm run build succeed; the lane never runs that file unbuilt");
+      if (process.env.GITHUB_ACTIONS === "true") console.log(`::error title=Guard lane::cannot build KAAL's workspace, which ${WORKSPACE} needs`);
+      process.exit(2);
+    }
+  }
   const r = spawnSync(process.execPath, ["--test", "--test-reporter=tap", ...chosen.files.map((f) => join(root, f))], { cwd: root, env, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 1 << 28 });
   if (r.stdout) process.stdout.write(r.stdout);
   if (r.error || r.status === null) {
