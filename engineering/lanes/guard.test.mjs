@@ -4,12 +4,12 @@
 // so the Guard jobs run it on every supported OS before any install.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { BOUNDARY, Refusal, UNIT, select } from "./guard.mjs";
+import { BOUNDARY, RED, Refusal, UNIT, outcomes, register, select } from "./guard.mjs";
 
 const LANE = join(dirname(fileURLToPath(import.meta.url)), "guard.mjs");
 const [PACKAGE, KAAL] = BOUNDARY;
@@ -52,7 +52,7 @@ const LEGACY = { "guard.json": "{}\n" };
 const CONFIG = { ".kaal/config/guard/unit.md": "---\ntype: Guard/Check\n---\n" };
 
 /** Runs the lane's command against `root`. */
-const lane = (root, ...args) => spawnSync(process.execPath, [LANE, "--root", root, ...args], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "" } });
+const lane = (root, ...args) => spawnSync(process.execPath, [LANE, "--root", root, ...args], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "", GITHUB_BASE_REF: "", GITHUB_REF_NAME: "" } });
 
 /** Asserts that selection refuses with a message matching `why`, and that the command exits 2 with it, running nothing. */
 function refuses(root, why, ...args) {
@@ -161,5 +161,107 @@ describe("the Guard lane with contradictory declarations", () => {
 
   it("refuses a .kaal/config/guard that is a file, not a directory", () => {
     refuses(repo({ ".kaal/config/guard": "", ...established(), ...plan() }), /KAAL declares no Guard checks/);
+  });
+});
+
+/** A planned test file with one test per `[name, passes]`. */
+const tests = (...cases) => `import { test } from "node:test";\n${cases.map(([name, passes, options]) => `test(${JSON.stringify(name)}, ${options ? `${JSON.stringify(options)}, ` : ""}() => { ${passes ? "" : 'throw new Error("red");'} });\n`).join("")}`;
+
+/** A register of Feature REDs for `collector`, one entry per identity. */
+const reds = (collector, ...identities) => ({ [RED]: JSON.stringify({ collector, entries: identities.map((test) => ({ test, class: "Feature RED", until: "guard/C99", authority: "the Owner's review 1" })) }) });
+
+/** A KAAL on .kaal/config/guard/ whose planned suite holds these named tests, and these registered REDs. */
+const planned = (file, register = {}) => repo({ ...CONFIG, ...established(), ...plan({ [`${PACKAGE}/plan/new.test.mjs`]: file }), ...register });
+
+describe("the Guard lane's Feature REDs (guard/C45)", () => {
+  it("holds, never passes, a failure registered as a Feature RED for the branch the run targets, and names it", () => {
+    const root = planned(tests(["guard/T1 [guard/F1]: planned", false], ["guard/T2 [guard/F1]: green", true]), reds("kaal/guard", "guard/T1"));
+    const r = lane(root, "--target", "kaal/guard");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /^RED: guard\/T1: Feature RED until guard\/C99 \(the Owner's review 1\)$/m);
+    assert.match(r.stdout, /^held: Guard lane: the planned suite has 1 registered Feature REDs and no other failure/m);
+    assert.doesNotMatch(r.stdout, /suite passed/, "a held run reads as passed");
+    assert.match(r.stdout, /^not ok \d+ - guard\/T1 /m, "the RED's own result is not visible");
+  });
+
+  it("holds nothing where the run targets another branch: a promotion to main fails on every RED", () => {
+    const root = planned(tests(["guard/T1 [guard/F1]: planned", false]), reds("kaal/guard", "guard/T1"));
+    for (const target of ["main", ""]) {
+      const r = lane(root, ...(target ? ["--target", target] : []));
+      assert.equal(r.status, 1, `${target || "no target"}: ${r.stdout}${r.stderr}`);
+      assert.match(r.stdout, /not held: guard\/T1 failed and is not a Feature RED registered/);
+    }
+  });
+
+  it("reads the target from GITHUB_BASE_REF, else GITHUB_REF_NAME", () => {
+    const root = planned(tests(["guard/T1 [guard/F1]: planned", false]), reds("kaal/guard", "guard/T1"));
+    const run = (env) => spawnSync(process.execPath, [LANE, "--root", root], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "", GITHUB_BASE_REF: "", GITHUB_REF_NAME: "", ...env } }).status;
+    assert.equal(run({ GITHUB_BASE_REF: "kaal/guard" }), 0);
+    assert.equal(run({ GITHUB_BASE_REF: "main", GITHUB_REF_NAME: "kaal/guard" }), 1, "a pull request into main read its head's push target");
+    assert.equal(run({ GITHUB_REF_NAME: "kaal/guard" }), 0);
+  });
+
+  it("fails on a failure that is not registered, and on one with no Test Case identity", () => {
+    const register = reds("kaal/guard", "guard/T1");
+    const other = lane(planned(tests(["guard/T1 [guard/F1]: planned", false], ["guard/T3 [guard/F1]: regressed", false]), register), "--target", "kaal/guard");
+    assert.equal(other.status, 1, other.stdout + other.stderr);
+    assert.match(other.stdout, /not held: guard\/T3 failed and is not a Feature RED registered for kaal\/guard/);
+    const anonymous = lane(planned(tests(["guard/T1 [guard/F1]: planned", false], ["no identity", false]), register), "--target", "kaal/guard");
+    assert.equal(anonymous.status, 1, anonymous.stdout + anonymous.stderr);
+    assert.match(anonymous.stdout, /not held: a failure with no Test Case identity: no identity/);
+  });
+
+  it("fails when a registered Test Case passes, until its entry is removed", () => {
+    const r = lane(planned(tests(["guard/T1 [guard/F1]: now green", true]), reds("kaal/guard", "guard/T1")), "--target", "kaal/guard");
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /not held: guard\/T1 passes but engineering\/guard\/red\.json still registers it/);
+  });
+
+  it("fails when a todo or skip marker masks a result", () => {
+    for (const options of [{ todo: "later" }, { skip: "later" }]) {
+      const r = lane(planned(tests(["guard/T1 [guard/F1]: masked", false, options]), reds("kaal/guard", "guard/T1")), "--target", "kaal/guard");
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.match(r.stdout, /not held: a todo or skip marker masks a result: guard\/T1/);
+    }
+  });
+
+  it("reports a registered Test Case not yet written as awaiting its PLAN, holding nothing for it", () => {
+    const r = lane(planned(tests(["guard/T2 [guard/F1]: green", true]), reds("kaal/guard", "guard/T9")), "--target", "kaal/guard");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /^awaiting its PLAN: guard\/T9: registered until guard\/C99, not yet written$/m);
+    assert.match(r.stdout, /suite passed/);
+  });
+
+  it("refuses a register that is not one, never reading it as empty", () => {
+    for (const bad of ["{", JSON.stringify({ collector: "main", entries: [] }), JSON.stringify({ collector: "kaal/guard", entries: [{ test: "guard/T1", class: "Regression RED", until: "x", authority: "y" }] })]) {
+      const root = planned(tests(["guard/T1 [guard/F1]: planned", false]), { [RED]: bad });
+      assert.throws(() => register(root), (e) => e instanceof Refusal && e.todo.length > 0);
+      const r = lane(root, "--target", "kaal/guard");
+      assert.equal(r.status, 2, r.stdout + r.stderr);
+      assert.match(r.stderr, /engineering\/guard\/red\.json (cannot be read|is not a register|has an entry)/);
+      assert.match(r.stderr, /\n {2}do: \S/);
+      assert.doesNotMatch(r.stdout, /# (pass|fail) /, "a refused lane ran tests");
+    }
+  });
+
+  it("counts a suite that failed only through its tests once, by its tests", () => {
+    const tap = "TAP version 13\n# Subtest: guard/F1 suite\n    not ok 1 - guard/T1 [guard/F1]: planned\n      ---\n      failureType: 'testCodeFailure'\n      ...\nnot ok 1 - guard/F1 suite\n  ---\n  failureType: 'subtestsFailed'\n  ...\n";
+    const o = outcomes(tap);
+    assert.deepEqual([...o.failed], ["guard/T1"]);
+    assert.deepEqual(o.unidentified, []);
+  });
+});
+
+describe("KAAL's own register", () => {
+  it("holds only Feature REDs for kaal/guard, each with the Change it awaits and the Owner's authority", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+    const text = readFileSync(join(root, RED), "utf8");
+    const data = JSON.parse(text);
+    assert.equal(data.collector, "kaal/guard");
+    for (const e of data.entries) {
+      assert.equal(e.class, "Feature RED", e.test);
+      assert.match(e.authority, /review \d+/, e.test);
+      assert.match(e.until, /guard\/C\d+/, e.test);
+    }
   });
 });
