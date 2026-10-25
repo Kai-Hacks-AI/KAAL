@@ -82,7 +82,7 @@ Reasoning: `main` receives only Changes that were integrated and verified in a c
 
 ### One promotion at a time
 
-> PLAN (engineering/C2): this section states the rule and its gate. The Promotion Order check it names is not built yet; until it is, the rule is kept by hand.
+> PLAN (engineering/C2): the rule below is stated as planned Test Cases of the branching checker. Until they are written and green, the rule is kept by hand.
 
 A promotion moves `main`, and every other collector's next promotion must then contain the new tip. So promotions go up one at a time, and the synchronization a promotion needs travels with it.
 
@@ -90,11 +90,19 @@ A promotion moves `main`, and every other collector's next promotion must then c
 - **Promotion pair.** A collector about to promote opens its synchronization, when it needs one, and its promotion together, as one pair. The promotion stays unfresh until the synchronization lands, and is then judged again on its new head.
 - **One pair open.** While a promotion into `main` is open, no other collector opens one. The next pair starts from `main` after the open promotion has landed or closed, so it synchronizes once, not once per promotion that overtakes it.
 
-The gate is a Promotion Order check, run on every pull request into `main` the way Promotion Source runs: from the default branch's tip, judging only GitHub's facts, never the candidate's content. It reads the open pull requests into `main`, drafts included, and fails a promotion while another one with a lower number is open, naming that one. The oldest open promotion always passes it, so two raised at once do not block each other forever. A blocked promotion is judged again when it changes, which is when it is synchronized after the open one lands.
+The rule is a verdict of [`lineage.ts`](lineage.ts), `promotionOrder`, and its tests specify it, as for every other verdict here. Its facts are the pull request's base and number and the open pull requests into `main`, drafts included, as GitHub reports them:
 
-A synchronization cannot be told apart as development or promotion from Git, so the check gates only promotions. That is enough: a promotion pair's synchronization is useless while another promotion is open, since `main` moves again under it.
+| Test Case | Planned verdict |
+|---|---|
+| engineering/T1 | A pull request into a branch other than `main` is not applicable. |
+| engineering/T2 | A promotion passes while no other pull request into `main` is open. |
+| engineering/T3 | A promotion fails while an open promotion with a lower number exists, drafts included; it names that promotion and says to open this pair after it lands or closes. |
+| engineering/T4 | Of two promotions open at once, the lower number passes, so neither blocks the other forever. |
+| engineering/T5 | Without the complete list of open pull requests into `main`, it cannot judge, which fails. |
 
-A local hook cannot keep this rule. The pre-push hook judges from Git alone, without network or credentials, and open pull requests are GitHub's facts. At most an agent asks GitHub before it opens a promotion; the check is what holds.
+That the pair's synchronization is in place is already a Test Case: the promotion's freshness verdict, `promotionFreshness`, fails until the promotion contains `main`'s tip. A synchronization cannot be told apart as development or promotion from Git, so nothing orders synchronizations; a pair's synchronization is wasted while another promotion is open, since `main` moves again under it, and T3 is what stops that pair from being opened.
+
+The tests decide; where they run is assigned like any other check. CI runs the verdict on every pull request into `main`, beside Promotion Source, from the default branch's tip and with GitHub's facts only. The pre-push hook judges from Git alone, without network or credentials, so there the verdict has no facts and is not run; an agent that can read GitHub runs the same verdict before it opens a promotion.
 
 Reasoning: each promotion lands on the `main` it was synchronized with, so no collector synchronizes twice for one promotion, and the order is decided by GitHub's facts, not by whoever lands first.
 
