@@ -23,17 +23,28 @@ export interface Stale {
   found: string;
 }
 
-/** A host operation refused: before anything was written, or, for a read, before anything was returned. */
+/**
+ * A host operation refused: before anything was written, or, for a read,
+ * before anything was returned. The one exception is `UNRESTORED`: a
+ * reconciliation failed and so did its rollback, and what it displaced is
+ * kept at `kept`.
+ */
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED",
     /** For `STALE`, every failed precondition, in path order. */
     readonly findings: Stale[] = [],
+    /** For `UNRESTORED`, the failure that started the rollback, and where the displaced files are kept. */
+    recovery?: { cause: unknown; kept: string },
   ) {
-    super(message);
+    super(message, recovery && { cause: recovery.cause });
     this.name = "HostingError";
+    this.kept = recovery?.kept;
   }
+
+  /** For `UNRESTORED`, the directory beside the root holding every displaced file not put back, at its own relative path. */
+  readonly kept?: string;
 }
 
 // graceful-fs patches the callback API (on Windows, rename retries through
@@ -467,9 +478,14 @@ async function present(root: string, path: string): Promise<{ found: string; exe
  * if any fails, nothing changes and the refusal (`STALE`) lists them all.
  * Otherwise the new bytes are staged beside `root` and read back, replaced and
  * removed files are kept aside, and everything is put in place by renames. A
- * failure Hosting observes while applying restores `root` exactly. Removals
- * prune the directories they empty, never `root`. A write marked `executable`
- * is executable where the host has the mode, and one without it is not.
+ * failure Hosting observes while applying is rolled back and rethrown: every
+ * path it touched holds the same kind of entry, the same bytes and the same
+ * executable mark as before, and no other metadata is promised. If the host
+ * refuses the rollback too, the refusal is `UNRESTORED`, `root` may be partly
+ * applied, and every displaced file not put back stays in `kept`, beside
+ * `root`, at its own path. Removals prune the directories they empty, never
+ * `root`. A write marked `executable` is executable where the host has the
+ * mode, and one without it is not.
  *
  * This is rollback on observed failure, not a transaction: the lock excludes
  * Hosting's writers only, readers can see a reconciliation half applied, and
@@ -521,10 +537,12 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
         if (!(await readBytes(join(staging, String(i)))).equals(e.bytes!))
           throw new HostingError("this host did not hold the files exactly as given; nothing was changed", "UNFAITHFUL");
       try {
-        for (const [i, e] of aside.entries()) {
+        for (const e of aside) {
           const target = join(at, ...e.path.split("/"));
-          await rename(target, join(kept, String(i)));
-          undo.push(() => rename(join(kept, String(i)), target));
+          const away = join(kept, ...e.path.split("/"));
+          await promisify(gfs.mkdir)(join(away, ".."), { recursive: true });
+          await rename(target, away);
+          undo.push(() => rename(away, target));
         }
         for (const [i, e] of writes.entries()) {
           const segments = e.path.split("/");
@@ -550,7 +568,8 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
         }
       } catch (e) {
         // Restore what was moved, in reverse. A step that cannot be undone
-        // leaves the kept-aside files where they are, never deleted.
+        // leaves the kept-aside files where they are, at their own paths,
+        // never deleted, and is reported apart from a rollback that held.
         for (const step of undo.reverse()) {
           try {
             await step();
@@ -558,7 +577,13 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
             restored = false;
           }
         }
-        if (!restored) throw new Error(`${root} could not be restored after: ${(e as Error).message}; the files it replaced or removed are kept in ${kept}`, { cause: e });
+        if (!restored)
+          throw new HostingError(
+            `${root} could not be restored after: ${(e as Error).message}; the files it replaced or removed and could not put back are kept in ${kept}`,
+            "UNRESTORED",
+            [],
+            { cause: e, kept },
+          );
         throw e;
       }
     } finally {

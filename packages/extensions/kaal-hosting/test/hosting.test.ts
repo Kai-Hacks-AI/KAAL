@@ -352,14 +352,15 @@ describe("reconcile", () => {
           write: [{ path: "new.md", expect: "absent", bytes: Buffer.from("new") }],
           remove: [{ path: "precious.md", expect: createHash("sha256").update("precious").digest("hex") }],
         }),
-        /could not be restored/,
+        (e: unknown) => e instanceof HostingError && e.code === "UNRESTORED" && (e.cause as { code?: string }).code === "EPERM",
       );
     } finally {
       gfs.rename = original;
     }
     const aside = readdirSync(parent).filter((name) => name.startsWith("d.aside-"));
     assert.equal(aside.length, 1);
-    assert.deepEqual(readdirSync(join(parent, aside[0])).map((name) => readFileSync(join(parent, aside[0], name), "utf8")), ["precious"]);
+    assert.deepEqual(readdirSync(join(parent, aside[0])), ["precious.md"]);
+    assert.equal(readFileSync(join(parent, aside[0], "precious.md"), "utf8"), "precious");
   });
 });
 
