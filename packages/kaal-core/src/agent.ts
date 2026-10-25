@@ -139,8 +139,8 @@ export function renderSkill(bytes: Uint8Array): Uint8Array {
  * at a location of its own, from the same rendered bytes. Core claims only what its `record` holds:
  * a deployed file still as Core wrote it is rewritten or pruned; a modified one, and anything at a
  * target that Core did not deploy, is kept and reported. Nothing outside the deployments is touched.
- * A change between a file and a directory at one path is kept and reported, the old file included:
- * no plan both removes a path and writes beneath it, or the reverse.
+ * Where a deployment changes between a file and a directory, the plan prunes Core's unmodified
+ * files in the way and writes the new ones, for Hosting to apply in one reconciliation.
  *
  * A `contracted` Skill's canonical deployment is the Capability's asset (core/F36). Core's record
  * never holds it: the plan writes it only when the Capability's record does not register it yet,
@@ -188,19 +188,9 @@ export function realize({ skills, providers, record, present, contracted = [] }:
     }
   }
 
-  // Hosting realizes no path together with its own descendant, so a file Core would prune where a
-  // deployment now needs a directory, or under a target now a file, stays: replacing it needs a
-  // file↔directory transition, which is Hosting's to provide, not Core's to orchestrate.
-  const nested = (a: string, b: string) => a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
-  const transition = new Set(prune.filter((p) => [...wanted.keys()].some((w) => nested(w, p))));
-  for (const path of transition) {
-    prune.splice(prune.indexOf(path), 1);
-    keep.push({ path, reason: "replacing it needs Hosting's file↔directory transition" });
-    next[path] = record[path];
-  }
-
   // A file that stays where a deployment needs a directory, or under a target Core would write as
   // a file, blocks that target: writing it would need that file to be removed first.
+  const nested = (a: string, b: string) => a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
   const pruned = new Set(prune);
   const staying = Object.keys(present).filter((p) => !pruned.has(p));
   const blocker = (path: string) => staying.find((p) => nested(path, p));
@@ -208,7 +198,7 @@ export function realize({ skills, providers, record, present, contracted = [] }:
     const digest = sha256(bytes);
     const blocked = blocker(path);
     if (blocked !== undefined) {
-      keep.push({ path, reason: transition.has(blocked) ? `${blocked} is in the way, and replacing it needs Hosting's file↔directory transition` : `${blocked} is in the way` });
+      keep.push({ path, reason: `${blocked} is in the way` });
       if (has(record, path)) next[path] = record[path];
     } else if (has(record, path)) {
       if (has(present, path) && present[path] !== record[path]) {
