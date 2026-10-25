@@ -98,6 +98,15 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T58: `contract.json` and the lifecycle agree: every asset standalone `init` writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one. The installation record and `.kaal/config/guard/` are not assets (guard/F27; restated in `guard/C46`) | guard/F27, guard/A17 | Architecture | package |
 | guard/T82: after a standalone `init` deploys the Skill, a failing and a cannot-judge local run's reminder line names the deployed `.agents/skills/kaal-guard/SKILL.md`, not the package's copy, and with `--github` so do the annotations and the step summary. Added in `guard/C46` | guard/F21, guard/F23, guard/A15 | Requirements | package |
 | guard/T83: where Core's realization is available at delivery, an External delivery also writes the further deployments Core computes for the passed declaration, lists Core's pointers in `GUARD.md`, and leaves no Core or Hosting element in the target. Added in `guard/C46` | guard/I6, guard/F25, guard/A16 | Requirements | Engineering |
+| guard/T84: a declaration that is a symbolic link, and a directory named `<name>.md`, in the configuration directory each make `run --hook`, `run --ci` and `run --check` cannot judge, naming the entry; neither is skipped. Added in `guard/C61` | guard/F28, guard/F10 | Requirements | package |
+| guard/T85: in a clone with `core.autocrlf=true`, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under `sh`, and `upgrade` and `remove` treat each file as Guard's unmodified file. Added in `guard/C61` | guard/F27, guard/F29, guard/F12 | Requirements | package |
+| guard/T86: where `core.fileMode` is `false`, `init --hook` reports `git add --chmod=+x .githooks/pre-push`, and after the consumer runs it a fresh clone with `core.fileMode=true` runs the hook on push. Added in `guard/C61` | guard/F4, guard/F27 | Requirements | package |
+| guard/T87: the workflow `init --ci` installs pins `actions/checkout` and `actions/setup-node` by commit SHA, uses Node 24, and has no `${{` expression in any `run:` line. Added in `guard/C61` | guard/F5, guard/N1 | Requirements | package |
+| guard/T88: after the registered hook is deleted, `init --hook` reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, `upgrade` reinstalls it. Added in `guard/C61` | guard/F8, guard/F13 | Requirements | package |
+| guard/T89: with a directory, and with a dangling link, named `.github/workflows/x.yml`, `verify` and `init --ci` are cannot judge (exit 2), naming the entry, and print no stack trace. Added in `guard/C61` | guard/F10, guard/F17, guard/N4 | Requirements | package |
+| guard/T90: `remove --config <dir>`, for an empty directory inside and outside the repository, leaves that directory in place; plain `remove` after a bare `init` deletes the empty default `.kaal/config/guard/`. Added in `guard/C61` | guard/F8 | Requirements | package |
+| guard/T91: an `outcomes` key `"04"`, `"+4"` or `"256"` is refused as cannot judge, naming the canonical form, and `"4"` names exit 4 as held. Added in `guard/C61` | guard/F2, guard/F18 | Requirements | package |
+| guard/T92: with a `git` on `PATH` that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing. Added in `guard/C61` | guard/N1 | Requirements | package |
 | guard/T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | guard/N1, guard/F27 | Requirements | package |
 
 **Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T1`…, defined in `core/C3`), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. guard/T58 stays Guard's own: it checks that the instance and the lifecycle agree.
@@ -179,6 +188,20 @@ guard/D5 is a defect in guard/F7 as `0.0.1` ships it, found by Codex on #366 (r4
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
 | guard/D5 | guard/T81 | the base copy of a trusted checker is written without the mode the base records, so an executable checker run as `./checker.sh` fails to start (EACCES) and its check is cannot judge | established: guard/T81 recorded RED in `guard/C41` (#368); corrected by `guard/C42` (#370), where guard/T81 is GREEN |
+
+guard/D6–guard/D14 are suspected defects in the `0.0.2` candidate, found by the release review of 2026-10-25 on kaal/guard at `ac8ff06` (the review's evidence is kept in the project, not here). Each is established only when its Test Case is recorded RED in `guard/C63`; a GREEN refutes it.
+
+| Defect | Traces to | Gap | Status |
+| --- | --- | --- | --- |
+| guard/D6 | guard/T84 | a declaration that is not a regular file is skipped, so a failing check vanishes and the run passes | suspected (`guard/C61`) |
+| guard/D7 | guard/T85 | Git rewrites Guard's files to CRLF under `core.autocrlf=true`: the hook fails under `sh`, and `upgrade` and `remove` call Guard's own files modified | suspected (`guard/C61`) |
+| guard/D8 | guard/T86 | where `core.fileMode` is `false`, the hook is committed without its executable bit, and other clones never run it | suspected (`guard/C61`) |
+| guard/D9 | guard/T87 | Guard's workflow uses unpinned actions built for Node 20, and puts `github.base_ref` into a `run:` line as shell | suspected (`guard/C61`) |
+| guard/D10 | guard/T88 | a registered asset the repository lost is never reinstalled; `core.hooksPath` stays set, and no hook runs | suspected (`guard/C61`) |
+| guard/D11 | guard/T89 | an unreadable workflow entry makes `verify` fail (exit 1) with a stack trace instead of cannot judge | suspected (`guard/C61`) |
+| guard/D12 | guard/T90 | `remove --config <dir>` deletes that directory when it is empty, even outside the repository | suspected (`guard/C61`) |
+| guard/D13 | guard/T91 | an `outcomes` key with a leading zero is accepted and never matches its exit status | suspected (`guard/C61`) |
+| guard/D14 | guard/T92 | an older Git is not refused; without `--show-scope`, `init --hook` may set a local `core.hooksPath` over a global one | suspected (`guard/C61`) |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
