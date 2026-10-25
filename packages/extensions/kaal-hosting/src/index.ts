@@ -23,6 +23,12 @@ export interface Stale {
   found: string;
 }
 
+/** A directory `reconcile` staged or kept aside that the host would not let it remove, and the host's error. */
+export interface Leftover {
+  path: string;
+  error: unknown;
+}
+
 /**
  * A host operation refused: before anything was written, or, for a read,
  * before anything was returned. The one exception is `UNRESTORED`: a
@@ -45,6 +51,9 @@ export class HostingError extends Error {
 
   /** For `UNRESTORED`, the directory beside the root holding every displaced file not put back, at its own relative path. */
   readonly kept?: string;
+
+  /** For a reconciliation, what it staged or kept aside and could not remove, in path order; absent when nothing is left. */
+  leftovers?: Leftover[];
 }
 
 // graceful-fs patches the callback API (on Windows, rename retries through
@@ -56,7 +65,7 @@ const writeFile = (path: string, data: Uint8Array) => promisify(gfs.writeFile)(p
 const mkdir = (path: string) => promisify(gfs.mkdir)(path, { recursive: true });
 const mkdtemp = (prefix: string) => promisify(gfs.mkdtemp)(prefix);
 const rename = (from: string, to: string) => promisify(gfs.rename)(from, to);
-const rm = (path: string) => promisify(gfs.rm)(path, { recursive: true, force: true });
+const rm = (path: string, options: { maxRetries?: number } = {}) => promisify(gfs.rm)(path, { recursive: true, force: true, ...options });
 const rmdir = (path: string) => promisify(gfs.rmdir)(path);
 const chmod = (path: string, mode: number) => promisify(gfs.chmod)(path, mode);
 const stat = (path: string) => promisify(gfs.stat)(path);
@@ -420,6 +429,8 @@ export interface Reconciliation {
 export interface Reconciled {
   outcomes: { path: string; outcome: "written" | "removed" | "unchanged" }[];
   pruned: string[];
+  /** What it staged or kept aside and could not remove, in path order; absent when nothing is left. */
+  leftovers?: Leftover[];
 }
 
 // Path order: by UTF-16 code unit, the same on every host.
@@ -525,6 +536,8 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
     const undo: (() => Promise<unknown>)[] = [];
     const pruned: string[] = [];
     let restored = true;
+    let failed = false;
+    let failure: unknown;
     try {
       for (const [i, e] of writes.entries()) {
         await writeFile(join(staging, String(i)), e.bytes!);
@@ -586,11 +599,23 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
           );
         throw e;
       }
-    } finally {
-      await rm(staging);
-      if (restored) await rm(kept);
+    } catch (e) {
+      failed = true;
+      failure = e;
     }
-    return { outcomes, pruned: pruned.sort(byPath) };
+    // The outcome is settled; removing what was staged or kept aside never
+    // changes it. What the host will not let go of is reported, never lost.
+    const leftovers: Leftover[] = [];
+    for (const dir of restored ? [kept, staging] : [staging])
+      await rm(dir, { maxRetries: 3 }).catch((error: unknown) => leftovers.push({ path: dir, error }));
+    leftovers.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+    if (failed) {
+      if (leftovers.length > 0 && typeof failure === "object" && failure !== null) Object.assign(failure, { leftovers });
+      throw failure;
+    }
+    const report: Reconciled = { outcomes, pruned: pruned.sort(byPath) };
+    if (leftovers.length > 0) report.leftovers = leftovers;
+    return report;
   });
 }
 
