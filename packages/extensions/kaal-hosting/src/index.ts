@@ -530,11 +530,17 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
   const paths = entries.map((e) => e.path);
   const repeated = paths.find((p, i) => i > 0 && paths[i - 1] === p);
   if (repeated !== undefined) throw new HostingError(`${repeated} appears more than once in one reconciliation`, "INVALID_PATH");
-  // Paths nest only where a kind changes: writes under a removal (a file
-  // becomes a directory) or removals under a write (a directory becomes a
-  // file). Anything else under one path is refused.
-  const nested = entries.find((p) => entries.some((q) => q.remove === p.remove && q.path.startsWith(`${p.path}/`)));
-  if (nested !== undefined) throw new HostingError(`${nested.path} and a path under it are both ${nested.remove ? "removed" : "written"} in this reconciliation`, "INVALID_PATH");
+  // Paths nest only where a kind changes: writes expecting "absent" under a
+  // removal (a file becomes a directory), or removals under a write expecting
+  // "absent" (a directory becomes a file). Anything else under one path is
+  // refused before the host is looked at.
+  for (const p of entries)
+    for (const q of entries) {
+      if (!q.path.startsWith(`${p.path}/`)) continue;
+      if (q.remove === p.remove) throw new HostingError(`${p.path} and ${q.path} under it are both ${p.remove ? "removed" : "written"} in this reconciliation`, "INVALID_PATH");
+      const write = p.remove ? q : p;
+      if (write.expect !== "absent") throw new HostingError(`${write.path} must expect "absent" to change ${p.path} from a ${p.remove ? "file into a directory" : "directory into a file"}`, "INVALID_PATH");
+    }
   checkPortable(paths);
   return exclusive(root, async (at) => {
     const now = new Map<string, { found: string; executable: boolean }>();
