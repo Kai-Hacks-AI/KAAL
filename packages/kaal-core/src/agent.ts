@@ -3,7 +3,7 @@
 // source, claiming only what Core itself deployed. Applying a plan is Hosting's (core/A7). Pure:
 // no host access (core/N4).
 import { FormError, readFrontmatter } from "kaal-graph/form";
-import { sha256 } from "./sha256.js";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 /** Where a repository declares the providers it enables (core/F16). The consumer declares; Core owns the schema. */
 export const declaration = ".kaal/config/core/agents.json";
