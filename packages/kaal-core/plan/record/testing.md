@@ -12,7 +12,7 @@ The planned outer tests live in `packages/kaal-core/test/plan/record.test.mjs`. 
 | core/T37: a surface-gated asset is accepted by `checkContract` and never appears in a plan | core/F37 | Requirements |
 | core/T38: the same inputs give the same record, and `register` and `checkRecord` import no host module | core/N10 | Architecture |
 
-`core/F19`'s round trip is proved outside Core, because it needs a real Capability: Engineering realizes Guard's instance with Core in a fresh repository, then runs the packed Guard's own `upgrade` and `remove`, and the reverse (`guard/init`, then Core). Engineering numbers that scenario once `guard/C25` ships Guard's record. It is not a Core test, and `core/C13` does not claim it.
+`core/F19`'s round trip is proved outside Core, because it needs a real Capability: Engineering realizes Guard's instance with Core in a fresh repository, then runs the packed Guard's own `upgrade` and `remove`, and the reverse (`guard/init`, then Core). The scenario includes a file at an asset target whose bytes match a catalogued content but that no record registers: neither installer claims, upgrades or removes it. Engineering numbers that scenario once `guard/C25` ships Guard's record. It is not a Core test, and `core/C13` does not claim it.
 
 ## RED evidence
 
