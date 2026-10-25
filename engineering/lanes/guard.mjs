@@ -273,7 +273,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     rows.push(`| ${t} | Feature RED, held | ${until} |`);
   }
   for (const n of outcomes(r.stdout ?? "").skipped) console.log(`skipped, not a Test Case: ${n}`);
-  for (const t of verdict.awaiting) console.log(`awaiting its PLAN: ${t}: registered until ${reds.entries[t].until}, not yet written`);
+  // A registered Test Case that did not run is not yet written, or is in a file this host withholds: either way it holds nothing.
+  const unseen = chosen.withheld.length ? `not run here (${chosen.withheld.join(", ")} is withheld) or not yet written` : "not yet written";
+  for (const t of verdict.awaiting) console.log(`awaiting its PLAN: ${t}: registered until ${reds.entries[t].until}, ${unseen}`);
   for (const why of verdict.reasons) {
     console.log(`not held: ${why}`);
     if (github) console.log(`::error title=Guard lane::${why}`);

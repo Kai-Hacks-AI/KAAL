@@ -303,6 +303,15 @@ describe("guard/T46's file, which needs KAAL's workspace", () => {
     assert.match(r.stdout, new RegExp(`not run here: ${WORKSPACE.replaceAll(".", "\\.")}: it needs KAAL's workspace installed`));
   });
 
+  it("says a registered Test Case it did not run may be in the withheld file, and holds nothing for it", () => {
+    const reds = JSON.stringify({ collector: "kaal/guard", entries: [{ test: "guard/T46", class: "Feature RED", until: "guard/C17", authority: "the Owner's review 1" }] });
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }), [RED]: reds });
+    const r = lane(root, "--target", "kaal/guard");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /awaiting its PLAN: guard\/T46: registered until guard\/C17, not run here \(engineering\/guard\/acceptance\/plan\/workspace\.test\.mjs is withheld\) or not yet written/);
+    assert.doesNotMatch(r.stdout, /^RED: guard\/T46/m, "a test that did not run was reported as a held RED");
+  });
+
   it("runs where npm ci has installed the workspace, so its failure fails the lane", () => {
     const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }), [INSTALLED]: "{}\n" });
     const chosen = select(root);
