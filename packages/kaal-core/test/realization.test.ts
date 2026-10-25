@@ -100,6 +100,31 @@ describe("Hosting application (core/C13)", () => {
     assert.ok(done.plan.write.every((w) => w.path.startsWith(".claude/skills/sample/")));
   });
 
+  it("leaves a partly registered canonical location to the Capability: it neither completes, repairs, claims nor overwrites it", async () => {
+    const own = "---\nname: sample\n---\n\nthe Capability's own bytes\n";
+    const root = repo({
+      ".kaal/config/core/agents.json": claude,
+      ".agents/skills/sample/SKILL.md": own,
+      ".agents/skills/sample/extra.md": "unregistered\n",
+      [RECORD]: JSON.stringify({ assets: { ".agents/skills/sample/SKILL.md": { sha256: sha(own), version: "0.0.1" } } }),
+    });
+    const record = at(root, RECORD);
+    const done = await realizeIn(root, { skills: [SKILL], contracts: [contract()] });
+    assert.ok(!existsSync(join(root, ".agents/skills/sample/references/a.md")), "an absent canonical file is not written");
+    assert.equal(at(root, ".agents/skills/sample/SKILL.md").toString(), own, "a registered one is not overwritten");
+    assert.equal(at(root, ".agents/skills/sample/extra.md").toString(), "unregistered\n");
+    assert.deepEqual(at(root, RECORD), record, "the Capability's record is not changed");
+    assert.ok([...done.plan.write.map((w) => w.path), ...done.plan.keep.map((k) => k.path), ...done.plan.prune].every((p) => p.startsWith(".claude/skills/sample/")));
+    assert.ok(Object.keys(json(root, CORE_RECORD).assets).every((p) => p.startsWith(".claude/skills/sample/")), "Core claims nothing canonical");
+  });
+
+  it("uses the sources it is given without judging them against the catalogue, and registers only the digest of what it wrote", async () => {
+    const root = repo();
+    const c = { ...contract(), catalogue: { ".githooks/pre-push": [sha("hook")], ".agents/skills/sample/SKILL.md": [sha("some other release")] } };
+    await realizeIn(root, { skills: [SKILL], contracts: [c] });
+    assert.deepEqual(json(root, RECORD).assets[".agents/skills/sample/SKILL.md"], { sha256: sha(RENDERED), version: "0.0.2" });
+  });
+
   it("keeps a file found at a canonical target, even with catalogued bytes, and registers nothing for it", async () => {
     const root = repo({ ".agents/skills/sample/SKILL.md": RENDERED });
     const done = await realizeIn(root, { skills: [SKILL], contracts: [contract()] });

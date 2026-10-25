@@ -110,19 +110,31 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
 
 /**
  * Make `skills` reachable by the agents of the providers `root` declares, through Hosting
- * (core/A7, core/F16–core/F22, core/F33–core/F37). A Skill a contract delivers is that
- * Capability's at its canonical location: Core writes it only when the Capability's record does
- * not register it yet, and registers what it wrote in that record. Core's own record holds only
- * the provider deployments. The deployments, removals and records are applied together, each
- * guarded by what was read; if anything changed in between, nothing is changed. A failure Hosting
- * observes while applying is rolled back, as Hosting promises. Where a deployment changes between a
- * file and a directory, Hosting cannot apply the path and its descendant together, so Core removes
- * what is in the way first and applies the rest second; if the second fails, Core puts the removed
- * files back, and if that fails too it throws `Unrestored` holding their bytes. Like Hosting's,
- * this is rollback on observed failure: a process cut off between the two steps leaves the removals
- * applied and every record as it was, which the next realization completes. Core restores the bytes
- * it removed, not their executable mark, which Hosting does not report: Core deploys no file
- * executable, so only a mark someone added by hand to a deployed file is lost that way.
+ * (core/A7, core/F16–core/F22, core/F33–core/F37). Core coordinates; it takes over no
+ * Capability's responsibility and no Hosting mechanic. What it guarantees, and no more:
+ *
+ * - **Ownership by file.** A Skill a contract delivers is that Capability's at its canonical
+ *   location. Once the Capability's record registers any file there, Core writes, registers,
+ *   keeps or prunes nothing there, whether the other canonical files are registered, present or
+ *   absent: completing or repairing them is the Capability's own lifecycle. While the record
+ *   registers none, Core writes the canonical files it is given where nothing is in the way and
+ *   registers in that record exactly what it wrote; a file already there is kept and reported.
+ *   Core's own record holds only the provider deployments.
+ * - **Contract and sources.** Core checks the contract's shape, never its meaning: it uses the
+ *   Skill sources it is given as they are, and does not compare them with the catalogue or decide
+ *   provenance. A registered digest says which bytes Core wrote, not that they are authentic.
+ * - **Application.** The deployments, removals and records are applied in one Hosting
+ *   reconciliation, each guarded by what was read, every record read included, so a change in
+ *   between leaves everything unchanged; Hosting rolls back what it observes failing.
+ * - **File↔directory changes.** Hosting applies no path together with its own descendant, so Core
+ *   orchestrates two reconciliations: it removes the files in the way, which are its own and
+ *   unmodified, and leaves every record as read; then it applies the rest. If the second fails,
+ *   Core asks Hosting, in one more guarded reconciliation, to write back the exact bytes it
+ *   removed, and rethrows; if that is refused too, it throws `Unrestored` holding those bytes.
+ *   Core restores bytes only, not an executable mark or any other metadata, and nothing across
+ *   the end of the process: one cut off between the steps leaves the removals applied and every
+ *   record as read, which the next realization completes. Applying both in one reconciliation
+ *   would need a Hosting primitive, which is Hosting's to decide.
  */
 export async function realizeIn(root: string, request: RealizationRequest): Promise<Realized> {
   return realizeAvoiding(root, request, new Set());
