@@ -823,7 +823,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     assert.equal(c.read(`${SKILL}/SKILL.md`), edited, "upgrade overwrote a modified Skill file");
     const rm = c.guard(["remove"]);
     assert.equal(rm.status, 0, rm.output);
-    assert.deepEqual(under(c, ".agents/"), [".agents/skills/other/SKILL.md", `${SKILL}/SKILL.md`], "remove did not delete exactly the unmodified Skill files");
+    assert.deepEqual(under(c, ".agents/"), [`${SKILL}/SKILL.md`, ".agents/skills/other/SKILL.md"], "remove did not delete exactly the unmodified Skill files");
     assert.equal(c.read(".agents/skills/other/SKILL.md"), "---\nname: other\ndescription: another skill.\n---\n", "remove touched another skill");
 
     const d = consumer();
