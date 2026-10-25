@@ -244,7 +244,12 @@ async function realizeAvoiding(root: string, { skills, contracts = [] }: Realiza
   // no reading shows. Then the target is still in the way: put back what was removed, and plan again
   // with that target kept and reported.
   const stuck: string[] = [];
-  for (const w of write) if (first.some((r) => nested(w.path, r.path)) && (await kind(join(root, w.path))) !== "missing") stuck.push(w.path);
+  try {
+    for (const w of write) if (first.some((r) => nested(w.path, r.path)) && (await kind(join(root, w.path))) !== "missing") stuck.push(w.path);
+  } catch (cause) {
+    await putBack(cause);
+    throw cause;
+  }
   if (stuck.length > 0) {
     await putBack(new KaalError(`${stuck.join(", ")} is still a directory`));
     return realizeAvoiding(root, { skills, contracts }, new Set([...blockers, ...stuck]));

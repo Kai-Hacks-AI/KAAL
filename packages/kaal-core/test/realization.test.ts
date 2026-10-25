@@ -220,6 +220,24 @@ describe("Hosting application (core/C13)", () => {
       assert.deepEqual(snapshot(root), before);
     });
 
+    it("puts the removed file back when looking at a target after the first step fails", async () => {
+      const root = repo();
+      await realizeIn(root, { skills: [OLD] });
+      const before = snapshot(root);
+      type Stat = (path: string, cb: (e: NodeJS.ErrnoException | null, s?: unknown) => void) => void;
+      const stat = gfs.stat as unknown as Stat;
+      let looks = 0;
+      (gfs as unknown as { stat: Stat }).stat = (path, cb) =>
+        String(path).endsWith(join("tool", "run")) && ++looks === 2 ? cb(Object.assign(new Error("EACCES: refused"), { code: "EACCES" })) : stat(path, cb);
+      try {
+        await assert.rejects(realizeIn(root, { skills: [NEW] }), /EACCES/);
+      } finally {
+        (gfs as unknown as { stat: Stat }).stat = stat;
+      }
+      assert.equal(looks, 2, "the target was looked at after the first step");
+      assert.deepEqual(snapshot(root), before);
+    });
+
     it("throws Unrestored holding the removed file's bytes when putting it back fails too, and claims no new ownership", async () => {
       const root = repo();
       await realizeIn(root, { skills: [OLD] });
