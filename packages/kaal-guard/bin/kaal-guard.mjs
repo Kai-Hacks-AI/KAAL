@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // kaal-guard: runs a repository's own checks for its Git hook and its CI, with one meaning per check.
+import "../lib/node.mjs";
 import { resolve } from "node:path";
 import { configDir, legacy, readDeclarations, Refusal, shown } from "../lib/config.mjs";
 import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
