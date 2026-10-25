@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // kaal-guard: runs a repository's own checks for its Git hook and its CI, with one meaning per check.
 import "../lib/node.mjs";
+import "../lib/git.mjs";
 import { resolve } from "node:path";
 import { configDir, legacy, readDeclarations, Refusal, shown } from "../lib/config.mjs";
 import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
@@ -88,6 +89,7 @@ if (command in LIFECYCLE) {
   try {
     result = LIFECYCLE[command](context.root, { ...context, declared: declarations(context.root), hook: Boolean(options["--hook"]), ci: Boolean(options["--ci"]) });
   } catch (e) {
+    if (e instanceof Refusal) cannotJudge(e.message, e.todo);
     cannotJudge(e.message, "reinstall the package, then run the command again");
   }
   for (const line of result.lines) console.log(line);
@@ -96,7 +98,13 @@ if (command in LIFECYCLE) {
 if (command === "verify") {
   const options = parse(args, ["--github"], ["--config"]);
   const { root, list } = load(options["--config"]);
-  const { results } = verify(root, list);
+  let results;
+  try {
+    ({ results } = verify(root, list));
+  } catch (e) {
+    if (e instanceof Refusal) cannotJudge(e.message, e.todo);
+    throw e;
+  }
   if (results.length === 0) console.log("kaal-guard: no ci checks are declared");
   report(results, options["--github"]);
 }
