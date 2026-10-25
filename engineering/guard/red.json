@@ -1,0 +1,89 @@
+{
+  "collector": "kaal/guard",
+  "entries": [
+    {
+      "test": "guard/T45",
+      "class": "Feature RED",
+      "until": "guard/C14",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T46",
+      "class": "Feature RED",
+      "until": "guard/C14 and guard/C17",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T47",
+      "class": "Feature RED",
+      "until": "guard/C15",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T49",
+      "class": "Feature RED",
+      "until": "guard/C15",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T50",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T51",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T52",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T53",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T54",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T56",
+      "class": "Feature RED",
+      "until": "guard/C17",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T57",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T58",
+      "class": "Feature RED",
+      "until": "guard/C14",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T59",
+      "class": "Feature RED",
+      "until": "guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    },
+    {
+      "test": "guard/T82",
+      "class": "Feature RED",
+      "until": "guard/C15 and guard/C16",
+      "authority": "the Owner's review 5643242085 on #381"
+    }
+  ]
+}
