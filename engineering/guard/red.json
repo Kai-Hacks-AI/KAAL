@@ -36,6 +36,12 @@
       "class": "Feature RED",
       "until": "guard/C67",
       "authority": "the Owner's review 5645021559 on #431"
+    },
+    {
+      "test": "guard/T93",
+      "class": "Feature RED",
+      "until": "guard/C74",
+      "authority": "the Owner's review 5645527061 on #434"
     }
   ]
 }
