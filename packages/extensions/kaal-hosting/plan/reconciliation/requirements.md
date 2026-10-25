@@ -25,6 +25,10 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Applied.** The reconciliation resolves with its report, `{ outcomes, pruned, leftovers }`. A report without leftovers is exactly as hosting/F9 states, with no `leftovers` property.
   - **Rollback held.** The reconciliation rejects with the original failure, the same error object, with its message and code unchanged, and with `leftovers` added to it.
   - **Rollback failed.** The reconciliation rejects with `UNRESTORED`, its `cause` and `kept` unchanged, and with `leftovers` added to it. The `kept` directory is the recovery location and never a leftover.
+- **hosting/F13** [hosting/I1, hosting/I2]: One reconciliation can change what kind of entry is at a path, a file into a directory of the same name or a directory into a file, under one lock and one rollback. Paths nest in exactly two shapes. Any other nesting, such as a write under another write or a removal under another removal, is refused before anything is touched (`INVALID_PATH`).
+  - **File to directory.** A removal of `P` with writes under `P/`. The writes are checked as if `P` were already gone: the file at `P`, guarded by its removal, is not refused as a non-directory segment (hosting/F5), and each write under `P/` must expect `"absent"`.
+  - **Directory to file.** A write of `P` expecting `"absent"`, with removals under `P/`. The write's precondition holds when `P` is a directory whose every file is removed by this reconciliation and which holds nothing else that would stay, files and directories alike. Otherwise it fails like any other precondition, found `"not a file"` (hosting/F3).
+  - **Applying.** Every removal, and the pruning of the directories it empties (hosting/F8), happens before any write. A directory turned into a file is reported in `pruned`, and its write as `written`. A failure while applying restores every path to its kind, bytes and executable mark (hosting/F6), or is `UNRESTORED` (hosting/F11).
 
 ## Limits
 
