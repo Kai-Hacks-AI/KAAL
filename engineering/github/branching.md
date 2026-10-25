@@ -80,6 +80,24 @@ A collector that has to stay, because the Owner holds it, is synchronized with `
 
 Reasoning: `main` receives only Changes that were integrated and verified in a collector, in exactly the state that was verified, one commit per promotion. The capability is the durable home, so a collector lives only while it holds work, and no synchronization is made just to keep an empty collector current.
 
+### One promotion at a time
+
+> PLAN (engineering/C2): this section states the rule and its gate. The Promotion Order check it names is not built yet; until it is, the rule is kept by hand.
+
+A promotion moves `main`, and every other collector's next promotion must then contain the new tip. So promotions go up one at a time, and the synchronization a promotion needs travels with it.
+
+- **Development synchronization.** A collector takes `main` whenever its Changes need content from it, as [Synchronize](#synchronize) says. Nothing orders it.
+- **Promotion pair.** A collector about to promote opens its synchronization, when it needs one, and its promotion together, as one pair. The promotion stays unfresh until the synchronization lands, and is then judged again on its new head.
+- **One pair open.** While a promotion into `main` is open, no other collector opens one. The next pair starts from `main` after the open promotion has landed or closed, so it synchronizes once, not once per promotion that overtakes it.
+
+The gate is a Promotion Order check, run on every pull request into `main` the way Promotion Source runs: from the default branch's tip, judging only GitHub's facts, never the candidate's content. It reads the open pull requests into `main`, drafts included, and fails a promotion while another one with a lower number is open, naming that one. The oldest open promotion always passes it, so two raised at once do not block each other forever. A blocked promotion is judged again when it changes, which is when it is synchronized after the open one lands.
+
+A synchronization cannot be told apart as development or promotion from Git, so the check gates only promotions. That is enough: a promotion pair's synchronization is useless while another promotion is open, since `main` moves again under it.
+
+A local hook cannot keep this rule. The pre-push hook judges from Git alone, without network or credentials, and open pull requests are GitHub's facts. At most an agent asks GitHub before it opens a promotion; the check is what holds.
+
+Reasoning: each promotion lands on the `main` it was synchronized with, so no collector synchronizes twice for one promotion, and the order is decided by GitHub's facts, not by whoever lands first.
+
 ### Hotfix
 
 A hotfix is an urgency-driven correction to an existing capability. Urgency alone decides that a correction takes this route. The capability being corrected keeps ownership of the behavior: a hotfix is neither a new capability nor a separate owner.
