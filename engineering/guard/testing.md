@@ -106,7 +106,8 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T89: with a directory, and with a dangling link, named `.github/workflows/x.yml`, `verify` and `init --ci` are cannot judge (exit 2), naming the entry, and print no stack trace. Added in `guard/C61` | guard/F10, guard/F17, guard/N4 | Requirements | package |
 | guard/T90: `remove --config <dir>`, for an empty directory inside and outside the repository, leaves that directory in place; plain `remove` after a bare `init` deletes the empty default `.kaal/config/guard/`. Added in `guard/C61` | guard/F8 | Requirements | package |
 | guard/T91: an `outcomes` key `"04"`, `"+4"` or `"256"` is refused as cannot judge, naming the canonical form, and `"4"` names exit 4 as held. Added in `guard/C61` | guard/F2, guard/F18 | Requirements | package |
-| guard/T92: with a `git` on `PATH` that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing. Added in `guard/C61` | guard/N1 | Requirements | package |
+| guard/T92: with a `git` that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing. Added in `guard/C61` | guard/N1 | Requirements | package |
+| guard/T93: the workflow an External delivery writes pins `actions/checkout`, and `actions/setup-node` where it sets up Node, by commit SHA, and has no `${{` expression in any `run:` line. Added in `guard/C71` | guard/F5, guard/N5 | Requirements | Engineering |
 | guard/T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | guard/N1, guard/F27 | Requirements | package |
 
 **Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T1`…, defined in `core/C3`), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. guard/T58 stays Guard's own: it checks that the instance and the lifecycle agree.
@@ -202,6 +203,12 @@ guard/D6–guard/D14 are suspected defects in the `0.0.2` candidate, found by th
 | guard/D12 | guard/T90 | `remove --config <dir>` deletes that directory when it is empty, even outside the repository | suspected (`guard/C61`) |
 | guard/D13 | guard/T91 | an `outcomes` key with a leading zero is accepted and never matches its exit status | suspected (`guard/C61`) |
 | guard/D14 | guard/T92 | an older Git is not refused; without `--show-scope`, `init --hook` may set a local `core.hooksPath` over a global one | suspected (`guard/C61`) |
+
+guard/D15 is a suspected defect of the same kind in the External delivery's workflow, outside the package, found while correcting guard/D9 (`guard/C71`). It is established only when guard/T93 is recorded RED in `guard/C73`.
+
+| Defect | Traces to | Gap | Status |
+| --- | --- | --- | --- |
+| guard/D15 | guard/T93 | the External delivery's workflow uses an unpinned `actions/checkout@v4` and `actions/setup-node@v4`, and puts `github.base_ref`, the pull request's SHAs and the check name into `run:` lines as shell | suspected (`guard/C71`) |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
