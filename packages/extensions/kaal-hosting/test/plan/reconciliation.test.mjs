@@ -1,12 +1,13 @@
-// hosting/C1 planned outer tests: Guarded File Reconciliation. Immutable to DO and
-// CHECK; hosting/C2 turns them GREEN. Each title names the contracts it checks
+// hosting/C1 planned outer tests: Guarded File Reconciliation, with hosting/T12
+// added by the hosting/C3 amendment. Immutable to DO and CHECK; hosting/C2 turns
+// them GREEN. Each title names the contracts it checks
 // (plan/reconciliation/*.md). They use kaal-hosting's public interface, and
 // graceful-fs (hosting/A2) only to make the host fail while applying.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { chmodSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { describe, it } from "node:test";
 import gfs from "graceful-fs";
 
@@ -293,5 +294,44 @@ describe("Guarded File Reconciliation (hosting/C1)", () => {
     const one = await reconcile(alone(files).root, reconciliation());
     const two = await reconcile(alone(files).root, reconciliation());
     assert.deepEqual(one, two);
+  });
+  it("hosting/T12 [hosting/I2, hosting/F6, hosting/F11]: when the rollback fails too, the refusal is UNRESTORED, never the original failure, and the displaced original is kept with its bytes at its own path in the reported .aside-* location, while nothing staged remains", async () => {
+    const { reconcile } = await hosting();
+    const files = { "sub/a.md": "precious", "b.md": "b" };
+    const reconciliation = () => ({
+      write: [{ path: "sub/a.md", expect: sha("precious"), bytes: bytes("new") }],
+      remove: [{ path: "b.md", expect: sha("b") }],
+    });
+    const refused = () => Object.assign(new Error("EPERM: refused"), { code: "EPERM" });
+    const original = gfs.rename;
+
+    // A rollback that succeeds rethrows the original failure, and keeps nothing.
+    let { parent, root } = alone(files);
+    let calls = 0;
+    gfs.rename = (from, to, cb) => (++calls === 2 ? cb(refused()) : original(from, to, cb));
+    try {
+      await assert.rejects(reconcile(root, reconciliation()), (e) => e?.code === "EPERM" && e.name !== "HostingError");
+    } finally {
+      gfs.rename = original;
+    }
+    assert.deepEqual(readdirSync(parent), ["root"]);
+
+    // A rollback the host refuses too is UNRESTORED, and the original is kept.
+    ({ parent, root } = alone(files));
+    calls = 0;
+    gfs.rename = (from, to, cb) => (++calls === 1 ? original(from, to, cb) : cb(refused()));
+    let error;
+    try {
+      await reconcile(root, reconciliation()).catch((e) => (error = e));
+    } finally {
+      gfs.rename = original;
+    }
+    assert.ok(code("UNRESTORED")(error), `expected UNRESTORED, got ${error}`);
+    assert.equal(error.cause?.code, "EPERM");
+    assert.equal(typeof error.kept, "string");
+    assert.ok(basename(error.kept).startsWith("root.aside-"), error.kept);
+    assert.equal(realpathSync.native(join(error.kept, "..")), realpathSync.native(parent));
+    assert.deepEqual(readdirSync(parent).sort(), ["root", basename(error.kept)].sort());
+    assert.deepEqual(snapshot(error.kept), { "sub/": "directory", "sub/a.md": bytes("precious").toString("base64") });
   });
 });
