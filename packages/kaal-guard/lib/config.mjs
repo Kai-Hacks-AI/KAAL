@@ -210,7 +210,11 @@ const SCHEMA = {
   },
   outcomes: (v, at) => {
     const ok = v && typeof v === "object" && !Array.isArray(v) && Object.entries(v).every(([s, o]) => /^\d+$/.test(s) && Number(s) <= 255 && !OWN.has(Number(s)) && o === "held");
-    if (!ok) throw new Refusal(`${at}: outcomes: may only name a further exit status, 4 to 255, as held`, 'write outcomes: {"4": held}');
+    if (!ok) throw new Refusal(`${at}: outcomes: may only name a further exit status, "4" to "255", as held`, 'write outcomes: {"4": held}');
+    // A key is an exit status in canonical decimal (F2): "04" or "+4" would never match exit 4.
+    for (const s of Object.keys(v)) {
+      if (String(Number(s)) !== s) throw new Refusal(`${at}: outcomes: "${s}" is not an exit status in canonical decimal; did you mean "${Number(s)}"?`, `write outcomes: {"${Number(s)}": held}`);
+    }
   },
 };
 const REQUIRED = ["type", "command", "runs"];
@@ -239,7 +243,15 @@ export const configDir = (root, cwd, option) => (option === undefined ? join(roo
  */
 export function readDeclarations(root, dir) {
   if (!directory(dir)) return { absent: true };
-  const names = readdirSync(dir, { withFileTypes: true }).filter((e) => e.isFile() && e.name.endsWith(".md")).map((e) => e.name.slice(0, -3)).sort();
+  const entries = readdirSync(dir, { withFileTypes: true }).filter((e) => e.name.endsWith(".md"));
+  // A declaration is a regular file (F28): a symbolic link, a directory or any other entry is refused, never skipped.
+  for (const e of entries) {
+    if (!e.isFile()) {
+      const kind = e.isSymbolicLink() ? "a symbolic link" : e.isDirectory() ? "a directory" : "not a regular file";
+      throw new Refusal(`${shown(root, join(dir, e.name))}: is ${kind}, and a declaration must be a regular file`, `replace ${e.name} with a regular file that holds the declaration, or move it out of ${shown(root, dir)}/`);
+    }
+  }
+  const names = entries.map((e) => e.name.slice(0, -3)).sort();
   const checks = {};
   for (const name of names) {
     const at = shown(root, join(dir, `${name}.md`));
