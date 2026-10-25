@@ -124,6 +124,8 @@ The PLAN conflicted with that in two places, and `guard/C25`'s DO had followed i
 
 **Trusted checker mode (Codex on #366, r4368693892).** `materialize` writes each trusted file's bytes but not its mode, so an executable checker named directly as the command cannot start. `guard/C40` restates guard/F7 to keep the mode the base records and plans guard/T81, with guard/D5 suspected. `guard/C41` writes guard/T81 and records it RED, which establishes guard/D5; `guard/C42` fixes `materialize`. guard/F7 is shipped in `0.0.1`, so this is a defect in published behaviour, not planned RED.
 
+**The installation record under Core (the Owner on #373, review 5641784016).** `core/C10` asked who owns the record when Core installs a Capability, and the Owner chose Option A. The Capability's own record decides which of its canonical assets are its own, even when Core installed them. Core's record holds only Core's provider deployments. `core/F33` adopts Guard's record shape (`activated`, and `assets` mapping each path to `{ sha256, version }`), and Core adds no member to it. `guard/C43` restates guard/F29's last bullet to say so. It also aligns guard/F23, which still named `0.0.1`'s `managed` and `writers`. The Owner's two conditions are part of the restated bullet: Core never claims a file because its bytes match a catalogued content, and it keeps the record's Guard members unchanged. Guard's reader already refuses a member it does not define, so it needs no code change. The round trip between Core and the packed Guard is Engineering's scenario, after `core/C13`.
+
 **One frontmatter parsing contract (Owner, #360, 6389758902).** `core/C11` recognizes a typed artifact with Graph's Form reader, which refuses a non-string key. KAAL's declarations with `outcomes: {4: held}` have an integer key, so KAAL's own Engine rejected them. The Owner chose one common contract over a second, lenient reader. `guard/C38` restates guard/F1: outcome statuses are double-quoted, `{"4": held}`, and an unquoted status key is refused, naming the quoted form; meaning and verdicts are unchanged. It plans guard/T79 and guard/T80. `guard/C39` writes them in the boundary, and `guard/C25` realizes the refusal and quotes KAAL's three declarations.
 
 **Published-`0.0.1` consumer evidence (Owner, #352, 6386915109).** guard/T36 and guard/T42 install the published `0.0.1` in a KAAL clone. `guard/C25` converts KAAL to `.kaal/config/guard/`, which `0.0.1`'s root `guard.json` assumption cannot read, so they fail there. That is a version-specific fixture mismatch, not evidence against their obligations. Their failures are kept as explicit transitional evidence and are never counted GREEN, and `guard/C25` does not change them. `guard/C37`, a separate PLAN Change of the acceptance boundary, revises their consumer setup for the `0.0.2` configuration without weakening an assertion. `guard/C20` then proves both against the published `0.0.2` from the registry.
@@ -220,7 +222,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C38` | — | Guard | One frontmatter parsing contract: guard/F1 restated so that outcome statuses are double-quoted strings, `{"4": held}`, and an unquoted status key is refused; guard/T79 and guard/T80 planned. No code and no test file | `guard/C35` | #363 |
 | `guard/C40` | — | Guard | Trusted checker mode: guard/F7 restated so that a base copy keeps the mode the base records; guard/T81 planned and guard/D5 suspected. No code and no test file | `guard/C38` | #367 |
 | `guard/C41` | — | Guard | guard/T81 written in the boundary and recorded RED, establishing guard/D5. It travels alone | `guard/C40`, `guard/C39` | #368 |
-| `guard/C42` | guard/D5 | Guard | `materialize` writes each trusted file with the mode the base records | `guard/C41`, `guard/C25` | not created |
+| `guard/C42` | guard/D5 | Guard | `materialize` writes each trusted file with the mode the base records | `guard/C41`, `guard/C25` | #370 |
+| `guard/C43` | — | Guard | The installation record under Core: guard/F29's last bullet restated so that, when Core manages the installation, Core registers Guard's assets in Guard's own record (the Owner's Option A on #373), and guard/F23's record wording aligned with guard/F29. No code and no test file | `guard/C25`, `core/C10` | not created |
 | `guard/C39` | — | Guard | guard/C38's planned tests written in the boundary: guard/T79, guard/T80, and the package harness writing quoted status keys. It travels alone | `guard/C38`, `guard/C36` | #364 |
 | `guard/C37` | — | Guard | PLAN of the boundary: guard/T36 and guard/T42's consumer setup revised for the `0.0.2` configuration (`.kaal/config/guard/`), their assertions unchanged and their transitional failures recorded. It travels alone, and `guard/C20` proves both with the published `0.0.2` | `guard/C25` | not created |
 | `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
@@ -293,6 +296,8 @@ graph LR
   C40 --> C41[guard/C41 T81 RED]
   C41 --> C42[guard/C42 trusted mode fixed]
   C25 --> C42
+  C25 --> C43[guard/C43 record under Core]
+  CRC[core/C10 record PLAN] --> C43
   C25 --> C37[guard/C37 T36 and T42 setup]
   C37 --> C20[guard/C20 release acceptance]
   C19 --> C20
