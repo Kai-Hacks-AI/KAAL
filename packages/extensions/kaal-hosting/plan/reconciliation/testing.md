@@ -16,7 +16,7 @@ The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/reco
 | hosting/T10: a missing root, or a root that is a file, is refused with `MISSING` | hosting/F10 | Requirements |
 | hosting/T11: the same root and reconciliation give equal reports | hosting/N3 | Requirements |
 
-hosting/N1 follows from these tests running in the three Hosting lanes, which `hosting/C2` adds them to. hosting/A1–A5 are placements, validated by review. The Limits in the Requirements are stated, not tested.
+hosting/N1 follows from these tests running in the three Hosting lanes, which `hosting/C2` adds them to. hosting/A1–A5 are placements, validated by review. The Limits in the Requirements are stated, not tested: no test asserts crash atomicity, isolation from readers, or protection against writers that do not use Hosting.
 
 ## RED evidence
 
