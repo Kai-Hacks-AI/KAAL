@@ -26,6 +26,23 @@ export const CONFIG = [".kaal", "config", "guard"].join("/");
 /** The repository's installation record (guard/F29), which only Guard writes. */
 export const RECORD = [".kaal", "state", "guard", "installation.json"].join("/");
 
+/** The Skill's one standalone deployment (guard/F23, guard/N10); its one source is `skills/kaal-guard/` in the package. */
+export const SKILL = ".agents/skills/kaal-guard";
+
+/** Every file under a directory, relative to it, with forward slashes, sorted; none when it does not exist. */
+export function tree(base) {
+  const out = [];
+  const walk = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else out.push(relative(base, p).split("\\").join("/"));
+    }
+  };
+  if (existsSync(base)) walk(base);
+  return out.sort();
+}
+
 /** The Type every declaration names in its `type` member (core/F6): Guard's own Business Language name. */
 export const TYPE = "Guard/Check";
 
@@ -138,6 +155,12 @@ export function consumer({ install = true } = {}) {
       const contract = join(dir, "node_modules", ...NAME.split("/"), "contract.json");
       assert.ok(existsSync(contract), "the package ships no contract.json");
       return JSON.parse(readFileSync(contract, "utf8")).catalogue;
+    },
+    /** The installed package's Skill source (guard/F23): its directory and its files. While the package ships none, a scenario is blocked here. */
+    skill() {
+      const source = join(dir, "node_modules", ...NAME.split("/"), "skills", "kaal-guard");
+      assert.ok(existsSync(join(source, "SKILL.md")), "blocked before behavioural assertion: the package ships no skills/kaal-guard/SKILL.md");
+      return { source, files: tree(source) };
     },
     /** Runs the installed kaal-guard command. */
     guard(args, extra = {}, cwd = dir) {

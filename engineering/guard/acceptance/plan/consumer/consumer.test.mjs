@@ -1,5 +1,6 @@
 // Guard outer acceptance, Engineering part: the consumer upgrade. guard/T36, guard/T40, guard/T42 and
-// guard/T43 check guard/I5 for a consumer of the published 0.0.1, with KAAL as that consumer (guard/A12).
+// guard/T43 check guard/I5 for a consumer of a published version, with KAAL as that consumer (guard/A12):
+// guard/T36 and guard/T42 consume the published 0.0.2 (guard/C37), guard/T40 reads what 0.0.1 wrote.
 // guard/T64 (guard/C24) checks one candidate of 0.0.2's configuration (guard/C23), so it can gate the
 // first published 0.0.2; guard/T65–guard/T68 check it between two candidates, so their `registry` evidence
 // needs a second published version of the 0.0.2 line:
@@ -27,6 +28,13 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const KAAL = resolve(HERE, "..", "..", "..", "..", "..");
 const HARNESS = resolve(KAAL, "engineering", "guard", "consumer", "harness.mjs");
 const PUBLISHED = "@kaihacksai/kaal-guard@0.0.1";
+/**
+ * The published release guard/T36 and guard/T42 consume (guard/C37). A KAAL clone declares its checks in
+ * .kaal/config/guard/ since guard/C25, which 0.0.1 cannot read, so they install the release of that
+ * configuration and run its hook surface, run --hook. Until 0.0.2 is published their failures are
+ * transitional evidence, never GREEN; guard/C20 proves both with it.
+ */
+const RELEASE = "@kaihacksai/kaal-guard@0.0.2";
 
 /** The A12 harness, or a blocked RED naming what is missing. */
 async function a12() {
@@ -60,17 +68,17 @@ const record = (c) => json(c.read(RECORD)).assets;
 const changedFiles = (c) => c.git("status", "--porcelain").output.split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
 
 describe("guard/I5 a consumer moves between published versions safely", () => {
-  it("guard/T36 [guard/I5, guard/F11, guard/N8, guard/N9, guard/A12]: a KAAL clone installs the published 0.0.1 from the registry and runs KAAL's checks through it", async (t) => {
+  it("guard/T36 [guard/I5, guard/F11, guard/N8, guard/N9, guard/A12]: a KAAL clone installs the published 0.0.2 from the registry and runs KAAL's checks through it", async (t) => {
     const h = await a12();
     const k = h.kaalClone();
-    k.install(PUBLISHED);
-    assert.equal(k.lockIntegrity(), h.registryIntegrity(PUBLISHED), "the lockfile does not hold the registry's integrity for 0.0.1");
+    k.install(RELEASE);
+    assert.equal(k.lockIntegrity(), h.registryIntegrity(RELEASE), "the lockfile does not hold the registry's integrity for 0.0.2");
     assert.equal(json(readFileSync(join(KAAL, "package.json"), "utf8")).devDependencies["@kaihacksai/kaal-guard"], "file:packages/kaal-guard", "N8: KAAL's own development dependency changed");
     const verify = k.guard("verify");
     assert.equal(verify.status, 0, verify.output);
     const facts = ["--head", "HEAD", "--base", "HEAD", "--base-ref", "main"];
-    const published = k.guard("run", "--local", ...facts);
-    const development = k.development("run", "--local", ...facts);
+    const published = k.guard("run", "--hook", ...facts);
+    const development = k.development("run", "--hook", ...facts);
     assert.equal(published.status, development.status, `the published Guard's verdict differs from the development Guard's:\n${published.output}\n${development.output}`);
   });
 
@@ -96,17 +104,17 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read("guard.json"), written, "reading guard.json changed it");
   });
 
-  it("guard/T42 [guard/I2, guard/I5, guard/A12]: a real push in the KAAL clone runs KAAL's hook through the installed published Guard, with run --local's verdict", async () => {
+  it("guard/T42 [guard/I2, guard/I5, guard/A12]: a real push in the KAAL clone runs KAAL's hook through the installed published Guard, with run --hook's verdict", async () => {
     const h = await a12();
     const k = h.kaalClone();
-    k.install(PUBLISHED);
+    k.install(RELEASE);
     k.git("add", "-A");
     k.git("commit", "-q", "-m", "consume the published Guard");
     const push = k.push();
     const line = (o) => o.match(/^\w[\w ]*: push: .*$/m)?.[0];
     assert.ok(line(push.output), `the hook printed no verdict for push:\n${push.output}`);
-    const direct = k.guard("run", "--local", ...push.facts);
-    assert.equal(line(push.output), line(direct.output), "the hook's verdict differs from run --local with the same facts");
+    const direct = k.guard("run", "--hook", ...push.facts);
+    assert.equal(line(push.output), line(direct.output), "the hook's verdict differs from run --hook with the same facts");
   });
 
   it("guard/T43 (H4) [guard/I5, guard/F17]: init on KAAL adds nothing that duplicates KAAL's existing integration", async (t) => {
