@@ -16,6 +16,7 @@
     "bin",
     "lib",
     "templates",
+    "skills",
     "contract.json"
   ],
   "scripts": {
