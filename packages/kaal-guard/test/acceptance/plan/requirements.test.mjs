@@ -3,11 +3,11 @@
 // Intent (I…), for reading only. N1 is
 // these tests on Linux, macOS and Windows; N6 is verified by T30. Planned in PLAN; DO and CHECK do not change them.
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
-import { CONFIG, consumer, declaration, NAME, RECORD, sha256, SKILL, tree, verdicts } from "./harness.mjs";
+import { CONFIG, consumer, declaration, exec, NAME, RECORD, sha256, SKILL, tree, verdicts } from "./harness.mjs";
 
 const exit = (status, message = `exit ${status}`) => `node checks/exit.mjs ${status} ${message}`;
 
@@ -914,6 +914,245 @@ describe("guard/N1 [guard/I4, guard/I5] runtime prerequisite", () => {
       assert.match(r.output, /cannot judge/, `${args.join(" ")} on Node 20 is not cannot judge`);
       assert.match(r.output, /Node(?:\.js)? 24/, `${args.join(" ")} on Node 20 does not name Node 24 as the next step`);
       assert.deepEqual(snapshot(c), before, `${args.join(" ")} on Node 20 changed something`);
+    }
+  });
+});
+
+// guard/T84–guard/T92 are planned in guard/C61, from the 0.0.2 release review, and written in guard/C63, before
+// any correction. Each is registered in red.json until its Change (guard/C64–guard/C68): its RED is the
+// evidence that establishes its suspected Defect, and a GREEN would refute it.
+
+const WINDOWS = process.platform === "win32";
+
+/** A symbolic link at `path` in `c` to `target`, or false where the host refuses to make one (Windows without the privilege). */
+const link = (c, target, path) => {
+  try {
+    symlinkSync(target, join(c.dir, path), "file");
+    return true;
+  } catch (e) {
+    if (WINDOWS && e.code === "EPERM") return false;
+    throw e;
+  }
+};
+
+/** Asserts that a command was cannot judge (exit 2), naming `entry`, with no stack trace and no verdict for `check`. */
+const cannotJudge = (r, entry, what, check) => {
+  assert.equal(r.status, 2, `${what}:\n${r.output}`);
+  assert.match(r.output, /cannot judge/, what);
+  assert.ok(r.output.includes(entry), `${what} does not name ${entry}:\n${r.output}`);
+  assert.doesNotMatch(r.output, /^\s+at .+[(:]\d+/m, `${what} printed a stack trace:\n${r.output}`);
+  if (check) assert.equal(verdicts(r.output)[check], undefined, `${what} gave ${check} a verdict:\n${r.output}`);
+};
+
+describe("guard/F28 [guard/I2, guard/I3, guard/I5] declarations that are not regular files", () => {
+  it("guard/T84 [guard/F28, guard/F10]: a declaration that is a symbolic link, and a directory named <name>.md, in the configuration directory each make run --hook, run --ci and run --check cannot judge, naming the entry; neither is skipped", () => {
+    const entries = {
+      "linked.md": (c) => {
+        c.write("elsewhere/linked.md", declaration({ command: exit(1, "the linked check fails"), runs: ["hook", "ci"] }));
+        return link(c, join("..", "..", "..", "elsewhere", "linked.md"), `${CONFIG}/linked.md`);
+      },
+      "folder.md": (c) => (mkdirSync(join(c.dir, CONFIG, "folder.md")), writeFileSync(join(c.dir, CONFIG, "folder.md", "inside.txt"), "not a declaration\n"), true),
+    };
+    for (const [entry, make] of Object.entries(entries)) {
+      const c = given({ ok: { command: exit(0), runs: ["hook", "ci"] } });
+      if (!make(c)) continue;
+      c.commit(entry);
+      for (const args of [["run", "--hook"], ["run", "--ci"], ["run", "--check", "ok"]]) cannotJudge(c.guard(args), entry, `${entry}: ${args.join(" ")}`);
+    }
+  });
+});
+
+describe("guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone", () => {
+  it("guard/T85 [guard/F27, guard/F29, guard/F12]: in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file", () => {
+    const c = consumer();
+    assert.equal(c.guard(["init", "--hook", "--ci"]).status, 0);
+    c.commit("Guard installed");
+    assert.equal(c.git("push", "-q", "--no-verify", "origin", "main").status, 0);
+    const clone = join(c.root, "crlf");
+    const cloned = c.git("-c", "core.autocrlf=true", "clone", "-q", "-b", "main", "--config", "core.autocrlf=true", c.remote, clone);
+    assert.equal(cloned.status, 0, cloned.output);
+    assert.equal(c.git("-C", clone, "config", "--get", "core.autocrlf").stdout.trim(), "true");
+
+    const assets = c.installation();
+    for (const [path, { sha256: hash }] of Object.entries(assets)) {
+      const bytes = readFileSync(join(clone, path));
+      assert.ok(!bytes.includes("\r\n"), `the clone rewrote ${path} with CRLF line endings`);
+      assert.equal(sha256(bytes), hash, `${path} in the clone is not the bytes Guard wrote`);
+    }
+    const sh = exec(clone, "sh", ["-n", ".githooks/pre-push"]);
+    if (sh.status !== null) assert.equal(sh.status, 0, `the cloned hook does not parse under sh:\n${sh.output}`);
+
+    const up = c.guard(["upgrade"], {}, clone);
+    assert.equal(up.status, 0, up.output);
+    for (const path of Object.keys(assets)) assert.ok(!up.output.includes(`kept ${path}`), `upgrade in the clone calls ${path} modified:\n${up.output}`);
+    const rm = c.guard(["remove"], {}, clone);
+    assert.equal(rm.status, 0, rm.output);
+    for (const path of Object.keys(assets)) assert.ok(!existsSync(join(clone, path)), `remove in the clone kept ${path}:\n${rm.output}`);
+  });
+
+  it("guard/T86 [guard/F4, guard/F27]: where core.fileMode is false, init --hook reports git add --chmod=+x .githooks/pre-push, and after the consumer runs it a fresh clone with core.fileMode=true runs the hook on push", () => {
+    const COMMAND = "git add --chmod=+x .githooks/pre-push";
+    const c = consumer();
+    assert.equal(c.git("config", "core.fileMode", "false").status, 0);
+    const init = c.guard(["init", "--hook"]);
+    assert.equal(init.status, 0, init.output);
+    assert.ok(init.output.includes(COMMAND), `init --hook does not report ${COMMAND}:\n${init.output}`);
+    c.checks({ ok: { command: exit(0), runs: ["hook"] } });
+    assert.equal(c.git("add", "-A").status, 0);
+    assert.equal(c.git(...COMMAND.split(" ").slice(1)).status, 0, `${COMMAND} failed`);
+    c.commit("Guard installed, hook recorded executable");
+    assert.equal(c.git("push", "-q", "--no-verify", "origin", "main").status, 0);
+
+    // A fresh clone that honours the mode Git recorded: with the consumer's own dependencies installed and the
+    // hook enabled as the consumer would, a push there runs Guard's hook. Without the recorded mode Git skips it.
+    const clone = join(c.root, "modes");
+    const cloned = c.git("clone", "-q", "-b", "main", "--config", "core.fileMode=true", c.remote, clone);
+    assert.equal(cloned.status, 0, cloned.output);
+    assert.match(c.git("-C", clone, "ls-files", "-s", ".githooks/pre-push").stdout, /^100755 /, "the hook is not recorded executable");
+    const installed = exec(clone, "npm", ["ci", "--no-audit", "--no-fund", "--offline"], c.env);
+    assert.equal(installed.status, 0, `npm ci in the clone: ${installed.output}`);
+    for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"], ["core.hooksPath", ".githooks"]]) {
+      assert.equal(c.git("-C", clone, "config", k, v).status, 0, `git config ${k} in the clone`);
+    }
+    assert.equal(c.git("-C", clone, "commit", "-q", "--allow-empty", "-m", "from the clone").status, 0);
+    const push = c.git("-C", clone, "push", "origin", "main");
+    assert.equal(push.status, 0, push.output);
+    assert.equal(verdicts(push.output).ok?.verdict, "pass", `a push from the fresh clone did not run Guard's hook:\n${push.output}`);
+  });
+});
+
+describe("guard/F5 [guard/I2, guard/I3] Guard's workflow", () => {
+  it("guard/T87 [guard/F5, guard/N1]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line", () => {
+    const c = given({ build: { command: exit(0), runs: ["ci"] } });
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
+    const lines = c.read(".github/workflows/guard.yml").split(/\r?\n/);
+    const uses = lines.filter((l) => /^\s*-?\s*uses:/.test(l));
+    for (const action of ["actions/checkout", "actions/setup-node"]) assert.ok(uses.some((l) => l.includes(`${action}@`)), `the workflow does not use ${action}`);
+    for (const l of uses) assert.match(l, /uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40}(\s|$)/, `not pinned by commit SHA: ${l.trim()}`);
+    const versions = lines.filter((l) => /^\s*node-version:/.test(l));
+    assert.ok(versions.length > 0, "the workflow names no node-version");
+    for (const l of versions) assert.match(l, /node-version: ["']?24["']?\s*$/, `not Node 24: ${l.trim()}`);
+    // A run: line, and every line of its block scalar, is shell: no GitHub expression may reach it.
+    lines.forEach((l, i) => {
+      const m = /^(\s*)(?:- )?run:/.exec(l);
+      if (!m) return;
+      const indent = m[1].length + (l.trimStart().startsWith("- ") ? 2 : 0);
+      const block = [l];
+      for (let j = i + 1; j < lines.length && (lines[j].trim() === "" || lines[j].search(/\S/) > indent); j++) block.push(lines[j]);
+      for (const b of block) assert.ok(!b.includes("${{"), `a GitHub expression in a run: line: ${b.trim()}`);
+    });
+  });
+});
+
+describe("guard/F8 and guard/F13 [guard/I5, guard/I6] a missing registered asset", () => {
+  it("guard/T88 [guard/F8, guard/F13]: after the registered hook is deleted, init --hook reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, upgrade reinstalls it", () => {
+    const c = consumer();
+    assert.equal(c.guard(["init", "--hook"]).status, 0);
+    c.commit("Guard installed");
+    rmSync(join(c.dir, ".githooks", "pre-push"));
+    c.commit("hook lost");
+    const init = c.guard(["init", "--hook"]);
+    assert.equal(init.status, 0, init.output);
+    assert.ok(c.exists(".githooks/pre-push"), `init --hook did not reinstall the registered hook:\n${init.output}`);
+    assert.match(init.output, /reinstalled[^\n]*\.githooks\/pre-push|\.githooks\/pre-push[^\n]*reinstalled/, `init --hook does not report the hook reinstalled:\n${init.output}`);
+    c.checks({ ok: { command: exit(0), runs: ["hook"] } });
+    c.commit("hook back");
+    const push = c.git("push", "origin", "main");
+    assert.equal(push.status, 0, push.output);
+    assert.equal(verdicts(push.output).ok?.verdict, "pass", `the reinstalled hook did not run:\n${push.output}`);
+
+    const skill = `${SKILL}/SKILL.md`;
+    assert.ok(c.installation()[skill], "init did not register the Skill");
+    rmSync(join(c.dir, skill));
+    const up = c.guard(["upgrade"]);
+    assert.equal(up.status, 0, up.output);
+    assert.ok(c.exists(skill), `upgrade did not reinstall the registered Skill:\n${up.output}`);
+    assert.match(up.output, /reinstalled/, `upgrade does not report the Skill reinstalled:\n${up.output}`);
+  });
+});
+
+describe("guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows", () => {
+  it("guard/T89 [guard/F10, guard/F17, guard/N4]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace", () => {
+    const entry = ".github/workflows/x.yml";
+    const entries = {
+      directory: (c) => (mkdirSync(join(c.dir, entry), { recursive: true }), writeFileSync(join(c.dir, entry, "inside.txt"), "not a workflow\n"), true),
+      "dangling link": (c) => (mkdirSync(join(c.dir, ".github", "workflows"), { recursive: true }), link(c, "missing.yml", entry)),
+    };
+    for (const [kind, make] of Object.entries(entries)) {
+      const c = given({ build: { command: exit(0), runs: ["ci"] } });
+      assert.equal(c.guard(["init"]).status, 0);
+      if (!make(c)) continue;
+      cannotJudge(c.guard(["verify"]), "x.yml", `${kind}: verify`, "build");
+      cannotJudge(c.guard(["init", "--ci"]), "x.yml", `${kind}: init --ci`);
+      assert.ok(!c.exists(".github/workflows/guard.yml"), `${kind}: init --ci installed a workflow beside one it cannot read`);
+    }
+  });
+});
+
+describe("guard/F8 [guard/I5, guard/I6] remove and the configuration directory", () => {
+  it("guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/", () => {
+    const c = consumer();
+    const inside = join(c.dir, "empty-config");
+    const outside = join(c.root, "outside-config");
+    for (const dir of [inside, outside]) {
+      mkdirSync(dir);
+      assert.equal(c.guard(["init"]).status, 0);
+      const r = c.guard(["remove", "--config", dir]);
+      assert.ok(existsSync(dir), `remove --config deleted ${dir}:\n${r.output}`);
+    }
+
+    const d = consumer();
+    assert.equal(d.guard(["init"]).status, 0);
+    assert.ok(d.exists(CONFIG), "a bare init did not create the default configuration directory");
+    const rm = d.guard(["remove"]);
+    assert.equal(rm.status, 0, rm.output);
+    assert.ok(!d.exists(CONFIG), "remove kept the empty default configuration directory");
+  });
+});
+
+describe("guard/F2 [guard/I2] named outcomes", () => {
+  it('guard/T91 [guard/F2, guard/F18]: an outcomes key "04", "+4" or "256" is refused as cannot judge, naming the canonical form, and "4" names exit 4 as held', () => {
+    for (const [key, canonical] of [["04", '"4"'], ["+4", '"4"'], ["256", '"255"']]) {
+      const c = given({ h: { command: exit(0), runs: ["hook", "ci"], outcomes: { [key]: "held" } } });
+      for (const args of [["run", "--check", "h"], ["run", "--hook"], ["verify"]]) {
+        const r = c.guard(args);
+        cannotJudge(r, `${CONFIG}/h.md`, `"${key}": ${args.join(" ")}`, "h");
+        assert.ok(r.output.includes(canonical), `"${key}": ${args.join(" ")} does not name ${canonical}:\n${r.output}`);
+      }
+    }
+    const held = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook"], outcomes: { 4: "held" } } });
+    assert.equal(verdicts(held.guard(["run", "--check", "h"]).output).h?.verdict, "held");
+  });
+});
+
+describe("guard/N1 [guard/I4, guard/I5] Git prerequisite", () => {
+  it("guard/T92 [guard/N1]: with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing", () => {
+    const c = given({ x: { command: exit(0), runs: ["hook", "ci"] } });
+    // An older Git, as the running command sees it: like guard/T59's Node, the preload replaces only what
+    // `git --version` reports through Node's child_process, on every host, and every other Git call is the real one.
+    const preload = join(c.root, "git225.mjs");
+    writeFileSync(preload, [
+      'import { createRequire, syncBuiltinESMExports } from "node:module";',
+      'const cp = createRequire(import.meta.url)("node:child_process");',
+      'const asked = (file, args) => /(^|[\\\\/])git(\\.exe)?$/i.test(String(file)) && Array.isArray(args) && ["--version", "version"].includes(args[0]);',
+      'const text = (options) => Boolean(options?.encoding) && options.encoding !== "buffer";',
+      'const REPORT = "git version 2.25.0\\n";',
+      'const { spawnSync, execFileSync } = cp;',
+      'cp.spawnSync = (file, args, options) => (asked(file, args) ? { pid: 0, status: 0, signal: null, stdout: text(options) ? REPORT : Buffer.from(REPORT), stderr: text(options) ? "" : Buffer.alloc(0) } : spawnSync(file, args, options));',
+      'cp.execFileSync = (file, args, options) => (asked(file, args) ? (text(options) ? REPORT : Buffer.from(REPORT)) : execFileSync(file, args, options));',
+      "syncBuiltinESMExports();",
+      "",
+    ].join("\n"));
+    const old = { NODE_OPTIONS: `--import="${pathToFileURL(preload).href}"` };
+    const seen = exec(c.dir, process.execPath, ["--input-type=module", "-e", 'import { spawnSync } from "node:child_process"; process.stdout.write(spawnSync("git", ["--version"], { encoding: "utf8" }).stdout);'], old);
+    assert.equal(seen.stdout.trim(), "git version 2.25.0", `the preload does not stand in for git --version: ${seen.output}`);
+    for (const args of [["run", "--hook"], ["run", "--check", "x"], ["verify"], ["init"], ["init", "--hook"], ["upgrade"], ["remove"]]) {
+      const before = snapshot(c);
+      const r = c.guard(args, old);
+      assert.equal(r.status, 2, `${args.join(" ")} on Git 2.25: ${r.output}`);
+      assert.match(r.output, /cannot judge/, `${args.join(" ")} on Git 2.25 is not cannot judge`);
+      assert.match(r.output, /Git 2\.26/, `${args.join(" ")} on Git 2.25 does not name Git 2.26 as the next step`);
+      assert.deepEqual(snapshot(c), before, `${args.join(" ")} on Git 2.25 changed something`);
     }
   });
 });
