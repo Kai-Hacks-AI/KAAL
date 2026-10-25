@@ -25,6 +25,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.json",
     "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/hosting.test.js dist-test/conformance.test.js test/plan/reconciliation.test.mjs",
+    "test:plan": "npm run build && node --test test/plan/cleanup.test.mjs",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build"
   },
   "engines": {
