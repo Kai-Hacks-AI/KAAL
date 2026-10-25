@@ -127,6 +127,31 @@ validate(bytes, types); // { verdict: "valid" | "invalid" | "unknown", findings:
 
 An artifact that names no Type the mapping holds is `unknown`, never `valid`. `validate` throws a `TypeError` if a supplied Type or schema is itself invalid.
 
+### Installation Contract
+
+`kaal-core/installation` checks an installation contract: the one installer-neutral JSON document in which a Capability states what an installation of it is, in the format of Core's `Installation Contract` Definition. A contract names that format, its Capability, version, assets, catalogue of published SHA-256s, record, runtime and the Skills it provides; the lifecycle rules are the format's. A Capability conforms by data alone and does not import this module to do so.
+
+```js
+import { checkContract, installationFormat } from "kaal-core/installation";
+
+checkContract({ format: installationFormat(), capability: "sample", version: "0.0.2", assets, catalogue, record, runtime: { node: 24 }, provides: [{ skill: "sample" }] });
+// [] when it conforms, otherwise [{ key: "assets.0.target", rule: "path" }, ...]
+```
+
+### Agent Realization
+
+`kaal-core/agent` plans how Core makes each Skill reachable by the agents of the providers a repository declares in `.kaal/config/core/agents.json` (`declaration`). Every Skill is deployed to `.agents/skills/<name>/`; a provider that discovers Skills only at a location of its own (Claude Code, `.claude/skills/<name>/`) gets a copy generated from the same canonical source. Core claims only what its own record holds: a file someone changed, and anything at a target Core did not deploy, is kept and reported, and only unmodified files Core deployed are pruned. Core never writes an instruction file such as `AGENTS.md` or `CLAUDE.md`, and governs no location but its own deployments.
+
+```js
+import { realize, renderSkill } from "kaal-core/agent";
+
+realize({ skills: [{ name, files }], providers: ["claude-code"], record, present });
+// { write: [{ path, bytes }], keep: [{ path, reason }], prune: [path], pointers, unknown: [provider], record }
+renderSkill(bytes); // the supplier SKILL.md: name, and description copied from the source's "## Description"
+```
+
+Both modules are pure and import no host module; applying a plan is Hosting's.
+
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
