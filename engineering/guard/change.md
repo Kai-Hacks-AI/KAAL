@@ -195,11 +195,15 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C10` | K3c | Guard | guard/D3 (guard/T43): adoption by the declared integration contract | `guard/C23` | #341, merged |
 | `guard/C11` | K3d | Guard | guard/D2 (guard/T39): writer version in the installation record | `guard/C25` | not created |
 | `guard/C12` | B1 | Guard | This PLAN: guard/I7, guard/F19–guard/F27, guard/N1, guard/N10–guard/N12, guard/A13–guard/A17, guard/T45–guard/T59. No code and no test file | — | #335, merged |
-| `guard/C13` | B2 | Guard | guard/T45–guard/T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | not created |
-| `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; guard/T45, guard/T46, guard/T58 | `guard/C13`, `core/C3` | not created |
-| `guard/C15` | B4 | Guard | The reminder; guard/T47–guard/T49 | `guard/C14` | not created |
-| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T54, guard/T57, guard/T59 | `guard/C14`, `guard/C25`, `guard/C9`, `guard/C11` | not created |
-| `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; guard/T56 | `guard/C14`; `core/C4` for Core's part | not created |
+| `guard/C13` | B2 | Guard | guard/T45–guard/T59, as a PLAN Change inside the acceptance boundary | `guard/C12` | #381, merged |
+| `guard/C14` | B3 | Guard | The Skill source and Guard's `contract.json` instance; guard/T45, guard/T58, and guard/T46 for the Embed Skill | `guard/C13`, `core/C3` | not created |
+| `guard/C15` | B4 | Guard | The reminder; guard/T47–guard/T49, and guard/T82 with `guard/C16` | `guard/C14` | not created |
+| `guard/C16` | B5 | Guard | The standalone lifecycle realizes the instance; Node 24; guard/T50–guard/T54, guard/T57, guard/T59, and guard/T82 with `guard/C15` | `guard/C14`, `guard/C25`, `guard/C9`, `guard/C11` | not created |
+| `guard/C17` | B6 | Guard | External: the canonical variant, and Core's further deployments at delivery; guard/T56, guard/T83 for Core's part, and guard/T46 for the External variant | `guard/C14`; `core/C4` for Core's part | not created |
+| `guard/C45` | — | Guard | The Guard lane holds the Feature REDs registered in `engineering/guard/red.json` on `kaal/guard`, and fails any other target while one is registered (the Owner's reviews 5643242085 and 5643271116 on #381 and #389) | `guard/C29` | #389, merged |
+| `guard/C46` | — | Guard | The placements the Owner decided on #381 (5643242085): guard/T46 runs only where KAAL's workspace is installed; guard/T56's Core-at-delivery part becomes guard/T83; guard/T82 for the reminder naming the deployed Skill; guard/T58's and guard/A15's stale texts. No code and no test file | `guard/C13`, `guard/C45` | not created |
+| `guard/C47` | — | Guard | The Guard lane selects `engineering/guard/acceptance/plan/workspace.test.mjs`, guard/T46's file, only on the host that installs KAAL's workspace, and `red.json` registers guard/T83 as a Feature RED until `guard/C17` | `guard/C46` | not created |
+| `guard/C48` | — | Guard | guard/T46 moved to `engineering/guard/acceptance/plan/workspace.test.mjs`, guard/T56 without Core at delivery, guard/T82 and guard/T83 written in the boundary. It travels alone | `guard/C47` | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C9`–`guard/C11`, `guard/C15`–`guard/C17`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance of `0.0.2`: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 with `registry` evidence for the published `0.0.2`. guard/T65–guard/T68 do not gate it (restated in `guard/C30`) | `guard/C19`, `guard/C37` | not created |
@@ -261,6 +265,11 @@ graph LR
   C25 --> FE
   C12[guard/C12 B1 PLAN] --> C13[guard/C13 tests]
   C13 --> C14[guard/C14 Skill and contract]
+  C13 --> C46[guard/C46 placements]
+  C45[guard/C45 RED lane gate] --> C46
+  C46 --> C47[guard/C47 lane and register]
+  C47 --> C48[guard/C48 T46, T56, T82, T83 written]
+  C48 --> C14
   CP[core/C3 PLAN] --> C14
   C14 --> C15[guard/C15 reminder]
   C14 --> C16[guard/C16 standalone lifecycle]
