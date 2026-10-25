@@ -4,7 +4,9 @@
 // is the registered one, and the core.hooksPath its checkout state records. A file at a managed path that
 // the record does not register is not Guard's, even with Guard's bytes: it is reported and left alone.
 // It writes only content the contract's catalogue holds, and reads the adapter templates as files, never
-// importing them.
+// importing them. contract.json is an instance of Core's Installation Contract format, and the one list
+// of Guard's assets: each asset's source in the package, its target in the repository, its kind and, for
+// the hook and the workflow, its surface. An asset with no surface, the Skill, is part of every init.
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -19,16 +21,13 @@ const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const CONTRACT = JSON.parse(readFileSync(join(PACKAGE, "contract.json"), "utf8"));
 export const VERSION = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).version;
 
-const asset = (role) => CONTRACT.assets.find((a) => a.role === role);
-const HOOK = asset("hook").path;
-const WORKFLOW = asset("workflow").path;
+const asset = (name) => CONTRACT.assets.find((a) => a.name === name);
+const HOOK = asset("hook").target;
+const WORKFLOW = asset("workflow").target;
 const HOOKS_PATH = dirname(HOOK);
 
-/** The contract's assets of one surface (F30). */
-const of = (surface) => CONTRACT.assets.filter((a) => a.surface === surface);
-
 /** The line a pre-existing hook adds to run Guard's own: it runs kaal-guard run --hook with the push's facts. */
-const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/${CONTRACT.assets.find((a) => a.role === "hook").sources.hook} "$@" || exit 1`;
+const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/${asset("hook").source} "$@" || exit 1`;
 const ADD_HOOK_LINE = [
   `  ${HOOK_LINE}`,
   "  It runs kaal-guard run --hook with the push's facts, reading the push's lines on standard input.",
@@ -37,10 +36,27 @@ const ADD_HOOK_LINE = [
 export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const lf = (text) => text.replace(/\r\n/g, "\n");
 
-/** Every content this version installs, by asset path and source name. */
-export function sources() {
-  return Object.fromEntries(CONTRACT.assets.map((a) => [a.path, Object.fromEntries(Object.entries(a.sources).map(([name, file]) => [name, lf(readFileSync(join(PACKAGE, file), "utf8"))]))]));
+/** Every file under `dir`, by path relative to it with forward slashes. */
+const walk = (dir, prefix = "") =>
+  readdirSync(join(dir, prefix), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(dir, `${prefix}${e.name}/`) : [`${prefix}${e.name}`])).sort();
+
+/**
+ * Every file this version installs, in the contract's order: its repository path, its content, and its
+ * asset's surface (none for an asset every init installs) and executable bit. A directory asset installs
+ * each file under its source.
+ */
+export function files() {
+  return CONTRACT.assets.flatMap((a) => {
+    const one = (path, file) => ({ path, text: lf(readFileSync(join(PACKAGE, file), "utf8")), surface: a.surface, executable: a.executable === true });
+    return a.kind === "directory" ? walk(join(PACKAGE, a.source)).map((f) => one(`${a.target}/${f}`, `${a.source}/${f}`)) : [one(a.target, a.source)];
+  });
 }
+
+/** Every content this version installs, by repository path. */
+export const sources = () => Object.fromEntries(files().map((f) => [f.path, f.text]));
+
+/** The files of the assets of one surface, or of the assets every init installs when `surface` is undefined (F30). */
+const of = (surface) => files().filter((f) => f.surface === surface);
 
 /**
  * The repository's own declarations, read with verify's rule (F17): those in a file the record registers
@@ -54,8 +70,7 @@ function install(root, path, text) {
   if (!(CONTRACT.catalogue[path] ?? []).includes(hash)) throw new Error(`kaal-guard ${VERSION} would write ${path} with content its catalogue does not hold; the package is inconsistent`);
   mkdirSync(dirname(join(root, path)), { recursive: true });
   writeFileSync(join(root, path), text);
-  const mode = CONTRACT.assets.find((a) => a.path === path)?.mode;
-  if (mode) chmodSync(join(root, path), parseInt(mode, 8));
+  if (files().find((f) => f.path === path)?.executable) chmodSync(join(root, path), 0o755);
   return { sha256: hash, version: VERSION };
 }
 
@@ -115,23 +130,23 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
     todo.push(`Declare each check as ${config}/<name>.md, with type: Guard/Check, command and runs in its frontmatter; see the package's README.`);
   }
   if (!record.exists) installed.push(`${RECORD}, Guard's installation record`);
-  const files = {};
-  if (hook) for (const a of of("hook")) files[a.path] = { surface: "hook", text: Object.values(sources()[a.path])[0] };
+  const wanted = [...of(undefined)];
+  if (hook) wanted.push(...of("hook"));
   if (ci) {
     if (own.length) untouched.push(`${WORKFLOW}: not installed; your workflows already run Guard (${executed(own).join("; ")}), and Guard's workflow would run those checks a second time`);
-    else for (const a of of("ci")) files[a.path] = { surface: "ci", text: Object.values(sources()[a.path])[0] };
+    else wanted.push(...of("ci"));
   }
-  for (const [path, { surface, text }] of Object.entries(files)) {
+  for (const { path, surface, text } of wanted) {
     if (assets[path]) {
       untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
-      activated.add(surface);
+      if (surface) activated.add(surface);
     } else if (existsSync(join(root, path))) {
       untouched.push(`${path}: it was there before Guard, so it is not Guard's`);
       if (path === HOOK) todo.push(`To run Guard's hook checks from ${HOOK}, add this line before it ends:`, ...ADD_HOOK_LINE);
     } else {
       assets[path] = install(root, path, text);
       installed.push(path);
-      activated.add(surface);
+      if (surface) activated.add(surface);
     }
   }
   if (hook) hooksPath(root, { assets, state, at, installed, untouched, todo });
@@ -191,20 +206,19 @@ export function upgrade(root, { record, declared }) {
   const own = theirs(declared, assets);
   const lines = [];
   let changed = false;
-  for (const { path, surface } of CONTRACT.assets) {
+  for (const { path, surface, text } of files()) {
     const entry = assets[path];
-    const text = Object.values(sources()[path])[0];
     if (!entry) {
       if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
-      else if (record.activated.includes(surface)) {
+      else if (!surface || record.activated.includes(surface)) {
         assets[path] = install(root, path, text);
         changed = true;
-        lines.push(`installed ${path}: ${VERSION}; the activated ${surface} surface did not have it`);
+        lines.push(surface ? `installed ${path}: ${VERSION}; the activated ${surface} surface did not have it` : `installed ${path}: ${VERSION}; every init installs it`);
       }
       continue;
     }
     const now = condition(root, path, entry);
-    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove --${surface} drops it from the record)`);
+    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove${surface ? ` --${surface}` : ""} drops it from the record)`);
     else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it keeps that registered version`);
     else if (sha256(Buffer.from(text)) === entry.sha256) {
       lines.push(entry.version === VERSION ? `current ${path}: ${VERSION}` : `current ${path}: unchanged from ${entry.version} to ${VERSION}`);
@@ -233,7 +247,7 @@ export function remove(root, { dir, record, state, at, hook = false, ci = false 
   const surfaces = SURFACES.filter((s) => all || (s === "hook" ? hook : ci));
   const assets = { ...record.assets };
   const lines = [];
-  for (const { path, surface } of CONTRACT.assets.filter((a) => surfaces.includes(a.surface))) {
+  for (const { path } of files().filter((f) => (f.surface ? surfaces.includes(f.surface) : all))) {
     const entry = assets[path];
     if (!entry) {
       if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);

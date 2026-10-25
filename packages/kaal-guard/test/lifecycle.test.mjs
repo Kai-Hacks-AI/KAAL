@@ -14,6 +14,8 @@ import { checkout, readRecord, readState, RECORD } from "../lib/state.mjs";
 
 const HOOK = ".githooks/pre-push";
 const WORKFLOW = ".github/workflows/guard.yml";
+/** The Skill, the asset every init installs (guard/C51). */
+const SKILL = ".agents/skills/kaal-guard/SKILL.md";
 
 /** A fresh Git working tree declaring these checks, when given. */
 function tree(checks) {
@@ -42,25 +44,34 @@ const hooksPath = (dir) => spawnSync("git", ["config", "--local", "--get", "core
 const ci = { command: "x", runs: ["ci"] };
 
 describe("installation contract", () => {
-  it("catalogues every content this version installs, and only the assets its sources name", () => {
-    for (const [path, contents] of Object.entries(sources())) {
-      for (const text of Object.values(contents)) assert.ok(CONTRACT.catalogue[path].includes(sha256(Buffer.from(text))), `${path} is not catalogued`);
-    }
-    assert.deepEqual(Object.keys(CONTRACT.catalogue).sort(), CONTRACT.assets.map((a) => a.path).sort());
+  it("catalogues every content this version installs, and only the files its assets name", () => {
+    for (const [path, text] of Object.entries(sources())) assert.ok(CONTRACT.catalogue[path].includes(sha256(Buffer.from(text))), `${path} is not catalogued`);
+    assert.deepEqual(Object.keys(CONTRACT.catalogue).sort(), Object.keys(sources()).sort());
+  });
+
+  it("is an instance of Core's Installation Contract format, with the Skill as an asset every init installs", () => {
+    assert.deepEqual(Object.keys(CONTRACT), ["format", "capability", "version", "assets", "catalogue", "record", "runtime", "provides"]);
+    assert.equal(CONTRACT.format.name, "Installation Contract");
+    assert.equal(CONTRACT.version, VERSION, "the contract's version is not the package's");
+    assert.equal(CONTRACT.record, ".kaal/state/guard/installation.json");
+    assert.deepEqual(CONTRACT.provides, [{ skill: "kaal-guard" }]);
+    const skill = CONTRACT.assets.find((a) => a.name === "skill");
+    assert.deepEqual(skill, { name: "skill", source: "skills/kaal-guard", target: ".agents/skills/kaal-guard", kind: "directory" });
+    assert.deepEqual(CONTRACT.assets.filter((a) => a.surface).map((a) => [a.name, a.surface]), [["hook", "hook"], ["workflow", "ci"]]);
   });
 
   it("has one workflow, which runs verify and every ci check in one job, each in the declared form", () => {
     const dir = tree({});
-    write(dir, WORKFLOW, sources()[WORKFLOW].workflow);
+    write(dir, WORKFLOW, sources()[WORKFLOW]);
     assert.deepEqual(declarations(dir).map((d) => [d.name, d.job]), [["verify", "guard"], ["ci", "checks"]]);
-    assert.doesNotMatch(sources()[WORKFLOW].workflow, /matrix|list/, "Guard's workflow computes which checks it runs");
+    assert.doesNotMatch(sources()[WORKFLOW], /matrix|list/, "Guard's workflow computes which checks it runs");
   });
 });
 
 describe("declared integration", () => {
   it("credits a job that runs every ci check, after any job that names one", () => {
     const dir = tree({ a: ci, b: ci, l: { command: "x", runs: ["hook"] } });
-    write(dir, WORKFLOW, sources()[WORKFLOW].workflow);
+    write(dir, WORKFLOW, sources()[WORKFLOW]);
     write(dir, ".github/workflows/own.yml", "jobs:\n  own:\n    steps:\n      - run: npx --no kaal-guard run --check a\n");
     const results = verify(dir, list(dir)).results;
     assert.deepEqual(results.map((r) => [r.name, r.verdict]), [["a", "pass"], ["b", "pass"]]);
@@ -82,13 +93,13 @@ describe("lifecycle", () => {
   it("init writes, registers, sets and records; remove takes back exactly that and keeps the declarations", () => {
     const dir = tree({ a: ci });
     const out = step(init, dir, { hook: true, ci: true });
-    assert.match(out, /installed by Guard:\n {2}\.kaal\/state\/guard\/installation\.json, Guard's installation record\n {2}\.githooks\/pre-push\n {2}\.github\/workflows\/guard\.yml\n {2}core\.hooksPath = \.githooks in the local configuration\n/);
+    assert.match(out, /installed by Guard:\n {2}\.kaal\/state\/guard\/installation\.json, Guard's installation record\n {2}\.agents\/skills\/kaal-guard\/SKILL\.md\n {2}\.githooks\/pre-push\n {2}\.github\/workflows\/guard\.yml\n {2}core\.hooksPath = \.githooks in the local configuration\n/);
     assert.equal(hooksPath(dir), ".githooks");
-    assert.deepEqual(Object.keys(assets(dir)).sort(), [HOOK, WORKFLOW]);
-    assert.deepEqual(Object.values(assets(dir)).map((e) => e.version), [VERSION, VERSION]);
+    assert.deepEqual(Object.keys(assets(dir)).sort(), [SKILL, HOOK, WORKFLOW]);
+    assert.deepEqual(Object.values(assets(dir)).map((e) => e.version), [VERSION, VERSION, VERSION]);
     assert.deepEqual(readState(checkout(dir)), { "core.hooksPath": ".githooks", scope: "local" });
-    assert.match(step(remove, dir), /removed \.githooks\/pre-push\nremoved \.github\/workflows\/guard\.yml\nunset core\.hooksPath in the local configuration/);
-    assert.ok(!existsSync(join(dir, ".githooks")) && !existsSync(join(dir, ".github")) && !existsSync(join(dir, RECORD)) && !existsSync(join(dir, ".kaal", "state")));
+    assert.match(step(remove, dir), /removed \.githooks\/pre-push\nremoved \.github\/workflows\/guard\.yml\nremoved \.agents\/skills\/kaal-guard\/SKILL\.md\nunset core\.hooksPath in the local configuration/);
+    assert.ok(!existsSync(join(dir, ".agents")) && !existsSync(join(dir, ".githooks")) && !existsSync(join(dir, ".github")) && !existsSync(join(dir, RECORD)) && !existsSync(join(dir, ".kaal", "state")));
     assert.equal(readState(checkout(dir)), undefined);
     assert.ok(!existsSync(join(dir, ".git", "kaal")), "remove left Guard's directories in Git's metadata");
     assert.equal(hooksPath(dir), "");
@@ -107,12 +118,12 @@ describe("lifecycle", () => {
     const dir = tree({});
     write(dir, HOOK, "#!/bin/sh\n");
     const out = step(init, dir, { hook: true, ci: true });
-    assert.match(out, /installed by Guard:\n {2}\.kaal\/state\/guard\/installation\.json, Guard's installation record\n {2}\.github\/workflows\/guard\.yml\n/);
+    assert.match(out, /installed by Guard:\n {2}\.kaal\/state\/guard\/installation\.json, Guard's installation record\n {2}\.agents\/skills\/kaal-guard\/SKILL\.md\n {2}\.github\/workflows\/guard\.yml\n/);
     assert.match(out, /left untouched:\n {2}\.githooks\/pre-push: it was there before Guard, so it is not Guard's\n/);
     assert.match(out, /still to do in this repository:\n {2}To run Guard's hook checks from \.githooks\/pre-push/);
     assert.match(out, /does not show that Git runs the hook, that CI runs these jobs, or that a merge requires them/);
     assert.match(out, /declared integration only/);
-    assert.deepEqual(Object.keys(assets(dir)), [WORKFLOW]);
+    assert.deepEqual(Object.keys(assets(dir)), [SKILL, WORKFLOW]);
   });
 
   it("does not set core.hooksPath over hooks Git already runs, nor for a hook it did not install", () => {
@@ -157,7 +168,7 @@ describe("lifecycle", () => {
     write(dir, WORKFLOW, older);
     write(dir, RECORD, JSON.stringify({ activated: ["hook", "ci"], assets: { ...assets(dir), [WORKFLOW]: { sha256: sha256(Buffer.from(older)), version: "0.0.0-older" } } }));
     assert.ok(step(upgrade, dir).includes(`upgraded ${WORKFLOW}: from 0.0.0-older to ${VERSION}`));
-    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW].workflow);
+    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW]);
   });
 
   it("init without ci installs no workflow, and reports each ci check no job runs with the step to add", () => {
@@ -165,7 +176,7 @@ describe("lifecycle", () => {
     write(dir, ".github/workflows/ci.yml", "jobs:\n  own:\n    steps:\n      - run: kaal-guard run --check a\n");
     const out = step(init, dir);
     assert.ok(!existsSync(join(dir, WORKFLOW)));
-    assert.deepEqual(assets(dir), {});
+    assert.deepEqual(Object.keys(assets(dir)), [SKILL]);
     assert.match(out, /No workflow job runs these ci checks, and Guard does not run them in CI on its own[^\n]*\n {4}- run: npx --no kaal-guard run --check b --config \.kaal\/config\/guard --github\n/);
     assert.doesNotMatch(out, /or run kaal-guard init --ci/, "init offers Guard's workflow beside one that already runs Guard");
     assert.doesNotMatch(out, /--check (a|l) /);
@@ -203,7 +214,7 @@ describe("lifecycle", () => {
     const dir = tree({ a: ci });
     step(init, dir, { hook: true, ci: true });
     assert.ok(step(upgrade, dir).includes(`current ${WORKFLOW}: ${VERSION}`));
-    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW].workflow);
+    assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW]);
   });
 
   it("init activates nothing, names both activations, and keeps the record it prepares", () => {
@@ -211,7 +222,9 @@ describe("lifecycle", () => {
     const out = step(init, dir);
     assert.ok(!existsSync(join(dir, HOOK)) && !existsSync(join(dir, WORKFLOW)));
     assert.equal(hooksPath(dir), "");
-    assert.deepEqual(readRecord(dir), { activated: [], assets: {}, exists: true });
+    // The Skill is part of every init; installing it activates no surface (guard/F30).
+    assert.deepEqual(readRecord(dir).activated, []);
+    assert.deepEqual(Object.keys(readRecord(dir).assets), [SKILL]);
     assert.match(out, /The hook is not activated\. Run kaal-guard init --hook/);
     assert.match(out, /or run kaal-guard init --ci/);
   });
@@ -228,7 +241,9 @@ describe("lifecycle", () => {
     assert.deepEqual(readRecord(dir).activated, ["hook"]);
     assert.equal(hooksPath(dir), ".githooks");
     assert.match(step(remove, dir, { hook: true }), /removed \.githooks\/pre-push\nunset core\.hooksPath in the local configuration\ndeactivated hook/);
-    assert.deepEqual(readRecord(dir), { activated: [], assets: {}, exists: true });
+    // Removing a surface keeps the Skill, which only a full remove takes back.
+    assert.deepEqual(readRecord(dir).activated, []);
+    assert.deepEqual(Object.keys(readRecord(dir).assets), [SKILL]);
     assert.equal(readFileSync(join(dir, CONFIG, "h.md"), "utf8"), declared);
   });
 
@@ -237,7 +252,7 @@ describe("lifecycle", () => {
     step(init, dir, { hook: true });
     rmSync(join(dir, HOOK));
     write(dir, RECORD, JSON.stringify({ activated: ["hook"], assets: {} }));
-    write(dir, WORKFLOW, sources()[WORKFLOW].workflow);
+    write(dir, WORKFLOW, sources()[WORKFLOW]);
     const out = step(upgrade, dir);
     assert.ok(out.includes(`installed ${HOOK}: ${VERSION}; the activated hook surface did not have it`), out);
     assert.match(out, /left alone \.github\/workflows\/guard\.yml: not Guard's; the installation record does not register it/);

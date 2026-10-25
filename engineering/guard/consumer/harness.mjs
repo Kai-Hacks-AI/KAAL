@@ -14,7 +14,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const KAAL = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -98,19 +98,27 @@ function variant(version, after = {}, adds = false) {
   const contract = JSON.parse(readFileSync(join(dir, "contract.json"), "utf8"));
   if (adds) {
     writeFileSync(join(dir, "templates", "candidate.md"), `Added to the hook surface by the candidate ${version}.\n`);
-    contract.assets.push({ role: "candidate", surface: "hook", path: ".githooks/candidate.md", sources: { candidate: "templates/candidate.md" } });
+    contract.assets.push({ name: "candidate", source: "templates/candidate.md", target: ".githooks/candidate.md", kind: "file", surface: "hook" });
   }
+  // Each file an asset installs, by repository path and package source: a directory asset installs every file under its source.
+  const files = contract.assets.flatMap((a) =>
+    a.kind === "directory"
+      ? readdirSync(join(dir, a.source), { recursive: true, withFileTypes: true })
+          .filter((e) => e.isFile())
+          .map((e) => {
+            const rel = relative(join(dir, a.source), join(e.parentPath ?? e.path, e.name)).split("\\").join("/");
+            return { asset: a, target: `${a.target}/${rel}`, source: `${a.source}/${rel}` };
+          })
+      : [{ asset: a, target: a.target, source: a.source }],
+  );
   const catalogue = {};
-  for (const asset of contract.assets) {
-    const own = Object.values(asset.sources).map((source) => {
-      let text = readFileSync(join(dir, source), "utf8").replace(/\r\n/g, "\n");
-      if (asset.role === "workflow") {
-        text += `# candidate ${version}\n`;
-        writeFileSync(join(dir, source), text);
-      }
-      return sha256(text);
-    });
-    catalogue[asset.path] = [...new Set([...(after[asset.path] ?? []), ...own])];
+  for (const { asset, target, source } of files) {
+    let text = readFileSync(join(dir, source), "utf8").replace(/\r\n/g, "\n");
+    if (asset.name === "workflow") {
+      text += `# candidate ${version}\n`;
+      writeFileSync(join(dir, source), text);
+    }
+    catalogue[target] = [...new Set([...(after[target] ?? []), sha256(text)])];
   }
   writeFileSync(join(dir, "contract.json"), JSON.stringify({ ...contract, catalogue }, null, 2) + "\n");
   return { dir, version, catalogue };
