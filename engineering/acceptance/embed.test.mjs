@@ -38,6 +38,8 @@ const EXPECTED_TARBALL = [
   "package/dist/node.js",
   "package/dist/payload.d.ts",
   "package/dist/payload.js",
+  "package/dist/realization.d.ts",
+  "package/dist/realization.js",
   "package/dist/register.d.ts",
   "package/dist/register.js",
   "package/package.json",

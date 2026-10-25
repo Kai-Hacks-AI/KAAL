@@ -35,11 +35,19 @@ export interface Digests {
   readonly [path: string]: string;
 }
 
+/** A Skill a Capability's Installation Contract delivers, and whether its canonical asset is already in that Capability's record. */
+export interface Contracted {
+  readonly skill: string;
+  readonly registered: boolean;
+}
+
 export interface RealizationInput {
   readonly skills: readonly SkillSource[];
   readonly providers: readonly string[];
   readonly record: Digests;
   readonly present: Digests;
+  /** The Skills a contract delivers (core/F36). Their canonical deployment belongs to the Capability's record, never Core's. */
+  readonly contracted?: readonly Contracted[];
 }
 
 /** A pointer for an instruction file's owner to adopt: it names the Skill's canonical path. */
@@ -131,8 +139,14 @@ export function renderSkill(bytes: Uint8Array): Uint8Array {
  * at a location of its own, from the same rendered bytes. Core claims only what its `record` holds:
  * a deployed file still as Core wrote it is rewritten or pruned; a modified one, and anything at a
  * target that Core did not deploy, is kept and reported. Nothing outside the deployments is touched.
+ * A change between a file and a directory at one path is kept and reported, the old file included:
+ * no plan both removes a path and writes beneath it, or the reverse.
+ *
+ * A `contracted` Skill's canonical deployment is the Capability's asset (core/F36). Core's record
+ * never holds it: the plan writes it only when the Capability's record does not register it yet,
+ * for the caller to register there, and otherwise plans nothing for it and deploys for providers only.
  */
-export function realize({ skills, providers, record, present }: RealizationInput): Plan {
+export function realize({ skills, providers, record, present, contracted = [] }: RealizationInput): Plan {
   const unknown = [...new Set(providers.filter((p) => !has(PLACEMENT, p)))].sort();
   const roots = [CANONICAL, ...[...new Set(providers)].filter((p) => has(PLACEMENT, p)).flatMap((p) => PLACEMENT[p].deploy ?? [])];
   const names = new Set<string>();
@@ -144,11 +158,19 @@ export function realize({ skills, providers, record, present }: RealizationInput
       if (isInstruction(path)) throw new TypeError(`${skill.name}/${path} is an instruction file, which Core never writes (core/F20)`);
     }
   }
+  const owned = new Set<string>();
+  const capability = new Set<string>();
+  for (const { skill, registered } of contracted) {
+    if (!names.has(skill)) throw new TypeError(`${skill} is contracted but is not among the Skills to install`);
+    capability.add(`${CANONICAL}/${skill}/`);
+    if (registered) owned.add(`${CANONICAL}/${skill}/`);
+  }
+  const under = (prefixes: Set<string>, path: string) => [...prefixes].some((p) => path.startsWith(p));
   const wanted = new Map<string, Uint8Array>();
   for (const skill of [...skills].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
     for (const [path, bytes] of Object.entries(skill.files)) {
       const deployed = path === "SKILL.md" ? renderSkill(bytes) : bytes;
-      for (const root of new Set(roots)) wanted.set(`${root}/${skill.name}/${path}`, deployed);
+      for (const root of new Set(roots)) if (!under(owned, `${root}/${skill.name}/${path}`)) wanted.set(`${root}/${skill.name}/${path}`, deployed);
     }
   }
 
@@ -157,7 +179,7 @@ export function realize({ skills, providers, record, present }: RealizationInput
   const prune: string[] = [];
   const next: Record<string, string> = {};
   for (const path of Object.keys(record)) {
-    if (wanted.has(path) || !has(present, path)) continue;
+    if (wanted.has(path) || !has(present, path) || under(owned, path)) continue;
     if (isInstruction(path)) keep.push({ path, reason: "an instruction file, which Core never removes" });
     else if (present[path] === record[path]) prune.push(path);
     else {
@@ -166,16 +188,27 @@ export function realize({ skills, providers, record, present }: RealizationInput
     }
   }
 
+  // Hosting realizes no path together with its own descendant, so a file Core would prune where a
+  // deployment now needs a directory, or under a target now a file, stays: replacing it needs a
+  // file↔directory transition, which is Hosting's to provide, not Core's to orchestrate.
+  const nested = (a: string, b: string) => a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+  const transition = new Set(prune.filter((p) => [...wanted.keys()].some((w) => nested(w, p))));
+  for (const path of transition) {
+    prune.splice(prune.indexOf(path), 1);
+    keep.push({ path, reason: "replacing it needs Hosting's file↔directory transition" });
+    next[path] = record[path];
+  }
+
   // A file that stays where a deployment needs a directory, or under a target Core would write as
-  // a file, blocks that target: writing it would need a file Core must keep to be removed.
+  // a file, blocks that target: writing it would need that file to be removed first.
   const pruned = new Set(prune);
   const staying = Object.keys(present).filter((p) => !pruned.has(p));
-  const blocker = (path: string) => staying.find((p) => path.startsWith(`${p}/`) || p.startsWith(`${path}/`));
+  const blocker = (path: string) => staying.find((p) => nested(path, p));
   for (const [path, bytes] of wanted) {
     const digest = sha256(bytes);
     const blocked = blocker(path);
     if (blocked !== undefined) {
-      keep.push({ path, reason: `${blocked} is in the way` });
+      keep.push({ path, reason: transition.has(blocked) ? `${blocked} is in the way, and replacing it needs Hosting's file↔directory transition` : `${blocked} is in the way` });
       if (has(record, path)) next[path] = record[path];
     } else if (has(record, path)) {
       if (has(present, path) && present[path] !== record[path]) {
@@ -198,6 +231,11 @@ export function realize({ skills, providers, record, present }: RealizationInput
     prune: prune.sort(),
     pointers: [],
     unknown,
-    record: Object.fromEntries(Object.keys(next).sort().map((p) => [p, next[p]])),
+    record: Object.fromEntries(
+      Object.keys(next)
+        .filter((p) => !under(capability, p))
+        .sort()
+        .map((p) => [p, next[p]]),
+    ),
   };
 }
