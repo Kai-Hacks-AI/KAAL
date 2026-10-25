@@ -13,17 +13,21 @@
 // whatever KAAL declares, for PLAN evidence. --root names the repository (default: this one).
 //
 // The lane runs every selected test as it is, with no marker, then judges the failures (guard/C45, the
-// Owner's review 5643242085 on #381). A failure is held, never passed, only when it is a Feature RED
-// that red.json registers for the branch the run targets: a planned Test Case, named by its identity, that a
-// later Change turns GREEN. Every other failure fails the lane: one with no Test Case identity, one not
-// registered for this branch, and every failure where the run targets another branch, as a promotion to
-// main does. A registered Test Case that passes fails the lane too, until its entry is removed, and a todo
-// or skip marker on a Test Case fails it as masking a result; a marked test with no Test Case identity is
-// listed as skipped. The held run prints each RED and exits 0, as Guard's own
-// held verdict does: KAAL's other held checks are reported the same way.
+// Owner's reviews 5643242085 and 5643271116 on #381 and #389). A failure is held, never passed, only when
+// it is a Feature RED that red.json registers for the branch the run targets: a planned Test Case, named
+// by its identity, that a later Change turns GREEN. Every other failure fails the lane: one with no Test
+// Case identity, one not registered for this branch, and every failure where the run targets another
+// branch, as a promotion to main does; such a run also fails while red.json registers any Feature RED at
+// all. A registered Test Case that passes fails the lane too, until its entry is removed, and a todo or
+// skip marker on a Test Case fails it as masking a result; a marked test with no Test Case identity is
+// listed as skipped. The held run prints each RED and exits 0: the development policy is satisfied, not
+// every test GREEN, as Guard's own held verdict reports KAAL's other held checks.
 //
 //   red.json absent                no failure is held
-//   --target <ref>                 the branch the run targets; default: GITHUB_BASE_REF, else GITHUB_REF_NAME
+//   on GitHub Actions              the target is the event's own: a pull request's base branch, a push's
+//                                  branch, from the runner's event payload alone; --target is refused, and
+//                                  no other event and no unreadable payload holds anything
+//   elsewhere                      --target <ref>; without it nothing is held
 //
 // Usage: guard.mjs [--planned] [--root <dir>] [--target <ref>]
 // Exits 0 when every test passes or every failure is held, 1 when the lane fails, or 2 with an actionable
@@ -167,25 +171,56 @@ export function judge({ failed, passed, unidentified, masked }, { collector, ent
     ...unregistered.map((t) => `${t} failed and is not a Feature RED registered for ${target || "this run"}`),
     ...stale.map((t) => `${t} passes but ${RED} still registers it`),
   ];
+  // A run that targets another branch, as a promotion does, requires an empty register: no Feature RED may be outstanding.
+  const outstanding = Object.keys(entries).length;
+  if (collector && target && target !== collector && outstanding) reasons.push(`${RED} still registers ${outstanding} Feature REDs for ${collector}; a run that targets ${target} requires none outstanding`);
   // A failing run with no failure found is never held: the lane cannot see what failed.
   if (status !== 0 && failed.size + unidentified.length === 0) reasons.push("the suite failed, and no failing test can be named");
   return { status: reasons.length || (status !== 0 && held.length === 0) ? 1 : 0, held, unregistered, stale, awaiting, reasons };
+}
+
+/**
+ * The branch a GitHub Actions run targets, as the runner's event payload states it: a pull request's base
+ * branch, a push's branch, or null for any other event or a payload that cannot be read. Never a value a
+ * caller passes (guard/C45, the Owner's review 5643271116).
+ * @param {NodeJS.ProcessEnv} env
+ */
+export function eventTarget(env) {
+  let event;
+  try {
+    event = JSON.parse(readFileSync(env.GITHUB_EVENT_PATH ?? "", "utf8"));
+  } catch {
+    return null;
+  }
+  if (env.GITHUB_EVENT_NAME === "pull_request" && typeof event?.pull_request?.base?.ref === "string") return event.pull_request.base.ref;
+  if (env.GITHUB_EVENT_NAME === "push" && typeof event?.ref === "string" && event.ref.startsWith("refs/heads/")) return event.ref.slice("refs/heads/".length);
+  return null;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   let root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
   let planned = false;
-  let target = process.env.GITHUB_BASE_REF || process.env.GITHUB_REF_NAME || "";
+  let target = "";
+  let passed = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--planned") planned = true;
     else if (args[i] === "--root" && i + 1 < args.length) root = resolve(args[++i]);
-    else if (args[i] === "--target" && i + 1 < args.length) target = args[++i];
+    else if (args[i] === "--target" && i + 1 < args.length) passed = args[++i];
     else {
       console.error("usage: guard.mjs [--planned] [--root <dir>] [--target <ref>]");
       process.exit(2);
     }
   }
+  if (process.env.GITHUB_ACTIONS === "true") {
+    if (passed !== null) {
+      console.error("guard lane: --target is refused on GitHub Actions: the event's own branch is the target");
+      console.error("  do: run the lane without --target; a run cannot choose the branch it is judged for");
+      console.log("::error title=Guard lane::--target is refused on GitHub Actions");
+      process.exit(2);
+    }
+    target = eventTarget(process.env) ?? "";
+  } else target = passed ?? "";
   let chosen, reds;
   try {
     chosen = select(root, { planned });

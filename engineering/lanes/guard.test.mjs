@@ -193,12 +193,44 @@ describe("the Guard lane's Feature REDs (guard/C45)", () => {
     }
   });
 
-  it("reads the target from GITHUB_BASE_REF, else GITHUB_REF_NAME", () => {
+  it("on GitHub Actions takes the target from the event payload alone, never from --target or GITHUB_BASE_REF", () => {
     const root = planned(tests(["guard/T1 [guard/F1]: planned", false]), reds("kaal/guard", "guard/T1"));
-    const run = (env) => spawnSync(process.execPath, [LANE, "--root", root], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "", GITHUB_BASE_REF: "", GITHUB_REF_NAME: "", ...env } }).status;
-    assert.equal(run({ GITHUB_BASE_REF: "kaal/guard" }), 0);
-    assert.equal(run({ GITHUB_BASE_REF: "main", GITHUB_REF_NAME: "kaal/guard" }), 1, "a pull request into main read its head's push target");
-    assert.equal(run({ GITHUB_REF_NAME: "kaal/guard" }), 0);
+    const event = (payload) => {
+      const path = join(root, "..", `event-${Math.random()}.json`);
+      writeFileSync(path, JSON.stringify(payload));
+      return path;
+    };
+    const run = (env, ...args) => spawnSync(process.execPath, [LANE, "--root", root, ...args], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "true", GITHUB_STEP_SUMMARY: "", GITHUB_BASE_REF: "", GITHUB_REF_NAME: "", GITHUB_EVENT_NAME: "", GITHUB_EVENT_PATH: "", ...env } });
+    const pr = (base) => ({ GITHUB_EVENT_NAME: "pull_request", GITHUB_EVENT_PATH: event({ pull_request: { base: { ref: base }, head: { ref: "kaal/guard" } } }) });
+    assert.equal(run(pr("kaal/guard")).status, 0, "a pull request into kaal/guard does not hold its registered RED");
+    // A promotion: its base is main. Neither the environment nor an argument can make it a development run.
+    const promotion = run({ ...pr("main"), GITHUB_BASE_REF: "kaal/guard", GITHUB_REF_NAME: "kaal/guard" });
+    assert.equal(promotion.status, 1, promotion.stdout + promotion.stderr);
+    assert.match(promotion.stdout, /not held: guard\/T1 failed and is not a Feature RED registered for main/);
+    const forced = run(pr("main"), "--target", "kaal/guard");
+    assert.equal(forced.status, 2, forced.stdout + forced.stderr);
+    assert.match(forced.stderr, /--target is refused on GitHub Actions/);
+    assert.doesNotMatch(forced.stdout, /# (pass|fail) /, "a refused lane ran tests");
+    // A push to kaal/guard holds; a push to main, another event or an unreadable payload holds nothing.
+    assert.equal(run({ GITHUB_EVENT_NAME: "push", GITHUB_EVENT_PATH: event({ ref: "refs/heads/kaal/guard" }) }).status, 0);
+    assert.equal(run({ GITHUB_EVENT_NAME: "push", GITHUB_EVENT_PATH: event({ ref: "refs/heads/main" }), GITHUB_REF_NAME: "kaal/guard" }).status, 1);
+    assert.equal(run({ GITHUB_EVENT_NAME: "pull_request_target", GITHUB_EVENT_PATH: event({ pull_request: { base: { ref: "kaal/guard" } } }) }).status, 1);
+    assert.equal(run({ GITHUB_EVENT_NAME: "pull_request", GITHUB_EVENT_PATH: join(root, "absent.json"), GITHUB_BASE_REF: "kaal/guard" }).status, 1);
+  });
+
+  it("elsewhere holds only for --target, never for GITHUB_BASE_REF or GITHUB_REF_NAME", () => {
+    const root = planned(tests(["guard/T1 [guard/F1]: planned", false]), reds("kaal/guard", "guard/T1"));
+    const r = spawnSync(process.execPath, [LANE, "--root", root], { encoding: "utf8", env: { ...process.env, GITHUB_ACTIONS: "", GITHUB_BASE_REF: "kaal/guard", GITHUB_REF_NAME: "kaal/guard" } });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.equal(lane(root, "--target", "kaal/guard").status, 0);
+  });
+
+  it("fails a run that targets another branch while any Feature RED is registered, even one not yet written or failing", () => {
+    const root = planned(tests(["guard/T2 [guard/F1]: green", true]), reds("kaal/guard", "guard/T9"));
+    const r = lane(root, "--target", "main");
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /not held: engineering\/guard\/red\.json still registers 1 Feature REDs for kaal\/guard; a run that targets main requires none outstanding/);
+    assert.equal(lane(root, "--target", "kaal/guard").status, 0, "the collector's own run fails on an entry awaiting its PLAN");
   });
 
   it("fails on a failure that is not registered, and on one with no Test Case identity", () => {
