@@ -4,12 +4,11 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join } from "node:path";
-import gfs from "graceful-fs";
+import { dirname, join } from "node:path";
 import { afterEach, describe, it } from "node:test";
 import { renderSkill } from "kaal-core/agent";
 import { installationFormat } from "kaal-core/installation";
-import { realizeIn, record as CORE_RECORD, Unrestored } from "kaal-core/realization";
+import { realizeIn, record as CORE_RECORD } from "kaal-core/realization";
 
 const sha = (bytes: Uint8Array | string) => createHash("sha256").update(bytes).digest("hex");
 const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
@@ -166,96 +165,33 @@ describe("Hosting application (core/C13)", () => {
     assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
   });
 
-  it("upgrades a deployed file to a directory of the same name, and back", async () => {
+  it("keeps a deployed file where a directory is now needed, and the directory where a file is, until Hosting provides that transition", async () => {
     const root = repo();
-    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } }] });
-    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } }] });
-    assert.equal(at(root, ".agents/skills/sample/tool/run").toString(), "new\n");
-    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("back\n") } }] });
-    assert.equal(at(root, ".agents/skills/sample/tool").toString(), "back\n");
-    assert.deepEqual(Object.keys(json(root, CORE_RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/tool"]);
+    const FILE = { name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } };
+    const DIR = { name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n"), "b.md": Buffer.from("B\n") } };
+    await realizeIn(root, { skills: [FILE] });
+    const toDir = await realizeIn(root, { skills: [DIR] });
+    assert.equal(at(root, ".agents/skills/sample/tool").toString(), "old\n", "the old file stays");
+    assert.deepEqual(toDir.plan.prune, []);
+    assert.ok(toDir.plan.keep.some((k) => k.path === ".agents/skills/sample/tool" && k.reason.includes("file↔directory")));
+    assert.ok(toDir.plan.keep.some((k) => k.path === ".agents/skills/sample/tool/run" && k.reason.includes("file↔directory")));
+    assert.equal(at(root, ".agents/skills/sample/b.md").toString(), "B\n", "everything else is applied");
+    assert.deepEqual(json(root, CORE_RECORD).assets[".agents/skills/sample/tool"], { sha256: sha("old\n"), version: VERSION }, "Core still owns the file it kept");
+
+    const other = repo();
+    await realizeIn(other, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } }] });
+    const toFile = await realizeIn(other, { skills: [FILE] });
+    assert.equal(at(other, ".agents/skills/sample/tool/run").toString(), "new\n", "the old directory stays");
+    assert.ok(toFile.plan.keep.some((k) => k.path === ".agents/skills/sample/tool" && k.reason.includes("file↔directory")));
+    assert.ok(toFile.outcomes.every((o) => !o.path.startsWith(".agents/skills/sample/tool")));
   });
 
-  it("keeps a directory target that an empty directory inside keeps in place, and still applies everything else", async () => {
+  it("hands a kept file Core deployed at a now contracted canonical location to the Capability's record", async () => {
     const root = repo();
-    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("old\n") } }] });
-    mkdirSync(join(root, ".agents/skills/sample/tool/empty"));
-    const done = await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("new\n"), "b.md": Buffer.from("B\n") } }] });
-    assert.ok(done.plan.keep.some((k) => k.path === ".agents/skills/sample/tool"));
-    assert.ok(!existsSync(join(root, ".agents/skills/sample/tool/run")), "Core's own file is pruned");
-    assert.equal(at(root, ".agents/skills/sample/b.md").toString(), "B\n");
-    assert.ok(!(".agents/skills/sample/tool" in json(root, CORE_RECORD).assets));
-  });
-
-  describe("a file-directory change whose second step fails", () => {
-    const OLD = { name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } };
-    const NEW = { name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } };
-    const TOOL = ".agents/skills/sample/tool";
-    type Rename = (from: string, to: string, cb: (e: NodeJS.ErrnoException | null) => void) => void;
-    const original = gfs.rename as unknown as Rename;
-    afterEach(() => {
-      (gfs as unknown as { rename: Rename }).rename = original;
-    });
-    /** Make the host refuse renames: the first one onto a record, and then, if `restoring` is refused too, any onto the removed file. */
-    function refuse(restoring: boolean) {
-      let second = false;
-      (gfs as unknown as { rename: Rename }).rename = (from, to, cb) => {
-        const refused = Object.assign(new Error("EPERM: refused"), { code: "EPERM" });
-        if (!second && basename(to) === "installation.json") {
-          second = true;
-          return cb(refused);
-        }
-        if (second && restoring && basename(to) === "tool" && basename(dirname(to)) === "sample") return cb(refused);
-        return original(from, to, cb);
-      };
-    }
-    const snapshot = (root: string) => ({ tool: at(root, TOOL).toString(), record: at(root, CORE_RECORD).toString(), run: existsSync(join(root, TOOL, "run")) });
-
-    it("puts the removed file back and rethrows, so the repository and its records are as they were", async () => {
-      const root = repo();
-      await realizeIn(root, { skills: [OLD] });
-      const before = snapshot(root);
-      refuse(false);
-      await assert.rejects(realizeIn(root, { skills: [NEW] }), /EPERM/);
-      assert.deepEqual(snapshot(root), before);
-    });
-
-    it("puts the removed file back when looking at a target after the first step fails", async () => {
-      const root = repo();
-      await realizeIn(root, { skills: [OLD] });
-      const before = snapshot(root);
-      type Stat = (path: string, cb: (e: NodeJS.ErrnoException | null, s?: unknown) => void) => void;
-      const stat = gfs.stat as unknown as Stat;
-      let looks = 0;
-      (gfs as unknown as { stat: Stat }).stat = (path, cb) =>
-        String(path).endsWith(join("tool", "run")) && ++looks === 2 ? cb(Object.assign(new Error("EACCES: refused"), { code: "EACCES" })) : stat(path, cb);
-      try {
-        await assert.rejects(realizeIn(root, { skills: [NEW] }), /EACCES/);
-      } finally {
-        (gfs as unknown as { stat: Stat }).stat = stat;
-      }
-      assert.equal(looks, 2, "the target was looked at after the first step");
-      assert.deepEqual(snapshot(root), before);
-    });
-
-    it("throws Unrestored holding the removed file's bytes when putting it back fails too, and claims no new ownership", async () => {
-      const root = repo();
-      await realizeIn(root, { skills: [OLD] });
-      const record = at(root, CORE_RECORD).toString();
-      refuse(true);
-      const error = await realizeIn(root, { skills: [NEW] }).then(
-        () => assert.fail("the realization applied"),
-        (e: unknown) => e,
-      );
-      assert.ok(error instanceof Unrestored);
-      assert.match(String((error.cause as Error).message), /EPERM/);
-      assert.deepEqual(error.unrestored.map((u) => [u.path, Buffer.from(u.bytes).toString()]), [[TOOL, "old\n"]]);
-      assert.equal(at(root, CORE_RECORD).toString(), record, "Core's record is as it was read");
-      assert.ok(!existsSync(join(root, TOOL)), "nothing of the new deployment was applied");
-      (gfs as unknown as { rename: Rename }).rename = original;
-      await realizeIn(root, { skills: [NEW] });
-      assert.equal(at(root, `${TOOL}/run`).toString(), "new\n", "the next realization completes it");
-    });
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, references: Buffer.from("old\n") } }] });
+    await realizeIn(root, { skills: [SKILL], contracts: [contract()] });
+    assert.deepEqual(Object.keys(json(root, RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/references"]);
+    assert.deepEqual(json(root, CORE_RECORD), { assets: {} });
   });
 
   it("refuses a record that does not conform and changes nothing", async () => {

@@ -126,22 +126,11 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
  * - **Application.** The deployments, removals and records are applied in one Hosting
  *   reconciliation, each guarded by what was read, every record read included, so a change in
  *   between leaves everything unchanged; Hosting rolls back what it observes failing.
- * - **File↔directory changes.** Hosting applies no path together with its own descendant, so Core
- *   orchestrates two reconciliations: it removes the files in the way, which are its own and
- *   unmodified, and leaves every record as read; then it applies the rest. If the second fails,
- *   Core asks Hosting, in one more guarded reconciliation, to write back the exact bytes it
- *   removed, and rethrows; if that is refused too, it throws `Unrestored` holding those bytes.
- *   Core restores bytes only, not an executable mark or any other metadata, and nothing across
- *   the end of the process: one cut off between the steps leaves the removals applied and every
- *   record as read, which the next realization completes. Applying both in one reconciliation
- *   would need a Hosting primitive, which is Hosting's to decide.
+ * - **File↔directory changes.** Hosting's contract applies no path together with its own
+ *   descendant, so Core plans none: where a deployment changes between a file and a directory, the
+ *   plan keeps and reports it, the old file included, until Hosting provides that transition.
  */
-export async function realizeIn(root: string, request: RealizationRequest): Promise<Realized> {
-  return realizeAvoiding(root, request, new Set());
-}
-
-/** `realizeIn`, treating each of `blockers` as something other than a file in the way. */
-async function realizeAvoiding(root: string, { skills, contracts = [] }: RealizationRequest, blockers: ReadonlySet<string>): Promise<Realized> {
+export async function realizeIn(root: string, { skills, contracts = [] }: RealizationRequest): Promise<Realized> {
   if ((await kind(root)) !== "directory") throw new KaalError(`${root} is not a directory`);
   const names = new Set(skills.map((s) => s.name));
 
@@ -170,7 +159,7 @@ async function realizeAvoiding(root: string, { skills, contracts = [] }: Realiza
   const declared = await providers(root);
   // Every target a realization can name: those it would write into an empty repository.
   const targets = realize({ skills, providers: declared, record: {}, present: {}, contracted }).write.map((w) => w.path);
-  const present = { ...(await presentAt(root, [...targets, ...Object.keys(recorded)])), ...Object.fromEntries([...blockers].map((b) => [b, "not a file"])) };
+  const present = await presentAt(root, [...targets, ...Object.keys(recorded)]);
   const plan = realize({ skills, providers: declared, record: recorded, present, contracted });
 
   const write: Write[] = plan.write.map((w) => ({ path: w.path, expect: present[w.path] ?? "absent", bytes: w.bytes }));
@@ -186,7 +175,7 @@ async function realizeAvoiding(root: string, { skills, contracts = [] }: Realiza
     // whose ownership passes from Core's record to the Capability's (core/F34, core/F36).
     const written: Record<string, string> = Object.fromEntries(
       Object.keys(recorded)
-        .filter((p) => canonical(p) && present[p] === recorded[p] && !kept.has(p) && !pruning.has(p))
+        .filter((p) => canonical(p) && present[p] === recorded[p] && !pruning.has(p))
         .map((p) => [p, recorded[p]]),
     );
     for (const w of plan.write) if (canonical(w.path)) written[w.path] = sha256(w.bytes);
@@ -215,73 +204,6 @@ async function realizeAvoiding(root: string, { skills, contracts = [] }: Realiza
     else remove.push({ path: r.path, expect: "absent" });
   }
 
-  // Hosting refuses a path and its own descendant in one reconciliation. Where a deployment changes
-  // between a file and a directory, the removals in the way are applied first, then everything else.
-  // Core keeps the combined guarantee itself: it holds the bytes it removes, and if the second
-  // reconciliation fails it puts them back, so the repository is as it was read.
-  const nested = (a: string, b: string) => a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
-  const first = remove.filter((r) => write.some((w) => nested(w.path, r.path)));
-  const byPath = <T extends { path: string }>(a: T, b: T) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
-  if (first.length === 0) {
-    const done = await reconcile(root, { write, remove });
-    return { plan, outcomes: done.outcomes, pruned: done.pruned, records: records.sort() };
-  }
-  const held: Write[] = [];
-  for (const r of first) {
-    const bytes = await readFile(join(root, r.path));
-    if (sha256(bytes) !== r.expect) throw new KaalError(`${r.path} changed while it was read; nothing was changed`);
-    held.push({ path: r.path, expect: "absent", bytes });
-  }
-  const before = await reconcile(root, { write: [], remove: first });
-  const putBack = async (cause: unknown) => {
-    try {
-      await reconcile(root, { write: held, remove: [] });
-    } catch (failure) {
-      throw new Unrestored(held, cause, failure);
-    }
-  };
-  // A directory can outlive the removal of every file in it when it holds an empty directory, which
-  // no reading shows. Then the target is still in the way: put back what was removed, and plan again
-  // with that target kept and reported.
-  const stuck: string[] = [];
-  try {
-    for (const w of write) if (first.some((r) => nested(w.path, r.path)) && (await kind(join(root, w.path))) !== "missing") stuck.push(w.path);
-  } catch (cause) {
-    await putBack(cause);
-    throw cause;
-  }
-  if (stuck.length > 0) {
-    await putBack(new KaalError(`${stuck.join(", ")} is still a directory`));
-    return realizeAvoiding(root, { skills, contracts }, new Set([...blockers, ...stuck]));
-  }
-  let done;
-  try {
-    done = await reconcile(root, { write, remove: remove.filter((r) => !first.includes(r)) });
-  } catch (cause) {
-    await putBack(cause);
-    throw cause;
-  }
-  return {
-    plan,
-    outcomes: [...before.outcomes, ...done.outcomes].sort(byPath),
-    pruned: [...before.pruned, ...done.pruned].sort(),
-    records: records.sort(),
-  };
-}
-
-/**
- * A realization that changed a deployment between a file and a directory failed after removing
- * what was in the way, and putting it back failed too. Nothing else was applied, every record is
- * as it was read, and `unrestored` holds each removed file's path and exact bytes, so none is lost.
- */
-export class Unrestored extends KaalError {
-  constructor(
-    readonly unrestored: readonly { readonly path: string; readonly bytes: Uint8Array }[],
-    cause: unknown,
-    readonly restoring: unknown,
-  ) {
-    super(`a realization failed after removing ${unrestored.map((u) => u.path).join(", ")}, and putting them back failed too; their bytes are held in this error`);
-    this.cause = cause;
-  }
-  override name = "Unrestored";
+  const done = await reconcile(root, { write, remove });
+  return { plan, outcomes: done.outcomes, pruned: done.pruned, records: records.sort() };
 }
