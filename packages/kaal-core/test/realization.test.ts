@@ -66,6 +66,7 @@ describe("Hosting application (core/C13)", () => {
     const again = await realizeIn(root, { skills: [SKILL] });
     assert.deepEqual(again.records, []);
     assert.ok(again.outcomes.every((o) => o.outcome === "unchanged"));
+    assert.ok(again.outcomes.some((o) => o.path === CORE_RECORD), "Core's record is guarded even when it does not change");
   });
 
   it("registers the canonical asset it writes in the Capability's record, keeps the Capability's members, and records only provider deployments as Core's", async () => {

@@ -62,13 +62,13 @@ function parse(path: string, bytes: Buffer): unknown {
 }
 
 /** A record read through Hosting, refused unless it conforms (core/F38), or `undefined` when there is none. */
-async function readRecord(root: string, path: string): Promise<{ record: InstallationRecord | undefined; expect: string }> {
+async function readRecord(root: string, path: string): Promise<{ record: InstallationRecord | undefined; expect: string; bytes: Buffer | undefined }> {
   const bytes = await optional(root, path);
-  if (bytes === undefined) return { record: undefined, expect: "absent" };
+  if (bytes === undefined) return { record: undefined, expect: "absent", bytes };
   const value = parse(path, bytes);
   const findings = checkRecord(value);
   if (findings.length > 0) throw new KaalError(`${path} is not an installation record: ${describe(findings)}`);
-  return { record: value as InstallationRecord, expect: sha256(bytes) };
+  return { record: value as InstallationRecord, expect: sha256(bytes), bytes };
 }
 
 /** The providers the repository declares (core/F16), none when there is no declaration. */
@@ -123,7 +123,7 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
   if ((await kind(root)) !== "directory") throw new KaalError(`${root} is not a directory`);
   const names = new Set(skills.map((s) => s.name));
 
-  const delivered: { contract: Contract; skills: string[]; record: InstallationRecord | undefined; expect: string }[] = [];
+  const delivered: { contract: Contract; skills: string[]; record: InstallationRecord | undefined; expect: string; bytes: Buffer | undefined }[] = [];
   const contracted: Contracted[] = [];
   for (const [i, value] of contracts.entries()) {
     const findings = checkContract(value);
@@ -183,6 +183,14 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
   if (JSON.stringify(next) !== JSON.stringify(own.record) && !(own.record === undefined && Object.keys(assets).length === 0)) {
     write.push({ path: record, expect: own.expect, bytes: json(next) });
     records.push(record);
+  }
+
+  // The plan depends on every record it read, so a record this realization does not change is
+  // guarded as it was read: rewritten with its own bytes, or a removal of nothing where there was none.
+  for (const r of [{ path: record, ...own }, ...delivered.map((d) => ({ path: d.contract.record, ...d }))]) {
+    if (records.includes(r.path)) continue;
+    if (r.bytes !== undefined) write.push({ path: r.path, expect: r.expect, bytes: r.bytes });
+    else remove.push({ path: r.path, expect: "absent" });
   }
 
   // Hosting refuses a path and its own descendant in one reconciliation. Where a deployment changes
