@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { configDir, legacy, readDeclarations, Refusal, shown } from "../lib/config.mjs";
 import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
 import { init, remove, upgrade } from "../lib/lifecycle.mjs";
+import { line as reminderLine, needed, skill } from "../lib/reminder.mjs";
 import { FACTS, lines, run, status } from "../lib/runner.mjs";
 import { checkout, gitRoot, readRecord, readState } from "../lib/state.mjs";
 
@@ -60,12 +61,19 @@ function load(option, { optional = false } = {}) {
   }
 }
 
-/** Prints the results' verdict lines, and with --github their annotations and summary, then exits with the run's status. */
-function report(results, github) {
+/**
+ * Prints the results' verdict lines, and with --github their annotations and summary, then exits with
+ * the run's status. A run that has a fail or cannot judge also names where the kaal-guard Skill is, as
+ * one line after the verdict lines, in its error annotations and in its summary (F21); `remind` gives
+ * the repository's root and record for that, and only `run` gives it.
+ */
+function report(results, github, remind) {
+  const where = remind && needed(results) ? skill(remind.root, remind.record) : undefined;
   for (const line of lines(results)) console.log(line);
+  if (where) console.log(reminderLine(where));
   if (github) {
-    for (const line of annotations(results)) console.log(line);
-    summarize(results, process.env.GITHUB_STEP_SUMMARY);
+    for (const line of annotations(results, where?.path)) console.log(line);
+    summarize(results, process.env.GITHUB_STEP_SUMMARY, where && reminderLine(where));
   }
   process.exit(status(results));
 }
@@ -103,7 +111,7 @@ if (options["--check"] !== undefined) selection.check = options["--check"];
 if (Object.keys(selection).length !== 1) cannotJudge("run needs exactly one of --hook, --ci or --check <name>", USAGE);
 const facts = {};
 for (const [option, fact] of Object.entries(byOption)) if (options[option] !== undefined) facts[fact] = fact === "changed" ? resolve(options[option]) : options[option];
-const { root, list } = load(options["--config"]);
+const { root, list, record } = load(options["--config"]);
 const { results } = run(root, list, selection, facts);
 if (results.length === 0) console.log(`kaal-guard: no checks run ${selection.hook ? "--hook" : "--ci"}`);
-report(results, options["--github"]);
+report(results, options["--github"], { root, record });

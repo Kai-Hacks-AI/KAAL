@@ -8,26 +8,29 @@ import { join } from "node:path";
 const escapeData = (s) => s.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
 const escapeProperty = (s) => escapeData(s).replace(/:/g, "%3A").replace(/,/g, "%2C");
 
-/** The workflow command for one result, if it needs one: fail and cannot judge are errors, held a warning, not applicable a notice. */
-function annotation(r) {
+/**
+ * The workflow command for one result, if it needs one: fail and cannot judge are errors, held a warning,
+ * not applicable a notice. An error names the Skill's path when one is given (F21).
+ */
+function annotation(r, skill) {
   const kind = { fail: "error", "cannot judge": "error", held: "warning", "not applicable": "notice" }[r.verdict];
   if (!kind) return undefined;
-  const message = r.do ? `${r.evidence} (do: ${r.do})` : r.evidence;
+  const message = (r.do ? `${r.evidence} (do: ${r.do})` : r.evidence) + (kind === "error" && skill ? `; to resolve it, read the kaal-guard Skill at ${skill}` : "");
   return `::${kind} title=${escapeProperty(`${r.verdict}: ${r.name}`)}::${escapeData(message)}`;
 }
 
-/** The annotation lines for a run. */
-export function annotations(results) {
-  return results.map(annotation).filter(Boolean);
+/** The annotation lines for a run, its errors naming the Skill's path when one is given. */
+export function annotations(results, skill) {
+  return results.map((r) => annotation(r, skill)).filter(Boolean);
 }
 
 const cell = (s) => s.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 
-/** Appends the run's verdicts, each by its own name, to the step summary file, if there is one. */
-export function summarize(results, file) {
+/** Appends the run's verdicts, each by its own name, to the step summary file, if there is one, and the reminder line when one is given (F21). */
+export function summarize(results, file, reminder) {
   if (!file) return;
   const rows = results.map((r) => `| ${cell(r.name)} | ${r.verdict} | ${cell(r.evidence)} |`);
-  appendFileSync(file, ["### kaal-guard", "", "| Check | Verdict | Evidence |", "| --- | --- | --- |", ...rows, ""].join("\n") + "\n");
+  appendFileSync(file, ["### kaal-guard", "", "| Check | Verdict | Evidence |", "| --- | --- | --- |", ...rows, "", ...(reminder ? [reminder, ""] : [])].join("\n") + "\n");
 }
 
 /**
