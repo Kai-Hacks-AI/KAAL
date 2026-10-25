@@ -6,6 +6,7 @@
   "workspaces": [
     "packages/extensions/kaal-hosting",
     "packages/kaal-core",
+    "packages/kaal-foundation",
     "packages/skills/kaal-engineer-skill",
     "packages/skills/kaal-graph",
     "packages/skills/kaal-testing"
