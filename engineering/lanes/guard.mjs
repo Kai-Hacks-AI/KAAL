@@ -12,6 +12,10 @@
 // absent, holds no test, or lacks a test the established suite has. --planned runs the planned suite
 // whatever KAAL declares, for PLAN evidence. --root names the repository (default: this one).
 //
+// guard/T46's file needs KAAL's workspace installed and built (guard/C46, guard/C47). The planned suite
+// includes it only where the workspace is installed, as the Linux Guard job installs it before the lane;
+// elsewhere, as in the Windows and macOS Guard jobs, the lane names it as not run here, never as passed.
+//
 // The lane runs every selected test as it is, with no marker, then judges the failures (guard/C45, the
 // Owner's reviews 5643242085 and 5643271116 on #381 and #389). A failure is held, never passed, only when
 // it is a Feature RED that red.json registers for the branch the run targets: a planned Test Case, named
@@ -42,6 +46,10 @@ import { fileURLToPath } from "node:url";
 export const BOUNDARY = ["packages/kaal-guard/test/acceptance", "engineering/guard/acceptance"];
 /** kaal-guard's own tests outside the boundary, run in every state. */
 export const UNIT = "packages/kaal-guard/test";
+/** guard/T46's file, which runs only where KAAL's workspace is installed (guard/C47). */
+export const WORKSPACE = "engineering/guard/acceptance/plan/workspace.test.mjs";
+/** What npm ci leaves when it has installed KAAL's workspace. */
+export const INSTALLED = "node_modules/.package-lock.json";
 /** The Feature REDs the lane holds, repository-relative (guard/C45). */
 export const RED = "engineering/guard/red.json";
 
@@ -67,10 +75,12 @@ function tests(dir) {
 /**
  * The suite this repository's Guard lane runs.
  * @param {string} root the repository
- * @param {{ planned?: boolean }} [options]
- * @returns {{ suite: "established" | "planned", files: string[] }} files repository-relative
+ * @param {{ planned?: boolean, installed?: boolean }} [options] installed: whether KAAL's workspace is
+ *   installed, by default whether npm ci has left its record
+ * @returns {{ suite: "established" | "planned", files: string[], withheld: string[] }} files repository-relative;
+ *   withheld, the files the planned suite has that this host cannot run
  */
-export function select(root, { planned = false } = {}) {
+export function select(root, { planned = false, installed = existsSync(join(root, INSTALLED)) } = {}) {
   const legacy = existsSync(join(root, "guard.json"));
   const config = directory(join(root, ".kaal/config/guard"));
   if (!planned) {
@@ -81,7 +91,7 @@ export function select(root, { planned = false } = {}) {
   if (!planned && legacy) {
     const files = BOUNDARY.flatMap((d) => tests(join(root, d)).map((f) => `${d}/${f}`));
     if (files.length === 0) throw new Refusal("the established suite holds no test", `restore the tests in ${BOUNDARY.join(" and ")}`);
-    return { suite: "established", files: [...unit, ...files] };
+    return { suite: "established", files: [...unit, ...files], withheld: [] };
   }
   const files = [];
   for (const d of BOUNDARY) {
@@ -93,7 +103,8 @@ export function select(root, { planned = false } = {}) {
     if (missing.length) throw new Refusal(`the planned suite is incomplete: ${plan}/ lacks ${missing.join(", ")}, which the established suite has`, `plan each of them in ${plan}/, or retire it there explicitly, in its own boundary Change`);
     files.push(...names.map((f) => `${plan}/${f}`));
   }
-  return { suite: "planned", files: [...unit, ...files] };
+  const withheld = installed ? [] : files.filter((f) => f === WORKSPACE);
+  return { suite: "planned", files: [...unit, ...files.filter((f) => !withheld.includes(f))], withheld };
 }
 
 /**
@@ -233,6 +244,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(2);
   }
   console.log(`guard lane: the ${chosen.suite} suite, ${chosen.files.length} files`);
+  for (const f of chosen.withheld) {
+    console.log(`not run here: ${f}: it needs KAAL's workspace installed (npm ci), which this host has not; the Linux Guard job runs it`);
+    if (process.env.GITHUB_ACTIONS === "true") console.log(`::notice title=Guard lane::${f} is not run here: it needs KAAL's workspace installed`);
+  }
   // An inherited NODE_TEST_CONTEXT makes node --test skip every file and pass; the lane never inherits it.
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;
@@ -258,7 +273,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     rows.push(`| ${t} | Feature RED, held | ${until} |`);
   }
   for (const n of outcomes(r.stdout ?? "").skipped) console.log(`skipped, not a Test Case: ${n}`);
-  for (const t of verdict.awaiting) console.log(`awaiting its PLAN: ${t}: registered until ${reds.entries[t].until}, not yet written`);
+  // A registered Test Case that did not run is not yet written, or is in a file this host withholds: either way it holds nothing.
+  const unseen = chosen.withheld.length ? `not run here (${chosen.withheld.join(", ")} is withheld) or not yet written` : "not yet written";
+  for (const t of verdict.awaiting) console.log(`awaiting its PLAN: ${t}: registered until ${reds.entries[t].until}, ${unseen}`);
   for (const why of verdict.reasons) {
     console.log(`not held: ${why}`);
     if (github) console.log(`::error title=Guard lane::${why}`);

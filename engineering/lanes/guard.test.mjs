@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { BOUNDARY, RED, Refusal, UNIT, outcomes, register, select } from "./guard.mjs";
+import { BOUNDARY, INSTALLED, RED, Refusal, UNIT, WORKSPACE, outcomes, register, select } from "./guard.mjs";
 
 const LANE = join(dirname(fileURLToPath(import.meta.url)), "guard.mjs");
 const [PACKAGE, KAAL] = BOUNDARY;
@@ -70,6 +70,7 @@ describe("the Guard lane with KAAL on guard.json", () => {
     assert.deepEqual(select(root), {
       suite: "established",
       files: [`${UNIT}/runner.test.mjs`, `${PACKAGE}/intent.test.mjs`, `${PACKAGE}/requirements.test.mjs`, `${KAAL}/kaal.test.mjs`],
+      withheld: [],
     });
   });
 
@@ -106,6 +107,7 @@ describe("the Guard lane with KAAL on .kaal/config/guard/", () => {
     assert.deepEqual(select(root), {
       suite: "planned",
       files: [`${UNIT}/runner.test.mjs`, `${PACKAGE}/plan/intent.test.mjs`, `${PACKAGE}/plan/new.test.mjs`, `${PACKAGE}/plan/requirements.test.mjs`, `${KAAL}/plan/kaal.test.mjs`],
+      withheld: [],
     });
     const r = lane(root);
     assert.equal(r.status, 0, r.stdout + r.stderr);
@@ -287,6 +289,41 @@ describe("the Guard lane's Feature REDs (guard/C45)", () => {
     const o = outcomes(tap);
     assert.deepEqual([...o.failed], ["guard/T1"]);
     assert.deepEqual(o.unidentified, []);
+  });
+});
+
+describe("guard/T46's file, which needs KAAL's workspace", () => {
+  it("is not run where the workspace is not installed, and is named as not run, never as passed", () => {
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }) });
+    const chosen = select(root);
+    assert.deepEqual(chosen.withheld, [WORKSPACE]);
+    assert.ok(!chosen.files.includes(WORKSPACE));
+    const r = lane(root);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, new RegExp(`not run here: ${WORKSPACE.replaceAll(".", "\\.")}: it needs KAAL's workspace installed`));
+  });
+
+  it("says a registered Test Case it did not run may be in the withheld file, and holds nothing for it", () => {
+    const reds = JSON.stringify({ collector: "kaal/guard", entries: [{ test: "guard/T46", class: "Feature RED", until: "guard/C17", authority: "the Owner's review 1" }] });
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }), [RED]: reds });
+    const r = lane(root, "--target", "kaal/guard");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /awaiting its PLAN: guard\/T46: registered until guard\/C17, not run here \(engineering\/guard\/acceptance\/plan\/workspace\.test\.mjs is withheld\) or not yet written/);
+    assert.doesNotMatch(r.stdout, /^RED: guard\/T46/m, "a test that did not run was reported as a held RED");
+  });
+
+  it("runs where npm ci has installed the workspace, so its failure fails the lane", () => {
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }), [INSTALLED]: "{}\n" });
+    const chosen = select(root);
+    assert.deepEqual(chosen.withheld, []);
+    assert.ok(chosen.files.includes(WORKSPACE));
+    const r = lane(root);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.doesNotMatch(r.stdout, /not run here/);
+  });
+
+  it("is never withheld from the established suite, which has no such file", () => {
+    assert.deepEqual(select(repo({ ...LEGACY, ...established() })).withheld, []);
   });
 });
 
