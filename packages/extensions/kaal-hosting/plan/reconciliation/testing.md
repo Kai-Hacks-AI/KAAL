@@ -1,6 +1,6 @@
 # Guarded File Reconciliation: Testing
 
-The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/reconciliation.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. hosting/T1–T11 come from `hosting/C1`, `hosting/C3` adds hosting/T12, `hosting/C4` adds hosting/T13 in `test/plan/cleanup.test.mjs`, and `hosting/C6` adds hosting/T14–T17 in `test/plan/kinds.test.mjs`. `hosting/C2` turns them GREEN, moves them into Hosting's `npm test` so they run in the Linux, Windows and macOS Hosting lanes, and may add Code tests of its own beside them.
+The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/reconciliation.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. hosting/T1–T11 come from `hosting/C1`, `hosting/C3` adds hosting/T12, `hosting/C4` adds hosting/T13 in `test/plan/cleanup.test.mjs`, and `hosting/C6` adds hosting/T14–T17 in `test/plan/kinds.test.mjs`. Each generation is incorporated by its own DO Change, which turns its tests GREEN and moves them into Hosting's `npm test` so they run in the required Linux, Windows and macOS Hosting lanes: `hosting/C2` did so for hosting/T1–T12 and may add Code tests of its own beside them, `hosting/C5` for hosting/T13, and `hosting/C7` will for hosting/T14–T17.
 
 | Test | Checks | Loop |
 | --- | --- | --- |
