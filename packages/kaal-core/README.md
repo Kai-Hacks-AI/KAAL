@@ -138,6 +138,8 @@ checkContract({ format: installationFormat(), capability: "sample", version: "0.
 // [] when it conforms, otherwise [{ key: "assets.0.target", rule: "path" }, ...]
 ```
 
+An asset marked with a `surface`, such as `hook`, is installed only when a consumer opts in, by the Capability's own command; Core never realizes it. The record a contract names maps each file the Capability owns to its `sha256` and `version`, and any other member is the Capability's. `checkRecord(record)` returns its findings, and `register({ contract, record, written })` returns the record once the files Core wrote are registered: only asset files Core wrote, with the contract's version, keeping every other entry and member.
+
 ### Agent Realization
 
 `kaal-core/agent` plans how Core makes each Skill reachable by the agents of the providers a repository declares in `.kaal/config/core/agents.json` (`declaration`). Every Skill is deployed to `.agents/skills/<name>/`; a provider that discovers Skills only at a location of its own (Claude Code, `.claude/skills/<name>/`) gets a copy generated from the same canonical source. Core claims only what its own record holds: a file someone changed, and anything at a target Core did not deploy, is kept and reported, and only unmodified files Core deployed are pruned. Core never writes an instruction file such as `AGENTS.md` or `CLAUDE.md`, and governs no location but its own deployments.
@@ -148,6 +150,17 @@ import { realize, renderSkill } from "kaal-core/agent";
 realize({ skills: [{ name, files }], providers: ["claude-code"], record, present });
 // { write: [{ path, bytes }], keep: [{ path, reason }], prune: [path], pointers, unknown: [provider], record }
 renderSkill(bytes); // the supplier SKILL.md: name, and description copied from the source's "## Description"
+```
+
+A Skill a Capability's contract delivers is that Capability's at its canonical location: pass it in `contracted`, with whether the Capability's record registers it already, and Core's own record keeps only the provider deployments.
+
+`kaal-core/realization` applies a plan through Hosting. `realizeIn(root, { skills, contracts })` reads the declaration, the present files and every record, registers what Core writes in each contract's record, keeps Core's own record at `.kaal/state/core/installation.json`, and applies it all in one guarded reconciliation: if anything changed since it was read, nothing changes.
+
+```js
+import { realizeIn } from "kaal-core/realization";
+
+await realizeIn(process.cwd(), { skills: [{ name, files }], contracts: [contract] });
+// { plan, outcomes: [{ path, outcome }], pruned, records }
 ```
 
 Both modules are pure and import no host module; applying a plan is Hosting's.
