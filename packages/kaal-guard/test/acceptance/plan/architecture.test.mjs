@@ -104,7 +104,8 @@ describe("Architecture conformance", () => {
   it("guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one", () => {
     present("contract.json");
     const contract = JSON.parse(source("contract.json"));
-    const assets = contract.assets.map((a) => a.path.replace(/\/$/, ""));
+    // Core's Installation Contract format names an asset's location `target` (guard/C51); `path` until then.
+    const assets = contract.assets.map((a) => (a.target ?? a.path).replace(/\/$/, ""));
     assert.ok(assets.includes(".agents/skills/kaal-guard"), "the contract has no Skill asset at the canonical location");
     const c = consumer();
     const before = c.files();

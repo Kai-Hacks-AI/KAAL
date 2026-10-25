@@ -197,7 +197,8 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const { older, newer } = two(h);
     announce(t, newer);
-    const contract = (c) => json(c.read("node_modules/@kaihacksai/kaal-guard/contract.json")).assets;
+    // Core's Installation Contract format names an asset's location `target` (guard/C51); `path` until then.
+    const contract = (c) => json(c.read("node_modules/@kaihacksai/kaal-guard/contract.json")).assets.map((a) => ({ ...a, path: a.target ?? a.path }));
     const hooked = h.minimalRepo({ declarations: true });
     hooked.install(older.spec);
     assert.equal(hooked.guard("init", "--hook").status, 0);
