@@ -178,7 +178,7 @@ guard/D5 is a defect in guard/F7 as `0.0.1` ships it, found by Codex on #366 (r4
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D5 | guard/T81 | the base copy of a trusted checker is written without the mode the base records, so an executable checker run as `./checker.sh` fails to start (EACCES) and its check is cannot judge | suspected (Codex on #366, r4368693892; reproduced directly against `materialize`); established once guard/T81 is recorded RED in `guard/C41` |
+| guard/D5 | guard/T81 | the base copy of a trusted checker is written without the mode the base records, so an executable checker run as `./checker.sh` fails to start (EACCES) and its check is cannot judge | established: guard/T81 recorded RED in `guard/C41` (#368); corrected by `guard/C42` (#370), where guard/T81 is GREEN |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 

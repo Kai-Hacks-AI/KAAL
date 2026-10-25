@@ -183,7 +183,7 @@ The package's outer tests (guard/T1–guard/T35 and guard/T61–guard/T73) stay 
 
 ## Change identities
 
-A Change's durable identity is `<capability>/C<number>`, numbered by its owning Capability. Guard's Changes up to `guard/C6` keep their labels. Guard's numbers from `guard/C7` on are allocated here: no Guard Change in the repository uses them. The earlier labels R1, K1–K6 and B1–B7 remain only as aliases. Core and Engineering allocate their own numbers: Core allocated `core/C3` and `core/C4`, provisional until each merges, and Engineering's are pending. A planned Change is not a pull request: the PR column shows only pull requests that exist.
+A Change's durable identity is `<capability>/C<number>`, numbered by its owning Capability. Guard's Changes up to `guard/C6` keep their labels. Guard's numbers from `guard/C7` on are allocated here: no Guard Change in the repository uses them. The earlier labels R1, K1–K6 and B1–B7 remain only as aliases. Core and Engineering allocate their own numbers: Core allocated `core/C3` and `core/C4`, both merged, and Engineering's are pending. A planned Change is not a pull request: the PR column shows only pull requests that exist.
 
 | Change | Alias | Owner | Scope | Depends on | Pull request |
 | --- | --- | --- | --- | --- | --- |
@@ -227,15 +227,16 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C40` | — | Guard | Trusted checker mode: guard/F7 restated so that a base copy keeps the mode the base records; guard/T81 planned and guard/D5 suspected. No code and no test file | `guard/C38` | #367 |
 | `guard/C41` | — | Guard | guard/T81 written in the boundary and recorded RED, establishing guard/D5. It travels alone | `guard/C40`, `guard/C39` | #368 |
 | `guard/C42` | guard/D5 | Guard | `materialize` writes each trusted file with the mode the base records | `guard/C41`, `guard/C25` | #370 |
-| `guard/C43` | — | Guard | The installation record under Core: guard/F29's last bullet restated so that, when Core manages the installation, Core registers Guard's assets in Guard's own record (the Owner's Option A on #373), and guard/F23's record wording aligned with guard/F29. No code and no test file | `guard/C25`, `core/C10` | not created |
+| `guard/C43` | — | Guard | The installation record under Core: guard/F29's last bullet restated so that, when Core manages the installation, Core registers Guard's assets in Guard's own record (the Owner's Option A on #373), and guard/F23's record wording aligned with guard/F29. No code and no test file | `guard/C25`, `core/C10` | #375, merged |
+| `guard/C44` | — | Guard | The Change map brought up to date: Core's merged Changes and their PRs, `guard/C37`'s PR, and guard/D5 recorded established and corrected. No code and no test file | `guard/C42`, `guard/C43` | not created |
 | `guard/C39` | — | Guard | guard/C38's planned tests written in the boundary: guard/T79, guard/T80, and the package harness writing quoted status keys. It travels alone | `guard/C38`, `guard/C36` | #364 |
-| `guard/C37` | — | Guard | PLAN of the boundary: guard/T36 and guard/T42's consumer setup revised for the `0.0.2` configuration (`.kaal/config/guard/`), their assertions unchanged and their transitional failures recorded. It travels alone, and `guard/C20` proves both with the published `0.0.2` | `guard/C25` | not created |
-| `core/C3` (provisional) | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | not created |
-| `core/C4` (provisional) | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | not created |
+| `guard/C37` | — | Guard | PLAN of the boundary: guard/T36 and guard/T42's consumer setup revised for the `0.0.2` configuration (`.kaal/config/guard/`), their assertions unchanged and their transitional failures recorded. It travels alone, and `guard/C20` proves both with the published `0.0.2` | `guard/C25` | #382, merged |
+| `core/C3` | A0 | Core | Core's PLAN: the Installation Contract Definition, schema and outer conformance Test Cases (`core/T1`…), and Agent Realization | — | #353, merged; on main through #372 |
+| `core/C4` | A1 | Core | Core's realization of contracts and Agent Realization, in `kaal-core`; it travels alone | `core/C3`, `core/C5` | #357, merged; on main through #372 |
 | `engineering/C…` (pending) | B7 | Engineering | Engineering runs Core's conformance Test Cases against Guard's instance, then realizes it through Core and runs Guard's `upgrade` and `remove` on the result; the evidence is Guard's | `guard/C14`, `core/C3`; `guard/C16` and `core/C4` for the second part | not created |
 | `engineering/C…` (pending) | A2 | Engineering | KAAL realizes its own Skills through Core (#258) | `core/C4` | not created |
-| `core/C5` | — | Core | PLAN for Deterministic Frontmatter: the KAAL-wide NFR, the Architecture and the outer conformance Test Cases (#337 comment 6383918695) | — | not created |
-| `core/C6` | — | Core | The generic frontmatter schema format and validator in `kaal-core` | `core/C5` | not created |
+| `core/C5` | — | Core | PLAN for Deterministic Frontmatter: the KAAL-wide NFR, the Architecture and the outer conformance Test Cases (#337 comment 6383918695) | — | #343, merged; on main through #351 |
+| `core/C6` | — | Core | The generic frontmatter schema format and validator in `kaal-core` | `core/C5` | #350, merged; on main through #351 |
 | `testing/C3` | — | Testing | Evidence semantics for frontmatter conformance | `core/C5` | not created |
 | `engineering/C…` (pending) | — | Engineering | Applies the frontmatter conformance cases to Capability-owned artifacts, including Guard's declarations in `.kaal/config/guard/` | `core/C6`, `testing/C3`, `guard/C25` | not created |
 
