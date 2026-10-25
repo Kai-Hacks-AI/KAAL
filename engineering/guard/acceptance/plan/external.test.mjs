@@ -1,5 +1,6 @@
 // Guard outer acceptance, Engineering part: External. T3 validates I6, verifies N5 and F8 for a
-// target, and checks A10; guard/T56 verifies guard/F25 and guard/F26 for the delivered Skill. guard/T46 and
+// target, and checks A10; guard/T56 verifies guard/F25 and guard/F26 for the delivered Skill; guard/T93
+// verifies guard/F5 and guard/N5 for the delivered workflow (guard/C73). guard/T46 and
 // guard/T83 need KAAL's installed workspace, so they are in workspace.test.mjs (guard/C46).
 // KAAL Engineering delivers Guard naked into a fresh target as one Change. Planned in PLAN; DO and
 // CHECK do not change it.
@@ -94,5 +95,33 @@ describe("guard/I6 External delivers Guard naked", () => {
     u.git("checkout", "-q", "guard");
     assert.equal(u.read(`${SKILL}/SKILL.md`), mine, "the delivery overwrote the target's Skill");
     assert.match(kept.output, new RegExp(`${SKILL.replaceAll(".", "\\.")}/SKILL\\.md`), "the delivery does not report the Skill it kept");
+  });
+
+  it("guard/T93 [guard/F5, guard/N5]: the workflow an External delivery writes pins actions/checkout and actions/setup-node by commit SHA and has no ${{ expression in any run: line", () => {
+    assert.ok(existsSync(DELIVER), "blocked before behavioural assertion: there is no External delivery tooling (engineering/guard/external/deliver.mjs)");
+    const t = target();
+    const d = deliver(t);
+    assert.equal(d.status, 0, d.output);
+    t.git("checkout", "-q", "guard");
+    const workflows = t.git("diff", "--name-only", "main", "guard").output.trim().split("\n").filter((p) => p.startsWith(".github/workflows/"));
+    assert.equal(workflows.length, 1, `the delivery wrote no single workflow: ${workflows}`);
+    const lines = t.read(workflows[0]).split(/\r?\n/);
+
+    // The target has a package.json, so the delivered workflow sets up Node as well as checking out.
+    const uses = lines.map((l) => /^\s*-?\s*uses:\s*(\S+)/.exec(l)?.[1]).filter(Boolean);
+    for (const action of ["actions/checkout", "actions/setup-node"]) assert.ok(uses.some((u) => u.startsWith(`${action}@`)), `the delivered workflow does not use ${action}: ${uses}`);
+    for (const u of uses) assert.match(u, /@[0-9a-f]{40}$/, `${workflows[0]}: ${u} is not pinned by commit SHA`);
+
+    // Every run: line, single or in a block, carries no GitHub expression; those reach the shell through env:.
+    const run = [];
+    for (let i = 0; i < lines.length; i++) {
+      const m = /^(\s*)(?:-\s+)?run:\s*(.*)$/.exec(lines[i]);
+      if (!m) continue;
+      if (!/^[|>]/.test(m[2])) { run.push(m[2]); continue; }
+      const indent = lines[i].length - lines[i].trimStart().length;
+      while (i + 1 < lines.length && (lines[i + 1].trim() === "" || lines[i + 1].length - lines[i + 1].trimStart().length > indent)) run.push(lines[++i]);
+    }
+    assert.ok(run.length > 0, `${workflows[0]} has no run: line`);
+    assert.deepEqual(run.filter((l) => l.includes("${{")), [], `${workflows[0]} puts a GitHub expression into a run: line`);
   });
 });
