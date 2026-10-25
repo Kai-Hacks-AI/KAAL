@@ -740,6 +740,33 @@ describe("guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, uncha
       assert.doesNotMatch(r.output, /skills[\\/]kaal-guard/, `${step}: a run with no fail and no cannot judge names the Skill`);
     }
   });
+
+  // Planned in guard/C46: guard/T47 sees no deployed Skill, so only this test sees the reminder name the deployed one.
+  it("guard/T82 [guard/F21, guard/F23, guard/A15]: after a standalone init deploys the Skill, a failing and a cannot-judge local run's reminder names the deployed .agents/skills/kaal-guard/SKILL.md, not the package's copy, and with --github so do the annotations and the step summary", () => {
+    for (const [status, verdict] of [[1, "fail"], [2, "cannot judge"]]) {
+      const c = loud(status);
+      c.skill();
+      assert.equal(c.guard(["init"]).status, 0, `${verdict}: init`);
+      assert.ok(existsSync(join(c.dir, SKILL, "SKILL.md")), `blocked before behavioural assertion: init deployed no Skill at ${SKILL}/`);
+      const r = c.guard(["run", "--hook"]);
+      assert.equal(r.status, status, `${verdict}: the exit status changed`);
+      const reminder = extra(r.stdout);
+      assert.equal(reminder.length, 1, `${verdict}: not exactly one reminder line: ${JSON.stringify(reminder)}`);
+      const skill = named(c, reminder[0]);
+      assert.equal(skill.inside, `${SKILL}/SKILL.md`, `${verdict}: the reminder names ${skill.path}, not the deployed ${SKILL}/SKILL.md`);
+      assert.ok(skill.exists, `${verdict}: the reminder names ${skill.path}, which does not exist`);
+
+      const summary = join(c.root, "summary.md");
+      writeFileSync(summary, "");
+      const g = c.guard(["run", "--check", "x", "--github"], { GITHUB_STEP_SUMMARY: summary });
+      assert.equal(g.status, status, `${verdict}: the exit status changed with --github`);
+      const deployed = new RegExp(`${SKILL.replaceAll(".", "\\.")}/SKILL\\.md`);
+      const errors = g.stdout.split(/\r?\n/).filter((l) => l.startsWith("::error"));
+      assert.ok(errors.length > 0, `${verdict}: no error annotation`);
+      for (const l of errors) assert.match(l, deployed, `${verdict}: an annotation does not name the deployed Skill: ${l}`);
+      assert.match(readFileSync(summary, "utf8"), deployed, `${verdict}: the step summary does not name the deployed Skill`);
+    }
+  });
 });
 
 describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
