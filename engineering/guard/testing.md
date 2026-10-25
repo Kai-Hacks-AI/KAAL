@@ -169,8 +169,8 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D1 | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux) |
-| guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux) |
+| guard/D1 | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T66 is GREEN (`packed`, Linux), see [below](#guardd1-and-guardd2-after-guardc25) |
+| guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T67 is GREEN (`packed`, Linux), see [below](#guardd1-and-guardd2-after-guardc25) |
 | guard/D3 | guard/T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
 | guard/D4 | guard/T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux); retracted in `guard/C23` |
 
@@ -190,6 +190,12 @@ guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding 
 - **guard/T43** runs only the candidate, and it holds.
 
 **guard/D4 retracted.** The Owner ruled on #336 that Guard owns its configuration contract and its validation, not the consumer's formatting. The byte-for-byte wording of guard/F18 was therefore a wrong contract, not a gap in Guard's behaviour. `guard/C23` supersedes that wording, so guard/D4 is retracted rather than corrected, and its evidence stays recorded above. Its correction, the text-preserving editor of `guard/C8` (#336), is withdrawn unmerged. guard/T44 is superseded by guard/T64, which holds by construction under the planned configuration because Guard never writes a declaration. `guard/C24` writes it. Whatever the replacement proves RED becomes a new Defect, numbered from guard/D5.
+
+### guard/D1 and guard/D2 after guard/C25
+
+guard/D1 and guard/D2 were established by guard/T38 and guard/T39 in K2b. Those tests run an upgrade from `0.0.1`, a path `0.0.2` no longer offers, so they are retired and can never turn GREEN. Their obligations moved to guard/T66 and guard/T67, which `guard/C24` wrote and `guard/C25` (#352) satisfied in the same delivery, so neither was ever recorded RED. On `kaal/guard` at 0e85ebb, `node --test engineering/guard/acceptance/plan/consumer/consumer.test.mjs` passes guard/T65–guard/T68 between two `packed` candidates on Linux.
+
+A Defect traces only to the Test Case that proved it RED, so guard/D1 and guard/D2 keep their traces to guard/T38 and guard/T39 and do not move to guard/T66 and guard/T67. They are recorded as no longer observable, with their obligations held by guard/T66 and guard/T67. They are not recorded as corrected by a GREEN of the Test Case that proved them. `guard/C9` and `guard/C11`, their planned corrections, are absorbed by `guard/C25` and are not created (`guard/C53`). guard/T66 and guard/T67 still need `registry` evidence for a second published version of the `0.0.2` line, as [Consumer upgrade](#consumer-upgrade) says.
 
 ## Agent guidance
 
