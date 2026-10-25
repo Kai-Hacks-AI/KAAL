@@ -1,0 +1,4 @@
+#!/bin/sh
+# Early local feedback before a push, from the same checks CI runs (.githooks/guard.sh). CI decides.
+# Enable once per clone: git config core.hooksPath .githooks. Skip once: git push --no-verify.
+exec sh .githooks/guard.sh pre-push "$@"
