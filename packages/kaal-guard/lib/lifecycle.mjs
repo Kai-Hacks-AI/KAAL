@@ -25,6 +25,8 @@ const asset = (name) => CONTRACT.assets.find((a) => a.name === name);
 const HOOK = asset("hook").target;
 const WORKFLOW = asset("workflow").target;
 const HOOKS_PATH = dirname(HOOK);
+/** Each of Guard's .gitattributes, by the one asset of Guard's it keeps byte for byte (F27): installed only beside that asset. */
+const COVERS = { [asset("hook-attributes").target]: HOOK, [asset("workflow-attributes").target]: WORKFLOW };
 
 /** The line a pre-existing hook adds to run Guard's own: it runs kaal-guard run --hook with the push's facts. */
 const HOOK_LINE = `sh node_modules/@kaihacksai/kaal-guard/${asset("hook").source} "$@" || exit 1`;
@@ -63,6 +65,16 @@ const of = (surface) => files().filter((f) => f.surface === surface);
  * are Guard's, not the repository's, and do not count.
  */
 const theirs = (declared, assets) => declared.filter((d) => !assets[d.file]);
+
+/**
+ * The directory assets that already hold a file of the repository's own, one the record does not
+ * register: Guard installs none of their other files beside it, so the directory stays the repository's.
+ */
+function occupied(root, assets) {
+  const own = files().filter((f) => !assets[f.path] && existsSync(join(root, f.path)));
+  return CONTRACT.assets.filter((a) => a.kind === "directory" && own.some((f) => f.path.startsWith(`${a.target}/`))).map((a) => a.target);
+}
+const inside = (targets, path) => targets.some((t) => path.startsWith(`${t}/`));
 
 /** Writes catalogued content where no file is, and returns its registration. Throws when the catalogue lacks it. */
 function install(root, path, text) {
@@ -136,8 +148,13 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
     if (own.length) untouched.push(`${WORKFLOW}: not installed; your workflows already run Guard (${executed(own).join("; ")}), and Guard's workflow would run those checks a second time`);
     else wanted.push(...of("ci"));
   }
+  const theirsDirs = occupied(root, assets);
   for (const { path, surface, text } of wanted) {
-    if (assets[path]) {
+    if (!assets[path] && !existsSync(join(root, path)) && inside(theirsDirs, path)) {
+      untouched.push(`${path}: not installed; ${theirsDirs.find((t) => path.startsWith(`${t}/`))}/ holds files of the repository's own`);
+    } else if (!assets[path] && COVERS[path] && !assets[COVERS[path]]) {
+      untouched.push(`${path}: not installed; it would keep ${COVERS[path]}, which is not Guard's`);
+    } else if (assets[path]) {
       untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
       if (surface) activated.add(surface);
     } else if (existsSync(join(root, path))) {
@@ -150,6 +167,10 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
     }
   }
   if (hook) hooksPath(root, { assets, state, at, installed, untouched, todo });
+  // Where core.fileMode is false, Git records the hook from the index alone, so it would be committed without its executable bit (F27).
+  if (hook && assets[HOOK] && git(root, "config", "--bool", "--get", "core.fileMode").out === "false") {
+    todo.push(`core.fileMode is false here, so Git will not record ${HOOK} as executable on its own. Before you commit it, run: git add --chmod=+x ${HOOK}`);
+  }
   else if (!activated.has("hook")) todo.push(`The hook is not activated. Run kaal-guard init --hook to install Guard's ${HOOK}, or add this line to a pre-push hook of your own:`, ...ADD_HOOK_LINE);
   const mine = declarations(root);
   const missing = uncovered(list, mine);
@@ -209,10 +230,13 @@ export function upgrade(root, { record, declared }) {
   const own = theirs(declared, assets);
   const lines = [];
   let changed = false;
+  const theirsDirs = occupied(root, assets);
   for (const { path, surface, text } of files()) {
     const entry = assets[path];
     if (!entry) {
       if (existsSync(join(root, path))) lines.push(`left alone ${path}: not Guard's; the installation record does not register it`);
+      else if (inside(theirsDirs, path)) lines.push(`left alone ${path}: not installed; ${theirsDirs.find((t) => path.startsWith(`${t}/`))}/ holds files of the repository's own`);
+      else if (COVERS[path] && !assets[COVERS[path]]) continue;
       else if (!surface || record.activated.includes(surface)) {
         assets[path] = install(root, path, text);
         changed = true;
