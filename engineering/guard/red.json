@@ -2,12 +2,6 @@
   "collector": "kaal/guard",
   "entries": [
     {
-      "test": "guard/T52",
-      "class": "Feature RED",
-      "until": "guard/C16",
-      "authority": "the Owner's review 5643242085 on #381"
-    },
-    {
       "test": "guard/T54",
       "class": "Feature RED",
       "until": "guard/C16",
