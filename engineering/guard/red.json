@@ -26,21 +26,9 @@
       "authority": "the Owner's review 5645021559 on #431"
     },
     {
-      "test": "guard/T88",
-      "class": "Feature RED",
-      "until": "guard/C66",
-      "authority": "the Owner's review 5645021559 on #431"
-    },
-    {
       "test": "guard/T89",
       "class": "Feature RED",
       "until": "guard/C67",
-      "authority": "the Owner's review 5645021559 on #431"
-    },
-    {
-      "test": "guard/T90",
-      "class": "Feature RED",
-      "until": "guard/C66",
       "authority": "the Owner's review 5645021559 on #431"
     },
     {

@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { shown, SURFACES } from "./config.mjs";
+import { CONFIG, shown, SURFACES } from "./config.mjs";
 import { declarations, step, uncovered } from "./github.mjs";
 import { deleteRecord, deleteState, git, prune, RECORD, writeRecord, writeState } from "./state.mjs";
 
@@ -137,7 +137,12 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
     else wanted.push(...of("ci"));
   }
   for (const { path, surface, text } of wanted) {
-    if (assets[path]) {
+    if (assets[path] && !existsSync(join(root, path))) {
+      // A registered asset the repository lost is reinstalled (F8): no file of the consumer's is there.
+      assets[path] = install(root, path, text);
+      installed.push(`${path}: reinstalled; Guard registered it, and the repository no longer had it`);
+      if (surface) activated.add(surface);
+    } else if (assets[path]) {
       untouched.push(`${path}: Guard installed it before (${assets[path].version}); kaal-guard upgrade updates it`);
       if (surface) activated.add(surface);
     } else if (existsSync(join(root, path))) {
@@ -221,7 +226,12 @@ export function upgrade(root, { record, declared }) {
       continue;
     }
     const now = condition(root, path, entry);
-    if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted; Guard does not reinstall it (kaal-guard remove${surface ? ` --${surface}` : ""} drops it from the record)`);
+    if (now === "missing" && (!surface || record.activated.includes(surface))) {
+      // A registered asset of an activated surface that the repository lost is reinstalled (F13).
+      assets[path] = install(root, path, text);
+      changed = true;
+      lines.push(`reinstalled ${path}: ${VERSION}; Guard registered it, and the repository no longer had it`);
+    } else if (now === "missing") lines.push(`missing ${path}: registered by Guard ${entry.version}, but deleted, and the ${surface} surface is not activated (kaal-guard remove --${surface} drops it from the record)`);
     else if (now === "modified") lines.push(`kept ${path}: modified since Guard ${entry.version} wrote it, so it keeps that registered version`);
     else if (sha256(Buffer.from(text)) === entry.sha256) {
       lines.push(entry.version === VERSION ? `current ${path}: ${VERSION}` : `current ${path}: unchanged from ${entry.version} to ${VERSION}`);
@@ -242,8 +252,8 @@ export function upgrade(root, { record, declared }) {
  * Deactivates the surfaces asked for, or both: deletes each of their registered, unmodified assets and
  * the directories that empties, and drops them from the record; for the hook, unsets core.hooksPath only
  * in the scope the checkout state records and only while it still holds the value Guard set. Without a
- * surface named, it then deletes the record, the state and an empty configuration directory. Declarations
- * and Test Cases stay: they are the repository's own (F30). Returns { lines }.
+ * surface named, it then deletes the record, the state and the default configuration directory where it
+ * is empty. Declarations and Test Cases stay: they are the repository's own (F30). Returns { lines }.
  */
 export function remove(root, { dir, record, state, at, hook = false, ci = false }) {
   const all = !hook && !ci;
@@ -279,7 +289,8 @@ export function remove(root, { dir, record, state, at, hook = false, ci = false 
   for (const s of surfaces) if (record.activated.includes(s)) lines.push(`deactivated ${s}`);
   if (all) {
     deleteRecord(root);
-    if (existsSync(dir) && readdirSync(dir).length === 0) {
+    // Only the default configuration directory is Guard's to delete, and only while empty: one named with --config never is (F8).
+    if (resolve(dir) === resolve(root, CONFIG) && existsSync(dir) && readdirSync(dir).length === 0) {
       rmSync(dir, { recursive: true });
       prune(root, dir);
     }
