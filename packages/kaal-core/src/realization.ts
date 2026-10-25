@@ -114,10 +114,13 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
  * Capability's at its canonical location: Core writes it only when the Capability's record does
  * not register it yet, and registers what it wrote in that record. Core's own record holds only
  * the provider deployments. The deployments, removals and records are applied together, each
- * guarded by what was read; if anything changed in between, nothing is changed. The one exception
- * is a deployment that changes between a file and a directory: the removals in its way are applied
- * first, in a guarded reconciliation of their own, because Hosting applies no path together with
- * its own descendant.
+ * guarded by what was read; if anything changed in between, nothing is changed. A failure Hosting
+ * observes while applying is rolled back, as Hosting promises. Where a deployment changes between a
+ * file and a directory, Hosting cannot apply the path and its descendant together, so Core removes
+ * what is in the way first and applies the rest second; if the second fails, Core puts the removed
+ * files back, and if that fails too it throws `Unrestored` holding their bytes. Like Hosting's,
+ * this is rollback on observed failure: a process cut off between the two steps leaves the removals
+ * applied and every record as it was, which the next realization completes.
  */
 export async function realizeIn(root: string, { skills, contracts = [] }: RealizationRequest): Promise<Realized> {
   if ((await kind(root)) !== "directory") throw new KaalError(`${root} is not a directory`);
@@ -195,15 +198,54 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
 
   // Hosting refuses a path and its own descendant in one reconciliation. Where a deployment changes
   // between a file and a directory, the removals in the way are applied first, then everything else.
+  // Core keeps the combined guarantee itself: it holds the bytes it removes, and if the second
+  // reconciliation fails it puts them back, so the repository is as it was read.
   const nested = (a: string, b: string) => a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
   const first = remove.filter((r) => write.some((w) => nested(w.path, r.path)));
-  const before = first.length > 0 ? await reconcile(root, { write: [], remove: first }) : { outcomes: [], pruned: [] };
-  const done = await reconcile(root, { write, remove: remove.filter((r) => !first.includes(r)) });
   const byPath = <T extends { path: string }>(a: T, b: T) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+  if (first.length === 0) {
+    const done = await reconcile(root, { write, remove });
+    return { plan, outcomes: done.outcomes, pruned: done.pruned, records: records.sort() };
+  }
+  const held: Write[] = [];
+  for (const r of first) {
+    const bytes = await readFile(join(root, r.path));
+    if (sha256(bytes) !== r.expect) throw new KaalError(`${r.path} changed while it was read; nothing was changed`);
+    held.push({ path: r.path, expect: "absent", bytes });
+  }
+  const before = await reconcile(root, { write: [], remove: first });
+  let done;
+  try {
+    done = await reconcile(root, { write, remove: remove.filter((r) => !first.includes(r)) });
+  } catch (cause) {
+    try {
+      await reconcile(root, { write: held, remove: [] });
+    } catch (failure) {
+      throw new Unrestored(held, cause, failure);
+    }
+    throw cause;
+  }
   return {
     plan,
     outcomes: [...before.outcomes, ...done.outcomes].sort(byPath),
     pruned: [...before.pruned, ...done.pruned].sort(),
     records: records.sort(),
   };
+}
+
+/**
+ * A realization that changed a deployment between a file and a directory failed after removing
+ * what was in the way, and putting it back failed too. Nothing else was applied, every record is
+ * as it was read, and `unrestored` holds each removed file's path and exact bytes, so none is lost.
+ */
+export class Unrestored extends KaalError {
+  constructor(
+    readonly unrestored: readonly { readonly path: string; readonly bytes: Uint8Array }[],
+    cause: unknown,
+    readonly restoring: unknown,
+  ) {
+    super(`a realization failed after removing ${unrestored.map((u) => u.path).join(", ")}, and putting them back failed too; their bytes are held in this error`);
+    this.cause = cause;
+  }
+  override name = "Unrestored";
 }

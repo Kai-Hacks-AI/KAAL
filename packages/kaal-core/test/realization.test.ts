@@ -4,11 +4,12 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
+import gfs from "graceful-fs";
 import { afterEach, describe, it } from "node:test";
 import { renderSkill } from "kaal-core/agent";
 import { installationFormat } from "kaal-core/installation";
-import { realizeIn, record as CORE_RECORD } from "kaal-core/realization";
+import { realizeIn, record as CORE_RECORD, Unrestored } from "kaal-core/realization";
 
 const sha = (bytes: Uint8Array | string) => createHash("sha256").update(bytes).digest("hex");
 const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
@@ -148,6 +149,59 @@ describe("Hosting application (core/C13)", () => {
     await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("back\n") } }] });
     assert.equal(at(root, ".agents/skills/sample/tool").toString(), "back\n");
     assert.deepEqual(Object.keys(json(root, CORE_RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/tool"]);
+  });
+
+  describe("a file-directory change whose second step fails", () => {
+    const OLD = { name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } };
+    const NEW = { name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } };
+    const TOOL = ".agents/skills/sample/tool";
+    type Rename = (from: string, to: string, cb: (e: NodeJS.ErrnoException | null) => void) => void;
+    const original = gfs.rename as unknown as Rename;
+    afterEach(() => {
+      (gfs as unknown as { rename: Rename }).rename = original;
+    });
+    /** Make the host refuse renames: the first one onto a record, and then, if `restoring` is refused too, any onto the removed file. */
+    function refuse(restoring: boolean) {
+      let second = false;
+      (gfs as unknown as { rename: Rename }).rename = (from, to, cb) => {
+        const refused = Object.assign(new Error("EPERM: refused"), { code: "EPERM" });
+        if (!second && basename(to) === "installation.json") {
+          second = true;
+          return cb(refused);
+        }
+        if (second && restoring && basename(to) === "tool" && basename(dirname(to)) === "sample") return cb(refused);
+        return original(from, to, cb);
+      };
+    }
+    const snapshot = (root: string) => ({ tool: at(root, TOOL).toString(), record: at(root, CORE_RECORD).toString(), run: existsSync(join(root, TOOL, "run")) });
+
+    it("puts the removed file back and rethrows, so the repository and its records are as they were", async () => {
+      const root = repo();
+      await realizeIn(root, { skills: [OLD] });
+      const before = snapshot(root);
+      refuse(false);
+      await assert.rejects(realizeIn(root, { skills: [NEW] }), /EPERM/);
+      assert.deepEqual(snapshot(root), before);
+    });
+
+    it("throws Unrestored holding the removed file's bytes when putting it back fails too, and claims no new ownership", async () => {
+      const root = repo();
+      await realizeIn(root, { skills: [OLD] });
+      const record = at(root, CORE_RECORD).toString();
+      refuse(true);
+      const error = await realizeIn(root, { skills: [NEW] }).then(
+        () => assert.fail("the realization applied"),
+        (e: unknown) => e,
+      );
+      assert.ok(error instanceof Unrestored);
+      assert.match(String((error.cause as Error).message), /EPERM/);
+      assert.deepEqual(error.unrestored.map((u) => [u.path, Buffer.from(u.bytes).toString()]), [[TOOL, "old\n"]]);
+      assert.equal(at(root, CORE_RECORD).toString(), record, "Core's record is as it was read");
+      assert.ok(!existsSync(join(root, TOOL)), "nothing of the new deployment was applied");
+      (gfs as unknown as { rename: Rename }).rename = original;
+      await realizeIn(root, { skills: [NEW] });
+      assert.equal(at(root, `${TOOL}/run`).toString(), "new\n", "the next realization completes it");
+    });
   });
 
   it("refuses a record that does not conform and changes nothing", async () => {

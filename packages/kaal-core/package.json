@@ -52,7 +52,9 @@
     "kaal-hosting": "0.0.1"
   },
   "devDependencies": {
+    "@types/graceful-fs": "^4.1.9",
     "@types/node": "^24.0.0",
+    "graceful-fs": "^4.2.11",
     "typescript": "^5.6.0"
   }
 }
