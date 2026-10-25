@@ -88,29 +88,38 @@ A promotion moves `main`, and every other collector's next promotion must then c
 
 - **Development synchronization.** A collector takes `main` whenever its Changes need content from it, as [Synchronize](#synchronize) says. Nothing orders it.
 - **Promotion pair.** A collector about to promote opens its synchronization, when it needs one, and its promotion together, as one pair. The promotion stays unfresh until the synchronization lands, and is then judged again on its new head.
-- **One pair open.** While a promotion into `main` is open, no other collector opens one. The next pair starts from `main` after the open promotion has landed or closed, so it synchronizes once, not once per promotion that overtakes it.
+- **A queue, first in, first out.** Open promotions into `main` form one queue, ordered by pull request number: the oldest goes first. A draft promotion is open and holds its place. This is the fair default, not only a way out of a tie: a pair that queues behind another synchronizes once, after the one ahead of it lands, not once per promotion that overtakes it.
+- **Owner override.** The Owner may let a particular promotion go ahead of particular older ones. The override is explicit and traceable: an Owner review or comment on the promotion that goes first, holding the line `Promotion-Order: before #<n>[, #<m> …]`, naming each older promotion it may pass. Nothing else is an override: not merge order, not a comment by anyone else, not a line on another pull request. An override changes the order only; the passed promotions still synchronize afterwards, and every other required check still applies.
 
-The rule is a verdict of [`lineage.ts`](lineage.ts), `promotionOrder`, and its tests specify it, as for every other verdict here. Its facts are the pull request's base and number and the open pull requests into `main`, drafts included, as GitHub reports them:
+The rule is a verdict of [`lineage.ts`](lineage.ts), `promotionOrder`, and its tests specify it, as for every other verdict here. Its facts are, as GitHub reports them: the pull request's base and number; the open pull requests into `main`, drafts included; on each of those, the reviews and comments holding a `Promotion-Order:` line, with their author, link and time; and whether each such author has admin permission on this repository, which is what makes a line the Owner's.
 
 | Test Case | Planned verdict |
 |---|---|
 | engineering/T1 | A pull request into a branch other than `main` is not applicable. |
 | engineering/T2 | A promotion passes while no other pull request into `main` is open. |
-| engineering/T3 | A promotion fails while an open promotion with a lower number exists, drafts included; it names that promotion and says to open this pair after it lands or closes. |
-| engineering/T4 | Of two promotions open at once, the lower number passes, so neither blocks the other forever. |
-| engineering/T5 | Without the complete list of open pull requests into `main`, it cannot judge, which fails. |
+| engineering/T3 | A promotion fails while an older open promotion exists, drafts included; it names that promotion and says to open this pair after it lands or closes. |
+| engineering/T4 | Of promotions open at once, the oldest passes, so the queue always moves. |
+| engineering/T5 | Without complete facts (every open pull request into `main`, and every review and comment on each), it cannot judge, which fails. |
+| engineering/T7 | A promotion holding an Owner override that names every older open promotion passes, and names the override's link. |
+| engineering/T8 | A promotion an Owner override passes fails while the promotion holding that override is open, naming the override; it passes again once that one lands or closes. |
+| engineering/T9 | A `Promotion-Order:` line by an author without admin permission authorizes nothing; the verdict names it as ignored and judges first in, first out. |
+| engineering/T10 | An override names promotions, not a position: an older open promotion it does not name still blocks, and a named pull request that is no longer an open promotion into `main` is stale, which the verdict names and which authorizes nothing else. |
+| engineering/T11 | On one pull request, the Owner's newest `Promotion-Order:` line decides; `Promotion-Order: fifo` withdraws an override. A line that names this pull request itself, or is not of the form above, is invalid, named, and authorizes nothing. |
+| engineering/T12 | Two Owner overrides that each let their own promotion pass the other cannot both hold: neither promotion can be judged until the Owner withdraws one, and the verdict names both. |
 
-That the pair's synchronization is in place is already a Test Case: the promotion's freshness verdict, `promotionFreshness`, fails until the promotion contains `main`'s tip. A synchronization cannot be told apart as development or promotion from Git, so nothing orders synchronizations; a pair's synchronization is wasted while another promotion is open, since `main` moves again under it, and T3 is what stops that pair from being opened.
+That the pair's synchronization is in place is already a Test Case: the promotion's freshness verdict, `promotionFreshness`, fails until the promotion contains `main`'s tip. A synchronization cannot be told apart as development or promotion from Git, so nothing orders synchronizations; a pair's synchronization is wasted while an older promotion is open, since `main` moves again under it, and T3 is what stops that pair from going ahead.
 
-The tests decide; where they run is assigned like any other check. CI runs the verdict on every pull request into `main`, beside Promotion Source, from the default branch's tip and with GitHub's facts only; that is the hard gate. The pre-push hook judges from Git alone, without network or credentials, so it cannot run the verdict. It is soft instead: a promotion is never pushed, it is opened from the collector, so the push the hook sees is the pair's synchronization, which Git does tell apart. When the pushed head is a synchronization, the hook asks before it pushes:
+The tests decide; where they run is assigned like any other check. CI runs the verdict on every pull request into `main`, beside Promotion Source, from the default branch's tip and with GitHub's facts only; that is the hard gate. It judges every open promotion again whenever any of them is opened, closed, changed or receives a review or comment, because an override on one changes the verdict of another. Before it opens a promotion pair, an agent that can read GitHub runs `promotionOrder` itself and opens the pair only where the queue lets it go.
+
+The pre-push hook judges from Git alone, without network or credentials, so it cannot run the verdict. It is a soft reminder instead: a promotion is never pushed, it is opened from the collector, so the push the hook sees is the pair's synchronization, which Git does tell apart.
 
 | Test Case | Planned verdict |
 |---|---|
-| engineering/T6 | The pre-push hook, pushing a synchronization, asks whether it belongs to a promotion pair and, if so, to check that no other promotion into `main` is open; it never blocks the push. Where nobody can answer (no terminal, as for an agent), it prints the question as a warning and pushes. |
+| engineering/T6 | The pre-push hook, pushing a synchronization, asks whether it belongs to a promotion pair and, if so, to check the promotion queue first; it never blocks the push. Where nobody can answer (no terminal, as for an agent), it prints the question as a warning and pushes. |
 
-An agent that can read GitHub runs `promotionOrder` itself before it opens a promotion.
+After this PLAN, the RED is these Test Cases, and the implementation of the verdict and the hook, and the `.github` change that runs and requires the check, are each a Change of their own.
 
-Reasoning: each promotion lands on the `main` it was synchronized with, so no collector synchronizes twice for one promotion, and the order is decided by GitHub's facts, not by whoever lands first.
+Reasoning: each promotion lands on the `main` it was synchronized with, so no collector synchronizes twice for one promotion, and the order is decided by GitHub's facts and the Owner's recorded word, never by whoever lands first.
 
 ### Hotfix
 
