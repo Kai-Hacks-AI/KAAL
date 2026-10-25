@@ -14,7 +14,7 @@ npx kaal-guard init --ci         # also activates Guard's workflow, if you want 
 npx kaal-guard init --hook --ci  # both
 ```
 
-Three things stay apart. **Initialization** prepares Guard: `init` creates `.kaal/config/guard/`, where you declare your checks, and the installation record. **Registration** says what Guard may execute: each declaration's `runs` names `hook`, `ci` or both, and the two sets may differ. **Activation** says where it executes, and it is always your choice: `--hook` and `--ci` each activate one surface, and neither implies the other. Every form is safe to repeat.
+Three things stay apart. **Initialization** prepares Guard: `init` creates `.kaal/config/guard/`, where you declare your checks, the installation record, and Guard's Skill at `.agents/skills/kaal-guard/`, which an agent reads to resolve a failing verdict. Installing the Skill activates nothing. **Registration** says what Guard may execute: each declaration's `runs` names `hook`, `ci` or both, and the two sets may differ. **Activation** says where it executes, and it is always your choice: `--hook` and `--ci` each activate one surface, and neither implies the other. Every form is safe to repeat.
 
 Your CI is yours: you decide which job runs each check. `init` writes only what is missing and reports in up to four parts:
 
@@ -31,7 +31,7 @@ Your CI is yours: you decide which job runs each check. `init` writes only what 
 - the hook in `.githooks` is the one Guard installed,
 - Git runs no hooks of the repository's own from `.git/hooks`, which setting it would turn off.
 
-Every file Guard writes is content the package catalogues in its `contract.json`, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
+Every file Guard writes is content the package catalogues in its `contract.json`, an instance of KAAL Core's Installation Contract format and the one list of the files Guard installs, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
 
 ## Declare the checks
 
