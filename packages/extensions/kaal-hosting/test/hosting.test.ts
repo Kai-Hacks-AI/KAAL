@@ -2,6 +2,7 @@
 // runs this suite. CI runs it on Linux, Windows and macOS.
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -10,7 +11,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, kind, read, readFile, update, within, type Files } from "kaal-hosting";
+import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -296,6 +297,70 @@ describe("within", () => {
     } finally {
       gfs.realpath.native = original;
     }
+  });
+});
+
+// The outer tests of reconcile are hosting/C1's, in test/plan/reconciliation.test.mjs.
+// These are its Code tests.
+describe("reconcile", () => {
+  it("refuses a path that is both a file and a directory of one reconciliation", async () => {
+    const { dir } = alone();
+    const before = await snapshot(dir);
+    const write = (path: string) => ({ path, expect: "absent", bytes: Buffer.from("x") });
+    await assert.rejects(reconcile(dir, { write: [write("a"), write("a/b.md")], remove: [] }), code("INVALID_PATH"));
+    assert.equal(await snapshot(dir), before);
+  });
+
+  it("refuses with a HostingError that carries every failed precondition", async () => {
+    const { dir } = alone();
+    await assert.rejects(reconcile(dir, { write: [], remove: [{ path: "x.md", expect: "0".repeat(64) }] }), (e) => {
+      assert.ok(e instanceof HostingError && e.code === "STALE");
+      assert.deepEqual(e.findings, [{ path: "x.md", expected: "0".repeat(64), found: "absent" }]);
+      return true;
+    });
+  });
+
+  it("changes nothing when the host does not hold the staged bytes exactly", async () => {
+    const { parent, dir } = alone();
+    writeFileSync(join(dir, "a.md"), "a");
+    const before = await snapshot(dir);
+    const original = gfs.readFile;
+    gfs.readFile = ((path: string, ...rest: unknown[]) => {
+      const cb = rest.at(-1) as (e: Error | null, b?: Buffer) => void;
+      if (String(path).includes(".staging-")) return cb(null, Buffer.from("not what was written"));
+      return (original as (...a: unknown[]) => void)(path, ...rest);
+    }) as typeof gfs.readFile;
+    try {
+      await assert.rejects(reconcile(dir, { write: [{ path: "a.md", expect: createHash("sha256").update("a").digest("hex"), bytes: Buffer.from("b") }], remove: [] }), code("UNFAITHFUL"));
+    } finally {
+      gfs.readFile = original;
+    }
+    assert.equal(await snapshot(dir), before);
+    assert.deepEqual(readdirSync(parent), ["d"]);
+  });
+
+  it("keeps what it moved aside, never deleting it, when even the restore fails", async () => {
+    const { parent, dir } = alone();
+    writeFileSync(join(dir, "precious.md"), "precious");
+    const original = gfs.rename;
+    let calls = 0;
+    gfs.rename = ((from: string, to: string, cb: (e: Error | null) => void) =>
+      ++calls === 1 ? original(from, to, cb) : cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" }))) as typeof gfs.rename;
+    try {
+      await assert.rejects(
+        reconcile(dir, {
+          write: [{ path: "new.md", expect: "absent", bytes: Buffer.from("new") }],
+          remove: [{ path: "precious.md", expect: createHash("sha256").update("precious").digest("hex") }],
+        }),
+        (e: unknown) => e instanceof HostingError && e.code === "UNRESTORED" && (e.cause as { code?: string }).code === "EPERM",
+      );
+    } finally {
+      gfs.rename = original;
+    }
+    const aside = readdirSync(parent).filter((name) => name.startsWith("d.aside-"));
+    assert.equal(aside.length, 1);
+    assert.deepEqual(readdirSync(join(parent, aside[0])), ["precious.md"]);
+    assert.equal(readFileSync(join(parent, aside[0], "precious.md"), "utf8"), "precious");
   });
 });
 

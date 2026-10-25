@@ -76,7 +76,7 @@ describe("kaal-core/agent", () => {
     assert.ok(text.startsWith(`---\nname: "s"\ndescription: ${JSON.stringify(`Handle this:\n\n${fence}md\n## Example\n${fence}\n\nThen go.`)}\n---\n`), text);
   });
 
-  it("reports a target blocked by a file it must keep, and writes nothing beneath it", () => {
+  it("reports a target blocked by a file it must keep, or by one only a file↔directory transition could replace, and writes nothing beneath it", () => {
     const skill = { name: "s", files: { "SKILL.md": Buffer.from("---\nname: s\n---\n\n## Description\n\nD.\n"), "references/a.md": Buffer.from("A\n") } };
     const theirs = ".agents/skills/s/references";
     const plan = realize({ skills: [skill], providers: [], record: {}, present: { [theirs]: "b".repeat(64) } });
@@ -84,8 +84,11 @@ describe("kaal-core/agent", () => {
     assert.ok(plan.keep.some((k) => k.path === `${theirs}/a.md` && k.reason.includes(theirs)));
     assert.equal(plan.record[`${theirs}/a.md`], undefined);
     const pruned = realize({ skills: [skill], providers: [], record: { [theirs]: "b".repeat(64) }, present: { [theirs]: "b".repeat(64) } });
-    assert.deepEqual(pruned.prune, [theirs], "an unmodified file Core deployed is pruned, and no longer blocks");
-    assert.ok(pruned.write.some((w) => w.path === `${theirs}/a.md`));
+    assert.deepEqual(pruned.prune, [], "an unmodified file Core deployed is kept where a directory is now needed");
+    assert.ok(pruned.keep.some((k) => k.path === theirs && k.reason.includes("file↔directory")));
+    assert.ok(pruned.keep.some((k) => k.path === `${theirs}/a.md` && k.reason.includes("file↔directory")));
+    assert.equal(pruned.record[theirs], "b".repeat(64), "Core still owns it");
+    assert.ok(!pruned.write.some((w) => w.path.startsWith(`${theirs}/`)));
   });
 
   it("refuses a Skill name or file path that would place a deployment outside its Skill", () => {
