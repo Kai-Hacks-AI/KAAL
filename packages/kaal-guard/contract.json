@@ -15,9 +15,23 @@
       "surface": "hook"
     },
     {
+      "name": "hook-attributes",
+      "source": "templates/hook.gitattributes",
+      "target": ".githooks/.gitattributes",
+      "kind": "file",
+      "surface": "hook"
+    },
+    {
       "name": "workflow",
       "source": "templates/guard.yml",
       "target": ".github/workflows/guard.yml",
+      "kind": "file",
+      "surface": "ci"
+    },
+    {
+      "name": "workflow-attributes",
+      "source": "templates/workflow.gitattributes",
+      "target": ".github/workflows/.gitattributes",
       "kind": "file",
       "surface": "ci"
     },
@@ -32,11 +46,20 @@
     ".githooks/pre-push": [
       "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95"
     ],
+    ".githooks/.gitattributes": [
+      "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9"
+    ],
     ".github/workflows/guard.yml": [
       "832be35f6d149493adfcb171fc159d707f762915f2e2cd57a159b2aeb8e14acf"
     ],
+    ".github/workflows/.gitattributes": [
+      "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee"
+    ],
     ".agents/skills/kaal-guard/SKILL.md": [
       "1d5ad95a1faf03ce9eab0967f73c61abec59fcf2b9306bbbfd174e87c4757edc"
+    ],
+    ".agents/skills/kaal-guard/.gitattributes": [
+      "1c6803649686447b5a771e3eb8639d30fee8725a269fa78fdd6fca1ff5e190a6"
     ]
   },
   "record": ".kaal/state/guard/installation.json",
