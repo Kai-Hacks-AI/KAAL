@@ -27,6 +27,20 @@ Record each judged validation item with its judgment, and make an unjudged one f
 
 **Implementation.** Write the smallest test that fails for the right reason, make it pass, then refactor with every test green. Test behaviour, not structure.
 
+## Tracing each test: TEST A FINDING
+
+**To Enhance Systematic Testing: Architecture, Functional requirements, Intent, Nonfunctional requirements, Defects — Inform Next Generation.**
+
+A Test Case normally traces to one specific target, according to its loop and purpose. TEST A FINDING names the permitted target kinds:
+
+- Architecture;
+- Functional requirements;
+- Intent;
+- Nonfunctional requirements;
+- Defects.
+
+Additional traces require justification. Name the target in the test's title, such as `core/T37 [core/F37]`, and in the PLAN's testing table. Inform Next Generation is the feedback of evidence into the next PLAN, not another trace target.
+
 ## Running acceptance
 
 Keep a capability's acceptance scenarios in its own workspace, under `test/acceptance/`. Run them with `accept` from `kaal-testing/acceptance`, against a manifest of tarballs packed once by the caller. In a scenario, get packages only through `install`, never by building or packing. Report each ledger finding with its kind. State host containment and unrecorded installations as unknown, never as passed.
