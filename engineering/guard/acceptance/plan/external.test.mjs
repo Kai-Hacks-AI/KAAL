@@ -97,10 +97,9 @@ describe("guard/I6 External delivers Guard naked", () => {
     assert.equal(run(t.dir, "git", ["push", "origin", "guard"], { ...t.env, UNIT_STATUS: "0" }).status, 0, "the delivered hook blocked a passing check");
   });
 
-  // Written in guard/C13 before any code and marked todo until guard/C17 turns it GREEN; the boundary Change
-  // beside guard/C17 removes the marker. Where Core is used at delivery (core/C4), the deployments Core computes
-  // for the passed declaration are planned with that Change, not here.
-  it("guard/T56 [guard/I6, guard/F25, guard/F26, guard/A16]: an External delivery writes the Skill variant at the canonical location, names neither KAAL nor npm, its hook's reminder names the canonical path, and a target's existing Skill and instruction files are untouched", { todo: "RED until guard/C17" }, () => {
+  // Where Core is used at delivery (core/C4), the deployments Core computes for the passed declaration are
+  // planned with that Change, not here.
+  it("guard/T56 [guard/I6, guard/F25, guard/F26, guard/A16]: an External delivery writes the Skill variant at the canonical location, names neither KAAL nor npm, its hook's reminder names the canonical path, and a target's existing Skill and instruction files are untouched", () => {
     assert.ok(existsSync(DELIVER), "blocked before behavioural assertion: there is no External delivery tooling (engineering/guard/external/deliver.mjs)");
     const t = target();
     const theirs = {
@@ -149,7 +148,7 @@ describe("guard/I6 External delivers Guard naked", () => {
     assert.match(kept.output, new RegExp(`${SKILL.replaceAll(".", "\\.")}/SKILL\\.md`), "the delivery does not report the Skill it kept");
   });
 
-  it("guard/T46 [guard/F19, guard/A13, guard/A16]: kaal-engineer-skill finds no standard or KAAL violation in the Embed Skill or the External variant", { todo: "RED until guard/C14 (the Embed Skill) and guard/C17 (the External variant)" }, () => {
+  it("guard/T46 [guard/F19, guard/A13, guard/A16]: kaal-engineer-skill finds no standard or KAAL violation in the Embed Skill or the External variant", () => {
     // The checker judges its own Skill first: where it cannot (no installed and built workspace, as in the Windows
     // and macOS Guard jobs), the test is blocked, never passed.
     const self = run(REPO, process.execPath, [CHECK_SKILL, dirname(dirname(CHECK_SKILL))]);

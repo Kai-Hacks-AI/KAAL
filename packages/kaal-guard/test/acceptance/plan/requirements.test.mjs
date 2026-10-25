@@ -652,10 +652,8 @@ describe("guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation an
   });
 });
 
-// guard/T45–guard/T59 are planned in guard/C12 and written in guard/C13, before any code. Each is marked todo with
-// the Change that turns it GREEN, so the required Guard lane stays green while they are RED; the boundary Change
-// that accompanies that Change removes its marker (guard/C13).
-const RED = (change) => ({ todo: `RED until ${change}` });
+// guard/T45–guard/T59 are planned in guard/C12 and written in guard/C13, before any code. They run like every
+// other Test Case: until their Changes land they are RED, and that RED is their evidence.
 
 /** A check script that writes known bytes to its own stdout and stderr, then exits with its argument. */
 const LOUD = `process.stdout.write("the check's stdout\\n"); process.stderr.write("the check's stderr\\n"); process.exit(Number(process.argv[2]));\n`;
@@ -674,7 +672,7 @@ function named(c, line) {
 }
 
 describe("guard/F19 [guard/I7] Guard's Skill", () => {
-  it("guard/T45 [guard/F19, guard/A13, guard/N11]: the packed package carries skills/kaal-guard/SKILL.md, named kaal-guard, with BASS sections and no script, and names no consumer", RED("guard/C14"), () => {
+  it("guard/T45 [guard/F19, guard/A13, guard/N11]: the packed package carries skills/kaal-guard/SKILL.md, named kaal-guard, with BASS sections and no script, and names no consumer", () => {
     const c = consumer();
     const { source, files } = c.skill();
     const text = readFileSync(join(source, "SKILL.md"), "utf8");
@@ -704,7 +702,7 @@ describe("guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, uncha
     return c;
   };
 
-  it("guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path", RED("guard/C15"), () => {
+  it("guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path", () => {
     // No Skill is deployed here, so the reminder names the package's copy (guard/F21).
     for (const [status, verdict] of [[1, "fail"], [2, "cannot judge"]]) {
       const c = loud(status);
@@ -727,7 +725,7 @@ describe("guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, uncha
     assert.equal(extra(both.guard(["run", "--hook"]).stdout).length, 1, "a run with a fail and a cannot judge does not add exactly one reminder line");
   });
 
-  // Exercised: it holds before the reminder exists, and it keeps holding once the reminder and the Skill are there.
+  // It holds before the reminder exists, and it keeps holding once the reminder and the Skill are there.
   it("guard/T48 [guard/F21]: a run of only pass, not applicable or held adds no reminder", () => {
     const c = consumer();
     c.write("checks/loud.mjs", LOUD);
@@ -748,7 +746,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
   /** What lies under .agents/ and the like: every file whose path starts with one of these. */
   const under = (c, ...prefixes) => c.files().filter((p) => prefixes.some((x) => p.startsWith(x)));
 
-  it("guard/T50 [guard/F23, guard/F24, guard/N10]: standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source", RED("guard/C16"), () => {
+  it("guard/T50 [guard/F23, guard/F24, guard/N10]: standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source", () => {
     const c = consumer();
     const { source, files } = c.skill();
     const before = c.files();
@@ -768,7 +766,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     }
   });
 
-  it("guard/T51 [guard/F23, guard/F8]: init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file", RED("guard/C16"), () => {
+  it("guard/T51 [guard/F23, guard/F8]: init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file", () => {
     const c = consumer();
     c.skill();
     const mine = "---\nname: kaal-guard\ndescription: the consumer's own.\n---\n\nMine.\n";
@@ -782,7 +780,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     assert.deepEqual(Object.keys(c.installation()).filter((p) => p.startsWith(".agents/")), [], "init registered a Skill file it did not write");
   });
 
-  it("guard/T52 [guard/F23, guard/F12]: upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched", RED("guard/C16"), () => {
+  it("guard/T52 [guard/F23, guard/F12]: upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched", () => {
     const c = consumer();
     const { source, files } = c.skill();
     c.write(".agents/skills/other/SKILL.md", "---\nname: other\ndescription: another skill.\n---\n");
@@ -809,7 +807,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     assert.ok(d.exists(".agents/skills/other/SKILL.md"), "remove deleted a directory it did not empty");
   });
 
-  it("guard/T57 [guard/F23, guard/F8]: a modified deployment is kept and reported while the others move forward, and remove leaves it", RED("guard/C16"), () => {
+  it("guard/T57 [guard/F23, guard/F8]: a modified deployment is kept and reported while the others move forward, and remove leaves it", () => {
     const c = consumer();
     const { source, files } = c.skill();
     assert.equal(c.guard(["init"]).status, 0, "init");
@@ -828,7 +826,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     assert.match(rm.output, new RegExp(`${SKILL.replaceAll(".", "\\.")}/SKILL\\.md`), "remove does not report the modified deployment it kept");
   });
 
-  it("guard/T53 [guard/F23, guard/N10, guard/N12]: the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path", RED("guard/C16"), () => {
+  it("guard/T53 [guard/F23, guard/N10, guard/N12]: the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path", () => {
     const c = consumer();
     c.skill();
     const suppliers = [".claude/skills/", ".github/skills/", ".cursor/", ".codex/", ".gemini/"];
@@ -850,7 +848,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
 });
 
 describe("guard/F26 [guard/I1, guard/I7] agent instruction files", () => {
-  it("guard/T54 [guard/F26]: init, upgrade and remove create, edit and remove no AGENTS.md, CLAUDE.md or other instruction file; init reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer", RED("guard/C16"), () => {
+  it("guard/T54 [guard/F26]: init, upgrade and remove create, edit and remove no AGENTS.md, CLAUDE.md or other instruction file; init reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer", () => {
     const instructions = ["AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md", "GEMINI.md"];
     const fresh = consumer();
     fresh.skill();
@@ -872,7 +870,7 @@ describe("guard/F26 [guard/I1, guard/I7] agent instruction files", () => {
 });
 
 describe("guard/N1 [guard/I4, guard/I5] runtime prerequisite", () => {
-  it("guard/T59 [guard/N1, guard/F27]: the package declares Node >=24; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite", RED("guard/C16"), () => {
+  it("guard/T59 [guard/N1, guard/F27]: the package declares Node >=24; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite", () => {
     const c = given({ x: { command: exit(0), runs: ["hook", "ci"] } });
     const installed = join(c.dir, "node_modules", ...NAME.split("/"));
     assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).engines?.node, ">=24", "the package does not declare Node >=24");

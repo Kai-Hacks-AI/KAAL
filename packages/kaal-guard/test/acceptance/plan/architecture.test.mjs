@@ -78,10 +78,7 @@ describe("Architecture conformance", () => {
     }
   });
 
-  // Written in guard/C13 before any code and marked todo with the Change that turns each GREEN (requirements.test.mjs).
-  const RED = (change) => ({ todo: `RED until ${change}` });
-
-  it("guard/T49 [guard/F21, guard/A15]: with --github, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not", RED("guard/C15"), () => {
+  it("guard/T49 [guard/F21, guard/A15]: with --github, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not", () => {
     for (const [status, verdict] of [[1, "fail"], [2, "cannot judge"], [0, "pass"]]) {
       const c = consumer();
       c.checks({ x: { command: `node checks/exit.mjs ${status} evidence`, runs: ["ci"] } });
@@ -104,7 +101,7 @@ describe("Architecture conformance", () => {
     }
   });
 
-  it("guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one", RED("guard/C14"), () => {
+  it("guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one", () => {
     present("contract.json");
     const contract = JSON.parse(source("contract.json"));
     const assets = contract.assets.map((a) => a.path.replace(/\/$/, ""));
