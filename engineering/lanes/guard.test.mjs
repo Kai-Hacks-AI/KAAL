@@ -49,6 +49,8 @@ const plan = (over = {}) => ({
 });
 
 const LEGACY = { "guard.json": "{}\n" };
+/** A root package.json whose build script runs this CommonJS. */
+const BUILD = (js) => ({ "package.json": JSON.stringify({ name: "fixture", private: true, scripts: { build: `node -e ${JSON.stringify(js)}` } }) });
 const CONFIG = { ".kaal/config/guard/unit.md": "---\ntype: Guard/Check\n---\n" };
 
 /** Runs the lane's command against `root`. */
@@ -313,13 +315,36 @@ describe("guard/T46's file, which needs KAAL's workspace", () => {
   });
 
   it("runs where npm ci has installed the workspace, so its failure fails the lane", () => {
-    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }), [INSTALLED]: "{}\n" });
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: FAIL }), [INSTALLED]: "{}\n", ...BUILD("process.exit(0)") });
     const chosen = select(root);
     assert.deepEqual(chosen.withheld, []);
     assert.ok(chosen.files.includes(WORKSPACE));
     const r = lane(root);
     assert.equal(r.status, 1, r.stdout + r.stderr);
     assert.doesNotMatch(r.stdout, /not run here/);
+  });
+
+  it("builds the workspace before it runs the file, so the file sees what the build wrote", () => {
+    const sees = `import { test } from "node:test";\nimport { existsSync } from "node:fs";\nimport assert from "node:assert/strict";\ntest("sees the build", () => assert.ok(existsSync(${JSON.stringify("built.txt")})));\n`;
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: sees }), [INSTALLED]: "{}\n", ...BUILD("require('fs').writeFileSync('built.txt', '')") });
+    const r = lane(root);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /guard lane: building KAAL's workspace for engineering\/guard\/acceptance\/plan\/workspace\.test\.mjs/);
+  });
+
+  it("cannot run the file when the build fails, and runs no test", () => {
+    const root = repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: PASS }), [INSTALLED]: "{}\n", ...BUILD("process.exit(3)") });
+    const r = lane(root);
+    assert.equal(r.status, 2, r.stdout + r.stderr);
+    assert.match(r.stderr, /cannot build KAAL's workspace/);
+    assert.match(r.stderr, /\n {2}do: \S/);
+    assert.doesNotMatch(r.stdout, /# (pass|fail) /, "a lane that could not build ran tests");
+  });
+
+  it("builds nothing where it withholds the file", () => {
+    const r = lane(repo({ ...CONFIG, ...established(), ...plan({ [WORKSPACE]: PASS }), ...BUILD("process.exit(3)") }));
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.doesNotMatch(r.stdout, /building KAAL's workspace/);
   });
 
   it("is never withheld from the established suite, which has no such file", () => {
