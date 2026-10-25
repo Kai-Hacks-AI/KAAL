@@ -120,9 +120,16 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
  * what is in the way first and applies the rest second; if the second fails, Core puts the removed
  * files back, and if that fails too it throws `Unrestored` holding their bytes. Like Hosting's,
  * this is rollback on observed failure: a process cut off between the two steps leaves the removals
- * applied and every record as it was, which the next realization completes.
+ * applied and every record as it was, which the next realization completes. Core restores the bytes
+ * it removed, not their executable mark, which Hosting does not report: Core deploys no file
+ * executable, so only a mark someone added by hand to a deployed file is lost that way.
  */
-export async function realizeIn(root: string, { skills, contracts = [] }: RealizationRequest): Promise<Realized> {
+export async function realizeIn(root: string, request: RealizationRequest): Promise<Realized> {
+  return realizeAvoiding(root, request, new Set());
+}
+
+/** `realizeIn`, treating each of `blockers` as something other than a file in the way. */
+async function realizeAvoiding(root: string, { skills, contracts = [] }: RealizationRequest, blockers: ReadonlySet<string>): Promise<Realized> {
   if ((await kind(root)) !== "directory") throw new KaalError(`${root} is not a directory`);
   const names = new Set(skills.map((s) => s.name));
 
@@ -151,7 +158,7 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
   const declared = await providers(root);
   // Every target a realization can name: those it would write into an empty repository.
   const targets = realize({ skills, providers: declared, record: {}, present: {}, contracted }).write.map((w) => w.path);
-  const present = await presentAt(root, [...targets, ...Object.keys(recorded)]);
+  const present = { ...(await presentAt(root, [...targets, ...Object.keys(recorded)])), ...Object.fromEntries([...blockers].map((b) => [b, "not a file"])) };
   const plan = realize({ skills, providers: declared, record: recorded, present, contracted });
 
   const write: Write[] = plan.write.map((w) => ({ path: w.path, expect: present[w.path] ?? "absent", bytes: w.bytes }));
@@ -214,15 +221,27 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
     held.push({ path: r.path, expect: "absent", bytes });
   }
   const before = await reconcile(root, { write: [], remove: first });
-  let done;
-  try {
-    done = await reconcile(root, { write, remove: remove.filter((r) => !first.includes(r)) });
-  } catch (cause) {
+  const putBack = async (cause: unknown) => {
     try {
       await reconcile(root, { write: held, remove: [] });
     } catch (failure) {
       throw new Unrestored(held, cause, failure);
     }
+  };
+  // A directory can outlive the removal of every file in it when it holds an empty directory, which
+  // no reading shows. Then the target is still in the way: put back what was removed, and plan again
+  // with that target kept and reported.
+  const stuck: string[] = [];
+  for (const w of write) if (first.some((r) => nested(w.path, r.path)) && (await kind(join(root, w.path))) !== "missing") stuck.push(w.path);
+  if (stuck.length > 0) {
+    await putBack(new KaalError(`${stuck.join(", ")} is still a directory`));
+    return realizeAvoiding(root, { skills, contracts }, new Set([...blockers, ...stuck]));
+  }
+  let done;
+  try {
+    done = await reconcile(root, { write, remove: remove.filter((r) => !first.includes(r)) });
+  } catch (cause) {
+    await putBack(cause);
     throw cause;
   }
   return {

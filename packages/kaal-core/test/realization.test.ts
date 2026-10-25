@@ -151,6 +151,17 @@ describe("Hosting application (core/C13)", () => {
     assert.deepEqual(Object.keys(json(root, CORE_RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/tool"]);
   });
 
+  it("keeps a directory target that an empty directory inside keeps in place, and still applies everything else", async () => {
+    const root = repo();
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("old\n") } }] });
+    mkdirSync(join(root, ".agents/skills/sample/tool/empty"));
+    const done = await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("new\n"), "b.md": Buffer.from("B\n") } }] });
+    assert.ok(done.plan.keep.some((k) => k.path === ".agents/skills/sample/tool"));
+    assert.ok(!existsSync(join(root, ".agents/skills/sample/tool/run")), "Core's own file is pruned");
+    assert.equal(at(root, ".agents/skills/sample/b.md").toString(), "B\n");
+    assert.ok(!(".agents/skills/sample/tool" in json(root, CORE_RECORD).assets));
+  });
+
   describe("a file-directory change whose second step fails", () => {
     const OLD = { name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } };
     const NEW = { name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } };
