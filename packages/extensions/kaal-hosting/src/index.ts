@@ -456,8 +456,10 @@ async function names(dir: string): Promise<string[]> {
  * it: a link anywhere is refused, as is a non-directory where a directory is
  * needed, and a name that collides with one already present. Returns the
  * file's SHA-256 and whether it is executable, `"absent"`, or `"not a file"`.
+ * Against what this reconciliation `removed`, a removed file where a directory
+ * is needed, and a directory holding only removed files, count as `"absent"`.
  */
-async function present(root: string, path: string): Promise<{ found: string; executable: boolean }> {
+async function present(root: string, path: string, removed: Set<string>): Promise<{ found: string; executable: boolean }> {
   const segments = path.split("/");
   for (let i = 0; i < segments.length; i++) {
     const at = segments.slice(0, i + 1).join("/");
@@ -472,13 +474,28 @@ async function present(root: string, path: string): Promise<{ found: string; exe
     }
     if (entry.isSymbolicLink()) throw new HostingError(`${at} is a link; Hosting does not reconcile through one`, "INVALID_PATH");
     if (i < segments.length - 1) {
-      if (!entry.isDirectory()) throw new HostingError(`${at} is not a directory`, "EXISTS");
+      if (!entry.isDirectory()) {
+        if (removed.has(at)) return { found: "absent", executable: false };
+        throw new HostingError(`${at} is not a directory`, "EXISTS");
+      }
       continue;
     }
+    if (entry.isDirectory() && (await emptied(join(root, ...segments), path, removed))) return { found: "absent", executable: false };
     if (!entry.isFile()) return { found: "not a file", executable: false };
     return { found: sha256(await readBytes(join(root, ...segments))), executable: executable(entry.mode) };
   }
   throw new HostingError(`${path} is not a relative path`, "INVALID_PATH");
+}
+
+/** Whether every file under `dir` is removed, and nothing else would stay. */
+async function emptied(dir: string, path: string, removed: Set<string>): Promise<boolean> {
+  const inside = await names(dir);
+  if (inside.length === 0) return false;
+  for (const name of inside) {
+    const entry = await lstat(join(dir, name));
+    if (entry.isFile() ? !removed.has(`${path}/${name}`) : !entry.isDirectory() || !(await emptied(join(dir, name), `${path}/${name}`, removed))) return false;
+  }
+  return true;
 }
 
 /**
@@ -495,7 +512,9 @@ async function present(root: string, path: string): Promise<{ found: string; exe
  * refuses the rollback too, the refusal is `UNRESTORED`, `root` may be partly
  * applied, and every displaced file not put back stays in `kept`, beside
  * `root`, at its own path. Removals prune the directories they empty, never
- * `root`. A write marked `executable` is executable where the host has the
+ * `root`, and come before every write, so one reconciliation can turn a file
+ * into a directory (a removal with writes under it) or a directory into a
+ * file (a write expecting `"absent"` with removals of everything under it). A write marked `executable` is executable where the host has the
  * mode, and one without it is not.
  *
  * This is rollback on observed failure, not a transaction: the lock excludes
@@ -511,12 +530,22 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
   const paths = entries.map((e) => e.path);
   const repeated = paths.find((p, i) => i > 0 && paths[i - 1] === p);
   if (repeated !== undefined) throw new HostingError(`${repeated} appears more than once in one reconciliation`, "INVALID_PATH");
-  const nested = paths.find((p) => paths.some((q) => q.startsWith(`${p}/`)));
-  if (nested !== undefined) throw new HostingError(`${nested} is both a file and a directory of this reconciliation`, "INVALID_PATH");
+  // Paths nest only where a kind changes: writes expecting "absent" under a
+  // removal (a file becomes a directory), or removals under a write expecting
+  // "absent" (a directory becomes a file). Anything else under one path is
+  // refused before the host is looked at.
+  for (const p of entries)
+    for (const q of entries) {
+      if (!q.path.startsWith(`${p.path}/`)) continue;
+      if (q.remove === p.remove) throw new HostingError(`${p.path} and ${q.path} under it are both ${p.remove ? "removed" : "written"} in this reconciliation`, "INVALID_PATH");
+      const write = p.remove ? q : p;
+      if (write.expect !== "absent") throw new HostingError(`${write.path} must expect "absent" to change ${p.path} from a ${p.remove ? "file into a directory" : "directory into a file"}`, "INVALID_PATH");
+    }
   checkPortable(paths);
   return exclusive(root, async (at) => {
     const now = new Map<string, { found: string; executable: boolean }>();
-    for (const e of entries) now.set(e.path, await present(at, e.path));
+    const removed = new Set(entries.filter((e) => e.remove).map((e) => e.path));
+    for (const e of entries) now.set(e.path, await present(at, e.path, removed));
     const findings = entries.filter((e) => now.get(e.path)!.found !== e.expect).map((e) => ({ path: e.path, expected: e.expect, found: now.get(e.path)!.found }));
     if (findings.length > 0) throw new HostingError(`${findings.map((f) => f.path).join(", ")}: not as expected; nothing was changed`, "STALE", findings);
 
@@ -557,6 +586,16 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
           await rename(target, away);
           undo.push(() => rename(away, target));
         }
+        for (const e of removals) {
+          const segments = e.path.split("/");
+          for (let j = segments.length - 1; j >= 1; j--) {
+            const dir = segments.slice(0, j).join("/");
+            if (pruned.includes(dir) || writes.some((w) => w.path.startsWith(`${dir}/`)) || (await names(join(at, ...segments.slice(0, j)))).length > 0) break;
+            await rmdir(join(at, ...segments.slice(0, j)));
+            pruned.push(dir);
+            undo.push(() => promisify(gfs.mkdir)(join(at, ...segments.slice(0, j))));
+          }
+        }
         for (const [i, e] of writes.entries()) {
           const segments = e.path.split("/");
           for (let j = 1; j < segments.length; j++) {
@@ -568,16 +607,6 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
           const target = join(at, ...segments);
           await rename(join(staging, String(i)), target);
           undo.push(() => rename(target, join(staging, String(i))));
-        }
-        for (const e of removals) {
-          const segments = e.path.split("/");
-          for (let j = segments.length - 1; j >= 1; j--) {
-            const dir = segments.slice(0, j).join("/");
-            if (pruned.includes(dir) || (await names(join(at, ...segments.slice(0, j)))).length > 0) break;
-            await rmdir(join(at, ...segments.slice(0, j)));
-            pruned.push(dir);
-            undo.push(() => promisify(gfs.mkdir)(join(at, ...segments.slice(0, j))));
-          }
         }
       } catch (e) {
         // Restore what was moved, in reverse. A step that cannot be undone
