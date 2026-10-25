@@ -2,7 +2,7 @@
 
 Connects a repository's own checks to its local Git `pre-push` hook and to GitHub CI, with one meaning per check. Guard runs the checks you list and reads their verdicts. It never interprets what a check tests or what it prints.
 
-The command is `kaal-guard`. Node 20 or later and Git 2.26 or later. The hook is POSIX `sh`, which Git for Windows provides.
+The command is `kaal-guard`. Node 24 or later and Git 2.26 or later. On an older Node every command is cannot judge, naming Node 24 as the next step. The hook is POSIX `sh`, which Git for Windows provides.
 
 ## Start
 

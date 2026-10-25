@@ -167,6 +167,9 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
       ...section("installed by Guard:", installed),
       ...section("left untouched:", untouched),
       ...(own.length ? section("executed by Guard, not managed:", executed(own)) : []),
+      ...section("the kaal-guard Skill:", [
+        `${asset("skill").target}/: an agent reaches it through the reminder kaal-guard prints after a fail or cannot judge, so no instruction file needs to point at it`,
+      ]),
       ...section("still to do in this repository:", todo),
       ...NOT_PROOF,
     ],
