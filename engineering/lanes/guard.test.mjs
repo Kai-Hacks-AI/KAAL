@@ -225,6 +225,12 @@ describe("the Guard lane's Feature REDs (guard/C45)", () => {
     }
   });
 
+  it("lists a skipped test with no Test Case identity, such as a unit test that does not apply on one OS, without failing", () => {
+    const r = lane(planned(tests(["guard/T2 [guard/F1]: green", true], ["not on this OS", true, { skip: true }])), "--target", "kaal/guard");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /^skipped, not a Test Case: not on this OS$/m);
+  });
+
   it("reports a registered Test Case not yet written as awaiting its PLAN, holding nothing for it", () => {
     const r = lane(planned(tests(["guard/T2 [guard/F1]: green", true]), reds("kaal/guard", "guard/T9")), "--target", "kaal/guard");
     assert.equal(r.status, 0, r.stdout + r.stderr);

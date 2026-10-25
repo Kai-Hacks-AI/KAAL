@@ -18,7 +18,8 @@
 // later Change turns GREEN. Every other failure fails the lane: one with no Test Case identity, one not
 // registered for this branch, and every failure where the run targets another branch, as a promotion to
 // main does. A registered Test Case that passes fails the lane too, until its entry is removed, and a todo
-// or skip marker fails it as masking a result. The held run prints each RED and exits 0, as Guard's own
+// or skip marker on a Test Case fails it as masking a result; a marked test with no Test Case identity is
+// listed as skipped. The held run prints each RED and exits 0, as Guard's own
 // held verdict does: KAAL's other held checks are reported the same way.
 //
 //   red.json absent                no failure is held
@@ -122,12 +123,13 @@ const identity = (name) => /^([a-z0-9-]+\/T\d+)\b/.exec(name)?.[1] ?? null;
 
 /**
  * The results in node:test's TAP output: the identities of the tests that failed and passed, the failures
- * with no identity, and the tests a todo or skip marker masked. A suite that failed only because a test in
- * it failed is not counted again.
+ * with no identity, the Test Cases a todo or skip marker masked, and the other tests a marker skipped, such
+ * as a unit test that does not apply on one OS. A suite that failed only because a test in it failed is not
+ * counted again.
  * @param {string} tap
  */
 export function outcomes(tap) {
-  const failed = new Set(), passed = new Set(), unidentified = [], masked = [];
+  const failed = new Set(), passed = new Set(), unidentified = [], masked = [], skipped = [];
   const lines = tap.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const m = /^\s*(not ok|ok) \d+ - (.*)$/.exec(lines[i]);
@@ -140,13 +142,13 @@ export function outcomes(tap) {
       if (f) failure = f[1];
       if (/^\s*\.\.\.\s*$/.test(lines[j])) break;
     }
-    if (directive) masked.push(name);
+    if (directive) (identity(name) ? masked : skipped).push(name);
     else if (m[1] === "ok") identity(name) && passed.add(identity(name));
     else if (failure === "subtestsFailed") continue;
     else if (identity(name)) failed.add(identity(name));
     else unidentified.push(name);
   }
-  return { failed, passed, unidentified, masked };
+  return { failed, passed, unidentified, masked, skipped };
 }
 
 /**
@@ -220,6 +222,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (github) console.log(`::warning title=Feature RED ${t}::held, not passed: RED until ${until} (${authority})`);
     rows.push(`| ${t} | Feature RED, held | ${until} |`);
   }
+  for (const n of outcomes(r.stdout ?? "").skipped) console.log(`skipped, not a Test Case: ${n}`);
   for (const t of verdict.awaiting) console.log(`awaiting its PLAN: ${t}: registered until ${reds.entries[t].until}, not yet written`);
   for (const why of verdict.reasons) {
     console.log(`not held: ${why}`);
