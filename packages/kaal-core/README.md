@@ -154,7 +154,7 @@ renderSkill(bytes); // the supplier SKILL.md: name, and description copied from 
 
 A Skill a Capability's contract delivers is that Capability's at its canonical location: pass it in `contracted`, with whether the Capability's record registers it already, and Core's own record keeps only the provider deployments.
 
-`kaal-core/realization` applies a plan through Hosting. `realizeIn(root, { skills, contracts })` reads the declaration, the present files and every record, registers what Core writes in each contract's record, keeps Core's own record at `.kaal/state/core/installation.json`, and applies it all in one guarded reconciliation: if anything changed since it was read, nothing changes.
+`kaal-core/realization` applies a plan through Hosting. `realizeIn(root, { skills, contracts })` reads the declaration, the present files and every record, registers what Core writes in each contract's record, keeps Core's own record at `.kaal/state/core/installation.json`, and applies it all in one guarded reconciliation: if anything changed since it was read, nothing changes. Only where a deployment changes between a file and a directory are the removals in its way applied first, in a guarded reconciliation of their own.
 
 ```js
 import { realizeIn } from "kaal-core/realization";

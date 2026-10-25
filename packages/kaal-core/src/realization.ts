@@ -93,7 +93,12 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
     const what = await kind(join(root, path));
     if (what === "file") present[path] = sha256(await readFile(join(root, path)));
     else if (what === "other") present[path] = "not a file";
-    else if (what === "directory" && descend) for (const [p, bytes] of Object.entries(await read(join(root, path)))) present[`${path}/${p}`] = sha256(bytes);
+    else if (what === "directory" && descend) {
+      const files = Object.entries(await read(join(root, path)));
+      for (const [p, bytes] of files) present[`${path}/${p}`] = sha256(bytes);
+      // A directory with no file in it still occupies the target.
+      if (files.length === 0) present[path] = "not a file";
+    }
   };
   for (const path of paths) {
     const segments = path.split("/");
@@ -109,7 +114,10 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
  * Capability's at its canonical location: Core writes it only when the Capability's record does
  * not register it yet, and registers what it wrote in that record. Core's own record holds only
  * the provider deployments. The deployments, removals and records are applied together, each
- * guarded by what was read; if anything changed in between, nothing is changed.
+ * guarded by what was read; if anything changed in between, nothing is changed. The one exception
+ * is a deployment that changes between a file and a directory: the removals in its way are applied
+ * first, in a guarded reconciliation of their own, because Hosting applies no path together with
+ * its own descendant.
  */
 export async function realizeIn(root: string, { skills, contracts = [] }: RealizationRequest): Promise<Realized> {
   if ((await kind(root)) !== "directory") throw new KaalError(`${root} is not a directory`);
@@ -148,16 +156,23 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
   const records: string[] = [];
   const json = (value: unknown) => new TextEncoder().encode(`${JSON.stringify(value, null, 2)}\n`);
 
+  const kept = new Set(plan.keep.map((k) => k.path));
+  const pruning = new Set(plan.prune);
   for (const d of delivered) {
-    const written = Object.fromEntries(
-      plan.write.filter((w) => d.skills.some((s) => w.path.startsWith(`${CANONICAL}/${s}/`))).map((w) => [w.path, sha256(w.bytes)]),
+    const canonical = (path: string) => d.skills.some((s) => !contracted.find((c) => c.skill === s)!.registered && path.startsWith(`${CANONICAL}/${s}/`));
+    // What Core wrote: this plan's writes, and its earlier deployments still as it wrote them,
+    // whose ownership passes from Core's record to the Capability's (core/F34, core/F36).
+    const written: Record<string, string> = Object.fromEntries(
+      Object.keys(recorded)
+        .filter((p) => canonical(p) && present[p] === recorded[p] && !kept.has(p) && !pruning.has(p))
+        .map((p) => [p, recorded[p]]),
     );
+    for (const w of plan.write) if (canonical(w.path)) written[w.path] = sha256(w.bytes);
     if (Object.keys(written).length === 0) continue;
     write.push({ path: d.contract.record, expect: d.expect, bytes: json(register({ contract: d.contract, record: d.record, written })) });
     records.push(d.contract.record);
   }
 
-  const kept = new Set(plan.keep.map((k) => k.path));
   const assets = Object.fromEntries(
     Object.entries(plan.record).map(([path, digest]) => {
       const before = own.record?.assets[path];
@@ -170,6 +185,17 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
     records.push(record);
   }
 
-  const done = await reconcile(root, { write, remove });
-  return { plan, outcomes: done.outcomes, pruned: done.pruned, records: records.sort() };
+  // Hosting refuses a path and its own descendant in one reconciliation. Where a deployment changes
+  // between a file and a directory, the removals in the way are applied first, then everything else.
+  const nested = (a: string, b: string) => a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+  const first = remove.filter((r) => write.some((w) => nested(w.path, r.path)));
+  const before = first.length > 0 ? await reconcile(root, { write: [], remove: first }) : { outcomes: [], pruned: [] };
+  const done = await reconcile(root, { write, remove: remove.filter((r) => !first.includes(r)) });
+  const byPath = <T extends { path: string }>(a: T, b: T) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+  return {
+    plan,
+    outcomes: [...before.outcomes, ...done.outcomes].sort(byPath),
+    pruned: [...before.pruned, ...done.pruned].sort(),
+    records: records.sort(),
+  };
 }

@@ -117,6 +117,38 @@ describe("Hosting application (core/C13)", () => {
     assert.ok(".claude/skills/sample/references/a.md" in json(root, CORE_RECORD).assets);
   });
 
+  it("passes a canonical deployment Core made before a contract delivered the Skill to the Capability's record", async () => {
+    const root = repo();
+    await realizeIn(root, { skills: [SKILL] });
+    const done = await realizeIn(root, { skills: [SKILL], contracts: [contract()] });
+    assert.deepEqual(done.plan.write, [], "nothing is rewritten");
+    assert.deepEqual(json(root, RECORD), {
+      assets: {
+        ".agents/skills/sample/SKILL.md": { sha256: sha(RENDERED), version: "0.0.2" },
+        ".agents/skills/sample/references/a.md": { sha256: sha("A\n"), version: "0.0.2" },
+      },
+    });
+    assert.deepEqual(json(root, CORE_RECORD), { assets: {} }, "Core's record no longer holds them");
+  });
+
+  it("keeps an empty directory at a file target and still applies everything else", async () => {
+    const root = repo();
+    mkdirSync(join(root, ".agents/skills/sample/references/a.md"), { recursive: true });
+    const done = await realizeIn(root, { skills: [SKILL] });
+    assert.ok(done.plan.keep.some((k) => k.path === ".agents/skills/sample/references/a.md"));
+    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
+  });
+
+  it("upgrades a deployed file to a directory of the same name, and back", async () => {
+    const root = repo();
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } }] });
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } }] });
+    assert.equal(at(root, ".agents/skills/sample/tool/run").toString(), "new\n");
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("back\n") } }] });
+    assert.equal(at(root, ".agents/skills/sample/tool").toString(), "back\n");
+    assert.deepEqual(Object.keys(json(root, CORE_RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/tool"]);
+  });
+
   it("refuses a record that does not conform and changes nothing", async () => {
     const root = repo({ [RECORD]: JSON.stringify({ assets: { "../outside": { sha256: sha("x"), version: "0.0.1" } } }) });
     await assert.rejects(realizeIn(root, { skills: [SKILL], contracts: [contract()] }), /is not an installation record/);
