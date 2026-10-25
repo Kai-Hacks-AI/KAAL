@@ -2,12 +2,6 @@
   "collector": "kaal/guard",
   "entries": [
     {
-      "test": "guard/T84",
-      "class": "Feature RED",
-      "until": "guard/C64",
-      "authority": "the Owner's review 5645021559 on #431"
-    },
-    {
       "test": "guard/T85",
       "class": "Feature RED",
       "until": "guard/C65",
@@ -41,12 +35,6 @@
       "test": "guard/T90",
       "class": "Feature RED",
       "until": "guard/C66",
-      "authority": "the Owner's review 5645021559 on #431"
-    },
-    {
-      "test": "guard/T91",
-      "class": "Feature RED",
-      "until": "guard/C64",
       "authority": "the Owner's review 5645021559 on #431"
     },
     {
