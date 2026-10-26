@@ -20,6 +20,8 @@ Each check is declared as `.kaal/config/guard/<name>.md`, its frontmatter in Gua
 
 `init` reports apart what it installed, what it left untouched and what is still to do, including how to activate each surface not yet activated. It writes only catalogued content (`contract.json`) and registers each file it writes in `.kaal/state/guard/installation.json` (guard/F29); a file the record does not register is never Guard's. `init --hook` sets `core.hooksPath` to `.githooks` only if it is unset in every scope, the hook there is Guard's registered one and Git runs no hooks of the repository's own from `.git/hooks`, and records that in its checkout state in Git's metadata. If the repository already has a `pre-push` hook or workflows, `init` leaves them alone and prints the line to add: `sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1` in the hook, or a step `npx --no kaal-guard run --check <name> --github` in a job.
 
+Guard does not establish that a check or a Test Case it runs is unchanged since its accepted PLAN baseline: a changed test can still return GREEN, and that is not a Guard integrity guarantee ([the `0.0.2` release boundary](change.md#002-release-boundary)).
+
 The generated workflow is not enforcement. Three claims stay apart:
 - `verify` shows declared integration only: a workflow job names each ci check in Guard's form.
 - That a check ran is the evidence of its CI job.
