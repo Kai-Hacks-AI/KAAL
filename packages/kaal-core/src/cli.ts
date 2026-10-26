@@ -44,7 +44,11 @@ async function main(argv: string[]): Promise<number> {
   switch (command) {
     case "init": {
       const written = await bootstrap(engine);
-      if (written.length > 0 && recorded) await recordInstallation(process.cwd());
+      if (written.length > 0 && recorded)
+        await recordInstallation(process.cwd()).catch((e: unknown) => {
+          // The Engine is in place but unrecorded; `upgrade` adopts it from the catalogue (core/F44).
+          throw new KaalError(`${engine} was bootstrapped, but Core's record could not be written: ${e instanceof Error ? e.message : String(e)}\nrun \`kaal upgrade\` to record it`);
+        });
       console.log(written.length ? `bootstrapped ${engine} (${written.length} files written)` : `${engine} already holds the foundation`);
       const v = await verify(engine);
       for (const p of v.problems) console.error(p);
