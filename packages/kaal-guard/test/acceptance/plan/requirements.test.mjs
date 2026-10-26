@@ -161,6 +161,75 @@ describe("guard/F7 [guard/I1, guard/I2] trusted checker", () => {
   });
 });
 
+describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76)", () => {
+  /** A checker that records that it ran, in the working tree, then exits with `status`. */
+  const checker = (mark, status) => `import { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(mark)}, "ran\\n");\nprocess.exit(${status});\n`;
+  const judge = { command: "node checks/judge.mjs", runs: ["ci"], facts: ["base"], trusted: "checks/judge.mjs" };
+  const other = { command: exit(0), runs: ["ci"] };
+
+  /** A base whose trusted check `judge` exits `status` (a fail by default), beside a passing `other`; the candidate is what `change` makes of it. */
+  function candidate(change, status = 1) {
+    const c = consumer();
+    c.write("checks/judge.mjs", checker("judge-ran", status));
+    c.checks({ judge, other });
+    const base = c.commit("judge fails on the base");
+    change(c);
+    const head = c.commit("candidate");
+    const r = c.guard(["run", "--ci", "--head", head, "--base", base, "--base-ref", "main"]);
+    return { c, r, judged: verdicts(r.output).judge };
+  }
+
+  it("guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs", () => {
+    const { c, r, judged } = candidate((c) => {
+      c.write("checks/judge.mjs", checker("judge-ran", 0));
+      c.checks({ judge: { ...judge, trusted: undefined }, other });
+    });
+    assert.equal(judged?.verdict, "cannot judge", r.output);
+    assert.equal(r.status, 2, r.output);
+    assert.match(judged.evidence, /on its own/i, "the verdict does not say to land the declaration change on its own");
+    assert.ok(!c.exists("judge-ran"), "a checker ran for a trusted check whose declaration the candidate changed");
+  });
+
+  it("guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs", () => {
+    const rewritten = candidate((c) => {
+      c.write("checks/certify.mjs", checker("certify-ran", 0));
+      c.checks({ judge: { ...judge, command: "node checks/certify.mjs" }, other });
+    });
+    assert.equal(rewritten.judged?.verdict, "cannot judge", rewritten.r.output);
+    assert.notEqual(rewritten.r.status, 0, rewritten.r.output);
+    assert.ok(!rewritten.c.exists("certify-ran"), "the candidate's command ran");
+    assert.ok(!rewritten.c.exists("judge-ran"), "the base's command ran for a declaration the candidate changed");
+
+    // The base's checker exits 4, cannot judge on the base; the candidate's outcomes would make it held.
+    const softened = candidate((c) => c.checks({ judge: { ...judge, outcomes: { 4: "held" } }, other }), 4);
+    assert.equal(softened.judged?.verdict, "cannot judge", softened.r.output);
+    assert.notEqual(softened.r.status, 0, softened.r.output);
+    assert.ok(!softened.c.exists("judge-ran"), "the checker ran for a declaration the candidate changed");
+  });
+
+  it("guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass", () => {
+    const { r, judged } = candidate((c) => c.checks({ other }));
+    assert.equal(judged?.verdict, "cannot judge", r.output);
+    assert.notEqual(r.status, 0, r.output);
+  });
+
+  it("guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker", () => {
+    const c = consumer();
+    c.write("checks/judge.mjs", checker("judge-ran", 0));
+    c.checks({ judge, other });
+    const base = c.commit("base");
+    c.checks({ judge, other: { ...other, command: exit(0, "changed by the candidate") }, added: { command: exit(0, "new"), runs: ["ci"] } });
+    c.write("checks/judge.mjs", checker("judge-ran", 1));
+    const head = c.commit("candidate");
+    const r = c.guard(["run", "--ci", "--head", head, "--base", base, "--base-ref", "main"]);
+    const v = verdicts(r.output);
+    assert.equal(v.added?.verdict, "pass", r.output);
+    assert.equal(v.other?.verdict, "pass", r.output);
+    assert.equal(v.judge?.verdict, "pass", `the trusted check did not run its base checker:\n${r.output}`);
+    assert.equal(r.status, 0, r.output);
+  });
+});
+
 describe("guard/F8 [guard/I5, guard/I6] safe lifecycle", () => {
   it("guard/T16 [guard/F8, guard/F29]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it", () => {
     const c = consumer();
