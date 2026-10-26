@@ -8,7 +8,8 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Planning:** Core decides the step purely, from what it reads.
   - **Applying:** Hosting applies the step in one guarded reconciliation, the way `realizeIn` already does. If anything changed after it was read, nothing changes.
   - **Refusing:** a refused step leaves every file byte-for-byte as it was.
-  - **Boundaries:** Core gains no host knowledge, and Hosting's contract does not change.
+  - **Boundaries:** Core gains no host knowledge. Hosting's contract changes only through `hosting/C8` and `hosting/C9`, which Hosting owns (`core/C21`).
+  - **Relied upon:** a step guards every file it relied upon, not only the files it writes or removes. Each Engine file read to plan or verify the step is a read-only precondition of the same reconciliation. A file that changes after Core read it refuses the step. A file guarded this way is never rewritten, and its executable mark never changes (`core/C21`).
   - **Scope:** a step touches only the files Core's own record holds and that record itself. It never touches another Capability's record or assets, or a registered contribution.
 
 ## Functional

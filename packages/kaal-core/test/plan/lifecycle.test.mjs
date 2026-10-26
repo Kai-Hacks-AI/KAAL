@@ -5,10 +5,10 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { after, describe, it } from "node:test";
 import { checkContract } from "kaal-core/installation";
 import { payload } from "kaal-core";
@@ -186,5 +186,31 @@ describe("Core's lifecycle (core/C18)", () => {
       "only what is not Core's, or was modified, remains: Core's record and its emptied directories are gone",
     );
     assert.match(r.out, /\.kaal\/AGENTS\.md/, "the modified file is reported");
+  });
+
+  it("core/T48 [core/N12, core/A23]: upgrade refuses, changing nothing, when an Engine file it does not touch changes after it was read and verified; an applied upgrade keeps an untouched file's executable mark", async () => {
+    const at = join(PACKAGE, "dist", "lifecycle.js");
+    const lifecycle = existsSync(at) ? await import(pathToFileURL(at).href).catch(() => ({})) : {};
+    if (typeof lifecycle.planUpgrade !== "function" || typeof lifecycle.applyUpgrade !== "function")
+      assert.fail("blocked before behavioural assertion: kaal-core's dist/lifecycle.js has no planUpgrade and applyUpgrade");
+
+    const repo = initialized();
+    earlier(repo, ".kaal/AGENTS.md", Buffer.from("# An earlier Engine's entry point\n"));
+    const planned = await lifecycle.planUpgrade(repo);
+    put(join(repo, ".kaal/KAAL-KERNEL.md"), Buffer.from("a Kernel somebody changed after Core verified\n"));
+    const before = snapshot(repo);
+    await assert.rejects(lifecycle.applyUpgrade(repo, planned), "the planned upgrade is refused");
+    assert.deepEqual(snapshot(repo), before, "and nothing changes");
+
+    const posix = process.platform !== "win32";
+    const tool = initialized();
+    earlier(tool, ".kaal/AGENTS.md", Buffer.from("# An earlier Engine's entry point\n"));
+    const script = join(tool, ".kaal/skills/greeting/run.sh");
+    put(script, Buffer.from("#!/bin/sh\necho hello\n"));
+    if (posix) chmodSync(script, 0o755);
+    const up = kaal(tool, "upgrade");
+    assert.equal(up.status, 0, up.out);
+    assert.deepEqual(readFileSync(script), Buffer.from("#!/bin/sh\necho hello\n"), "an untouched file keeps its bytes");
+    if (posix) assert.notEqual(statSync(script).mode & 0o111, 0, "and its executable mark");
   });
 });
