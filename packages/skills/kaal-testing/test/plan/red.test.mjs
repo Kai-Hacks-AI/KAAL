@@ -1,182 +1,214 @@
-// testing/C4 planned outer tests: RED evidence and accepted regressions.
+// testing/C4 planned outer tests: RED evidence and Feature-accepted regressions.
 // Immutable to DO and CHECK; testing/C5 turns them GREEN. Each title names the contracts it checks
-// (plan/red/*.md). They use kaal-testing's public interface only.
+// (plan/red/*.md). They use kaal-testing's public interface only, and observe real node:test runs
+// of fixture files written into a fresh directory.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { describe, it } from "node:test";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, describe, it } from "node:test";
 
-/** kaal-testing/red, or the reason the tests are blocked before any behavioural assertion. */
-async function red() {
+/** A kaal-testing subpath with the named functions, or the reason the tests are blocked before any behavioural assertion. */
+async function subpath(name, functions) {
   let m;
   try {
-    m = await import("kaal-testing/red");
+    m = await import(`kaal-testing/${name}`);
   } catch (e) {
-    assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./red (${e.code ?? e.message})`);
+    assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./${name} (${e.code ?? e.message})`);
   }
-  for (const name of ["outcomes", "checkAccepted", "classify", "report", "verdict"]) {
-    if (typeof m[name] !== "function") assert.fail(`blocked before behavioural assertion: kaal-testing/red exports no ${name}`);
-  }
+  for (const f of functions) if (typeof m[f] !== "function") assert.fail(`blocked before behavioural assertion: kaal-testing/${name} exports no ${f}`);
   return m;
 }
+const red = () => subpath("red", ["outcomes", "classify", "report", "evaluate"]);
+const observing = () => subpath("observe", ["observe"]);
 
-/** A node:test reporter event for one test or suite. */
-function event(outcome, name, { suite = false, nesting = 1, skip, todo } = {}) {
-  return { type: outcome === "pass" ? "test:pass" : "test:fail", data: { name, nesting, details: { type: suite ? "suite" : "test" }, ...(skip ? { skip } : {}), ...(todo ? { todo } : {}) } };
+const dirs = [];
+after(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
+
+/** A node:test file: each entry is [title, "pass" | "fail" | "skip" | "todo"], under one suite. */
+function suite(cases) {
+  const body = cases
+    .map(([title, o]) => {
+      const t = JSON.stringify(title);
+      if (o === "skip") return `  it(${t}, { skip: true }, () => {});`;
+      if (o === "todo") return `  it(${t}, { todo: true }, () => {});`;
+      return `  it(${t}, () => { ${o === "fail" ? "throw new Error('RED');" : ""} });`;
+    })
+    .join("\n");
+  return `import { describe, it } from "node:test";\ndescribe("Sample behaviour (sample/C1)", () => {\n${body}\n});\n`;
 }
 
-const keys = (findings) => findings.map((f) => f.key);
-/** Whether a finding names `member`, or a member inside it, such as `accepted.0.expires` inside `accepted.0`. */
-const names = (findings, member) => keys(findings).some((k) => k === member || k.startsWith(`${member}.`));
-
-const BRANCH = "kaal/sample";
-const AUTHORITY = "https://github.com/Kai-Hacks-AI/KAAL/pull/1#pullrequestreview-1";
-
-function acceptance(tests, { branch = BRANCH, expires = "2026-12-31", resolves = "sample/C2" } = {}) {
-  return { tests, branch, authority: AUTHORITY, expires, resolves };
+/** An observed run of `tree` (file name to source; null leaves the file out), given the files in `given` (default: every name in `tree`). */
+async function observed(tree, given = Object.keys(tree)) {
+  const { observe } = await observing();
+  const cwd = mkdtempSync(join(tmpdir(), "kaal-testing-red-"));
+  dirs.push(cwd);
+  for (const [name, source] of Object.entries(tree)) if (source !== null) writeFileSync(join(cwd, name), source);
+  return observe({ files: given.map((f) => join(cwd, f)), cwd });
 }
 
-/** One run: `here` and `base` map identity to "pass" or "fail". */
-function run(m, here, base, accepted = [], today = "2026-10-25") {
-  const results = m.outcomes(Object.entries(here).map(([id, o]) => event(o, `${id}: does its part`)));
-  const baseline = m.outcomes(Object.entries(base).map(([id, o]) => event(o, `${id}: does its part`)));
-  return m.classify({ results, base: baseline, accepted: { accepted }, branch: BRANCH, today });
-}
+/** One file, `a.test.mjs`, whose cases map identity to outcome. */
+const cases = (map) => ({ "a.test.mjs": suite(Object.entries(map).map(([id, o]) => [`${id}: does its part`, o])) });
 
 const ids = (list) => [...list].sort();
 const classOf = (c, id) => c.reds.find((r) => r.test === id)?.class;
+const DEVELOPMENT = { block: ["regression", "missing", "unknown", "unidentified"] };
+const PROMOTION = { block: ["regression", "missing", "unknown", "unidentified", "feature"] };
 
-describe("Outcomes by identity (testing/C4)", () => {
-  it("testing/T1 [testing/F1, testing/N2]: each leaf test's outcome is keyed by its identity, and suites are not Test Cases", async () => {
+describe("Observation and outcomes by identity (testing/C4)", () => {
+  it("testing/T1 [testing/F1]: observe records each given file by its bytes or as absent, and each test it ran with its file, suite path and outcome", async () => {
+    const run = await observed({ "a.test.mjs": suite([["sample/T1: one thing", "pass"]]), "gone.test.mjs": null });
     const m = await red();
-    const results = m.outcomes([
-      event("pass", "sample/T1 [sample/F1]: one thing", { nesting: 1 }),
-      event("fail", "sample/T2: another, reworded", { nesting: 1 }),
-      event("fail", "Sample behaviour (sample/C1)", { suite: true, nesting: 0 }),
-    ]);
+    const results = m.outcomes(run);
     assert.equal(results.outcome("sample/T1"), "pass");
-    assert.equal(results.outcome("sample/T2"), "fail");
-    assert.deepEqual(ids(results.identities()), ["sample/T1", "sample/T2"]);
-    assert.deepEqual(results.unidentified(), []);
+    assert.equal(results.file("sample/T1"), "a.test.mjs");
     assert.deepEqual(results.findings(), []);
+    const absent = await observed({ "gone.test.mjs": null });
+    assert.deepEqual(m.outcomes(absent).identities(), [], "an absent file runs nothing");
   });
 
-  it("testing/T2 [testing/F1]: a skipped or todo test is RED with its marker, a failing test without an identity is an Unidentified RED, and a duplicate identity is a finding", async () => {
+  it("testing/T2 [testing/F2, testing/N2]: suites are not Test Cases; a skipped or todo test is RED with its marker; a failing test without an identity is an Unidentified RED; a duplicate identity is a finding", async () => {
     const m = await red();
-    const results = m.outcomes([
-      event("pass", "sample/T3: not yet", { skip: true }),
-      event("pass", "sample/T4: not yet either", { todo: true }),
-      event("pass", "a Code test without an identity"),
-      event("fail", "checks something without an identity"),
-      event("pass", "sample/T5: first"),
-      event("fail", "sample/T5: second"),
-    ]);
-    assert.equal(results.outcome("sample/T3"), "fail");
-    assert.equal(results.outcome("sample/T4"), "fail");
+    const results = m.outcomes(
+      await observed({
+        "a.test.mjs": suite([
+          ["sample/T1 [sample/F1]: one thing", "pass"],
+          ["sample/T2: another, reworded", "fail"],
+          ["sample/T3: not yet", "skip"],
+          ["sample/T4: not yet either", "todo"],
+          ["a Code test without an identity", "pass"],
+          ["checks something without an identity", "fail"],
+          ["sample/T5: first", "pass"],
+          ["sample/T5: second", "fail"],
+        ]),
+      }),
+    );
+    assert.equal(results.outcome("sample/T1"), "pass");
+    for (const id of ["sample/T2", "sample/T3", "sample/T4"]) assert.equal(results.outcome(id), "fail", id);
     assert.equal(results.marker("sample/T3"), "skip");
     assert.equal(results.marker("sample/T4"), "todo");
-    assert.deepEqual(results.unidentified(), ["checks something without an identity"]);
-    assert.ok(names(results.findings(), "sample/T5"), "a duplicate identity is a finding named by its identity");
+    assert.ok(!results.identities().some((id) => !/^sample\/T\d+$/.test(id)), "only identified leaf tests are Test Cases");
+    assert.deepEqual(results.unidentified().map((u) => u.title ?? u), ["checks something without an identity"]);
+    assert.ok(results.findings().some((f) => f.key === "sample/T5"), "a duplicate identity is a finding named by its identity");
   });
 });
 
-describe("Classification against the base (testing/C4)", () => {
-  it("testing/T3 [testing/F2]: comparison with the base classes each RED as Feature, Regression or Persisting RED", async () => {
+describe("Classification against established behavior (testing/C4)", () => {
+  it("testing/T3 [testing/F3]: Regression, Persisting and Feature REDs, new GREEN, and a Missing RED for an established Test Case that disappeared", async () => {
     const m = await red();
-    const c = run(m, { "sample/T1": "fail", "sample/T2": "fail", "sample/T3": "fail", "sample/T4": "pass" }, { "sample/T2": "pass", "sample/T3": "fail", "sample/T4": "pass" });
+    const base = await observed(cases({ "sample/T2": "pass", "sample/T3": "fail", "sample/T4": "pass", "sample/T6": "pass" }));
+    const head = await observed(cases({ "sample/T1": "fail", "sample/T2": "fail", "sample/T3": "fail", "sample/T4": "pass", "sample/T7": "pass" }));
+    const c = m.classify({ head, base, far: [] });
     assert.equal(classOf(c, "sample/T1"), "feature");
     assert.equal(classOf(c, "sample/T2"), "regression");
     assert.equal(classOf(c, "sample/T3"), "persisting");
+    assert.equal(classOf(c, "sample/T6"), "missing");
     assert.equal(classOf(c, "sample/T4"), undefined, "a GREEN Test Case is no RED");
-    assert.deepEqual(ids(c.reds.map((r) => r.test)), ["sample/T1", "sample/T2", "sample/T3"]);
+    assert.equal(classOf(c, "sample/T7"), undefined, "a new Test Case already GREEN is legitimate");
+    assert.equal(c.counts.newGreen, 1);
+    const fresh = m.classify({ head: await observed(cases({ "sample/T1": "fail" })), base: await observed({ "a.test.mjs": null }), far: [] });
+    assert.equal(classOf(fresh, "sample/T1"), "feature", "a file the base observably lacked holds new Test Cases");
+  });
+
+  it("testing/T4 [testing/F3, testing/I2, testing/N4]: unknown evidence is never read as absent or new", async () => {
+    const m = await red();
+    const head = await observed(cases({ "sample/T1": "fail", "sample/T2": "fail" }));
+    const base = await observed(cases({ "sample/T2": "pass" }));
+    const copied = m.classify({ head, base: JSON.parse(JSON.stringify(base)), far: [] });
+    assert.equal(classOf(copied, "sample/T1"), "unknown", "a copied base is a claim, not a run");
+    assert.equal(classOf(copied, "sample/T2"), "unknown");
+    const notGiven = m.classify({ head, base: await observed({ "b.test.mjs": suite([["sample/T9: elsewhere", "pass"]]) }), far: [] });
+    assert.equal(classOf(notGiven, "sample/T1"), "unknown", "a file the base was not given");
+    const broken = await observed({ "a.test.mjs": `import "./does-not-exist.mjs";\n` });
+    assert.equal(classOf(m.classify({ head, base: broken, far: [] }), "sample/T1"), "unknown", "a base file that did not run to the end");
+    const notObserved = m.classify({ head: JSON.parse(JSON.stringify(head)), base, far: [] });
+    assert.ok(notObserved.findings.length > 0, "a head that is not an observed run is a finding");
   });
 });
 
-describe("Accepted regressions (testing/C4)", () => {
-  it("testing/T4 [testing/F3]: a conforming acceptance record has no findings, and each missing or malformed member is refused under its own name", async () => {
+describe("Feature-accepted regressions (testing/C4)", () => {
+  it("testing/T5 [testing/F4]: a decided FAR entry names its Change and its Test Cases; each malformed member is a finding and accepts nothing", async () => {
     const m = await red();
-    assert.deepEqual(m.checkAccepted({ accepted: [acceptance(["sample/T2"])] }), []);
-    assert.deepEqual(m.checkAccepted({ accepted: [] }), []);
-    assert.ok(names(m.checkAccepted({}), "accepted"));
-    for (const member of ["tests", "branch", "authority", "expires"]) {
-      const entry = acceptance(["sample/T2"]);
-      delete entry[member];
-      assert.ok(names(m.checkAccepted({ accepted: [entry] }), `accepted.0.${member}`), `missing ${member}`);
+    const head = await observed(cases({ "sample/T2": "fail" }));
+    const base = await observed(cases({ "sample/T2": "pass" }));
+    const keys = (far) => m.classify({ head, base, far }).findings.map((f) => f.key);
+    assert.deepEqual(keys([{ change: "sample/C2", tests: ["sample/T2"] }]), []);
+    for (const [entry, member] of [
+      [{ tests: ["sample/T2"] }, "far.0.change"],
+      [{ change: "C2", tests: ["sample/T2"] }, "far.0.change"],
+      [{ change: "sample/C2" }, "far.0.tests"],
+      [{ change: "sample/C2", tests: [] }, "far.0.tests"],
+      [{ change: "sample/C2", tests: ["T2"] }, "far.0.tests"],
+    ]) {
+      assert.ok(keys([entry]).some((k) => k === member || k.startsWith(`${member}.`)), JSON.stringify(entry));
+      assert.ok(!m.classify({ head, base, far: [entry] }).reds.some((r) => r.accepted), "a malformed entry accepts nothing");
     }
-    assert.ok(names(m.checkAccepted({ accepted: [acceptance([])] }), "accepted.0.tests"), "no Test Case");
-    assert.ok(names(m.checkAccepted({ accepted: [acceptance(["T2"])] }), "accepted.0.tests"), "an unqualified identity");
-    assert.ok(names(m.checkAccepted({ accepted: [acceptance(["sample/T2"], { branch: "main" })] }), "accepted.0.branch"), "not a kaal/* collector");
-    assert.ok(names(m.checkAccepted({ accepted: [acceptance(["sample/T2"], { expires: "31.12.2026" })] }), "accepted.0.expires"), "not YYYY-MM-DD");
-    assert.ok(names(m.checkAccepted({ accepted: [{ ...acceptance(["sample/T2"]), authority: "Kai said so" }] }), "accepted.0.authority"), "not a GitHub URL");
-    assert.ok(names(m.checkAccepted({ accepted: [acceptance(["sample/T2"], { resolves: "C2" })] }), "accepted.0.resolves"), "an unqualified Change id");
   });
 
-  it("testing/T5 [testing/F4]: an acceptance applies only to its listed Regression REDs, on its branch, up to its expiry; an expired or stale acceptance applies to nothing and is reported", async () => {
+  it("testing/T6 [testing/F5]: an accepted entry marks only its listed Regression or Missing REDs, under its Change, and they stay RED; any other listed identity is stale", async () => {
     const m = await red();
-    const here = { "sample/T1": "fail", "sample/T2": "fail", "sample/T3": "fail", "sample/T4": "pass" };
-    const base = { "sample/T2": "pass", "sample/T3": "pass", "sample/T4": "pass" };
-    const accepted = (c) => ids(c.reds.filter((r) => r.accepted).map((r) => r.test));
-
-    assert.deepEqual(accepted(run(m, here, base, [acceptance(["sample/T2"])])), ["sample/T2"], "only the listed regression");
-    assert.deepEqual(accepted(run(m, here, base, [acceptance(["sample/T2"])], "2026-12-31")), ["sample/T2"], "holds on its last day");
-    const expired = run(m, here, base, [acceptance(["sample/T2"])], "2027-01-01");
-    assert.deepEqual(accepted(expired), [], "an expired acceptance applies to nothing");
-    assert.equal(expired.expired.length, 1);
-    assert.deepEqual(accepted(run(m, here, base, [acceptance(["sample/T2"], { branch: "kaal/other" })])), [], "another collector's acceptance applies to nothing");
-    assert.deepEqual(accepted(run(m, here, base, [acceptance(["sample/T1"])])), [], "a Feature RED is never accepted");
-    const stale = run(m, here, base, [acceptance(["sample/T4"])]);
-    assert.deepEqual(accepted(stale), [], "a GREEN Test Case needs no acceptance");
-    assert.deepEqual(stale.stale.map((s) => s.test), ["sample/T4"], "and the acceptance is reported as stale");
+    const base = await observed(cases({ "sample/T2": "pass", "sample/T3": "pass", "sample/T4": "pass", "sample/T6": "pass" }));
+    const head = await observed(cases({ "sample/T1": "fail", "sample/T2": "fail", "sample/T3": "fail", "sample/T4": "pass" }));
+    const c = m.classify({ head, base, far: [{ change: "sample/C2", tests: ["sample/T2", "sample/T6", "sample/T1", "sample/T4"] }] });
+    const accepted = c.reds.filter((r) => r.accepted);
+    assert.deepEqual(ids(accepted.map((r) => r.test)), ["sample/T2", "sample/T6"], "a Regression RED and a Missing RED");
+    assert.ok(accepted.every((r) => r.accepted.change === "sample/C2"));
+    assert.equal(classOf(c, "sample/T2"), "regression", "accepted, and still RED");
+    assert.equal(classOf(c, "sample/T3"), "regression", "an unlisted regression is not accepted");
+    assert.deepEqual(ids(c.stale.map((s) => s.test)), ["sample/T1", "sample/T4"], "a Feature RED and a GREEN Test Case are never accepted");
   });
 
-  it("testing/T6 [testing/F6]: the development gate tolerates Feature REDs and accepted regressions; promotion blocks every Feature RED and unaccepted Regression RED; accepting one regression never unblocks another", async () => {
+  it("testing/T7 [testing/F10]: evaluation follows the gate's policy; acceptance subtracts single identities; findings always block; a malformed policy fails closed", async () => {
     const m = await red();
-    const base = { "sample/T2": "pass", "sample/T3": "pass", "sample/T4": "fail" };
+    const base = await observed(cases({ "sample/T2": "pass", "sample/T3": "pass", "sample/T4": "fail" }));
+    const far = [{ change: "sample/C2", tests: ["sample/T2"] }];
 
-    const tolerated = run(m, { "sample/T1": "fail", "sample/T2": "fail", "sample/T4": "fail" }, base, [acceptance(["sample/T2"])]);
-    assert.deepEqual(m.verdict(tolerated, "development"), { pass: true, blocking: [] });
-    assert.deepEqual(m.verdict(tolerated, "promotion"), { pass: false, blocking: ["sample/T1"] }, "a Feature RED blocks promotion; a Persisting RED does not");
+    const tolerated = m.classify({ head: await observed(cases({ "sample/T1": "fail", "sample/T2": "fail", "sample/T3": "pass", "sample/T4": "fail" })), base, far });
+    assert.deepEqual(m.evaluate(tolerated, DEVELOPMENT), { pass: true, blocking: [] });
+    assert.deepEqual(m.evaluate(tolerated, PROMOTION), { pass: false, blocking: ["sample/T1"] }, "the gate's policy decides that a Feature RED blocks");
 
-    const two = run(m, { "sample/T2": "fail", "sample/T3": "fail" }, base, [acceptance(["sample/T2"])]);
-    assert.deepEqual(m.verdict(two, "development"), { pass: false, blocking: ["sample/T3"] }, "accepting sample/T2 leaves sample/T3 blocking");
-    assert.deepEqual(m.verdict(two, "promotion"), { pass: false, blocking: ["sample/T3"] });
+    const two = m.classify({ head: await observed(cases({ "sample/T2": "fail", "sample/T3": "fail", "sample/T4": "fail" })), base, far });
+    assert.deepEqual(m.evaluate(two, DEVELOPMENT), { pass: false, blocking: ["sample/T3"] }, "accepting sample/T2 leaves sample/T3 blocking");
 
-    const accounted = run(m, { "sample/T2": "fail", "sample/T4": "fail" }, base, [acceptance(["sample/T2"])]);
-    assert.deepEqual(m.verdict(accounted, "promotion"), { pass: true, blocking: [] }, "the failing set lies within the accepted regressions and what the base already carries");
+    const duplicate = m.classify({ head: await observed({ "a.test.mjs": suite([["sample/T2: one", "pass"], ["sample/T2: two", "pass"], ["sample/T3: three", "pass"], ["sample/T4: four", "pass"]]) }), base, far: [] });
+    assert.equal(m.evaluate(duplicate, { block: ["feature"] }).pass, false, "a finding blocks whatever the policy");
 
-    const unidentified = m.classify({
-      results: m.outcomes([event("fail", "breaks without an identity")]),
-      base: m.outcomes([]),
-      accepted: { accepted: [] },
-      branch: BRANCH,
-      today: "2026-10-25",
-    });
-    for (const gate of ["development", "promotion"]) assert.deepEqual(m.verdict(unidentified, gate), { pass: false, blocking: ["breaks without an identity"] });
+    for (const policy of [{}, { block: [] }, { block: ["regression", "flaky"] }]) assert.equal(m.evaluate(tolerated, policy).pass, false, JSON.stringify(policy));
   });
 
-  it("testing/T7 [testing/F5]: the report lists every RED by identity and class, and an accepted regression carries its authority, branch and expiry and is counted RED, never GREEN", async () => {
+  it("testing/T8 [testing/F6]: the report lists every RED by identity, class and file, an accepted RED carries its Change and is counted RED, never GREEN", async () => {
     const m = await red();
-    const c = run(m, { "sample/T1": "fail", "sample/T2": "fail", "sample/T5": "pass" }, { "sample/T2": "pass", "sample/T5": "pass" }, [acceptance(["sample/T2"])]);
+    const base = await observed(cases({ "sample/T2": "pass", "sample/T5": "pass" }));
+    const head = await observed(cases({ "sample/T1": "fail", "sample/T2": "fail", "sample/T5": "pass" }));
+    const c = m.classify({ head, base, far: [{ change: "sample/C2", tests: ["sample/T2"] }] });
     const text = String(m.report(c));
-    for (const needle of ["sample/T1", "sample/T2", AUTHORITY, BRANCH, "2026-12-31"]) assert.ok(text.includes(needle), needle);
+    for (const needle of ["sample/T1", "sample/T2", "sample/C2", "a.test.mjs"]) assert.ok(text.includes(needle), needle);
     const line = text.split("\n").find((l) => l.includes("sample/T2"));
     assert.match(line, /regression/i);
     assert.doesNotMatch(line, /\b(GREEN|pass(ed)?)\b/i, "an accepted regression is never shown as GREEN");
-    assert.deepEqual(c.counts, { feature: 1, regression: 1, persisting: 0, unidentified: 0, accepted: 1, green: 1 });
+    assert.deepEqual(c.counts, { feature: 1, regression: 1, missing: 0, persisting: 0, unknown: 0, unidentified: 0, accepted: 1, green: 1, newGreen: 0 });
   });
 });
 
-describe("Purity (testing/C4)", () => {
-  it("testing/T8 [testing/N1]: the same inputs give the same results, and kaal-testing/red imports no host module", async () => {
+describe("Purity and one interpreter (testing/C4)", () => {
+  it("testing/T14 [testing/N1]: the same observed runs, FAR outcome and policy give the same results", async () => {
     const m = await red();
-    const here = { "sample/T1": "fail", "sample/T2": "fail" };
-    const base = { "sample/T2": "pass" };
-    const accepted = [acceptance(["sample/T2"])];
-    const a = run(m, here, base, accepted);
-    const b = run(m, here, base, accepted);
-    assert.deepEqual(m.verdict(a, "promotion"), m.verdict(b, "promotion"));
+    const head = await observed(cases({ "sample/T1": "fail", "sample/T2": "fail" }));
+    const base = await observed(cases({ "sample/T2": "pass" }));
+    const far = [{ change: "sample/C2", tests: ["sample/T2"] }];
+    const a = m.classify({ head, base, far });
+    const b = m.classify({ head, base, far });
+    assert.deepEqual(m.evaluate(a, PROMOTION), m.evaluate(b, PROMOTION));
     assert.equal(String(m.report(a)), String(m.report(b)));
+  });
+
+  it("testing/T15 [testing/N4, testing/N1]: kaal-testing/red reads runs only through Testing's own observation, and imports no host module", async () => {
+    await red();
     const source = readFileSync(new URL(import.meta.resolve("kaal-testing/red")), "utf8");
-    assert.doesNotMatch(source, /\bfrom\s+["'](node:|kaal-hosting)|\bimport\s*\(/, "kaal-testing/red imports no host module");
-    assert.doesNotMatch(source, /\bDate\.now\b|\bnew Date\(\s*\)/, "the date is an input, never read from the clock");
+    const imports = [...source.matchAll(/\bfrom\s+["']([^"']+)["']/g)].map((x) => x[1]);
+    assert.deepEqual(imports.filter((s) => s !== "./observed.mjs"), [], "red imports only Testing's own observed-run module");
+    assert.doesNotMatch(source, /\bimport\s*\(/, "no dynamic import");
+    assert.doesNotMatch(source, /\bDate\.now\b|\bnew Date\(/, "no clock");
+    assert.doesNotMatch(source, /test:pass|test:fail|test:start/, "no second reading of runner events");
   });
 });
