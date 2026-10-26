@@ -46,6 +46,7 @@ async function main(argv: string[]): Promise<number> {
       const v = await verify(engine);
       for (const p of v.problems) console.error(p);
       if (v.ok) console.log(`ok: ${v.engine.nodes.length} Nodes admitted`);
+      for (const a of v.engine.artifacts) console.log(`${a.path}\t${a.type}\t${a.state}${a.findings.length ? `\t${a.findings.map((f) => f.rule).join("; ")}` : ""}`);
       return v.ok ? 0 : 1;
     }
     case "list": {
