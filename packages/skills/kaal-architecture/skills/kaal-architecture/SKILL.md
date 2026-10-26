@@ -8,6 +8,10 @@ license: MIT
 
 What Architecture is, and what URBAN means, are stated by the Nodes `Architecture` and `URBAN` in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file only tells you how to do the work.
 
+## Description
+
+Decide how a required capability is made available for use in KAAL, applying URBAN (Use, Rent, Buy, Adapt, New), and hand what must be built to Engineering. Use when a Change needs a capability, representation, protocol, format or mechanism it does not yet have.
+
 ## Make the decision
 
 - Name the required capability and the decision it serves before naming any option.

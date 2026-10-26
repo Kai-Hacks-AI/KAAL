@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "skill", "name": "Architecture", "id": "c2ae8ff5af74e7d0c325733e71fd71dab9189f3fb924325abaf2b0a741e318a0" },
+  "owner": { "kind": "capability", "name": "Architecture", "id": "9d683d6006f716bd1a0abb7b66bdc2925ae47122dac433a5d58744c5a259a246" },
   "paths": ["packages/skills/kaal-architecture/"]
 }

@@ -8,12 +8,13 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "contract.json",
     "payload",
     "skills"
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-hosting -w kaal-core",
-    "test": "node --test test/architecture.test.mjs"
+    "test": "node --test test/architecture.test.mjs test/plan/love.test.mjs"
   },
   "engines": {
     "node": ">=24"
