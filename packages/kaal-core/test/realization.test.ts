@@ -7,16 +7,14 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import gfs from "graceful-fs";
 import { afterEach, describe, it } from "node:test";
-import { renderSkill } from "kaal-core/agent";
 import { installationFormat } from "kaal-core/installation";
 import { realizeIn, record as CORE_RECORD } from "kaal-core/realization";
 
 const sha = (bytes: Uint8Array | string) => createHash("sha256").update(bytes).digest("hex");
 const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
 
-const SOURCE = Buffer.from("---\nname: sample\n---\n\n# sample\n\n## Description\n\nResolve a failing Sample verdict.\n");
+const SOURCE = Buffer.from("---\nname: sample\ndescription: Resolve a failing Sample verdict.\n---\n\n# sample\n");
 const SKILL = { name: "sample", files: { "SKILL.md": SOURCE, "references/a.md": Buffer.from("A\n") } };
-const RENDERED = Buffer.from(renderSkill(SOURCE));
 const RECORD = ".kaal/state/sample/installation.json";
 
 const contract = () => ({
@@ -27,7 +25,7 @@ const contract = () => ({
     { name: "hook", source: "assets/pre-push", target: ".githooks/pre-push", kind: "file", surface: "hook" },
     { name: "skill", source: "skills/sample", target: ".agents/skills/sample", kind: "directory" },
   ],
-  catalogue: { ".githooks/pre-push": [sha("hook")], ".agents/skills/sample/SKILL.md": [sha(RENDERED)] },
+  catalogue: { ".githooks/pre-push": [sha("hook")], ".agents/skills/sample/SKILL.md": [sha(SOURCE)] },
   record: RECORD,
   runtime: { node: 24 },
   provides: [{ skill: "sample" }],
@@ -56,11 +54,11 @@ describe("Hosting application (core/C13)", () => {
   it("deploys a Skill no contract delivers, records it in Core's record with Core's version, and a second run changes nothing", async () => {
     const root = repo();
     const first = await realizeIn(root, { skills: [SKILL] });
-    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
+    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), SOURCE);
     assert.deepEqual(first.records, [CORE_RECORD]);
     assert.deepEqual(json(root, CORE_RECORD), {
       assets: {
-        ".agents/skills/sample/SKILL.md": { sha256: sha(RENDERED), version: VERSION },
+        ".agents/skills/sample/SKILL.md": { sha256: sha(SOURCE), version: VERSION },
         ".agents/skills/sample/references/a.md": { sha256: sha("A\n"), version: VERSION },
       },
     });
@@ -88,7 +86,7 @@ describe("Hosting application (core/C13)", () => {
     assert.deepEqual(json(root, RECORD), {
       activated: ["hook"],
       assets: {
-        ".agents/skills/sample/SKILL.md": { sha256: sha(RENDERED), version: "0.0.2" },
+        ".agents/skills/sample/SKILL.md": { sha256: sha(SOURCE), version: "0.0.2" },
         ".agents/skills/sample/references/a.md": { sha256: sha("A\n"), version: "0.0.2" },
       },
     });
@@ -133,11 +131,11 @@ describe("Hosting application (core/C13)", () => {
     const root = repo();
     const c = { ...contract(), catalogue: { ".githooks/pre-push": [sha("hook")], ".agents/skills/sample/SKILL.md": [sha("some other release")] } };
     await realizeIn(root, { skills: [SKILL], contracts: [c] });
-    assert.deepEqual(json(root, RECORD).assets[".agents/skills/sample/SKILL.md"], { sha256: sha(RENDERED), version: "0.0.2" });
+    assert.deepEqual(json(root, RECORD).assets[".agents/skills/sample/SKILL.md"], { sha256: sha(SOURCE), version: "0.0.2" });
   });
 
   it("keeps a file found at a canonical target, even with catalogued bytes, and registers nothing for it", async () => {
-    const root = repo({ ".agents/skills/sample/SKILL.md": RENDERED });
+    const root = repo({ ".agents/skills/sample/SKILL.md": SOURCE });
     const done = await realizeIn(root, { skills: [SKILL], contracts: [contract()] });
     assert.ok(done.plan.keep.some((k) => k.path === ".agents/skills/sample/SKILL.md"));
     assert.deepEqual(Object.keys(json(root, RECORD).assets), [".agents/skills/sample/references/a.md"]);
@@ -162,7 +160,7 @@ describe("Hosting application (core/C13)", () => {
     assert.deepEqual(done.plan.write, [], "nothing is rewritten");
     assert.deepEqual(json(root, RECORD), {
       assets: {
-        ".agents/skills/sample/SKILL.md": { sha256: sha(RENDERED), version: "0.0.2" },
+        ".agents/skills/sample/SKILL.md": { sha256: sha(SOURCE), version: "0.0.2" },
         ".agents/skills/sample/references/a.md": { sha256: sha("A\n"), version: "0.0.2" },
       },
     });
@@ -174,7 +172,7 @@ describe("Hosting application (core/C13)", () => {
     mkdirSync(join(root, ".agents/skills/sample/references/a.md"), { recursive: true });
     const done = await realizeIn(root, { skills: [SKILL] });
     assert.ok(done.plan.keep.some((k) => k.path === ".agents/skills/sample/references/a.md"));
-    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
+    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), SOURCE);
   });
 
   it("turns a deployed file into a directory of the same name, and back, each in one reconciliation", async () => {
@@ -237,7 +235,7 @@ describe("Hosting application (core/C13)", () => {
     } finally {
       (gfs as unknown as { rm: Rm }).rm = rm;
     }
-    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
+    assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), SOURCE);
     assert.ok(done.leftovers !== undefined && done.leftovers.length > 0, "the leftovers are reported");
     for (const l of done.leftovers) assert.match(String((l.error as Error).message), /EBUSY/);
     const clean = await realizeIn(repo(), { skills: [SKILL] });
