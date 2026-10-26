@@ -51,6 +51,7 @@ npx --no kaal-guard run --check <name> --head <commit> --base <commit> --base-re
 
 - **The repository's:** each check's program, its declaration in `.kaal/config/guard/<name>.md`, the Test Cases it runs, its workflows and their jobs, its branch protection, and its agent instruction files. A fix to a verdict belongs here.
 - **Guard's:** the verdict line, its `do:` line, the hook and workflow files it installed, and the installation record `.kaal/state/guard/installation.json`. Only Guard's own commands (`init`, `upgrade`, `remove`) change them.
+- **Not Guard's to establish:** that a check or a Test Case it runs is unchanged since it was accepted. A pass says the check passed as it stands now; a changed test can still pass. Review a change to a check or a Test Case like any other change.
 
 ### What never resolves a verdict
 
