@@ -18,7 +18,7 @@ Three things stay apart. **Initialization** prepares Guard: `init` creates `.kaa
 
 Your CI is yours: you decide which job runs each check. `init` writes only what is missing and reports in up to four parts:
 
-- **installed by Guard:** `.kaal/config/guard/`, the installation record and the Skill; with `--hook`, `.githooks/pre-push` and `core.hooksPath` set to `.githooks`; with `--ci`, `.github/workflows/guard.yml`. A file Guard registered that the repository no longer has is reinstalled and reported as reinstalled.
+- **installed by Guard:** `.kaal/config/guard/`, the installation record and the Skill; with `--hook`, `.githooks/pre-push` and `core.hooksPath` set to `.githooks`; with `--ci`, `.github/workflows/guard.yml`. A file Guard registered that the repository no longer has is reinstalled and reported as reinstalled by the `init` that names its surface; plain `init` reinstalls only the Skill's files, and lists any other under still to do.
 - **left untouched:** any of these the repository already had, and any file at those paths that Guard did not write.
 - **still to do in this repository:** how to activate each surface you have not; where `core.fileMode` is false, `git add --chmod=+x .githooks/pre-push`, so the hook is committed executable; the line to add for each file left untouched, and for each `ci` check that no workflow job runs, the step to add to a job of your own workflow ([CI](#ci-and-what-verify-does-not-say)).
 - **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`).
@@ -171,6 +171,7 @@ Fixed:
 - A `base` that is not a commit Guard can read is cannot judge for every selected check, naming the base, never read as a base that declares nothing trusted.
 - `verify` reads a step as Guard's only when the invocation is its whole `run:` line. A step such as `npx --no kaal-guard run --check unit --github || true`, which can never fail, no longer counts as declaring `unit`. This was so in `0.0.2` too.
 - The package's own `npm test` runs its current suite and passes.
+- Plain `init` no longer passes over a registered hook or workflow the repository has lost, such as `.githooks/pre-push` while `core.hooksPath` still points at it: it lists the file under still to do, naming the `init --hook` or `init --ci` that reinstalls it.
 
 Changed:
 

@@ -171,6 +171,12 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
       if (surface) activated.add(surface);
     }
   }
+  // A registered file of a surface this init does not name is not reinstalled, but its absence is said (F8).
+  const named = { hook: [hook, "the hook"], ci: [ci, "CI"] };
+  for (const { path, surface } of [...of("hook"), ...of("ci")]) {
+    if (named[surface][0] || !assets[path] || existsSync(join(root, path))) continue;
+    todo.push(`${path}: Guard registered it, and the repository no longer has it. Run kaal-guard init --${surface} to reinstall it, or kaal-guard remove --${surface} to deactivate ${named[surface][1]}.`);
+  }
   if (hook) hooksPath(root, { assets, state, at, installed, untouched, todo });
   // Where core.fileMode is false, Git records the hook from the index alone, so it would be committed without its executable bit (F27).
   if (hook && assets[HOOK] && git(root, "config", "--bool", "--get", "core.fileMode").out === "false") {
