@@ -128,9 +128,10 @@ async function presentAt(root: string, paths: Iterable<string>): Promise<Digests
  * - **Application.** The deployments, removals and records are applied in one Hosting
  *   reconciliation, each guarded by what was read, every record read included, so a change in
  *   between leaves everything unchanged; Hosting rolls back what it observes failing.
- * - **File↔directory changes.** Hosting's contract applies no path together with its own
- *   descendant, so Core plans none: where a deployment changes between a file and a directory, the
- *   plan keeps and reports it, the old file included, until Hosting provides that transition.
+ * - **File↔directory changes.** Where a deployment changes between a file and a directory, the
+ *   removals in the way and the new files go to Hosting in the same reconciliation, which applies
+ *   the change in one step (hosting/C7). A directory Core cannot read as empty, such as one holding
+ *   only an empty directory, makes Hosting refuse the reconciliation, and nothing changes.
  */
 export async function realizeIn(root: string, { skills, contracts = [] }: RealizationRequest): Promise<Realized> {
   if ((await kind(root)) !== "directory") throw new KaalError(`${root} is not a directory`);
