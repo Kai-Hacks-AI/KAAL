@@ -11,6 +11,8 @@ This is `architecture/C2`, a PLAN Change. It ships no code and no test file. It 
 | Verification | its own unit tests, and an Acceptance scenario that installs the packed package | nothing checks the package against Core's Installation Contract or Agent Realization |
 | Encapsulation | consumers see two Nodes and an Agent Skill. The package exports nothing else | the Agent Skill is not a canonical source Core can render for an agent (no `## Description`) |
 
+**The Owner's decision on the type (#274, 2026-10-26): option (a).** Architecture owns architectural decisions and their grounds, so it is a `KAAL Capability`, with its own Capability identity and ownership claim. It is retyped in this LOVE path, in `architecture/C5`, and `architecture/C1` stays as scoped. The Agent Skill stays a distinct, consumable instruction surface, and `URBAN` stays a Definition. Nothing here authorizes packaging or publication.
+
 - **architecture/I1.** Any installer that realizes Architecture's Installation Contract, Core or another, can install, upgrade and remove it, and every installation states its version.
 - **architecture/I2.** Architecture is one Capability whose responsibility overlaps no other: it decides and grounds, Requirements states what must hold, Engineering realizes, and Testing designs the tests and judges their evidence.
 - **architecture/I3.** A consumer reaches Architecture only through its Nodes and its Agent Skill. An agent of every provider the consumer declares reaches the Skill as Core realizes it.

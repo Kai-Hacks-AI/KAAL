@@ -11,11 +11,11 @@ Each element names, in brackets, the Requirements it answers.
 
 | Change | Owner | Depends on |
 | --- | --- | --- |
-| `architecture/C1` the capability, URBAN and the Agent Skill (#274) | Architecture | none |
+| `architecture/C1` the capability, URBAN and the Agent Skill (#274), kept as scoped: `Architecture` stays typed `KAAL Skill` there | Architecture | none |
 | `architecture/C2` PLAN, this Change | Architecture | `architecture/C1` |
 | `architecture/C3` SYNC main → kaal/architecture, for Core's Installation Contract and Agent Realization | Architecture | `architecture/C2` |
 | `architecture/C4` the planned tests, written and recorded RED | Architecture | `architecture/C3` |
-| `architecture/C5` DO: `contract.json`, the retype, the Requirements boundary, the canonical Skill; GREEN | Architecture | `architecture/C4` |
+| `architecture/C5` DO: the retype to `KAAL Capability` with its new id and claim (the Owner's decision on #274), `contract.json`, the Requirements boundary, the canonical Skill; GREEN | Architecture | `architecture/C4` |
 | `engineering/C…` Core's conformance Test Cases run against Architecture's instance | Engineering | `architecture/C5` |
 
 Promoting `kaal/architecture` to `main`, and any publication, are separate Owner decisions and are not planned here.
