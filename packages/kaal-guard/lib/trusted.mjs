@@ -34,7 +34,7 @@ export function materialize(root, base, trusted, into) {
     const blob = git(root, ["cat-file", "blob", e.object]);
     if (blob.status !== 0) return { problem: `${e.file} cannot be read from the base ${sha}`, todo: "fetch the base commit" };
     mkdirSync(dirname(join(into, e.file)), { recursive: true });
-    writeFileSync(join(into, e.file), blob.stdout);
+    writeFileSync(join(into, e.file), blob.stdout, { mode: e.mode === "100755" ? 0o755 : 0o644 });
     files.push(e.file);
   }
   return { commit: sha, files };

@@ -33,8 +33,8 @@ function announce(t, candidate) {
 const json = (text) => JSON.parse(text);
 const changedFiles = (c) => c.git("status", "--porcelain").output.split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
 
-describe("I5 a consumer moves between published versions safely", () => {
-  it("T36 [I5, F11, N8, N9, A12]: a KAAL clone installs the published 0.0.1 from the registry and runs KAAL's checks through it", async (t) => {
+describe("guard/I5 a consumer moves between published versions safely", () => {
+  it("guard/T36 [guard/I5, guard/F11, guard/N8, guard/N9, guard/A12]: a KAAL clone installs the published 0.0.1 from the registry and runs KAAL's checks through it", async (t) => {
     const h = await a12();
     const k = h.kaalClone();
     k.install(PUBLISHED);
@@ -48,7 +48,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.equal(published.status, development.status, `the published Guard's verdict differs from the development Guard's:\n${published.output}\n${development.output}`);
   });
 
-  it("T37 [I5, F11, F12]: a dependency and lockfile change, then upgrade, moves unmodified assets and keeps everything the consumer owns", async (t) => {
+  it("guard/T37 [guard/I5, guard/F11, guard/F12]: a dependency and lockfile change, then upgrade, moves unmodified assets and keeps everything the consumer owns", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
@@ -80,7 +80,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.deepEqual(changedFiles(k), ["package-lock.json", "package.json"], "F11: a package-code update changed more than the dependency and the lockfile");
   });
 
-  it("T38 (H1) [F13]: upgrade installs and records a managed asset the consumer does not have", async (t) => {
+  it("guard/T38 (H1) [guard/F13]: upgrade installs and records a managed asset the consumer does not have", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
@@ -98,7 +98,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.ok(json(m.read("guard.json")).managed?.[".github/workflows/guard.yml"], "upgrade did not record the asset it installed");
   });
 
-  it("T39 (H2) [F14]: guard.json records the writing version and upgrade names the versions it moves between", async (t) => {
+  it("guard/T39 (H2) [guard/F14]: guard.json records the writing version and upgrade names the versions it moves between", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
@@ -114,7 +114,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.ok(up.output.includes(version), "upgrade does not name the version it moved to");
   });
 
-  it("T40 (H3) [F15]: the candidate reads a guard.json written by 0.0.1 with the same meaning, or refuses it with a next step", async (t) => {
+  it("guard/T40 (H3) [guard/F15]: the candidate reads a guard.json written by 0.0.1 with the same meaning, or refuses it with a next step", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
@@ -136,7 +136,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read("guard.json"), written, "reading guard.json changed it");
   });
 
-  it("T41 [I5, F16]: rollback to 0.0.1 and forward again restore each version's unmodified assets and keep the consumer's", async (t) => {
+  it("guard/T41 [guard/I5, guard/F16]: rollback to 0.0.1 and forward again restore each version's unmodified assets and keep the consumer's", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
@@ -159,7 +159,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read("README.md"), "the consumer's own file\n", "a consumer-owned file changed");
   });
 
-  it("T42 [I2, I5, A12]: a real push in the KAAL clone runs KAAL's hook through the installed published Guard, with run --local's verdict", async () => {
+  it("guard/T42 [guard/I2, guard/I5, guard/A12]: a real push in the KAAL clone runs KAAL's hook through the installed published Guard, with run --local's verdict", async () => {
     const h = await a12();
     const k = h.kaalClone();
     k.install(PUBLISHED);
@@ -172,7 +172,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.equal(line(push.output), line(direct.output), "the hook's verdict differs from run --local with the same facts");
   });
 
-  it("T43 (H4) [I5, F17]: init on KAAL adds nothing that duplicates KAAL's existing integration", async (t) => {
+  it("guard/T43 (H4) [guard/I5, guard/F17]: init on KAAL adds nothing that duplicates KAAL's existing integration", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
@@ -188,7 +188,7 @@ describe("I5 a consumer moves between published versions safely", () => {
     assert.match(init.output, /not managed/i, "init does not report KAAL's integration as executed but not managed");
   });
 
-  it("T44 (H5) [I1, F18]: init then remove leaves KAAL's guard.json byte for byte as KAAL wrote it", async (t) => {
+  it("guard/T44 (H5) [guard/I1, guard/F18]: init then remove leaves KAAL's guard.json byte for byte as KAAL wrote it", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
