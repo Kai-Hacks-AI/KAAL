@@ -34,21 +34,21 @@ function present(path) {
 }
 
 describe("Architecture conformance", () => {
-  it("T28 [A3, A7]: the runner knows nothing of the adapters or GitHub", () => {
+  it("guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub", () => {
     present("lib/runner.mjs");
     const runner = source("lib/runner.mjs");
     for (const s of specifiers(runner)) assert.doesNotMatch(s, /github|templates/, `the runner imports ${s}`);
     assert.doesNotMatch(runner, /GITHUB_|\.github\/|\.githooks|::(error|warning|notice)/, "the runner holds GitHub or hook knowledge");
   });
 
-  it("T29 [A7]: nothing depends on an adapter", () => {
+  it("guard/T29 [guard/A7]: nothing depends on an adapter", () => {
     present("templates/pre-push");
     for (const f of files(PACKAGE).filter((f) => /\.(mjs|js|cjs)$/.test(f) && !f.startsWith("test/acceptance/"))) {
       for (const s of specifiers(source(f))) assert.doesNotMatch(s, /templates\//, `${f} imports the adapter ${s}`);
     }
   });
 
-  it("T30 [A8, N6]: the package declares and imports no KAAL element and references no Engineering path", () => {
+  it("guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path", () => {
     present("package.json");
     const manifest = JSON.parse(source("package.json"));
     assert.equal(manifest.name, NAME);
@@ -68,7 +68,7 @@ describe("Architecture conformance", () => {
     }
   });
 
-  it("T31 [A8, N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it", () => {
+  it("guard/T31 [guard/A8, guard/N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it", () => {
     for (const f of files(HERE).filter((f) => f.endsWith(".mjs"))) {
       for (const s of specifiers(readFileSync(join(HERE, f), "utf8"))) {
         assert.ok(s.startsWith("node:") || (s.startsWith("./") && !s.includes("..")), `${f} imports ${s}, outside the boundary`);
