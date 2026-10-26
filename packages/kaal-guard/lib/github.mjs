@@ -2,8 +2,9 @@
 // and a table in the step summary. It takes the runner's results and knows nothing of how a check
 // decides. Beside it, verify: a static reading of the workflow files, which shows that a job names
 // every ci check. It never proves that GitHub ran a job, nor that branch protection requires it.
-import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { Refusal } from "./config.mjs";
 
 const escapeData = (s) => s.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
 const escapeProperty = (s) => escapeData(s).replace(/:/g, "%3A").replace(/,/g, "%2C");
@@ -86,6 +87,15 @@ export function declarations(root) {
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
   const found = [];
   for (const file of files) {
+    // A workflow entry Guard cannot read, such as a directory or a link to nothing, is cannot judge (F10, F17).
+    let kind;
+    try {
+      const entry = statSync(join(dir, file));
+      if (!entry.isFile()) kind = entry.isDirectory() ? "is a directory" : "is not a regular file";
+    } catch (error) {
+      kind = error.code === "ENOENT" ? "is a link to nothing" : `cannot be opened (${error.code ?? error.message})`;
+    }
+    if (kind) throw new Refusal(`.github/workflows/${file}: ${kind}, so Guard cannot read it as a workflow`, `remove .github/workflows/${file}, or make it a workflow file`);
     for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
       const at = { job: job.key, file: `.github/workflows/${file}` };
       for (const name of named(job)) found.push({ name, ...at });
