@@ -7,9 +7,12 @@
 // A consumer installs a version through its dependency and lockfile, as any npm consumer does, and
 // runs the Guard it installed. candidate() names the version to move to and its source (N9):
 // `packed`, the package in this tree packed now (simulated), unless GUARD_CANDIDATE=registry:<version>
-// names a published one. candidates() gives two packed candidates of the planned configuration that
-// differ in version and in the workflow they install, newer cataloguing older's content, for the tests
-// that move between them. It needs the network to reach the registry; the package does not (N2).
+// names a published one. candidates() gives the older and newer candidates the tests move between:
+// two packed candidates of the planned configuration that differ in version and in the workflow they
+// install, newer cataloguing older's content, unless GUARD_CANDIDATES=<older>,<newer> names the pair,
+// registry:<A>,registry:<B> (two published versions) or registry:<A>,packed (the published older and the
+// package in this tree, packed as it stands). Each carries its source (N9). It needs the network to
+// reach the registry; the package does not (N2).
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -125,17 +128,46 @@ function variant(version, after = {}, adds = false) {
 }
 
 let two;
+const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+
+/** One side of GUARD_CANDIDATES: registry:<version>, or (newer only) packed, the package in this tree as it stands. */
+function named(value, side) {
+  if (value === "packed" && side === "newer") {
+    const version = JSON.parse(readFileSync(join(KAAL, "packages", "kaal-guard", "package.json"), "utf8")).version;
+    return { source: "packed", version, spec: () => pack(join(KAAL, "packages", "kaal-guard")) };
+  }
+  const m = /^registry:(.+)$/.exec(value);
+  if (!m || !VERSION.test(m[1])) throw new Error(`A12: GUARD_CANDIDATES' ${side} must be registry:<version>${side === "newer" ? " or packed" : ""}, not ${value}`);
+  return { source: "registry", version: m[1], spec: () => `${PACKAGE}@${m[1]}` };
+}
+
 /**
- * Two `packed` candidates of the planned configuration, { older, newer }: different versions whose
+ * The candidates the tests move between, { older, newer }, each { source, spec, version }. Without
+ * GUARD_CANDIDATES, two `packed` candidates of the planned configuration: different versions whose
  * managed workflows differ in content, newer's catalogue holding older's content as well as its own,
- * and newer managing one hook-surface asset that older lacks.
+ * and newer managing one hook-surface asset that older lacks. With GUARD_CANDIDATES=<older>,<newer>,
+ * the pair it names, unchanged: registry:<A>,registry:<B>, or registry:<A>,packed.
  */
 export function candidates() {
   if (!two) {
-    const base = JSON.parse(readFileSync(join(KAAL, "packages", "kaal-guard", "package.json"), "utf8")).version;
-    const older = variant(`${base}-candidate.1`);
-    const newer = variant(`${base}-candidate.2`, older.catalogue, true);
-    two = Object.fromEntries(Object.entries({ older, newer }).map(([k, v]) => [k, { source: "packed", spec: pack(v.dir), version: v.version }]));
+    const pair = process.env.GUARD_CANDIDATES;
+    if (pair) {
+      const parts = pair.split(",").map((p) => p.trim());
+      if (parts.length !== 2) throw new Error(`A12: GUARD_CANDIDATES must be registry:<A>,registry:<B> or registry:<A>,packed, not ${pair}`);
+      const older = named(parts[0], "older");
+      const newer = named(parts[1], "newer");
+      if (older.version === newer.version)
+        throw new Error(
+          `A12: GUARD_CANDIDATES names ${older.version} as both older and newer (${pair}); the candidates must differ in version` +
+            (newer.source === "packed" ? `. The package in this tree is at ${newer.version}: bump its version before pairing it with registry:${older.version}` : ""),
+        );
+      two = Object.fromEntries(Object.entries({ older, newer }).map(([k, v]) => [k, { source: v.source, spec: v.spec(), version: v.version }]));
+    } else {
+      const base = JSON.parse(readFileSync(join(KAAL, "packages", "kaal-guard", "package.json"), "utf8")).version;
+      const older = variant(`${base}-candidate.1`);
+      const newer = variant(`${base}-candidate.2`, older.catalogue, true);
+      two = Object.fromEntries(Object.entries({ older, newer }).map(([k, v]) => [k, { source: "packed", spec: pack(v.dir), version: v.version }]));
+    }
   }
   return two;
 }
