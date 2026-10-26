@@ -1,6 +1,6 @@
 {
   "name": "@kaihacksai/kaal-guard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Connects a repository's own checks to its local Git hooks and to GitHub CI, with one meaning per check.",
   "license": "MIT",
   "repository": {

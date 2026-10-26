@@ -4,7 +4,7 @@
     "id": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
   },
   "capability": "guard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "assets": [
     {
       "name": "hook",
