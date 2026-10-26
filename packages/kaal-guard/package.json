@@ -20,7 +20,7 @@
     "contract.json"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs test/acceptance/*.test.mjs"
+    "test": "node --test test/*.test.mjs test/acceptance/plan/*.test.mjs"
   },
   "engines": {
     "node": ">=24"

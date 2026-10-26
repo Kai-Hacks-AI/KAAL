@@ -1,11 +1,4 @@
 {
   "collector": "kaal/guard",
-  "entries": [
-    {
-      "test": "guard/T98",
-      "class": "Feature RED",
-      "until": "guard/C86",
-      "authority": "the Owner's review 5653679753 on #454; moved to guard/C86 in guard/C84"
-    }
-  ]
+  "entries": []
 }
