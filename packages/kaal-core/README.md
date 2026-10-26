@@ -10,6 +10,9 @@ Core depends on no Git host and no agent provider. It has two runtime dependenci
 npm install kaal-core
 npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
 npx kaal verify    # checks the Kernel and the six foundational Nodes by identity
+npx kaal version   # the kaal-core that runs, and the version that installed ./.kaal
+npx kaal upgrade   # bring ./.kaal to this kaal-core
+npx kaal remove    # remove Core's installation, keeping what is not Core's
 ```
 
 Installing the package writes nothing into your repository. `kaal init` does, and only when you run it.
@@ -39,7 +42,7 @@ LOVE is the test a package meets before it steps up from an internal capability 
 
 Meeting LOVE is a judgment of maturity, not a mandate to publish. A decision to package something never authorizes its release. `LOVE` is a Definition beside `CASE`. Like `CASE`, it types nothing, and adding it changed neither the Kernel's bytes nor any existing id.
 
-These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so there is no migration; bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Extension`, and of every Node typed by them, are unchanged.
+These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so `kaal upgrade` does not adopt such an Engine: it keeps and reports the files it does not recognize, and refuses because the result would not verify. Bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Extension`, and of every Node typed by them, are unchanged.
 
 A Node is a UTF-8 Markdown file that begins with frontmatter in the Kernel's Form, for example:
 
@@ -68,6 +71,7 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
   agents/<name>/              registered Agent contributions
   skills/<name>/              registered Skill contributions
   extensions/<name>/          registered Extension contributions
+  state/core/installation.json  Core's record, at ./.kaal only (see Lifecycle)
 ```
 
 This layout is how Core delivers files, not part of any identity. The Engine is found by content: you may move or rename any file, keeping its bytes, and every Node keeps its id, its type resolution and its discovery.
@@ -85,6 +89,9 @@ kaal identify <file>...                                print the id, name and ty
 kaal register <capability|agent|skill|extension> <name> <dir>
                                                        register a contribution, atomically
 kaal export <out-dir>                                  write the foundational payload into an empty directory
+kaal version                                           print the kaal-core that runs and the Engine's recorded version
+kaal upgrade                                           bring ./.kaal to this kaal-core's Installation Contract
+kaal remove                                            remove Core's installation from ./.kaal
 ```
 
 Every command takes `--engine <dir>`: the Engine directory itself, absolute or relative, under any name (`kaal init --engine ./myKAAL`). Without it, the Engine is `./.kaal`. `.kaal` is a default convention, not part of any identity.
@@ -166,7 +173,7 @@ realize({ skills: [{ name, files }], providers: ["claude-code"], record, present
 renderSkill(bytes); // the supplier SKILL.md: name, and description copied from the source's "## Description"
 ```
 
-A Skill a Capability's contract delivers is that Capability's at its canonical location: pass it in `contracted`, with whether the Capability's record registers it already, and Core's own record keeps only the provider deployments.
+A Skill a Capability's contract delivers is that Capability's at its canonical location: pass it in `contracted`, with whether the Capability's record registers it already, and Core's own record keeps only the provider deployments, beside the Engine files of Core's own installation (see Lifecycle).
 
 `kaal-core/realization` applies a plan through Hosting. `realizeIn(root, { skills, contracts })` reads the declaration, the present files and every record, registers what Core writes in each contract's record, keeps Core's own record at `.kaal/state/core/installation.json`, and applies it all in one guarded reconciliation: if anything changed since it was read, nothing changes. Where a deployment changes between a file and a directory, Core's unmodified files in the way are removed and the new ones written in that same reconciliation, which Hosting applies in one step. Core coordinates and takes over nothing: once a Capability's record registers any file of its Skill, Core leaves that canonical location to the Capability's own lifecycle, and it uses the sources it is given without judging their provenance against the catalogue.
 
@@ -178,6 +185,24 @@ await realizeIn(process.cwd(), { skills: [{ name, files }], contracts: [contract
 ```
 
 Both modules are pure and import no host module; applying a plan is Hosting's.
+
+## Lifecycle
+
+Core is installed by an Installation Contract of its own, `installation.kaal.json`, in the format it owns. It names the Capability `core` at kaal-core's version, one file asset for each payload file, from `payload/<path>` to `.kaal/<path>`, and a catalogue of every content each target has had in a published version. Core follows the format's rules for its own files: install only where absent, keep a modified file and report it, remove only an unmodified file.
+
+- **Record and version.** `kaal init` registers each file it writes in Core's record, `.kaal/state/core/installation.json`, with Core's version. That is the same record Agent Realization keeps its provider deployments in: one Core record, and each keeps the other's entries. `kaal version` prints the kaal-core that runs and the version the record holds for the Engine's files. It says when the Engine is unrecorded, and when the files carry several versions.
+- **Upgrade.** `kaal upgrade` brings `./.kaal` to the contract of the kaal-core that runs:
+  - it writes a target that is absent;
+  - it replaces a file the record holds that still has its recorded bytes;
+  - it adopts a file the record lacks when the catalogue lists its bytes, which is how an Engine without a record gets one;
+  - it keeps and reports every other file;
+  - it removes an unmodified recorded file the contract no longer delivers.
+
+  The upgraded Engine must verify, or nothing changes. Upgrading an Engine already at the contract writes nothing.
+- **Remove.** `kaal remove` removes every unmodified file Core's record holds, the provider deployments included, then the record, and the directories that empties. It keeps and reports the rest: modified files, registered contributions, typed artifacts, and other Capabilities' records and assets.
+- **Where.** Core's contract and record are written relative to the repository root, so the lifecycle acts on `./.kaal` alone. With `--engine`, `upgrade` and `remove` are refused, `version` reports the Engine as unrecorded, and `init` bootstraps without a record.
+
+Each step is decided by Core and applied by Hosting in one guarded reconciliation: if anything changed since it was read, nothing changes. An upgrade also relies on the Engine files it leaves untouched, so each is a read-only expectation Hosting checks without rewriting it, and its executable mark stays as it is. The lifecycle is reached through the `kaal` command; no entry point exports it.
 
 ## Core as a Capability
 
