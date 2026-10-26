@@ -38,6 +38,9 @@ function targets(): Map<string, Buffer> {
   return new Map(CONTRACT.assets.map((a) => [a.target, carried[a.source.slice("payload/".length)]]));
 }
 
+/** The kaal-core version that runs: the version of Core's contract. */
+export const CORE_VERSION = CONTRACT.version;
+
 const json = (value: unknown) => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
 const isEngine = (path: string) => path.startsWith(`${ENGINE}/`);
 
@@ -88,7 +91,7 @@ export interface Versions {
 export async function versions(root: string): Promise<Versions> {
   const own = await readRecord(root, RECORD);
   const recorded = Object.entries(own.record?.assets ?? {}).filter(([p]) => isEngine(p));
-  return { core: CONTRACT.version, engine: [...new Set(recorded.map(([, e]) => e.version))].sort() };
+  return { core: CORE_VERSION, engine: [...new Set(recorded.map(([, e]) => e.version))].sort() };
 }
 
 /** What an applied step did. */

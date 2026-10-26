@@ -4,7 +4,7 @@ import { Graph } from "kaal-graph";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
-import { ENGINE, recordInstallation, remove, upgrade, versions, type Applied } from "./lifecycle.js";
+import { CORE_VERSION, ENGINE, recordInstallation, remove, upgrade, versions, type Applied } from "./lifecycle.js";
 import { FormError, KaalError, readNode } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
@@ -96,7 +96,7 @@ async function main(argv: string[]): Promise<number> {
       return 0;
     }
     case "version": {
-      const v = recorded ? await versions(process.cwd()) : { core: (await versions(process.cwd())).core, engine: [] };
+      const v = recorded ? await versions(process.cwd()) : { core: CORE_VERSION, engine: [] };
       console.log(`kaal-core ${v.core}`);
       console.log(v.engine.length === 0 ? "engine unrecorded" : v.engine.length === 1 ? `engine ${v.engine[0]}` : `engine mixed (${v.engine.join(", ")})`);
       return 0;
@@ -108,7 +108,7 @@ async function main(argv: string[]): Promise<number> {
       for (const p of done.written) console.log(`written\t${p}`);
       for (const p of done.removed) console.log(`removed\t${p}`);
       for (const k of done.kept) console.log(`kept\t${k.path}\t${k.reason}`);
-      console.log(command === "upgrade" ? `${ENGINE} is at kaal-core ${(await versions(process.cwd())).core}` : `removed Core's installation from ${ENGINE}`);
+      console.log(command === "upgrade" ? `${ENGINE} is at kaal-core ${CORE_VERSION}` : `removed Core's installation from ${ENGINE}`);
       return 0;
     }
     case undefined:
