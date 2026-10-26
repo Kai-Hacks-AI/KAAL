@@ -213,6 +213,21 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.notEqual(r.status, 0, r.output);
   });
 
+  it("guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs", () => {
+    const c = consumer();
+    c.checks({ plain: { command: "node checks/plain.mjs", runs: ["ci"] } });
+    c.write("checks/plain.mjs", checker("plain-ran", 0));
+    const head = c.commit("a check that declares no trusted");
+    for (const base of ["no-such-base", "0123456789abcdef0123456789abcdef01234567"]) {
+      const r = c.guard(["run", "--ci", "--head", head, "--base", base, "--base-ref", "main"]);
+      const judged = verdicts(r.output).plain;
+      assert.equal(judged?.verdict, "cannot judge", `base ${base}:\n${r.output}`);
+      assert.equal(r.status, 2, r.output);
+      assert.ok(judged.evidence.includes(base), `the verdict does not name the base ${base}: ${judged.evidence}`);
+      assert.ok(!c.exists("plain-ran"), `a check ran against the unresolved base ${base}`);
+    }
+  });
+
   it("guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker", () => {
     const c = consumer();
     c.write("checks/judge.mjs", checker("judge-ran", 0));
@@ -281,7 +296,9 @@ describe("guard/F9 [guard/I2] execution contract", () => {
   it("guard/T19 [guard/F9]: gives a check only its facts, from the repository root, with no stdin, wherever it is started", () => {
     const c = given({ facts: { command: "node checks/facts.mjs facts.json", runs: ["hook", "ci"] } });
     c.write("changed.txt", "a.txt\0dir/b.txt\0");
-    const args = ["run", "--check", "facts", "--head", "h", "--base", "b", "--base-ref", "main", "--changed", join(c.dir, "changed.txt")];
+    // The base is a commit here: one that resolves to none is cannot judge (guard/F7, guard/C84).
+    const b = c.git("rev-parse", "HEAD").stdout.trim();
+    const args = ["run", "--check", "facts", "--head", "h", "--base", b, "--base-ref", "main", "--changed", join(c.dir, "changed.txt")];
     const seen = [];
     for (const [cwd, extra] of [[c.dir, {}], [join(c.dir, "checks"), { GITHUB_ACTIONS: "true", CI: "true" }]]) {
       assert.equal(c.guard(args, extra, cwd).status, 0);
@@ -291,7 +308,7 @@ describe("guard/F9 [guard/I2] execution contract", () => {
       assert.equal(realpathSync(s.cwd), realpathSync(c.dir)); // the same directory, however the OS spells it (macOS: /var is /private/var)
       assert.equal(s.stdin, "");
       assert.deepEqual(Object.keys(s.guard).sort(), ["GUARD_BASE", "GUARD_BASE_REF", "GUARD_CHANGED", "GUARD_HEAD"]);
-      assert.deepEqual([s.guard.GUARD_HEAD, s.guard.GUARD_BASE, s.guard.GUARD_BASE_REF], ["h", "b", "main"]);
+      assert.deepEqual([s.guard.GUARD_HEAD, s.guard.GUARD_BASE, s.guard.GUARD_BASE_REF], ["h", b, "main"]);
       assert.deepEqual(s.changed, ["a.txt", "dir/b.txt"]);
     }
   });
