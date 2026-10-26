@@ -11,22 +11,29 @@ jobs:
     name: Guard
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: lts/*
+          node-version: 24
       - run: npm ci
       - run: npx --no kaal-guard verify --config .kaal/config/guard --github
   checks:
     name: Guard checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: lts/*
+          node-version: 24
       - run: npm ci
-      - run: git diff --name-only -z ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} > "$RUNNER_TEMP/changed"
-      - run: npx --no kaal-guard run --ci --config .kaal/config/guard --github --head ${{ github.event.pull_request.head.sha }} --base ${{ github.event.pull_request.base.sha }} --base-ref ${{ github.base_ref }} --changed ${{ runner.temp }}/changed
+      - env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: git diff --name-only -z "$BASE...$HEAD" > "$RUNNER_TEMP/changed"
+      - env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
+        run: npx --no kaal-guard run --ci --config .kaal/config/guard --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF" --changed "$RUNNER_TEMP/changed"
