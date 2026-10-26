@@ -117,7 +117,7 @@ sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1
 
 ## CI, and what verify does not say
 
-A job declares a check with a step whose whole `run:` line is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`. Prefer `npx --no`: where the package is not installed it fails, instead of fetching whatever the registry holds under the command's name:
+A job declares a check with a step whose whole `run:` line is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`. Further arguments are words, plain or quoted, such as `--head "$HEAD"`; a shell operator after the invocation, such as `|| true`, `;`, `|` or `&`, or a `${{ }}` expression other than `${{ matrix.check }}`, makes the step declare nothing, because its exit status would no longer be Guard's. Prefer `npx --no`: where the package is not installed it fails, instead of fetching whatever the registry holds under the command's name:
 
 ```yaml
 - run: npx --no kaal-guard run --check unit --github
@@ -169,6 +169,7 @@ Fixed:
 
 - A trusted check can no longer be bypassed by the change it judges. Where the base declares a check `trusted`, a candidate that changes its declaration in any member, or deletes it, makes it cannot judge, naming the check; nothing runs. That includes changing `runs` so the check leaves the surface being run, which before the Release still took it out of `run --ci` or `run --hook` unjudged. Land such a declaration change on its own first. A check the base doesn't declare, or declares without `trusted`, runs as before.
 - A `base` that is not a commit Guard can read is cannot judge for every selected check, naming the base, never read as a base that declares nothing trusted.
+- `verify` reads a step as Guard's only when the invocation is its whole `run:` line. A step such as `npx --no kaal-guard run --check unit --github || true`, which can never fail, no longer counts as declaring `unit`. This was so in `0.0.2` too.
 - The package's own `npm test` runs its current suite and passes.
 
 Changed:
