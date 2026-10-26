@@ -2,7 +2,6 @@
 // reachable by the agents of every provider a repository declares, from the Skill's one canonical
 // source, claiming only what Core itself deployed. Applying a plan is Hosting's (core/A7). Pure:
 // no host access (core/N4).
-import { FormError, readFrontmatter } from "kaal-graph/form";
 import { sha256 } from "./sha256.js";
 
 /** Where a repository declares the providers it enables (core/F16). The consumer declares; Core owns the schema. */
@@ -80,63 +79,11 @@ const isInstruction = (path: string) => /(^|\/)(AGENTS|CLAUDE)\.md$/i.test(path)
 const isPath = (v: string) => !/[\\:]/.test(v) && v.split("/").every((s) => s !== "" && s !== "." && s !== "..");
 const has = (o: object, key: string) => Object.prototype.hasOwnProperty.call(o, key);
 const byPath = <T extends { path: string }>(a: T, b: T) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
-const encoder = new TextEncoder();
-const decoder = new TextDecoder("utf-8", { fatal: true });
-
-/** Which lines of a Markdown body are headings: those outside fenced code blocks (``` or ~~~). */
-function headings(lines: string[]): boolean[] {
-  let fence: string | undefined;
-  return lines.map((line) => {
-    const open = /^ {0,3}(`{3,}|~{3,})/.exec(line);
-    if (fence !== undefined) {
-      if (open && open[1][0] === fence[0] && open[1].length >= fence.length && line.trim() === open[1]) fence = undefined;
-      return false;
-    }
-    if (open) {
-      fence = open[1];
-      return false;
-    }
-    return /^#{1,6} /.test(line);
-  });
-}
-
-/** The canonical body's `## Description` section, as written, without its heading and surrounding blank lines. */
-function descriptionOf(body: string): string | undefined {
-  const lines = body.split("\n");
-  const heading = headings(lines);
-  const start = lines.findIndex((l, i) => heading[i] && l.trimEnd() === "## Description");
-  if (start < 0) return undefined;
-  let end = lines.findIndex((l, i) => i > start && heading[i] && /^#{1,2} /.test(l));
-  if (end < 0) end = lines.length;
-  const text = lines.slice(start + 1, end).join("\n").trim();
-  return text === "" ? undefined : text;
-}
-
-/**
- * A supplier `SKILL.md`, rendered from a canonical source (core/F21): frontmatter of exactly `name`
- * and `description`, where `description` is the body's `## Description` section copied verbatim, and
- * the body unchanged. A source without that section, or with no `name`, cannot be rendered.
- */
-export function renderSkill(bytes: Uint8Array): Uint8Array {
-  let frontmatter;
-  try {
-    frontmatter = readFrontmatter(bytes);
-  } catch (e) {
-    if (e instanceof FormError) throw new TypeError(`the canonical source's frontmatter cannot be read: ${e.message}`);
-    throw e;
-  }
-  const text = decoder.decode(bytes);
-  const body = text.slice(text.indexOf("\n---\n", 3) + 5);
-  if (typeof frontmatter.name !== "string") throw new TypeError("the canonical source names no Skill: its frontmatter has no `name`");
-  const description = descriptionOf(body);
-  if (description === undefined) throw new TypeError("the canonical source has no `## Description` section to render as `description`");
-  return encoder.encode(`---\nname: ${JSON.stringify(frontmatter.name)}\ndescription: ${JSON.stringify(description)}\n---\n${body}`);
-}
-
 /**
  * The plan that makes `skills` reachable by the agents of `providers` (core/F16–core/F22). Each Skill
  * is deployed to `.agents/skills/<name>/`, and copied for each provider that discovers Skills only
- * at a location of its own, from the same rendered bytes. Core claims only what its `record` holds:
+ * at a location of its own, with the source's bytes unchanged (core/A24): Core states no Skill format
+ * and reads no `SKILL.md` (core/N13). Core claims only what its `record` holds:
  * a deployed file still as Core wrote it is rewritten or pruned; a modified one, and anything at a
  * target that Core did not deploy, is kept and reported. Nothing outside the deployments is touched.
  * Where a deployment changes between a file and a directory, the plan prunes Core's unmodified
@@ -169,8 +116,7 @@ export function realize({ skills, providers, record, present, contracted = [] }:
   const wanted = new Map<string, Uint8Array>();
   for (const skill of [...skills].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
     for (const [path, bytes] of Object.entries(skill.files)) {
-      const deployed = path === "SKILL.md" ? renderSkill(bytes) : bytes;
-      for (const root of new Set(roots)) if (!under(owned, `${root}/${skill.name}/${path}`)) wanted.set(`${root}/${skill.name}/${path}`, deployed);
+      for (const root of new Set(roots)) if (!under(owned, `${root}/${skill.name}/${path}`)) wanted.set(`${root}/${skill.name}/${path}`, bytes);
     }
   }
 

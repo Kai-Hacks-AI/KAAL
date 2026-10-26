@@ -156,14 +156,13 @@ An asset marked with a `surface`, such as `hook`, is installed only when a consu
 
 ### Agent Realization
 
-`kaal-core/agent` plans how Core makes each Skill reachable by the agents of the providers a repository declares in `.kaal/config/core/agents.json` (`declaration`). Every Skill is deployed to `.agents/skills/<name>/`; a provider that discovers Skills only at a location of its own (Claude Code, `.claude/skills/<name>/`) gets a copy generated from the same canonical source. Core claims only what its own record holds: a file someone changed, and anything at a target Core did not deploy, is kept and reported, and only unmodified files Core deployed are pruned. Core never writes an instruction file such as `AGENTS.md` or `CLAUDE.md`, and governs no location but its own deployments.
+`kaal-core/agent` plans how Core makes each Skill reachable by the agents of the providers a repository declares in `.kaal/config/core/agents.json` (`declaration`). Every Skill is deployed to `.agents/skills/<name>/`; a provider that discovers Skills only at a location of its own (Claude Code, `.claude/skills/<name>/`) gets a copy of the same canonical source. Every Skill file is deployed with the bytes the Capability ships, everywhere: Core states no Skill format and reads no `SKILL.md`, which is Engineer Skill's. Core claims only what its own record holds: a file someone changed, and anything at a target Core did not deploy, is kept and reported, and only unmodified files Core deployed are pruned. Core never writes an instruction file such as `AGENTS.md` or `CLAUDE.md`, and governs no location but its own deployments.
 
 ```js
-import { realize, renderSkill } from "kaal-core/agent";
+import { realize } from "kaal-core/agent";
 
 realize({ skills: [{ name, files }], providers: ["claude-code"], record, present });
 // { write: [{ path, bytes }], keep: [{ path, reason }], prune: [path], pointers, unknown: [provider], record }
-renderSkill(bytes); // the supplier SKILL.md: name, and description copied from the source's "## Description"
 ```
 
 A Skill a Capability's contract delivers is that Capability's at its canonical location: pass it in `contracted`, with whether the Capability's record registers it already, and Core's own record keeps only the provider deployments.
