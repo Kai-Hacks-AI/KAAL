@@ -173,7 +173,7 @@ Fixed:
 
 Changed:
 
-- The comment at the top of Guard's workflow (`.github/workflows/guard.yml`) names its two jobs. `upgrade` moves an unmodified `0.0.2` workflow to it; the jobs and steps are unchanged.
+- The comment at the top of Guard's workflow (`.github/workflows/guard.yml`) names its two jobs. `upgrade` moves an unmodified `0.0.2` workflow to it; the jobs and steps are unchanged. `init`'s own output names the two jobs too, where it said one.
 
 Documented: what `trusted` cannot guard and the review rule it needs, that the hook judges the working tree, that Guard's workflow has two jobs, and that CI checks judge GitHub's merge commit.
 
