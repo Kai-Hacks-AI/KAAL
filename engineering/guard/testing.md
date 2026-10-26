@@ -176,6 +176,8 @@ This evidence is bounded:
 - The `packed` candidate carries the same version and templates as `0.0.1`. guard/T37 and guard/T41 therefore show that the consumer's files are kept and that versions can be switched back and forth. They do not yet show an asset's content moving between versions; that needs a candidate whose templates differ.
 - It is simulated (guard/N9). It was recorded on one OS, and it says nothing about KAAL's real GitHub enforcement.
 
+**guard/T65–guard/T68 for `0.0.3`.** Their `packed` evidence between two simulated candidates is not `registry` evidence and never counts as it. With the published `0.0.2`, the next version can supply their `registry` evidence: before publication, a mixed pair (the published `0.0.2` as the older, the packed `0.0.3` candidate as the newer) is still `packed` evidence and decides only whether `0.0.3` is published; after publication, the pair of published versions is their `registry` evidence and gates `0.0.3`'s Release acceptance (`guard/C83`). [Change](change.md#003) gives the order. Their assertions do not change.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
