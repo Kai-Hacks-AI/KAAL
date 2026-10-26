@@ -14,4 +14,14 @@ The planned outer tests will live in `packages/skills/kaal-architecture/test/pla
 
 ## RED evidence
 
-`architecture/C4` records each test's RED. T1–T5 are expected to fail on their behavioural assertions, because `contract.json`, the retype, the boundary sentence and `## Description` are absent. T6 is expected to fail because `contract.json` is not yet packed. T7 is expected GREEN: it guards `architecture/N1` through the DO Change, and no Defect traces to it.
+At `architecture/C4`, six tests are RED and architecture/T7 is GREEN, as planned. They run with `npm run build -w kaal-hosting -w kaal-core && node --test packages/skills/kaal-architecture/test/plan/love.test.mjs`, outside the package's `npm test` until `architecture/C5`, so the collector's lanes stay green.
+
+| Test | Result at `architecture/C4` |
+| --- | --- |
+| architecture/T1 | RED, **blocked before behavioural assertion**: `contract.json` does not exist |
+| architecture/T2 | RED, **blocked before behavioural assertion**: `contract.json` does not exist |
+| architecture/T3 | RED on its behavioural assertion: the Agent Skill has no `## Description` section |
+| architecture/T4 | RED on its behavioural assertion: `Architecture` is typed `KAAL Skill`, not `KAAL Capability` |
+| architecture/T5 | RED on its behavioural assertion: the Node does not state its boundary with Requirements |
+| architecture/T6 | RED on its behavioural assertion: the packed package does not hold `contract.json` |
+| architecture/T7 | GREEN: it guards `architecture/N1` through the DO Change, and no Defect traces to it |
