@@ -26,8 +26,18 @@ Installing the package writes nothing into your repository. `kaal init` does, an
 | `KAAL-Skill.md`      | A Node typed by `KAAL Definition`. Nodes it types are Skills.         |
 | `KAAL-Extension.md`  | A Node typed by `KAAL Definition`. Nodes it types are Extensions.     |
 | `CASE.md`            | A Node typed by `KAAL Definition`, naming the four parallel kinds.    |
+| `LOVE.md`            | A Node typed by `KAAL Definition`: when a package may step up.        |
 
 CASE stands for Capabilities, Agents, Skills and Extensions: four parallel kinds, none a kind of another. A Capability is a responsibility that overlaps with no other, delivered in any number of packages or none. `CASE` is a Definition like any other; it types nothing, and Core gives it no machinery.
+
+LOVE is the test a package meets before it steps up from an internal capability to a reusable or published package:
+
+- **Lifecycle**: it can be installed, upgraded, removed and versioned.
+- **Ownership**: it overlaps with no other owner.
+- **Verification**: independent evidence shows that it holds, as Testing defines that evidence.
+- **Encapsulation**: consumers rely on its declared interface, never on its internals.
+
+Meeting LOVE is a judgment of maturity, not a mandate to publish. A decision to package something never authorizes its release. `LOVE` is a Definition beside `CASE`. Like `CASE`, it types nothing, and adding it changed neither the Kernel's bytes nor any existing id.
 
 These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so there is no migration; bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Extension`, and of every Node typed by them, are unchanged.
 
@@ -100,6 +110,8 @@ await register(".kaal", "capability", "greeting", { "Greeting-People.md": bytes 
 await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, extensions }
 ```
 
+`readContribution(dir)` reads a contribution from a directory, every file keyed by its `/`-separated relative path, ready for `register`. When Core refuses something, such as an Engine that is not valid or a directory that is not empty, it throws a `KaalError` whose message names what was refused, and it writes nothing.
+
 ### Typed artifacts
 
 A file whose frontmatter names its Type as a string `<Capability>/<Type>` (for example `type: Guard/Check`) is a typed artifact, not a Node. Where the file is never decides: a Node may be anywhere in an Engine, `.kaal/config/<capability>/` included, and so may a typed artifact. Any other string `type`, such as `KAAL Skill` or `guard/check`, leaves the file a claimed Node, rejected as not in Form. `evaluate(files, { types })` returns `{ nodes, rejected, artifacts }`, and each artifact is `{ path, type, state, findings }`:
@@ -126,6 +138,8 @@ validate(bytes, types); // { verdict: "valid" | "invalid" | "unknown", findings:
 ```
 
 An artifact that names no Type the mapping holds is `unknown`, never `valid`. `validate` throws a `TypeError` if a supplied Type or schema is itself invalid.
+
+`isTypeName(value)` tells whether a value is a Type name in the form `<Capability>/<Type>`, each part starting with a capital letter and holding only letters and digits. That is the form a typed artifact's `type` takes.
 
 ### Installation Contract
 
@@ -164,6 +178,18 @@ await realizeIn(process.cwd(), { skills: [{ name, files }], contracts: [contract
 ```
 
 Both modules are pure and import no host module; applying a plan is Hosting's.
+
+## Core as a Capability
+
+Core is a Capability of its own. `capability/Core.md` is its Node, typed by `KAAL Capability`. Core is responsible for the management capabilities that make a repository KAAL-managed:
+
+- the recursive structure of Capabilities, and their composition;
+- installation contracts;
+- realization and lifecycle.
+
+It owns none of the domain semantics of Intent, Requirements, Architecture, Code, Testing or Operating. `ownership.kaal.json` claims `packages/kaal-core/` for that Node, in the claim format Testing reads. Both files are repository data, not delivered.
+
+Core depends on no discipline. Its only KAAL dependencies are `kaal-graph` and `kaal-hosting`. Its interface is what `exports` lists and the `kaal` command, each named in this README, and nothing else resolves.
 
 ## License
 
