@@ -4,6 +4,7 @@ import { Graph } from "kaal-graph";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
+import { ENGINE, recordInstallation, remove, upgrade, versions, type Applied } from "./lifecycle.js";
 import { FormError, KaalError, readNode } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
@@ -17,9 +18,13 @@ const USAGE = `usage: kaal <command> [--engine <dir>]
   register <capability|agent|skill|extension> <name> <source-dir>
                                            register a contribution, atomically
   export <out-dir>                         write the foundational Core payload into an empty directory
+  version                                  print the kaal-core that runs and the version the Engine's record holds
+  upgrade                                  bring ./.kaal to this kaal-core's Installation Contract
+  remove                                   remove Core's installation from ./.kaal, keeping what is not Core's
 
 --engine <dir> is the Engine directory itself, absolute or relative to the
-current directory, under any name. Without it, the Engine is ./.kaal.`;
+current directory, under any name. Without it, the Engine is ./.kaal. Only
+./.kaal has a record, so upgrade and remove act on it alone.`;
 
 async function main(argv: string[]): Promise<number> {
   const args = [...argv];
@@ -31,12 +36,15 @@ async function main(argv: string[]): Promise<number> {
     engine = resolve(dir);
     args.splice(at, 2);
   }
+  // Core's contract and record are written relative to the repository root (core/F46, core/A22).
+  const recorded = engine === resolve(ENGINE);
   const option = args.find((a) => a.startsWith("--") && a !== "--help");
   if (option) throw new KaalError(`unknown or repeated option ${option}\n\n${USAGE}`);
   const [command, ...rest] = args;
   switch (command) {
     case "init": {
       const written = await bootstrap(engine);
+      if (written.length > 0 && recorded) await recordInstallation(process.cwd());
       console.log(written.length ? `bootstrapped ${engine} (${written.length} files written)` : `${engine} already holds the foundation`);
       const v = await verify(engine);
       for (const p of v.problems) console.error(p);
@@ -85,6 +93,22 @@ async function main(argv: string[]): Promise<number> {
       if (!rest[0]) break;
       const written = await exportPayload(resolve(rest[0]));
       for (const p of written) console.log(p);
+      return 0;
+    }
+    case "version": {
+      const v = recorded ? await versions(process.cwd()) : { core: (await versions(process.cwd())).core, engine: [] };
+      console.log(`kaal-core ${v.core}`);
+      console.log(v.engine.length === 0 ? "engine unrecorded" : v.engine.length === 1 ? `engine ${v.engine[0]}` : `engine mixed (${v.engine.join(", ")})`);
+      return 0;
+    }
+    case "upgrade":
+    case "remove": {
+      if (!recorded) throw new KaalError(`${command} acts only on ./${ENGINE}, which Core's record describes; ${engine} has no record, and nothing was written`);
+      const done: Applied = command === "upgrade" ? await upgrade(process.cwd()) : await remove(process.cwd());
+      for (const p of done.written) console.log(`written\t${p}`);
+      for (const p of done.removed) console.log(`removed\t${p}`);
+      for (const k of done.kept) console.log(`kept\t${k.path}\t${k.reason}`);
+      console.log(command === "upgrade" ? `${ENGINE} is at kaal-core ${(await versions(process.cwd())).core}` : `removed Core's installation from ${ENGINE}`);
       return 0;
     }
     case undefined:

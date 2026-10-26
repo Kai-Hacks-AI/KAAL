@@ -34,16 +34,21 @@ const EXPECTED_TARBALL = [
   "package/dist/index.js",
   "package/dist/installation.d.ts",
   "package/dist/installation.js",
+  "package/dist/lifecycle.d.ts",
+  "package/dist/lifecycle.js",
   "package/dist/node.d.ts",
   "package/dist/node.js",
   "package/dist/payload.d.ts",
   "package/dist/payload.js",
   "package/dist/realization.d.ts",
   "package/dist/realization.js",
+  "package/dist/records.d.ts",
+  "package/dist/records.js",
   "package/dist/register.d.ts",
   "package/dist/register.js",
   "package/dist/sha256.d.ts",
   "package/dist/sha256.js",
+  "package/installation.kaal.json",
   "package/package.json",
   "package/payload/AGENTS.md",
   "package/payload/KAAL-KERNEL.md",
@@ -147,9 +152,10 @@ describe("embedding into a fresh host", () => {
   it("materializes .kaal/ from the package payload", async () => {
     assert.deepEqual(readdirSync(host).sort(), ["node_modules", "package.json"]);
     assert.match(await run(kaal, ["init"], host), /bootstrapped/);
-    const engine = tree(join(host, ".kaal"));
+    const { "state/core/installation.json": recorded, ...engine } = tree(join(host, ".kaal"));
     const carried = tree(join(host, "node_modules", "kaal-core", "payload"));
     assert.deepEqual(engine, carried);
+    assert.deepEqual(Object.keys(JSON.parse(recorded).assets).sort(), Object.keys(carried).map((p) => `.kaal/${p}`).sort(), "init records every file it wrote in Core's record");
     assert.deepEqual(Object.keys(engine), ["AGENTS.md", "KAAL-KERNEL.md", "core/Agent-Realization.md", "core/CASE.md", "core/Installation-Contract.md", "core/KAAL-Agent.md", "core/KAAL-Capability.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/LOVE.md", "core/Node.md"]);
     assert.match(await run(kaal, ["init"], host), /already holds the foundation/);
   });
