@@ -4,9 +4,8 @@
 # ci check in Guard's declared form (declared integration only). kaal-guard's own tests include its
 # outer tests, which install the packed package alone into fresh repositories: like Acceptance, they
 # run on every supported OS, Linux in the Guard job, Windows and macOS in Guard (Windows, macOS).
-# Until guard/C32, the Guard lane (engineering/lanes/guard.mjs) chooses which outer suite runs, the
-# established or the planned one, from the form KAAL declares its own checks in, and fails, never
-# falls back, when it cannot choose; its own tests run first, on every OS.
+# The Linux Guard job builds KAAL's workspace first, since guard/T46's file (workspace.test.mjs) needs
+# it; the Windows and macOS jobs install nothing and leave that file out.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -85,8 +84,8 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
-      - run: node --test engineering/lanes/guard.test.mjs
-      - run: node engineering/lanes/guard.mjs
+      - run: npm run build
+      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/*.test.mjs
       - run: npx --no kaal-guard verify --github
 
   guard-hosts:
@@ -103,5 +102,4 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-      - run: node --test engineering/lanes/guard.test.mjs
-      - run: node engineering/lanes/guard.mjs
+      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/external.test.mjs engineering/guard/acceptance/kaal.test.mjs engineering/guard/acceptance/package.test.mjs
