@@ -2,15 +2,19 @@
 // (engineering/guard/acceptance/consumer/). It makes disposable consumers of the published
 // @kaihacksai/kaal-guard and never touches KAAL's own working tree (N8):
 //   - kaalClone(): a clone of KAAL's current commit, with a local bare remote as origin;
-//   - minimalRepo(): a simulated consumer with one check of its own and no integration of its own.
+//   - minimalRepo(): a simulated consumer with one check of its own and no integration of its own, the
+//     check listed in 0.0.1's guard.json, or with { declarations: true } declared in .kaal/config/guard/.
 // A consumer installs a version through its dependency and lockfile, as any npm consumer does, and
 // runs the Guard it installed. candidate() names the version to move to and its source (N9):
 // `packed`, the package in this tree packed now (simulated), unless GUARD_CANDIDATE=registry:<version>
-// names a published one. It needs the network to reach the registry; the package does not (N2).
+// names a published one. candidates() gives two packed candidates of the planned configuration that
+// differ in version and in the workflow they install, newer cataloguing older's content, for the tests
+// that move between them. It needs the network to reach the registry; the package does not (N2).
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const KAAL = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -69,6 +73,71 @@ export function candidate() {
     packed = { source: "packed", spec: join(dir, tgz) };
   }
   return packed;
+}
+
+/** Packs a package directory into a scratch directory; returns the tarball's path. */
+function pack(dir) {
+  const out = scratch("kaal-a12-pack-");
+  must(exec(KAAL, "npm", ["pack", dir, "--pack-destination", out, "--silent"]), `npm pack ${dir}`);
+  return join(out, readdirSync(out).find((f) => f.endsWith(".tgz")));
+}
+
+const sha256 = (text) => createHash("sha256").update(text).digest("hex");
+
+/**
+ * A copy of the package in this tree, as version `version`, whose workflow sources end with a line
+ * naming that version, so its managed workflow differs from any other candidate's. With `adds`, its
+ * contract also manages one asset more on the hook surface, which an older candidate lacks (F13). Its
+ * catalogue holds its own contents and those of `after`'s catalogue. Returns { dir, version, catalogue }.
+ */
+function variant(version, after = {}, adds = false) {
+  const dir = join(scratch("kaal-a12-candidate-"), "kaal-guard");
+  cpSync(join(KAAL, "packages", "kaal-guard"), dir, { recursive: true, filter: (p) => !/[\\/]node_modules([\\/]|$)/.test(p) });
+  const manifest = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+  writeFileSync(join(dir, "package.json"), JSON.stringify({ ...manifest, version }, null, 2) + "\n");
+  const contract = JSON.parse(readFileSync(join(dir, "contract.json"), "utf8"));
+  if (adds) {
+    writeFileSync(join(dir, "templates", "candidate.md"), `Added to the hook surface by the candidate ${version}.\n`);
+    contract.assets.push({ name: "candidate", source: "templates/candidate.md", target: ".githooks/candidate.md", kind: "file", surface: "hook" });
+  }
+  // Each file an asset installs, by repository path and package source: a directory asset installs every file under its source.
+  const files = contract.assets.flatMap((a) =>
+    a.kind === "directory"
+      ? readdirSync(join(dir, a.source), { recursive: true, withFileTypes: true })
+          .filter((e) => e.isFile())
+          .map((e) => {
+            const rel = relative(join(dir, a.source), join(e.parentPath ?? e.path, e.name)).split("\\").join("/");
+            return { asset: a, target: `${a.target}/${rel}`, source: `${a.source}/${rel}` };
+          })
+      : [{ asset: a, target: a.target, source: a.source }],
+  );
+  const catalogue = {};
+  for (const { asset, target, source } of files) {
+    let text = readFileSync(join(dir, source), "utf8").replace(/\r\n/g, "\n");
+    if (asset.name === "workflow") {
+      text += `# candidate ${version}\n`;
+      writeFileSync(join(dir, source), text);
+    }
+    catalogue[target] = [...new Set([...(after[target] ?? []), sha256(text)])];
+  }
+  writeFileSync(join(dir, "contract.json"), JSON.stringify({ ...contract, catalogue }, null, 2) + "\n");
+  return { dir, version, catalogue };
+}
+
+let two;
+/**
+ * Two `packed` candidates of the planned configuration, { older, newer }: different versions whose
+ * managed workflows differ in content, newer's catalogue holding older's content as well as its own,
+ * and newer managing one hook-surface asset that older lacks.
+ */
+export function candidates() {
+  if (!two) {
+    const base = JSON.parse(readFileSync(join(KAAL, "packages", "kaal-guard", "package.json"), "utf8")).version;
+    const older = variant(`${base}-candidate.1`);
+    const newer = variant(`${base}-candidate.2`, older.catalogue, true);
+    two = Object.fromEntries(Object.entries({ older, newer }).map(([k, v]) => [k, { source: "packed", spec: pack(v.dir), version: v.version }]));
+  }
+  return two;
 }
 
 /** What every disposable consumer can do. */
@@ -136,8 +205,11 @@ export function kaalClone() {
   return c;
 }
 
-/** A simulated consumer: one check of its own, no hook and no workflow of its own. */
-export function minimalRepo() {
+/**
+ * A simulated consumer: one check of its own, no hook and no workflow of its own. The check is listed in
+ * 0.0.1's guard.json, or with `declarations` declared as .kaal/config/guard/unit.md.
+ */
+export function minimalRepo({ declarations = false } = {}) {
   const root = scratch("kaal-a12-minimal-");
   const remote = join(root, "remote.git");
   const dir = join(root, "repo");
@@ -149,7 +221,8 @@ export function minimalRepo() {
   c.write("package.json", JSON.stringify({ name: "consumer", version: "1.0.0", private: true }, null, 2) + "\n");
   c.write(".gitignore", "node_modules/\n");
   c.write("checks/unit.mjs", "process.exit(Number(process.env.UNIT_STATUS ?? 0));\n");
-  c.write("guard.json", JSON.stringify({ checks: { unit: { command: "node checks/unit.mjs", runs: ["local", "ci"] } } }, null, 2) + "\n");
+  if (declarations) c.write(".kaal/config/guard/unit.md", '---\ntype: Guard/Check\ncommand: "node checks/unit.mjs"\nruns: [hook, ci]\n---\n\nThe consumer\'s own unit check.\n');
+  else c.write("guard.json", JSON.stringify({ checks: { unit: { command: "node checks/unit.mjs", runs: ["local", "ci"] } } }, null, 2) + "\n");
   c.git("add", "-A");
   must(c.git("commit", "-q", "-m", "consumer"), "git commit");
   c.git("remote", "add", "origin", remote);
