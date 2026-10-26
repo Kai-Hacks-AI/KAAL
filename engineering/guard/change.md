@@ -187,6 +187,15 @@ The Test Cases and their assertions stay as they are. They show movement only wh
 
 **The managed workflow's own comment (`guard/C88`, the Owner on #476, review 5655507263).** `templates/guard.yml` says it runs everything "in one job", but it has two, `Guard` and `Guard checks`: a consumer-facing documentation defect in a managed asset. `guard/C88` corrects the comment in its own Change before `guard/C81`, and the catalogue holds both the `0.0.2` and the `0.0.3` content of `.github/workflows/guard.yml`, so `upgrade` recognises an unmodified `0.0.2` workflow and moves it. The correction is made for its own sake. Its side effect is that `0.0.3`'s managed workflow differs from `0.0.2`'s, which the pair needs for guard/T65, guard/T67 and guard/T68. guard/T66 still needs a hook-surface asset `0.0.3` lacks, and is not claimed as covered.
 
+**Evidence (a) for `0.0.3` (`guard/C81`).** This was run on kaal/guard at 5460181 with the version bumped to `0.0.3`, on 2026-10-26 on Linux, with Node 24.22.1, npm 11.19.1 and Git 2.43.0. All of it is `packed` evidence, and none of it is `registry` evidence.
+
+| Pair | Command | guard/T36, T40, T42, T43, T64 | guard/T65 | guard/T66 | guard/T67 | guard/T68 |
+| --- | --- | --- | --- | --- | --- | --- |
+| two `packed` candidates (simulated) | `node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs` | GREEN | GREEN | GREEN | GREEN | GREEN |
+| mixed: `registry` `0.0.2` → `packed` `0.0.3` | `GUARD_CANDIDATES=registry:0.0.2,packed node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs` | GREEN | GREEN | blocked before behavioural assertion: the newer candidate adds no asset to the hook surface | GREEN | GREEN |
+
+The mixed pair shows that `0.0.3` meets the precondition for guard/T65, guard/T67 and guard/T68, through `guard/C88`'s workflow difference, and does not meet it for guard/T66. So guard/T66 cannot be GREEN in `guard/C83`, and under [the rule above](#003) Guard Release is not dispatched for `0.0.3` until the Owner decides.
+
 ### First release and later upgrades
 
 Accepting the first published `0.0.2` must not wait on a version that does not exist yet. The consumer Test Cases split by how many published versions they need (restated in `guard/C30`):
