@@ -42,4 +42,22 @@ it("forges", () => {
     const run = await accept({ manifest: {}, scenarios: [join(dir, file)], run: join(dir, "run"), cwd: dir });
     assert.deepEqual(run.tests.map((t) => [t.test, t.outcome]), [[["forges"], "pass"]]);
   });
+
+  it("fails the run, and pins no bytes, when a scenario's bytes change during it", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-testing-observed-"));
+    mkdirSync(join(dir, "ws", "test", "acceptance"), { recursive: true });
+    const file = "ws/test/acceptance/changer.test.mjs";
+    const scenario = `import { appendFileSync } from "node:fs";
+import { it } from "node:test";
+import { fileURLToPath } from "node:url";
+it("changes itself", () => {
+  appendFileSync(fileURLToPath(import.meta.url), "// changed\\n");
+});
+`;
+    writeFileSync(join(dir, file), scenario);
+    const run = await accept({ manifest: {}, scenarios: [join(dir, file)], run: join(dir, "run"), cwd: dir });
+    assert.equal(run.passed, false);
+    assert.ok(run.findings.some((f) => f.kind === "verified failure" && f.evidence.startsWith("its bytes changed during the run")));
+    assert.deepEqual(run.tests.map((t) => [t.test, t.sha256]), [[["changes itself"], null]]);
+  });
 });

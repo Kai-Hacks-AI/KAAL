@@ -188,6 +188,16 @@ export async function accept({ manifest, scenarios, run, cwd }) {
     }
   }
   const found = findings({ manifest, scenarios, records, holds });
+  // The bytes hashed before the run are the bytes that ran only if they never
+  // changed during it, so each scenario is hashed again afterwards. A change
+  // the run cannot see, such as one undone before it ends, is outside what
+  // this shows: scenarios run as the same user as the run.
+  for (const scenario of scenarios) {
+    const now = await sha256(await readFile(scenario).catch(() => Buffer.alloc(0)));
+    if (now === ran[repo(scenario)]) continue;
+    found.push({ kind: "verified failure", subject: scenario, evidence: "its bytes changed during the run, so which bytes ran is not known" });
+    ran[repo(scenario)] = null;
+  }
   const provenance = found.filter((f) => f.kind === "verified failure" && f.evidence !== NOTHING_INSTALLED);
   if (r.status !== 0) found.unshift({ kind: "verified failure", subject: scenarios.map((s) => basename(s)).join(", "), evidence: `the scenarios failed (node --test exited ${r.status})` });
   const tests = observed(r.stdout, repo, ran);
