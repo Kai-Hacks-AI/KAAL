@@ -138,7 +138,9 @@ export function findings({ manifest, scenarios, records, holds }) {
  * packed tarballs in `manifest`, from `cwd`, with `run` as this run's
  * directory: it must be missing or empty. Resolves to { passed, runner,
  * records, findings, tests, manifest }:
- * - `runner` is the test runner's own { status, stdout, stderr };
+ * - `runner` is the test runner's own { status, stdout, stderr }. Its stdout
+ *   carries Testing's observation, so `stdout` is empty and the spec report
+ *   is in `stderr`;
  * - `findings` are read from the ledger, with a failed runner added as a
  *   verified failure;
  * - `passed` is true only when there is no verified failure, so a runner that
@@ -167,8 +169,11 @@ export async function accept({ manifest, scenarios, run, cwd }) {
   const repo = (p) => relative(cwd, p).split(sep).join("/");
   const ran = {};
   for (const scenario of scenarios) ran[repo(scenario)] = await sha256(await readFile(scenario));
-  const reported = join(run, "tests.ndjson");
-  const reporters = ["--test-reporter=spec", "--test-reporter-destination=stdout", `--test-reporter=${REPORTER}`, `--test-reporter-destination=${reported}`];
+  // Testing's reporter writes to the runner's own stdout, a channel no
+  // scenario writes to: a scenario's output reaches the runner as events, and
+  // a file under the run directory could be replaced by any scenario. The
+  // spec report goes to stderr.
+  const reporters = ["--test-reporter=spec", "--test-reporter-destination=stderr", `--test-reporter=${REPORTER}`, "--test-reporter-destination=stdout"];
   const r = await execute(process.execPath, ["--test", ...reporters, ...scenarios], { cwd, env: { ...env, [RUN]: run } });
   const ledger = await read(join(run, "ledger"));
   const records = Object.keys(ledger)
@@ -185,10 +190,10 @@ export async function accept({ manifest, scenarios, run, cwd }) {
   const found = findings({ manifest, scenarios, records, holds });
   const provenance = found.filter((f) => f.kind === "verified failure" && f.evidence !== NOTHING_INSTALLED);
   if (r.status !== 0) found.unshift({ kind: "verified failure", subject: scenarios.map((s) => basename(s)).join(", "), evidence: `the scenarios failed (node --test exited ${r.status})` });
-  const tests = await observed(reported, repo, ran);
+  const tests = observed(r.stdout, repo, ran);
   const result = {
     passed: !found.some((f) => f.kind === "verified failure"),
-    runner: { status: r.status, stdout: r.stdout, stderr: r.stderr },
+    runner: { status: r.status, stdout: "", stderr: r.stderr },
     records,
     findings: found,
     tests,
@@ -200,20 +205,14 @@ export async function accept({ manifest, scenarios, run, cwd }) {
 }
 
 /**
- * The tests the reporter saw end, read from its lines at `reported`: each
+ * The tests the reporter saw end, read from its lines in the runner's stdout, `text`: each
  * with its scenario's path relative to the run's `cwd` (`repo`), the bytes
  * that scenario had when the run started (`ran`), its suite path and its
  * outcome. A test declared in a file that is not one of the scenarios is
  * left out, though a suite it declares still names the tests beneath it, and
  * everything is left out when the reporter wrote nothing.
  */
-async function observed(reported, repo, ran) {
-  let text;
-  try {
-    text = (await readFile(reported)).toString("utf8");
-  } catch {
-    return [];
-  }
+function observed(text, repo, ran) {
   // The runner reports each scenario's events together, so one ancestry serves
   // them all. A suite a helper module declares is reported under the helper's
   // file, so ancestry is kept before any file is filtered out.

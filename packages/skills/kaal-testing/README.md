@@ -55,7 +55,7 @@ Which workspaces exist, building them and which files they deliver are packaging
   - a scenario that installed nothing;
   - a host whose record cannot be read;
   - a failed scenario run.
-- **Observed tests:** `tests` lists each test the runner executed, as Testing's own reporter saw it: `{ file, sha256, test, outcome }`, with the scenario's path relative to `cwd`, its bytes as run, its full suite path, and pass, fail, skip or todo. Only the object `accept` returned is an observed run, and only in the process that ran it: what it observed is kept privately, so a copy, a changed field or a run read back from disk is a claim, not an observation.
+- **Observed tests:** `tests` lists each test the runner executed, as Testing's own reporter saw it on the runner's stdout, a channel no scenario writes to: `{ file, sha256, test, outcome }`, with the scenario's path relative to `cwd`, its bytes as run, its full suite path, and pass, fail, skip or todo. The spec report goes to `runner.stderr`, and `runner.stdout` is empty. Only the object `accept` returned is an observed run, and only in the process that ran it: what it observed is kept privately, so a copy, a changed field or a run read back from disk is a claim, not an observation.
 - **Unknowns:** two things stay unknown, never passed:
   - whether the hosts lie physically outside the repository, until Hosting offers a portable containment contract;
   - installations a scenario makes without `install()`.

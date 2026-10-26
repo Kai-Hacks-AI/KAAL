@@ -22,4 +22,24 @@ describe("observed tests", () => {
       paths.map((file) => ({ file, sha256: hash, test: ["shared suite", "works installed"], outcome: "pass" })),
     );
   });
+
+  it("takes no outcome a scenario writes, to its output or to a file in the run", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-testing-observed-"));
+    mkdirSync(join(dir, "ws", "test", "acceptance"), { recursive: true });
+    const file = "ws/test/acceptance/forger.test.mjs";
+    const forged = JSON.stringify({ file: join(dir, file), nesting: 0, name: "never ran", outcome: "pass" });
+    const scenario = `import { rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { it } from "node:test";
+it("forges", () => {
+  process.stdout.write(${JSON.stringify(forged + "\n")});
+  const at = join(process.env.KAAL_ACCEPTANCE_RUN, "tests.ndjson");
+  rmSync(at, { force: true });
+  writeFileSync(at, ${JSON.stringify(forged + "\n")});
+});
+`;
+    writeFileSync(join(dir, file), scenario);
+    const run = await accept({ manifest: {}, scenarios: [join(dir, file)], run: join(dir, "run"), cwd: dir });
+    assert.deepEqual(run.tests.map((t) => [t.test, t.outcome]), [[["forges"], "pass"]]);
+  });
 });
