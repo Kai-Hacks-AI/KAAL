@@ -203,8 +203,9 @@ export async function accept({ manifest, scenarios, run, cwd }) {
  * The tests the reporter saw end, read from its lines at `reported`: each
  * with its scenario's path relative to the run's `cwd` (`repo`), the bytes
  * that scenario had when the run started (`ran`), its suite path and its
- * outcome. A file that is not one of the scenarios is left out, and so is
- * everything when the reporter wrote nothing.
+ * outcome. A test declared in a file that is not one of the scenarios is
+ * left out, though a suite it declares still names the tests beneath it, and
+ * everything is left out when the reporter wrote nothing.
  */
 async function observed(reported, repo, ran) {
   let text;
@@ -213,19 +214,21 @@ async function observed(reported, repo, ran) {
   } catch {
     return [];
   }
-  const open = {};
+  // The runner reports each scenario's events together, so one ancestry serves
+  // them all. A suite a helper module declares is reported under the helper's
+  // file, so ancestry is kept before any file is filtered out.
+  const path = [];
   const tests = [];
   for (const line of text.split("\n").filter(Boolean)) {
     const event = JSON.parse(line);
-    if (typeof event.file !== "string") continue;
-    const file = repo(event.file);
-    if (!(file in ran)) continue;
-    const path = (open[file] ??= []);
     if (event.start) {
       path.length = event.nesting;
       path[event.nesting] = event.name;
       continue;
     }
+    if (typeof event.file !== "string") continue;
+    const file = repo(event.file);
+    if (!(file in ran)) continue;
     tests.push({ file, sha256: ran[file], test: [...path.slice(0, event.nesting), event.name], outcome: event.outcome });
   }
   return tests;
