@@ -120,7 +120,12 @@ describe("Classification against established behavior (testing/C4)", () => {
     const notGiven = m.classify({ head, base: await observed({ "b.test.mjs": suite([["sample/T9: elsewhere", "pass"]]) }), far: [] });
     assert.equal(classOf(notGiven, "sample/T1"), "unknown", "a file the base was not given");
     const broken = await observed({ "a.test.mjs": `import "./does-not-exist.mjs";\n` });
-    assert.equal(classOf(m.classify({ head, base: broken, far: [] }), "sample/T1"), "unknown", "a base file that did not run to the end");
+    assert.equal(classOf(m.classify({ head, base: broken, far: [] }), "sample/T1"), "unknown", "a base file that did not load");
+    const thrown = await observed({
+      "a.test.mjs": `import { describe, it } from "node:test";\ndescribe("Sample behaviour (sample/C1)", () => {\n  it("sample/T2: does its part", () => {});\n  describe("nested", () => { throw new Error("declaration failed"); });\n});\n`,
+    });
+    assert.equal(classOf(m.classify({ head, base: thrown, far: [] }), "sample/T1"), "unknown", "a base suite whose declaration threw, though no failing test was reported");
+    assert.equal(classOf(m.classify({ head, base: thrown, far: [] }), "sample/T2"), "regression", "what the base did observe still counts");
     const notObserved = m.classify({ head: JSON.parse(JSON.stringify(head)), base, far: [] });
     assert.ok(notObserved.findings.length > 0, "a head that is not an observed run is a finding");
   });

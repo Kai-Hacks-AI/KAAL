@@ -13,7 +13,10 @@ Each Requirement names, in brackets, the Intents it serves.
 ## Functional
 
 - **testing/F1** [testing/I1]: `observe({ files, cwd })` runs the given test files under Testing's reporter. It returns an observed run, which records:
-  - each file it was given, either with the SHA-256 of its bytes as run, or as observed absent when no such file exists under `cwd`;
+  - each file it was given, in one of three states:
+    - **observed absent**, when no such file exists under `cwd`;
+    - **complete**, with the SHA-256 of its bytes as run, when there is positive evidence that the file ran to the end: the runner reported the file's own summary, and no suite in it and not the file itself failed for a reason other than its subtests failing;
+    - **incomplete**, with its SHA-256, in every other case, such as a file that failed to load, a suite whose declaration threw, a runner that stopped, or a file that reported no summary;
   - each test the runner executed, as `testing/F7` defines it: the file, the full suite path, and the outcome `pass`, `fail`, `skip` or `todo`.
 
   `accept` is the same observation, extended with packing, installation and provenance (`testing/F7`, `testing/F9`).
@@ -27,8 +30,8 @@ Each Requirement names, in brackets, the Intents it serves.
   - **GREEN** when it passed. It is reported as new GREEN when it is new by the rule below.
   - **Regression RED** when it is RED and the base observed it GREEN.
   - **Persisting RED** when it is RED and the base observed it RED.
-  - **Feature RED** when it is RED and new. A Test Case is new only when the base observably lacked it. Either its file was observed absent on the base, or the base ran that same file to the end and the identity did not occur. The base ran a file to the end when the run reports no Unidentified RED for that file.
-  - **Unknown baseline** when it is RED and the base gives no evidence either way. That covers a base that is not an observed run, a file the base was not given, and a base file that ended in an Unidentified RED. Unknown evidence is never read as absent or new (`testing/I2`).
+  - **Feature RED** when it is RED and new. A Test Case is new only when the base observably lacked it. Either its file was observed absent on the base, or that same file was observed complete on the base (`testing/F1`) and the identity did not occur. The absence of a failure is never evidence of completion.
+  - **Unknown baseline** when it is RED and the base gives no evidence either way. That covers a base that is not an observed run, a file the base was not given, and a base file observed incomplete. Unknown evidence is never read as absent or new (`testing/I2`).
 
   In addition, each Test Case the base observed GREEN that does not occur in `head` is a **Missing RED**: established behavior that is no longer tested.
 - **testing/F4** [testing/I1, testing/I3]: `far` is the structured outcome of a Change's FAR decision, as Change hands it on. It is a list of decided entries. Each entry names:

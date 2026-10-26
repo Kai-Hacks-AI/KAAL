@@ -4,7 +4,8 @@ Each element names, in brackets, the Requirements it answers.
 
 - **testing/A7** [testing/F1, testing/N4]: `kaal-testing/observe` exports `observe({ files, cwd })`. `testing/C5` moves the runner start, the reporter and the reading of its lines out of `accept`, into the one module that both `observe` and `accept` use.
   - **How it runs.** The runner runs through Hosting, as `accept`'s does today. The reporter is `testing/A5`'s.
-  - **The run object.** The returned run is remembered through `lib/observed.mjs`, as `accept`'s is. The snapshot adds each given file's state: its SHA-256, or `absent`. Nothing else in Testing reads runner output.
+  - **The run object.** The returned run is remembered through `lib/observed.mjs`, as `accept`'s is. The snapshot adds each given file's state: `absent`, `complete` or `incomplete`, with its SHA-256 where it exists. Nothing else in Testing reads runner output.
+  - **Completion evidence.** Testing's reporter also passes on, as lines of their own, each file's `test:summary` and each failed suite with its failure type. A file is `complete` only with its own summary and no suite or file failure other than `subtestsFailed`. The per-test lines `testing/F7` defines are unchanged.
   - **Not a second interpreter.** C8's `accept` keeps its contract and its tests, testing/T9–testing/T13, unchanged.
 - **testing/A1** [testing/F2–testing/F6, testing/F10, testing/N1, testing/N2]: `kaal-testing/red` exports `outcomes`, `classify`, `report` and `evaluate`.
   - **Imports.** It imports only Testing's own `lib/observed.mjs`, to recall a run's snapshot, and no host module.
@@ -20,8 +21,8 @@ Each element names, in brackets, the Requirements it answers.
   - **What Testing consumes.** Testing consumes only the decided outcome, in the shape of `testing/F4`. It never decides whether an entry was validly granted.
   - **What acceptance does not do.** An accepted change of behavior that needs a PLAN amendment gets one through its own authorized Change. Acceptance never edits a Test Case.
 - **testing/A3** [testing/F3]: **Feature REDs are derived from observed evidence, not declared.** This follows the Owner's direction on #385: a new Feature Test Case normally starts RED, and one already GREEN is legitimate.
-  - **What makes a Test Case new.** It is new only when the base observably lacked it: its file was observed absent, or the file ran to the end without it.
-  - **Unknown baseline.** A Test Case the base gives no evidence on is Unknown baseline, never new. This keeps `testing/C8`'s rule that unknown evidence is not absent.
+  - **What makes a Test Case new.** It is new only when the base observably lacked it: its file was observed absent, or the file was observed complete without it.
+  - **Unknown baseline.** A Test Case the base gives no evidence on is Unknown baseline, never new. Completion needs positive evidence, so a base file whose suite declaration threw stays unknown even when no failing test was reported. This keeps `testing/C8`'s rule that unknown evidence is not absent.
   - **Missing RED.** An established GREEN Test Case that disappears is a Missing RED, so a silently removed test cannot pass as an unchanged one.
   - **The register is withdrawn.** The register option from #381 (Option B in the earlier revision) is withdrawn: there is nothing to keep in step.
 - **testing/A4** [testing/F10]: **The gates are Engineering's, and Guard executes them.**
