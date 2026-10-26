@@ -142,7 +142,8 @@ export async function upgrade(root: string): Promise<Applied> {
   }
 
   // The upgraded Engine, as it would be once applied, must verify before anything is applied.
-  const files = await engineFiles(root);
+  const before = await engineFiles(root);
+  const files = { ...before };
   for (const w of write) files[w.path.slice(ENGINE.length + 1)] = Buffer.from(w.bytes);
   for (const r of remove) delete files[r.path.slice(ENGINE.length + 1)];
   const verified = check(files);
@@ -152,7 +153,13 @@ export async function upgrade(root: string): Promise<Applied> {
   const changed = JSON.stringify(next) !== JSON.stringify(own.record);
   if (write.length === 0 && remove.length === 0 && !changed) return { written: [], removed: [], kept };
   write.push({ path: RECORD, expect: own.expect, bytes: json(next) });
-  await reconcile(root, { write, remove });
+  // The verification and the plan rest on every Engine file read, so each one this upgrade does
+  // not change is guarded as it was read: rewritten with its own bytes, refused if it changed.
+  const touched = new Set([...write, ...remove].map((e) => e.path));
+  const guards: Write[] = Object.entries(before)
+    .map(([path, bytes]) => ({ path: `${ENGINE}/${path}`, expect: sha256(bytes), bytes }))
+    .filter((g) => !touched.has(g.path));
+  await reconcile(root, { write: [...write, ...guards], remove });
   return { written: write.map((w) => w.path).filter((p) => p !== RECORD), removed: remove.map((r) => r.path), kept };
 }
 
