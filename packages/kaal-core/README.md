@@ -202,7 +202,7 @@ Core is installed by an Installation Contract of its own, `installation.kaal.jso
 - **Remove.** `kaal remove` removes every unmodified file Core's record holds, the provider deployments included, then the record, and the directories that empties. It keeps and reports the rest: modified files, registered contributions, typed artifacts, and other Capabilities' records and assets.
 - **Where.** Core's contract and record are written relative to the repository root, so the lifecycle acts on `./.kaal` alone. With `--engine`, `upgrade` and `remove` are refused, `version` reports the Engine as unrecorded, and `init` bootstraps without a record.
 
-Each step is decided by Core and applied by Hosting in one guarded reconciliation: if a file it writes or removes, or Core's record, changed since it was read, nothing changes. Engine files a step leaves untouched are not guarded, so a change another writer makes to one of them in between is not detected. The lifecycle is reached through the `kaal` command; no entry point exports it.
+Each step is decided by Core and applied by Hosting in one guarded reconciliation: if anything changed since it was read, nothing changes. An upgrade also relies on the Engine files it leaves untouched, so each is a read-only expectation Hosting checks without rewriting it, and its executable mark stays as it is. The lifecycle is reached through the `kaal` command; no entry point exports it.
 
 ## Core as a Capability
 

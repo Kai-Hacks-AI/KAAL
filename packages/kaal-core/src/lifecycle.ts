@@ -5,7 +5,7 @@
 // nothing (core/N12). Every step acts on the Engine at `./.kaal` of `root` (core/F46).
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { kind, read, readFile, reconcile, type Removal, type Write } from "kaal-hosting";
+import { kind, read, readFile, reconcile, type Expectation, type Reconciliation, type Removal, type Write } from "kaal-hosting";
 import { check } from "./bootstrap.js";
 import { checkContract, register, type InstallationRecord, type RecordEntry } from "./installation.js";
 import { KaalError } from "./node.js";
@@ -101,6 +101,14 @@ export interface Applied {
   readonly kept: Kept[];
 }
 
+/** An upgrade planned and verified, not yet applied (core/A23). */
+export interface PlannedUpgrade {
+  /** What Hosting applies; absent when the Engine is already at the contract. */
+  readonly reconciliation?: Reconciliation;
+  /** What applying it does. */
+  readonly applied: Applied;
+}
+
 /**
  * Bring the Engine to Core's contract (core/F44): install a target that is absent, replace a
  * file Core's record holds with its recorded bytes, adopt a file the catalogue lists, keep and
@@ -109,6 +117,17 @@ export interface Applied {
  * must verify, or nothing changes. An Engine already at the contract is left unchanged.
  */
 export async function upgrade(root: string): Promise<Applied> {
+  return applyUpgrade(root, await planUpgrade(root));
+}
+
+/** Apply a planned upgrade through Hosting: if anything it relied on changed since it was read, nothing changes (core/N12). */
+export async function applyUpgrade(root: string, planned: PlannedUpgrade): Promise<Applied> {
+  if (planned.reconciliation !== undefined) await reconcile(root, planned.reconciliation);
+  return planned.applied;
+}
+
+/** Read, plan and verify an upgrade without applying it (core/A23). */
+export async function planUpgrade(root: string): Promise<PlannedUpgrade> {
   const own = await readRecord(root, RECORD);
   const assets: Record<string, RecordEntry> = { ...(own.record?.assets ?? {}) };
   const want = targets();
@@ -145,7 +164,8 @@ export async function upgrade(root: string): Promise<Applied> {
   }
 
   // The upgraded Engine, as it would be once applied, must verify before anything is applied.
-  const files = await engineFiles(root);
+  const read = await engineFiles(root);
+  const files = { ...read };
   for (const w of write) files[w.path.slice(ENGINE.length + 1)] = Buffer.from(w.bytes);
   for (const r of remove) delete files[r.path.slice(ENGINE.length + 1)];
   const verified = check(files);
@@ -153,14 +173,18 @@ export async function upgrade(root: string): Promise<Applied> {
 
   const next: InstallationRecord = own.record === undefined ? { assets } : { ...own.record, assets };
   const changed = JSON.stringify(next) !== JSON.stringify(own.record);
-  if (write.length === 0 && remove.length === 0 && !changed) return { written: [], removed: [], kept };
-  // Every file this upgrade writes or removes, and Core's record, is guarded as it was read, so a
-  // concurrent Core step is refused. A file it leaves untouched is not guarded: Hosting guards only
-  // by rewriting, which would drop an executable mark Core cannot read, so a file another writer
-  // changes between the read and the reconciliation is not detected.
+  if (write.length === 0 && remove.length === 0 && !changed) return { applied: { written: [], removed: [], kept } };
   write.push({ path: RECORD, expect: own.expect, bytes: json(next) });
-  await reconcile(root, { write, remove });
-  return { written: write.map((w) => w.path).filter((p) => p !== RECORD), removed: remove.map((r) => r.path), kept };
+  // The plan and its verification rest on every Engine file read: each one this upgrade leaves
+  // untouched is a read-only expectation, which Hosting checks without rewriting it (core/N12).
+  const touched = new Set([...write, ...remove].map((e) => e.path));
+  const expect: Expectation[] = Object.entries(read)
+    .map(([path, bytes]) => ({ path: `${ENGINE}/${path}`, expect: sha256(bytes) }))
+    .filter((e) => !touched.has(e.path));
+  return {
+    reconciliation: { write, remove, expect },
+    applied: { written: write.map((w) => w.path).filter((p) => p !== RECORD), removed: remove.map((r) => r.path), kept },
+  };
 }
 
 /**
