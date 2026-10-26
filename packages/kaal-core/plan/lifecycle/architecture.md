@@ -25,7 +25,8 @@ Each element names, in brackets, the Requirements it answers.
 | Change | Owner | Depends on |
 | --- | --- | --- |
 | `core/C18` PLAN, this Change | Core | `core/C16` |
-| `core/C19` DO: the contract, the record at `init`, and `version`, `upgrade` and `remove` | Core | `core/C18` |
+| `core/C20` PLAN amendment: T44 and T46 assert the one shared Core record and that a kept modified file leaves a verifying Engine (Owner review of #466) | Core | `core/C18` |
+| `core/C19` DO: the contract, the record at `init`, and `version`, `upgrade` and `remove` | Core | `core/C20` |
 | Core contract evidence mapping | Core | `testing/C8` (#465) |
 | Packaging decision for kaal-core | Owner | all four LOVE criteria met |
 | Release authorization | Owner | the packaging decision, and nothing implied by it |

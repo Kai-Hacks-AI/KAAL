@@ -94,7 +94,7 @@ describe("Core's own Installation Contract (core/C18)", () => {
 });
 
 describe("Core's lifecycle (core/C18)", () => {
-  it("core/T44 [core/F43, core/F46, core/A22]: init records Core's version, version reads it, reports an unrecorded Engine, and --engine gets no lifecycle", () => {
+  it("core/T44 [core/F43, core/F46, core/A22]: init records Core's version in the one Core record it shares with Agent Realization, version reads it, reports an unrecorded Engine, and --engine gets no lifecycle", () => {
     const repo = repository();
     const r = kaal(repo, "init");
     assert.equal(r.status, 0, r.out);
@@ -103,6 +103,7 @@ describe("Core's lifecycle (core/C18)", () => {
     for (const [p, bytes] of Object.entries(payload())) {
       assert.deepEqual(assets[`.kaal/${p}`], { sha256: sha256(bytes), version: pkg.version }, `.kaal/${p} is recorded with its bytes and Core's version`);
     }
+    assert.deepEqual(readdirSync(join(repo, ".kaal/state/core")), ["installation.json"], "one Core record, shared with Agent Realization, and no other");
     const v = kaal(repo, "version");
     assert.equal(v.status, 0, v.out);
     assert.match(v.out, new RegExp(`kaal-core ${pkg.version.replaceAll(".", "\\.")}`), "names the kaal-core that runs");
@@ -142,7 +143,7 @@ describe("Core's lifecycle (core/C18)", () => {
     assert.match(kaal(repo, "version").out, new RegExp(`engine ${pkg.version.replaceAll(".", "\\.")}`));
   });
 
-  it("core/T46 [core/F44, core/N12]: upgrade keeps a modified file and reports it, and refuses, changing nothing, when the result would not verify", () => {
+  it("core/T46 [core/F44, core/N12]: upgrade keeps a modified file and reports it, and the upgraded Engine verifies; it refuses, changing nothing, when the result would not verify", () => {
     const repo = initialized();
     const changed = Buffer.from("# Our own entry point\n");
     put(join(repo, ".kaal/AGENTS.md"), changed);
@@ -150,6 +151,8 @@ describe("Core's lifecycle (core/C18)", () => {
     assert.equal(up.status, 0, up.out);
     assert.deepEqual(readFileSync(join(repo, ".kaal/AGENTS.md")), changed, "a modified file is kept");
     assert.match(up.out, /\.kaal\/AGENTS\.md/, "and reported");
+    const verified = kaal(repo, "verify");
+    assert.equal(verified.status, 0, `the upgraded Engine verifies\n${verified.out}`);
 
     const broken = initialized();
     earlier(broken, ".kaal/KAAL-KERNEL.md", Buffer.from("an earlier Kernel\n"));

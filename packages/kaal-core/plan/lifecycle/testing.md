@@ -5,9 +5,9 @@ The planned outer tests live in `packages/kaal-core/test/plan/lifecycle.test.mjs
 | Test | Checks | Loop |
 | --- | --- | --- |
 | core/T43: kaal-core delivers a conforming Installation Contract of its own, for exactly its payload | core/F42, core/A20 | Requirements |
-| core/T44: `init` records Core's version, and `version` reads it, reports an unrecorded Engine, and `--engine` gets no lifecycle | core/F43, core/F46, core/A22 | Requirements |
+| core/T44: `init` records Core's version in the one Core record it shares with Agent Realization, and `version` reads it, reports an unrecorded Engine, and `--engine` gets no lifecycle | core/F43, core/F46, core/A22 | Requirements |
 | core/T45: `upgrade` replaces unmodified files from an earlier version, adopts an Engine without a record, and is idempotent | core/F44, core/A21 | Requirements |
-| core/T46: `upgrade` keeps a modified file and reports it, and refuses, changing nothing, when the result would not verify | core/F44, core/N12 | Requirements |
+| core/T46: `upgrade` keeps a modified file and reports it, and the upgraded Engine verifies; it refuses, changing nothing, when the result would not verify | core/F44, core/N12 | Requirements |
 | core/T47: `remove` removes only Core's unmodified files and its record, and keeps and reports everything else | core/F45, core/N12 | Requirements |
 
 ## RED evidence
