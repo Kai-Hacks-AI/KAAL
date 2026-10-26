@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "skill", "name": "Learning", "id": "a2c4cd56f476de7e33914af4843001aad46d4f5bf309d635e3741da401cb2b1d" },
+  "owner": { "kind": "capability", "name": "Learning", "id": "c1c78d475dec36f31ba3d41957d8b50bd6b5fa090568083db026460a0f2138bc" },
   "paths": ["packages/skills/kaal-learning/"]
 }

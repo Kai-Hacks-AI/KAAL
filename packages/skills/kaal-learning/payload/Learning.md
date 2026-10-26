@@ -1,8 +1,8 @@
 ---
 name: Learning
 type:
-  name: KAAL Skill
-  id: 4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933
+  name: KAAL Capability
+  id: 56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e
 ---
 
 # Learning

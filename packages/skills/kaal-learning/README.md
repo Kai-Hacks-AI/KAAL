@@ -3,7 +3,7 @@
 KAAL Learning: the capability for knowledge in KAAL, retaining what has been understood from work done in KAAL, improving that understanding, and letting later work start from it. It is lightweight on purpose: one Node and an Agent Skill, with no scripts. Knowledge grants no authority.
 
 ```
-payload/Learning.md       the Skill Node, typed by Core's KAAL Skill
+payload/Learning.md       the Capability Node, typed by Core's KAAL Capability
 skills/kaal-learning/     the Agent Skill: SKILL.md
 ```
 
@@ -12,7 +12,7 @@ This package establishes the capability only. It holds no knowledge, keeps no st
 ## Register the Nodes
 
 ```sh
-npx kaal register skill kaal-learning node_modules/kaal-learning/payload    # Core decides
+npx kaal register capability kaal-learning node_modules/kaal-learning/payload    # Core decides
 ```
 
 ## License
