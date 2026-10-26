@@ -1,5 +1,6 @@
+import { Graph } from "kaal-graph";
 import { HostingError, initialize, kind, read } from "kaal-hosting";
-import { evaluate, type Engine } from "./engine.js";
+import { evaluate, type Engine, type EvaluateOptions } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
 import { foundation, payload, type Files } from "./payload.js";
 
@@ -41,30 +42,33 @@ export interface Verification {
 }
 
 /** Verify an Engine's files; see `verify`. */
-export function check(files: Files): Verification {
+export function check(files: Files, options: EvaluateOptions = {}): Verification {
   const problems: string[] = [];
   const f = foundation();
   if (!Object.values(files).some((bytes) => sha256(bytes) === f.kernel)) problems.push(`the Kernel (${f.kernel}) is not present`);
-  const engine = evaluate(files);
+  const engine = evaluate(files, options);
+  const admitted = new Graph(engine.nodes);
   for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.extension]) {
-    try {
-      engine.resolve(ref);
-    } catch {
-      problems.push(`foundational Node ${ref.name} (${ref.id}) is not admitted`);
-    }
+    if (!admitted.resolve(ref)) problems.push(`foundational Node ${ref.name} (${ref.id}) is not admitted`);
   }
   for (const r of engine.rejected) problems.push(`${r.path}: ${r.reason}`);
+  for (const a of engine.artifacts) {
+    if (a.state === "unknown" || a.state === "invalid") problems.push(`${a.path}: ${a.type} is ${a.state}: ${a.findings.map((f) => (f.key === null ? f.rule : `${f.key} (${f.rule})`)).join("; ")}`);
+  }
   return { ok: problems.length === 0, problems, engine };
 }
 
 /**
  * Verify an Engine: the Kernel is present by its exact bytes, the six
- * foundational Nodes are admitted by their exact ids, and every file that
- * claims to be a Node is admitted. Locations are not consulted.
+ * foundational Nodes are admitted by their exact ids, every file that claims
+ * to be a Node is admitted, and no typed artifact's Type is unknown, or
+ * invalid against a supplied schema (core/F32). An unregistered Type does not
+ * fail verification, and is never reported as verified: `engine.artifacts`
+ * lists it. Locations are not consulted, and no file is changed.
  */
-export async function verify(dir: string): Promise<Verification> {
+export async function verify(dir: string, options: EvaluateOptions = {}): Promise<Verification> {
   if ((await kind(dir)) !== "directory") return { ok: false, problems: [`${dir} is not an Engine directory`], engine: evaluate({}) };
-  return check(await read(dir));
+  return check(await read(dir), options);
 }
 
 /** Write the foundational Core payload into `outDir`, which must not exist or be empty. Returns the paths written. */
