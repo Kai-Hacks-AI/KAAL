@@ -17,6 +17,8 @@ async function subpath(name) {
 const STANDARD = Buffer.from(
   "---\nname: sample\ndescription: Resolve a failing Sample verdict. Use when a Sample check fails.\nlicense: MIT\n---\n\n# sample\n\n## Steps\n\nRun the check again.\n",
 );
+/** The same Skill with CRLF line endings, which Engineer Skill reads alike (engineer-skill/C1): Core preserves them. */
+const CRLF = Buffer.from(STANDARD.toString("utf8").replaceAll("\n", "\r\n"));
 /** A SKILL.md Core cannot read frontmatter from: Core does not judge it. */
 const BARE = Buffer.from("# bare\n\nNo frontmatter here.\n");
 
@@ -25,6 +27,7 @@ describe("Canonical Skill bytes (core/C22)", () => {
     const { realize } = await subpath("agent");
     for (const [name, source] of [
       ["sample", STANDARD],
+      ["crlf", CRLF],
       ["bare", BARE],
     ]) {
       const files = { "SKILL.md": source, "references/a.md": Buffer.from("A\n") };

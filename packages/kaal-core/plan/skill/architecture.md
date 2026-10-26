@@ -8,7 +8,7 @@ Each element names, in brackets, the Requirements it answers.
 
 | Question | Recommended | Alternative | Why not |
 | --- | --- | --- | --- |
-| What happens to `renderSkill`? | **A.** Retire it. No placement uses a transformation, and Core keeps no Skill-format code (`core/N13`). | B. Keep it exported, unused by `realize`. | B leaves Core owning a rendering of `## Description` into `description`, which is Skill-format policy. That is Engineer Skill's, and B gives it two owners. |
+| What happens to `renderSkill`? | **A.** Retire it. No placement uses a transformation, and Core keeps no Skill-format code (`core/N13`). `engineer-skill/C1` makes Engineer Skill the one reader of a `SKILL.md`, with `description` in the frontmatter only, which is this case. | B. Keep it exported, unused by `realize`. | B leaves Core owning a rendering of `## Description` into `description`, which is Skill-format policy. That is Engineer Skill's, and B gives it two owners. |
 
 **Consumer note.** Under A, Architecture's planned `architecture/T3` (#485) stops being able to call `renderSkill`. That assertion changes through Architecture's own PLAN amendment, `architecture/C7` in the #485 map, before `architecture/C5` is revised.
 
@@ -16,8 +16,8 @@ Each element names, in brackets, the Requirements it answers.
 
 | Change | Owner | Depends on |
 | --- | --- | --- |
-| `engineer-skill/C…` PLAN: the canonical Skill format, a standard `SKILL.md` conforming to `checkSkill`, keeping every standard field it carries | Engineer Skill | none |
-| `core/C22` PLAN, this Change | Core | `engineer-skill/C…` |
+| `engineer-skill/C1` PLAN (#490): Engineer Skill is the one authority for reading a `SKILL.md`. The frontmatter `description` is the only description, CRLF and LF read alike, and installation preserves bytes | Engineer Skill | none |
+| `core/C22` PLAN, this Change | Core | `engineer-skill/C1` |
 | `core/C23` DO: `realize` deploys source bytes unchanged, `renderSkill` retired, README and Code tests | Core | `core/C22` |
 | `architecture/C6` SYNC main → kaal/architecture, then `architecture/C7` and the revised `architecture/C5` (#485) | Architecture | `core/C23` promoted to main |
 
