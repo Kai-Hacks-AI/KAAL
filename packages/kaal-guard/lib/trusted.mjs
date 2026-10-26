@@ -56,3 +56,28 @@ export function redirect(list, trusted, into) {
   });
   return named ? out : undefined;
 }
+
+/**
+ * The text of every `.md` file directly in the repository-relative directory `dir`, as the base revision
+ * holds it, by file name. Returns { commit, texts } or { problem, todo }. Only a resolved base without the
+ * directory holds none: a base that resolves to no commit here is a problem, never an empty set, since
+ * which checks it trusts is then unknown (guard/F7).
+ */
+export function baseTexts(root, base, dir) {
+  const commit = git(root, ["rev-parse", "--verify", "--quiet", `${base}^{commit}`], "utf8");
+  if (commit.status !== 0) return { problem: `the base ${base} is not a commit here`, todo: "fetch the base commit, or supply a base that names one" };
+  const sha = commit.stdout.trim();
+  const listed = git(root, ["ls-tree", "-z", "--full-tree", sha, "--", `${dir}/`], "utf8");
+  if (listed.status !== 0) return { problem: `the base ${sha} cannot be read`, todo: "fetch the base commit" };
+  const texts = {};
+  for (const e of listed.stdout.split("\0").filter(Boolean)) {
+    const [meta, file] = e.split("\t");
+    const [mode, type, object] = meta.split(" ");
+    const name = file.slice(dir.length + 1);
+    if (type !== "blob" || mode === "120000" || !name.endsWith(".md") || name.includes("/")) continue;
+    const blob = git(root, ["cat-file", "blob", object], "utf8");
+    if (blob.status !== 0) return { problem: `${file} cannot be read from the base ${sha}`, todo: "fetch the base commit" };
+    texts[name] = blob.stdout;
+  }
+  return { commit: sha, texts };
+}

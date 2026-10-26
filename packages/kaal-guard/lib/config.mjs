@@ -6,7 +6,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { words } from "./command.mjs";
-import { safePath } from "./trusted.mjs";
+import { baseTexts, safePath } from "./trusted.mjs";
 
 /** The configuration directory at a repository's top level, by convention. */
 export const CONFIG = ".kaal/config/guard";
@@ -259,6 +259,31 @@ export function readDeclarations(root, dir) {
     checks[name] = check(frontmatter(readFileSync(join(dir, `${name}.md`), "utf8"), at), at);
   }
   return { list: { checks } };
+}
+
+/**
+ * The checks the base revision declares in `dir` that name `trusted` (guard/F7), by name, as the runner
+ * reads them. Returns { commit, checks } or { problem, todo }. A configuration directory outside the
+ * repository has no base, so it holds none. A base declaration outside the contract guarded nothing,
+ * since the base itself was refused, so it is left out rather than blocking the change that fixes it.
+ */
+export function trustedOnBase(root, base, dir) {
+  const rel = relative(root, dir).split("\\").join("/");
+  if (rel === "" || rel === ".." || rel.startsWith("../") || isAbsolute(rel)) return { checks: {} };
+  const read = baseTexts(root, base, rel);
+  if (read.problem) return read;
+  const checks = {};
+  for (const [file, text] of Object.entries(read.texts)) {
+    const name = file.slice(0, -3);
+    if (!/^[^:\s]+$/.test(name)) continue;
+    try {
+      const declared = check(frontmatter(text, `${rel}/${file} on the base`), `${rel}/${file} on the base`);
+      if (declared.trusted !== undefined) checks[name] = declared;
+    } catch (e) {
+      if (!(e instanceof Refusal)) throw e;
+    }
+  }
+  return { commit: read.commit, checks };
 }
 
 /** The refusal of a configuration 0.0.1 wrote (guard/F15), when there is one at the top level. */
