@@ -139,7 +139,7 @@ export function render(checks, target, agents = { write: [], pointers: [] }) {
   // Set up what the target's own commands need: Node when it has a package.json, its locked dependencies when it has a lockfile.
   const setup = [];
   if (existsSync(join(target, "package.json"))) {
-    setup.push("      - uses: actions/setup-node@v4", "        with:", "          node-version: lts/*");
+    setup.push("      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0", "        with:", "          node-version: lts/*");
     if (existsSync(join(target, "package-lock.json"))) setup.push("      - run: npm ci");
   }
   const workflow = template("guard.yml")
