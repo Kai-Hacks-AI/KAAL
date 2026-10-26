@@ -17,6 +17,7 @@ const LIB = pathToFileURL(fileURLToPath(new URL("lib/acceptance.mjs", PACKAGE)))
 const FIXTURE = "kaal-evidence-fixture";
 const SCENARIO = "ws/test/acceptance/fixture.test.mjs";
 const BARE = "ws/test/acceptance/bare.test.mjs";
+const BROKEN = "ws/test/acceptance/broken.test.mjs";
 
 /** A one-file package, packed once, and the manifest a caller would hand over for it. */
 async function packed(dir) {
@@ -55,8 +56,19 @@ const NOTHING = `import { it } from "node:test";
 it("passes without the package", () => {});
 `;
 
+/** A scenario that installs the fixture, then makes its host's npm record unreadable: a provenance failure of the run. */
+const UNREADABLE = `import { rmSync } from "node:fs";
+import { join } from "node:path";
+import { it } from "node:test";
+import { install } from ${JSON.stringify(LIB)};
+it("leaves a host whose record cannot be read", async () => {
+  const host = await install([${JSON.stringify(FIXTURE)}], { offline: true });
+  rmSync(join(host, "node_modules", ".package-lock.json"));
+});
+`;
+
 /** One accept() run over the given scenarios, with cwd as the repository root so paths match a mapping's. */
-async function observed(scenarios, { tamper = false } = {}) {
+async function observed(scenarios) {
   const dir = mkdtempSync(join(tmpdir(), "kaal-testing-evidence-"));
   const manifest = await packed(dir);
   mkdirSync(join(dir, "ws", "test", "acceptance"), { recursive: true });
@@ -64,11 +76,6 @@ async function observed(scenarios, { tamper = false } = {}) {
   for (const [path, text] of Object.entries(scenarios)) {
     writeFileSync(join(dir, path), text);
     files[path] = Buffer.from(text);
-  }
-  if (tamper) {
-    const [entry] = Object.values(manifest);
-    chmodSync(entry.tarball, 0o644);
-    writeFileSync(entry.tarball, "not the packed bytes");
   }
   const run = await accept({ manifest, scenarios: Object.keys(scenarios).map((p) => join(dir, p)), run: join(dir, "run"), cwd: dir });
   return { run, files, dir };
@@ -147,15 +154,19 @@ describe("Contract evidence with an observed run (testing/C7)", () => {
     for (const s of [none, missing, stale]) assert.ok(typeof s.reason === "string" && s.reason.length > 0, "an unknown names its reason");
   });
 
-  it("testing/T12 [testing/F9]: a scenario that installed nothing, or a run whose provenance failed, gives no evidence even when its test passed", async () => {
+  it("testing/T12 [testing/F9]: a scenario that installed nothing gives no evidence, and neither does a passing installed test in a run whose provenance failed elsewhere", async () => {
     const bare = await observed({ [BARE]: NOTHING });
     assert.deepEqual(outcomes(bare.run).map((t) => t.outcome), ["pass"]);
     const [s] = await classify(await mapping(bare.files, [[BARE, ["passes without the package"]]]), tree(bare.files), bare.run);
     assert.equal(s.class, "unknown", "a scenario that installed nothing exercised no package");
-    const tampered = await observed({ [SCENARIO]: INSTALLING, [BARE]: NOTHING }, { tamper: true });
-    assert.ok(outcomes(tampered.run).some((t) => t.file === BARE && t.outcome === "pass"));
-    const [t] = await classify(await mapping(tampered.files, [[BARE, ["passes without the package"]]]), tree(tampered.files), tampered.run);
-    assert.equal(t.class, "unknown");
+    const failed = await observed({ [SCENARIO]: INSTALLING, [BROKEN]: UNREADABLE });
+    assert.ok(outcomes(failed.run).some((t) => t.file === SCENARIO && t.test.at(-1) === "works installed" && t.outcome === "pass"), "the offered test installed the package and passed");
+    assert.ok(
+      failed.run.findings.some((f) => f.kind === "verified failure" && /record of what .* holds could not be read/.test(f.evidence)),
+      "the run's provenance failed in another scenario's host",
+    );
+    const [t] = await classify(await mapping(failed.files, [[SCENARIO, ["fixture", "works installed"]]]), tree(failed.files), failed.run);
+    assert.equal(t.class, "unknown", "evidence from a run whose provenance failed is not independent");
   });
 });
 
