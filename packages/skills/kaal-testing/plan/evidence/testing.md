@@ -6,7 +6,7 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/evidence
 | --- | --- | --- |
 | testing/T9: `accept` lists each test it ran, with its file, the file's bytes as run, its suite path and its outcome | testing/F7, testing/A5 | Requirements |
 | testing/T10: a statement whose offered tests passed in the run is `observed`, and its inference is still a judgment; a statement with a failed test is a `verified failure` | testing/F8 | Requirements |
-| testing/T11: a copied run, a test the run did not execute, and bytes other than those run stay `unknown`, each with its reason | testing/F8, testing/I5 | Requirements |
+| testing/T11: a copied run, a test the run did not execute, and bytes other than those run stay `unknown`, each with its reason, and changing the run's fields afterwards changes no classification | testing/F8, testing/I5, testing/A5 | Requirements |
 | testing/T12: a scenario that installed nothing gives no evidence, and neither does a test that installed the package and passed in a run whose provenance failed elsewhere | testing/F9 | Requirements |
 | testing/T13: kaal-testing's runtime depends on `c8` and Hosting only, and nothing it delivers imports a package it judges | testing/N3, testing/A6 | Architecture |
 

@@ -136,7 +136,7 @@ describe("Contract evidence with an observed run (testing/C7)", () => {
     assert.deepEqual(failing.evidence.map((e) => e.class), ["observed", "verified failure"]);
   });
 
-  it("testing/T11 [testing/F8, testing/I5]: a copied run, a test the run did not execute, and bytes other than those run stay unknown", async () => {
+  it("testing/T11 [testing/F8, testing/I5, testing/A5]: a copied run, a test the run did not execute, and bytes other than those run stay unknown, and changing the run afterwards changes nothing", async () => {
     const { run, files } = await observed({ [SCENARIO]: INSTALLING });
     outcomes(run);
     const offered = await mapping(files, [[SCENARIO, ["fixture", "works installed"]]]);
@@ -152,6 +152,23 @@ describe("Contract evidence with an observed run (testing/C7)", () => {
     const [stale] = await classify(await mapping(changed, [[SCENARIO, ["fixture", "works installed"]]]), tree(changed), run);
     assert.equal(stale.class, "unknown", "the pinned bytes are not the bytes that ran");
     for (const s of [none, missing, stale]) assert.ok(typeof s.reason === "string" && s.reason.length > 0, "an unknown names its reason");
+    const wrong = await mapping(files, [[SCENARIO, ["fixture", "is wrong"]]]);
+    const ghost = await mapping(files, [[SCENARIO, ["fixture", "never ran"]]]);
+    const forged = { file: SCENARIO, sha256: await sha256(files[SCENARIO]), test: ["fixture", "never ran"], outcome: "pass" };
+    // Each change is attempted; a run whose data refuses changes passes this test as well as one that ignores them.
+    const attempt = (change) => {
+      try {
+        change();
+      } catch {}
+    };
+    for (const t of run.tests) if (t.test.at(-1) === "is wrong") attempt(() => (t.outcome = "pass"));
+    attempt(() => run.tests.push(forged));
+    attempt(() => (run.findings.length = 0));
+    attempt(() => (run.passed = true));
+    const [still] = await classify(wrong, tree(files), run);
+    assert.equal(still.class, "verified failure", "an outcome edited on the run object is not what was observed");
+    const [inserted] = await classify(ghost, tree(files), run);
+    assert.equal(inserted.class, "unknown", "a test added to the run object was not observed");
   });
 
   it("testing/T12 [testing/F9]: a scenario that installed nothing gives no evidence, and neither does a passing installed test in a run whose provenance failed elsewhere", async () => {

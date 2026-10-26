@@ -25,7 +25,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Verified failure:** an offered test is a `verified failure`, naming the test, when it ran so and failed.
   - **Unknown:** anything else stays `unknown`, with its reason.
   - **Statement:** a statement is `observed` when every offered test is, and a `verified failure` when any is. Otherwise it stays `unknown`. Its inference is reported as before ("proposed, not reviewed" or a declared review), never as verified.
-  - **Run provenance:** only a run that `accept` produced in this process counts. A copy of it, or one read back from JSON, is a claim and counts as no run. Conformance evidence, which `accept` does not run, stays unknown, as does every statement classified without a run. Nothing here is a percentage, a ratio or a gate.
+  - **Run provenance:** only a run that `accept` produced in this process counts. A copy of it, or one read back from JSON, is a claim and counts as no run. Classification uses what `accept` observed, as it observed it, so changing the run's fields afterwards changes no classification. Conformance evidence, which `accept` does not run, stays unknown, as does every statement classified without a run. Nothing here is a percentage, a ratio or a gate.
 - **testing/F9** [testing/I4, testing/I5]: Evidence is independent only when it comes from the package as delivered. An offered acceptance test counts only when both of these hold:
   - its scenario installed, through `install()`, a tarball the run's manifest packed;
   - the run found no verified failure in its provenance: foreign bytes, a package the run did not pack, a host holding a package from elsewhere, a shared host or an unreadable host record.
