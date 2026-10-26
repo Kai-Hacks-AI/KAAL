@@ -34,6 +34,8 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Unknown baseline** when it is RED and the base gives no evidence either way. That covers a base that is not an observed run, a file the base was not given, and a base file observed incomplete. Unknown evidence is never read as absent or new (`testing/I2`).
 
   In addition, each Test Case the base observed GREEN that does not occur in `head` is a **Missing RED**: established behavior that is no longer tested.
+
+  The candidate's own evidence must be whole. Each file `head` was given that is not observed complete is a finding, named by its file. That covers a file that failed to load, a suite whose declaration threw while every reported test passed, and a file the candidate lacks. A failure the runner saw is never lost because no failing Test Case carried it.
 - **testing/F4** [testing/I1, testing/I3]: `far` is the structured outcome of a Change's FAR decision, as Change hands it on. It is a list of decided entries. Each entry names:
   - `change`: the Change that decided it, as a capability-qualified Change id, such as `sample/C2`;
   - `tests`: the Test Case identities whose regression the Owner accepted, at least one.
@@ -47,7 +49,7 @@ Each Requirement names, in brackets, the Intents it serves.
 - **testing/F10** [testing/I3]: `evaluate(classification, policy)` returns `{ pass, blocking }`.
   - **The policy.** `policy.block` lists the classes a gate refuses: `regression`, `missing`, `feature`, `persisting`, `unknown` and `unidentified`.
   - **Blocking.** `blocking` is the sorted set of identities, and of titles of Unidentified REDs, in a blocked class, less the accepted Regression and Missing REDs.
-  - **Always blocking.** Every finding blocks, whatever the policy: a duplicate identity, a run that is not observed, and a malformed FAR entry.
+  - **Always blocking.** Every finding blocks, whatever the policy: a duplicate identity, a run that is not observed, a candidate file not observed complete, and a malformed FAR entry.
   - **Pass.** `pass` is true exactly when `blocking` is empty.
   - **Single subtraction.** Acceptance subtracts single identities, so accepting one regression never unblocks another.
   - **Malformed policy.** A policy naming no known class, or naming an unknown one, is a finding, so evaluation fails closed.

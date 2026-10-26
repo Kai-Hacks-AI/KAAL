@@ -12,7 +12,7 @@ The fixtures are small `node:test` files, written into a fresh directory and obs
 | testing/T4: unknown evidence is never read as absent or new | testing/F3 | Requirements |
 | testing/T5: a decided FAR entry names its Change and its Test Cases; each malformed member is a finding and accepts nothing | testing/F4 | Requirements |
 | testing/T6: an accepted entry marks only its listed Regression or Missing REDs, under its Change, and they stay RED; any other listed identity is stale | testing/F5 | Requirements |
-| testing/T7: evaluation follows the gate's policy; acceptance subtracts single identities; findings always block; a malformed policy fails closed | testing/F10 | Requirements |
+| testing/T7: evaluation follows the gate's policy; acceptance subtracts single identities; findings always block, a candidate file that did not run to the end among them; a malformed policy fails closed | testing/F10 | Requirements |
 | testing/T8: the report lists every RED by identity, class and file; an accepted RED carries its Change and is counted RED, never GREEN | testing/F6 | Requirements |
 | testing/T14: the same observed runs, FAR outcome and policy give the same results | testing/N1 | Requirements |
 | testing/T15: `kaal-testing/red` reads runs only through Testing's own observation, and imports no host module | testing/N4 | Architecture |

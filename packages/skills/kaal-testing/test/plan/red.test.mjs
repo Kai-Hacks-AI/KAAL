@@ -163,7 +163,7 @@ describe("Feature-accepted regressions (testing/C4)", () => {
     assert.deepEqual(ids(c.stale.map((s) => s.test)), ["sample/T1", "sample/T4"], "a Feature RED and a GREEN Test Case are never accepted");
   });
 
-  it("testing/T7 [testing/F10]: evaluation follows the gate's policy; acceptance subtracts single identities; findings always block; a malformed policy fails closed", async () => {
+  it("testing/T7 [testing/F10]: evaluation follows the gate's policy; acceptance subtracts single identities; findings always block, a candidate file that did not run to the end among them; a malformed policy fails closed", async () => {
     const m = await red();
     const base = await observed(cases({ "sample/T2": "pass", "sample/T3": "pass", "sample/T4": "fail" }));
     const far = [{ change: "sample/C2", tests: ["sample/T2"] }];
@@ -179,6 +179,16 @@ describe("Feature-accepted regressions (testing/C4)", () => {
     assert.equal(m.evaluate(duplicate, { block: ["feature"] }).pass, false, "a finding blocks whatever the policy");
 
     for (const policy of [{}, { block: [] }, { block: ["regression", "flaky"] }]) assert.equal(m.evaluate(tolerated, policy).pass, false, JSON.stringify(policy));
+
+    const thrown = m.classify({
+      head: await observed({
+        "a.test.mjs": `import { describe, it } from "node:test";\ndescribe("Sample behaviour (sample/C1)", () => {\n  it("sample/T2: does its part", () => {});\n  it("sample/T3: does its part", () => {});\n  it("sample/T4: does its part", () => {});\n  describe("nested", () => { throw new Error("declaration failed"); });\n});\n`,
+      }),
+      base,
+      far: [],
+    });
+    assert.deepEqual(thrown.reds.filter((r) => r.class !== "persisting"), [], "every reported Test Case passed or persists");
+    for (const policy of [DEVELOPMENT, PROMOTION]) assert.equal(m.evaluate(thrown, policy).pass, false, "a candidate suite whose declaration threw still blocks");
   });
 
   it("testing/T8 [testing/F6]: the report lists every RED by identity, class and file, an accepted RED carries its Change and is counted RED, never GREEN", async () => {
