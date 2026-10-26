@@ -171,6 +171,10 @@ Fixed:
 - A `base` that is not a commit Guard can read is cannot judge for every selected check, naming the base, never read as a base that declares nothing trusted.
 - The package's own `npm test` runs its current suite and passes.
 
+Changed:
+
+- The comment at the top of Guard's workflow (`.github/workflows/guard.yml`) names its two jobs. `upgrade` moves an unmodified `0.0.2` workflow to it; the jobs and steps are unchanged.
+
 Documented: what `trusted` cannot guard and the review rule it needs, that the hook judges the working tree, that Guard's workflow has two jobs, and that CI checks judge GitHub's merge commit.
 
 ### 0.0.2
