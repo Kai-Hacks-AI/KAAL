@@ -166,32 +166,51 @@ describe("Hosting application (core/C13)", () => {
     assert.deepEqual(at(root, ".agents/skills/sample/SKILL.md"), RENDERED);
   });
 
-  it("keeps a deployed file where a directory is now needed, and the directory where a file is, until Hosting provides that transition", async () => {
+  it("turns a deployed file into a directory of the same name, and back, each in one reconciliation", async () => {
     const root = repo();
     const FILE = { name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("old\n") } };
-    const DIR = { name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n"), "b.md": Buffer.from("B\n") } };
+    const DIR = { name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n"), "tool/lib/x": Buffer.from("x\n") } };
     await realizeIn(root, { skills: [FILE] });
     const toDir = await realizeIn(root, { skills: [DIR] });
-    assert.equal(at(root, ".agents/skills/sample/tool").toString(), "old\n", "the old file stays");
-    assert.deepEqual(toDir.plan.prune, []);
-    assert.ok(toDir.plan.keep.some((k) => k.path === ".agents/skills/sample/tool" && k.reason.includes("file↔directory")));
-    assert.ok(toDir.plan.keep.some((k) => k.path === ".agents/skills/sample/tool/run" && k.reason.includes("file↔directory")));
-    assert.equal(at(root, ".agents/skills/sample/b.md").toString(), "B\n", "everything else is applied");
-    assert.deepEqual(json(root, CORE_RECORD).assets[".agents/skills/sample/tool"], { sha256: sha("old\n"), version: VERSION }, "Core still owns the file it kept");
+    assert.deepEqual(toDir.plan.prune, [".agents/skills/sample/tool"]);
+    assert.equal(at(root, ".agents/skills/sample/tool/run").toString(), "new\n");
+    assert.equal(at(root, ".agents/skills/sample/tool/lib/x").toString(), "x\n");
+    assert.deepEqual(Object.keys(json(root, CORE_RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/tool/lib/x", ".agents/skills/sample/tool/run"]);
 
-    const other = repo();
-    await realizeIn(other, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("new\n") } }] });
-    const toFile = await realizeIn(other, { skills: [FILE] });
-    assert.equal(at(other, ".agents/skills/sample/tool/run").toString(), "new\n", "the old directory stays");
-    assert.ok(toFile.plan.keep.some((k) => k.path === ".agents/skills/sample/tool" && k.reason.includes("file↔directory")));
-    assert.ok(toFile.outcomes.every((o) => !o.path.startsWith(".agents/skills/sample/tool")));
+    const toFile = await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("back\n") } }] });
+    assert.deepEqual(toFile.plan.prune, [".agents/skills/sample/tool/lib/x", ".agents/skills/sample/tool/run"]);
+    assert.equal(at(root, ".agents/skills/sample/tool").toString(), "back\n");
+    assert.deepEqual(Object.keys(json(root, CORE_RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/tool"]);
   });
 
-  it("hands a kept file Core deployed at a now contracted canonical location to the Capability's record", async () => {
+  it("keeps a directory that holds a file Core did not deploy where a file is now needed, and still applies everything else", async () => {
+    const root = repo();
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("old\n") } }] });
+    writeFileSync(join(root, ".agents/skills/sample/tool/mine"), "mine\n");
+    const done = await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("new\n"), "b.md": Buffer.from("B\n") } }] });
+    assert.ok(done.plan.keep.some((k) => k.path === ".agents/skills/sample/tool" && k.reason.includes("tool/mine")));
+    assert.equal(at(root, ".agents/skills/sample/tool/mine").toString(), "mine\n");
+    assert.ok(!existsSync(join(root, ".agents/skills/sample/tool/run")), "Core's own file is pruned");
+    assert.equal(at(root, ".agents/skills/sample/b.md").toString(), "B\n");
+  });
+
+  it("changes nothing when an empty directory Core cannot read keeps a directory it would turn into a file", async () => {
+    const root = repo();
+    await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, "tool/run": Buffer.from("old\n") } }] });
+    mkdirSync(join(root, ".agents/skills/sample/tool/empty"));
+    const record = at(root, CORE_RECORD);
+    await assert.rejects(realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, tool: Buffer.from("new\n"), "b.md": Buffer.from("B\n") } }] }), { code: "STALE" });
+    assert.equal(at(root, ".agents/skills/sample/tool/run").toString(), "old\n");
+    assert.ok(!existsSync(join(root, ".agents/skills/sample/b.md")));
+    assert.deepEqual(at(root, CORE_RECORD), record);
+  });
+
+  it("replaces a file Core deployed at a now contracted canonical location, and registers the new files in the Capability's record", async () => {
     const root = repo();
     await realizeIn(root, { skills: [{ name: "sample", files: { "SKILL.md": SOURCE, references: Buffer.from("old\n") } }] });
     await realizeIn(root, { skills: [SKILL], contracts: [contract()] });
-    assert.deepEqual(Object.keys(json(root, RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/references"]);
+    assert.equal(at(root, ".agents/skills/sample/references/a.md").toString(), "A\n");
+    assert.deepEqual(Object.keys(json(root, RECORD).assets), [".agents/skills/sample/SKILL.md", ".agents/skills/sample/references/a.md"]);
     assert.deepEqual(json(root, CORE_RECORD), { assets: {} });
   });
 
