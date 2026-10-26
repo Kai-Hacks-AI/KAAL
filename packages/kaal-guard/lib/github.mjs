@@ -92,8 +92,8 @@ export function declarations(root) {
     try {
       const entry = statSync(join(dir, file));
       if (!entry.isFile()) kind = entry.isDirectory() ? "is a directory" : "is not a regular file";
-    } catch {
-      kind = "is a link to nothing";
+    } catch (error) {
+      kind = error.code === "ENOENT" ? "is a link to nothing" : `cannot be opened (${error.code ?? error.message})`;
     }
     if (kind) throw new Refusal(`.github/workflows/${file}: ${kind}, so Guard cannot read it as a workflow`, `remove .github/workflows/${file}, or make it a workflow file`);
     for (const job of jobs(readFileSync(join(dir, file), "utf8"))) {
