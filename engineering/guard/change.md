@@ -196,6 +196,8 @@ The Test Cases and their assertions stay as they are. They show movement only wh
 
 The mixed pair shows that `0.0.3` meets the precondition for guard/T65, guard/T67 and guard/T68, through `guard/C88`'s workflow difference, and does not meet it for guard/T66. So guard/T66 cannot be GREEN in `guard/C83`, and under [the rule above](#003) Guard Release is not dispatched for `0.0.3` until the Owner decides.
 
+**The Owner's decision for `0.0.3` (#483, review 5656060084).** Guard `0.0.3` proceeds to promotion and Guard Release. For the `0.0.2`→`0.0.3` pair, guard/T66 is recorded as not exercised: it is neither GREEN nor a behavioural failure. Its behaviour stays exercised between simulated candidates, which is `packed` evidence. `guard/C83` accepts `0.0.3` on guard/T65, guard/T67 and guard/T68 with `registry` evidence, and records guard/T66 as not exercised for this pair. No asset is added to make it observable. guard/T66 is revisited when a genuine release adds a hook-surface asset.
+
 ### First release and later upgrades
 
 Accepting the first published `0.0.2` must not wait on a version that does not exist yet. The consumer Test Cases split by how many published versions they need (restated in `guard/C30`):
@@ -272,7 +274,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C86` | guard/D17 | Guard | The package's `test` script runs `test/*.test.mjs` and the planned suite in `test/acceptance/plan/`; `red.json` drops guard/T98 | `guard/C79` | not created |
 | `guard/C87` | — | Guard | The package's `test` script runs the promoted suite at the top of `test/acceptance/` | `guard/C31` | not created |
 | `guard/C88` | — | Guard | The managed workflow's comment names its two jobs, `Guard` and `Guard checks`; the catalogue holds both the `0.0.2` and the `0.0.3` content of `.github/workflows/guard.yml`. Separate from the README (`guard/C80`) | `guard/C80` | not created |
-| `guard/C83` | — | Guard | Release acceptance of `0.0.3`: guard/T65–guard/T68 GREEN with `registry` evidence between the published `0.0.2` and `0.0.3`. Recorded after publication; `0.0.3` is accepted only then | `guard/C81` (the publication of `0.0.3`), `guard/C82` | not created |
+| `guard/C89` | — | Guard | The Owner's decision on #483 recorded: `0.0.3` proceeds; guard/T66 is not exercised for the `0.0.2`→`0.0.3` pair, neither GREEN nor a failure, and `guard/C83` accepts on guard/T65, guard/T67 and guard/T68 | `guard/C81` | not created |
+| `guard/C83` | — | Guard | Release acceptance of `0.0.3`: guard/T65, guard/T67 and guard/T68 GREEN with `registry` evidence between the published `0.0.2` and `0.0.3`, and guard/T66 recorded as not exercised for that pair (the Owner on #483). Recorded after publication; `0.0.3` is accepted only then | `guard/C81` (the publication of `0.0.3`), `guard/C82` | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C10`, `guard/C25` for `guard/C9` and `guard/C11`, `guard/C15`–`guard/C17`, `guard/C51`, `guard/C64`–`guard/C70`, `guard/C74`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance of `0.0.2`: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 with `registry` evidence for the published `0.0.2`. guard/T65–guard/T68 do not gate it (restated in `guard/C30`) | `guard/C19`, `guard/C37` | #482; evidence in [Testing](testing.md) |
