@@ -1,6 +1,6 @@
 #!/bin/bash
 # KAAL's Branching judgment of one pull request, as a KAAL-owned check that the Branching job runs
-# through kaal-guard (guard.json: Branching). The job's former body, moved: the rules and verdicts live
+# through kaal-guard (.kaal/config/guard/Branching.md). The job's former body, moved: the rules and verdicts live
 # in engineering/github/lineage.ts. Its first argument is that checker, which Guard takes from the base
 # revision KAAL's job supplies: the default branch's tip (trusted).
 #

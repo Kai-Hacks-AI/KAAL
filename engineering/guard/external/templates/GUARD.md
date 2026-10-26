@@ -8,6 +8,8 @@ Guard connects this repository's own checks to a local `pre-push` hook and to CI
 | `.githooks/pre-push` | early local feedback: runs the `LOCAL` checks before a push |
 | `.github/workflows/guard.yml` | one CI job per `CI` check |
 | `GUARD.md` | this page |
+| `.agents/skills/kaal-guard/SKILL.md` | the Skill an agent reads to resolve a failing verdict; the runner names it after a fail or cannot judge |
+@AGENTS@
 
 ## The checks
 
@@ -22,6 +24,8 @@ A check's exit status is its verdict:
 | 2 | cannot judge | blocked | fails |
 | 3 | not applicable | goes through | succeeds, printed as not applicable |
 | any other | cannot judge | blocked | fails |
+
+After a fail or cannot judge, the runner names the Skill at `.agents/skills/kaal-guard/SKILL.md`, for a person or an agent resolving it.
 
 A check runs from the repository root with no stdin. It may read the facts `GUARD_HEAD` (the candidate commit), `GUARD_BASE` and `GUARD_BASE_REF` (the target commit and its name) and `GUARD_CHANGED` (a file listing the changed paths, NUL-separated). A fact that cannot be determined is left unset, so a check that needs it should exit 2.
 
