@@ -44,13 +44,20 @@ export const CORE_VERSION = CONTRACT.version;
 const json = (value: unknown) => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
 const isEngine = (path: string) => path.startsWith(`${ENGINE}/`);
 
-/** What is at each path under `root`: its SHA-256, `"not a file"`, or nothing when it is absent. */
-async function presentAt(root: string, paths: Iterable<string>): Promise<Record<string, string>> {
+/** What is at each path under `root`: its SHA-256, `"not a file"`, or nothing when it is absent. An Engine path is taken from `engine`, a snapshot of the Engine, when one is given. */
+async function presentAt(root: string, paths: Iterable<string>, engine?: Record<string, Buffer>): Promise<Record<string, string>> {
   const present: Record<string, string> = {};
   for (const path of new Set(paths)) {
+    const snapshot = engine !== undefined && isEngine(path) ? engine[path.slice(ENGINE.length + 1)] : undefined;
+    if (snapshot !== undefined) {
+      present[path] = sha256(snapshot);
+      continue;
+    }
+    // A file the snapshot does not hold was absent when it was taken; a write expecting "absent" refuses it if it appeared since.
     const what = await kind(join(root, path));
-    if (what === "file") present[path] = sha256(await readFile(join(root, path)));
-    else if (what !== "missing") present[path] = "not a file";
+    if (what === "file") {
+      if (engine === undefined) present[path] = sha256(await readFile(join(root, path)));
+    } else if (what !== "missing") present[path] = "not a file";
   }
   return present;
 }
@@ -132,7 +139,9 @@ export async function planUpgrade(root: string): Promise<PlannedUpgrade> {
   const assets: Record<string, RecordEntry> = { ...(own.record?.assets ?? {}) };
   const want = targets();
   const dropped = Object.keys(assets).filter((p) => isEngine(p) && !want.has(p));
-  const present = await presentAt(root, [...want.keys(), ...dropped]);
+  // One snapshot of the Engine is what the plan, its verification and its expectations all rest on.
+  const read = await engineFiles(root);
+  const present = await presentAt(root, [...want.keys(), ...dropped], read);
   const write: Write[] = [];
   const remove: Removal[] = [];
   const kept: Kept[] = [];
@@ -164,7 +173,6 @@ export async function planUpgrade(root: string): Promise<PlannedUpgrade> {
   }
 
   // The upgraded Engine, as it would be once applied, must verify before anything is applied.
-  const read = await engineFiles(root);
   const files = { ...read };
   for (const w of write) files[w.path.slice(ENGINE.length + 1)] = Buffer.from(w.bytes);
   for (const r of remove) delete files[r.path.slice(ENGINE.length + 1)];
