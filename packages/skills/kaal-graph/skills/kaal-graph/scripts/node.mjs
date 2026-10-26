@@ -2,12 +2,10 @@
 // A Node is a Markdown file in UTF-8: a line `---`, frontmatter, a line `---`, LF line
 // endings. Its id is the SHA-256 of its exact bytes. Pure: it touches no host.
 import { createHash } from "node:crypto";
-import { isAlias, isMap, isScalar, isSeq, parseDocument } from "yaml";
+import { isMap, isScalar } from "yaml";
+import { convert, decode, FormError, isId, isName, mappingOf } from "./form.mjs";
 
-/** Bytes that are not a Node in Form. */
-export class FormError extends Error {
-  name = "FormError";
-}
+export { FormError, isId, isName };
 
 /** SHA-256, hex, of exact bytes. No normalization of any kind. */
 export function sha256(bytes) {
@@ -19,64 +17,16 @@ export function claimsForm(bytes) {
   return Buffer.from(bytes.subarray(0, 4)).toString("utf8") === "---\n" || Buffer.from(bytes.subarray(0, 5)).toString("utf8") === "---\r\n";
 }
 
-/** A name: on one line (no line break of any kind), with no leading or trailing whitespace. */
-const NAME = /^\S(?:[^\n\r\v\f\u0085\u2028\u2029]*\S)?$/u;
-const ID = /^[0-9a-f]{64}$/;
-
-/** Whether a value is a name a Node or a reference may have. */
-export function isName(value) {
-  return typeof value === "string" && NAME.test(value);
-}
-
-/** Whether a value is a Node id: lowercase hex SHA-256. */
-export function isId(value) {
-  return typeof value === "string" && ID.test(value);
-}
-
 const NOT_IN_FORM = "not in Form: a Node begins with `---`, one YAML mapping with a `name` and optionally a `type` (`name`, `id`), and `---`, LF line endings";
 
-/** The explicit tags the Form allows: YAML 1.2's core schema, and nothing a parser could read differently. */
-const TAGS = new Set(["str", "int", "float", "bool", "null", "seq", "map"].map((t) => `tag:yaml.org,2002:${t}`));
-
 /**
- * The Kernel's Form: a line `---`, frontmatter, a line `---`, LF line endings.
- * The frontmatter is one YAML 1.2 mapping read with the core schema. Keys are
- * strings and never repeat; there are no anchors, aliases or merge keys, and
- * no tag outside the core schema. Returns the parsed mapping, with its YAML
- * nodes for the reserved fields.
+ * The Kernel's Form: a line `---`, frontmatter, a line `---`, LF line endings, read as
+ * form.mjs reads it. Returns the parsed mapping, with its YAML nodes for the reserved fields.
  */
 function frontmatterOf(text) {
-  if (!text.startsWith("---\n")) throw new FormError(NOT_IN_FORM);
-  const close = text.indexOf("\n---\n", 3);
-  if (close < 0) throw new FormError(NOT_IN_FORM);
-  const source = text.slice(4, close + 1);
-  if (source.includes("\r")) throw new FormError(NOT_IN_FORM);
-  const doc = parseDocument(source, { version: "1.2", schema: "core", uniqueKeys: true, merge: false, prettyErrors: false });
-  if (doc.errors.length || doc.warnings.length) throw new FormError(`${NOT_IN_FORM}: ${[...doc.errors, ...doc.warnings][0].message.split("\n")[0]}`);
-  if (!isMap(doc.contents)) throw new FormError(`${NOT_IN_FORM}: the frontmatter is not a mapping`);
-  const reserved = new Map(doc.contents.items.filter((p) => isScalar(p.key) && (p.key.value === "name" || p.key.value === "type")).map((p) => [p.key.value, p.value]));
-  return { frontmatter: value(doc.contents), reserved };
-}
-
-/** Convert a parsed YAML node, refusing anything outside the Form. */
-function value(n) {
-  if (isAlias(n)) throw new FormError(`${NOT_IN_FORM}: aliases are not allowed`);
-  if (n?.anchor) throw new FormError(`${NOT_IN_FORM}: anchors are not allowed`);
-  if (n?.tag && !TAGS.has(n.tag)) throw new FormError(`${NOT_IN_FORM}: the tag ${n.tag} is not allowed`);
-  if (isScalar(n)) return n.value;
-  if (isSeq(n)) return Object.freeze(n.items.map(value));
-  if (isMap(n)) {
-    const map = {};
-    for (const pair of n.items) {
-      if (!isScalar(pair.key) || typeof pair.key.value !== "string") throw new FormError(`${NOT_IN_FORM}: every key is a string`);
-      if (pair.key.value === "<<") throw new FormError(`${NOT_IN_FORM}: merge keys are not allowed`);
-      value(pair.key);
-      Object.defineProperty(map, pair.key.value, { value: pair.value === null ? null : value(pair.value), enumerable: true, writable: false, configurable: false });
-    }
-    return Object.freeze(map);
-  }
-  if (n === null) return null;
-  throw new FormError(NOT_IN_FORM);
+  const contents = mappingOf(text, NOT_IN_FORM);
+  const reserved = new Map(contents.items.filter((p) => isScalar(p.key) && (p.key.value === "name" || p.key.value === "type")).map((p) => [p.key.value, p.value]));
+  return { frontmatter: convert(contents, NOT_IN_FORM), reserved };
 }
 
 /**
@@ -92,18 +42,34 @@ function literal(n) {
 }
 
 /**
- * Read a Node's identity from its exact bytes: { id, name, type?, frontmatter },
+ * Read an ordinary Node's identity from its exact bytes: { id, name, type, frontmatter },
  * the frontmatter complete, uninterpreted beyond `name` and `type`. The identity
  * is frozen throughout, as its bytes are: nothing in it can be changed.
- * Throws a FormError if the bytes are not in Form.
+ * Throws a FormError if the bytes are not in Form, or if they declare no type:
+ * an ordinary Node references its type, and only a root declares none.
  */
 export function identify(bytes) {
-  let text;
-  try {
-    text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
-  } catch {
-    throw new FormError("not UTF-8: a Node is a Markdown file in UTF-8");
-  }
+  const node = identity(bytes);
+  if (!node.type) throw new FormError(`untyped: ${node.name} declares no type; an ordinary Node references its type, and only a root, read with identifyRoot(), declares none`);
+  return node;
+}
+
+/**
+ * Read a root Node's identity from its exact bytes, as identify() reads any
+ * Node: { id, name, frontmatter }, with no type. A root is the one Node of a
+ * foundation that declares no type, because the other Nodes' types lead back
+ * to it; which Node is a foundation's root is that foundation's owner's to
+ * decide, never Graph's. Throws a FormError if the bytes are not in Form, or
+ * if they declare a type, which makes them an ordinary Node for identify().
+ */
+export function identifyRoot(bytes) {
+  const node = identity(bytes);
+  if (node.type) throw new FormError(`not a root: ${node.name} declares a type, ${node.type.name} (${node.type.id}); read it with identify()`);
+  return node;
+}
+
+function identity(bytes) {
+  const text = decode(bytes, "not UTF-8: a Node is a Markdown file in UTF-8");
   const { frontmatter: parsed, reserved } = frontmatterOf(text);
   const name = literal(reserved.get("name"));
   if (!isName(name)) throw new FormError(`${NOT_IN_FORM}: \`name\` is a single-line string with no surrounding whitespace`);

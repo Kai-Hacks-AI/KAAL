@@ -1,8 +1,8 @@
 // Acceptance: Engineering -> Package -> Embed.
 //
 // Inspects the kaal-core tarball the Acceptance lane packed as npm would
-// publish it, installs it with its runtime dependency kaal-hosting, packed the
-// same way, into a fresh, otherwise empty host outside this repository, and
+// publish it, installs it with its runtime dependencies kaal-graph and
+// kaal-hosting, packed the same way, into a fresh, otherwise empty host outside this repository, and
 // operates the Engine there through the installed packages alone.
 import assert from "node:assert/strict";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -20,24 +20,36 @@ const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
 const EXPECTED_TARBALL = [
   "package/LICENSE",
   "package/README.md",
+  "package/dist/agent.d.ts",
+  "package/dist/agent.js",
   "package/dist/bootstrap.d.ts",
   "package/dist/bootstrap.js",
   "package/dist/cli.d.ts",
   "package/dist/cli.js",
   "package/dist/engine.d.ts",
   "package/dist/engine.js",
+  "package/dist/frontmatter.d.ts",
+  "package/dist/frontmatter.js",
   "package/dist/index.d.ts",
   "package/dist/index.js",
+  "package/dist/installation.d.ts",
+  "package/dist/installation.js",
   "package/dist/node.d.ts",
   "package/dist/node.js",
   "package/dist/payload.d.ts",
   "package/dist/payload.js",
+  "package/dist/realization.d.ts",
+  "package/dist/realization.js",
   "package/dist/register.d.ts",
   "package/dist/register.js",
+  "package/dist/sha256.d.ts",
+  "package/dist/sha256.js",
   "package/package.json",
   "package/payload/AGENTS.md",
   "package/payload/KAAL-KERNEL.md",
+  "package/payload/core/Agent-Realization.md",
   "package/payload/core/CASE.md",
+  "package/payload/core/Installation-Contract.md",
   "package/payload/core/KAAL-Agent.md",
   "package/payload/core/KAAL-Capability.md",
   "package/payload/core/KAAL-Definition.md",
@@ -98,7 +110,7 @@ let kaal;
 before(async () => {
   tarball = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"))["kaal-core"].tarball;
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-hosting"]);
+  host = await install(["kaal-core", "kaal-graph", "kaal-hosting"]);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -116,12 +128,14 @@ describe("package", () => {
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
   });
 
-  it("depends at runtime on kaal-hosting, which does not depend on kaal-core, and its pinned YAML parser", () => {
+  it("depends at runtime on kaal-graph and kaal-hosting, neither of which depends on kaal-core", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "kaal-hosting": "0.0.1", yaml: "2.9.1" });
-    const hosting = JSON.parse(readFileSync(join(host, "node_modules", "kaal-hosting", "package.json"), "utf8"));
-    for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(hosting[field]?.["kaal-core"], undefined, `kaal-hosting ${field}`);
-    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-hosting, not a copy inside kaal-core");
+    assert.deepEqual(core.dependencies, { "kaal-graph": "0.0.1", "kaal-hosting": "0.0.1" });
+    for (const dependency of ["kaal-graph", "kaal-hosting"]) {
+      const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));
+      for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `${dependency} ${field}`);
+    }
+    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-graph and one kaal-hosting, not copies inside kaal-core");
   });
 });
 
@@ -135,7 +149,7 @@ describe("embedding into a fresh host", () => {
     const engine = tree(join(host, ".kaal"));
     const carried = tree(join(host, "node_modules", "kaal-core", "payload"));
     assert.deepEqual(engine, carried);
-    assert.deepEqual(Object.keys(engine), ["AGENTS.md", "KAAL-KERNEL.md", "core/CASE.md", "core/KAAL-Agent.md", "core/KAAL-Capability.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.deepEqual(Object.keys(engine), ["AGENTS.md", "KAAL-KERNEL.md", "core/Agent-Realization.md", "core/CASE.md", "core/Installation-Contract.md", "core/KAAL-Agent.md", "core/KAAL-Capability.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
     assert.match(await run(kaal, ["init"], host), /already holds the foundation/);
   });
 
@@ -148,7 +162,7 @@ describe("embedding into a fresh host", () => {
   });
 
   it("verifies the installed Engine with deterministic identities", async () => {
-    assert.match(await run(kaal, ["verify"], host), /ok: 7 Nodes admitted/);
+    assert.match(await run(kaal, ["verify"], host), /ok: 9 Nodes admitted/);
     const ids = await run(kaal, ["identify", ...["Node", "KAAL-Definition", "KAAL-Capability", "KAAL-Agent", "KAAL-Skill", "KAAL-Extension"].map((n) => `.kaal/core/${n}.md`)], host);
     const packaged = await run(process.execPath, ["--input-type=module", "-e", "import { foundation } from 'kaal-core'; const f = foundation(); for (const r of [f.node, f.definition, f.capability, f.agent, f.skill, f.extension]) console.log(r.id);"], host);
     assert.deepEqual(ids.split("\n").filter(Boolean).map((l) => l.split("\t")[0]), packaged.split("\n").filter(Boolean));
@@ -169,7 +183,7 @@ describe("embedding into a fresh host", () => {
     assert.match(await run(kaal, ["register", "extension", "kaal-clock", ext], host), /^registered extension kaal-clock/);
     const listed = (await run(kaal, ["list"], host)).trim().split("\n").map((l) => l.split("\t"));
     assert.deepEqual(listed.map(([kind, , name]) => `${kind} ${name}`), ["skill Greeting", "extension Clock"]);
-    assert.match(await run(kaal, ["verify"], host), /ok: 9 Nodes admitted/);
+    assert.match(await run(kaal, ["verify"], host), /ok: 11 Nodes admitted/);
   });
 
   it("refuses an invalid contribution atomically", async () => {
@@ -229,7 +243,7 @@ describe("embedding into a fresh host", () => {
     for (const top of ["core", "skills", "extensions"]) rmSync(join(engine, top), { recursive: true, force: true });
     const greetingAt = moves.find((m) => m.from === "skills/kaal-greeting/Greeting.md").to;
     assert.equal(await id(`.kaal/${greetingAt}`), greetingId);
-    assert.match(await run(kaal, ["verify"], host), /ok: 9 Nodes admitted/);
+    assert.match(await run(kaal, ["verify"], host), /ok: 11 Nodes admitted/);
     assert.equal(await run(kaal, ["list"], host), listed);
     const [resolvedId, , type, paths] = (await run(kaal, ["resolve", "Greeting", greetingId], host)).trim().split("\t");
     assert.equal(resolvedId, greetingId);
@@ -255,7 +269,7 @@ describe("embedding into a fresh host", () => {
     const moved = join(mkdtempSync(join(tmpdir(), "kaal-elsewhere-")), "relocated");
     cpSync(host, moved, { recursive: true, verbatimSymlinks: true });
     const there = join(moved, "node_modules", ".bin", "kaal");
-    assert.match(await run(there, ["verify"], moved), /ok: 9 Nodes admitted/);
+    assert.match(await run(there, ["verify"], moved), /ok: 11 Nodes admitted/);
     assert.equal(await run(there, ["list"], moved), await run(kaal, ["list"], host));
     const api = await run(process.execPath, ["--input-type=module", "-e", "import { capabilities } from 'kaal-core'; console.log(JSON.stringify(await capabilities('.kaal')));"], moved);
     assert.deepEqual(JSON.parse(api).skills.map((r) => r.name), ["Greeting"]);
@@ -287,9 +301,9 @@ describe("Engine location", () => {
   async function operate(engineArg, engineDir, cwd) {
     assert.ok(!existsSync(engineDir));
     assert.match(await run(kaal, ["init", "--engine", engineArg], cwd), /bootstrapped/);
-    assert.deepEqual(Object.keys(tree(engineDir)), ["AGENTS.md", "KAAL-KERNEL.md", "core/CASE.md", "core/KAAL-Agent.md", "core/KAAL-Capability.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
+    assert.deepEqual(Object.keys(tree(engineDir)), ["AGENTS.md", "KAAL-KERNEL.md", "core/Agent-Realization.md", "core/CASE.md", "core/Installation-Contract.md", "core/KAAL-Agent.md", "core/KAAL-Capability.md", "core/KAAL-Definition.md", "core/KAAL-Extension.md", "core/KAAL-Skill.md", "core/Node.md"]);
     assert.equal(readFileSync(join(engineDir, "AGENTS.md"), "utf8"), packagedAgents());
-    assert.match(await run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 7 Nodes admitted/);
+    assert.match(await run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 9 Nodes admitted/);
     assert.equal(await run(kaal, ["list", "--engine", engineArg], cwd), "");
     const source = contribution(join(work, `contrib-${basename(engineDir)}`), "Located");
     assert.match(await run(kaal, ["register", "skill", "located", source, "--engine", engineArg], cwd), /^registered skill located/);
@@ -303,7 +317,7 @@ describe("Engine location", () => {
     assert.deepEqual(tree(engineDir), before);
     assert.match(await run(kaal, ["init", "--engine", engineArg], cwd), /already holds the foundation/);
     assert.deepEqual(tree(engineDir), before);
-    assert.match(await run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 8 Nodes admitted/);
+    assert.match(await run(kaal, ["verify", "--engine", engineArg], cwd), /ok: 10 Nodes admitted/);
     // The default Engine was never touched.
     assert.deepEqual(tree(join(host, ".kaal")), defaultEngine);
   }
@@ -327,7 +341,7 @@ describe("Engine location", () => {
     const ino = statSync(dir).ino;
     assert.match(await run(kaal, ["init", "--engine", "."], dir), /bootstrapped/);
     assert.equal(statSync(dir).ino, ino);
-    assert.match(await run(kaal, ["verify", "--engine", "."], dir), /^ok: 7 Nodes admitted/);
+    assert.match(await run(kaal, ["verify", "--engine", "."], dir), /^ok: 9 Nodes admitted/);
     assert.deepEqual(tree(dir), tree(join(host, "node_modules", "kaal-core", "payload")));
   });
 
