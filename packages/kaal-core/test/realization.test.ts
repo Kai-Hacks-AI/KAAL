@@ -2,7 +2,7 @@
 // with the Capability's record kept as core/C10 planned it (core/F33–core/F37).
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import gfs from "graceful-fs";
@@ -66,6 +66,17 @@ describe("Hosting application (core/C13)", () => {
     assert.deepEqual(again.records, []);
     assert.ok(again.outcomes.every((o) => o.outcome === "unchanged"));
     assert.ok(again.outcomes.some((o) => o.path === CORE_RECORD), "Core's record is guarded even when it does not change");
+  });
+
+  it("keeps the Engine files Core's own lifecycle recorded in the one Core record, neither planning nor pruning them (core/A21)", async () => {
+    const kernel = Buffer.from("an Engine file\n");
+    const engine = { ".kaal/KAAL-KERNEL.md": { sha256: sha(kernel), version: "0.0.0" } };
+    const root = repo({ ".kaal/KAAL-KERNEL.md": kernel, [CORE_RECORD]: JSON.stringify({ assets: engine }) });
+    await realizeIn(root, { skills: [SKILL] });
+    assert.deepEqual(at(root, ".kaal/KAAL-KERNEL.md"), kernel, "the Engine file is not pruned");
+    assert.deepEqual(json(root, CORE_RECORD).assets[".kaal/KAAL-KERNEL.md"], engine[".kaal/KAAL-KERNEL.md"], "its entry is kept as recorded");
+    assert.ok(json(root, CORE_RECORD).assets[".agents/skills/sample/SKILL.md"], "the deployment is recorded beside it");
+    assert.deepEqual(readdirSync(join(root, ".kaal/state/core")), ["installation.json"], "one Core record, and no other");
   });
 
   it("registers the canonical asset it writes in the Capability's record, keeps the Capability's members, and records only provider deployments as Core's", async () => {
