@@ -6,7 +6,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { kind, read, readFile, reconcile, type Expectation, type Reconciliation, type Removal, type Write } from "kaal-hosting";
-import { check } from "./bootstrap.js";
+import { bootstrapWith, check } from "./bootstrap.js";
 import { checkContract, register, type InstallationRecord, type RecordEntry } from "./installation.js";
 import { KaalError } from "./node.js";
 import { payload } from "./payload.js";
@@ -74,17 +74,15 @@ export interface Kept {
 }
 
 /**
- * Register the Engine files `init` just wrote in Core's record, with the contract's version
- * (core/F43). Only targets that hold exactly the contract's bytes are registered.
+ * Bootstrap the Engine at `./.kaal` of `root` with Core's record in the same Hosting `initialize`
+ * (core/F43, core/N12): every payload file is registered with the contract's version and the
+ * digest of the bytes published, and the Engine and its record appear together or not at all.
+ * An Engine that already verifies is left unchanged. Returns the paths written, under the Engine.
  */
-export async function recordInstallation(root: string): Promise<void> {
-  const own = await readRecord(root, RECORD);
-  const want = targets();
-  const present = await presentAt(root, want.keys());
-  const written = Object.fromEntries([...want].filter(([t, bytes]) => present[t] === sha256(bytes)).map(([t]) => [t, present[t]]));
-  if (Object.keys(written).length === 0) return;
-  const next = register({ contract: CONTRACT, record: own.record, written });
-  await reconcile(root, { write: [{ path: RECORD, expect: own.expect, bytes: json(next) }], remove: [] });
+export async function initEngine(root: string): Promise<string[]> {
+  const written = Object.fromEntries([...targets()].map(([target, bytes]) => [target, sha256(bytes)]));
+  const record = json(register({ contract: CONTRACT, record: undefined, written }));
+  return bootstrapWith(join(root, ENGINE), { [RECORD.slice(ENGINE.length + 1)]: record });
 }
 
 /** What `version` reports: the kaal-core that runs, and the versions Core's record holds for the Engine's files. */

@@ -4,7 +4,7 @@ import { Graph } from "kaal-graph";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
-import { CORE_VERSION, ENGINE, recordInstallation, remove, upgrade, versions, type Applied } from "./lifecycle.js";
+import { CORE_VERSION, ENGINE, initEngine, remove, upgrade, versions, type Applied } from "./lifecycle.js";
 import { FormError, KaalError, readNode } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
@@ -43,12 +43,8 @@ async function main(argv: string[]): Promise<number> {
   const [command, ...rest] = args;
   switch (command) {
     case "init": {
-      const written = await bootstrap(engine);
-      if (written.length > 0 && recorded)
-        await recordInstallation(process.cwd()).catch((e: unknown) => {
-          // The Engine is in place but unrecorded; `upgrade` adopts it from the catalogue (core/F44).
-          throw new KaalError(`${engine} was bootstrapped, but Core's record could not be written: ${e instanceof Error ? e.message : String(e)}\nrun \`kaal upgrade\` to record it`);
-        });
+      // At ./.kaal the Engine and Core's record are published together (core/F43); elsewhere there is no record (core/F46).
+      const written = recorded ? await initEngine(process.cwd()) : await bootstrap(engine);
       console.log(written.length ? `bootstrapped ${engine} (${written.length} files written)` : `${engine} already holds the foundation`);
       const v = await verify(engine);
       for (const p of v.problems) console.error(p);
