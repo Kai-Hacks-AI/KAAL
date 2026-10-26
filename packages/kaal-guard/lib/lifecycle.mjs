@@ -187,7 +187,7 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
   const missing = uncovered(list, mine);
   if (missing.length) {
     todo.push(`No workflow job runs these ci checks, and Guard does not run them in CI on its own. Give a job of your own workflow a step for each:`, ...missing.map((name) => `  ${step(name, config)}`));
-    if (!activated.has("ci") && !own.length) todo.push("  or run kaal-guard init --ci to install Guard's workflow, which runs every ci check in one job and kaal-guard verify.");
+    if (!activated.has("ci") && !own.length) todo.push("  or run kaal-guard init --ci to install Guard's workflow, whose two jobs, Guard and Guard checks, run kaal-guard verify and every ci check.");
   }
   if (!mine.some((d) => d.verify) && Object.values(list.checks).some((c) => c.runs.includes("ci"))) {
     todo.push(`No workflow job runs kaal-guard verify, which shows that a job declares each ci check. Give a job the step:`, `  - run: npx --no kaal-guard verify --config ${config} --github`);

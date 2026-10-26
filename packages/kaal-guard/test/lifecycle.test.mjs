@@ -232,6 +232,9 @@ describe("lifecycle", () => {
     assert.deepEqual(Object.keys(readRecord(dir).assets), [SKILL_ATTRIBUTES, SKILL]);
     assert.match(out, /The hook is not activated\. Run kaal-guard init --hook/);
     assert.match(out, /or run kaal-guard init --ci/);
+    // Guard's workflow has two jobs, Guard and Guard checks (guard/C88, guard/C93).
+    assert.match(out, /or run kaal-guard init --ci to install Guard's workflow, whose two jobs, Guard and Guard checks, run kaal-guard verify and every ci check\./);
+    assert.doesNotMatch(out, /in one job/);
   });
 
   it("plain init reinstalls no surface, and lists a registered surface file the repository no longer has under still to do", () => {
