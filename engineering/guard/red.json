@@ -2,34 +2,10 @@
   "collector": "kaal/guard",
   "entries": [
     {
-      "test": "guard/T94",
-      "class": "Feature RED",
-      "until": "guard/C79",
-      "authority": "the Owner's review 5653679753 on #454"
-    },
-    {
-      "test": "guard/T95",
-      "class": "Feature RED",
-      "until": "guard/C79",
-      "authority": "the Owner's review 5653679753 on #454"
-    },
-    {
-      "test": "guard/T96",
-      "class": "Feature RED",
-      "until": "guard/C79",
-      "authority": "the Owner's review 5653679753 on #454"
-    },
-    {
       "test": "guard/T98",
       "class": "Feature RED",
       "until": "guard/C86",
       "authority": "the Owner's review 5653679753 on #454; moved to guard/C86 in guard/C84"
-    },
-    {
-      "test": "guard/T99",
-      "class": "Feature RED",
-      "until": "guard/C79",
-      "authority": "the Owner's review 5654346996 on #458"
     }
   ]
 }
