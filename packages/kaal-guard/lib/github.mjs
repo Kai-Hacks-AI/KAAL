@@ -41,12 +41,15 @@ export function summarize(results, file, reminder) {
  * `npx --no kaal-guard run` with `--check <name>`. `--check ${{ matrix.check }}` declares each check
  * the job lists on a line of its own as `- { check: <name>, … }`. `run --ci` declares every ci check:
  * the consumer's one assignment of all of them to that job, as in the workflow init --ci installs (F17).
- * Names are plain words. Nothing else declares anything: verify infers nothing from scripts or other
- * YAML, and Guard never fills in a check no job declares.
+ * Names are plain words. The invocation is the whole line: each further argument is a word, plain or
+ * quoted, with no shell operator and no GitHub expression, so the step's exit status is Guard's. Nothing
+ * else declares anything: verify infers nothing from scripts or other YAML, and Guard never fills in a
+ * check no job declares.
  */
-const INVOCATION = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run(?: \S+)*? --check (\$\{\{ matrix\.check \}\}|[^\s"'{}$,#]+)(?: |$)/;
+const ARG = String.raw`(?:[^\s"'\\;&|<>()\`#{}]|"(?:[^"\\\`$]|\$(?!\{))*"|'[^']*')+`;
+const INVOCATION = new RegExp(String.raw`^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run(?: ${ARG})*? --check (\$\{\{ matrix\.check \}\}|[^\s"'{}$,#]+)(?: ${ARG})*$`);
 const ENTRY = /^- \{ ?check: ([^\s"'{}$,#]+) ?[,}]/;
-const EVERY = /^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run --ci(?: |$)/;
+const EVERY = new RegExp(String.raw`^(?:- )?run: (?:npx (?:--no )?)?kaal-guard run --ci(?: ${ARG})*$`);
 
 /** Each job under `jobs:`, as its key and its trimmed lines, without blank or comment lines. */
 function jobs(text) {

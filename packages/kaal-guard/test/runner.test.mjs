@@ -1,7 +1,7 @@
 // Inner Code tests of the runner, commands, trusted checkers and GitHub reporting. They evolve with the code, test first.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -163,6 +163,22 @@ describe("trusted checker", () => {
     assert.match(verdict(dir, base).evidence, /does not name its trusted checker/);
   });
 
+  it("guard/T100 [guard/F7, guard/N4]: a candidate that changes a trusted check's runs so it leaves the surface being run is cannot judge there, and its checker never runs", () => {
+    for (const [surface, from, to] of [["ci", ["ci"], ["hook"]], ["hook", ["hook", "ci"], ["ci"]]]) {
+      const checker = (status) => `require("fs").writeFileSync("judge-ran", ""); process.exit(${status});\n`;
+      const { dir, base, git } = based({ j: { command: "node checks/judge.cjs", runs: from, trusted: "checks/judge.cjs" } }, { "checks/judge.cjs": checker(1) });
+      writeFileSync(join(dir, CONFIG, "j.md"), declare({ command: "node checks/judge.cjs", runs: to, trusted: "checks/judge.cjs" }));
+      write(dir, "checks/judge.cjs", checker(0));
+      git("commit", "-qam", `candidate moves j off ${surface}`);
+      const { results } = run(dir, declared(dir), { [surface]: true }, { base }, join(dir, CONFIG));
+      const j = results.find((r) => r.name === "j");
+      assert.equal(j?.verdict, "cannot judge", `${surface}: ${JSON.stringify(results)}`);
+      assert.match(j.evidence, /the candidate changes it/, surface);
+      assert.equal(status(results), 2, surface);
+      assert.ok(!existsSync(join(dir, "judge-ran")), `${surface}: a checker ran for a declaration the candidate changed`);
+    }
+  });
+
 });
 
 describe("GitHub reporting", () => {
@@ -232,6 +248,25 @@ describe("verify", () => {
     const checks = Object.fromEntries(["named", "env", "echoed", "quoted", "other", "scripted", "chained", "commented", "top"].map((n) => [n, ci]));
     assert.ok(Object.values(verdicts(checks, { "ci.yml": top })).every((v) => v === "fail"));
     assert.deepEqual(verdicts({ any: ci }, {}), { any: "fail" });
+  });
+
+  it("reads only a whole-line invocation: anything after it that could change the step's exit status declares nothing", () => {
+    const masked = ["|| true", "; true", "&& true", "| tee guard.log", "&", "${{ inputs.extra }}", "\"${{ inputs.extra }}\""];
+    const checks = Object.fromEntries(masked.map((_, i) => [`m${i}`, ci]));
+    const wf = job("steps:", ...masked.map((tail, i) => `  - run: npx --no kaal-guard run --check m${i} --github ${tail}`));
+    assert.deepEqual(verdicts(checks, { "ci.yml": wf }), Object.fromEntries(masked.map((_, i) => [`m${i}`, "fail"])));
+    for (const tail of ["|| true", "; true", "&"]) {
+      assert.deepEqual(verdicts({ every: ci }, { "ci.yml": job("steps:", `  - run: npx --no kaal-guard run --ci --github ${tail}`) }), { every: "fail" }, `run --ci ${tail}`);
+    }
+    // Further arguments, quoted or not, keep the step Guard's: its exit status is still Guard's.
+    const args = job(
+      "steps:",
+      '  - run: npx --no kaal-guard run --check a --github --head "$HEAD" --base "$(git rev-parse HEAD)" --base-ref "$BASE_REF"',
+      "  - run: kaal-guard run --config .kaal/config/guard --check b --changed '/tmp/changed'",
+    );
+    assert.deepEqual(verdicts({ a: ci, b: ci }, { "ci.yml": args }), { a: "pass", b: "pass" });
+    const every = job("steps:", '  - run: npx --no kaal-guard run --ci --config .kaal/config/guard --github --head "$HEAD" --changed "$RUNNER_TEMP/changed"');
+    assert.deepEqual(verdicts({ c: ci }, { "ci.yml": every }), { c: "pass" });
   });
 
   it("claims declared integration only, never that GitHub ran or requires the job", () => {
