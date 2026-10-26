@@ -235,6 +235,12 @@ guard/D16 and guard/D17 are suspected defects in the published `0.0.2`, found by
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
+guard/D18 is a suspected defect in `0.0.3` before its Release, found by the pre-release review on 2026-10-26 (`guard/C91`; its evidence is kept in the project, not here). guard/T100 is an inner Code test in `packages/kaal-guard/test/runner.test.mjs`, not a boundary test: with the lane removed (#501), a RED Test Case can no longer land in the boundary on its own. guard/D18 is established only when guard/T100 is recorded RED on the uncorrected runner in `guard/C92`'s pull request.
+
+| Defect | Traces to | Gap | Status |
+| --- | --- | --- | --- |
+| guard/D18 | guard/T100 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so it no longer names that surface removes the check from the run, unjudged, and the run can pass | suspected (`guard/C91`) |
+
 **Compatibility with `0.0.1` retracted.** The Owner ruled on #336 (6384215003) that `0.0.2` may break `0.0.1`, with no migration, no dual format and no rollback to it. The consumer Test Cases written against `0.0.1` are reassessed under `guard/C23`, and their K2b evidence stays recorded above:
 - **guard/T37, guard/T38, guard/T39 and guard/T41** run an upgrade or a rollback between `0.0.1` and a candidate, a path `0.0.2` no longer offers. Their obligations (guard/F12–guard/F14 and guard/F16) still hold from `0.0.2` on. They are superseded by guard/T65–guard/T68, which run between two candidates of the planned configuration. `guard/C24` writes them, and the harness builds the two candidates.
 - **guard/D1 and guard/D2** stay established on their K2b evidence. They are defects in the lifecycle's rules, not in `0.0.1`'s format. Their trace moves to guard/T66 and guard/T67 once those tests are recorded RED.
