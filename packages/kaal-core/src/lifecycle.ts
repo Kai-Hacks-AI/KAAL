@@ -142,8 +142,7 @@ export async function upgrade(root: string): Promise<Applied> {
   }
 
   // The upgraded Engine, as it would be once applied, must verify before anything is applied.
-  const before = await engineFiles(root);
-  const files = { ...before };
+  const files = await engineFiles(root);
   for (const w of write) files[w.path.slice(ENGINE.length + 1)] = Buffer.from(w.bytes);
   for (const r of remove) delete files[r.path.slice(ENGINE.length + 1)];
   const verified = check(files);
@@ -152,14 +151,12 @@ export async function upgrade(root: string): Promise<Applied> {
   const next: InstallationRecord = own.record === undefined ? { assets } : { ...own.record, assets };
   const changed = JSON.stringify(next) !== JSON.stringify(own.record);
   if (write.length === 0 && remove.length === 0 && !changed) return { written: [], removed: [], kept };
+  // Every file this upgrade writes or removes, and Core's record, is guarded as it was read, so a
+  // concurrent Core step is refused. A file it leaves untouched is not guarded: Hosting guards only
+  // by rewriting, which would drop an executable mark Core cannot read, so a file another writer
+  // changes between the read and the reconciliation is not detected.
   write.push({ path: RECORD, expect: own.expect, bytes: json(next) });
-  // The verification and the plan rest on every Engine file read, so each one this upgrade does
-  // not change is guarded as it was read: rewritten with its own bytes, refused if it changed.
-  const touched = new Set([...write, ...remove].map((e) => e.path));
-  const guards: Write[] = Object.entries(before)
-    .map(([path, bytes]) => ({ path: `${ENGINE}/${path}`, expect: sha256(bytes), bytes }))
-    .filter((g) => !touched.has(g.path));
-  await reconcile(root, { write: [...write, ...guards], remove });
+  await reconcile(root, { write, remove });
   return { written: write.map((w) => w.path).filter((p) => p !== RECORD), removed: remove.map((r) => r.path), kept };
 }
 
