@@ -11,6 +11,22 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./frontmatter": {
+      "types": "./dist/frontmatter.d.ts",
+      "default": "./dist/frontmatter.js"
+    },
+    "./installation": {
+      "types": "./dist/installation.d.ts",
+      "default": "./dist/installation.js"
+    },
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "default": "./dist/agent.js"
+    },
+    "./realization": {
+      "types": "./dist/realization.d.ts",
+      "default": "./dist/realization.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -23,7 +39,7 @@
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js",
+    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js dist-test/frontmatter.test.js dist-test/installation.test.js dist-test/admission.test.js dist-test/realization.test.js test/plan/frontmatter.test.mjs test/plan/installation.test.mjs test/plan/admission.test.mjs test/plan/record.test.mjs",
     "test:boundary": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/boundary.test.js",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build",
     "bench": "npm run build && node bench/admission.mjs"
@@ -36,7 +52,9 @@
     "kaal-hosting": "0.0.1"
   },
   "devDependencies": {
+    "@types/graceful-fs": "^4.1.9",
     "@types/node": "^24.0.0",
+    "graceful-fs": "^4.2.11",
     "typescript": "^5.6.0"
   }
 }
