@@ -9,9 +9,11 @@ This is `architecture/C2`, a PLAN Change. It ships no code and no test file. It 
 | Lifecycle | `npm install` and `kaal register` add it. There is no installer-neutral statement of what an installation is, so nothing can upgrade or remove it | no Installation Contract instance |
 | Ownership | the package is claimed by name and id. The Node bounds Architecture against Engineering and Testing | `Architecture` is typed `KAAL Skill`, but it is a responsibility that overlaps no other, which Core defines as a `KAAL Capability`. Its boundary with Requirements is not stated |
 | Verification | its own unit tests, and an Acceptance scenario that installs the packed package | nothing checks the package against Core's Installation Contract or Agent Realization |
-| Encapsulation | consumers see two Nodes and an Agent Skill. The package exports nothing else | the Agent Skill is not a canonical source Core can render for an agent (no `## Description`) |
+| Encapsulation | consumers see two Nodes and an Agent Skill. The package exports nothing else | nothing checks that an agent receives the Agent Skill as the package ships it |
 
 **The Owner's decision on the type (#274, 2026-10-26): option (a).** Architecture owns architectural decisions and their grounds, so it is a `KAAL Capability`, with its own Capability identity and ownership claim. It is retyped in this LOVE path, in `architecture/C5`, and `architecture/C1` stays as scoped. The Agent Skill stays a distinct, consumable instruction surface, and `URBAN` stays a Definition. Nothing here authorizes packaging or publication.
+
+**Amended in `architecture/C7` (the Owner's review on #485, 2026-10-26).** Engineer Skill owns the Skill format and how `SKILL.md` is read, and Core deploys a Skill's files with the bytes the Capability ships. Architecture owns its canonical Agent Skill and its Installation Contract, not a Core-rendered variant, so its catalogue holds the shipped bytes once.
 
 - **architecture/I1.** Any installer that realizes Architecture's Installation Contract, Core or another, can install, upgrade and remove it, and every installation states its version.
 - **architecture/I2.** Architecture is one Capability whose responsibility overlaps no other: it decides and grounds, Requirements states what must hold, Engineering realizes, and Testing designs the tests and judges their evidence.
