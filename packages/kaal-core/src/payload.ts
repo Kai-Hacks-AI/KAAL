@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { read } from "kaal-hosting";
-import { claimsForm, identify, sha256, type Ref } from "./node.js";
+import { claimsForm, identify, identifyRoot, sha256, type Ref } from "./node.js";
 
 export type Files = Record<string, Buffer>;
 
@@ -34,6 +34,9 @@ export interface Foundation {
   extension: Ref;
 }
 
+/** The genesis Node `Node`: the foundation's one root, which declares no type. */
+const GENESIS = "core/Node.md";
+
 let cached: Foundation | undefined;
 
 /** The identities of the foundation, derived from the payload's exact bytes. */
@@ -42,7 +45,7 @@ export function foundation(): Foundation {
   const files = payload();
   const nodes = Object.entries(files)
     .filter(([, bytes]) => claimsForm(bytes))
-    .map(([, bytes]) => identify(bytes));
+    .map(([path, bytes]) => (path === GENESIS ? identifyRoot : identify)(bytes));
   const ref = (name: string): Ref => {
     const found = nodes.filter((n) => n.name === name);
     if (found.length !== 1) throw new Error(`payload carries ${found.length} Nodes named ${name}`);
