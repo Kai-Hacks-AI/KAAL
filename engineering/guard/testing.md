@@ -280,6 +280,6 @@ The consumer upgrade tests need the npm registry and sit outside the required jo
 ```sh
 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
 GUARD_CANDIDATE=registry:<version> node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
-GUARD_CANDIDATES=registry:<older>,packed node --test --test-concurrency=1 engineering/guard/acceptance/plan/consumer/*.test.mjs
-GUARD_CANDIDATES=registry:<older>,registry:<newer> node --test --test-concurrency=1 engineering/guard/acceptance/plan/consumer/*.test.mjs
+GUARD_CANDIDATES=registry:<older>,packed node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+GUARD_CANDIDATES=registry:<older>,registry:<newer> node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
 ```
