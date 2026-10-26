@@ -47,7 +47,7 @@ jobs:
           node-version: 24
       - run: npm install --global "npm@$NPM_VERSION"
       - run: npm ci
-      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/acceptance/plan/*.test.mjs
+      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs
       - name: The version is not on npm yet
         working-directory: packages/kaal-guard
         run: |
