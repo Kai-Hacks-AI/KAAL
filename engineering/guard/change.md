@@ -167,6 +167,22 @@ The Owner set this boundary in Slack (#kaal, 2026-10-24); this section is its du
 
 **`0.0.3` hardening candidate.** `guard/C26` (Issue #340) coordinates Test Case integrity and registration with Testing (evidence semantics), Sealing (cryptographic integrity), Change (the accepted PLAN baseline) and Change Isolation (authorization). Guard invokes and reports; it neither duplicates their ownership nor re-baselines silently. It is outside the `0.0.2` critical path, and nothing in `guard/C19` or `guard/C20` depends on it.
 
+### 0.0.3
+
+A review of the published `0.0.2` on 2026-10-26 found five gaps; `guard/C76` plans their correction. The Owner chose that Guard detects and refuses a candidate that changes a trusted check's declaration (guard/D16, `guard/C79`), and that the README states the boundary that remains. guard/D17, the package's `npm test` running the retired suite, is corrected by `guard/C31`, which makes the planned suite the package's own. The lane's planned removal (`guard/C32`–`guard/C34`) follows. The three documentation gaps go to `guard/C80`. `guard/C26` (Issue #340) remains the `0.0.3` hardening candidate and is decided on its own.
+
+**Scope of the `0.0.3` path (the Owner on #454, review 5653361664).** `guard/C31`–`guard/C34`, the planned suite's promotion and the transitional lane's removal, are on the `0.0.3` path. `guard/C26` (Issue #340) is a separately authorized hardening candidate: `guard/C79` takes none of its responsibilities, and neither `guard/C81` nor `guard/C83` depends on it. `guard/C18` stays proposed and unauthorized and gates nothing. Guard owns its behaviour and its Test Cases; Testing owns what `packed` and `registry` evidence mean, Sealing owns cryptographic integrity and Change Isolation owns authorization, and Guard implements none of them.
+
+**Publication and release acceptance of `0.0.3`.** guard/T65–guard/T68 need two published versions of the same configuration line, so they could not gate `0.0.2` ([below](#first-release-and-later-upgrades)). `0.0.3` is the first version with a published predecessor in the line, so it is the first that can establish their `registry` evidence. Three kinds of evidence are kept apart, and publication never depends on evidence that only publication can produce:
+
+| | Evidence | When | What it decides |
+| --- | --- | --- | --- |
+| (a) | `packed`, simulated (guard/N9): guard/T65–guard/T68 between two `packed` candidates, as since `guard/C25`; and between the published `0.0.2` from the registry as the older and the packed `0.0.3` candidate as the newer (`guard/C82`), after `guard/C81`'s version bump | before publication | whether Guard Release may be dispatched for `0.0.3` (`guard/C81`) |
+| (b) | `registry`: guard/T65–guard/T68 between the published `0.0.2` and the published `0.0.3`, both installed from the registry (`guard/C82`) | after publication | nothing on its own; it is the evidence (c) reads |
+| (c) | Release acceptance (`guard/C83`): guard/T65–guard/T68 GREEN with (b) | after publication | only then is `0.0.3` accepted |
+
+The Test Cases and their assertions stay as they are. They show movement only when the newer version's managed workflow differs from the older one's, the newer manages a hook-surface asset the older lacks (guard/T66), and the newer's catalogue holds the older's content. A pair that does not meet this is blocked before its behavioural assertion: never GREEN, so it cannot accept `0.0.3`. The mixed pair in (a) shows before publication whether `0.0.3` meets it. If it does not, Guard Release is not dispatched for `0.0.3` until the Owner decides, and no asset is added only to make these tests observable.
+
 ### First release and later upgrades
 
 Accepting the first published `0.0.2` must not wait on a version that does not exist yet. The consumer Test Cases split by how many published versions they need (restated in `guard/C30`):
@@ -177,7 +193,7 @@ Accepting the first published `0.0.2` must not wait on a version that does not e
 | guard/T40 | `0.0.1` and the published `0.0.2`: `0.0.1`'s `guard.json` is refused with the fresh setup as the next step | gates |
 | guard/T43 | the published `0.0.2` on KAAL | gates |
 | guard/T64 | the published `0.0.2` | gates |
-| guard/T65–guard/T68 | two published versions of the `0.0.2` line | does not gate. Before `guard/C20` they have `packed` evidence between two simulated candidates (guard/N9). Their `registry` evidence gates the Release acceptance of the next published version, the first one that has a published predecessor in the line |
+| guard/T65–guard/T68 | two published versions of the `0.0.2` line | does not gate. Before `guard/C20` they have `packed` evidence between two simulated candidates (guard/N9). Their `registry` evidence gates the Release acceptance of the next published version, the first one that has a published predecessor in the line: `0.0.3`, in `guard/C83` ([Publication and release acceptance of `0.0.3`](#003)) |
 
 The package's outer tests (guard/T1–guard/T35 and guard/T61–guard/T73) stay GREEN on Linux, macOS and Windows against the packed release candidate before `guard/C19`, as for every Release. No evidence is dropped: each test keeps its trace, and its `packed` evidence is recorded as simulated.
 
@@ -230,6 +246,15 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C72` | — | Guard | `engineering/guard/red.json` registers guard/T93 as a Feature RED until `guard/C74`, before it is written | `guard/C71` | not created |
 | `guard/C73` | — | Guard | guard/T93 written in the boundary and recorded RED, establishing guard/D15. It travels alone | `guard/C72` | not created |
 | `guard/C74` | guard/D15 | Guard | The External delivery's workflow: pinned current actions, expressions through `env:` | `guard/C73` | not created |
+| `guard/C75` | — | Guard | Guard Release's Pack job tests `0.0.2` with the planned package suite, not the retired `0.0.1` one, found when dispatching `guard/C19`. `.github` only | `guard/C70` | #452, merged; promoted in #453 |
+| `guard/C76` | — | Guard | PLAN from the review of the published `0.0.2` (the Owner's choice of 2026-10-26: detect and refuse): guard/F7 and guard/N6 amended, and the README's statements; guard/T94–guard/T98 planned; guard/D16 and guard/D17 suspected; publication of `0.0.3` kept apart from its release acceptance, which guard/T65–guard/T68's `registry` evidence gates (`guard/C82`, `guard/C83`). No code and no test file | `guard/C19` | not created |
+| `guard/C77` | — | Guard | `engineering/guard/red.json` registers guard/T94–guard/T96 until `guard/C79`, and guard/T98 until `guard/C31`, before they are written | `guard/C76` | not created |
+| `guard/C78` | — | Guard | guard/T94–guard/T98 written in the boundary and recorded RED, establishing guard/D16 and guard/D17. It travels alone | `guard/C77` | not created |
+| `guard/C79` | guard/D16 | Guard | The runner judges a trusted check's declaration from the base: a changed or absent one is cannot judge | `guard/C78` | not created |
+| `guard/C80` | — | Guard | The README: what `trusted` guards and the review rule it needs, the hook's working tree, Guard's two jobs, CI on the merge commit; the `0.0.3` release notes | `guard/C79`, `guard/C31` | not created |
+| `guard/C81` | — | Guard | The `0.0.3` version in `package.json` and `contract.json`, then the promotion of kaal/guard to `main` and Guard Release. Guard Release is dispatched only once evidence (a) of [`0.0.3`](#003) is recorded, the mixed pair included | `guard/C80`, `guard/C20`, `guard/C31`–`guard/C34`, `guard/C82` | not created |
+| `guard/C82` | — | Guard | The guard/A12 harness's `candidates()` builds its pair from two named sources as well as from two `packed` candidates: the published `0.0.2` and the packed candidate, or two published versions, each recorded with its source (guard/N9). Harness only: no Test Case or assertion changes | `guard/C76` | not created |
+| `guard/C83` | — | Guard | Release acceptance of `0.0.3`: guard/T65–guard/T68 GREEN with `registry` evidence between the published `0.0.2` and `0.0.3`. Recorded after publication; `0.0.3` is accepted only then | `guard/C81` (the publication of `0.0.3`), `guard/C82` | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C10`, `guard/C25` for `guard/C9` and `guard/C11`, `guard/C15`–`guard/C17`, `guard/C51`, `guard/C64`–`guard/C70`, `guard/C74`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance of `0.0.2`: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 with `registry` evidence for the published `0.0.2`. guard/T65–guard/T68 do not gate it (restated in `guard/C30`) | `guard/C19`, `guard/C37` | not created |
