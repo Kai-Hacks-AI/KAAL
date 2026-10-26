@@ -234,6 +234,25 @@ describe("verify", () => {
     assert.deepEqual(verdicts({ any: ci }, {}), { any: "fail" });
   });
 
+  it("reads only a whole-line invocation: anything after it that could change the step's exit status declares nothing", () => {
+    const masked = ["|| true", "; true", "&& true", "| tee guard.log", "&", "${{ inputs.extra }}", "\"${{ inputs.extra }}\""];
+    const checks = Object.fromEntries(masked.map((_, i) => [`m${i}`, ci]));
+    const wf = job("steps:", ...masked.map((tail, i) => `  - run: npx --no kaal-guard run --check m${i} --github ${tail}`));
+    assert.deepEqual(verdicts(checks, { "ci.yml": wf }), Object.fromEntries(masked.map((_, i) => [`m${i}`, "fail"])));
+    for (const tail of ["|| true", "; true", "&"]) {
+      assert.deepEqual(verdicts({ every: ci }, { "ci.yml": job("steps:", `  - run: npx --no kaal-guard run --ci --github ${tail}`) }), { every: "fail" }, `run --ci ${tail}`);
+    }
+    // Further arguments, quoted or not, keep the step Guard's: its exit status is still Guard's.
+    const args = job(
+      "steps:",
+      '  - run: npx --no kaal-guard run --check a --github --head "$HEAD" --base "$(git rev-parse HEAD)" --base-ref "$BASE_REF"',
+      "  - run: kaal-guard run --config .kaal/config/guard --check b --changed '/tmp/changed'",
+    );
+    assert.deepEqual(verdicts({ a: ci, b: ci }, { "ci.yml": args }), { a: "pass", b: "pass" });
+    const every = job("steps:", '  - run: npx --no kaal-guard run --ci --config .kaal/config/guard --github --head "$HEAD" --changed "$RUNNER_TEMP/changed"');
+    assert.deepEqual(verdicts({ c: ci }, { "ci.yml": every }), { c: "pass" });
+  });
+
   it("claims declared integration only, never that GitHub ran or requires the job", () => {
     const r = verified({ c: ci }, { "ci.yml": job("if: false", "steps:", "  - if: false", "    run: npx kaal-guard run --check c") }).c;
     assert.equal(r.verdict, "pass");
