@@ -11,6 +11,8 @@ lib/coverage.mjs                       execution and evidence: kaal-testing/cove
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
 lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
 lib/contracts.mjs                      contract evidence: kaal-testing/contracts
+lib/reporter.mjs                       the runner reporter accept() observes tests through
+lib/observed.mjs                       what accept() observed, kept private to the process
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 evidence.kaal.json                     Testing's own contract evidence mapping (repository data, not delivered)
 ```
@@ -53,6 +55,7 @@ Which workspaces exist, building them and which files they deliver are packaging
   - a scenario that installed nothing;
   - a host whose record cannot be read;
   - a failed scenario run.
+- **Observed tests:** `tests` lists each test the runner executed, as Testing's own reporter saw it: `{ file, sha256, test, outcome }`, with the scenario's path relative to `cwd`, its bytes as run, its full suite path, and pass, fail, skip or todo. Only the object `accept` returned is an observed run, and only in the process that ran it: what it observed is kept privately, so a copy, a changed field or a run read back from disk is a claim, not an observation.
 - **Unknowns:** two things stay unknown, never passed:
   - whether the hosts lie physically outside the repository, until Hosting offers a portable containment contract;
   - installations a scenario makes without `install()`.
@@ -108,9 +111,11 @@ Which files exist is the caller's answer. The count says how much text is tracke
 
 - **Mechanical facts:** the statement is present verbatim, and each test file holds its pinned bytes.
 - **Judgment:** the inference is "proposed, not reviewed". A review record in the mapping is the owner's own claim, so it is reported as declared, not verified, and as stale once a pin changes.
-- **Unknown, never a pass:** every offered test. No per-test result is accepted from any record, however exactly it names the file, its hash and the test: a record is a claim, not an observation of a run. Per-test results need a runner execution with established provenance, which does not exist yet.
+- **Observed, only from a run:** no per-test result is accepted from any record, however exactly it names the file, its hash and the test: a record is a claim. An offered acceptance test is observed only through a run `accept` returned in this process, when that run executed its file at its pinned bytes and its exact suite path, its scenario installed a packed package, and the run's provenance holds: no foreign bytes, unpacked package, host holding a package from elsewhere, shared host or unreadable host record. A failed test is a verified failure. Anything else, including a skipped test, a conformance test and every test without a run, stays unknown, with its reason.
 
-`problems(mapping, owner)` says why a mapping does not read. `classify(mapping, files)` classifies each statement, and every statement is unknown, with its reason. None is reported as met, and there is no percentage, ratio or gate. Nothing here runs a test.
+`problems(mapping, owner)` says why a mapping does not read. `classify(mapping, files, run)` classifies each statement: a verified failure when an offered test failed in the run, observed when every offered test passed in it, and otherwise unknown, with its reason. Observed says what the run showed of those tests, not that the statement holds: the inference stays a judgment. There is no percentage, ratio or gate. Nothing here runs a test.
+
+The observation does not outlive the process. A run kept on disk, or handed to another process, carries no provenance, so a durable or cross-process record of observed evidence is a separate Change.
 
 ## Boundaries
 
