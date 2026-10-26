@@ -9,6 +9,7 @@ The planned outer tests live in `packages/kaal-core/test/plan/lifecycle.test.mjs
 | core/T45: `upgrade` replaces unmodified files from an earlier version, adopts an Engine without a record, and is idempotent | core/F44, core/A21 | Requirements |
 | core/T46: `upgrade` keeps a modified file and reports it, and the upgraded Engine verifies; it refuses, changing nothing, when the result would not verify | core/F44, core/N12 | Requirements |
 | core/T47: `remove` removes only Core's unmodified files and its record, and keeps and reports everything else | core/F45, core/N12 | Requirements |
+| core/T48: an `upgrade` refuses and changes nothing when an Engine file it does not touch changes after it was read and verified; one that applies keeps an untouched file's executable mark (`core/C21`) | core/N12, core/A23 | Requirements |
 
 ## RED evidence
 
@@ -16,3 +17,5 @@ The tests run with `npm run build -w kaal-core && node --test packages/kaal-core
 
 - **core/T43 is RED, blocked before behavioural assertion.** kaal-core has no `installation.kaal.json`.
 - **core/T44, core/T45, core/T46 and core/T47 are RED on their first behavioural assertion.** `kaal init` writes no record at `.kaal/state/core/installation.json`. Behind it, `kaal version`, `kaal upgrade` and `kaal remove` are unknown commands, which exit 2 and change nothing.
+
+At `core/C21`, **core/T48 is RED, blocked before behavioural assertion.** kaal-core's built `dist/lifecycle.js` has no `planUpgrade`. core/T48 imports it directly, because the window it tests lies between Core's read and Hosting's reconciliation, and no command exposes that window. On POSIX hosts, its executable-mark assertion pins the regression Codex found on #472 at 02d61d7.
