@@ -83,7 +83,8 @@ function guarded(name, list, onBase) {
 /**
  * Runs the selected checks of the declared list in order. Returns { results }. With the fact `base` and
  * the configuration directory `dir`, the checks the base declares as trusted are judged by their base
- * declarations, and one the candidate deleted is still selected as the base declares it.
+ * declarations, and every one the base runs on this surface is selected, so one the candidate deleted, or
+ * moved off this surface, is still judged against the base.
  */
 export function run(root, list, selection, facts, dir) {
   const names = select(list, selection);
@@ -93,7 +94,7 @@ export function run(root, list, selection, facts, dir) {
   const where = selection.hook ? "hook" : "ci";
   for (const [name, check] of Object.entries(onBase.checks)) {
     if (names.includes(name)) continue;
-    if (selection.check === undefined ? check.runs.includes(where) && !list.checks[name] : selection.check === name) names.push(name);
+    if (selection.check === undefined ? check.runs.includes(where) : selection.check === name) names.push(name);
   }
   return { results: names.map((name) => guarded(name, list, onBase) ?? runCheck(root, list, name, facts)) };
 }

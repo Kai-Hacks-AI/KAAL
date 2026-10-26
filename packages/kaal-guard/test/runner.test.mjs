@@ -1,7 +1,7 @@
 // Inner Code tests of the runner, commands, trusted checkers and GitHub reporting. They evolve with the code, test first.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -161,6 +161,22 @@ describe("trusted checker", () => {
   it("is cannot judge when no word of the command names the trusted path", () => {
     const { dir, base } = based(judge("checks/judge.mjs", "node xchecks/judge.mjs"), { "checks/judge.mjs": "process.exit(0);\n" });
     assert.match(verdict(dir, base).evidence, /does not name its trusted checker/);
+  });
+
+  it("guard/T100 [guard/F7, guard/N4]: a candidate that changes a trusted check's runs so it leaves the surface being run is cannot judge there, and its checker never runs", () => {
+    for (const [surface, from, to] of [["ci", ["ci"], ["hook"]], ["hook", ["hook", "ci"], ["ci"]]]) {
+      const checker = (status) => `require("fs").writeFileSync("judge-ran", ""); process.exit(${status});\n`;
+      const { dir, base, git } = based({ j: { command: "node checks/judge.cjs", runs: from, trusted: "checks/judge.cjs" } }, { "checks/judge.cjs": checker(1) });
+      writeFileSync(join(dir, CONFIG, "j.md"), declare({ command: "node checks/judge.cjs", runs: to, trusted: "checks/judge.cjs" }));
+      write(dir, "checks/judge.cjs", checker(0));
+      git("commit", "-qam", `candidate moves j off ${surface}`);
+      const { results } = run(dir, declared(dir), { [surface]: true }, { base }, join(dir, CONFIG));
+      const j = results.find((r) => r.name === "j");
+      assert.equal(j?.verdict, "cannot judge", `${surface}: ${JSON.stringify(results)}`);
+      assert.match(j.evidence, /the candidate changes it/, surface);
+      assert.equal(status(results), 2, surface);
+      assert.ok(!existsSync(join(dir, "judge-ran")), `${surface}: a checker ran for a declaration the candidate changed`);
+    }
   });
 
 });
