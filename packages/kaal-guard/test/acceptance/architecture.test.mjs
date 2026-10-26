@@ -1,11 +1,11 @@
 // kaal-guard outer acceptance, Architecture conformance: each test (T…) names the Architecture elements
 // (A…) it checks. Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { NAME, PACKAGE } from "./harness.mjs";
+import { CONFIG, consumer, NAME, PACKAGE, RECORD } from "./harness.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -64,7 +64,9 @@ describe("Architecture conformance", () => {
       const text = readFileSync(join(PACKAGE, f), "utf8");
       if (/\.(mjs|js|cjs)$/.test(f)) for (const s of specifiers(text)) assert.ok(!/^(@[^/]+\/)?kaal-/.test(s) || s === NAME || s.startsWith(`${NAME}/`), `${f} imports ${s}`);
       assert.ok(!text.includes(engineering), `${f} references an Engineering path`);
-      assert.ok(!text.includes(engine), `${f} references a KAAL Engine`);
+      // The .kaal namespace is not a KAAL Engine (guard/F1): only Guard's own config and state directories in it are allowed.
+      const own = text.replaceAll(`${engine}config/guard`, "").replaceAll(`${engine}state/guard`, "");
+      assert.ok(!own.includes(engine), `${f} references a KAAL Engine`);
     }
   });
 
@@ -73,6 +75,49 @@ describe("Architecture conformance", () => {
       for (const s of specifiers(readFileSync(join(HERE, f), "utf8"))) {
         assert.ok(s.startsWith("node:") || (s.startsWith("./") && !s.includes("..")), `${f} imports ${s}, outside the boundary`);
       }
+    }
+  });
+
+  it("guard/T49 [guard/F21, guard/A15]: with --github, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not", () => {
+    for (const [status, verdict] of [[1, "fail"], [2, "cannot judge"], [0, "pass"]]) {
+      const c = consumer();
+      c.checks({ x: { command: `node checks/exit.mjs ${status} evidence`, runs: ["ci"] } });
+      c.commit("x");
+      const summary = join(c.root, "summary.md");
+      writeFileSync(summary, "");
+      const r = c.guard(["run", "--check", "x", "--github"], { GITHUB_STEP_SUMMARY: summary });
+      assert.equal(r.status, status, `${verdict}: the exit status changed`);
+      const annotations = r.stdout.split(/\r?\n/).filter((l) => /^::(error|warning|notice)/.test(l));
+      const step = readFileSync(summary, "utf8");
+      if (status === 0) {
+        assert.doesNotMatch(step, /skills[\\/]kaal-guard/, "a passing run's summary names the Skill");
+        assert.deepEqual(annotations.filter((l) => /skills[\\/]kaal-guard/.test(l)), [], "a passing run's annotation names the Skill");
+      } else {
+        const errors = annotations.filter((l) => l.startsWith("::error"));
+        assert.ok(errors.length > 0, `${verdict}: no error annotation`);
+        for (const l of errors) assert.match(l, /skills[\\/]kaal-guard/, `${verdict}: an annotation does not name the Skill path: ${l}`);
+        assert.match(step, /skills[\\/]kaal-guard/, `${verdict}: the step summary does not name the Skill path`);
+      }
+    }
+  });
+
+  it("guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one", () => {
+    present("contract.json");
+    const contract = JSON.parse(source("contract.json"));
+    // Core's Installation Contract format names an asset's location `target` (guard/C51); `path` until then.
+    const assets = contract.assets.map((a) => (a.target ?? a.path).replace(/\/$/, ""));
+    assert.ok(assets.includes(".agents/skills/kaal-guard"), "the contract has no Skill asset at the canonical location");
+    const c = consumer();
+    const before = c.files();
+    assert.equal(c.guard(["init", "--hook", "--ci"]).status, 0, "init --hook --ci");
+    // The record is the ownership record and the configuration directory is the consumer's (guard/F27), not assets.
+    for (const p of c.files().filter((p) => !before.includes(p) && p !== RECORD && !p.startsWith(`${CONFIG}/`))) {
+      assert.ok(assets.some((a) => p === a || p.startsWith(`${a}/`)), `init wrote ${p}, which the contract does not name`);
+    }
+    for (const a of assets) assert.ok(c.exists(a), `the contract names ${a}, which init --hook --ci did not write`);
+    const text = JSON.stringify(contract);
+    for (const supplier of [".claude/", ".github/skills", ".cursor/", ".codex/", ".gemini/", "CLAUDE.md", "AGENTS.md", "copilot-instructions"]) {
+      assert.ok(!text.includes(supplier), `the contract names the supplier location ${supplier}`);
     }
   });
 });

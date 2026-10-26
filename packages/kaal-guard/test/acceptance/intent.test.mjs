@@ -4,13 +4,13 @@ import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { consumer, NAME, verdicts } from "./harness.mjs";
+import { CONFIG, consumer, NAME, verdicts } from "./harness.mjs";
 
 describe("Intent outcome validation", () => {
   it("guard/T1 [guard/I2, guard/I3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
     const c = consumer();
-    assert.equal(c.guard(["init"]).status, 0);
-    c.checks({ same: { command: "node checks/exit.mjs 1 broken", runs: ["local", "ci"] } });
+    assert.equal(c.guard(["init", "--hook"]).status, 0);
+    c.checks({ same: { command: "node checks/exit.mjs 1 broken", runs: ["hook", "ci"] } });
     const base = c.commit("guard");
     c.write("change.txt", "x\n");
     const head = c.commit("change");
@@ -43,13 +43,14 @@ describe("Intent outcome validation", () => {
       // Installed packages, scoped ones as @scope/name: any KAAL element but the package itself is foreign.
       const installed = readdirSync(join(c.dir, "node_modules")).flatMap((n) => (n.startsWith("@") ? readdirSync(join(c.dir, "node_modules", n)).map((m) => `${n}/${m}`) : [n]));
       const modules = installed.filter((n) => /^(@[^/]+\/)?kaal-/.test(n) && n !== NAME);
-      const paths = c.files().filter((p) => /^(\.kaal|engineering)\//.test(p));
+      // The .kaal namespace is not a KAAL element (guard/F1): Guard's own config and state directories in it are allowed.
+      const paths = c.files().filter((p) => /^(\.kaal|engineering)\//.test(p) && !/^\.kaal\/(config|state)\/guard\//.test(p));
       return [...modules, ...paths];
     };
 
-    assert.equal(c.guard(["init"]).status, 0);
+    assert.equal(c.guard(["init", "--hook"]).status, 0);
     assert.deepEqual(foreign(), []);
-    c.checks({ unit: { command: "node --test test/", runs: ["local", "ci"] } });
+    c.checks({ unit: { command: "node --test test/", runs: ["hook", "ci"] } });
     c.commit("guard");
 
     c.write("more.txt", "x\n");
@@ -57,7 +58,7 @@ describe("Intent outcome validation", () => {
     c.commit("more");
     const push = c.git("push", "origin", "main");
     assert.equal(push.status, 0, push.output);
-    assert.equal(verdicts(push.output).unit?.verdict, "pass", "the hook did not run the local check");
+    assert.equal(verdicts(push.output).unit?.verdict, "pass", "the hook did not run the hook check");
     assert.equal(c.guard(["run", "--ci"]).status, 0);
     assert.equal(c.guard(["upgrade"]).status, 0);
     assert.deepEqual(foreign(), []);
@@ -65,7 +66,7 @@ describe("Intent outcome validation", () => {
     assert.equal(c.guard(["remove"]).status, 0);
     assert.deepEqual(foreign(), []);
     const left = c.files().filter((p) => !own.includes(p));
-    assert.deepEqual(left, ["guard.json"], "remove left files other than the consumer's guard.json");
+    assert.deepEqual(left, [`${CONFIG}/unit.md`], "remove left files other than the consumer's declaration");
     assert.equal(c.git("config", "--local", "--get", "core.hooksPath").stdout.trim(), "");
   });
 });

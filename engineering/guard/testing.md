@@ -108,6 +108,12 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T91: an `outcomes` key `"04"`, `"+4"` or `"256"` is refused as cannot judge, naming the canonical form, and `"4"` names exit 4 as held. Added in `guard/C61` | guard/F2, guard/F18 | Requirements | package |
 | guard/T92: with a `git` that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing. Added in `guard/C61` | guard/N1 | Requirements | package |
 | guard/T93: the workflow an External delivery writes pins `actions/checkout`, and `actions/setup-node` where it sets up Node, by commit SHA, and has no `${{` expression in any `run:` line. Added in `guard/C71` | guard/F5, guard/N5 | Requirements | Engineering |
+| guard/T94: with `base` supplied, a check whose base declaration names `trusted: checks/judge.sh` and whose candidate declaration drops `trusted` is cannot judge (exit 2), names the check and says to land the declaration change on its own; the candidate's checker never runs. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
+| guard/T95: with `base` supplied, a check whose base declaration names `trusted` and whose candidate declaration changes its `command`, or adds an `outcomes` entry, is cannot judge, naming the check; neither command runs. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
+| guard/T96: with `base` supplied, a check whose base declaration names `trusted` and whose declaration file the candidate deletes is cannot judge, naming the check, and the run does not pass. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
+| guard/T97: with `base` supplied, a check the base does not declare, and a check the base declares without `trusted` that the candidate changes, each run as the candidate declares them and pass; an unchanged trusted check runs its base checker and passes. Added in `guard/C76` | guard/F7 | Requirements | package |
+| guard/T98: `npm test` in `packages/kaal-guard` exits 0 on Node 24 and runs no file of the retired `0.0.1` suite. Added in `guard/C76` | guard/N6 | Requirements | Engineering |
+| guard/T99: with `base` supplied as a name that is no commit here, or a well-formed object name the repository lacks, a check that declares no `trusted` is cannot judge (exit 2), naming the base, and its command never runs. Added in `guard/C84`, written in `guard/C85`, where guard/T19's placeholder `base` becomes a commit of the consumer, its facts still passed on unchanged | guard/F7, guard/F10, guard/N4 | Requirements | package |
 | guard/T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | guard/N1, guard/F27 | Requirements | package |
 
 **Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T1`…, defined in `core/C3`), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. guard/T58 stays Guard's own: it checks that the instance and the lifecycle agree.
@@ -171,6 +177,16 @@ This evidence is bounded:
 - The `packed` candidate carries the same version and templates as `0.0.1`. guard/T37 and guard/T41 therefore show that the consumer's files are kept and that versions can be switched back and forth. They do not yet show an asset's content moving between versions; that needs a candidate whose templates differ.
 - It is simulated (guard/N9). It was recorded on one OS, and it says nothing about KAAL's real GitHub enforcement.
 
+**guard/T65–guard/T68 for `0.0.3`.** Their `packed` evidence between two simulated candidates is not `registry` evidence and never counts as it. With the published `0.0.2`, the next version can supply their `registry` evidence: before publication, a mixed pair (the published `0.0.2` as the older, the packed `0.0.3` candidate as the newer) is still `packed` evidence and decides only whether `0.0.3` is published; after publication, the pair of published versions is their `registry` evidence and gates `0.0.3`'s Release acceptance (`guard/C83`). [Change](change.md#003) gives the order. Their assertions do not change.
+
+**Release acceptance of `0.0.2` (`guard/C20`).** guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 are GREEN with `registry` evidence for the published `@kaihacksai/kaal-guard@0.0.2` (integrity `sha512-jwwaDwY9GuojEeg6SdIY+/1ZUHMnR0cZTh2skt9UZuE2T7n7pytE5HnSN29TCNiwM9TohMRSEkxCe9Ew9M9yXg==`), installed from the registry. They ran on kaal/guard at 43b33cb, on 2026-10-26 on Linux, with Node 24.22.1, npm 11.19.1 and Git 2.43.0:
+
+```sh
+GUARD_CANDIDATE=registry:0.0.2 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+```
+
+Each of the five names `@kaihacksai/kaal-guard@0.0.2 (registry)` as its candidate. All 9 consumer Test Cases pass, 0 fail, none skipped. guard/T65–guard/T68 pass in the same run but do not gate `0.0.2` and are not counted as its acceptance: two published versions of the line are their evidence (`guard/C83`). The evidence is from Linux alone. These consumer tests sit outside the required jobs, and no job runs them on macOS or Windows (`guard/C18` stays unauthorized), so `0.0.2`'s acceptance claims no other OS.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
@@ -209,6 +225,13 @@ guard/D15 is a suspected defect of the same kind in the External delivery's work
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
 | guard/D15 | guard/T93 | the External delivery's workflow uses an unpinned `actions/checkout@v4` and `actions/setup-node@v4`, and puts `github.base_ref`, the pull request's SHAs and the check name into `run:` lines as shell | suspected (`guard/C71`) |
+
+guard/D16 and guard/D17 are suspected defects in the published `0.0.2`, found by a review of `@kaihacksai/kaal-guard@0.0.2` on 2026-10-26 (its evidence is kept in the project, not here). Each is established only when its Test Cases are recorded RED in `guard/C78`; a GREEN refutes it. guard/T97 guards the correction against blocking legitimate changes and is expected GREEN, so no D traces to it.
+
+| Defect | Traces to | Gap | Status |
+| --- | --- | --- | --- |
+| guard/D16 | guard/T94, guard/T95, guard/T96 | Guard reads a trusted check's declaration from the candidate, so a candidate that drops `trusted`, rewrites the command or deletes the declaration runs its own checker or none, and can pass | suspected (`guard/C76`) |
+| guard/D17 | guard/T98 | the package's `test` script still runs `test/acceptance/*.test.mjs`, the retired `0.0.1` suite, which `0.0.2` correctly fails | suspected (`guard/C76`) |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
@@ -265,4 +288,6 @@ The consumer upgrade tests need the npm registry and sit outside the required jo
 ```sh
 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
 GUARD_CANDIDATE=registry:<version> node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+GUARD_CANDIDATES=registry:<older>,packed node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+GUARD_CANDIDATES=registry:<older>,registry:<newer> node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
 ```
