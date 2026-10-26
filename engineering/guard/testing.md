@@ -179,6 +179,14 @@ This evidence is bounded:
 
 **guard/T65–guard/T68 for `0.0.3`.** Their `packed` evidence between two simulated candidates is not `registry` evidence and never counts as it. With the published `0.0.2`, the next version can supply their `registry` evidence: before publication, a mixed pair (the published `0.0.2` as the older, the packed `0.0.3` candidate as the newer) is still `packed` evidence and decides only whether `0.0.3` is published; after publication, the pair of published versions is their `registry` evidence and gates `0.0.3`'s Release acceptance (`guard/C83`). [Change](change.md#003) gives the order. Their assertions do not change.
 
+**Release acceptance of `0.0.2` (`guard/C20`).** guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 are GREEN with `registry` evidence for the published `@kaihacksai/kaal-guard@0.0.2` (integrity `sha512-jwwaDwY9GuojEeg6SdIY+/1ZUHMnR0cZTh2skt9UZuE2T7n7pytE5HnSN29TCNiwM9TohMRSEkxCe9Ew9M9yXg==`), installed from the registry. They ran on kaal/guard at 43b33cb, on 2026-10-26 on Linux, with Node 24.22.1, npm 11.19.1 and Git 2.43.0:
+
+```sh
+GUARD_CANDIDATE=registry:0.0.2 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+```
+
+Each of the five names `@kaihacksai/kaal-guard@0.0.2 (registry)` as its candidate. All 9 consumer Test Cases pass, 0 fail, none skipped. guard/T65–guard/T68 pass in the same run but do not gate `0.0.2` and are not counted as its acceptance: two published versions of the line are their evidence (`guard/C83`). The evidence is from Linux alone. These consumer tests sit outside the required jobs, and no job runs them on macOS or Windows (`guard/C18` stays unauthorized), so `0.0.2`'s acceptance claims no other OS.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
