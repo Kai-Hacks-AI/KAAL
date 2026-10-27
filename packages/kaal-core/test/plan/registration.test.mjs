@@ -80,9 +80,10 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.ok(naming(u.findings, "sample/Q1", "Q").length > 0, "an artifact of a kind no one defines is a finding");
   });
 
-  it("core/T53 [core/I16, core/F51, core/F52]: every Owner-corrected trace is permitted, and a trace its source kind's rule omits is a finding naming source, target and rule", async () => {
+  it("core/T53 [core/I16, core/F51, core/F52]: every Owner-corrected trace is permitted, and a trace its source kind's rule omits is a rule finding naming source and target", async () => {
     const assemble = await assembler();
     assert.deepEqual(assemble([...KINDS, SAMPLE]).findings, [], "the permitted steps give no finding");
+    // Each forbidden step stands alone, with no other trace, so no cycle can stand in for the rule.
     for (const [source, target] of [
       ["sample/F1", "sample/A1"],
       ["sample/I1", "sample/F1"],
@@ -90,21 +91,20 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
       ["sample/A1", "sample/T1"],
       ["sample/D1", "sample/A1"],
     ]) {
-      const artifacts = { ...SAMPLE.artifacts, [source]: { traces: [...SAMPLE.artifacts[source].traces, target] } };
-      const r = assemble([...KINDS, reg("kaal-sample", "sample", {}, artifacts)]);
-      assert.ok(naming(r.findings, source, target).length > 0, `${source} → ${target} is not permitted`);
+      const r = assemble([...KINDS, reg("kaal-sample", "sample", {}, { [source]: { traces: [target] }, [target]: { traces: [] } })]);
+      assert.ok(naming(r.findings, source, target, "rule").length > 0, `${source} → ${target} is not permitted by its rule`);
     }
   });
 
   it("core/T54 [core/F51, core/F52]: a C artifact traces to nothing, an artifact never traces to itself, and the rule holds across namespaces", async () => {
     const assemble = await assembler();
-    const c = assemble([...KINDS, reg("kaal-sample", "sample", {}, { ...SAMPLE.artifacts, "sample/C1": { traces: ["sample/I1"] } })]);
-    assert.ok(naming(c.findings, "sample/C1", "sample/I1").length > 0, "Change has no outgoing trace");
+    const c = assemble([...KINDS, reg("kaal-sample", "sample", {}, { "sample/C1": { traces: ["sample/I1"] }, "sample/I1": { traces: [] } })]);
+    assert.ok(naming(c.findings, "sample/C1", "sample/I1", "rule").length > 0, "Change has no outgoing trace");
     const self = assemble([...KINDS, reg("kaal-sample", "sample", {}, { ...SAMPLE.artifacts, "sample/T1": { traces: ["sample/T1"] } })]);
     assert.ok(naming(self.findings, "sample/T1").length > 0, "a trace to itself is a finding");
     const across = assemble([...KINDS, SAMPLE, reg("kaal-probe", "probe", {}, { "probe/T1": { traces: ["sample/F1"] }, "probe/F1": { traces: ["sample/A1"] } })]);
     assert.equal(naming(across.findings, "probe/T1").length, 0, "T → F across namespaces is permitted");
-    assert.ok(naming(across.findings, "probe/F1", "sample/A1").length > 0, "F → A is not, whatever the namespaces");
+    assert.ok(naming(across.findings, "probe/F1", "sample/A1", "rule").length > 0, "F → A is not, whatever the namespaces");
   });
 
   it("core/T55 [core/F52, core/F55]: a target that does not resolve is a finding, and nothing is inferred for it", async () => {
