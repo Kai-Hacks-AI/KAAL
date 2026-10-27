@@ -9,7 +9,7 @@ Every promise in [Intent](intent.md), [Requirements](requirements.md) and [Archi
 | Intent | the outcomes hold for a user of Guard | `test/acceptance/intent.test.mjs` | yes |
 | Requirements | each obligation holds | `test/acceptance/requirements.test.mjs` | yes |
 | Architecture | each element keeps its placement, ownership, boundaries and dependencies | `test/acceptance/architecture.test.mjs` | yes |
-| Code | the implementation behaves as designed | `test/*.test.mjs` | from guard/F39 |
+| Code | the implementation behaves as designed | `test/unit/*.test.mjs` | yes |
 
 The three outer loops are the acceptance boundary. A case there exercises the package as a consumer would: it packs or uses the installed copy, installs it into a fresh repository of its own in the operating system's temporary directory, and checks what a user observes. The Code loop tests the implementation from the inside.
 
@@ -27,13 +27,27 @@ The package's README says what each result means and what `verified` does and do
 
 ## Verified elsewhere
 
-These promises are not checked by a delivered case. The publisher verifies each one before every release:
+Every product identifier is either covered by a delivered case or exempted here, never silently (guard/F38). An exemption names where the identifier is verified instead. `npm test` lists each one as exempted and not verified by this run, apart from what the run covers.
 
-- **The verification itself**: guard/I8, guard/F31–guard/F36 and guard/N13. A delivered run cannot verify its own verifier, so its Test Cases run against a packed candidate in a fresh consumer, on Linux, macOS and Windows.
-- **The declared coverage, the loops and applicability**: guard/F38–guard/F40, for the same reason.
-- **Moving between published versions**: guard/F11 and guard/F14–guard/F16. These need two published versions from the registry.
+<!-- exemptions: read by the publisher into the manifest -->
+| Exempted | Identifiers | Verified instead |
+| --- | --- | --- |
+| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | by the publisher before each release: the Test Cases of the verification itself run against a packed candidate in a fresh consumer, on Linux, macOS and Windows, because a delivered run cannot verify its own verifier |
+| Moving between published versions | guard/F11, guard/F14–guard/F16 | by the publisher before each release: moving between published versions needs two published versions from the registry |
+| Guidance | guard/F20 | by the publisher's review of each release: it is guidance for people and agents, in the Skill and the README, which Guard never parses |
+<!-- end of exemptions -->
 
-No delivered case cites guard/F20, guard/A2, guard/A4, guard/A5, guard/A6 or guard/A14 yet. Each of those Architecture elements is exercised, without being named, by the cases of the obligations it serves: the hook (guard/A4) by guard/T9, guard/T10 and guard/T14, the GitHub adapter (guard/A5) by guard/T11–guard/T13, the lifecycle (guard/A6) by guard/T16–guard/T18, the Skill's placement (guard/A14) by guard/T50–guard/T53, and the repository's checks (guard/A2) by every case that declares one. guard/F20 is guidance for people and agents, in the Skill and the README, which Guard never parses, so no case checks it.
+## Not applicable
+
+A case may declare the platforms where it does not apply (guard/F40). There it is not run, and `npm test` names it as not applicable; it does not count as skipped. A case skipped anywhere else is `cannot verify`. Platforms are named as Node names them: `linux`, `darwin`, `win32`.
+
+<!-- applicability: read by the publisher into the manifest -->
+| Case | Not applicable on | Why |
+| --- | --- | --- |
+| `test/unit/lifecycle.test.mjs > pre-push template > supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks` | win32 | it starts the hook template with `sh` and a POSIX shim made executable by its file mode, which Windows does not give a Node process; on Windows, Git runs the shipped hook in guard/T9 and guard/T10 |
+<!-- end of applicability -->
+
+No identifier is declared not applicable on any platform.
 
 ## The trace
 
@@ -48,16 +62,16 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T6 | Requirements | guard/F1 | runs the hook checks for the hook and only the named check for CI |
 | guard/T7 | Requirements | guard/F2 | names every exit status by its own verdict and never collapses one into another |
 | guard/T8 | Requirements | guard/F3 | serves the hook and CI from the same runner and the same list |
-| guard/T9 | Requirements | guard/F4 | blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify |
-| guard/T10 | Requirements | guard/F4 | lets a push through when every hook check passes or is not applicable |
-| guard/T11 | Requirements | guard/F5 | fails the job on fail and on cannot judge |
-| guard/T12 | Requirements | guard/F5 | reports not applicable as not applicable, never as a pass |
-| guard/T13 | Requirements | guard/F5 | reports held as a warning, never as a pass, with the check's own explanation visible |
-| guard/T14 | Requirements | guard/F6 | the hook follows the declarations without being changed, and names no check |
+| guard/T9 | Requirements | guard/F4, guard/A4 | blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify |
+| guard/T10 | Requirements | guard/F4, guard/A4 | lets a push through when every hook check passes or is not applicable |
+| guard/T11 | Requirements | guard/F5, guard/A5 | fails the job on fail and on cannot judge |
+| guard/T12 | Requirements | guard/F5, guard/A5 | reports not applicable as not applicable, never as a pass |
+| guard/T13 | Requirements | guard/F5, guard/A5 | reports held as a warning, never as a pass, with the check's own explanation visible |
+| guard/T14 | Requirements | guard/F6, guard/A4 | the hook follows the declarations without being changed, and names no check |
 | guard/T15 | Requirements | guard/F7 | runs the trusted checker as it stands on the base, never the candidate's version |
-| guard/T16 | Requirements | guard/F8, guard/F29 | registers every file init writes in the installation record, with its SHA-256 and the version that wrote it |
-| guard/T17 | Requirements | guard/F8 | never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add |
-| guard/T18 | Requirements | guard/F8 | upgrade and remove touch only unmodified managed files, and remove unsets only the core.hooksPath it set |
+| guard/T16 | Requirements | guard/F8, guard/F29, guard/A6 | registers every file init writes in the installation record, with its SHA-256 and the version that wrote it |
+| guard/T17 | Requirements | guard/F8, guard/A6 | never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add |
+| guard/T18 | Requirements | guard/F8, guard/A6 | upgrade and remove touch only unmodified managed files, and remove unsets only the core.hooksPath it set |
 | guard/T19 | Requirements | guard/F9 | gives a check only its facts, from the repository root, with no stdin, wherever it is started |
 | guard/T20 | Requirements | guard/F9 | the hook prints the base commit it used |
 | guard/T21 | Requirements | guard/F10 | a command that cannot start is cannot judge, and it blocks |
@@ -75,15 +89,15 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T47 | Requirements | guard/F21, guard/F22 | a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path |
 | guard/T48 | Requirements | guard/F21 | a run of only pass, not applicable or held adds no reminder |
 | guard/T49 | Architecture | guard/F21, guard/A15 | with --github, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not |
-| guard/T50 | Requirements | guard/F23, guard/F24, guard/N10 | standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source |
-| guard/T51 | Requirements | guard/F23, guard/F8 | init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file |
-| guard/T52 | Requirements | guard/F23, guard/F12 | upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched |
-| guard/T53 | Requirements | guard/F23, guard/N10, guard/N12 | the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path |
+| guard/T50 | Requirements | guard/F23, guard/F24, guard/N10, guard/A14 | standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source |
+| guard/T51 | Requirements | guard/F23, guard/F8, guard/A14 | init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file |
+| guard/T52 | Requirements | guard/F23, guard/F12, guard/A14 | upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched |
+| guard/T53 | Requirements | guard/F23, guard/N10, guard/N12, guard/A14 | the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path |
 | guard/T54 | Requirements | guard/F26 | init, upgrade and remove create, edit and remove no AGENTS.md, CLAUDE.md or other instruction file; init reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer |
 | guard/T57 | Requirements | guard/F23, guard/F8 | a modified deployment is kept and reported while the others move forward, and remove leaves it |
 | guard/T58 | Architecture | guard/F27, guard/A17 | contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one |
 | guard/T59 | Requirements | guard/N1, guard/F27 | the package declares Node >=24; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite |
-| guard/T61 | Requirements | guard/F1, guard/A1 | a check declared as <name>.md in its configuration directory runs with the meaning of its frontmatter, and its body changes no verdict and no order |
+| guard/T61 | Requirements | guard/F1, guard/A1, guard/A2 | a check declared as <name>.md in its configuration directory runs with the meaning of its frontmatter, and its body changes no verdict and no order |
 | guard/T62 | Requirements | guard/F18, guard/F10, guard/N4 | an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written |
 | guard/T63 | Requirements | guard/F28 | the hook and workflow pass --config; without it the top level's declarations are found from any directory; only .md files directly in it count; with none it is cannot judge naming init |
 | guard/T69 | Requirements | guard/F29, guard/F8 | shared configuration: init in a linked worktree sets core.hooksPath in the shared scope with its state in the common directory, and remove in the main checkout unsets it |
@@ -111,5 +125,5 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T96 | Requirements | guard/F7, guard/N4 | a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass |
 | guard/T97 | Requirements | guard/F7 | a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker |
 | guard/T99 | Requirements | guard/F7, guard/F10, guard/N4 | a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs |
-| guard/T107 | Architecture | guard/F37, guard/A19 | the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority |
+| guard/T107 | Architecture | guard/I9, guard/F37, guard/A19 | the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority |
 <!-- end of trace -->

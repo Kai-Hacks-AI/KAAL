@@ -172,12 +172,32 @@ guard/T107 is defined by its title, and the product's trace in `packages/kaal-gu
 
 **What is exempted, and what is not.** Every product identifier is either covered or exempted, and nothing is exempted silently:
 - **Exempted.** Verified by Engineering before each release:
-  - guard/I8, guard/F31–guard/F36, guard/F38–guard/F40 and guard/N13, by guard/T101–guard/T110;
+  - guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13 and guard/A18, by guard/T101–guard/T110;
   - guard/F11 and guard/F14–guard/F16, by consumer acceptance against the registry (guard/A12).
 - **No case cites them today.** guard/F20, guard/A2, guard/A4, guard/A5, guard/A6 and guard/A14. For each, `guard/C104` does one of two things, and its pull request lists the choice for each identifier:
   - names the delivered cases that already exercise it in their titles, where they do (for example, guard/T9 exercises the shipped hook, guard/A4);
   - or adds a delivered case.
 - **The inner loop's skipped case.** One inner case is skipped on Windows today ("supplies no changed paths when Git cannot compute them"). It becomes a declared applicability (guard/F40), never a silent skip.
+
+**The coverage choices (`guard/C104`, #540).** Each identifier that no delivered case cited before `guard/C104`, and what `guard/C104` does for it. The list above missed two of them, guard/I9 and guard/A18, which `guard/C102` added; the generator found them, because it refuses an identifier that is neither covered nor exempted. Every choice adds a citation to a case title or an exemption row in the product's `docs/testing.md`. No assertion changes, and no case is added.
+
+| Element | Identifier | Choice |
+| --- | --- | --- |
+| The repository's checks | guard/A2 | named in guard/T61, which declares a check as `<name>.md` and runs it with its declared meaning |
+| The Git adapter | guard/A4 | named in guard/T9, guard/T10 and guard/T14, which run the shipped hook on a push |
+| The GitHub adapter | guard/A5 | named in guard/T11–guard/T13, which run Guard as a workflow job and read its job verdict and reports |
+| The lifecycle | guard/A6 | named in guard/T16–guard/T18, which run `init`, `upgrade` and `remove` on managed assets |
+| The Skill's placement | guard/A14 | named in guard/T50–guard/T53, which install, keep, move forward and remove the Skill |
+| A complete product | guard/I9 | named in guard/T107, which checks that the package carries its contract and defines every identifier its cases cite |
+| The verification entry | guard/A18 | exempted, with guard/I8, guard/F31–guard/F36, guard/F38–guard/F40 and guard/N13: a delivered run cannot verify its own verifier, so guard/T101–guard/T110 verify it before each release |
+| Guidance | guard/F20 | exempted: it is guidance in the Skill and the README, which Guard never parses; the publisher reviews it with each release |
+
+**The RED run (`guard/C104`, #540).** guard/T108–guard/T110 were written first, in their own commit, against the verifier as `guard/C103` left it:
+- guard/T108 failed because an identifier with neither a covering case nor an exemption gave `verified`;
+- guard/T109 failed because the summary named no loop;
+- guard/T110 failed because a case declared not applicable was counted as skipped, giving `cannot verify`.
+
+guard/T103 and guard/T104, whose fixture `reduce()` now also empties `test/unit/` and declares one loop, still passed.
 
 **The RED run (`guard/C103`, #538).** guard/T107 and guard/T111 were written first, in 3b6fda3, before the contract moved:
 - guard/T107 failed because the package carried no `docs/`;

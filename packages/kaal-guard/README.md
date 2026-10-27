@@ -165,31 +165,32 @@ To check that the copy of Guard you installed works as intended, run this from y
 npm explore @kaihacksai/kaal-guard -- npm test
 ```
 
-It runs Guard's own acceptance cases, which ship with the package, against the installed copy. Each case works in a temporary repository of its own, outside your project, and your project is left as it was. It needs Node 24 or later, Git and npm on `PATH`, and the network is not needed. A run takes a few minutes.
+It runs every test loop Guard owns against the installed copy: the acceptance cases for Intent, Requirements and Architecture, and the inner Code tests. They ship with the package. Each case works in a temporary repository of its own, outside your project, and your project is left as it was. It needs Node 24 or later, Git and npm on `PATH`, and the network is not needed. A run takes a few minutes.
 
 The run prints:
 - the package, its version, where it is installed and your lockfile's integrity for it;
 - a digest of the installed files;
-- one line per case;
+- one line per case, and a line per loop;
+- the coverage of Guard's promises: each one covered by a case of this run, or exempted, with where the publisher verifies it instead (an exemption is not verified by your run, and the output says so);
 - whether your project is unchanged.
 
 It ends in exactly one result:
 
 | Result | Exit | Meaning |
 | --- | --- | --- |
-| `verified` | 0 | Every declared case ran and passed. |
+| `verified` | 0 | Every declared case ran and passed, except a case declared not applicable on your platform, which is named. Every promise is covered by this run or named as exempted. |
 | `failed` | 1 | A case failed, or your project changed during the run. The output names which. |
-| `cannot verify` | 2 | Nothing failed, but the run cannot claim verification. A prerequisite may be missing, the installed files may not match the manifest the package ships, a case may have been skipped or not run, or no case ran. The output names the cause and what to do. |
+| `cannot verify` | 2 | Nothing failed, but the run cannot claim verification. A prerequisite may be missing, the installed files may not match the manifest the package ships, a case may have been skipped or not run, a loop may have run no case, or a promise may be neither covered nor exempted. The output names the cause and what to do. |
 
 The last line, `kaal-guard-verification {…}`, carries the same as JSON for tools.
 
 The installed files are checked against a manifest that ships inside the package. A match shows the copy is consistent with what the package says it ships. It is not independent provenance: for that, rely on your lockfile's integrity and npm's provenance for the published version.
 
-**What `verified` does and does not tell you.** It tells you three things. Every case the package declares ran and passed against your installed copy. Your installed files match the package's manifest. Nothing the comparison covers changed during the run.
+**What `verified` does and does not tell you.** It tells you three things. Every case the package declares ran and passed against your installed copy, apart from those named as not applicable on your platform. Your installed files match the package's manifest. Nothing the comparison covers changed during the run.
 
 It does not tell you these:
 - **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
-- **Behaviour no case covers.**
+- **Behaviour no case covers**, and the exempted promises, which the publisher verifies instead (the output lists them).
 - **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
 
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.

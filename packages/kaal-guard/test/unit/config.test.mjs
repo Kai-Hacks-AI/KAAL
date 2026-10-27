@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, it } from "node:test";
-import { CONFIG, check, configDir, frontmatter, legacy, nearest, readDeclarations, Refusal } from "../lib/config.mjs";
+import { CONFIG, check, configDir, frontmatter, legacy, nearest, readDeclarations, Refusal } from "../../lib/config.mjs";
 
 /** The refusal `fn` throws, or a failed assertion. */
 function refusal(fn) {

@@ -6,10 +6,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { annotations, summarize, verify } from "../lib/github.mjs";
-import { plan, words } from "../lib/command.mjs";
-import { CONFIG, readDeclarations } from "../lib/config.mjs";
-import { lines, run, status } from "../lib/runner.mjs";
+import { annotations, summarize, verify } from "../../lib/github.mjs";
+import { plan, words } from "../../lib/command.mjs";
+import { CONFIG, readDeclarations } from "../../lib/config.mjs";
+import { lines, run, status } from "../../lib/runner.mjs";
 
 /** One declaration's file for a check, in the frontmatter subset. */
 function declare(check) {
@@ -62,7 +62,7 @@ describe("run", () => {
   });
 
   it("passes a check's output through on standard error and takes the verdict from its exit status alone", () => {
-    const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
+    const bin = fileURLToPath(new URL("../../bin/kaal-guard.mjs", import.meta.url));
     const dir = repo({
       s: { command: node("console.log('all is well');console.error('really');process.exit(1)"), runs: ["ci"] },
     });
@@ -277,7 +277,7 @@ describe("verify", () => {
 });
 
 describe("commands", () => {
-  const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
+  const bin = fileURLToPath(new URL("../../bin/kaal-guard.mjs", import.meta.url));
 
   it("has no command that lists checks for a workflow to run, and takes --ci only on init", () => {
     const dir = repo({});
