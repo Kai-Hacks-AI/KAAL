@@ -245,6 +245,44 @@ The decisions authorize no implementation, version bump, release or publication.
 - The manifest detects a changed installed copy, but it is not npm provenance.
 - Registry evidence is from Linux alone.
 
+### The complete product (`0.0.4`)
+
+On #536 (2026-10-27) the Owner set two principles. First, each package carries its complete, canonical consumer-facing specification and its Test Cases, owned by responsibility, not loop depth. Second, Engineering and Product are separated cleanly, with one authority for a shared concern. The Owner approved `guard/C98` as bounded and left the rest to this PLAN and its DO review. `guard/C102` applies the principles: guard/I9, guard/F37–guard/F40, guard/N14, guard/A19, guard/A20 and the planned guard/T107–guard/T112.
+
+**Where each asset goes.** The layout proposed on #536 is the basis:
+- **Product, delivered** (`packages/kaal-guard/`):
+  - the product Intent, Requirements, Architecture, Testing and Limitations in `docs/`;
+  - Operations in the README and the Skill;
+  - `bin/`, `lib/`, `templates/` and `contract.json`;
+  - the outer cases in `test/acceptance/`;
+  - the inner Code tests in `test/unit/`;
+  - the verification entry and its manifest.
+- **Engineering, not delivered** (`engineering/guard/`): as guard/A20 lists.
+- **Split documents.** `intent.md`, `requirements.md`, `architecture.md` and `testing.md` each split by identifier. Engineering keeps only its own identifiers and cites the product's.
+- **The Defect register.** Its consumer statement goes to `docs/limitations.md`. Its RED traces stay Engineering evidence.
+
+**Order.** It replaces steps 4 to 7 of [Consumer verification](#consumer-verification-004):
+1. `guard/C102`, this PLAN. Documents only.
+2. `guard/C103` moves the product contract into the package and adds the authority check:
+   - guard/F37, guard/N14, guard/A19's documents and guard/A20;
+   - guard/T107, guard/T111 and guard/T112, written RED first;
+   - the derived External templates.
+
+   Every identifier keeps its text and its number, and no accepted test is weakened.
+3. `guard/C104` ships the inner loop and makes the verdict judge loops, coverage and applicability:
+   - guard/F38–guard/F40;
+   - guard/T108–guard/T110, written RED first;
+   - `test/unit/`, the manifest's new members and the entry;
+   - the coverage choice for each identifier no case cites today.
+
+   It depends on `guard/C103`, because coverage needs the product identifiers in the package.
+4. `guard/C99` sets the version to `0.0.4`, with its release notes.
+5. The promotion follows, with its sync immediately before it.
+6. `guard/C100` publishes, with the Owner's approval of the `npm` environment.
+7. `guard/C101` records release acceptance. To what [Consumer verification](#consumer-verification-004) requires, it adds guard/T107–guard/T112 GREEN against the `packed` candidate on Linux, macOS and Windows.
+
+All of it collects in `kaal/guard-verify` as one Guard `0.0.4` increment. This PLAN authorizes `guard/C103` and `guard/C104` only. The bump, the promotion, the release and publication each still need their own approval.
+
 ### First release and later upgrades
 
 Accepting the first published `0.0.2` must not wait on a version that does not exist yet. The consumer Test Cases split by how many published versions they need (restated in `guard/C30`):
@@ -331,8 +369,11 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C83` | — | Guard | Release acceptance of `0.0.3`: guard/T65, guard/T67 and guard/T68 GREEN with `registry` evidence between the published `0.0.2` and `0.0.3`, and guard/T66 recorded as not exercised for that pair (the Owner on #483). Recorded after publication; `0.0.3` is accepted only then | `guard/C81` (the publication of `0.0.3`), `guard/C82` | #510 |
 | `guard/C96` | — | Guard | The README's `Guard/Check` limitation states what KAAL Core now does with typed artifacts since `core/C10`: Core reports a declaration registered only when a `Guard/Check` Type Definition owned by Guard is admitted, Guard installs none, so declarations are unregistered and `kaal verify` passes on them. Docs only; the published `0.0.3` README is unchanged until the next release | `guard/C83` | #515, merged; promoted in #522 |
 | `guard/C97` | — | Guard | PLAN for consumer verification in `0.0.4`: guard/I8, guard/F31–guard/F36, guard/N13, guard/A18 and the planned guard/T101–guard/T106. Documents only; the Owner's three decisions recorded | testing/C9 | #529 |
-| `guard/C98` | — | Guard | guard/T101–guard/T106 written with their RED evidence recorded, then the verification entry, its manifest, the package's `files` and `test` script, and the README section. guard/T98 runs the package's own tests by their files, because `npm test` becomes the consumer's verification | `guard/C97` | #536 |
-| `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C98` | not created |
+| `guard/C98` | — | Guard | guard/T101–guard/T106 written with their RED evidence recorded, then the verification entry, its manifest, the package's `files` and `test` script, and the README section. guard/T98 runs the package's own tests by their files, because `npm test` becomes the consumer's verification | `guard/C97` | #536, merged |
+| `guard/C102` | — | Guard | PLAN for the complete product in `0.0.4`: guard/I9, guard/F37–guard/F40, guard/N14, guard/A19, guard/A20 and the planned guard/T107–guard/T112, applying the Owner's principles on #536. Documents only | `guard/C98` | this PLAN |
+| `guard/C103` | — | Guard | The product contract moves into the package's `docs/`, and Engineering keeps only its own identifiers. guard/T107, guard/T111 and guard/T112 are written with their RED evidence. External's templates are derived | `guard/C102` | not created |
+| `guard/C104` | — | Guard | The inner loop ships in `test/unit/`, and the verdict judges loops, coverage and applicability. guard/T108–guard/T110 are written with their RED evidence | `guard/C103` | not created |
+| `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | not created |
 | `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment | `guard/C99`, the promotion | not created |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |

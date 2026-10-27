@@ -48,6 +48,36 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - **What it uses.** It imports nothing from `lib/`, so a broken runtime cannot mask itself, and uses only Node's built-ins. The cases and their harness are reused unchanged.
   - **Where its own tests live.** The Test Cases of the verification itself (guard/T101–guard/T106) are in `engineering/guard/acceptance/`, not in the package, so a delivered run never verifies its own verifier.
 
+- **guard/A19 Product contract** [guard/F37, guard/F38, guard/F39, guard/F40, guard/N14].
+  - **The contract's files.** In the package:
+    - `docs/intent.md`, `docs/requirements.md` and `docs/architecture.md`, holding the product identifiers;
+    - `docs/testing.md`, holding the loops, the trace and the exemptions;
+    - `docs/limitations.md`.
+
+    The package ships `docs/`, and the manifest catalogues it.
+  - **The two loops.**
+    - Outer: the acceptance cases, in `test/acceptance/`.
+    - Inner: the Code tests, which move from `test/*.test.mjs` to `test/unit/`.
+  - **The trace.** It is derived from the case titles, which already name their identifiers, for example `guard/T61 [guard/F1, guard/A1]`. Exemptions and declared applicability are declared once, in `docs/testing.md`.
+  - **The manifest.** The generator (guard/A18) reads all of this and writes `loops`, `coverage`, `exemptions` and `applicability` into `test/verify.json`. The entry judges them.
+  - **What the entry imports.** Still nothing from `lib/`.
+- **guard/A20 Engineering/Product boundary** [guard/N14, guard/N6].
+  - **What `engineering/guard/` holds.** It holds what is Engineering's:
+    - the Capability, `Guard.md`;
+    - Engineering's identifiers, guard/I4, guard/I6, guard/F25, guard/N5, guard/N7–guard/N9, guard/A9–guard/A12 and guard/A16, each citing the product identifiers it relies on;
+    - plans and the Change map, `change.md` and `run.md`;
+    - engineering evidence: RED and GREEN records, and the Defect register with its Test Case traces;
+    - the manifest generator;
+    - the tests that verify the verifier (guard/T101–guard/T106, guard/T108–guard/T110);
+    - consumer acceptance against the registry (guard/A12);
+    - KAAL as a consumer (guard/A11);
+    - the External tooling (guard/A10, guard/A16).
+  - **The authority check.** guard/T111, in `engineering/guard/acceptance/`, fails on any of these:
+    - an identifier defined twice;
+    - a product identifier defined outside the package;
+    - a delivered case citing an undefined identifier.
+  - **External's templates.** They are derived from the package's under guard/N14 and checked by guard/T112.
+
 ## Relationships
 
 ```mermaid
