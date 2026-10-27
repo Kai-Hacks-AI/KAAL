@@ -226,6 +226,33 @@ They live in `engineering/guard/acceptance/` and do not ship (guard/A18). Their 
 
 **The RED run (`guard/C98`, #536).** On the packed candidate without the entry, and on `0.0.3` installed from the registry, all six were RED. The documented command exited 0 and printed no `kaal-guard-verification` summary line. With a planted case, `0.0.3`'s `npm test` ran it and passed, so nothing it ran was accounted for.
 
+## The complete product (`0.0.4`)
+
+guard/T107–guard/T112 are planned in `guard/C102`. They are placed by what each one verifies (guard/A20):
+- **guard/T107** checks a product promise, so it is a delivered case in `test/acceptance/architecture.test.mjs`. It is the one addition to the acceptance boundary.
+- **guard/T108–guard/T110** verify the verifier, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T106.
+- **guard/T111 and guard/T112** check KAAL's own authority and derivation, so they are in `engineering/guard/acceptance/authority.test.mjs`.
+
+| Test | Checks | Written in | Intended evidence on the `guard/C98` candidate |
+| --- | --- | --- | --- |
+| guard/T107: the installed package carries `docs/` with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path as its authority | guard/F37, guard/A19 | `guard/C103` | RED: no `docs/` ships |
+| guard/T108: a candidate in which a declared product identifier has neither a covering case nor an exemption is `cannot verify`, exit 2, naming the identifier; with an exemption it is `verified`, and the output and summary line name the exemption | guard/F38 | `guard/C104` | RED: no coverage is declared or judged |
+| guard/T109: `npm test` runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is `cannot verify`, naming the loop | guard/F39 | `guard/C104` | RED: the inner loop does not ship |
+| guard/T110: a case that declares the current platform not applicable is reported as not applicable, named and not run, and the run can still be `verified`; the same case skipped without that declaration is `cannot verify` | guard/F40 | `guard/C104` | RED: no applicability is declared |
+| guard/T111: in KAAL, every Guard identifier is defined exactly once, every product identifier only in `packages/kaal-guard/docs/`, and every identifier a delivered case cites is defined | guard/N14, guard/A20 | `guard/C103` | RED: the product identifiers are defined in `engineering/guard/` |
+| guard/T112: External's hook, workflow and Skill templates equal the package's under their declared transformation | guard/N14, guard/A16 | `guard/C103` | RED: no transformation is declared, and the templates differ |
+
+**RED-first.** As for guard/T101–guard/T106 (`guard/C91`), each test is written in the DO Change named in the table. Its RED run is recorded in that Change's pull request before the change that turns it GREEN. None is marked `todo` or `skip`.
+
+**What is exempted, and what is not.** Every product identifier is either covered or exempted, and nothing is exempted silently:
+- **Exempted.** Verified by Engineering before each release:
+  - guard/I8, guard/F31–guard/F36, guard/F38–guard/F40 and guard/N13, by guard/T101–guard/T110;
+  - guard/F11 and guard/F14–guard/F16, by consumer acceptance against the registry (guard/A12).
+- **No case cites them today.** guard/F20, guard/A2, guard/A4, guard/A5, guard/A6 and guard/A14. For each, `guard/C104` does one of two things, and its pull request lists the choice for each identifier:
+  - names the delivered cases that already exercise it in their titles, where they do (for example, guard/T9 exercises the shipped hook, guard/A4);
+  - or adds a delivered case.
+- **The inner loop's skipped case.** One inner case is skipped on Windows today ("supplies no changed paths when Git cannot compute them"). It becomes a declared applicability (guard/F40), never a silent skip.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.

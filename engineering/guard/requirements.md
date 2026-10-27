@@ -239,6 +239,31 @@ It does not establish these:
 - **The consumer beyond the comparison.** The comparison takes in every path under the consumer except `node_modules` directories, and adds the installed copy. A symbolic link counts by its target text, not by what it points to. Git's object store and files over 64 MiB count by size and modification time, so a same-size rewrite that restores the modification time is not detected there. Other dependencies, the copy's own `node_modules` (where pnpm links `.bin`), the temporary directory the cases use, and npm's cache and logs in the user's home are not compared.
 - **The consumer's integration.** That stays with `kaal-guard verify` (guard/F36).
 
+**The complete product (`0.0.4`, `guard/C102`).** On #536 (2026-10-27), the Owner directed that KAAL products use KAAL's capabilities to be done right. A package carries its complete consumer-facing specification and tests, owned by the product and canonical there. Testing ownership follows responsibility, not loop depth. Engineering and Product are separated cleanly for documentation, code and tests, and a shared concern has one authority. A test is classified by what it verifies and by whether the consumer needs it. This revises the Owner's decision 2 for `guard/C97` ("acceptance cases only"): the package also ships its inner Code tests, as a loop of their own. guard/F37–guard/F40 and guard/N14 state it. guard/F31's "What ships" is superseded by guard/F39 once `guard/C104` lands.
+
+- **guard/F37** [guard/I9] **The product contract ships.**
+  - **What it holds.** The package's `docs/` holds Guard's product Intent, Requirements, Architecture, Testing and Limitations.
+  - **What each part covers.**
+    - Testing: the loops, the trace from each delivered case to the identifiers it covers, and the declared exemptions (guard/F38).
+    - Limitations: what Guard does not establish, and each Defect that reached a published version, naming the versions it affects and the version that corrects it.
+    - Operations: the README and the Skill.
+  - **Single definition.** Every product identifier is defined there and only there. Every identifier a delivered case cites is defined there.
+  - **Readable alone.** The contract is intelligible without KAAL's repository. It cites no Engineering document as its authority, and it carries no plan, Change history or engineering evidence.
+- **guard/F38** [guard/I8, guard/I9] **Declared coverage, failing closed.**
+  - **What the manifest declares.** It declares every product identifier, and for each one either the delivered cases that cover it, in each loop, or one exemption that names where it is verified instead. For example: "guard/I8, guard/F31–guard/F36: verified by KAAL before each release (guard/T101–guard/T106)".
+  - **Uncovered.** An identifier with neither a covering case that ran and passed nor an exemption is `cannot verify`, named, with its next step.
+  - **The output.** It prints coverage per loop and lists every exemption, and the summary line carries both.
+  - **No concealment.** `verified` never conceals an absent loop, an uncovered boundary or an exemption.
+- **guard/F39** [guard/I8, guard/I9] **Product-owned loops.**
+  - **Which loops ship.** `npm test` runs every loop the package owns: the outer acceptance cases (Intent, Requirements, Architecture) and the inner Code tests of the shipped implementation.
+  - **Accounting.** Each case is accounted for by name under its loop. A loop with no executed case is `cannot verify`, naming the loop.
+  - **What does not ship.** Tests that verify the verifier, the release process, KAAL as a consumer or External delivery are Engineering's (guard/A20).
+- **guard/F40** [guard/I8] **Declared applicability.**
+  - **Declaring it.** A case may declare the platforms where it does not apply.
+  - **On such a platform.** The case is not run and is reported as not applicable, named. It does not count as skipped.
+  - **An undeclared skip** is still `cannot verify` (guard/F33).
+  - **Identifiers it leaves uncovered.** An identifier whose only covering cases are not applicable on this platform is named as not verified here. That is `cannot verify` unless the contract itself declares that identifier not applicable on the platform.
+
 ## Nonfunctional (N)
 
 - **guard/N1** [guard/I4, guard/I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node 24 or later from `0.0.2`. Raising the floor from Node 20 is a breaking consumer prerequisite: it is stated in the package's README and in the release's notes, and an older Node is refused with that next step.
@@ -259,3 +284,7 @@ It does not establish these:
 
   KAAL Engineering executes Core's conformance Test Cases against Guard's instance at engineering time, and the evidence is Guard's; the Test Case definitions stay Core's and are not copied. Guard holds no placement table, schema or CASE coordination of its own, and Core holds no Guard asset rule beyond what it reads from the instance. External delivery may use Core and Hosting at delivery time, and nothing of either reaches the target.
 - **guard/N13** [guard/I8] The verification realizes Testing's consumer-verification semantics (testing/C9) in Guard's own code and cites their identifiers. Guard depends on no Testing package, and the entry uses only Node's built-ins. It adds no command and no runtime dependency to the package.
+- **guard/N14** [guard/I9] **One authority, no drift.**
+  - **Definitions.** Each Guard identifier is defined exactly once. A product identifier is defined only in the package's `docs/`. `engineering/guard/` cites product identifiers and never restates them, and it defines only Engineering's own (guard/A20).
+  - **Reuse.** Engineering runs the product's Test Cases where they live and copies none of them.
+  - **Derived assets.** An asset Engineering derives from a product asset, such as External's variants of the hook, the workflow and the Skill, is produced from the product asset by a declared transformation and checked against it.
