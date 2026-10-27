@@ -194,7 +194,8 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     const { first } = twice();
     const s = observed(t, "the whole delivered suite, first run", first);
     assert.ok(s.cases.executed > 0, `the run executed no delivered case:\n${first.output.slice(-4000)}`);
-    assert.equal(s.cases.executed, s.cases.declared, "a declared case did not execute");
+    // A case declared not applicable on this platform is not run (guard/F40); every other declared case is.
+    assert.equal(s.cases.executed + (s.applicability?.notApplicable?.length ?? 0), s.cases.declared, "a declared case did not execute");
     assert.equal(s.cases.passed, s.cases.executed, `a delivered case did not pass:\n${first.output.slice(-4000)}`);
     // A shipped file changed without its manifest: node engineering/guard/verify-manifest.mjs writes it again.
     assert.equal(s.result, "verified", `the result is ${s.result}: ${JSON.stringify(s.causes)}`);
