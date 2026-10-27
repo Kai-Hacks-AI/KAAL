@@ -228,6 +228,17 @@ When Core manages the installation, Core's installation record (`core/C3`) holds
   - **Pointer.** Its output says so and names `kaal-guard verify` for this repository's integration.
   - **Who observed it.** The result is the consumer's own observation of its run. It is not KAAL release evidence (guard/N9).
 
+**What `verified` establishes, and its limits (guard/F33–guard/F36).** `verified` establishes only these three things:
+- every case the shipped manifest declares executed and passed against the installed copy;
+- each installed file other than the manifest has the SHA-256 the manifest gives it, and the copy holds no file the manifest does not ship;
+- nothing the comparison covers changed during the run.
+
+It does not establish these:
+- **Provenance.** The manifest ships in the package, so whoever can change the installed files can also change the manifest to match. Only the registry's integrity and npm's provenance attestation bind the bytes to a publication. The lockfile integrity is reported for that, and is never checked against the registry.
+- **What the cases do not cover.** A behaviour without a delivered case is not verified.
+- **The consumer beyond the comparison.** The comparison takes in every path under the consumer except `node_modules` directories, and adds the installed copy. A symbolic link counts by its target text, not by what it points to. Git's object store and files over 64 MiB count by size and modification time, so a same-size rewrite that restores the modification time is not detected there. Other dependencies, the copy's own `node_modules` (where pnpm links `.bin`), the temporary directory the cases use, and npm's cache and logs in the user's home are not compared.
+- **The consumer's integration.** That stays with `kaal-guard verify` (guard/F36).
+
 ## Nonfunctional (N)
 
 - **guard/N1** [guard/I4, guard/I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node 24 or later from `0.0.2`. Raising the floor from Node 20 is a breaking consumer prerequisite: it is stated in the package's README and in the release's notes, and an older Node is refused with that next step.

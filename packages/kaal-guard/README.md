@@ -185,6 +185,13 @@ The last line, `kaal-guard-verification {…}`, carries the same as JSON for too
 
 The installed files are checked against a manifest that ships inside the package. A match shows the copy is consistent with what the package says it ships. It is not independent provenance: for that, rely on your lockfile's integrity and npm's provenance for the published version.
 
+**What `verified` does and does not tell you.** It tells you three things. Every case the package declares ran and passed against your installed copy. Your installed files match the package's manifest. Nothing the comparison covers changed during the run.
+
+It does not tell you these:
+- **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
+- **Behaviour no case covers.**
+- **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
+
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.
 
 ## What Guard does not establish

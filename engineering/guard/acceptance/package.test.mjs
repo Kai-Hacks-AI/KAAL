@@ -108,6 +108,16 @@ function summary(r) {
   return JSON.parse(m[1]);
 }
 
+/**
+ * The run's summary, with what was observed recorded in the test's own output, so the log of every
+ * host that runs this file carries the evidence.
+ */
+function observed(t, label, r) {
+  const s = summary(r);
+  t.diagnostic(`observed on ${process.platform}, ${label}: exit ${r.status}, ${s.result}; cases ${s.cases?.declared} declared, ${s.cases?.executed} executed, ${s.cases?.passed} passed, ${s.cases?.failed} failed, ${s.cases?.skipped} skipped; consumer unchanged: ${s.consumer?.unchanged}; causes: ${JSON.stringify(s.causes)}`);
+  return s;
+}
+
 /** The delivered manifest's location in the installed copy (guard/A18). */
 const MANIFEST = join("test", "verify.json");
 
@@ -145,7 +155,7 @@ function twice() {
 }
 
 describe("guard/N6 [guard/I5] the package's own tests", () => {
-  it("guard/T98 [guard/N6]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs", () => {
+  it("guard/T98 [guard/N6]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs; there, npm test is cannot verify, never a pass", (t) => {
     // `npm test` is the consumer's verification of the installed copy (guard/F32), so the package's own
     // tests are run by their files.
     const r = spawnSync(process.execPath, ["--test", "test/*.test.mjs", "test/acceptance/*.test.mjs"], { cwd: PACKAGE, env: clean(), encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
@@ -156,13 +166,20 @@ describe("guard/N6 [guard/I5] the package's own tests", () => {
     // The retired suite fails on 0.0.2 by design, so a run with no failure runs none of its files.
     assert.equal(count("fail"), 0, `the package's tests failed:\n${output.slice(-4000)}`);
     assert.equal(r.status, 0, `the package's tests exited ${r.status}:\n${output.slice(-4000)}`);
+    // The package's npm test is the installed copy's verification. A source checkout is not an
+    // installed copy, so there it runs no case and can never report a pass.
+    const own = exec(PACKAGE, "npm", ["test"], clean());
+    const s = observed(t, "npm test in the source checkout", own);
+    assert.equal(s.result, "cannot verify", `npm test in the source checkout gave ${s.result}`);
+    assert.equal(own.status, 2, `npm test in the source checkout exited ${own.status}`);
+    assert.ok(s.causes.some((x) => /not installed under a node_modules directory/.test(x)), `npm test in the source checkout names another cause: ${JSON.stringify(s.causes)}`);
   });
 });
 
 describe("guard/I8 consumer verification of the installed package", { timeout: 30 * 60 * 1000 }, () => {
-  it("guard/T101 [guard/F31, guard/F32, guard/F33]: the documented command executes the delivered cases, more than zero of them, and a passing run gives verified, exit 0", () => {
+  it("guard/T101 [guard/F31, guard/F32, guard/F33]: the documented command executes the delivered cases, more than zero of them, and a passing run gives verified, exit 0", (t) => {
     const { first } = twice();
-    const s = summary(first);
+    const s = observed(t, "the whole delivered suite, first run", first);
     assert.ok(s.cases.executed > 0, `the run executed no delivered case:\n${first.output.slice(-4000)}`);
     assert.equal(s.cases.executed, s.cases.declared, "a declared case did not execute");
     assert.equal(s.cases.passed, s.cases.executed, `a delivered case did not pass:\n${first.output.slice(-4000)}`);
@@ -172,9 +189,10 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.match(first.output, /^verified\b/m, "the output does not name the result verified");
   });
 
-  it("guard/T102 [guard/F34]: the output and its summary line name the package, the candidate's version, its install location and the installed files' hashes, and these equal the candidate's", () => {
+  it("guard/T102 [guard/F34]: the output and its summary line name the package, the candidate's version, its install location and the installed files' hashes, and these equal the candidate's", (t) => {
     const { c, first } = twice();
-    const s = summary(first);
+    const s = observed(t, "the whole delivered suite, first run", first);
+    t.diagnostic(`observed on ${process.platform}: ${s.package.name}@${s.package.version} at ${s.package.location}; ${Object.keys(s.files.sha256).length} files, digest ${s.files.digest}; lockfile integrity ${s.lockfile.integrity ?? `unknown (${s.lockfile.unknown})`}`);
     const location = realpathSync(c.installed);
     assert.equal(s.package.name, NAME);
     assert.equal(s.package.version, c.candidate.version, "the summary names another version than the candidate's");
@@ -188,7 +206,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.ok("lockfile" in s && ("integrity" in s.lockfile), "the summary does not report the lockfile integrity, known or unknown");
   });
 
-  it("guard/T103 [guard/F33, guard/F34]: one byte changed in the installed lib/runner.mjs gives cannot verify, exit 2, naming the file; a delivered case made to fail gives failed, exit 1, naming the case", () => {
+  it("guard/T103 [guard/F33, guard/F34]: one byte changed in the installed lib/runner.mjs gives cannot verify, exit 2, naming the file; a delivered case made to fail gives failed, exit 1, naming the case", (t) => {
     const changed = consumer();
     reduce(changed, PASSING, [`${MINI} > guard/T0 passes`]);
     const runner = join(changed.installed, "lib", "runner.mjs");
@@ -196,7 +214,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     bytes[bytes.length - 1] = bytes[bytes.length - 1] === 0x20 ? 0x0a : 0x20;
     writeFileSync(runner, bytes);
     const r = changed.verify();
-    const s = summary(r);
+    const s = observed(t, "one byte changed in lib/runner.mjs", r);
     assert.equal(s.result, "cannot verify", `one changed byte gave ${s.result}:\n${r.output.slice(-4000)}`);
     assert.equal(r.status, 2);
     assert.ok(s.files.mismatched.includes("lib/runner.mjs"), "the summary does not name lib/runner.mjs");
@@ -205,16 +223,16 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     const failing = consumer();
     reduce(failing, `import { it } from "node:test";\nit("guard/T0 made to fail", () => { throw new Error("made to fail"); });\n`, [`${MINI} > guard/T0 made to fail`]);
     const f = failing.verify();
-    const t = summary(f);
-    assert.equal(t.result, "failed", `a failing case gave ${t.result}:\n${f.output.slice(-4000)}`);
+    const u = observed(t, "a delivered case made to fail", f);
+    assert.equal(u.result, "failed", `a failing case gave ${u.result}:\n${f.output.slice(-4000)}`);
     assert.equal(f.status, 1);
-    assert.deepEqual(t.cases.failures, [`${MINI} > guard/T0 made to fail`], "the summary does not name the failed case");
+    assert.deepEqual(u.cases.failures, [`${MINI} > guard/T0 made to fail`], "the summary does not name the failed case");
     assert.match(f.output, /guard\/T0 made to fail/, "the output does not name the failed case");
   });
 
-  it("guard/T104 [guard/F33]: no git on PATH, zero cases, a skipped case and one declared case not executed each give cannot verify, exit 2, with its cause, and never failed", () => {
+  it("guard/T104 [guard/F33]: no git on PATH, zero cases, a skipped case and one declared case not executed each give cannot verify, exit 2, with its cause, and never failed", (t) => {
     const expect = (r, cause, what) => {
-      const s = summary(r);
+      const s = observed(t, what, r);
       assert.equal(s.result, "cannot verify", `${what} gave ${s.result}:\n${r.output.slice(-4000)}`);
       assert.equal(r.status, 2, `${what} exited ${r.status}`);
       assert.ok(s.causes.some((x) => cause.test(x)), `${what}: no cause matches ${cause}: ${JSON.stringify(s.causes)}`);
@@ -240,17 +258,18 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     expect(missing.verify(), /not executed.*guard\/T0 declared only|guard\/T0 declared only.*not executed/, "a declared case not executed");
   });
 
-  it("guard/T105 [guard/F35]: after a run, the consumer's working tree, .git, npm configuration and the installed package are as they were, and the output says so", () => {
+  it("guard/T105 [guard/F35]: after a run, the consumer's working tree, .git, npm configuration and the installed package are as they were, and the output says so", (t) => {
     const { before, between, first } = twice();
     assert.deepEqual(between, before, "the run changed the consumer");
-    const s = summary(first);
+    t.diagnostic(`observed on ${process.platform}: the consumer's ${Object.keys(before).length} files, .git and the installed copy included, are byte for byte the same after the run`);
+    const s = observed(t, "the whole delivered suite, first run", first);
     assert.equal(s.consumer.unchanged, true, "the summary does not say the consumer is unchanged");
     assert.match(first.output, /consumer unchanged/i, "the output does not say the consumer is unchanged");
   });
 
-  it("guard/T106 [guard/F32, guard/F36]: a second run against the same installation gives the same result, and the output names kaal-guard verify for integration", () => {
+  it("guard/T106 [guard/F32, guard/F36]: a second run against the same installation gives the same result, and the output names kaal-guard verify for integration", (t) => {
     const { first, second, between, after } = twice();
-    const [a, b] = [summary(first), summary(second)];
+    const [a, b] = [summary(first), observed(t, "the whole delivered suite, second run", second)];
     assert.equal(second.status, first.status, `the second run exited otherwise: ${JSON.stringify(b.causes)}`);
     assert.equal(b.result, a.result, "the second run gave another result");
     assert.deepEqual(b.cases, a.cases, "the second run accounted for the cases otherwise");
