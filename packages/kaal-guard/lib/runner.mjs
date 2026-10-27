@@ -1,13 +1,14 @@
 // The runner: runs a set of the repository's checks and reads their verdicts. It knows the declared
 // checks (config.mjs) and the facts it is given, and nothing of branches, remotes, pull requests, hosting
-// platforms or the adapters that call it. It reads Git objects only to take a trusted checker's files
-// from the base revision (trusted.mjs).
+// platforms or the adapters that call it. It reads Git objects only to take a trusted checker's files,
+// and the declarations of the checks that name one, from the base revision (trusted.mjs, config.mjs).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { plan, words } from "./command.mjs";
-import { FACTS } from "./config.mjs";
+import { FACTS, trustedOnBase } from "./config.mjs";
 import { materialize, redirect } from "./trusted.mjs";
 
 export { FACTS };
@@ -67,9 +68,35 @@ export function runCheck(root, list, name, facts) {
   }
 }
 
-/** Runs the selected checks of the declared list in order. Returns { results }. */
-export function run(root, list, selection, facts) {
-  return { results: select(list, selection).map((name) => runCheck(root, list, name, facts)) };
+/**
+ * A check the base declares as trusted is judged by its base declaration (guard/F7): when the candidate
+ * changes that declaration in any member, or deletes it, the check is cannot judge and nothing runs, so
+ * a candidate cannot remove the protection `trusted` gives. Undefined when the declaration is unchanged.
+ */
+function guarded(name, list, onBase) {
+  const base = onBase.checks[name];
+  if (!base || isDeepStrictEqual(list.checks[name], base)) return undefined;
+  const what = list.checks[name] ? "changes it" : "deletes it";
+  return result(name, "cannot judge", `its declaration on the base ${onBase.commit} names trusted ${base.trusted}, and the candidate ${what}; a trusted check's declaration changes on its own, before a candidate is judged by it`, `land the change to ${name}.md on its own, reviewed, so that the base holds it; then run the check again`);
+}
+
+/**
+ * Runs the selected checks of the declared list in order. Returns { results }. With the fact `base` and
+ * the configuration directory `dir`, the checks the base declares as trusted are judged by their base
+ * declarations, and every one the base runs on this surface is selected, so one the candidate deleted, or
+ * moved off this surface, is still judged against the base.
+ */
+export function run(root, list, selection, facts, dir) {
+  const names = select(list, selection);
+  if (facts.base === undefined || dir === undefined) return { results: names.map((name) => runCheck(root, list, name, facts)) };
+  const onBase = trustedOnBase(root, facts.base, dir);
+  if (onBase.problem) return { results: names.map((name) => result(name, "cannot judge", `whether ${name} is trusted on the base is unknown, so it cannot run: ${onBase.problem}`, onBase.todo)) };
+  const where = selection.hook ? "hook" : "ci";
+  for (const [name, check] of Object.entries(onBase.checks)) {
+    if (names.includes(name)) continue;
+    if (selection.check === undefined ? check.runs.includes(where) : selection.check === name) names.push(name);
+  }
+  return { results: names.map((name) => guarded(name, list, onBase) ?? runCheck(root, list, name, facts)) };
 }
 
 /** The exit status of a run: 1 if any check fails, else 2 if any cannot judge, else 0. */

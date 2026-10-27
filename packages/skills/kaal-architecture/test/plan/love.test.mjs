@@ -1,5 +1,5 @@
-// architecture/C4: the planned tests of Packaging Readiness (LOVE), packages/skills/kaal-architecture/plan/love/testing.md.
-// They are immutable to DO and CHECK. They run outside the package's `npm test` until architecture/C5 turns them GREEN.
+// architecture/C4: the planned tests of Packaging Readiness (LOVE), packages/skills/kaal-architecture/plan/love/testing.md,
+// amended in architecture/C7. They are immutable to DO and CHECK. They run outside the package's `npm test` until architecture/C5 turns them GREEN.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync } from "node:fs";
@@ -8,10 +8,8 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { bootstrap, catalog, foundation, loadEngine, readContribution, register, verify } from "kaal-core";
-import { renderSkill } from "kaal-core/agent";
 import { realizeIn } from "kaal-core/realization";
 import { identify } from "kaal-graph";
-import { readFrontmatter } from "kaal-graph/form";
 import { execute, read } from "kaal-hosting";
 import { CLAIM_FILE, readClaim } from "kaal-testing/attribution";
 
@@ -25,12 +23,6 @@ const contract = () => JSON.parse(readFileSync(join(PACKAGE, "contract.json"), "
 const version = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).version;
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
-/** The body's `## Description` section, without its heading and surrounding blank lines. */
-function descriptionSection(text) {
-  const body = text.slice(text.indexOf("\n---\n", 3) + 5);
-  const match = body.match(/^## Description\n([\s\S]*?)(?=^#{1,2} |(?![\s\S]))/m);
-  return match?.[1].trim();
-}
 
 describe("kaal-architecture: Packaging Readiness (LOVE)", () => {
   it("architecture/T1: contract.json is an Installation Contract for the Capability architecture at the package's version, delivering the Agent Skill as one directory asset with its record, on Node 24 [architecture/F1, architecture/N2]", () => {
@@ -44,30 +36,41 @@ describe("kaal-architecture: Packaging Readiness (LOVE)", () => {
     assert.deepEqual(c.provides, [{ skill: "kaal-architecture" }]);
   });
 
-  it("architecture/T2: the catalogue holds the SHA-256 of the current bytes of every file under the Skill's target, and the contract's version is the package's [architecture/F2]", async () => {
+  it("architecture/T2: for every file under the Skill's target, the catalogue holds exactly the SHA-256 of its shipped bytes, and the contract's version is the package's [architecture/F1, architecture/F2]", async () => {
     const c = contract();
     assert.equal(c.version, version());
     const files = await read(SKILL);
     assert.ok(Object.keys(files).length > 0);
-    for (const [path, bytes] of Object.entries(files)) {
-      assert.ok(c.catalogue[`${TARGET}/${path}`]?.includes(sha256(bytes)), `${TARGET}/${path} is catalogued at its current bytes`);
-    }
+    assert.deepEqual(
+      Object.fromEntries(Object.entries(c.catalogue).filter(([path]) => path.startsWith(`${TARGET}/`))),
+      Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`${TARGET}/${path}`, [sha256(bytes)]])),
+    );
   });
 
-  it("architecture/T3: Core realizes the Agent Skill from contract.json only at its canonical target, registering it in Architecture's record, and renders its description from ## Description [architecture/F1, architecture/F5]", async () => {
-    const source = readFileSync(join(SKILL, "SKILL.md"));
-    const section = descriptionSection(source.toString("utf8"));
-    assert.ok(section, "the Agent Skill has a ## Description section");
-    assert.equal(readFrontmatter(renderSkill(source)).description, section);
-    assert.equal(readFrontmatter(source).description, section);
+  it("architecture/T3: Engineer Skill reads the Agent Skill as conformant, with its description in the frontmatter only, and Core realizes it from contract.json only at its canonical target, byte for byte as shipped, registering each file in Architecture's record [architecture/F1, architecture/F5]", async () => {
+    const files = await read(SKILL);
+    // Engineer Skill's reading, engineer-skill/C2; imported here so the other Test Cases run without it.
+    const { readSkill } = await import("kaal-engineer-skill");
+    const reading = readSkill("kaal-architecture", files);
+    assert.deepEqual([reading.standard, reading.kaal], [[], []]);
+    assert.equal(typeof reading.fields.get("description"), "string");
+    assert.ok(reading.fields.get("description").length > 0);
+    assert.doesNotMatch(Buffer.from(files["SKILL.md"]).toString("utf8"), /^## Description$/m);
 
     const root = mkdtempSync(join(tmpdir(), "kaal-architecture-love-"));
-    const realized = await realizeIn(root, { skills: [{ name: "kaal-architecture", files: await read(SKILL) }], contracts: [contract()] });
+    const realized = await realizeIn(root, { skills: [{ name: "kaal-architecture", files }], contracts: [contract()] });
     assert.deepEqual(realized.records, [RECORD]);
-    const placed = Object.keys(await read(root)).filter((p) => p !== RECORD).sort();
-    assert.deepEqual(placed, Object.keys(await read(SKILL)).map((p) => `${TARGET}/${p}`).sort());
+    const placed = await read(root);
+    delete placed[RECORD];
+    assert.deepEqual(
+      Object.fromEntries(Object.entries(placed).map(([p, b]) => [p, sha256(b)])),
+      Object.fromEntries(Object.entries(files).map(([p, b]) => [`${TARGET}/${p}`, sha256(b)])),
+    );
     const record = JSON.parse(readFileSync(join(root, RECORD), "utf8"));
-    assert.deepEqual(Object.keys(record.assets).sort(), placed);
+    assert.deepEqual(
+      record.assets,
+      Object.fromEntries(Object.entries(files).map(([p, b]) => [`${TARGET}/${p}`, { sha256: sha256(b), version: contract().version }])),
+    );
   });
 
   it("architecture/T4: Core admits Architecture as a KAAL Capability, with URBAN, into a fresh Engine that verifies, and the ownership claim names it by kind capability [architecture/F3]", async () => {
