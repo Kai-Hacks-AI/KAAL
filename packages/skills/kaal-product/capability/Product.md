@@ -11,7 +11,7 @@ Product is the responsibility for Product Management: supporting the Product Own
 
 Its responsibility starts where the Product Owner gives direction or an Intent asks for an increment, and ends when an increment has been selected and ordered. The Product Owner decides; Product prepares each decision and records the choice as it was made, and decides nothing itself.
 
-It provides the Product Direction Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
+It provides the Product Direction Definition and the PLAN Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
 
 What an Intent means and what its Outcome is are Intent's. Delivering a selected increment is the work of Changes, each with its own lifecycle, which is Change's; coordinating several related Changes is Project's. Each of these capabilities defines and owns its own objects and their lifecycle, and a relationship between capabilities transfers no ownership.
 
