@@ -213,16 +213,18 @@ The lane and its `red.json` are gone (#501), so a Test Case written RED in the b
 
 The Owner directed on 2026-10-27 that Guard `0.0.4` becomes verifiable by any npm consumer, and that KAAL Testing states the reusable semantics (guard/I8). The proposal was aligned with Core, which owns kaal-testing, in #kaal (canvas F0CCGQ35B29). This PLAN carries it into Guard's documents.
 
-**Recommended option: A.**
+**Option A, the Owner's decision.**
 - **What ships.** The package ships its outer acceptance cases and a small entry, run through npm's own `npm explore <package> -- npm test`.
 - **Why not B or C.** A `kaal-guard test` command (B) adds a surface for no gain the consumer needs. A harness delivered by KAAL Testing (C) would make Guard depend on another KAAL element (guard/N6), and kaal-testing is not published.
 - **Reuse.** The 71 outer acceptance cases are reused unchanged.
 - **Why the entry.** It is what a bare `npm test` cannot be: fail-closed, three-valued and self-checking (guard/F33–guard/F35).
 
-**Decisions asked on this PLAN.** The Owner decides them on its pull request. The recommendation is written into the requirements, and a different choice is a revision of this PLAN.
-1. Option A, with B kept only as a later alias.
-2. Only the outer acceptance cases ship; the inner Code tests stay in the repository.
-3. `cannot verify` exits 2: distinct from `failed` (1) and never 0.
+**The Owner's decisions (#kaal, 2026-10-27).** The three options of the joint proposal are settled:
+1. **Invocation: option A.** The consumer runs npm's own `npm explore @kaihacksai/kaal-guard -- npm test`. A package-owned command alias may be evaluated later and is not part of this decision.
+2. **Scope: acceptance cases only.** Guard ships its product-owned consumer acceptance cases, not its engineering or unit tests.
+3. **`cannot verify` exits 2.** The three results stay distinct: `verified` (0), `failed` (1) and `cannot verify` (2). A run in which no case executed is never `verified`.
+
+The decisions authorize no implementation, version bump, release or publication. Guard's cases stay separate from Testing's reusable semantics, and the acceptance scenario stays an unrelated consumer, the installed distribution and a non-destructive run. This PLAN is the bounded authorization request: its approval authorizes `guard/C98` only, and the bump, the release and publication each still need their own.
 
 **Order.**
 1. testing/C9 PLAN, Core's Definition-only Change, lands first, because guard/N13 cites its identifiers.
@@ -328,7 +330,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C95` | — | Guard | Plain `init` lists a registered surface file the repository no longer has under still to do, naming the `init` that reinstalls it | `guard/C91` | #508, merged; promoted in #509 |
 | `guard/C83` | — | Guard | Release acceptance of `0.0.3`: guard/T65, guard/T67 and guard/T68 GREEN with `registry` evidence between the published `0.0.2` and `0.0.3`, and guard/T66 recorded as not exercised for that pair (the Owner on #483). Recorded after publication; `0.0.3` is accepted only then | `guard/C81` (the publication of `0.0.3`), `guard/C82` | #510 |
 | `guard/C96` | — | Guard | The README's `Guard/Check` limitation states what KAAL Core now does with typed artifacts since `core/C10`: Core reports a declaration registered only when a `Guard/Check` Type Definition owned by Guard is admitted, Guard installs none, so declarations are unregistered and `kaal verify` passes on them. Docs only; the published `0.0.3` README is unchanged until the next release | `guard/C83` | #515, merged; promoted in #522 |
-| `guard/C97` | — | Guard | PLAN for consumer verification in `0.0.4`: guard/I8, guard/F31–guard/F36, guard/N13, guard/A18 and the planned guard/T101–guard/T106. Documents only; the three decisions asked on its pull request | testing/C9 | #529 |
+| `guard/C97` | — | Guard | PLAN for consumer verification in `0.0.4`: guard/I8, guard/F31–guard/F36, guard/N13, guard/A18 and the planned guard/T101–guard/T106. Documents only; the Owner's three decisions recorded | testing/C9 | #529 |
 | `guard/C98` | — | Guard | guard/T101–guard/T106 written with their RED evidence recorded, then the verification entry, its manifest, the package's `files` and `test` script, and the README section | `guard/C97` | not created |
 | `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C98` | not created |
 | `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment | `guard/C99`, the promotion | not created |
