@@ -27,7 +27,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires", () => {
-    assert.match(text("Product.md"), /^It provides the Product Direction Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text("Product.md"), /^It provides the Product Direction Definition and the PLAN Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("states where its responsibility starts and ends", () => {
@@ -83,6 +83,47 @@ describe("the Product Direction Definition", () => {
   });
 });
 
+describe("the PLAN Definition", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const definition = node("PLAN.md");
+    assert.equal(definition.name, "PLAN");
+    assert.deepEqual(definition.type, foundation().definition);
+  });
+
+  it("turns the backlog into a roadmap", () => {
+    assert.match(text("PLAN.md"), /^PLAN is how Product turns possible work into an intentional roadmap: Backlog → PLAN → Roadmap\.$/m);
+  });
+
+  it("names its four words", () => {
+    const definition = text("PLAN.md");
+    for (const word of ["Prioritize", "Launch", "Adaption", "Now"]) {
+      assert.match(definition, new RegExp(`^- \\*\\*${word}\\*\\*: `, "m"), word);
+    }
+  });
+
+  it("authorizes an increment at Launch without delivering it", () => {
+    assert.match(text("PLAN.md"), /Launching does not deliver the increment, and Product does not take over its delivery\./);
+  });
+
+  it("reflects unplanned work by adapting the plan", () => {
+    assert.match(text("PLAN.md"), /even a single unplanned Change, is reflected by adapting the plan; it is not an exception that bypasses product direction/);
+  });
+
+  it("is not a pipeline, a ceremony or a Project", () => {
+    assert.match(text("PLAN.md"), /PLAN is not a pipeline of four steps, a ceremony or a Project\./);
+  });
+
+  it("leaves authority with the Product Owner", () => {
+    const definition = text("PLAN.md");
+    assert.match(definition, /Product prepares and maintains the backlog and roadmap\./);
+    assert.match(definition, /The Product Owner retains authority over priorities, authorization of increments and substantive changes to product direction\./);
+  });
+
+  it("is not the Plan phase of Plan–Do–Check–Act", () => {
+    assert.match(text("PLAN.md"), /PLAN is not the Plan phase of Plan–Do–Check–Act/);
+  });
+});
+
 describe("admission", () => {
   it("is admitted as a Capability by Core alone", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-product-")), "engine");
@@ -111,6 +152,7 @@ describe("the package", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/PLAN.md",
       "capability/Product-Direction.md",
       "capability/Product.md",
       "package.json",
