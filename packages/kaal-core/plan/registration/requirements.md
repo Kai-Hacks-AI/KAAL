@@ -18,7 +18,7 @@ Each Requirement names, in brackets, the Intents it serves.
 - **core/F47** [core/I15, core/I16]: A registration is a Capability's explicit statement of:
   - the Capability that makes it;
   - the namespace it claims, such as `testing`;
-  - the artifact kinds it defines, each with its trace rule (`core/F51`);
+  - the artifact kinds it defines, each with its trace rule and, where its owner decides one, its cycle declaration (`core/F51`);
   - the artifacts it owns, each with its outgoing traces (`core/F52`).
 
   A Capability produces its registration however it likes. Core reads only the registration, never the Capability's other files.
@@ -36,8 +36,9 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional: rules and instances
 
-- **core/F51** [core/I16]: A kind's rule lists the kinds its artifacts may trace to, and nothing else.
-  - **Who registers it.** A rule is registered only by the kind's owner.
+- **core/F51** [core/I16]: A kind's rule lists the kinds its artifacts may trace to.
+  - **Who registers it.** A rule is registered only by the kind's owner. The owner defines the trace concept for its kind, and the source artifact's Capability owns each assertion made under that rule. A cross-capability target does not make the semantics jointly owned.
+  - **Cycles.** The kind's owner may declare its rule `acyclic`: no artifact of that kind may lie on a cycle of trace instances. Without a declaration, cycles through the kind are permitted. Core adds no default and no universal prohibition.
   - **The Owner-corrected rules.** These are the rules the kind owners are expected to register:
     - I → C
     - F → I and N → I
@@ -55,8 +56,10 @@ Each Requirement names, in brackets, the Intents it serves.
   Otherwise it is a finding naming the source, the target and the reason: unresolved, unclaimed namespace, unknown kind, or not permitted by the rule. The rule applies whichever namespaces the two artifacts are in.
 - **core/F53** [core/I17]: The assembled graph is validated as a whole.
   - **Following traces.** From any artifact, Core follows its traces recursively, such as Code → T → A → F → I → C.
-  - **Cycles.** A cycle of trace instances is a finding naming its artifacts. A trace says that its source answers to its target, so no artifact answers to itself through others.
-  - **Rules may cycle.** Kinds may still form a cycle in the rules, as A → D → T → A does.
+  - **Cycles are observed.** Every cycle of trace instances is reported as a structural observation naming its artifacts.
+  - **Cycles are judged by their owners' declarations.** A cycle is a finding only when an artifact on it is of a kind whose owner declared its rule `acyclic` (`core/F51`). The finding names that kind and its owner. Core never decides on its own that a cycle is invalid.
+  - **Safety is not semantics.** Following traces and detecting cycles are deterministic and terminate on every graph, cyclic or not, whatever is permitted. Reaching yields each artifact once, and Core never enumerates paths.
+  - **Rules may cycle.** Kinds may form a cycle in the rules, as A → D → T → A does.
 - **core/F54** [core/I16]: Reverse views are derived:
   - `incoming(id)` lists the traces that end at an artifact, computed from the outgoing ones.
   - A registration that states an incoming trace is refused with a finding.
@@ -66,7 +69,7 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional: reporting
 
-- **core/F56** [core/I17, core/I18]: The result reports three things: the claims, every finding, and the untraced artifacts.
+- **core/F56** [core/I17, core/I18]: The result reports four things: the claims, every finding, the observed cycles, and the untraced artifacts.
   - Each finding says that it is Core's global verdict.
   - A Capability's local verdict on its own artifacts is never reported as Core's, and Core's verdict never says that an artifact's content is right.
-  - `kaal verify` lists the result beside the Nodes and artifacts. It fails on a collision and on a finding of `core/F52`–`core/F54`, and it never fails because an artifact is untraced.
+  - `kaal verify` lists the result beside the Nodes and artifacts. It fails on a collision and on a finding of `core/F52`–`core/F54`. It never fails because an artifact is untraced, nor because of a cycle no owner declared prohibited.
