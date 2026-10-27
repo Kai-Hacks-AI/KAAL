@@ -1,8 +1,8 @@
 // Guard outer acceptance, Engineering part: KAAL as Guard's first consumer. Intent validation T5 [I4],
-// Requirements verification T32 [N7] and Architecture conformance T33–T35 [A11]. Planned in PLAN; DO and CHECK do
+// Requirements verification T32 [N7] and Architecture conformance T33–T35 and T80 [A11]. Planned in PLAN; DO and CHECK do
 // not change it.
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -36,10 +36,32 @@ const JOBS = [
   ["branching-audit.yml", "audit"],
 ];
 
-/** KAAL's guard.json. While there is none, the test is blocked here, before its assertions. */
+const CONFIG = join(REPO, ".kaal", "config", "guard");
+
+/** One value of guard/F1's subset: a double-quoted or plain string, an integer, a flow list or a flow map. */
+function value(text) {
+  const t = text.trim();
+  if (t.startsWith('"')) return JSON.parse(t);
+  if (/^-?\d+$/.test(t)) return Number(t);
+  const items = (inner) => (inner.trim() ? inner.split(",").map((x) => x.trim()) : []);
+  if (t.startsWith("[") && t.endsWith("]")) return items(t.slice(1, -1)).map(value);
+  if (t.startsWith("{") && t.endsWith("}")) return Object.fromEntries(items(t.slice(1, -1)).map((kv) => kv.split(/:\s*/).map((x) => x.trim())).map(([k, v]) => [k.startsWith('"') ? JSON.parse(k) : k, v]));
+  return t;
+}
+
+/**
+ * KAAL's declarations in .kaal/config/guard/, by check name: each file's frontmatter, read as guard/F1's
+ * subset. While there is no such directory, the test is blocked here, before its assertions.
+ */
 function guard() {
-  assert.ok(existsSync(join(REPO, "guard.json")), "blocked before behavioural assertion: KAAL lists no checks for Guard (guard.json)");
-  return JSON.parse(read("guard.json"));
+  assert.ok(existsSync(CONFIG), "blocked before behavioural assertion: KAAL declares no checks for Guard (.kaal/config/guard/)");
+  const checks = {};
+  for (const file of readdirSync(CONFIG).filter((f) => f.endsWith(".md")).sort()) {
+    const front = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/.exec(readFileSync(join(CONFIG, file), "utf8"));
+    assert.ok(front, `${file} has no frontmatter`);
+    checks[file.slice(0, -3)] = Object.fromEntries(front[1].split(/\r?\n/).filter(Boolean).map((l) => [l.slice(0, l.indexOf(":")).trim(), value(l.slice(l.indexOf(":") + 1))]));
+  }
+  return { checks };
 }
 
 describe("guard/N7 [guard/I4] KAAL's check identities", () => {
@@ -54,19 +76,34 @@ describe("guard/N7 [guard/I4] KAAL's check identities", () => {
 });
 
 describe("KAAL's own checks run through Guard", () => {
-  it("guard/T33 [guard/A11]: KAAL lists its checks in guard.json, its branching checkers trusted and 4 declared as held", () => {
+  it("guard/T33 [guard/A11]: KAAL declares its checks in .kaal/config/guard/, its branching checkers trusted and 4 declared as held", () => {
     const { checks } = guard();
     assert.ok(checks && Object.keys(checks).length > 0);
     const branching = Object.entries(checks).filter(([, c]) => /lineage\.ts/.test(c.command));
-    assert.ok(branching.length > 0, "guard.json lists no branching check");
+    assert.ok(branching.length > 0, "KAAL declares no branching check");
     for (const [name, c] of branching) {
       assert.match(c.trusted ?? "", /engineering\/github\/lineage\.ts$/, `${name} is not run from the target ref`);
       assert.equal(c.outcomes?.["4"], "held", `${name} does not declare 4 as held`);
     }
   });
 
-  it("guard/T5 [guard/I4]: the pre-push hook runs the local checks through Guard", () => {
-    assert.match(read(".githooks/pre-push"), /kaal-guard run --local/);
+  it("guard/T80 [guard/F1, guard/A11]: every key in the frontmatter of KAAL's declarations is a string: each outcomes status is double-quoted", () => {
+    const dir = join(REPO, ".kaal", "config", "guard");
+    const files = readdirSync(dir).filter((f) => f.endsWith(".md"));
+    assert.ok(files.length > 0, "KAAL declares no check");
+    for (const f of files) {
+      const front = /^---\n([\s\S]*?)\n---\n/.exec(read(`.kaal/config/guard/${f}`).replace(/\r\n/g, "\n"));
+      assert.ok(front, `${f} has no frontmatter`);
+      for (const line of front[1].split("\n").filter((l) => /^outcomes:/.test(l))) {
+        const keys = [...line.slice(line.indexOf("{") + 1, line.lastIndexOf("}")).matchAll(/(?:^|,)\s*("[^"]*"|[^:,]+?)\s*:/g)].map((m) => m[1]);
+        assert.ok(keys.length > 0, `${f}: outcomes names no status`);
+        for (const k of keys) assert.match(k, /^"\d+"$/, `${f}: outcomes key ${k} is not a double-quoted exit status`);
+      }
+    }
+  });
+
+  it("guard/T5 [guard/I4]: the pre-push hook runs the hook checks through Guard", () => {
+    assert.match(read(".githooks/pre-push"), /kaal-guard run --hook/);
   });
 
   it("guard/T34 [guard/A11]: every Guard-run job keeps its name and runs its check through Guard", () => {
@@ -75,7 +112,7 @@ describe("KAAL's own checks run through Guard", () => {
       const text = job(workflow, key);
       const run = [...text.matchAll(/kaal-guard run --check ("[^"]+"|\S+)/g)].map((m) => m[1].replace(/"/g, ""));
       assert.ok(run.length > 0, `${workflow} ${key} does not run its check through Guard`);
-      for (const name of run) if (!name.includes("${{")) assert.ok(checks[name], `${workflow} ${key} runs ${name}, which guard.json does not list`);
+      for (const name of run) if (!name.includes("${{")) assert.ok(checks[name], `${workflow} ${key} runs ${name}, which KAAL does not declare`);
     }
   });
 
