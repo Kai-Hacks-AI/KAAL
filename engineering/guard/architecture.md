@@ -35,7 +35,16 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 - **guard/A17 Installation contract** [guard/F27, guard/N12]. `contract.json` is in the package, and the package ships it. It is Guard's instance of Core's Installation Contract schema, which Guard neither copies nor imports. The lifecycle (guard/A6) reads its assets and rules from it, so no second list of assets exists in Guard's code. Core reads the same file when it realizes Guard. KAAL Engineering (guard/A9) runs Core's conformance Test Cases against it, at engineering time only.
 - **guard/A18 Verification entry** [guard/F31–guard/F36, guard/N13].
   - **Where it lives.** `test/verify.mjs` and its manifest `test/verify.json` are in the package beside the outer acceptance cases (`test/acceptance/`), and the package ships all three. The manifest holds the delivered cases' inventory and the SHA-256 of every shipped file except itself.
-  - **What it does.** The entry checks the prerequisites, the installed files and the consumer, runs `node --test` over the delivered cases by absolute path, reads each case's outcome from the runner's events, and prints the result and the summary line.
+  - **What it does.** The entry checks the prerequisites, the installed files and the consumer, runs the delivered cases by absolute path through `node:test`'s `run()`, reads each case's outcome from the runner's events, and prints the result and the summary line. It removes an inherited `NODE_TEST_CONTEXT` first, because with it every case would be skipped.
+  - **The manifest's form.** `cases` lists each delivered case as `<file> > <suite> > <test>`, the file relative to the package. `files` maps each other shipped file to its SHA-256. The copy's own `node_modules`, where pnpm links `.bin`, is the package manager's and is not compared. `node engineering/guard/verify-manifest.mjs` writes it from a run of the cases and from `npm pack --dry-run`, after any Change to a shipped file. Until then guard/T101 is `cannot verify`, naming the file.
+  - **The summary line.** `kaal-guard-verification` is followed by JSON with these members:
+    - `result` and `exit`;
+    - `package`: name, version and location;
+    - `consumer`: root, `unchanged` and `changed`;
+    - `lockfile`: integrity, resolved, source, or `unknown` with its reason;
+    - `files`: digest, mismatched, missing, extra and `sha256`;
+    - `cases`: declared, executed, passed, failed, skipped and todo, with the cases each names;
+    - `causes`.
   - **What it uses.** It imports nothing from `lib/`, so a broken runtime cannot mask itself, and uses only Node's built-ins. The cases and their harness are reused unchanged.
   - **Where its own tests live.** The Test Cases of the verification itself (guard/T101–guard/T106) are in `engineering/guard/acceptance/`, not in the package, so a delivered run never verifies its own verifier.
 

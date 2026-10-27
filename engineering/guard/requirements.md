@@ -217,15 +217,27 @@ When Core manages the installation, Core's installation record (`core/C3`) holds
   - the SHA-256 of each installed file, checked against the manifest shipped with the entry. The manifest excludes itself. A mismatch is `cannot verify`, naming the files.
   - the lockfile integrity, where npm recorded it in `node_modules/.package-lock.json`. Elsewhere it is reported as unknown, never guessed.
 
-  The tarball the cases exercise is a re-pack of the installed copy, so its integrity is not the registry's `dist.integrity`. The manifest is what ties a run to the published bytes. The summary line `kaal-guard-verification {…}` carries all of it as JSON.
+  The tarball the cases exercise is a re-pack of the installed copy, so its integrity is not the registry's `dist.integrity`. The manifest ships inside the package, so a match is consistency evidence: the installed files are the ones the package says it ships. It is not independent provenance. Provenance is the registry's integrity and npm's provenance attestation, which the lockfile's integrity points to. The summary line `kaal-guard-verification {…}` carries all of it as JSON.
 - **guard/F35** [guard/I8] **Intact consumer.**
   - **Scratch space.** The delivered cases write only to the operating system's temporary directory.
-  - **The consumer.** The entry takes the consumer to be the directory that holds the `node_modules` it is installed in. Under `npm explore`, both the working directory and `INIT_CWD` are the package directory.
+  - **The consumer.** The entry takes the consumer to be the directory that holds the outermost `node_modules` on the installed copy's resolved path, and it requires that directory to have a `package.json`. That covers a direct dependency, a nested one and a hoisted workspace dependency under npm, and pnpm's `node_modules/.pnpm/` store. A copy that is not under a `node_modules` directory, such as a link or a source checkout, or one whose directory has no `package.json`, such as a global installation, is `cannot verify`, and the cases do not run. Under `npm explore`, both the working directory and `INIT_CWD` are the package directory, so neither names the consumer.
   - **The check.** It compares the consumer's content, `node_modules/@kaihacksai/kaal-guard` included, before and after the run. A difference is `failed`, naming the paths.
+  - **What is compared.** Every path under the consumer is compared, except `node_modules` directories, the installed copy excepted. Each file is compared by its SHA-256, a link by its target and a directory by its presence. Git's object store and files over 64 MiB are compared by size and modification time. Other dependencies are not compared.
 - **guard/F36** [guard/I8] **Package, not integration.**
   - **Scope.** The verification judges the package only. It reads none of the consumer's configuration, installation record, hook or workflow.
   - **Pointer.** Its output says so and names `kaal-guard verify` for this repository's integration.
   - **Who observed it.** The result is the consumer's own observation of its run. It is not KAAL release evidence (guard/N9).
+
+**What `verified` establishes, and its limits (guard/F33–guard/F36).** `verified` establishes only these three things:
+- every case the shipped manifest declares executed and passed against the installed copy;
+- each installed file other than the manifest has the SHA-256 the manifest gives it, and the copy holds no file the manifest does not ship;
+- nothing the comparison covers changed during the run.
+
+It does not establish these:
+- **Provenance.** The manifest ships in the package, so whoever can change the installed files can also change the manifest to match. Only the registry's integrity and npm's provenance attestation bind the bytes to a publication. The lockfile integrity is reported for that, and is never checked against the registry.
+- **What the cases do not cover.** A behaviour without a delivered case is not verified.
+- **The consumer beyond the comparison.** The comparison takes in every path under the consumer except `node_modules` directories, and adds the installed copy. A symbolic link counts by its target text, not by what it points to. Git's object store and files over 64 MiB count by size and modification time, so a same-size rewrite that restores the modification time is not detected there. Other dependencies, the copy's own `node_modules` (where pnpm links `.bin`), the temporary directory the cases use, and npm's cache and logs in the user's home are not compared.
+- **The consumer's integration.** That stays with `kaal-guard verify` (guard/F36).
 
 ## Nonfunctional (N)
 

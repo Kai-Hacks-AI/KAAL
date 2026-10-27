@@ -157,6 +157,43 @@ npm uninstall @kaihacksai/kaal-guard
 
 Each form deletes only the registered files of that surface you haven't changed and marks it no longer activated; a file you changed is kept and reported. Plain `remove` also deletes the Skill's registered, unchanged files, the installation record, and `.kaal/config/guard/` where it is left empty. A directory you named with `--config` is never deleted. It unsets `core.hooksPath` only in the scope Guard's checkout state records, and only while it still holds the value Guard set; a clone or worktree without that state leaves it alone. No form touches your declarations in `.kaal/config/guard/` or your Test Cases.
 
+## Verify the installed package
+
+To check that the copy of Guard you installed works as intended, run this from your project:
+
+```sh
+npm explore @kaihacksai/kaal-guard -- npm test
+```
+
+It runs Guard's own acceptance cases, which ship with the package, against the installed copy. Each case works in a temporary repository of its own, outside your project, and your project is left as it was. It needs Node 24 or later, Git and npm on `PATH`, and the network is not needed. A run takes a few minutes.
+
+The run prints:
+- the package, its version, where it is installed and your lockfile's integrity for it;
+- a digest of the installed files;
+- one line per case;
+- whether your project is unchanged.
+
+It ends in exactly one result:
+
+| Result | Exit | Meaning |
+| --- | --- | --- |
+| `verified` | 0 | Every declared case ran and passed. |
+| `failed` | 1 | A case failed, or your project changed during the run. The output names which. |
+| `cannot verify` | 2 | Nothing failed, but the run cannot claim verification. A prerequisite may be missing, the installed files may not match the manifest the package ships, a case may have been skipped or not run, or no case ran. The output names the cause and what to do. |
+
+The last line, `kaal-guard-verification {…}`, carries the same as JSON for tools.
+
+The installed files are checked against a manifest that ships inside the package. A match shows the copy is consistent with what the package says it ships. It is not independent provenance: for that, rely on your lockfile's integrity and npm's provenance for the published version.
+
+**What `verified` does and does not tell you.** It tells you three things. Every case the package declares ran and passed against your installed copy. Your installed files match the package's manifest. Nothing the comparison covers changed during the run.
+
+It does not tell you these:
+- **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
+- **Behaviour no case covers.**
+- **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
+
+This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.
+
 ## What Guard does not establish
 
 Guard runs the checks you declare and reports their verdicts. It does not establish that a check or a Test Case it runs is unchanged since you accepted it: a changed test can still return pass, and that pass is not a guarantee from Guard. Review changes to your checks and Test Cases as you review any other change, and use `trusted` where a checker must come from the base commit.
