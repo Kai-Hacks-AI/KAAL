@@ -120,4 +120,24 @@ describe("Architecture conformance", () => {
       assert.ok(!text.includes(supplier), `the contract names the supplier location ${supplier}`);
     }
   });
+
+  it("guard/T107 [guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority", () => {
+    const parts = ["intent.md", "requirements.md", "architecture.md", "testing.md", "limitations.md"];
+    for (const part of parts) assert.ok(existsSync(join(PACKAGE, "docs", part)), `the package carries no docs/${part}`);
+    assert.ok(JSON.parse(source("package.json")).files.includes("docs"), "the package does not ship docs/");
+    const docs = parts.map((part) => source(`docs/${part}`)).join("\n");
+    // A definition opens its line in bold: "**guard/F1 Check list.**" or "- **guard/A1 Check list**".
+    const defined = new Set([...docs.matchAll(/^(?:- )?\*\*(guard\/[IFNA]\d+)\b/gm)].map((m) => m[1]));
+    // The trace defines each delivered case as a row of its own: "| guard/T61 | ...".
+    for (const m of docs.matchAll(/^\| (guard\/T\d+) \|/gm)) defined.add(m[1]);
+    const cited = new Set();
+    for (const file of readdirSync(HERE).filter((f) => f.endsWith(".test.mjs"))) {
+      for (const m of readFileSync(join(HERE, file), "utf8").matchAll(/\b(?:describe|it|test)\(\s*"([^"]*)"/g)) {
+        for (const id of m[1].match(/guard\/[IFNAT]\d+/g) ?? []) cited.add(id);
+      }
+    }
+    assert.ok(cited.size > 0, "no delivered case cites an identifier");
+    assert.deepEqual([...cited].filter((id) => !defined.has(id)).sort(), [], "delivered cases cite identifiers docs/ does not define");
+    assert.deepEqual(docs.match(/engineering\/|guard\/C\d+|\]\(\.\.\//g) ?? [], [], "docs/ cites an Engineering path, a Change, or a document outside the package");
+  });
 });
