@@ -30,20 +30,28 @@ describe("the Capability Node", () => {
     assert.match(text("Project.md"), /^It provides the Project Plan Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
-  it("states where its responsibility starts and ends, and when no Project is needed", () => {
+  it("adds governance over one or more Normal Changes where it is warranted", () => {
     const capability = text("Project.md");
-    assert.match(capability, /starts where a selected increment needs several related Changes, and ends at the Project's exit/);
-    assert.match(capability, /Neither a capability increment nor several independent Changes needs a Project\./);
+    assert.match(capability, /adding governance over one or more Normal Changes toward a shared Outcome where that governance is warranted/);
+    assert.match(capability, /ends at the Project's exit: its integrated Outcome evidenced and judged, or the Project withdrawn/);
+    assert.match(capability, /One Normal Change is the minimum, and several are equally valid\./);
+    assert.match(capability, /The number of Changes alone is not the trigger: governance may be warranted by complexity, risk, dependencies, coordination or delivery commitments\./);
+    assert.match(capability, /No Normal Change needs a Project merely by being one\./);
+  });
+
+  it("leaves what a Normal Change is, and Change classification, to Change", () => {
+    assert.match(text("Project.md"), /What a Normal Change is, and how Changes are classified and governed as Changes, is Change's\./);
   });
 
   it("realizes Project first, with Program and Portfolio in scope and not yet realized", () => {
     assert.match(text("Project.md"), /Project is realized first; Program, .+ and Portfolio, .+ are within its scope and not yet realized\./);
   });
 
-  it("transfers no functional ownership by coordinating", () => {
+  it("transfers no functional ownership by governing", () => {
     const capability = text("Project.md");
-    assert.match(capability, /^Coordination transfers no functional ownership\./m);
-    assert.match(capability, /Each Change keeps its own lifecycle, which is Change's/);
+    assert.match(capability, /^Governance transfers no functional ownership\./m);
+    assert.match(capability, /Project neither decomposes a Change by default nor takes over a Change's authorization, lifecycle, work or evidence\./);
+    assert.match(capability, /Each Change keeps its own authorization and lifecycle, which are Change's/);
     assert.match(capability, /The Outcome and what it means are Intent's/);
   });
 });
@@ -57,17 +65,25 @@ describe("the Project Plan Definition", () => {
 
   it("names what a Plan states", () => {
     const definition = text("Project-Plan.md");
-    for (const part of ["Outcome", "Changes", "Ordering", "Grouping", "Risks", "Exit condition"]) {
+    for (const part of ["Outcome", "Warrant", "Changes", "Ordering", "Grouping", "Risks", "Exit condition"]) {
       assert.match(definition, new RegExp(`^- \\*\\*${part}\\*\\*: `, "m"), part);
     }
   });
 
-  it("does not take integrated Changes for a met exit", () => {
-    assert.match(text("Project-Plan.md"), /Every Change in it being integrated does not by itself meet its exit condition, because integrating a Change does not prove an Outcome\./);
+  it("governs one or more Normal Changes", () => {
+    assert.match(text("Project-Plan.md"), /^A Project Plan states how governance is added over one or more Normal Changes toward one shared Outcome\./m);
   });
 
-  it("is kept in the context of the work it coordinates", () => {
-    assert.match(text("Project-Plan.md"), /A Plan is kept in the context of the work it coordinates\./);
+  it("neither decomposes, authorizes nor accepts a Change", () => {
+    assert.match(text("Project-Plan.md"), /It does not decompose a Change by default, and it neither authorizes nor accepts a Change: each Change is authorized and accepted on its own terms, which are Change's\./);
+  });
+
+  it("keeps the integrated Outcome apart from accepting individual Changes", () => {
+    assert.match(text("Project-Plan.md"), /Accepting every Change it names does not by itself meet its exit condition, because the acceptance of individual Changes does not prove the integrated Outcome\./);
+  });
+
+  it("is owned by Project as registered KAAL content, persistence apart", () => {
+    assert.match(text("Project-Plan.md"), /Project defines and owns its Project Plans as registered KAAL content; how they are persisted is separate from who owns them\./);
   });
 });
 

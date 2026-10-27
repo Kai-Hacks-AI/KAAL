@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "capability", "name": "Project", "id": "71473d2df71f31894e0bd4adf5eca877d1913a767fe8ccb700bf7515f5bb7fd9" },
+  "owner": { "kind": "capability", "name": "Project", "id": "5e2c9a2e7bb67a8c3e32c66df57b82923cccb9b20a98473d5bbfcc39d2966276" },
   "paths": ["packages/skills/kaal-project/"]
 }

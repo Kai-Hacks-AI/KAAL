@@ -7,13 +7,16 @@ type:
 
 # Project Plan
 
-A Project Plan states how related Changes are coordinated toward one shared Outcome. It names:
+A Project Plan states how governance is added over one or more Normal Changes toward one shared Outcome. It names:
 
-- **Outcome**: the Outcome of the Intent the Project serves.
-- **Changes**: the related Changes it coordinates.
-- **Ordering**: which Changes depend on which, and so in what order they proceed.
-- **Grouping**: which Changes must land together.
-- **Risks**: the known integration risks, and how each is to be watched.
-- **Exit condition**: what must hold for the Project to end: its Outcome evidenced and judged, or the Project withdrawn.
+- **Outcome**: the integrated Outcome of the Intent the Project serves.
+- **Warrant**: why governance is warranted: complexity, risk, dependencies, coordination or delivery commitments.
+- **Changes**: the one or more Normal Changes it governs.
+- **Ordering**: where there are several, which Changes depend on which, and so in what order they proceed.
+- **Grouping**: which Changes must land together, where any must.
+- **Risks**: the known risks, integration risks among them, and how each is to be watched.
+- **Exit condition**: what must hold for the Project to end: its integrated Outcome evidenced and judged, or the Project withdrawn.
 
-A Plan coordinates and owns none of the work it names. Every Change in it being integrated does not by itself meet its exit condition, because integrating a Change does not prove an Outcome. A Plan is kept in the context of the work it coordinates.
+A Plan governs and owns none of the work it names. It does not decompose a Change by default, and it neither authorizes nor accepts a Change: each Change is authorized and accepted on its own terms, which are Change's. Accepting every Change it names does not by itself meet its exit condition, because the acceptance of individual Changes does not prove the integrated Outcome.
+
+Project defines and owns its Project Plans as registered KAAL content; how they are persisted is separate from who owns them.
