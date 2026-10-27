@@ -68,7 +68,7 @@ describe("the installed package", () => {
 describe("a consumer repository", () => {
   // The Capability Node, URBAN, the installed Agent Skill and Architecture's installation record
   // meet in one repository: its Engine at .kaal/, the Skill at .agents/skills/, the record in .kaal/state/.
-  it("holds Architecture, URBAN, the Agent Skill Core realized from contract.json, and the record that registers it", async () => {
+  it("holds Architecture, URBAN, the Agent Skill Core realized from contract.json byte for byte as shipped, and the record that registers it", async () => {
     const kaalIn = (args) => run(kaal, [...args, "--engine", join(consumer, ".kaal")], host);
     assert.match(await kaalIn(["init"]), /bootstrapped/);
     assert.match(await kaalIn(["register", "capability", "kaal-architecture", join(installed, "payload")]), /^registered capability kaal-architecture/);
@@ -90,6 +90,8 @@ describe("a consumer repository", () => {
     const skill = files(join(consumer, ".agents")).map((p) => `.agents/${p}`);
     assert.deepEqual(skill, [".agents/skills/kaal-architecture/SKILL.md"]);
     for (const path of skill) {
+      const shipped = join(installed, "skills", "kaal-architecture", path.slice(".agents/skills/kaal-architecture/".length));
+      assert.ok(readFileSync(join(consumer, path)).equals(readFileSync(shipped)), `${path} is installed byte for byte as shipped`);
       const digest = createHash("sha256").update(readFileSync(join(consumer, path))).digest("hex");
       assert.deepEqual(record.assets[path], { sha256: digest, version: contract.version });
       assert.ok(contract.catalogue[path].includes(digest), `${path} as installed is catalogued`);
