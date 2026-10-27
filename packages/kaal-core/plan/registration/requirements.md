@@ -48,15 +48,16 @@ Each Requirement names, in brackets, the Intents it serves.
     - D → T
   - **C has no outgoing rule.** A C artifact may trace to nothing.
   - **No rule is implied.** Core adds no rule of its own and no reverse rule.
-- **core/F52** [core/I16, core/I17]: Each trace instance goes out from its source artifact to a target identity. It is permitted only when three things hold:
+- **core/F52** [core/I16, core/I17]: Each trace instance goes out from its source artifact to a target identity. It is permitted only when two things hold:
   - its target resolves to an artifact in a claimed namespace;
-  - the target's kind is in the source kind's rule;
-  - the source and target are different artifacts.
+  - the target's kind is in the source kind's rule.
+
+  A trace to itself is not refused here: it is a cycle of one, judged by `core/F53` like any other cycle.
 
   Otherwise it is a finding naming the source, the target and the reason: unresolved, unclaimed namespace, unknown kind, or not permitted by the rule. The rule applies whichever namespaces the two artifacts are in.
 - **core/F53** [core/I17]: The assembled graph is validated as a whole.
   - **Following traces.** From any artifact, Core follows its traces recursively, such as Code → T → A → F → I → C.
-  - **Cycles are observed.** Every cycle of trace instances is reported as a structural observation naming its artifacts.
+  - **Cycles are observed.** Every cycle of trace instances, a self-trace included, is reported as a structural observation naming its artifacts.
   - **Cycles are judged by their owners' declarations.** A cycle is a finding only when an artifact on it is of a kind whose owner declared its rule `acyclic` (`core/F51`). The finding names that kind and its owner. Core never decides on its own that a cycle is invalid.
   - **Safety is not semantics.** Following traces and detecting cycles are deterministic and terminate on every graph, cyclic or not, whatever is permitted. Reaching yields each artifact once, and Core never enumerates paths.
   - **Rules may cycle.** Kinds may form a cycle in the rules, as A → D → T → A does.
