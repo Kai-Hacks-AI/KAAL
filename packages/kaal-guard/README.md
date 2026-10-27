@@ -18,12 +18,12 @@ Three things stay apart. **Initialization** prepares Guard: `init` creates `.kaa
 
 Your CI is yours: you decide which job runs each check. `init` writes only what is missing and reports in up to four parts:
 
-- **installed by Guard:** `.kaal/config/guard/`, the installation record and the Skill; with `--hook`, `.githooks/pre-push` and `core.hooksPath` set to `.githooks`; with `--ci`, `.github/workflows/guard.yml`. A file Guard registered that the repository no longer has is reinstalled and reported as reinstalled.
+- **installed by Guard:** `.kaal/config/guard/`, the installation record and the Skill; with `--hook`, `.githooks/pre-push` and `core.hooksPath` set to `.githooks`; with `--ci`, `.github/workflows/guard.yml`. A file Guard registered that the repository no longer has is reinstalled and reported as reinstalled by the `init` that names its surface; plain `init` reinstalls only the Skill's files, and lists any other under still to do.
 - **left untouched:** any of these the repository already had, and any file at those paths that Guard did not write.
 - **still to do in this repository:** how to activate each surface you have not; where `core.fileMode` is false, `git add --chmod=+x .githooks/pre-push`, so the hook is committed executable; the line to add for each file left untouched, and for each `ci` check that no workflow job runs, the step to add to a job of your own workflow ([CI](#ci-and-what-verify-does-not-say)).
 - **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`).
 
-`init --ci` is one decision: Guard's workflow runs `verify` and every `ci` check in one job, so you register nothing twice. It is installed only where no workflow of yours already runs a check or `verify` in Guard's declared form, since it would run those a second time; `init --ci` then installs nothing for CI and names what it found. `upgrade` never installs it.
+`init --ci` is one decision: Guard's workflow has two jobs, `Guard`, which runs `verify`, and `Guard checks`, which runs every `ci` check, so you register nothing twice. It is installed only where no workflow of yours already runs a check or `verify` in Guard's declared form, since it would run those a second time; `init --ci` then installs nothing for CI and names what it found. `upgrade` never installs it.
 
 `init --hook` sets `core.hooksPath` only when all three of these hold:
 
@@ -58,7 +58,7 @@ Only the frontmatter, between the two `---` lines, is a declaration. The body is
   - `head` is `GUARD_HEAD`, the candidate commit.
   - `base` is `GUARD_BASE`, and `base-ref` is `GUARD_BASE_REF`: the target commit and its name.
   - `changed` is `GUARD_CHANGED`, a file listing the changed paths, NUL-separated.
-- **`trusted`** (optional): a file or directory Guard takes as the base commit holds it, never the candidate's version, and runs in place of the candidate's. It needs the `base` fact, and the verdict names the base commit that supplied it. That is Git provenance for exactly the designated files, and nothing more: what they import from outside the designation, the interpreter and the environment the check runs in are not covered. To bring a helper file under it, designate a directory that holds the checker and the helper.
+- **`trusted`** (optional): a file or directory Guard takes as the base commit holds it, never the candidate's version, and runs in place of the candidate's. It needs the `base` fact, and the verdict names the base commit that supplied it. That is Git provenance for exactly the designated files, and nothing more: what they import from outside the designation, the interpreter and the environment the check runs in are not covered. To bring a helper file under it, designate a directory that holds the checker and the helper. A trusted check's declaration is judged from the base too: when the candidate changes it in any member, `runs` included, or deletes it, the check is cannot judge and nothing runs, until that change lands on its own and the base holds it. A `base` that names no commit Guard can read, such as an unfetched one, makes every selected check cannot judge, naming the base, since Guard cannot tell which of them the base trusts; nothing runs. Under GitHub's `pull_request`, the candidate also supplies Guard's workflow and the installed Guard, which Guard cannot defend against: protect `trusted` with a review rule for `.kaal/config/guard/` and `.github/`, such as a code owner.
 - **`outcomes`** (optional): `{"4": held}` names exit status 4 as held. The status is a double-quoted key: KAAL reads every frontmatter key as a string, so an unquoted `{4: held}` is refused, naming the quoted form. The key is the status in plain decimal, `"4"` to `"255"`: `"04"` and `"+4"` are refused, naming `"4"`. Held is shown as held, never as a pass and never as a fail.
 
 The frontmatter is a strict subset of YAML that Guard reads itself: one `key: value` line per member; plain or double-quoted strings and integers; flow lists such as `[hook, ci]`; and the flow map of `outcomes`, its keys double-quoted. Anything else, a member Guard does not define, or a value of the wrong type is refused as cannot judge, naming the file, the member and the rule, and the member you probably meant (`trustd: not defined for Guard/Check; did you mean trusted?`). Nothing then runs and nothing is written. The installation record and the checkout state are held to the same rule.
@@ -107,7 +107,7 @@ For each pushed branch, the hook:
 1. takes the remote's default branch (`<remote>/HEAD`, else `<remote>/main`) as the base and prints the commit it used;
 2. supplies `head`, `base`, `base-ref` and `changed`, and runs the `hook` checks.
 
-When Git cannot give a fact, such as an unfetched base or changed paths it cannot compute, the hook supplies nothing in its place, so a check that needs it cannot judge. The hook is local feedback only: CI decides. `git push --no-verify` skips it once.
+The checks run in your working tree as it stands, not in the commit being pushed: uncommitted changes count, so commit or stash them first when the verdict must be the pushed commit's. When Git cannot give a fact, such as an unfetched base or changed paths it cannot compute, the hook supplies nothing in its place, so a check that needs it cannot judge. The hook is local feedback only: CI decides. `git push --no-verify` skips it once.
 
 A repository with a `pre-push` hook of its own adds this line to it:
 
@@ -117,7 +117,7 @@ sh node_modules/@kaihacksai/kaal-guard/templates/pre-push "$@" || exit 1
 
 ## CI, and what verify does not say
 
-A job declares a check with a step whose whole `run:` line is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`. Prefer `npx --no`: where the package is not installed it fails, instead of fetching whatever the registry holds under the command's name:
+A job declares a check with a step whose whole `run:` line is `kaal-guard run`, `npx kaal-guard run` or `npx --no kaal-guard run` with `--check <name>`. Further arguments are words, plain or quoted, such as `--head "$HEAD"`; a shell operator after the invocation, such as `|| true`, `;`, `|` or `&`, or a `${{ }}` expression other than `${{ matrix.check }}`, makes the step declare nothing, because its exit status would no longer be Guard's. Prefer `npx --no`: where the package is not installed it fails, instead of fetching whatever the registry holds under the command's name:
 
 ```yaml
 - run: npx --no kaal-guard run --check unit --github
@@ -133,7 +133,7 @@ Three claims stay apart:
 | GitHub ran the check | the CI job's run and its verdict line |
 | A merge requires the check | the repository's branch protection or rulesets |
 
-Neither `init` nor `verify` makes a job required, or proves that it ran. To have a merge depend on a check, add its job as a required check in branch protection yourself.
+On `pull_request`, GitHub checks out the merge of the pull request into its base, not the commit `head` names, so a check judges that merge result; Guard's workflow passes the pull request's own head and base as the facts. Neither `init` nor `verify` makes a job required, or proves that it ran. To have a merge depend on a check, add its job as a required check in branch protection yourself.
 
 ## Diagnosis
 
@@ -159,9 +159,25 @@ Each form deletes only the registered files of that surface you haven't changed 
 
 ## What Guard does not establish
 
-Guard runs the checks you declare and reports their verdicts. In `0.0.2` it does not establish that a check or a Test Case it runs is unchanged since you accepted it: a changed test can still return pass, and that pass is not a guarantee from Guard. Review changes to your checks and Test Cases as you review any other change, and use `trusted` where a checker must come from the base commit.
+Guard runs the checks you declare and reports their verdicts. It does not establish that a check or a Test Case it runs is unchanged since you accepted it: a changed test can still return pass, and that pass is not a guarantee from Guard. Review changes to your checks and Test Cases as you review any other change, and use `trusted` where a checker must come from the base commit.
 
 ## Release notes
+
+### 0.0.3
+
+Fixed:
+
+- A trusted check can no longer be bypassed by the change it judges. Where the base declares a check `trusted`, a candidate that changes its declaration in any member, or deletes it, makes it cannot judge, naming the check; nothing runs. That includes changing `runs` so the check leaves the surface being run, which before the Release still took it out of `run --ci` or `run --hook` unjudged. Land such a declaration change on its own first. A check the base doesn't declare, or declares without `trusted`, runs as before.
+- A `base` that is not a commit Guard can read is cannot judge for every selected check, naming the base, never read as a base that declares nothing trusted.
+- `verify` reads a step as Guard's only when the invocation is its whole `run:` line. A step such as `npx --no kaal-guard run --check unit --github || true`, which can never fail, no longer counts as declaring `unit`. This was so in `0.0.2` too.
+- The package's own `npm test` runs its current suite and passes.
+- Plain `init` no longer passes over a registered hook or workflow the repository has lost, such as `.githooks/pre-push` while `core.hooksPath` still points at it: it lists the file under still to do, naming the `init --hook` or `init --ci` that reinstalls it.
+
+Changed:
+
+- The comment at the top of Guard's workflow (`.github/workflows/guard.yml`) names its two jobs. `upgrade` moves an unmodified `0.0.2` workflow to it; the jobs and steps are unchanged. `init`'s own output names the two jobs too, where it said one.
+
+Documented: what `trusted` cannot guard and the review rule it needs, that the hook judges the working tree, that Guard's workflow has two jobs, and that CI checks judge GitHub's merge commit.
 
 ### 0.0.2
 
@@ -171,7 +187,7 @@ Breaking:
 
 - The checks are declared one per file, in `.kaal/config/guard/<name>.md`. A `guard.json` is refused as cannot judge, naming the fresh setup.
 - `runs` names `hook` where `0.0.1` said `local`. `local` is refused, naming `hook`.
-- `init` activates nothing on its own. `--hook` activates the hook, and `--ci` installs Guard's workflow, which now runs `verify` and every `ci` check in one job.
+- `init` activates nothing on its own. `--hook` activates the hook, and `--ci` installs Guard's workflow, which now runs `verify` and every `ci` check in two jobs, `Guard` and `Guard checks`. (These notes said one job when `0.0.2` was published; corrected in `0.0.3`.)
 - Guard's installation record is `.kaal/state/guard/installation.json`, and a `core.hooksPath` Guard set is recorded in Git's metadata, not in a tracked file.
 - Node 24 or later, and Git 2.26 or later.
 - `outcomes` keys are exit statuses in plain decimal, from `"4"` to `"255"`.

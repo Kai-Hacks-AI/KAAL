@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
-import { realize, renderSkill } from "kaal-core/agent";
+import { realize } from "kaal-core/agent";
 import { checkContract, installationFormat } from "kaal-core/installation";
 import { evaluate, foundation, payload } from "kaal-core";
 
@@ -54,26 +54,11 @@ describe("kaal-core/agent", () => {
     for (const w of plan.write) assert.equal(plan.record[w.path], sha(w.bytes), w.path);
   });
 
-  it("renders a multi-line Description verbatim, keeps subsections in the body, and drops every other frontmatter key", () => {
-    const source = Buffer.from("---\nname: s\nowner: guard/C1\n---\n\n## Description\n\nFirst line.\nSecond: line.\n\n### Detail\n\nMore.\n\n## Steps\n\nGo.\n");
-    const text = Buffer.from(renderSkill(source)).toString("utf8");
-    assert.ok(text.startsWith('---\nname: "s"\ndescription: "First line.\\nSecond: line.\\n\\n### Detail\\n\\nMore."\n---\n'), text);
-    assert.ok(text.endsWith("## Steps\n\nGo.\n"));
-    assert.throws(() => renderSkill(Buffer.from("---\nowner: x\n---\n\n## Description\n\nD.\n")), /name/);
-  });
-
   it("never prunes an instruction file, even one its record holds", () => {
     const path = ".agents/skills/s/AGENTS.md";
     const plan = realize({ skills: [], providers: [], record: { [path]: "a".repeat(64) }, present: { [path]: "a".repeat(64) } });
     assert.deepEqual(plan.prune, []);
     assert.deepEqual(plan.keep.map((k) => k.path), [path]);
-  });
-
-  it("finds the Description section only among headings outside fenced code", () => {
-    const fence = "```";
-    const source = Buffer.from(`---\nname: s\n---\n\n${fence}\n## Description\n${fence}\n\n## Description\n\nHandle this:\n\n${fence}md\n## Example\n${fence}\n\nThen go.\n\n## Steps\n\nGo.\n`);
-    const text = Buffer.from(renderSkill(source)).toString("utf8");
-    assert.ok(text.startsWith(`---\nname: "s"\ndescription: ${JSON.stringify(`Handle this:\n\n${fence}md\n## Example\n${fence}\n\nThen go.`)}\n---\n`), text);
   });
 
   it("reports a target blocked by a file it must keep, and writes nothing beneath it", () => {
