@@ -205,6 +205,21 @@ Guard runs the checks you declare and reports their verdicts. It does not establ
 
 ## Release notes
 
+### 0.0.4
+
+Added:
+
+- You can verify the installed package. `npm explore @kaihacksai/kaal-guard -- npm test` runs every test loop Guard owns against your installed copy: the acceptance cases for Intent, Requirements and Architecture, and the inner Code tests. It ends in `verified` (exit 0), `failed` (1) or `cannot verify` (2), names the package, its version, its location and the installed files' digest, and leaves your project as it was. [Verify the installed package](#verify-the-installed-package) says what each result means and what `verified` does not tell you.
+- Every promise Guard makes is covered by a case of that run or named as exempted, with where the publisher verifies it instead. An exemption is printed as not verified by your run. A promise neither covered nor exempted, or a loop that runs no case, is `cannot verify`.
+- A case that does not apply on your platform is declared, named as not applicable and not counted as skipped. One inner case is not applicable on Windows.
+- Guard's contract ships in `docs/`: its Intent, Requirements, Architecture, Testing and Limitations, with every identifier the cases name.
+
+Fixed:
+
+- Up to `0.0.3`, `npm explore @kaihacksai/kaal-guard -- npm test` ran no test and exited 0. It now runs the delivered cases, and a run that cannot claim verification says so.
+
+Nothing changes in `run`, `verify`, `init`, `upgrade` or `remove`, or in the declarations: Guard's code, its templates and its Skill are byte for byte those of `0.0.3`. After the dependency and lockfile change, `upgrade` records `0.0.4` for each unmodified managed asset, as for any version.
+
 ### 0.0.3
 
 Fixed:

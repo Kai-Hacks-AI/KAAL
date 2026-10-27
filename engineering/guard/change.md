@@ -392,7 +392,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C106` | — | Guard | The `Guard` jobs and Guard Release also run `packages/kaal-guard/test/unit/*.test.mjs`. `.github` travels alone, so it lands before `guard/C104` moves the inner tests; until then the pattern matches nothing | `guard/C103` | #539 |
 | `guard/C104` | — | Guard | The inner loop ships in `test/unit/`, and the verdict judges loops, coverage and applicability. guard/T108–guard/T110 are written with their RED evidence, and each identifier no case cited is named in a case title or exempted, as [Testing](testing.md#the-complete-product-004) lists | `guard/C106` | #540 |
 | `guard/C105` | — | Guard | External's hook, workflow and Skill templates derived from the package's under guard/N14 by declared transformations, with guard/T112 written RED first; scope and acceptance [above](#the-complete-product-004). Not part of the `0.0.4` increment, and not authorized by `guard/C102` | `guard/C103` | not created |
-| `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | not created |
+| `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
 | `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment | `guard/C99`, the promotion | not created |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
