@@ -112,7 +112,7 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T95: with `base` supplied, a check whose base declaration names `trusted` and whose candidate declaration changes its `command`, or adds an `outcomes` entry, is cannot judge, naming the check; neither command runs. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
 | guard/T96: with `base` supplied, a check whose base declaration names `trusted` and whose declaration file the candidate deletes is cannot judge, naming the check, and the run does not pass. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
 | guard/T97: with `base` supplied, a check the base does not declare, and a check the base declares without `trusted` that the candidate changes, each run as the candidate declares them and pass; an unchanged trusted check runs its base checker and passes. Added in `guard/C76` | guard/F7 | Requirements | package |
-| guard/T98: `npm test` in `packages/kaal-guard` exits 0 on Node 24 and runs no file of the retired `0.0.1` suite. Added in `guard/C76` | guard/N6 | Requirements | Engineering |
+| guard/T98: the package's own test files, run from `packages/kaal-guard`, pass on Node 24, and no file of the retired `0.0.1` suite runs. Added in `guard/C76`. Revised in `guard/C98`, because `npm test` became the consumer's verification (guard/F32) | guard/N6 | Requirements | Engineering |
 | guard/T99: with `base` supplied as a name that is no commit here, or a well-formed object name the repository lacks, a check that declares no `trusted` is cannot judge (exit 2), naming the base, and its command never runs. Added in `guard/C84`, written in `guard/C85`, where guard/T19's placeholder `base` becomes a commit of the consumer, its facts still passed on unchanged | guard/F7, guard/F10, guard/N4 | Requirements | package |
 | guard/T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | guard/N1, guard/F27 | Requirements | package |
 
@@ -222,7 +222,9 @@ They live in `engineering/guard/acceptance/` and do not ship (guard/A18). Their 
 | guard/T105: after a run, the consumer's working tree, `.git`, npm configuration and the installed package are as they were, and the output says so | guard/F35 | RED: `0.0.3` makes no such claim |
 | guard/T106: a second run against the same installation gives the same result, and the output names `kaal-guard verify` for integration | guard/F32, guard/F36 | RED |
 
-**How RED-first is recorded.** There is no RED lane: #501 removed it. So a Test Case written RED in the boundary would land as a red check, and none is marked `todo` or `skip` (`guard/C91`). guard/T101–guard/T106 are therefore written in `guard/C98`, beside the entry. Their RED run, against a candidate without the entry and against the published `0.0.3`, is recorded in that Change's pull request before the entry is added, as for guard/T100 in `guard/C92`.
+**How RED-first is recorded.** There is no RED lane: #501 removed it. So a Test Case written RED in the boundary would land as a red check, and none is marked `todo` or `skip` (`guard/C91`). guard/T101–guard/T106 are therefore written in `guard/C98`, beside the entry. Their RED run, against a candidate without the entry and against the published `0.0.3`, is recorded in that Change's pull request before the entry is added, as for guard/T100 in `guard/C92`. They live in `package.test.mjs`, which every Guard host runs, Linux, macOS and Windows.
+
+**The RED run (`guard/C98`, #536).** On the packed candidate without the entry, and on `0.0.3` installed from the registry, all six were RED. The documented command exited 0 and printed no `kaal-guard-verification` summary line. With a planted case, `0.0.3`'s `npm test` ran it and passed, so nothing it ran was accounted for.
 
 ## Defects
 

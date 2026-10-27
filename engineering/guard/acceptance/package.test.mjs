@@ -166,7 +166,8 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.ok(s.cases.executed > 0, `the run executed no delivered case:\n${first.output.slice(-4000)}`);
     assert.equal(s.cases.executed, s.cases.declared, "a declared case did not execute");
     assert.equal(s.cases.passed, s.cases.executed, `a delivered case did not pass:\n${first.output.slice(-4000)}`);
-    assert.equal(s.result, "verified", `the result is ${s.result}:\n${first.output.slice(-4000)}`);
+    // A shipped file changed without its manifest: node engineering/guard/verify-manifest.mjs writes it again.
+    assert.equal(s.result, "verified", `the result is ${s.result}: ${JSON.stringify(s.causes)}`);
     assert.equal(first.status, 0, `verified exited ${first.status}`);
     assert.match(first.output, /^verified\b/m, "the output does not name the result verified");
   });
@@ -250,7 +251,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
   it("guard/T106 [guard/F32, guard/F36]: a second run against the same installation gives the same result, and the output names kaal-guard verify for integration", () => {
     const { first, second, between, after } = twice();
     const [a, b] = [summary(first), summary(second)];
-    assert.equal(second.status, first.status, "the second run exited otherwise");
+    assert.equal(second.status, first.status, `the second run exited otherwise: ${JSON.stringify(b.causes)}`);
     assert.equal(b.result, a.result, "the second run gave another result");
     assert.deepEqual(b.cases, a.cases, "the second run accounted for the cases otherwise");
     assert.deepEqual(b.files, a.files, "the second run names other files");

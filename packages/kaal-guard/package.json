@@ -17,10 +17,13 @@
     "lib",
     "templates",
     "skills",
-    "contract.json"
+    "contract.json",
+    "test/acceptance",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs test/acceptance/*.test.mjs"
+    "test": "node test/verify.mjs"
   },
   "engines": {
     "node": ">=24"
