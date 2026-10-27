@@ -14,7 +14,7 @@ Each Requirement names, in brackets, the Intents it serves. Each functional Requ
 - **testing/F11** [testing/I6]: Delivery.
   > A product may deliver, with its distribution, the cases by which a consumer verifies the product as installed. They are the product's own acceptance or conformance cases, kept apart from tests that serve only its engineering, and the product declares which cases they are.
 - **testing/F12** [testing/I6]: One entry point that fails closed.
-  > The product documents one entry point for them. It locates the installed product by resolution, not by a source path, and needs no source checkout. It fails closed: a run that executes fewer cases than the product declares is unknown, never verified.
+  > The product documents one entry point for them. It locates the installed product by resolution, not by a source path, and needs no source checkout. It fails closed: a run in which no case failed but fewer cases executed than the product declares is unknown, never verified.
 - **testing/F13** [testing/I6]: Three results, each distinguishable.
   > Each run gives exactly one result. It is failed when any case failed. It is unknown when no case failed but a declared case was skipped, not run or unable to run. It is verified only when every declared case ran and passed. Each result has its own exit status and its own summary, so no result is read from silence.
 - **testing/F14** [testing/I6]: The subject is named.

@@ -30,7 +30,7 @@ describe("Consumer verification (testing/C9)", () => {
   it("testing/T16 [testing/F11, testing/F12, testing/F13]: the Node states delivery, the fail-closed entry point and the three results verbatim", () => {
     states(node(), {
       "testing/F11": "A product may deliver, with its distribution, the cases by which a consumer verifies the product as installed. They are the product's own acceptance or conformance cases, kept apart from tests that serve only its engineering, and the product declares which cases they are.",
-      "testing/F12": "The product documents one entry point for them. It locates the installed product by resolution, not by a source path, and needs no source checkout. It fails closed: a run that executes fewer cases than the product declares is unknown, never verified.",
+      "testing/F12": "The product documents one entry point for them. It locates the installed product by resolution, not by a source path, and needs no source checkout. It fails closed: a run in which no case failed but fewer cases executed than the product declares is unknown, never verified.",
       "testing/F13": "Each run gives exactly one result. It is failed when any case failed. It is unknown when no case failed but a declared case was skipped, not run or unable to run. It is verified only when every declared case ran and passed. Each result has its own exit status and its own summary, so no result is read from silence.",
     });
   });
