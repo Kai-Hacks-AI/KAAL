@@ -50,7 +50,7 @@ let engine;
 
 before(async () => {
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
+  host = await install(["kaal-core", "@kaihacksai/kaal-foundation", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
   installed = join(host, "node_modules", "kaal-engineer-skill");
   kaal = join(host, "node_modules", ".bin", "kaal");
   checker = join(host, "node_modules", ".bin", "kaal-engineer-skill");
