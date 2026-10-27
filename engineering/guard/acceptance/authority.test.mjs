@@ -15,15 +15,18 @@ const markdown = (dir) => readdirSync(dir).filter((f) => f.endsWith(".md")).map(
 
 /**
  * The identifiers a document defines, with where. A definition opens its line in bold, as
- * "**guard/F1 Check list.**" or "- **guard/A1 …**"; a Test Case or a Defect is defined by a table row of
- * its own, "| guard/T61 | …", "| guard/T1: … |" or "| guard/D1 | …". A mention anywhere else is a citation.
+ * "**guard/F1 Check list.**" or "- **guard/A1 …**". A Test Case is defined by a row of the product's
+ * trace, "| guard/T61 | …", or by a row of Engineering's plan that gives its title, "| guard/T1: … |";
+ * a Defect by a row of Engineering's register, "| guard/D1 | …". A mention anywhere else, an evidence
+ * row included, is a citation.
  */
-function definitions(file) {
+function definitions(file, product) {
   const text = readFileSync(file, "utf8");
   const where = relative(ROOT, file).split("\\").join("/");
+  const rows = product ? /^\| (guard\/T\d+) \|/gm : /^\| (guard\/T\d+):|^\| (guard\/D\d+) \|/gm;
   const ids = [
     ...[...text.matchAll(/^(?:- )?\*\*(guard\/[IFNA]\d+)\b/gm)].map((m) => m[1]),
-    ...[...text.matchAll(/^\| (guard\/[TD]\d+)(?: \||:)/gm)].map((m) => m[1]),
+    ...[...text.matchAll(rows)].map((m) => m[1] ?? m[2]),
   ];
   return ids.map((id) => ({ id, where }));
 }
@@ -42,8 +45,8 @@ function cited() {
 
 describe("guard/N14 [guard/I9] one authority", () => {
   it("guard/T111 [guard/N14, guard/A20]: every Guard identifier is defined exactly once, every identifier a delivered case cites only in packages/kaal-guard/docs/, and every one of them is defined", () => {
-    const product = markdown(join(PRODUCT, "docs")).flatMap(definitions);
-    const engineering = markdown(ENGINEERING).flatMap(definitions);
+    const product = markdown(join(PRODUCT, "docs")).flatMap((f) => definitions(f, true));
+    const engineering = markdown(ENGINEERING).flatMap((f) => definitions(f, false));
     const all = [...product, ...engineering];
     const twice = [...new Set(all.map((d) => d.id))]
       .filter((id) => all.filter((d) => d.id === id).length > 1)

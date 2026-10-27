@@ -18,6 +18,7 @@
     "templates",
     "skills",
     "contract.json",
+    "docs",
     "test/acceptance",
     "test/verify.mjs",
     "test/verify.json"

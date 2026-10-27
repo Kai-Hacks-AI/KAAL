@@ -13,13 +13,13 @@ The Capability and its three realizations are kept apart:
 
 Engineering-time dependencies never become package dependencies. Multi-loop TDD is a concept: the package practises it with its own tests and needs no KAAL package to do so.
 
-The six concerns, written outside-in:
+Guard's product contract, its Intent, Requirements, Architecture, Testing and Limitations, is authoritative in the package, in [`packages/kaal-guard/docs/`](../../packages/kaal-guard/docs/intent.md), with its Operations in the package's README and Skill. Engineering cites it and never restates it (guard/N14). This directory holds only Engineering's part, outside-in:
 
-1. [Intent](intent.md): why, outcomes guard/I1–guard/I7
-2. [Requirements](requirements.md): what, obligations guard/F1–guard/F27 and guard/N1–guard/N12, each tracing to Intent
-3. [Architecture](architecture.md): where, elements guard/A1–guard/A17, each tracing to Requirements
-4. [Testing](testing.md): the four loops, and the planned tests guard/T1–guard/T59, each naming the I, F, N or A contracts it checks
-5. [Change](change.md): the bounded Changes `guard/C0a`–`guard/C25`, with their aliases and the Core and Engineering Changes they depend on, each carrying zero or more Intents, with their dependencies, scope, verification and stopping conditions. Code, the how, is written in DO to turn the planned tests from RED to GREEN
+1. [Intent](intent.md): KAAL's own use of Guard (guard/I4) and External delivery (guard/I6)
+2. [Requirements](requirements.md): guard/F25, guard/N5, guard/N7–guard/N9 and guard/N14
+3. [Architecture](architecture.md): guard/A9–guard/A12, guard/A16 and guard/A20
+4. [Testing](testing.md): the plan and evidence of Engineering's Test Cases, the RED and GREEN record of every Test Case, and the Defect register
+5. [Change](change.md): the bounded Changes, with their aliases, dependencies, scope, verification and stopping conditions
 6. [Run](run.md)
 
 State: DO (guard/C5). Checkpoint M is reached: the package holds `run`, `verify`, the lifecycle, the adapter templates and its consumer docs, and its outer tests are GREEN on Linux, Windows and macOS. KAAL runs its pre-push hook and CI checks through it. The External tooling, [external/](external/README.md), delivers Guard naked into a target, and guard/T3 is GREEN. The RED evidence of guard/C0a is recorded in [Testing](testing.md#red-evidence). The consumer upgrade is in PLAN (K1): KAAL accepts its published package in a disposable clone, guard/A12, with the planned tests guard/T36–guard/T44 ([Testing](testing.md#consumer-upgrade)).

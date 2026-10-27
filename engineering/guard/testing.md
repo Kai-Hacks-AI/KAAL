@@ -1,53 +1,20 @@
-# Guard: Testing
+# Guard: Testing, Engineering's part
 
-Testing owns what evidence means. Guard's documents are written outside-in: Intent first, the *why* (I…); then the Requirements, the *what*, as Functional (F…) and Nonfunctional (N…) obligations, each tracing to the Intent it serves; then Architecture, the *where* (A…), each element tracing to the Requirements it answers. The planned tests follow from these documents in PLAN. Code, the *how*, is written in DO to turn those tests from RED to GREEN.
+Guard's product Testing is authoritative in the package: [`packages/kaal-guard/docs/testing.md`](../../packages/kaal-guard/docs/testing.md). It holds the loops, the trace of every delivered case and what is verified elsewhere. The delivered cases define themselves by their titles, and their trace is written from those titles. This page holds only Engineering's part:
+- the plan and evidence of the Test Cases that only make sense in KAAL, in `engineering/guard/acceptance/`: KAAL's integration (guard/A11), External delivery (guard/A10, guard/A16), consumer acceptance against the registry (guard/A12), the verification's own Test Cases and the authority check (guard/A20);
+- the RED and GREEN record of every Test Case, delivered or not;
+- the Defect register.
 
-The relationships are exactly these, and no others:
-
-- F and N → I: each Requirement traces to the Intent it serves.
-- A → F and N: each Architecture element traces to the Requirements it answers.
-- T → I, F, N or A: each test names the contracts it validates or verifies. Tests are not children of Architecture: they answer each of the three outer concerns on their own terms.
-- Code → the tests it turns from RED to GREEN, with inner Code tests that evolve in DO. Code has no structural trace to Architecture.
-- C → zero or more I: a Change carries Intents, and nothing else is linked to it.
-
-There is no tree beyond these links and no cardinality beyond what each states.
-
-| Loop | Checks | Planned in | Changed in |
-| --- | --- | --- | --- |
-| Intent | the outcomes guard/I1–guard/I6 hold for a user of Guard | PLAN | only a new PLAN Change |
-| Requirements | each obligation guard/F1–guard/F18, guard/N1–guard/N9 holds | PLAN | only a new PLAN Change |
-| Architecture | each element guard/A1–guard/A12 keeps its placement, ownership, boundaries and dependencies | PLAN | only a new PLAN Change |
-| Code | the implementation, test first, as it turns the outer tests from RED to GREEN | DO | DO, freely |
-
-PLAN establishes the outer three loops and their stable acceptance boundary. DO develops the Code tests. The loops are a concept, not four frameworks or pipelines: every test is a plain `node:test` file, and none needs Testing, Sealing or any other KAAL element.
-
-## Traceability
-
-Each identifier states its relationships where it is defined: a Requirement names its Intents in brackets, an Architecture element its Requirements, and each planned test, in its title, the I, F, N or A contracts it checks, for example `guard/T1 [guard/I2, guard/I3]`. References may be many-to-many. There is no separate traceability framework: the identifiers are the trace. These identifiers follow KAAL's FANATIC concept, which Guard uses and does not own.
+Testing owns what evidence means. The relationships are these: F and N trace to I, A to F and N, and each Test Case names in its title the I, F, N or A contracts it checks. A Change (C) carries Intents, and a Defect (D) traces only to the Test Case that proves it RED.
 
 Every identifier is written Capability-qualified, as `<capability>/<id>`, in definitions, relationships, tests and Change maps, including references within Guard: `guard/F27`, `guard/T58`, `core/T1`. Capability names are globally unique, and numbering is local per Capability and per type. The titles of the test files inside the acceptance boundary are qualified by a Change of their own, `guard/C22`, because the boundary changes only in a PLAN Change that travels alone. Until then, a bare identifier in a test title means Guard's. A Change (C) is KAAL's existing Change, carried on GitHub by a pull request, and its durable identity is `guard/C<number>`. Earlier labels (R1, K1–K6, B1–B7, and the hypotheses H1–H5) remain only as aliases ([Change](change.md#change-identities)). A Defect (D) traces only to the Test Case that proves it RED.
-
-## Where the tests live
-
-- **In the package**, `packages/kaal-guard/test/`, using only Node and Git: the outer tests for the packaged behaviour, in `test/acceptance/`, and the Code tests beside them, from DO. They ship with the package, so a consumer can run them.
-- **In Engineering**, `engineering/guard/acceptance/`: the outer tests that only make sense in KAAL, namely KAAL's integration and External delivery. They may use any KAAL element.
 
 ## Planned outer tests
 
 | Test | Checks | Loop | Where |
 | --- | --- | --- | --- |
-| guard/T1: one check gives the same verdict through the hook and through CI, for the same facts | guard/I2, guard/I3 | Intent | package |
-| guard/T2: removing Guard leaves the repository's own tests intact | guard/I1 | Intent | package |
 | guard/T3: an External delivery works in a fresh repository and leaves nothing from KAAL in it | guard/I6, guard/N5, guard/F8, guard/A10 | Intent | Engineering |
-| guard/T4: the packed tarball alone runs `init`, a push, the `ci` subset, `upgrade` and `remove` in a fresh repository, and no other KAAL element appears | guard/I5 | Intent | package |
 | guard/T5: KAAL's pre-push hook runs its local checks through Guard | guard/I4 | Intent | Engineering |
-| guard/T6–guard/T24: one or more tests for each of guard/F1–guard/F10 | guard/F1–guard/F10 | Requirements | package |
-| guard/T25–guard/T27: guard/N2, guard/N3, guard/N4 | guard/N2–guard/N4 | Requirements | package |
-| guard/N1: guard/T1–guard/T31 pass on Linux, macOS and Windows | guard/N1 | Requirements | CI matrix, from guard/C1 |
-| guard/T28: the runner knows nothing of the adapters or GitHub | guard/A3, guard/A7 | Architecture | package |
-| guard/T29: nothing depends on an adapter | guard/A7 | Architecture | package |
-| guard/T30: the package declares and imports no KAAL element and references no Engineering path | guard/A8, guard/N6 | Architecture | package |
-| guard/T31: the acceptance boundary is closed: its files import only Node built-ins and files inside it | guard/A8, guard/N6 | Architecture | package |
 | guard/T32: every KAAL check identity and OS matrix entry on `main` before migration is still present | guard/N7 | Requirements | Engineering |
 | guard/T33–guard/T35: KAAL's `guard.json`, its Guard-run jobs and its `Guard` job | guard/A11 | Architecture | Engineering |
 
@@ -60,61 +27,19 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T42: a real `git push` in the clone runs KAAL's hook through the installed published Guard, and its verdicts equal `kaal-guard run --local` with the same facts | guard/I2, guard/I5, guard/A12 | Architecture | Engineering |
 | guard/T43: `init` in the clone adds no workflow job that duplicates one of KAAL's, and none named like an existing job, and reports KAAL's integration as executed but not managed | guard/I5, guard/F17 | Requirements | Engineering |
 | guard/T44: `init` then `remove` in the clone leaves `guard.json` byte for byte as KAAL wrote it. Retracted with guard/D4 in `guard/C23`; superseded by guard/T64 and retired from the boundary in `guard/C24` | guard/I1, guard/F18 (superseded wording) | Requirements | Engineering |
-| guard/T61: a check declared as `.kaal/config/guard/<name>.md` runs with the meaning of its frontmatter, and changing only its body changes no verdict and no order | guard/F1, guard/A1 | Requirements | package |
-| guard/T62: a member the schema does not define, a wrong type or a frontmatter outside guard/F1's subset, in a declaration or in Guard's checkout state, is cannot judge for `run`, `verify`, `init`, `upgrade` and `remove`. The diagnostic names the file, the member, the rule and the nearest defined member, and nothing is written | guard/F18, guard/F10, guard/N4 | Requirements | package |
-| guard/T63: the hook and workflow Guard writes pass `--config .kaal/config/guard`; without `--config`, `run --check` started in a subdirectory resolves the same declarations from the repository's top level; the hook and CI select from the same effective declarations; with no directory it is cannot judge naming `kaal-guard init` | guard/F28 | Requirements | package |
 | guard/T64: `init` then `remove` in the clone and in the minimal repository leaves every declaration byte for byte as written; Guard writes only its managed assets, each byte-identical to catalogued content, its installation record and its checkout state | guard/I1, guard/F18, guard/F29 | Requirements | Engineering |
 | guard/T65: between two `packed` candidates of the planned configuration, in the minimal repository, a dependency and lockfile change, then `upgrade`, moves an unmodified managed asset forward and keeps a modified one, a consumer-owned file and every declaration | guard/I5, guard/F11, guard/F12 | Requirements | Engineering |
 | guard/T66: between two candidates, a managed asset the newer one manages, missing from the repository, is installed by `upgrade`, and only for a surface the consumer activated; `upgrade` activates none. Corrected in `guard/C35` to the hook, because `upgrade` never installs Guard's workflow (guard/F17), and to the activated surface (guard/F30) | guard/F13, guard/F30 | Requirements | Engineering |
 | guard/T67: between two candidates, the installation record registers each unmodified asset's new version and hash, `upgrade` reports the versions it moved between, and a modified asset is reported as modified and kept with its registered version | guard/F14 | Requirements | Engineering |
 | guard/T68: between two candidates, back and forward again, each unmodified managed asset returns to that version's content, and modified, consumer-owned and declaration files are untouched | guard/I5, guard/F16 | Requirements | Engineering |
-| guard/T69: shared configuration. Without `extensions.worktreeConfig`, `init` in a linked worktree, whose `.git` is a file, sets `core.hooksPath` in the shared scope and records the state under `git rev-parse --git-common-dir`; `remove` in the main checkout unsets it | guard/F29, guard/F8 | Requirements | package |
-| guard/T70: in a fresh clone of a repository Guard set up, `upgrade` and `remove` judge each managed asset by the tracked installation record alone; `remove` deletes the unmodified ones, keeps a modified one, and leaves a `core.hooksPath` Guard did not set in that clone | guard/F29, guard/F8, guard/F12 | Requirements | package |
-| guard/T71: worktree configuration. With `extensions.worktreeConfig`, `init` in a linked worktree sets `core.hooksPath` only for that worktree and records the state under `git rev-parse --git-path`; the main checkout sees no `core.hooksPath` and its `remove` leaves the worktree's alone; `remove` in that worktree unsets it | guard/F29, guard/F8 | Requirements | package |
-| guard/T72: every asset `init` and `upgrade` install is byte-identical to its catalogued content and valid in its format: the hook starts with its shebang and is executable and runs; the workflow parses as YAML; `SKILL.md` begins with frontmatter that holds the standard's `name` and `description` | guard/F29, guard/F8, guard/F19 | Requirements | package |
-| guard/T73: a file at a managed path whose bytes equal a published content but which the installation record does not register is not Guard's: `upgrade` and `remove` leave it and report it; a registered asset that is missing or changed is reported and not re-registered | guard/F29, guard/F8 | Requirements | package |
-| guard/T74: without `--hook` or `--ci`, `init` activates neither integration: no workflow, no hook, no `core.hooksPath`; it reports each `ci` check no workflow job declares as missing coverage, with the step to add and `init --ci`; `verify` fails on it with the same next step. Added in `guard/C35` | guard/F17, guard/F10, guard/F30, guard/N4 | Requirements | package |
-| guard/T75: `init --ci` installs Guard's workflow, which runs `verify` and `kaal-guard run --ci`, where no workflow declares a check; where a workflow of the consumer's declares a check or the consistency check, it installs no workflow, reports what it found and changes none of the consumer's workflows. Added in `guard/C35` | guard/F17, guard/F8 | Requirements | package |
-| guard/T76: `init` prepares `.kaal/config/guard/` and the installation record and activates nothing: no hook, no `core.hooksPath`, no workflow. It names `init --hook` and `init --ci`, and a second `init` changes nothing. Added in `guard/C35` | guard/F30, guard/N4 | Requirements | package |
-| guard/T77: `init --hook` and `init --ci` each activate one surface and neither implies the other; repeating either changes nothing. `run --hook` runs the `hook` checks, `run --ci` the `ci` checks and `run --check <name>` one check, whatever its `runs`. Added in `guard/C35` | guard/F30, guard/F4, guard/F17 | Requirements | package |
-| guard/T79: `outcomes: {"4": held}` makes exit status 4 held, as before; `outcomes: {4: held}` is cannot judge for `run` and `verify`, naming the declaration, `outcomes` and `{"4": held}`, and runs nothing. Added in `guard/C38` | guard/F1, guard/F2, guard/F18 | Requirements | package |
-| guard/T81: a trusted checker Git records as executable keeps that mode in its base copy, so a check whose command is `./checks/judge.sh`, with `trusted: checks/judge.sh`, passes on the base's verdict instead of cannot judge. On Windows, which has no executable bit, the check runs the base copy through `sh` and passes. Added in `guard/C40` | guard/F7 | Requirements | package |
 | guard/T80: every key in the frontmatter of KAAL's own declarations is a string to YAML 1.2's core schema: each `outcomes` status is double-quoted. Added in `guard/C38` | guard/F1, guard/A11 | Architecture | Engineering |
-| guard/T78: `remove --ci` undoes CI only, `remove --hook` the hook only, and `remove` the rest; none touches a declaration or a Test Case. `runs: [local]` is cannot judge, naming `hook`, and `run --local` is cannot judge, naming `--hook`. Added in `guard/C35` | guard/F30, guard/F18, guard/N4 | Requirements | package |
 
-| guard/T45: the packed package carries `skills/kaal-guard/SKILL.md`, named `kaal-guard`, with BASS sections and no script, and names no consumer | guard/F19, guard/A13, guard/N11 | Requirements | package |
 | guard/T46: `kaal-engineer-skill` finds no standard or KAAL violation in the Embed Skill or the External variant. It needs KAAL's workspace installed and built, so it runs only in the Guard lane on the host that installs it, and turns GREEN only with `guard/C14` and `guard/C17` (restated in `guard/C46`) | guard/F19, guard/A13, guard/A16 | Architecture | Engineering |
-| guard/T47: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path | guard/F21, guard/F22 | Requirements | package |
-| guard/T48: a run of only pass, not applicable or held adds no reminder | guard/F21 | Requirements | package |
-| guard/T49: with `--github`, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not | guard/F21, guard/A15 | Architecture | package |
-| guard/T50: standalone `init` in a fresh repository installs the Skill only at `.agents/skills/kaal-guard/`, installs every file byte-identical to its catalogued content (restated in `guard/C23`), and equals the package's source | guard/F23, guard/F24, guard/N10 | Requirements | package |
-| guard/T51: `init` keeps a pre-existing `.agents/skills/kaal-guard/SKILL.md`, reports it, and installs no other Skill file | guard/F23, guard/F8 | Requirements | package |
-| guard/T52: `upgrade` moves unmodified Skill files forward and keeps a modified one; `remove` deletes only unmodified Skill files and the directories it emptied, and leaves other skills in `.agents/skills/` untouched | guard/F23, guard/F12 | Requirements | package |
-| guard/T53: the standalone lifecycle writes no supplier-specific location (`.claude/skills/`, `.github/skills/` and the like), even where such directories exist, and its report names the canonical path | guard/F23, guard/N10, guard/N12 | Requirements | package |
-| guard/T54: `init`, `upgrade` and `remove` create, edit and remove no `AGENTS.md`, `CLAUDE.md` or other instruction file; `init` reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer | guard/F26 | Requirements | package |
 | guard/T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location. Retired in `guard/C30`: `0.0.2` offers no upgrade from `0.0.1` (`guard/C23`); a fresh `0.0.2` setup gains the Skill (guard/T50), and a later version's new asset is installed by `upgrade` (guard/T66) | guard/I5, guard/F13, guard/F23, guard/A12 | Requirements | Engineering |
-| guard/T57: a modified deployment is kept and reported while the others move forward, and `remove` leaves it | guard/F23, guard/F8 | Requirements | package |
 | guard/T56: an External delivery writes the Skill variant at the canonical location; it names neither KAAL nor npm; its hook's reminder names the canonical path; a target's existing Skill and instruction files are untouched. Core at delivery moved to guard/T83 in `guard/C46` | guard/I6, guard/F25, guard/F26, guard/A16 | Requirements | Engineering |
-| guard/T58: `contract.json` and the lifecycle agree: every asset standalone `init` writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one. The installation record and `.kaal/config/guard/` are not assets (guard/F27; restated in `guard/C46`) | guard/F27, guard/A17 | Architecture | package |
-| guard/T82: after a standalone `init` deploys the Skill, a failing and a cannot-judge local run's reminder line names the deployed `.agents/skills/kaal-guard/SKILL.md`, not the package's copy, and with `--github` so do the annotations and the step summary. Added in `guard/C46` | guard/F21, guard/F23, guard/A15 | Requirements | package |
 | guard/T83: where Core's realization is available at delivery, an External delivery also writes the further deployments Core computes for the passed declaration, lists Core's pointers in `GUARD.md`, and leaves no Core or Hosting element in the target. Added in `guard/C46` | guard/I6, guard/F25, guard/A16 | Requirements | Engineering |
-| guard/T84: a declaration that is a symbolic link, and a directory named `<name>.md`, in the configuration directory each make `run --hook`, `run --ci` and `run --check` cannot judge, naming the entry; neither is skipped. Added in `guard/C61` | guard/F28, guard/F10 | Requirements | package |
-| guard/T85: in a clone with `core.autocrlf=true`, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under `sh`, and `upgrade` and `remove` treat each file as Guard's unmodified file. Added in `guard/C61` | guard/F27, guard/F29, guard/F12 | Requirements | package |
-| guard/T86: where `core.fileMode` is `false`, `init --hook` reports `git add --chmod=+x .githooks/pre-push`, and after the consumer runs it a fresh clone with `core.fileMode=true` runs the hook on push. Added in `guard/C61` | guard/F4, guard/F27 | Requirements | package |
-| guard/T87: the workflow `init --ci` installs pins `actions/checkout` and `actions/setup-node` by commit SHA, uses Node 24, and has no `${{` expression in any `run:` line. Added in `guard/C61` | guard/F5, guard/N1 | Requirements | package |
-| guard/T88: after the registered hook is deleted, `init --hook` reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, `upgrade` reinstalls it. Added in `guard/C61` | guard/F8, guard/F13 | Requirements | package |
-| guard/T89: with a directory, and with a dangling link, named `.github/workflows/x.yml`, `verify` and `init --ci` are cannot judge (exit 2), naming the entry, and print no stack trace. Added in `guard/C61` | guard/F10, guard/F17, guard/N4 | Requirements | package |
-| guard/T90: `remove --config <dir>`, for an empty directory inside and outside the repository, leaves that directory in place; plain `remove` after a bare `init` deletes the empty default `.kaal/config/guard/`. Added in `guard/C61` | guard/F8 | Requirements | package |
-| guard/T91: an `outcomes` key `"04"`, `"+4"` or `"256"` is refused as cannot judge, naming the canonical form, and `"4"` names exit 4 as held. Added in `guard/C61` | guard/F2, guard/F18 | Requirements | package |
-| guard/T92: with a `git` that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing. Added in `guard/C61` | guard/N1 | Requirements | package |
 | guard/T93: the workflow an External delivery writes pins `actions/checkout`, and `actions/setup-node` where it sets up Node, by commit SHA, and has no `${{` expression in any `run:` line. Added in `guard/C71` | guard/F5, guard/N5 | Requirements | Engineering |
-| guard/T94: with `base` supplied, a check whose base declaration names `trusted: checks/judge.sh` and whose candidate declaration drops `trusted` is cannot judge (exit 2), names the check and says to land the declaration change on its own; the candidate's checker never runs. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
-| guard/T95: with `base` supplied, a check whose base declaration names `trusted` and whose candidate declaration changes its `command`, or adds an `outcomes` entry, is cannot judge, naming the check; neither command runs. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
-| guard/T96: with `base` supplied, a check whose base declaration names `trusted` and whose declaration file the candidate deletes is cannot judge, naming the check, and the run does not pass. Added in `guard/C76` | guard/F7, guard/N4 | Requirements | package |
-| guard/T97: with `base` supplied, a check the base does not declare, and a check the base declares without `trusted` that the candidate changes, each run as the candidate declares them and pass; an unchanged trusted check runs its base checker and passes. Added in `guard/C76` | guard/F7 | Requirements | package |
 | guard/T98: the package's own test files, run from `packages/kaal-guard`, pass on Node 24, and no file of the retired `0.0.1` suite runs. Added in `guard/C76`. Revised in `guard/C98`, because `npm test` became the consumer's verification (guard/F32) | guard/N6 | Requirements | Engineering |
-| guard/T99: with `base` supplied as a name that is no commit here, or a well-formed object name the repository lacks, a check that declares no `trusted` is cannot judge (exit 2), naming the base, and its command never runs. Added in `guard/C84`, written in `guard/C85`, where guard/T19's placeholder `base` becomes a commit of the consumer, its facts still passed on unchanged | guard/F7, guard/F10, guard/N4 | Requirements | package |
-| guard/T59: the package declares Node `>=24`; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite | guard/N1, guard/F27 | Requirements | package |
 
 **Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T1`…, defined in `core/C3`), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. guard/T58 stays Guard's own: it checks that the instance and the lifecycle agree.
 
@@ -231,16 +156,17 @@ They live in `engineering/guard/acceptance/` and do not ship (guard/A18). Their 
 guard/T107–guard/T112 are planned in `guard/C102`. They are placed by what each one verifies (guard/A20):
 - **guard/T107** checks a product promise, so it is a delivered case in `test/acceptance/architecture.test.mjs`. It is the one addition to the acceptance boundary.
 - **guard/T108–guard/T110** verify the verifier, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T106.
-- **guard/T111 and guard/T112** check KAAL's own authority and derivation, so they are in `engineering/guard/acceptance/authority.test.mjs`.
+- **guard/T111 and guard/T112** check KAAL's own authority and derivation, so they are in `engineering/guard/acceptance/authority.test.mjs`. guard/T111 runs in the `Engineering` job (`npm run test:engineering`).
+
+guard/T107 is defined by its title, and the product's trace in `packages/kaal-guard/docs/testing.md` lists it.
 
 | Test | Checks | Written in | Intended evidence on the `guard/C98` candidate |
 | --- | --- | --- | --- |
-| guard/T107: the installed package carries `docs/` with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path as its authority | guard/F37, guard/A19 | `guard/C103` | RED: no `docs/` ships |
 | guard/T108: a candidate in which a declared product identifier has neither a covering case nor an exemption is `cannot verify`, exit 2, naming the identifier; with an exemption it is `verified`, and the output and summary line name the exemption | guard/F38 | `guard/C104` | RED: no coverage is declared or judged |
 | guard/T109: `npm test` runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is `cannot verify`, naming the loop | guard/F39 | `guard/C104` | RED: the inner loop does not ship |
 | guard/T110: a case that declares the current platform not applicable is reported as not applicable, named and not run, and the run can still be `verified`; the same case skipped without that declaration is `cannot verify` | guard/F40 | `guard/C104` | RED: no applicability is declared |
 | guard/T111: in KAAL, every Guard identifier is defined exactly once, every product identifier only in `packages/kaal-guard/docs/`, and every identifier a delivered case cites is defined | guard/N14, guard/A20 | `guard/C103` | RED: the product identifiers are defined in `engineering/guard/` |
-| guard/T112: External's hook, workflow and Skill templates equal the package's under their declared transformation | guard/N14, guard/A16 | `guard/C103` | RED: no transformation is declared, and the templates differ |
+| guard/T112: External's hook, workflow and Skill templates equal the package's under their declared transformation | guard/N14, guard/A16 | `guard/C105` | RED: no transformation is declared, and the templates differ |
 
 **RED-first.** As for guard/T101–guard/T106 (`guard/C91`), each test is written in the DO Change named in the table. Its RED run is recorded in that Change's pull request before the change that turns it GREEN. None is marked `todo` or `skip`.
 
@@ -252,6 +178,14 @@ guard/T107–guard/T112 are planned in `guard/C102`. They are placed by what eac
   - names the delivered cases that already exercise it in their titles, where they do (for example, guard/T9 exercises the shipped hook, guard/A4);
   - or adds a delivered case.
 - **The inner loop's skipped case.** One inner case is skipped on Windows today ("supplies no changed paths when Git cannot compute them"). It becomes a declared applicability (guard/F40), never a silent skip.
+
+**The RED run (`guard/C103`, #538).** guard/T107 and guard/T111 were written first, in 3b6fda3, before the contract moved:
+- guard/T107 failed because the package carried no `docs/`;
+- guard/T111 failed because every identifier the delivered cases cite was defined in `engineering/guard/`, and guard/F28, guard/F7 and others were defined more than once there, by their amendments.
+
+The same commit left guard/T101 `cannot verify`, because the manifest no longer matched the cases. The contract then moved, and the manifest was regenerated, and all three are GREEN.
+
+**guard/T112 moves to `guard/C105`.** External's templates are not a copy of the package's to be derived by a transformation. They describe a different runner: `.githooks/guard.sh` with one CI job per check, where the package has `kaal-guard run`. Deriving them would mean redesigning the External delivery. On #537 the Owner asked that External's derivation neither expand nor block the consumer-verification milestone, so `guard/C103` leaves the templates as they are, and `guard/C105` takes up guard/N14's derived assets on its own.
 
 ## Defects
 

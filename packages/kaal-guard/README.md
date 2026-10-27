@@ -194,6 +194,10 @@ It does not tell you these:
 
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.
 
+## Guard's contract
+
+What Guard promises, and how each promise is checked, ships with the package in `docs/`: [Intent](docs/intent.md), [Requirements](docs/requirements.md), [Architecture](docs/architecture.md), [Testing](docs/testing.md) and [Limitations](docs/limitations.md). The identifiers there, such as `guard/F7`, are the ones the delivered cases name.
+
 ## What Guard does not establish
 
 Guard runs the checks you declare and reports their verdicts. It does not establish that a check or a Test Case it runs is unchanged since you accepted it: a changed test can still return pass, and that pass is not a guarantee from Guard. Review changes to your checks and Test Cases as you review any other change, and use `trusted` where a checker must come from the base commit.
