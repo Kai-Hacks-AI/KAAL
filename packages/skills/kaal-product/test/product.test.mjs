@@ -38,11 +38,22 @@ describe("the Capability Node", () => {
     assert.match(text("Product.md"), /The Product Owner decides; Product prepares each decision and records the choice as it was made, and decides nothing itself\./);
   });
 
-  it("leaves Intent, Change and Project their own responsibilities, and keeps no store", () => {
+  it("leaves Intent, Change and Project their own responsibilities and objects", () => {
     const capability = text("Product.md");
     assert.match(capability, /What an Intent means and what its Outcome is are Intent's\./);
     assert.match(capability, /its own lifecycle, which is Change's; coordinating several related Changes is Project's/);
-    assert.match(capability, /Product keeps no store of its own/);
+    assert.match(capability, /Each of these capabilities defines and owns its own objects and their lifecycle, and a relationship between capabilities transfers no ownership\./);
+  });
+
+  it("defines and owns its Product Direction objects as registered KAAL content", () => {
+    const capability = text("Product.md");
+    assert.match(capability, /Product defines and owns its Product Direction objects: wanted increments, the backlog, the roadmap, priorities and decision preparations\. The Product Owner retains decision authority over them\./);
+    assert.match(capability, /canonical, registered KAAL content, associated with the business entity that owns them, not loose documents and not a duplicate store of GitHub issues or pull requests/);
+  });
+
+  it("keeps persistence apart from ownership", () => {
+    assert.match(text("Product.md"), /Product needs no storage subsystem of its own: how its objects are persisted is separate from who owns them\./);
+    assert.match(text("Product-Direction.md"), /how they are persisted does not decide who owns them/);
   });
 });
 
@@ -65,6 +76,10 @@ describe("the Product Direction Definition", () => {
     assert.match(definition, /It states intention, not commitment\./);
     assert.match(definition, /Selecting an increment authorizes it and does not deliver it\./);
     assert.match(definition, /Preparing a decision decides nothing/);
+  });
+
+  it("is owned by Product, with decision authority left to the Product Owner", () => {
+    assert.match(text("Product-Direction.md"), /^Product defines and owns these objects, and the Product Owner retains decision authority over them\./m);
   });
 });
 

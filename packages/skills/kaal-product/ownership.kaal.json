@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "capability", "name": "Product", "id": "fea7fa4b8295d9d8cb0a5356395e9915e558edae78c427de305ff172190fa9e1" },
+  "owner": { "kind": "capability", "name": "Product", "id": "8123728fff1df43b96b316d9883b3dcb0f8330dc46dd02370b332102fa29e261" },
   "paths": ["packages/skills/kaal-product/"]
 }

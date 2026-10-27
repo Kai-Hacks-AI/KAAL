@@ -10,7 +10,7 @@ ownership.kaal.json               Product's own ownership claim (repository data
 
 ## Responsibilities
 
-Product keeps product direction legible and current and prepares decisions; the Product Owner decides. Its responsibility ends when an increment is selected and ordered. Intent and Outcome are Intent's, each Change's lifecycle is Change's, and coordinating related Changes is Project's. Product keeps no store: its artifacts stay where the Product Owner reviews them.
+Product keeps product direction legible and current and prepares decisions; the Product Owner decides. Its responsibility ends when an increment is selected and ordered. Intent and Outcome are Intent's, each Change's lifecycle is Change's, and coordinating related Changes is Project's. Product defines and owns its Product Direction objects as canonical, registered KAAL content associated with their owning business entity; the Product Owner retains decision authority. It needs no storage subsystem of its own, and persistence is kept separate from ownership.
 
 ## Register the Nodes
 

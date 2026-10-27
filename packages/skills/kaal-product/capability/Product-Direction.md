@@ -16,3 +16,5 @@ Product Direction is what the Product Owner wants the product to become, and in 
 - **Decision preparation**: the options put to the Product Owner, each with what choosing it would mean, and the choice recorded as the Product Owner made it.
 
 Selecting an increment authorizes it and does not deliver it. Preparing a decision decides nothing, and no priority or order is valid until the Product Owner has given it.
+
+Product defines and owns these objects, and the Product Owner retains decision authority over them. They are registered KAAL content associated with their owning business entity; how they are persisted does not decide who owns them.
