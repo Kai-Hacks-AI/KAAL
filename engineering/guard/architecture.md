@@ -1,17 +1,9 @@
-# Guard: Architecture (where)
+# Guard: Architecture, Engineering's part (where)
 
-Architecture places Guard's functions, gives each one positive ownership, and fixes its boundaries, relationships and dependencies. How each function is implemented is Code's, written in DO; the Changes that deliver it are in [Change](change.md). Each element names, in brackets, the Requirements it serves.
+Guard's product Architecture, the elements guard/A1–guard/A8, guard/A13–guard/A15 and guard/A17–guard/A19, is authoritative in the package: [`packages/kaal-guard/docs/architecture.md`](../../packages/kaal-guard/docs/architecture.md). This page holds only the elements of KAAL Engineering's own use and delivery of Guard. Each names, in brackets, the Requirements it serves. The Changes that deliver them are in [Change](change.md).
 
 ## Elements
 
-- **guard/A1 Check list** [guard/F1, guard/F7, guard/F18, guard/F28]. The declarations, `.kaal/config/guard/<name>.md`, are owned by the repository. Their frontmatter says which checks exist, their commands, where they run, which facts they need, which checker is trusted and which outcomes are named. It knows nothing of how a check decides.
-- **guard/A2 Checks** [guard/F1, guard/F9]. The checks and their test content are the repository's. They know nothing of Git, GitHub or Guard beyond the facts guard/F9 gives them.
-- **guard/A3 Runner** [guard/F2, guard/F3, guard/F7, guard/F9, guard/F10, guard/N2, guard/N4]. The runner, in the package at `lib/runner.mjs`, runs a set of checks and reads their verdicts. It knows nothing of branches, remotes, pull requests, GitHub, the adapters or KAAL. It reads a Git object only to take a trusted checker from the base commit (guard/F7).
-- **guard/A4 Git adapter** [guard/F4, guard/F6]. The `pre-push` hook, shipped in the package as `templates/pre-push`, passes Git facts to the runner and acts on its verdicts. It knows nothing of GitHub and names no check.
-- **guard/A5 GitHub adapter** [guard/F5, guard/F6, guard/F10]. A workflow job passes pull request facts to the runner and acts on its verdicts. Reporting to GitHub (annotations and the step summary, `run --github`) and the static coverage check (`verify`) sit beside the runner, in `lib/github.mjs`. A new consumer is offered `templates/guard.yml`.
-- **guard/A6 Lifecycle** [guard/F8, guard/N3]. `init`, `upgrade` and `remove`, in the package at `lib/lifecycle.mjs`, own exactly the managed assets the repository's installation record registers, that record, the `core.hooksPath` they set, and their checkout state in Git's metadata (guard/F29). Nothing else in a repository is theirs, and they never write a declaration.
-- **guard/A7 Dependency direction** [guard/F3, guard/F6]. The command (`bin/kaal-guard.mjs`) and the adapters depend on the runner; the runner depends on the declarations, and the declarations name the checks. Nothing depends on an adapter, and the runner depends on neither guard/A5 nor the templates.
-- **guard/A8 Package independence** [guard/N6]. The `kaal-guard` package, in `packages/kaal-guard/`, depends on no other KAAL element, declares none, imports none and references no Engineering path or KAAL Engine. It carries its own tests in `test/`.
 - **guard/A9 Engineer** [guard/N7, guard/N5]. `engineering/guard/` holds Guard's engineering documentation, the Engineering-only outer tests and, later, the External tooling. It may use any useful KAAL element. Nothing it uses becomes a package dependency.
 - **guard/A10 External** [guard/F8, guard/N5]. The External tooling, in `engineering/guard/external/`, produces and delivers a naked Guard Change for a target from the target's own commands. It uses no package internals and leaves no KAAL element in the target.
 - **guard/A11 KAAL integration** [guard/N7, guard/F5, guard/F10]. KAAL is Guard's first consumer and installs the package from its workspace. Its lineage, Change Isolation and branching checks become declarations in KAAL's `.kaal/config/guard/`, with their checkers trusted and `4` named held. Guard joins KAAL's existing workflows without replacing or consolidating them:
@@ -19,7 +11,6 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - each existing job keeps its name, OS matrix and triggers: `Hosting (Windows/Linux/macOS)`, `Acceptance (Windows/macOS)`, `Workspaces`, `Acceptance`, `Engineering`, `Change Isolation`, `Promotion Source`, `Branching` and `Branching audit`;
   - only the step that runs the check changes, to `kaal-guard run --check <name>`;
   - CodeQL and Dependency Review are GitHub's own checks and stay outside Guard.
-
 - **guard/A12 Consumer acceptance** [guard/F11–guard/F18, guard/N8, guard/N9]. Engineering's acceptance of a published version, with KAAL as the consumer, in `engineering/guard/consumer/`. It belongs to Engineer (guard/A9) and may use Hosting and Testing. Each run clones KAAL's commit into a disposable directory and changes nothing in KAAL's working tree. In the clone only:
   - the development dependency is replaced by a published `@kaihacksai/kaal-guard` from the registry, and the lockfile records the registry's integrity;
   - `core.hooksPath` is set as a KAAL developer sets it, and a local bare remote lets Git run the hook on a real push;
@@ -27,40 +18,7 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - `init` and `remove` run with KAAL's real configuration, to show how Guard treats an existing integration (guard/F17, guard/F18).
 
   The managed-asset cases (guard/F12–guard/F14, guard/F16) need a consumer that has managed assets. KAAL has none and adopts none, so guard/A12 creates a minimal repository beside the clone: a simulated consumer with its own check and no integration of its own, where `init` installs both assets. guard/A12 needs the network to reach the registry. That is guard/A12's, not the package's, so guard/N2 still holds for the package. What KAAL's real CI and branch protection show is guard/A11's evidence, from the development package; guard/A12 claims none of it.
-
-- **guard/A13 Skill source** [guard/F19, guard/F20, guard/N11]. The Embed Skill is in the package at `skills/kaal-guard/`, and the package ships it (`files`). Its text names the package's commands. It assumes no host, as KAAL's Agent Skills do, and Engineering checks it with `kaal-engineer-skill` (guard/A9). The package itself never depends on that check.
-- **guard/A14 Skill placement** [guard/F23, guard/F24, guard/F26, guard/F27, guard/N10, guard/N12]. The lifecycle (guard/A6) installs, upgrades and removes the Skill as a managed asset at its canonical location, as the contract (guard/A17) states. It holds no provider convention and reads no provider declaration. The Skill's text depends on no location. It never writes an instruction file.
-- **guard/A15 Reminder** [guard/F21, guard/F22]. The reminder is reporting, so it sits with the command and the GitHub reporting (guard/A5). It reads the Skill paths registered in the installation record (guard/F29), or else the package's copy. The runner (guard/A3) and the hook (guard/A4) are unchanged, and the hook shows the reminder only because it forwards `kaal-guard`'s output.
 - **guard/A16 External Skill** [guard/F25, guard/F26, guard/N12]. The External tooling (guard/A10) carries its own variant of the Skill as a template and writes it at the canonical location with the hook and the workflow. Where Core's realization is available in KAAL's workspace, the tooling may ask it at delivery for the target's further deployments and pointers, write the deployments, and list the pointers in `GUARD.md`. It uses no package internals, and no Core or Hosting element reaches the target.
-- **guard/A17 Installation contract** [guard/F27, guard/N12]. `contract.json` is in the package, and the package ships it. It is Guard's instance of Core's Installation Contract schema, which Guard neither copies nor imports. The lifecycle (guard/A6) reads its assets and rules from it, so no second list of assets exists in Guard's code. Core reads the same file when it realizes Guard. KAAL Engineering (guard/A9) runs Core's conformance Test Cases against it, at engineering time only.
-- **guard/A18 Verification entry** [guard/F31–guard/F36, guard/N13].
-  - **Where it lives.** `test/verify.mjs` and its manifest `test/verify.json` are in the package beside the outer acceptance cases (`test/acceptance/`), and the package ships all three. The manifest holds the delivered cases' inventory and the SHA-256 of every shipped file except itself.
-  - **What it does.** The entry checks the prerequisites, the installed files and the consumer, runs the delivered cases by absolute path through `node:test`'s `run()`, reads each case's outcome from the runner's events, and prints the result and the summary line. It removes an inherited `NODE_TEST_CONTEXT` first, because with it every case would be skipped.
-  - **The manifest's form.** `cases` lists each delivered case as `<file> > <suite> > <test>`, the file relative to the package. `files` maps each other shipped file to its SHA-256. The copy's own `node_modules`, where pnpm links `.bin`, is the package manager's and is not compared. `node engineering/guard/verify-manifest.mjs` writes it from a run of the cases and from `npm pack --dry-run`, after any Change to a shipped file. Until then guard/T101 is `cannot verify`, naming the file.
-  - **The summary line.** `kaal-guard-verification` is followed by JSON with these members:
-    - `result` and `exit`;
-    - `package`: name, version and location;
-    - `consumer`: root, `unchanged` and `changed`;
-    - `lockfile`: integrity, resolved, source, or `unknown` with its reason;
-    - `files`: digest, mismatched, missing, extra and `sha256`;
-    - `cases`: declared, executed, passed, failed, skipped and todo, with the cases each names;
-    - `causes`.
-  - **What it uses.** It imports nothing from `lib/`, so a broken runtime cannot mask itself, and uses only Node's built-ins. The cases and their harness are reused unchanged.
-  - **Where its own tests live.** The Test Cases of the verification itself (guard/T101–guard/T106) are in `engineering/guard/acceptance/`, not in the package, so a delivered run never verifies its own verifier.
-
-- **guard/A19 Product contract** [guard/F37, guard/F38, guard/F39, guard/F40, guard/N14].
-  - **The contract's files.** In the package:
-    - `docs/intent.md`, `docs/requirements.md` and `docs/architecture.md`, holding the product identifiers;
-    - `docs/testing.md`, holding the loops, the trace and the exemptions;
-    - `docs/limitations.md`.
-
-    The package ships `docs/`, and the manifest catalogues it.
-  - **The two loops.**
-    - Outer: the acceptance cases, in `test/acceptance/`.
-    - Inner: the Code tests, which move from `test/*.test.mjs` to `test/unit/`.
-  - **The trace.** It is derived from the case titles, which already name their identifiers, for example `guard/T61 [guard/F1, guard/A1]`. Exemptions and declared applicability are declared once, in `docs/testing.md`.
-  - **The manifest.** The generator (guard/A18) reads all of this and writes `loops`, `coverage`, `exemptions` and `applicability` into `test/verify.json`. The entry judges them.
-  - **What the entry imports.** Still nothing from `lib/`.
 - **guard/A20 Engineering/Product boundary** [guard/N14, guard/N6].
   - **What `engineering/guard/` holds.** It holds what is Engineering's:
     - the Capability, `Guard.md`;
@@ -75,18 +33,18 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - **The authority check.** guard/T111, in `engineering/guard/acceptance/`, fails on any of these:
     - an identifier defined twice;
     - a product identifier defined outside the package;
-    - a delivered case citing an undefined identifier.
-  - **External's templates.** They are derived from the package's under guard/N14 and checked by guard/T112.
+    - a delivered case citing an undefined identifier;
+    - a line shaped like a definition that is not in a canonical form.
+  - **The canonical definition forms.** These are the only ways to define a Guard identifier:
+    - guard/I, F, N and A: the identifier opens its line in bold, at the top level: `**guard/F1 …` or `- **guard/A1 …`;
+    - a product Test Case: a row of the package's trace in `docs/testing.md`, between its markers: `| guard/T61 | …`;
+    - an Engineering Test Case: a row of Engineering's plan that gives its title: `| guard/T101: …`, or `| guard/T33–guard/T35: …` for several;
+    - a Defect: a row of Engineering's register: `| guard/D1 | …`.
+
+    Every other place an identifier appears is a citation, including Engineering's evidence rows: `| guard/T36 | GREEN |`, `| guard/T36, guard/T42 | …` or `| guard/T65–guard/T68 | …`. Some forms look like a definition but are not canonical. guard/T111 refuses them, so a definition cannot hide in another layout. They are: an identifier in bold or underscores anywhere else, at any list depth, in a quote or in a table cell; a heading that opens with an identifier; and a table row that opens with one in any other form.
+  - **External's templates.** guard/N14 requires them to be derived from the package's assets and checked against those, by guard/T112. Both come in `guard/C105`. Today they are maintained by hand and are not checked against the package's.
 
 ## Relationships
-
-```mermaid
-flowchart BT
-  Hook[guard/A4 Git adapter] --> Runner[guard/A3 runner]
-  WF[guard/A5 GitHub adapter] --> Runner
-  Runner --> List[guard/A1 declarations]
-  List --> Checks[guard/A2 repository checks]
-```
 
 ```mermaid
 flowchart LR

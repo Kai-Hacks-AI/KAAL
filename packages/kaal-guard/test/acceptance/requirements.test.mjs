@@ -245,7 +245,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
   });
 });
 
-describe("guard/F8 [guard/I5, guard/I6] safe lifecycle", () => {
+describe("guard/F8 [guard/I5] safe lifecycle", () => {
   it("guard/T16 [guard/F8, guard/F29]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it", () => {
     const c = consumer();
     const before = c.files();
@@ -325,7 +325,7 @@ describe("guard/F9 [guard/I2] execution contract", () => {
   });
 });
 
-describe("guard/F10 [guard/I2, guard/I4] no silent gate", () => {
+describe("guard/F10 [guard/I2] no silent gate", () => {
   it("guard/T21 [guard/F10]: a command that cannot start is cannot judge, and it blocks", () => {
     const c = given({ ghost: { command: "a-command-that-does-not-exist-anywhere", runs: ["hook"] } });
     const r = c.guard(["run", "--hook"]);
@@ -982,7 +982,7 @@ describe("guard/F26 [guard/I1, guard/I7] agent instruction files", () => {
   });
 });
 
-describe("guard/N1 [guard/I4, guard/I5] runtime prerequisite", () => {
+describe("guard/N1 [guard/I5] runtime prerequisite", () => {
   it("guard/T59 [guard/N1, guard/F27]: the package declares Node >=24; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite", () => {
     const c = given({ x: { command: exit(0), runs: ["hook", "ci"] } });
     const installed = join(c.dir, "node_modules", ...NAME.split("/"));
@@ -1130,7 +1130,7 @@ describe("guard/F5 [guard/I2, guard/I3] Guard's workflow", () => {
   });
 });
 
-describe("guard/F8 and guard/F13 [guard/I5, guard/I6] a missing registered asset", () => {
+describe("guard/F8 and guard/F13 [guard/I5] a missing registered asset", () => {
   it("guard/T88 [guard/F8, guard/F13]: after the registered hook is deleted, init --hook reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, upgrade reinstalls it", () => {
     const c = consumer();
     assert.equal(c.guard(["init", "--hook"]).status, 0);
@@ -1175,7 +1175,7 @@ describe("guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows", ()
   });
 });
 
-describe("guard/F8 [guard/I5, guard/I6] remove and the configuration directory", () => {
+describe("guard/F8 [guard/I5] remove and the configuration directory", () => {
   it("guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/", () => {
     const c = consumer();
     const inside = join(c.dir, "empty-config");
@@ -1211,7 +1211,7 @@ describe("guard/F2 [guard/I2] named outcomes", () => {
   });
 });
 
-describe("guard/N1 [guard/I4, guard/I5] Git prerequisite", () => {
+describe("guard/N1 [guard/I5] Git prerequisite", () => {
   it("guard/T92 [guard/N1]: with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing", () => {
     const c = given({ x: { command: exit(0), runs: ["hook", "ci"] } });
     // An older Git, as the running command sees it: like guard/T59's Node, the preload replaces only what
