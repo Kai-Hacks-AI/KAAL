@@ -7,10 +7,10 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { CONFIG, readDeclarations } from "../lib/config.mjs";
-import { declarations, verify } from "../lib/github.mjs";
-import { CONTRACT, init, remove, sha256, sources, upgrade, VERSION } from "../lib/lifecycle.mjs";
-import { checkout, readRecord, readState, RECORD } from "../lib/state.mjs";
+import { CONFIG, readDeclarations } from "../../lib/config.mjs";
+import { declarations, verify } from "../../lib/github.mjs";
+import { CONTRACT, init, remove, sha256, sources, upgrade, VERSION } from "../../lib/lifecycle.mjs";
+import { checkout, readRecord, readState, RECORD } from "../../lib/state.mjs";
 
 const HOOK = ".githooks/pre-push";
 const WORKFLOW = ".github/workflows/guard.yml";
@@ -288,8 +288,8 @@ describe("lifecycle", () => {
 });
 
 describe("pre-push template", () => {
-  const BIN = resolve(dirname(fileURLToPath(import.meta.url)), "../bin/kaal-guard.mjs");
-  const TEMPLATE = resolve(dirname(fileURLToPath(import.meta.url)), "../templates/pre-push");
+  const BIN = resolve(dirname(fileURLToPath(import.meta.url)), "../../bin/kaal-guard.mjs");
+  const TEMPLATE = resolve(dirname(fileURLToPath(import.meta.url)), "../../templates/pre-push");
 
   it("supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks", { skip: process.platform === "win32" }, () => {
     const dir = tree({ scope: { command: "node -e 0", runs: ["hook"], facts: ["changed"] } });

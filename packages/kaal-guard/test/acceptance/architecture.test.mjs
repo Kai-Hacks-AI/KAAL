@@ -121,7 +121,7 @@ describe("Architecture conformance", () => {
     }
   });
 
-  it("guard/T107 [guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority", () => {
+  it("guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority", () => {
     const parts = ["intent.md", "requirements.md", "architecture.md", "testing.md", "limitations.md"];
     for (const part of parts) assert.ok(existsSync(join(PACKAGE, "docs", part)), `the package carries no docs/${part}`);
     assert.ok(JSON.parse(source("package.json")).files.includes("docs"), "the package does not ship docs/");

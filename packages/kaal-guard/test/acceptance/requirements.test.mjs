@@ -60,7 +60,7 @@ describe("guard/F3 [guard/I2, guard/I3] one runner", () => {
 });
 
 describe("guard/F4 [guard/I2, guard/I3] hook", () => {
-  it("guard/T9 [guard/F4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify", () => {
+  it("guard/T9 [guard/F4, guard/A4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify", () => {
     for (const status of [1, 2]) {
       const c = consumer();
       assert.equal(c.guard(["init", "--hook"]).status, 0);
@@ -73,7 +73,7 @@ describe("guard/F4 [guard/I2, guard/I3] hook", () => {
     }
   });
 
-  it("guard/T10 [guard/F4]: lets a push through when every hook check passes or is not applicable", () => {
+  it("guard/T10 [guard/F4, guard/A4]: lets a push through when every hook check passes or is not applicable", () => {
     const c = consumer();
     assert.equal(c.guard(["init", "--hook"]).status, 0);
     c.checks({ ok: { command: exit(0), runs: ["hook"] }, na: { command: exit(3), runs: ["hook"] } });
@@ -93,7 +93,7 @@ describe("guard/F5 [guard/I2, guard/I3] CI gate", () => {
     return { ...r, summary: readFileSync(summary, "utf8") };
   };
 
-  it("guard/T11 [guard/F5]: fails the job on fail and on cannot judge", () => {
+  it("guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge", () => {
     for (const status of [1, 2]) {
       const r = ci(status);
       assert.notEqual(r.status, 0);
@@ -101,7 +101,7 @@ describe("guard/F5 [guard/I2, guard/I3] CI gate", () => {
     }
   });
 
-  it("guard/T12 [guard/F5]: reports not applicable as not applicable, never as a pass", () => {
+  it("guard/T12 [guard/F5, guard/A5]: reports not applicable as not applicable, never as a pass", () => {
     const r = ci(3);
     assert.equal(r.status, 0);
     assert.match(r.stdout, /::notice[^\n]*not applicable/);
@@ -109,7 +109,7 @@ describe("guard/F5 [guard/I2, guard/I3] CI gate", () => {
     assert.doesNotMatch(r.summary, /\bpass/i);
   });
 
-  it("guard/T13 [guard/F5]: reports held as a warning, never as a pass, with the check's own explanation visible", () => {
+  it("guard/T13 [guard/F5, guard/A5]: reports held as a warning, never as a pass, with the check's own explanation visible", () => {
     const r = ci(4, { 4: "held" });
     assert.equal(r.status, 0);
     assert.match(r.stdout, /::warning[^\n]*held/);
@@ -119,7 +119,7 @@ describe("guard/F5 [guard/I2, guard/I3] CI gate", () => {
 });
 
 describe("guard/F6 [guard/I3] narrow adapters", () => {
-  it("guard/T14 [guard/F6]: the hook follows the declarations without being changed, and names no check", () => {
+  it("guard/T14 [guard/F6, guard/A4]: the hook follows the declarations without being changed, and names no check", () => {
     const c = consumer();
     assert.equal(c.guard(["init", "--hook"]).status, 0);
     const hook = c.read(".githooks/pre-push");
@@ -246,7 +246,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
 });
 
 describe("guard/F8 [guard/I5] safe lifecycle", () => {
-  it("guard/T16 [guard/F8, guard/F29]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it", () => {
+  it("guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it", () => {
     const c = consumer();
     const before = c.files();
     assert.equal(c.guard(["init", "--hook"]).status, 0);
@@ -260,7 +260,7 @@ describe("guard/F8 [guard/I5] safe lifecycle", () => {
     assert.deepEqual(written, Object.keys(assets).sort(), "init wrote a file it did not register");
   });
 
-  it("guard/T17 [guard/F8]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add", () => {
+  it("guard/T17 [guard/F8, guard/A6]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add", () => {
     const c = consumer();
     c.write(".githooks/pre-push", "#!/bin/sh\necho mine\n");
     c.write(".github/workflows/guard.yml", "name: mine\n");
@@ -274,7 +274,7 @@ describe("guard/F8 [guard/I5] safe lifecycle", () => {
     assert.match(r.output, /kaal-guard run --hook/);
   });
 
-  it("guard/T18 [guard/F8]: upgrade and remove touch only unmodified managed files, and remove unsets only the core.hooksPath it set", () => {
+  it("guard/T18 [guard/F8, guard/A6]: upgrade and remove touch only unmodified managed files, and remove unsets only the core.hooksPath it set", () => {
     const c = consumer();
     assert.equal(c.guard(["init", "--hook", "--ci"]).status, 0);
     assert.equal(c.git("config", "--get", "core.hooksPath").stdout.trim(), ".githooks");
@@ -415,7 +415,7 @@ const snapshot = (c) => ({
 });
 
 describe("guard/F1 [guard/I1] declarations", () => {
-  it("guard/T61 [guard/F1, guard/A1]: a check declared as <name>.md in its configuration directory runs with the meaning of its frontmatter, and its body changes no verdict and no order", () => {
+  it("guard/T61 [guard/F1, guard/A1, guard/A2]: a check declared as <name>.md in its configuration directory runs with the meaning of its frontmatter, and its body changes no verdict and no order", () => {
     const c = given({ b: { command: exit(1, "b"), runs: ["hook"] }, a: { command: exit(0, "a"), runs: ["hook", "ci"] }, c: { command: exit(4, "c"), runs: ["hook"], outcomes: { 4: "held" } } });
     const lines = (o) => o.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(pass|fail|cannot judge|not applicable|held): /.test(l));
     const before = c.guard(["run", "--hook"]);
@@ -859,7 +859,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
   /** What lies under .agents/ and the like: every file whose path starts with one of these. */
   const under = (c, ...prefixes) => c.files().filter((p) => prefixes.some((x) => p.startsWith(x)));
 
-  it("guard/T50 [guard/F23, guard/F24, guard/N10]: standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source", () => {
+  it("guard/T50 [guard/F23, guard/F24, guard/N10, guard/A14]: standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source", () => {
     const c = consumer();
     const { source, files } = c.skill();
     const before = c.files();
@@ -879,7 +879,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     }
   });
 
-  it("guard/T51 [guard/F23, guard/F8]: init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file", () => {
+  it("guard/T51 [guard/F23, guard/F8, guard/A14]: init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file", () => {
     const c = consumer();
     c.skill();
     const mine = "---\nname: kaal-guard\ndescription: the consumer's own.\n---\n\nMine.\n";
@@ -893,7 +893,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     assert.deepEqual(Object.keys(c.installation()).filter((p) => p.startsWith(".agents/")), [], "init registered a Skill file it did not write");
   });
 
-  it("guard/T52 [guard/F23, guard/F12]: upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched", () => {
+  it("guard/T52 [guard/F23, guard/F12, guard/A14]: upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched", () => {
     const c = consumer();
     const { source, files } = c.skill();
     c.write(".agents/skills/other/SKILL.md", "---\nname: other\ndescription: another skill.\n---\n");
@@ -939,7 +939,7 @@ describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
     assert.match(rm.output, new RegExp(`${SKILL.replaceAll(".", "\\.")}/SKILL\\.md`), "remove does not report the modified deployment it kept");
   });
 
-  it("guard/T53 [guard/F23, guard/N10, guard/N12]: the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path", () => {
+  it("guard/T53 [guard/F23, guard/N10, guard/N12, guard/A14]: the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path", () => {
     const c = consumer();
     c.skill();
     const suppliers = [".claude/skills/", ".github/skills/", ".cursor/", ".codex/", ".gemini/"];

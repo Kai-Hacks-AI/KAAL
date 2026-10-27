@@ -20,6 +20,7 @@
     "contract.json",
     "docs",
     "test/acceptance",
+    "test/unit",
     "test/verify.mjs",
     "test/verify.json"
   ],

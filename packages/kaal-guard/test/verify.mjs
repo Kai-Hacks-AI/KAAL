@@ -1,7 +1,9 @@
-// The consumer's verification of the installed package (guard/A18, guard/F31–guard/F36): what
-// `npm explore @kaihacksai/kaal-guard -- npm test` runs. It checks the prerequisites, the installed
-// files against the shipped manifest (test/verify.json) and the consumer, runs the delivered outer
-// acceptance cases (test/acceptance/) against the installed copy, and ends in exactly one result:
+// The consumer's verification of the installed package (guard/A18, guard/F31–guard/F36, guard/F38–guard/F40):
+// what `npm explore @kaihacksai/kaal-guard -- npm test` runs. It checks the prerequisites, the installed
+// files against the shipped manifest (test/verify.json) and the consumer, runs every loop the package owns
+// against the installed copy (the outer acceptance cases in test/acceptance/ and the inner Code tests in
+// test/unit/), judges each loop, each product identifier's coverage or exemption and each declared
+// applicability, and ends in exactly one result:
 // verified (exit 0), failed (1) or cannot verify (2). It realizes Testing's consumer-verification
 // semantics (testing/C9) in Guard's own code, imports nothing from lib/, so a broken runtime cannot
 // mask itself, and uses only Node's built-ins (guard/N13).
@@ -155,11 +157,22 @@ function prerequisites() {
   return missing;
 }
 
+/** The case files on disk in the installed copy's loop directories. */
+const onDisk = () => ["acceptance", "unit"].flatMap((d) => (existsSync(join(PACKAGE, "test", d)) ? files(join(PACKAGE, "test", d)).filter((f) => f.endsWith(".test.mjs")).map((f) => `test/${d}/${f}`) : []));
+
 /** Runs the verification and prints its output; returns the exit status. */
 export async function main(log = (line) => console.log(line)) {
   const manifest = JSON.parse(readFileSync(join(PACKAGE, MANIFEST), "utf8"));
   const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
   const declared = [...manifest.cases];
+  const loops = manifest.loops ?? {};
+  const identifiers = manifest.identifiers ?? [];
+  const coverage = manifest.coverage ?? {};
+  const exemptions = manifest.exemptions ?? {};
+  const applicability = { cases: manifest.applicability?.cases ?? {}, identifiers: manifest.applicability?.identifiers ?? {} };
+  const platform = process.platform;
+  /** A skipped case the manifest declares not applicable on this platform is not applicable here, not skipped (guard/F40). */
+  const classify = (o) => (o.status === "skipped" && applicability.cases[o.name]?.notOn?.includes(platform) ? { ...o, status: "not applicable" } : o);
   const failures = [];
   const causes = [];
   const add = (into, cause, next) => into.push({ cause, next });
@@ -195,11 +208,17 @@ export async function main(log = (line) => console.log(line)) {
   if (blockers.length === 0) {
     const before = snapshot(consumer.root);
     const packageBefore = snapshot(PACKAGE);
-    const caseFiles = [...new Set(declared.map((c) => c.split(" > ")[0]))].map((f) => join(PACKAGE, f));
-    const onDisk = existsSync(join(PACKAGE, "test", "acceptance")) ? files(join(PACKAGE, "test", "acceptance")).filter((f) => f.endsWith(".test.mjs")).map((f) => join(PACKAGE, "test", "acceptance", f)) : [];
-    const runFiles = [...new Set([...caseFiles.filter((f) => existsSync(f)), ...onDisk])];
-    log(`running ${declared.length} delivered cases from ${runFiles.length} files against the installed copy`);
-    outcomes = runFiles.length ? await execute(runFiles, (o) => log(`${o.status === "passed" ? "pass" : o.status === "failed" ? "FAIL" : o.status}: ${o.name}${o.message ? `: ${o.message}` : ""}`)) : [];
+    const named = [...declared.map((c) => c.split(" > ")[0]), ...Object.values(loops).flat()];
+    const runFiles = [...new Set([...named, ...onDisk()])].filter((f) => existsSync(join(PACKAGE, f))).map((f) => join(PACKAGE, f));
+    log(`running ${declared.length} delivered cases in ${Object.keys(loops).length} loops from ${runFiles.length} files against the installed copy`);
+    const label = { passed: "pass", failed: "FAIL", "not applicable": `not applicable on ${platform}` };
+    outcomes = runFiles.length
+      ? (await execute(runFiles, (raw) => {
+          const o = classify(raw);
+          const why = o.status === "not applicable" ? `: ${applicability.cases[o.name].why}` : "";
+          log(`${label[o.status] ?? o.status}: ${o.name}${o.message ? `: ${o.message}` : ""}${why}`);
+        })).map(classify)
+      : [];
     changes = [...changed(before, snapshot(consumer.root)), ...changed(packageBefore, snapshot(PACKAGE)).map((p) => slash(relative(consumer.root, join(PACKAGE, p))))];
     unchanged = changes.length === 0;
   } else causes.unshift(...blockers);
@@ -210,7 +229,34 @@ export async function main(log = (line) => console.log(line)) {
   const failed = by("failed");
   const skipped = by("skipped");
   const todo = by("todo");
+  const notApplicable = by("not applicable");
   const executed = passed.length + failed.length;
+  const status = new Map(outcomes.map((o) => [o.name, o.status]));
+  const fileOf = (name) => name.split(" > ")[0];
+
+  // The loops (guard/F39): each case accounted for by name under its loop.
+  const loopSummary = Object.fromEntries(
+    Object.entries(loops).map(([loop, list]) => {
+      const inLoop = (n) => list.includes(fileOf(n));
+      const names = [...new Set([...declared.filter(inLoop), ...outcomes.map((o) => o.name).filter(inLoop)])].sort();
+      const count = (s) => names.filter((n) => status.get(n) === s).length;
+      return [loop, { files: list, declared: declared.filter(inLoop).length, executed: count("passed") + count("failed"), passed: count("passed"), failed: count("failed"), skipped: count("skipped"), notApplicable: count("not applicable"), cases: names }];
+    }),
+  );
+  const unlooped = [...new Set([...declared, ...outcomes.map((o) => o.name)])].filter((n) => !Object.values(loops).some((list) => list.includes(fileOf(n))));
+
+  // The coverage (guard/F38, guard/F40): each product identifier covered by a case that ran and passed
+  // here, or exempted, or declared not applicable here; exemptions are never counted as covered.
+  const judged = { covered: [], exempted: [], notApplicable: [], notHere: [], uncovered: [] };
+  for (const id of identifiers) {
+    const covering = Object.values(coverage[id] ?? {}).flat();
+    if (covering.some((n) => status.get(n) === "passed")) judged.covered.push(id);
+    else if (id in exemptions) judged.exempted.push({ id, where: exemptions[id] });
+    else if (covering.length && covering.every((n) => status.get(n) === "not applicable")) {
+      if (applicability.identifiers[id]?.notOn?.includes(platform)) judged.notApplicable.push(id);
+      else judged.notHere.push(id);
+    } else judged.uncovered.push(id);
+  }
   const missing = blockers.length ? [] : declared.filter((c) => !ran.has(c));
   const undeclared = outcomes.filter((o) => o.status !== "failed" && !declared.includes(o.name)).map((o) => o.name);
 
@@ -222,17 +268,28 @@ export async function main(log = (line) => console.log(line)) {
     for (const t of todo) add(causes, `a delivered case is marked todo: ${t}`, "a todo case is not verified; report this output to the package's maintainers");
     for (const m of missing) add(causes, `a declared case was not executed: ${m}`, "reinstall the package and run the command again");
     for (const u of undeclared) add(causes, `a case executed that the manifest does not declare: ${u}`, "reinstall the package and run the command again");
+    if (Object.keys(loops).length === 0) add(causes, "the manifest declares no loop", "reinstall the package and run the command again");
+    for (const [loop, l] of Object.entries(loopSummary)) if (l.executed === 0) add(causes, `the ${loop} loop executed no case`, "reinstall the package; that loop's cases did not run");
+    for (const n of unlooped) add(causes, `a case belongs to no declared loop: ${n}`, "reinstall the package and run the command again");
+    for (const id of judged.uncovered) add(causes, `a product identifier has neither a covering case that ran and passed nor an exemption: ${id}`, "report this output to the package's maintainers; this promise is not verified");
+    for (const id of judged.notHere) add(causes, `a product identifier is not verified on ${platform}: every case covering ${id} is not applicable here, and the contract does not declare ${id} not applicable`, "report this output to the package's maintainers; this promise is not verified on this platform");
   }
 
   const result = failures.length ? "failed" : causes.length ? "cannot verify" : "verified";
-  log(`cases: ${declared.length} declared, ${executed} executed, ${passed.length} passed, ${failed.length} failed, ${skipped.length} skipped, ${todo.length} todo`);
+  log(`cases: ${declared.length} declared, ${executed} executed, ${passed.length} passed, ${failed.length} failed, ${skipped.length} skipped, ${todo.length} todo, ${notApplicable.length} not applicable on ${platform}`);
+  for (const [loop, l] of Object.entries(loopSummary)) log(`loop ${loop}: ${l.executed} of ${l.declared} declared cases executed, ${l.passed} passed, ${l.failed} failed, ${l.skipped} skipped, ${l.notApplicable} not applicable`);
+  if (blockers.length === 0) {
+    log(`coverage: ${identifiers.length} product identifiers; ${judged.covered.length} covered by this run, ${judged.exempted.length} exempted and not verified by this run, ${judged.notApplicable.length} not applicable on ${platform}, ${judged.notHere.length + judged.uncovered.length} not verified`);
+    for (const { id, where } of judged.exempted) log(`exempted, not verified by this run: ${id}: ${where}`);
+    for (const id of judged.notApplicable) log(`not applicable on ${platform}, not verified by this run: ${id}: ${applicability.identifiers[id].why}`);
+  }
   if (unchanged === true) log(`consumer unchanged: ${consumer.root}`);
   else if (unchanged === false) log(`consumer changed: ${changes.join(", ")}`);
   else log("consumer: not compared, because the cases did not run");
   log("integration: this run judges the package only. For this repository's integration of Guard, run `npx kaal-guard verify` in it.");
   log("This result is your own observation of this run; it is not KAAL release evidence.");
   for (const { cause, next } of [...failures, ...causes]) log(`${result === "failed" && causes.some((c) => c.cause === cause) ? "also cannot verify" : result}: ${cause}; do: ${next}`);
-  log(result === "verified" ? `verified: every declared case executed and passed against ${pkg.name}@${pkg.version} installed at ${PACKAGE}` : `${result}: ${[...failures, ...causes].length} cause(s) above`);
+  log(result === "verified" ? `verified: every declared case executed and passed, or does not apply on ${platform}, against ${pkg.name}@${pkg.version} installed at ${PACKAGE}; ${judged.covered.length} product identifiers covered by this run, ${judged.exempted.length} exempted and not verified by this run` : `${result}: ${[...failures, ...causes].length} cause(s) above`);
 
   const summary = {
     result,
@@ -242,6 +299,9 @@ export async function main(log = (line) => console.log(line)) {
     lockfile: lock,
     files: { digest: filesDigest, mismatched, missing: absent, extra, sha256: installed },
     cases: { declared: declared.length, executed, passed: passed.length, failed: failed.length, skipped: skipped.length, todo: todo.length, failures: failed, skips: skipped, todos: todo, missing, undeclared },
+    loops: loopSummary,
+    coverage: { identifiers: identifiers.length, ...judged },
+    applicability: { platform, notApplicable },
     causes: [...failures, ...causes].map((c) => c.cause),
   };
   log(`kaal-guard-verification ${JSON.stringify(summary)}`);
