@@ -10,24 +10,16 @@ The planned outer tests live in `packages/kaal-core/test/plan/registration.test.
 | core/T51: `sample/F2` is its namespace's artifact of kind F, ruled by F's owner, under its own identity | core/F48, core/A26 | Requirements |
 | core/T52: two definitions of one kind collide; an artifact of an undefined kind is a finding | core/F50 | Requirements |
 | core/T53: every Owner-corrected step is permitted; an omitted one, alone and acyclic, is a rule finding naming source and target | core/I16, core/F51, core/F52 | Intent |
-| core/T54: C traces to nothing, nothing traces to itself, and rules hold across namespaces (self-trace revision pending, see below) | core/F51, core/F52 | Requirements |
+| core/T54: C traces to nothing; a self-trace, under a rule that permits its own kind, is an observed cycle of one, and a finding only when the kind's owner declares it `acyclic`; rules hold across namespaces | core/F51, core/F52, core/F53 | Requirements |
 | core/T55: an unresolved target is a finding, and nothing is inferred for it | core/F52, core/F55 | Requirements |
 | core/T56: incoming views are derived, and a stated incoming trace is refused | core/N15, core/F54 | Requirements |
-| core/T57: traces are followed recursively, and a cycle of instances is a finding (revision pending, see below) | core/F53, core/A27 | Architecture |
+| core/T57: `reach` terminates on a cycle and yields each artifact once; A1 → D1 → T2 → A1 is observed in `cycles`, is no finding without a declaration or with one on a kind off the cycle, and is a finding naming D's owner when D is declared `acyclic`; cycles and findings are the same in any order | core/F53, core/N14, core/A27 | Architecture |
 | core/T58: an artifact that states no trace is untraced, not failed and not inferred | core/I16, core/F55, core/F56 | Intent |
 | core/T59: order does not matter, and no registrations give an empty result | core/N14, core/N16 | Requirements |
 
 The following are validated by review:
 - `core/A25` and `core/A28` are placements.
 - `core/A27`'s use of Graph is reviewed at `core/C26`, together with its two Stops.
-
-**core/T57 is pending revision.** It still asserts the earlier `core/F53`, in which every cycle is a finding. Once the Owner validates the revised contract, it changes in a PLAN amendment of this Change, before DO, to assert four things:
-- `reach` terminates on a cyclic graph and yields each artifact once;
-- with no `acyclic` declaration, A1 → D1 → T2 → A1 is in `cycles` and not in `findings`;
-- when a participating kind's owner declares its rule `acyclic`, the same cycle is a finding naming that kind and its owner;
-- the result is the same for registrations in any order.
-
-In the same amendment, core/T54's self-trace case uses a kind whose rule permits its own kind and has no `acyclic` declaration. Its self-trace is then an observed cycle of one. With the declaration, it is a finding, so the rule check alone cannot satisfy the case.
 - `core/F56`'s `kaal verify` behaviour is tested at `core/C26` against an Engine with registrations, and Core's existing `verify` tests keep the no-registration case.
 
 ## RED evidence

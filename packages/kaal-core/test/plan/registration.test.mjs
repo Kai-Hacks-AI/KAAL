@@ -47,6 +47,13 @@ const SAMPLE = reg("kaal-sample", "sample", {}, {
   "sample/Code1": { traces: ["sample/T1"] },
 });
 
+/** KINDS with the given kinds declared `acyclic` by their owners (core/F51). */
+const declaring = (...acyclic) =>
+  KINDS.map((r) => ({ ...r, kinds: Object.fromEntries(Object.entries(r.kinds).map(([k, v]) => [k, acyclic.includes(k) ? { ...v, acyclic: true } : v])) }));
+
+/** SAMPLE with T2 tracing to A1, closing the cycle A1 → D1 → T2 → A1 that the rules permit. */
+const CYCLIC = reg("kaal-sample", "sample", {}, { ...SAMPLE.artifacts, "sample/T2": { traces: ["sample/A1"] } });
+
 /** The findings whose text names every given word. */
 const naming = (findings, ...words) => findings.filter((f) => words.every((w) => JSON.stringify(f).includes(w)));
 
@@ -96,12 +103,18 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     }
   });
 
-  it("core/T54 [core/F51, core/F52]: a C artifact traces to nothing, an artifact never traces to itself, and the rule holds across namespaces", async () => {
+  it("core/T54 [core/F51, core/F52, core/F53]: a C artifact traces to nothing, a self-trace is a cycle of one judged by its kind owner's declaration, and the rule holds across namespaces", async () => {
     const assemble = await assembler();
     const c = assemble([...KINDS, reg("kaal-sample", "sample", {}, { "sample/C1": { traces: ["sample/I1"] }, "sample/I1": { traces: [] } })]);
     assert.ok(naming(c.findings, "sample/C1", "sample/I1", "rule").length > 0, "Change has no outgoing trace");
-    const self = assemble([...KINDS, reg("kaal-sample", "sample", {}, { ...SAMPLE.artifacts, "sample/T1": { traces: ["sample/T1"] } })]);
-    assert.ok(naming(self.findings, "sample/T1").length > 0, "a trace to itself is a finding");
+    // X's rule permits X, so only the cycle contract can judge X1 → X1.
+    const selfTrace = (decl) => reg("kaal-x", "x", { X: { traces: ["X"], ...decl } }, { "x/X1": { traces: ["x/X1"] } });
+    const permitted = assemble([...KINDS, selfTrace({})]);
+    assert.ok(naming(permitted.cycles, "x/X1").length > 0, "a self-trace is observed as a cycle of one");
+    assert.deepEqual(permitted.findings, [], "with no acyclic declaration it is no finding");
+    const prohibited = assemble([...KINDS, selfTrace({ acyclic: true })]);
+    assert.ok(naming(prohibited.cycles, "x/X1").length > 0, "it is still observed");
+    assert.ok(naming(prohibited.findings, "x/X1", "X", "kaal-x", "acyclic").length > 0, "declared acyclic, it is a finding naming the kind and its owner");
     const across = assemble([...KINDS, SAMPLE, reg("kaal-probe", "probe", {}, { "probe/T1": { traces: ["sample/F1"] }, "probe/F1": { traces: ["sample/A1"] } })]);
     assert.equal(naming(across.findings, "probe/T1").length, 0, "T → F across namespaces is permitted");
     assert.ok(naming(across.findings, "probe/F1", "sample/A1", "rule").length > 0, "F → A is not, whatever the namespaces");
@@ -126,14 +139,32 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.ok(naming(reverse.findings, "sample/I1", "tracedBy").length > 0, "an incoming trace is never stated");
   });
 
-  it("core/T57 [core/F53, core/A27]: traces are followed recursively, and a cycle of trace instances is a finding naming its artifacts", async () => {
+  it("core/T57 [core/F53, core/N14, core/A27]: traces are followed recursively and terminate on a cycle, every cycle is observed, and only a cycle through a kind declared acyclic is a finding naming that kind and its owner", async () => {
     const assemble = await assembler();
+    const ids = (xs) => xs.map((a) => (typeof a === "string" ? a : a.id));
     const r = assemble([...KINDS, SAMPLE]);
-    const reached = r.reach("sample/Code1").map((a) => (typeof a === "string" ? a : a.id));
+    const reached = ids(r.reach("sample/Code1"));
     for (const id of ["sample/T1", "sample/A1", "sample/F1", "sample/I1", "sample/C1"]) assert.ok(reached.includes(id), `Code1 reaches ${id}`);
-    const cyclic = { ...SAMPLE.artifacts, "sample/T2": { traces: ["sample/A1"] } };
-    const c = assemble([...KINDS, reg("kaal-sample", "sample", {}, cyclic)]);
-    assert.ok(naming(c.findings, "sample/A1", "sample/D1", "sample/T2").length > 0, "A1 → D1 → T2 → A1 is a cycle finding");
+    assert.deepEqual(r.cycles, [], "an acyclic graph has no observed cycle");
+
+    // Permitted: no owner of A, D or T declared acyclic.
+    const permitted = assemble([...KINDS, CYCLIC]);
+    const around = ids(permitted.reach("sample/A1"));
+    assert.equal(new Set(around).size, around.length, "reach terminates on the cycle and yields each artifact once");
+    for (const id of ["sample/D1", "sample/T2", "sample/F1", "sample/I1", "sample/C1"]) assert.ok(around.includes(id), `A1 reaches ${id} through the cycle`);
+    assert.ok(naming(permitted.cycles, "sample/A1", "sample/D1", "sample/T2").length > 0, "A1 → D1 → T2 → A1 is observed, naming its artifacts");
+    assert.deepEqual(permitted.findings, [], "an undeclared cycle is no finding");
+    assert.deepEqual(assemble([...declaring("I"), CYCLIC]).findings, [], "a declaration on a kind off the cycle does not judge it");
+
+    // Prohibited: D's owner declares D acyclic.
+    const prohibited = assemble([...declaring("D"), CYCLIC]);
+    assert.ok(naming(prohibited.cycles, "sample/A1", "sample/D1", "sample/T2").length > 0, "the cycle is still observed");
+    assert.ok(naming(prohibited.findings, "sample/A1", "sample/D1", "sample/T2", "kaal-requirements", "acyclic").length > 0, "it is a finding naming its artifacts, the declared kind's owner and the declaration");
+
+    // Deterministic: the same registrations in any order give the same cycles and findings.
+    const pick = (x) => JSON.parse(JSON.stringify({ cycles: x.cycles, findings: x.findings }));
+    const all = [...declaring("D"), CYCLIC];
+    assert.deepEqual(pick(assemble([...all].reverse())), pick(prohibited), "order does not change the observed cycles or the findings");
   });
 
   it("core/T58 [core/I16, core/F55, core/F56]: an artifact that states no trace is reported untraced, not failed and not inferred", async () => {
