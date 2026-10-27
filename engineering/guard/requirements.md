@@ -192,6 +192,41 @@ When Core manages the installation, Core's installation record (`core/C3`) holds
 - **guard/N6, the package's own tests.** The package's `npm test` runs the package's current suite and passes on Node 24. It names no file of a retired suite.
 - **Documentation.** The README states three things. The hook judges the working tree, not the pushed commit. Guard's workflow has two jobs, `Guard`, which runs `verify`, and the job that runs `run --ci`. On `pull_request`, CI checks run on GitHub's merge commit, not on the commit `head` names.
 
+**Consumer verification (`0.0.4`, `guard/C97`).** The Owner directed on 2026-10-27 that a consumer can verify the installed package. The published `0.0.3` keeps a `test` script but ships no tests, so `npm explore @kaihacksai/kaal-guard -- npm test` in a fresh consumer runs 0 tests and exits 0. That is a false green, which guard/F31–guard/F36 remove.
+
+- **guard/F31** [guard/I8] **Delivered cases.**
+  - **What ships.** The package ships its outer acceptance cases (`test/acceptance/`, with their harness) and a verification entry. Its inner Code tests (`test/*.test.mjs`) and KAAL's repository-level tests (`engineering/guard/`) do not ship.
+  - **Inventory.** The entry declares the inventory of the delivered cases by name, so a case that did not run is detected.
+  - **Package under test.** The cases exercise the installed copy as their package under test. The harness resolves that as its own package directory, which, once installed, is the installed copy.
+- **guard/F32** [guard/I8] **Invocation.**
+  - **Command.** `npm explore @kaihacksai/kaal-guard -- npm test` runs the verification. The package's `test` script runs the entry and nothing else.
+  - **Prerequisites.** It needs Node 24 or later, Git (guard/N1) and npm on PATH, and nothing installed beyond Guard.
+  - **Repeatability.** It can be repeated.
+- **guard/F33** [guard/I8] **One result.** A run ends in exactly one of three results, each with its own exit status and named in a final summary line.
+  - **`failed`, exit 1.** At least one delivered case failed, or the consumer changed during the run (guard/F35).
+  - **`cannot verify`, exit 2.** No case failed, but the run cannot claim verification. That happens when:
+    - a prerequisite is missing;
+    - no case executed;
+    - a case was skipped or marked todo;
+    - a declared case did not execute;
+    - the installed files do not match the shipped manifest (guard/F34).
+  - **`verified`, exit 0.** Every declared case executed and passed.
+  - **Next step.** Every `failed` and `cannot verify` names its cause and a next step (guard/N4).
+- **guard/F34** [guard/I8] **Evidence of what was exercised.** The output names:
+  - the package name, its version and its install location;
+  - the SHA-256 of each installed file, checked against the manifest shipped with the entry. The manifest excludes itself. A mismatch is `cannot verify`, naming the files.
+  - the lockfile integrity, where npm recorded it in `node_modules/.package-lock.json`. Elsewhere it is reported as unknown, never guessed.
+
+  The tarball the cases exercise is a re-pack of the installed copy, so its integrity is not the registry's `dist.integrity`. The manifest is what ties a run to the published bytes. The summary line `kaal-guard-verification {…}` carries all of it as JSON.
+- **guard/F35** [guard/I8] **Intact consumer.**
+  - **Scratch space.** The delivered cases write only to the operating system's temporary directory.
+  - **The consumer.** The entry takes the consumer to be the directory that holds the `node_modules` it is installed in. Under `npm explore`, both the working directory and `INIT_CWD` are the package directory.
+  - **The check.** It compares the consumer's content, `node_modules/@kaihacksai/kaal-guard` included, before and after the run. A difference is `failed`, naming the paths.
+- **guard/F36** [guard/I8] **Package, not integration.**
+  - **Scope.** The verification judges the package only. It reads none of the consumer's configuration, installation record, hook or workflow.
+  - **Pointer.** Its output says so and names `kaal-guard verify` for this repository's integration.
+  - **Who observed it.** The result is the consumer's own observation of its run. It is not KAAL release evidence (guard/N9).
+
 ## Nonfunctional (N)
 
 - **guard/N1** [guard/I4, guard/I5] Linux, macOS and Windows. The hook is POSIX `sh`; the runner runs on Node 24 or later from `0.0.2`. Raising the floor from Node 20 is a breaking consumer prerequisite: it is stated in the package's README and in the release's notes, and an older Node is refused with that next step.
@@ -211,3 +246,4 @@ When Core manages the installation, Core's installation record (`core/C3`) holds
   - Core enrichment is Core's realization of the same instance, through Hosting where Core chooses. It adds CASE registration, provider-aware deployments and pointers, dependency and conflict handling and cross-Capability verification. Core keeps its additional deployments in its own record, and Guard's lifecycle never touches them.
 
   KAAL Engineering executes Core's conformance Test Cases against Guard's instance at engineering time, and the evidence is Guard's; the Test Case definitions stay Core's and are not copied. Guard holds no placement table, schema or CASE coordination of its own, and Core holds no Guard asset rule beyond what it reads from the instance. External delivery may use Core and Hosting at delivery time, and nothing of either reaches the target.
+- **guard/N13** [guard/I8] The verification realizes Testing's consumer-verification semantics (testing/C9) in Guard's own code and cites their identifiers. Guard depends on no Testing package, and the entry uses only Node's built-ins. It adds no command and no runtime dependency to the package.
