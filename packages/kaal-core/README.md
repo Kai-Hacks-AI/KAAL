@@ -4,10 +4,17 @@ KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundationa
 
 Core depends on no Git host and no agent provider. It has two runtime dependencies, and neither depends on Core. `kaal-graph` owns the general Node mechanics Core uses: a Node's Form and identity, and finding Nodes by id, name and type. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
 
+## Release status
+
+kaal-core is not released. Its version is 0.0.1, and that version is not published on npm or anywhere else. Its interfaces and the bytes of its foundational Nodes can still change without an upgrade path. Core's releases are separate from those of other KAAL packages: `@kaihacksai/kaal-guard` is published on its own and does not depend on kaal-core, so a Guard release says nothing about Core's.
+
 ## Install and bootstrap
 
+Until a release, kaal-core is installed from a checkout of this repository:
+
 ```sh
-npm install kaal-core
+npm ci && npm run build -w kaal-core              # in the KAAL checkout
+npm install <path-to-KAAL>/packages/kaal-core     # in your repository
 npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
 npx kaal verify    # checks the Kernel and the six foundational Nodes by identity
 npx kaal version   # the kaal-core that runs, and the version that installed ./.kaal
