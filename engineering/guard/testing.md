@@ -204,6 +204,26 @@ GUARD_CANDIDATE=registry:0.0.3 GUARD_CANDIDATES=registry:0.0.2,registry:0.0.3 no
 
 The run reports 9 tests, 8 pass and 1 fails; the one is guard/T66's blocked precondition, which the Owner recorded on #483 as neither GREEN nor a behavioural failure (`guard/C89`). Its behaviour stays exercised between two `packed` candidates. No asset was added to make it observable, and it is revisited when a genuine release adds a hook-surface asset. With this, `0.0.3` is accepted. The evidence is from Linux alone, and these consumer tests sit outside the required jobs, so `0.0.3`'s acceptance claims no other OS.
 
+## Consumer verification (`0.0.4`)
+
+guard/T101–guard/T106 test the verification itself (guard/I8). Each one:
+- packs a candidate of the package;
+- installs only that tarball into an unrelated, minimal npm consumer outside the KAAL checkout (`npm init`, `git init`, one file of its own);
+- runs the documented `npm explore @kaihacksai/kaal-guard -- npm test`.
+
+They live in `engineering/guard/acceptance/` and do not ship (guard/A18). Their candidate source is `packed` (guard/N9). A `registry` run happens after publication only, and nothing is claimed for the registry before it.
+
+| Test | Checks | Intended evidence on `0.0.3` |
+| --- | --- | --- |
+| guard/T101: the documented command executes the delivered cases, more than zero of them, and a passing run gives `verified`, exit 0 | guard/F31, guard/F32, guard/F33 | RED: `0.0.3` runs 0 tests and exits 0 |
+| guard/T102: the output and its summary line name the package, the candidate's version, its install location and the installed files' hashes, and these equal the candidate's | guard/F34 | RED: `0.0.3` names nothing |
+| guard/T103: negative behaviour. One byte changed in the installed `lib/runner.mjs` gives `cannot verify`, exit 2, naming the file. A delivered case made to fail gives `failed`, exit 1, naming the case | guard/F33, guard/F34 | RED |
+| guard/T104: each of these gives `cannot verify`, exit 2, with its cause, and never `failed`: no `git` on PATH, zero cases, a skipped case, one declared case not executed | guard/F33 | RED |
+| guard/T105: after a run, the consumer's working tree, `.git`, npm configuration and the installed package are as they were, and the output says so | guard/F35 | RED: `0.0.3` makes no such claim |
+| guard/T106: a second run against the same installation gives the same result, and the output names `kaal-guard verify` for integration | guard/F32, guard/F36 | RED |
+
+**How RED-first is recorded.** There is no RED lane: #501 removed it. So a Test Case written RED in the boundary would land as a red check, and none is marked `todo` or `skip` (`guard/C91`). guard/T101–guard/T106 are therefore written in `guard/C98`, beside the entry. Their RED run, against a candidate without the entry and against the published `0.0.3`, is recorded in that Change's pull request before the entry is added, as for guard/T100 in `guard/C92`.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
