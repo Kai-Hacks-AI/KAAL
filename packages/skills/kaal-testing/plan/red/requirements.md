@@ -26,17 +26,17 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Unidentified.** A leaf test without an identity, such as a Code test, is not a Test Case. When it does not pass, it is an Unidentified RED, reported under its title and file.
   - **Duplicates.** An identity that occurs twice in one run is a finding.
   - **Not observed.** A value that is not an observed run gives no outcomes and one finding.
-- **testing/F3** [testing/I2]: `classify({ head, base, far })` compares two observed runs of the same lane: the candidate (`head`) and its base (`base`, for a collector `main`). It classes every Test Case and every Unidentified RED in `head`. Each Test Case of `head`:
+- **testing/F3** [testing/I2]: `classify({ head, base, far })` compares two observed runs of the same suites: the candidate (`head`) and the baseline its caller supplies (`base`). Testing does not select or authorize the baseline. Whichever one it is given defines every class below. It classes every Test Case and every Unidentified RED in `head`. Each Test Case of `head`:
   - **GREEN** when it passed. It is reported as new GREEN when it is new by the rule below.
   - **Regression RED** when it is RED and the base observed it GREEN.
   - **Persisting RED** when it is RED and the base observed it RED.
-  - **Feature RED** when it is RED and new. A Test Case is new only when the base observably lacked it. Either its file was observed absent on the base, or that same file was observed complete on the base (`testing/F1`) and the identity did not occur. The absence of a failure is never evidence of completion.
+  - **Feature RED** when it is RED and new. A Test Case is new only when the base observably lacked it. Either its file was observed absent on the base, or that same file was observed complete on the base (`testing/F1`) and the identity did not occur. The absence of a failure is never evidence of completion. Feature is observational newness against the supplied baseline, not an authorization judgment.
   - **Unknown baseline** when it is RED and the base gives no evidence either way. That covers a base that is not an observed run, a file the base was not given, and a base file observed incomplete. Unknown evidence is never read as absent or new (`testing/I2`).
 
-  In addition, each Test Case the base observed GREEN that does not occur in `head` is a **Missing RED**: established behavior that is no longer tested.
+  In addition, each Test Case the base observed GREEN that does not occur in `head` is a **Missing RED**: behavior the baseline established that is no longer tested.
 
   The candidate's own evidence must be whole. Each file `head` was given that is not observed complete is a finding, named by its file. That covers a file that failed to load, a suite whose declaration threw while every reported test passed, and a file the candidate lacks. A failure the runner saw is never lost because no failing Test Case carried it.
-- **testing/F4** [testing/I1, testing/I3]: `far` is the structured outcome of a Change's FAR decision, as Change hands it on. It is a list of decided entries. Each entry names:
+- **testing/F4** [testing/I1, testing/I3]: `far` is optional. When it is absent, nothing is accepted, and classification, report and evaluation are otherwise unchanged. When it is given, it is the structured outcome of a Change's FAR decision, as Change hands it on: a list of decided entries. Each entry names:
   - `change`: the Change that decided it, as a capability-qualified Change id, such as `sample/C2`;
   - `tests`: the Test Case identities whose regression the Owner accepted, at least one.
 
