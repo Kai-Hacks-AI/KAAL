@@ -1,6 +1,6 @@
 #!/bin/sh
 # KAAL's branching and Change Isolation judgment of one pushed ref, as a KAAL-owned check that
-# KAAL's pre-push hook runs through kaal-guard (guard.json: push). The verdicts are the hook's own,
+# KAAL's pre-push hook runs through kaal-guard (.kaal/config/guard/push.md). The verdicts are the hook's own,
 # unchanged: Branching and Promotion Source from engineering/github/lineage.ts as the default branch
 # holds it, Change Isolation from engineering/change-isolation/check.mjs as the target holds it.
 # Rules, verdicts and guidance live only there and in engineering/github/branching.md.
