@@ -1,6 +1,7 @@
 // Guard outer acceptance, Engineering part: the package's own tests and its consumer verification.
-// Requirements verification T98 [N6] (guard/C76, revised in guard/C98) and T101–T106 [I8] (guard/C97,
-// written in guard/C98). Planned in PLAN; DO and CHECK do not change it.
+// Requirements verification T98 [N6] (guard/C76, revised in guard/C98), T101–T106 [I8] (guard/C97,
+// written in guard/C98) and T108–T110 [F38–F40] (guard/C102, written in guard/C104). Planned in PLAN;
+// DO and CHECK do not change it.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -122,20 +123,32 @@ function observed(t, label, r) {
 const MANIFEST = join("test", "verify.json");
 
 /**
- * Replaces the installed copy's delivered cases with one small case file and makes the shipped manifest
- * consistent with that copy: it declares `cases` and the SHA-256 of every installed file but itself.
- * A fixture of the verification's own accounting, so a scenario does not run the whole delivered suite.
+ * Rewrites the installed copy's shipped manifest: `change` edits it, then the SHA-256 of every installed
+ * file but the manifest is taken again, so the manifest is consistent with the copy as it now is.
  */
-function reduce(c, source, cases) {
-  rmSync(join(c.installed, "test", "acceptance"), { recursive: true, force: true });
-  mkdirSync(join(c.installed, "test", "acceptance"), { recursive: true });
-  writeFileSync(join(c.installed, "test", "acceptance", "mini.test.mjs"), source);
+function rewrite(c, change) {
   const path = join(c.installed, MANIFEST);
   const manifest = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
-  manifest.cases = cases;
+  change(manifest);
   manifest.files = Object.fromEntries(tree(c.installed).filter((f) => f !== "test/verify.json").map((f) => [f, sha256(readFileSync(join(c.installed, f)))]));
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+/**
+ * Replaces the installed copy's delivered cases, outer and inner, with one small case file in one loop
+ * and makes the shipped manifest consistent with that copy: it declares `cases`, that one loop, no
+ * product identifier and nothing exempted or not applicable, unless `declare` says otherwise. A fixture
+ * of the verification's own accounting, so a scenario does not run the whole delivered suite.
+ */
+function reduce(c, source, cases, declare = {}) {
+  rmSync(join(c.installed, "test", "acceptance"), { recursive: true, force: true });
+  rmSync(join(c.installed, "test", "unit"), { recursive: true, force: true });
+  mkdirSync(join(c.installed, "test", "acceptance"), { recursive: true });
+  writeFileSync(join(c.installed, "test", "acceptance", "mini.test.mjs"), source);
+  rewrite(c, (manifest) => {
+    Object.assign(manifest, { cases, loops: { Requirements: [MINI] }, identifiers: [], coverage: {}, exemptions: {}, applicability: { cases: {}, identifiers: {} } }, declare);
+  });
 }
 
 const MINI = "test/acceptance/mini.test.mjs";
@@ -276,5 +289,110 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.deepEqual(b.files, a.files, "the second run names other files");
     assert.deepEqual(after, between, "the second run changed the consumer");
     assert.match(first.output, /kaal-guard verify/, "the output does not name kaal-guard verify for integration");
+  });
+
+  it("guard/T108 [guard/F38]: a candidate in which a declared product identifier has neither a covering case nor an exemption is cannot verify, exit 2, naming the identifier; with an exemption it is verified, and the output and summary line name the exemption", (t) => {
+    const name = `${MINI} > guard/T0 [guard/F1] passes`;
+    const source = `import { it } from "node:test";\nit("guard/T0 [guard/F1] passes", () => {});\n`;
+    const declare = { identifiers: ["guard/F1", "guard/F2"], coverage: { "guard/F1": { Requirements: [name] } } };
+
+    const bare = consumer();
+    reduce(bare, source, [name], declare);
+    const r = bare.verify();
+    const s = observed(t, "guard/F2 neither covered nor exempted", r);
+    assert.equal(s.result, "cannot verify", `an uncovered identifier gave ${s.result}:\n${r.output.slice(-4000)}`);
+    assert.equal(r.status, 2);
+    assert.deepEqual(s.coverage?.uncovered, ["guard/F2"], `the summary does not name guard/F2 uncovered: ${JSON.stringify(s.coverage)}`);
+    assert.ok(s.causes.some((x) => /guard\/F2/.test(x)), `no cause names guard/F2: ${JSON.stringify(s.causes)}`);
+    assert.match(r.output, /guard\/F2/, "the output does not name guard/F2");
+
+    const exempt = consumer();
+    const where = "verified by the publisher before each release";
+    reduce(exempt, source, [name], { ...declare, exemptions: { "guard/F2": where } });
+    const e = exempt.verify();
+    const u = observed(t, "guard/F2 exempted", e);
+    assert.equal(u.result, "verified", `an exempted identifier gave ${u.result}: ${JSON.stringify(u.causes)}`);
+    assert.equal(e.status, 0);
+    // The exemption stays visibly distinct from what this run executed: never counted as covered here.
+    assert.deepEqual(u.coverage.covered, ["guard/F1"], "the summary counts something other than guard/F1 as covered by this run");
+    assert.deepEqual(u.coverage.exempted, [{ id: "guard/F2", where }], "the summary does not name the exemption");
+    assert.deepEqual(u.coverage.uncovered, []);
+    const line = e.output.split(/\r?\n/).find((l) => l.includes("guard/F2") && l.includes(where));
+    assert.ok(line, "the output does not name the exemption and where it is verified");
+    assert.match(line, /exempt/i, "the exemption's line does not say it is exempted");
+    assert.match(line, /not (verified|executed) (by|in) this run/i, "the exemption's line does not say this run did not verify it");
+  });
+
+  it("guard/T109 [guard/F39]: npm test runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is cannot verify, naming the loop", (t) => {
+    const { first } = twice();
+    const s = observed(t, "the whole delivered suite, first run", first);
+    assert.equal(s.result, "verified", `the whole suite gave ${s.result}: ${JSON.stringify(s.causes)}`);
+    assert.deepEqual(Object.keys(s.loops ?? {}).sort(), ["Architecture", "Code", "Intent", "Requirements"], `the summary does not account for the four loops: ${JSON.stringify(Object.keys(s.loops ?? {}))}`);
+    for (const [loop, l] of Object.entries(s.loops)) {
+      t.diagnostic(`observed on ${process.platform}: the ${loop} loop executed ${l.executed} of ${l.declared} cases`);
+      assert.ok(l.executed > 0, `the ${loop} loop executed no case`);
+      assert.equal(l.cases.length, l.declared, `the ${loop} loop does not name each of its cases`);
+    }
+    const named = Object.values(s.loops).flatMap((l) => l.cases);
+    assert.equal(new Set(named).size, named.length, "a case is accounted for under more than one loop");
+    assert.equal(named.length, s.cases.declared, "a declared case is accounted for under no loop");
+    assert.ok(s.loops.Code.cases.every((n) => n.startsWith("test/unit/")), "the Code loop names a case outside test/unit/");
+
+    const emptied = consumer();
+    rmSync(join(emptied.installed, "test", "unit"), { recursive: true, force: true });
+    mkdirSync(join(emptied.installed, "test", "unit"));
+    rewrite(emptied, (m) => {
+      m.cases = (m.cases ?? []).filter((n) => !n.startsWith("test/unit/"));
+    });
+    const r = emptied.verify();
+    const u = observed(t, "the inner loop emptied", r);
+    assert.equal(u.result, "cannot verify", `an emptied inner loop gave ${u.result}:\n${r.output.slice(-4000)}`);
+    assert.equal(r.status, 2);
+    assert.ok(u.causes.some((x) => /\bCode\b.*loop|loop.*\bCode\b/.test(x)), `no cause names the Code loop: ${JSON.stringify(u.causes)}`);
+    assert.match(r.output, /\bCode\b.*loop|loop.*\bCode\b/, "the output does not name the Code loop");
+  });
+
+  it("guard/T110 [guard/F40]: a case that declares the current platform not applicable is reported as not applicable, named and not run, and the run can still be verified; the same case skipped without that declaration is cannot verify; an identifier only such a case covers is named as not verified here unless the contract declares it not applicable", (t) => {
+    const here = process.platform;
+    const passes = `${MINI} > guard/T0 passes`;
+    const absent = `${MINI} > guard/T0 [guard/F3] not here`;
+    const source = `import { it } from "node:test";\nit("guard/T0 passes", () => {});\nit("guard/T0 [guard/F3] not here", { skip: process.platform === ${JSON.stringify(here)} }, () => { throw new Error("ran where it does not apply"); });\n`;
+    const why = "the fixture's case does not apply here";
+
+    const declared = consumer();
+    reduce(declared, source, [passes, absent], { applicability: { cases: { [absent]: { notOn: [here], why } }, identifiers: {} } });
+    const r = declared.verify();
+    const s = observed(t, `the case declared not applicable on ${here}`, r);
+    assert.equal(s.result, "verified", `a declared not-applicable case gave ${s.result}: ${JSON.stringify(s.causes)}`);
+    assert.equal(r.status, 0);
+    assert.deepEqual(s.applicability?.notApplicable, [absent], `the summary does not name the case not applicable: ${JSON.stringify(s.applicability)}`);
+    assert.equal(s.applicability.platform, here);
+    assert.equal(s.cases.skipped, 0, "a declared not-applicable case is counted as skipped");
+    assert.equal(s.cases.executed, 1, "the not-applicable case ran");
+    assert.ok(r.output.split(/\r?\n/).some((l) => /not applicable/i.test(l) && l.includes("guard/T0 [guard/F3] not here")), "the output does not name the case not applicable");
+
+    const undeclared = consumer();
+    reduce(undeclared, source, [passes, absent]);
+    const v = undeclared.verify();
+    const u = observed(t, "the same case skipped without a declaration", v);
+    assert.equal(u.result, "cannot verify", `an undeclared skip gave ${u.result}`);
+    assert.equal(v.status, 2);
+    assert.ok(u.causes.some((x) => /skipped/.test(x) && x.includes("guard/T0 [guard/F3] not here")), `no cause names the skipped case: ${JSON.stringify(u.causes)}`);
+
+    const only = consumer();
+    const coverage = { identifiers: ["guard/F3"], coverage: { "guard/F3": { Requirements: [absent] } } };
+    reduce(only, source, [passes, absent], { ...coverage, applicability: { cases: { [absent]: { notOn: [here], why } }, identifiers: {} } });
+    const w = only.verify();
+    const x = observed(t, `guard/F3 covered only by a case not applicable on ${here}`, w);
+    assert.equal(x.result, "cannot verify", `an identifier left uncovered here gave ${x.result}`);
+    assert.deepEqual(x.coverage.notHere, ["guard/F3"], `the summary does not name guard/F3 not verified here: ${JSON.stringify(x.coverage)}`);
+    assert.ok(x.causes.some((c) => c.includes("guard/F3") && c.includes(here)), `no cause names guard/F3 on ${here}: ${JSON.stringify(x.causes)}`);
+
+    const contract = consumer();
+    reduce(contract, source, [passes, absent], { ...coverage, applicability: { cases: { [absent]: { notOn: [here], why } }, identifiers: { "guard/F3": { notOn: [here], why } } } });
+    const y = contract.verify();
+    const z = observed(t, `guard/F3 declared not applicable on ${here}`, y);
+    assert.equal(z.result, "verified", `an identifier the contract declares not applicable gave ${z.result}: ${JSON.stringify(z.causes)}`);
+    assert.deepEqual(z.coverage.notApplicable, ["guard/F3"], `the summary does not name guard/F3 not applicable: ${JSON.stringify(z.coverage)}`);
   });
 });
