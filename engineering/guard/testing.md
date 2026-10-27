@@ -187,6 +187,23 @@ GUARD_CANDIDATE=registry:0.0.2 node --test --test-concurrency=1 engineering/guar
 
 Each of the five names `@kaihacksai/kaal-guard@0.0.2 (registry)` as its candidate. All 9 consumer Test Cases pass, 0 fail, none skipped. guard/T65–guard/T68 pass in the same run but do not gate `0.0.2` and are not counted as its acceptance: two published versions of the line are their evidence (`guard/C83`). The evidence is from Linux alone. These consumer tests sit outside the required jobs, and no job runs them on macOS or Windows (`guard/C18` stays unauthorized), so `0.0.2`'s acceptance claims no other OS.
 
+### Release acceptance of `0.0.3` (`guard/C83`)
+
+guard/T65, guard/T67 and guard/T68 are GREEN with `registry` evidence between the published `@kaihacksai/kaal-guard@0.0.2` (older) and the published `@kaihacksai/kaal-guard@0.0.3` (newer, integrity `sha512-uW2ddZZFoEAJRaEDAJC1+0/xfj4LbGoEVGshElLVfGzO5POudLjQP9cvaj97cC3OxsYiCtEJNBFoYnqPj4+ViQ==`, published 2026-10-26T20:26:37Z with provenance), both installed from the registry. They ran on main at bf57539, on 2026-10-26 on Linux, with Node 24.22.1, npm 11.19.1 and Git 2.43.0:
+
+```sh
+GUARD_CANDIDATE=registry:0.0.3 GUARD_CANDIDATES=registry:0.0.2,registry:0.0.3 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+```
+
+| Test Case | Result | Candidate |
+| --- | --- | --- |
+| guard/T36, guard/T42 | GREEN | the published `0.0.2` they consume |
+| guard/T40, guard/T43, guard/T64 | GREEN | `@kaihacksai/kaal-guard@0.0.3 (registry)` |
+| guard/T65, guard/T67, guard/T68 | GREEN | `registry` `0.0.2` → `@kaihacksai/kaal-guard@0.0.3 (registry)` |
+| guard/T66 | not exercised for this pair: blocked before behavioural assertion, "the newer candidate adds no asset to the hook surface" | `registry` `0.0.2` → `@kaihacksai/kaal-guard@0.0.3 (registry)` |
+
+The run reports 9 tests, 8 pass and 1 fails; the one is guard/T66's blocked precondition, which the Owner recorded on #483 as neither GREEN nor a behavioural failure (`guard/C89`). Its behaviour stays exercised between two `packed` candidates. No asset was added to make it observable, and it is revisited when a genuine release adds a hook-surface asset. With this, `0.0.3` is accepted. The evidence is from Linux alone, and these consumer tests sit outside the required jobs, so `0.0.3`'s acceptance claims no other OS.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
@@ -226,20 +243,20 @@ guard/D15 is a suspected defect of the same kind in the External delivery's work
 | --- | --- | --- | --- |
 | guard/D15 | guard/T93 | the External delivery's workflow uses an unpinned `actions/checkout@v4` and `actions/setup-node@v4`, and puts `github.base_ref`, the pull request's SHAs and the check name into `run:` lines as shell | suspected (`guard/C71`) |
 
-guard/D16 and guard/D17 are suspected defects in the published `0.0.2`, found by a review of `@kaihacksai/kaal-guard@0.0.2` on 2026-10-26 (its evidence is kept in the project, not here). Each is established only when its Test Cases are recorded RED in `guard/C78`; a GREEN refutes it. guard/T97 guards the correction against blocking legitimate changes and is expected GREEN, so no D traces to it.
+guard/D16 and guard/D17 are defects in the published `0.0.2`, found by a review of `@kaihacksai/kaal-guard@0.0.2` on 2026-10-26 (its evidence is kept in the project, not here). Each is established only when its Test Cases are recorded RED in `guard/C78`; a GREEN refutes it. guard/T97 guards the correction against blocking legitimate changes and is expected GREEN, so no D traces to it.
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D16 | guard/T94, guard/T95, guard/T96 | Guard reads a trusted check's declaration from the candidate, so a candidate that drops `trusted`, rewrites the command or deletes the declaration runs its own checker or none, and can pass | suspected (`guard/C76`) |
-| guard/D17 | guard/T98 | the package's `test` script still runs `test/acceptance/*.test.mjs`, the retired `0.0.1` suite, which `0.0.2` correctly fails | suspected (`guard/C76`) |
+| guard/D16 | guard/T94, guard/T95, guard/T96 | Guard reads a trusted check's declaration from the candidate, so a candidate that drops `trusted`, rewrites the command or deletes the declaration runs its own checker or none, and can pass | established: guard/T94–guard/T96 recorded RED in `guard/C78` (#456); corrected by `guard/C79` (#458), where they are GREEN |
+| guard/D17 | guard/T98 | the package's `test` script still runs `test/acceptance/*.test.mjs`, the retired `0.0.1` suite, which `0.0.2` correctly fails | established: guard/T98 recorded RED in `guard/C78` (#456); corrected by `guard/C86` (#464), where guard/T98 is GREEN |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 
-guard/D18 is a suspected defect in `0.0.3` before its Release, found by the pre-release review on 2026-10-26 (`guard/C91`; its evidence is kept in the project, not here). guard/T100 is an inner Code test in `packages/kaal-guard/test/runner.test.mjs`, not a boundary test: with the lane removed (#501), a RED Test Case can no longer land in the boundary on its own. guard/D18 is established only when guard/T100 is recorded RED on the uncorrected runner in `guard/C92`'s pull request.
+guard/D18 was a defect in `0.0.3` before its Release, found by the pre-release review on 2026-10-26 (`guard/C91`; its evidence is kept in the project, not here). guard/T100 is an inner Code test in `packages/kaal-guard/test/runner.test.mjs`, not a boundary test: with the lane removed (#501), a RED Test Case can no longer land in the boundary on its own. guard/D18 is established only when guard/T100 is recorded RED on the uncorrected runner in `guard/C92`'s pull request.
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D18 | guard/T100 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so it no longer names that surface removes the check from the run, unjudged, and the run can pass | suspected (`guard/C91`) |
+| guard/D18 | guard/T100 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so it no longer names that surface removes the check from the run, unjudged, and the run can pass | established: guard/T100 recorded RED on the uncorrected runner in `guard/C92`'s pull request (#505); corrected by `guard/C92` (#505), where guard/T100 is GREEN |
 
 **Compatibility with `0.0.1` retracted.** The Owner ruled on #336 (6384215003) that `0.0.2` may break `0.0.1`, with no migration, no dual format and no rollback to it. The consumer Test Cases written against `0.0.1` are reassessed under `guard/C23`, and their K2b evidence stays recorded above:
 - **guard/T37, guard/T38, guard/T39 and guard/T41** run an upgrade or a rollback between `0.0.1` and a candidate, a path `0.0.2` no longer offers. Their obligations (guard/F12–guard/F14 and guard/F16) still hold from `0.0.2` on. They are superseded by guard/T65–guard/T68, which run between two candidates of the planned configuration. `guard/C24` writes them, and the harness builds the two candidates.
