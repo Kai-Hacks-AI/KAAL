@@ -33,8 +33,16 @@ Guard's product Architecture, the elements guard/A1–guard/A8, guard/A13–guar
   - **The authority check.** guard/T111, in `engineering/guard/acceptance/`, fails on any of these:
     - an identifier defined twice;
     - a product identifier defined outside the package;
-    - a delivered case citing an undefined identifier.
-  - **External's templates.** They are derived from the package's under guard/N14 and checked by guard/T112.
+    - a delivered case citing an undefined identifier;
+    - a line shaped like a definition that is not in a canonical form.
+  - **The canonical definition forms.** These are the only ways to define a Guard identifier:
+    - guard/I, F, N and A: the identifier opens its line in bold, at the top level: `**guard/F1 …` or `- **guard/A1 …`;
+    - a product Test Case: a row of the package's trace in `docs/testing.md`, between its markers: `| guard/T61 | …`;
+    - an Engineering Test Case: a row of Engineering's plan that gives its title: `| guard/T101: …`, or `| guard/T33–guard/T35: …` for several;
+    - a Defect: a row of Engineering's register: `| guard/D1 | …`.
+
+    Every other place an identifier appears is a citation, including Engineering's evidence rows: `| guard/T36 | GREEN |`, `| guard/T36, guard/T42 | …` or `| guard/T65–guard/T68 | …`. Some forms look like a definition but are not canonical. guard/T111 refuses them, so a definition cannot hide in another layout. They are: an identifier in bold or underscores anywhere else, at any list depth, in a quote or in a table cell; a heading that opens with an identifier; and a table row that opens with one in any other form.
+  - **External's templates.** guard/N14 requires them to be derived from the package's assets and checked against those, by guard/T112. Both come in `guard/C105`. Today they are maintained by hand and are not checked against the package's.
 
 ## Relationships
 

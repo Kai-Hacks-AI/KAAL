@@ -102,7 +102,7 @@ This evidence is bounded:
 - The `packed` candidate carries the same version and templates as `0.0.1`. guard/T37 and guard/T41 therefore show that the consumer's files are kept and that versions can be switched back and forth. They do not yet show an asset's content moving between versions; that needs a candidate whose templates differ.
 - It is simulated (guard/N9). It was recorded on one OS, and it says nothing about KAAL's real GitHub enforcement.
 
-**guard/T65–guard/T68 for `0.0.3`.** Their `packed` evidence between two simulated candidates is not `registry` evidence and never counts as it. With the published `0.0.2`, the next version can supply their `registry` evidence: before publication, a mixed pair (the published `0.0.2` as the older, the packed `0.0.3` candidate as the newer) is still `packed` evidence and decides only whether `0.0.3` is published; after publication, the pair of published versions is their `registry` evidence and gates `0.0.3`'s Release acceptance (`guard/C83`). [Change](change.md#003) gives the order. Their assertions do not change.
+**For `0.0.3`, guard/T65–guard/T68.** Their `packed` evidence between two simulated candidates is not `registry` evidence and never counts as it. With the published `0.0.2`, the next version can supply their `registry` evidence: before publication, a mixed pair (the published `0.0.2` as the older, the packed `0.0.3` candidate as the newer) is still `packed` evidence and decides only whether `0.0.3` is published; after publication, the pair of published versions is their `registry` evidence and gates `0.0.3`'s Release acceptance (`guard/C83`). [Change](change.md#003) gives the order. Their assertions do not change.
 
 **Release acceptance of `0.0.2` (`guard/C20`).** guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 are GREEN with `registry` evidence for the published `@kaihacksai/kaal-guard@0.0.2` (integrity `sha512-jwwaDwY9GuojEeg6SdIY+/1ZUHMnR0cZTh2skt9UZuE2T7n7pytE5HnSN29TCNiwM9TohMRSEkxCe9Ew9M9yXg==`), installed from the registry. They ran on kaal/guard at 43b33cb, on 2026-10-26 on Linux, with Node 24.22.1, npm 11.19.1 and Git 2.43.0:
 
@@ -154,9 +154,9 @@ They live in `engineering/guard/acceptance/` and do not ship (guard/A18). Their 
 ## The complete product (`0.0.4`)
 
 guard/T107–guard/T112 are planned in `guard/C102`. They are placed by what each one verifies (guard/A20):
-- **guard/T107** checks a product promise, so it is a delivered case in `test/acceptance/architecture.test.mjs`. It is the one addition to the acceptance boundary.
-- **guard/T108–guard/T110** verify the verifier, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T106.
-- **guard/T111 and guard/T112** check KAAL's own authority and derivation, so they are in `engineering/guard/acceptance/authority.test.mjs`. guard/T111 runs in the `Engineering` job (`npm run test:engineering`).
+- guard/T107 checks a product promise, so it is a delivered case in `test/acceptance/architecture.test.mjs`. It is the one addition to the acceptance boundary.
+- guard/T108–guard/T110 verify the verifier, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T106.
+- guard/T111 and guard/T112 check KAAL's own authority and derivation, so they are in `engineering/guard/acceptance/authority.test.mjs`. guard/T111 runs in the `Engineering` job (`npm run test:engineering`). guard/T112 is not written yet: it comes with `guard/C105`.
 
 guard/T107 is defined by its title, and the product's trace in `packages/kaal-guard/docs/testing.md` lists it.
 
@@ -185,7 +185,27 @@ guard/T107 is defined by its title, and the product's trace in `packages/kaal-gu
 
 The same commit left guard/T101 `cannot verify`, because the manifest no longer matched the cases. The contract then moved, and the manifest was regenerated, and all three are GREEN.
 
-**guard/T112 moves to `guard/C105`.** External's templates are not a copy of the package's to be derived by a transformation. They describe a different runner: `.githooks/guard.sh` with one CI job per check, where the package has `kaal-guard run`. Deriving them would mean redesigning the External delivery. On #537 the Owner asked that External's derivation neither expand nor block the consumer-verification milestone, so `guard/C103` leaves the templates as they are, and `guard/C105` takes up guard/N14's derived assets on its own.
+**How guard/T111 recognises a definition.** The definition forms are canonical. guard/A20 names them, and guard/T111 refuses every other line shaped like a definition. A definition in another layout therefore fails the check; it is not silently ignored.
+
+During the review of #538, the recognition rule was corrected after the RED run. That run had counted Engineering's evidence rows, such as `| guard/T36 | GREEN |`, as definitions. The correction adds three things: plan ranges (`| guard/T33–guard/T35: …`), Defects as identifiers, and the refusal of every non-canonical form. Discriminating evidence for the corrected rule:
+- **The checker is tested first.** Before guard/T111 judges KAAL, its own subtests run on fixtures:
+  - a clean contract gives no finding;
+  - a product identifier defined twice is found, in one file and across files;
+  - a product identifier retained in `engineering/guard/` is found, as an obligation and as a planned Test Case;
+  - an identifier a delivered case cites is found undefined when nothing defines it, or when only an Engineering evidence row cites it;
+  - eighteen other forms shaped like a definition are each refused, while a quoted form in a code span is not;
+  - the canonical forms are recognised with CRLF line endings, and a range defines each Test Case in it.
+- **The corrected rule is still RED on the RED commit.** Run against 3b6fda3's tree, it finds:
+  - 118 identifiers the delivered cases cite that are defined in `engineering/guard/` and not in the package;
+  - 9 identifiers defined more than once, guard/F2, guard/F5 and guard/F7 among them, by their amendments;
+  - 15 non-canonical lines.
+- **No layout or wording hid a definition.** Making the forms canonical meant changing 15 lines of `engineering/guard/`:
+  - fourteen bold citations of Test Cases and Defects, such as `- **guard/T107** checks …`, lost their bold, or were reworded so the bold no longer opens with the identifier;
+  - one heading that opened with guard/D1 was reworded, and the two links to it were updated.
+
+  Each was a citation, not a definition. No identifier's text or number changed.
+
+**External's derived templates move to `guard/C105`, with guard/T112.** External's templates are not a copy of the package's assets that a transformation could produce. They describe a different runner: `.githooks/guard.sh` with one CI job per check, where the package has `kaal-guard run`. Deriving them means redesigning the External delivery. On #537 the Owner asked that External's derivation neither expand nor block the consumer-verification milestone. So `guard/C103` leaves the templates as they are, and guard/N14's Derived assets stays unmet until `guard/C105`, as guard/N14 records. [Change](change.md#the-complete-product-004) gives `guard/C105`'s scope and acceptance.
 
 ## Defects
 
@@ -195,8 +215,8 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D1 | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T66 is GREEN (`packed`, Linux), see [below](#guardd1-and-guardd2-after-guardc25) |
-| guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T67 is GREEN (`packed`, Linux), see [below](#guardd1-and-guardd2-after-guardc25) |
+| guard/D1 | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T66 is GREEN (`packed`, Linux), see [below](#after-guardc25-guardd1-and-guardd2) |
+| guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T67 is GREEN (`packed`, Linux), see [below](#after-guardc25-guardd1-and-guardd2) |
 | guard/D3 | guard/T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
 | guard/D4 | guard/T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux); retracted in `guard/C23` |
 
@@ -242,15 +262,15 @@ guard/D18 was a defect in `0.0.3` before its Release, found by the pre-release r
 | guard/D18 | guard/T100 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so it no longer names that surface removes the check from the run, unjudged, and the run can pass | established: guard/T100 recorded RED on the uncorrected runner in `guard/C92`'s pull request (#505); corrected by `guard/C92` (#505), where guard/T100 is GREEN |
 
 **Compatibility with `0.0.1` retracted.** The Owner ruled on #336 (6384215003) that `0.0.2` may break `0.0.1`, with no migration, no dual format and no rollback to it. The consumer Test Cases written against `0.0.1` are reassessed under `guard/C23`, and their K2b evidence stays recorded above:
-- **guard/T37, guard/T38, guard/T39 and guard/T41** run an upgrade or a rollback between `0.0.1` and a candidate, a path `0.0.2` no longer offers. Their obligations (guard/F12–guard/F14 and guard/F16) still hold from `0.0.2` on. They are superseded by guard/T65–guard/T68, which run between two candidates of the planned configuration. `guard/C24` writes them, and the harness builds the two candidates.
-- **guard/D1 and guard/D2** stay established on their K2b evidence. They are defects in the lifecycle's rules, not in `0.0.1`'s format. Their trace moves to guard/T66 and guard/T67 once those tests are recorded RED.
-- **guard/T40** holds. guard/F15 now names refusal, with the fresh setup as the next step, as `0.0.1`'s answer.
-- **guard/T36 and guard/T42** keep their `0.0.1` evidence, and `guard/C20` points them at the published `0.0.2`.
-- **guard/T43** runs only the candidate, and it holds.
+- guard/T37, guard/T38, guard/T39 and guard/T41 run an upgrade or a rollback between `0.0.1` and a candidate, a path `0.0.2` no longer offers. Their obligations (guard/F12–guard/F14 and guard/F16) still hold from `0.0.2` on. They are superseded by guard/T65–guard/T68, which run between two candidates of the planned configuration. `guard/C24` writes them, and the harness builds the two candidates.
+- guard/D1 and guard/D2 stay established on their K2b evidence. They are defects in the lifecycle's rules, not in `0.0.1`'s format. Their trace moves to guard/T66 and guard/T67 once those tests are recorded RED.
+- guard/T40 holds. guard/F15 now names refusal, with the fresh setup as the next step, as `0.0.1`'s answer.
+- guard/T36 and guard/T42 keep their `0.0.1` evidence, and `guard/C20` points them at the published `0.0.2`.
+- guard/T43 runs only the candidate, and it holds.
 
-**guard/D4 retracted.** The Owner ruled on #336 that Guard owns its configuration contract and its validation, not the consumer's formatting. The byte-for-byte wording of guard/F18 was therefore a wrong contract, not a gap in Guard's behaviour. `guard/C23` supersedes that wording, so guard/D4 is retracted rather than corrected, and its evidence stays recorded above. Its correction, the text-preserving editor of `guard/C8` (#336), is withdrawn unmerged. guard/T44 is superseded by guard/T64, which holds by construction under the planned configuration because Guard never writes a declaration. `guard/C24` writes it. Whatever the replacement proves RED becomes a new Defect, numbered from guard/D5.
+**Retraction of guard/D4.** The Owner ruled on #336 that Guard owns its configuration contract and its validation, not the consumer's formatting. The byte-for-byte wording of guard/F18 was therefore a wrong contract, not a gap in Guard's behaviour. `guard/C23` supersedes that wording, so guard/D4 is retracted rather than corrected, and its evidence stays recorded above. Its correction, the text-preserving editor of `guard/C8` (#336), is withdrawn unmerged. guard/T44 is superseded by guard/T64, which holds by construction under the planned configuration because Guard never writes a declaration. `guard/C24` writes it. Whatever the replacement proves RED becomes a new Defect, numbered from guard/D5.
 
-### guard/D1 and guard/D2 after guard/C25
+### After guard/C25: guard/D1 and guard/D2
 
 guard/D1 and guard/D2 were established by guard/T38 and guard/T39 in K2b. Those tests run an upgrade from `0.0.1`, a path `0.0.2` no longer offers, so they are retired and can never turn GREEN. Their obligations moved to guard/T66 and guard/T67, which `guard/C24` wrote and `guard/C25` (#352) satisfied in the same delivery, so neither was ever recorded RED. On `kaal/guard` at 0e85ebb, `node --test engineering/guard/acceptance/plan/consumer/consumer.test.mjs` passes guard/T65–guard/T68 between two `packed` candidates on Linux.
 

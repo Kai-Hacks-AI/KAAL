@@ -22,3 +22,7 @@ Guard's product Requirements are authoritative in the package: [`packages/kaal-g
   - **Definitions.** Each Guard identifier is defined exactly once. A product identifier is defined only in the package's `docs/`. `engineering/guard/` cites product identifiers and never restates them, and it defines only Engineering's own (guard/A20).
   - **Reuse.** Engineering runs the product's Test Cases where they live and copies none of them.
   - **Derived assets.** An asset Engineering derives from a product asset, such as External's variants of the hook, the workflow and the Skill, is produced from the product asset by a declared transformation and checked against it.
+  - **What is enforced today, and what is not yet.**
+    - Definitions are enforced by guard/T111, in the canonical forms guard/A20 names.
+    - Reuse holds by layout: the `Guard` job runs the package's Test Cases where they live, and `engineering/guard/` holds no copy of them. No Test Case checks it.
+    - Derived assets is not met. External's hook, workflow and Skill templates are maintained by hand, are not produced from the package's assets, and nothing checks them against those. `guard/C105` meets it, with guard/T112. Until then, nothing in KAAL may claim that External's templates are derived or checked.
