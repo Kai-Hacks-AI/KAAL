@@ -232,6 +232,23 @@ describe("lifecycle", () => {
     assert.deepEqual(Object.keys(readRecord(dir).assets), [SKILL_ATTRIBUTES, SKILL]);
     assert.match(out, /The hook is not activated\. Run kaal-guard init --hook/);
     assert.match(out, /or run kaal-guard init --ci/);
+    // Guard's workflow has two jobs, Guard and Guard checks (guard/C88, guard/C93).
+    assert.match(out, /or run kaal-guard init --ci to install Guard's workflow, whose two jobs, Guard and Guard checks, run kaal-guard verify and every ci check\./);
+    assert.doesNotMatch(out, /in one job/);
+  });
+
+  it("plain init reinstalls no surface, and lists a registered surface file the repository no longer has under still to do", () => {
+    const dir = tree({ a: ci, h: { command: "x", runs: ["hook"] } });
+    step(init, dir, { hook: true, ci: true });
+    rmSync(join(dir, HOOK));
+    rmSync(join(dir, WORKFLOW));
+    const out = step(init, dir);
+    assert.ok(!existsSync(join(dir, HOOK)) && !existsSync(join(dir, WORKFLOW)), "plain init reinstalled a surface file");
+    assert.equal(hooksPath(dir), ".githooks");
+    const todo = out.slice(out.indexOf("still to do in this repository:"));
+    assert.match(todo, /\.githooks\/pre-push: Guard registered it, and the repository no longer has it\. Run kaal-guard init --hook to reinstall it, or kaal-guard remove --hook to deactivate the hook\./);
+    assert.match(todo, /\.github\/workflows\/guard\.yml: Guard registered it, and the repository no longer has it\. Run kaal-guard init --ci to reinstall it, or kaal-guard remove --ci to deactivate CI\./);
+    assert.match(step(init, dir, { hook: true }), /\.githooks\/pre-push: reinstalled/);
   });
 
   it("activates the hook and CI apart, records each, and undoes each apart without touching a declaration", () => {

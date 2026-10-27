@@ -419,10 +419,17 @@ export interface Removal {
   expect: string;
 }
 
-/** The writes and removals `reconcile` applies together. */
+/** A file a reconciliation relies on and leaves alone: its SHA-256 now, or `"absent"`. */
+export interface Expectation {
+  path: string;
+  expect: string;
+}
+
+/** The writes and removals `reconcile` applies together, and the files it relies on. */
 export interface Reconciliation {
   write: Write[];
   remove: Removal[];
+  expect?: Expectation[];
 }
 
 /** What `reconcile` did: every entry's outcome, and the directories its removals emptied, each in path order. */
@@ -515,7 +522,9 @@ async function emptied(dir: string, path: string, removed: Set<string>): Promise
  * `root`, and come before every write, so one reconciliation can turn a file
  * into a directory (a removal with writes under it) or a directory into a
  * file (a write expecting `"absent"` with removals of everything under it). A write marked `executable` is executable where the host has the
- * mode, and one without it is not.
+ * mode, and one without it is not. Every `expect` entry is a precondition on a
+ * file the caller relied on and leaves alone: it is checked with the rest and
+ * never touched.
  *
  * This is rollback on observed failure, not a transaction: the lock excludes
  * Hosting's writers only, readers can see a reconciliation half applied, and
@@ -527,7 +536,8 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
     ...reconciliation.write.map((w) => ({ ...w, bytes: Buffer.from(w.bytes), remove: false })),
     ...reconciliation.remove.map((r) => ({ path: r.path, expect: r.expect, bytes: undefined, executable: false, remove: true })),
   ].sort((a, b) => byPath(a.path, b.path));
-  const paths = entries.map((e) => e.path);
+  const expected = (reconciliation.expect ?? []).map((x) => ({ path: x.path, expect: x.expect }));
+  const paths = [...entries, ...expected].map((e) => e.path).sort(byPath);
   const repeated = paths.find((p, i) => i > 0 && paths[i - 1] === p);
   if (repeated !== undefined) throw new HostingError(`${repeated} appears more than once in one reconciliation`, "INVALID_PATH");
   // Paths nest only where a kind changes: writes expecting "absent" under a
@@ -541,12 +551,20 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
       const write = p.remove ? q : p;
       if (write.expect !== "absent") throw new HostingError(`${write.path} must expect "absent" to change ${p.path} from a ${p.remove ? "file into a directory" : "directory into a file"}`, "INVALID_PATH");
     }
+  // An expected path is only read, so nothing else of the reconciliation may sit above or below it.
+  for (const x of expected) {
+    const other = paths.find((p) => p.startsWith(`${x.path}/`) || x.path.startsWith(`${p}/`));
+    if (other !== undefined) throw new HostingError(`${x.path} is expected unchanged, so ${other} cannot be in the same reconciliation`, "INVALID_PATH");
+  }
   checkPortable(paths);
   return exclusive(root, async (at) => {
     const now = new Map<string, { found: string; executable: boolean }>();
     const removed = new Set(entries.filter((e) => e.remove).map((e) => e.path));
-    for (const e of entries) now.set(e.path, await present(at, e.path, removed));
-    const findings = entries.filter((e) => now.get(e.path)!.found !== e.expect).map((e) => ({ path: e.path, expected: e.expect, found: now.get(e.path)!.found }));
+    for (const e of [...entries, ...expected]) now.set(e.path, await present(at, e.path, removed));
+    const findings = [...entries, ...expected]
+      .filter((e) => now.get(e.path)!.found !== e.expect)
+      .map((e) => ({ path: e.path, expected: e.expect, found: now.get(e.path)!.found }))
+      .sort((a, b) => byPath(a.path, b.path));
     if (findings.length > 0) throw new HostingError(`${findings.map((f) => f.path).join(", ")}: not as expected; nothing was changed`, "STALE", findings);
 
     const outcomes = entries.map((e) => {
