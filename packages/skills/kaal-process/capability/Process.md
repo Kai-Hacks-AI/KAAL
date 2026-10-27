@@ -11,6 +11,6 @@ Process is the responsibility for the shared Process metamodel: the generic conc
 
 Its responsibility starts where a capability describes a way of working that repeats, and ends at the concepts used to describe it. Each capability defines its own processes through this metamodel and keeps their purpose, their specific activities and rules, where they apply, and the decisions taken in them. Describing a process through the metamodel transfers none of that to Process.
 
-It provides the Process Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
+It provides the Process Definition and the PDCA Definition. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
 
 Which states a process has and which transitions it allows belong to the capability whose process it is; a Change's lifecycle remains Change's. Evidence and findings are Testing's, review judgments are Review's, and decisions belong to whoever is accountable for them. Process keeps no registry of processes: a process stays in the context of the capability that defines it.
