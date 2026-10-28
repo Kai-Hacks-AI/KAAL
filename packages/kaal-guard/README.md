@@ -23,6 +23,8 @@ Your CI is yours: you decide which job runs each check. `init` writes only what 
 - **still to do in this repository:** how to activate each surface you have not; where `core.fileMode` is false, `git add --chmod=+x .githooks/pre-push`, so the hook is committed executable; the line to add for each file left untouched, and for each `ci` check that no workflow job runs, the step to add to a job of your own workflow ([CI](#ci-and-what-verify-does-not-say)).
 - **executed by Guard, not managed:** each check, and `verify`, that one of the repository's own workflows already runs in Guard's declared form (see `kaal-guard verify`).
 
+Neither checkout in Guard's workflow keeps the run's token in the repository's Git configuration (`persist-credentials: false`, guard/N15), so a step that runs after it, a check of yours included, cannot read that token, whatever it may do in your repository. A `ci` check that fetches or pushes over HTTPS after checkout therefore has no stored credential; give it its own, or own a modified workflow.
+
 `init --ci` is one decision: Guard's workflow has two jobs, `Guard`, which runs `verify`, and `Guard checks`, which runs every `ci` check, so you register nothing twice. It is installed only where no workflow of yours already runs a check or `verify` in Guard's declared form, since it would run those a second time; `init --ci` then installs nothing for CI and names what it found. `upgrade` never installs it.
 
 `init --hook` sets `core.hooksPath` only when all three of these hold:
