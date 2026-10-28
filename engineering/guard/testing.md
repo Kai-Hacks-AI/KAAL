@@ -229,13 +229,14 @@ During the review of #538, the recognition rule was corrected after the RED run.
 
 ## Consumer-experience corrections (`0.0.4`)
 
-guard/T113–guard/T115 are planned in `guard/C107`. They verify the verifier and the delivered cases, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T110.
+guard/T113–guard/T116 are planned in `guard/C107`. They verify the verifier, the delivered cases and the tarball's boundary, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T110.
 
 | Test | Checks | Written in | Intended evidence against `afa9ca3` |
 | --- | --- | --- | --- |
 | guard/T113: two runs of the documented command, one passing and one with a planted failing case, each with the child's temporary directory set to a fresh empty directory, leave that directory empty | guard/F35 | `guard/C108` | RED: about 150 directories remain after one run |
 | guard/T114: a consumer holding a Unix socket and a FIFO is `verified`, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is `failed`, naming it. Registered on Linux and macOS, where the file system has both kinds | guard/F33, guard/F35 | `guard/C108` | RED: the socket gives `cannot verify` advising reinstall, and the FIFO hangs until the limit |
 | guard/T115: a delivered case that appends to a consumer file gives `failed`, exit 1, naming the path, with the next step to check concurrent activity and no advice to restore paths | guard/F33, guard/F35 | `guard/C108` | RED: the next step says to restore the paths from version control |
+| guard/T116: the packed candidate holds only the package's declared `files`, and no path from `engineering/`, no Engineering Test Plan and no release evidence | guard/F37, guard/A19 | `guard/C108` | GREEN on `afa9ca3`, where the review found none by hand; RED, naming the path, on a candidate with a planted `engineering/` file |
 
 ## Defects
 

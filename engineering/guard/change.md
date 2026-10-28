@@ -327,6 +327,20 @@ On #544 (2026-10-28), the Owner's pre-release review of the packed `0.0.4` candi
   - N4: the release notes say plainly that `upgrade` rewrites the version fields of the installation record even when no managed asset's bytes change.
 - **The release notes for `0.0.4`** gain the S1–S3 corrections.
 
+**The Product and Engineering Test Plans (the Owner, #545).** The package ships one consumer-facing Product Verification Test Plan: its `docs/testing.md`, its loops (Intent, Requirements, Architecture and Code), its delivered cases and the manifest `test/verify.json` derived from them. The publisher's Engineering and Release Acceptance Test Plan is `engineering/guard/testing.md` and its cases under `engineering/guard/`. It reuses the product's Test Cases by identifier, adds publisher-only cases, and is never shipped. `guard/C107` and `guard/C108` keep that line:
+- guard/T113–guard/T116 are Engineering cases, in `engineering/guard/acceptance/package.test.mjs`, and do not ship.
+- What `guard/C108` changes in the tarball is product behaviour (`test/verify.mjs`, the delivered cases' cleanup) and product documentation. The tarball gains no publisher plan, machinery or evidence.
+- guard/T107 checks that no shipped document cites an Engineering path or a Change as its authority, and guard/T102 that the manifest names exactly what is installed. No case yet checks that the tarball holds no publisher material: the review checked it by hand. So `guard/C108` adds guard/T116: the packed candidate holds only the package's declared `files`, and no path from `engineering/`, no Engineering Test Plan and no release evidence.
+
+`guard/C108` also corrects the product's wording of the 17 items it calls exemptions. They are not exemptions from Testing. They are obligations allocated to the publisher's Engineering Test Plan, and a consumer run does not verify them:
+- In `docs/testing.md`, the section becomes "Allocated to the publisher's Engineering Test Plan", and its column "Verified instead" becomes "Allocated to". Each row says what the publisher runs, without claiming that it passed.
+- The output line becomes `not verified by this run, allocated to the publisher: <id>: <where>`. The summary line's `exempted` becomes `allocated`, and the manifest's `exemptions` becomes `allocated`. The README, guard/F38, guard/A19 and guard/A20 follow.
+- guard/F20 (Guidance) has no Test Case in either plan. It is the publisher's review of the Skill and the README. So it is reported as `unverified: no Test Case verifies it; the publisher reviews it with each release`, never as an allocation that passed. It still does not change the result, as today.
+- The allocation rows say "before each release", which is true only as far as a release's evidence shows it. Until `guard/C109` gates it, they say "in the publisher's release evidence", and `guard/C100` supplies that evidence for `0.0.4`.
+- guard/T108's assertions change in wording only: "allocated" instead of "exempted", and "not verified by this run" stays. Its semantics do not change: the item is visible, never counted as covered, and the run stays `verified`. guard/T108 also gains guard/F20's `unverified` line.
+
+A generic Test Plan object is a later Testing improvement, outside this Change.
+
 **N5, release assurance.** The 17 exemptions rest on the publisher's evidence. `guard/C100` therefore shows, in its pull request and before you approve the `npm` environment, the check runs of the exact SHA Guard Release packs: `Engineering`, and `Guard` on Linux, macOS and Windows. That is evidence for one release. It is not an enforced gate. A durable gate is investigated separately as `guard/C109`, after `0.0.4`.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
@@ -433,8 +447,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
 | `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | not created |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
-| `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, and N5's release evidence; guard/T113–guard/T115 planned. Documents only | `guard/C99` | not created |
-| `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T115 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
+| `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T116 planned. Documents only | `guard/C99` | not created |
+| `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T116 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C10`, `guard/C25` for `guard/C9` and `guard/C11`, `guard/C15`–`guard/C17`, `guard/C51`, `guard/C64`–`guard/C70`, `guard/C74`, the conformance evidence | not created |
