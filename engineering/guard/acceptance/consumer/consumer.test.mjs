@@ -4,6 +4,8 @@
 // guard/T64 (guard/C24) checks one candidate of 0.0.2's configuration (guard/C23), so it can gate the
 // first published 0.0.2; guard/T65–guard/T68 check it between two candidates, so their `registry` evidence
 // needs a second published version of the 0.0.2 line:
+// guard/T118 (guard/C112) moves an installation of a released version to the target and runs the target's
+// verification on the result. guard/T65, guard/T66, guard/T68 and guard/T118 declare their applicability first.
 // 0.0.2 breaks 0.0.1 deliberately, so guard/T37–guard/T39, guard/T41 and guard/T44 are retired.
 // Each test runs in a disposable clone of KAAL, or in a minimal repository beside it, never in KAAL's
 // own tree (N8). It moves from the published 0.0.1 to a candidate: `packed` (the package at this
@@ -19,7 +21,8 @@
 //   - minimalRepo({ declarations: true }): the minimal consumer, its check declared in .kaal/config/guard/.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -66,6 +69,55 @@ const declarations = (c) => {
 };
 const record = (c) => json(c.read(RECORD)).assets;
 const changedFiles = (c) => c.git("status", "--porcelain").output.split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
+const changedPaths = (c) => c.git("status", "--porcelain", "--untracked-files=all").output.split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
+
+const ROOT = "node_modules/@kaihacksai/kaal-guard";
+/** Every file under a directory of a consumer, by path relative to the directory, with its content. */
+const tree = (dir) =>
+  readdirSync(dir, { recursive: true })
+    .filter((f) => statSync(join(dir, f)).isFile())
+    .map((f) => f.split("\\").join("/"))
+    .sort()
+    .map((f) => [f, readFileSync(join(dir, f), "utf8")]);
+
+/**
+ * What the two candidates ship, read from their packages installed side by side before any behavioural
+ * step (guard/C112): each candidate's Installation Contract, and each managed asset's content as it ships.
+ */
+function shipped(h, older, newer) {
+  const side = (spec) => {
+    const r = h.minimalRepo();
+    r.install(spec);
+    const contract = json(r.read(`${ROOT}/contract.json`));
+    const assets = Object.fromEntries(
+      contract.assets.map((a) => {
+        const at = join(r.dir, ROOT, a.source);
+        return [a.target ?? a.path, { ...a, content: JSON.stringify(a.kind === "directory" ? tree(at) : readFileSync(at, "utf8")) }];
+      }),
+    );
+    return { contract, assets };
+  };
+  const from = side(older.spec);
+  const to = side(newer.spec);
+  return {
+    from,
+    to,
+    /** Whether the asset at target ships with different content in the two candidates. */
+    differs: (target) => from.assets[target]?.content !== to.assets[target]?.content,
+    /** The assets the newer candidate adds to a surface. */
+    added: (surface) => Object.values(to.assets).filter((a) => a.surface === surface && !from.assets[a.target ?? a.path]),
+  };
+}
+
+/**
+ * Declared applicability (guard/C112): a case whose condition the candidates do not meet is reported not
+ * applicable with the reason and ends before any behavioural step. That is neither GREEN nor RED, and the
+ * assertions it did not execute are not counted as passed.
+ */
+function applies(t, condition, reason) {
+  if (!condition) t.skip(`not applicable: ${reason}`);
+  return condition;
+}
 
 describe("guard/I5 a consumer moves between published versions safely", () => {
   it("guard/T36 [guard/I5, guard/F11, guard/N8, guard/N9, guard/A12]: a KAAL clone installs the published 0.0.2 from the registry and runs KAAL's checks through it", async (t) => {
@@ -165,12 +217,13 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const { older, newer } = two(h);
     announce(t, newer);
+    const workflow = ".github/workflows/guard.yml";
+    if (!applies(t, shipped(h, older, newer).differs(workflow), `${older.version} and ${newer.version} ship the same workflow, so nothing can be seen to move`)) return;
     const reference = { older: h.minimalRepo({ declarations: true }), newer: h.minimalRepo({ declarations: true }) };
     reference.older.install(older.spec);
     reference.older.guard("init", "--hook", "--ci");
     reference.newer.install(newer.spec);
     reference.newer.guard("init", "--hook", "--ci");
-    const workflow = ".github/workflows/guard.yml";
     assert.notEqual(reference.newer.read(workflow), reference.older.read(workflow), "the candidates' workflows do not differ, so nothing can be seen to move");
 
     const m = h.minimalRepo({ declarations: true });
@@ -197,6 +250,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const { older, newer } = two(h);
     announce(t, newer);
+    if (!applies(t, shipped(h, older, newer).added("hook").length > 0, `${newer.version} adds no asset to the hook surface that ${older.version} lacks`)) return;
     // Core's Installation Contract format names an asset's location `target` (guard/C51); `path` until then.
     const contract = (c) => json(c.read("node_modules/@kaihacksai/kaal-guard/contract.json")).assets.map((a) => ({ ...a, path: a.target ?? a.path }));
     const hooked = h.minimalRepo({ declarations: true });
@@ -253,6 +307,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const { older, newer } = two(h);
     announce(t, newer);
     const workflow = ".github/workflows/guard.yml";
+    if (!applies(t, shipped(h, older, newer).differs(workflow), `${older.version} and ${newer.version} ship the same workflow, so it cannot be seen to move back and forward`)) return;
     const m = h.minimalRepo({ declarations: true });
     m.install(older.spec);
     assert.equal(m.guard("init", "--hook", "--ci").status, 0);
@@ -273,5 +328,58 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read(workflow), next, "moving forward again did not restore the newer candidate's workflow");
     assert.equal(m.read("README.md"), "the consumer's own file\n", "a consumer-owned file changed");
     assert.deepEqual(declarations(m), before, "a declaration changed");
+  });
+
+  it("guard/T118 [guard/I5, guard/F11, guard/F12, guard/F14, guard/F31]: an installation of the older candidate, integrated and holding a consumer's file and a modified managed asset, moves to the newer one by a dependency change and upgrade, changing only what the two ship differently, and the newer candidate's verification gives verified", async (t) => {
+    const h = await a12();
+    const { older, newer } = two(h);
+    announce(t, newer);
+    t.diagnostic(`from: ${older.spec} (${older.source})`);
+    // The harness's own variants change a package after its manifest was made, so their verification cannot pass by design.
+    if (!applies(t, !/-candidate\.\d+$/.test(newer.version), `${newer.version} is a variant the harness built, not a release whose verification can pass; name the pair with GUARD_CANDIDATES`)) return;
+    const pair = shipped(h, older, newer);
+    const hook = ".githooks/pre-push";
+    const managed = Object.values(pair.to.assets).filter((a) => a.surface !== undefined && (a.target ?? a.path) !== hook);
+
+    const m = h.minimalRepo({ declarations: true });
+    m.install(older.spec);
+    const init = m.guard("init", "--hook", "--ci");
+    assert.equal(init.status, 0, init.output);
+    m.write(hook, `${m.read(hook)}# the consumer's own line\n`);
+    m.write("README.md", "the consumer's own file\n");
+    m.git("add", "-A");
+    m.git("commit", "-q", "-m", "older");
+    const kept = { hook: m.read(hook), readme: m.read("README.md"), declarations: declarations(m) };
+    const before = Object.fromEntries(managed.map((a) => [a.target ?? a.path, m.exists(a.target ?? a.path) ? m.read(a.target ?? a.path) : undefined]));
+
+    m.install(newer.spec);
+    assert.deepEqual(changedFiles(m), ["package-lock.json", "package.json"], "guard/F11: the dependency change changed more than the dependency and the lockfile");
+    const up = m.guard("upgrade");
+    assert.equal(up.status, 0, up.output);
+
+    const moved = managed.map((a) => a.target ?? a.path).filter((target) => pair.differs(target));
+    t.diagnostic(`shipped differently: ${moved.join(", ") || "none"}`);
+    assert.deepEqual(changedPaths(m), ["package-lock.json", "package.json", RECORD, ...moved].sort(), "upgrade changed something other than the record and the assets the two candidates ship differently");
+    const reference = h.minimalRepo({ declarations: true });
+    reference.install(newer.spec);
+    assert.equal(reference.guard("init", "--hook", "--ci").status, 0);
+    for (const target of managed.map((a) => a.target ?? a.path).filter((target) => before[target] !== undefined)) {
+      if (moved.includes(target)) assert.equal(m.read(target), reference.read(target), `${target} did not move to the newer candidate's content`);
+      else assert.equal(m.read(target), before[target], `${target}, which the two candidates ship identically, changed`);
+    }
+    assert.equal(m.read(hook), kept.hook, "upgrade changed a modified managed asset");
+    assert.equal(m.read("README.md"), kept.readme, "upgrade changed a file Guard did not write");
+    assert.deepEqual(declarations(m), kept.declarations, "upgrade changed a declaration");
+
+    const registered = record(m);
+    for (const target of managed.map((a) => a.target ?? a.path).filter((target) => registered[target])) {
+      assert.equal(registered[target].version, newer.version, `the record does not name ${newer.version} for the unmodified ${target}`);
+    }
+    assert.notEqual(registered[hook]?.version, newer.version, "the record names the newer version for the modified asset");
+
+    const verify = spawnSync("npm", ["explore", "@kaihacksai/kaal-guard", "--", "npm", "test"], { cwd: m.dir, encoding: "utf8", shell: process.platform === "win32" });
+    const output = `${verify.stdout}${verify.stderr}`;
+    assert.equal(verify.status, 0, `the newer candidate's verification of the migrated installation did not pass:\n${output.slice(-4000)}`);
+    assert.match(output, /\bverified\b/, `the newer candidate's verification did not end in verified:\n${output.slice(-4000)}`);
   });
 });
