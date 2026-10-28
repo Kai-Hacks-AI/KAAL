@@ -9,7 +9,7 @@ type:
 
 Requirements is the responsibility for stating what must hold: the functional and non-functional conditions that what is built is to satisfy, each with the context responsible for it and precise enough to be verified. Its scope is that alone.
 
-A Requirement may arise from an Intent, a regulation, a contract, a constraint or a limitation, and none of them is a prerequisite; what someone wants to achieve, and why, stays Intent's. Its responsibility ends where the behaviour a Requirement asks for is given its place, which is architecture's, and where it is verified, by test, inspection, analysis or measurement; designing tests and judging their evidence are Testing's. Neither placement, nor tests, nor evidence is a Requirement.
+A Requirement states what must hold. It does not explain, redefine or justify why that is wanted; that is Intent's. Where an Intent is represented, a Requirement may trace to it explicitly. The trace transfers no ownership, and no separately documented Intent is a prerequisite. What prompts a Requirement to be identified, such as a regulation, a contract, a constraint, a limitation or a request, is its trigger. The trigger is neither the Requirement nor an Intent. Where what must hold is placed is Architecture's, and how it is built is Code's. Whether it holds, by test, inspection, analysis or measurement, is Testing's to judge. None of these is a Requirement.
 
 It provides no Definition yet. For admission it requires Core's KAAL Capability, and nothing else.
 

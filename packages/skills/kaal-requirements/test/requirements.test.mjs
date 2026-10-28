@@ -29,10 +29,12 @@ describe("the Capability Node", () => {
     assert.match(text(), /^Requirements is the responsibility for stating what must hold: the functional and non-functional conditions that what is built is to satisfy, each with the context responsible for it and precise enough to be verified\. Its scope is that alone\.$/m);
   });
 
-  it("takes no Intent as a prerequisite and ends at placement and verification", () => {
-    assert.match(text(), /^A Requirement may arise from an Intent, a regulation, a contract, a constraint or a limitation, and none of them is a prerequisite; what someone wants to achieve, and why, stays Intent's\./m);
-    assert.match(text(), /which is architecture's/);
-    assert.match(text(), /by test, inspection, analysis or measurement; designing tests and judging their evidence are Testing's\. Neither placement, nor tests, nor evidence is a Requirement\./);
+  it("states what, and only what: no Intent prerequisite, a trigger apart from Intent, and where, how and whether left to their owners", () => {
+    assert.match(text(), /^A Requirement states what must hold\. It does not explain, redefine or justify why that is wanted; that is Intent's\./m);
+    assert.match(text(), /The trace transfers no ownership, and no separately documented Intent is a prerequisite\./);
+    assert.match(text(), /is its trigger\. The trigger is neither the Requirement nor an Intent\./);
+    assert.match(text(), /Where what must hold is placed is Architecture's, and how it is built is Code's\. Whether it holds, by test, inspection, analysis or measurement, is Testing's to judge\. None of these is a Requirement\.$/m);
+    assert.doesNotMatch(text(), /may arise from an Intent/);
   });
 
   it("declares what it provides and what admission requires, apart from what it uses", () => {
