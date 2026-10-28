@@ -26,16 +26,35 @@ const FIELDS = ["name", "description", "license", "compatibility", "metadata", "
  * all empty but warnings means the skill conforms.
  */
 export function checkSkill(name, files) {
-  const found = { standard: [], kaal: [], warnings: [] };
+  const { standard, kaal, warnings } = readSkill(name, files);
+  return { standard, kaal, warnings };
+}
+
+/**
+ * Read an Agent Skill as Engineer Skill interprets it, so that no consumer
+ * parses SKILL.md itself. Takes what checkSkill takes and returns its findings
+ * with `fields`: the frontmatter as a Map from each field to its value as read,
+ * YAML mappings as Maps, or undefined when SKILL.md has no frontmatter mapping.
+ *
+ * SKILL.md is UTF-8, and a leading byte order mark is not content. CRLF and LF
+ * are both line breaks and read alike; a lone CR is not a line break. The
+ * frontmatter is one YAML 1.2 mapping, read with the core schema, and a
+ * duplicate key is not a mapping. Nothing is normalized in the files
+ * themselves: installing a Skill keeps its bytes.
+ */
+export function readSkill(name, files) {
+  const found = { fields: undefined, standard: [], kaal: [], warnings: [] };
   if (!Object.hasOwn(files, "SKILL.md")) return { ...found, standard: ["SKILL.md is missing"] };
-  const raw = files["SKILL.md"];
-  const text = (typeof raw === "string" ? raw : new TextDecoder().decode(raw)).replace(/\r\n/g, "\n");
+  const decoded = decode(files["SKILL.md"]);
+  if (decoded.error) return { ...found, standard: [decoded.error] };
+  const text = decoded.text.replace(/\r\n/g, "\n");
   const match = /^---\n([\s\S]*?\n)?---(\n|$)/.exec(text);
   if (!match) return { ...found, standard: ["SKILL.md does not begin with YAML frontmatter between --- lines"] };
   const body = text.slice(match[0].length);
   const { standard } = found;
 
   const fields = frontmatter(match[1] ?? "", standard);
+  found.fields = fields;
   if (fields) {
     for (const key of fields.keys()) if (!FIELDS.includes(key)) standard.push(`frontmatter field ${show(key)} is not in the standard (allowed: ${FIELDS.join(", ")})`);
     const declared = fields.get("name");
@@ -77,7 +96,7 @@ export function checkSkill(name, files) {
 
 /** The frontmatter as a Map with YAML's own key and value types, or undefined after reporting why it is not a mapping. */
 function frontmatter(source, standard) {
-  const doc = parseDocument(source);
+  const doc = parseDocument(source, { version: "1.2", schema: "core", uniqueKeys: true });
   if (doc.errors.length > 0) {
     for (const e of doc.errors) standard.push(`frontmatter is not valid YAML: ${e.message.split("\n")[0].replace(/:$/, "")}`);
     return undefined;
@@ -94,6 +113,16 @@ function frontmatter(source, standard) {
   if (value === null) return new Map();
   standard.push("frontmatter is not a YAML mapping of fields");
   return undefined;
+}
+
+/** SKILL.md's text without a leading byte order mark, or why its bytes are not UTF-8; never decoded with replacement characters. */
+function decode(raw) {
+  if (typeof raw === "string") return { text: raw.startsWith("\uFEFF") ? raw.slice(1) : raw };
+  try {
+    return { text: new TextDecoder("utf-8", { fatal: true }).decode(raw) };
+  } catch {
+    return { error: "SKILL.md is not UTF-8: its bytes are not a valid UTF-8 encoding" };
+  }
 }
 
 /** Relative file references in the SKILL.md body: CommonMark link and image destinations other than URLs (with a scheme, or network-path //host), and paths under scripts/, references/ or assets/ in text and code. */
