@@ -398,6 +398,11 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Not here.** The Branching audit's two reused branches are repository hygiene, not a Guard finding. They stay until the Owner decides separately. `guard/C109` (exact-SHA release gating) and `guard/C26` (#340) keep their own rows.
 - **Authorization.** Approving this PLAN authorizes the five Changes to be raised as PLANs for review. It authorizes no DO, no version bump, no promotion and no publication.
 
+**guard/T114 visibly not applicable on Windows (`guard/C118`, PLAN).** n3: guard/T114 needs a Unix socket and a FIFO, which Windows lacks. `engineering/guard/acceptance/package.test.mjs` therefore registers it only off Windows (`(WINDOWS ? () => {} : it)`). On Windows the case is absent from the run, so nothing shows that it was judged not applicable. This is a publisher case; the package is unaffected.
+- **DO.** guard/T114 is registered on every platform. On Windows it ends before any behavioural step, as `not applicable: Windows has no Unix sockets or FIFOs`, through the same declared applicability as `guard/C112`. That is neither GREEN nor RED, and it is not counted as passed. On Linux and macOS it runs as now, and its assertions are unchanged.
+- **Evidence.** The Windows `Guard` job lists guard/T114 as not applicable with that reason, and the Linux and macOS jobs as GREEN.
+- **Authorization.** Approving this PLAN authorizes `guard/C118`'s DO only.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -509,7 +514,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3) | `guard/C111` | not created |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | not created |
-| `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
+| `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
