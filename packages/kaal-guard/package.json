@@ -1,0 +1,31 @@
+{
+  "name": "@kaihacksai/kaal-guard",
+  "version": "0.0.3",
+  "description": "Connects a repository's own checks to its local Git hooks and to GitHub CI, with one meaning per check.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
+    "directory": "packages/kaal-guard"
+  },
+  "type": "module",
+  "bin": {
+    "kaal-guard": "bin/kaal-guard.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "skills",
+    "contract.json"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs test/acceptance/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

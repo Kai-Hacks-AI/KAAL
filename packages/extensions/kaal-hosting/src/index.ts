@@ -1,8 +1,9 @@
 import spawn from "cross-spawn";
 import gfs from "graceful-fs";
 import lockfile from "proper-lockfile";
+import { createHash } from "node:crypto";
 import type { Dirent, Stats } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -15,15 +16,44 @@ export interface Change {
   files: Files;
 }
 
-/** A host operation refused: before anything was written, or, for a read, before anything was returned. */
+/** A failed precondition of `reconcile`: what the caller expected at a path, and what was there. */
+export interface Stale {
+  path: string;
+  expected: string;
+  found: string;
+}
+
+/** A directory `reconcile` staged or kept aside that the host would not let it remove, and the host's error. */
+export interface Leftover {
+  path: string;
+  error: unknown;
+}
+
+/**
+ * A host operation refused: before anything was written, or, for a read,
+ * before anything was returned. The one exception is `UNRESTORED`: a
+ * reconciliation failed and so did its rollback, and what it displaced is
+ * kept at `kept`.
+ */
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED",
+    /** For `STALE`, every failed precondition, in path order. */
+    readonly findings: Stale[] = [],
+    /** For `UNRESTORED`, the failure that started the rollback, and where the displaced files are kept. */
+    recovery?: { cause: unknown; kept: string },
   ) {
-    super(message);
+    super(message, recovery && { cause: recovery.cause });
     this.name = "HostingError";
+    this.kept = recovery?.kept;
   }
+
+  /** For `UNRESTORED`, the directory beside the root holding every displaced file not put back, at its own relative path. */
+  readonly kept?: string;
+
+  /** For a reconciliation, what it staged or kept aside and could not remove, in path order; absent when nothing is left. */
+  leftovers?: Leftover[];
 }
 
 // graceful-fs patches the callback API (on Windows, rename retries through
@@ -35,10 +65,13 @@ const writeFile = (path: string, data: Uint8Array) => promisify(gfs.writeFile)(p
 const mkdir = (path: string) => promisify(gfs.mkdir)(path, { recursive: true });
 const mkdtemp = (prefix: string) => promisify(gfs.mkdtemp)(prefix);
 const rename = (from: string, to: string) => promisify(gfs.rename)(from, to);
-const rm = (path: string) => promisify(gfs.rm)(path, { recursive: true, force: true });
+const rm = (path: string, options: { maxRetries?: number } = {}) => promisify(gfs.rm)(path, { recursive: true, force: true, ...options });
+const rmdir = (path: string) => promisify(gfs.rmdir)(path);
+const chmod = (path: string, mode: number) => promisify(gfs.chmod)(path, mode);
 const stat = (path: string) => promisify(gfs.stat)(path);
 const lstat = (path: string) => promisify(gfs.lstat)(path);
 const realpath = (path: string) => promisify(gfs.realpath)(path);
+const realpathNative = (path: string) => promisify(gfs.realpath.native)(path);
 
 function missing(e: unknown): boolean {
   return (e as NodeJS.ErrnoException).code === "ENOENT";
@@ -147,6 +180,40 @@ export async function kind(path: string): Promise<Kind> {
   if (target.isDirectory()) return "directory";
   if (target.isFile()) return "file";
   return "other";
+}
+
+/**
+ * Whether `candidate` lies within `root`: the host's native canonical path of
+ * `root` (links, junctions, `..` and the host's own spelling resolved) is the
+ * candidate's own, or an exact prefix of its path segments. Segments are
+ * compared exactly, with no case folding and no string prefix, so `/repo2`
+ * is not within `/repo`. Both paths must exist: a missing path, a dangling
+ * link or a cycle of links is refused with `MISSING`, never answered `false`.
+ * Any other failure to resolve is thrown as the host reports it.
+ *
+ * This is canonical-path containment, not physical-object containment: a
+ * bind mount, a hard link or another alias can reach the same object from
+ * outside `root`. It is a check, not a lock: a link changed between this
+ * check and a later read is not prevented.
+ */
+export async function within(root: string, candidate: string): Promise<boolean> {
+  const outer = segments(await resolved(root));
+  const inner = segments(await resolved(candidate));
+  return outer.length <= inner.length && outer.every((s, i) => s === inner[i]);
+}
+
+async function resolved(path: string): Promise<string> {
+  try {
+    return await realpathNative(resolve(path));
+  } catch (e) {
+    if (absent(e)) throw new HostingError(`${path} does not exist`, "MISSING");
+    if ((e as NodeJS.ErrnoException).code === "ELOOP") throw new HostingError(`${path} is a link that never resolves`, "MISSING");
+    throw e;
+  }
+}
+
+function segments(path: string): string[] {
+  return path.split(sep).filter((s) => s !== "");
 }
 
 // Names Windows cannot hold: reserved characters, a trailing dot or space,
@@ -335,6 +402,267 @@ export async function initialize(dir: string, files: Files): Promise<string[]> {
       }
     });
     return paths;
+  });
+}
+
+/** One write of a reconciliation: `bytes` at `path`, if what is there now has the SHA-256 `expect`, or is `"absent"`. */
+export interface Write {
+  path: string;
+  expect: string;
+  bytes: Uint8Array;
+  executable?: boolean;
+}
+
+/** One removal of a reconciliation: the file at `path`, if it has the SHA-256 `expect`, or is `"absent"`. */
+export interface Removal {
+  path: string;
+  expect: string;
+}
+
+/** A file a reconciliation relies on and leaves alone: its SHA-256 now, or `"absent"`. */
+export interface Expectation {
+  path: string;
+  expect: string;
+}
+
+/** The writes and removals `reconcile` applies together, and the files it relies on. */
+export interface Reconciliation {
+  write: Write[];
+  remove: Removal[];
+  expect?: Expectation[];
+}
+
+/** What `reconcile` did: every entry's outcome, and the directories its removals emptied, each in path order. */
+export interface Reconciled {
+  outcomes: { path: string; outcome: "written" | "removed" | "unchanged" }[];
+  pruned: string[];
+  /** What it staged or kept aside and could not remove, in path order; absent when nothing is left. */
+  leftovers?: Leftover[];
+}
+
+// Path order: by UTF-16 code unit, the same on every host.
+const byPath = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+
+// Whether a mode is executable, where the host has an executable mode at all.
+const modes = process.platform !== "win32";
+const executable = (mode: number) => (mode & 0o111) !== 0;
+
+async function names(dir: string): Promise<string[]> {
+  try {
+    return (await readdir(dir)).map((entry) => entry.name);
+  } catch (e) {
+    if (absent(e)) return [];
+    throw e;
+  }
+}
+
+/**
+ * What is at `path` under `root`, looking at each segment without following
+ * it: a link anywhere is refused, as is a non-directory where a directory is
+ * needed, and a name that collides with one already present. Returns the
+ * file's SHA-256 and whether it is executable, `"absent"`, or `"not a file"`.
+ * Against what this reconciliation `removed`, a removed file where a directory
+ * is needed, and a directory holding only removed files, count as `"absent"`.
+ */
+async function present(root: string, path: string, removed: Set<string>): Promise<{ found: string; executable: boolean }> {
+  const segments = path.split("/");
+  for (let i = 0; i < segments.length; i++) {
+    const at = segments.slice(0, i + 1).join("/");
+    const other = (await names(join(root, ...segments.slice(0, i)))).find((n) => n !== segments[i] && key(n) === key(segments[i]));
+    if (other !== undefined) throw new HostingError(`${at} and ${[...segments.slice(0, i), other].join("/")} are the same name where case or Unicode normalization is ignored`, "COLLISION");
+    let entry: Stats;
+    try {
+      entry = await lstat(join(root, ...segments.slice(0, i + 1)));
+    } catch (e) {
+      if (absent(e)) return { found: "absent", executable: false };
+      throw e;
+    }
+    if (entry.isSymbolicLink()) throw new HostingError(`${at} is a link; Hosting does not reconcile through one`, "INVALID_PATH");
+    if (i < segments.length - 1) {
+      if (!entry.isDirectory()) {
+        if (removed.has(at)) return { found: "absent", executable: false };
+        throw new HostingError(`${at} is not a directory`, "EXISTS");
+      }
+      continue;
+    }
+    if (entry.isDirectory() && (await emptied(join(root, ...segments), path, removed))) return { found: "absent", executable: false };
+    if (!entry.isFile()) return { found: "not a file", executable: false };
+    return { found: sha256(await readBytes(join(root, ...segments))), executable: executable(entry.mode) };
+  }
+  throw new HostingError(`${path} is not a relative path`, "INVALID_PATH");
+}
+
+/** Whether every file under `dir` is removed, and nothing else would stay. */
+async function emptied(dir: string, path: string, removed: Set<string>): Promise<boolean> {
+  const inside = await names(dir);
+  if (inside.length === 0) return false;
+  for (const name of inside) {
+    const entry = await lstat(join(dir, name));
+    if (entry.isFile() ? !removed.has(`${path}/${name}`) : !entry.isDirectory() || !(await emptied(join(dir, name), `${path}/${name}`, removed))) return false;
+  }
+  return true;
+}
+
+/**
+ * Bring individual files under `root` to a planned state, as its only Hosting
+ * writer. Every write and removal is guarded by `expect`: the SHA-256 of the
+ * bytes the caller expects at its path now, or `"absent"`. Under the lock
+ * `update` takes, every precondition is checked before anything is touched;
+ * if any fails, nothing changes and the refusal (`STALE`) lists them all.
+ * Otherwise the new bytes are staged beside `root` and read back, replaced and
+ * removed files are kept aside, and everything is put in place by renames. A
+ * failure Hosting observes while applying is rolled back and rethrown: every
+ * path it touched holds the same kind of entry, the same bytes and the same
+ * executable mark as before, and no other metadata is promised. If the host
+ * refuses the rollback too, the refusal is `UNRESTORED`, `root` may be partly
+ * applied, and every displaced file not put back stays in `kept`, beside
+ * `root`, at its own path. Removals prune the directories they empty, never
+ * `root`, and come before every write, so one reconciliation can turn a file
+ * into a directory (a removal with writes under it) or a directory into a
+ * file (a write expecting `"absent"` with removals of everything under it). A write marked `executable` is executable where the host has the
+ * mode, and one without it is not. Every `expect` entry is a precondition on a
+ * file the caller relied on and leaves alone: it is checked with the rest and
+ * never touched.
+ *
+ * This is rollback on observed failure, not a transaction: the lock excludes
+ * Hosting's writers only, readers can see a reconciliation half applied, and
+ * a reconciliation cut off by the end of the process is not rolled back.
+ */
+export async function reconcile(root: string, reconciliation: Reconciliation): Promise<Reconciled> {
+  if ((await kind(root)) !== "directory") throw new HostingError(`${root} does not exist or is not a directory`, "MISSING");
+  const entries = [
+    ...reconciliation.write.map((w) => ({ ...w, bytes: Buffer.from(w.bytes), remove: false })),
+    ...reconciliation.remove.map((r) => ({ path: r.path, expect: r.expect, bytes: undefined, executable: false, remove: true })),
+  ].sort((a, b) => byPath(a.path, b.path));
+  const expected = (reconciliation.expect ?? []).map((x) => ({ path: x.path, expect: x.expect }));
+  const paths = [...entries, ...expected].map((e) => e.path).sort(byPath);
+  const repeated = paths.find((p, i) => i > 0 && paths[i - 1] === p);
+  if (repeated !== undefined) throw new HostingError(`${repeated} appears more than once in one reconciliation`, "INVALID_PATH");
+  // Paths nest only where a kind changes: writes expecting "absent" under a
+  // removal (a file becomes a directory), or removals under a write expecting
+  // "absent" (a directory becomes a file). Anything else under one path is
+  // refused before the host is looked at.
+  for (const p of entries)
+    for (const q of entries) {
+      if (!q.path.startsWith(`${p.path}/`)) continue;
+      if (q.remove === p.remove) throw new HostingError(`${p.path} and ${q.path} under it are both ${p.remove ? "removed" : "written"} in this reconciliation`, "INVALID_PATH");
+      const write = p.remove ? q : p;
+      if (write.expect !== "absent") throw new HostingError(`${write.path} must expect "absent" to change ${p.path} from a ${p.remove ? "file into a directory" : "directory into a file"}`, "INVALID_PATH");
+    }
+  // An expected path is only read, so nothing else of the reconciliation may sit above or below it.
+  for (const x of expected) {
+    const other = paths.find((p) => p.startsWith(`${x.path}/`) || x.path.startsWith(`${p}/`));
+    if (other !== undefined) throw new HostingError(`${x.path} is expected unchanged, so ${other} cannot be in the same reconciliation`, "INVALID_PATH");
+  }
+  checkPortable(paths);
+  return exclusive(root, async (at) => {
+    const now = new Map<string, { found: string; executable: boolean }>();
+    const removed = new Set(entries.filter((e) => e.remove).map((e) => e.path));
+    for (const e of [...entries, ...expected]) now.set(e.path, await present(at, e.path, removed));
+    const findings = [...entries, ...expected]
+      .filter((e) => now.get(e.path)!.found !== e.expect)
+      .map((e) => ({ path: e.path, expected: e.expect, found: now.get(e.path)!.found }))
+      .sort((a, b) => byPath(a.path, b.path));
+    if (findings.length > 0) throw new HostingError(`${findings.map((f) => f.path).join(", ")}: not as expected; nothing was changed`, "STALE", findings);
+
+    const outcomes = entries.map((e) => {
+      const was = now.get(e.path)!;
+      if (e.remove) return { path: e.path, outcome: was.found === "absent" ? ("unchanged" as const) : ("removed" as const) };
+      const same = was.found === sha256(e.bytes!) && (!modes || was.executable === !!e.executable);
+      return { path: e.path, outcome: same ? ("unchanged" as const) : ("written" as const) };
+    });
+    const writes = entries.filter((e, i) => !e.remove && outcomes[i].outcome === "written");
+    const removals = entries.filter((e, i) => e.remove && outcomes[i].outcome === "removed");
+    const aside = [...writes.filter((e) => now.get(e.path)!.found !== "absent"), ...removals];
+    if (writes.length === 0 && removals.length === 0) return { outcomes, pruned: [] };
+
+    const staging = await mkdtemp(`${at}.staging-`);
+    const kept = await mkdtemp(`${at}.aside-`);
+    const undo: (() => Promise<unknown>)[] = [];
+    const pruned: string[] = [];
+    let restored = true;
+    let failed = false;
+    let failure: unknown;
+    try {
+      for (const [i, e] of writes.entries()) {
+        await writeFile(join(staging, String(i)), e.bytes!);
+        if (e.executable) {
+          const mode = (await stat(join(staging, String(i)))).mode & 0o777;
+          await chmod(join(staging, String(i)), mode | ((mode & 0o444) >> 2));
+        }
+      }
+      for (const [i, e] of writes.entries())
+        if (!(await readBytes(join(staging, String(i)))).equals(e.bytes!))
+          throw new HostingError("this host did not hold the files exactly as given; nothing was changed", "UNFAITHFUL");
+      try {
+        for (const e of aside) {
+          const target = join(at, ...e.path.split("/"));
+          const away = join(kept, ...e.path.split("/"));
+          await promisify(gfs.mkdir)(join(away, ".."), { recursive: true });
+          await rename(target, away);
+          undo.push(() => rename(away, target));
+        }
+        for (const e of removals) {
+          const segments = e.path.split("/");
+          for (let j = segments.length - 1; j >= 1; j--) {
+            const dir = segments.slice(0, j).join("/");
+            if (pruned.includes(dir) || writes.some((w) => w.path.startsWith(`${dir}/`)) || (await names(join(at, ...segments.slice(0, j)))).length > 0) break;
+            await rmdir(join(at, ...segments.slice(0, j)));
+            pruned.push(dir);
+            undo.push(() => promisify(gfs.mkdir)(join(at, ...segments.slice(0, j))));
+          }
+        }
+        for (const [i, e] of writes.entries()) {
+          const segments = e.path.split("/");
+          for (let j = 1; j < segments.length; j++) {
+            const dir = join(at, ...segments.slice(0, j));
+            if (await exists(dir)) continue;
+            await promisify(gfs.mkdir)(dir);
+            undo.push(() => rmdir(dir));
+          }
+          const target = join(at, ...segments);
+          await rename(join(staging, String(i)), target);
+          undo.push(() => rename(target, join(staging, String(i))));
+        }
+      } catch (e) {
+        // Restore what was moved, in reverse. A step that cannot be undone
+        // leaves the kept-aside files where they are, at their own paths,
+        // never deleted, and is reported apart from a rollback that held.
+        for (const step of undo.reverse()) {
+          try {
+            await step();
+          } catch {
+            restored = false;
+          }
+        }
+        if (!restored)
+          throw new HostingError(
+            `${root} could not be restored after: ${(e as Error).message}; the files it replaced or removed and could not put back are kept in ${kept}`,
+            "UNRESTORED",
+            [],
+            { cause: e, kept },
+          );
+        throw e;
+      }
+    } catch (e) {
+      failed = true;
+      failure = e;
+    }
+    // The outcome is settled; removing what was staged or kept aside never
+    // changes it. What the host will not let go of is reported, never lost.
+    const leftovers: Leftover[] = [];
+    for (const dir of restored ? [kept, staging] : [staging])
+      await rm(dir, { maxRetries: 3 }).catch((error: unknown) => leftovers.push({ path: dir, error }));
+    leftovers.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+    if (failed) {
+      if (leftovers.length > 0 && typeof failure === "object" && failure !== null) Object.assign(failure, { leftovers });
+      throw failure;
+    }
+    const report: Reconciled = { outcomes, pruned: pruned.sort(byPath) };
+    if (leftovers.length > 0) report.leftovers = leftovers;
+    return report;
   });
 }
 

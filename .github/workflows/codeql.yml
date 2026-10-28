@@ -1,7 +1,7 @@
 # CodeQL security analysis for every pull request into main and kaal/*,
 # every push to them, and weekly. Default setup only covers main, so the
 # collectors need this advanced workflow. Merge enforcement (required
-# Analyze checks and the code scanning rule) lives in the rulesets.
+# checks and the code scanning rule) lives in the rulesets.
 name: CodeQL
 
 on:
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze (${{ matrix.language }})
+    name: CodeQL (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -28,7 +28,7 @@ jobs:
       matrix:
         language: [actions, javascript-typescript]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           languages: ${{ matrix.language }}
