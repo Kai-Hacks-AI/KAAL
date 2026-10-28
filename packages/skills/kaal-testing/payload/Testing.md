@@ -29,3 +29,19 @@ A finding is one of four kinds, and the kinds are never merged:
 Every finding names its subject, where it is, and the evidence it rests on. Passing tests show that the cases they exercise pass, within their coverage. A clean result is never a claim of complete correctness.
 
 Testing keeps no registry of tests or findings. Its execution runs a capability's own cases as that capability defines them, and adds none.
+
+## Consumer verification
+
+A product may deliver, with its distribution, the cases by which a consumer verifies the product as installed. They are the product's own acceptance or conformance cases, kept apart from tests that serve only its engineering, and the product declares which cases they are.
+
+The product documents one entry point for them. It locates the installed product by resolution, not by a source path, and needs no source checkout. It fails closed: a run in which no case failed but fewer cases executed than the product declares is unknown, never verified.
+
+Each run gives exactly one result. It is failed when any case failed. It is unknown when no case failed but a declared case was skipped, not run or unable to run. It is verified only when every declared case ran and passed. Each result has its own exit status and its own summary, so no result is read from silence.
+
+The evidence names what was exercised: the product's name, its version, where it is installed, and the identity of its bytes where the installation records one. What the installation does not record stays unknown.
+
+A run works outside the consumer's content and leaves that content as it found it, and it shows that it did. Repeating a run against the same installation gives the same result.
+
+Product conformance and consumer integration are separate scopes. Conformance shows that the installed product behaves as its contract states, in surroundings the run builds for itself. Integration shows that the product is installed and configured correctly in one consumer. Each has its own verdict, and neither stands in for the other.
+
+A consumer's result is the consumer's own observation of its run. It is not evidence Testing observed, and it changes no classification of a product's contracts.
