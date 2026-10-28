@@ -1,12 +1,12 @@
 ---
 name: kaal-retro
-description: Run a short retrospective on completed work in KAAL (WORK), with 4L as the default prompts, and keep what it yields where a later PLAN can find it. Use when a Change or capability increment is complete and its ACT may keep what it taught, or when a PLAN looks for what earlier work taught. Never on work still under review.
+description: Run a short retrospective on completed work in KAAL (WORK), with 4L as the default prompts, and keep what it yields where a later Plan can find it. Use when a Change or capability increment is complete and its Act may keep what it taught, or when a Plan looks for what earlier work taught. Never on work still under review.
 license: MIT
 ---
 
 # Retro in KAAL
 
-What a retrospective is in KAAL is stated by the Node `WORK` in a KAAL Engine: read it there, starting from the Engine's `AGENTS.md`. This file only tells you how to run one, and how a later PLAN finds what it yielded.
+What a retrospective is in KAAL is stated by the Node `WORK`, and the cycle it serves by the Node `PDCA`, in a KAAL Engine: read them there, starting from the Engine's `AGENTS.md`. This file only tells you how to run one, and how a later Plan finds what it yielded.
 
 ## When
 
@@ -24,7 +24,7 @@ Gather the views of the Worker, the Owner and the Reviewer. If one of them is ab
 
 - **Liked**: what worked and is worth keeping.
 - **Learned**: what is understood now that was not before.
-- **Lacked**: what was missing. A defect in a planned test is not a retro entry: it goes through Testing to ACT and a new PLAN.
+- **Lacked**: what was missing. A defect in a planned test is not a retro entry: it goes through Testing to Act and a new Plan.
 - **Longed**: what was wished for. It stays an observation unless someone raises a Change.
 
 Other prompts may fit the work better. Use them and say which you used.
@@ -39,11 +39,11 @@ Other prompts may fit the work better. Use them and say which you used.
 
 Write the retro on the pull request that realized the completed work: the Change's own pull request, or for a capability increment the promotion pull request, where the planned outer tests' evidence and the promotion evidence meet. Add no file, store, index or registry for it.
 
-## In a later PLAN
+## In a later Plan
 
 - Look for retros on the pull requests of the capability's earlier completed work, and in what that capability has already adopted.
 - Cite every entry you use by its link, and say what in the plan exists because of it.
-- Adopting a lesson changes the text of the capability it concerns through the PLAN's own Change, under that Change's normal authorization. Keep the earlier text beside the new one; never silently rewrite it.
+- Adopting a lesson changes the text of the capability it concerns through the Plan's own Change, under that Change's normal authorization. Keep the earlier text beside the new one; never silently rewrite it.
 
 ## Rules
 

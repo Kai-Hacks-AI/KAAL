@@ -18,4 +18,4 @@ It starts where review ends. While Work is still mutable, observing and reviewin
 
 WORK yields observations and candidate lessons. Each one keeps its provenance (who said it, when, and which Change, test, run or review it draws on) and its standing. An observation is trusted as an observation, never as a rule. A candidate lesson becomes a lesson only when the capability it concerns accepts it through a Change. That gives the lesson standing, not infallibility, and a better lesson later is kept beside it. WORK creates no rule, backlog item or Change, decides nothing, and grants no authority.
 
-In a PDCA cycle, WORK is one way for ACT to keep what the cycle taught, so that a later PLAN can find it. It is not the only way, and it is never required.
+In a PDCA cycle, as the Node `PDCA` defines it, WORK is one way for Act to preserve the knowledge the completed cycle gave, so that a later Plan can retrieve and use it. It is not the only way, and it is never required.
