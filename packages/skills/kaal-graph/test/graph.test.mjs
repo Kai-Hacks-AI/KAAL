@@ -468,6 +468,12 @@ describe("the graph", () => {
 });
 
 describe("the package", () => {
+  it("delivers KNIFE in Form, typed by a KAAL Definition", () => {
+    const node = identify(readFileSync(join(PACKAGE, "payload", "KNIFE.md")));
+    assert.equal(node.name, "KNIFE");
+    assert.equal(node.type.name, "KAAL Definition");
+  });
+
   it("has an Agent Skill that conforms", async () => {
     assert.deepEqual(checkSkill("kaal-graph", await read(SKILL)), { standard: [], kaal: [], warnings: [] });
   });
