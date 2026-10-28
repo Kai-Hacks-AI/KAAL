@@ -69,7 +69,7 @@
     "test/acceptance/requirements.test.mjs > guard/F9 [guard/I2] execution contract > guard/T20 [guard/F9]: the hook prints the base commit it used",
     "test/acceptance/requirements.test.mjs > guard/N1 [guard/I5] Git prerequisite > guard/T92 [guard/N1]: with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing",
     "test/acceptance/requirements.test.mjs > guard/N1 [guard/I5] runtime prerequisite > guard/T59 [guard/N1, guard/F27]: the package declares Node >=24; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite",
-    "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every earlier content",
+    "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on",
     "test/acceptance/requirements.test.mjs > guard/N2 to guard/N4 > guard/T25 [guard/N2]: the same run twice prints the same verdicts",
     "test/acceptance/requirements.test.mjs > guard/N2 to guard/N4 > guard/T26 [guard/N3]: no state beyond the repository, core.hooksPath and Guard's checkout state in Git's metadata",
     "test/acceptance/requirements.test.mjs > guard/N2 to guard/N4 > guard/T27 [guard/N4]: every fail or cannot-judge verdict says what to do next",
@@ -372,7 +372,7 @@
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T15 [guard/F7]: runs the trusted checker as it stands on the base, never the candidate's version",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
-        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every earlier content"
+        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on"
       ]
     },
     "guard/I5": {
@@ -409,7 +409,7 @@
         "test/acceptance/requirements.test.mjs > guard/F8 and guard/F13 [guard/I5] a missing registered asset > guard/T88 [guard/F8, guard/F13]: after the registered hook is deleted, init --hook reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, upgrade reinstalls it",
         "test/acceptance/requirements.test.mjs > guard/N1 [guard/I5] Git prerequisite > guard/T92 [guard/N1]: with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing",
         "test/acceptance/requirements.test.mjs > guard/N1 [guard/I5] runtime prerequisite > guard/T59 [guard/N1, guard/F27]: the package declares Node >=24; on an older Node every command exits as cannot judge, naming Node 24 as the next step, and the README states the prerequisite",
-        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every earlier content"
+        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on"
       ]
     },
     "guard/F1": {
@@ -602,7 +602,7 @@
         "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T72 [guard/F29, guard/F8, guard/F19]: every asset init and upgrade install is byte-identical to catalogued content and valid in its format",
         "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T73 [guard/F29, guard/F8]: a file with published bytes that the record does not register is not Guard's, and a changed or missing registered asset is reported, not re-registered",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it",
-        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every earlier content"
+        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on"
       ]
     },
     "guard/F4": {
@@ -692,7 +692,7 @@
     },
     "guard/N15": {
       "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every earlier content"
+        "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on"
       ]
     },
     "guard/N2": {
@@ -749,7 +749,7 @@
     "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
     "docs/requirements.md": "16ad5c512b61a200a3602a43a51339ebaffef106f69157160a1c9a4a2958b58f",
-    "docs/testing.md": "334266539533179ea191a6bd09a2e758b1171ca9f92fef5341453c869d77d9fe",
+    "docs/testing.md": "bb225f1b6b8efec42e34c219b44e24c92fb921871c2c8396f32f0f7515c39b6a",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -770,7 +770,7 @@
     "test/acceptance/architecture.test.mjs": "c53e8ff6a177e788f67a6f3dbae99577c6009f6454874516a8564157791d0277",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "9d71dd5236e4130057c15ccc1a62d584ed1a6f80a56056d3ea3fcbf4d6714a90",
+    "test/acceptance/requirements.test.mjs": "85dff9c04f9f0b273fcb397e2e32cc7d37ca716db77c5de23b9d5074ddb1dc48",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
     "test/unit/lifecycle.test.mjs": "e906425230fabe15a210857651673e9b7e462147bb9c8899224cadbf6962b5fb",
     "test/unit/runner.test.mjs": "4ce170100ed2064a83fd6e3af57263aafa7388542ecabab8ef330609d1f8a235",
