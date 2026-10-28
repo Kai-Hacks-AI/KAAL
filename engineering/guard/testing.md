@@ -227,6 +227,18 @@ During the review of #538, the recognition rule was corrected after the RED run.
 
 **External's derived templates move to `guard/C105`, with guard/T112.** External's templates are not a copy of the package's assets that a transformation could produce. They describe a different runner: `.githooks/guard.sh` with one CI job per check, where the package has `kaal-guard run`. Deriving them means redesigning the External delivery. On #537 the Owner asked that External's derivation neither expand nor block the consumer-verification milestone. So `guard/C103` leaves the templates as they are, and guard/N14's Derived assets stays unmet until `guard/C105`, as guard/N14 records. [Change](change.md#the-complete-product-004) gives `guard/C105`'s scope and acceptance.
 
+## Consumer-experience corrections (`0.0.4`)
+
+guard/T113–guard/T117 are planned in `guard/C107`. They verify the verifier, the delivered cases and the tarball's boundary, so they are in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T110.
+
+| Test | Checks | Written in | Intended evidence against `afa9ca3` |
+| --- | --- | --- | --- |
+| guard/T113: two runs of the documented command, one passing and one with a planted failing case, each with the child's temporary directory set to a fresh empty directory, leave that directory empty | guard/F35 | `guard/C108` | RED: about 150 directories remain after one run |
+| guard/T114: a consumer holding a Unix socket and a FIFO is `verified`, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is `failed`, naming it. Registered on Linux and macOS, where the file system has both kinds | guard/F33, guard/F35 | `guard/C108` | RED: the socket gives `cannot verify` advising reinstall, and the FIFO hangs until the limit |
+| guard/T115: a delivered case that appends to a consumer file gives `failed`, exit 1, naming the path, with the next step to check concurrent activity and no advice to restore paths | guard/F33, guard/F35 | `guard/C108` | RED: the next step says to restore the paths from version control |
+| guard/T116: the packed candidate holds only the package's declared `files`, and no path from `engineering/`, no Engineering Test Plan and no release evidence | guard/F37, guard/A19 | `guard/C108` | GREEN on `afa9ca3`, where the review found none by hand; RED, naming the path, on a candidate with a planted `engineering/` file |
+| guard/T117: `snapshot()`, given its file-system reads, completes when a listed file is removed before it is read, and records it as absent | guard/F35 | `guard/C108` | RED: `snapshot()` throws `ENOENT`, which ends a run as "could not complete" |
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
