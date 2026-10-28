@@ -1,6 +1,7 @@
 {
   "cases": [
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T123 [guard/F29, guard/F30]: the README states that hook activation is per clone and needs init --hook in each clone, and that the installation record is a tracked file Guard writes but does not protect",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T29 [guard/A7]: nothing depends on an adapter",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
@@ -230,6 +231,32 @@
     "guard/A19": {
       "Architecture": [
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+      ]
+    },
+    "guard/F29": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T123 [guard/F29, guard/F30]: the README states that hook activation is per clone and needs init --hook in each clone, and that the installation record is a tracked file Guard writes but does not protect"
+      ],
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone > guard/T85 [guard/F27, guard/F29, guard/F12]: in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file",
+        "test/acceptance/requirements.test.mjs > guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone > guard/T86 [guard/F4, guard/F27]: where core.fileMode is false, init --hook reports git add --chmod=+x .githooks/pre-push, and after the consumer runs it a fresh clone with core.fileMode=true runs the hook on push",
+        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T69 [guard/F29, guard/F8]: shared configuration: init in a linked worktree sets core.hooksPath in the shared scope with its state in the common directory, and remove in the main checkout unsets it",
+        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T70 [guard/F29, guard/F8, guard/F12]: in a fresh clone, upgrade and remove judge each asset by the tracked installation record alone, and leave a core.hooksPath Guard did not set there",
+        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T71 [guard/F29, guard/F8]: worktree configuration: init in a linked worktree sets core.hooksPath for that worktree only, with its state in the worktree's metadata",
+        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T72 [guard/F29, guard/F8, guard/F19]: every asset init and upgrade install is byte-identical to catalogued content and valid in its format",
+        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T73 [guard/F29, guard/F8]: a file with published bytes that the record does not register is not Guard's, and a changed or missing registered asset is reported, not re-registered",
+        "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it"
+      ]
+    },
+    "guard/F30": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T123 [guard/F29, guard/F30]: the README states that hook activation is per clone and needs init --hook in each clone, and that the installation record is a tracked file Guard writes but does not protect"
+      ],
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T74 [guard/F17, guard/F10, guard/F30, guard/N4]: without --hook or --ci, init activates neither integration, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step",
+        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
+        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
+        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook"
       ]
     },
     "guard/A3": {
@@ -465,14 +492,6 @@
         "test/unit/runner.test.mjs > trusted checker > guard/T100 [guard/F7, guard/N4]: a candidate that changes a trusted check's runs so it leaves the surface being run is cannot judge there, and its checker never runs"
       ]
     },
-    "guard/F30": {
-      "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T74 [guard/F17, guard/F10, guard/F30, guard/N4]: without --hook or --ci, init activates neither integration, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step",
-        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
-        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
-        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook"
-      ]
-    },
     "guard/F8": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T75 [guard/F17, guard/F8]: init --ci installs Guard's workflow only where no workflow of the consumer's declares a check or verify, and never changes one",
@@ -586,18 +605,6 @@
     "guard/F26": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F26 [guard/I1, guard/I7] agent instruction files > guard/T54 [guard/F26]: init, upgrade and remove create, edit and remove no AGENTS.md, CLAUDE.md or other instruction file; init reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer"
-      ]
-    },
-    "guard/F29": {
-      "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone > guard/T85 [guard/F27, guard/F29, guard/F12]: in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file",
-        "test/acceptance/requirements.test.mjs > guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone > guard/T86 [guard/F4, guard/F27]: where core.fileMode is false, init --hook reports git add --chmod=+x .githooks/pre-push, and after the consumer runs it a fresh clone with core.fileMode=true runs the hook on push",
-        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T69 [guard/F29, guard/F8]: shared configuration: init in a linked worktree sets core.hooksPath in the shared scope with its state in the common directory, and remove in the main checkout unsets it",
-        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T70 [guard/F29, guard/F8, guard/F12]: in a fresh clone, upgrade and remove judge each asset by the tracked installation record alone, and leave a core.hooksPath Guard did not set there",
-        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T71 [guard/F29, guard/F8]: worktree configuration: init in a linked worktree sets core.hooksPath for that worktree only, with its state in the worktree's metadata",
-        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T72 [guard/F29, guard/F8, guard/F19]: every asset init and upgrade install is byte-identical to catalogued content and valid in its format",
-        "test/acceptance/requirements.test.mjs > guard/F29 [guard/I5] lifecycle state > guard/T73 [guard/F29, guard/F8]: a file with published bytes that the record does not register is not Guard's, and a changed or missing registered asset is reported, not re-registered",
-        "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it"
       ]
     },
     "guard/F4": {
@@ -732,14 +739,14 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "1d2ad48c1e26d4209e58ef9bcb4c27355f501b9b9604e0ede8646bf5f0cfbacc",
+    "README.md": "c7699b28b12854cffaaae5ab0ee8349115a0b86179763f040c8d77145f4e5da2",
     "bin/kaal-guard.mjs": "7b4b16be89374a72d25fe890382a8b68c7a8e929e56c715efc38cb9a7d75e97a",
     "contract.json": "fcfa9645e793c14bd9c3512b0c018a5f6d1c2cdef7d6dd20b7ff3450ddc48a3e",
     "docs/architecture.md": "c7ae619360167638f874c0bf829e5e021daa6d8baca7f132c2f7d3d4a3d960bf",
     "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
     "docs/requirements.md": "fb9ef710178eced4954c105557cae39be5ea0c37413fdc731956a32d527bfba9",
-    "docs/testing.md": "807bf9c6c5d4950a4de9344c94eb0db21c36679ddb9bd582adab856a55a11f12",
+    "docs/testing.md": "d701f1334635ce52902cdc460592bffbc0d99ee8e7dc2445c0fe03fbf63fad21",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -757,7 +764,7 @@
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "c53e8ff6a177e788f67a6f3dbae99577c6009f6454874516a8564157791d0277",
+    "test/acceptance/architecture.test.mjs": "0b0704398b22e93b9ef751ba6f4a40102eca8cffd8b7142c29a53c7d835e916f",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
     "test/acceptance/requirements.test.mjs": "ac2a3e645b744513195ebdb15ce80fa0f0dfca651f5b933d8a140496bee31dd5",
