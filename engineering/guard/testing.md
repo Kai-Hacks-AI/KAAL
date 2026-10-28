@@ -321,13 +321,13 @@ guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15
 
 ## What a consumer reads and types (`guard/C115`)
 
-guard/T120–guard/T122 are planned in `guard/C115`. They are product acceptance cases in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package.
+guard/T120–guard/T122 are planned in `guard/C115`. guard/T122 is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package. guard/T120 and guard/T121 check the verification's own output, whose identifiers (guard/F33, guard/F34) are allocated to this plan, so they are Engineering cases in `engineering/guard/acceptance/package.test.mjs`, run against a packed candidate in a fresh consumer.
 
-| Test | Checks | Written in | Intended evidence against `0.0.4` |
-| --- | --- | --- | --- |
-| guard/T120: a verification whose manifest allocates two identifiers to the same place prints that allocation on one line naming both, and never the same allocation twice | guard/F34 | `guard/C115` | RED: one line per allocated identifier, 16 in all, repeating shared allocations |
-| guard/T121: every next step that asks for a report names the package's `bugs` URL, and `package.json` declares it | guard/F33 | `guard/C115` | RED: "the package's maintainers", with no destination |
-| guard/T122: `kaal-guard --version` prints the installed version and `kaal-guard --help` prints the usage, each with exit 0, in a directory that is not a repository, leaving it unchanged | guard/F41 | `guard/C115` | RED: both end as an unknown command |
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T120: a verification whose manifest allocates two identifiers to the same place prints that allocation on one line naming both, and never the same allocation twice | guard/F34 | `guard/C115` | RED: one line per allocated identifier, 16 in all, repeating shared allocations | GREEN |
+| guard/T121: every next step that asks for a report names the package's `bugs` URL, and `package.json` declares it | guard/F33 | `guard/C115` | RED: "the package's maintainers", with no destination | GREEN |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T122 checks that `kaal-guard --version` prints the installed version and `kaal-guard --help` prints the usage, each with exit 0, in a directory that is not a repository, leaving it unchanged | guard/F41 | `guard/C115` | RED: both end as an unknown command | GREEN |
 
 ## Defects
 

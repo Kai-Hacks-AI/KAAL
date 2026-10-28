@@ -412,6 +412,11 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **N7.** `kaal-guard --version` and `kaal-guard --help` are not commands today. The DO adds them, through the existing usage text, as guard/F41: "[guard/I5] `kaal-guard --version` prints the installed version, and `kaal-guard --help` prints the usage. Each exits 0, and neither reads or writes the repository."
 - **Test Cases.** guard/T120, guard/T121 and guard/T122 are product acceptance cases, delivered with the package. Each is RED first against `0.0.4`.
 - **Authorization.** Approving this PLAN authorizes `guard/C115`'s DO only: no version bump, promotion or publication.
+- **DO (`guard/C115`).** guard/T120, guard/T121 and guard/T122 were committed first and were RED against `0.0.4`: the allocation lines did not group shared allocations, the package declared no `bugs` URL, and `--version` was "not a kaal-guard command in this version". All three are GREEN.
+  - **Where the cases live.** guard/T122 is a product acceptance case, delivered with the package, as planned. guard/T120 and guard/T121 check the verification's own output (guard/F33, guard/F34). Those identifiers are allocated to the publisher's Engineering Test Plan, because a delivered run cannot verify its own verifier. So both cases sit in `engineering/guard/acceptance/package.test.mjs`, beside guard/T101–guard/T117, and run against a packed candidate in a fresh consumer. Delivering them would have the verifier vouch for itself. This differs from the PLAN's "delivered with the package" and is stated for the Owner's review.
+  - **Product change.** `test/verify.mjs` groups allocated identifiers by allocation, one line each, and the JSON summary's `coverage.allocated` is unchanged. Every next step that asked for a report to "the package's maintainers" now names the `bugs` URL from `package.json`. `bin/kaal-guard.mjs` answers `--version` and `--help` before it looks for a repository, and the usage names both. guard/F33 and guard/F34 gain their sentences, guard/F41 is defined, and the README lists both commands. No verdict, exit status or JSON field changes.
+  - **The stale N7 wording** is resolved in `guard/C116` (#573), which edits the same lines for M1–M3.
+  - This DO authorizes no version bump, promotion or publication.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
@@ -521,7 +526,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN #557, merged; DO: guard/T118 GREEN for both sources |
 | `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | PLAN |
-| `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7); guard/F41, guard/T120–guard/T122 | `guard/C111` | PLAN |
+| `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7); guard/F41, guard/T120–guard/T122 | `guard/C111` | DO |
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3) | `guard/C111` | not created |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | not created |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |

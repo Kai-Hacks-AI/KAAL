@@ -94,9 +94,11 @@ npx kaal-guard verify [--github]      # each ci check is declared by a workflow 
 npx kaal-guard init [--hook] [--ci]   # prepares Guard, and activates the surfaces you name
 npx kaal-guard upgrade                # moves only registered, unmodified files to this version's content
 npx kaal-guard remove [--hook] [--ci] # undoes the surfaces you name, or everything; keeps your declarations
+npx kaal-guard --version              # prints the installed version
+npx kaal-guard --help                 # prints the usage
 ```
 
-Every command takes `--config <dir>`. `--github` adds GitHub annotations and a step-summary table.
+Every command takes `--config <dir>`; `--version` and `--help` take nothing, need no repository and read or write nothing in it. `--github` adds GitHub annotations and a step-summary table.
 
 `upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs a file a newer version adds only for a surface you activated, or for the Skill, which every `init` installs, and never activates a surface: only `init --hook` and `init --ci` do. A registered file of an activated surface, or of the Skill, that the repository no longer has is reinstalled. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
 

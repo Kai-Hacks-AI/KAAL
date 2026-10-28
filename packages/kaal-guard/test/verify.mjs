@@ -28,6 +28,15 @@ const LARGE = 64 * 1024 * 1024;
 
 const WINDOWS = process.platform === "win32";
 
+/** Where a report goes: the package's `bugs` URL, so every next step that asks for one names it (guard/F33). */
+const BUGS = (() => {
+  try {
+    return JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).bugs.url;
+  } catch {
+    return "https://github.com/Kai-Hacks-AI/KAAL/issues";
+  }
+})();
+
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 const slash = (p) => p.split(sep).join("/");
@@ -283,19 +292,19 @@ export async function main(log = (line) => console.log(line)) {
   const missing = blockers.length ? [] : declared.filter((c) => !ran.has(c));
   const undeclared = outcomes.filter((o) => o.status !== "failed" && !declared.includes(o.name)).map((o) => o.name);
 
-  for (const f of failed) add(failures, `a delivered case failed: ${f}`, "report it with this output to the package's maintainers; the installed package does not behave as it intends");
-  if (unchanged === false) add(failures, `the consumer changed during the run: ${changes.join(", ")}`, "check whether you, an editor or a tool such as Git changed these paths during the run; if nothing did, report this output to the package's maintainers");
+  for (const f of failed) add(failures, `a delivered case failed: ${f}`, `report it with this output at ${BUGS}; the installed package does not behave as it intends`);
+  if (unchanged === false) add(failures, `the consumer changed during the run: ${changes.join(", ")}`, `check whether you, an editor or a tool such as Git changed these paths during the run; if nothing did, report this output at ${BUGS}`);
   if (blockers.length === 0) {
     if (executed === 0) add(causes, "no case executed", "reinstall the package; its delivered cases did not run");
-    for (const s of skipped) add(causes, `a delivered case was skipped: ${s}`, "a skipped case is not verified; report this output to the package's maintainers");
-    for (const t of todo) add(causes, `a delivered case is marked todo: ${t}`, "a todo case is not verified; report this output to the package's maintainers");
+    for (const s of skipped) add(causes, `a delivered case was skipped: ${s}`, `a skipped case is not verified; report this output at ${BUGS}`);
+    for (const t of todo) add(causes, `a delivered case is marked todo: ${t}`, `a todo case is not verified; report this output at ${BUGS}`);
     for (const m of missing) add(causes, `a declared case was not executed: ${m}`, "reinstall the package and run the command again");
     for (const u of undeclared) add(causes, `a case executed that the manifest does not declare: ${u}`, "reinstall the package and run the command again");
     if (Object.keys(loops).length === 0) add(causes, "the manifest declares no loop", "reinstall the package and run the command again");
     for (const [loop, l] of Object.entries(loopSummary)) if (l.executed === 0) add(causes, `the ${loop} loop executed no case`, "reinstall the package; that loop's cases did not run");
     for (const n of unlooped) add(causes, `a case belongs to no declared loop: ${n}`, "reinstall the package and run the command again");
-    for (const id of judged.uncovered) add(causes, `a product identifier has neither a covering case that ran and passed nor an allocation: ${id}`, "report this output to the package's maintainers; this promise is not verified");
-    for (const id of judged.notHere) add(causes, `a product identifier is not verified on ${platform}: every case covering ${id} is not applicable here, and the contract does not declare ${id} not applicable`, "report this output to the package's maintainers; this promise is not verified on this platform");
+    for (const id of judged.uncovered) add(causes, `a product identifier has neither a covering case that ran and passed nor an allocation: ${id}`, `report this output at ${BUGS}; this promise is not verified`);
+    for (const id of judged.notHere) add(causes, `a product identifier is not verified on ${platform}: every case covering ${id} is not applicable here, and the contract does not declare ${id} not applicable`, `report this output at ${BUGS}; this promise is not verified on this platform`);
   }
 
   const result = failures.length ? "failed" : causes.length ? "cannot verify" : "verified";
@@ -303,7 +312,10 @@ export async function main(log = (line) => console.log(line)) {
   for (const [loop, l] of Object.entries(loopSummary)) log(`loop ${loop}: ${l.executed} of ${l.declared} declared cases executed, ${l.passed} passed, ${l.failed} failed, ${l.skipped} skipped, ${l.notApplicable} not applicable`);
   if (blockers.length === 0) {
     log(`coverage: ${identifiers.length} product identifiers; ${judged.covered.length} covered by this run, ${judged.allocated.length} allocated to the publisher and not verified by this run, ${judged.unverified.length} unverified, ${judged.notApplicable.length} not applicable on ${platform}, ${judged.notHere.length + judged.uncovered.length} not verified`);
-    for (const { id, where } of judged.allocated) log(`not verified by this run, allocated to the publisher: ${id}: ${where}`);
+    // Identifiers that share an allocation are named together, once (guard/F34).
+    const byWhere = new Map();
+    for (const { id, where } of judged.allocated) byWhere.set(where, [...(byWhere.get(where) ?? []), id]);
+    for (const [where, ids] of byWhere) log(`not verified by this run, allocated to the publisher: ${ids.join(", ")}: ${where}`);
     for (const { id, why } of judged.unverified) log(`unverified, no Test Case verifies it: ${id}: ${why}`);
     for (const id of judged.notApplicable) log(`not applicable on ${platform}, not verified by this run: ${id}: ${applicability.identifiers[id].why}`);
   }
@@ -339,7 +351,7 @@ if (process.argv[1] && pathToFileURL(realpathSync(process.argv[1])).href === imp
       process.exitCode = status;
     },
     (e) => {
-      console.log(`cannot verify: the verification itself could not complete: ${e?.message ?? e}; do: report this output to the package's maintainers`);
+      console.log(`cannot verify: the verification itself could not complete: ${e?.message ?? e}; do: report this output at ${BUGS}`);
       console.log(`kaal-guard-verification ${JSON.stringify({ result: "cannot verify", exit: 2, causes: [`the verification itself could not complete: ${e?.message ?? e}`] })}`);
       process.exitCode = 2;
     },
