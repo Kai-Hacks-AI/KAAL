@@ -413,8 +413,6 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Test Cases.** None are planned before the measurement. If the Owner chooses a reduction, the DO PR states its Test Cases before the reduction is written, and guard/T101–guard/T110 must stay GREEN.
 - **Authorization.** Approving this PLAN authorizes the measurement only. A reduction takes the Owner's choice on the DO PR.
 
-**Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
-
 **Two limits, stated (`guard/C116`, PLAN).** This covers M2 and M3 from the `0.0.3` review, as documentation only. Enforcing either would be a design Change of its own, and none is proposed.
 - **M2.** Hook activation is per clone, because `core.hooksPath` is local Git configuration. The README states this beside `init --hook`: a fresh clone runs no hook until someone runs `npx kaal-guard init --hook` in it, and the committed hook file alone activates nothing.
 - **M3.** The installation record is a tracked file anyone can edit. Guard decides ownership by the record and SHA-256 alone. The README replaces "Only Guard writes the record and the state" with what holds: Guard writes them, Guard does not protect them, and a hand-edited record can make Guard treat a file as its own or as yours. Review changes to `.kaal/state/guard/installation.json` like any other change.
