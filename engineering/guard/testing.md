@@ -311,6 +311,14 @@ A pair that does not meet the condition is reported `not applicable` with the re
 
 Without `GUARD_CANDIDATES`, the harness's `packed` variants give guard/T36–guard/T68 GREEN, guard/T66 included, and guard/T118 not applicable.
 
+## The managed workflow keeps no credential (`guard/C114`)
+
+guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15, so it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs` and is delivered with the package.
+
+| Test | Checks | Written in | Intended evidence against `0.0.4` |
+| --- | --- | --- | --- |
+| guard/T119: in a consumer that ran `init --ci`, every `actions/checkout` step of the installed `.github/workflows/guard.yml` sets `persist-credentials: false`, and the installed content is catalogued for that path in `contract.json` together with every earlier catalogued content of it | guard/N15, guard/F29 | `guard/C114` | RED: neither checkout step sets it |
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
