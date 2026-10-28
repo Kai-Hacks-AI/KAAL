@@ -406,6 +406,15 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Not here.** KAAL's own workflows in `.github/` are Engineering's and are not changed by this Change. A version bump and the release belong to `0.0.5`'s release Changes.
 - **Authorization.** Approving this PLAN authorizes `guard/C114`'s DO only: no version bump, promotion or publication.
 
+**Package size, measured first (`guard/C117`, PLAN).** N6: `0.0.4` is about 3.3× the size of `0.0.3`, and `test/verify.json` alone is 107,388 bytes, pretty-printed. The Owner's direction on #565 is to measure before prescribing a reduction, so this PLAN has two steps.
+- **Measure.** The DO's first commit records, for the packed `0.0.4` and the packed candidate, each shipped path's bytes and its share of the tarball, packed and unpacked, in `testing.md`. It names what grew since `0.0.3` and why: the delivered cases, the manifest, `docs/`. It changes no product file.
+- **Then decide.** The measurement comes back to the Owner on this Change's DO PR with options, for example serialising `verify.json` without indentation, or naming each case once rather than repeating each title. Each option comes with its saving and what it costs a reader. Nothing is reduced until the Owner chooses. No size budget is set before the measurement.
+- **What stays.** Every delivered case, the coverage and the manifest's meaning. Reducing size never removes a case a consumer runs.
+- **Test Cases.** None are planned before the measurement. If the Owner chooses a reduction, the DO PR states its Test Cases before the reduction is written, and guard/T101–guard/T110 must stay GREEN.
+- **Authorization.** Approving this PLAN authorizes the measurement only. A reduction takes the Owner's choice on the DO PR.
+
+**Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
+
 **Two limits, stated (`guard/C116`, PLAN).** This covers M2 and M3 from the `0.0.3` review, as documentation only. Enforcing either would be a design Change of its own, and none is proposed.
 - **M2.** Hook activation is per clone, because `core.hooksPath` is local Git configuration. The README states this beside `init --hook`: a fresh clone runs no hook until someone runs `npx kaal-guard init --hook` in it, and the committed hook file alone activates nothing.
 - **M3.** The installation record is a tracked file anyone can edit. Guard decides ownership by the record and SHA-256 alone. The README replaces "Only Guard writes the record and the state" with what holds: Guard writes them, Guard does not protect them, and a hand-edited record can make Guard treat a file as its own or as yours. Review changes to `.kaal/state/guard/installation.json` like any other change.
@@ -523,7 +532,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | PLAN |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3); guard/T123 | `guard/C111` | DO |
-| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | not created |
+| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | PLAN: measure first |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
