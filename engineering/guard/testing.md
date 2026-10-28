@@ -281,6 +281,34 @@ GUARD_CANDIDATE=registry:0.0.4 GUARD_CANDIDATES=registry:0.0.3,registry:0.0.4 no
 
 **Accepting `0.0.4`.** [Consumer verification](#consumer-verification-004) required guard/T65, guard/T67 and guard/T68 GREEN between the published `0.0.3` and `0.0.4`. Only guard/T67 can be, so whether `0.0.4` is accepted with guard/T65 and guard/T68 recorded as not exercised for this pair is the Owner's decision on this Change. Until then, `0.0.4` is published but not accepted.
 
+## Transition acceptance of `0.0.4` (`guard/C112`)
+
+guard/T118 is planned in `guard/C112`. It is producer-side evidence that a migration path the target release supports works. It is not a record of a consumer's operational run. It is in `engineering/guard/acceptance/consumer/consumer.test.mjs`, beside guard/T65–guard/T68, and runs for each declared source of the target: `registry` `0.0.2` → `0.0.4` and `0.0.3` → `0.0.4`.
+
+| Test | Checks | Written in | Intended evidence against the published `0.0.4` |
+| --- | --- | --- | --- |
+| guard/T118: an installation of the older version, integrated with `init --hook --ci` and holding a consumer-owned file and one modified managed asset, is moved to the newer version by a dependency change and `upgrade`. Only the dependency, the lockfile and the installation record change; each managed asset the two versions ship identically stays byte for byte, and each they ship differently moves to the newer content; the modified asset and the consumer's file are kept; the record names the newer version for each unmodified asset; and the newer version's consumer verification gives `verified`, exit 0, on the migrated installation | guard/F11, guard/F12, guard/F14, guard/F31 | `guard/C112` | expected GREEN for both pairs. A hand observation on #552 for `0.0.3` → `0.0.4` matched it, but that is not evidence. The case is verified first, not made RED first: GREEN at the baseline is legitimate, because the case makes an existing obligation explicit |
+
+guard/T65, guard/T66 and guard/T68 keep their assertions and their recorded results. `guard/C112` turns their preconditions into declared applicability. It is judged before any behavioural step, from the two versions' packages installed side by side: their `contract.json` and the content each managed asset ships with.
+- guard/T65 and guard/T68 apply when the pair ships the workflow, the managed asset they watch move, with different content.
+- guard/T66 applies when the newer version adds an asset to the hook surface.
+- guard/T118 applies to released versions. The harness's own `packed` variants (`-candidate.N`) change a package after its manifest was made, so their verification cannot pass by design. guard/T118 is run with `GUARD_CANDIDATES` naming the pair.
+
+A pair that does not meet the condition is reported `not applicable` with the reason. That is neither GREEN nor RED, and an assertion that was not executed is never counted as passed. guard/T68 keeps "the workflow did not move forward" as its assertion; it is executed only for a pair the condition admits. The 0.0.2 → 0.0.3 GREEN results and guard/C89 stand as recorded.
+
+**The run (`guard/C112`, `registry`).** On Linux with Node 24, the whole of `consumer.test.mjs` was run for each declared source of the published `0.0.4`, with `GUARD_CANDIDATES=registry:<source>,registry:0.0.4`. guard/T118 is GREEN for both on the first run: it makes an existing obligation explicit, so this is verified first, not made RED first.
+
+| Case | `0.0.2` → `0.0.4` | `0.0.3` → `0.0.4` |
+| --- | --- | --- |
+| guard/T118 | GREEN; shipped differently: the workflow | GREEN; shipped differently: none |
+| guard/T65 | GREEN | not applicable: the two ship the same workflow |
+| guard/T66 | not applicable: `0.0.4` adds no asset to the hook surface | not applicable: the same |
+| guard/T67 | GREEN | GREEN |
+| guard/T68 | GREEN | not applicable: the two ship the same workflow |
+| guard/T36, guard/T40, guard/T42, guard/T43, guard/T64 | GREEN | GREEN |
+
+Without `GUARD_CANDIDATES`, the harness's `packed` variants give guard/T36–guard/T68 GREEN, guard/T66 included, and guard/T118 not applicable.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
