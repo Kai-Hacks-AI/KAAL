@@ -140,4 +140,35 @@ describe("Architecture conformance", () => {
     assert.deepEqual([...cited].filter((id) => !defined.has(id)).sort(), [], "delivered cases cite identifiers docs/ does not define");
     assert.deepEqual(docs.match(/engineering\/|guard\/C\d+|\]\(\.\.\//g) ?? [], [], "docs/ cites an Engineering path, a Change, or a document outside the package");
   });
+
+  it("guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it", () => {
+    const requirements = source("docs/requirements.md");
+    const at = requirements.indexOf("**guard/F42**");
+    assert.ok(at >= 0, "docs/requirements.md defines no guard/F42");
+    const head = /Supported upgrade paths to `(\d+)\.(\d+)\.(\d+)`/.exec(requirements.slice(at));
+    assert.ok(head, "guard/F42 names no release its upgrade paths lead to");
+    const order = (v) => v.split(".").reduce((n, part) => n * 1000 + Number(part), 0);
+    const target = head.slice(1).join(".");
+    const installed = JSON.parse(source("package.json")).version;
+    assert.ok(order(target) >= order(installed.split("-")[0]), `the upgrade paths lead to ${target}, earlier than the installed ${installed}`);
+    const lines = requirements.slice(at + head.index).split("\n");
+    const start = lines.findIndex((l) => l.startsWith("|"));
+    assert.ok(start >= 0, "guard/F42 has no table of upgrade paths");
+    const table = lines.slice(start, lines.slice(start).findIndex((l) => !l.startsWith("|")) + start);
+    const columns = table[0].split("|").slice(1, -1).map((c) => c.trim());
+    assert.deepEqual(columns, ["From", "Path", "Prerequisites", "What changes, and what is kept", "If it fails", "Verify"], "the table does not have the declared columns");
+    const rows = table.slice(2).map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
+    assert.ok(rows.length > 0, "guard/F42 declares no supported source");
+    for (const [from, ...cells] of rows) {
+      const version = /^`(\d+\.\d+\.\d+)`$/.exec(from)?.[1];
+      assert.ok(version, `a source is not a version: ${from}`);
+      assert.ok(order(version) >= order("0.0.2") && order(version) < order(target), `${version} is not an earlier version from 0.0.2 on`);
+      assert.ok(cells.every((c) => c.length > 0), `the path from ${version} leaves a column empty`);
+      assert.match(cells[4], /npm explore @kaihacksai\/kaal-guard -- npm test/, `the path from ${version} does not verify the installed package`);
+      assert.match(cells[4], /kaal-guard verify/, `the path from ${version} does not verify the integration`);
+    }
+    const readme = source("README.md");
+    const notes = readme.slice(readme.indexOf("## Release notes"));
+    assert.match(notes.split(/\n### /)[0], /docs\/requirements\.md.*guard\/F42|guard\/F42.*docs\/requirements\.md/, "the README's release notes do not point to the upgrade paths");
+  });
 });
