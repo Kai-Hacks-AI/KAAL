@@ -87,7 +87,9 @@ function consumer() {
   const c = spec();
   run("npm", ["init", "-y"], "npm init");
   run("git", ["init", "-q", "-b", "main"], "git init");
-  for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"]]) run("git", ["config", k, v], "git config");
+  // Git's automatic maintenance would otherwise run in the background after the commit below, and its
+  // lock under .git/objects/ come and go between this case's snapshots (guard/C110).
+  for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"], ["maintenance.auto", "false"], ["gc.auto", "0"]]) run("git", ["config", k, v], "git config");
   writeFileSync(join(dir, "own.txt"), "The consumer's own file.\n");
   writeFileSync(join(dir, ".npmrc"), "fund=false\naudit=false\n");
   writeFileSync(join(dir, ".gitignore"), "node_modules/\n");
