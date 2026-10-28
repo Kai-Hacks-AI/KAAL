@@ -177,8 +177,11 @@ let full;
 /** A child's temporary directory, by each name an operating system reads it under. */
 const temporary = (dir) => ({ TMPDIR: dir, TEMP: dir, TMP: dir });
 
-/** What is left in a directory, by name. */
-const left = (dir) => readdirSync(dir).sort();
+/**
+ * What is left in a directory, by name. Node's module compile cache, which npm's own CLI turns on in the
+ * temporary directory and reuses across runs, is npm's and not a leftover of the run.
+ */
+const left = (dir) => readdirSync(dir).filter((name) => name !== "node-compile-cache").sort();
 
 /**
  * One consumer verified twice with the whole delivered suite, and its content before, between and after.
