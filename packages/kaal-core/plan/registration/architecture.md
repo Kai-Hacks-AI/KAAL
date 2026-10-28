@@ -11,6 +11,7 @@ Each element names, in brackets, the Requirements it answers.
 
     There is no field for incoming traces. Its body explains the registration to people and agents.
   - **What the DO Change ships.** The `Registration` Type Definition, and the Capability Node it names, ship with the DO Change. Core validates a registration's frontmatter with `core/C6`'s `validate`, and parses no YAML itself.
+  - **What `core/C6` lacks.** `core/C6`'s value kinds hold scalars, lists of scalars, and one mapping, the `ref`. They cannot describe `kinds`, `instances` or a `{ scope, id }` target. So `core/C27`, a Core Change, gives `core/C6` a record value kind first: a mapping whose fields are declared, each with its own value kind. Scopes, identities and kind names are `parameter` values whose pattern only requires non-empty text, so `core/F1`'s "no free-text kind" stands. `core/C26` adds an acceptance test that a Registration Node passes `verify`, so `assemble`'s tests do not stand in for the frontmatter boundary.
 - **core/A26** [core/F48–core/F56, core/N14]: `kaal-core/registration` exports `assemble(registrations)`. It is pure. It returns:
   - `scopes`, `kinds` and `instances`, each with its holder or owner. Each instance carries its `scope`, `id` and stated `kind`;
   - `findings`, `cycles` (the observed cycles, each naming its instances) and `untraced`;
@@ -40,7 +41,8 @@ Each element names, in brackets, the Requirements it answers.
 | --- | --- | --- |
 | `core/C24` PLAN, this Change | Core | `core/C9` |
 | `graph/C2` PLAN (#562) and `graph/C3` DO: structural reach, reverse and cycles on any string identities | Graph | — |
-| `core/C26` DO: the `Registration` Type, `kaal-core/registration` and `verify`, with core/T50–core/T59 GREEN | Core | `core/C24`, `core/C11`, `core/C6`, `graph/C3` |
+| `core/C27`: `core/C6` gains a record value kind for nested frontmatter, PLAN and DO | Core | `core/C6` |
+| `core/C26` DO: the `Registration` Type, `kaal-core/registration` and `verify`, with core/T50–core/T59 GREEN and a Registration Node passing `verify` | Core | `core/C24`, `core/C11`, `core/C27`, `graph/C3` |
 | Each kind's definition, with its rule and any `acyclic` declaration | that kind's owner | `core/C26` |
 | Each holder's registration of its scope and instances | that holder | `core/C26` and the kinds it uses |
 

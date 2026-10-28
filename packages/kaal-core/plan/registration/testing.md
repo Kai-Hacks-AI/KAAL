@@ -39,6 +39,7 @@ The reference implementation turned all ten GREEN.
 
 The following are validated by review:
 - `core/A25` and `core/A28` are placements.
+- `core/A25`'s frontmatter is accepted by `verify` only once `core/C27` lands. `core/C26` checks it with a Registration Node, because the tests here hand `assemble` objects directly.
 - `core/A27`'s use of Graph is reviewed at `core/C26`, against `graph/C2` (#562).
 - `core/F56`'s `kaal verify` behaviour is tested at `core/C26` against an Engine with registrations, and Core's existing `verify` tests keep the no-registration case.
 - Whether a kind owner's identities follow its own grammar is that owner's local check (`core/I17`), not Core's.
