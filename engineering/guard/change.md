@@ -412,6 +412,7 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **What stays.** Every delivered case, the coverage and the manifest's meaning. Reducing size never removes a case a consumer runs.
 - **Test Cases.** None are planned before the measurement. If the Owner chooses a reduction, the DO PR states its Test Cases before the reduction is written, and guard/T101–guard/T110 must stay GREEN.
 - **Authorization.** Approving this PLAN authorizes the measurement only. A reduction takes the Owner's choice on the DO PR.
+- **DO (`guard/C117`), the measurement.** It is recorded in `testing.md` under "Package size, measured": each shipped path's unpacked and gzip bytes for `0.0.3`, `0.0.4`, the candidate (byte for byte `0.0.4`) and a local `0.0.5` preview. The growth since `0.0.3` is consumer verification and the product contract, 67% of `0.0.4`'s gzip bytes. Two reductions that keep every case and meaning were applied and packed. They save 296 and 2,976 tarball bytes, 3,274 (2.8%) together. They come back to the Owner as options, and nothing is reduced. No product file changes.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
@@ -523,7 +524,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | PLAN |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3) | `guard/C111` | not created |
-| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | PLAN: measure first |
+| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured, options with the Owner |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
