@@ -252,6 +252,35 @@ guard/T113–guard/T117 are planned in `guard/C107`. They verify the verifier, t
 - guard/T114 is registered on Linux and macOS only, where the file system has sockets and FIFOs.
 - Engineering's own acceptance files are not delivered, so no Test Case covers their cleanup. Their `mkdtemp` roots are removed in `after` hooks, and the Guard command left nothing but `node-compile-cache` in its temporary directory. `engineering/guard/external/deliver.test.mjs` and `engineering/guard/consumer/harness.mjs` are outside this Change and unchanged.
 
+## Release acceptance of `0.0.4` (`guard/C101`)
+
+`@kaihacksai/kaal-guard@0.0.4` was published on 2026-10-28 at 13:15 UTC by Guard Release, run 40692680679, from main at f0d1eb9. The Owner approved the `npm` environment, and npm attached provenance (Sigstore log index 3539276054). The registry's tarball has SHA-256 `ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a`, the digest recorded in `guard/C100`. Its integrity is `sha512-W+cpBV6fQ0zhJVG+PRX9/FPTUIAZtxU9d4+8d4XY84Shko4odgKDIXkwlXdeGQR4tVI5Fkh2o7F5EiTRrwgL6Q==`, and it is tagged `latest`.
+
+**`packed`, on Linux, macOS and Windows.** f0d1eb9's `Guard` jobs (run 40682336282) ran these:
+- guard/T101–guard/T110 are GREEN on all three operating systems.
+- guard/T111 is GREEN on Linux. It is not in the macOS and Windows jobs, which name three acceptance files and not `authority.test.mjs`, so its evidence is from Linux alone. It reads the shipped documents' text and starts no process.
+- On Windows, guard/T114 is not registered, as declared.
+
+**`registry`, on Linux.** These ran on f0d1eb9 with Node 24.22.1, npm 11.19.1 and Git 2.43.0:
+
+```sh
+GUARD_CANDIDATE=registry:0.0.4 node --test --test-concurrency=1 --test-name-pattern="guard/T10[1235]" engineering/guard/acceptance/package.test.mjs
+GUARD_CANDIDATE=registry:0.0.4 GUARD_CANDIDATES=registry:0.0.3,registry:0.0.4 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+```
+
+| Test Case | Result | Candidate |
+| --- | --- | --- |
+| guard/T101, guard/T102, guard/T103, guard/T105 | GREEN. The installed copy's lockfile integrity equals the registry's integrity above | `@kaihacksai/kaal-guard@0.0.4 (registry)` |
+| guard/T36, guard/T42 | GREEN | the published `0.0.2` they consume |
+| guard/T40, guard/T43, guard/T64 | GREEN | `@kaihacksai/kaal-guard@0.0.4 (registry)` |
+| guard/T67 | GREEN | `registry` `0.0.3` → `0.0.4` |
+| guard/T65, guard/T68 | not exercised for this pair. Both stop before their behavioural assertion: "the candidates' workflows do not differ, so nothing can be seen to move" and "the workflow did not move forward" | `registry` `0.0.3` → `0.0.4` |
+| guard/T66 | not exercised for this pair: "blocked before behavioural assertion: the newer candidate adds no asset to the hook surface" | `registry` `0.0.3` → `0.0.4` |
+
+`0.0.4` ships `templates/` byte for byte as `0.0.3` does; the consumer-side review on #550 found the same. So no managed asset changes between the two versions, and an upgrade has nothing to move. That is the condition guard/T66 met for `0.0.3` (`guard/C89`, the Owner on #483). No asset is added only to make the cases observable. Their behaviour stays exercised between two `packed` candidates, and they are revisited when a release changes a managed asset.
+
+**Accepting `0.0.4`.** [Consumer verification](#consumer-verification-004) required guard/T65, guard/T67 and guard/T68 GREEN between the published `0.0.3` and `0.0.4`. Only guard/T67 can be, so whether `0.0.4` is accepted with guard/T65 and guard/T68 recorded as not exercised for this pair is the Owner's decision on this Change. Until then, `0.0.4` is published but not accepted.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
