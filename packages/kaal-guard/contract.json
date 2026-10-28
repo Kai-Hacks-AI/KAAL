@@ -51,7 +51,8 @@
     ],
     ".github/workflows/guard.yml": [
       "832be35f6d149493adfcb171fc159d707f762915f2e2cd57a159b2aeb8e14acf",
-      "3635321ec5949c64b7a03206f5958a65d1351662b43baeb4efccb75131c59070"
+      "3635321ec5949c64b7a03206f5958a65d1351662b43baeb4efccb75131c59070",
+      "84e940b8057e4ba63e5c5b7393ee5fca0e72ccf414e620a2d6674b04ce389f0f"
     ],
     ".github/workflows/.gitattributes": [
       "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee"

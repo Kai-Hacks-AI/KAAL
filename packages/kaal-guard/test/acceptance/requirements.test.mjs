@@ -1242,3 +1242,19 @@ describe("guard/N1 [guard/I5] Git prerequisite", () => {
     }
   });
 });
+
+describe("guard/N15 [guard/I1, guard/I5] no credential left behind", () => {
+  it("guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on", () => {
+    const c = consumer();
+    assert.equal(c.guard(["init", "--ci"]).status, 0);
+    const workflow = c.read(".github/workflows/guard.yml");
+    const steps = workflow.split(/\n(?=\s*- )/).filter((step) => /uses:\s*actions\/checkout@/.test(step));
+    assert.ok(steps.length > 0, "the installed workflow has no checkout step");
+    for (const step of steps) assert.match(step, /^\s*persist-credentials:\s*false\s*$/m, `a checkout step keeps the run's credential:\n${step}`);
+    const catalogued = c.catalogue()[".github/workflows/guard.yml"] ?? [];
+    assert.ok(catalogued.includes(sha256(Buffer.from(workflow))), "the installed workflow is not catalogued content");
+    // The workflow's published contents from 0.0.2 on (0.0.1 has no catalogue; guard/I5): 0.0.2, then 0.0.3 and 0.0.4.
+    for (const earlier of ["832be35f6d149493adfcb171fc159d707f762915f2e2cd57a159b2aeb8e14acf", "3635321ec5949c64b7a03206f5958a65d1351662b43baeb4efccb75131c59070"])
+      assert.ok(catalogued.includes(earlier), `the catalogue no longer holds the earlier workflow content ${earlier}`);
+  });
+});
