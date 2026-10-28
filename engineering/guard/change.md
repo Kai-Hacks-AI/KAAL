@@ -238,7 +238,7 @@ The decisions authorize no implementation, version bump, release or publication.
 **What release acceptance of `0.0.4` (`guard/C101`) requires:**
 - guard/T101–guard/T106 GREEN against the `packed` candidate on Linux, macOS and Windows;
 - after publication, guard/T101–guard/T103 and guard/T105 GREEN against `@kaihacksai/kaal-guard@0.0.4` installed from the registry, on Linux, with the registry's integrity recorded beside the lockfile's;
-- guard/T65, guard/T67 and guard/T68 GREEN between the published `0.0.3` and `0.0.4`.
+- the transition cases that apply GREEN for each supported source, `registry` `0.0.2` → `0.0.4` and `0.0.3` → `0.0.4`, guard/T118 included. `guard/C112` restated this requirement, which first named guard/T65, guard/T67 and guard/T68 between `0.0.3` and `0.0.4` alone. A case that is not applicable for a pair is reported so, and is not counted as passed.
 
 **Limitations the README states:**
 - The verification shows that the delivered cases pass on the consumer's machine, within their coverage. It does not show this repository's integration, its own checks, or complete correctness.
@@ -482,8 +482,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C104` | — | Guard | The inner loop ships in `test/unit/`, and the verdict judges loops, coverage and applicability. guard/T108–guard/T110 are written with their RED evidence, and each identifier no case cited is named in a case title or exempted, as [Testing](testing.md#the-complete-product-004) lists | `guard/C106` | #540 |
 | `guard/C105` | — | Guard | External's hook, workflow and Skill templates derived from the package's under guard/N14 by declared transformations, with guard/T112 written RED first; scope and acceptance [above](#the-complete-product-004). Not part of the `0.0.4` increment, and not authorized by `guard/C102` | `guard/C103` | not created |
 | `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
-| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | the evidence for f0d1eb9 is in this pull request; publication waits on the Owner |
-| `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
+| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | #551, merged; published 2026-10-28 by Guard Release run 40692680679, from f0d1eb9 |
+| `guard/C101` | — | Guard | Release acceptance of `0.0.4`: the desired result, and the applicable transition cases for `registry` `0.0.2` and `0.0.3` → `0.0.4`, guard/T118 included, all GREEN ([Testing](testing.md#release-acceptance-of-004-guardc101)) | `guard/C100`, `guard/C112` | evidence recorded; acceptance waits on the Owner |
 | `guard/C111` | — | Guard | After `0.0.4`: the deferred findings of its release, n1–n3, N6, N7 and M1–M3, triaged into bounded Changes | `guard/C101` | not created |
 | `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN #557, merged; DO: guard/T118 GREEN for both sources |
 | `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |

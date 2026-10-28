@@ -252,6 +252,37 @@ guard/T113–guard/T117 are planned in `guard/C107`. They verify the verifier, t
 - guard/T114 is registered on Linux and macOS only, where the file system has sockets and FIFOs.
 - Engineering's own acceptance files are not delivered, so no Test Case covers their cleanup. Their `mkdtemp` roots are removed in `after` hooks, and the Guard command left nothing but `node-compile-cache` in its temporary directory. `engineering/guard/external/deliver.test.mjs` and `engineering/guard/consumer/harness.mjs` are outside this Change and unchanged.
 
+## Release acceptance of `0.0.4` (`guard/C101`)
+
+`@kaihacksai/kaal-guard@0.0.4` was published on 2026-10-28 at 13:15 UTC by Guard Release, run 40692680679, from main at f0d1eb9. The Owner approved the `npm` environment, and npm attached provenance (Sigstore log index 3539276054). The registry's tarball has SHA-256 `ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a`, the digest recorded in `guard/C100`. Its integrity is `sha512-W+cpBV6fQ0zhJVG+PRX9/FPTUIAZtxU9d4+8d4XY84Shko4odgKDIXkwlXdeGQR4tVI5Fkh2o7F5EiTRrwgL6Q==`, and it is tagged `latest`.
+
+**`packed`, on Linux, macOS and Windows.** f0d1eb9's `Guard` jobs (run 40682336282) ran these:
+- guard/T101–guard/T110 are GREEN on all three operating systems.
+- guard/T111 is GREEN on Linux. It is not in the macOS and Windows jobs, which name three acceptance files and not `authority.test.mjs`, so its evidence is from Linux alone. It reads the shipped documents' text and starts no process.
+- On Windows, guard/T114 is not registered, as declared.
+
+**`registry`, on Linux.** These ran on f0d1eb9 with Node 24.22.1, npm 11.19.1 and Git 2.43.0:
+
+```sh
+GUARD_CANDIDATE=registry:0.0.4 node --test --test-concurrency=1 --test-name-pattern="guard/T10[1235]" engineering/guard/acceptance/package.test.mjs
+GUARD_CANDIDATE=registry:0.0.4 GUARD_CANDIDATES=registry:0.0.3,registry:0.0.4 node --test --test-concurrency=1 engineering/guard/acceptance/consumer/*.test.mjs
+```
+
+| Test Case | Result | Candidate |
+| --- | --- | --- |
+| guard/T101, guard/T102, guard/T103, guard/T105 | GREEN. The installed copy's lockfile integrity equals the registry's integrity above | `@kaihacksai/kaal-guard@0.0.4 (registry)` |
+| guard/T36, guard/T42 | GREEN | the published `0.0.2` they consume |
+| guard/T40, guard/T43, guard/T64 | GREEN | `@kaihacksai/kaal-guard@0.0.4 (registry)` |
+| guard/T67 | GREEN | `registry` `0.0.3` → `0.0.4` |
+| guard/T65, guard/T66, guard/T68 | stopped before their behavioural assertion, because their applicability was still coded as assertions. `guard/C112` declares it, and its run below reports them not applicable for this pair | `registry` `0.0.3` → `0.0.4` |
+
+**The acceptance basis.** `0.0.4` is accepted on two concerns, each with its own Test Cases. Both succeeded:
+- **Desired result.** The installed product's verification is GREEN within its declared scope. `packed`: guard/T101–guard/T110 on Linux, macOS and Windows, and guard/T111 on Linux only. `registry` on Linux: guard/T101, guard/T102, guard/T103, guard/T105, guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64.
+- **Transition, `registry` `0.0.2` → `0.0.4`.** guard/T118, guard/T65, guard/T67 and guard/T68 are GREEN. guard/T66 is not applicable.
+- **Transition, `registry` `0.0.3` → `0.0.4`.** guard/T118 and guard/T67 are GREEN. guard/T65, guard/T66 and guard/T68 are not applicable, because the two versions ship the same workflow and `0.0.4` adds no asset to the hook surface.
+
+[Transition acceptance of `0.0.4`](#transition-acceptance-of-004-guardc112) has the run. A case that is not applicable is neither GREEN nor RED and is not counted as passed. No asset was changed to make a case observable, no assertion was weakened, and no recorded result was rewritten. Both supported upgrade paths have GREEN, outcome-oriented guard/T118 evidence. The limits stand: `registry` evidence is from Linux, and guard/T111 from Linux only. `0.0.4` ships no target-owned migration contract; that is `guard/C113`, for `0.0.5`.
+
 ## Transition acceptance of `0.0.4` (`guard/C112`)
 
 guard/T118 is planned in `guard/C112`. It is producer-side evidence that a migration path the target release supports works. It is not a record of a consumer's operational run. It is in `engineering/guard/acceptance/consumer/consumer.test.mjs`, beside guard/T65–guard/T68, and runs for each declared source of the target: `registry` `0.0.2` → `0.0.4` and `0.0.3` → `0.0.4`.
