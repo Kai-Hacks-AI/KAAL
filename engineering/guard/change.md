@@ -398,6 +398,13 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Not here.** The Branching audit's two reused branches are repository hygiene, not a Guard finding. They stay until the Owner decides separately. `guard/C109` (exact-SHA release gating) and `guard/C26` (#340) keep their own rows.
 - **Authorization.** Approving this PLAN authorizes the five Changes to be raised as PLANs for review. It authorizes no DO, no version bump, no promotion and no publication.
 
+**What a consumer reads and types (`guard/C115`, PLAN).** This covers n1, n2 and N7 from `0.0.4`'s findings. None of them changes a verdict, an exit status or the JSON summary's fields.
+- **n1.** The installed package's verification prints "not verified by this run, allocated to the publisher" once per identifier: 16 lines that repeat the same allocation. The DO groups identifiers that share an allocation into one line naming each of them. guard/F34 gains the sentence: "Identifiers that share an allocation are named together, once."
+- **n2.** The next step "report this output to the package's maintainers" names no destination. The DO adds `bugs` (`https://github.com/Kai-Hacks-AI/KAAL/issues`) to `package.json`, and each such next step names it. guard/F33 gains the sentence: "A next step that asks for a report names where to send it."
+- **N7.** `kaal-guard --version` and `kaal-guard --help` are not commands today. The DO adds them, through the existing usage text, as guard/F41: "[guard/I5] `kaal-guard --version` prints the installed version, and `kaal-guard --help` prints the usage. Each exits 0, and neither reads or writes the repository."
+- **Test Cases.** guard/T120, guard/T121 and guard/T122 are product acceptance cases, delivered with the package. Each is RED first against `0.0.4`.
+- **Authorization.** Approving this PLAN authorizes `guard/C115`'s DO only: no version bump, promotion or publication.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -506,7 +513,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN #557, merged; DO: guard/T118 GREEN for both sources |
 | `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1) | `guard/C111` | not created |
-| `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
+| `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7); guard/F41, guard/T120–guard/T122 | `guard/C111` | PLAN |
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3) | `guard/C111` | not created |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | not created |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
