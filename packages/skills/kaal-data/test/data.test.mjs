@@ -1,7 +1,7 @@
-// Deterministic verification of what can be decided mechanically: the Node's
+// Deterministic verification of what can be decided mechanically: the Nodes'
 // Form and type, admission into an Engine, the ownership claim, what the
 // package delivers, and the contract's key statements as written.
-// Whether the Node says the right thing is validation, by independent Agent
+// Whether the Nodes say the right thing is validation, by independent Agent
 // or human review.
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync } from "node:fs";
@@ -38,8 +38,8 @@ describe("the Capability Node", () => {
     assert.match(text(), /Data keeps no store, registry or catalog of its own\./);
   });
 
-  it("requires Core's KAAL Capability for admission, and nothing else", () => {
-    assert.match(text(), /^For admission it requires Core's KAAL Capability, and nothing else\.$/m);
+  it("provides the ORDER Definition, and requires Core's KAAL Capability and KAAL Definition for admission, and nothing else", () => {
+    assert.match(text(), /^It provides the ORDER Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("leaves each neighbour its specialized mechanism", () => {
@@ -48,6 +48,27 @@ describe("the Capability Node", () => {
     assert.match(text(), /Cryptographic integrity is Sealing's\./);
     assert.match(text(), /Evidence is Testing's, and assurance about controls is Controls'\./);
     assert.match(text(), /Storage and its mechanics are Hosting's, and where data is placed is decided by the context that holds it\./);
+  });
+});
+
+describe("the ORDER Definition", () => {
+  const order = () => readFileSync(join(CAPABILITY, "ORDER.md"), "utf8");
+
+  it("is typed by Core's KAAL Definition and carries its expansion", () => {
+    const definition = identify(readFileSync(join(CAPABILITY, "ORDER.md")));
+    assert.equal(definition.name, "ORDER");
+    assert.deepEqual(definition.type, foundation().definition);
+    assert.match(order(), /^Organised Ratified Data Enhances Reliability\.$/m);
+  });
+
+  it("makes trust warranted within a context, never infallible, and keeps retrievable apart from reliable", () => {
+    assert.match(order(), /Reliability is warranted trust within that context, not universal truth or infallibility: ratifying something states what supports it and does not make it right/);
+    assert.match(order(), /Being retrievable does not make anything reliable\./);
+  });
+
+  it("is Data's guiding principle without owning anyone's data or adding a store, procedure or gate", () => {
+    assert.match(order(), /^ORDER is Data's guiding principle\. It applies wherever KAAL holds data without making Data the owner of that data, and it adds no store, record, procedure or gate of its own\./m);
+    assert.match(order(), /How much trust a thing warrants, and on what evidence, is decided by the capability that owns it\./);
   });
 });
 
@@ -73,13 +94,14 @@ describe("Data's own claim", () => {
 });
 
 describe("the package", () => {
-  it("packs its Node and nothing else beyond its metadata", async () => {
+  it("packs its Nodes and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
     assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
       "capability/Data.md",
+      "capability/ORDER.md",
       "package.json",
     ]);
   });
