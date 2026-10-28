@@ -143,7 +143,7 @@ describe("Architecture conformance", () => {
 
   it("guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it", () => {
     const requirements = source("docs/requirements.md");
-    const at = requirements.indexOf("**guard/F42**");
+    const at = requirements.indexOf("**guard/F42 ");
     assert.ok(at >= 0, "docs/requirements.md defines no guard/F42");
     const head = /Supported upgrade paths to `(\d+)\.(\d+)\.(\d+)`/.exec(requirements.slice(at));
     assert.ok(head, "guard/F42 names no release its upgrade paths lead to");

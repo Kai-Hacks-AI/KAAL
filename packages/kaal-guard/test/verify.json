@@ -1,6 +1,7 @@
 {
   "cases": [
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T29 [guard/A7]: nothing depends on an adapter",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
@@ -192,6 +193,7 @@
     "guard/F38",
     "guard/F39",
     "guard/F40",
+    "guard/F42",
     "guard/N1",
     "guard/N2",
     "guard/N3",
@@ -230,6 +232,11 @@
     "guard/A19": {
       "Architecture": [
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+      ]
+    },
+    "guard/F42": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it"
       ]
     },
     "guard/A3": {
@@ -732,14 +739,14 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "1d2ad48c1e26d4209e58ef9bcb4c27355f501b9b9604e0ede8646bf5f0cfbacc",
+    "README.md": "2afbbb4c3130115769668dd32b06512f8f3b72aed828c39d1be02080ab79a095",
     "bin/kaal-guard.mjs": "7b4b16be89374a72d25fe890382a8b68c7a8e929e56c715efc38cb9a7d75e97a",
     "contract.json": "fcfa9645e793c14bd9c3512b0c018a5f6d1c2cdef7d6dd20b7ff3450ddc48a3e",
     "docs/architecture.md": "c7ae619360167638f874c0bf829e5e021daa6d8baca7f132c2f7d3d4a3d960bf",
     "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
-    "docs/requirements.md": "fb9ef710178eced4954c105557cae39be5ea0c37413fdc731956a32d527bfba9",
-    "docs/testing.md": "807bf9c6c5d4950a4de9344c94eb0db21c36679ddb9bd582adab856a55a11f12",
+    "docs/requirements.md": "5c6b067a5dea6e209d20812e4038f933f91e57d9013fd4bab8e064928cb85b16",
+    "docs/testing.md": "8d08bb476c2c4ac8c46ededc991749064cb22efbf74d3c09126e181122a97ce4",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -757,7 +764,7 @@
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "c53e8ff6a177e788f67a6f3dbae99577c6009f6454874516a8564157791d0277",
+    "test/acceptance/architecture.test.mjs": "2171d57b5ffff0911178d6fe00743084824ecf9aace1779532401612cc1a9b79",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
     "test/acceptance/requirements.test.mjs": "ac2a3e645b744513195ebdb15ce80fa0f0dfca651f5b933d8a140496bee31dd5",

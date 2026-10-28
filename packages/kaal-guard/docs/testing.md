@@ -135,4 +135,5 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T97 | Requirements | guard/F7 | a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker |
 | guard/T99 | Requirements | guard/F7, guard/F10, guard/N4 | a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs |
 | guard/T107 | Architecture | guard/I9, guard/F37, guard/A19 | the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority |
+| guard/T124 | Architecture | guard/F42 | docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it |
 <!-- end of trace -->

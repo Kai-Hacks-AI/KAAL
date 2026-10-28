@@ -205,6 +205,8 @@ Guard runs the checks you declare and reports their verdicts. It does not establ
 
 ## Release notes
 
+Which versions you can upgrade from, and how, each release declares in [docs/requirements.md](docs/requirements.md), under guard/F42. A version it does not list is not a supported source.
+
 ### 0.0.4
 
 Added:

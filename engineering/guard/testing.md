@@ -323,9 +323,11 @@ guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15
 
 guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package. From `guard/C113` on, guard/T118 takes its sources from the table guard/T124 checks.
 
-| Test | Checks | Written in | Intended evidence against `0.0.4` |
-| --- | --- | --- | --- |
-| guard/T124: the delivered `docs/requirements.md` declares, under guard/F42, each supported source version with its path, prerequisites, changes and kept files, failure and recovery, and verification. Each declared source is a version the package's catalogue knows, the installed version is not among them, and the README's release notes point to the table | guard/F42 | `guard/C113` | RED: no release declares its upgrade paths |
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T124 checks that the delivered `docs/requirements.md` declares, under guard/F42, each supported source version with its path, prerequisites, changes and kept files, failure and recovery, and verification. Each declared source is a version the package's catalogue knows, the installed version is not among them, and the README's release notes point to the table | guard/F42 | `guard/C113` | RED: no release declares its upgrade paths | GREEN |
+
+**Release acceptance with declared paths (`guard/C113`).** A release that declares upgrade paths under guard/F42 is accepted only with guard/T118 GREEN, from a `registry` run (`GUARD_CANDIDATES=registry:<source>,packed` before publication, or `registry:<source>,registry:<target>` after it), for every source it declares. A declared source with no such run, or with a RED one, blocks acceptance. guard/T118 reports a source the target does not declare as not applicable, so that run is not evidence of a supported path. The release Change also shows that the table leads to exactly the version it publishes.
 
 ## Defects
 
