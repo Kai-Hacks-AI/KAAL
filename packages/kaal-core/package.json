@@ -49,6 +49,7 @@
     "node": ">=24"
   },
   "dependencies": {
+    "@kaihacksai/kaal-foundation": "0.0.1",
     "kaal-graph": "0.0.1",
     "kaal-hosting": "0.0.1"
   },
