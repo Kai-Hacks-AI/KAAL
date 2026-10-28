@@ -1,6 +1,6 @@
 # Guard: Testing
 
-Every promise in [Intent](intent.md), [Requirements](requirements.md) and [Architecture](architecture.md) is checked by a Test Case, or is named below as verified elsewhere. Each case names, in its title, the identifiers it checks, for example `guard/T61 [guard/F1, guard/A1]`. The identifiers are the trace: there is no separate traceability framework.
+This is Guard's Product Verification Test Plan: the one that ships, and that your installation runs. Every promise in [Intent](intent.md), [Requirements](requirements.md) and [Architecture](architecture.md) is checked by a delivered Test Case, allocated to the publisher's Engineering Test Plan, or named below as verified by no Test Case. Each case names, in its title, the identifiers it checks, for example `guard/T61 [guard/F1, guard/A1]`. The identifiers are the trace: there is no separate traceability framework.
 
 ## The loops
 
@@ -25,17 +25,26 @@ npm explore @kaihacksai/kaal-guard -- npm test
 
 The package's README says what each result means and what `verified` does and does not tell you.
 
-## Verified elsewhere
+## Allocated to the publisher's Engineering Test Plan
 
-Every product identifier is either covered by a delivered case or exempted here, never silently (guard/F38). An exemption names where the identifier is verified instead. `npm test` lists each one as exempted and not verified by this run, apart from what the run covers.
+Some promises cannot be checked by a run in your installation. They are obligations allocated to the publisher's Engineering Test Plan, which does not ship. Each one is named here, never silently (guard/F38). `npm test` lists each one as not verified by this run, allocated to the publisher. An allocation says what the publisher runs; it is not evidence that the run passed.
 
-<!-- exemptions: read by the publisher into the manifest -->
-| Exempted | Identifiers | Verified instead |
+<!-- allocated: read by the publisher into the manifest -->
+| Allocated | Identifiers | Allocated to |
 | --- | --- | --- |
-| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | by the publisher before each release: the Test Cases of the verification itself run against a packed candidate in a fresh consumer, on Linux, macOS and Windows, because a delivered run cannot verify its own verifier |
-| Moving between published versions | guard/F11, guard/F14–guard/F16 | by the publisher before each release: moving between published versions needs two published versions from the registry |
-| Guidance | guard/F20 | by the publisher's review of each release: it is guidance for people and agents, in the Skill and the README, which Guard never parses |
-<!-- end of exemptions -->
+| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier |
+| Moving between published versions | guard/F11, guard/F14–guard/F16 | the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions |
+<!-- end of allocated -->
+
+## Verified by no Test Case
+
+A promise no Test Case verifies, in either plan, is named here and reported as unverified, never as allocated.
+
+<!-- unverified: read by the publisher into the manifest -->
+| Unverified | Identifiers | Why |
+| --- | --- | --- |
+| Guidance | guard/F20 | it is guidance for people and agents, in the Skill and the README, which Guard never parses; the publisher reviews it with each release, and no Test Case checks it |
+<!-- end of unverified -->
 
 ## Not applicable
 

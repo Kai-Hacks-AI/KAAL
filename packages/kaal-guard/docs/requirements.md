@@ -209,7 +209,8 @@ A consumer can verify the installed package with one command. Before `0.0.4`, th
     - no case executed;
     - a case was skipped or marked todo;
     - a declared case did not execute;
-    - the installed files do not match the shipped manifest (guard/F34).
+    - the installed files do not match the shipped manifest (guard/F34);
+    - the verification itself could not complete. The output names the error and asks for it to be reported.
   - **`verified`, exit 0.** Every declared case executed and passed.
   - **Next step.** Every `failed` and `cannot verify` names its cause and a next step (guard/N4).
 
@@ -223,8 +224,8 @@ A consumer can verify the installed package with one command. Before `0.0.4`, th
 - **guard/F35** [guard/I8] **Intact consumer.**
   - **Scratch space.** The delivered cases write only to the operating system's temporary directory.
   - **The consumer.** The entry takes the consumer to be the directory that holds the outermost `node_modules` on the installed copy's resolved path, and it requires that directory to have a `package.json`. That covers a direct dependency, a nested one and a hoisted workspace dependency under npm, and pnpm's `node_modules/.pnpm/` store. A copy that is not under a `node_modules` directory, such as a link or a source checkout, or one whose directory has no `package.json`, such as a global installation, is `cannot verify`, and the cases do not run. Under `npm explore`, both the working directory and `INIT_CWD` are the package directory, so neither names the consumer.
-  - **The check.** It compares the consumer's content, `node_modules/@kaihacksai/kaal-guard` included, before and after the run. A difference is `failed`, naming the paths.
-  - **What is compared.** Every path under the consumer is compared, except `node_modules` directories, the installed copy excepted. Each file is compared by its SHA-256, a link by its target and a directory by its presence. Git's object store and files over 64 MiB are compared by size and modification time. Other dependencies are not compared.
+  - **The check.** It compares the consumer's content, `node_modules/@kaihacksai/kaal-guard` included, before and after the run. A difference is `failed`, naming the paths. The comparison cannot tell Guard's writes from yours, an editor's or Git's, so the next step asks you to check whether you or a tool changed those paths during the run, and to report the output if nothing did. Keep the project idle while the verification runs.
+  - **What is compared.** Every path under the consumer is compared, except `node_modules` directories, the installed copy excepted. Each regular file is compared by its SHA-256, a link by its target and a directory by its presence. A socket, a FIFO or a device is compared by its kind and never opened. An entry that disappears between being listed and being read, such as a lock Git removes, counts as absent. Git's object store and files over 64 MiB are compared by size and modification time. Other dependencies are not compared.
 
 - **guard/F36** [guard/I8] **Package, not integration.**
   - **Scope.** The verification judges the package only. It reads none of the consumer's configuration, installation record, hook or workflow.
@@ -249,17 +250,18 @@ The package carries its complete consumer-facing specification and its Test Case
 - **guard/F37** [guard/I9] **The product contract ships.**
   - **What it holds.** The package's `docs/` holds Guard's product Intent, Requirements, Architecture, Testing and Limitations.
   - **What each part covers.**
-    - Testing: the loops, the trace from each delivered case to the identifiers it covers, and the declared exemptions (guard/F38).
+    - Testing: the Product Verification Test Plan. That is the loops, the trace from each delivered case to the identifiers it covers, the identifiers allocated to the publisher's Engineering Test Plan, and those no Test Case verifies (guard/F38). The publisher's Engineering Test Plan does not ship.
     - Limitations: what Guard does not establish, and each Defect that reached a published version, naming the versions it affects and the version that corrects it.
     - Operations: the README and the Skill.
   - **Single definition.** Every product identifier is defined there and only there. Every identifier a delivered case cites is defined there.
   - **Readable alone.** The contract is intelligible without KAAL's repository. It cites no document outside the package as its authority, and it carries no plan, Change history or engineering evidence.
 
 - **guard/F38** [guard/I8, guard/I9] **Declared coverage, failing closed.**
-  - **What the manifest declares.** It declares every product identifier, and for each one either the delivered cases that cover it, in each loop, or one exemption that names where it is verified instead. For example: "guard/I8, guard/F31–guard/F36: verified by the publisher before each release".
-  - **Uncovered.** An identifier with neither a covering case that ran and passed nor an exemption is `cannot verify`, named, with its next step.
-  - **The output.** It prints coverage per loop and lists every exemption, and the summary line carries both.
-  - **No concealment.** `verified` never conceals an absent loop, an uncovered boundary or an exemption.
+  - **What the manifest declares.** It declares every product identifier, and for each one either the delivered cases that cover it, in each loop, or one allocation to the publisher's Engineering Test Plan that names what the publisher runs, or one statement that no Test Case verifies it and why. For example: "guard/I8, guard/F31–guard/F36: allocated to the publisher's Engineering Test Plan".
+  - **Not verified by this run.** An allocated identifier is reported as not verified by this run, allocated to the publisher. One that no Test Case verifies is reported as unverified. Neither is ever counted as covered, and neither changes the result.
+  - **Uncovered.** An identifier with neither a covering case that ran and passed, nor an allocation, nor a statement that no Test Case verifies it is `cannot verify`, named, with its next step.
+  - **The output.** It prints coverage per loop and lists every allocated and every unverified identifier, and the summary line carries them.
+  - **No concealment.** `verified` never conceals an absent loop, an uncovered boundary, an allocation or an unverified identifier.
 
 - **guard/F39** [guard/I8, guard/I9] **Product-owned loops.**
   - **Which loops ship.** `npm test` runs every loop the package owns: the outer acceptance cases (Intent, Requirements, Architecture) and the inner Code tests of the shipped implementation.
