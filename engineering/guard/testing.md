@@ -162,7 +162,7 @@ guard/T107 is defined by its title, and the product's trace in `packages/kaal-gu
 
 | Test | Checks | Written in | Intended evidence on the `guard/C98` candidate |
 | --- | --- | --- | --- |
-| guard/T108: a candidate in which a declared product identifier has neither a covering case nor an exemption is `cannot verify`, exit 2, naming the identifier; with an exemption it is `verified`, and the output and summary line name the exemption | guard/F38 | `guard/C104` | RED: no coverage is declared or judged |
+| guard/T108: a candidate in which a declared product identifier has neither a covering case nor an allocation is `cannot verify`, exit 2, naming the identifier; allocated to the publisher it is `verified`, and the output and summary line name the allocation as not verified by this run; one no Test Case verifies is named `unverified` | guard/F38 | `guard/C104`, reworded in `guard/C108` | RED: no coverage is declared or judged |
 | guard/T109: `npm test` runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is `cannot verify`, naming the loop | guard/F39 | `guard/C104` | RED: the inner loop does not ship |
 | guard/T110: a case that declares the current platform not applicable is reported as not applicable, named and not run, and the run can still be `verified`; the same case skipped without that declaration is `cannot verify`; an identifier only such a case covers is named as not verified here unless the contract declares it not applicable | guard/F40 | `guard/C104` | RED: no applicability is declared |
 | guard/T111: in KAAL, every Guard identifier is defined exactly once, every product identifier only in `packages/kaal-guard/docs/`, and every identifier a delivered case cites is defined | guard/N14, guard/A20 | `guard/C103` | RED: the product identifiers are defined in `engineering/guard/` |
@@ -237,7 +237,20 @@ guard/T113–guard/T117 are planned in `guard/C107`. They verify the verifier, t
 | guard/T114: a consumer holding a Unix socket and a FIFO is `verified`, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is `failed`, naming it. Registered on Linux and macOS, where the file system has both kinds | guard/F33, guard/F35 | `guard/C108` | RED: the socket gives `cannot verify` advising reinstall, and the FIFO hangs until the limit |
 | guard/T115: a delivered case that appends to a consumer file gives `failed`, exit 1, naming the path, with the next step to check concurrent activity and no advice to restore paths | guard/F33, guard/F35 | `guard/C108` | RED: the next step says to restore the paths from version control |
 | guard/T116: the packed candidate holds only the package's declared `files`, and no path from `engineering/`, no Engineering Test Plan and no release evidence | guard/F37, guard/A19 | `guard/C108` | GREEN on `afa9ca3`, where the review found none by hand; RED, naming the path, on a candidate with a planted `engineering/` file |
-| guard/T117: `snapshot()`, given its file-system reads, completes when a listed file is removed before it is read, and records it as absent | guard/F35 | `guard/C108` | RED: `snapshot()` throws `ENOENT`, which ends a run as "could not complete" |
+| guard/T117: `snapshot()`, with its file-system reads patched so a listed file is removed before it is read, completes and records the file as absent | guard/F35 | `guard/C108` | RED: `snapshot()` throws `ENOENT`, which ends a run as "could not complete" |
+
+**The baseline (`guard/C108`, d49f0cf).** Verified first: guard/T113–guard/T117, and guard/T108 in allocation wording, were written in their own commit and run against the product as #545 and #546 left it (Linux, Node 24):
+- guard/T113 RED: the whole delivered suite left 148 and 148 entries in its temporary directory over two runs.
+- guard/T114 RED: the run with a Unix socket and a FIFO did not complete within the case's 300 s limit.
+- guard/T115 RED: the next step said "restore those paths from version control and report this output to the package's maintainers".
+- guard/T116 GREEN: 35 packed files and no publisher material; with a planted `docs/engineering/testing.md` it named that path. This makes an existing obligation explicit, so GREEN is the honest baseline, not a missing RED.
+- guard/T117 RED: `snapshot()` threw `ENOENT` on `lstat` of the vanished `maintenance.lock`. The case patches `fs.readdirSync` through `syncBuiltinESMExports()` to remove the file after listing, so the shipped `snapshot()` meets the race itself, deterministically.
+- guard/T108 RED on wording: an allocated identifier gave `cannot verify` ("neither … nor an exemption").
+
+**After `guard/C108`.** The same cases are GREEN on Linux: the whole Guard command passes, 161 of 161, under an empty temporary directory.
+- guard/T113 judges what the run leaves, less Node's module compile cache (`node-compile-cache`), which npm's own CLI turns on in the temporary directory and reuses; it is npm's, not the run's.
+- guard/T114 is registered on Linux and macOS only, where the file system has sockets and FIFOs.
+- Engineering's own acceptance files are not delivered, so no Test Case covers their cleanup. Their `mkdtemp` roots are removed in `after` hooks, and the Guard command left nothing but `node-compile-cache` in its temporary directory. `engineering/guard/external/deliver.test.mjs` and `engineering/guard/consumer/harness.mjs` are outside this Change and unchanged.
 
 ## Defects
 

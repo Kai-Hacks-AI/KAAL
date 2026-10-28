@@ -17,12 +17,12 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 - **guard/A15 Reminder** [guard/F21, guard/F22]. The reminder is reporting, so it sits with the command and the GitHub reporting (guard/A5). It reads the Skill paths registered in the installation record (guard/F29), or else the package's copy. The runner (guard/A3) and the hook (guard/A4) are unchanged, and the hook shows the reminder only because it forwards `kaal-guard`'s output.
 - **guard/A17 Installation contract** [guard/F27, guard/N12]. `contract.json` is in the package, and the package ships it. It is Guard's instance of Core's Installation Contract schema, which Guard neither copies nor imports. The lifecycle (guard/A6) reads its assets and rules from it, so no second list of assets exists in Guard's code. Core reads the same file when it realizes Guard. Core's conformance Test Cases are run against it before each release only.
 - **guard/A18 Verification entry** [guard/F31–guard/F36, guard/N13].
-  - **Where it lives.** `test/verify.mjs` and its manifest `test/verify.json` are in the package beside the outer acceptance cases (`test/acceptance/`) and the inner Code tests (`test/unit/`), and the package ships all four. The manifest holds the delivered cases' inventory, their loops, the product identifiers with their coverage or exemption, the declared applicability, and the SHA-256 of every shipped file except itself.
+  - **Where it lives.** `test/verify.mjs` and its manifest `test/verify.json` are in the package beside the outer acceptance cases (`test/acceptance/`) and the inner Code tests (`test/unit/`), and the package ships all four. The manifest holds the delivered cases' inventory, their loops, the product identifiers with their coverage, allocation or lack of a Test Case, the declared applicability, and the SHA-256 of every shipped file except itself.
   - **What it does.** The entry checks the prerequisites, the installed files and the consumer, runs the delivered cases of every loop by absolute path through `node:test`'s `run()`, reads each case's outcome from the runner's events, judges each loop, each identifier's coverage and each declared applicability, and prints the result and the summary line. It removes an inherited `NODE_TEST_CONTEXT` first, because with it every case would be skipped.
   - **The manifest's form.**
     - `cases` lists each delivered case as `<file> > <suite> > <test>`, the file relative to the package.
     - `loops` maps each loop (Intent, Requirements, Architecture, Code) to its case files.
-    - `identifiers` lists every product identifier. `coverage` maps each covered one to its covering cases by loop, the cases whose names cite it. `exemptions` maps each other one to where it is verified instead.
+    - `identifiers` lists every product identifier. `coverage` maps each covered one to its covering cases by loop, the cases whose names cite it. `allocated` maps each identifier allocated to the publisher's Engineering Test Plan to what the publisher runs, and `unverified` maps each one no Test Case verifies to why.
     - `applicability` maps a case, or an identifier, to the platforms where it does not apply and why.
     - `files` maps each other shipped file to its SHA-256. The copy's own `node_modules`, where pnpm links `.bin`, is the package manager's and is not compared. The publisher writes it from a run of the cases and from `npm pack --dry-run`, after any change to a shipped file. A copy whose files do not match it is `cannot verify`, naming the file.
   - **The summary line.** `kaal-guard-verification` is followed by JSON with these members:
@@ -33,7 +33,7 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
     - `files`: digest, mismatched, missing, extra and `sha256`;
     - `cases`: declared, executed, passed, failed, skipped and todo, with the cases each names;
     - `loops`: for each loop, its files, its declared, executed, passed, failed, skipped and not applicable counts, and its cases;
-    - `coverage`: the number of identifiers, and those `covered` by this run, `exempted` (each with where it is verified instead), `notApplicable` here, `notHere` and `uncovered`;
+    - `coverage`: the number of identifiers, and those `covered` by this run, `allocated` (each with what the publisher runs), `unverified` (each with why), `notApplicable` here, `notHere` and `uncovered`;
     - `applicability`: the platform and the cases not applicable on it;
     - `causes`.
   - **What it uses.** It imports nothing from `lib/`, so a broken runtime cannot mask itself, and uses only Node's built-ins. The cases and their harness are reused unchanged.
@@ -41,15 +41,15 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
 - **guard/A19 Product contract** [guard/F37, guard/F38, guard/F39, guard/F40].
   - **The contract's files.** In the package:
     - `docs/intent.md`, `docs/requirements.md` and `docs/architecture.md`, holding the product identifiers;
-    - `docs/testing.md`, holding the loops, the trace and the exemptions;
+    - `docs/testing.md`, the Product Verification Test Plan, holding the loops, the trace, the allocations and the identifiers no Test Case verifies;
     - `docs/limitations.md`.
 
     The package ships `docs/`, and the manifest catalogues it.
   - **The two loops.**
     - Outer: the acceptance cases, in `test/acceptance/`.
     - Inner: the Code tests, in `test/unit/`.
-  - **The trace.** It is derived from the case titles, which already name their identifiers, for example `guard/T61 [guard/F1, guard/A1]`. Exemptions and declared applicability are declared once, in `docs/testing.md`.
-  - **The manifest.** The generator (guard/A18) reads all of this and writes `loops`, `coverage`, `exemptions` and `applicability` into `test/verify.json`. The entry judges them.
+  - **The trace.** It is derived from the case titles, which already name their identifiers, for example `guard/T61 [guard/F1, guard/A1]`. Allocations, identifiers no Test Case verifies, and declared applicability are declared once, in `docs/testing.md`.
+  - **The manifest.** The generator (guard/A18) reads all of this and writes `loops`, `coverage`, `allocated`, `unverified` and `applicability` into `test/verify.json`. The entry judges them.
   - **What the entry imports.** Still nothing from `lib/`.
 
 ## Relationships

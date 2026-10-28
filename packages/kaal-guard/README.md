@@ -165,24 +165,24 @@ To check that the copy of Guard you installed works as intended, run this from y
 npm explore @kaihacksai/kaal-guard -- npm test
 ```
 
-It runs every test loop Guard owns against the installed copy: the acceptance cases for Intent, Requirements and Architecture, and the inner Code tests. They ship with the package. Each case works in a temporary repository of its own, outside your project, and your project is left as it was. It needs Node 24 or later, Git and npm on `PATH`, and the network is not needed. A run takes a few minutes.
+It runs every test loop Guard owns against the installed copy: the acceptance cases for Intent, Requirements and Architecture, and the inner Code tests. They ship with the package. Each case works in a temporary repository of its own, outside your project, and your project is left as it was. It needs Node 24 or later, Git and npm on `PATH`, and the network is not needed. A run takes a few minutes, and on Windows up to about eleven. Keep your project idle while it runs: the run checks that your project is unchanged afterwards, and it cannot tell its own changes from yours, an editor's or Git's.
 
 The run prints:
-- the package, its version, where it is installed and your lockfile's integrity for it;
+- the package, its version, where it is installed, and the integrity npm recorded for it in `node_modules/.package-lock.json` (npm's hidden lockfile, not your project's `package-lock.json`);
 - a digest of the installed files;
 - one line per case, and a line per loop;
-- the coverage of Guard's promises: each one covered by a case of this run, or exempted, with where the publisher verifies it instead (an exemption is not verified by your run, and the output says so);
+- the coverage of Guard's promises: each one covered by a case of this run, or allocated to the publisher's Engineering Test Plan with what the publisher runs, or named as unverified because no Test Case checks it. An allocated or unverified promise is not verified by your run, and the output says so;
 - whether your project is unchanged.
 
 It ends in exactly one result:
 
 | Result | Exit | Meaning |
 | --- | --- | --- |
-| `verified` | 0 | Every declared case ran and passed, except a case declared not applicable on your platform, which is named. Every promise is covered by this run or named as exempted. |
-| `failed` | 1 | A case failed, or your project changed during the run. The output names which. |
-| `cannot verify` | 2 | Nothing failed, but the run cannot claim verification. A prerequisite may be missing, the installed files may not match the manifest the package ships, a case may have been skipped or not run, a loop may have run no case, or a promise may be neither covered nor exempted. The output names the cause and what to do. |
+| `verified` | 0 | Every declared case ran and passed, except a case declared not applicable on your platform, which is named. Every promise is covered by this run, or named as allocated to the publisher or as unverified. |
+| `failed` | 1 | A case failed, or your project changed during the run. The output names which. For a change, check whether you, an editor or a tool such as Git changed those paths during the run; if nothing did, report the output. |
+| `cannot verify` | 2 | Nothing failed, but the run cannot claim verification. A prerequisite may be missing, the installed files may not match the manifest the package ships, a case may have been skipped or not run, a loop may have run no case, or a promise may be neither covered, nor allocated, nor named as unverified. If the verification itself could not complete, the output names the error; report it. The output names the cause and what to do. |
 
-The last line, `kaal-guard-verification {…}`, carries the same as JSON for tools.
+The run's last line, `kaal-guard-verification {…}`, carries the same as JSON for tools. Under `npm explore`, npm may print its own lines after it, so look for the line by its prefix rather than taking the last line of the output.
 
 The installed files are checked against a manifest that ships inside the package. A match shows the copy is consistent with what the package says it ships. It is not independent provenance: for that, rely on your lockfile's integrity and npm's provenance for the published version.
 
@@ -190,7 +190,7 @@ The installed files are checked against a manifest that ships inside the package
 
 It does not tell you these:
 - **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
-- **Behaviour no case covers**, and the exempted promises, which the publisher verifies instead (the output lists them).
+- **Behaviour no case covers**, the promises allocated to the publisher's Engineering Test Plan, and those no Test Case verifies. The output lists them.
 - **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
 
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.
@@ -210,15 +210,16 @@ Guard runs the checks you declare and reports their verdicts. It does not establ
 Added:
 
 - You can verify the installed package. `npm explore @kaihacksai/kaal-guard -- npm test` runs every test loop Guard owns against your installed copy: the acceptance cases for Intent, Requirements and Architecture, and the inner Code tests. It ends in `verified` (exit 0), `failed` (1) or `cannot verify` (2), names the package, its version, its location and the installed files' digest, and leaves your project as it was. [Verify the installed package](#verify-the-installed-package) says what each result means and what `verified` does not tell you.
-- Every promise Guard makes is covered by a case of that run or named as exempted, with where the publisher verifies it instead. An exemption is printed as not verified by your run. A promise neither covered nor exempted, or a loop that runs no case, is `cannot verify`.
+- Every promise Guard makes is covered by a case of that run, allocated to the publisher's Engineering Test Plan with what the publisher runs, or named as unverified because no Test Case checks it. An allocated or unverified promise is printed as not verified by your run. A promise that is none of these, or a loop that runs no case, is `cannot verify`.
 - A case that does not apply on your platform is declared, named as not applicable and not counted as skipped. One inner case is not applicable on Windows.
+- The run removes every temporary directory its cases make, whether they pass or fail. It compares sockets, FIFOs and devices in your project by their kind and never opens them, and it counts a file that disappears while being read, such as a lock Git removes, as absent. When your project changed during the run, it names the paths and asks you to check whether you or a tool such as Git changed them, instead of telling you to restore them.
 - Guard's contract ships in `docs/`: its Intent, Requirements, Architecture, Testing and Limitations, with every identifier the cases name.
 
 Fixed:
 
 - Up to `0.0.3`, `npm explore @kaihacksai/kaal-guard -- npm test` ran no test and exited 0. It now runs the delivered cases, and a run that cannot claim verification says so.
 
-Nothing changes in `run`, `verify`, `init`, `upgrade` or `remove`, or in the declarations: Guard's code, its templates and its Skill are byte for byte those of `0.0.3`. After the dependency and lockfile change, `upgrade` records `0.0.4` for each unmodified managed asset, as for any version.
+Nothing changes in `run`, `verify`, `init`, `upgrade` or `remove`, or in the declarations: Guard's code, its templates and its Skill are byte for byte those of `0.0.3`. After you move to `0.0.4`, `upgrade` rewrites the version fields of the installation record, `.kaal/state/guard/installation.json`, to `0.0.4`, even though no managed asset's bytes change: a one-file diff to commit.
 
 ### 0.0.3
 

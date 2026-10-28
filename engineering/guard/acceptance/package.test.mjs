@@ -1,18 +1,22 @@
 // Guard outer acceptance, Engineering part: the package's own tests and its consumer verification.
 // Requirements verification T98 [N6] (guard/C76, revised in guard/C98), T101–T106 [I8] (guard/C97,
-// written in guard/C98) and T108–T110 [F38–F40] (guard/C102, written in guard/C104). Planned in PLAN;
-// DO and CHECK do not change it.
+// written in guard/C98), T108–T110 [F38–F40] (guard/C102, written in guard/C104) and T113–T117
+// (guard/C107, written in guard/C108). Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import fs from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
-import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
+import { after, describe, it } from "node:test";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const PACKAGE = join(resolve(HERE, "../../.."), "packages", "kaal-guard");
+const REPO = resolve(HERE, "../../..");
+const PACKAGE = join(REPO, "packages", "kaal-guard");
 const NAME = "@kaihacksai/kaal-guard";
 const WINDOWS = process.platform === "win32";
 const NPM = WINDOWS ? "npm.cmd" : "npm";
@@ -24,13 +28,24 @@ function clean(extra = {}) {
   return env;
 }
 
-/** Runs a program; never throws, returns { status, stdout, stderr, output }. */
-function exec(cwd, file, args, env) {
-  const r = spawnSync(file, args, { cwd, env, encoding: "utf8", shell: WINDOWS && file === "npm", maxBuffer: 64 * 1024 * 1024 });
+/** Runs a program; never throws, returns { status, stdout, stderr, output }. With `timeout`, a run still going then is stopped, with status null. */
+function exec(cwd, file, args, env, timeout) {
+  const r = spawnSync(file, args, { cwd, env, encoding: "utf8", shell: WINDOWS && file === "npm", maxBuffer: 64 * 1024 * 1024, timeout });
   return { status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", output: `${r.stdout ?? ""}${r.stderr ?? ""}` };
 }
 
 const must = (r, what) => (assert.equal(r.status, 0, `${what}: ${r.output}`), r);
+
+/** Every temporary root this file makes, removed when the file ends, whether its cases pass or fail (guard/C108). */
+const roots = [];
+const scratch = (prefix) => {
+  const root = mkdtempSync(join(tmpdir(), prefix));
+  roots.push(root);
+  return root;
+};
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+});
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
@@ -65,7 +80,7 @@ function spec() {
     assert.ok(m, `GUARD_CANDIDATE must be registry:<version>, not ${named}`);
     return (candidate = { source: "registry", install: `${NAME}@${m[1]}`, version: m[1], offline: false });
   }
-  const out = mkdtempSync(join(tmpdir(), "kaal-guard-verify-pack-"));
+  const out = scratch("kaal-guard-verify-pack-");
   const r = must(exec(PACKAGE, "npm", ["pack", "--pack-destination", out, "--silent"], clean()), "npm pack");
   const version = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).version;
   return (candidate = { source: "packed", install: join(out, r.stdout.trim().split(/\r?\n/).pop()), version, offline: true });
@@ -77,7 +92,7 @@ function spec() {
  * installed as a development dependency.
  */
 function consumer() {
-  const root = mkdtempSync(join(tmpdir(), "kaal-guard-verify-"));
+  const root = scratch("kaal-guard-verify-");
   const home = join(root, "home");
   const dir = join(root, "consumer");
   mkdirSync(home);
@@ -100,7 +115,7 @@ function consumer() {
   return {
     root, dir, env, installed, candidate: c,
     /** The documented invocation: `npm explore @kaihacksai/kaal-guard -- npm test`. */
-    verify: (extra = {}) => exec(dir, "npm", ["explore", NAME, "--", "npm", "test"], clean({ ...env, ...extra })),
+    verify: (extra = {}, timeout) => exec(dir, "npm", ["explore", NAME, "--", "npm", "test"], clean({ ...env, ...extra }), timeout),
   };
 }
 
@@ -140,7 +155,7 @@ function rewrite(c, change) {
 /**
  * Replaces the installed copy's delivered cases, outer and inner, with one small case file in one loop
  * and makes the shipped manifest consistent with that copy: it declares `cases`, that one loop, no
- * product identifier and nothing exempted or not applicable, unless `declare` says otherwise. A fixture
+ * product identifier and nothing allocated, unverified or not applicable, unless `declare` says otherwise. A fixture
  * of the verification's own accounting, so a scenario does not run the whole delivered suite.
  */
 function reduce(c, source, cases, declare = {}) {
@@ -149,7 +164,8 @@ function reduce(c, source, cases, declare = {}) {
   mkdirSync(join(c.installed, "test", "acceptance"), { recursive: true });
   writeFileSync(join(c.installed, "test", "acceptance", "mini.test.mjs"), source);
   rewrite(c, (manifest) => {
-    Object.assign(manifest, { cases, loops: { Requirements: [MINI] }, identifiers: [], coverage: {}, exemptions: {}, applicability: { cases: {}, identifiers: {} } }, declare);
+    Object.assign(manifest, { cases, loops: { Requirements: [MINI] }, identifiers: [], coverage: {}, allocated: {}, unverified: {}, applicability: { cases: {}, identifiers: {} } }, declare);
+    delete manifest.exemptions;
   });
 }
 
@@ -158,15 +174,40 @@ const PASSING = `import { it } from "node:test";\nit("guard/T0 passes", () => {}
 
 let full;
 
-/** One consumer verified twice with the whole delivered suite, and its content before, between and after. */
+/** A child's temporary directory, by each name an operating system reads it under. */
+const temporary = (dir) => ({ TMPDIR: dir, TEMP: dir, TMP: dir });
+
+/**
+ * What is left in a directory, by name. Node's module compile cache, which npm's own CLI turns on in the
+ * temporary directory and reuses across runs, is npm's and not a leftover of the run.
+ */
+const left = (dir) => readdirSync(dir).filter((name) => name !== "node-compile-cache").sort();
+
+/**
+ * One consumer verified twice with the whole delivered suite, and its content before, between and after.
+ * Each run has a fresh, empty temporary directory of its own, and what each leaves there is recorded.
+ */
 function twice() {
   if (full) return full;
   const c = consumer();
   const before = snapshot(c.dir);
-  const first = c.verify();
+  const tmp = [scratch("kaal-guard-verify-tmp-"), scratch("kaal-guard-verify-tmp-")];
+  const first = c.verify(temporary(tmp[0]));
   const between = snapshot(c.dir);
-  const second = c.verify();
-  return (full = { c, before, first, between, second, after: snapshot(c.dir) });
+  const second = c.verify(temporary(tmp[1]));
+  return (full = { c, before, first, between, second, after: snapshot(c.dir), leftover: tmp.map(left) });
+}
+
+/** The paths npm packs for a package directory and the publisher material among them (guard/T116). */
+function publisher(dir) {
+  const paths = JSON.parse(must(exec(dir, "npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], clean()), "npm pack --dry-run").stdout)[0].files.map((f) => f.path.split("\\").join("/")).sort();
+  const declared = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).files;
+  const always = new Set(["package.json", "README.md", "LICENSE"]);
+  const engineering = join(REPO, "engineering", "guard");
+  // Engineering's plans and its acceptance cases, by content, so a copy under another name is found too.
+  const plans = new Set([...tree(engineering).filter((f) => !f.includes("/") && f.endsWith(".md")), ...tree(join(engineering, "acceptance")).map((f) => `acceptance/${f}`)].map((f) => sha256(readFileSync(join(engineering, f)))));
+  const material = paths.filter((p) => (!always.has(p) && !declared.some((d) => p === d || p.startsWith(`${d}/`))) || p.split("/").includes("engineering") || plans.has(sha256(readFileSync(join(dir, p)))));
+  return { paths, material };
 }
 
 describe("guard/N6 [guard/I5] the package's own tests", () => {
@@ -294,7 +335,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.match(first.output, /kaal-guard verify/, "the output does not name kaal-guard verify for integration");
   });
 
-  it("guard/T108 [guard/F38]: a candidate in which a declared product identifier has neither a covering case nor an exemption is cannot verify, exit 2, naming the identifier; with an exemption it is verified, and the output and summary line name the exemption", (t) => {
+  it("guard/T108 [guard/F38]: a candidate in which a declared product identifier has neither a covering case nor an allocation is cannot verify, exit 2, naming the identifier; allocated to the publisher it is verified, and the output and summary line name the allocation as not verified by this run; one no Test Case verifies is named unverified", (t) => {
     const name = `${MINI} > guard/T0 [guard/F1] passes`;
     const source = `import { it } from "node:test";\nit("guard/T0 [guard/F1] passes", () => {});\n`;
     const declare = { identifiers: ["guard/F1", "guard/F2"], coverage: { "guard/F1": { Requirements: [name] } } };
@@ -302,28 +343,34 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     const bare = consumer();
     reduce(bare, source, [name], declare);
     const r = bare.verify();
-    const s = observed(t, "guard/F2 neither covered nor exempted", r);
+    const s = observed(t, "guard/F2 neither covered nor allocated", r);
     assert.equal(s.result, "cannot verify", `an uncovered identifier gave ${s.result}:\n${r.output.slice(-4000)}`);
     assert.equal(r.status, 2);
     assert.deepEqual(s.coverage?.uncovered, ["guard/F2"], `the summary does not name guard/F2 uncovered: ${JSON.stringify(s.coverage)}`);
     assert.ok(s.causes.some((x) => /guard\/F2/.test(x)), `no cause names guard/F2: ${JSON.stringify(s.causes)}`);
     assert.match(r.output, /guard\/F2/, "the output does not name guard/F2");
 
-    const exempt = consumer();
-    const where = "verified by the publisher before each release";
-    reduce(exempt, source, [name], { ...declare, exemptions: { "guard/F2": where } });
-    const e = exempt.verify();
-    const u = observed(t, "guard/F2 exempted", e);
-    assert.equal(u.result, "verified", `an exempted identifier gave ${u.result}: ${JSON.stringify(u.causes)}`);
+    const allocated = consumer();
+    const where = "in the publisher's release evidence";
+    const why = "the publisher reviews it with each release";
+    reduce(allocated, source, [name], { ...declare, identifiers: ["guard/F1", "guard/F2", "guard/F3"], allocated: { "guard/F2": where }, unverified: { "guard/F3": why } });
+    const e = allocated.verify();
+    const u = observed(t, "guard/F2 allocated to the publisher, guard/F3 unverified", e);
+    assert.equal(u.result, "verified", `an allocated identifier gave ${u.result}: ${JSON.stringify(u.causes)}`);
     assert.equal(e.status, 0);
-    // The exemption stays visibly distinct from what this run executed: never counted as covered here.
+    // The allocation stays visibly distinct from what this run executed: never counted as covered here.
     assert.deepEqual(u.coverage.covered, ["guard/F1"], "the summary counts something other than guard/F1 as covered by this run");
-    assert.deepEqual(u.coverage.exempted, [{ id: "guard/F2", where }], "the summary does not name the exemption");
+    assert.deepEqual(u.coverage.allocated, [{ id: "guard/F2", where }], "the summary does not name the allocation");
+    assert.deepEqual(u.coverage.unverified, [{ id: "guard/F3", why }], "the summary does not name guard/F3 unverified");
     assert.deepEqual(u.coverage.uncovered, []);
     const line = e.output.split(/\r?\n/).find((l) => l.includes("guard/F2") && l.includes(where));
-    assert.ok(line, "the output does not name the exemption and where it is verified");
-    assert.match(line, /exempt/i, "the exemption's line does not say it is exempted");
-    assert.match(line, /not (verified|executed) (by|in) this run/i, "the exemption's line does not say this run did not verify it");
+    assert.ok(line, "the output does not name the allocation and where it is allocated");
+    assert.match(line, /allocated/i, "the allocation's line does not say it is allocated");
+    assert.match(line, /not (verified|executed) (by|in) this run/i, "the allocation's line does not say this run did not verify it");
+    const unverified = e.output.split(/\r?\n/).find((l) => l.includes("guard/F3") && l.includes(why));
+    assert.ok(unverified, "the output does not name guard/F3");
+    assert.match(unverified, /\bunverified\b/i, "guard/F3's line does not say it is unverified");
+    assert.match(unverified, /no Test Case/i, "guard/F3's line does not say no Test Case verifies it");
   });
 
   it("guard/T109 [guard/F39]: npm test runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is cannot verify, naming the loop", (t) => {
@@ -397,5 +444,123 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     const z = observed(t, `guard/F3 declared not applicable on ${here}`, y);
     assert.equal(z.result, "verified", `an identifier the contract declares not applicable gave ${z.result}: ${JSON.stringify(z.causes)}`);
     assert.deepEqual(z.coverage.notApplicable, ["guard/F3"], `the summary does not name guard/F3 not applicable: ${JSON.stringify(z.coverage)}`);
+  });
+
+  it("guard/T113 [guard/F35]: two runs of the documented command, one passing and one with a planted failing case, each with the child's temporary directory set to a fresh empty directory, leave that directory empty", (t) => {
+    const { leftover } = twice();
+    t.diagnostic(`observed on ${process.platform}: the whole delivered suite left ${leftover.map((l) => l.length).join(" and ")} entries in its temporary directory over two runs: ${JSON.stringify(leftover.map((l) => l.slice(0, 8)))}`);
+    assert.deepEqual(leftover, [[], []], "a passing run left entries in its temporary directory");
+
+    // A delivered case that makes a fixture with the delivered harness, then fails.
+    const c = consumer();
+    const harness = readFileSync(join(c.installed, "test", "acceptance", "harness.mjs"));
+    const name = `${MINI} > guard/T0 makes a fixture, then fails`;
+    reduce(c, `import { it } from "node:test";\nimport { consumer } from "./harness.mjs";\nit("guard/T0 makes a fixture, then fails", () => {\n  consumer({ install: false });\n  throw new Error("planted to fail");\n});\n`, [name]);
+    writeFileSync(join(c.installed, "test", "acceptance", "harness.mjs"), harness);
+    rewrite(c, () => {});
+    const tmp = scratch("kaal-guard-verify-tmp-");
+    const r = c.verify(temporary(tmp));
+    const s = observed(t, "a planted case that makes a fixture, then fails", r);
+    assert.equal(s.result, "failed", `the planted failing case gave ${s.result}:\n${r.output.slice(-4000)}`);
+    t.diagnostic(`observed on ${process.platform}: the failing run left ${left(tmp).length} entries in its temporary directory: ${JSON.stringify(left(tmp))}`);
+    assert.deepEqual(left(tmp), [], "a failing run left entries in its temporary directory");
+  });
+
+  // Windows' file system has neither Unix sockets nor FIFOs, so this case is registered on Linux and macOS only.
+  (WINDOWS ? () => {} : it)("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
+    const c = consumer();
+    const passes = `${MINI} > guard/T0 passes`;
+    const replaces = `${MINI} > guard/T0 replaces the FIFO when asked`;
+    reduce(c, `import { it } from "node:test";\nimport { rmSync, writeFileSync } from "node:fs";\nit("guard/T0 passes", () => {});\nit("guard/T0 replaces the FIFO when asked", () => {\n  const fifo = process.env.GUARD_T114_FIFO;\n  if (fifo) {\n    rmSync(fifo);\n    writeFileSync(fifo, "a regular file now\\n");\n  }\n});\n`, [passes, replaces]);
+    const sock = join(c.dir, "t114.sock");
+    const fifo = join(c.dir, "t114.fifo");
+    must(exec(c.dir, "mkfifo", [fifo], clean()), "mkfifo");
+    const server = createServer();
+    await new Promise((done, fail) => server.once("error", fail).listen(sock, done));
+    const LIMIT = 5 * 60 * 1000;
+    try {
+      const r = c.verify({}, LIMIT);
+      if (r.status === null) {
+        // A reader blocked on the FIFO is released: opening it for writing and closing it gives the reader end of file.
+        try {
+          fs.closeSync(fs.openSync(fifo, fs.constants.O_WRONLY | fs.constants.O_NONBLOCK));
+        } catch {}
+      }
+      assert.notEqual(r.status, null, `the run did not complete within ${LIMIT / 1000} s:\n${r.output.slice(-4000)}`);
+      const s = observed(t, "a consumer holding a Unix socket and a FIFO", r);
+      assert.equal(s.result, "verified", `a socket and a FIFO gave ${s.result}:\n${r.output.slice(-4000)}`);
+      assert.equal(r.status, 0);
+      assert.deepEqual(s.consumer.changed, [], "the summary names a changed path");
+      assert.ok(!/t114\.(sock|fifo)/.test(r.output), "the output names the socket or the FIFO");
+
+      const v = c.verify({ GUARD_T114_FIFO: fifo }, LIMIT);
+      assert.notEqual(v.status, null, `the run did not complete within ${LIMIT / 1000} s`);
+      const u = observed(t, "the FIFO replaced with a regular file during the run", v);
+      assert.equal(u.result, "failed", `a FIFO replaced with a regular file gave ${u.result}:\n${v.output.slice(-4000)}`);
+      assert.equal(v.status, 1);
+      assert.ok(u.consumer.changed.includes("t114.fifo"), `the summary does not name t114.fifo changed: ${JSON.stringify(u.consumer.changed)}`);
+    } finally {
+      server.close();
+    }
+  });
+
+  it("guard/T115 [guard/F33, guard/F35]: a delivered case that appends to a consumer file gives failed, exit 1, naming the path, with the next step to check concurrent activity and no advice to restore paths", (t) => {
+    const c = consumer();
+    reduce(c, `import { it } from "node:test";\nimport { appendFileSync } from "node:fs";\nit("guard/T0 changes the consumer", () => appendFileSync(process.env.GUARD_T115_FILE, "changed during the run\\n"));\n`, [`${MINI} > guard/T0 changes the consumer`]);
+    const r = c.verify({ GUARD_T115_FILE: join(c.dir, "own.txt") });
+    const s = observed(t, "a consumer file changed during the run", r);
+    assert.equal(s.result, "failed", `a change during the run gave ${s.result}:\n${r.output.slice(-4000)}`);
+    assert.equal(r.status, 1);
+    assert.ok(s.consumer.changed.includes("own.txt"), `the summary does not name own.txt changed: ${JSON.stringify(s.consumer.changed)}`);
+    const line = r.output.split(/\r?\n/).find((l) => /^failed: the consumer changed during the run/.test(l));
+    assert.ok(line, `the output names no change during the run:\n${r.output.slice(-4000)}`);
+    t.diagnostic(`observed on ${process.platform}: ${line}`);
+    assert.match(line, /own\.txt/, "the cause does not name own.txt");
+    assert.match(line, /check whether you, an editor or a tool such as Git changed/i, "the next step does not ask to check concurrent activity");
+    assert.ok(!/restore/i.test(r.output), "the output advises restoring paths");
+  });
+
+  it("guard/T116 [guard/F37, guard/A19]: the packed candidate holds only the package's declared files, and no path from engineering/, no Engineering Test Plan and no release evidence", (t) => {
+    const found = publisher(PACKAGE);
+    t.diagnostic(`observed on ${process.platform}: ${found.paths.length} packed files; publisher material: ${JSON.stringify(found.material)}`);
+    assert.deepEqual(found.material, [], "the packed candidate holds publisher material");
+
+    // The check discriminates: the same package with an Engineering Test Plan planted in docs/ is found.
+    const planted = join(scratch("kaal-guard-verify-plant-"), "kaal-guard");
+    cpSync(PACKAGE, planted, { recursive: true, filter: (from) => !from.split(/[\\/]/).includes("node_modules") });
+    mkdirSync(join(planted, "docs", "engineering"));
+    copyFileSync(join(REPO, "engineering", "guard", "testing.md"), join(planted, "docs", "engineering", "testing.md"));
+    const caught = publisher(planted);
+    t.diagnostic(`observed on ${process.platform}, with a planted docs/engineering/testing.md: publisher material ${JSON.stringify(caught.material)}`);
+    assert.deepEqual(caught.material, ["docs/engineering/testing.md"], "a planted Engineering Test Plan is not found");
+  });
+
+  it("guard/T117 [guard/F35]: snapshot(), with its file-system reads patched so a listed file is removed before it is read, completes and records the file as absent", async (t) => {
+    const { snapshot } = await import(pathToFileURL(join(PACKAGE, "test", "verify.mjs")).href);
+    const dir = scratch("kaal-guard-verify-race-");
+    writeFileSync(join(dir, "stays.txt"), "a file that stays\n");
+    writeFileSync(join(dir, "maintenance.lock"), "");
+    // As Git's background maintenance does with .git/objects/maintenance.lock: listed, then gone before it is read.
+    const real = fs.readdirSync;
+    fs.readdirSync = function (path, ...rest) {
+      const out = real.call(this, path, ...rest);
+      if (path === dir) rmSync(join(dir, "maintenance.lock"), { force: true });
+      return out;
+    };
+    syncBuiltinESMExports();
+    let shot;
+    let error;
+    try {
+      shot = snapshot(dir);
+    } catch (e) {
+      error = e;
+    } finally {
+      fs.readdirSync = real;
+      syncBuiltinESMExports();
+    }
+    t.diagnostic(`observed on ${process.platform}: ${error ? `snapshot() threw ${error.code ?? ""} ${error.message}` : `snapshot() recorded ${JSON.stringify(Object.keys(shot))}`}`);
+    assert.equal(error, undefined, `snapshot() threw: ${error?.message}`);
+    assert.ok("stays.txt" in shot, "snapshot() does not record the file that stays");
+    assert.ok(!("maintenance.lock" in shot), "snapshot() records the removed file as present");
   });
 });
