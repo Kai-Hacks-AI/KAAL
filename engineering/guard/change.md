@@ -448,6 +448,11 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Order.** `guard/C121` first: it is the only one where a requirement disagrees with shipped behaviour. The other three are independent.
 - **Authorization.** Approving this PLAN authorizes the four Changes to be raised as PLANs for review. It authorizes no DO, no version bump, no promotion and no publication.
 
+**The defect table names each defect's establishing Test Case (`guard/C123`, PLAN).** D-1 from `guard/C119`. Limitations says "A defect is established only by a Test Case that proved it failing", and the Owner's ruling (#333) is that a Defect traces only to that Test Case. Yet each row of the defect table traces to a Requirement and names no Test Case.
+- **Product change.** The table gains a column, "Established by", naming each defect's establishing Test Case: guard/D1 guard/T38, guard/D2 guard/T39, guard/D3 guard/T43, guard/D5 guard/T81, guard/D16 guard/T94–guard/T96, guard/D17 guard/T98. The Requirement stays in "What happened", as the obligation the defect broke. The sentence above the table adds that these Test Cases are the publisher's, so they are not in the package (guard/A18). The DO checks each pairing against `engineering/guard/` before writing it.
+- **Test Case.** guard/T127, a product acceptance case in `test/acceptance/architecture.test.mjs`, beside guard/T107: every row of the defect table in `docs/limitations.md` names at least one Test Case under "Established by". It is RED first against `0.0.4`, whose table has no such column, and GREEN after the DO.
+- **Authorization.** Approving this PLAN authorizes `guard/C123`'s DO only: no version bump, promotion or publication.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -564,7 +569,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | not created |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | not created |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | not created |
-| `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
+| `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
