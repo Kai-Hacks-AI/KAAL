@@ -1,15 +1,26 @@
 // Inner Code tests of the runner, commands, trusted checkers and GitHub reporting. They evolve with the code, test first.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, it } from "node:test";
-import { annotations, summarize, verify } from "../lib/github.mjs";
-import { plan, words } from "../lib/command.mjs";
-import { CONFIG, readDeclarations } from "../lib/config.mjs";
-import { lines, run, status } from "../lib/runner.mjs";
+import { after, describe, it } from "node:test";
+import { annotations, summarize, verify } from "../../lib/github.mjs";
+import { plan, words } from "../../lib/command.mjs";
+import { CONFIG, readDeclarations } from "../../lib/config.mjs";
+import { lines, run, status } from "../../lib/runner.mjs";
+
+/** Every temporary root this file makes, removed when the file ends, whether its tests pass or fail. */
+const roots = [];
+const scratch = (prefix) => {
+  const root = mkdtempSync(join(tmpdir(), prefix));
+  roots.push(root);
+  return root;
+};
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+});
 
 /** One declaration's file for a check, in the frontmatter subset. */
 function declare(check) {
@@ -22,7 +33,7 @@ function declare(check) {
 
 /** A Git working tree declaring these checks in its configuration directory. */
 function repo(checks) {
-  const dir = mkdtempSync(join(tmpdir(), "kaal-guard-inner-"));
+  const dir = scratch("kaal-guard-inner-");
   spawnSync("git", ["init", "-q", dir]);
   mkdirSync(join(dir, CONFIG), { recursive: true });
   for (const [name, check] of Object.entries(checks)) writeFileSync(join(dir, CONFIG, `${name}.md`), declare(check));
@@ -62,7 +73,7 @@ describe("run", () => {
   });
 
   it("passes a check's output through on standard error and takes the verdict from its exit status alone", () => {
-    const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
+    const bin = fileURLToPath(new URL("../../bin/kaal-guard.mjs", import.meta.url));
     const dir = repo({
       s: { command: node("console.log('all is well');console.error('really');process.exit(1)"), runs: ["ci"] },
     });
@@ -192,7 +203,7 @@ describe("GitHub reporting", () => {
   });
 
   it("writes each verdict to the step summary by its own name", () => {
-    const file = join(mkdtempSync(join(tmpdir(), "kaal-guard-summary-")), "summary.md");
+    const file = join(scratch("kaal-guard-summary-"), "summary.md");
     writeFileSync(file, "");
     summarize([{ name: "x", verdict: "not applicable", evidence: "a | b" }, { name: "y", verdict: "pass", evidence: "C:\\dir\\| z" }], file);
     const text = readFileSync(file, "utf8");
@@ -277,7 +288,7 @@ describe("verify", () => {
 });
 
 describe("commands", () => {
-  const bin = fileURLToPath(new URL("../bin/kaal-guard.mjs", import.meta.url));
+  const bin = fileURLToPath(new URL("../../bin/kaal-guard.mjs", import.meta.url));
 
   it("has no command that lists checks for a workflow to run, and takes --ci only on init", () => {
     const dir = repo({});
