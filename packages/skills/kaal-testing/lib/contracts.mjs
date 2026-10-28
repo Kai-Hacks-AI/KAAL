@@ -12,18 +12,24 @@
 //     validated: nothing here verifies who reviewed what;
 //   - what stays unknown.
 //
-// No per-test result is accepted. A record that names a file, its hash, a test
-// path and a status proves nothing about a run: anyone can write one. Until
-// per-test results come from a runner execution with established provenance,
-// every offered test is unknown, with that reason, whatever any file claims.
-// So a statement is never reported as met, nor its evidence as verified. There
-// is no percentage, ratio or gate.
+// No per-test result is accepted from a record. A record that names a file,
+// its hash, a test path and a status proves nothing about a run: anyone can
+// write one. A per-test result counts only when Testing observed it: in a run
+// that kaal-testing/acceptance's accept() returned in this process, read
+// through what accept() kept of it, never through the object's fields. An
+// offered acceptance test is then observed when that run executed exactly its
+// file, at its pinned bytes and its suite path, against the package as
+// delivered, and it passed. What a statement's tests show is still not that
+// the statement holds: the inference stays a judgment. Without such a run,
+// every offered test is unknown, whatever any file claims. There is no
+// percentage, ratio or gate.
 //
 // A mapping is { owner: { kind, name, id }, statements: [{ source, quote,
 // sha256, loop, evidence: [{ file, sha256, test: [suite, ..., test] }],
 // inference, limits, review }] }. An obligation is identified by its source
 // path and the sha256 of its exact quote; no other id is invented.
 import { sha256 } from "./acceptance.mjs";
+import { recall } from "./observed.mjs";
 
 /** The loops a mapping may offer evidence from. Implementation tests are a capability's internals, never contract evidence. */
 export const LOOPS = ["conformance", "acceptance"];
@@ -70,15 +76,27 @@ export function problems(mapping, owner) {
   return found;
 }
 
-/** Why an offered test is unknown in this tree: per-test results are never taken from a record. */
-const UNATTESTED = "no per-test result is accepted: a result record is a claim, and none comes from a runner execution with established provenance";
+/** Why an offered test is unknown without an observed run: per-test results are never taken from a record. */
+const UNATTESTED = "no per-test result is accepted without an observed run: a result record or a copied run is a claim, and only a run accept() returned in this process is observed";
 
-/** One offered test, against this tree's bytes. */
-async function offered(e, files) {
+/**
+ * One offered test of a statement in `loop`, against this tree's bytes and
+ * what accept() observed in the run (`seen`, or undefined without one).
+ */
+async function offered(e, loop, files, seen) {
   const bytes = files[e.file];
   if (bytes === undefined) return { ...e, class: "unknown", reason: `${e.file} is missing` };
   if ((await sha256(bytes)) !== e.sha256) return { ...e, class: "unknown", reason: `${e.file} no longer holds the pinned bytes (stale)` };
-  return { ...e, class: "unknown", reason: UNATTESTED };
+  if (!seen) return { ...e, class: "unknown", reason: UNATTESTED };
+  if (loop !== "acceptance") return { ...e, class: "unknown", reason: "only acceptance tests are observed: accept() does not run conformance tests" };
+  const ran = seen.tests.filter((t) => t.file === e.file && same(t.test, e.test));
+  if (ran.length === 0) return { ...e, class: "unknown", reason: "the run did not execute this test" };
+  if (ran.some((t) => t.sha256 !== e.sha256)) return { ...e, class: "unknown", reason: "the bytes that ran are not the pinned bytes" };
+  if (!seen.installed.includes(e.file)) return { ...e, class: "unknown", reason: "its scenario installed no packed package, so it exercised no package as delivered" };
+  if (seen.provenance.length > 0) return { ...e, class: "unknown", reason: `the run's provenance failed: ${seen.provenance.map((f) => f.evidence).join("; ")}` };
+  if (ran.some((t) => t.outcome === "fail")) return { ...e, class: "verified failure", reason: `${e.test.join(" › ")} failed in the observed run` };
+  if (ran.every((t) => t.outcome === "pass")) return { ...e, class: "observed", reason: `${e.test.join(" › ")} passed in the observed run` };
+  return { ...e, class: "unknown", reason: `${e.test.join(" › ")} was ${ran.find((t) => t.outcome !== "pass").outcome} in the run` };
 }
 
 /** What the mapping says of its own review: declared, never validated here. */
@@ -91,12 +109,17 @@ function declared(s) {
 
 /**
  * Classify each statement of a readable `mapping` against `files`, this
- * tree's bytes by repository path ({ path: bytes }, a missing path absent).
- * Returns one entry per statement, in mapping order. Every statement is
- * unknown, with its reason: there is no input through which a claimed test
- * result could verify one.
+ * tree's bytes by repository path ({ path: bytes }, a missing path absent),
+ * and optionally `run`, a run accept() returned in this process from the
+ * repository root. Returns one entry per statement, in mapping order:
+ * - `verified failure` when an offered test failed in the observed run;
+ * - `observed` when every offered test passed in it;
+ * - otherwise `unknown`, with its reason.
+ * The inference from the tests to the statement is reported as before, a
+ * judgment and never verified.
  */
-export async function classify(mapping, files) {
+export async function classify(mapping, files, run) {
+  const seen = recall(run);
   const out = [];
   for (const s of mapping.statements) {
     const base = { source: s.source, sha256: s.sha256, quote: s.quote, loop: s.loop };
@@ -114,9 +137,16 @@ export async function classify(mapping, files) {
       continue;
     }
     const evidence = [];
-    for (const e of s.evidence) evidence.push(await offered(e, files));
+    for (const e of s.evidence) evidence.push(await offered(e, s.loop, files, seen));
     const inference = declared(s);
-    out.push({ ...base, evidence, argument: s.inference, inference, limits: s.limits, class: "unknown", reason: `no offered test is verified; inference ${inference}` });
+    const failed = evidence.find((e) => e.class === "verified failure");
+    const open = evidence.find((e) => e.class === "unknown");
+    const [cls, reason] = failed
+      ? ["verified failure", `${failed.reason}; inference ${inference}`]
+      : open
+        ? ["unknown", `not every offered test is observed (${open.reason}); inference ${inference}`]
+        : ["observed", `every offered test passed in the observed run; inference ${inference}`];
+    out.push({ ...base, evidence, argument: s.inference, inference, limits: s.limits, class: cls, reason });
   }
   return out;
 }

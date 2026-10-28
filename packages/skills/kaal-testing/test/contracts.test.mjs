@@ -32,7 +32,7 @@ async function mapping(extra = {}, evidence) {
   };
 }
 const FILES = { [SOURCE]: Buffer.from(`# Alpha\n\n${QUOTE}\n`), [TEST]: TEST_BYTES };
-const UNATTESTED = "no per-test result is accepted: a result record is a claim, and none comes from a runner execution with established provenance";
+const UNATTESTED = "no per-test result is accepted without an observed run: a result record or a copied run is a claim, and only a run accept() returned in this process is observed";
 const only = async (m, files, ...rest) => (await classify(m, files, ...rest))[0];
 
 describe("contract evidence: reading a mapping", () => {
@@ -64,7 +64,7 @@ describe("contract evidence: classifying a statement", () => {
   it("never reports a statement as met, nor an offered test as verified", async () => {
     const s = await only(await mapping(), FILES);
     assert.equal(s.class, "unknown");
-    assert.equal(s.reason, "no offered test is verified; inference proposed, not reviewed");
+    assert.equal(s.reason, `not every offered test is observed (${UNATTESTED}); inference proposed, not reviewed`);
     assert.deepEqual(s.evidence.map((e) => [e.class, e.reason]), [["unknown", UNATTESTED]]);
   });
 

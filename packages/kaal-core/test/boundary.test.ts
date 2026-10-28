@@ -41,12 +41,12 @@ function judged(v: Validation[]): { file: string; construct: string }[] {
 }
 
 describe("Core's Hosting boundary", () => {
-  it("permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its one other import is Graph, for Node mechanics", async () => {
+  it("permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its other imports are Graph, for Node mechanics and for reading frontmatter", async () => {
     const files = await shipped();
     assert.ok(Object.keys(files).length >= 7);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["kaal-graph", "kaal-hosting"]);
+    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["kaal-graph", "kaal-graph/form", "kaal-hosting"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);
