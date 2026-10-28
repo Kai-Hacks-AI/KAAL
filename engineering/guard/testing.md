@@ -311,6 +311,14 @@ A pair that does not meet the condition is reported `not applicable` with the re
 
 Without `GUARD_CANDIDATES`, the harness's `packed` variants give guard/T36–guard/T68 GREEN, guard/T66 included, and guard/T118 not applicable.
 
+## The managed workflow keeps no credential (`guard/C114`)
+
+guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15, so it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs` and is delivered with the package.
+
+| Test | Checks | Written in | Intended evidence against `0.0.4` |
+| --- | --- | --- | --- |
+| guard/T119: in a consumer that ran `init --ci`, every `actions/checkout` step of the installed `.github/workflows/guard.yml` sets `persist-credentials: false`, and the installed content is catalogued for that path in `contract.json` together with every earlier catalogued content of it | guard/N15, guard/F29 | `guard/C114` | RED: neither checkout step sets it |
+
 ## Two limits, stated (`guard/C116`)
 
 guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package.
