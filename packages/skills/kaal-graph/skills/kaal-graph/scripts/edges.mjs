@@ -21,6 +21,7 @@ import { isDeepStrictEqual } from "node:util";
 import { stringify } from "yaml";
 import { FormError, identify, isId, isName } from "./node.mjs";
 
+export { readFrontmatter } from "./form.mjs";
 export { claimsForm, FormError, identify, identifyRoot, isId, isName, sha256 } from "./node.mjs";
 
 const byRef = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
