@@ -380,6 +380,24 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Decision.** The Owner chose option B on #552. Desired-result acceptance and transition acceptance stay distinct, and both must be evidenced.
 - **Authorization.** Option B authorizes preparing and reviewing this PLAN. It authorizes no DO, no acceptance of `guard/C101`, no promotion and no publication. Starting the DO takes the Owner's approval of this PLAN, and accepting `guard/C101` takes a separate decision.
 
+**The deferred findings of `0.0.4`, triaged (`guard/C111`, PLAN).** `0.0.4` is accepted (`guard/C101`, #552). Its deferred findings become bounded Changes for `0.0.5`, each with its own PLAN and tests. This PLAN names them and sets their order; it changes no product file. M1–M3 come from the `0.0.3` review, which is not in the repository (the project's `engineering/guard-0.0.3-review.md`), so their text is recorded here:
+- M1: `templates/guard.yml` checks out without `persist-credentials: false` before `npm ci` runs the pull request's install scripts. The token is read-only, so the impact is low.
+- M2: hook activation is per clone, because `core.hooksPath` is local Git configuration. The README only hints at this.
+- M3: the installation record is a tracked file anyone can edit, and ownership is decided by its SHA-256 alone. "Only Guard writes the record" is a convention the code does not enforce. It is not a privilege escalation.
+
+| Change | Findings | What it does | Why bounded so |
+| --- | --- | --- | --- |
+| `guard/C114` | M1 | The managed workflow checks out with `persist-credentials: false`. The new content is catalogued, and the old content stays recognised | It is the only finding that touches a credential. It changes a managed asset, so `0.0.4` → `0.0.5` gives guard/T65, guard/T68 and guard/T118 a workflow to move, and makes them applicable |
+| `guard/C115` | n1, n2, N7 | Consumer output and command surface: the allocation sentence once per group, not per identifier; a named destination for reports (`bugs` in `package.json`, named in the output); `kaal-guard --version` and `--help` | All three are what a consumer reads or types. None changes a verdict |
+| `guard/C116` | M2, M3 | The README states both limits. Hook activation is per clone, and how to activate in a new clone. The installation record is a tracked file that Guard checks by hash but does not protect | Documentation only. Enforcing either would be a design Change of its own, and none is proposed |
+| `guard/C117` | N6 | Measure what makes `0.0.4` about 3.3× `0.0.3`, then reduce what does not need to ship in its present form, `test/verify.json` first. No size budget is set before the measurement | The size has a cause to find first. The cases and their coverage stay as they are |
+| `guard/C118` | n3 | guard/T114 is reported not applicable on Windows, with the reason, instead of being absent. It uses the declared applicability of `guard/C112` | A publisher case only; the package is unaffected. It needs only the Guard-local applicability that `guard/C112` already uses |
+
+- **Order.** `guard/C114` first, because it is the credential finding. `guard/C113` (the target-owned migration contract) and `guard/C115`–`guard/C118` follow. They are independent and can run in parallel.
+- **Where.** In a new collector cut from main once `kaal/guard-release` is promoted, so the `0.0.4` record reaches main first. Promotion of `kaal/guard-release` is not authorized yet.
+- **Not here.** The Branching audit's two reused branches are repository hygiene, not a Guard finding. They stay until the Owner decides separately. `guard/C109` (exact-SHA release gating) and `guard/C26` (#340) keep their own rows.
+- **Authorization.** Approving this PLAN authorizes the five Changes to be raised as PLANs for review. It authorizes no DO, no version bump, no promotion and no publication.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -484,9 +502,14 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
 | `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | #551, merged; published 2026-10-28 by Guard Release run 40692680679, from f0d1eb9 |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`: the desired result, and the applicable transition cases for `registry` `0.0.2` and `0.0.3` → `0.0.4`, guard/T118 included, all GREEN ([Testing](testing.md#release-acceptance-of-004-guardc101)) | `guard/C100`, `guard/C112` | evidence recorded; acceptance waits on the Owner |
-| `guard/C111` | — | Guard | After `0.0.4`: the deferred findings of its release, n1–n3, N6, N7 and M1–M3, triaged into bounded Changes | `guard/C101` | not created |
+| `guard/C111` | — | Guard | After `0.0.4`: the deferred findings of its release, n1–n3, N6, N7 and M1–M3, triaged into bounded Changes | `guard/C101` | PLAN |
 | `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN #557, merged; DO: guard/T118 GREEN for both sources |
 | `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
+| `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1) | `guard/C111` | not created |
+| `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
+| `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3) | `guard/C111` | not created |
+| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | not created |
+| `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
