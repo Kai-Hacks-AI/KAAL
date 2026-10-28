@@ -347,6 +347,12 @@ A generic Test Plan object is a later Testing improvement, outside this Change.
 
 **N5, release assurance.** The 17 exemptions rest on the publisher's evidence. `guard/C100` therefore shows, in its pull request and before you approve the `npm` environment, the check runs of the exact SHA Guard Release packs: `Engineering`, and `Guard` on Linux, macOS and Windows. That is evidence for one release. It is not an enforced gate. A durable gate is investigated separately as `guard/C109`, after `0.0.4`.
 
+**The release evidence for `0.0.4` (`guard/C100`).** The release SHA is main's f0d1eb9, the squash of the promotion #550. On it:
+- `Engineering`, `Guard`, `Guard (macOS)` and `Guard (Windows)` are green (run 40682336282), as are Acceptance and Hosting on all three, Workspaces and CodeQL.
+- `Branching audit` is red. It was already red on cb61006, before the promotion. Its cause is two `claude/*` branches reused after their pull requests merged, not this release.
+- Guard Release, dispatched without `publish` (run 40686947122), packed f0d1eb9 and tested it on Linux. Its tarball `kaihacksai-kaal-guard-0.0.4.tgz` is 115,661 bytes, SHA-256 `ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a`. This is the same digest the independent pre-publish review on #550 packed.
+- Publication is Guard Release with `publish`, started by the Owner from main at f0d1eb9 and approved by the Owner in the `npm` environment. The Publish job re-packs and publishes only a tarball with that SHA-256.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -449,7 +455,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C104` | — | Guard | The inner loop ships in `test/unit/`, and the verdict judges loops, coverage and applicability. guard/T108–guard/T110 are written with their RED evidence, and each identifier no case cited is named in a case title or exempted, as [Testing](testing.md#the-complete-product-004) lists | `guard/C106` | #540 |
 | `guard/C105` | — | Guard | External's hook, workflow and Skill templates derived from the package's under guard/N14 by declared transformations, with guard/T112 written RED first; scope and acceptance [above](#the-complete-product-004). Not part of the `0.0.4` increment, and not authorized by `guard/C102` | `guard/C103` | not created |
 | `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
-| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | not created |
+| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | the evidence for f0d1eb9 is in this pull request; publication waits on the Owner |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
