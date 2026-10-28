@@ -370,7 +370,7 @@ Together they are 67% of `0.0.4`'s gzip bytes. `lib/`, `bin/`, `templates/` and 
 
 - **What the options do not touch.** None of them removes a case, a loop, an identifier, an allocation or a file. Removing what verification needs (`test/`, `docs/`) is not an option, because guard/I8 and guard/I9 require it to ship.
 - **What this shows.** The tarball grew because the product now ships its verification and its contract. What it ships compresses well. The largest saving that keeps every case and every meaning is 2.8% of the tarball, and 15% unpacked, at the cost of a less readable manifest.
-- **What is not done.** No reduction is made and no size budget is set. Either option, or none, is the Owner's choice.
+- **The Owner's decision (#579): None.** No reduction is made and no size budget is set. Every case, the coverage and the manifest's meaning are kept.
 
 <details><summary>Every shipped path of <code>0.0.4</code>, largest compressed first</summary>
 
