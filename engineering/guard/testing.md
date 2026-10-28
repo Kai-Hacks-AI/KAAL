@@ -274,12 +274,14 @@ GUARD_CANDIDATE=registry:0.0.4 GUARD_CANDIDATES=registry:0.0.3,registry:0.0.4 no
 | guard/T36, guard/T42 | GREEN | the published `0.0.2` they consume |
 | guard/T40, guard/T43, guard/T64 | GREEN | `@kaihacksai/kaal-guard@0.0.4 (registry)` |
 | guard/T67 | GREEN | `registry` `0.0.3` → `0.0.4` |
-| guard/T65, guard/T68 | not exercised for this pair. Both stop before their behavioural assertion: "the candidates' workflows do not differ, so nothing can be seen to move" and "the workflow did not move forward" | `registry` `0.0.3` → `0.0.4` |
-| guard/T66 | not exercised for this pair: "blocked before behavioural assertion: the newer candidate adds no asset to the hook surface" | `registry` `0.0.3` → `0.0.4` |
+| guard/T65, guard/T66, guard/T68 | stopped before their behavioural assertion, because their applicability was still coded as assertions. `guard/C112` declares it, and its run below reports them not applicable for this pair | `registry` `0.0.3` → `0.0.4` |
 
-`0.0.4` ships `templates/` byte for byte as `0.0.3` does; the consumer-side review on #550 found the same. So no managed asset changes between the two versions, and an upgrade has nothing to move. That is the condition guard/T66 met for `0.0.3` (`guard/C89`, the Owner on #483). No asset is added only to make the cases observable. Their behaviour stays exercised between two `packed` candidates, and they are revisited when a release changes a managed asset.
+**The acceptance basis.** `0.0.4` is accepted on two concerns, each with its own Test Cases. Both succeeded:
+- **Desired result.** The installed product's verification is GREEN within its declared scope. `packed`: guard/T101–guard/T110 on Linux, macOS and Windows, and guard/T111 on Linux only. `registry` on Linux: guard/T101, guard/T102, guard/T103, guard/T105, guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64.
+- **Transition, `registry` `0.0.2` → `0.0.4`.** guard/T118, guard/T65, guard/T67 and guard/T68 are GREEN. guard/T66 is not applicable.
+- **Transition, `registry` `0.0.3` → `0.0.4`.** guard/T118 and guard/T67 are GREEN. guard/T65, guard/T66 and guard/T68 are not applicable, because the two versions ship the same workflow and `0.0.4` adds no asset to the hook surface.
 
-**Accepting `0.0.4`.** [Consumer verification](#consumer-verification-004) required guard/T65, guard/T67 and guard/T68 GREEN between the published `0.0.3` and `0.0.4`. Only guard/T67 can be, so whether `0.0.4` is accepted with guard/T65 and guard/T68 recorded as not exercised for this pair is the Owner's decision on this Change. Until then, `0.0.4` is published but not accepted.
+[Transition acceptance of `0.0.4`](#transition-acceptance-of-004-guardc112) has the run. A case that is not applicable is neither GREEN nor RED and is not counted as passed. No asset was changed to make a case observable, no assertion was weakened, and no recorded result was rewritten. Both supported upgrade paths have GREEN, outcome-oriented guard/T118 evidence. The limits stand: `registry` evidence is from Linux, and guard/T111 from Linux only. `0.0.4` ships no target-owned migration contract; that is `guard/C113`, for `0.0.5`.
 
 ## Transition acceptance of `0.0.4` (`guard/C112`)
 
