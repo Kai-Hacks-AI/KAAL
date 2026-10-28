@@ -300,6 +300,44 @@ All of it collects in `kaal/guard-verify` as one Guard `0.0.4` increment. This P
   If a template cannot be produced from its product asset by a declared transformation, `guard/C105` does not narrow guard/N14 or its test. Instead it returns to the Owner as a PLAN that proposes how to amend guard/N14.
 - **Approval.** `guard/C105` is not part of the `0.0.4` increment and is not authorized by this PLAN. It is raised as its own Change, under its own approval.
 
+### Consumer-experience corrections (`0.0.4`, `guard/C107`)
+
+On #544 (2026-10-28), the Owner's pre-release review of the packed `0.0.4` candidate from `afa9ca3` found no functional blocker. It did find three consumer-experience defects that must be corrected before publication, plus four documentation corrections. `guard/C107` is the PLAN for them, and `guard/C108` carries them out. Both collect in `kaal/guard-verify` into the same `0.0.4` increment, so `0.0.4` stays unpublished and gets no new version. The approved Changes `guard/C98`, `guard/C103`, `guard/C104` and `guard/C99` are not reopened. `guard/C108` is its own Change.
+
+**What `guard/C108` changes.** Each correction comes with its Test Case, written RED first. Its RED run against `afa9ca3` is recorded in `guard/C108`'s pull request before the fix lands.
+
+- **S1, temporary directories.** One verification run leaves about 150 directories (147 MB) in the operating system's temporary directory.
+  - Every test-owned `mkdtemp` root is removed by the hook of the test or file that made it (`t.after` or `after`), so it is removed on failure too. That covers the delivered cases (`test/unit/`, `test/acceptance/`, `harness.mjs`) and Engineering's acceptance files (`package.test.mjs`, `delivery.mjs`).
+  - guard/T113 runs the documented command twice against the packed candidate, with the child's temporary directory set to a fresh, empty directory: once passing and once with a planted failing case. After each run the directory is empty again.
+  - Engineering's own acceptance files are not delivered, so no Test Case covers them. Their cleanup is shown in the pull request: one run of the `Guard` command under an empty temporary directory, listed before and after.
+- **S2, sockets and FIFOs.** `snapshot()` reads every entry that is not a directory or link as a file. A Unix socket, such as Git's fsmonitor daemon's `.git/fsmonitor--daemon.ipc`, gives `cannot verify` with the wrong advice to reinstall. A FIFO hangs the run.
+  - `snapshot()` hashes regular files only. Every other entry is recorded by its kind (`socket`, `fifo`, `char`, `block`, `other`) and never opened, so a change of kind still counts as a change.
+  - The "verification itself could not complete" cause names the error and asks for this output to be reported. It no longer advises reinstalling. guard/F33 lists this cause.
+  - guard/F35 states how such entries are compared.
+  - guard/T114 runs on a consumer that holds a Unix socket and a FIFO. The run completes within its time limit, gives `verified`, exit 0, and does not name either entry. Replacing the FIFO with a regular file between snapshots gives `failed`, naming it.
+  - Windows' file system has neither kind. So guard/T114 is registered on Linux and macOS only, and its evidence is recorded for those two hosts.
+- **S3, a change during the run.** The verdict stays `failed`, exit 1, naming the changed paths. Its semantics are not changed here.
+  - The next step changes from "restore those paths from version control" to: check whether you, an editor or a tool such as Git changed these paths during the run; if nothing did, report this output to the package's maintainers.
+  - The README and guard/F35 say the project should stay idle during the run.
+  - guard/T115 plants a delivered case that appends to a consumer file. The result is `failed`, exit 1, naming that path and the new next step, and no output line advises restoring anything.
+- **N1–N4, documentation.**
+  - N1: a run takes a few minutes, and on Windows up to about 11 (guard/T101 took 668 s in CI).
+  - N2: under `npm explore`, npm may print its own lines after the summary line, so the summary is the last line the verifier prints, not the last line of output.
+  - N3: the lockfile integrity is read from npm's hidden `node_modules/.package-lock.json`, not from the project's lockfile.
+  - N4: the release notes say plainly that `upgrade` rewrites the version fields of the installation record even when no managed asset's bytes change.
+- **The release notes for `0.0.4`** gain the S1–S3 corrections.
+
+**N5, release assurance.** The 17 exemptions rest on the publisher's evidence. `guard/C100` therefore shows, in its pull request and before you approve the `npm` environment, the check runs of the exact SHA Guard Release packs: `Engineering`, and `Guard` on Linux, macOS and Windows. That is evidence for one release. It is not an enforced gate. A durable gate is investigated separately as `guard/C109`, after `0.0.4`.
+
+**Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
+
+**How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
+1. `guard/C107`, this PLAN, then `guard/C108`, both into `kaal/guard-verify`.
+2. #544 stays open as the one sync. After `guard/C108` lands, its branch takes `kaal/guard-verify` (and main, if main has moved) by merge, so it is still the sync made immediately before the promotion.
+3. PROMOTION `kaal/guard-verify` → main.
+
+This PLAN authorizes `guard/C108` only. It authorizes no promotion, release or publication.
+
 ### First release and later upgrades
 
 Accepting the first published `0.0.2` must not wait on a version that does not exist yet. The consumer Test Cases split by how many published versions they need (restated in `guard/C30`):
@@ -393,8 +431,11 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C104` | — | Guard | The inner loop ships in `test/unit/`, and the verdict judges loops, coverage and applicability. guard/T108–guard/T110 are written with their RED evidence, and each identifier no case cited is named in a case title or exempted, as [Testing](testing.md#the-complete-product-004) lists | `guard/C106` | #540 |
 | `guard/C105` | — | Guard | External's hook, workflow and Skill templates derived from the package's under guard/N14 by declared transformations, with guard/T112 written RED first; scope and acceptance [above](#the-complete-product-004). Not part of the `0.0.4` increment, and not authorized by `guard/C102` | `guard/C103` | not created |
 | `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
-| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment | `guard/C99`, the promotion | not created |
+| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | not created |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
+| `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, and N5's release evidence; guard/T113–guard/T115 planned. Documents only | `guard/C99` | not created |
+| `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T115 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
+| `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C10`, `guard/C25` for `guard/C9` and `guard/C11`, `guard/C15`–`guard/C17`, `guard/C51`, `guard/C64`–`guard/C70`, `guard/C74`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance of `0.0.2`: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 with `registry` evidence for the published `0.0.2`. guard/T65–guard/T68 do not gate it (restated in `guard/C30`) | `guard/C19`, `guard/C37` | #482; evidence in [Testing](testing.md) |
