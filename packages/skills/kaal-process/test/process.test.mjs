@@ -27,7 +27,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires", () => {
-    assert.match(text("Process.md"), /^It provides the Process Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text("Process.md"), /^It provides the Process Definition and the PDCA Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("states where its responsibility starts and ends, and leaves each process with its owner", () => {
@@ -74,6 +74,73 @@ describe("the Process Definition", () => {
   });
 });
 
+describe("the PDCA Definition", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const definition = node("PDCA.md");
+    assert.equal(definition.name, "PDCA");
+    assert.deepEqual(definition.type, foundation().definition);
+  });
+
+  it("is a learning and improvement cycle of four Activities ordered as a loop", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /^PDCA: Plan, Do, Check, Act\. PDCA is a learning and improvement cycle for a unit of work at any level: four Activities ordered as a loop\.$/m);
+    for (const phase of ["Plan", "Do", "Check", "Act"]) {
+      assert.match(definition, new RegExp(`^- \\*\\*${phase}\\*\\*: `, "m"), phase);
+    }
+  });
+
+  it("fixes the outer acceptance boundary in Plan, before Do", () => {
+    assert.match(text("PDCA.md"), /establish, before Do, what the work is to achieve and how its achievement will be judged: .+ and its outer acceptance boundary, including the planned tests that protect it\./);
+  });
+
+  it("lets Do perform only the work actually needed, possibly no change", () => {
+    assert.match(text("PDCA.md"), /perform only the work the plan actually needs: a change in behavior, documentation, tests and evidence, or no change at all where the planned condition is found to hold already\./);
+  });
+
+  it("presupposes no failure and never manufactures one", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /^No phase presupposes a failure\./m);
+    assert.match(definition, /does not imply that behavior must change: where it already holds, the cycle delivers the explicit obligation and new evidence for it\./);
+    assert.match(definition, /A failure is found where it exists, never manufactured to fit the cycle\./);
+  });
+
+  it("lets Check state only what the result proves", () => {
+    assert.match(text("PDCA.md"), /state what the result actually proves\. Check claims no universal correctness and does not by itself establish the intended Outcome\./);
+  });
+
+  it("lets Act preserve knowledge for a later Plan, by any fitting mechanism, and change nothing by itself", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /preserve the knowledge the completed cycle gave, so that a later Plan can retrieve and use it/);
+    assert.match(definition, /Act may use whatever learning, adaptation or improvement mechanism fits its context, a retrospective among them\./);
+    assert.match(definition, /^Act changes nothing by itself\. An observation or candidate lesson becomes no rule, backlog item or Change on its own, and any substantive modification needs its own authorization\.$/m);
+  });
+
+  it("is recursive, and an inner cycle never substitutes for the enclosing Check", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /^PDCA is recursive\./m);
+    assert.match(definition, /An inner cycle contributes its results and evidence to the enclosing Check and never substitutes for it/);
+    assert.match(definition, /does not accept the enclosing outcome/);
+  });
+
+  it("is realized by Changes and increments, and owned by no branch or pull request", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /not a workflow of branches or pull requests/);
+    assert.match(definition, /branches, pull requests, reviews and CI supply facts about it and own none of it/);
+  });
+
+  it("keeps Plan apart from Product's PLAN", () => {
+    assert.match(text("PDCA.md"), /Plan here is not Product's PLAN/);
+  });
+
+  it("leaves each concern with its owner and makes nothing mandatory", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /What a Plan contains belongs to the concern it is about\./);
+    assert.match(definition, /Tests, evidence and what a test proves are Testing's/);
+    assert.match(definition, /a Change's authorization and lifecycle are Change's; retrospectives and retrievable learning are Learning's/);
+    assert.match(definition, /Describing work as PDCA makes nothing mandatory/);
+  });
+});
+
 describe("admission", () => {
   it("is admitted as a Capability by Core alone", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-process-")), "engine");
@@ -102,6 +169,7 @@ describe("the package", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/PDCA.md",
       "capability/Process-Definition.md",
       "capability/Process.md",
       "package.json",
