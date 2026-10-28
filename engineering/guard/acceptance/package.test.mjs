@@ -466,8 +466,10 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.deepEqual(left(tmp), [], "a failing run left entries in its temporary directory");
   });
 
-  // Windows' file system has neither Unix sockets nor FIFOs, so this case is registered on Linux and macOS only.
-  (WINDOWS ? () => {} : it)("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
+  // Registered on every platform (guard/C118). Windows' file system has neither Unix sockets nor FIFOs, so there
+  // the case is declared not applicable before any behavioural step: neither GREEN nor RED, and not counted as passed.
+  it("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
+    if (WINDOWS) return t.skip("not applicable: Windows has no Unix sockets or FIFOs");
     const c = consumer();
     const passes = `${MINI} > guard/T0 passes`;
     const replaces = `${MINI} > guard/T0 replaces the FIFO when asked`;
