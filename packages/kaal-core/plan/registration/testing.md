@@ -2,25 +2,46 @@
 
 The planned outer tests live in `packages/kaal-core/test/plan/registration.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK.
 
-`core/C26` turns them GREEN, adds them to Core's `npm test`, and may add Code tests of its own. The tests give registrations as their frontmatter content. The kind registrations they use carry exactly the Owner-corrected rules of `core/F51`.
+`core/C26` turns them GREEN, adds them to Core's `npm test`, and may add Code tests of its own. The tests give registrations as their frontmatter content.
+
+**The fixtures.**
+- **Kinds.** The kinds and rules in the tests are fixtures, registered by fixture kind owners. Core prescribes none of them (`core/F51`). The fixture Testing kind registers an open rule (`any`).
+- **Instances.** The content is held by a consuming repository, `acme-product`. Its identities follow no shared grammar: `REQ-001`, `NFR.1`, `defect:1`, `bb/store`, `case 1` and `src/store.ts`. So a test passes only if Core reads identities as opaque text and takes each kind from the registration.
 
 | Test | Checks | Loop |
 | --- | --- | --- |
-| core/T50: two claims of one namespace are a collision naming both, and none of its artifacts resolves | core/I15, core/F49 | Intent |
-| core/T51: `sample/F2` is its namespace's artifact of kind F, ruled by F's owner, under its own identity | core/F48, core/A26 | Requirements |
-| core/T52: two definitions of one kind collide; an artifact of an undefined kind is a finding | core/F50 | Requirements |
-| core/T53: every Owner-corrected step is permitted; an omitted one, alone and acyclic, is a rule finding naming source and target | core/I16, core/F51, core/F52 | Intent |
-| core/T54: C traces to nothing; a self-trace, under a rule that permits its own kind, is an observed cycle of one, and a finding only when the kind's owner declares it `acyclic`; rules hold across namespaces | core/F51, core/F52, core/F53 | Requirements |
+| core/T50: two claims of one scope are a collision naming both, and none of its instances resolves; one identity stated twice in a scope is a finding | core/I15, core/F49 | Intent |
+| core/T51: an identity is opaque text, unique within its scope. The kind is the stated one, even when the spelling looks like another kind. Content held by a consumer keeps its identity, and one identity in two scopes is two instances | core/F48, core/A26 | Requirements |
+| core/T52: two definitions of one kind collide; an instance of an undefined kind, and a rule naming an undefined kind, are findings | core/F50, core/F51 | Requirements |
+| core/T53: what is permitted is exactly what the registered rules permit. Each omitted step, standing alone, is a rule finding. With F's rule changed by its owner, the same instances get the opposite verdict | core/I16, core/F51, core/F52 | Intent |
+| core/T54: an empty rule permits nothing; an open rule permits any registered kind, a later-registered one included, but resolves no missing target; a self-trace is a cycle of one, a finding only when its kind's owner declares `acyclic`; rules hold across scopes | core/F51, core/F52, core/F53 | Requirements |
 | core/T55: an unresolved target is a finding, and nothing is inferred for it | core/F52, core/F55 | Requirements |
 | core/T56: incoming views are derived, and a stated incoming trace is refused | core/N15, core/F54 | Requirements |
-| core/T57: `reach` terminates on a cycle and yields each artifact once; A1 → D1 → T2 → A1 is observed in `cycles`, is no finding without a declaration or with one on a kind off the cycle, and is a finding naming D's owner when D is declared `acyclic`; cycles and findings are the same in any order | core/F53, core/N14, core/A27 | Architecture |
-| core/T58: an artifact that states no trace is untraced, not failed and not inferred | core/I16, core/F55, core/F56 | Intent |
+| core/T57: `reach` terminates on a cycle and yields each instance once. bb/store → defect:1 → case 2 → bb/store is observed in `cycles`. It is no finding without a declaration, or with one on a kind off the cycle, and is a finding naming D's owner when D is declared `acyclic`. Cycles and findings are the same in any order | core/F53, core/N14, core/A27 | Architecture |
+| core/T58: an instance that states no trace is untraced, not failed and not inferred | core/I16, core/F55, core/F56 | Intent |
 | core/T59: order does not matter, and no registrations give an empty result | core/N14, core/N16 | Requirements |
+
+**Why the tests discriminate.** Each of the following implementations satisfies a weaker contract. I checked each one against the tests with a throwaway reference implementation, which was not committed, and the tests caught every one:
+
+| Implementation | Caught by |
+| --- | --- |
+| reads an instance's kind from its identity's spelling | core/T51 |
+| enforces an identity grammar | core/T51, T53, T54, T57, T58 |
+| holds a built-in trace matrix | core/T53 |
+| keeps Testing's rule a closed list of other kinds | core/T54 |
+| treats `any` as permitting nothing | core/T51, T53, T54, T56, T57 |
+| accepts a rule naming an undefined kind | core/T52 |
+| allows one identity twice in a scope | core/T50 |
+| makes identities unique globally instead of per scope | core/T51, T53, T54, T56, T57 |
+| accepts a stated incoming trace | core/T56 |
+
+The reference implementation turned all ten GREEN.
 
 The following are validated by review:
 - `core/A25` and `core/A28` are placements.
-- `core/A27`'s use of Graph is reviewed at `core/C26`, together with its two Stops.
+- `core/A27`'s use of Graph is reviewed at `core/C26`, against `graph/C2` (#562).
 - `core/F56`'s `kaal verify` behaviour is tested at `core/C26` against an Engine with registrations, and Core's existing `verify` tests keep the no-registration case.
+- Whether a kind owner's identities follow its own grammar is that owner's local check (`core/I17`), not Core's.
 
 ## RED evidence
 
