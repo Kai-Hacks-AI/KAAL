@@ -315,9 +315,9 @@ Without `GUARD_CANDIDATES`, the harness's `packed` variants give guard/T36–gua
 
 guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15, so it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs` and is delivered with the package.
 
-| Test | Checks | Written in | Intended evidence against `0.0.4` |
-| --- | --- | --- | --- |
-| guard/T119: in a consumer that ran `init --ci`, every `actions/checkout` step of the installed `.github/workflows/guard.yml` sets `persist-credentials: false`, and the installed content is catalogued for that path in `contract.json` together with every earlier catalogued content of it | guard/N15, guard/F29 | `guard/C114` | RED: neither checkout step sets it |
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T119 checks that in a consumer that ran `init --ci`, every `actions/checkout` step of the installed `.github/workflows/guard.yml` sets `persist-credentials: false`, and the installed content is catalogued for that path in `contract.json` together with the contents published from `0.0.2` on (`0.0.2`; `0.0.3` and `0.0.4`) | guard/N15, guard/F29 | `guard/C114` | RED: "a checkout step keeps the run's credential" | GREEN |
 
 ## Each release declares its upgrade paths (`guard/C113`)
 
