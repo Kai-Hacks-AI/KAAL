@@ -1,6 +1,7 @@
 // Writes kaal-guard's shipped verification manifest, packages/kaal-guard/test/verify.json (guard/A18,
 // guard/A19): the inventory of the delivered cases, outer and inner, as a run of them names them, the loop
-// each belongs to, every product identifier with the cases that cover it or its exemption, the declared
+// each belongs to, every product identifier with the cases that cover it, its allocation to the publisher's
+// Engineering Test Plan or why no Test Case verifies it, the declared
 // applicability, and the SHA-256 of every file npm packs except the manifest itself. First it writes the
 // trace in the product's docs/testing.md from the cases' titles, so the trace never drifts from the cases.
 // Run it after any Change to a shipped file, from the repository root: node engineering/guard/verify-manifest.mjs.
@@ -81,13 +82,21 @@ const identifiers = readdirSync(DOCS)
 const order = (id) => ["I", "F", "N", "A"].indexOf(id[6]) * 1000 + Number(id.slice(7));
 identifiers.sort((a, b) => order(a) - order(b));
 
-const exemptions = {};
-for (const [, ids, where] of table(section(testing, "<!-- exemptions:", "<!-- end of exemptions -->").body)) {
-  for (const id of expand(ids)) {
-    if (id in exemptions) throw new Error(`${id} is exempted twice`);
-    exemptions[id] = where;
+/** An identifier → text map from a declared table, each identifier declared once across the tables. */
+const declared = new Set();
+function declarations(begin, end, what) {
+  const out = {};
+  for (const [, ids, text] of table(section(testing, begin, end).body)) {
+    for (const id of expand(ids)) {
+      if (declared.has(id)) throw new Error(`${id} is declared twice, the second time as ${what}`);
+      declared.add(id);
+      out[id] = text;
+    }
   }
+  return out;
 }
+const allocated = declarations("<!-- allocated:", "<!-- end of allocated -->", "allocated");
+const unverified = declarations("<!-- unverified:", "<!-- end of unverified -->", "unverified");
 const applicability = { cases: {}, identifiers: {} };
 for (const [name, platforms, why] of table(section(testing, "<!-- applicability:", "<!-- end of applicability -->").body)) {
   applicability.cases[name.replace(/^`|`$/g, "")] = { notOn: platforms.split(/,\s*/), why };
@@ -109,20 +118,21 @@ for (const name of cases) {
   }
 }
 for (const id of Object.keys(coverage)) if (!identifiers.includes(id)) throw new Error(`a case cites ${id}, which the product's docs do not define`);
-for (const id of Object.keys(exemptions)) if (!identifiers.includes(id)) throw new Error(`${id} is exempted but the product's docs do not define it`);
-const both = identifiers.filter((id) => id in coverage && id in exemptions);
-if (both.length) throw new Error(`covered and exempted at once: ${both.join(", ")}`);
-const neither = identifiers.filter((id) => !(id in coverage) && !(id in exemptions));
-if (neither.length) throw new Error(`neither covered by a delivered case nor exempted: ${neither.join(", ")}`);
+for (const id of declared) if (!identifiers.includes(id)) throw new Error(`${id} is allocated or unverified but the product's docs do not define it`);
+const both = identifiers.filter((id) => id in coverage && declared.has(id));
+if (both.length) throw new Error(`covered, and allocated or unverified, at once: ${both.join(", ")}`);
+const neither = identifiers.filter((id) => !(id in coverage) && !declared.has(id));
+if (neither.length) throw new Error(`neither covered by a delivered case, nor allocated, nor declared unverified: ${neither.join(", ")}`);
 
 const manifest = {
   cases,
   loops,
   identifiers,
   coverage,
-  exemptions,
+  allocated,
+  unverified,
   applicability,
   files: Object.fromEntries(shipped.map((f) => [f, sha256(readFileSync(join(PACKAGE, f)))])),
 };
 writeFileSync(join(PACKAGE, MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`${MANIFEST}: ${cases.length} cases in ${Object.keys(loops).length} loops, ${identifiers.length} identifiers (${Object.keys(coverage).length} covered, ${Object.keys(exemptions).length} exempted), ${shipped.length} files`);
+console.log(`${MANIFEST}: ${cases.length} cases in ${Object.keys(loops).length} loops, ${identifiers.length} identifiers (${Object.keys(coverage).length} covered, ${Object.keys(allocated).length} allocated, ${Object.keys(unverified).length} unverified), ${shipped.length} files`);

@@ -2,8 +2,8 @@
 // what `npm explore @kaihacksai/kaal-guard -- npm test` runs. It checks the prerequisites, the installed
 // files against the shipped manifest (test/verify.json) and the consumer, runs every loop the package owns
 // against the installed copy (the outer acceptance cases in test/acceptance/ and the inner Code tests in
-// test/unit/), judges each loop, each product identifier's coverage or exemption and each declared
-// applicability, and ends in exactly one result:
+// test/unit/), judges each loop, each product identifier's coverage, allocation to the publisher or
+// lack of any Test Case, and each declared applicability, and ends in exactly one result:
 // verified (exit 0), failed (1) or cannot verify (2). It realizes Testing's consumer-verification
 // semantics (testing/C9) in Guard's own code, imports nothing from lib/, so a broken runtime cannot
 // mask itself, and uses only Node's built-ins (guard/N13).
@@ -102,25 +102,45 @@ export function consumerOf(location) {
   return { root };
 }
 
+/** The kind of an entry that is neither a regular file, a directory nor a link, as a snapshot records it. */
+const kind = (s) => (s.isSocket() ? "socket" : s.isFIFO() ? "fifo" : s.isCharacterDevice() ? "char" : s.isBlockDevice() ? "block" : "other");
+
+/** Whether an error says the path is no longer there. */
+const gone = (e) => e?.code === "ENOENT" || e?.code === "ENOTDIR";
+
 /**
  * The consumer's content: every path under it, node_modules directories excepted, with its content's
  * SHA-256 (a link's target; a directory's presence). Git's object store and very large files are taken
- * by size and modification time.
+ * by size and modification time. Only regular files are read: a socket, a FIFO or a device is recorded
+ * by its kind and never opened. An entry that is gone between listing and reading, as a lock another
+ * process removes, is recorded as absent.
  */
 export function snapshot(root) {
   const out = {};
   const walk = (d) => {
-    for (const e of readdirSync(d, { withFileTypes: true })) {
+    let entries;
+    try {
+      entries = readdirSync(d, { withFileTypes: true });
+    } catch (e) {
+      if (!gone(e) || d === root) throw e;
+      delete out[slash(relative(root, d))];
+      return;
+    }
+    for (const e of entries) {
       const p = join(d, e.name);
       const rel = slash(relative(root, p));
-      if (e.isSymbolicLink()) out[rel] = `link:${readlinkSync(p)}`;
-      else if (e.isDirectory()) {
-        if (e.name === "node_modules") continue;
-        out[rel] = "dir";
-        walk(p);
-      } else {
+      if (e.isDirectory() && e.name === "node_modules") continue;
+      try {
         const s = lstatSync(p);
-        out[rel] = rel.startsWith(".git/objects/") || s.size > LARGE ? `stat:${s.size}:${s.mtimeMs}` : sha256(readFileSync(p));
+        if (s.isSymbolicLink()) out[rel] = `link:${readlinkSync(p)}`;
+        else if (s.isDirectory()) {
+          out[rel] = "dir";
+          walk(p);
+        } else if (s.isFile()) out[rel] = rel.startsWith(".git/objects/") || s.size > LARGE ? `stat:${s.size}:${s.mtimeMs}` : sha256(readFileSync(p));
+        else out[rel] = `kind:${kind(s)}`;
+      } catch (x) {
+        if (!gone(x)) throw x;
+        delete out[rel];
       }
     }
   };
@@ -168,7 +188,8 @@ export async function main(log = (line) => console.log(line)) {
   const loops = manifest.loops ?? {};
   const identifiers = manifest.identifiers ?? [];
   const coverage = manifest.coverage ?? {};
-  const exemptions = manifest.exemptions ?? {};
+  const allocated = manifest.allocated ?? {};
+  const unverified = manifest.unverified ?? {};
   const applicability = { cases: manifest.applicability?.cases ?? {}, identifiers: manifest.applicability?.identifiers ?? {} };
   const platform = process.platform;
   /** A skipped case the manifest declares not applicable on this platform is not applicable here, not skipped (guard/F40). */
@@ -246,12 +267,14 @@ export async function main(log = (line) => console.log(line)) {
   const unlooped = [...new Set([...declared, ...outcomes.map((o) => o.name)])].filter((n) => !Object.values(loops).some((list) => list.includes(fileOf(n))));
 
   // The coverage (guard/F38, guard/F40): each product identifier covered by a case that ran and passed
-  // here, or exempted, or declared not applicable here; exemptions are never counted as covered.
-  const judged = { covered: [], exempted: [], notApplicable: [], notHere: [], uncovered: [] };
+  // here, or allocated to the publisher's Engineering Test Plan, or verified by no Test Case, or declared
+  // not applicable here. An allocated or unverified identifier is never counted as covered.
+  const judged = { covered: [], allocated: [], unverified: [], notApplicable: [], notHere: [], uncovered: [] };
   for (const id of identifiers) {
     const covering = Object.values(coverage[id] ?? {}).flat();
     if (covering.some((n) => status.get(n) === "passed")) judged.covered.push(id);
-    else if (id in exemptions) judged.exempted.push({ id, where: exemptions[id] });
+    else if (id in allocated) judged.allocated.push({ id, where: allocated[id] });
+    else if (id in unverified) judged.unverified.push({ id, why: unverified[id] });
     else if (covering.length && covering.every((n) => status.get(n) === "not applicable")) {
       if (applicability.identifiers[id]?.notOn?.includes(platform)) judged.notApplicable.push(id);
       else judged.notHere.push(id);
@@ -261,7 +284,7 @@ export async function main(log = (line) => console.log(line)) {
   const undeclared = outcomes.filter((o) => o.status !== "failed" && !declared.includes(o.name)).map((o) => o.name);
 
   for (const f of failed) add(failures, `a delivered case failed: ${f}`, "report it with this output to the package's maintainers; the installed package does not behave as it intends");
-  if (unchanged === false) add(failures, `the consumer changed during the run: ${changes.join(", ")}`, "restore those paths from version control and report this output to the package's maintainers");
+  if (unchanged === false) add(failures, `the consumer changed during the run: ${changes.join(", ")}`, "check whether you, an editor or a tool such as Git changed these paths during the run; if nothing did, report this output to the package's maintainers");
   if (blockers.length === 0) {
     if (executed === 0) add(causes, "no case executed", "reinstall the package; its delivered cases did not run");
     for (const s of skipped) add(causes, `a delivered case was skipped: ${s}`, "a skipped case is not verified; report this output to the package's maintainers");
@@ -271,7 +294,7 @@ export async function main(log = (line) => console.log(line)) {
     if (Object.keys(loops).length === 0) add(causes, "the manifest declares no loop", "reinstall the package and run the command again");
     for (const [loop, l] of Object.entries(loopSummary)) if (l.executed === 0) add(causes, `the ${loop} loop executed no case`, "reinstall the package; that loop's cases did not run");
     for (const n of unlooped) add(causes, `a case belongs to no declared loop: ${n}`, "reinstall the package and run the command again");
-    for (const id of judged.uncovered) add(causes, `a product identifier has neither a covering case that ran and passed nor an exemption: ${id}`, "report this output to the package's maintainers; this promise is not verified");
+    for (const id of judged.uncovered) add(causes, `a product identifier has neither a covering case that ran and passed nor an allocation: ${id}`, "report this output to the package's maintainers; this promise is not verified");
     for (const id of judged.notHere) add(causes, `a product identifier is not verified on ${platform}: every case covering ${id} is not applicable here, and the contract does not declare ${id} not applicable`, "report this output to the package's maintainers; this promise is not verified on this platform");
   }
 
@@ -279,8 +302,9 @@ export async function main(log = (line) => console.log(line)) {
   log(`cases: ${declared.length} declared, ${executed} executed, ${passed.length} passed, ${failed.length} failed, ${skipped.length} skipped, ${todo.length} todo, ${notApplicable.length} not applicable on ${platform}`);
   for (const [loop, l] of Object.entries(loopSummary)) log(`loop ${loop}: ${l.executed} of ${l.declared} declared cases executed, ${l.passed} passed, ${l.failed} failed, ${l.skipped} skipped, ${l.notApplicable} not applicable`);
   if (blockers.length === 0) {
-    log(`coverage: ${identifiers.length} product identifiers; ${judged.covered.length} covered by this run, ${judged.exempted.length} exempted and not verified by this run, ${judged.notApplicable.length} not applicable on ${platform}, ${judged.notHere.length + judged.uncovered.length} not verified`);
-    for (const { id, where } of judged.exempted) log(`exempted, not verified by this run: ${id}: ${where}`);
+    log(`coverage: ${identifiers.length} product identifiers; ${judged.covered.length} covered by this run, ${judged.allocated.length} allocated to the publisher and not verified by this run, ${judged.unverified.length} unverified, ${judged.notApplicable.length} not applicable on ${platform}, ${judged.notHere.length + judged.uncovered.length} not verified`);
+    for (const { id, where } of judged.allocated) log(`not verified by this run, allocated to the publisher: ${id}: ${where}`);
+    for (const { id, why } of judged.unverified) log(`unverified, no Test Case verifies it: ${id}: ${why}`);
     for (const id of judged.notApplicable) log(`not applicable on ${platform}, not verified by this run: ${id}: ${applicability.identifiers[id].why}`);
   }
   if (unchanged === true) log(`consumer unchanged: ${consumer.root}`);
@@ -289,7 +313,7 @@ export async function main(log = (line) => console.log(line)) {
   log("integration: this run judges the package only. For this repository's integration of Guard, run `npx kaal-guard verify` in it.");
   log("This result is your own observation of this run; it is not KAAL release evidence.");
   for (const { cause, next } of [...failures, ...causes]) log(`${result === "failed" && causes.some((c) => c.cause === cause) ? "also cannot verify" : result}: ${cause}; do: ${next}`);
-  log(result === "verified" ? `verified: every declared case executed and passed, or does not apply on ${platform}, against ${pkg.name}@${pkg.version} installed at ${PACKAGE}; ${judged.covered.length} product identifiers covered by this run, ${judged.exempted.length} exempted and not verified by this run` : `${result}: ${[...failures, ...causes].length} cause(s) above`);
+  log(result === "verified" ? `verified: every declared case executed and passed, or does not apply on ${platform}, against ${pkg.name}@${pkg.version} installed at ${PACKAGE}; ${judged.covered.length} product identifiers covered by this run, ${judged.allocated.length} allocated to the publisher and not verified by this run, ${judged.unverified.length} unverified` : `${result}: ${[...failures, ...causes].length} cause(s) above`);
 
   const summary = {
     result,
@@ -315,7 +339,7 @@ if (process.argv[1] && pathToFileURL(realpathSync(process.argv[1])).href === imp
       process.exitCode = status;
     },
     (e) => {
-      console.log(`cannot verify: the verification itself could not complete: ${e?.message ?? e}; do: reinstall the package and run the command again`);
+      console.log(`cannot verify: the verification itself could not complete: ${e?.message ?? e}; do: report this output to the package's maintainers`);
       console.log(`kaal-guard-verification ${JSON.stringify({ result: "cannot verify", exit: 2, causes: [`the verification itself could not complete: ${e?.message ?? e}`] })}`);
       process.exitCode = 2;
     },
