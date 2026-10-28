@@ -93,6 +93,17 @@ describe("the PDCA Definition", () => {
     assert.match(text("PDCA.md"), /establish, before Do, what the work is to achieve and how its achievement will be judged: .+ and its outer acceptance boundary, including the planned tests that protect it\./);
   });
 
+  it("lets Do perform only the work actually needed, possibly no change", () => {
+    assert.match(text("PDCA.md"), /perform only the work the plan actually needs: a change in behavior, documentation, tests and evidence, or no change at all where the planned condition is found to hold already\./);
+  });
+
+  it("presupposes no failure and never manufactures one", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /^No phase presupposes a failure\./m);
+    assert.match(definition, /does not imply that behavior must change: where it already holds, the cycle delivers the explicit obligation and new evidence for it\./);
+    assert.match(definition, /A failure is found where it exists, never manufactured to fit the cycle\./);
+  });
+
   it("lets Check state only what the result proves", () => {
     assert.match(text("PDCA.md"), /state what the result actually proves\. Check claims no universal correctness and does not by itself establish the intended Outcome\./);
   });

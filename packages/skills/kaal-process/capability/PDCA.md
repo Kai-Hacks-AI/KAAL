@@ -10,9 +10,11 @@ type:
 PDCA: Plan, Do, Check, Act. PDCA is a learning and improvement cycle for a unit of work at any level: four Activities ordered as a loop.
 
 - **Plan**: establish, before Do, what the work is to achieve and how its achievement will be judged: its intent, its requirements and architecture where they apply, and its outer acceptance boundary, including the planned tests that protect it.
-- **Do**: realize what was planned. Do may contain further PDCA cycles of its own.
+- **Do**: perform only the work the plan actually needs: a change in behavior, documentation, tests and evidence, or no change at all where the planned condition is found to hold already. Do may contain further PDCA cycles of its own.
 - **Check**: independently exercise and evaluate what Plan fixed, and state what the result actually proves. Check claims no universal correctness and does not by itself establish the intended Outcome.
 - **Act**: preserve the knowledge the completed cycle gave, so that a later Plan can retrieve and use it, and respond to what Check found: adopt, adjust, or begin a new Plan. Act may use whatever learning, adaptation or improvement mechanism fits its context, a retrospective among them.
+
+No phase presupposes a failure. A newly explicit obligation, such as an Intent, a requirement, a constraint or a test, does not imply that behavior must change: where it already holds, the cycle delivers the explicit obligation and new evidence for it. A failure is found where it exists, never manufactured to fit the cycle.
 
 Act changes nothing by itself. An observation or candidate lesson becomes no rule, backlog item or Change on its own, and any substantive modification needs its own authorization.
 
