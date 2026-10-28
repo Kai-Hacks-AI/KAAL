@@ -371,6 +371,15 @@ A generic Test Plan object is a later Testing improvement, outside this Change.
 
 None of the deferred items is a blocker. None of them reopens `0.0.4` or calls for another promotion without a new blocking finding.
 
+**Transition acceptance of `0.0.4` (`guard/C112`, PLAN).** The Owner set it out on #552: every Change has two acceptance concerns, each with its own Test Cases. The desired result asks whether the resulting installation meets the target's contract. The transition asks whether the actual source state reached it by an allowed path, keeping what must stay and changing only what must change.
+- **Where `0.0.4` stands.** The desired result is GREEN. On the transition, `registry` `0.0.2` → `0.0.4` has guard/T65, guard/T67 and guard/T68 GREEN. `0.0.3` → `0.0.4` has guard/T67 GREEN, with guard/T65 and guard/T68 not applicable because the templates are identical. No executed case shows the outcome of that unchanged-template path. guard/T118 is that case.
+- **Scope.** guard/T118 is written and run for both declared sources from the registry. guard/T65, guard/T66 and guard/T68 get declared applicability instead of preconditions coded as assertions. No assertion is weakened and no recorded result is rewritten.
+- **Ownership.** Guard owns its migration mechanism and this producer evidence (guard/F11–guard/F16). This release's Change owns which cases apply to which pair, and acceptance (`guard/C101`). The generic semantics go to their owners as separate research and design questions. `guard/C112` uses only Guard-local terms and does not wait for them. Those semantics are applicability versus result, desired result versus transition, a target-declared migration member in the Installation Contract format, and recording an operational run.
+- **Then.** `guard/C101` accepts `0.0.4` once the desired-result cases and guard/T118 are GREEN for each declared source.
+- **Not here.** A product-facing migration contract changes the shipped docs, so it needs a new release: `guard/C113`, for `0.0.5`. In it the target declares, for each source, the path, its prerequisites, transformations, preservation, failure and recovery, and the verification after migrating. Recording a particular consumer's migration is operational, not Guard's.
+- **Decision.** The Owner chose option B on #552. Desired-result acceptance and transition acceptance stay distinct, and both must be evidenced.
+- **Authorization.** Option B authorizes preparing and reviewing this PLAN. It authorizes no DO, no acceptance of `guard/C101`, no promotion and no publication. Starting the DO takes the Owner's approval of this PLAN, and accepting `guard/C101` takes a separate decision.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -476,6 +485,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | the evidence for f0d1eb9 is in this pull request; publication waits on the Owner |
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
 | `guard/C111` | — | Guard | After `0.0.4`: the deferred findings of its release, n1–n3, N6, N7 and M1–M3, triaged into bounded Changes | `guard/C101` | not created |
+| `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN |
+| `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
