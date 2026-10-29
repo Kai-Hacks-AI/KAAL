@@ -16,6 +16,7 @@ This is research for the Owner, not a Definition, a PLAN or an authorization. It
   - The holder of the content, a Capability or a consuming repository, registers its instances and their identities.
   - Core reads identities as opaque text, unique within a scope, and holds no kind matrix (`core/F48`, `core/F51`, `core/F54`).
   - Its fixtures use a consumer, `acme-product`, whose identities share no grammar.
+  - One gap remains. Kind names in `core/C24` are global (`core/F50`, "one kind, one definition"), so two Capabilities that name a concept alike collide, against clarification point 1. `core/C30` (#600, PLAN) qualifies each kind by its owner's scope. It also makes a hierarchy explicit, as a kind's rule that permits its own kind, and leaves trace meaning and absent complements to the Owner.
 - **Graph mechanics** (`graph/C2`, #562): reach, reverse and cycles on string identities, with no domain meaning.
 - **Owners still landing.** Requirements (#276, #553), Architecture (#485, #588) and Intent (`kaal/intent`, not promoted).
 - **Guard `0.0.4`** as the reference product. Its identifiers are prose ids defined in its own `docs/`. Its Test Cases cite their targets in their titles, and its verification manifest derives coverage from those titles.
@@ -29,7 +30,7 @@ This is research for the Owner, not a Definition, a PLAN or an authorization. It
 - Each owner decides whether its content is a tree, and what its internal edges mean. A utility tree is one example of such a tree, not a feature of any Capability.
 - Core and Graph assemble, check uniqueness within a scope, resolve, reverse and check cycles. They give no meaning.
 
-`core/C24` already realizes the Core half. What remains is each owner's own Definitions, as their Capabilities land.
+`core/C24`, with `core/C30`'s scoped kinds (#600), realizes the Core half. What remains is each owner's own Definitions, as their Capabilities land.
 
 **Withdrawn from the first answer:**
 - The lean that a utility tree is a Requirements-owned view. It was one example of a tree any owner may draw.
