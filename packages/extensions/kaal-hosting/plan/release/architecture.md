@@ -13,6 +13,10 @@ Each element names, in brackets, the Requirements it answers.
 
   With those six, the throwaway rename turned hosting/T21–T24 GREEN, and `test:hosting`, `test:kaal` and `test:engineering` passed.
 
+  The Owner accepted Option A on #629 with two conditions, which bind `hosting/C11`:
+  - It changes only reference-level importer mechanics: the reference itself, and where a test depends on the name, the smallest change that keeps that test discriminating. It changes no behaviour, no other assertion and no test's meaning.
+  - Each affected owner reviews its own files explicitly. The PR lists every changed file under its owner, and it asks each owner's thread for review. It merges only once each owner has answered for its own files.
+
 - **hosting/A8** [hosting/F17]: Hosting verifies its packed consumer experience in its own planned test, `test/plan/release.test.mjs`, in Hosting's lanes on Linux, Windows and macOS. It packs and installs through Hosting's own `execute`, from Hosting's build, so it depends on no other KAAL package: Testing's acceptance helpers depend on Hosting and cannot be used here. The installed package is reached by the consumer only through its name.
 
 - **hosting/A9** [hosting/F18, hosting/F19, hosting/F20, hosting/N4]: Product and publisher stay apart inside the package directory.
@@ -20,7 +24,8 @@ Each element names, in brackets, the Requirements it answers.
   - **What does not ship.** `plan/` stays the record of the PLAN Changes, `src/` the TypeScript source, and the publisher's own tests (the fault-injecting ones, the tests of the verification itself and these planned release tests) stay under `test/` outside the shipped paths.
   - **Scripts.** `test` runs `node test/verify.mjs`. `test:publisher` builds and runs everything the Hosting lanes run today plus the delivered cases from the source tree. The root `test:hosting` lane and `engineering/lanes/hosting.mjs` switch to `test:publisher`, which is Engineering's to review, as Core's `test:publisher` is on #622.
   - **Lanes.** The publisher packs the candidate and runs the consumer verification in a fresh consumer in each of Hosting's Linux, Windows and macOS lanes (hosting/T26), so a release candidate is verified on all three hosts before the Owner's go.
-- **hosting/A10** [hosting/N4, hosting/F21–hosting/F25] (Option A below): Hosting realizes the verification in its own `test/verify.mjs`, from Node's built-ins, with the same three results, summary line and manifest shape as Guard's. It copies no Guard file at run time and depends on no Guard or Testing package.
+- **hosting/A10** [hosting/N4, hosting/F21–hosting/F25] (Option A below, accepted by the Owner on #629): Hosting realizes the verification in its own `test/verify.mjs`, from Node's built-ins, with the same three results, summary line and manifest shape as Guard's. It copies no Guard file at run time and depends on no Guard or Testing package.
+- **hosting/A11** [hosting/F26]: The shared observable result contract is Testing's, raised as its own Testing PLAN. Engineering's lane runs it against each verifier's packed candidate (Guard, Graph, Hosting) on Linux, Windows and macOS. Hosting adopts it in `hosting/C12`: Hosting's packed candidate must pass it before Hosting's promotion is proposed. Hosting does not define the contract's scenarios. It proposes the minimum set in hosting/F26, from what its own cases already exercise.
 
 ## Options considered for hosting/A7
 
@@ -44,9 +49,11 @@ The Owner's answer on #622 (comment 6503689689, `core/A36`) decides this. `hosti
 
 | Change | Owner | Depends on |
 | --- | --- | --- |
-| `hosting/C10` PLAN: I5–I7, F15–F25, N4, A7–A10; hosting/T21–T30 | Hosting | `hosting/C9`, and the Owner's alignment on #622 and #629 |
+| `hosting/C10` PLAN: I5–I7, F15–F26, N4, A7–A11; hosting/T21–T31 | Hosting | `hosting/C9`, and the Owner's alignment on #622 and #629 |
 | `hosting/C11` DO: the rename, every reference, and hosting/T21–T24 in Hosting's lanes | Hosting | `hosting/C10`, and the Owner's answer on A7 |
-| `hosting/C12` DO: `docs/`, the delivered cases, `test/verify.mjs` and its manifest, `test:publisher`, and hosting/T25–T30 in Hosting's lanes | Hosting | `hosting/C11` |
+| Testing PLAN and DO: the shared observable result contract for consumer verifiers (hosting/F26) | Testing, run by Engineering | the Owner's review on #629 |
+| `hosting/C12` DO: `docs/`, the delivered cases, `test/verify.mjs` and its manifest, `test:publisher`, and hosting/T25–T31 in Hosting's lanes | Hosting | `hosting/C11` |
+| Hosting's verifier passes the shared contract in Engineering's lane | Engineering, Hosting | `hosting/C12`, Testing's contract DO |
 | Graph PLAN and DO: rename to `@kaihacksai/kaal-graph` (`core/C28` row 7) | Graph | `hosting/C11` |
 | `core/C29` DO: rename to `@kaihacksai/kaal-core` (`core/C28` row 10) | Core | `hosting/C11`, Graph's DO |
-| promotion of `kaal/hosting`, and publication of `@kaihacksai/kaal-hosting` 0.0.1 | Owner | `hosting/C12` |
+| promotion of `kaal/hosting`, and publication of `@kaihacksai/kaal-hosting` 0.0.1 | Owner | `hosting/C12`, and the shared contract passing |

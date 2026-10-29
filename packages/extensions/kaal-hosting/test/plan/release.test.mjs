@@ -185,6 +185,25 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     return { status: r.status, output: r.stdout + r.stderr, summary: line === undefined ? undefined : JSON.parse(line.slice(PREFIX.length)) };
   }
 
+  /** A fresh consumer whose installed manifest and shipped files `change` rewrites, keeping the hashes true, so only the rule under test can decide. */
+  async function rewritten(change) {
+    const c = await consumer();
+    const at = join(c.installed, "test", "verify.json");
+    const manifest = JSON.parse(readFileSync(at, "utf8"));
+    for (const path of change(manifest, c.installed) ?? []) manifest.hashes[path] = createHash("sha256").update(readFileSync(join(c.installed, path))).digest("hex");
+    writeFileSync(at, JSON.stringify(manifest));
+    return c;
+  }
+
+  /** The first shipped acceptance case written with it(), its file, and its name in the manifest. */
+  function firstCase(manifest, installed) {
+    const name = manifest.cases.find((n) => /^test\/acceptance\/[^>]*\.test\.mjs > /.test(n));
+    assert.ok(name, "the manifest declares no acceptance case");
+    const file = name.split(" > ")[0];
+    assert.match(readFileSync(join(installed, file), "utf8"), /\bit\(/, `${file} has no case written with it()`);
+    return { name, file };
+  }
+
   /** Every file under `dir` but `node_modules` directories, the installed copy included, with its SHA-256. */
   function content(dir, installed) {
     const out = {};
@@ -237,7 +256,10 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     assert.equal(realpathSync(summary.package.location), realpathSync(installed));
     assert.equal(summary.platform, process.platform);
     assert.equal(summary.node, process.version);
-    assert.match(summary.digest, /^[0-9a-f]{64}$/);
+    // The digest is recomputable from the installed copy alone (hosting/F22).
+    const installedFiles = files(installed, "").map((p) => p.slice(1)).filter((p) => p !== "test/verify.json" && !p.startsWith("node_modules/")).sort();
+    const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
+    assert.equal(summary.digest, sha(installedFiles.map((p) => `${p}\0${sha(readFileSync(join(installed, p)))}\n`).join("")));
     const manifest = JSON.parse(readFileSync(join(installed, "test", "verify.json"), "utf8"));
     assert.deepEqual(summary.cases.map((c) => c.name).sort(), [...manifest.cases].sort());
     for (const loop of ["intent", "requirements", "architecture", "code"]) assert.ok(summary.cases.some((c) => c.loop === loop && c.outcome === "pass"), `the ${loop} loop ran no passing case`);
@@ -316,5 +338,49 @@ describe("hosting/C10: the installed package is a complete product its consumer 
       assert.equal(status, 2, output);
       assert.equal(summary?.result, "cannot verify", output);
     }
+  });
+
+  it("hosting/T31 [hosting/F21, hosting/F22, hosting/F25]: each result is exact: an absent or malformed manifest and a todo case are cannot verify, a failing case is failed and names the case, and a case declared not applicable here is reported as such and still verified", async () => {
+    const absent = await consumer();
+    rmSync(join(absent.installed, "test", "verify.json"));
+    const malformed = await consumer();
+    writeFileSync(join(malformed.installed, "test", "verify.json"), "{ not json");
+    let failing;
+    const failed = await rewritten((m, installed) => {
+      const { name, file } = firstCase(m, installed);
+      failing = name;
+      writeFileSync(join(installed, file), readFileSync(join(installed, file), "utf8").replace(/\bit\((["'`])([^"'`]+)\1,\s*(async\s*)?\(\)\s*=>\s*\{/, (_, q, title, a) => `it(${q}${title}${q}, ${a ?? ""}() => { throw new Error("planted failure");`));
+      return [file];
+    });
+    const todo = await rewritten((m, installed) => {
+      const { file } = firstCase(m, installed);
+      writeFileSync(join(installed, file), readFileSync(join(installed, file), "utf8").replace(/\bit\(/, "it.todo("));
+      return [file];
+    });
+    let inapplicable;
+    const declared = await rewritten((m, installed) => {
+      inapplicable = firstCase(m, installed).name;
+      m.applicability = { ...(m.applicability ?? {}), [inapplicable]: [process.platform] };
+      return [];
+    });
+
+    for (const [c, why] of [[absent, "absent manifest"], [malformed, "malformed manifest"], [todo, "todo case"]]) {
+      const { status, output, summary } = await verify(c.dir);
+      assert.equal(status, 2, `${why}\n${output}`);
+      assert.equal(summary?.result, "cannot verify", `${why}\n${output}`);
+      assert.ok(summary.cause, `${why}: no cause`);
+    }
+
+    const f = await verify(failed.dir);
+    assert.equal(f.status, 1, f.output);
+    assert.equal(f.summary?.result, "failed", f.output);
+    assert.equal(f.summary.cases.find((c) => c.name === failing)?.outcome, "fail", `${failing} is not reported as failing`);
+    assert.ok(f.summary.cause, "failed: no cause");
+
+    const d = await verify(declared.dir);
+    assert.equal(d.status, 0, d.output);
+    assert.equal(d.summary?.result, "verified", d.output);
+    assert.equal(d.summary.cases.find((c) => c.name === inapplicable)?.outcome, "not applicable");
+    assert.ok(d.summary.cases.filter((c) => c.name !== inapplicable).every((c) => c.outcome === "pass"));
   });
 });

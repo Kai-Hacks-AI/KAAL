@@ -1,6 +1,6 @@
 # Release Readiness: Intent
 
-This is `hosting/C10`, a PLAN Change. It states why Hosting renames its package and becomes a complete, consumer-verifiable product, what that requires, where the responsibility lies, and the outer tests that decide it. It ships no code. `hosting/C11` applies the rename and turns hosting/T21–T24 GREEN; `hosting/C12` delivers the product contract and the consumer verification and turns hosting/T25–T30 GREEN. It authorizes no rename, version change, sync, promotion or publication on its own: those stay with the Owner.
+This is `hosting/C10`, a PLAN Change. It states why Hosting renames its package and becomes a complete, consumer-verifiable product, what that requires, where the responsibility lies, and the outer tests that decide it. It ships no code. `hosting/C11` applies the rename and turns hosting/T21–T24 GREEN; `hosting/C12` delivers the product contract and the consumer verification and turns hosting/T25–T31 GREEN. It authorizes no rename, version change, sync, promotion or publication on its own: those stay with the Owner.
 
 On #622 (comment 6503611371, 2026-10-29) the Owner aligned that Core, Graph, Hosting and Foundation publish under the `@kaihacksai/kaal-*` namespace, consistent with the published `@kaihacksai/kaal-guard`, and that each owning capability plans its own name and dependency updates and verifies its own packed consumer experience. Core records this as `core/F74` and `core/A36`, map row 6 of `core/C28`. Hosting goes first, because Graph and Core depend on it, and Graph's rename follows.
 
