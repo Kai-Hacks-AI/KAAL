@@ -58,3 +58,12 @@ export class Graph<N extends Identity = Identity> {
   check(): string[];
   traverse(start: string, options?: { direction?: "out" | "in"; type?: string }): Generator<{ id: string; depth: number }>;
 }
+
+/** A directed structure of opaque string identities: each identity to the identities it points to. A successor that is not a key has no successors. */
+export type Successors = ReadonlyMap<string, Iterable<string>> | Readonly<Record<string, Iterable<string>>>;
+/** Every cycle, as the strongly connected components that contain one, members and cycles sorted. O((V + E) log(V + E)), never recursive. */
+export function cycles(successors: Successors): readonly (readonly string[])[];
+/** `start` and every identity reachable from it, each once, breadth-first along sorted successors. */
+export function reach(successors: Successors, start: string): Generator<string, void, undefined>;
+/** The predecessors of every identity, sorted, as a read-only relation: Map's reading interface and no way to write. */
+export function reverse(successors: Successors): ReadonlyMap<string, readonly string[]>;
