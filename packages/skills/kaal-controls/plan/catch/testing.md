@@ -11,7 +11,7 @@
 
 controls/T1 (from `controls/C2`) lists the payload exactly, so `controls/C5` extends its list by this one file. That is the only change to an existing Test Case.
 
-controls/F5–controls/F8 and controls/F6a are about meaning, and Testing calls that validation: the Owner validates them by reading `controls/C5`'s Node and Agent Skill section. No deterministic check is presented as deciding them, and none is invented to look as though it does.
+controls/F5–controls/F8 and controls/F6a are about meaning: the Owner validates them by reading `controls/C5`'s Node and Agent Skill section. No deterministic check is presented as deciding them, and none is invented to look as though it does.
 
 ## Observed state at `controls/C4`
 
