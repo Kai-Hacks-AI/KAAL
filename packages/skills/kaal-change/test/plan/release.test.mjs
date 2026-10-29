@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const PACKAGE = fileURLToPath(new URL("../../", import.meta.url));
 const GRAPH = join(PACKAGE, "../kaal-graph");
-const HOSTING = join(PACKAGE, "../kaal-hosting");
+const HOSTING = join(PACKAGE, "../../extensions/kaal-hosting");
 const NAME = "@kaihacksai/kaal-change";
 const PEER = "@kaihacksai/kaal-graph";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
@@ -114,8 +114,8 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     assert.ok(consumerTests.length > 0);
     for (const f of [...consumerTests, "test/verify.mjs"]) {
       const src = readFileSync(join(PACKAGE, f), "utf8");
-      for (const [, spec] of src.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g)) {
-        if (!spec) continue;
+      for (const [, from, dynamic] of src.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g)) {
+        const spec = from ?? dynamic;
         const ok = spec.startsWith("node:") || spec.startsWith(`${NAME}/`) || (spec.startsWith(".") && !spec.includes("lib/"));
         assert.ok(ok, `${f} imports ${spec}, not a public entry point or a built-in`);
       }

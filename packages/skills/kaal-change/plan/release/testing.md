@@ -11,6 +11,8 @@ The planned outer tests live in `packages/skills/kaal-change/test/plan/release.t
 | change/T28: in a clean consumer, the packed package verifies with Graph; without Graph, delivery cannot assess and the result is unknown, then verified once delivery is excluded; a case that fails is failed | change/I11, change/I13, change/I14, change/F19, change/F22, change/F23, change/F25 | Intent |
 | change/T29: uninstalling leaves the consumer's Change Records and Change Nodes byte-identical, and verification writes nothing outside its temporary directory | change/I15, change/F26, change/N7 | Intent |
 
+change/T28's Graph scenario packs Graph and Hosting from this repository. It turns GREEN only once Graph is packed under its published name `@kaihacksai/kaal-graph`, which is Graph's rename, not Change's.
+
 The following are validated by review:
 - `change/A12`'s dynamic import, at the DO of `change/C1`.
 - `change/A16`'s harness, at `change/C6`.
