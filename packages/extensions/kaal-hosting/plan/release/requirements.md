@@ -34,7 +34,7 @@ Today the package ships its code, payload, README and license only. Its Intent, 
   - a failing case, and the consumer changed during the run;
   - a clean run.
 
-  The contract belongs to Testing, as the owner of the semantics. It is reusable and parametrized by the package under test, and it is the publisher's: it never ships and is never a runtime dependency. Engineering orchestrates running each package's packed verifier through it, as the Owner ruled for conformance tests on #607. Hosting's own cases (hosting/T26–hosting/T31) check Hosting's verifier from the inside. They do not stand in for the shared contract.
+  Testing owns the contract's semantics and cases. Engineering runs them against each installed package's verifier in its own Change (#625). The contract is the publisher's: it never ships and is never a runtime dependency. Hosting's own cases (hosting/T26–hosting/T31) check Hosting's verifier from the inside. They do not stand in for the contract.
 
 ## Nonfunctional
 

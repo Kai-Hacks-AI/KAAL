@@ -16,7 +16,7 @@ The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/rele
 | hosting/T30: a manifest that declares no case, declares a case that does not exist, or leaves an identifier undeclared, and a delivered case skipped with its hash refreshed, each make the run `cannot verify`, exit 2 | hosting/F21, hosting/F23, hosting/F25 | Requirements |
 | hosting/T31: each result is exact. An absent or malformed manifest and a todo case are `cannot verify` with a cause; a failing case is `failed`, exit 1, with that case reported as `fail`; and a case the manifest declares not applicable here is reported `not applicable` while the run is still `verified` | hosting/F21, hosting/F22, hosting/F25 | Requirements |
 
-hosting/A7–A10 and hosting/N4 are placements, validated by review. The Test Cases of the verification itself, which do not ship (Limits), are the publisher's: hosting/T27 and T29–T31 are some of them. hosting/F26, the shared observable result contract, is verified by Testing's contract suite in Engineering's lane (hosting/A11), not by these tests: they check Hosting's verifier from the inside and do not stand in for it. The Limits are stated, not tested.
+hosting/A7–A10 and hosting/N4 are placements, validated by review. The Test Cases of the verification itself, which do not ship (Limits), are the publisher's: hosting/T27 and T29–T31 are some of them. hosting/F26, the shared observable result contract, is verified by Engineering's check against Testing's conformance cases (hosting/A11, #625), not by these tests: they check Hosting's verifier from the inside and do not stand in for it. The Limits are stated, not tested.
 
 ## RED evidence
 
