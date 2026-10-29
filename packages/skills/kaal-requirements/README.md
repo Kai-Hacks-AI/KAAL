@@ -12,6 +12,10 @@ ownership.kaal.json          Requirements' own ownership claim (repository data,
 
 This package establishes the capability and defines what a Requirement is. It keeps no requirements, store, registry or traceability, and adds no workflow. A Requirement states what must hold, and only that: why is Intent's, where is Architecture's, how is Code's, and whether it holds is Testing's. It may trace to an Intent where one is represented, without depending on it. What prompts a Requirement is its trigger, which is neither the Requirement nor an Intent.
 
+## Readiness
+
+Lifecycle is not yet covered. No Core path installs, upgrades or removes a Capability's Nodes under its Installation Contract, and a registered contribution cannot be replaced or removed. The test for that, requirements/T13, is deferred until Core's contribution lifecycle (`core/C29`, proposed) exists. Until then, install by registering the Nodes, as below.
+
 ## Register the Node
 
 ```sh
