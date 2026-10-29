@@ -136,5 +136,6 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T99 | Requirements | guard/F7, guard/F10, guard/N4 | a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs |
 | guard/T107 | Architecture | guard/I9, guard/F37, guard/A19 | the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority |
 | guard/T119 | Requirements | guard/N15, guard/F29 | every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on |
+| guard/T125 | Requirements | guard/F2, guard/F18 | an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255 |
 | guard/T126 | Architecture | guard/F37, guard/A19, guard/A21 | every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs |
 <!-- end of trace -->
