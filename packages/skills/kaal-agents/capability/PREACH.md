@@ -19,4 +19,6 @@ Not every error escalates to a person. What a program or an Agent can resolve un
 
 PREACH runs the other way to HAPTIC, which Controls owns, and does not redefine it. Once a person has decided, the outcome can move forward along HAPTIC into an explicit, testable contract.
 
-PREACH authorizes nothing. The authority an Agent acts on, and who is accountable for a decision, are given elsewhere.
+PREACH and HAPTIC are correlated with HACKS, Human Agent Collaboration Knowledge System, the part of KHAI, Kai Hacks AI, that concerns how people and Agents work together. They describe complementary aspects of that collaboration. The association is context only: HACKS is not a capability, and it owns neither.
+
+Agents owns PREACH as the operational principle of how an Agent escalates, and nothing beyond it. It owns no human decision, no domain's semantics and not HAPTIC. PREACH authorizes nothing. The authority an Agent acts on, and who is accountable for a decision, are given elsewhere.

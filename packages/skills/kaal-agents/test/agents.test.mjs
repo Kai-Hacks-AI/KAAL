@@ -88,7 +88,13 @@ describe("the PREACH Definition", () => {
   it("cites HAPTIC without redefining it, and authorizes nothing", () => {
     assert.match(preachText(), /^PREACH runs the other way to HAPTIC, which Controls owns, and does not redefine it\./m);
     assert.doesNotMatch(preachText(), /Human < Agent < Program/);
-    assert.match(preachText(), /^PREACH authorizes nothing\./m);
+    assert.match(preachText(), /PREACH authorizes nothing\./);
+  });
+
+  it("records its HACKS association as context, and keeps Agents' boundary explicit", () => {
+    assert.match(preachText(), /^PREACH and HAPTIC are correlated with HACKS, Human Agent Collaboration Knowledge System,/m);
+    assert.match(preachText(), /The association is context only: HACKS is not a capability, and it owns neither\./);
+    assert.match(preachText(), /^Agents owns PREACH as the operational principle of how an Agent escalates, and nothing beyond it\. It owns no human decision, no domain's semantics and not HAPTIC\./m);
   });
 });
 
