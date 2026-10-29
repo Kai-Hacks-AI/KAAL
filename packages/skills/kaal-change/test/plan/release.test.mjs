@@ -39,8 +39,11 @@ function consumer(tarballs) {
   return dir;
 }
 
-/** Packs a package into `out`, returning the tarball's path. */
-const pack = (from, out) => join(out, JSON.parse(npm(["pack", "--json", "--ignore-scripts", "--pack-destination", out], from))[0].filename);
+/** Packs a package into `out`, returning the tarball's path. A package that builds its runtime when packed (Hosting's prepack) runs its scripts. */
+function pack(from, out, { scripts = false } = {}) {
+  const text = npm(["pack", "--json", ...(scripts ? [] : ["--ignore-scripts"]), "--pack-destination", out], from);
+  return join(out, JSON.parse(text.slice(Math.max(0, text.search(/^\[/m)))).at(-1).filename);
+}
 
 /** Runs the installed package's consumer verification, as the consumer would. */
 function verify(dir, ...args) {
@@ -147,7 +150,7 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
       for (const name of cases("graph")) assert.ok(without.out.includes(name), `${name} is listed`);
       assert.match(without.out, /not applicable/i, "as not applicable");
       assert.match(without.out, new RegExp(`${NAME.replace("/", "\\/")}.*0\\.0\\.1`), "the evidence names the package and its version");
-      const withGraph = consumer([change, pack(HOSTING, out), pack(GRAPH, out)]);
+      const withGraph = consumer([change, pack(HOSTING, out, { scripts: true }), pack(GRAPH, out)]);
       const full = verify(withGraph);
       assert.equal(full.status, 0, `with Graph, the full delivery path verifies:\n${full.out}`);
       for (const name of cases("graph")) assert.ok(full.out.includes(name), `${name} ran`);
