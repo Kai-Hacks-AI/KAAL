@@ -51,7 +51,7 @@ Anything else is refused (guard/F18). Guard conforms to that contract without de
 
 **guard/F6 Narrow adapters.** [guard/I3] The hook and the workflow jobs pass facts and act only on verdicts.
 
-**guard/F7 Trusted checker.** [guard/I1, guard/I2] A check can name a `trusted` file or directory. The runner then takes exactly those files as the target revision (`base`) holds them, never the candidate's version, and runs them in place of the candidate's, so a candidate cannot certify itself. Each base copy keeps the file mode the base records: a file Git records as executable (`100755`) is executable, so a check whose command is the checker itself, such as `./checker.sh`, runs as it does in a checkout. Where the host has no executable bit (Windows), the mode has no effect and the obligation is met by writing the bytes.
+**guard/F7 Trusted checker.** [guard/I1, guard/I2] A check can name a `trusted` file or directory. The runner then takes exactly those files as the target revision (`base`) holds them, never the candidate's version, and runs them in place of the candidate's, so a candidate cannot replace the checker that judges it. Each base copy keeps the file mode the base records: a file Git records as executable (`100755`) is executable, so a check whose command is the checker itself, such as `./checker.sh`, runs as it does in a checkout. Where the host has no executable bit (Windows), the mode has no effect and the obligation is met by writing the bytes.
 - Guard establishes Git provenance only. The verdict's evidence names the base commit that supplied the checker's files.
 - What the checker imports from elsewhere, its interpreter and its environment are outside Guard's guarantee. They belong to the environment the check runs in.
 - When the base or the designated files on it cannot be obtained, or no word of the command names the trusted path, the check is cannot judge.
@@ -74,7 +74,7 @@ Anything else is refused (guard/F18). Guard conforms to that contract without de
 - `GUARD_BASE` and `GUARD_BASE_REF`, the target commit and its name;
 - `GUARD_CHANGED`, a file listing the changed paths, NUL-separated.
 
-Guard does not tell a check where it is running. Equal facts, the same tree, the same command and the same tool versions give the same verdict. A local base from a stale fetch is a different fact, so the verdict may legitimately differ; the hook prints the base it used.
+Guard does not tell a check where it is running. Guard gives a check equal inputs for equal facts, the same tree, the same command and the same tool versions, and reads its exit status the same way. A check that reads anything else, such as the clock or the network, may give a different verdict, and that is the check's, not Guard's. A local base from a stale fetch is a different fact, so the verdict may legitimately differ; the hook prints the base it used.
 
 **guard/F10 No silent gate.** [guard/I2] Missing verification never satisfies a gate.
 - A command that cannot start is cannot judge.
