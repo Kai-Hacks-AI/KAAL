@@ -248,18 +248,24 @@ function declaredVersion(ix, id) {
   return undefined;
 }
 
-/** How a readable Run of `of` differs from the definitions the model now declares: [] when it is applicable. */
+/** A recorded version that reads: a nonempty string, or null for an unversioned item. */
+const recorded = (v) => v === null || nonempty(v);
+
+/**
+ * How a readable Run of `of` differs from the definitions the model now declares: [] when it is applicable.
+ * A recorded version that does not read cannot show a difference; the Run's own evaluation finds it.
+ */
 function differences(ix, run, of, inherited = {}) {
   const out = [];
   if (run.of !== of && inherited.of === undefined) out.push(`it is a Run of ${name(run.of)}, not of ${name(of)}`);
   const provenance = { ...inherited.provenance, ...(object(run.provenance) ? run.provenance : {}) };
   for (const [id, v] of Object.entries(provenance)) {
     const now = declaredVersion(ix, id);
-    if (now !== undefined && v !== now) out.push(`it executed ${name(id)} at ${name(v)}, and the model now declares ${name(now)}`);
+    if (now !== undefined && recorded(v) && v !== now) out.push(`it executed ${name(id)} at ${name(v)}, and the model now declares ${name(now)}`);
   }
   for (const [id, v] of Object.entries(object(run.data) ? run.data : {})) {
     const now = declaredVersion(ix, id);
-    if (now !== undefined && now !== null && v !== now) out.push(`its Test Data ${name(id)} is at ${name(v)}, and the model now declares ${name(now)}`);
+    if (now !== undefined && recorded(v) && v !== now) out.push(`its Test Data ${name(id)} is at ${name(v)}, and the model now declares ${name(now)}`);
   }
   for (const child of Array.isArray(run.runs) ? run.runs : []) if (object(child)) out.push(...differences(ix, child, of, { of, provenance }));
   return out;

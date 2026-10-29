@@ -200,6 +200,27 @@ describe("model", () => {
       assert.equal(q.result, evaluate(m(), run).result);
     });
 
+    it("never falls back past a latest Run whose recorded versions do not read (Codex on #644)", () => {
+      for (const [where, bad] of [["provenance", { provenance: { P: null, S: null, c: 42 } }], ["Test Data", { data: { D: 7 } }], ["Test Data", { data: { D: "" } }]]) {
+        const model = { ...m(), plans: [{ id: "P", suites: ["S"], data: [{ id: "D", version: "d1" }] }] };
+        const older = { ...plan("r1", "passed"), data: { D: "d1" } };
+        const latest = { ...plan("r2", "passed"), data: { D: "d1" }, ...bad };
+        const q = current(model, [older, latest], "P");
+        assert.deepEqual([q.run, q.result], ["r2", "unknown"], `${where} ${JSON.stringify(bad)}`);
+        assert.ok(q.findings.length > 0);
+      }
+    });
+
+    it("compares Test Data whose declared version was removed with the version a Run recorded (Codex on #644)", () => {
+      const model = { ...m(), plans: [{ id: "P", suites: ["S"], data: [{ id: "D" }] }] };
+      const q = current(model, [{ ...plan("r1", "passed"), data: { D: "old" } }], "P");
+      assert.deepEqual([q.run, q.result], [null, "unknown"]);
+      assert.ok(q.runs[0].differences.some((d) => d.includes("D") && d.includes("old")));
+      assert.equal(current(model, [{ ...plan("r2", "passed"), data: { D: null } }], "P").run, "r2", "an unversioned item recorded as null is applicable");
+      const unversioned = current(m(), [{ ...plan("r3", "passed"), provenance: { P: null, S: null, c: null } }], "P");
+      assert.deepEqual([unversioned.run, unversioned.runs[0].applicable], [null, false], "a Run of c before it was versioned is not evidence of c at 1");
+    });
+
     it("treats identities that name Object.prototype members as ordinary strings", () => {
       const model = { plans: [{ id: "constructor", suites: ["__proto__"] }], suites: [{ id: "__proto__", cases: ["toString"] }], cases: [{ id: "toString", version: "1" }] };
       const run = JSON.parse('{"id":"r","of":"constructor","provenance":{"constructor":null,"__proto__":null,"toString":"1"},"outcomes":{"toString":"passed"}}');
