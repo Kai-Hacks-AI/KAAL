@@ -2,7 +2,7 @@
 
 The planned outer tests live in `packages/skills/kaal-change/test/plan/delivery.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK.
 
-The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may add Code tests of its own. The tests build Change Nodes with Graph's `createNode` (change/T18 then asserts ids on them), typed by the Change Definition, with Edges of the Succeeds and Delivers Definitions. They give Testing's evaluations as plain data, shaped as `evaluate` gives them (`testing/F28`), in the result words of `testing/F26`.
+The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may add Code tests of its own. The tests build Change Nodes with Graph's `createNode` (change/T18 then asserts ids on them), typed by the Change Definition, with Edges of the Succeeds and Delivers Definitions. They give the caller's selection as plain data: a selector and Testing's evaluations, shaped as `evaluate` gives them (`testing/F28`), in the result words of `testing/F26`.
 
 | Test | Checks | Loop |
 | --- | --- | --- |
@@ -22,6 +22,8 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 | change/T22: a satisfied Change is delivered only when every Change it succeeds is delivered, and no Case about main is implied | change/I2, change/I10, change/F17, change/A10 | Requirements |
 | change/T23: a Change Node present on disk but not given is absent, and nothing in the result claims registration, admission or KAAL verification | change/N5, change/I4 | Requirements |
 | change/T30: raw Run observations and evaluations with findings never count as GREEN, a clean evaluation counts for its Cases even when another Case is unknown, and an allowed Case stays unmet | change/F16, change/F27, change/A10 | Requirements |
+| change/T31: evidence without a selector counts nothing, and each delivery result cites its selector and the runs it counted | change/F16, change/F28, change/A10 | Requirements |
+| change/T32: two evaluations of one Plan are a conflict Change never resolves, an older clean passed never stands beside a newer unknown or failed, and no passed combines with another result into GREEN | change/F16, change/F28 | Requirements |
 
 The following are validated by review:
 - `change/A1` is a placement.
@@ -33,4 +35,4 @@ change/T17 and change/T18 replace the earlier claim that acyclicity follows from
 
 ## RED evidence
 
-At `change/C1` and `change/C7`, all sixteen tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./delivery` and ships no Succeeds or Delivers Definition. They run with `node --test packages/skills/kaal-change/test/plan/delivery.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
+At `change/C1` and `change/C7`, all eighteen tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./delivery` and ships no Succeeds or Delivers Definition. They run with `node --test packages/skills/kaal-change/test/plan/delivery.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.

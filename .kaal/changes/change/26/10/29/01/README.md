@@ -23,9 +23,19 @@ This is a PLAN Change. It ships no code, and revises `change/C1`'s plan before i
 
 ## Verified by
 
-- All sixteen tests in `packages/skills/kaal-change/test/plan/delivery.test.mjs` are RED and blocked before behavioural assertion.
-- All sixteen ran GREEN against a throwaway implementation, which is not committed.
+- All eighteen tests in `packages/skills/kaal-change/test/plan/delivery.test.mjs` are RED and blocked before behavioural assertion.
+- All eighteen ran GREEN against a throwaway implementation, which is not committed.
 - change/T30 fails when every given evaluation counts.
+
+## Owner review 5705662282
+
+An empty `findings` list is not authentication, freshness or applicability. `change/F28` therefore gives the caller's evidence-selection contract:
+- **The selector is accountable.** Evidence is `{ by, evaluations }`, and `by` names the selector, who answers for which Runs and definition versions are current and applicable.
+- **No history.** The selection holds one evaluation per Plan. Two evaluations of one Plan are a conflict Change never resolves, so an older clean `passed` never stands beside a newer `unknown` or `failed`, and the Case is unmet as `conflicting`.
+- **No selector, no evidence.** Evidence without `by` counts nothing.
+- **A cited basis.** Every delivery result names `by` and the runs it counted, as `basis`.
+
+change/T31 and change/T32 are the discriminating tests. change/T32 fails for a newer-wins implementation.
 
 ## What did not change
 
