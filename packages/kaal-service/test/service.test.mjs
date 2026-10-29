@@ -48,10 +48,14 @@ describe("kaal-service", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/Agreement.md",
       "capability/Service-Definition.md",
       "capability/Service.md",
+      "capability/composes.md",
       "capability/consumes.md",
+      "capability/covers.md",
       "capability/provides.md",
+      "capability/underpins.md",
       "package.json",
     ]);
   });
