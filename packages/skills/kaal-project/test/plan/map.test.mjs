@@ -1,7 +1,7 @@
 // project/C2 planned outer tests: the Project map.
 // Immutable to DO and CHECK; the DO Change turns them GREEN. Each title names
 // the contracts it checks (plan/map/*.md). They use kaal-project's public
-// interface only, and give Project Plans and Change's map as plain data.
+// interface only, and give Project Plans and Change's exchange as plain data.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -30,14 +30,17 @@ const plan = (over = {}) => ({
   ...over,
 });
 
-/** Change's complement, as a consumer passes it: presence and declared Depends On (change/F5, #530). sample/C2 depends on sample/C1. */
-const changes = (ids = ["sample/C1", "sample/C2", "sample/C3"], deps = { "sample/C2": ["sample/C1"] }) => ({
-  has: (id) => ids.includes(id),
-  dependsOn: (id) => (ids.includes(id) ? [...(deps[id] ?? [])] : []),
+/** A stand-in content id for a Change identity. */
+const ID = (identity) => identity.at(-1).repeat(64);
+
+/** Change's exchange, as a consumer passes it, plain data (change/F13, #530). sample/C2 depends on sample/C1. */
+const changes = (ids = ["sample/C1", "sample/C2", "sample/C3"], deps = { "sample/C2": ["sample/C1"] }, findings = []) => ({
+  changes: ids.map((identity) => ({ identity, id: ID(identity), dependsOn: [...(deps[identity] ?? [])] })),
+  findings,
 });
 
 const PROJECT = (name) => ({ name, owner: "Project" });
-const DEPENDS_ON = Object.freeze({ from: "sample/C2", to: "sample/C1", relation: { name: "Depends On", owner: "Change" }, source: "sample/C2" });
+const DEPENDS_ON = Object.freeze({ from: "sample/C2", to: "sample/C1", relation: { name: "Depends On", owner: "Change" }, source: ID("sample/C2") });
 const project = (from, to, name) => ({ from, to, relation: PROJECT(name), source: "sample/P1" });
 
 /** The findings whose text names every given word. */
@@ -48,10 +51,10 @@ describe("the Project map (project/C2)", () => {
     const { map } = await projectMap();
     assert.deepEqual(map([plan()]), {
       nodes: [
-        { id: "sample/C1", kind: "change", owner: "Change", resolved: false },
-        { id: "sample/C2", kind: "change", owner: "Change", resolved: false },
-        { id: "sample/C3", kind: "change", owner: "Change", resolved: false },
-        { id: "sample/P1", kind: "project", owner: "Project", resolved: true },
+        { identity: "sample/C1", kind: "change", owner: "Change", resolved: false },
+        { identity: "sample/C2", kind: "change", owner: "Change", resolved: false },
+        { identity: "sample/C3", kind: "change", owner: "Change", resolved: false },
+        { identity: "sample/P1", kind: "project", owner: "Project", resolved: true },
       ],
       relations: [
         project("sample/C1", "sample/C2", "grouped with"),
@@ -65,11 +68,14 @@ describe("the Project map (project/C2)", () => {
     });
   });
 
-  it("project/T2 [project/I2, project/I4, project/F3]: with Change's complement, Depends On is Change's, qualified and sourced to the dependent Change, and the governed Changes are resolved", async () => {
+  it("project/T2 [project/I2, project/I4, project/F2, project/F3]: with Change's exchange, Depends On is Change's, qualified and sourced to the dependent's content id, and the governed Changes are resolved with their id", async () => {
     const { map } = await projectMap();
     const out = map([plan()], { changes: changes() });
     assert.deepEqual(out.findings, []);
-    assert.ok(out.nodes.filter((n) => n.kind === "change").every((n) => n.resolved), "every governed Change is resolved");
+    assert.deepEqual(
+      out.nodes.filter((n) => n.kind === "change"),
+      ["sample/C1", "sample/C2", "sample/C3"].map((identity) => ({ identity, kind: "change", owner: "Change", resolved: true, id: ID(identity) })),
+    );
     assert.deepEqual(out.relations.filter((r) => r.relation.owner === "Change"), [DEPENDS_ON]);
   });
 
@@ -97,16 +103,20 @@ describe("the Project map (project/C2)", () => {
       { ...plans[0], changes: [...plans[0].changes].reverse() },
       plans[1],
     ].reverse();
-    const shuffled = { changes: changes(["sample/C3", "sample/C2", "sample/C1"]) };
+    const exchange = changes();
+    const shuffled = { changes: { changes: [...exchange.changes].reverse(), findings: exchange.findings } };
     assert.equal(JSON.stringify(map(permuted, shuffled)), first, "any input order");
     assert.deepEqual(plans, before, "input unchanged");
   });
 
-  it("project/T5 [project/I3, project/F1, project/F3]: a governed Change Change's complement does not have is unresolved and reported, and a malformed Plan member is a finding naming it", async () => {
+  it("project/T5 [project/I3, project/F1, project/F2, project/F3]: a governed Change Change's exchange does not list is unresolved and reported, Change's findings pass through as Change's, and a malformed Plan member is a finding naming it", async () => {
     const { map } = await projectMap();
-    const out = map([plan()], { changes: changes(["sample/C1", "sample/C2"]) });
-    assert.deepEqual(out.nodes.find((n) => n.id === "sample/C3"), { id: "sample/C3", kind: "change", owner: "Change", resolved: false });
-    assert.equal(naming(out.findings, "sample/C3").length, 1, "the missing Change is reported");
+    const stale = { kind: "stale", change: "sample/C3", dependency: "sample/C1" };
+    const elsewhere = { kind: "unresolved", change: "other/C7", dependency: "other/C8" };
+    const out = map([plan()], { changes: changes(["sample/C1", "sample/C2"], undefined, [stale, elsewhere]) });
+    assert.deepEqual(out.nodes.find((n) => n.identity === "sample/C3"), { identity: "sample/C3", kind: "change", owner: "Change", resolved: false });
+    assert.equal(naming(out.findings, "Project", "sample/C3").length, 1, "the missing Change is reported by Project");
+    assert.deepEqual(out.findings.filter((f) => f.owner === "Change"), [{ owner: "Change", ...stale }], "Change's finding on a governed Change passes through unflattened");
     const broken = [
       [plan({ project: undefined }), "project"],
       [plan({ grouping: [["sample/C1"]] }), "grouping"],
@@ -140,11 +150,13 @@ describe("the Project map (project/C2)", () => {
     );
   });
 
-  it("project/T7 [project/I2, project/I4]: removing Change's complement removes every relation Change owns and nothing Project owns", async () => {
+  it("project/T7 [project/I2, project/I4]: removing Change's exchange removes every relation and finding Change owns and nothing Project owns", async () => {
     const { map } = await projectMap();
-    const composed = map([plan()], { changes: changes() });
+    const composed = map([plan()], { changes: changes(undefined, undefined, [{ kind: "stale", change: "sample/C2", dependency: "sample/C1" }]) });
     const alone = map([plan()]);
     assert.deepEqual(composed.relations.filter((r) => r.relation.owner === "Project"), alone.relations);
     assert.deepEqual(alone.relations.filter((r) => r.relation.owner !== "Project"), []);
+    assert.deepEqual(composed.findings.filter((f) => f.owner === "Project"), alone.findings);
+    assert.deepEqual(alone.findings.filter((f) => f.owner !== "Project"), []);
   });
 });
