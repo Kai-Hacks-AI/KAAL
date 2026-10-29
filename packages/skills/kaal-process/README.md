@@ -5,13 +5,13 @@ KAAL Process: the capability for the shared Process metamodel, the generic conce
 ```
 capability/Process.md             the Capability Node, typed by Core's KAAL Capability
 capability/Process-Definition.md  the Process Definition, typed by KAAL Definition: Process, Activity, Role, State and Transition, Ordering, Entry and Exit conditions
-capability/PDCA.md                the PDCA Definition, typed by KAAL Definition: Plan, Do, Check, Act as a recursive learning and improvement cycle
+capability/PDCA.md                the PDCA Definition, typed by KAAL Definition: Plan, Do, Check, Act as a recursive learning and improvement cycle, delivered as a Process Template
 ownership.kaal.json               Process's own ownership claim (repository data, not delivered)
 ```
 
 ## Responsibilities
 
-Process owns the metamodel's concepts and their meaning, and nothing a consumer describes with them. Each capability keeps its own processes: their purpose, activities, rules, applicability and decisions, and which States and Transitions they have. A Role is fulfilled by an actor, a human, a CASE Agent or another authorized participant, and is not an Agent. A State is derived from observable facts. Process keeps no registry; a process stays in the context of the capability that defines it, and describing it as a Process makes nothing mandatory. PDCA is the generic, recursive learning and improvement cycle: inner cycles feed the enclosing Check and never substitute for it, Act preserves knowledge for later Plans and changes nothing by itself, and branches and pull requests realize a cycle without owning it.
+Process owns the metamodel's concepts and their meaning, and the management of processes through it, and nothing a consumer describes with them. Specific processes and their instances stay with the capability whose processes they are. Each capability keeps its own processes: their purpose, activities, rules, applicability and decisions, and which States and Transitions they have. A Role is fulfilled by an actor, a human, a CASE Agent or another authorized participant, and is not an Agent. A State is derived from observable facts. Process keeps no registry; a process stays in the context of the capability that defines it, and describing it as a Process makes nothing mandatory. Process may deliver Process Templates, reusable processes for any capability to adopt. PDCA is one: a template, not an instantiated Change, Engineering or Learning process and not a universal mandatory workflow. A capability that adopts it owns its particular process: its adaptations, applicability, conditions, decisions and realization. In PDCA, the generic, recursive learning and improvement cycle, inner cycles feed the enclosing Check and never substitute for it, Act preserves knowledge for later Plans and changes nothing by itself, and branches and pull requests realize a cycle without owning it.
 
 ## Register the Nodes
 
@@ -34,9 +34,9 @@ npx kaal verify                                               # the Engine admit
 Registration is all or nothing: Core refuses the whole contribution, and writes nothing, if any Node is out of Form or its type does not resolve. The ids are the SHA-256 of each Node's exact bytes, so a match is the published content, byte for byte:
 
 ```
-a87a0549939ca29ec153d899c4a5fb84b2fdc59cb432e7463a609ba5302c8b43  capability/Process.md             Process, KAAL Capability
+ed3d9a2255912d2d6b6bd25e6b0e180b5f11c9f82b5d69d8d7f7d8b1e5c65b4b  capability/Process.md             Process, KAAL Capability
 7764218e21c91a40af1350669d0bc5987d708d0fcae8ae1fac33f2df50006947  capability/Process-Definition.md  Process, KAAL Definition
-b84f21b5c9ac02a44d92935f3beb560d68e620ada5845a9f2fbd5b2134deb305  capability/PDCA.md               PDCA, KAAL Definition
+5a20888db853950c8921d081814e28e40e9cc812daf12b7b11b69d3d6db347ff  capability/PDCA.md               PDCA, KAAL Definition
 ```
 
 ## Roles elsewhere
