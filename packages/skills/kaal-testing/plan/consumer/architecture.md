@@ -6,7 +6,7 @@ Each element names, in brackets, the Requirements it answers.
   - **The Node.** `payload/Testing.md` gains `## Consumer verification`, holding the statements of testing/F11 to testing/F17 verbatim.
   - **The Skill.** `skills/kaal-testing/SKILL.md` gains `## Making a product verifiable by its consumers`. It tells an Agent how to apply the section, and points to the Node for what it means.
   - **The README.** It summarizes the section.
-  - **No mechanism.** kaal-testing gains no export, no module and no dependency. A product realizes the contract in its own code and cites these ids, so it depends on no Testing package. A reusable mechanism, such as an entry point delivered by Testing, is a later Change once kaal-testing is published.
+  - **No mechanism.** kaal-testing gains no export, no module and no dependency for consumer verification. A product realizes the contract in its own code and cites these ids, so it depends on no Testing package. A reusable mechanism, such as an entry point delivered by Testing, is a later Change once kaal-testing is published.
   - **The export inventory.** Every kaal-testing export is declared below with the contract it serves and its owning Change. A Change that adds an export adds its row, and only a row may say an export serves consumer verification. None does: a row that did would be a new mechanism, which needs its own PLAN (`testing/C17`).
 
     | Export | Serves | Owning Change | Consumer verification |
@@ -19,6 +19,12 @@ Each element names, in brackets, the Requirements it answers.
     | `./inventory` | non-blank text lines of the listed files | Testing | no |
     | `./package.json` | the package manifest | Testing | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
+  - **The dependency inventory.** Every runtime dependency is declared below with its version, the exports that need it and its owning Change. A Change that adds a dependency adds its row, and none serves consumer verification (`testing/C24`).
+
+    | Dependency | Version | Needed by | Owning Change | Consumer verification |
+    | --- | --- | --- | --- | --- |
+    | `c8` | `12.0.0` | `./coverage` | Testing | no |
+    | `kaal-hosting` | `0.0.1` | `./acceptance`, `./coverage` | Testing | no |
 - **testing/A9** [testing/F12, testing/F13]: **npm, the first realization.** Testing records it here without making it the definition.
   - **The entry point.** `npm explore <package> -- npm test` runs the installed package's own `test` script. The product's script runs one small entry file of its own.
   - **Exit statuses.** The recommended statuses are 0 for verified, 1 for failed and 2 for unknown. The summary is one machine-readable line.

@@ -15,6 +15,8 @@ What stays validation: whether the statements say what the Owner meant, and whet
 
 `testing/C17` narrows testing/T18. As planned, it pinned kaal-testing's whole export list, so any later Change that adds an export for its own contract, such as `testing/C12`'s `./boundary` or `testing/C15`'s `./model`, would turn it RED although consumer verification gained no mechanism. testing/T18 now asserts that testing/A8's export inventory declares exactly the package's exports, that no row serves consumer verification, and that the runtime dependencies are unchanged. The evidence is the declared ownership and contract of each export, not its name: a test cannot show from a name that a module serves no mechanism, so the inventory makes that a declaration its owning Change answers for, and an undeclared export turns testing/T18 RED.
 
+`testing/C24` narrows testing/T18 the same way for dependencies. As planned, it pinned the runtime dependencies to exactly `c8` and `kaal-hosting`, so `testing/C25`, which makes `./attribution` read claims through Graph and Core (`testing/A16`), would turn it RED although consumer verification gained no mechanism. testing/T18 now asserts that testing/A8's dependency inventory declares exactly the package's runtime dependencies at their versions, and that none serves consumer verification. It stays GREEN at `testing/C24`: the inventory declares today's two dependencies.
+
 ## RED evidence
 
 The tests run with `node --test packages/skills/kaal-testing/test/plan/consumer.test.mjs`, outside Testing's `npm test` until `testing/C10`. At `testing/C9`, all four are RED, each blocked before behavioural assertion, because the Node has no `## Consumer verification` section.

@@ -1,0 +1,11 @@
+# Ownership Claims as Markdown: Intent
+
+This is `testing/C24`, a PLAN Change. It ships no code. `testing/C25` turns its planned tests GREEN.
+
+**What the Owner decided.** On #609 (comment 6504548445), the Owner ruled that ownership claims are human–agent governance artifacts. `ownership.kaal.json` therefore moves to Markdown with validated YAML frontmatter, following the representation rule set on #607: structured elements that scripts read go in validated frontmatter, and what people read goes in the body. Testing owns the claim format, so it plans and owns the migration and coordinates its consumers and the order in which claims move. Engineering implements none of it across Testing's boundary. Its own consumer, `engineering/contracts/measure.mjs`, follows in an Engineering Change once Testing's format lands.
+
+**What exists.** `kaal-testing/attribution` reads a claim as JSON with exactly `owner: { kind, name, id }` and `paths`. A path is a file, or a directory written with a trailing `/`. Every claim is hand-authored, and none carries prose today. The research on #609 counted 15 claims across the collectors. On `main` there are three: Core's, Graph's and Testing's. Core's is pinned by its own planned test (`core/F40`, core/T40 in `packages/kaal-core/test/plan/love.test.mjs`).
+
+**What exists to build on.** Core's Deterministic Frontmatter (`core/C5`) states the generic rules: `F1`'s value kinds, unknown and prose keys refused, and `type: <Capability>/<Type>`. Under `F8`, each Capability owns its Types and their validation, never looser than `F1`–`F6`. Under `core/A2`, reading YAML is Graph's (`kaal-graph/form`), and `kaal-core/frontmatter`'s `validate` is the generic validator.
+
+- **testing/I13**: An ownership claim is a governance statement that people and Agents author and review together. It is Markdown: the owner and the paths it claims are frontmatter that Testing validates as its own Type, `Testing/Ownership`, and anything the owner says about its claim is the body, which never changes what the claim attributes. Testing reads claims through Graph's reader and Core's generic validator, and adds only what its Type means. Moving every claim is coordinated, so that no Capability's attribution breaks while claims move one owner at a time.

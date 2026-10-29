@@ -6,7 +6,7 @@ Each Requirement names, in brackets, the Intents it serves. Each functional Requ
 
 - **testing/N5** [testing/I6]: The consumer verification semantics are realization-neutral.
   - The Node's consumer verification section names no product, package manager, version control system or hosting service.
-  - It adds no mechanism to kaal-testing: no export serves consumer verification, and its runtime dependencies are unchanged. testing/A8's export inventory declares, for every export, the contract it serves and its owning Change, and none serves consumer verification. Exports that other Changes add for their own contracts are theirs, and each adds its row (`testing/C17`).
+  - It adds no mechanism to kaal-testing: no export or runtime dependency serves consumer verification. testing/A8's export inventory declares, for every export, the contract it serves and its owning Change, and its dependency inventory declares, for every runtime dependency, its version, the exports that need it and its owning Change. None serves consumer verification. Exports and dependencies that other Changes add for their own contracts are theirs, and each adds its row (`testing/C17`, `testing/C24`).
   - npm is the first realization, and it is recorded in this PLAN's Architecture, never in the Definition.
 
 ## Functional

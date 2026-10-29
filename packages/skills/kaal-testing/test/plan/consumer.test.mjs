@@ -21,22 +21,29 @@ function section(markdown, heading, where) {
 /** The Node's consumer verification section, with whitespace runs folded so line wrapping does not matter. */
 const node = () => section(text("payload/Testing.md"), HEADING, "payload/Testing.md").replace(/\s+/g, " ");
 
-/** testing/A8's export inventory: each declared export and its "Consumer verification" cell, or the reason the tests are blocked. */
-function inventory() {
+/** One of testing/A8's inventories, by its header: each declared row's first cell and its other cells, or the reason the tests are blocked. */
+function table(header, what) {
   const architecture = text("plan/consumer/architecture.md");
-  const header = architecture.match(/^\s*\| Export \| Serves \| Owning Change \| Consumer verification \|$/m);
-  if (!header) assert.fail("blocked before behavioural assertion: plan/consumer/architecture.md has no export inventory");
+  const at = architecture.match(new RegExp(`^\\s*${header.replace(/[|]/g, "\\|")}$`, "m"));
+  if (!at) assert.fail(`blocked before behavioural assertion: plan/consumer/architecture.md has no ${what}`);
+  const width = header.split("|").length - 2;
   const rows = {};
-  for (const line of architecture.slice(header.index + header[0].length).split("\n").slice(2)) {
+  for (const line of architecture.slice(at.index + at[0].length).split("\n").slice(2)) {
     const cells = line.trim().match(/^\|(.*)\|$/)?.[1].split("|").map((c) => c.trim());
     if (!cells) break;
-    assert.equal(cells.length, 4, `malformed inventory row: ${line.trim()}`);
-    const exported = cells[0].replace(/^`|`$/g, "");
-    assert.ok(!(exported in rows), `${exported} is declared twice`);
-    rows[exported] = cells[3];
+    assert.equal(cells.length, width, `malformed ${what} row: ${line.trim()}`);
+    const key = cells[0].replace(/^`|`$/g, "");
+    assert.ok(!(key in rows), `${key} is declared twice`);
+    rows[key] = cells.slice(1);
   }
   return rows;
 }
+
+/** testing/A8's export inventory: each declared export and its "Consumer verification" cell. */
+const inventory = () => Object.fromEntries(Object.entries(table("| Export | Serves | Owning Change | Consumer verification |", "export inventory")).map(([k, c]) => [k, c[2]]));
+
+/** testing/A8's dependency inventory (testing/C24): each declared runtime dependency, its version and its "Consumer verification" cell. */
+const dependencies = () => table("| Dependency | Version | Needed by | Owning Change | Consumer verification |", "dependency inventory");
 
 /** Asserts each planned statement is in the section verbatim. */
 function states(body, statements) {
@@ -68,7 +75,9 @@ describe("Consumer verification (testing/C9)", () => {
     const rows = inventory();
     assert.deepEqual(Object.keys(rows).sort(), Object.keys(pkg.exports).sort(), "testing/A8's export inventory declares exactly the package's exports");
     for (const [exported, serves] of Object.entries(rows)) assert.equal(serves, "no", `${exported} is declared to serve consumer verification`);
-    assert.deepEqual(pkg.dependencies, { c8: "12.0.0", "kaal-hosting": "0.0.1" });
+    const deps = dependencies();
+    assert.deepEqual(pkg.dependencies, Object.fromEntries(Object.entries(deps).map(([d, c]) => [d, c[0].replace(/^`|`$/g, "")])), "testing/A8's dependency inventory declares exactly the package's runtime dependencies, at their versions");
+    for (const [dependency, cells] of Object.entries(deps)) assert.equal(cells[3], "no", `${dependency} is declared to serve consumer verification`);
   });
 
   it("testing/T19 [testing/A8]: the Agent Skill and the README carry the section, and the Skill points to the Node", () => {
