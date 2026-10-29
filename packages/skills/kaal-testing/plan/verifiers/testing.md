@@ -14,7 +14,7 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/verifier
 
 The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all five are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
 
-**Checked against a throwaway implementation.** A18 was implemented outside the repository. All five tests pass against it, and each of 22 mutants of it fails at least one test. The mutants cover:
+**Checked against a throwaway implementation.** A18 was implemented outside the repository. All five tests pass against it, and each of 27 mutants of it fails at least one test. The mutants cover:
 - two summary lines accepted;
 - result words that are not distinct;
 - an undeclared word read as verified;
@@ -30,6 +30,7 @@ The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers
 - the scenarios left mutable;
 - an inapplicable case expected unknown;
 - a scenario dropped;
-- the case shape not checked.
+- the case shape not checked;
+- any scenario's targeted outcome changed to pass. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
 
 testing/N9 is checked by review of `testing/C30`: the module imports nothing.

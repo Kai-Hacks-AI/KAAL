@@ -30,8 +30,25 @@ const FACTS = {
   cases: ["acme/T1", "acme/T2"],
   target: "acme/T2",
 };
-/** The summary a conforming verifier prints in `scenario`: what the contract expects, in the verifier's words. */
-function conforming({ id, result, cases, target }) {
+/** What the contract expects in each scenario, owned by these tests rather than read from the implementation. */
+const EXPECTED = {
+  clean: { result: "verified", cases: "pass" },
+  "no-case": { result: "unknown", cases: "none" },
+  "manifest-absent": { result: "unknown", cases: "any" },
+  "manifest-malformed": { result: "unknown", cases: "any" },
+  "case-missing": { result: "unknown", cases: "pass", target: "not run" },
+  "file-changed": { result: "unknown", cases: "any" },
+  "file-removed": { result: "unknown", cases: "any" },
+  "file-added": { result: "unknown", cases: "any" },
+  "case-skipped": { result: "unknown", cases: "pass", target: "skipped" },
+  "case-todo": { result: "unknown", cases: "pass", target: "todo" },
+  "not-applicable": { result: "verified", cases: "pass", target: "not applicable" },
+  "case-failing": { result: "failed", cases: "pass", target: "fail" },
+  "consumer-changed": { result: "failed", cases: "pass" },
+};
+/** The summary a conforming verifier prints in scenario `id`: what the contract expects, in the verifier's words. */
+function conforming({ id }) {
+  const { result, cases, target } = EXPECTED[id];
   const outcome = (name) => (target && name === FACTS.target ? target : "pass");
   const summary = {
     result: VERIFIER.words[result],
@@ -50,12 +67,13 @@ describe("The shared observable result contract for consumer verifiers (testing/
   it("testing/T54 [testing/F43]: the contract names its scenarios, each with the change a publisher's harness makes and the result every conforming verifier then shows; it covers at least hosting/F26's minimum set", async () => {
     const { SCENARIOS } = await contract();
     const ids = SCENARIOS.map((s) => s.id);
-    for (const id of ["clean", "no-case", "manifest-absent", "manifest-malformed", "case-missing", "file-changed", "file-removed", "file-added", "case-skipped", "case-todo", "not-applicable", "case-failing", "consumer-changed"]) assert.ok(ids.includes(id), `${id} is a scenario`);
+    for (const id of Object.keys(EXPECTED)) assert.ok(ids.includes(id), `${id} is a scenario`);
     assert.equal(new Set(ids).size, ids.length, "scenario identities are unique");
-    const want = { clean: "verified", "not-applicable": "verified", "case-failing": "failed", "consumer-changed": "failed" };
     for (const s of SCENARIOS) {
       assert.ok(typeof s.change === "string" && s.change.length > 0, `${s.id} says what the harness changes`);
-      assert.equal(s.result, want[s.id] ?? "unknown", `${s.id} expects ${want[s.id] ?? "unknown"}: nothing else verifies or fails`);
+      const want = EXPECTED[s.id] ?? { result: "unknown" };
+      assert.equal(s.result, want.result, `${s.id} expects ${want.result}: nothing else verifies or fails`);
+      if (EXPECTED[s.id]) assert.deepEqual([s.cases, s.target], [want.cases, want.target], `${s.id} expects cases ${want.cases}, target ${want.target}`);
     }
     assert.ok(Object.isFrozen(SCENARIOS) && SCENARIOS.every(Object.isFrozen), "a caller cannot change the contract");
   });
