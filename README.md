@@ -36,15 +36,17 @@ This repository is itself such a host:
 
 ## The packages
 
-| Package | What it does | On npm |
+| Package | What it does | On npm, checked 2026-10-29 |
 | --- | --- | --- |
-| [`@kaihacksai/kaal-guard`](packages/kaal-guard/README.md) | Connects a repository's own checks to its Git `pre-push` hook and to GitHub CI, one meaning per check | released, `0.0.3` |
-| [`kaal-core`](packages/kaal-core/README.md) | The smallest working KAAL: the Kernel and foundational Nodes, identity, admission, registration, and the `kaal` CLI (`init`, `verify`, `list`, `resolve`, `identify`, `register`) | not released |
-| [`kaal-graph`](packages/skills/kaal-graph/) | A Node's Form and identity, the Edges embedded in Nodes, lookup and traversal | not released |
-| [`kaal-hosting`](packages/extensions/kaal-hosting/) | The host-facing Extension: the filesystem operations KAAL needs on Linux, Windows and macOS | not released |
-| [`kaal-testing`](packages/skills/kaal-testing/) | Test design in three loops, and findings calibrated to their evidence | not released |
-| [`kaal-engineer-skill`](packages/skills/kaal-engineer-skill/) | Producing and updating KAAL Skills, conformant to the Agent Skills standard | not released |
+| [`@kaihacksai/kaal-guard`](packages/kaal-guard/README.md) | Connects a repository's own checks to its Git `pre-push` hook and to GitHub CI, one meaning per check | published, latest `0.0.4` |
+| [`kaal-core`](packages/kaal-core/README.md) | The smallest working KAAL: the Kernel and foundational Nodes, identity, admission, registration, and the `kaal` CLI (`init`, `verify`, `list`, `resolve`, `identify`, `register`) | not published |
+| [`kaal-graph`](packages/skills/kaal-graph/) | A Node's Form and identity, the Edges embedded in Nodes, lookup and traversal | not published |
+| [`kaal-hosting`](packages/extensions/kaal-hosting/) | The host-facing Extension: the filesystem operations KAAL needs on Linux, Windows and macOS | not published |
+| [`kaal-testing`](packages/skills/kaal-testing/) | Test design in three loops, and findings calibrated to their evidence | not published |
+| [`kaal-engineer-skill`](packages/skills/kaal-engineer-skill/) | Producing and updating KAAL Skills, conformant to the Agent Skills standard | not published |
 | [`@kaihacksai/kaal-foundation`](packages/kaal-foundation/README.md) | Shared, dependency-free primitives every Capability may build on | private, not published |
+
+The last column is what the npm registry showed on 2026-10-29, not a status of this repository. `npm view <package> version` gives the current release. Work merged into a capability's branch, or into `main`, is not published until that package is released.
 
 Core depends on no Git host and no agent provider. Guard depends on no other KAAL package.
 
