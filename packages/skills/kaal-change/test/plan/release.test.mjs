@@ -146,11 +146,22 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
       const withGraph = consumer([change, pack(HOSTING, out), pack(GRAPH, out)]);
       const verified = verify(withGraph);
       assert.equal(verified.status, 0, `with Graph the result is verified:\n${verified.out}`);
-      const broken = join(withGraph, "node_modules", NAME, "lib", "record.mjs");
+      const installed = join(withGraph, "node_modules", NAME);
+      const broken = join(installed, "lib", "record.mjs");
+      const original = readFileSync(broken);
       writeFileSync(broken, "export {};\n");
+      const tampered = verify(withGraph);
+      assert.equal(tampered.status, 2, `installed bytes that differ from the manifest are unknown:\n${tampered.out}`);
+      assert.match(tampered.out, /lib\/record\.mjs/, "naming the changed file");
+      const manifestPath = join(installed, "test", "verify.json");
+      const shipped = readFileSync(manifestPath);
+      const m = JSON.parse(shipped);
+      m.files["lib/record.mjs"] = createHash("sha256").update(readFileSync(broken)).digest("hex");
+      writeFileSync(manifestPath, JSON.stringify(m));
       const failed = verify(withGraph);
-      assert.ok(failed.status === 1 || failed.status === 2, `a broken install is never verified:\n${failed.out}`);
-      assert.match(failed.out, /lib\/record\.mjs/, "and names the changed file");
+      assert.equal(failed.status, 1, `with the manifest matching, a consumer case that fails is failed:\n${failed.out}`);
+      writeFileSync(broken, original);
+      writeFileSync(manifestPath, shipped);
       for (const d of [alone, withGraph]) rmSync(d, { recursive: true, force: true });
     } finally {
       rmSync(out, { recursive: true, force: true });
