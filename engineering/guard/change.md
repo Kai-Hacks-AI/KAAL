@@ -469,6 +469,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **In guard/F7 (D-3).** Before: "…and runs them in place of the candidate's, so a candidate cannot certify itself." After: "…and runs them in place of the candidate's, so a candidate cannot replace the checker that judges it." The bullet "The boundary that remains" stays as it is; it is what the headline now no longer contradicts.
 - **Test Cases.** None. This is wording. guard/T107 keeps the documents' identifiers consistent and stays GREEN, and the DO PR shows each sentence before and after.
 - **Authorization.** Approving this PLAN authorizes `guard/C120`'s DO only: no version bump, promotion or publication.
+- **DO (`guard/C120`).** The three sentences now read as this PLAN gives them: guard/I9 in `docs/intent.md`, guard/F9 and guard/F7 in `docs/requirements.md`. Nothing else in either document changes, and `lib/` and the README are unchanged. guard/I9's new sentence holds: `docs/testing.md` names, under "Allocated to the publisher's Engineering Test Plan", which identifiers the publisher verifies, and under "Verified by no Test Case" what no Test Case verifies. The manifest was regenerated. guard/T107 and guard/T111 stay GREEN. This DO authorizes no version bump, promotion or publication.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
@@ -583,7 +584,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
-| `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | PLAN |
+| `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | DO |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | PLAN |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | PLAN |
 | `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
