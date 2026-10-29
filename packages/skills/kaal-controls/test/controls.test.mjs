@@ -1,6 +1,6 @@
 // The package's deterministic contracts: its payload is the Controls
-// Capability Node, the two Definitions a documented control uses and the VARISC
-// and HAPTIC Definitions, typed as Core types them; Core admits them
+// Capability Node, the two Definitions a documented control uses and the VARISC,
+// HAPTIC and CATCH ME IF YOU CAN Definitions, typed as Core types them; Core admits them
 // into a fresh Engine, and admits a control a capability documents with
 // them; Graph finds that control's Edges well
 // formed and resolved; the Agent Skill conforms. What the Nodes and the
@@ -35,8 +35,8 @@ function documented() {
 }
 
 describe("payload", () => {
-  it("controls/T1: is the Controls Capability Node and the Control, Realized by, VARISC and HAPTIC Definitions", async () => {
-    assert.deepEqual(Object.keys(await readContribution(PAYLOAD)).sort(), ["Control.md", "Controls.md", "HAPTIC.md", "Realized-by.md", "VARISC.md"]);
+  it("controls/T1: is the Controls Capability Node and the Control, Realized by, VARISC, HAPTIC and CATCH ME IF YOU CAN Definitions", async () => {
+    assert.deepEqual(Object.keys(await readContribution(PAYLOAD)).sort(), ["CATCH-ME-IF-YOU-CAN.md", "Control.md", "Controls.md", "HAPTIC.md", "Realized-by.md", "VARISC.md"]);
     assert.deepEqual(node("Controls.md").type, foundation().capability);
     assert.deepEqual([node("Control.md").name, node("Control.md").type], ["Control", foundation().definition]);
     assert.deepEqual([node("Realized-by.md").name, node("Realized-by.md").type], ["Realized by", foundation().definition]);
@@ -64,6 +64,25 @@ describe("payload", () => {
         "172f9ae967582aa2ce90085247792d96c739ba40802d7e7db29b87f81e2f29e3",
       ],
     );
+  });
+});
+
+describe("CATCH ME IF YOU CAN", () => {
+  it("controls/T5: is a Definition in the payload, which a fresh Engine admits whole", async () => {
+    assert.deepEqual([node("CATCH-ME-IF-YOU-CAN.md").name, node("CATCH-ME-IF-YOU-CAN.md").type], ["CATCH ME IF YOU CAN", foundation().definition]);
+    const dir = mkdtempSync(join(tmpdir(), "kaal-controls-catch-"));
+    await bootstrap(dir);
+    await register(dir, "capability", "kaal-controls", await readContribution(PAYLOAD));
+    const verification = await verify(dir);
+    assert.deepEqual([verification.ok, verification.problems], [true, []]);
+  });
+
+  it("controls/T6: keeps the Owner's expansion verbatim, and its initials spell the name", () => {
+    const expansion = "Control Agents Through Continuous Hunting Misbehaving Elements, Implementing Fierce Yet Objective Unbiased Checks Against Noncompliance.";
+    const text = readFileSync(join(PAYLOAD, "CATCH-ME-IF-YOU-CAN.md"), "utf8");
+    assert.ok(text.split("\n").includes(expansion), "the expansion is one line of its own");
+    const initials = expansion.split(/\s+/).map((word) => word[0]).join("");
+    assert.equal(initials, "CATCH ME IF YOU CAN".replaceAll(" ", ""));
   });
 });
 

@@ -44,8 +44,8 @@ before(async () => {
 });
 
 describe("the installed package", () => {
-  it("holds exactly its intended files and has no runtime dependencies", () => {
-    assert.deepEqual(files(installed), ["LICENSE", "README.md", "package.json", "payload/Control.md", "payload/Controls.md", "payload/HAPTIC.md", "payload/Realized-by.md", "payload/VARISC.md", "skills/kaal-controls/SKILL.md"]);
+  it("controls/T7: holds exactly its intended files and has no runtime dependencies", () => {
+    assert.deepEqual(files(installed), ["LICENSE", "README.md", "package.json", "payload/CATCH-ME-IF-YOU-CAN.md", "payload/Control.md", "payload/Controls.md", "payload/HAPTIC.md", "payload/Realized-by.md", "payload/VARISC.md", "skills/kaal-controls/SKILL.md"]);
     assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).dependencies, undefined);
   });
 
@@ -60,7 +60,7 @@ describe("the installed package", () => {
 });
 
 describe("the shipped Agent Skill", () => {
-  it("conforms, as the installed Engineer Skill checks it", async () => {
+  it("controls/T7: conforms, as the installed Engineer Skill checks it", async () => {
     assert.match(await run(join(host, "node_modules", ".bin", "kaal-engineer-skill"), [join(installed, "skills", "kaal-controls")], host), /^ok/);
   });
 });
