@@ -110,6 +110,11 @@ function walk(m, ix, run, f, inherited, suite, seen) {
     if (!ok) { f.push(`run ${run.id}: ${child?.of} cannot run within ${of}`); continue; }
     occ.push(...walk(m, ix, child, f, provenance, kind === "suite" ? of : undefined, seen).occ);
   }
+  // A Suite or Case Run has a result for each Case it covers: one it did not observe is unknown in it (testing/F30).
+  if (kind !== "plan") {
+    const at = kind === "suite" ? of : suite;
+    for (const c of within) if (ix.ids.cases.has(c) && !ix.ids.cases.get(c).retired && !occ.some((o) => o.case === c && o.suite === at)) occ.push({ suite: at, case: c, r: "unknown", ran: false });
+  }
   return { kind, occ };
 }
 
@@ -128,22 +133,22 @@ export function results(m, run) {
   const result = (c, inapplicable) => (kind === "plan" ? agg(containing(c).map((s) => (inapplicable && !ran(c, s) ? "inapplicable" : agg(of(c, s))))) : agg(of(c)));
   const cases = Object.fromEntries(live.map((c) => [c, result(c, false)]));
   const suites = Object.fromEntries(suiteIds.map((s) => [s, agg((ix.ids.suites.get(s)?.cases ?? []).filter((c) => live.includes(c)).map((c) => agg(of(c, s))))]));
-  const plans = {};
+  const plans = new Map();
   if (kind === "plan") {
     const p = ix.ids.plans.get(run.of);
     const decl = new Set((p.inapplicable ?? []).map((d) => d.case));
     const pc = Object.fromEntries(live.map((c) => [c, result(c, decl.has(c))]));
     const ps = Object.fromEntries(suiteIds.map((s) => [s, agg((ix.ids.suites.get(s)?.cases ?? []).filter((c) => live.includes(c)).map((c) => (decl.has(c) && !ran(c, s) ? "inapplicable" : agg(of(c, s)))))]));
-    plans[run.of] = { result: agg(Object.values(pc)), cases: pc, suites: ps };
+    plans.set(run.of, { result: agg(Object.values(pc)), cases: pc, suites: ps });
   }
-  return { run: run?.id, of: run?.of, cases, suites, plans, data: { ...(run?.data ?? {}) }, findings };
+  return { run: run?.id, of: run?.of, cases, suites, plans: Object.fromEntries(plans), data: { ...(run?.data ?? {}) }, findings };
 }
 
 export function evaluate(m, run, options = {}) {
   const r = results(m, run);
   const findings = [...r.findings];
   for (const k of Object.keys(options)) if (k !== "allowances") findings.push(`${k} is not an evaluation input`);
-  const p = r.plans[run?.of];
+  const p = Object.hasOwn(r.plans, run?.of) ? r.plans[run.of] : undefined;
   if (!p) findings.push(`run ${run?.id}: ${run?.of} is not a Plan`);
   const cases = p ? p.cases : r.cases;
   const list = options.allowances ?? [];

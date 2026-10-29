@@ -40,4 +40,20 @@ describe("model", () => {
     assert.ok(evaluate(SHARED(), run, { allowances: [{ case: "toString", cite: "x" }] }).findings.includes("toString is outside P"));
     assert.ok(results(SHARED(), { id: "r", of: "P", provenance: {}, outcomes: {} }).findings.some((f) => f.includes("provenance does not identify P")));
   });
+
+  it("keeps a Case unknown when one of two encompassed Runs of its Suite did not observe it", () => {
+    const m = { plans: [{ id: "P", suites: ["S"] }], suites: [{ id: "S", cases: ["c"] }], cases: [{ id: "c" }] };
+    const run = { id: "r", of: "P", provenance: { P: null, S: null, c: null }, outcomes: {}, runs: [{ id: "a", of: "S", outcomes: { c: "passed" } }, { id: "b", of: "S", outcomes: {} }] };
+    assert.equal(results(m, run).cases.c, "unknown");
+    assert.equal(evaluate(m, run).result, "unknown");
+  });
+
+  it("keeps Plan results as own entries whatever the Plan's identity", () => {
+    const m = { plans: [{ id: "__proto__", suites: ["S"] }], suites: [{ id: "S", cases: ["c"] }], cases: [{ id: "c" }] };
+    const run = { id: "r", of: "__proto__", provenance: JSON.parse('{"__proto__": null, "c": null}'), outcomes: { c: "passed" } };
+    assert.deepEqual(Object.keys(results(m, run).plans), ["__proto__"]);
+    assert.equal(evaluate(m, run).result, "passed");
+    const suite = { suites: [{ id: "constructor", cases: ["c"] }], cases: [{ id: "c" }] };
+    assert.equal(evaluate(suite, { id: "r", of: "constructor", provenance: { constructor: null, c: null }, outcomes: { c: "passed" } }).result, "unknown");
+  });
 });
