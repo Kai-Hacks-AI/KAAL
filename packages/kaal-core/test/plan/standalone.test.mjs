@@ -15,7 +15,7 @@ const pkg = () => JSON.parse(readFileSync(join(CORE, "package.json"), "utf8"));
 const GRAPH = /^(@kaihacksai\/)?kaal-graph$/;
 const RUNTIME = ["dependencies", "optionalDependencies", "bundleDependencies", "bundledDependencies"];
 const DELIVERED = ["form.d.ts", "form.mjs", "node.d.ts", "node.mjs"];
-const SPECIFIER = /\bfrom\s+["'](@kaihacksai\/)?kaal-graph(\/[^"']*)?["']|\b(import|require)\s*\(\s*["'](@kaihacksai\/)?kaal-graph/;
+const SPECIFIER = /\b(from|import)\s*["'](@kaihacksai\/)?kaal-graph(\/[^"']*)?["']|\b(import|require)\s*\(\s*["'](@kaihacksai\/)?kaal-graph/;
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 /** Runs a command, returning its status and output; never throws. */
