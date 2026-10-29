@@ -140,4 +140,5 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T119 | Requirements | guard/N15, guard/F29 | every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on |
 | guard/T122 | Requirements | guard/F41 | kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged |
 | guard/T125 | Requirements | guard/F2, guard/F18 | an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255 |
+| guard/T126 | Architecture | guard/F37, guard/A19, guard/A21 | every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs |
 <!-- end of trace -->
