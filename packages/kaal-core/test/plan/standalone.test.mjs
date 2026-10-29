@@ -141,6 +141,7 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     assert.equal(pkg().devDependencies?.[name], version, "kaal-core's devDependencies pins that Graph version");
     assert.deepEqual(Object.keys(m.files ?? {}).sort(), DELIVERED, "the manifest lists exactly the delivered Node support");
     for (const [file, { from, sha256 }] of Object.entries(m.files)) {
+      assert.equal(from, `skills/kaal-graph/scripts/${file}`, `${file} comes from Graph's file of the same name`);
       const copy = readFileSync(join(CORE, "dist", "node", file));
       assert.deepEqual(copy, readFileSync(join(dir, from)), `${file} is byte-identical to ${name}/${from}`);
       assert.equal(digest(copy), sha256, `${file} matches its manifest digest`);
