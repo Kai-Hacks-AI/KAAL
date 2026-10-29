@@ -414,6 +414,16 @@ Together they are 67% of `0.0.4`'s gzip bytes. `lib/`, `bin/`, `templates/` and 
 
 </details>
 
+## What a consumer reads and types (`guard/C115`)
+
+guard/T120–guard/T122 are planned in `guard/C115` and are Guard's, each defined once. They are placed by the realization whose contract they verify, not by where they run. guard/T122 checks the Embedded package's command surface: it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package and defined in its `docs/testing.md`. guard/T120 and guard/T121 judge the embedded verifier's own output, whose identifiers (guard/F33, guard/F34) are allocated to this plan: they are Engineering-side cases, defined here and written in `engineering/guard/acceptance/package.test.mjs`, which publisher Engineering runs against a packed candidate in a fresh consumer. They are not consumer-delivered coverage, and a consumer run never reports them as passed.
+
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T120: a verification whose manifest allocates two identifiers to the same place prints that allocation on one line naming both, and never the same allocation twice | guard/F34 | `guard/C115` | RED: one line per allocated identifier, 16 in all, repeating shared allocations | GREEN |
+| guard/T121: every next step that asks for a report names the package's `bugs` URL, and `package.json` declares it | guard/F33 | `guard/C115` | RED: "the package's maintainers", with no destination | GREEN |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T122 checks that `kaal-guard --version` prints the installed version and `kaal-guard --help` prints the usage, each with exit 0, in a directory that is not a repository, leaving it unchanged | guard/F41 | `guard/C115` | RED: both end as an unknown command | GREEN |
+
 ## Two limits, stated (`guard/C116`)
 
 guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package.
