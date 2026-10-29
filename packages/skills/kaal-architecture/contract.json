@@ -1,0 +1,30 @@
+{
+  "format": {
+    "name": "Installation Contract",
+    "id": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
+  },
+  "capability": "architecture",
+  "version": "0.0.1",
+  "assets": [
+    {
+      "name": "skill",
+      "source": "skills/kaal-architecture",
+      "target": ".agents/skills/kaal-architecture",
+      "kind": "directory"
+    }
+  ],
+  "catalogue": {
+    ".agents/skills/kaal-architecture/SKILL.md": [
+      "8ca2f597fa91416e487db388ac8db8f6064c1df601c1d0637d9ea73a283c0bb4"
+    ]
+  },
+  "record": ".kaal/state/architecture/installation.json",
+  "runtime": {
+    "node": 24
+  },
+  "provides": [
+    {
+      "skill": "kaal-architecture"
+    }
+  ]
+}
