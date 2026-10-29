@@ -91,9 +91,7 @@ function setting(dir) {
 
 /** The report for `dir`, which must be a directory. */
 export async function orient(dir) {
-  const unresolved = [];
-  const { repository, inFlight, reason } = inspect(dir);
-  if (!repository) unresolved.push({ what: "repository", reason });
+  const { repository, inFlight, unresolved } = inspect(dir);
   const listed = instructions(dir, unresolved);
   const claims = owners(dir, unresolved);
   let catalog = { status: "not applicable" };
@@ -124,7 +122,7 @@ export function render(report) {
     r
       ? `repository: ${r.branch ?? "detached"} at ${r.head ?? "no commit"}${r.upstream ? `, ${r.ahead} ahead and ${r.behind} behind ${r.upstream}` : ", no upstream"}`
       : "repository: none",
-    `in flight: ${list(report.inFlight)}`,
+    `in flight: ${report.inFlight ? list(report.inFlight) : "unresolved"}`,
     `instructions: ${list(report.instructions)}`,
     `owners: ${list(report.owners.map((o) => `${o.path} (${o.owner.name ?? "unnamed"})`))}`,
     `catalog: ${report.catalog.status}${report.catalog.status === "listed" ? ` (${report.catalog.capabilities.length} capabilities, ${report.catalog.agents.length} agents)` : ""}`,
