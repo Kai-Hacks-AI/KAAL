@@ -1,4 +1,4 @@
-# Owned trees, traces and a reusable Testing package: research
+# Owned trees and outgoing traces: research
 
 This is research for the Owner, not a Definition, a PLAN or an authorization. It answers the Owner's question in #kaal (2026-10-27): can KAAL's Node and Edge model hold independently owned trees for Intent, Requirements and Architecture, joined by explicit traces? The Testing package half of the question is Testing's, in its own PR. It is revised to the Owner's clarification of 2026-10-28 17:16 CET on capability autonomy, identity and trees. Nothing here edits a contract. Where a current contract conflicts with the clarification, that is reported as analysis.
 
