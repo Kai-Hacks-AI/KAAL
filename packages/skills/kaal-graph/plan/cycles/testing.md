@@ -20,3 +20,7 @@ The following are validated by review:
 ## RED evidence
 
 At `graph/C2`, all seven tests are RED. Each is **blocked before any behavioural assertion**, because `kaal-graph` exports no `cycles`, `reach` or `reverse`. They run with `node --test packages/skills/kaal-graph/test/plan/cycles.test.mjs`, outside Graph's `npm test` until `graph/C3`.
+
+## GREEN evidence
+
+At `graph/C3`, all seven are GREEN and part of Graph's `npm test`, unchanged.

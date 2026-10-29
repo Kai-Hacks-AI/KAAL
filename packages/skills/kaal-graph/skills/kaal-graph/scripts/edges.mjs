@@ -23,6 +23,7 @@ import { FormError, identify, isId, isName } from "./node.mjs";
 
 export { readFrontmatter } from "./form.mjs";
 export { claimsForm, FormError, identify, identifyRoot, isId, isName, sha256 } from "./node.mjs";
+export { cycles, reach, reverse } from "./structure.mjs";
 
 const byRef = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 const byEdge = (key) => (a, b) => byRef(a.type, b.type) || byRef(a[key], b[key]);
