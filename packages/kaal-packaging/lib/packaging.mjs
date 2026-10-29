@@ -20,14 +20,29 @@ function format(bytes) {
   return "unknown";
 }
 
+/** The default limits on what reading one artifact may produce. The artifact's bytes are untrusted:
+ *  an archive beyond any limit is refused, naming the limit, before more is decompressed. */
+export const LIMITS = Object.freeze({ archive: 512 * 1024 * 1024, files: 50_000, path: 1024 });
+
+function limitsOf(given) {
+  const limits = { ...LIMITS, ...given };
+  for (const k of Object.keys(limits)) {
+    if (!(k in LIMITS)) throw new TypeError(`measure knows no limit named ${k}`);
+    if (!Number.isSafeInteger(limits[k]) || limits[k] < 0) throw new TypeError(`the ${k} limit must be a whole number`);
+  }
+  return limits;
+}
+
 const byPath = (a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 
-/** packaging/F1: the artifact's packed size, unpacked size and every file's path and size. */
-export function measure(artifact) {
+/** packaging/F1: the artifact's packed size, unpacked size and every file's path and size. `limits`
+ *  narrows or widens LIMITS: `archive` (decompressed bytes), `files` and `path` (bytes per path). */
+export function measure(artifact, limits = {}) {
   if (!(artifact instanceof Uint8Array)) throw new TypeError("measure takes the artifact's bytes as a Uint8Array");
+  const bounded = limitsOf(limits);
   const realization = REALIZATIONS.find((r) => r.reads(artifact));
   if (!realization) throw new Error(`no realization reads this artifact: its format is ${format(artifact)}`);
-  const { name, version, files } = realization.read(artifact);
+  const { name, version, files } = realization.read(artifact, bounded);
   const listed = files.map(({ path, bytes }) => ({ path, size: bytes.length })).sort(byPath);
   return {
     package: { ecosystem: realization.ecosystem, name, version, sha256: sha256(artifact) },

@@ -1,6 +1,11 @@
 // gzip (RFC 1952) and DEFLATE (RFC 1951), decompression only, in plain arithmetic. Packaging
 // imports no host module (packaging/N3), so it reads compressed artifacts itself: the same bytes
 // give the same result on every host (packaging/N1). Only an ecosystem realization uses it.
+//
+// The bytes are untrusted. Output is bounded by the caller's limit before anything is allocated
+// beyond it, so a decompression bomb is refused, not expanded. Every read is bounds-checked, every
+// back-reference is checked against what was already written, and the result must match the
+// stream's CRC-32 and length, so a defect here gives a refusal, never a wrong measurement.
 
 const LENGTH_BASE = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
 const LENGTH_EXTRA = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
@@ -23,16 +28,17 @@ function huffman(lengths) {
 const FIXED_LIT = huffman([...Array(144).fill(8), ...Array(112).fill(9), ...Array(24).fill(7), ...Array(8).fill(8)]);
 const FIXED_DIST = huffman(Array(30).fill(5));
 
-function inflate(data, start) {
+function inflate(data, start, limit) {
   let pos = start;
   let bit = 0;
-  let out = new Uint8Array(Math.max(1024, (data.length - start) * 4));
+  let out = new Uint8Array(Math.min(limit, Math.max(1024, (data.length - start) * 4)));
   let n = 0;
   const need = (k) => {
+    if (n + k > limit) throw new Error(`the archive decompresses to more than the limit of ${limit} bytes`);
     if (n + k <= out.length) return;
-    let size = out.length * 2;
+    let size = Math.max(1, out.length * 2);
     while (size < n + k) size *= 2;
-    const next = new Uint8Array(size);
+    const next = new Uint8Array(Math.min(size, limit));
     next.set(out.subarray(0, n));
     out = next;
   };
@@ -138,20 +144,25 @@ function crc32(bytes) {
 /** Whether the bytes begin as a gzip member does. */
 export const isGzip = (bytes) => bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
 
-/** The bytes one gzip member holds, checked against its CRC-32 and length. */
-export function gunzip(bytes) {
+/** The bytes one gzip member holds, at most `limit` of them, checked against its CRC-32 and length.
+ *  Anything after the member's trailer is refused. */
+export function gunzip(bytes, limit) {
+  if (!Number.isSafeInteger(limit) || limit < 0) throw new TypeError("gunzip takes a byte limit");
   if (!isGzip(bytes) || bytes.length < 18) throw new Error("not a gzip stream");
   if (bytes[2] !== 8) throw new Error("the gzip stream uses a method other than deflate");
   const flags = bytes[3];
   let pos = 10;
+  if (flags & 0xe0) throw new Error("the gzip header sets reserved flags");
   if (flags & 4) pos += 2 + (bytes[pos] | (bytes[pos + 1] << 8));
   if (flags & 8) while (pos < bytes.length && bytes[pos++] !== 0);
   if (flags & 16) while (pos < bytes.length && bytes[pos++] !== 0);
   if (flags & 2) pos += 2;
-  const { bytes: out, end } = inflate(bytes, pos);
+  if (pos >= bytes.length) throw new Error("the gzip stream ends inside its header");
+  const { bytes: out, end } = inflate(bytes, pos, limit);
   if (end + 8 > bytes.length) throw new Error("the gzip stream has no trailer");
   const u32 = (i) => (bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) | (bytes[i + 3] << 24)) >>> 0;
   if (u32(end) !== crc32(out)) throw new Error("the gzip stream fails its CRC-32");
   if (u32(end + 4) !== out.length % 2 ** 32) throw new Error("the gzip stream's length does not match");
+  if (end + 8 !== bytes.length) throw new Error("the artifact holds bytes after its gzip stream");
   return out;
 }

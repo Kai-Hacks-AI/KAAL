@@ -37,7 +37,16 @@ export interface Comparison {
   added: string[];
   removed: string[];
 }
-export function measure(artifact: Uint8Array): Measurement;
+export interface Limits {
+  /** The most bytes the archive may decompress to. */
+  archive: number;
+  /** The most files it may hold. */
+  files: number;
+  /** The most UTF-8 bytes in one path. */
+  path: number;
+}
+export const LIMITS: Readonly<Limits>;
+export function measure(artifact: Uint8Array, limits?: Partial<Limits>): Measurement;
 export function attribute(measurement: Measurement, groups: string[]): Attribution;
 export function compare(before: Measurement, after: Measurement, groups?: string[]): Comparison;
 export function write(measurement: Measurement): string;
