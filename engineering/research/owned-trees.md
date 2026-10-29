@@ -41,7 +41,7 @@ This is research for the Owner, not a Definition, a PLAN or an authorization. It
 
 ## Testing package
 
-Testing owns this part and answers it in its own PLAN PR into `kaal/testing`, linked from the Slack thread. That PLAN covers Strategy, Plan, Suite and Case as Testing's optional tree, an open outgoing Case rule that prescribes no other capability's kinds, derived incoming views, and package option 2 with no Hosting dependency. Engineering's earlier points stand as input only: Guard `0.0.4` proves a product verification entry needs no runtime dependencies, and its loops, identifiers and manifest are Guard's own data, consistent with the clarification.
+Testing owns this part and answers it in its own PLAN, #601 (`testing/C14`, into `kaal/testing`). That PLAN covers Strategy, Plan, Suite and Case as Testing's optional tree, an open outgoing Case rule that prescribes no other capability's kinds, derived incoming views, and package option 2 with no Hosting dependency. Engineering's earlier points stand as input only: Guard `0.0.4` proves a product verification entry needs no runtime dependencies, and its loops, identifiers and manifest are Guard's own data, consistent with the clarification.
 
 ## Open for the Owner
 
