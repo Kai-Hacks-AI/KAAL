@@ -50,6 +50,7 @@
     "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T10 [guard/F4, guard/A4]: lets a push through when every hook check passes or is not applicable",
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T9 [guard/F4, guard/A4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify",
+    "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T12 [guard/F5, guard/A5]: reports not applicable as not applicable, never as a pass",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T13 [guard/F5, guard/A5]: reports held as a warning, never as a pass, with the check's own explanation visible",
@@ -195,6 +196,7 @@
     "guard/F38",
     "guard/F39",
     "guard/F40",
+    "guard/F41",
     "guard/N1",
     "guard/N2",
     "guard/N3",
@@ -413,6 +415,7 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
+        "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] remove and the configuration directory > guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T17 [guard/F8, guard/A6]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add",
@@ -644,6 +647,11 @@
         "test/acceptance/requirements.test.mjs > guard/F6 [guard/I3] narrow adapters > guard/T14 [guard/F6, guard/A4]: the hook follows the declarations without being changed, and names no check"
       ]
     },
+    "guard/F41": {
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged"
+      ]
+    },
     "guard/F5": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge",
@@ -722,18 +730,18 @@
     }
   },
   "allocated": {
-    "guard/I8": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F31": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F32": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F33": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F34": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F35": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F36": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F38": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F39": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F40": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/N13": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/A18": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
+    "guard/I8": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F31": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F32": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F33": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F34": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F35": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F36": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F38": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F39": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F40": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/N13": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/A18": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
     "guard/F11": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
     "guard/F14": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
     "guard/F15": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
@@ -755,14 +763,14 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "8d21f2984d621a4b3267ab3b9857512600dd9c494fbb371dfe3e96144af00994",
-    "bin/kaal-guard.mjs": "7b4b16be89374a72d25fe890382a8b68c7a8e929e56c715efc38cb9a7d75e97a",
+    "README.md": "faa1ff81175db7145eb4bbd65720715916f7f110c799f276373596c6b0f75258",
+    "bin/kaal-guard.mjs": "2fd01706b67dee8f0bdfd207a377534392942ba1666c8082a016fe5999569611",
     "contract.json": "6f334cc83897094a4a234c841a87abc8d87a7816c5ded8aeb5a55d0af2ac823e",
-    "docs/architecture.md": "7aa6c53b273ee6cf9b33001c7f200322787555a4cd865948458f60be25ee28ff",
+    "docs/architecture.md": "97ca0d092ab57f9aa4e5586c1bfd48f18f5f6750b1133d1f6478268a7af9d381",
     "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
-    "docs/requirements.md": "dfb93fd3e4f523d108bb9b3ee513f4ae72de64504666cba34a841ebf3dd695f1",
-    "docs/testing.md": "7a7670560ab7816bd9e7466e79c68ad2fbb7d856f4dbcf005b6aeb9e70d9a85b",
+    "docs/requirements.md": "e82b4e7dd1eb2b99d0f3bed006e8b8de3b8bf5b7a15bb8066635c162521645cd",
+    "docs/testing.md": "3671cc771e5a59359fbe22e2b64ca915e83474b71f63b3d1bfbcbbd2cbaf050a",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -773,7 +781,7 @@
     "lib/runner.mjs": "46057c71dec99b55c2ccaa3b3f0d1dcbebff6290fdf541f77b29f46dafe60727",
     "lib/state.mjs": "0c785c2bc4ad892cfdf47a865088f0373cb93ce11fcf299f7d2196d708545836",
     "lib/trusted.mjs": "d216f081085ce1a3b202ddb8bec09ecd3993d1acfc5bbe5f62e6947c9d9ccdb7",
-    "package.json": "6b4bc2770c6085b47db171a94709225aa5a8587050c7567e15603748a3fcecce",
+    "package.json": "9aac42dc5ddebd911f3c2670b63db37f06d11f2136b6db7abb21964958abae7c",
     "skills/kaal-guard/.gitattributes": "1c6803649686447b5a771e3eb8639d30fee8725a269fa78fdd6fca1ff5e190a6",
     "skills/kaal-guard/SKILL.md": "bc856bb457dede8b4a7c5302d2c6977e056e79064d41b9284e7c4afa04a69ed0",
     "templates/guard.yml": "84e940b8057e4ba63e5c5b7393ee5fca0e72ccf414e620a2d6674b04ce389f0f",
@@ -783,10 +791,10 @@
     "test/acceptance/architecture.test.mjs": "4f6b1229572b0e5a1aa6a983620956958014143bef9f0c54f82d22fb8432cea6",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "9a7c45eeb78f6277f8be9417d3a46acccd717bb278a3ccc2d54138c4dc67afd0",
+    "test/acceptance/requirements.test.mjs": "171e34d4d3d2b8f82075500f946ac32820f446605be53ea47622ab38eb291c40",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
     "test/unit/lifecycle.test.mjs": "e906425230fabe15a210857651673e9b7e462147bb9c8899224cadbf6962b5fb",
     "test/unit/runner.test.mjs": "4ce170100ed2064a83fd6e3af57263aafa7388542ecabab8ef330609d1f8a235",
-    "test/verify.mjs": "bce06bebab5ac705d7352d760e1517b5ce4ffbfea6e5493f869d2dfbd565c75d"
+    "test/verify.mjs": "be21b2637287143624ccc6707fe33a3e8cb15b0d9b185c6eb702c110f5025549"
   }
 }

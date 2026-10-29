@@ -212,12 +212,13 @@ A consumer can verify the installed package with one command. Before `0.0.4`, th
     - the installed files do not match the shipped manifest (guard/F34);
     - the verification itself could not complete. The output names the error and asks for it to be reported.
   - **`verified`, exit 0.** Every declared case executed and passed.
-  - **Next step.** Every `failed` and `cannot verify` names its cause and a next step (guard/N4).
+  - **Next step.** Every `failed` and `cannot verify` names its cause and a next step (guard/N4). A next step that asks for a report names where to send it: the installed package's declared `bugs` URL. When none can be read, it names the publisher's address and says that it is a fallback, not the declared URL.
 
 - **guard/F34** [guard/I8] **Evidence of what was exercised.** The output names:
   - the package name, its version and its install location;
   - the SHA-256 of each installed file, checked against the manifest shipped with the entry. The manifest excludes itself. A mismatch is `cannot verify`, naming the files.
   - the lockfile integrity, where npm recorded it in `node_modules/.package-lock.json`. Elsewhere it is reported as unknown, never guessed.
+  - each product identifier allocated to the publisher, with its allocation. Identifiers that share an allocation are named together, once.
 
   The tarball the cases exercise is a re-pack of the installed copy, so its integrity is not the registry's `dist.integrity`. The manifest ships inside the package, so a match is consistency evidence: the installed files are the ones the package says it ships. It is not independent provenance. Provenance is the registry's integrity and npm's provenance attestation, which the lockfile's integrity points to. The summary line `kaal-guard-verification {…}` carries all of it as JSON.
 
@@ -273,6 +274,8 @@ The package carries its complete consumer-facing specification and its Test Case
   - **On such a platform.** The case is not run and is reported as not applicable, named. It does not count as skipped.
   - **An undeclared skip** is still `cannot verify` (guard/F33).
   - **Identifiers it leaves uncovered.** An identifier whose only covering cases are not applicable on this platform is named as not verified here. That is `cannot verify` unless the contract itself declares that identifier not applicable on the platform.
+
+- **guard/F41** [guard/I5] **Version and usage.** `kaal-guard --version` prints the installed version, and `kaal-guard --help` prints the usage. Each exits 0, and neither reads or writes the repository.
 
 ## Nonfunctional (N)
 
