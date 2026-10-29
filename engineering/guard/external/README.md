@@ -38,7 +38,7 @@ KAAL Engineering delivers Guard naked into a target repository as one Change (gu
 
 ## Verified by
 
-- guard/T3 (`engineering/guard/acceptance/plan/external.test.mjs`): a delivery into a fresh target is one commit of a handful of files, with a hook, CI and docs, nothing from KAAL, nothing of the target's overwritten, and a hook that blocks a failing check and lets a passing one through.
+- guard/T3 (`engineering/guard/acceptance/external.test.mjs`): a delivery into a fresh target is one commit of a handful of files, with a hook, CI and docs, nothing from KAAL, nothing of the target's overwritten, and a hook that blocks a failing check and lets a passing one through.
 - guard/T56 (same file): the Skill at the canonical location, naming neither KAAL nor npm, the hook's reminder naming it, and the target's own Skills and instruction files untouched.
-- guard/T46 and guard/T83 (`engineering/guard/acceptance/plan/workspace.test.mjs`, with KAAL's workspace): kaal-engineer-skill passes the External variant, and `--agents` writes exactly what Core computes, with nothing of Core in the target.
+- guard/T46 and guard/T83 (`engineering/guard/acceptance/workspace.test.mjs`, with KAAL's workspace): kaal-engineer-skill passes the External variant, and `--agents` writes exactly what Core computes, with nothing of Core in the target.
 - `deliver.test.mjs`: what is delivered for local-only and Node targets, kept and refused files, the docs for further deployments, the delivered runner's verdicts and reminder, and that a fact Git cannot give stays unset.
