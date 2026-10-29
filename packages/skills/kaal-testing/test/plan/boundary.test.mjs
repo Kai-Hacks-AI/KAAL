@@ -2,13 +2,21 @@
 // Immutable to DO and CHECK; testing/C12 turns them GREEN. Each title names the
 // contracts it checks (plan/boundary/*.md). They use kaal-testing's public
 // interface only. Each fixture is a case from the Guard lanes, given as a
-// verdict either realization could report.
+// verdict either realization could report. testing/C19 amends them: a verdict
+// is read with the trust authority's attestation, never on its own labels.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-/** `interpret` from kaal-testing/boundary, or the reason the tests are blocked. */
-async function interpreter() {
+/** The trust authority's attestation of a verdict: who vouches for it, bound to the anchor it vouches for. */
+const attest = (v) => ({ by: "the gate that produced and verified the verdict", anchor: v?.anchor?.ref });
+
+/**
+ * `interpret` from kaal-testing/boundary, or the reason the tests are blocked.
+ * By default each verdict is read with its attestation; `{ attested: false }`
+ * gives the bare `interpret(declaration, verdict, attestation)`.
+ */
+async function interpreter({ attested = true } = {}) {
   let mod;
   try {
     mod = await import("kaal-testing/boundary");
@@ -16,7 +24,7 @@ async function interpreter() {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./boundary (${e.code ?? e.message})`);
   }
   assert.equal(typeof mod.interpret, "function", "blocked before behavioural assertion: kaal-testing/boundary exports no interpret");
-  return mod.interpret;
+  return attested ? (declaration, verdict) => mod.interpret(declaration, verdict, attest(verdict)) : mod.interpret;
 }
 
 const PLAN = "packages/kaal-x/test/plan/x.test.mjs";
@@ -110,5 +118,42 @@ describe("PLAN boundary integrity (testing/C11)", () => {
     const source = readFileSync(new URL("../../lib/boundary.mjs", import.meta.url), "utf8");
     const imports = [...source.matchAll(/(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g)].map(([, m]) => m);
     assert.deepEqual(imports, [], "boundary is pure: it imports nothing, Sealing and host modules included");
+  });
+
+  it("testing/T40 [testing/F20, testing/F23]: a verdict's own labels never establish trust: without the trust authority's attestation bound to its anchor, it is unknown, never unchanged and never a verified failure", async () => {
+    const interpret = await interpreter({ attested: false });
+    const edited = { changes: [{ path: PLAN, change: "content" }] };
+    for (const [what, v, a] of [
+      ["a self-asserted plan-commit", verdict(), undefined],
+      ["a self-asserted plan-commit with a change", verdict(edited), undefined],
+      ["a self-asserted Seal", verdict({ realization: "seal", anchor: { kind: "owner-review", ref: "seal-id" } }), null],
+      ["an attestation of another anchor", verdict(edited), { by: "the gate", anchor: "another" }],
+      ["an attestation naming no authority", verdict(edited), { anchor: verdict().anchor.ref }],
+      ["a malformed attestation", verdict(), "trusted"],
+    ]) {
+      const r = interpret(DECLARATION, v, a);
+      assert.equal(r.class, "unknown", `${what} is not trusted`);
+      assert.deepEqual(r.findings, [], `${what} establishes no verified failure`);
+      assert.ok(r.unknowns.length > 2, `${what} names why it is unknown`);
+    }
+    assert.equal(interpret(DECLARATION, verdict(edited), attest(verdict())).class, "verified failure", "an attested verdict is read as before");
+  });
+
+  it("testing/T41 [testing/F19, testing/F23]: a change entry that does not read, and an unrecognized change to a declared path, leave the boundary unknown, never unchanged", async () => {
+    const interpret = await interpreter();
+    for (const [what, changes] of [
+      ["an entry that is not an object", [null]],
+      ["an entry with no path", [{ change: "content" }]],
+      ["an entry whose path is not a string", [{ path: 7, change: "content" }]],
+      ["an entry whose path leaves the repository", [{ path: "packages/kaal-x/test/plan/../../../x", change: "content" }]],
+      ["an unrecognized change to a declared path", [{ path: PLAN, change: "copied" }]],
+    ]) {
+      const r = interpret(DECLARATION, verdict({ changes }));
+      assert.equal(r.class, "unknown", `${what} leaves the boundary unknown`);
+      assert.ok(r.unknowns.length > 2, `${what} is named as unknown`);
+    }
+    assert.equal(interpret(DECLARATION, verdict({ outside: "packages/kaal-core/" })).class, "unknown", "a list of outside paths that does not read leaves the boundary unknown");
+    assert.equal(interpret(DECLARATION, verdict({ changes: [{ path: "packages/kaal-x/src/x.mjs", change: "copied" }] })).class, "unchanged within the declaration", "a change outside the declaration is not the boundary's");
+    assert.equal(interpret(DECLARATION, verdict({ changes: [{ path: PLAN, change: "content" }, null] })).class, "verified failure", "a verified failure stands beside an entry that does not read");
   });
 });
