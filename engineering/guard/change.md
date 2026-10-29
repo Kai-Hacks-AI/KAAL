@@ -413,6 +413,7 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **What stays.** Every delivered case, the coverage and the manifest's meaning. Reducing size never removes a case a consumer runs.
 - **Test Cases.** None are planned before the measurement. If the Owner chooses a reduction, the DO PR states its Test Cases before the reduction is written, and guard/T101–guard/T110 must stay GREEN.
 - **Authorization.** Approving this PLAN authorizes the measurement only. A reduction takes the Owner's choice on the DO PR.
+- **DO (`guard/C117`), the measurement.** It is recorded in `testing.md` under "Package size, measured": each shipped path's unpacked and gzip bytes for `0.0.3`, `0.0.4`, the candidate (byte for byte `0.0.4`) and a local `0.0.5` preview. The growth since `0.0.3` is consumer verification and the product contract, 67% of `0.0.4`'s gzip bytes. Two reductions that keep every case and meaning were applied and packed. They save 296 and 2,976 tarball bytes, 3,274 (2.8%) together. They came back to the Owner as options. The Owner chose None on #579: the growth is the product contract and its verification, and 0.3%–2.8% does not justify a less readable manifest or added complexity. Nothing is reduced and no size budget is set. Reusable package-size measurement goes to Packaging, as a separate PLAN. No product file changes.
 
 **An outside read of the product documents, triaged (`guard/C119`, PLAN).** The Owner shared an outside read of Guard's product documents at f0d1eb9 (Perplexity, project chat, 2026-10-28). It covers Intent, Requirements, Architecture and the defect history in Limitations, with findings I-1–I-3, R-1–R-5, A-1–A-4 and D-1–D-3. The Owner's rule: a finding counts only if it is proven against the documents. Being true does not make it a correction. Each finding was checked against `packages/kaal-guard/docs/` and `lib/` on `kaal/guard-release`, and against the `0.0.5` Changes already open (`guard/C113`–`guard/C118`). This PLAN changes no product file.
 
@@ -577,8 +578,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | DO |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
+| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3); guard/T123 | `guard/C111` | PLAN |
-| `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | PLAN: measure first |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | not created |
