@@ -87,4 +87,15 @@ describe("model", () => {
       assert.equal(evaluate(model(), run(), v).result, v === null || typeof v !== "object" || Array.isArray(v) ? "unknown" : "passed");
     }
   });
+
+  it("finds a Plan or Suite Run that does not record the declared version it executed", () => {
+    const m = () => ({ plans: [{ id: "P", version: "2", suites: ["S"] }], suites: [{ id: "S", version: "5", cases: ["c"] }], cases: [{ id: "c" }] });
+    const run = (P, S) => ({ id: "r", of: "P", provenance: { P, c: null }, outcomes: {}, runs: [{ id: "s", of: "S", provenance: { S }, outcomes: { c: "passed" } }] });
+    assert.equal(evaluate(m(), run("2", "5")).result, "passed");
+    for (const [P, S] of [[null, "5"], ["1", "5"], ["2", null], ["2", "4"]]) {
+      const e = evaluate(m(), run(P, S));
+      assert.equal(e.result, "unknown", `${P} ${S}`);
+      assert.ok(e.findings.some((f) => f.includes("not its declared version")), `${P} ${S}`);
+    }
+  });
 });

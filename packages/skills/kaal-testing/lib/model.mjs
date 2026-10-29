@@ -135,7 +135,10 @@ function walk(m, ix, given, f, inherited, suite, seen) {
   const of = run.of;
   const kind = ix.ids.plans.has(of) ? "plan" : ix.ids.suites.has(of) ? "suite" : ix.ids.cases.has(of) ? "case" : null;
   if (!kind) { f.push(`run ${name(run.id)}: ${name(of)} is not a Plan, Suite or Case`); return { kind, occ }; }
+  const declared = (kind === "plan" ? ix.ids.plans : kind === "suite" ? ix.ids.suites : ix.ids.cases).get(of).version;
   if (!Object.hasOwn(provenance, of)) f.push(`run ${run.id}: provenance does not identify ${of}`);
+  // A Plan or Suite Run speaks only of the version it executed (testing/F31); a Case's mismatch is unknown below.
+  else if (kind !== "case" && declared !== undefined && provenance[of] !== declared) f.push(`run ${run.id}: provenance identifies ${of} at ${name(provenance[of])}, not its declared version ${declared}`);
   if (kind === "case" && ix.ids.cases.get(of).retired) f.push(`run ${run.id}: ${of} is retired and not executable`);
   const scope = kind === "plan" ? ix.ids.plans.get(of).suites ?? [] : kind === "suite" ? [of] : [suite];
   const casesOf = (s) => (s === undefined ? [of] : ix.ids.suites.get(s)?.cases ?? []);
