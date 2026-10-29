@@ -27,7 +27,7 @@
 These live in `engineering/` and apply as stated:
 
 - **Shipped tests stand alone.** A KAAL package's installed `npm test` needs neither its publisher tests nor this repository. It `Applies to` every shipped package, and it is the Owner's convention on #625. It is verified by the Consumer lane (engineering/C6) and by engineering/T4 below.
-- **Representation is not Engineering's to restate.** Core's Deterministic Frontmatter (`N1`–`N3`, `F8`) is its authority, so the Standard is Core's. Engineering cites it in the view, and the first draft's representation requirement is withdrawn. Until Core declares it as a Standard Node, the view lists it as unresolved, naming Core. #609's evidence and the Owner's decisions there stay with their owners.
+- **Representation is not Engineering's to restate.** The Owner's rule (#609 and #610) is that collaborative documents, human–agent or human–agent–script, are Markdown with validated YAML frontmatter, while purely machine-oriented contracts, exchanges and state may be JSON. A script consuming frontmatter does not make a document machine-only, and no classification is inferred from prose alone. The mechanics are Core's Deterministic Frontmatter (`N1`–`N3`, `F8`), and each Capability owns the validation of its own Types. So the Standard is Core's. Engineering cites it in the view, and the first draft's representation requirement is withdrawn. Until Core declares it as a Standard Node, the view lists it as unresolved, naming Core. #609 holds the evidence, including the classification of ownership claims as machine-oriented.
 
 ## Test Cases
 
@@ -39,6 +39,10 @@ These go in `engineering/standards/standards.test.mjs` and join `npm run test:en
 | engineering/T2 | Every `Applies to` resolves through Graph. One that does not is reported unresolved, naming the Standard and its owner, never as passing | One that skips unresolved Edges |
 | engineering/T3 | The view is derived. Regenerating it gives identical bytes, it holds no sentence of any Standard's text, and nothing under `engineering/` is a Standard owned by another Capability. A misplaced one is reported as an ownership conflict for the Owner, and Engineering moves nothing | One that copies each Standard's text into the view |
 | engineering/T4 | A fixture package whose shipped test reads `engineering/` fails "Shipped tests stand alone" | One that runs the fixture's tests from the repository |
+| engineering/T10 | Undiscoverable obligations. A fixture Standard reachable from no `Applies to` Edge, and a fixture collaborative Markdown artifact whose `type` resolves to no Definition, are each reported unresolved, naming the artifact and its owner | One that only lists what resolves |
+| engineering/T11 | Misrepresented obligations. Engineering runs the owners' cases over every tracked `.json` file. A file whose format no owner declares machine-only, and a JSON artifact carrying a human decision record such as a `review` sign-off, each fail, naming the file and the owner who decides | One that accepts any `.json` file |
+
+T10 and T11 orchestrate checks whose rules are other owners'. Core owns the frontmatter cases, and each JSON format's owner declares in its Type or Standard that the format is machine-only. Engineering adds no rule of its own to either. Their numbers skip T5–T9, which engineering/C6 (#625) plans.
 
 ## Dependencies
 
