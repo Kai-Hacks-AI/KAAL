@@ -116,6 +116,7 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
       assert.deepEqual(naming, [], "these shipped files name Graph's package as a module");
       const manifest = join(shipped, "dist", "node", "provenance.json");
       assert.ok(existsSync(manifest), "kaal-core ships dist/node/provenance.json");
+      assert.deepEqual(readdirSync(join(shipped, "dist", "node")).sort(), [...DELIVERED, "provenance.json"].sort(), "dist/node/ ships exactly the delivered Node support and its manifest");
       const { files: listed } = JSON.parse(readFileSync(manifest, "utf8"));
       assert.deepEqual(Object.keys(listed ?? {}).sort(), DELIVERED, "the manifest lists exactly the delivered Node support");
       for (const [file, { sha256 }] of Object.entries(listed)) assert.equal(digest(readFileSync(join(shipped, "dist", "node", file))), sha256, `${file} matches its manifest digest`);
@@ -129,6 +130,7 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     assert.equal(b.status, 0, b.out);
     const manifest = join(CORE, "dist", "node", "provenance.json");
     assert.ok(existsSync(manifest), "the build writes dist/node/provenance.json");
+    assert.deepEqual(readdirSync(join(CORE, "dist", "node")).sort(), [...DELIVERED, "provenance.json"].sort(), "dist/node/ holds exactly the delivered Node support and its manifest");
     const m = JSON.parse(readFileSync(manifest, "utf8"));
     const graph = [...workspaces()].find(([name]) => GRAPH.test(name));
     assert.ok(graph, "Graph's package is a workspace");

@@ -22,7 +22,7 @@ Each element names, in brackets, the Requirements it answers.
   ```
 
   This replaces the earlier ruling "kaal-hosting ← kaal-graph ← kaal-core, no shims". There are still no shims: nothing re-exports Graph's package for Core.
-  - kaal-core declares `yaml`, which the copied `form.mjs` and `node.mjs` import.
+  - kaal-core declares `yaml`, at the version Graph pins, because the copied `form.mjs` and `node.mjs` import it.
   - `src/node.ts`, `frontmatter.ts`, `installation.ts` and `engine.ts` import the delivered copies instead of `kaal-graph` and `kaal-graph/form`.
   - `engine.ts`, `bootstrap.ts`, `register.ts` and `cli.ts` replace `new Graph(…)` with a map, keyed by name and id, of the Nodes Core has admitted.
 - **core/A38** [core/F79]: **How the copies are made and kept in step.**
