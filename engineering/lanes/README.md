@@ -1,45 +1,77 @@
 # Engineering's test lanes
 
-> PLAN (engineering/C6): nothing below exists yet. This PLAN answers Core's release PLAN, core/C28 (#622, core/A36 and conflict 4). From core/C29 on, kaal-core's `npm test` is the consumer's entry, and its publisher tests move to `test:publisher`. Engineering's lanes must keep running a workspace's publisher tests. Approving this PLAN authorizes only its DO, on `kaal/engineering`.
+> PLAN (engineering/C6): nothing below exists yet. This PLAN applies the Owner's test-entry convention (#625, comment 6504401799) to Engineering's lanes. It was first raised for Core's release PLAN, core/C28 (#622, core/A36). It replaces the premise of that first draft: that a source workspace's `npm test` becomes consumer-only. That premise is no longer agreed. Approving this PLAN authorizes only its DO, on `kaal/engineering`.
 
-## Today
+## The convention, as the Owner set it
 
-Each workspace's tests run through `npm test --if-present -w <name>` in three places:
+- **In the source workspace,** `npm test` is the comprehensive entry. It runs the publisher suite, the consumer suite and any other declared `test:<name>` suites, and it never invokes itself.
+- **In the installed package,** `npm test` runs consumer verification only. The shipped artifact needs neither the publisher tests nor KAAL's Engineering repository.
+- **Each package owns its suites, its scripts and their implementations.** Engineering orchestrates them in the package's own directory. It never copies, relocates or redefines a package's tests. A lane may select a named suite, such as `test:publisher`, explicitly.
+- **Consumer verification exercises the packed artifact,** installed, not the source tree.
 
-- the Workspaces lane, `engineering/lanes/workspaces.mjs`;
-- the evidence lane's driver, `engineering/coverage/measure.mjs`, for a workspace that delivers no JavaScript;
-- Testing's coverage measurement, `kaal-testing/coverage` (`cover`, `lib/coverage.mjs`), which the evidence lane calls for every other workspace.
+## What Engineering does
 
-If nothing changes, once core/C29 renames the script these lanes would run kaal-core's consumer verification instead of its publisher tests, and the evidence lane would measure the wrong suite.
+- **engineering/F1.** A source lane runs each workspace's own `npm test` in that workspace's own directory, as `npm test --if-present -w <name>`. The Workspaces lane and the evidence lane do this today, and so does Testing's coverage runner (`kaal-testing/coverage`). They need no change.
+- **engineering/F2.** A lane that needs one suite selects it by name in the lane itself, as `npm run test:<name> -w <name>`. The selection is the lane's own. The package's script is never edited or rewritten for it. No lane selects one today.
+- **engineering/F3.** A new Consumer lane covers every workspace that is not `private`, which is every package KAAL ships. It runs each one's consumer verification against its packed artifact:
+  1. pack the workspace, and each workspace it depends on at runtime, with Engineering's packer (`engineering/delivery/pack.mjs`);
+  2. install those tarballs, offline, into a clean directory outside the repository;
+  3. run `npm test` in the installed package's directory.
 
-## The rule
+  It passes only on the installed package's verdict.
+- **engineering/N2.** Engineering copies, relocates and redefines no package's tests. Every suite runs from the package's own directory, and from its installed directory in the Consumer lane.
+- **engineering/N3.** The Consumer lane gives the installed package no path into the repository. Its working directory, `HOME` and npm cache are temporary directories outside the repository. An installed test that reaches the repository fails there, as it would for a consumer.
 
-- **engineering/F1.** A workspace's tests are its `test:publisher` script when its `package.json` declares one, and its `test` script otherwise. Every lane that runs a workspace's tests uses that rule. This is a convention, not a special case: no lane names a package. Any workspace that separates a consumer `npm test` from its publisher tests opts in the same way.
-- **engineering/N2.** A workspace that declares no `test:publisher` runs exactly as it does today. Guard's `npm test` stays its consumer verification, and the Guard lanes keep running its own tests.
+## Not ready yet, listed
 
-## The Change
+A package whose installed `npm test` does not yet verify as a consumer would fail the Consumer lane. Each such package is listed in the lane, named, with its owner. The lane reports it as **not consumer-ready** on every run, and never as passing. The list only shrinks, through each owner's Change. This follows the "uncovered" pattern in engineering/C3 (#585).
 
-- **engineering/A1.** One function, `script(workspace)`, in `engineering/lanes/`, reads the workspace's `package.json` and returns `test:publisher` or `test`. Both `workspaces.mjs` and `measure.mjs` use it, through `npm run <script> --if-present -w <name>`.
-- **engineering/A2.** The coverage run is Testing's. `cover` takes the script it runs as an option, defaulting to `test` so nothing changes for its other callers, and the evidence lane passes `script(workspace)`. **That is a Testing Change.** Engineering asks Testing for it and does not edit `kaal-testing`. Until it lands, the evidence lane uses `test:publisher` only for a workspace that delivers no JavaScript, and says so in its report for any other.
+Today's `main`, read from each `package.json`:
 
-**Order.** The rule changes nothing until a workspace declares `test:publisher`, so it can land before core/C29. It must be on `main` before C29's rename reaches `main`. Change Isolation keeps it out of Core's Change. So this Change goes through an Engineering promotion, ahead of Core's C29 promotion, in the one-pair queue. Testing's A2 Change follows the same order through Testing's promotion.
+| Package | Ships | `npm test` in source today | Ready? |
+| --- | --- | --- | --- |
+| `@kaihacksai/kaal-guard` | yes | `node test/verify.mjs`, consumer verification only | Consumer-ready. Its source `npm test` is not yet comprehensive (Guard, below) |
+| `kaal-core` | yes | builds, then runs its publisher tests, which do not ship | Listed until core/C29 |
+| `kaal-hosting` | yes | builds, then runs its own tests, which do not ship | Listed |
+| `kaal-graph`, `kaal-testing`, `kaal-engineer-skill` | yes | their own tests, which do not ship | Listed |
+| `@kaihacksai/kaal-foundation` | `private` today | | Joins when Foundation's own Change publishes it (Owner, #622) |
+
+## What other Capabilities own
+
+These are reported for alignment. Engineering decides none of them.
+
+- **One script, two meanings.** npm ships the same `scripts.test` it reads in the source tree. So each package needs its own way for `npm test` to be comprehensive in source and consumer-only once installed. One way: `npm test` runs a package-owned runner that runs every declared suite whose files are present, and the publisher suites are left out of `files`. Each package chooses its own way. The Consumer lane only checks the result.
+- **Core.** core/C29 keeps source `npm test` comprehensive and makes the installed `npm test` consumer-only. Core then leaves the not-ready list. Core's C28 (#622, core/A36) is to be revised from "`npm test` becomes the consumer entry, today's script becomes `test:publisher`" to this convention.
+- **Testing.** Its coverage runner runs `npm test`, which stays comprehensive in source. No change is needed. The earlier ask for a script option on `cover` is withdrawn.
+- **Guard.** Guard's source `npm test` is consumer verification only today. Making it comprehensive is Guard's own Change. Guard also assesses what evidence consumer verification must give, publisher and consumer kept distinct (the Owner's point 4 on #625). The Consumer lane runs Guard's installed verdict as it stands.
+- **Every other shipped package** leaves the not-ready list through its owner's Change.
+
+## Order
+
+1. **engineering/C6 DO** into `kaal/engineering`, then Engineering's promotion. The Consumer lane lands with every non-ready package listed, so it is GREEN on landing and blocks no one.
+2. **Each owner's Change, in any order after that,** each removing its package from the list: core/C29, Guard's comprehensive source entry, Foundation's publication, and the rest.
+3. **Core's C29 promotion** needs nothing from Engineering beyond step 1. Neither the source lanes nor Testing change.
+
+Each promotion goes through the one-pair queue.
 
 ## Test Cases
 
-These go in `engineering/lanes/script.test.mjs`, which joins `npm run test:engineering`. Each is first observed RED against today's lanes. A RED that shows only a missing module counts as blocked, not as evidence.
+These go in `engineering/lanes/consumer.test.mjs` and join `npm run test:engineering`. Each runs on fixture workspaces in a scratch directory, never on a KAAL package, and each is first observed RED against a deliberately wrong lane. A RED that shows only a missing module counts as blocked, not as evidence.
 
-| Test | Checks | RED today because |
+| Test | Checks | Deliberately wrong lane that makes it RED |
 | --- | --- | --- |
-| engineering/T5 | A fixture workspace that declares both `test` and `test:publisher` has its `test:publisher` run by the Workspaces lane, and its `test` not run. Each script writes a marker the test reads | the lane runs `test` |
-| engineering/T6 | A fixture workspace with only `test` runs `test`, as today | (must be GREEN today: it guards engineering/N2) |
-| engineering/T7 | The evidence lane, for a fixture workspace that delivers no JavaScript and declares both scripts, runs `test:publisher` | the driver runs `test` |
+| engineering/T5 | A fixture package whose source `npm test` runs a publisher suite and whose installed `npm test` runs only its consumer suite gives each verdict in its own lane | One that runs the source `npm test` for the Consumer lane |
+| engineering/T6 | The Consumer lane installs from the packed tarball. A file that is in the source tree but not in `files` is absent where the installed test runs | One that installs from the source directory |
+| engineering/T7 | An installed test that reads a path in the repository fails | One that runs the installed test with the repository as its working directory |
+| engineering/T8 | A listed package is reported as not consumer-ready, never as passing. An unlisted package that fails turns the lane RED, naming it | One that skips listed packages silently |
+| engineering/T9 | No lane writes, copies or rewrites a file of a package's tests or scripts. The package tree is byte-identical before and after each lane | One that writes a script into the fixture's `package.json` |
 
-T5–T7 run on fixture workspaces in a scratch directory, never on kaal-core, so they do not wait for core/C29. The numbers follow engineering/T1–T4, which engineering/C5 (#610) plans.
+The numbers follow engineering/T1–T4, which engineering/C5 (#610) plans.
 
 ## Not in this Change
 
-- Core's script rename. That is core/C29's.
-- Testing's `cover` option (A2). That is Testing's, and it is asked of Testing.
-- Any workflow file, ruleset or required check. The lanes' job names do not change.
+- Any package's scripts, suites or `files`. Those are each owner's.
+- Guard's evidence assessment, and Testing's runner.
+- Any workflow job, ruleset or required check. The DO adds the Consumer lane as a script, `npm run test:consumer`. Running it in CI is a `.github/` Change, which Change Isolation keeps separate and which is raised on its own.
 
 Approving this PLAN authorizes the engineering/C6 DO only. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
