@@ -162,6 +162,24 @@ describe("Process's own claim", () => {
   });
 });
 
+describe("the README", () => {
+  const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
+
+  it("lists each shipped Node's exact id, so a consumer can verify the bytes", () => {
+    for (const file of ["Process.md", "Process-Definition.md", "PDCA.md"]) {
+      assert.match(readme, new RegExp(`^${node(file).id}  capability/${file.replace(".", "\\.")} `, "m"), file);
+    }
+  });
+
+  it("states that assurance is the publisher's and promises no consumer-run tests", () => {
+    assert.match(readme, /It promises no tests a consumer runs\. Its assurance is the publisher's/);
+  });
+
+  it("keeps other capabilities' roles theirs", () => {
+    assert.match(readme, /Process neither defines them nor maps them onto its Role\./);
+  });
+});
+
 describe("the package", () => {
   it("packs its Nodes and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
