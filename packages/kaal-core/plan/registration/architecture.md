@@ -6,7 +6,7 @@ Each element names, in brackets, the Requirements it answers.
   - **Where it lives.** A holder ships its registration with its content: a Capability in its contribution, as it ships its Type Definitions, and a consuming repository beside its own content.
   - **What it holds.** Its frontmatter holds:
     - `holder` and `scope`;
-    - `kinds`, each kind named in the holder's scope, with its `traces` rule, a list of kind references or `any`, and, if its owner declares it, `acyclic: true`. Since `core/C30`, it may also carry a `definition`: opaque text by which the owner points to the kind's Definition, which Core reports and never reads;
+    - `kinds`, each kind named in the holder's scope, with its `traces` rule, a list of kind references or `any`. Since `core/C32`, a kind carries no `acyclic` member. Since `core/C30`, it may also carry a `definition`: opaque text by which the owner points to the kind's Definition, which Core reports and never reads;
     - `instances`, each with its `id`, its `kind` and its `traces`.
     - A kind reference is a kind name in the holder's own scope, or a `{ scope, kind }` pair (`core/F50`). A trace target is an `id` in the holder's own scope, or a `{ scope, id }` pair.
 
@@ -16,15 +16,15 @@ Each element names, in brackets, the Requirements it answers.
 - **core/A26** [core/F48–core/F56, core/F66, core/F67, core/N14]: `kaal-core/registration` exports `assemble(registrations)`. It is pure. It returns:
   - `scopes`, `kinds` and `instances`, each with its holder or owner. Each kind carries its `scope`, its name and its `definition`, which is `null` when none is registered. Each instance carries its `scope`, `id` and stated `kind`, as a `{ scope, kind }` pair;
   - `terms`, one entry for each shared term (`core/F66`), ordered by term: `{ term, aligned: false, kinds, related }`. `kinds` lists `{ scope, kind, owner, definition }`, ordered by scope. `related` lists the `{ from, to }` kind references that the candidates' rules state among themselves. An unknown kind finding carries `candidates`, each `{ scope, kind, owner }` (`core/F67`);
-  - `findings`, `cycles` (the observed cycles, each naming its instances) and `untraced`;
-  - `outgoing(scope, id)`, `incoming(scope, id)` and `reach(scope, id)`.
+  - `findings`, `cycles` (the observed cycles, each naming its instances, or `null` without Graph) and `untraced`;
+  - `outgoing(scope, id)`, `incoming(scope, id)` and `reach(scope, id)`. Without Graph, `incoming` and `reach` return `null` (revised by `core/C32`).
 
   It imports no host module. It compares scopes, identities and kind names only for equality.
-- **core/A27** [core/F53, core/F54]: **Graph represents, traverses and detects; Core enforces declarations.**
+- **core/A27** [core/F53, core/F54]: **Graph represents, traverses and detects; Core judges no cycle** (revised by `core/C32`).
   - Core gives Graph the resolved traces as successors keyed by assembly identity.
   - It uses Graph's `reach`, `reverse` and `cycles` (`graph/C2`, #562) for `reach`, `incoming` and `cycles`. Graph's functions take any string identities, so artifact identities need no content id.
-  - Core keeps no edge index and no cycle detection of its own. It only compares each reported cycle with the owners' `acyclic` declarations. Resolving a target is Core's (`core/F52`).
-  - The DO Change waits for `graph/C3`, the DO of `graph/C2`, on `main`. Core builds no substitute.
+  - Core keeps no edge index and no cycle detection of its own. It reports Graph's cycles and judges none. Resolving a target is Core's (`core/F52`).
+  - Graph is optional (`core/F80`). Without it, these views are unavailable, and admission is unchanged. The Graph-present path needs `graph/C3`, the DO of `graph/C2`. Core builds no substitute.
 - **core/A28** [core/F56, core/N16]: `verify` and `kaal verify` find registrations among the typed artifacts the Engine already recognizes, and report `assemble`'s result. Nothing else in Core, and nothing in Guard, imports `kaal-core/registration`.
 
 ## Ownership
@@ -32,7 +32,7 @@ Each element names, in brackets, the Requirements it answers.
 | Who | Owns |
 | --- | --- |
 | Core | the registration contract, its Type, `assemble`, the assembly identity, and the global verdict |
-| Each kind's owner | what its kind means, what its identities look like, its outgoing rule, and whether the kind is `acyclic` |
+| Each kind's owner | what its kind means, what its identities look like, its outgoing rule, and any acyclicity constraint it holds under its own semantics, with the evidence for it |
 | Each holder, a Capability or a consuming repository | its scope, its instances' content and identities, their outgoing traces, and the local verdict on what they mean |
 | Graph | representing and traversing the assembled relationships, and detecting and reporting their cycles, deterministically and terminating on any graph |
 | Guard | nothing here. It neither reads nor requires a registration. |
@@ -47,7 +47,7 @@ Each element names, in brackets, the Requirements it answers.
 | `graph/C2` PLAN (#562) and `graph/C3` DO: structural reach, reverse and cycles on any string identities | Graph | — |
 | `core/C27`: `core/C6` gains a record value kind for nested frontmatter, PLAN and DO | Core | `core/C6` |
 | `core/C26` DO: the `Registration` Type, `kaal-core/registration` and `verify`, with core/T50–core/T59, core/T67, core/T72 and core/T73 GREEN and a Registration Node passing `verify` | Core | `core/C24`, `core/C30`, `core/C11`, `core/C27`, `graph/C3` |
-| Each kind's definition, with its rule and any `acyclic` declaration | that kind's owner | `core/C26` |
+| Each kind's definition, with its rule | that kind's owner | `core/C26` |
 | PREACH as a Definition, with a bounded PLAN | PREACH's owner, to be aligned on #600 | — |
 | Recording the owners' alignment of a shared term, a future Core PLAN | Core | that PLAN, `core/C26` |
 | Cross-capability discovery and enforcement of shared terms, with E2E tests | Engineering | `core/C26` |

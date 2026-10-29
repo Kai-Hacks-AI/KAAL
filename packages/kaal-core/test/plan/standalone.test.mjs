@@ -56,6 +56,33 @@ const runtime = () => {
 /** Every file under a directory. */
 const files = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]));
 
+/**
+ * Packs kaal-core and its runtime workspace dependencies, none of them Graph, installs them into
+ * a clean directory that holds no Graph package, and runs check in it.
+ */
+const withoutGraph = (check) => {
+  const deps = runtime();
+  for (const name of deps.keys()) assert.doesNotMatch(name, GRAPH, `kaal-core depends on ${name} at runtime, so it cannot install without Graph`);
+  const work = mkdtempSync(join(tmpdir(), "kaal-core-standalone-"));
+  try {
+    const tarballs = [];
+    for (const dir of [CORE, ...deps.values()]) {
+      const r = run("npm", ["pack", "--json", "--pack-destination", work], dir);
+      assert.equal(r.status, 0, r.out);
+      tarballs.push(join(work, JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].filename));
+    }
+    const app = join(work, "consumer");
+    mkdirSync(app);
+    writeFileSync(join(app, "package.json"), JSON.stringify({ name: "consumer", version: "1.0.0", private: true, type: "module" }));
+    const install = run("npm", ["install", ...tarballs], app);
+    assert.equal(install.status, 0, install.out);
+    for (const graph of [["kaal-graph"], ["@kaihacksai", "kaal-graph"]]) assert.ok(!existsSync(join(app, "node_modules", ...graph)), `the installation holds no ${graph.join("/")}`);
+    check(app);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+};
+
 describe("Core standalone, with Graph's Node support delivered inside it (core/C32)", () => {
   it("core/T81 [core/F76]: kaal-core declares no runtime dependency on Graph's package; a peer only when optional, a devDependency only for the build", () => {
     const m = pkg();
@@ -74,30 +101,36 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
   });
 
   it("core/T83 [core/F78, core/I24]: packed with its runtime dependencies, none of them Graph, and installed into a clean directory with no Graph package, kaal-core imports and admits its own payload", { timeout: 600_000 }, () => {
-    const deps = runtime();
-    for (const name of deps.keys()) assert.doesNotMatch(name, GRAPH, `kaal-core depends on ${name} at runtime, so it cannot install without Graph`);
-    const work = mkdtempSync(join(tmpdir(), "kaal-core-standalone-"));
-    try {
-      const tarballs = [];
-      for (const dir of [CORE, ...deps.values()]) {
-        const r = run("npm", ["pack", "--json", "--pack-destination", work], dir);
-        assert.equal(r.status, 0, r.out);
-        tarballs.push(join(work, JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].filename));
-      }
-      const app = join(work, "consumer");
-      mkdirSync(app);
-      writeFileSync(join(app, "package.json"), JSON.stringify({ name: "consumer", version: "1.0.0", private: true, type: "module" }));
-      const install = run("npm", ["install", ...tarballs], app);
-      assert.equal(install.status, 0, install.out);
-      for (const graph of [["kaal-graph"], ["@kaihacksai", "kaal-graph"]]) assert.ok(!existsSync(join(app, "node_modules", ...graph)), `the installation holds no ${graph.join("/")}`);
+    withoutGraph((app) => {
       const use = run(process.execPath, ["--input-type=module", "-e", `import { evaluate, payload } from "${pkg().name}"; const e = evaluate(payload()); console.log(JSON.stringify({ nodes: e.nodes.length, rejected: (e.rejections ?? e.rejected ?? []).length }));`], app);
       assert.equal(use.status, 0, use.out);
       const { nodes, rejected } = JSON.parse(use.stdout.trim().split(/\r?\n/).pop());
       assert.ok(nodes > 0, "Core's payload Nodes are admitted");
       assert.equal(rejected, 0, "no payload Node is rejected");
-    } finally {
-      rmSync(work, { recursive: true, force: true });
-    }
+    });
+  });
+
+  it("core/T86 [core/F80, core/A39, core/N20]: installed with no Graph, registration admits traces that form a cycle with no finding for it, and reports cycles, reach and incoming as unavailable, not empty", { timeout: 600_000 }, () => {
+    withoutGraph((app) => {
+      const script = `
+        import { assemble } from "${pkg().name}/registration";
+        const r = assemble([
+          { holder: "kaal-x", scope: "x", kinds: { X: { traces: ["X"] } }, instances: [] },
+          { holder: "acme-product", scope: "acme", kinds: {}, instances: [
+            { id: "a", kind: { scope: "x", kind: "X" }, traces: ["b"] },
+            { id: "b", kind: { scope: "x", kind: "X" }, traces: ["a"] },
+          ] },
+        ]);
+        console.log(JSON.stringify({ instances: r.instances.length, findings: r.findings, cycles: r.cycles, reach: r.reach("acme", "a"), incoming: r.incoming("acme", "a") }));`;
+      const use = run(process.execPath, ["--input-type=module", "-e", script], app);
+      assert.equal(use.status, 0, use.out);
+      const r = JSON.parse(use.stdout.trim().split(/\r?\n/).pop());
+      assert.equal(r.instances, 2, "both instances are admitted");
+      assert.deepEqual(r.findings, [], "a cycle is no finding, and Graph's absence is no reason to refuse");
+      assert.equal(r.cycles, null, "without Graph, cycles are unavailable, not an empty list");
+      assert.equal(r.reach, null, "without Graph, reach is unavailable");
+      assert.equal(r.incoming, null, "without Graph, incoming views are unavailable");
+    });
   });
 
   it("core/T84 [core/F79, core/A38]: no shipped file of kaal-core names Graph's package as a module, and the provenance manifest lists exactly the delivered Node support, each copy matching its SHA-256", { timeout: 600_000 }, () => {

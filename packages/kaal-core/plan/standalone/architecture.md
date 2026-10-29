@@ -29,15 +29,12 @@ Each element names, in brackets, the Requirements it answers.
   - **The build** copies the four files byte for byte from the workspace's `kaal-graph` into `dist/node/`, before TypeScript compiles against them. It then writes `dist/node/provenance.json`, holding Graph's package name and version and, for each file, `{ "from": <path in kaal-graph>, "sha256": <digest> }`. Nothing under `dist/node/` is committed.
   - **Synchronization** is a rebuild. A Graph Change to Form or identity reaches Core when kaal-core is next built. If kaal-core's `devDependencies` pins a different Graph version from the one the copies came from, the source tests fail (`core/T85`). Two authoritative copies cannot arise: the only edited copy is Graph's.
   - **A consumer** verifies the shipped copies against the manifest (`core/T84`). That check becomes part of kaal-core's installed `npm test` in `core/C29`.
-- **core/A39** [core/F80, core/N20]: **Registration.** `core/A27` holds when Graph is present: Core hands Graph the resolved traces and compares its cycles with the owners' `acyclic` declarations. Without Graph, `assemble` still returns the claims, the findings of `core/F50`–`core/F52`, `core/F54`'s refusals and `core/F55`. `reach`, `incoming` and `cycles` are marked unknown. `kaal verify` reports an `acyclic` declaration it could not judge as "cannot verify", never as passed.
-
-## The one question left for the Owner
-
-`core/F80` treats `acyclic` judgment as Graph analysis, following the direction to keep Graph's generic algorithms with Graph.
-- **The consequence.** Without Graph, a repository that registers an `acyclic` kind cannot get a verified result.
-- **The alternative.** `acyclic` could be counted as admission. Graph's `cycles` would then be delivered inside kaal-core the same way as Form, as built copies with provenance. That is still one authoritative implementation, but it carries Graph's analysis into Core.
-
-This PLAN keeps analysis with Graph unless the Owner says otherwise.
+- **core/A39** [core/F80, core/N20]: **Registration.**
+  - **Admission.** `assemble` returns the claims, the findings of `core/F50`–`core/F52`, `core/F54`'s refusals and `core/F55`, the untraced instances and the shared terms, with or without Graph.
+  - **Analysis, with Graph present.** Core hands Graph the resolved traces as successors keyed by assembly identity (`core/A27`). It reports Graph's `reach`, `incoming` and `cycles` as they come, and judges none of them.
+  - **Analysis, without Graph.** `cycles` is `null`, and `reach` and `incoming` return `null`: unavailable, not empty.
+  - **`kaal verify`** fails only on a collision and on a finding of `core/F50`–`core/F52` or `core/F54`. It never fails on a cycle, nor because Graph is absent.
+  - **Revisions to `core/C24`.** This PLAN revises the registration PLAN's `core/F51`, `core/F52`, `core/F53`, `core/F56`, `core/A25`, `core/A26` and `core/A27`, its ownership table, and core/T54, T57 and T67, each marked "revised by `core/C32`".
 
 ## Change graph
 
@@ -46,7 +43,7 @@ This PLAN keeps analysis with Graph unless the Owner says otherwise.
 | 1 | `core/C32` PLAN, this Change | Core | — |
 | 2 | `node.d.ts`: declarations for `node.mjs` in a file of their own, re-exported by `edges.d.ts` | Graph | — |
 | 3 | `core/C33` DO: the build copy, the manifest, Core's imports and index; core/T81–T85 GREEN | Core | 1, 2 |
-| 4 | `core/C26` DO: registration with core/F80's split; Graph's analysis used when present | Core | 3; `graph/C3` only for the Graph-present path |
+| 4 | `core/C26` DO: registration with core/F80's split, with core/T86 GREEN; Graph's analysis used when present | Core | 3; `graph/C3` only for the Graph-present path |
 
 ## Release and clean-installation consequences
 
