@@ -46,6 +46,8 @@ These are Testing's cases, named here only so the dependency is explicit. Each m
 
 Engineering runs each against a fixture package in a scratch directory. A case counts only once it is observed RED.
 
+**Counting tests needs a stated reporter.** On Node 24, `node --test` uses the spec reporter even when its output is piped, so counting TAP `ok` lines from the default output finds zero tests (Core, #642). Testing's cases therefore read a result whose format is stated, such as `--test-reporter=tap` or a structured result. They never rely on a runner's default output.
+
 ## Dependencies
 
 | Prerequisite | Owner | Kind | State today |
