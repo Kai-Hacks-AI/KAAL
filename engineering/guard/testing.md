@@ -414,6 +414,24 @@ Together they are 67% of `0.0.4`'s gzip bytes. `lib/`, `bin/`, `templates/` and 
 
 </details>
 
+## What a consumer reads and types (`guard/C115`)
+
+guard/T120–guard/T122 are planned in `guard/C115` and are Guard's, each defined once. They are placed by the realization whose contract they verify, not by where they run. guard/T122 checks the Embedded package's command surface: it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package and defined in its `docs/testing.md`. guard/T120 and guard/T121 judge the embedded verifier's own output, whose identifiers (guard/F33, guard/F34) are allocated to this plan: they are Engineering-side cases, defined here and written in `engineering/guard/acceptance/package.test.mjs`, which publisher Engineering runs against a packed candidate in a fresh consumer. They are not consumer-delivered coverage, and a consumer run never reports them as passed.
+
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T120: a verification whose manifest allocates two identifiers to the same place prints that allocation on one line naming both, and never the same allocation twice | guard/F34 | `guard/C115` | RED: one line per allocated identifier, 16 in all, repeating shared allocations | GREEN |
+| guard/T121: every next step that asks for a report names the package's `bugs` URL, and `package.json` declares it | guard/F33 | `guard/C115` | RED: "the package's maintainers", with no destination | GREEN |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T122 checks that `kaal-guard --version` prints the installed version and `kaal-guard --help` prints the usage, each with exit 0, in a directory that is not a repository, leaving it unchanged | guard/F41 | `guard/C115` | RED: both end as an unknown command | GREEN |
+
+## Two limits, stated (`guard/C116`)
+
+guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package.
+
+| Test | Checks | Written in | Intended evidence against `0.0.4` |
+| --- | --- | --- | --- |
+| guard/T123: the delivered README states that hook activation is per clone and needs `init --hook` in each clone, and that the installation record is a tracked file Guard does not protect; it no longer says that only Guard writes the record | guard/F29, guard/F30 | `guard/C116` | RED: the README says "Only Guard writes the record and the state" and only hints at per-clone activation |
+
 ## Each release declares its upgrade paths (`guard/C113`)
 
 guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package. From `guard/C113` on, guard/T118 takes its sources from the table guard/T124 checks.
@@ -432,16 +450,16 @@ These four are defects in behaviour the published `0.0.1` already ships, measure
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D1 | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T66 is GREEN (`packed`, Linux), see [below](#after-guardc25-guardd1-and-guardd2) |
-| guard/D2 | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T67 is GREEN (`packed`, Linux), see [below](#after-guardc25-guardd1-and-guardd2) |
-| guard/D3 | guard/T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
+| guard/D1 (product) | guard/T38 | `upgrade` skips every asset `guard.json` does not record, so a managed asset the consumer lacks is never installed or recorded | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T66 is GREEN (`packed`, Linux), see [below](#after-guardc25-guardd1-and-guardd2) |
+| guard/D2 (product) | guard/T39 | `guard.json` does not record the version that wrote its managed assets, and `upgrade` names no versions | established in K2b (`packed`, Linux); its obligation holds since `guard/C25` (#352), where guard/T67 is GREEN (`packed`, Linux), see [below](#after-guardc25-guardd1-and-guardd2) |
+| guard/D3 (product) | guard/T43 | `init` judges existing files by path, not existing integration by declared check, so it adds a `guard.yml` that duplicates KAAL's jobs | established in K2b (`packed`, Linux) |
 | guard/D4 | guard/T44 | Guard rewrites the whole of `guard.json` with its own formatting, so `init` then `remove` changes bytes the consumer wrote | established in K2b (`packed`, Linux); retracted in `guard/C23` |
 
 guard/D5 is a defect in guard/F7 as `0.0.1` ships it, found by Codex on #366 (r4368693892), outside the consumer upgrade:
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D5 | guard/T81 | the base copy of a trusted checker is written without the mode the base records, so an executable checker run as `./checker.sh` fails to start (EACCES) and its check is cannot judge | established: guard/T81 recorded RED in `guard/C41` (#368); corrected by `guard/C42` (#370), where guard/T81 is GREEN |
+| guard/D5 (product) | guard/T81 | the base copy of a trusted checker is written without the mode the base records, so an executable checker run as `./checker.sh` fails to start (EACCES) and its check is cannot judge | established: guard/T81 recorded RED in `guard/C41` (#368); corrected by `guard/C42` (#370), where guard/T81 is GREEN |
 
 guard/D6–guard/D14 are suspected defects in the `0.0.2` candidate, found by the release review of 2026-10-25 on kaal/guard at `ac8ff06` (the review's evidence is kept in the project, not here). Each is established only when its Test Case is recorded RED in `guard/C63`; a GREEN refutes it.
 
@@ -467,8 +485,8 @@ guard/D16 and guard/D17 are defects in the published `0.0.2`, found by a review 
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D16 | guard/T94, guard/T95, guard/T96 | Guard reads a trusted check's declaration from the candidate, so a candidate that drops `trusted`, rewrites the command or deletes the declaration runs its own checker or none, and can pass | established: guard/T94–guard/T96 recorded RED in `guard/C78` (#456); corrected by `guard/C79` (#458), where they are GREEN |
-| guard/D17 | guard/T98 | the package's `test` script still runs `test/acceptance/*.test.mjs`, the retired `0.0.1` suite, which `0.0.2` correctly fails | established: guard/T98 recorded RED in `guard/C78` (#456); corrected by `guard/C86` (#464), where guard/T98 is GREEN |
+| guard/D16 (product) | guard/T94, guard/T95, guard/T96 | Guard reads a trusted check's declaration from the candidate, so a candidate that drops `trusted`, rewrites the command or deletes the declaration runs its own checker or none, and can pass | established: guard/T94–guard/T96 recorded RED in `guard/C78` (#456); corrected by `guard/C79` (#458), where they are GREEN |
+| guard/D17 (product) | guard/T98 | the package's `test` script still runs `test/acceptance/*.test.mjs`, the retired `0.0.1` suite, which `0.0.2` correctly fails | established: guard/T98 recorded RED in `guard/C78` (#456); corrected by `guard/C86` (#464), where guard/T98 is GREEN |
 
 guard/T40's suspicion was refuted, so it has no D, and guard/T40 keeps guarding guard/F15.
 

@@ -33,7 +33,9 @@ function range(from, to) {
  * - a product Test Case is a row of the package's trace, between its markers: "| guard/T61 | …";
  * - an Engineering Test Case is a row of Engineering's plan that gives its title: "| guard/T1: …", or
  *   "| guard/T33–guard/T35: …" for several;
- * - a Defect is a row of Engineering's register: "| guard/D1 | …".
+ * - a Defect that reached a published version is a row of the package's Limitations: "| guard/D1 | …";
+ *   Engineering's register cites it as "| guard/D1 (product) | …";
+ * - any other Defect is a row of Engineering's register: "| guard/D1 | …".
  * Shaped like a definition, and refused: an identifier in bold or underscores anywhere else, a heading
  * that opens with one, and a table row that opens with one in any other form. A code span quotes a form and
  * is neither. Engineering's evidence rows,
@@ -59,9 +61,13 @@ function scan({ where, text }, product) {
       refused.push({ at, line });
     } else if (/^\|\s*\W*guard\/[IFNATD]\d/.test(line)) {
       if (product && trace && (m = /^\| (guard\/T\d+) \|/.exec(line))) defined.push({ id: m[1], at });
+      else if (product && !trace && where.endsWith("/docs/limitations.md") && (m = /^\| (guard\/D\d+) \|/.exec(line))) defined.push({ id: m[1], at });
       else if (!product && (m = /^\| (guard\/T\d+)(?:–(guard\/T\d+))?:/.exec(line))) {
         for (const id of range(m[1], m[2])) defined.push({ id, at });
       } else if (!product && (m = /^\| (guard\/D\d+) \|/.exec(line))) defined.push({ id: m[1], at });
+      else if (!product && /^\| guard\/D\d+ \(product\) \|/.test(line)) {
+        // a Defect the package defines, which Engineering's register cites
+      }
       else if (!product && /^\| guard\/T\d+(?:(?:, |–)guard\/T\d+)* \|/.test(line)) {
         // an evidence row: it cites
       } else refused.push({ at, line });
@@ -191,6 +197,11 @@ describe("guard/N14 [guard/I9] one authority", () => {
     await t.test("canonical forms are recognised with CRLF line endings, and a planned range defines each Test Case in it", () => {
       const crlf = (d) => ({ ...d, text: d.text.split("\n").join("\r\n") });
       assert.deepEqual(audit({ ...CLEAN, product: CLEAN.product.map(crlf), engineering: CLEAN.engineering.map(crlf) }), NONE);
+      const limitations = doc("packages/kaal-guard/docs/limitations.md", "| guard/D5 | must not | delivered: guard/T1 | RED in `0.0.1` |");
+      assert.deepEqual(With({ product: [...CLEAN.product, limitations], engineering: [engineering("| guard/D5 (product) | guard/T81 | gap | established |")] }), NONE);
+      assert.deepEqual(With({ product: [...CLEAN.product, limitations], engineering: [engineering("| guard/D5 | guard/T81 | gap | established |")] }).twice, [
+        "guard/D5: packages/kaal-guard/docs/limitations.md:1, engineering/guard/fixture.md:1",
+      ]);
       assert.deepEqual(With({ engineering: [CLEAN.engineering[0], engineering("| guard/T34: again |")] }).twice, [
         "guard/T34: engineering/guard/fixture.md:3, engineering/guard/fixture.md:1",
       ]);
@@ -202,5 +213,19 @@ describe("guard/N14 [guard/I9] one authority", () => {
     assert.deepEqual(found.twice, [], "identifiers defined more than once");
     assert.deepEqual(found.retained, [], "identifiers delivered cases cite are defined in engineering/guard/, not in the package");
     assert.deepEqual(found.undefined, [], "identifiers delivered cases cite are not defined in packages/kaal-guard/docs/");
+    // A publisher case's title may cite a Defect (guard/C123); the Defect it cites is defined too.
+    const definedIds = new Set([...documents(join(PRODUCT, "docs")).map((d) => scan(d, true)), ...documents(ENGINEERING).map((d) => scan(d, false))].flatMap((s) => s.defined.map((d) => d.id)));
+    const publisher = [];
+    const walk = (dir) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (e.isDirectory()) walk(join(dir, e.name));
+        else if (e.name.endsWith(".test.mjs")) {
+          for (const m of readFileSync(join(dir, e.name), "utf8").matchAll(/\b(?:describe|it|test)\(\s*"([^"]*)"/g)) publisher.push(...(m[1].match(/guard\/D\d+/g) ?? []));
+        }
+      }
+    };
+    walk(join(ENGINEERING, "acceptance"));
+    assert.ok(publisher.length > 0, "no publisher case cites a Defect");
+    assert.deepEqual([...new Set(publisher)].filter((id) => !definedIds.has(id)).sort(), [], "Defects publisher cases cite are not defined");
   });
 });

@@ -29,11 +29,15 @@ The package's README says what each result means and what `verified` does and do
 
 Some promises cannot be checked by a run in your installation. They are obligations allocated to the publisher's Engineering Test Plan, which does not ship. Each one is named here, never silently (guard/F38). `npm test` lists each one as not verified by this run, allocated to the publisher. An allocation says what the publisher runs; it is not evidence that the run passed.
 
+Every Test Case named in these documents is Guard's, wherever it runs. A case is placed by the realization whose contract it verifies: a case of the package as you install it is delivered and runs in your installation, and the publisher may run it too without making it the publisher's. A case of the verification itself is defined in the publisher's Engineering Test Plan and runs only there, against a packed candidate. It is not delivered coverage, and your run cannot give independent assurance of the verifier that reports it: that assurance is the publisher's release evidence.
+
 <!-- allocated: read by the publisher into the manifest -->
 | Allocated | Identifiers | Allocated to |
 | --- | --- | --- |
-| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier |
+| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed |
 | Moving between published versions | guard/F11, guard/F14–guard/F16 | the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions |
+| A Defect the publisher tests | guard/D3 | the publisher's Engineering Test Plan: guard/T43, run against a packed candidate installed in a clone of the publisher's repository, because the duplication it guards against is with that repository's own jobs |
+| A Defect the publisher tests | guard/D17 | the publisher's Engineering Test Plan: guard/T98, run against the package's source tree, because it judges which suites the package's own `npm test` runs |
 <!-- end of allocated -->
 
 ## Verified by no Test Case
@@ -44,6 +48,8 @@ A promise no Test Case verifies, in either plan, is named here and reported as u
 | Unverified | Identifiers | Why |
 | --- | --- | --- |
 | Guidance | guard/F20 | it is guidance for people and agents, in the Skill and the README, which Guard never parses; the publisher reviews it with each release, and no Test Case checks it |
+| Retired with `0.0.1` | guard/D1 | its case, guard/T38, was retired with `0.0.1` and no longer runs; its RED is recorded in the publisher's evidence |
+| Retired with `0.0.1` | guard/D2 | its case, guard/T39, was retired with `0.0.1` and no longer runs; its RED is recorded in the publisher's evidence |
 <!-- end of unverified -->
 
 ## Not applicable
@@ -119,7 +125,7 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T76 | Requirements | guard/F30, guard/N4 | init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing |
 | guard/T77 | Requirements | guard/F30, guard/F4, guard/F17 | hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing |
 | guard/T78 | Requirements | guard/F30, guard/F18, guard/N4 | each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook |
-| guard/T81 | Requirements | guard/F7 | a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict |
+| guard/T81 | Requirements | guard/F7, guard/D5 | a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict |
 | guard/T82 | Requirements | guard/F21, guard/F23, guard/A15 | after a standalone init deploys the Skill, a failing and a cannot-judge local run's reminder names the deployed .agents/skills/kaal-guard/SKILL.md, not the package's copy, and with --github so do the annotations and the step summary |
 | guard/T84 | Requirements | guard/F28, guard/F10 | a declaration that is a symbolic link, and a directory named <name>.md, in the configuration directory each make run --hook, run --ci and run --check cannot judge, naming the entry; neither is skipped |
 | guard/T85 | Requirements | guard/F27, guard/F29, guard/F12 | in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file |
@@ -129,13 +135,16 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T89 | Requirements | guard/F10, guard/F17, guard/N4 | with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace |
 | guard/T90 | Requirements | guard/F8 | remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/ |
 | guard/T92 | Requirements | guard/N1 | with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing |
-| guard/T94 | Requirements | guard/F7, guard/N4 | a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs |
-| guard/T95 | Requirements | guard/F7, guard/N4 | a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs |
-| guard/T96 | Requirements | guard/F7, guard/N4 | a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass |
+| guard/T94 | Requirements | guard/F7, guard/N4, guard/D16 | a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs |
+| guard/T95 | Requirements | guard/F7, guard/N4, guard/D16 | a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs |
+| guard/T96 | Requirements | guard/F7, guard/N4, guard/D16 | a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass |
 | guard/T97 | Requirements | guard/F7 | a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker |
 | guard/T99 | Requirements | guard/F7, guard/F10, guard/N4 | a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs |
 | guard/T107 | Architecture | guard/I9, guard/F37, guard/A19 | the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority |
 | guard/T119 | Requirements | guard/N15, guard/F29 | every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on |
+| guard/T122 | Requirements | guard/F41 | kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged |
 | guard/T124 | Architecture | guard/F42 | docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it |
 | guard/T125 | Requirements | guard/F2, guard/F18 | an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255 |
+| guard/T126 | Architecture | guard/F37, guard/A19, guard/A21 | every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs |
+| guard/T127 | Architecture | guard/I9, guard/F37, guard/A19 | every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused |
 <!-- end of trace -->
