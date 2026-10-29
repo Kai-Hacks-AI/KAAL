@@ -454,6 +454,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Test Case.** guard/T125, a product acceptance case beside guard/T91 in `test/acceptance/requirements.test.mjs`: an `outcomes` key `"0"` and a key `"3"` are each refused as cannot judge, naming `"4"` to `"255"`. It is verified-first, GREEN against `0.0.4`, and the DO PR shows that run. A Test Case that passes before the change verifies the requirement's new wording; it establishes no defect (Limitations: a defect is established only by a Test Case that proved it failing).
 - **Not here.** The other findings of `guard/C119`, which `guard/C120`, `guard/C122` and `guard/C123` carry.
 - **Authorization.** Approving this PLAN authorizes `guard/C121`'s DO only: no version bump, promotion or publication.
+- **DO (`guard/C121`).** guard/T125 was committed first and is GREEN against `0.0.4`, because the behaviour already holds. It is RED when `lib/config.mjs` stops reserving `0` and `3`, checked by hand, so it is not vacuous. guard/F2's "Named outcomes" bullet now names `"4"` to `"255"` and says why `"0"` to `"3"` are refused. `lib/` and the README are unchanged. The manifest was regenerated. This DO authorizes no version bump, promotion or publication.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
@@ -569,7 +570,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | not created |
-| `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | PLAN |
+| `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | not created |
 | `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
