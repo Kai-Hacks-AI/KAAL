@@ -13,7 +13,8 @@ if (!files.length) {
   process.exit(2);
 }
 // Clear NODE_TEST_CONTEXT, or a run inside node --test reports to the outer runner and counts nothing.
-const r = spawnSync(process.execPath, ["--test", ...files], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+// Pin the TAP reporter: since Node 23 the default reporter is spec even when piped, which has no ok lines.
+const r = spawnSync(process.execPath, ["--test", "--test-reporter=tap", ...files], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
 // node --test reports a file that declares no test as one passing test, so count only declared tests.
 const run = new Set(files);
 const passed = [...r.stdout.matchAll(/^ok \d+ - (.*)$/gm)].filter((m) => !run.has(m[1].trim())).length;
