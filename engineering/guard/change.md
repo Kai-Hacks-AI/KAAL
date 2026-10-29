@@ -470,6 +470,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **In guard/F7 (D-3).** Before: "…and runs them in place of the candidate's, so a candidate cannot certify itself." After: "…and runs them in place of the candidate's, so a candidate cannot replace the checker that judges it." The bullet "The boundary that remains" stays as it is; it is what the headline now no longer contradicts.
 - **Test Cases.** None. This is wording. guard/T107 keeps the documents' identifiers consistent and stays GREEN, and the DO PR shows each sentence before and after.
 - **Authorization.** Approving this PLAN authorizes `guard/C120`'s DO only: no version bump, promotion or publication.
+- **DO (`guard/C120`).** The three sentences now read as this PLAN gives them: guard/I9 in `docs/intent.md`, guard/F9 and guard/F7 in `docs/requirements.md`. Nothing else in either document changes, and `lib/` and the README are unchanged. guard/I9's new sentence holds: `docs/testing.md` names, under "Allocated to the publisher's Engineering Test Plan", which identifiers the publisher verifies, and under "Verified by no Test Case" what no Test Case verifies. The manifest was regenerated. guard/T107 and guard/T111 stay GREEN. This DO authorizes no version bump, promotion or publication.
 
 **Two limits, stated (`guard/C116`, PLAN).** This covers M2 and M3 from the `0.0.3` review, as documentation only. Enforcing either would be a design Change of its own, and none is proposed.
 - **M2.** Hook activation is per clone, because `core.hooksPath` is local Git configuration. The README states this beside `init --hook`: a fresh clone runs no hook until someone runs `npx kaal-guard init --hook` in it, and the committed hook file alone activates nothing.
@@ -590,8 +591,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3); guard/T123 | `guard/C111` | PLAN |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
-| `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | PLAN |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
+| `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | DO |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | PLAN |
 | `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
