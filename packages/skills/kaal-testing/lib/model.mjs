@@ -11,11 +11,54 @@ const KEYS = {
 const REF = { strategies: ["plans", "plans"], plans: ["suites", "suites"], suites: ["cases", "cases"] };
 const RUN = ["id", "of", "outcomes", "provenance", "data", "runs"];
 const OUTCOMES = ["passed", "failed", "skipped", "todo"];
+const LISTS = { strategies: ["plans"], plans: ["suites", "uses"], suites: ["cases", "uses"], cases: ["tests", "uses"] };
 const nonempty = (s) => typeof s === "string" && s !== "";
+const object = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
+const name = (x) => (typeof x === "string" ? x : JSON.stringify(x) ?? String(x));
+
+/** The model as the functions read it: every list a list and every entry an object, with a finding for each shape that is not. */
+function shape(m) {
+  const f = [], out = {};
+  if (!object(m)) { f.push("a model is an object"); return { f, m: out }; }
+  for (const kind of Object.keys(m)) if (!Object.hasOwn(KEYS, kind)) f.push(`unknown key ${kind}`);
+  for (const kind of Object.keys(KEYS)) {
+    if (m[kind] === undefined) continue;
+    if (!Array.isArray(m[kind])) { f.push(`${kind} must be a list`); continue; }
+    out[kind] = [];
+    for (const raw of m[kind]) {
+      if (!object(raw)) { f.push(`${kind}: ${name(raw)} is not a definition`); continue; }
+      const e = { ...raw };
+      for (const key of LISTS[kind]) {
+        if (e[key] === undefined) continue;
+        const ok = Array.isArray(e[key]) && e[key].every(nonempty);
+        if (!ok) f.push(key === "tests" ? `${name(e.id)}: tests must be nonempty strings` : `${name(e.id)}: ${key} must be a list of identities`);
+        e[key] = Array.isArray(e[key]) ? e[key].filter(nonempty) : [];
+      }
+      for (const key of ["data", ...(kind === "plans" ? ["inapplicable"] : [])]) {
+        if (e[key] === undefined) continue;
+        if (!Array.isArray(e[key]) || !e[key].every(object)) f.push(`${name(e.id)}: ${key} must be a list of objects`);
+        e[key] = Array.isArray(e[key]) ? e[key].filter(object) : [];
+      }
+      out[kind].push(e);
+    }
+  }
+  return { f, m: out };
+}
+
+/** A Run as the functions read it, or null, with a finding for each shape that is not one. */
+function shapeRun(run, f) {
+  if (!object(run)) { f.push(`run ${name(run)}: a Run is an object`); return null; }
+  const r = { ...run };
+  for (const key of ["outcomes", "provenance", "data"]) {
+    if (r[key] === undefined) continue;
+    if (!object(r[key])) { f.push(`run ${name(r.id)}: ${key} must be an object`); r[key] = {}; }
+  }
+  if (r.runs !== undefined && !Array.isArray(r.runs)) { f.push(`run ${name(r.id)}: runs must be a list`); r.runs = []; }
+  return r;
+}
 
 function index(m) {
   const f = [], seen = new Set(), ids = { strategies: new Map(), plans: new Map(), suites: new Map(), cases: new Map() }, data = new Map();
-  for (const kind of Object.keys(m)) if (!Object.hasOwn(KEYS, kind)) f.push(`unknown key ${kind}`);
   for (const [kind, keys] of Object.entries(KEYS)) {
     for (const e of m[kind] ?? []) {
       for (const k of Object.keys(e)) if (!keys.includes(k)) f.push(`${e.id}: unknown key ${k}`);
@@ -23,30 +66,31 @@ function index(m) {
       else if (seen.has(e.id)) f.push(`${e.id}: duplicate identity`);
       else { seen.add(e.id); ids[kind].set(e.id, e); }
       if (e.version !== undefined && !nonempty(e.version)) f.push(`${e.id}: version must be a nonempty string`);
-      if (kind === "cases" && e.tests !== undefined && (!Array.isArray(e.tests) || !e.tests.every(nonempty))) f.push(`${e.id}: tests must be nonempty strings`);
       if (kind === "cases" && e.retired !== undefined && e.retired !== true) f.push(`${e.id}: retired is true or absent`);
       for (const d of e.data ?? []) {
-        for (const k of Object.keys(d ?? {})) if (!DATUM.includes(k)) f.push(`${e.id}: Test Data ${d.id}: unknown key ${k}`);
-        if (!nonempty(d?.id)) f.push(`${e.id}: Test Data has no valid identity`);
+        for (const k of Object.keys(d)) if (!DATUM.includes(k)) f.push(`${e.id}: Test Data ${d.id}: unknown key ${k}`);
+        if (!nonempty(d.id)) f.push(`${e.id}: Test Data has no valid identity`);
         else if (seen.has(d.id)) f.push(`${d.id}: duplicate identity`);
         else { seen.add(d.id); data.set(d.id, { owner: e.id, datum: d }); }
-        if (d && "content" in d && "external" in d) f.push(`${d.id}: content or external, not both`);
-        if (d && "external" in d && !nonempty(d.external)) f.push(`${d.id}: external must be a nonempty string`);
+        if (Object.hasOwn(d, "content") && Object.hasOwn(d, "external")) f.push(`${d.id}: content or external, not both`);
+        if (Object.hasOwn(d, "external") && !nonempty(d.external)) f.push(`${d.id}: external must be a nonempty string`);
       }
     }
   }
   return { f, ids, data };
 }
 
-export function check(m) {
-  const { f, ids, data } = index(m);
+export function check(model) {
+  const { f: shaped, m } = shape(model);
+  const { f: indexed, ids, data } = index(m);
+  const f = [...shaped, ...indexed];
   for (const [kind, [key, target]] of Object.entries(REF)) for (const e of m[kind] ?? []) for (const r of e[key] ?? []) {
     if (!ids[target].has(r)) f.push(`${e.id}: ${r} is not declared`);
     else if (target === "cases" && ids.cases.get(r).retired) f.push(`${e.id}: ${r} is retired and not executable`);
   }
   for (const p of m.plans ?? []) for (const d of p.inapplicable ?? []) {
-    if (!ids.cases.has(d?.case)) f.push(`${p.id}: ${d?.case} is not declared`);
-    if (!nonempty(d?.reason)) f.push(`${p.id}: ${d?.case} is declared inapplicable without a reason`);
+    if (!ids.cases.has(d.case)) f.push(`${p.id}: ${name(d.case)} is not declared`);
+    if (!nonempty(d.reason)) f.push(`${p.id}: ${name(d.case)} is declared inapplicable without a reason`);
   }
   for (const x of m.strategies ?? []) if (!x.plans?.length) f.push(`${x.id}: names no Plan`);
   for (const x of m.plans ?? []) if (!x.suites?.length) f.push(`${x.id}: names no Suite`);
@@ -54,13 +98,15 @@ export function check(m) {
   return f;
 }
 
-export function tested(m) {
+export function tested(model) {
+  const { m } = shape(model);
   const out = new Map();
   for (const c of m.cases ?? []) if (!c.retired) for (const s of c.tests ?? []) out.set(s, [...(out.get(s) ?? []), c.id]);
   return Object.fromEntries([...out.keys()].sort().map((k) => [k, out.get(k).sort()]));
 }
 
-export function data(m) {
+export function data(model) {
+  const { m } = shape(model);
   const { data: d } = index(m);
   const out = Object.fromEntries([...d].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, { owner }]) => [id, { owner, usedBy: [] }]));
   for (const kind of ["plans", "suites", "cases"]) for (const e of m[kind] ?? []) for (const u of e.uses ?? []) if (Object.hasOwn(out, u)) out[u].usedBy.push(e.id);
@@ -77,16 +123,18 @@ function agg(rs) {
 }
 
 /** Each Case's occurrences in a Run tree, per Suite: [{ suite, case, outcome }], each with the provenance in force. */
-function walk(m, ix, run, f, inherited, suite, seen) {
+function walk(m, ix, given, f, inherited, suite, seen) {
   const occ = [];
-  for (const k of Object.keys(run ?? {})) if (!RUN.includes(k)) f.push(`run ${run.id}: unknown key ${k}`);
-  if (!nonempty(run?.id)) f.push(`run ${run?.id}: not a valid identity`);
+  const run = shapeRun(given, f);
+  if (!run) return { kind: null, occ };
+  for (const k of Object.keys(run)) if (!RUN.includes(k)) f.push(`run ${run.id}: unknown key ${k}`);
+  if (!nonempty(run.id)) f.push(`run ${name(run.id)}: not a valid identity`);
   else if (seen.has(run.id)) f.push(`run ${run.id}: duplicate identity`);
   else seen.add(run.id);
-  const provenance = { ...inherited, ...(run?.provenance ?? {}) };
-  const of = run?.of;
+  const provenance = { ...inherited, ...(run.provenance ?? {}) };
+  const of = run.of;
   const kind = ix.ids.plans.has(of) ? "plan" : ix.ids.suites.has(of) ? "suite" : ix.ids.cases.has(of) ? "case" : null;
-  if (!kind) { f.push(`run ${run?.id}: ${of} is not a Plan, Suite or Case`); return { kind, occ }; }
+  if (!kind) { f.push(`run ${name(run.id)}: ${name(of)} is not a Plan, Suite or Case`); return { kind, occ }; }
   if (!Object.hasOwn(provenance, of)) f.push(`run ${run.id}: provenance does not identify ${of}`);
   if (kind === "case" && ix.ids.cases.get(of).retired) f.push(`run ${run.id}: ${of} is retired and not executable`);
   const scope = kind === "plan" ? ix.ids.plans.get(of).suites ?? [] : kind === "suite" ? [of] : [suite];
@@ -107,7 +155,7 @@ function walk(m, ix, run, f, inherited, suite, seen) {
   }
   for (const child of run.runs ?? []) {
     const ok = kind === "plan" ? ix.ids.suites.has(child?.of) && scope.includes(child.of) : kind === "suite" ? ix.ids.cases.has(child?.of) && within.has(child.of) : false;
-    if (!ok) { f.push(`run ${run.id}: ${child?.of} cannot run within ${of}`); continue; }
+    if (!ok) { f.push(`run ${run.id}: ${name(object(child) ? child.of : child)} cannot run within ${of}`); continue; }
     occ.push(...walk(m, ix, child, f, provenance, kind === "suite" ? of : undefined, seen).occ);
   }
   // A Suite or Case Run has a result for each Case it covers: one it did not observe is unknown in it (testing/F30).
@@ -118,16 +166,18 @@ function walk(m, ix, run, f, inherited, suite, seen) {
   return { kind, occ };
 }
 
-export function results(m, run) {
-  const findings = check(m);
+export function results(model, run) {
+  const findings = check(model);
+  const { m } = shape(model);
   const ix = index(m);
   const { kind, occ } = walk(m, ix, run, findings, {}, undefined, new Set());
-  const caseIds = kind === "plan" ? [...new Set((ix.ids.plans.get(run.of).suites ?? []).flatMap((s) => ix.ids.suites.get(s)?.cases ?? []))] : kind === "suite" ? ix.ids.suites.get(run.of).cases ?? [] : kind === "case" ? [run.of] : [];
+  const target = object(run) ? run.of : undefined;
+  const caseIds = kind === "plan" ? [...new Set((ix.ids.plans.get(target).suites ?? []).flatMap((s) => ix.ids.suites.get(s)?.cases ?? []))] : kind === "suite" ? ix.ids.suites.get(target).cases ?? [] : kind === "case" ? [target] : [];
   const live = caseIds.filter((c) => !ix.ids.cases.get(c)?.retired);
   const hits = (c, s) => occ.filter((o) => o.case === c && (s === undefined || o.suite === s));
   const of = (c, s) => hits(c, s).map((o) => o.r);
   const ran = (c, s) => hits(c, s).some((o) => o.ran);
-  const suiteIds = kind === "plan" ? ix.ids.plans.get(run.of).suites ?? [] : kind === "suite" ? [run.of] : [];
+  const suiteIds = kind === "plan" ? ix.ids.plans.get(target).suites ?? [] : kind === "suite" ? [target] : [];
   // In a Plan Run, a Case keeps a result per containing Suite, and its result aggregates them (testing/F30).
   const containing = (c) => suiteIds.filter((s) => (ix.ids.suites.get(s)?.cases ?? []).includes(c));
   const result = (c, inapplicable) => (kind === "plan" ? agg(containing(c).map((s) => (inapplicable && !ran(c, s) ? "inapplicable" : agg(of(c, s))))) : agg(of(c)));
@@ -135,30 +185,32 @@ export function results(m, run) {
   const suites = Object.fromEntries(suiteIds.map((s) => [s, agg((ix.ids.suites.get(s)?.cases ?? []).filter((c) => live.includes(c)).map((c) => agg(of(c, s))))]));
   const plans = new Map();
   if (kind === "plan") {
-    const p = ix.ids.plans.get(run.of);
+    const p = ix.ids.plans.get(target);
     const decl = new Set((p.inapplicable ?? []).map((d) => d.case));
     const pc = Object.fromEntries(live.map((c) => [c, result(c, decl.has(c))]));
     const ps = Object.fromEntries(suiteIds.map((s) => [s, agg((ix.ids.suites.get(s)?.cases ?? []).filter((c) => live.includes(c)).map((c) => (decl.has(c) && !ran(c, s) ? "inapplicable" : agg(of(c, s)))))]));
-    plans.set(run.of, { result: agg(Object.values(pc)), cases: pc, suites: ps });
+    plans.set(target, { result: agg(Object.values(pc)), cases: pc, suites: ps });
   }
-  return { run: run?.id, of: run?.of, cases, suites, plans: Object.fromEntries(plans), data: { ...(run?.data ?? {}) }, findings };
+  return { run: object(run) ? run.id : undefined, of: target, cases, suites, plans: Object.fromEntries(plans), data: object(run) && object(run.data) ? { ...run.data } : {}, findings };
 }
 
-export function evaluate(m, run, options = {}) {
-  const r = results(m, run);
+export function evaluate(model, run, given = {}) {
+  const r = results(model, run);
   const findings = [...r.findings];
+  const options = object(given) ? given : {};
+  if (!object(given)) findings.push("evaluation options must be an object");
   for (const k of Object.keys(options)) if (k !== "allowances") findings.push(`${k} is not an evaluation input`);
-  const p = Object.hasOwn(r.plans, run?.of) ? r.plans[run.of] : undefined;
-  if (!p) findings.push(`run ${run?.id}: ${run?.of} is not a Plan`);
+  const p = Object.hasOwn(r.plans, r.of) ? r.plans[r.of] : undefined;
+  if (!p) findings.push(`run ${name(r.run)}: ${name(r.of)} is not a Plan`);
   const cases = p ? p.cases : r.cases;
   const list = options.allowances ?? [];
   const allowed = [], stale = [];
   if (!Array.isArray(list)) findings.push("allowances must be a list");
   else for (const a of list) {
-    if (typeof a?.case !== "string" || a.cite === undefined) findings.push(`malformed allowance ${JSON.stringify(a)}`);
-    else if (!Object.hasOwn(cases, a.case)) findings.push(`${a.case} is outside ${run?.of}`);
+    if (!object(a) || typeof a.case !== "string" || a.cite === undefined) findings.push(`malformed allowance ${name(a)}`);
+    else if (!Object.hasOwn(cases, a.case)) findings.push(`${a.case} is outside ${name(r.of)}`);
   }
-  const out = { run: run?.id, plan: run?.of, cases, suites: p ? p.suites : r.suites, allowed, stale, findings };
+  const out = { run: r.run, plan: r.of, cases, suites: p ? p.suites : r.suites, allowed, stale, findings };
   if (findings.length) return { ...out, result: "unknown" };
   for (const a of list) (cases[a.case] === "failed" ? allowed : cases[a.case] === "unknown" ? [] : stale).push(a);
   const allow = new Set(allowed.map((a) => a.case));

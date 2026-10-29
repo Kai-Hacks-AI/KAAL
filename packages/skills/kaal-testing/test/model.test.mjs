@@ -56,4 +56,35 @@ describe("model", () => {
     const suite = { suites: [{ id: "constructor", cases: ["c"] }], cases: [{ id: "c" }] };
     assert.equal(evaluate(suite, { id: "r", of: "constructor", provenance: { constructor: null, c: null }, outcomes: { c: "passed" } }).result, "unknown");
   });
+
+  it("never throws on a malformed model, Run or options: each malformed shape is a finding and the evaluation is unknown", () => {
+    const model = () => ({
+      strategies: [{ id: "X", plans: ["P"] }],
+      plans: [{ id: "P", suites: ["S"], inapplicable: [{ case: "d", reason: "r" }], data: [{ id: "D", content: 1 }], uses: ["D"] }],
+      suites: [{ id: "S", cases: ["c", "d"] }],
+      cases: [{ id: "c", tests: ["t"] }, { id: "d" }],
+    });
+    const run = () => ({ id: "r", of: "P", provenance: { P: null, S: null, c: null, d: null }, outcomes: {}, data: { D: null }, runs: [{ id: "s", of: "S", outcomes: { c: "passed", d: "passed" } }] });
+    assert.equal(evaluate(model(), run()).result, "passed");
+    const at = (o, path, v) => { let x = o; for (const k of path.slice(0, -1)) x = x[k]; x[path.at(-1)] = v; return o; };
+    const BAD = [null, 7, "s", {}, [null], [7]];
+    const MODEL = [["strategies"], ["strategies", 0], ["strategies", 0, "plans"], ["plans", 0, "suites"], ["plans", 0, "inapplicable"], ["plans", 0, "inapplicable", 0], ["plans", 0, "data"], ["plans", 0, "data", 0], ["plans", 0, "uses"], ["suites", 0], ["suites", 0, "cases"], ["cases"], ["cases", 0, "tests"]];
+    const RUN = [["outcomes"], ["provenance"], ["data"], ["runs"], ["runs", 0], ["runs", 0, "outcomes"]];
+    for (const v of BAD) {
+      for (const path of MODEL) {
+        const m = at(model(), path, v);
+        for (const f of [check, tested, data]) assert.doesNotThrow(() => f(m), `${path.join(".")} = ${JSON.stringify(v)}`);
+        const e = evaluate(m, run());
+        assert.ok(e.result === "unknown" && e.findings.length, `${path.join(".")} = ${JSON.stringify(v)}`);
+      }
+      for (const path of RUN) {
+        if (JSON.stringify(v) === "{}" && ["outcomes", "data"].includes(path.at(-1))) continue;
+        const e = evaluate(model(), at(run(), path, v));
+        assert.ok(e.result === "unknown" && e.findings.length, `run ${path.join(".")} = ${JSON.stringify(v)}`);
+      }
+      for (const m of [v, undefined]) assert.equal(evaluate(m, run()).result, "unknown");
+      assert.equal(evaluate(model(), v).result, "unknown");
+      assert.equal(evaluate(model(), run(), v).result, v === null || typeof v !== "object" || Array.isArray(v) ? "unknown" : "passed");
+    }
+  });
 });
