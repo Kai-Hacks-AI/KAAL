@@ -8,7 +8,7 @@ Core owns the Installation Contract: its Definition, its schema and its conforma
 
 Engineering discovers and orchestrates. Core is the authority on what an Installation Contract is and on its conformance Test Cases, and the Test Cases run as Core defines them (the Owner's direction on #607, option B).
 
-- **Core's part, a Core Change.** Core offers core/T10–core/T13 as reusable cases parametrized by an instance: given an instance, each case states what it checks and gives a verdict with its findings. Core owns that interface: its name, its shape, and how its own `test/plan/installation.test.mjs` runs the same cases on its sample contract. It must not put a test harness into Core's production runtime: no runtime entry point imports it, and it imports no `node:test`. Core plans it in a `core/C…` of its own, and this DO waits for it.
+- **Core's part, a Core Change.** Core offers core/T10–core/T13 as reusable cases parametrized by an instance: given an instance, each case states what it checks and gives a verdict with its findings. Core owns that interface: its name, its shape, and how its own `test/plan/installation.test.mjs` runs the same cases on its sample contract. It must not put a test harness into Core's production runtime: no runtime entry point imports it, and it imports no `node:test`. Core plans it in `core/C31` (#611): `kaal-core/conformance`, `installationConformance(instance)`, giving each case's `id`, `holds` and `failures`. This DO waits for it.
 - **Engineering's part, this Change.** A new Engineering test, `engineering/conformance/installation.test.mjs`, joins `npm run test:engineering`. It reads every tracked `contract.json` under `packages/` through Hosting, and runs each of Core's cases against each instance under `node:test`, one test per Capability and case, so each Capability's evidence is a line of its own. It asserts nothing about the format itself. A finding is Core's finding, reported as Core gives it.
 
 The instances today are Guard's (`packages/kaal-guard/contract.json`, on `main`) and Architecture's (`packages/skills/kaal-architecture/contract.json`, on `kaal/architecture` since #485). Discovery is by file, so Architecture's instance is covered as soon as it reaches `kaal/engineering`, with no further Change. Any Capability that adds an instance later is covered the same way.
@@ -33,7 +33,7 @@ Each behavioural case is first observed RED against a deliberately wrong fixture
 
 ## Order
 
-1. Core's `core/C…` PLAN and DO: the parametrized conformance cases. Core's thread owns them.
+1. `core/C31` (#611), PLAN and DO: the parametrized conformance cases. Core's thread owns them.
 2. A synchronization of `main` into `kaal/engineering` that carries them, separately authorized.
 3. The engineering/C4 DO: discovery and orchestration, RED first as above.
 
