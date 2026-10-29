@@ -23,7 +23,10 @@ Each Requirement names, in brackets, the Intents it serves.
   - whether it compared file mode;
   - the declared paths it found added, removed, renamed, changed in content or changed in mode;
   - the paths it found outside the declaration that the boundary depends on.
-- **testing/F20** [testing/I8]: **An anchor the candidate can write is no anchor.**
+
+  A verdict is a report, not evidence of its own trust. It is read with an **attestation** from the trust authority that produced and verified it, `{ by, anchor }`: the authority it names, and the anchor reference it vouches for (`testing/C19`).
+- **testing/F20** [testing/I8, testing/I9]: **An anchor the candidate can write is no anchor.**
+  - A verdict with no attestation, an attestation naming no authority, or one bound to another anchor is unknown, never unchanged and never failed: "no trust authority attests this verdict". Its changes are reported as unknown. Testing does not authenticate the attestation: its authority is accountable for it.
   - A verdict whose anchor is the PR head, or is missing, is unknown, never unchanged and never failed: "the baseline is not trusted".
   - A verdict over working-tree bytes is unknown for content, because a checkout can change bytes, as line endings do.
 - **testing/F21** [testing/I8]: **Changes are verified failures.** Each declared path that was added, removed, renamed or changed is a verified failure, naming the concern, its owner, the path and the change. This includes a file a sync re-adds beneath a declared directory. A mode change is one when the verdict compared mode. When the verdict did not compare mode, mode is unknown.
@@ -33,7 +36,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - behavioural validity: clean RED, correctness and Outcome.
 - **testing/F23** [testing/I8]: **The result.** `interpret` returns one class:
   - `verified failure` when any finding is one;
-  - `unknown` when the anchor or the bytes are untrusted;
+  - `unknown` when the verdict is not attested, when the anchor or the bytes are untrusted, or when the verdict does not read for the declared paths: a change entry that does not read, an unrecognized change to a declared path, or outside paths that are not a list;
   - otherwise `unchanged within the declaration`.
 
   It always lists the findings and the unknowns. It never returns "met", "passed" or "valid".
