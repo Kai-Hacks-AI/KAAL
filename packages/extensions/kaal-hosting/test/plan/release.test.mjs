@@ -5,7 +5,8 @@
 // need no edit when the name changes; the consumer reaches the installed
 // package by its name alone.
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
@@ -20,8 +21,14 @@ const NAME = "@kaihacksai/kaal-hosting";
 // Spelled in parts so this file never names the old package itself.
 const OLD = ["kaal", "hosting"].join("-");
 
+// What hosting/F18 and hosting/F19 add to the package, once hosting/C12 lands.
+const SHIPPED_BY_C12 = ["docs", "test/acceptance", "test/unit", "test/verify.mjs", "test/verify.json"];
+const shippedByC12 = (p) => p === "package/test/verify.mjs" || p === "package/test/verify.json" || ["package/docs/", "package/test/acceptance/", "package/test/unit/"].some((d) => p.startsWith(d));
+
 const pkg = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
+// A consumer's command runs outside this test run, so it inherits none of node:test's own context.
 const env = { ...process.env, npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
+delete env.NODE_TEST_CONTEXT;
 
 async function run(cmd, args, cwd) {
   const r = await execute(cmd, args, { cwd, env });
@@ -67,7 +74,9 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     assert.deepEqual(p.publishConfig, { access: "public" });
     assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/extensions/kaal-hosting" });
     assert.deepEqual(Object.keys(p.exports), [".", "./conformance", "./package.json"]);
-    assert.deepEqual(p.files, ["dist", "!dist/.tsbuildinfo", "payload"]);
+    // hosting/C12 adds what hosting/F18 and hosting/F19 ship, and nothing else.
+    assert.deepEqual(p.files.slice(0, 3), ["dist", "!dist/.tsbuildinfo", "payload"]);
+    for (const extra of p.files.slice(3)) assert.ok(SHIPPED_BY_C12.includes(extra), `files lists ${extra}`);
     assert.deepEqual(p.engines, { node: ">=24" });
     assert.equal(p.license, "MIT");
     assert.deepEqual(Object.keys(p.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile"]);
@@ -119,11 +128,11 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
       await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball], consumer);
     });
 
-    it("holds exactly package.json, README.md, LICENSE, dist without .tsbuildinfo, and payload", () => {
+    it("holds exactly package.json, README.md, LICENSE, dist without .tsbuildinfo, and payload, besides what hosting/C12 ships", () => {
       const expected = ["package/package.json", "package/README.md", "package/LICENSE", ...files(join(PACKAGE, "dist"), "package/dist"), ...files(join(PACKAGE, "payload"), "package/payload")]
         .filter((p) => !p.endsWith(".tsbuildinfo"))
         .sort();
-      assert.deepEqual(tarEntries(tarball).sort(), expected);
+      assert.deepEqual(tarEntries(tarball).filter((p) => !shippedByC12(p)).sort(), expected);
     });
 
     it("installs as node_modules/@kaihacksai/kaal-hosting, and the consumer uses it by that name alone", async () => {
@@ -147,5 +156,165 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
       assert.deepEqual(used, { within: true, outcomes: [{ path: "a.md", outcome: "written" }], ran: "ran", exclusions: true });
       assert.equal(readFileSync(join(consumer, "root", "a.md"), "utf8"), "a");
     });
+  });
+});
+
+// hosting/C10 planned outer tests of the complete product and its consumer verification
+// (hosting/I6, hosting/I7, hosting/F18–hosting/F25). hosting/C12 turns them GREEN. Each runs
+// against the packed candidate installed alone in a fresh consumer, as a consumer would.
+describe("hosting/C10: the installed package is a complete product its consumer can verify", () => {
+  const ID = /\bhosting\/[IFNAT]\d+\b/g;
+  const PREFIX = "kaal-hosting-verification ";
+  let tarball;
+
+  /** A fresh consumer outside the repository with the candidate installed alone, shipping `needs`. */
+  async function consumer(needs = ["test/verify.mjs", "test/verify.json"]) {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-hosting-verify-"));
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "consumer", private: true, type: "module" }));
+    await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball], dir);
+    const installed = join(dir, "node_modules", ...NAME.split("/"));
+    assert.ok(existsSync(join(installed, "package.json")), `${NAME} is not installed in the consumer`);
+    for (const path of needs) assert.ok(existsSync(join(installed, path)), `the installed package ships no ${path}`);
+    return { dir, installed };
+  }
+
+  /** The consumer's documented command, its exit status and its parsed summary line. */
+  async function verify(dir) {
+    const r = await execute("npm", ["explore", NAME, "--", "npm", "test"], { cwd: dir, env });
+    const line = r.stdout.split(/\r?\n/).filter((l) => l.startsWith(PREFIX)).at(-1);
+    return { status: r.status, output: r.stdout + r.stderr, summary: line === undefined ? undefined : JSON.parse(line.slice(PREFIX.length)) };
+  }
+
+  /** Every file under `dir` but `node_modules` directories, the installed copy included, with its SHA-256. */
+  function content(dir, installed) {
+    const out = {};
+    const walk = (d) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name);
+        if (e.isDirectory()) {
+          if (e.name !== "node_modules") walk(p);
+        } else out[p] = createHash("sha256").update(readFileSync(p)).digest("hex");
+      }
+    };
+    walk(dir);
+    walk(installed);
+    return out;
+  }
+
+  before(async () => {
+    const out = mkdtempSync(join(tmpdir(), "kaal-hosting-pack-"));
+    const packed = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", out], PACKAGE));
+    tarball = join(out, packed[0].filename);
+  });
+
+  it("hosting/T25 [hosting/I7, hosting/F18]: the installed package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations, defining each identifier a shipped case cites exactly once, citing no Engineering path, plan/ path or Change, and the README points to them and to the verification", async () => {
+    const { installed } = await consumer([]);
+    const docs = ["intent.md", "requirements.md", "architecture.md", "testing.md", "limitations.md"];
+    for (const doc of docs) assert.ok(existsSync(join(installed, "docs", doc)), `docs/${doc} is not shipped`);
+    const text = docs.map((doc) => readFileSync(join(installed, "docs", doc), "utf8")).join("\n");
+    const defined = [...text.matchAll(/\*\*(hosting\/[IFNA]\d+)\b/g)].map((m) => m[1]);
+    assert.deepEqual(defined.filter((id, i) => defined.indexOf(id) !== i), [], "an identifier is defined more than once");
+    const cases = files(join(installed, "test"), "test").filter((p) => p.endsWith(".mjs") && !p.endsWith("verify.mjs"));
+    assert.ok(cases.length > 0, "no case ships");
+    const cited = new Set(cases.flatMap((p) => [...readFileSync(join(installed, p), "utf8").matchAll(ID)].map((m) => m[0])).filter((id) => !/\/T\d+$/.test(id)));
+    assert.deepEqual([...cited].filter((id) => !defined.includes(id)).sort(), [], "a shipped case cites an identifier docs/ does not define");
+    assert.doesNotMatch(text, /\bengineering\/|\bplan\/|\bhosting\/C\d+\b/, "docs/ cites an Engineering path, a plan/ path or a Change");
+    const readme = readFileSync(join(installed, "README.md"), "utf8");
+    assert.match(readme, /docs\//);
+    assert.match(readme, new RegExp(`npm explore ${NAME} -- npm test`));
+  });
+
+  it("hosting/T26 [hosting/I6, hosting/F19, hosting/F20, hosting/F21, hosting/F22, hosting/F25]: the documented command verifies the installed copy on this host: every declared case ran and passed or is declared not applicable here, each loop ran a case, and the summary names what it exercised", async () => {
+    const { dir, installed } = await consumer();
+    assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).scripts?.test, "node test/verify.mjs");
+    const { status, output, summary } = await verify(dir);
+    assert.equal(status, 0, output);
+    assert.ok(summary, `no ${PREFIX.trim()} line\n${output}`);
+    assert.equal(summary.result, "verified");
+    assert.equal(summary.cause, undefined);
+    assert.equal(summary.package.name, NAME);
+    assert.equal(summary.package.version, "0.0.1");
+    assert.equal(realpathSync(summary.package.location), realpathSync(installed));
+    assert.equal(summary.platform, process.platform);
+    assert.equal(summary.node, process.version);
+    assert.match(summary.digest, /^[0-9a-f]{64}$/);
+    const manifest = JSON.parse(readFileSync(join(installed, "test", "verify.json"), "utf8"));
+    assert.deepEqual(summary.cases.map((c) => c.name).sort(), [...manifest.cases].sort());
+    for (const loop of ["intent", "requirements", "architecture", "code"]) assert.ok(summary.cases.some((c) => c.loop === loop && c.outcome === "pass"), `the ${loop} loop ran no passing case`);
+    for (const c of summary.cases) assert.ok(["pass", "not applicable"].includes(c.outcome), `${c.name}: ${c.outcome}`);
+  });
+
+  it("hosting/T27 [hosting/F21, hosting/F22]: an installed file changed, removed or added is cannot verify, exit 2, naming the file, and never verified", async () => {
+    const changed = await consumer();
+    const target = files(join(changed.installed, "dist"), "dist").find((p) => p.endsWith(".js"));
+    writeFileSync(join(changed.installed, target), readFileSync(join(changed.installed, target), "utf8") + "\n// changed\n");
+    const removed = await consumer();
+    const gone = files(join(removed.installed, "test"), "test").find((p) => p.endsWith(".test.mjs"));
+    assert.ok(gone, "the installed package ships no case");
+    rmSync(join(removed.installed, gone));
+    const added = await consumer();
+    writeFileSync(join(added.installed, "dist", "extra.js"), "export {};\n");
+    for (const [c, path] of [[changed, target], [removed, gone], [added, "dist/extra.js"]]) {
+      const { status, output, summary } = await verify(c.dir);
+      assert.equal(status, 2, output);
+      assert.equal(summary?.result, "cannot verify", output);
+      assert.ok(output.includes(path), `the output does not name ${path}`);
+    }
+  });
+
+  it("hosting/T28 [hosting/F23]: every identifier docs/ defines is covered, allocated or unverified, and a run prints the allocated and unverified ones as not verified by it", async () => {
+    const { dir, installed } = await consumer();
+    const text = readdirSync(join(installed, "docs")).map((doc) => readFileSync(join(installed, "docs", doc), "utf8")).join("\n");
+    const defined = [...new Set([...text.matchAll(/\*\*(hosting\/[IFNA]\d+)\b/g)].map((m) => m[1]))].sort();
+    assert.ok(defined.length > 0, "docs/ defines no identifier");
+    const { status, output, summary } = await verify(dir);
+    assert.equal(status, 0, output);
+    assert.deepEqual(Object.keys(summary.coverage).sort(), defined);
+    for (const [id, state] of Object.entries(summary.coverage)) {
+      assert.ok(["covered", "allocated", "unverified"].includes(state), `${id}: ${state}`);
+      if (state !== "covered") assert.match(output, new RegExp(`${id.replace("/", "\\/")}\\b[^\\n]*not verified by this run`), `${id} is ${state} but not printed as not verified by this run`);
+    }
+  });
+
+  it("hosting/T29 [hosting/F24]: a verified run leaves the consumer, the installed copy included, as it was", async () => {
+    const { dir, installed } = await consumer();
+    const before = content(dir, installed);
+    const { status, output } = await verify(dir);
+    assert.equal(status, 0, output);
+    assert.deepEqual(content(dir, installed), before);
+  });
+
+  it("hosting/T30 [hosting/F21, hosting/F23, hosting/F25]: a manifest that declares no case, declares a case that does not exist, leaves an identifier docs/ defines undeclared, or a delivered case skipped outside its declared applicability is cannot verify, exit 2, never verified", async () => {
+    const edits = [
+      (m) => ({ ...m, cases: [] }),
+      (m) => ({ ...m, cases: [...m.cases, "test/acceptance/intent.test.mjs > no such case"] }),
+      // The manifest is not among the files it hashes, so only the coverage check can catch this one.
+      (m) => ({ ...m, coverage: Object.fromEntries(Object.entries(m.coverage).slice(1)) }),
+    ];
+    const results = [];
+    for (const edit of edits) {
+      const { dir, installed } = await consumer();
+      const at = join(installed, "test", "verify.json");
+      const manifest = JSON.parse(readFileSync(at, "utf8"));
+      assert.ok(Array.isArray(manifest.cases) && manifest.coverage && Object.keys(manifest.coverage).length > 0, "the manifest declares no cases or no coverage");
+      writeFileSync(at, JSON.stringify(edit(manifest)));
+      results.push(await verify(dir));
+    }
+    // A delivered case turned into a skip, with its new bytes put in the manifest, so the hashes
+    // still match and only the rule against an undeclared skip can catch it.
+    const { dir, installed } = await consumer();
+    const at = join(installed, "test", "verify.json");
+    const manifest = JSON.parse(readFileSync(at, "utf8"));
+    const skipped = Object.keys(manifest.hashes ?? {}).find((p) => /^test\/acceptance\/.*\.test\.mjs$/.test(p) && /\bit\(/.test(readFileSync(join(installed, p), "utf8")));
+    assert.ok(skipped, "the manifest hashes no acceptance case written with it()");
+    const source = readFileSync(join(installed, skipped), "utf8").replace(/\bit\(/, "it.skip(");
+    writeFileSync(join(installed, skipped), source);
+    manifest.hashes[skipped] = createHash("sha256").update(Buffer.from(source)).digest("hex");
+    writeFileSync(at, JSON.stringify(manifest));
+    results.push(await verify(dir));
+    for (const { status, output, summary } of results) {
+      assert.equal(status, 2, output);
+      assert.equal(summary?.result, "cannot verify", output);
+    }
   });
 });
