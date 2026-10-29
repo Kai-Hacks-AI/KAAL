@@ -1,8 +1,8 @@
-// testing/C15 implementation tests for kaal-testing/model, beside the
-// planned outer tests in test/plan/model.test.mjs.
+// testing/C15 and testing/C28 implementation tests for kaal-testing/model, beside the
+// planned outer tests in test/plan/model.test.mjs and test/plan/current.test.mjs.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { check, data, evaluate, results, tested } from "kaal-testing/model";
+import { check, current, data, evaluate, results, tested } from "kaal-testing/model";
 
 const SHARED = () => ({
   plans: [{ id: "P", suites: ["S1", "S2"] }],
@@ -161,6 +161,51 @@ describe("model", () => {
         assert.equal(e.result, "unknown", why);
         assert.ok(e.findings.length > 0, why);
       }
+    });
+  });
+
+  describe("current evidenced quality (testing/C28)", () => {
+    const m = () => ({ plans: [{ id: "P", suites: ["S"] }], suites: [{ id: "S", cases: ["c"] }], cases: [{ id: "c", version: "1" }] });
+    const plan = (id, c) => ({ id, of: "P", provenance: { P: null, S: null, c: "1" }, outcomes: { c } });
+
+    it("is unknown with a finding when the Runs are not a list, and keeps nothing between calls", () => {
+      for (const runs of [undefined, null, {}, "r1"]) {
+        const q = current(m(), runs, "P");
+        assert.deepEqual([q.run, q.result, q.runs], [null, "unknown", []], String(runs));
+        assert.ok(q.findings.some((f) => f.includes("must be a list")));
+      }
+      const runs = [plan("r1", "passed")];
+      const before = structuredClone(runs);
+      current(m(), runs, "P");
+      assert.deepEqual(runs, before, "the consumer's Runs are not changed");
+      assert.equal(current(m(), [], "P").result, "unknown", "an earlier call leaves nothing behind");
+    });
+
+    it("gives a Case's current quality from its latest applicable Run, and refuses allowances outside a Plan", () => {
+      const caseRun = (id, c) => ({ id, of: "c", provenance: { c: "1" }, outcomes: { c } });
+      const q = current(m(), [caseRun("r1", "failed"), caseRun("r2", "passed")], "c");
+      assert.deepEqual([q.of, q.run, q.result], ["c", "r2", "passed"]);
+      assert.equal(current(m(), [plan("r1", "passed")], "c").run, null, "a Plan Run is not a Run of the Case");
+      const allowed = current(m(), [caseRun("r1", "passed")], "c", { allowances: [{ case: "c", cite: "x" }] });
+      assert.equal(allowed.result, "unknown");
+      assert.ok(allowed.findings.includes("allowances apply only to a Plan's evaluation"));
+      const unknownElement = current(m(), [plan("r1", "passed")], "nowhere");
+      assert.deepEqual([unknownElement.run, unknownElement.result], [null, "unknown"]);
+    });
+
+    it("ignores a recorded version of a definition the model no longer declares when judging applicability, and still evaluates that Run", () => {
+      const run = { ...plan("r1", "passed"), provenance: { P: null, S: null, c: "1", gone: "7" } };
+      const q = current(m(), [run], "P");
+      assert.deepEqual([q.run, q.runs[0].applicable], ["r1", true]);
+      assert.equal(q.result, evaluate(m(), run).result);
+    });
+
+    it("treats identities that name Object.prototype members as ordinary strings", () => {
+      const model = { plans: [{ id: "constructor", suites: ["__proto__"] }], suites: [{ id: "__proto__", cases: ["toString"] }], cases: [{ id: "toString", version: "1" }] };
+      const run = JSON.parse('{"id":"r","of":"constructor","provenance":{"constructor":null,"__proto__":null,"toString":"1"},"outcomes":{"toString":"passed"}}');
+      assert.deepEqual([current(model, [run], "constructor").run, current(model, [run], "constructor").result], ["r", evaluate(model, run).result]);
+      const stale = JSON.parse('{"id":"s","of":"constructor","provenance":{"constructor":null,"__proto__":null,"toString":"0"},"outcomes":{"toString":"passed"}}');
+      assert.equal(current(model, [stale], "constructor").runs[0].applicable, false);
     });
   });
 });
