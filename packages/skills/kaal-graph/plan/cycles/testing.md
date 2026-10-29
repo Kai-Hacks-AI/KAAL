@@ -9,12 +9,13 @@ The planned tests live in `packages/skills/kaal-graph/test/plan/cycles.test.mjs`
 | graph/T3: `reach` yields each identity once, terminates on a cycle, includes `start`, and reaches a successor that is not a key | graph/F2, graph/F4 | Requirements |
 | graph/T4: `reverse` derives sorted predecessors, including for a successor that is not a key | graph/F3, graph/F4 | Requirements |
 | graph/T5: the same structure in any key and successor order gives the same cycles, reach and reverse | graph/N1 | Architecture |
-| graph/T6: a 100 000-member chain and a 100 000-member ring finish without exhausting the stack, and the ring is one cycle | graph/N2, graph/A2 | Architecture |
+| graph/T6: a 100 000-member chain and a 100 000-member ring finish without exhausting the stack, and the ring is one cycle | graph/N2 (termination without recursion), graph/A2 | Architecture |
 | graph/T7: the input is unchanged, the results are frozen, and a plain object works like a `Map` | graph/N3, graph/F4 | Requirements |
 
 The following are validated by review:
 - `graph/A1` and `graph/A3` are placements.
 - `graph/N4` is checked by Graph's existing tests staying GREEN at `graph/C3`.
+- `graph/N2`'s cost bound is validated by review of `graph/A2`'s algorithm. graph/T6 proves termination without recursion at scale. It does not measure asymptotic complexity, and no test claims to.
 
 ## RED evidence
 

@@ -50,7 +50,7 @@ describe("graph/C2: structural reach and cycles", () => {
     assert.deepEqual(Object.fromEntries(reverse(shuffled(s))), Object.fromEntries(reverse(map(s))));
   });
 
-  it("graph/T6 [graph/N2, graph/A2]: a 100 000-member chain and ring finish without exhausting the stack, and the ring is one cycle", () => {
+  it("graph/T6 [graph/N2, graph/A2]: a 100 000-member chain and ring terminate without recursion exhausting the stack, and the ring is one cycle", () => {
     const [cycles, reach] = ["cycles", "reach"].map(exported);
     const n = 100_000;
     const key = (i) => `n${String(i).padStart(6, "0")}`;

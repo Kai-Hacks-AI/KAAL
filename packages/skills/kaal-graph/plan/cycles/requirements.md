@@ -15,6 +15,6 @@ Each Requirement names, in brackets, the Intents it serves.
 ## Nonfunctional
 
 - **graph/N1** [graph/I1]: Determinism. The same structure gives the same result in any order of keys or of successors.
-- **graph/N2** [graph/I1]: Termination and cost. Each function terminates on any structure, cyclic or not, in O(V + E), without recursion, so that depth never exhausts the stack.
+- **graph/N2** [graph/I1]: Termination and cost. Each function terminates on any structure, cyclic or not, without recursion, so that depth never exhausts the stack. Its cost is O((V + E) log(V + E)): sorting identities and successors for a deterministic order (graph/N1) is O(V log V + E log E), and the walk after it is O(V + E). No bound tighter than that is promised.
 - **graph/N3** [graph/I1, graph/I3]: Purity. A call never changes its input. It reads nothing from the host, and returns frozen results of the caller's own.
 - **graph/N4** [graph/I3]: Additive. Every existing export and Node id is unchanged, and Graph's existing tests stay GREEN.
