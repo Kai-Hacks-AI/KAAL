@@ -1209,6 +1209,17 @@ describe("guard/F2 [guard/I2] named outcomes", () => {
     const held = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook"], outcomes: { 4: "held" } } });
     assert.equal(verdicts(held.guard(["run", "--check", "h"]).output).h?.verdict, "held");
   });
+
+  it('guard/T125 [guard/F2, guard/F18]: an outcomes key "0" or "3", a status Guard reserves for its own verdicts, is refused as cannot judge, naming "4" to "255"', () => {
+    for (const key of ["0", "3"]) {
+      const c = given({ h: { command: exit(0), runs: ["hook", "ci"], outcomes: { [key]: "held" } } });
+      for (const args of [["run", "--check", "h"], ["run", "--hook"], ["verify"]]) {
+        const r = c.guard(args);
+        cannotJudge(r, `${CONFIG}/h.md`, `"${key}": ${args.join(" ")}`, "h");
+        assert.ok(r.output.includes('"4" to "255"'), `"${key}": ${args.join(" ")} does not name "4" to "255":\n${r.output}`);
+      }
+    }
+  });
 });
 
 describe("guard/N1 [guard/I5] Git prerequisite", () => {

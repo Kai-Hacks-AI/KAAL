@@ -22,6 +22,7 @@
     "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
     "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
     "test/acceptance/requirements.test.mjs > guard/F19 [guard/I7] Guard's Skill > guard/T45 [guard/F19, guard/A13, guard/N11]: the packed package carries skills/kaal-guard/SKILL.md, named kaal-guard, with BASS sections and no script, and names no consumer",
+    "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key \"0\" or \"3\", a status Guard reserves for its own verdicts, is refused as cannot judge, naming \"4\" to \"255\"",
     "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18]: an outcomes key \"04\", \"+4\" or \"256\" is refused as cannot judge, naming the canonical form, and \"4\" names exit 4 as held",
     "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] verdicts > guard/T7 [guard/F2]: names every exit status by its own verdict and never collapses one into another",
     "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
@@ -302,6 +303,7 @@
         "test/acceptance/requirements.test.mjs > guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows > guard/T89 [guard/F10, guard/F17, guard/N4]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace",
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key \"0\" or \"3\", a status Guard reserves for its own verdicts, is refused as cannot judge, naming \"4\" to \"255\"",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18]: an outcomes key \"04\", \"+4\" or \"256\" is refused as cannot judge, naming the canonical form, and \"4\" names exit 4 as held",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] verdicts > guard/T7 [guard/F2]: names every exit status by its own verdict and never collapses one into another",
         "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
@@ -498,6 +500,7 @@
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key \"0\" or \"3\", a status Guard reserves for its own verdicts, is refused as cannot judge, naming \"4\" to \"255\"",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18]: an outcomes key \"04\", \"+4\" or \"256\" is refused as cannot judge, naming the canonical form, and \"4\" names exit 4 as held",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook"
       ]
@@ -505,6 +508,7 @@
     "guard/F2": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key \"0\" or \"3\", a status Guard reserves for its own verdicts, is refused as cannot judge, naming \"4\" to \"255\"",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18]: an outcomes key \"04\", \"+4\" or \"256\" is refused as cannot judge, naming the canonical form, and \"4\" names exit 4 as held",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] verdicts > guard/T7 [guard/F2]: names every exit status by its own verdict and never collapses one into another"
       ]
@@ -770,7 +774,7 @@
     "test/acceptance/architecture.test.mjs": "c53e8ff6a177e788f67a6f3dbae99577c6009f6454874516a8564157791d0277",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "85dff9c04f9f0b273fcb397e2e32cc7d37ca716db77c5de23b9d5074ddb1dc48",
+    "test/acceptance/requirements.test.mjs": "0974eea65a557e074bbfc003f01e72051a529f5470c549a797a598222a537ae6",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
     "test/unit/lifecycle.test.mjs": "e906425230fabe15a210857651673e9b7e462147bb9c8899224cadbf6962b5fb",
     "test/unit/runner.test.mjs": "4ce170100ed2064a83fd6e3af57263aafa7388542ecabab8ef330609d1f8a235",
