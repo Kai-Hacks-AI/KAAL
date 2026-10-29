@@ -51,27 +51,31 @@ async function fixture() {
 const naming = (findings, ...words) => findings.filter((f) => words.every((w) => JSON.stringify(f).includes(w)));
 
 describe("Change Nodes and their dependencies (change/C1)", () => {
-  it("change/T1 [change/I1, change/F1, change/F2]: a Node typed by the Change Definition is a Change under its identity, and a malformed identity is a finding", async () => {
+  it("change/T1 [change/I1, change/F1, change/F2, change/F5]: a Node typed by the Change Definition is a Change under its identity, `has` it, and a malformed identity is a finding it does not have", async () => {
     const { assess, definitions, change } = await fixture();
     const good = change("sample/C1");
     const r = assess([...definitions, good]);
     assert.deepEqual(r.changes.map((c) => c.identity), ["sample/C1"], "the Change is known by its identity");
     assert.equal(r.changes[0].id, good.id, "and carries its Node id");
     assert.deepEqual(r.findings, [], "a well-formed Change is no finding");
+    assert.equal(r.has("sample/C1"), true, "it has the Change");
+    assert.equal(r.has("sample/C9"), false, "and not one that is absent");
     for (const bad of ["sample/c1", "sample/C01", "sample/C0", "C1", "sample/C1a", "sample/T1"]) {
       const b = assess([...definitions, change(bad)]);
       assert.ok(naming(b.findings, bad).length > 0, `${bad} is a malformed identity`);
       assert.ok(!b.changes.some((c) => c.identity === bad), `${bad} is not walked as a Change`);
+      assert.equal(b.has(bad), false, `${bad} is not had`);
     }
   });
 
-  it("change/T2 [change/F2]: two Change Nodes with one identity are a finding, and neither is walked", async () => {
+  it("change/T2 [change/F2, change/F5]: two Change Nodes with one identity are a finding, neither is walked, and `has` is false for it", async () => {
     const { assess, definitions, change } = await fixture();
     const one = change("sample/C1", [], {}, "one\n");
     const other = change("sample/C1", [], {}, "other\n");
     const r = assess([...definitions, one, other, change("sample/C2", [one])]);
     assert.ok(naming(r.findings, "sample/C1", one.id, other.id).length > 0, "the duplicate identity names both Nodes");
     assert.ok(!r.changes.some((c) => c.identity === "sample/C1"), "neither Node is walked");
+    assert.equal(r.has("sample/C1"), false, "a duplicated identity is not had");
     assert.deepEqual(r.dependsOn("sample/C2"), [], "a dependency on a duplicated identity is not walked");
   });
 

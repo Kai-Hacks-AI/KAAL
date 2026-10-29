@@ -6,8 +6,8 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 
 | Test | Checks | Loop |
 | --- | --- | --- |
-| change/T1: a Node typed by the Change Definition is a Change under its identity, and a malformed identity is a finding | change/I1, change/F1, change/F2 | Intent |
-| change/T2: two Change Nodes with one identity are a finding, and neither is walked | change/F2 | Requirements |
+| change/T1: a Node typed by the Change Definition is a Change under its identity, `has` it, and a malformed identity is a finding it does not have | change/I1, change/F1, change/F2, change/F5 | Intent |
+| change/T2: two Change Nodes with one identity are a finding, neither is walked, and `has` is false for it | change/F2, change/F5 | Requirements |
 | change/T3: a dependency is stated by the dependent alone, and its reverse is derived | change/I2, change/N2, change/F5 | Intent |
 | change/T4: the transitive views follow the Edges all the way, in both directions | change/F5, change/A3 | Architecture |
 | change/T5: an unresolved target and a target that is not a Change are findings | change/F4 | Requirements |

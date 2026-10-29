@@ -10,7 +10,7 @@ Each element names, in brackets, the Requirements it answers.
 - **change/A2** [change/F2–change/F6, change/F12, change/N1, change/N2]: `kaal-change/dependencies` exports `assess(nodes)`. It is pure and imports only `kaal-graph`. It returns:
   - `changes`, each with its identity and id;
   - `findings`;
-  - `dependsOn(identity, { transitive })` and `dependents(identity, { transitive })`.
+  - `has(identity)`, `dependsOn(identity, { transitive })` and `dependents(identity, { transitive })`.
 
   It imports no host module.
 - **change/A3** [change/F4, change/F5]: **Graph represents and traverses.** `assess` holds the Nodes in a Graph, and uses Graph for four things:
@@ -29,10 +29,13 @@ Each element names, in brackets, the Requirements it answers.
   - **What the consumer decides.** Whether and when a particular Change Node may be edited, and how corrections are recorded, is the governance of the repository that consumes Change. Change imposes no Proposed/Accepted freeze and selects no lifecycle rule of its own.
   - **Why a consumer may freeze.** Preserving historical evidence against manipulation or retrospective rewriting is a reason for a consumer to choose immutability, for example to stop an agent rewriting accepted test evidence to manufacture success. Stale-pin findings give such a policy its evidence. Enforcing the policy is the consumer's, through its own controls.
 
-- **change/A9** [change/F5, change/N1]: **`assess` is not an exchange format.** `assess(nodes)` and its derived views are Change's query surface inside one process. Another capability, such as Project's map (`project/C2`, #605), receives Change's dependencies only as data, through an optional data-exchange interface. That interface belongs to the Change map PLAN, and Change and each consuming capability own it together. Neither imports the other, and Graph does not own its map semantics. This PLAN fixes only the data the interface draws on:
-  - each Change's identity and content id;
-  - its resolved Depends On Edges, from the dependent to its dependency;
-  - its findings, which are richer than resolved or unresolved: unresolved, stale, not a Change, duplicate identity and cycle.
+- **change/A9** [change/F5, change/N1]: **The optional complement.** `assess`'s result is Change's interface to other capabilities, and they may use it without depending on it.
+  - **How it travels.** A consumer that has `kaal-change` may pass `{ has, dependsOn }` to another capability. Project's map (`project/C2`, #605) consumes exactly that. Neither capability imports the other, and Graph owns none of its meaning.
+  - **What it means.** It is Change's, as change/F5 states it:
+    - `has` is true only for a walked Change;
+    - `dependsOn` lists identities, sorted, over resolved Edges only;
+    - stale, unresolved, duplicate and cycle findings stay in `findings` and are never turned into dependencies.
+  - **What a consumer may do with it.** It may read and attribute it. It may not reinterpret or extend it. A later Change map PLAN may add a data form, without changing these views.
 
 ## Ownership
 
@@ -54,4 +57,4 @@ Each element names, in brackets, the Requirements it answers.
 | This repository's own Change Nodes | Change | the DO Change, and the Owner's answer on #280 for where they live |
 | Guard's Change table as a derived view | Engineering | this repository's Change Nodes for Guard |
 | Priority over Changes | Product | the DO Change |
-| Change map, with its optional data-exchange interface to Project (#605) and Product | Change, with each consumer | the DO Change, and the Owner's alignment of the exchange semantics |
+| Change map, with an optional data form of these views | Change | the DO Change |

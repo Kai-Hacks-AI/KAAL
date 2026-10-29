@@ -26,6 +26,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - **stale:** the identity names a present Change of another id, because the target changed after it was pinned;
   - **not a Change:** the target is a Node of another type.
 - **change/F5** [change/I2]: The views are derived from the stated Edges:
+  - `has(identity)` is true only for a Change that is walked: well-formed and unique;
   - `dependsOn(identity)` lists the Changes it depends on;
   - `dependents(identity)` lists the Changes that depend on it;
   - with `{ transitive: true }`, each follows the Edges all the way.
