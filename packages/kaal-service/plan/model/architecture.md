@@ -29,3 +29,4 @@ Each element names, in brackets, the Requirements it answers.
 | S3c: three perspective views from that one source, by a view attribute | Service | S3b |
 | S3d: binding style classes to visual identity tokens | Service and visual identity's owner | S3c, decision 5 |
 | S2: report-only checks, such as one provider or a declared owner | Service | S1, separately authorized |
+| Role identity: a resolvable organizational role, with its own representation and acceptance (not promised by S3a) | Service, proposed | `service/C2`, separately authorized |

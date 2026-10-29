@@ -60,12 +60,13 @@ describe("Service Management model (service/C1)", () => {
     await engine([]);
   });
 
-  it("service/T2 [service/F1, service/I1]: a Service's owner is a declared property, not an Edge, and independent of the Capability that provides it", async () => {
+  it("service/T2 [service/F1, service/I1]: a Service's owner is a declared role label, not an Edge and not resolved, and independent of the Capability that provides it", async () => {
     const d = await definitions();
     const booking = createNode({ name: "Booking", type: d.service, frontmatter: { owner: "Booking Service Owner" } });
     const desk = createNode({ name: "Desk", type: foundation().capability, edges: [{ type: d.provides, targets: [ref(booking.node)] }] });
     const graph = await engine([booking, desk]);
     assert.equal(graph.node(booking.node.id).frontmatter.owner, "Booking Service Owner", "the owner reads back as declared");
+    assert.deepEqual(graph.named("Booking Service Owner"), [], "the owner label names no Node and is not resolved");
     assert.deepEqual(graph.out(booking.node.id), [], "the owner is not an Edge");
     assert.deepEqual(sources(graph, booking.node, d.provides), ["Desk"], "the provider comes from provides alone, never from the owner");
   });

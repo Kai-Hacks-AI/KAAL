@@ -13,6 +13,8 @@ The Owner authorized S3 research on 2026-10-22 and asked on 2026-10-27 that the 
 - no simplistic internal or external flag decides which is which.
 
 - **service/I1.** A Service's owner is an organizational role, accountable for the Service's lifecycle and value. It is never conflated with the Capability that `provides` the Service, and neither is inferred from the other.
+  - S3a promises a **declared role label** only. KAAL records which role the Service names; it does not identify, resolve or check that role.
+  - A resolvable organizational role needs its own representation and acceptance, in a later, separately authorized Change. Nothing in S3a implies it.
 - **service/I2.** A Service may rest on supporting Services. Whether a supporting Service is internal or external is context, not a type.
 - **service/I3.** An Agreement is explicit:
   - its kind (SLA, OLA or UC) is declared from its parties and its nature, never derived;

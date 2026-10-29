@@ -11,9 +11,11 @@ Each Requirement names, in brackets, the Intents it serves.
 ## Functional
 
 - **service/F1** [service/I1]: **Service Owner.**
-  - A Service declares its owner as the property `owner` in its own frontmatter. It is a role, a single-line string, not an Edge and not a CASE kind.
+  - A Service declares its owner as the property `owner` in its own frontmatter: a role label, a single-line string, not an Edge and not a CASE kind.
+  - The label is not resolved. It carries no role identity, no Node names it, and a label that matches nothing is not a finding. Two Services with the same label are not thereby claimed to have the same owner.
   - The `Service` Definition states that the owner and the providing Capability are independent, and that neither is inferred from the other.
   - A Service without `owner` is admitted. Whether one is required is S2's report-only checks, not this Change.
+  - The `Service` Definition says the label is declared, not resolved, so no reader takes it for a resolvable role.
 - **service/F2** [service/I2]: **`composes`.**
   - An Edge typed by the new `composes` Definition goes from a Service to each Service it rests on, and is carried by the composed Service.
   - The supporting Service does not list what it supports. Graph derives that.
