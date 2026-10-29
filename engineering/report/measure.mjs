@@ -6,19 +6,43 @@
 // reconcile their results (kaal-testing/report). Neither driver is changed or
 // duplicated here.
 //
-// Usage: measure.mjs [--json]
+// Usage: measure.mjs [--json] [--coverage <captures>] [--out <dir>]
 // Prints the ownership dimension, the package dimension, the reconciliation
 // and every finding, or with --json the whole report as JSON. Exits non-zero
 // when either driver produces no result, or when coverage reports a failed
-// measurement or failing tests, as coverage/measure.mjs does. Other findings do
-// not change the exit status: they are reported, not gated. Nothing here
-// writes a file.
-import { join } from "node:path";
-import { execute } from "kaal-hosting";
-import { report } from "kaal-testing/report";
+// measurement or failing tests, as coverage/measure.mjs does; from captures,
+// only failing tests do, since the capturing lanes already gate. Other
+// findings do not change the exit status: they are reported, not gated.
+//
+// With --coverage, no test runs: coverage is read from the evidence the test
+// lanes captured into <captures> as they ran (lanes/evidence.mjs), one capture
+// per workspace, and a workspace with none for this commit is unknown. With
+// --out, the one report is written to <dir>, which must be missing or empty,
+// through Hosting, as report.json and its Markdown, report.md (kaal-testing's
+// renderer), with the commit and any GitHub Actions run it came from. Nothing
+// else here writes a file.
+import { join, resolve } from "node:path";
+import { execute, initialize, read } from "kaal-hosting";
+import { markdown, report } from "kaal-testing/report";
+import { commit, run } from "../lanes/evidence.mjs";
+import { fromCaptures } from "./captures.mjs";
 
 const ROOT = process.cwd();
-const json = process.argv.includes("--json");
+const args = process.argv.slice(2);
+const json = args.includes("--json");
+
+/** The value of `flag` in args, or undefined; exits with usage when it has none. */
+function option(flag) {
+  const at = args.indexOf(flag);
+  if (at < 0) return undefined;
+  if (!args[at + 1] || args[at + 1].startsWith("--")) {
+    console.error("usage: measure.mjs [--json] [--coverage <captures>] [--out <dir>]");
+    process.exit(2);
+  }
+  return resolve(args[at + 1]);
+}
+const captures = option("--coverage");
+const out = option("--out");
 
 /** Run an Engineering driver with --json; its parsed result, or exit naming it. */
 async function driver(path) {
@@ -37,8 +61,33 @@ if (attribution.status !== 0) {
   console.error(`report: inventory/attribute.mjs exited ${attribution.status}`);
   process.exit(1);
 }
-const coverage = await driver("coverage/measure.mjs");
+const head = await commit(ROOT);
+let coverage;
+let captured = [];
+if (captures === undefined) coverage = await driver("coverage/measure.mjs");
+else {
+  const listed = await execute("npm", ["query", ".workspace"], { cwd: ROOT });
+  if (listed.status !== 0) {
+    process.stderr.write(listed.stderr);
+    console.error("report: listing the workspaces failed");
+    process.exit(1);
+  }
+  const workspaces = JSON.parse(listed.stdout).map(({ name }) => name);
+  const found = fromCaptures(await read(captures), workspaces, { commit: head, ...run() });
+  captured = found.captured;
+  // The lanes that captured this evidence are the gate: a failed measurement
+  // or an unknown is reported here, and only failing tests change the status.
+  coverage = { result: found.coverage, status: found.coverage.some((r) => r.tests === "fail") ? 1 : 0 };
+}
 const result = report(attribution.result, coverage.result);
+
+if (out !== undefined) {
+  const provenance = { commit: head, ...run(), captured };
+  await initialize(out, {
+    "report.json": Buffer.from(JSON.stringify({ provenance, ...result }, null, 2) + "\n"),
+    "report.md": Buffer.from(markdown(result, provenance)),
+  });
+}
 
 if (json) {
   console.log(JSON.stringify(result, null, 2));
@@ -59,8 +108,8 @@ console.log("");
 console.log("packages: delivered JavaScript, executed by the workspace's own tests");
 console.log("workspace | tests | delivered JS files | lines | branches | functions");
 for (const p of packages) {
-  const figures = p.failed ? "not measured | - | -" : p.note ? "N/A | N/A | N/A" : `${pct(p.lines)} | ${pct(p.branches)} | ${pct(p.functions)}`;
-  console.log(`${p.workspace} | ${p.tests ?? "-"} | ${p.deliveredFiles} | ${figures}${p.note ? ` | ${p.note}` : ""}`);
+  const figures = p.unknown ? "unknown | unknown | unknown" : p.failed ? "not measured | - | -" : p.note ? "N/A | N/A | N/A" : `${pct(p.lines)} | ${pct(p.branches)} | ${pct(p.functions)}`;
+  console.log(`${p.workspace} | ${p.unknown ? "unknown" : (p.tests ?? "-")} | ${p.deliveredFiles ?? "unknown"} | ${figures}${p.note ? ` | ${p.note}` : ""}`);
 }
 console.log("");
 console.log(`reconciliation: ${reconciliation.metric}`);
