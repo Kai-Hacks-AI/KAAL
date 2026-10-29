@@ -29,6 +29,11 @@ Each element names, in brackets, the Requirements it answers.
   - **What the consumer decides.** Whether and when a particular Change Node may be edited, and how corrections are recorded, is the governance of the repository that consumes Change. Change imposes no Proposed/Accepted freeze and selects no lifecycle rule of its own.
   - **Why a consumer may freeze.** Preserving historical evidence against manipulation or retrospective rewriting is a reason for a consumer to choose immutability, for example to stop an agent rewriting accepted test evidence to manufacture success. Stale-pin findings give such a policy its evidence. Enforcing the policy is the consumer's, through its own controls.
 
+- **change/A9** [change/F5, change/N1]: **`assess` is not an exchange format.** `assess(nodes)` and its derived views are Change's query surface inside one process. Another capability, such as Project's map (`project/C2`, #605), receives Change's dependencies only as data, through an optional data-exchange interface. That interface belongs to the Change map PLAN, and Change and each consuming capability own it together. Neither imports the other, and Graph does not own its map semantics. This PLAN fixes only the data the interface draws on:
+  - each Change's identity and content id;
+  - its resolved Depends On Edges, from the dependent to its dependency;
+  - its findings, which are richer than resolved or unresolved: unresolved, stale, not a Change, duplicate identity and cycle.
+
 ## Ownership
 
 | Who | Owns |
@@ -49,3 +54,4 @@ Each element names, in brackets, the Requirements it answers.
 | This repository's own Change Nodes | Change | the DO Change, and the Owner's answer on #280 for where they live |
 | Guard's Change table as a derived view | Engineering | this repository's Change Nodes for Guard |
 | Priority over Changes | Product | the DO Change |
+| Change map, with its optional data-exchange interface to Project (#605) and Product | Change, with each consumer | the DO Change, and the Owner's alignment of the exchange semantics |
