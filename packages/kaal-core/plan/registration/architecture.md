@@ -56,6 +56,12 @@ Related work is referenced, not moved:
 
 Aligning `core/C9`'s Type prefixes with scope claims is a later decision. `core/C30` qualifies registration kinds by scope and leaves `core/C9`'s Types as they are.
 
-Two Owner decisions are open and are not part of `core/C30`:
-- **What a trace means.** A trace says only that one instance traces to another. If a kind's owner needs two relations between the same kinds, such as `refines` and `verifies`, the smallest addition keeps ownership with the source: the owner names relation kinds in its rule, and each trace states one. Core would still judge structure only.
-- **An absent complement.** An instance of a kind whose owner is not installed, or a trace to an unresolved target, fails `kaal verify` (`core/F50`, `core/F52`). Under optional composition (2026-10-29), this could instead be reported as an unresolved complement without failing. `core/C25` is the README release-status Change (#512).
+The Owner aligned two further questions on #600 (2026-10-29). They are future decisions and dependencies, not part of `core/C30`:
+- **Typed outgoing relationships.** The source Capability may define its own relationship types and outgoing rules. Core and Graph carry, resolve and validate the generic structure, and assign no domain meaning. A future Core PLAN will plan this, as a dependency of any Capability that needs two relations between the same kinds, such as `refines` and `verifies`.
+- **Absent optional complements.** A future Core PLAN distinguishes two cases. One is a complementary Capability that is not available. The other is a registration that is malformed or contradictory. A standalone package stays usable, but it never claims that an unavailable relationship was verified: the finding stays an honest unresolved one, never a false GREEN. Today `core/F50` and `core/F52` treat both cases alike.
+- **Same term, distinct definitions.** This holds for relationship types as it does for kinds (`core/F50`). Matching spelling does not establish semantic identity:
+  - definitions stay distinct and scope-qualified until they are explicitly aligned;
+  - shared meanings get one authoritative owner, chosen where appropriate, and the other Capabilities consume its definition;
+  - different meanings stay distinct, and related meanings have their relation described without being merged.
+  
+  Neither Core nor Graph becomes the default semantic owner, and there is no central registry. `core/C25` is the README release-status Change (#512).

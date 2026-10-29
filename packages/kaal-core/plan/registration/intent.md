@@ -23,7 +23,7 @@ The Owner's review on #518 (2026-10-28) corrected two commitments of the first d
 
 The Owner's clarification in #kaal (2026-10-28) is carried by `core/C30`, a PLAN Change that revises this PLAN:
 
-6. **A Capability's concepts are its own.** Each Capability defines its own concepts, semantics, identity rules, claims, operations and outgoing trace rules. So a kind is named within its owner's scope: two Capabilities that both name a concept `Case` define two kinds, each with its own rule, and neither collides with nor overrides the other.
+6. **A Capability's concepts are its own.** Each Capability defines its own concepts, semantics, identity rules, claims, operations and outgoing trace rules. So a kind is named within its owner's scope: two Capabilities that both name a concept `Case` define two kinds, each with its own rule, and neither collides with nor overrides the other. Matching spelling does not make them the same concept. If their meanings are in fact shared, the Capabilities align them and one becomes the authoritative owner, whose definition the other consumes. That is a decision between those Capabilities, not an automatic deduplication, and neither Core nor Graph becomes the default owner (Owner, #600, 2026-10-29).
 7. **Trees are a pointer, not a feature.** Any Capability may organize its content hierarchically, with edge meaning it defines. A hierarchy is a kind whose owner's rule permits its own kind, and a trace from one tree into another is an ordinary outgoing trace. Core requires no tree and no universal schema.
 
 `core/C30` also aligns the fixtures with the Defect model the Owner approved on #583: a Test Case traces to the Defect it tests, and a Defect lists no Test Case.
