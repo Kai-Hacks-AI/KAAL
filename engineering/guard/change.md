@@ -525,6 +525,33 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Test Cases.** None new. The release Changes cite the cases named above. `guard/C125` and later ones get their identifiers when they are raised.
 - **Authorization.** Approving this PLAN approves the path and the order. Each step still needs its own approval, and the bump, publication, synchronization and promotion each need the Owner's explicit authorization.
 
+**Test Cases trace to the Defects they test, and the product shows what they observed (`guard/C123`, PLAN, revised).** D-1 from `guard/C119`. The Owner corrected this PLAN's trace direction on #583: **Test Case → Defect**, not Defect → Test Case. A Defect is a durable statement of prohibited behaviour, a negative Requirement. A Test Case tests it. A RED that the case observes establishes the Defect at that moment, and a GREEN evidences its correction within the case's scope. Absent or incomplete evidence leaves a Defect suspected or unknown. A confirmed Defect is not erased by a later GREEN, and the relationship carries no status.
+- **Consumed, not invented.** Guard defines no Defect or Testing semantics of its own. It applies two existing contracts:
+  - Testing's TEST A FINDING (`testing/C4`, #385, on `kaal/testing`) already names Defects as a permitted target of a Test Case's trace, written in the case's title.
+  - Graph's Edge goes out from its source Node and needs no reference back. Every incoming view is derived from it.
+- **The trace.** Each case that tested a historical Defect cites it in its title. The Defect is an additional target beside the Requirement the case still verifies. This is the justification TEST A FINDING asks for: the case was written as that Defect's case and stays its regression check. The six pairings are as already checked: guard/D1 guard/T38, guard/D2 guard/T39, guard/D3 guard/T43, guard/D5 guard/T81, guard/D16 guard/T94–guard/T96, guard/D17 guard/T98.
+  - Delivered in the package: guard/T81 gains guard/D5, and guard/T94–guard/T96 gain guard/D16.
+  - Publisher Engineering: guard/T43 (consumer suite) gains guard/D3, and guard/T98 (package suite) gains guard/D17. Both stay in Engineering.
+  - Retired with `0.0.1`: guard/T38 and guard/T39 have no title left to edit. Their RED is recorded in Engineering's evidence (K2b), and that record is their trace.
+- **The product's view.** `docs/limitations.md` restates each Defect as the behaviour Guard must not show. Its table becomes Defect, Prohibited behaviour, Tested by, and Observed in Test Runs.
+  - "Tested by" is the incoming view, derived from the traces above and never authored as an edge. It names each case under its realization, so the three kinds of evidence stay distinct: **delivered** (a case in the package, which a consumer runs), **publisher** (a Guard-owned case that publisher Engineering runs, named with where it ran; not consumer-delivered coverage, and a consumer run does not claim it passed), and **retired** (a case retired with `0.0.1`, kept as historical evidence and no longer runnable).
+  - "Observed in Test Runs" records RED and GREEN as observations of a Test Run, each with the version and environment it ran in, such as "RED in `0.0.1` (guard/T38, packed, Linux)" and "GREEN from `0.0.2`". They are not a Defect status, and no later observation changes or removes an earlier one.
+- **Testing's semantics, not Guard's.** What a Test Run is, what its observations and provenance carry, and what Test Data and a retired case are belong to Testing: Testing's Case model (`testing/C14`, #601) and its planned Runs and Test Data (`testing/C18`). Guard defines none of them. Until `testing/C18` lands, the column is written as plain observations with that provenance, and the DO adds no Run or Test Data structure of its own.
+- **Product versus publisher.** Defects become product identifiers, defined by their rows, and guard/T107 and the manifest generator recognise them.
+  - A Defect cited by a delivered case is covered.
+  - A Defect tested only by a publisher case is allocated to the publisher's Engineering Test Plan, naming the case.
+  - guard/D1 and guard/D2 are declared verified by no Test Case in the package: retired, naming the recorded RED.
+- **Checked against Testing before DO.** The Owner asked on #583 for any inconsistency with Testing to be reported before DO. Read against #601 and the `testing/C18` row it plans, none was found: Testing's Case **tests →** trace is outgoing with opaque subjects (testing/N7), so a Defect is a permitted subject; "who tests a subject" is derived and never declared (testing/I10); a Run's observations change no definition (testing/I11, testing/F29); and a retired Case stays provenance and is no longer executable (`testing/C18`). One dependency, not an inconsistency: TEST A FINDING's closed list of target kinds becomes guidance in `testing/C15`; Defects are on the list either way.
+- **Test Case.** guard/T127 is a product acceptance case beside guard/T107. It checks four things:
+  1. Every Defect row states a prohibited behaviour, and the table has no status column; every RED or GREEN it records names its version.
+  2. Every Defect is the target of at least one Test Case: a delivered case that cites it, or a publisher allocation or retirement entry in `docs/testing.md` that names the case.
+  3. "Tested by" equals the incoming view derived from those traces, each case under its realization (delivered, publisher or retired), so it cannot be authored on its own.
+  4. A negative fixture, a copy of the table whose "Tested by" names a case that does not cite that Defect, must make the check fail.
+
+  It is RED first against `0.0.4`, where no title cites a Defect and the table has the old columns, and GREEN after the DO. The publisher titles of guard/T43 and guard/T98 fall under guard/T111's existing one-authority audit, which requires each Defect they cite to be defined in the package.
+- **Not here.** Engineering's own defect tables in `engineering/guard/testing.md` still read Defect → Test Case, with a Status column and "a GREEN refutes it". Bringing them to the corrected model is Engineering's, as a separate Change after this one. This Change touches only the product's view and the case titles.
+- **Authorization.** Approving this revised PLAN authorizes `guard/C123`'s DO only: no version bump, promotion or publication. The earlier approval was of the opposite direction and does not carry over.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -641,7 +668,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | DO |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | DO |
-| `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
+| `guard/C123` | — | Guard | `0.0.5`: Test Cases trace to the Defects they test; the product shows their observations | `guard/C119` | PLAN |
 | `guard/C124` | — | Guard | The path to `0.0.5`: the remaining Changes in collector order, the evidence that accepts the release, and what stays out pending the Owner | `guard/C111`, `guard/C119` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
