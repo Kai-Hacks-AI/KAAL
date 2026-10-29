@@ -1,5 +1,11 @@
-# Runs KAAL's tests. Each check calls one npm script; what a lane tests is
-# defined there and in the code it runs, never here.
+# Runs KAAL's tests. Each job runs one check that KAAL lists in guard.json through kaal-guard, which
+# reports its verdict; what a check tests is defined there and in the code it runs, never here. The
+# Guard job runs kaal-guard's own tests and kaal-guard verify, which shows that a job declares every
+# ci check in Guard's declared form (declared integration only). kaal-guard's own tests include its
+# outer tests, which install the packed package alone into fresh repositories: like Acceptance, they
+# run on every supported OS, Linux in the Guard job, Windows and macOS in Guard (Windows, macOS).
+# The Linux Guard job builds KAAL's workspace first, since guard/T46's file (workspace.test.mjs) needs
+# it; the Windows and macOS jobs install nothing and leave that file out.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -31,7 +37,7 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
-      - run: npm run test:hosting
+      - run: npx --no kaal-guard run --check Hosting --github
 
   acceptance:
     name: Acceptance (${{ matrix.host }})
@@ -48,7 +54,7 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
-      - run: npm run test:acceptance
+      - run: npx --no kaal-guard run --check Acceptance --github
 
   lane:
     name: ${{ matrix.check }}
@@ -56,6 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Each entry's check is its name in guard.json; script names the npm script guard.json runs for it.
         include:
           - { check: Workspaces, script: "test:workspaces" }
           - { check: Acceptance, script: "test:acceptance" }
@@ -66,4 +73,33 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
-      - run: npm run ${{ matrix.script }}
+      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github
+
+  guard:
+    name: Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run build
+      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/*.test.mjs
+      - run: npx --no kaal-guard verify --github
+
+  guard-hosts:
+    name: Guard (${{ matrix.host }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { host: Windows, os: windows-latest }
+          - { host: macOS, os: macos-latest }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/external.test.mjs engineering/guard/acceptance/kaal.test.mjs engineering/guard/acceptance/package.test.mjs

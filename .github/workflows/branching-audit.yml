@@ -1,7 +1,8 @@
-# Branching audit: runs the branching checker, engineering/github/lineage.ts, after the fact, on what
-# no pull request check can gate. The verdicts and their guidance live only in the checker and
-# engineering/github/branching.md. This workflow only reads facts from Git and GitHub and reports the
-# outcome. Nothing here deletes, synchronizes or merges: a failing audit says what is due, and the
+# Branching audit: runs KAAL's Branching-audit check (guard.json, engineering/github/branching-audit.sh)
+# through kaal-guard, which runs the branching checker, engineering/github/lineage.ts, after the fact,
+# on what no pull request check can gate. The verdicts and their guidance live only in the checker and
+# engineering/github/branching.md. The check only reads facts from Git and GitHub, and kaal-guard
+# reports the outcome. Nothing here deletes, synchronizes or merges: a failing audit says what is due, and the
 # Owner acts.
 #
 #   Landing        each landing on main or a collector: it is attributable to one merged pull request
@@ -18,8 +19,9 @@
 #
 # Facts are complete or the audit cannot judge, which fails it: every GitHub list is read to its last
 # page, and a merge GitHub's activity records that no merged pull request accounts for fails the
-# audit. The checker and holds.json are always read from the default branch; nothing of a pushed
-# branch is checked out, built, installed or run.
+# audit. The checker and holds.json are always read from the default branch's tip. The job checks out
+# and installs the commit this workflow runs from (kaal-guard and KAAL's scripts), which is no more
+# than the workflow itself already trusts; nothing else of a pushed branch is run.
 name: KAAL
 
 on:
@@ -42,107 +44,33 @@ jobs:
       run:
         shell: bash
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
-      - name: Read the facts from Git and GitHub
+      - run: npm ci --ignore-scripts
+
+      - name: Read the default branch's tip
         env:
-          GH_TOKEN: ${{ github.token }}
-          SERVER: ${{ github.server_url }}
-          REPO: ${{ github.repository }}
-          DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
         run: |
-          F="$RUNNER_TEMP/facts" && mkdir -p "$F"
-          git init -q lineage && cd lineage
-          git fetch -q --no-tags "$SERVER/$REPO" "+refs/heads/*:refs/remotes/origin/*" "+refs/pull/*/head:refs/pull/*/head"
-          git show "refs/remotes/origin/$DEFAULT:engineering/github/lineage.ts" > "$F/lineage.ts"
-          git show "refs/remotes/origin/$DEFAULT:engineering/github/holds.json" > "$F/holds.json"
-          # Every page of each list; gh fails the step on any error, so a list is whole or absent.
-          gh api --paginate "repos/$REPO/activity?per_page=100" \
-            --jq '.[] | {ref, before, after, timestamp, activity_type}' | jq -s . > "$F/activity.json"
-          gh api --paginate "repos/$REPO/pulls?state=all&per_page=100" \
-            --jq ".[] | {number, state, base: .base.ref, head_ref: .head.ref, own: (.head.repo.full_name == \"$REPO\"), head: .head.sha, merge: (if .merged_at then .merge_commit_sha else null end)}" \
-            | jq -s . > "$F/pulls.json"
-          # Completeness: each merge GitHub recorded on main or a collector is a merged pull request's merge commit.
-          jq -e -n --slurpfile a "$F/activity.json" --slurpfile p "$F/pulls.json" '
-            ($p[0] | map(.merge // empty)) as $m
-            | [$a[0][] | select(.activity_type == "pr_merge" and (.ref == "refs/heads/main" or (.ref | startswith("refs/heads/kaal/"))))
-               | select(.after as $x | $m | index($x) | not) | "\(.ref) \(.after)"]
-            | if length == 0 then true else error("merges no merged pull request accounts for: \(join(", "))") end' > /dev/null
-          # The branches as Git lists them, not as a paginated API does.
-          git for-each-ref --format='%(refname:lstrip=3) %(objectname)' refs/remotes/origin/ > "$F/branches"
-          echo "$(jq length "$F/activity.json") activity records, $(jq length "$F/pulls.json") pull requests, $(wc -l < "$F/branches") branches"
+          git fetch -q --no-tags --depth=1 origin "+refs/heads/$KAAL_DEFAULT:refs/remotes/origin/$KAAL_DEFAULT"
+          echo "BASE=$(git rev-parse "refs/remotes/origin/$KAAL_DEFAULT")" >> "$GITHUB_ENV"
 
       - name: Audit with the default branch's checker
         env:
-          DEFAULT: ${{ github.event.repository.default_branch }}
-          EVENT: ${{ github.event_name }}
-          REF: ${{ github.ref_name }}
-          CREATED: ${{ github.event.created }}
-          DELETED: ${{ github.event.deleted }}
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.event.after }}
-        working-directory: lineage
-        run: |
-          F="$RUNNER_TEMP/facts"
-          MAIN="refs/remotes/origin/$DEFAULT"
-          FAILED=0
-          # judge <title> <verdict and arguments>: 0 pass; 4 held by an evidenced Owner hold, a warning;
-          # 1 fail; 3 does not apply; 2 or anything else cannot judge, which fails.
-          judge() {
-            local title=$1; shift
-            local rc=0; node "$F/lineage.ts" "$@" > "$F/verdict" 2>&1 || rc=$?
-            cat "$F/verdict" >> "$GITHUB_STEP_SUMMARY"
-            case $rc in
-              0|1|4)
-                while IFS= read -r line; do
-                  case $line in
-                    fail:*) echo "::error title=$title::${line#fail: }"; FAILED=1 ;;
-                    held:*) echo "::warning title=$title: held by the Owner::${line#held: }" ;;
-                    pass:*) echo "${line#pass: }" ;;
-                    *) if [ "$rc" = 1 ]; then echo "::error title=$title::$line"; FAILED=1; else echo "$line"; fi ;;
-                  esac
-                done < "$F/verdict" ;;
-              3) echo "Not applicable: $(cat "$F/verdict")" ;;
-              *) echo "::error title=$title: cannot judge::$(cat "$F/verdict")"; FAILED=1 ;;
-            esac
-          }
-          landing() { # landing <ref> <before> <after>: the pull requests GitHub associates with <after>
-            jq --arg after "$3" '[.[] | select(.merge == $after or .head == $after) | {number, base, head, merge}]' "$F/pulls.json" > "$F/landed.json"
-            judge Landing landing "$DEFAULT" "$1" "$MAIN" "$2" "$3" "$F/landed.json"
-          }
-          establishment() { judge Establishment establishment "$DEFAULT" "$1" "$F/activity.json"; }
-          collectors=$(awk '$1 ~ /^kaal\// {print $1}' "$F/branches")
-
-          if [ "$EVENT" = push ]; then
-            if [ "$CREATED" = true ]; then
-              case $REF in kaal/*) establishment "$REF" ;; esac
-            elif [ "$DELETED" != true ]; then
-              landing "$REF" "$BEFORE" "$AFTER"
-            fi
-          else
-            # Every collector's establishment, and every landing of the last two days on main and the collectors.
-            for c in $collectors; do establishment "$c"; done
-            since=$(date -u -d '2 days ago' +%Y-%m-%dT%H:%M:%SZ)
-            while read -r ref before after; do
-              git cat-file -e "$after^{commit}" 2>/dev/null || { echo "::notice title=Landing::$ref at ${after:0:7} is no longer in any branch; not judged"; continue; }
-              landing "$ref" "$before" "$after"
-            done < <(jq -r --arg since "$since" --arg main "refs/heads/$DEFAULT" '.[]
-              | select(.timestamp >= $since and (.activity_type | IN("pr_merge", "push", "force_push"))
-                       and (.ref == $main or (.ref | startswith("refs/heads/kaal/"))))
-              | "\(.ref | ltrimstr("refs/heads/")) \(.before) \(.after)"' "$F/activity.json")
-          fi
-
-          if [ "$EVENT" != push ] || [ "$REF" = "$DEFAULT" ]; then
-            jq --argjson c "$(printf '%s\n' $collectors | jq -R . | jq -s .)" '. as $p | reduce $c[] as $k ({}; .[$k] = {
-                open: [$p[] | select(.state == "open" and .base == $k) | .number],
-                promotions: [$p[] | select(.merge != null and .base == env.DEFAULT and .head_ref == $k and .own) | {number, head, merge}]
-              })' "$F/pulls.json" > "$F/collectors.json"
-            judge Lifecycle collectors "$DEFAULT" "$MAIN" refs/remotes/origin/kaal/ "$F/holds.json" "$F/collectors.json"
-            awk -v d="$DEFAULT" '$1 != d && $1 != "HEAD" && $1 !~ /^kaal\// {print}' "$F/branches" \
-              | jq -R 'split(" ") | {branch: .[0], tip: .[1]}' | jq -s --slurpfile p "$F/pulls.json" \
-                'map(. as $b | . + {merged: [$p[0][] | select(.merge != null and .head_ref == $b.branch and .own) | {number, head}]})' > "$F/working.json"
-            judge Lifecycle working-branches "$DEFAULT" "$F/working.json"
-          fi
-          exit $FAILED
+          GH_TOKEN: ${{ github.token }}
+          KAAL_SERVER: ${{ github.server_url }}
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_EVENT: ${{ github.event_name }}
+          KAAL_REF: ${{ github.ref_name }}
+          KAAL_CREATED: ${{ github.event.created }}
+          KAAL_DELETED: ${{ github.event.deleted }}
+          KAAL_BEFORE: ${{ github.event.before }}
+          KAAL_AFTER: ${{ github.event.after }}
+        run: npx --no kaal-guard run --check Branching-audit --github --base "$BASE"

@@ -1,0 +1,30 @@
+# Installation Contract and Agent Realization: Requirements
+
+Each Requirement names, in brackets, the Intents it serves.
+
+## Nonfunctional
+
+- **core/N4** [core/I3]: The contract format, conformance checking and realization planning are pure and deterministic. They read nothing from the host and write nothing. Hosting performs every read, write and prune that a realization needs, as `core/C4` does it.
+- **core/N5** [core/I3]: An installation contract is JSON, a machine contract (`core/N3`). Conforming to the format is data, not a runtime dependency, so a Capability's own lifecycle gains no dependency on Core by having an instance.
+- **core/N6** [core/I4]: One placement table maps providers to the locations of Core-managed deployments. It exists once, in `kaal-core`, and it is authoritative only for what Core deploys. Core claims no exclusive control of supplier locations: a consuming repository may keep its own supplier-specific files, integrate in other ways, and mention those locations in its code, documents and tests. A stricter policy is that repository's own decision, made through its own checks (for KAAL, through KAAL-owned Engineering or Guard checks), and is not a `kaal-core` invariant.
+- **core/N7** [core/I3]: The runtime prerequisite is Node 24 or later, consistent with Core, Hosting and Graph.
+
+## Functional: the Installation Contract
+
+- **core/F9** [core/I3]: An installation contract names the format it conforms to by reference: `format` is exactly `name` and `id` of Core's `Installation Contract` Definition. It names its Capability (`capability`, a Capability name) and its `version`.
+- **core/F10** [core/I3, core/I5]: It lists its assets. Each asset has a `name`, a `source` inside the package, a `target` in the repository (a repository-relative path, as `core/F1` defines `path`), and a `kind`, `file` or `directory`. A `file` may be marked `executable`. The lifecycle rules are the format's, the same for every asset, and no contract may vary them: install only where absent, keep a modified file and report it, remove only an unmodified file, and prune the directories a removal empties.
+- **core/F11** [core/I3]: It carries a `catalogue`: for each asset target, the SHA-256 of every content that target has had in a published version. This is knowledge about the Capability, not about any repository.
+- **core/F12** [core/I3, core/I5]: It names its ownership `record`, the repository-relative path of the installation record its lifecycle keeps. Nothing else is the Capability's state.
+- **core/F13** [core/I3]: It states its `runtime` prerequisite, as the lowest Node major version it needs.
+- **core/F14** [core/I4]: It states what must be reachable, never where: `provides` lists the names of the Skills an agent must reach. A contract that names a supplier location, such as `.claude/skills/`, is refused.
+- **core/F15** [core/I3]: Conformance is decided by Core's outer conformance Test Cases, applied to an instance. A contract with an unknown or missing member, a value of the wrong kind, a target that is not repository-relative, or a catalogue entry for no asset, is refused, and each finding names its member.
+
+## Functional: Agent Realization
+
+- **core/F16** [core/I4]: A repository declares the agent providers it enables in `.kaal/config/core/agents.json`, as `{ "providers": [<provider>…] }`. The consumer declares which providers to enable; Core owns the declaration's schema and the deployment machinery. With no declaration, Core deploys a Skill only to its canonical location, `.agents/skills/<name>/`.
+- **core/F17** [core/I4, core/I5]: For each Skill and each declared provider, Core's realization plan names the deployment that provider needs, from the one canonical source. Where a supplier discovers or invokes a Skill only from its own location (for example Claude Code's `/<name>`, from `.claude/skills/<name>/`), the deployment is a copy that Core generates from the canonical source. A provider the placement table does not know is reported as `unknown`, and no path is guessed for it.
+- **core/F18** [core/I5]: Core keeps its own record of what it deployed, with the SHA-256 it wrote for each file. It never uses another Capability's record for its own deployments. On upgrade, an unmodified deployed file is rewritten from the source, a modified one is kept and reported, and only files Core deployed that are no longer needed are pruned. A file at a deployment target that Core's record does not hold is the consumer's own: it is kept and reported, and never written over or pruned.
+- **core/F19** [core/I5]: When Core realizes a Capability's contract, it also writes the entries that the contract's own `record` needs for the canonical assets, so the Capability's standalone lifecycle can upgrade and remove them.
+- **core/F20** [core/I5]: Core never writes, edits or removes `AGENTS.md`, `CLAUDE.md` or any other instruction file. Where a provider reaches a Skill only by instruction (`guard/F24`), the plan returns a pointer for the instruction file's owner to adopt. A pointer is proposed only where it gives that provider the same behaviour as a deployment; where it would not, Core deploys a copy instead (`core/F17`). The placement table records which applies to each provider. The pointer names the Skill's canonical path, never points back from a Skill, and is never circular.
+- **core/F21** [core/I4, core/I14] (amended by `core/C22`): Every file of a Skill Core deploys, `SKILL.md` included, is the canonical source's bytes unchanged, at `.agents/skills/<name>/` and in every provider copy (`core/N13`). A provider derivative is transformed only where that provider's placement names the transformation, and none does. Before `core/C22`, Core rendered the supplier `SKILL.md`'s frontmatter from a `## Description` section; that rendering is retired.
+- **core/F22** [core/I3, core/I4]: A realization plan lists what is to be written, kept, pruned and proposed, and which providers are unknown, so whoever applies it can report every outcome.
