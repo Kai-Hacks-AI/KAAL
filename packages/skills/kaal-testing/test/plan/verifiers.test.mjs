@@ -45,6 +45,8 @@ const EXPECTED = {
   "file-changed": { result: "unknown", cases: "any" },
   "file-removed": { result: "unknown", cases: "any" },
   "file-added": { result: "unknown", cases: "any" },
+  "case-omitted": { result: "unknown", cases: "pass", target: "not run" },
+  "case-substituted": { result: "unknown", cases: "pass", target: "not run" },
   "case-skipped": { result: "unknown", cases: "pass", target: "skipped" },
   "case-todo": { result: "unknown", cases: "pass", target: "todo" },
   "not-applicable": { result: "verified", cases: "pass", target: "not applicable" },
@@ -208,5 +210,24 @@ describe("The shared observable result contract for consumer verifiers (testing/
     const other = conforming({ id: "clean" });
     other.cases[0] = { name: "acme/T1", outcome: "not applicable", applicability: structuredClone(SCOPE) };
     assert.equal(verdict("not-applicable", other, EXIT.verified).conforms, false, "another case claimed inapplicable on the targeted case's applicability");
+  });
+
+  it("testing/T60 [testing/F48]: neither evasion verifies: a declared case silently omitted on a platform, or replaced there by a stand-in, stays visible as not run; an inapplicable case is never counted as passed", async () => {
+    const { observe, judge } = await contract();
+    const verdict = (id, summary, exit) => judge(id, observe(run(summary, exit), VERIFIER), factsFor(id));
+    const greenLooking = (id, cases) => ({ ...conforming({ id }), result: VERIFIER.words.verified, cause: undefined, cases });
+    for (const id of ["case-omitted", "case-substituted"]) {
+      assert.equal(verdict(id, conforming({ id }), EXIT.unknown).conforms, true, `${id}: a verifier that shows the declared case as not run conforms`);
+      const omitted = [{ name: "acme/T1", outcome: "pass" }];
+      assert.equal(verdict(id, greenLooking(id, omitted), EXIT.verified).conforms, false, `${id}: the declared case left out, verified`);
+      assert.equal(verdict(id, { ...conforming({ id }), cases: omitted }, EXIT.unknown).conforms, false, `${id}: the declared case left out of the evidence, even under unknown`);
+    }
+    const standIn = [{ name: "acme/T1", outcome: "pass" }, { name: "acme/T2-linux", outcome: "pass" }];
+    assert.equal(verdict("case-substituted", greenLooking("case-substituted", standIn), EXIT.verified).conforms, false, "a stand-in reported in place of the declared case, verified");
+    const alongside = [{ name: "acme/T1", outcome: "pass" }, { name: FACTS.target, outcome: "not run" }, { name: "acme/T2-linux", outcome: "pass" }];
+    assert.equal(verdict("case-substituted", { ...conforming({ id: "case-substituted" }), cases: alongside }, EXIT.unknown).conforms, false, "a stand-in reported beside the declared case it replaces");
+    const counted = conforming({ id: "not-applicable" });
+    counted.cases[1] = { name: FACTS.target, outcome: "pass" };
+    assert.equal(verdict("not-applicable", counted, EXIT.verified).conforms, false, "an established inapplicable case counted as passed");
   });
 });
