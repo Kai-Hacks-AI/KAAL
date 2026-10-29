@@ -59,9 +59,9 @@ None of it is unclear. The one open question is who closes the `F1` gap in §4: 
 | P5 | Guard owns the resolution, and Core is consulted | Guard resolves its Type against `F1`. One way: `command` becomes a `parameter` with a declared pattern, and `outcomes` becomes `held:`, a `number` list, which `F1` already has. If Guard finds `F1` cannot state its Type, it asks Core for a value kind through a Core Change. Neither side loosens a validator to make the gap pass | A change to the declaration format consumers write, so it goes into a Guard release |
 | P6 | Engineering | Create the planned frontmatter conformance step: Engineering discovers each Capability's typed Markdown and runs Core's frontmatter conformance cases against it, as #607 does for Installation Contracts | It would have found §4. It waits on #607's shape, so both use one pattern |
 
-## For the Owner
+## Decided by the Owner (#609, 2026-10-29)
 
-1. Is the ownership claim human-facing (P4)? I read it as borderline, and I would not migrate 15 claims for it alone.
-2. P5: Guard owns `Guard/Check`, so Guard resolves it (recommended). It goes to Core only if `F1` cannot state the Type.
+1. **P4: ownership claims are human–agent governance artifacts.** `ownership.kaal.json` moves to Markdown with validated YAML frontmatter. Testing owns the claim format, so Testing plans and owns the migration, coordinating its consumers and the order in which each Capability's claim moves. Engineering implements none of it across Testing's boundary. Its own consumer, `engineering/contracts/measure.mjs`, follows in an Engineering Change once Testing's format lands.
+2. **P5: Guard owns the `Guard/Check` correction.** Guard defines and validates `command` and `outcomes` within `F1`'s existing value kinds. A Core Change comes only if Guard shows those kinds cannot state its Type.
 
-Everything else here is evidence for the owners to plan. Nothing here authorizes a Change, a synchronization, a promotion or a publication.
+This stays research. Each implementation belongs to its owner's separately authorized Change, and nothing here authorizes a DO, a synchronization, a promotion or a publication.
