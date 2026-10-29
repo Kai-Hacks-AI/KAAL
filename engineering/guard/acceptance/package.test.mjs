@@ -211,7 +211,7 @@ function publisher(dir) {
 }
 
 describe("guard/N6 [guard/I5] the package's own tests", () => {
-  it("guard/T98 [guard/N6]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs; there, npm test is cannot verify, never a pass", (t) => {
+  it("guard/T98 [guard/N6, guard/D17]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs; there, npm test is cannot verify, never a pass", (t) => {
     // `npm test` is the consumer's verification of the installed copy (guard/F32), so the package's own
     // tests are run by their files.
     const r = spawnSync(process.execPath, ["--test", "test/unit/*.test.mjs", "test/acceptance/*.test.mjs"], { cwd: PACKAGE, env: clean(), encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
@@ -562,5 +562,42 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.equal(error, undefined, `snapshot() threw: ${error?.message}`);
     assert.ok("stays.txt" in shot, "snapshot() does not record the file that stays");
     assert.ok(!("maintenance.lock" in shot), "snapshot() records the removed file as present");
+  });
+});
+
+describe("guard/I8 what a consumer reads in the verification", { timeout: 30 * 60 * 1000 }, () => {
+  it("guard/T120 [guard/F34]: identifiers that share an allocation are named together on one line, never the same allocation twice, and the summary still lists each allocated identifier with its allocation", (t) => {
+    const c = consumer();
+    const shared = "the publisher's Engineering Test Plan, shared";
+    const own = "the publisher's Engineering Test Plan, its own";
+    reduce(c, PASSING, [`${MINI} > guard/T0 passes`], { identifiers: ["guard/F901", "guard/F902", "guard/F903"], allocated: { "guard/F901": shared, "guard/F902": shared, "guard/F903": own } });
+    const r = c.verify();
+    const s = observed(t, "three allocated identifiers, two sharing one allocation", r);
+    assert.equal(s.result, "verified", `the result is ${s.result}: ${JSON.stringify(s.causes)}`);
+    const prefix = "not verified by this run, allocated to the publisher: ";
+    const lines = r.stdout.split(/\r?\n/).filter((l) => l.startsWith(prefix));
+    t.diagnostic(`observed allocation lines: ${JSON.stringify(lines)}`);
+    assert.deepEqual(lines.sort(), [`${prefix}guard/F901, guard/F902: ${shared}`, `${prefix}guard/F903: ${own}`].sort(), "the allocation lines do not name each allocation once, with every identifier that shares it");
+    assert.deepEqual(s.coverage.allocated, [{ id: "guard/F901", where: shared }, { id: "guard/F902", where: shared }, { id: "guard/F903", where: own }], "the summary's allocated list changed its meaning");
+  });
+
+  it("guard/T121 [guard/F33]: the package declares its bugs URL, and a next step that asks for a report names it, for a failed case and for a skipped one", (t) => {
+    const failing = consumer();
+    const bugs = JSON.parse(readFileSync(join(failing.installed, "package.json"), "utf8")).bugs?.url;
+    assert.equal(bugs, "https://github.com/Kai-Hacks-AI/KAAL/issues", "the package declares no bugs URL, or another one");
+    reduce(failing, `import { it } from "node:test";\nit("guard/T0 made to fail", () => { throw new Error("made to fail"); });\n`, [`${MINI} > guard/T0 made to fail`]);
+    const f = failing.verify();
+    observed(t, "a delivered case made to fail", f);
+    const skipped = consumer();
+    reduce(skipped, `import { it } from "node:test";\nit("guard/T0 passes", () => {});\nit.skip("guard/T0 skipped", () => {});\n`, [`${MINI} > guard/T0 passes`, `${MINI} > guard/T0 skipped`]);
+    const k = skipped.verify();
+    observed(t, "a skipped case", k);
+    for (const [r, cause] of [[f, /^failed: a delivered case failed: [^\n]*; do: (.*)$/m], [k, /^cannot verify: a delivered case was skipped: [^\n]*; do: (.*)$/m]]) {
+      const next = r.output.match(cause)?.[1];
+      assert.ok(next, `the output has no next step for ${cause}:\n${r.output.slice(-4000)}`);
+      assert.ok(next.includes(bugs), `the next step names no destination: ${next}`);
+      assert.ok(!next.includes("a fallback"), `the next step names the fallback, not the declared URL: ${next}`);
+      assert.ok(!r.output.includes("the package's maintainers"), "the output still asks for a report to the package's maintainers");
+    }
   });
 });
