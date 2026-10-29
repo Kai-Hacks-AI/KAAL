@@ -28,6 +28,8 @@ A capability's evidence comes from three loops, and none stands in for another:
 
 Intent, Requirements and Architecture each own the tests PLAN establishes for them. Those tests are immutable to DO and CHECK; implementation tests may evolve without weakening them. A planned test stands clean RED before coding, failing for the intended missing behaviour alone, and GREEN is bounded evidence, not proof of the outcome. A defect in a planned test belongs to ACT.
 
+Each concern owner declares its planned boundary, the planned tests and everything that gives them meaning, and `interpret` from `kaal-testing/boundary` reads a realization's verdict on it: separate PLAN Change or trusted Seal, read the same way (testing/F18–F23). A changed declared path is a verified failure; an untrusted anchor or working-tree bytes are unknown; an untouched boundary is unchanged within the declaration, never met. Byte integrity, reproducibility and behavioural validity stay separate claims. Testing interprets the verdict and never produces it.
+
 An invariant is tested exhaustively where it is owned, and its integration selectively where it is consumed.
 
 Findings are verified failures, potential defects, architectural concerns or unknowns, and the kinds are never merged. A clean result shows only what its checks cover.
