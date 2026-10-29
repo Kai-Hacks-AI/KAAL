@@ -471,6 +471,12 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Test Cases.** None. This is wording. guard/T107 keeps the documents' identifiers consistent and stays GREEN, and the DO PR shows each sentence before and after.
 - **Authorization.** Approving this PLAN authorizes `guard/C120`'s DO only: no version bump, promotion or publication.
 
+**Two limits, stated (`guard/C116`, PLAN).** This covers M2 and M3 from the `0.0.3` review, as documentation only. Enforcing either would be a design Change of its own, and none is proposed.
+- **M2.** Hook activation is per clone, because `core.hooksPath` is local Git configuration. The README states this beside `init --hook`: a fresh clone runs no hook until someone runs `npx kaal-guard init --hook` in it, and the committed hook file alone activates nothing.
+- **M3.** The installation record is a tracked file anyone can edit. Guard decides ownership by the record and SHA-256 alone. The README replaces "Only Guard writes the record and the state" with what holds: Guard writes them, Guard does not protect them, and a hand-edited record can make Guard treat a file as its own or as yours. Review changes to `.kaal/state/guard/installation.json` like any other change.
+- **Test Case.** guard/T123 is a product case in `test/acceptance/architecture.test.mjs`, beside guard/T107. It reads the delivered README, so it is RED first against `0.0.4`.
+- **Authorization.** Approving this PLAN authorizes `guard/C116`'s DO only: no version bump, promotion or publication.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -580,8 +586,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | DO |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7) | `guard/C111` | not created |
-| `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3) | `guard/C111` | not created |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
+| `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3); guard/T123 | `guard/C111` | PLAN |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | PLAN |
