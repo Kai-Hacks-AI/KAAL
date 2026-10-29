@@ -1,0 +1,25 @@
+# Platform Coupling Conformance: Architecture
+
+Each element names, in brackets, the Requirements it answers.
+
+- **hosting/A12** [hosting/F27, hosting/F28, hosting/F29, hosting/F30, hosting/F32]: `couplings` and its types (`CouplingReport`, `Finding`) join `inspect` in `kaal-hosting/conformance`, the separate entry point that production code never loads. It reads sources with a scanner that knows JavaScript and TypeScript comments, strings and template literals, so a mention in a comment is never a finding. It decides `kind` from the enclosing test registration call, `if`, conditional expression or assertion call. It takes no new runtime dependency.
+- **hosting/A13** [hosting/F31] (Option A below): `boundarySuite` is publisher-only. It lives in `packages/extensions/kaal-hosting/conformance/boundary.mjs`, outside the package's `files`, so it never ships and no package depends on it at run time (the Owner's #607 ruling). Engineering imports it from the repository and runs it for each capability it discovers (engineering/C9, #648, F10). Engineering's lane, not Hosting's, decides which capabilities and directories are inspected and how results are reported.
+
+## Options considered for hosting/A13
+
+| Option | What happens | Cost |
+| --- | --- | --- |
+| **A. The inspection ships, the suite does not** (proposed) | `couplings` ships in `kaal-hosting/conformance` beside `inspect`. `boundarySuite` is a publisher-only module that Engineering imports. | Engineering imports a Hosting file by repository path. |
+| B. Both ship | `boundarySuite` is exported from `kaal-hosting/conformance` as well. | A published entry would load `node:test`: a test harness inside a runtime package. |
+| C. Engineering writes the suite around `couplings` | Hosting ships only the inspection. | The suite's cases would be Engineering's, so Hosting would no longer own the test suite the Owner asked for. |
+
+## Change graph
+
+| Change | Owner | Depends on |
+| --- | --- | --- |
+| `hosting/C13` PLAN: I8, F27–F32, N5, A12, A13; hosting/T32–T40 | Hosting | the Owner's requirement on #629 and #641 |
+| `hosting/C14` DO: `couplings`, `boundarySuite`, the fixtures, and hosting/T32–T40 in Hosting's lanes | Hosting | `hosting/C13` |
+| engineering/C9 DO: discover capabilities, run `boundarySuite`, report per capability (#648) | Engineering | `hosting/C14` |
+| each capability's corrections of its own findings | each owner | engineering/C9 |
+
+It is independent of `hosting/C10`–`hosting/C12` (#629) and changes none of their files. Once `hosting/C11` renames the package, `hosting/C14` imports it by its new name.

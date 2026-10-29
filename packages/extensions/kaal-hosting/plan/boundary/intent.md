@@ -1,0 +1,9 @@
+# Platform Coupling Conformance: Intent
+
+This is `hosting/C13`, a PLAN Change. It states why Hosting provides a reusable conformance suite that finds platform coupling in other capabilities, what that suite must find and report, where the responsibility lies, and the outer tests that decide it. It ships no code. `hosting/C14` delivers the suite and turns the planned tests GREEN. It authorizes no DO, sync, promotion or publication: those stay with the Owner.
+
+On #629 (comment 6510104907) and #641 (comment 6510106826), 2026-10-29, the Owner made it a requirement that Hosting own a reusable boundary conformance Test Suite for every other KAAL capability. It covers both their production code and their test code: publisher-only tests, scripts, fixtures and helpers included. Kai's KAAL-wide heuristic on #570 explains why. When a capability's Test Cases differ between Windows, macOS and Linux, the capability has probably reached past Hosting. guard/T114 was the example: a socket and a FIFO built with `mkfifo` and `net`, and the case left out on Windows.
+
+Hosting's existing `inspect` (in `kaal-hosting/conformance`) finds only host modules imported directly. It does not see a branch on `process.platform` or a skip on Windows, and it reads no TypeScript.
+
+- **hosting/I8.** Every capability other than Hosting can find out, with traceable evidence, where its production or test code couples to a particular platform instead of going through Hosting. That covers a branch on the operating system, a test registered, skipped or weakened by platform, and a direct host-specific API that Hosting should mediate. A finding is evidence for review, not a verdict: legitimate platform fixture setup is reported apart from assertion dilution, and each capability corrects its own code.
