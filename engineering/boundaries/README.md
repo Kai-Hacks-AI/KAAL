@@ -44,7 +44,14 @@ Core (`packages/kaal-core/test/boundary.test.ts`), Testing (`packages/skills/kaa
 | How a provider declares its Suite so Engineering can find it | Each provider, first Hosting | Semantic reference | Named in Hosting's Change. Engineering follows it |
 | Per-platform execution | Engineering's lanes, in CI | Delivery: running cells on three platforms is a `.github/` Change of its own | Not in this Change |
 
-**One question for Testing.** One Suite runs over many targets. The DO records each cell as a Suite Run whose effective Test Data names its target (testing/F31), encompassed by one Plan Run. If testing/F30 does not admit two Runs of one Suite in one Plan Run, the DO runs one Plan Run per target instead. Engineering asks Testing and does not decide it.
+**Runs of one Suite over many targets, as Testing answered.** One Suite runs over many targets, and Testing's model admits it as it is (testing/F30, F31; `lib/model.mjs` on `kaal/testing`):
+
+- The Plan Run encompasses one Suite Run per applying cell, several of the same Suite among them. Each has its own identity, unique within the Plan Run.
+- The target is not a Run key. The Plan declares one Test Data item per target and execution context, for example `target/kaal-core/linux`, and each Suite Run records its own in `data`. Provenance and current evidence then compare it like any other Test Data.
+- The Plan Run's result aggregates every target, so it passes only when every applying cell passes.
+- The per-Capability report reads each Suite Run on its own, with `results(model, suiteRun)`.
+
+No Testing Change is needed.
 
 ## Test Cases
 
