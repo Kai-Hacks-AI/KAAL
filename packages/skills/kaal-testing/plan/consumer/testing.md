@@ -6,10 +6,14 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/consumer
 | --- | --- | --- |
 | testing/T16: the Node's consumer verification section states delivery, the fail-closed entry point and the three results verbatim | testing/F11, testing/F12, testing/F13 | Requirements |
 | testing/T17: it states the named subject, isolation and a repeatable procedure, the two scopes, and whose observation a consumer's result is, verbatim | testing/F14, testing/F15, testing/F16, testing/F17 | Requirements |
-| testing/T18: the section names no product, package manager, version control system or hosting service, and kaal-testing's exports and runtime dependencies are unchanged | testing/N5, testing/I6 | Architecture |
+| testing/T18: the section names no product, package manager, version control system or hosting service, and kaal-testing gains no export or dependency for consumer verification | testing/N5, testing/I6 | Architecture |
 | testing/T19: the Agent Skill and the README carry the section, and the Skill points to the Node | testing/A8 | Architecture |
 
 What stays validation: whether the statements say what the Owner meant, and whether a product's realization meets them. The second is shown by that product's own acceptance scenarios, Guard's first.
+
+## Amendment
+
+`testing/C17` narrows testing/T18. As planned, it pinned kaal-testing's whole export list, so any later Change that adds an export for its own contract, such as `testing/C12`'s `./boundary` or `testing/C15`'s `./model`, would turn it RED although consumer verification gained no mechanism. testing/T18 now asserts what testing/N5 means: no export serves consumer verification, and the runtime dependencies are unchanged.
 
 ## RED evidence
 
