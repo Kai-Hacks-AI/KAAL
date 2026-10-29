@@ -486,18 +486,19 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   - Delivered in the package: guard/T81 gains guard/D5, and guard/T94–guard/T96 gain guard/D16.
   - Publisher Engineering: guard/T43 (consumer suite) gains guard/D3, and guard/T98 (package suite) gains guard/D17. Both stay in Engineering.
   - Retired with `0.0.1`: guard/T38 and guard/T39 have no title left to edit. Their RED is recorded in Engineering's evidence (K2b), and that record is their trace.
-- **The product's view.** `docs/limitations.md` restates each Defect as the behaviour Guard must not show. Its table becomes Defect, Prohibited behaviour, Tested by, Observed RED and Observed GREEN.
-  - "Tested by" is the incoming view, derived from the traces above and never authored as an edge.
-  - The two Observed columns are observations tied to a version, such as "RED in `0.0.1` (guard/T38, packed, Linux)" and "GREEN from `0.0.2`". They are not a status.
-  - A publisher case is named with where it ran. That is the product-facing provenance, and the Engineering suite is not shipped.
+- **The product's view.** `docs/limitations.md` restates each Defect as the behaviour Guard must not show. Its table becomes Defect, Prohibited behaviour, Tested by, and Observed in Test Runs.
+  - "Tested by" is the incoming view, derived from the traces above and never authored as an edge. It names each case under its realization, so the three kinds of evidence stay distinct: **delivered** (a case in the package, which a consumer runs), **publisher** (a Guard-owned case that publisher Engineering runs, named with where it ran; not consumer-delivered coverage, and a consumer run does not claim it passed), and **retired** (a case retired with `0.0.1`, kept as historical evidence and no longer runnable).
+  - "Observed in Test Runs" records RED and GREEN as observations of a Test Run, each with the version and environment it ran in, such as "RED in `0.0.1` (guard/T38, packed, Linux)" and "GREEN from `0.0.2`". They are not a Defect status, and no later observation changes or removes an earlier one.
+- **Testing's semantics, not Guard's.** What a Test Run is, what its observations and provenance carry, and what Test Data and a retired case are belong to Testing: Testing's Case model (`testing/C14`, #601) and its planned Runs and Test Data (`testing/C18`). Guard defines none of them. Until `testing/C18` lands, the column is written as plain observations with that provenance, and the DO adds no Run or Test Data structure of its own.
 - **Product versus publisher.** Defects become product identifiers, defined by their rows, and guard/T107 and the manifest generator recognise them.
   - A Defect cited by a delivered case is covered.
   - A Defect tested only by a publisher case is allocated to the publisher's Engineering Test Plan, naming the case.
   - guard/D1 and guard/D2 are declared verified by no Test Case in the package: retired, naming the recorded RED.
+- **Checked against Testing before DO.** The Owner asked on #583 for any inconsistency with Testing to be reported before DO. Read against #601 and the `testing/C18` row it plans, none was found: Testing's Case **tests →** trace is outgoing with opaque subjects (testing/N7), so a Defect is a permitted subject; "who tests a subject" is derived and never declared (testing/I10); a Run's observations change no definition (testing/I11, testing/F29); and a retired Case stays provenance and is no longer executable (`testing/C18`). One dependency, not an inconsistency: TEST A FINDING's closed list of target kinds becomes guidance in `testing/C15`; Defects are on the list either way.
 - **Test Case.** guard/T127 is a product acceptance case beside guard/T107. It checks four things:
-  1. Every Defect row states a prohibited behaviour, and the table has no status column.
+  1. Every Defect row states a prohibited behaviour, and the table has no status column; every RED or GREEN it records names its version.
   2. Every Defect is the target of at least one Test Case: a delivered case that cites it, or a publisher allocation or retirement entry in `docs/testing.md` that names the case.
-  3. "Tested by" equals the incoming view derived from those traces, so it cannot be authored on its own.
+  3. "Tested by" equals the incoming view derived from those traces, each case under its realization (delivered, publisher or retired), so it cannot be authored on its own.
   4. A negative fixture, a copy of the table whose "Tested by" names a case that does not cite that Defect, must make the check fail.
 
   It is RED first against `0.0.4`, where no title cites a Defect and the table has the old columns, and GREEN after the DO. The publisher titles of guard/T43 and guard/T98 fall under guard/T111's existing one-authority audit, which requires each Defect they cite to be defined in the package.
