@@ -68,7 +68,7 @@ const table = (body) =>
 /** "guard/F31–guard/F36" names six identifiers. */
 const expand = (list) =>
   list.split(/,\s*/).flatMap((item) => {
-    const m = /^guard\/([IFNA])(\d+)(?:–guard\/\1(\d+))?$/.exec(item);
+    const m = /^guard\/([IFNAD])(\d+)(?:–guard\/\1(\d+))?$/.exec(item);
     if (!m) throw new Error(`not an identifier or a range of them: ${item}`);
     const [a, b] = [Number(m[2]), Number(m[3] ?? m[2])];
     return Array.from({ length: b - a + 1 }, (_, i) => `guard/${m[1]}${a + i}`);
@@ -79,7 +79,9 @@ const DOCS = join(PACKAGE, "docs");
 const identifiers = readdirSync(DOCS)
   .filter((f) => f.endsWith(".md"))
   .flatMap((f) => [...readFileSync(join(DOCS, f), "utf8").matchAll(/^(?:- )?\*\*(guard\/[IFNA]\d+)\b/gm)].map((m) => m[1]));
-const order = (id) => ["I", "F", "N", "A"].indexOf(id[6]) * 1000 + Number(id.slice(7));
+// A Defect is defined by its row in Limitations: "| guard/D1 | ...".
+identifiers.push(...[...readFileSync(join(DOCS, "limitations.md"), "utf8").matchAll(/^\| (guard\/D\d+) \|/gm)].map((m) => m[1]));
+const order = (id) => ["I", "F", "N", "A", "D"].indexOf(id[6]) * 1000 + Number(id.slice(7));
 identifiers.sort((a, b) => order(a) - order(b));
 
 /** An identifier → text map from a declared table, each identifier declared once across the tables. */
@@ -112,7 +114,7 @@ for (const name of Object.keys(applicability.cases)) if (!cases.includes(name)) 
 // Coverage: the cases whose names cite an identifier, by loop.
 const coverage = {};
 for (const name of cases) {
-  for (const id of new Set(name.match(/guard\/[IFNA]\d+/g) ?? [])) {
+  for (const id of new Set(name.match(/guard\/[IFNAD]\d+/g) ?? [])) {
     const loop = loopOf(name.split(" > ")[0]);
     ((coverage[id] ??= {})[loop] ??= []).push(name);
   }

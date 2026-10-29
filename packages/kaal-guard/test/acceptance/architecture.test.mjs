@@ -215,12 +215,12 @@ describe("Architecture conformance", () => {
     const docs = parts.map((part) => source(`docs/${part}`)).join("\n");
     // A definition opens its line in bold: "**guard/F1 Check list.**" or "- **guard/A1 Check list**".
     const defined = new Set([...docs.matchAll(/^(?:- )?\*\*(guard\/[IFNA]\d+)\b/gm)].map((m) => m[1]));
-    // The trace defines each delivered case as a row of its own: "| guard/T61 | ...".
-    for (const m of docs.matchAll(/^\| (guard\/T\d+) \|/gm)) defined.add(m[1]);
+    // The trace defines each delivered case as a row of its own: "| guard/T61 | ...", and Limitations each Defect: "| guard/D1 | ...".
+    for (const m of docs.matchAll(/^\| (guard\/[TD]\d+) \|/gm)) defined.add(m[1]);
     const cited = new Set();
     for (const file of readdirSync(HERE).filter((f) => f.endsWith(".test.mjs"))) {
       for (const m of readFileSync(join(HERE, file), "utf8").matchAll(/\b(?:describe|it|test)\(\s*"([^"]*)"/g)) {
-        for (const id of m[1].match(/guard\/[IFNAT]\d+/g) ?? []) cited.add(id);
+        for (const id of m[1].match(/guard\/[IFNATD]\d+/g) ?? []) cited.add(id);
       }
     }
     assert.ok(cited.size > 0, "no delivered case cites an identifier");
