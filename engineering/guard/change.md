@@ -464,6 +464,13 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Test Case.** guard/T126, a product acceptance case beside guard/T107 in `test/acceptance/architecture.test.mjs`: every guard/F and guard/N defined in `docs/requirements.md` is cited by at least one Architecture element, and every module in `lib/` is named by exactly one element. It rejects a module that no element names and a module that two or more elements name, and says which module and which elements. A negative fixture, a copy of `docs/architecture.md` in which a second element also names `runner.mjs`, must make the check fail on the duplicate, so the exclusive half of the invariant is shown to bite. It is RED first against `0.0.4` (seven modules and eleven Requirements unplaced), and GREEN after the DO.
 - **Authorization.** Approving this PLAN authorizes `guard/C122`'s DO only: no version bump, promotion or publication.
 
+**Intent and Requirements claim no more than they hold (`guard/C120`, PLAN).** I-3, X-1, R-2 and D-3 from `guard/C119`. Each is a sentence that promises more than its own document or the shipped package holds. The DO changes these sentences only.
+- **In guard/I9 (I-3, X-1).** Before: "It carries its Intent, Requirements, Architecture, Operations, Testing and known Limitations, and the Test Cases for everything it ships and promises, in each loop it owns, outer and inner." After: "It carries its Intent, Requirements, Architecture, Testing and known Limitations, and the Test Cases for what it verifies, in each loop it owns, outer and inner. Its Testing document names what no Test Case in the package verifies and which identifiers its publisher verifies." Operations is dropped because Intent's opening names five parts and `docs/` has no Operations document.
+- **In guard/F9 (R-2).** Before: "Equal facts, the same tree, the same command and the same tool versions give the same verdict." After: "Guard gives a check equal inputs for equal facts, the same tree, the same command and the same tool versions, and reads its exit status the same way. A check that reads anything else, such as the clock or the network, may give a different verdict, and that is the check's, not Guard's." The stale-base sentence after it stays.
+- **In guard/F7 (D-3).** Before: "…and runs them in place of the candidate's, so a candidate cannot certify itself." After: "…and runs them in place of the candidate's, so a candidate cannot replace the checker that judges it." The bullet "The boundary that remains" stays as it is; it is what the headline now no longer contradicts.
+- **Test Cases.** None. This is wording. guard/T107 keeps the documents' identifiers consistent and stays GREEN, and the DO PR shows each sentence before and after.
+- **Authorization.** Approving this PLAN authorizes `guard/C120`'s DO only: no version bump, promotion or publication.
+
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
 **How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
@@ -577,7 +584,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
-| `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | not created |
+| `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | PLAN |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | PLAN |
 | `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
