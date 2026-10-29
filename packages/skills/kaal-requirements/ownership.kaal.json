@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "capability", "name": "Requirements", "id": "497cbaa6692f37f204e4875f48d742fb7e8c268b9a87f3b1162332647881e5e2" },
+  "owner": { "kind": "capability", "name": "Requirements", "id": "51ebab5853d0ad00fc860c6a85925cab14560713134f2733b02f52df6058ed9a" },
   "paths": ["packages/skills/kaal-requirements/"]
 }
