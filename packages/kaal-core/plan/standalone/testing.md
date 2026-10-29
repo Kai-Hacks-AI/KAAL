@@ -15,4 +15,4 @@ On `kaal/core`, all three tests are RED on the behaviour itself:
 - T82, because `src/bootstrap.ts`, `cli.ts`, `engine.ts`, `frontmatter.ts`, `installation.ts`, `node.ts` and `register.ts` import it;
 - T83, because Graph is among kaal-core's runtime dependencies, so a clean installation without it is impossible.
 
-**Discriminating.** Each test names the exact dependency, file or installation that breaks it, and a DO that leaves any one Graph import or dependency entry in place stays RED. A throwaway reference is not possible before the Form package exists (row 2), so satisfiability is shown by the scope: Core's use of Graph, listed in the Intent, is Form plus a lookup by name and id.
+**Discriminating.** Each test names the exact dependency, file or installation that breaks it, and a DO that leaves any one Graph import or dependency entry in place stays RED. A throwaway reference is not possible before the base package exists (row 2), so satisfiability is shown by the scope: Core's use of Graph, listed in the Intent, is Form, identity and the structural functions, plus a lookup by name and id.
