@@ -1,6 +1,8 @@
 {
   "cases": [
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T29 [guard/A7]: nothing depends on an adapter",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
@@ -49,18 +51,19 @@
     "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T10 [guard/F4, guard/A4]: lets a push through when every hook check passes or is not applicable",
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T9 [guard/F4, guard/A4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify",
+    "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T12 [guard/F5, guard/A5]: reports not applicable as not applicable, never as a pass",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T13 [guard/F5, guard/A5]: reports held as a warning, never as a pass, with the check's own explanation visible",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] Guard's workflow > guard/T87 [guard/F5, guard/N1]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line",
     "test/acceptance/requirements.test.mjs > guard/F6 [guard/I3] narrow adapters > guard/T14 [guard/F6, guard/A4]: the hook follows the declarations without being changed, and names no check",
-    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
-    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
+    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
+    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T15 [guard/F7]: runs the trusted checker as it stands on the base, never the candidate's version",
-    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
+    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
     "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] remove and the configuration directory > guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/",
     "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it",
     "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T17 [guard/F8, guard/A6]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add",
@@ -194,6 +197,7 @@
     "guard/F38",
     "guard/F39",
     "guard/F40",
+    "guard/F41",
     "guard/N1",
     "guard/N2",
     "guard/N3",
@@ -217,22 +221,39 @@
     "guard/A15",
     "guard/A17",
     "guard/A18",
-    "guard/A19"
+    "guard/A19",
+    "guard/A21",
+    "guard/D1",
+    "guard/D2",
+    "guard/D3",
+    "guard/D5",
+    "guard/D16",
+    "guard/D17"
   ],
   "coverage": {
     "guard/I9": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused"
       ]
     },
     "guard/F37": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused"
       ]
     },
     "guard/A19": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused"
+      ]
+    },
+    "guard/A21": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs"
       ]
     },
     "guard/A3": {
@@ -318,13 +339,13 @@
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T12 [guard/F5, guard/A5]: reports not applicable as not applicable, never as a pass",
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T13 [guard/F5, guard/A5]: reports held as a warning, never as a pass, with the check's own explanation visible",
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] Guard's workflow > guard/T87 [guard/F5, guard/N1]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T15 [guard/F7]: runs the trusted checker as it stands on the base, never the candidate's version",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
         "test/acceptance/requirements.test.mjs > guard/F9 [guard/I2] execution contract > guard/T19 [guard/F9]: gives a check only its facts, from the repository root, with no stdin, wherever it is started",
         "test/acceptance/requirements.test.mjs > guard/F9 [guard/I2] execution contract > guard/T20 [guard/F9]: the hook prints the base commit it used"
       ]
@@ -367,13 +388,13 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T15 [guard/F7]: runs the trusted checker as it stands on the base, never the candidate's version",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict",
         "test/acceptance/requirements.test.mjs > guard/N15 [guard/I1, guard/I5] no credential left behind > guard/T119 [guard/N15, guard/F29]: every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on"
       ]
     },
@@ -404,6 +425,7 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
+        "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] remove and the configuration directory > guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T17 [guard/F8, guard/A6]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add",
@@ -459,9 +481,9 @@
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
         "test/acceptance/requirements.test.mjs > guard/N2 to guard/N4 > guard/T25 [guard/N2]: the same run twice prints the same verdicts",
         "test/acceptance/requirements.test.mjs > guard/N2 to guard/N4 > guard/T26 [guard/N3]: no state beyond the repository, core.hooksPath and Guard's checkout state in Git's metadata",
@@ -635,6 +657,11 @@
         "test/acceptance/requirements.test.mjs > guard/F6 [guard/I3] narrow adapters > guard/T14 [guard/F6, guard/A4]: the hook follows the declarations without being changed, and names no check"
       ]
     },
+    "guard/F41": {
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged"
+      ]
+    },
     "guard/F5": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge",
@@ -664,16 +691,28 @@
     },
     "guard/F7": {
       "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T15 [guard/F7]: runs the trusted checker as it stands on the base, never the candidate's version",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict"
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict"
       ],
       "Code": [
         "test/unit/runner.test.mjs > trusted checker > guard/T100 [guard/F7, guard/N4]: a candidate that changes a trusted check's runs so it leaves the surface being run is cannot judge there, and its checker never runs"
+      ]
+    },
+    "guard/D16": {
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass"
+      ]
+    },
+    "guard/D5": {
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] trusted checker > guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict"
       ]
     },
     "guard/A6": {
@@ -713,25 +752,29 @@
     }
   },
   "allocated": {
-    "guard/I8": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F31": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F32": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F33": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F34": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F35": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F36": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F38": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F39": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/F40": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/N13": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
-    "guard/A18": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier",
+    "guard/I8": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F31": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F32": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F33": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F34": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F35": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F36": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F38": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F39": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/F40": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/N13": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
+    "guard/A18": "the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed",
     "guard/F11": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
     "guard/F14": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
     "guard/F15": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
-    "guard/F16": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions"
+    "guard/F16": "the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions",
+    "guard/D3": "the publisher's Engineering Test Plan: guard/T43, run against a packed candidate installed in a clone of the publisher's repository, because the duplication it guards against is with that repository's own jobs",
+    "guard/D17": "the publisher's Engineering Test Plan: guard/T98, run against the package's source tree, because it judges which suites the package's own `npm test` runs"
   },
   "unverified": {
-    "guard/F20": "it is guidance for people and agents, in the Skill and the README, which Guard never parses; the publisher reviews it with each release, and no Test Case checks it"
+    "guard/F20": "it is guidance for people and agents, in the Skill and the README, which Guard never parses; the publisher reviews it with each release, and no Test Case checks it",
+    "guard/D1": "its case, guard/T38, was retired with `0.0.1` and no longer runs; its RED is recorded in the publisher's evidence",
+    "guard/D2": "its case, guard/T39, was retired with `0.0.1` and no longer runs; its RED is recorded in the publisher's evidence"
   },
   "applicability": {
     "cases": {
@@ -746,14 +789,14 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "8d21f2984d621a4b3267ab3b9857512600dd9c494fbb371dfe3e96144af00994",
-    "bin/kaal-guard.mjs": "7b4b16be89374a72d25fe890382a8b68c7a8e929e56c715efc38cb9a7d75e97a",
+    "README.md": "faa1ff81175db7145eb4bbd65720715916f7f110c799f276373596c6b0f75258",
+    "bin/kaal-guard.mjs": "2fd01706b67dee8f0bdfd207a377534392942ba1666c8082a016fe5999569611",
     "contract.json": "6f334cc83897094a4a234c841a87abc8d87a7816c5ded8aeb5a55d0af2ac823e",
-    "docs/architecture.md": "c7ae619360167638f874c0bf829e5e021daa6d8baca7f132c2f7d3d4a3d960bf",
-    "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
-    "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
-    "docs/requirements.md": "af2d7bdac67acfead125ebc8ee3efc5a168d2f4ba55455bff7df3d7b4c1b0c7a",
-    "docs/testing.md": "4f0916c6581ada78ac3b1b648cc5cd44b91643614b59e95ad3b7b27138b5739b",
+    "docs/architecture.md": "97ca0d092ab57f9aa4e5586c1bfd48f18f5f6750b1133d1f6478268a7af9d381",
+    "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
+    "docs/limitations.md": "77bda8d9877a077b89802b6c37dd6e921fd2f1b536817e8731455c1fc3094c56",
+    "docs/requirements.md": "e82b4e7dd1eb2b99d0f3bed006e8b8de3b8bf5b7a15bb8066635c162521645cd",
+    "docs/testing.md": "5d418cf70ddbe6ccf18b1fa98c004a1bbc3da5c64a91b0fd3901aba8df7b933c",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -764,20 +807,20 @@
     "lib/runner.mjs": "46057c71dec99b55c2ccaa3b3f0d1dcbebff6290fdf541f77b29f46dafe60727",
     "lib/state.mjs": "0c785c2bc4ad892cfdf47a865088f0373cb93ce11fcf299f7d2196d708545836",
     "lib/trusted.mjs": "d216f081085ce1a3b202ddb8bec09ecd3993d1acfc5bbe5f62e6947c9d9ccdb7",
-    "package.json": "6b4bc2770c6085b47db171a94709225aa5a8587050c7567e15603748a3fcecce",
+    "package.json": "9aac42dc5ddebd911f3c2670b63db37f06d11f2136b6db7abb21964958abae7c",
     "skills/kaal-guard/.gitattributes": "1c6803649686447b5a771e3eb8639d30fee8725a269fa78fdd6fca1ff5e190a6",
     "skills/kaal-guard/SKILL.md": "bc856bb457dede8b4a7c5302d2c6977e056e79064d41b9284e7c4afa04a69ed0",
     "templates/guard.yml": "84e940b8057e4ba63e5c5b7393ee5fca0e72ccf414e620a2d6674b04ce389f0f",
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "c53e8ff6a177e788f67a6f3dbae99577c6009f6454874516a8564157791d0277",
+    "test/acceptance/architecture.test.mjs": "ea743d0411b3e9e3dc59f1b8c00b7c62ccd5dfabc53a22ad8c9e93c2430f5fa6",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "9a7c45eeb78f6277f8be9417d3a46acccd717bb278a3ccc2d54138c4dc67afd0",
+    "test/acceptance/requirements.test.mjs": "6855229bab3df63631feaaee03e47baad3bd6933f302d8411b3d190bf1c38e0a",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
     "test/unit/lifecycle.test.mjs": "e906425230fabe15a210857651673e9b7e462147bb9c8899224cadbf6962b5fb",
     "test/unit/runner.test.mjs": "4ce170100ed2064a83fd6e3af57263aafa7388542ecabab8ef330609d1f8a235",
-    "test/verify.mjs": "bce06bebab5ac705d7352d760e1517b5ce4ffbfea6e5493f869d2dfbd565c75d"
+    "test/verify.mjs": "be21b2637287143624ccc6707fe33a3e8cb15b0d9b185c6eb702c110f5025549"
   }
 }
