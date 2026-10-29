@@ -86,7 +86,7 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
       assert.doesNotMatch(text, forbidden, `the docs cite ${forbidden} as authority`);
     }
     const cases = JSON.parse(readFileSync(join(PACKAGE, "test/verify.json"), "utf8")).cases;
-    const cited = new Set(cases.flatMap((c) => c.match(/\bchange\/[INFAT][0-9]+\b/g) ?? []));
+    const cited = new Set(cases.flatMap((c) => String(c.name).match(/\bchange\/[INFAT][0-9]+\b/g) ?? []));
     assert.ok(cited.size > 0, "the shipped cases cite contracts");
     for (const id of cited) assert.match(text, new RegExp(`\\*\\*${id.replace("/", "\\/")}\\b`), `${id} is defined in docs/`);
   });
@@ -101,12 +101,16 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     assert.match(readme, /optional/i, "and says Graph is optional");
   });
 
-  it("change/T27 [change/F22, change/F24, change/N7, change/A14, change/A15]: the manifest declares every consumer case and the hash of every other shipped file, its cases import only public entry points, and no publisher-only test is shipped", () => {
+  it("change/T27 [change/F22, change/F23, change/F24, change/N7, change/A14, change/A15]: the manifest declares every consumer case with when it applies, and the hash of every other shipped file; there are absence and Graph cases; its cases import only public entry points, the verifier only built-ins, and no publisher-only test is shipped", () => {
     const files = packed();
     assert.ok(existsSync(join(PACKAGE, "test/verify.json")), "the package ships test/verify.json");
     const m = JSON.parse(readFileSync(join(PACKAGE, "test/verify.json"), "utf8"));
     assert.ok(Array.isArray(m.cases) && m.cases.length > 0, "the manifest declares cases");
-    for (const c of m.cases) assert.match(c, /^test\/consumer\/[^>]+\.test\.mjs > /, `${c} is a consumer case`);
+    for (const c of m.cases) {
+      assert.match(String(c.name), /^test\/consumer\/[^>]+\.test\.mjs > /, `${JSON.stringify(c)} is a consumer case`);
+      assert.ok(["always", "graph", "no-graph"].includes(c.when), `${c.name} declares when it applies`);
+    }
+    for (const when of ["always", "graph", "no-graph"]) assert.ok(m.cases.some((c) => c.when === when), `there are ${when} cases`);
     const hashed = Object.keys(m.files ?? {}).sort();
     assert.deepEqual(hashed, files.filter((f) => f !== "test/verify.json"), "every other shipped file is hashed");
     for (const [f, h] of Object.entries(m.files)) assert.equal(h, createHash("sha256").update(readFileSync(join(PACKAGE, f))).digest("hex"), `${f} matches its hash`);
@@ -129,38 +133,49 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     assert.equal(manifest().scripts?.test, "node test/verify.mjs", "npm test is the consumer verification");
   });
 
-  it("change/T28 [change/I11, change/I13, change/I14, change/F19, change/F22, change/F23, change/F25]: in a clean consumer, the packed package verifies with Graph; without Graph, delivery cannot assess and the result is unknown, then verified once delivery is excluded; a case that fails is failed", () => {
+  it("change/T28 [change/I11, change/I13, change/I14, change/F19, change/F22, change/F23, change/F25]: in a clean consumer, the packed package verifies with Graph over the full delivery path, and verifies without Graph over the cannot-assess contract, with the Graph cases not applicable; a failing case is failed, and a changed file, a missing manifest or an applicable case that did not run is unknown", () => {
     verifier();
     const out = mkdtempSync(join(tmpdir(), "kaal-change-pack-"));
+    const cases = (when) => JSON.parse(readFileSync(join(PACKAGE, "test/verify.json"), "utf8")).cases.filter((c) => c.when === when).map((c) => c.name);
     try {
       const change = pack(PACKAGE, out);
       const alone = consumer([change]);
-      const unknown = verify(alone);
-      assert.equal(unknown.status, 2, `without Graph the result is unknown:\n${unknown.out}`);
-      assert.match(unknown.out, new RegExp(PEER.replace("/", "\\/")), "naming the absent optional peer");
-      assert.match(unknown.out, /cannot-assess/, "and delivery cannot assess");
-      const scoped = verify(alone, "--exclude", "delivery");
-      assert.equal(scoped.status, 0, `with delivery excluded, the rest is verified:\n${scoped.out}`);
-      assert.match(scoped.out, /exclud\w* delivery/i, "and the exclusion is in the evidence");
-      assert.match(scoped.out, new RegExp(`${NAME.replace("/", "\\/")}.*0\\.0\\.1`), "the evidence names the package and its version");
+      const without = verify(alone);
+      assert.equal(without.status, 0, `without Graph, the installation verifies over what applies to it:\n${without.out}`);
+      assert.match(without.out, /cannot-assess/, "including the cannot-assess contract");
+      assert.match(without.out, new RegExp(`${PEER.replace("/", "\\/")}.*(absent|not installed)`, "i"), "and the evidence names Graph as absent");
+      for (const name of cases("graph")) assert.ok(without.out.includes(name), `${name} is listed`);
+      assert.match(without.out, /not applicable/i, "as not applicable");
+      assert.match(without.out, new RegExp(`${NAME.replace("/", "\\/")}.*0\\.0\\.1`), "the evidence names the package and its version");
       const withGraph = consumer([change, pack(HOSTING, out), pack(GRAPH, out)]);
-      const verified = verify(withGraph);
-      assert.equal(verified.status, 0, `with Graph the result is verified:\n${verified.out}`);
+      const full = verify(withGraph);
+      assert.equal(full.status, 0, `with Graph, the full delivery path verifies:\n${full.out}`);
+      for (const name of cases("graph")) assert.ok(full.out.includes(name), `${name} ran`);
+      assert.doesNotMatch(full.out, new RegExp(`${PEER.replace("/", "\\/")}.*(absent|not installed)`, "i"), "and Graph is not reported absent");
       const installed = join(withGraph, "node_modules", NAME);
+      const manifestPath = join(installed, "test", "verify.json");
+      const shipped = readFileSync(manifestPath);
       const broken = join(installed, "lib", "record.mjs");
       const original = readFileSync(broken);
       writeFileSync(broken, "export {};\n");
       const tampered = verify(withGraph);
       assert.equal(tampered.status, 2, `installed bytes that differ from the manifest are unknown:\n${tampered.out}`);
       assert.match(tampered.out, /lib\/record\.mjs/, "naming the changed file");
-      const manifestPath = join(installed, "test", "verify.json");
-      const shipped = readFileSync(manifestPath);
       const m = JSON.parse(shipped);
       m.files["lib/record.mjs"] = createHash("sha256").update(readFileSync(broken)).digest("hex");
       writeFileSync(manifestPath, JSON.stringify(m));
       const failed = verify(withGraph);
       assert.equal(failed.status, 1, `with the manifest matching, a consumer case that fails is failed:\n${failed.out}`);
       writeFileSync(broken, original);
+      const unrun = JSON.parse(shipped);
+      unrun.cases.push({ name: "test/consumer/record.test.mjs > a declared case no test file holds", when: "always" });
+      writeFileSync(manifestPath, JSON.stringify(unrun));
+      const notRun = verify(withGraph);
+      assert.equal(notRun.status, 2, `an applicable case that did not run is unknown:\n${notRun.out}`);
+      assert.match(notRun.out, /a declared case no test file holds/, "naming it");
+      rmSync(manifestPath);
+      const missing = verify(withGraph);
+      assert.equal(missing.status, 2, `a missing manifest is unknown:\n${missing.out}`);
       writeFileSync(manifestPath, shipped);
       for (const d of [alone, withGraph]) rmSync(d, { recursive: true, force: true });
     } finally {
@@ -178,7 +193,7 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
       writeFileSync(record, "# sample/C1\n");
       writeFileSync(join(dir, "sample-C1.md"), "---\nname: sample/C1\n---\n\n# sample/C1\n");
       const before = snapshot(dir);
-      verify(dir, "--exclude", "delivery");
+      verify(dir);
       assert.deepEqual(snapshot(dir), before, "verification wrote nothing in the consumer");
       npm(["uninstall", "--no-audit", "--no-fund", NAME], dir);
       const after = snapshot(dir);

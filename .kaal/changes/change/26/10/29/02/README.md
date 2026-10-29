@@ -21,8 +21,16 @@ This is a PLAN Change. It ships no code.
 
 It proposes these Owner decisions:
 - the package is `@kaihacksai/kaal-change`;
-- Graph is an optional peer, needed only for delivery, and without it delivery cannot assess;
-- the consumer's result is unknown until delivery is explicitly excluded.
+- Graph is an optional peer, needed only for delivery, and without it delivery cannot assess.
+
+## Owner review 5705681738
+
+Verifying the installed package is distinct from assessing a Change's delivery (`change/F23`).
+- **Without Graph.** The documented `cannot-assess` result is a passing consumer test of the optional-complement contract. The installation verifies over what applies to it, and the Graph cases are listed as not applicable.
+- **With Graph.** The full delivery path must verify.
+- **What stays honest.** A failing case is failed. An applicable case that did not run, a changed file or a missing manifest is unknown.
+
+change/T28 and change/F25 cover each scenario, and the exclusion option is gone.
 
 ## Not authorized here
 

@@ -9,13 +9,13 @@ Each element names, in brackets, the Requirements it answers.
 - **change/A12** [change/F19]: **Loading the optional peer.** `lib/delivery.mjs` imports Graph dynamically, inside `assess`. A module-not-found for Graph alone becomes the `cannot-assess` result. Any other failure propagates.
 - **change/A13** [change/F20, change/F21]: **Shipped documentation.** `docs/` is written for the consumer. It consolidates the contracts of `change/C1` and of the Change Definitions already shipped, under their own identifiers, and cites no plan. `plan/` stays in the repository as the publisher's design record.
 - **change/A14** [change/F22–change/F24, change/N7]: **Consumer verification.** `test/verify.mjs` is the `test` script, and uses only Node's built-ins.
-  - **Inputs.** It reads `test/verify.json`, the manifest of declared cases and the SHA-256 of every other shipped file.
+  - **Inputs.** It reads `test/verify.json`: the declared cases, each with when it applies (`always`, `graph` or `no-graph`), and the SHA-256 of every other shipped file. It detects Graph by resolving it from the consumer, never from a source path.
   - **What it runs.** It runs `test/consumer/` against the installed copy, which imports only the package's public entry points.
   - **Its output.** It judges the result, and prints the evidence.
   - **Its exit statuses.** verified is 0, failed is 1 and unknown is 2.
   - **Its semantics.** It realizes Testing's consumer-verification semantics (`testing/C9`) in Change's own code, and imports nothing from `lib/`, so a broken runtime cannot mask itself.
 - **change/A15** [change/F24]: **The publisher's tests.** The repository's own tests stay in `test/` outside `files`, and run as the publisher's `test:publisher` script. They include the Change Record and numbering tests against KAAL's `.kaal/changes/`, tests importing `kaal-core`, and `test/plan/`.
-- **change/A16** [change/F25, change/F26]: **Acceptance.** `test/acceptance/` is the publisher's acceptance harness, and is not shipped. It runs `npm pack` on Change and on Graph into a temporary directory. It installs each artifact into a fresh consumer through `npm install <tarball>`, with no workspace, and runs `npm test` there under each scope. It then uninstalls the package, and compares the consumer's files before and after.
+- **change/A16** [change/F25, change/F26]: **Acceptance.** `test/acceptance/` is the publisher's acceptance harness, and is not shipped. It runs `npm pack` on Change and on Graph into a temporary directory. It installs the artifacts into fresh consumers through `npm install <tarball>`, with no workspace, and runs `npm test` there in each scenario of change/F25. It then uninstalls the package, and compares the consumer's files before and after.
 
 ## Ownership
 
