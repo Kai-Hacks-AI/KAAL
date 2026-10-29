@@ -28,13 +28,17 @@ const LARGE = 64 * 1024 * 1024;
 
 const WINDOWS = process.platform === "win32";
 
-/** Where a report goes: the package's `bugs` URL, so every next step that asks for one names it (guard/F33). */
+/**
+ * Where a report goes: the installed package's declared `bugs` URL, so every next step that asks for one names it
+ * (guard/F33). When none can be read, the next step names the publisher's address and says that it is a fallback,
+ * so a fallback is never taken for the declared URL.
+ */
 const BUGS = (() => {
   try {
-    return JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).bugs.url;
-  } catch {
-    return "https://github.com/Kai-Hacks-AI/KAAL/issues";
-  }
+    const url = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).bugs?.url;
+    if (typeof url === "string" && url) return url;
+  } catch {}
+  return "https://github.com/Kai-Hacks-AI/KAAL/issues (a fallback: the installed package.json declares no bugs URL that could be read)";
 })();
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");

@@ -212,7 +212,7 @@ A consumer can verify the installed package with one command. Before `0.0.4`, th
     - the installed files do not match the shipped manifest (guard/F34);
     - the verification itself could not complete. The output names the error and asks for it to be reported.
   - **`verified`, exit 0.** Every declared case executed and passed.
-  - **Next step.** Every `failed` and `cannot verify` names its cause and a next step (guard/N4). A next step that asks for a report names where to send it: the package's `bugs` URL.
+  - **Next step.** Every `failed` and `cannot verify` names its cause and a next step (guard/N4). A next step that asks for a report names where to send it: the installed package's declared `bugs` URL. When none can be read, it names the publisher's address and says that it is a fallback, not the declared URL.
 
 - **guard/F34** [guard/I8] **Evidence of what was exercised.** The output names:
   - the package name, its version and its install location;

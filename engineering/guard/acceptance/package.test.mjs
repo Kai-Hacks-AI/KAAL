@@ -596,6 +596,7 @@ describe("guard/I8 what a consumer reads in the verification", { timeout: 30 * 6
       const next = r.output.match(cause)?.[1];
       assert.ok(next, `the output has no next step for ${cause}:\n${r.output.slice(-4000)}`);
       assert.ok(next.includes(bugs), `the next step names no destination: ${next}`);
+      assert.ok(!next.includes("a fallback"), `the next step names the fallback, not the declared URL: ${next}`);
       assert.ok(!r.output.includes("the package's maintainers"), "the output still asks for a report to the package's maintainers");
     }
   });
