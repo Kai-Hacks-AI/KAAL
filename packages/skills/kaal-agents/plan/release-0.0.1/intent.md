@@ -12,7 +12,7 @@ For reference, the earlier Agents Changes, which carried no identifiers when the
   - what is settled;
   - what is in flight;
   - where its instructions and authority are recorded.
-- **agents/I2. Authorized operation.** The Agent can see what it is authorized to do and what is unresolved, and does only what it is authorized to do. When no durable source states its authority, that is reported, never assumed.
+- **agents/I2. Discovery is not authorization.** The Agent can see where its authority may be stated, and what is unresolved. Repository state, instruction files, ownership claims and Core's catalog are sources it reads. They do not establish the authority to act. Missing or unverified authority stays unresolved, and is never accepted silently. The Agent acts only where the authority is clear, and otherwise consults under PREACH.
 - **agents/I3. Escalation (PREACH).** When a program reports something it cannot resolve, the report reaches the Agent as facts and candidates:
   - The Agent resolves it only under authority it can cite.
   - Otherwise it consults the accountable person.

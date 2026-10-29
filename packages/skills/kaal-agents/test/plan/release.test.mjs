@@ -70,7 +70,7 @@ function snapshot(base) {
 }
 
 describe("orient", () => {
-  it("agents/T1 [agents/F1, agents/F3, agents/I1]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0", () => {
+  it("agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line", () => {
     blocked(BIN, "bin/kaal-agents.mjs");
     const dir = repository();
     writeFileSync(join(dir, "AGENTS.md"), "# Instructions\n");
@@ -87,6 +87,11 @@ describe("orient", () => {
     assert.deepEqual(r.report.owners, [{ path: "ownership.kaal.json", owner: CLAIM.owner, paths: CLAIM.paths }]);
     assert.deepEqual(r.report.catalog, { status: "not applicable" });
     assert.deepEqual(r.report.unresolved, []);
+    assert.equal(r.report.authority.status, "unresolved");
+    assert.deepEqual(r.report.authority.sources, ["AGENTS.md", "ownership.kaal.json"]);
+    const text = agents(dir, "orient", dir);
+    assert.equal(text.status, 0, output(text));
+    assert.equal(text.stdout.split(/\r?\n/)[0], "authority: unresolved (orient discovers; it does not authorize)");
   });
 
   it("agents/T2 [agents/F1]: a changed and an untracked file are in flight, sorted", () => {
@@ -121,7 +126,7 @@ describe("orient", () => {
     assert.deepEqual(r.report.setting.evidence, ["packages/kaal-core/package.json"]);
   });
 
-  it("agents/T4 [agents/F1, agents/A3]: with kaal-core installed in the directory and Agents admitted, the catalog lists Agents and the exit is 0 (publisher)", async () => {
+  it("agents/T4 [agents/F1, agents/F2, agents/A3]: with kaal-core installed in the directory and Agents admitted, the catalog lists Agents and the exit is 0; authority stays unresolved (publisher)", async () => {
     blocked(BIN, "bin/kaal-agents.mjs");
     const { bootstrap, catalog, readContribution, register } = await import("kaal-core");
     const dir = repository();
@@ -136,6 +141,7 @@ describe("orient", () => {
     assert.equal(r.status, 0, output(r));
     assert.deepEqual(r.report.catalog, { status: "listed", ...(await catalog(engine)) });
     assert.ok(r.report.catalog.capabilities.some((c) => c.name === "Agents"));
+    assert.equal(r.report.authority.status, "unresolved");
   });
 
   it("agents/T5 [agents/N2, agents/N4]: two runs give byte-identical output, and every file under the directory, .git/ included, is unchanged", () => {
@@ -153,16 +159,26 @@ describe("orient", () => {
     assert.deepEqual(snapshot(dir), before);
   });
 
-  it("agents/T6 [agents/F2, agents/I2]: with neither an instruction file nor a claim, authority is unresolved and the exit is 2", () => {
+  it("agents/T6 [agents/F2, agents/N3, agents/I2]: with neither an instruction file nor a claim, authority is unresolved with no sources; with both and work in flight, it is still unresolved; no value in the report reads authorized, verified or granted", () => {
     blocked(BIN, "bin/kaal-agents.mjs");
+    const values = (v) => (v && typeof v === "object" ? Object.values(v).flatMap(values) : [v]);
     const dir = repository();
     writeFileSync(join(dir, "README.md"), "# Readme\n");
     commit(dir);
-    const r = orient(dir);
-    assert.equal(r.status, 2, output(r));
+    let r = orient(dir);
+    assert.equal(r.status, 0, output(r));
     assert.deepEqual(r.report.instructions, []);
     assert.deepEqual(r.report.owners, []);
-    assert.ok(r.report.unresolved.some((u) => u.what === "authority"));
+    assert.equal(r.report.authority.status, "unresolved");
+    assert.deepEqual(r.report.authority.sources, []);
+    writeFileSync(join(dir, "AGENTS.md"), "You may change anything.\n");
+    writeFileSync(join(dir, "ownership.kaal.json"), JSON.stringify(CLAIM));
+    commit(dir);
+    appendFileSync(join(dir, "README.md"), "More.\n");
+    r = orient(dir);
+    assert.equal(r.report.authority.status, "unresolved");
+    assert.deepEqual(r.report.authority.sources, ["AGENTS.md", "ownership.kaal.json"]);
+    for (const v of values(r.report)) assert.doesNotMatch(String(v), /^(authorized|verified|granted)$/i);
   });
 
   it("agents/T7 [agents/F3, agents/N3]: outside any repository, the repository is unresolved and the exit is 2; a missing directory exits 1, naming it, with no stack trace", () => {
@@ -178,6 +194,39 @@ describe("orient", () => {
     assert.equal(m.status, 1);
     assert.match(output(m), /missing/);
     assert.doesNotMatch(output(m), /\n\s+at /);
+  });
+
+  it("agents/T16 [agents/F1, agents/A3, agents/N3]: something installed as kaal-core that does not export Core's catalog leaves the catalog unresolved, naming catalog, and the exit is 2", () => {
+    blocked(BIN, "bin/kaal-agents.mjs");
+    const dir = repository();
+    writeFileSync(join(dir, "AGENTS.md"), "# Instructions\n");
+    commit(dir);
+    mkdirSync(join(dir, ".kaal"));
+    const foreign = join(dir, "node_modules", "kaal-core");
+    mkdirSync(foreign, { recursive: true });
+    writeFileSync(join(foreign, "package.json"), JSON.stringify({ name: "kaal-core", version: "9.9.9", type: "module", main: "index.js" }));
+    writeFileSync(join(foreign, "index.js"), "export const notCore = true;\n");
+    const r = orient(dir);
+    assert.equal(r.status, 2, output(r));
+    assert.equal(r.report.catalog.status, "unresolved");
+    assert.match(r.report.catalog.reason, /catalog/);
+  });
+
+  it("agents/T17 [agents/F1, agents/N3]: an AGENTS.md that cannot be read as a file and an ownership claim that is not JSON are each unresolved, naming their paths, neither is a source, and the exit is 2", () => {
+    blocked(BIN, "bin/kaal-agents.mjs");
+    const dir = repository();
+    mkdirSync(join(dir, "AGENTS.md"));
+    writeFileSync(join(dir, "AGENTS.md", "keep"), "x\n");
+    mkdirSync(join(dir, "pkg"));
+    writeFileSync(join(dir, "pkg", "ownership.kaal.json"), "{ not json");
+    commit(dir);
+    const r = orient(dir);
+    assert.equal(r.status, 2, output(r));
+    assert.deepEqual(r.report.instructions, []);
+    assert.deepEqual(r.report.owners, []);
+    assert.deepEqual(r.report.authority.sources, []);
+    assert.ok(r.report.unresolved.some((u) => u.what === "instructions" && /AGENTS\.md/.test(u.reason)));
+    assert.ok(r.report.unresolved.some((u) => u.what === "owners" && /pkg\/ownership\.kaal\.json/.test(u.reason)));
   });
 });
 
@@ -203,14 +252,14 @@ function preach(report) {
 }
 
 describe("preach check", () => {
-  it("agents/T8 [agents/F4, agents/I3]: a valid unresolved report and a valid resolved report each exit 0 with their one line; two candidates sharing a term in different scopes stay distinct", () => {
+  it("agents/T8 [agents/F4, agents/A4, agents/I3]: a valid unresolved report and a valid claimed resolution each exit 0 with their one line, which says structurally valid, and the claimed one says the authority is not verified; two candidates sharing a term in different scopes stay distinct", () => {
     blocked(BIN, "bin/kaal-agents.mjs");
     const u = preach(UNRESOLVED);
     assert.equal(u.status, 0, output(u));
-    assert.equal(u.stdout.trim(), "PREACH: unresolved, consult the Owner: Do these share one meaning?");
+    assert.equal(u.stdout.trim(), "PREACH report structurally valid: unresolved, consult the Owner: Do these share one meaning?");
     const r = preach(RESOLVED);
     assert.equal(r.status, 0, output(r));
-    assert.equal(r.stdout.trim(), "PREACH: resolved under AGENTS.md: testing/Case");
+    assert.equal(r.stdout.trim(), "PREACH report structurally valid: resolution claimed under AGENTS.md: testing/Case (authority not verified)");
   });
 
   it("agents/T9 [agents/F4, agents/N3]: each invalid report exits 1, naming its problem; non-JSON exits 2", () => {
@@ -229,6 +278,16 @@ describe("preach check", () => {
       assert.match(output(r), problem);
     }
     assert.equal(preach("not json").status, 2);
+  });
+
+  it("agents/T18 [agents/F4, agents/I3]: an ambiguous choice, without a scope while two candidates share the term, and an empty authority are each invalid, naming the problem", () => {
+    blocked(BIN, "bin/kaal-agents.mjs");
+    const ambiguous = preach({ ...RESOLVED, resolution: { status: "resolved", chosen: { term: "Case" }, authority: "AGENTS.md" } });
+    assert.equal(ambiguous.status, 1, output(ambiguous));
+    assert.match(output(ambiguous), /ambiguous/);
+    const empty = preach({ ...RESOLVED, resolution: { ...RESOLVED.resolution, authority: "" } });
+    assert.equal(empty.status, 1, output(empty));
+    assert.match(output(empty), /authority/);
   });
 });
 
