@@ -13,7 +13,7 @@ The contexts below can overlap. They are not one ownership hierarchy.
 | Capability | A responsibility, its semantics, its contracts and its boundaries | that Capability |
 | Package | A distributable realization, with the guarantees it gives its consumers | the Capability that ships it |
 
-**Who is bound.** Engineering standards bind what KAAL engineers: this repository and every Capability and Package developed in it. Installing KAAL does not put them on a consumer. A consumer meets only what a Package guarantees, stated by that Package.
+**Who is bound.** Engineering standards bind what KAAL engineers: this repository and every Capability and Package developed in it. Installing KAAL does not put them on a consumer, and no test here runs against a consumer repository. A consumer meets only what a Package guarantees, stated by that Package.
 
 ## The register
 
@@ -43,6 +43,10 @@ These live in `engineering/standards/standards.test.mjs` and join `npm run test:
 | engineering/T2 | Every Capability and Package is found from the tree, not from a list. Capabilities come through Testing's attribution of ownership claims (`kaal-testing/attribution`, as `engineering/inventory/attribute.mjs` reads them). Packages come from every tracked `packages/**/package.json`. Each Package lies within one Capability's claim | A new `packages/<x>/package.json` with no claim covering it fails as an ownership-boundary finding. A new claimed Capability is covered with no edit to the test |
 | engineering/T3 (engineering/N1) | Every tracked `.json` in a KAAL-engineered tree matches a declared machine-only format or a listed divergence | A new `<capability>/notes.json` fails with: not a declared machine-only format, and human-facing artifacts are Markdown (Core frontmatter `N1`) |
 | engineering/T4 | No Package's shipped tests name an `engineering/` path or need this repository, so a consumer can run them after a fresh install | A shipped test file in a fixture Package that reads `engineering/` |
+
+**Each negative fixture must genuinely fail.** In the DO, each fixture above is built in a scratch copy of the repository: a new unregistered Package, a new undeclared JSON format, a register entry no link reaches, and a fixture Package whose shipped test reads `engineering/`. Its case is run and recorded RED, naming the cause, before the case counts as protection. A fixture that does not turn its case RED is a defect in the test, not a pass.
+
+**Ownership conflicts are reported, not resolved.** When engineering/T2 finds a path claimed by two Capabilities, or a Package outside every claim, it names them, and the conflict returns to the Owner for alignment. Engineering moves no claim.
 
 **Found today, before any DO.** `packages/kaal-guard/` has no `ownership.kaal.json` on `main`, so engineering/T2 will name it. Its owner adds the claim, or the DO lists it as a divergence. The DO does not write another Capability's claim.
 
