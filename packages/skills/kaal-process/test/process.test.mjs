@@ -187,12 +187,34 @@ describe("the README", () => {
     }
   });
 
-  it("states that assurance is the publisher's and promises no consumer-run tests", () => {
-    assert.match(readme, /It promises no tests a consumer runs\. Its assurance is the publisher's/);
+  it("keeps the publisher's assurance apart from the consumer's smoke test, and Core's verify apart from both", () => {
+    assert.match(readme, /\*\*The publisher's assurance\*\* is `test\/process\.test\.mjs`, which is not shipped\./);
+    assert.match(readme, /\*\*The consumer's smoke test\*\* ships with the package and runs from the installed copy, with no KAAL source checkout\./);
+    assert.match(readme, /^npm explore kaal-process -- npm run verify$/m);
+    assert.match(readme, /`kaal verify` is not a substitute for it: Core verifies an Engine's admission, not what the Process contract says\./);
   });
 
   it("keeps other capabilities' roles theirs", () => {
     assert.match(readme, /Process neither defines them nor maps them onto its Role\./);
+  });
+});
+
+describe("the consumer's smoke test", () => {
+  it("names each shipped Node by its exact name, type and id", () => {
+    const nodes = JSON.parse(readFileSync(join(PACKAGE, "test/nodes.json"), "utf8"));
+    assert.deepEqual(Object.keys(nodes).sort(), ["capability/PDCA.md", "capability/Process-Definition.md", "capability/Process.md"]);
+    for (const [path, { name, type, id }] of Object.entries(nodes)) {
+      const n = identify(readFileSync(join(PACKAGE, path)));
+      assert.deepEqual({ name, type, id }, { name: n.name, type: n.type.name, id: n.id }, path);
+    }
+  });
+
+  it("runs from the installed copy as npm run verify, importing only Node built-ins and kaal-core", () => {
+    const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
+    assert.equal(pkg.scripts.verify, "node --test test/consumer.test.mjs");
+    assert.equal(pkg.scripts.preverify, undefined);
+    const imports = [...readFileSync(join(PACKAGE, "test/consumer.test.mjs"), "utf8").matchAll(/(?:from |import\()"([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual([...new Set(imports.filter((s) => !s.startsWith("node:")))], ["kaal-core"]);
   });
 });
 
@@ -207,6 +229,8 @@ describe("the package", () => {
       "capability/Process-Definition.md",
       "capability/Process.md",
       "package.json",
+      "test/consumer.test.mjs",
+      "test/nodes.json",
     ]);
   });
 });
