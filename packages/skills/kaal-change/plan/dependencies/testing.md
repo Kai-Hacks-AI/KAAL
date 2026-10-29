@@ -20,7 +20,7 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 The following are validated by review:
 - `change/A1` is a placement.
 - `change/A3`'s use of Graph is reviewed at the DO Change.
-- `change/A4`'s lifecycle rule (the Owner's decision A) is a policy. `assess` reports a stale pin under it as under any other (change/T6).
+- `change/A4`'s separation of pinning from immutability is a placement. Any consumer's immutability policy is the consumer's, and `assess` reports a stale pin under every policy alike (change/T6).
 
 change/T17 and change/T18 replace the earlier claim that acyclicity follows from content addressing and needs no test. change/T17 establishes the invariant under Graph's actual construction. change/T18 discriminates the qualified case: a forged-id cycle that `assess` must report.
 

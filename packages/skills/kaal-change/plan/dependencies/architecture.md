@@ -24,11 +24,10 @@ Each element names, in brackets, the Requirements it answers.
   - **What content addressing establishes.** It holds for Change Nodes read from their bytes, as `identify()` reads them. To close a cycle, a Change would have to pin a Change that already pins it. Stating that Edge changes the first Change's bytes and so its id, which leaves the earlier Edge pinned to an id no longer present. The attempt therefore surfaces as a stale pin (change/F4), never as a resolved cycle (change/T17). This rests on SHA-256's preimage resistance, not on impossibility.
   - **What it does not establish.** Graph takes any frozen Node shaped as `identify()` returns it, and does not recompute its id. So a caller can hand `assess` Nodes whose ids are asserted rather than derived. `assess` therefore does not rely on the invariant: it reports any cycle among resolved Edges (change/F12, change/T18). Its walk terminates, which is Graph's `traverse` behaviour, and the finding is Change's dependency semantics. Change adds no rule to Graph and no trace rule to Core.
   - **What it costs.** Editing a Change Node changes its id, so every Change that depends on it is stale until it is pinned again. `assess` reports this and never repairs it.
-- **Owner decision: when a Change Node may change** (review 5694623370, 2026-10-29). **A: editable while Proposed, immutable once Accepted.**
-  - While its Change is Proposed, a Change Node may be edited, and its dependents pin it again, all within planning.
-  - Once its Change is Accepted (Change Lifecycle), the Change Node never changes.
-  - A dependency found later is not added to the Accepted Node. It goes to ACT and to a subsequent Change, as a planning defect does.
-  - Under A, a stale pin to an Accepted Change's identity means that Accepted Node was edited, and `assess` reports it as any stale pin (change/T6). Options B (always editable) and C (references by identity alone, which needs a Graph Change, #352) are not taken.
+- **Pinning is not immutability** (Owner decision 6491567974, 2026-10-29). Content-addressed pinning and an immutability policy are different things, and Change provides only the first.
+  - **What Change provides.** Identity, explicit Depends On Edges, stale-reference detection and derived navigation. A pin records which exact bytes a dependent relied on. An edit to the target is never prevented, only reported as a stale pin (change/F4, change/T6).
+  - **What the consumer decides.** Whether and when a particular Change Node may be edited, and how corrections are recorded, is the governance of the repository that consumes Change. Change imposes no Proposed/Accepted freeze and selects no lifecycle rule of its own.
+  - **Why a consumer may freeze.** Preserving historical evidence against manipulation or retrospective rewriting is a reason for a consumer to choose immutability, for example to stop an agent rewriting accepted test evidence to manufacture success. Stale-pin findings give such a policy its evidence. Enforcing the policy is the consumer's, through its own controls.
 
 ## Ownership
 

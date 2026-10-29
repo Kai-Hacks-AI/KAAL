@@ -13,9 +13,9 @@ This is a PLAN Change. It ships no code.
 - `packages/skills/kaal-change/plan/dependencies/`: the Intent, the Requirements, the Architecture and the Testing plan.
 - `packages/skills/kaal-change/test/plan/dependencies.test.mjs`: change/T1–change/T8, change/T17 and change/T18. They are RED and blocked before behavioural assertion, outside `npm test` until the DO Change.
 
-## Owner review 5694623370
+## Owner review 5694623370 and decision 6491567974
 
-- **Lifecycle:** the Owner chose A. A Change Node is editable while Proposed and immutable once Accepted; a later dependency goes to ACT and a subsequent Change (`change/A4`).
+- **Immutability (Owner decision 6491567974):** the consumer of Change decides what is immutable and when. Change provides identity, Depends On, stale-reference detection and derived navigation, and imposes no freeze. The earlier A/B/C decision is removed (`change/A4`).
 - **Acyclicity:** no longer asserted without a test.
   - change/T17 establishes it under Graph's actual construction: closing a cycle yields a stale pin.
   - It is qualified, because Graph does not recompute ids, so `assess` reports any cycle among resolved Edges (`change/F12`, change/T18).
