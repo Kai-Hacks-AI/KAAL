@@ -35,7 +35,7 @@ Intent, Requirements and Architecture establish their tests in PLAN. In DO and C
 - **At GREEN**, say that the planned tests pass within their coverage, never that the outcome is achieved.
 - **If a planned test is wrong**, stop and report it as a planning defect for ACT. Do not correct it yourself.
 - **Declare the boundary** in PLAN, one declaration per concern: its concern, its owner, and as repository paths the planned tests and every fixture, expectation, configuration file, helper and dependency that gives them meaning. A path ending in `/` covers everything beneath it. Never derive the closure; declare it.
-- **Read a verdict** on a declaration with `interpret` from `kaal-testing/boundary`, whichever realization produced it. A changed declared path is a verified failure. An untrusted anchor or working-tree bytes give unknown. An untouched boundary is "unchanged within the declaration", never met, and execution reproducibility and behavioural validity stay unknown.
+- **Read a verdict** on a declaration with `interpret(declaration, verdict, attestation)` from `kaal-testing/boundary`, whichever realization produced it. The attestation `{ by, anchor }` comes from the trust authority that produced and verified the verdict; without it, or for another anchor, the verdict is unknown. Never attest a verdict yourself. A changed declared path is a verified failure. An untrusted anchor, working-tree bytes, or an entry that does not read give unknown. An untouched boundary is "unchanged within the declaration", never met, and execution reproducibility and behavioural validity stay unknown.
 
 ## Tracing each test: TEST A FINDING
 

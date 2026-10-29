@@ -6,26 +6,27 @@ import { interpret, problems } from "kaal-testing/boundary";
 
 const DECLARATION = { concern: "Intent", owner: { kind: "capability", name: "Y" }, paths: ["packages/y/test/plan/"] };
 const VERDICT = { realization: "git", anchor: { kind: "plan-commit", ref: "c" }, bytes: "stored", mode: true, changes: [], outside: [] };
+const ATTESTED = { by: "the gate", anchor: "c" };
 
 describe("interpret", () => {
   it("reports a change against an untrusted baseline as unknown, never as a verified failure", () => {
-    const r = interpret(DECLARATION, { ...VERDICT, anchor: { kind: "pr-head", ref: "h" }, changes: [{ path: "packages/y/test/plan/a.test.mjs", change: "content" }] });
+    const r = interpret(DECLARATION, { ...VERDICT, anchor: { kind: "pr-head", ref: "h" }, changes: [{ path: "packages/y/test/plan/a.test.mjs", change: "content" }] }, ATTESTED);
     assert.equal(r.class, "unknown");
     assert.deepEqual(r.findings, []);
     assert.ok(r.unknowns.some((u) => u.subject === "packages/y/test/plan/a.test.mjs"));
   });
 
   it("ignores a change outside the declaration, and keeps an unknown change kind unknown", () => {
-    assert.equal(interpret(DECLARATION, { ...VERDICT, changes: [{ path: "packages/y/src/x.ts", change: "content" }] }).class, "unchanged within the declaration");
-    const odd = interpret(DECLARATION, { ...VERDICT, changes: [{ path: "packages/y/test/plan/a.test.mjs", change: "copied" }] });
+    assert.equal(interpret(DECLARATION, { ...VERDICT, changes: [{ path: "packages/y/src/x.ts", change: "content" }] }, ATTESTED).class, "unchanged within the declaration");
+    const odd = interpret(DECLARATION, { ...VERDICT, changes: [{ path: "packages/y/test/plan/a.test.mjs", change: "copied" }] }, ATTESTED);
     assert.deepEqual(odd.findings, []);
     assert.ok(odd.unknowns.some((u) => u.reason.includes("copied")));
   });
 
   it("is unknown for a verdict with no known realization or no list of changes", () => {
-    assert.equal(interpret(DECLARATION, { ...VERDICT, realization: "rsync" }).class, "unknown");
-    assert.equal(interpret(DECLARATION, { ...VERDICT, changes: undefined }).class, "unknown");
-    assert.equal(interpret(DECLARATION, null).class, "unknown");
+    assert.equal(interpret(DECLARATION, { ...VERDICT, realization: "rsync" }, ATTESTED).class, "unknown");
+    assert.equal(interpret(DECLARATION, { ...VERDICT, changes: undefined }, ATTESTED).class, "unknown");
+    assert.equal(interpret(DECLARATION, null, ATTESTED).class, "unknown");
   });
 
   it("names why a declaration does not read", () => {
@@ -36,8 +37,8 @@ describe("interpret", () => {
   });
 
   it("returns fresh unknowns, so a caller's change to one result never reaches the next", () => {
-    const first = interpret(DECLARATION, VERDICT);
+    const first = interpret(DECLARATION, VERDICT, ATTESTED);
     for (const u of first.unknowns) u.reason = "changed by a caller";
-    assert.ok(interpret(DECLARATION, VERDICT).unknowns.every((u) => u.reason !== "changed by a caller"));
+    assert.ok(interpret(DECLARATION, VERDICT, ATTESTED).unknowns.every((u) => u.reason !== "changed by a caller"));
   });
 });

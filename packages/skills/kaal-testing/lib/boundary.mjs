@@ -1,7 +1,9 @@
 // PLAN boundary integrity: what a realization's verdict on one concern owner's
 // Boundary Declaration means as evidence (testing/C11, testing/C12).
 //
-// Testing interprets and never produces the verdict. Git's diff (realization A)
+// Testing interprets and never produces the verdict, and never authenticates it:
+// it reads a verdict with the trust authority's attestation, bound to the
+// verdict's anchor (testing/C19). Git's diff (realization A)
 // and a trusted Seal (realization B) are Engineering's and Sealing's to compute;
 // both report the same realization-neutral verdict, and Testing reads either one
 // the same way. This module reads no host, runs no command and imports nothing.
@@ -50,7 +52,7 @@ const declared = (paths, path) => paths.some((p) => (p.endsWith("/") ? path.star
  * declaration". Findings and unknowns never name the realization, so the same
  * comparison reads the same from either one.
  */
-export function interpret(declaration, verdict) {
+export function interpret(declaration, verdict, attestation) {
   const findings = [];
   const unknowns = ALWAYS.map((u) => ({ ...u }));
   const unreadable = problems(declaration);
@@ -61,6 +63,7 @@ export function interpret(declaration, verdict) {
   const { concern, owner, paths } = declaration;
   const v = verdict !== null && typeof verdict === "object" && !Array.isArray(verdict) ? verdict : {};
   let trusted = true;
+  let unread = false;
   const distrust = (subject, reason) => {
     trusted = false;
     unknowns.push({ kind: "unknown", subject, reason });
@@ -70,6 +73,9 @@ export function interpret(declaration, verdict) {
   const anchor = v.anchor;
   if (anchor === null || typeof anchor !== "object" || !ANCHORS.includes(anchor.kind) || typeof anchor.ref !== "string" || anchor.ref === "")
     distrust("the anchor", "the baseline is not trusted: it is missing, or the candidate can write it");
+  const a = attestation !== null && typeof attestation === "object" && !Array.isArray(attestation) ? attestation : {};
+  if (typeof a.by !== "string" || a.by === "" || typeof anchor?.ref !== "string" || a.anchor !== anchor.ref)
+    distrust("the attestation", "no trust authority attests this verdict against its anchor, and Testing does not authenticate a verdict");
   if (v.bytes !== "stored") distrust("content", "the verdict did not compare stored bytes, and a checkout can change working-tree bytes");
   if (v.mode !== true) unknowns.push({ kind: "unknown", subject: "file mode", reason: "the verdict did not compare mode" });
 
@@ -78,16 +84,28 @@ export function interpret(declaration, verdict) {
   // A change is a verified failure only against a trusted baseline; against an
   // untrusted one it is reported, and stays unknown.
   for (const c of Array.isArray(v.changes) ? v.changes : []) {
-    if (typeof c?.path !== "string" || !declared(paths, c.path)) continue;
-    if (!CHANGES.includes(c.change)) unknowns.push({ kind: "unknown", subject: c.path, reason: `the verdict reports an unknown change ${JSON.stringify(c.change)}` });
+    if (c === null || typeof c !== "object" || !repoPath(c.path)) {
+      unread = true;
+      unknowns.push({ kind: "unknown", subject: "the declared paths", reason: `the verdict lists a change that does not read: ${JSON.stringify(c)}` });
+      continue;
+    }
+    if (!declared(paths, c.path)) continue;
+    if (!CHANGES.includes(c.change)) {
+      unread = true;
+      unknowns.push({ kind: "unknown", subject: c.path, reason: `the verdict reports an unknown change ${JSON.stringify(c.change)}` });
+    }
     else if (c.change === "mode" && v.mode !== true) continue;
     else if (!trusted) unknowns.push({ kind: "unknown", subject: c.path, reason: `reported ${c.change}, against a baseline that is not trusted` });
     else findings.push({ kind: "verified failure", concern, owner: owner.name, path: c.path, change: c.change });
   }
 
+  if (v.outside !== undefined && !Array.isArray(v.outside)) {
+    unread = true;
+    unknowns.push({ kind: "unknown", subject: "the boundary's dependencies", reason: "the verdict's outside paths do not read" });
+  }
   for (const path of Array.isArray(v.outside) ? v.outside : [])
     unknowns.push({ kind: "unknown", subject: path, reason: "the boundary depends on it outside the declaration" });
 
-  const kind = findings.length ? "verified failure" : trusted ? "unchanged within the declaration" : "unknown";
+  const kind = findings.length ? "verified failure" : trusted && !unread ? "unchanged within the declaration" : "unknown";
   return { class: kind, findings, unknowns };
 }
