@@ -166,7 +166,7 @@ describe("Architecture conformance", () => {
     assert.deepEqual(docs.match(/engineering\/|guard\/C\d+|\]\(\.\.\//g) ?? [], [], "docs/ cites an Engineering path, a Change, or a document outside the package");
   });
 
-  it("guard/T126 [guard/F37, guard/A19]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, and a module that two elements name is refused", () => {
+  it("guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs", () => {
     present("docs/architecture.md");
     const architecture = source("docs/architecture.md");
     const requirements = source("docs/requirements.md");
@@ -174,6 +174,9 @@ describe("Architecture conformance", () => {
     const found = placement(architecture, requirements, modules);
     assert.deepEqual(found.uncited, [], "Requirements no Architecture element cites");
     assert.deepEqual(found.modules, [], "modules in lib/ that no element, or more than one, names");
+    for (const m of ["runner.mjs", "lifecycle.mjs", "github.mjs"]) {
+      assert.ok(specifiers(source(`lib/${m}`)).includes("./config.mjs"), `lib/${m} does not read declarations through lib/config.mjs`);
+    }
     // The negative fixture: a copy in which a second element, guard/A4, also names the runner's module.
     const duplicate = architecture.replace(/^(- \*\*guard\/A4 [^\n]*)$/m, "$1 It also holds `lib/runner.mjs`.");
     assert.notEqual(duplicate, architecture, "the fixture did not change the copy");

@@ -1,6 +1,7 @@
 {
   "cases": [
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T29 [guard/A7]: nothing depends on an adapter",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
@@ -216,7 +217,8 @@
     "guard/A15",
     "guard/A17",
     "guard/A18",
-    "guard/A19"
+    "guard/A19",
+    "guard/A21"
   ],
   "coverage": {
     "guard/I9": {
@@ -226,12 +228,19 @@
     },
     "guard/F37": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs"
       ]
     },
     "guard/A19": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs"
+      ]
+    },
+    "guard/A21": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs"
       ]
     },
     "guard/A3": {
@@ -745,11 +754,11 @@
     "README.md": "8d21f2984d621a4b3267ab3b9857512600dd9c494fbb371dfe3e96144af00994",
     "bin/kaal-guard.mjs": "7b4b16be89374a72d25fe890382a8b68c7a8e929e56c715efc38cb9a7d75e97a",
     "contract.json": "6f334cc83897094a4a234c841a87abc8d87a7816c5ded8aeb5a55d0af2ac823e",
-    "docs/architecture.md": "c7ae619360167638f874c0bf829e5e021daa6d8baca7f132c2f7d3d4a3d960bf",
+    "docs/architecture.md": "7aa6c53b273ee6cf9b33001c7f200322787555a4cd865948458f60be25ee28ff",
     "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
     "docs/requirements.md": "16ad5c512b61a200a3602a43a51339ebaffef106f69157160a1c9a4a2958b58f",
-    "docs/testing.md": "bb225f1b6b8efec42e34c219b44e24c92fb921871c2c8396f32f0f7515c39b6a",
+    "docs/testing.md": "0364ad67067baaafd9c2c873ce74827f7d09c78890de4ae9cf29ea2ffb8e389a",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -767,7 +776,7 @@
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "c53e8ff6a177e788f67a6f3dbae99577c6009f6454874516a8564157791d0277",
+    "test/acceptance/architecture.test.mjs": "4f6b1229572b0e5a1aa6a983620956958014143bef9f0c54f82d22fb8432cea6",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
     "test/acceptance/requirements.test.mjs": "85dff9c04f9f0b273fcb397e2e32cc7d37ca716db77c5de23b9d5074ddb1dc48",
