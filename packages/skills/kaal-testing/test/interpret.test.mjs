@@ -34,4 +34,10 @@ describe("interpret", () => {
     assert.equal(problems({ concern: "", owner: {}, paths: [] }).length, 3);
     for (const p of ["/abs", "a\\b", "a/./b", "a//b", ""]) assert.equal(problems({ ...DECLARATION, paths: [p] }).length, 1, p);
   });
+
+  it("returns fresh unknowns, so a caller's change to one result never reaches the next", () => {
+    const first = interpret(DECLARATION, VERDICT);
+    for (const u of first.unknowns) u.reason = "changed by a caller";
+    assert.ok(interpret(DECLARATION, VERDICT).unknowns.every((u) => u.reason !== "changed by a caller"));
+  });
 });

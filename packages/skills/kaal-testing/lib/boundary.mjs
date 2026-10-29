@@ -52,7 +52,7 @@ const declared = (paths, path) => paths.some((p) => (p.endsWith("/") ? path.star
  */
 export function interpret(declaration, verdict) {
   const findings = [];
-  const unknowns = [...ALWAYS];
+  const unknowns = ALWAYS.map((u) => ({ ...u }));
   const unreadable = problems(declaration);
   if (unreadable.length) {
     for (const reason of unreadable) findings.push({ kind: "verified failure", subject: "the Boundary Declaration", reason });
