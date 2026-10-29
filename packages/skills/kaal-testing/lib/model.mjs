@@ -15,7 +15,7 @@ const nonempty = (s) => typeof s === "string" && s !== "";
 
 function index(m) {
   const f = [], seen = new Set(), ids = { strategies: new Map(), plans: new Map(), suites: new Map(), cases: new Map() }, data = new Map();
-  for (const kind of Object.keys(m)) if (!KEYS[kind]) f.push(`unknown key ${kind}`);
+  for (const kind of Object.keys(m)) if (!Object.hasOwn(KEYS, kind)) f.push(`unknown key ${kind}`);
   for (const [kind, keys] of Object.entries(KEYS)) {
     for (const e of m[kind] ?? []) {
       for (const k of Object.keys(e)) if (!keys.includes(k)) f.push(`${e.id}: unknown key ${k}`);
@@ -44,7 +44,10 @@ export function check(m) {
     if (!ids[target].has(r)) f.push(`${e.id}: ${r} is not declared`);
     else if (target === "cases" && ids.cases.get(r).retired) f.push(`${e.id}: ${r} is retired and not executable`);
   }
-  for (const p of m.plans ?? []) for (const d of p.inapplicable ?? []) if (!ids.cases.has(d?.case)) f.push(`${p.id}: ${d?.case} is not declared`);
+  for (const p of m.plans ?? []) for (const d of p.inapplicable ?? []) {
+    if (!ids.cases.has(d?.case)) f.push(`${p.id}: ${d?.case} is not declared`);
+    if (!nonempty(d?.reason)) f.push(`${p.id}: ${d?.case} is declared inapplicable without a reason`);
+  }
   for (const x of m.strategies ?? []) if (!x.plans?.length) f.push(`${x.id}: names no Plan`);
   for (const x of m.plans ?? []) if (!x.suites?.length) f.push(`${x.id}: names no Suite`);
   for (const kind of ["plans", "suites", "cases"]) for (const e of m[kind] ?? []) for (const u of e.uses ?? []) if (!data.has(u)) f.push(`${e.id}: Test Data ${u} is not declared`);
@@ -52,15 +55,15 @@ export function check(m) {
 }
 
 export function tested(m) {
-  const out = {};
-  for (const c of m.cases ?? []) if (!c.retired) for (const s of c.tests ?? []) (out[s] ??= []).push(c.id);
-  return Object.fromEntries(Object.keys(out).sort().map((k) => [k, out[k].sort()]));
+  const out = new Map();
+  for (const c of m.cases ?? []) if (!c.retired) for (const s of c.tests ?? []) out.set(s, [...(out.get(s) ?? []), c.id]);
+  return Object.fromEntries([...out.keys()].sort().map((k) => [k, out.get(k).sort()]));
 }
 
 export function data(m) {
   const { data: d } = index(m);
   const out = Object.fromEntries([...d].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, { owner }]) => [id, { owner, usedBy: [] }]));
-  for (const kind of ["plans", "suites", "cases"]) for (const e of m[kind] ?? []) for (const u of e.uses ?? []) out[u]?.usedBy.push(e.id);
+  for (const kind of ["plans", "suites", "cases"]) for (const e of m[kind] ?? []) for (const u of e.uses ?? []) if (Object.hasOwn(out, u)) out[u].usedBy.push(e.id);
   for (const v of Object.values(out)) v.usedBy.sort();
   return out;
 }
@@ -84,7 +87,7 @@ function walk(m, ix, run, f, inherited, suite, seen) {
   const of = run?.of;
   const kind = ix.ids.plans.has(of) ? "plan" : ix.ids.suites.has(of) ? "suite" : ix.ids.cases.has(of) ? "case" : null;
   if (!kind) { f.push(`run ${run?.id}: ${of} is not a Plan, Suite or Case`); return { kind, occ }; }
-  if (!(of in provenance)) f.push(`run ${run.id}: provenance does not identify ${of}`);
+  if (!Object.hasOwn(provenance, of)) f.push(`run ${run.id}: provenance does not identify ${of}`);
   if (kind === "case" && ix.ids.cases.get(of).retired) f.push(`run ${run.id}: ${of} is retired and not executable`);
   const scope = kind === "plan" ? ix.ids.plans.get(of).suites ?? [] : kind === "suite" ? [of] : [suite];
   const casesOf = (s) => (s === undefined ? [of] : ix.ids.suites.get(s)?.cases ?? []);
@@ -94,9 +97,10 @@ function walk(m, ix, run, f, inherited, suite, seen) {
     if (!within.has(c)) { f.push(`run ${run.id}: ${c} is outside ${of}`); continue; }
     if (!OUTCOMES.includes(o)) { f.push(`run ${run.id}: ${c}: ${JSON.stringify(o)} is not an outcome`); continue; }
     const def = ix.ids.cases.get(c);
+    if (!def) continue;
     if (def.retired) { f.push(`run ${run.id}: ${c} is retired and not executable`); continue; }
     let r = o === "passed" || o === "failed" ? o : "unknown";
-    if (!(c in provenance)) { f.push(`run ${run.id}: provenance does not identify ${c}`); r = "unknown"; }
+    if (!Object.hasOwn(provenance, c)) { f.push(`run ${run.id}: provenance does not identify ${c}`); r = "unknown"; }
     else if (def.version !== undefined && provenance[c] !== def.version) r = "unknown";
     const suites = kind === "case" ? [suite] : scope.filter((s) => casesOf(s).includes(c));
     for (const s of suites) occ.push({ suite: s, case: c, r, ran: o === "passed" || o === "failed" });
@@ -118,14 +122,17 @@ export function results(m, run) {
   const hits = (c, s) => occ.filter((o) => o.case === c && (s === undefined || o.suite === s));
   const of = (c, s) => hits(c, s).map((o) => o.r);
   const ran = (c, s) => hits(c, s).some((o) => o.ran);
-  const cases = Object.fromEntries(live.map((c) => [c, agg(of(c))]));
   const suiteIds = kind === "plan" ? ix.ids.plans.get(run.of).suites ?? [] : kind === "suite" ? [run.of] : [];
+  // In a Plan Run, a Case keeps a result per containing Suite, and its result aggregates them (testing/F30).
+  const containing = (c) => suiteIds.filter((s) => (ix.ids.suites.get(s)?.cases ?? []).includes(c));
+  const result = (c, inapplicable) => (kind === "plan" ? agg(containing(c).map((s) => (inapplicable && !ran(c, s) ? "inapplicable" : agg(of(c, s))))) : agg(of(c)));
+  const cases = Object.fromEntries(live.map((c) => [c, result(c, false)]));
   const suites = Object.fromEntries(suiteIds.map((s) => [s, agg((ix.ids.suites.get(s)?.cases ?? []).filter((c) => live.includes(c)).map((c) => agg(of(c, s))))]));
   const plans = {};
   if (kind === "plan") {
     const p = ix.ids.plans.get(run.of);
     const decl = new Set((p.inapplicable ?? []).map((d) => d.case));
-    const pc = Object.fromEntries(live.map((c) => [c, decl.has(c) && !ran(c) ? "inapplicable" : cases[c]]));
+    const pc = Object.fromEntries(live.map((c) => [c, result(c, decl.has(c))]));
     const ps = Object.fromEntries(suiteIds.map((s) => [s, agg((ix.ids.suites.get(s)?.cases ?? []).filter((c) => live.includes(c)).map((c) => (decl.has(c) && !ran(c, s) ? "inapplicable" : agg(of(c, s)))))]));
     plans[run.of] = { result: agg(Object.values(pc)), cases: pc, suites: ps };
   }
@@ -144,7 +151,7 @@ export function evaluate(m, run, options = {}) {
   if (!Array.isArray(list)) findings.push("allowances must be a list");
   else for (const a of list) {
     if (typeof a?.case !== "string" || a.cite === undefined) findings.push(`malformed allowance ${JSON.stringify(a)}`);
-    else if (!(a.case in cases)) findings.push(`${a.case} is outside ${run?.of}`);
+    else if (!Object.hasOwn(cases, a.case)) findings.push(`${a.case} is outside ${run?.of}`);
   }
   const out = { run: run?.id, plan: run?.of, cases, suites: p ? p.suites : r.suites, allowed, stale, findings };
   if (findings.length) return { ...out, result: "unknown" };
