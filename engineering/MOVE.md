@@ -65,4 +65,6 @@ What is demonstrated, and what is not yet:
 
 Candidates for *x+1* are built on working branches and collected on `kaal/*`. Only `kaal/*` reaches `main`, through required checks ([branching](github/branching.md)). One concrete instance is how the Change Isolation, Lineage Synchronization and Promotion Source checks run `engineering/github/lineage.ts`. They take it from `main` with `git show`, never from the candidate. So *x* judges *x+1*, and a candidate cannot certify itself with its own checker.
 
+Two KAAL-wide mnemonics name where that boundary is enforced. HITMAN (Hooks Integrating Tests, Making Agents Nervous) is local feedback through Git hooks. CLAUSE (CI Lets Agents Update Service Errors) is CI and required checks: agents implement and propose, and required checks govern integration. Guard realizes both mechanisms and owns neither.
+
 MOVE owns none of this realization. Engineering, packaging, hosting, Change and Testing each keep their own.
