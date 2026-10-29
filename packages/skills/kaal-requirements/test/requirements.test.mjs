@@ -18,6 +18,8 @@ const PACKAGE = fileURLToPath(new URL("../", import.meta.url));
 const CAPABILITY = join(PACKAGE, "capability");
 const node = () => identify(readFileSync(join(CAPABILITY, "Requirements.md")));
 const text = () => readFileSync(join(CAPABILITY, "Requirements.md"), "utf8");
+const definition = () => identify(readFileSync(join(CAPABILITY, "Requirement.md")));
+const definitionText = () => readFileSync(join(CAPABILITY, "Requirement.md"), "utf8");
 
 describe("the Capability Node", () => {
   it("is typed by Core's KAAL Capability", () => {
@@ -38,18 +40,40 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires, apart from what it uses", () => {
-    assert.match(text(), /^It provides no Definition yet\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
+    assert.match(text(), /^It provides the Requirement Definition\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
     assert.match(text(), /^Its functional relationships are uses, not ownership\./m);
     assert.match(text(), /Stating a Requirement authorizes nothing\.$/m);
   });
 });
 
+describe("the Requirement Definition", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    assert.equal(definition().name, "Requirement");
+    assert.deepEqual(definition().type, foundation().definition);
+  });
+
+  it("states what must hold: one functional or non-functional condition, a responsible business context, verifiable by test or other evidence", () => {
+    assert.match(definitionText(), /^A Requirement states what must hold\. It is one functional or non-functional condition that what is built is to satisfy, held by the business context responsible for it, and stated precisely enough to be verified by test or other evidence\.$/m);
+  });
+
+  it("answers what alone and leaves why, where, how and whether to their owners", () => {
+    assert.match(definitionText(), /^It answers what, and only that\. It does not say why \(Intent\), where \(Architecture\), how \(Code\), or whether it holds \(Testing\)\.$/m);
+  });
+
+  it("may trace to a represented Intent without depending on it, and keeps its trigger apart", () => {
+    assert.match(definitionText(), /^It may name an Intent it traces to, where one is represented\. That trace is a reference, not a dependency, and it transfers no ownership\.$/m);
+    assert.match(definitionText(), /^What prompted it to be identified, its trigger, may be recorded beside it\. The trigger is neither the Requirement nor its Intent\.$/m);
+    assert.match(definitionText(), /^A condition that cannot be verified is not yet a Requirement\.$/m);
+  });
+});
+
 describe("admission", () => {
-  it("is admitted as a Capability by Core alone", async () => {
+  it("is admitted as a Capability by Core alone, with the Requirement Definition admitted alongside", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-requirements-")), "engine");
     await bootstrap(engine);
     const r = await register(engine, "capability", "requirements", await readContribution(CAPABILITY));
     assert.deepEqual(r.ids, [node().id]);
+    assert.deepEqual(readFileSync(join(engine, "capabilities", "requirements", "Requirement.md")), readFileSync(join(CAPABILITY, "Requirement.md")));
     assert.deepEqual((await catalog(engine)).capabilities, [{ name: "Requirements", id: node().id }]);
     assert.equal((await verify(engine)).ok, true);
   });
@@ -65,12 +89,13 @@ describe("Requirements' own claim", () => {
 });
 
 describe("the package", () => {
-  it("packs its Node and nothing else beyond its metadata", async () => {
+  it("packs its Node and Definition and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
     assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/Requirement.md",
       "capability/Requirements.md",
       "package.json",
     ]);

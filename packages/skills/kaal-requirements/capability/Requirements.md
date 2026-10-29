@@ -11,6 +11,6 @@ Requirements is the responsibility for stating what must hold: the functional an
 
 A Requirement states what must hold. It does not explain, redefine or justify why that is wanted; that is Intent's. Where an Intent is represented, a Requirement may trace to it explicitly. The trace transfers no ownership, and no separately documented Intent is a prerequisite. What prompts a Requirement to be identified, such as a regulation, a contract, a constraint, a limitation or a request, is its trigger. The trigger is neither the Requirement nor an Intent. Where what must hold is placed is Architecture's, and how it is built is Code's. Whether it holds, by test, inspection, analysis or measurement, is Testing's to judge. None of these is a Requirement.
 
-It provides no Definition yet. For admission it requires Core's KAAL Capability, and nothing else.
+It provides the Requirement Definition. For admission it requires Core's KAAL Capability, and nothing else.
 
 Its functional relationships are uses, not ownership. Requirements, architecture and Testing are aligned with one another while a Change is planned, before it is coded, and that alignment belongs to none of them. A Change carries the Requirements it realizes without defining them, and Engineering consumes them when it builds. Stating a Requirement authorizes nothing.
