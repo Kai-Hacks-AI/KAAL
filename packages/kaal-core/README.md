@@ -168,6 +168,17 @@ checkContract({ format: installationFormat(), capability: "sample", version: "0.
 
 An asset marked with a `surface`, such as `hook`, is installed only when a consumer opts in, by the Capability's own command; Core never realizes it. The record a contract names maps each file the Capability owns to its `sha256` and `version`, and any other member is the Capability's. `checkRecord(record)` returns its findings, and `register({ contract, record, written })` returns the record once the files Core wrote are registered: only asset files Core wrote, with the contract's version, keeping every other entry and member.
 
+### Installation Contract Conformance
+
+`kaal-core/conformance` offers Core's own Test Cases for the Installation Contract, core/T10 to core/T13, as reusable cases over any contract instance. `installationConformance(instance)` checks that the instance conforms, then that `checkContract` refuses each of the cases' mutations of it: unknown and missing members, wrong types, unsafe targets, catalogue entries that name no asset, and Skills provided at another location. It returns one result per case, and a test runner wraps each in a test of its own. A mutation that cannot be applied to the instance is a failure, never a pass. The module registers no test, imports no test harness, and nothing in Core's runtime loads it.
+
+```js
+import { installationConformance } from "kaal-core/conformance";
+
+installationConformance(contract);
+// [{ id: "core/T10", holds: true, failures: [] }, { id: "core/T11", ... }, { id: "core/T12", ... }, { id: "core/T13", ... }]
+```
+
 ### Agent Realization
 
 `kaal-core/agent` plans how Core makes each Skill reachable by the agents of the providers a repository declares in `.kaal/config/core/agents.json` (`declaration`). Every Skill is deployed to `.agents/skills/<name>/`; a provider that discovers Skills only at a location of its own (Claude Code, `.claude/skills/<name>/`) gets a copy of the same canonical source. Every Skill file is deployed with the bytes the Capability ships, everywhere: Core states no Skill format and reads no `SKILL.md`, which is Engineer Skill's. Core claims only what its own record holds: a file someone changed, and anything at a target Core did not deploy, is kept and reported, and only unmodified files Core deployed are pruned. Core never writes an instruction file such as `AGENTS.md` or `CLAUDE.md`, and governs no location but its own deployments.
