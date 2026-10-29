@@ -113,7 +113,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     assert.match(testing, /not (delivered|shipped)|do(es)? not ship/i, "and says they are not delivered");
   });
 
-  it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's installed files are exactly those its operations document lists and `npm test` ends in verified; a corrupted file is never verified, and any one loop that runs no test, or no delivered tests at all, gives cannot verify", { timeout: 600_000 }, () => {
+  it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's installed files are exactly those its operations document lists and `npm test` ends in verified; a corrupted file is never verified, a failing delivered test in any one loop gives failed, and any one loop that runs no test, or no delivered tests at all, gives cannot verify", { timeout: 600_000 }, () => {
     assert.equal(pkg().scripts?.test, "node test/verify.mjs", "blocked before release acceptance: npm test is not the consumer entry");
     const work = mkdtempSync(join(tmpdir(), "kaal-core-release-"));
     try {
@@ -137,23 +137,28 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       const verify = () => run("npm", ["test"], installed);
       const ok = verify();
       assert.equal(ok.status, 0, ok.out);
-      assert.match(ok.out.trim().split(/\r?\n/).pop(), /\bverified\b/, ok.out);
+      const last = (r) => r.stdout.trim().split(/\r?\n/).pop() ?? "";
+      assert.match(last(ok), /\bverified\b/, ok.out);
       const index = join(installed, "dist", "index.js");
       const original = readFileSync(index);
       writeFileSync(index, "throw new Error('corrupted');\n");
       const bad = verify();
       assert.notEqual(bad.status, 0, "a corrupted installation does not pass");
       assert.match(bad.out, /\bfailed\b|\bcannot verify\b/);
-      assert.doesNotMatch(bad.out.trim().split(/\r?\n/).pop(), /^\W*verified\b/);
+      assert.doesNotMatch(last(bad), /^\W*verified\b/, bad.out);
       writeFileSync(index, original);
       const loops = [...LOOPS.map((l) => [l, [join(installed, "test", "acceptance", `${l}.test.mjs`)]]), ["code", readdirSync(join(installed, "test", "unit")).filter((f) => f.endsWith(".test.mjs")).map((f) => join(installed, "test", "unit", f))]];
       for (const [loop, paths] of loops) {
         const kept = paths.map((path) => [path, readFileSync(path)]);
         for (const [path] of kept) writeFileSync(path, 'import "node:test";\n');
         const empty = verify();
+        writeFileSync(kept[0][0], 'import { it } from "node:test";\nit("fails on purpose", () => { throw new Error("deliberate"); });\n');
+        const failing = verify();
         for (const [path, bytes] of kept) writeFileSync(path, bytes);
         assert.equal(empty.status, 2, `the ${loop} loop ran no test while the others passed: ${empty.out}`);
-        assert.match(empty.out, /cannot verify/, `an empty ${loop} loop is never verified`);
+        assert.match(last(empty), /cannot verify/, `an empty ${loop} loop is never verified: ${empty.out}`);
+        assert.equal(failing.status, 1, `a failing ${loop} test with kaal-core intact gives failed: ${failing.out}`);
+        assert.match(last(failing), /\bfailed\b/, `a failing ${loop} test is never verified: ${failing.out}`);
       }
       rmSync(join(installed, "test", "acceptance"), { recursive: true, force: true });
       rmSync(join(installed, "test", "unit"), { recursive: true, force: true });
