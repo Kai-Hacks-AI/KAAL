@@ -11,6 +11,7 @@
     "./contracts": "./lib/contracts.mjs",
     "./coverage": "./lib/coverage.mjs",
     "./inventory": "./lib/inventory.mjs",
+    "./model": "./lib/model.mjs",
     "./package.json": "./package.json",
     "./report": "./lib/report.mjs"
   },
@@ -22,7 +23,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/observed.test.mjs test/plan/evidence.test.mjs test/plan/consumer.test.mjs test/plan/boundary.test.mjs test/interpret.test.mjs"
+    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/observed.test.mjs test/plan/evidence.test.mjs test/plan/consumer.test.mjs test/plan/boundary.test.mjs test/interpret.test.mjs test/plan/model.test.mjs"
   },
   "engines": {
     "node": ">=24"

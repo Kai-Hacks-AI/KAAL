@@ -38,6 +38,10 @@ Every finding names its subject, where it is, and the evidence it rests on. Pass
 
 Testing keeps no registry of tests or findings. Its execution runs a capability's own cases as that capability defines them, and adds none.
 
+## The Testing model
+
+Testing defines Strategy, Plan, Suite and Case, and nothing of any other Capability. A Strategy names one or more Plans, a Plan its Suites and a Suite its Cases, and a Suite or Case may belong to many. Each product owns its instances and their identities. A Case's **tests →** trace points out to a subject whose kind and meaning belong to that subject's owner; who tests a subject is derived, never declared by it, and no result speaks of a subject. A Plan, Suite or Case may run independently, any number of times. A Run identifies what it executed, and its results stand for that Run only: a Case that did not run, or whose executed version the Run does not identify, is unknown. A Plan's acceptance follows the allowances its caller supplies, never a baseline, and an allowed Case stays failed. Test Data belongs to the context that defines it, and reuse never moves ownership. Testing keeps no Run: retention is the holding context's. A retired Case stays declared as provenance and is no longer executable.
+
 ## Consumer verification
 
 A product may deliver, with its distribution, the cases by which a consumer verifies the product as installed. They are the product's own acceptance or conformance cases, kept apart from tests that serve only its engineering, and the product declares which cases they are.

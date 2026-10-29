@@ -41,7 +41,7 @@ Intent, Requirements and Architecture establish their tests in PLAN. In DO and C
 
 **To Enhance Systematic Testing: Architecture, Functional requirements, Intent, Nonfunctional requirements, Defects — Inform Next Generation.**
 
-A Test Case normally traces to one specific target, according to its loop and purpose. TEST A FINDING names the permitted target kinds:
+A Test Case normally traces to one subject, according to its loop and purpose. For KAAL's own loops, TEST A FINDING recommends these subject kinds:
 
 - Architecture;
 - Functional requirements;
@@ -49,7 +49,11 @@ A Test Case normally traces to one specific target, according to its loop and pu
 - Nonfunctional requirements;
 - Defects.
 
-Additional traces require justification. Name the target in the test's title, such as `core/T37 [core/F37]`, and in the PLAN's testing table. Inform Next Generation is the feedback of evidence into the next PLAN, not another trace target.
+The list is guidance, not a restriction: a subject's kind and meaning belong to its own Capability or product, and Testing never prescribes them. Additional traces require justification. Name the target in the test's title, such as `core/T37 [core/F37]`, and in the PLAN's testing table. Inform Next Generation is the feedback of evidence into the next PLAN, not another trace target.
+
+## Declaring and evaluating a model
+
+To declare a product's tests as data, use `kaal-testing/model`. Declare only the levels you use: `strategies`, `plans`, `suites` and `cases`, each with the identities you already have. A Case's `tests` names the subjects it traces to. Run `check(model)` and report every finding. Hand each Run in as `{ id, of, provenance, outcomes, data, runs }`, identifying every definition it executed. Read `results(model, run)` for one Run, and `evaluate(model, run, { allowances })` for a Plan Run, citing each allowance. An allowed Case stays failed and an unknown is never allowed. A result stands for that Run only. Keep Runs where the holding context decides; Testing keeps none.
 
 ## Running acceptance
 

@@ -17,6 +17,7 @@ Each element names, in brackets, the Requirements it answers.
     | `./contracts` | contract evidence of a capability's mapping | Testing | no |
     | `./coverage` | execution and evidence of a capability's own tests | Testing | no |
     | `./inventory` | non-blank text lines of the listed files | Testing | no |
+    | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | `testing/C15` | no |
     | `./package.json` | the package manifest | Testing | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
 - **testing/A9** [testing/F12, testing/F13]: **npm, the first realization.** Testing records it here without making it the definition.
