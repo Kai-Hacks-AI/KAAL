@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Service", "id": "4a085ca04398a5d4fbd7bf3d67e644ae8271130b26acd783c8ae944c98b4366e" },
+  "paths": ["packages/kaal-service/"]
+}
