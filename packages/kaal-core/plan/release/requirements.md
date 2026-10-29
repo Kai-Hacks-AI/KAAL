@@ -35,6 +35,11 @@ Each Requirement names, in brackets, the Intents it serves.
   - **cannot verify**, when a loop ran no test or the installed copy cannot be exercised, for example because a file is missing.
 
   Zero tests is never `verified`. The delivered tests need only Node and the package's runtime dependencies, never the repository, a build tool or the network.
+- **core/F75** [core/I22, core/I23]: One test entry, two places, as the Owner set the convention on #625 (comment 6504401799):
+  - **in the source workspace,** `npm test` is comprehensive. It runs every suite the package declares as a `test:<name>` script, the publisher's and the consumer's included, and it never invokes itself;
+  - **in an installation,** `npm test` runs the consumer verification only (`core/F70`). The installed package needs neither the publisher's tests nor KAAL's repository.
+
+  Core owns its suites, its scripts and their implementations. Engineering runs them in the package's own directory and may select a named suite, but never copies or redefines them.
 - **core/F71** [core/I22]: `docs/testing.md` separates what runs where:
   - it names each delivered test file, its loop and what it checks;
   - it names the publisher's Engineering tests (the planned outer tests, the build-time Code tests and the bench) as not delivered and not run in an installation;

@@ -6,14 +6,16 @@ Each element names, in brackets, the Requirements it answers.
   - `test/acceptance/` holds one file for each outer loop: `intent`, `requirements` and `architecture`.
   - `test/unit/` holds the Code tests that need no build.
   - The delivered tests are plain `node:test` files that import kaal-core by its package name, so they exercise whichever copy is installed.
-- **core/A34** [core/F70]: Two test scripts.
-  - `npm test` becomes the consumer entry, `node test/verify.mjs`. It runs the delivered loops, counts the tests in each, and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing.
-  - Today's script, which builds with `tsc` and runs the publisher's tests, becomes `npm run test:publisher`.
-  - Engineering's Workspaces lane runs `npm test` in each workspace, so it must run kaal-core's `test:publisher` from `core/C29` on (see the release blockers below).
+- **core/A34** [core/F70, core/F75]: Named suites and one runner.
+  - `test:consumer` is the consumer verification, `node test/verify.mjs`. It runs the delivered loops, counts the tests in each, and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing.
+  - `test:publisher` is today's script: it builds with `tsc` and runs the publisher's tests.
+  - `npm test` is `node test/run.mjs`, a runner that ships. It runs every declared `test:<name>` script with `npm run`, in the order `package.json` declares them, and never runs `test` itself. In the source workspace it runs them all. In an installation, where `test/plan/` is absent because it never ships, it runs `test:consumer` alone and exits with its result. Anywhere else, it exits non-zero when any suite fails.
+  - Other declared suites, such as today's `test:boundary`, run in the source workspace like any other. `core/C29` decides whether a subset suite stays declared.
+  - Engineering's lanes need no change. They run the comprehensive `npm test` in the source workspace. engineering/C6 (#625) adds a Consumer lane for the installed verdict, and `core/C29` takes kaal-core off that lane's not-ready list.
 - **core/A35** [core/F72, core/F73]: Release acceptance packs and installs:
   - `npm pack` packs kaal-core and each runtime dependency;
   - the tarballs install with `npm install` into a directory under the operating system's temporary directory;
-  - `npm test` runs in the installed kaal-core, `node_modules/@kaihacksai/kaal-core` once `core/F74` holds. The tests read the name from `package.json`, so they need no edit when it changes.
+  - the installed `npm test` runs in the installed kaal-core, `node_modules/@kaihacksai/kaal-core` once `core/F74` holds. The tests read the name from `package.json`, so they need no edit when it changes.
 
   Core's planned test does this itself for 0.0.1. Engineering's consumer harness for Guard (`engineering/guard/consumer/`) may later host it.
 - **core/A36** [core/F73, core/F74]: Renames and publication readiness, each in its owner's Change:
@@ -46,8 +48,8 @@ Each element names, in brackets, the Requirements it answers.
 | 6 | Hosting PLAN and DO: rename to `@kaihacksai/kaal-hosting` | Hosting | — | to be raised by Hosting |
 | 7 | Graph PLAN and DO: rename to `@kaihacksai/kaal-graph` | Graph | 6 | to be raised by Graph |
 | 8 | Foundation PLAN and DO: publishable, independently installable `@kaihacksai/kaal-foundation` | Foundation | — | to be raised by Foundation |
-| 9 | Engineering: the Workspaces lane runs kaal-core's `test:publisher` | Engineering | — | to be raised by Engineering |
-| 10 | `core/C29` DO: rename to `@kaihacksai/kaal-core`, delivered documents and tests, `test/verify.mjs`, core/T74–T79 GREEN | Core | 2, 5, 7, 8, 9, and release blocker 3 | — |
+| 9 | `engineering/C6`: the Consumer lane, which runs each installed package's `npm test` | Engineering | — | #625, open |
+| 10 | `core/C29` DO: rename to `@kaihacksai/kaal-core`, delivered documents and tests, `test/verify.mjs`, core/T74–T80 GREEN | Core | 2, 5, 7, 8, and release blocker 3 | — |
 | 11 | promotions of Hosting, Graph and Foundation, and of `kaal/core` → `main` | each owner | 6–10 | Owner's go |
 | 12 | publication of `@kaihacksai/kaal-hosting`, `@kaihacksai/kaal-graph` and `@kaihacksai/kaal-foundation` 0.0.1 | their owners | 11 | Owner's go |
 | 13 | publication of `@kaihacksai/kaal-core` 0.0.1 | Owner | 11, 12 | Owner's hand |
@@ -61,4 +63,4 @@ Each of these blocks the release until the party named resolves it. None is reso
 1. **A private dependency.** kaal-core depends on `@kaihacksai/kaal-foundation` 0.0.1, which is marked `private`, so a consumer cannot install it. core/T78 is RED on this. The Owner decided on #622: Foundation becomes a separately installable, published package. Foundation's owner plans and verifies its own readiness (map row 8), and the version and publication stay the Owner's. The blocker holds until that lands.
 2. **Package scope and names.** kaal-core, `kaal-graph` and `kaal-hosting` are unscoped today. core/T79 is RED on this. The Owner decided on #622: all four use the `@kaihacksai/kaal-*` namespace, consistent with Guard. Each owner renames its own package (map rows 6, 7 and 10, `core/A36`), and Core never renames another capability's package. The blocker holds until every rename lands.
 3. **The result vocabulary.** `test/verify.mjs` reports `verified`, `failed` and `cannot verify`. Their definitions are cited from Testing (testing/C9). Core does not import Guard's semantic authority over them, even though Guard uses the same words (guard/F31–guard/F36). If Testing does not define them, that is Testing's decision to make.
-4. **The publisher's tests.** Once `npm test` is consumer-facing (`core/A34`), Engineering's Workspaces lane must keep running kaal-core's publisher tests through `test:publisher`. That is an Engineering change, needed before `core/C29` merges.
+4. **The test entry.** Resolved by the Owner's convention on #625: source `npm test` stays comprehensive, and the installed `npm test` runs consumer verification only (`core/F75`, `core/A34`). Engineering's source lanes need no change, and `core/C29` does not wait on Engineering.

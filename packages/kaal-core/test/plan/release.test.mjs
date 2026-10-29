@@ -98,11 +98,12 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     for (const left of ["align", "relationship", "complement"]) assert.ok(limits.includes(left), `docs/limitations.md names what 0.0.1 leaves out: ${left}`);
   });
 
-  it("core/T75 [core/F70, core/F71, core/A33, core/A34]: `npm test` is the consumer entry and builds nothing, the publisher's tests have their own script, the delivered loops ship, and docs/testing.md names every delivered test file and the publisher's tests as not delivered", () => {
+  it("core/T75 [core/F70, core/F71, core/F75, core/A33, core/A34]: the consumer and publisher suites are named, npm test is the shipped runner, the runner, verifier and delivered loops ship, and docs/testing.md names every delivered test file and the publisher's tests as not delivered", () => {
     const { scripts = {}, files = [] } = pkg();
-    assert.equal(scripts.test, "node test/verify.mjs", "npm test runs the delivered verification");
-    assert.ok(scripts["test:publisher"], "the publisher's tests keep a script of their own");
-    for (const f of ["docs", "test/acceptance", "test/unit", "test/verify.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
+    assert.equal(scripts["test:consumer"], "node test/verify.mjs", "test:consumer runs the delivered verification");
+    assert.ok(scripts["test:publisher"], "the publisher's tests are a suite of their own");
+    assert.equal(scripts.test, "node test/run.mjs", "npm test is the runner");
+    for (const f of ["docs", "test/acceptance", "test/unit", "test/verify.mjs", "test/run.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
     const shipped = packed(CORE).filter((f) => f.startsWith("test/"));
     for (const loop of LOOPS) assert.ok(shipped.includes(`test/acceptance/${loop}.test.mjs`), `the ${loop} loop ships`);
     assert.ok(shipped.some((f) => f.startsWith("test/unit/") && f.endsWith(".test.mjs")), "the Code loop ships");
@@ -114,7 +115,8 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
   });
 
   it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's installed files are exactly those its operations document lists and `npm test` ends in verified; a corrupted file is never verified, a failing delivered test in any one loop gives failed, and any one loop that runs no test, or no delivered tests at all, gives cannot verify", { timeout: 600_000 }, () => {
-    assert.equal(pkg().scripts?.test, "node test/verify.mjs", "blocked before release acceptance: npm test is not the consumer entry");
+    assert.equal(pkg().scripts?.["test:consumer"], "node test/verify.mjs", "blocked before release acceptance: no consumer suite");
+    assert.equal(pkg().scripts?.test, "node test/run.mjs", "blocked before release acceptance: npm test is not the runner");
     const work = mkdtempSync(join(tmpdir(), "kaal-core-release-"));
     try {
       const tarballs = [];
@@ -139,6 +141,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       assert.equal(ok.status, 0, ok.out);
       const last = (r) => r.stdout.trim().split(/\r?\n/).pop() ?? "";
       assert.match(last(ok), /\bverified\b/, ok.out);
+      assert.doesNotMatch(ok.out, /test:publisher/, "the installed npm test never starts the publisher suite");
       const index = join(installed, "dist", "index.js");
       const original = readFileSync(index);
       writeFileSync(index, "throw new Error('corrupted');\n");
@@ -165,6 +168,39 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       const none = verify();
       assert.equal(none.status, 2, none.out);
       assert.match(none.out, /cannot verify/, "zero delivered tests is never verified");
+    } finally {
+      rmSync(work, { recursive: true, force: true });
+    }
+  });
+
+  it("core/T80 [core/F75, core/A34]: the shipped runner runs every declared test:<name> suite in the source workspace and never test itself; installed, it runs only test:consumer and exits with its result; a failing suite fails it", { timeout: 120_000 }, () => {
+    const runner = join(CORE, "test", "run.mjs");
+    assert.ok(existsSync(runner), "blocked before behavioural assertion: test/run.mjs does not exist");
+    const work = mkdtempSync(join(tmpdir(), "kaal-core-runner-"));
+    try {
+      const say = (word, code = 0) => `node -e "console.log(['ran', '${word}'].join(' '));process.exit(${code})"`;
+      const fixture = (scripts, source) => {
+        const dir = mkdtempSync(join(work, "pkg-"));
+        mkdirSync(join(dir, "test"));
+        writeFileSync(join(dir, "test", "run.mjs"), readFileSync(runner));
+        if (source) mkdirSync(join(dir, "test", "plan"));
+        writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "0.0.0", private: true, type: "module", scripts: { test: "node test/run.mjs", ...scripts } }));
+        return run("npm", ["test"], dir);
+      };
+      const all = { "test:consumer": say("consumer"), "test:publisher": say("publisher"), "test:extra": say("extra") };
+      const source = fixture(all, true);
+      assert.equal(source.status, 0, source.out);
+      for (const word of ["consumer", "publisher", "extra"]) assert.match(source.out, new RegExp(`ran ${word}`), `the source npm test runs test:${word}`);
+      assert.equal(source.out.match(/ran consumer/g)?.length, 1, `each suite runs once and npm test never invokes itself: ${source.out}`);
+      const installed = fixture(all, false);
+      assert.equal(installed.status, 0, installed.out);
+      assert.match(installed.out, /ran consumer/);
+      assert.doesNotMatch(installed.out, /ran (publisher|extra)/, "installed, only test:consumer runs");
+      const cannot = fixture({ ...all, "test:consumer": say("consumer", 2) }, false);
+      assert.equal(cannot.status, 2, `installed, the runner exits with the consumer's result: ${cannot.out}`);
+      const failing = fixture({ ...all, "test:publisher": say("publisher", 1) }, true);
+      assert.notEqual(failing.status, 0, "a failing suite fails the source npm test");
+      assert.match(failing.out, /ran extra/, "a failing suite does not hide the suites after it");
     } finally {
       rmSync(work, { recursive: true, force: true });
     }
