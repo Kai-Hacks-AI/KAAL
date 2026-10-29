@@ -11,9 +11,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { bootstrap, capabilities, foundation, identify, readContribution, register, registerSkill, verify } from "kaal-core";
+import { bootstrap, capabilities, foundation, readContribution, register, registerSkill, verify } from "kaal-core";
 import { checkSkill } from "kaal-engineer-skill";
-import { createNode, Graph, identify as graphIdentify } from "kaal-graph";
+import { createNode, Graph, identify } from "kaal-graph";
 import { read } from "kaal-hosting";
 import { CLAIM_FILE, readClaim } from "kaal-testing/attribution";
 
@@ -78,8 +78,7 @@ describe("a documented control", () => {
 
   it("has a Realized by Edge that Graph finds well formed and resolved", () => {
     const { capability, control } = documented();
-    // Graph takes Nodes as its own identify() returns them.
-    const payload = ["Control.md", "Controls.md", "Realized-by.md"].map((f) => graphIdentify(readFileSync(join(PAYLOAD, f))));
+    const payload = ["Control.md", "Controls.md", "Realized-by.md"].map(node);
     const graph = new Graph([...payload, capability.node, control.node]);
     assert.deepEqual(graph.check(), []);
     assert.deepEqual(graph.out(control.node.id), [{ type: ref(node("Realized-by.md")), target: ref(capability.node) }]);
