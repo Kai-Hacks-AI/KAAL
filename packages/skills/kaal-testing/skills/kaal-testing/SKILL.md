@@ -63,6 +63,20 @@ To relate coverage to ownership, use `report` from `kaal-testing/report`. A deli
 
 Report findings in four kinds, never merged: verified failure, potential defect, architectural concern, unknown. The form for each, and how to state a clean result, is in [references/findings.md](references/findings.md).
 
+## Making a product verifiable by its consumers
+
+When a product is to be verifiable by the people who install it, follow the `Testing` Node's section "Consumer verification" for what it means. In short:
+
+- Deliver only the product's own acceptance or conformance cases, kept apart from engineering-only tests, and declare which cases they are.
+- Document one entry point. Locate the installed product by resolution, never by a source path, and fail closed: fewer cases executed than declared is unknown, never verified.
+- Give exactly one result per run: failed, unknown or verified, each with its own exit status and summary.
+- Name what was exercised: name, version, install location, and byte identity where the installation records one.
+- Work outside the consumer's content, leave it unchanged, and show that it is unchanged. Keep the procedure repeatable, and report each run's observed outcome, evidence and conditions faithfully. Never promise the same result from the same installation.
+- Report conformance and integration as separate verdicts.
+- Treat a consumer's result as the consumer's own observation, never as evidence Testing observed.
+
+Realize this in the product's own code and cite the contract ids. Do not depend on a Testing package for it.
+
 ## Rules
 
 - A passing check shows only what it covers. Say "no violation found within this coverage", never "correct" or "compliant".
