@@ -29,7 +29,7 @@ Engineering adds no boundary rule of its own, and decides no finding.
 
   A finding is for review, not an automatic failure, when the provider's Suite says so. Its resolution, validated with who judged, what and where, or visibly unresolved, follows Testing's terms and never counts as passing.
 - **engineering/N8. Deterministic.** The same matrix, Suites and sources always give the same findings, in the same order.
-- **engineering/N9. Unsupported exclusions.** An exclusion without a reason, or without evidence, is a finding, and its cell is treated as applying. Hosting is the expected exclusion from its own host-coupling Suite. That exclusion too is written in the matrix with its reason, and is not implied.
+- **engineering/N9. Unsupported exclusions.** An exclusion without a reason, or without evidence, is a finding, and its cell is treated as applying. Hosting is the expected exclusion from its own host-coupling Suite, by hosting/C13's rule that Hosting realizes host differences. That exclusion too is written in the matrix, citing that rule, and is not implied.
 
 ## Today's evidence, enumerated
 
@@ -40,8 +40,8 @@ Core (`packages/kaal-core/test/boundary.test.ts`), Testing (`packages/skills/kaa
 | Prerequisite | Owner | Kind | State |
 | --- | --- | --- | --- |
 | Plan, Suite, Case, Run and inapplicability semantics | Testing | Technical: the DO evaluates the Plan with `kaal-testing`'s model. Order prerequisite | Planned in testing/C14, DO in testing/C15 (#630) |
-| Hosting's Boundary Test Suite for host and OS coupling, with its positive and negative fixtures, a T114-like OS-specific skip among them | Hosting | Technical: the first column of the matrix. Order prerequisite | To be planned in Hosting's own Change. Engineering asks for it and writes nothing in Hosting's tree |
-| How a provider declares its Suite so Engineering can find it | Each provider, first Hosting | Semantic reference | Named in Hosting's Change. Engineering follows it |
+| Hosting's Boundary Test Suite for host and OS coupling, with its positive and negative fixtures, a T114-like OS-specific skip among them | Hosting | Technical: the first column of the matrix. Order prerequisite | Planned in hosting/C13 (#650): `boundarySuite({ name, root, builtins, test })` in `packages/extensions/kaal-hosting/conformance/boundary.mjs`, publisher-only and imported by repository path. Each run writes one stated structured result, the `kaal-hosting-boundary` line, which the DO reads from the run's own output, never from a TAP rendering. Engineering writes nothing in Hosting's tree |
+| How a provider declares its Suite so Engineering can find it | Each provider, first Hosting | Semantic reference | Hosting's is the repository path above. The matrix names each provider's Suite by its path, so a provider not named there is a finding |
 | Per-platform execution | Engineering's lanes, in CI | Delivery: running cells on three platforms is a `.github/` Change of its own | Not in this Change |
 
 **Runs of one Suite over many targets, as Testing answered.** One Suite runs over many targets, and Testing's model admits it as it is (testing/F30, F31; `lib/model.mjs` on `kaal/testing`):
