@@ -1,0 +1,23 @@
+{
+  "name": "kaal-data",
+  "version": "0.0.1",
+  "description": "KAAL Data: Data Management, managing data so that it warrants the trust placed in it: generic organization, stewardship, quality, provenance and lifecycle.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "capability"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/data.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
