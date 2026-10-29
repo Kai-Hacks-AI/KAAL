@@ -9,6 +9,9 @@ capability/PREACH.md     the PREACH Definition, typed by KAAL Definition: Progra
 bin/kaal-agents.mjs      orient (NEW) and preach check (PREACH)
 lib/                     orientation, Git, Core's catalog and the PREACH check
 skills/kaal-agents/      the Skill: starting work from durable sources, escalating through PREACH
+docs/                    the product contract: Intent, Requirements, Architecture, Operations, Limitations, Testing
+test/consumer/           the delivered cases, run against the installed copy
+test/verify.mjs          the consumer's verification, with its manifest test/verify.json
 ownership.kaal.json      Agents' own ownership claim (repository data, not delivered)
 ```
 
@@ -21,6 +24,14 @@ This package establishes the capability only. It registers no Agent, keeps no se
 ```sh
 npx kaal register capability agents node_modules/kaal-agents/capability    # Core decides
 ```
+
+## Verify the installation
+
+```sh
+npm explore kaal-agents -- npm test
+```
+
+It ends in verified, failed or cannot verify. See `docs/operations.md`.
 
 ## License
 
