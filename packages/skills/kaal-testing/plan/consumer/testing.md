@@ -13,7 +13,7 @@ What stays validation: whether the statements say what the Owner meant, and whet
 
 ## Amendment
 
-`testing/C17` narrows testing/T18. As planned, it pinned kaal-testing's whole export list, so any later Change that adds an export for its own contract, such as `testing/C12`'s `./boundary` or `testing/C15`'s `./model`, would turn it RED although consumer verification gained no mechanism. testing/T18 now asserts what testing/N5 means: no export serves consumer verification, and the runtime dependencies are unchanged.
+`testing/C17` narrows testing/T18. As planned, it pinned kaal-testing's whole export list, so any later Change that adds an export for its own contract, such as `testing/C12`'s `./boundary` or `testing/C15`'s `./model`, would turn it RED although consumer verification gained no mechanism. testing/T18 now asserts that testing/A8's export inventory declares exactly the package's exports, that no row serves consumer verification, and that the runtime dependencies are unchanged. The evidence is the declared ownership and contract of each export, not its name: a test cannot show from a name that a module serves no mechanism, so the inventory makes that a declaration its owning Change answers for, and an undeclared export turns testing/T18 RED.
 
 ## RED evidence
 
