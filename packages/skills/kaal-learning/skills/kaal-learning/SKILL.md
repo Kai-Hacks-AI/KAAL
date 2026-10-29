@@ -16,6 +16,7 @@ Use this capability for what KAAL has come to understand from its work. Take the
 - evidence and findings: Testing;
 - observations and reviews of work: the capability for reviewing work;
 - the course of a Change: the capability for Changes;
+- a retrospective on completed work: this capability's `kaal-retro` Agent Skill;
 - a decision about what to do: the capability that makes it.
 
 ## Rules
