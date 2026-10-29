@@ -16,6 +16,7 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 | change/T8: order does not matter, other Nodes are ignored, and no Changes give an empty result | change/N1, change/I4 | Requirements |
 | change/T17: under content addressing, closing a cycle edits a pinned Change, so the attempt is a stale pin and never a cycle | change/F4, change/F12, change/A4 | Architecture |
 | change/T18: Nodes whose ids are not their bytes' hash can state a cycle, which is a finding naming its Changes, and the views still terminate | change/F12, change/A4 | Requirements |
+| change/T19: `exchange()` is plain, sorted, deterministic data: walked Changes with resolved direct dependencies, and typed findings | change/F13, change/A9 | Architecture |
 
 The following are validated by review:
 - `change/A1` is a placement.
@@ -26,4 +27,4 @@ change/T17 and change/T18 replace the earlier claim that acyclicity follows from
 
 ## RED evidence
 
-At `change/C1`, all ten tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./dependencies` and ships no Depends On Definition. They run with `node --test packages/skills/kaal-change/test/plan/dependencies.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
+At `change/C1`, all eleven tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./dependencies` and ships no Depends On Definition. They run with `node --test packages/skills/kaal-change/test/plan/dependencies.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.

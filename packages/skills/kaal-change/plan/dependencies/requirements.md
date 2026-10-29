@@ -36,3 +36,9 @@ Each Requirement names, in brackets, the Intents it serves.
 - **change/F12** [change/I2]: A cycle among resolved Depends On Edges is a finding naming each of its Changes, sorted, and so is a Change that depends on itself.
   - The views still terminate. Each lists a Change at most once, and never the Change it starts from.
   - Content addressing makes such a cycle unresolvable for Nodes read from their bytes (change/A4). The finding covers Nodes whose ids are asserted rather than derived.
+- **change/F13** [change/I2, change/I4]: `exchange()` gives the data form of the result, plain JSON with no functions, for another capability to consume.
+  - **The form.** It is `{ changes, findings }`.
+    - `changes` holds one entry per walked Change, `{ identity, id, dependsOn }`, sorted by identity. `id` is its content id, and `dependsOn` lists the identities of its resolved direct dependencies, sorted.
+    - `findings` holds one entry per finding, `{ kind, change, ... }`, where `kind` is `malformed`, `duplicate`, `unresolved`, `stale`, `not-a-change`, `cycle` or `held-key`. They are sorted by kind, then change, then their JSON.
+  - **Absences.** A Change that is not walked is absent from `changes`, and its finding says why. No stale, unresolved or cycle case becomes a dependency.
+  - **Determinism.** Identical Nodes, in any order, give byte-identical JSON.

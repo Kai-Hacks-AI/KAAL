@@ -194,4 +194,27 @@ describe("Change Nodes and their dependencies (change/C1)", () => {
     const acyclic = assess([...definitions, change("sample/C1"), change("sample/C4")]);
     assert.deepEqual(naming(acyclic.findings, "cycle"), [], "without a cycle there is no cycle finding");
   });
+
+  it("change/T19 [change/F13, change/A9]: `exchange()` is plain, sorted, deterministic data: walked Changes with resolved direct dependencies, and typed findings", async () => {
+    const { assess, definitions, change } = await fixture();
+    const c1 = change("sample/C1");
+    const c2 = change("sample/C2", [c1]);
+    const edited = change("sample/C3", [], {}, "as planned\n");
+    const c4 = change("sample/C4", [c2, edited, c1]);
+    const dupA = change("sample/C5", [], {}, "one\n");
+    const dupB = change("sample/C5", [], {}, "other\n");
+    const nodes = [...definitions, c4, dupB, c2, change("sample/C3", [], {}, "as edited\n"), c1, dupA, change("sample/c6")];
+    const data = assess(nodes).exchange();
+    assert.equal(JSON.stringify(JSON.parse(JSON.stringify(data))), JSON.stringify(data), "it is plain JSON data");
+    assert.deepEqual(Object.keys(data).sort(), ["changes", "findings"]);
+    assert.deepEqual(data.changes.map((c) => c.identity), ["sample/C1", "sample/C2", "sample/C3", "sample/C4"], "walked Changes only, sorted");
+    for (const c of data.changes) assert.deepEqual(Object.keys(c).sort(), ["dependsOn", "id", "identity"]);
+    assert.equal(data.changes[1].id, c2.id, "each carries its content id");
+    assert.deepEqual(data.changes[1].dependsOn, ["sample/C1"]);
+    assert.deepEqual(data.changes[3].dependsOn, ["sample/C1", "sample/C2"], "resolved direct dependencies only, sorted: the stale pin is not one");
+    const kinds = data.findings.map((f) => f.kind);
+    for (const k of ["stale", "duplicate", "malformed"]) assert.ok(kinds.includes(k), `a ${k} finding is typed`);
+    assert.deepEqual(kinds, [...kinds].sort(), "findings are sorted by kind");
+    assert.equal(JSON.stringify(assess([...nodes].reverse()).exchange()), JSON.stringify(data), "byte-identical in any order");
+  });
 });
