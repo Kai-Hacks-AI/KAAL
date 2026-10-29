@@ -1,7 +1,8 @@
+import { Graph } from "kaal-graph";
 import { kind as pathKind, read, update } from "kaal-hosting";
 import { check } from "./bootstrap.js";
 import { evaluate } from "./engine.js";
-import { claimsForm, compareRefs, identify, KaalError, type Ref } from "./node.js";
+import { claimsForm, compareRefs, KaalError, readNode, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
 export type Kind = "capability" | "agent" | "skill" | "extension";
@@ -72,7 +73,7 @@ export async function register(dir: string, kind: Kind, name: string, contributi
   for (const path of paths) {
     if (!claimsForm(files[path])) throw new KaalError(`${path} is not a Node: a contribution is Nodes and nothing else`);
     try {
-      identify(files[path]);
+      readNode(files[path]);
     } catch (e) {
       throw new KaalError(`${path}: ${(e as Error).message}`);
     }
@@ -94,7 +95,7 @@ export async function register(dir: string, kind: Kind, name: string, contributi
 
     const combined = evaluate({ ...present, ...Object.fromEntries(paths.map((p) => [`${prefix}/${p}`, files[p]])) });
     const admitted = new Set(combined.nodes.map((n) => n.id));
-    const nodes = paths.map((p) => ({ path: p, ...identify(files[p]) }));
+    const nodes = paths.map((p) => ({ path: p, ...readNode(files[p]) }));
     for (const n of nodes) {
       if (!n.type) throw new KaalError(`${n.path} declares no type: only the genesis Node does`);
       if (!admitted.has(n.id)) {
@@ -110,6 +111,10 @@ export async function register(dir: string, kind: Kind, name: string, contributi
       const crossed = nodes.find((n) => n.type?.id === other.id);
       if (crossed) throw new KaalError(`${crossed.path} is typed by ${other.name}: ${article} ${kind} contribution carries no ${other.name}`);
     }
+
+    // The Engine verified before; a typed artifact the contribution leaves unknown would make it fail (core/F32).
+    const unknown = combined.artifacts.find((a) => a.state === "unknown");
+    if (unknown) throw new KaalError(`${prefix}/ would leave ${unknown.path} with an unknown Type: ${unknown.findings.map((f) => f.rule).join("; ")}; nothing was written`);
 
     ids = [...new Set(typed.map((n) => n.id))].sort();
     return registered ? undefined : { prefix, files: Object.fromEntries(paths.map((p) => [p, files[p]])) };
@@ -145,8 +150,8 @@ export interface Catalog {
  * or layout is consulted.
  */
 export async function catalog(dir: string): Promise<Catalog> {
-  const engine = evaluate(await read(dir));
-  const refs = (kind: Kind): Ref[] => engine.typedBy(anchor(kind)).map(({ name, id }) => ({ name, id })).sort(compareRefs);
+  const admitted = new Graph(evaluate(await read(dir)).nodes);
+  const refs = (kind: Kind): Ref[] => admitted.typed(anchor(kind)).sort(compareRefs);
   return { capabilities: refs("capability"), agents: refs("agent"), skills: refs("skill"), extensions: refs("extension") };
 }
 
