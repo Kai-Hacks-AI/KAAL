@@ -195,6 +195,7 @@ The installed files are checked against a manifest that ships inside the package
 It does not tell you these:
 - **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
 - **Behaviour no case covers**, the promises allocated to the publisher's Engineering Test Plan, and those no Test Case verifies. The output lists them.
+- **That the verifier itself is correct.** Your run is judged by the verifier it reports from. Guard's cases of the verification itself run only in the publisher's Engineering, against a packed candidate before release. The output lists what they check as allocated to the publisher, never as passed.
 - **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
 
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.

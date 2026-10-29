@@ -416,7 +416,7 @@ Together they are 67% of `0.0.4`'s gzip bytes. `lib/`, `bin/`, `templates/` and 
 
 ## What a consumer reads and types (`guard/C115`)
 
-guard/T120–guard/T122 are planned in `guard/C115`. guard/T122 is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package. guard/T120 and guard/T121 check the verification's own output, whose identifiers (guard/F33, guard/F34) are allocated to this plan, so they are Engineering cases in `engineering/guard/acceptance/package.test.mjs`, run against a packed candidate in a fresh consumer.
+guard/T120–guard/T122 are planned in `guard/C115` and are Guard's, each defined once. They are placed by the realization whose contract they verify, not by where they run. guard/T122 checks the Embedded package's command surface: it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package and defined in its `docs/testing.md`. guard/T120 and guard/T121 judge the embedded verifier's own output, whose identifiers (guard/F33, guard/F34) are allocated to this plan: they are Engineering-side cases, defined here and written in `engineering/guard/acceptance/package.test.mjs`, which publisher Engineering runs against a packed candidate in a fresh consumer. They are not consumer-delivered coverage, and a consumer run never reports them as passed.
 
 | Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
 | --- | --- | --- | --- | --- |

@@ -29,10 +29,12 @@ The package's README says what each result means and what `verified` does and do
 
 Some promises cannot be checked by a run in your installation. They are obligations allocated to the publisher's Engineering Test Plan, which does not ship. Each one is named here, never silently (guard/F38). `npm test` lists each one as not verified by this run, allocated to the publisher. An allocation says what the publisher runs; it is not evidence that the run passed.
 
+Every Test Case named in these documents is Guard's, wherever it runs. A case is placed by the realization whose contract it verifies: a case of the package as you install it is delivered and runs in your installation, and the publisher may run it too without making it the publisher's. A case of the verification itself is defined in the publisher's Engineering Test Plan and runs only there, against a packed candidate. It is not delivered coverage, and your run cannot give independent assurance of the verifier that reports it: that assurance is the publisher's release evidence.
+
 <!-- allocated: read by the publisher into the manifest -->
 | Allocated | Identifiers | Allocated to |
 | --- | --- | --- |
-| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier |
+| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed |
 | Moving between published versions | guard/F11, guard/F14–guard/F16 | the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions |
 <!-- end of allocated -->
 
