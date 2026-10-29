@@ -36,7 +36,7 @@ Anything else is refused (guard/F18). Guard conforms to that contract without de
 
 **guard/F2 Verdicts.** [guard/I2] A check's exit status is its verdict: `0` pass, `1` fail, `2` cannot judge, `3` not applicable. Any other status is cannot judge, unless the check declares a named outcome for it. The only named outcome is `held`: shown as held, never as a pass and never as a fail. A check owns its diagnostics: its own output goes, unchanged and as it runs, to the hook's terminal or the CI log, and Guard neither captures nor interprets it. Guard prints each verdict by its own name, one line per check, as `<verdict>: <check>: <evidence>`, where the evidence is the check's exit status (with the trusted checker's provenance, guard/F7), and never collapses one verdict into another. A fail or cannot-judge line is followed by an indented `do: <next step>` line (guard/N4).
 
-- **Named outcomes.** An `outcomes` key is an exit status written in canonical decimal: `"0"` to `"255"`, with no sign and no leading zero. Any other key, such as `"04"`, is refused, naming the canonical form.
+- **Named outcomes.** An `outcomes` key is an exit status written in canonical decimal: `"4"` to `"255"`, with no sign and no leading zero. Any other key, such as `"04"`, is refused, naming the canonical form. `"0"` to `"3"` are Guard's own verdicts and cannot be renamed; a key naming one is refused as cannot judge, naming `"4"` to `"255"`.
 
 **guard/F3 One runner.** [guard/I2, guard/I3] The same runner and the same list serve both the hook and CI.
 
