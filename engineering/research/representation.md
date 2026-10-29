@@ -61,7 +61,7 @@ None of it is unclear. The one open question is who closes the `F1` gap in §4: 
 
 ## Decided by the Owner (#609, 2026-10-29)
 
-1. **P4: ownership claims are human–agent governance artifacts.** `ownership.kaal.json` moves to Markdown with validated YAML frontmatter. Testing owns the claim format, so Testing plans and owns the migration, coordinating its consumers and the order in which each Capability's claim moves. Engineering implements none of it across Testing's boundary. Its own consumer, `engineering/contracts/measure.mjs`, follows in an Engineering Change once Testing's format lands.
+1. **P4: no migration authorized.** Machine-only structured ownership claims may stay JSON. Human-readable governance guidance belongs in Markdown. `ownership.kaal.json` stays as it is. P4 is kept only as a possible future option, if a genuinely human-facing need for claims is established. No cross-capability migration is started on its account. This corrects an earlier reading of the Owner's comment on this PR, and follows the Owner's re-review.
 2. **P5: Guard owns the `Guard/Check` correction.** Guard defines and validates `command` and `outcomes` within `F1`'s existing value kinds. A Core Change comes only if Guard shows those kinds cannot state its Type.
 
 This stays research. Each implementation belongs to its owner's separately authorized Change, and nothing here authorizes a DO, a synchronization, a promotion or a publication.
