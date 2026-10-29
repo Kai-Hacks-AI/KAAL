@@ -28,6 +28,31 @@ const specifiers = (source) => [...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s
 
 const source = (path) => readFileSync(join(PACKAGE, path), "utf8");
 
+/**
+ * What an Architecture leaves unplaced: each guard/F and guard/N the Requirements define that no element cites,
+ * and each module in lib/ that no element, or more than one, names as `lib/<module>`.
+ */
+function placement(architecture, requirements, modules) {
+  const elements = architecture
+    .split(/^(?=- \*\*guard\/A\d+\b|## )/m)
+    .filter((e) => /^- \*\*guard\/A\d+\b/.test(e))
+    .map((e) => ({ id: e.match(/guard\/A\d+/)[0], text: e, cites: e.match(/\[([^\]]*)\]/)?.[1] ?? "" }));
+  const cited = new Set();
+  for (const { cites } of elements) {
+    // A range, "guard/F31–guard/F36", cites every identifier in it.
+    for (const m of cites.matchAll(/guard\/([FN])(\d+)(?:–guard\/[FN](\d+))?/g)) {
+      for (let n = Number(m[2]); n <= Number(m[3] ?? m[2]); n++) cited.add(`guard/${m[1]}${n}`);
+    }
+  }
+  const defined = [...new Set([...requirements.matchAll(/^(?:- )?\*\*(guard\/[FN]\d+)\b/gm)].map((m) => m[1]))];
+  return {
+    uncited: defined.filter((id) => !cited.has(id)),
+    modules: modules
+      .map((m) => ({ module: m, elements: elements.filter((e) => e.text.includes(`lib/${m}`)).map((e) => e.id) }))
+      .filter((m) => m.elements.length !== 1),
+  };
+}
+
 /** While the package has no such file, the test is blocked here, before any conformance assertion. */
 function present(path) {
   assert.ok(existsSync(join(PACKAGE, path)), `blocked before behavioural assertion: kaal-guard has no ${path}`);
@@ -139,5 +164,22 @@ describe("Architecture conformance", () => {
     assert.ok(cited.size > 0, "no delivered case cites an identifier");
     assert.deepEqual([...cited].filter((id) => !defined.has(id)).sort(), [], "delivered cases cite identifiers docs/ does not define");
     assert.deepEqual(docs.match(/engineering\/|guard\/C\d+|\]\(\.\.\//g) ?? [], [], "docs/ cites an Engineering path, a Change, or a document outside the package");
+  });
+
+  it("guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs", () => {
+    present("docs/architecture.md");
+    const architecture = source("docs/architecture.md");
+    const requirements = source("docs/requirements.md");
+    const modules = readdirSync(join(PACKAGE, "lib")).filter((f) => f.endsWith(".mjs")).sort();
+    const found = placement(architecture, requirements, modules);
+    assert.deepEqual(found.uncited, [], "Requirements no Architecture element cites");
+    assert.deepEqual(found.modules, [], "modules in lib/ that no element, or more than one, names");
+    for (const m of ["runner.mjs", "lifecycle.mjs", "github.mjs"]) {
+      assert.ok(specifiers(source(`lib/${m}`)).includes("./config.mjs"), `lib/${m} does not read declarations through lib/config.mjs`);
+    }
+    // The negative fixture: a copy in which a second element, guard/A4, also names the runner's module.
+    const duplicate = architecture.replace(/^(- \*\*guard\/A4 [^\n]*)$/m, "$1 It also holds `lib/runner.mjs`.");
+    assert.notEqual(duplicate, architecture, "the fixture did not change the copy");
+    assert.deepEqual(placement(duplicate, requirements, modules).modules.filter((m) => m.module === "runner.mjs"), [{ module: "runner.mjs", elements: ["guard/A3", "guard/A4"] }], "a module two elements name is not refused");
   });
 });

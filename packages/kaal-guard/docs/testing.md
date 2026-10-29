@@ -29,10 +29,12 @@ The package's README says what each result means and what `verified` does and do
 
 Some promises cannot be checked by a run in your installation. They are obligations allocated to the publisher's Engineering Test Plan, which does not ship. Each one is named here, never silently (guard/F38). `npm test` lists each one as not verified by this run, allocated to the publisher. An allocation says what the publisher runs; it is not evidence that the run passed.
 
+Every Test Case named in these documents is Guard's, wherever it runs. A case is placed by the realization whose contract it verifies: a case of the package as you install it is delivered and runs in your installation, and the publisher may run it too without making it the publisher's. A case of the verification itself is defined in the publisher's Engineering Test Plan and runs only there, against a packed candidate. It is not delivered coverage, and your run cannot give independent assurance of the verifier that reports it: that assurance is the publisher's release evidence.
+
 <!-- allocated: read by the publisher into the manifest -->
 | Allocated | Identifiers | Allocated to |
 | --- | --- | --- |
-| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier |
+| The verification itself | guard/I8, guard/F31–guard/F36, guard/F38–guard/F40, guard/N13, guard/A18 | the publisher's Engineering Test Plan: its Test Cases of the verification itself run against a packed candidate in a fresh consumer on Linux, macOS and Windows, in the publisher's release evidence, because a delivered run cannot verify its own verifier; they include guard/T120 and guard/T121, and a run in your installation never reports them as passed |
 | Moving between published versions | guard/F11, guard/F14–guard/F16 | the publisher's Engineering Test Plan: its release acceptance moves between two versions installed from the registry, in the publisher's release evidence, because that needs two published versions |
 <!-- end of allocated -->
 
@@ -136,5 +138,7 @@ One row per delivered case: its identifier, its loop, the identifiers it checks,
 | guard/T99 | Requirements | guard/F7, guard/F10, guard/N4 | a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs |
 | guard/T107 | Architecture | guard/I9, guard/F37, guard/A19 | the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority |
 | guard/T119 | Requirements | guard/N15, guard/F29 | every checkout in the installed workflow sets persist-credentials: false, and the installed workflow is catalogued beside every content published from 0.0.2 on |
+| guard/T122 | Requirements | guard/F41 | kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged |
 | guard/T125 | Requirements | guard/F2, guard/F18 | an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255 |
+| guard/T126 | Architecture | guard/F37, guard/A19, guard/A21 | every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs |
 <!-- end of trace -->

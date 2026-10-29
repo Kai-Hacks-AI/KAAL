@@ -2,6 +2,7 @@
 // kaal-guard: runs a repository's own checks for its Git hook and its CI, with one meaning per check.
 import "../lib/node.mjs";
 import "../lib/git.mjs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { configDir, legacy, readDeclarations, Refusal, shown } from "../lib/config.mjs";
 import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
@@ -14,7 +15,8 @@ const USAGE = `usage: kaal-guard run (--hook | --ci | --check <name>) [--config 
                        [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
        kaal-guard verify [--config <dir>] [--github]
        kaal-guard (init | remove) [--hook] [--ci] [--config <dir>]
-       kaal-guard upgrade [--config <dir>]`;
+       kaal-guard upgrade [--config <dir>]
+       kaal-guard (--version | --help)`;
 
 /** Prints a cannot-judge verdict about kaal-guard itself and exits 2. */
 function cannotJudge(evidence, todo) {
@@ -81,6 +83,12 @@ function report(results, github, remind) {
 }
 
 const [command, ...args] = process.argv.slice(2);
+// The version and the usage read and write nothing, and need no repository (guard/F41).
+if (command === "--version" || command === "--help") {
+  if (args.length) cannotJudge(`${command} takes no options`, USAGE);
+  console.log(command === "--help" ? USAGE : JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version);
+  process.exit(0);
+}
 const LIFECYCLE = { init, upgrade, remove };
 if (command in LIFECYCLE) {
   const options = parse(args, command === "upgrade" ? [] : ["--hook", "--ci"], ["--config"]);
