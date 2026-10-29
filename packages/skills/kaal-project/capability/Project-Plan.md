@@ -12,7 +12,7 @@ A Project Plan states how governance is added over one or more Normal Changes to
 - **Outcome**: the integrated Outcome of the Intent the Project serves.
 - **Warrant**: why governance is warranted: complexity, risk, dependencies, coordination or delivery commitments.
 - **Changes**: the one or more Normal Changes it governs.
-- **Ordering**: where there are several, which Changes depend on which, and so in what order they proceed.
+- **Ordering**: where there are several, the order in which the Project coordinates them. It consumes the dependencies the Changes declare, which are Change's, and decides only project-level sequencing; it restates no dependency as its own.
 - **Grouping**: which Changes must land together, where any must.
 - **Risks**: the known risks, integration risks among them, and how each is to be watched.
 - **Exit condition**: what must hold for the Project to end: its integrated Outcome evidenced and judged, or the Project withdrawn.

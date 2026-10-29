@@ -74,6 +74,10 @@ describe("the Project Plan Definition", () => {
     assert.match(text("Project-Plan.md"), /^A Project Plan states how governance is added over one or more Normal Changes toward one shared Outcome\./m);
   });
 
+  it("consumes Change's declared dependencies and owns only project-level sequencing", () => {
+    assert.match(text("Project-Plan.md"), /^- \*\*Ordering\*\*: where there are several, the order in which the Project coordinates them\. It consumes the dependencies the Changes declare, which are Change's, and decides only project-level sequencing; it restates no dependency as its own\.$/m);
+  });
+
   it("neither decomposes, authorizes nor accepts a Change", () => {
     assert.match(text("Project-Plan.md"), /It does not decompose a Change by default, and it neither authorizes nor accepts a Change: each Change is authorized and accepted on its own terms, which are Change's\./);
   });
