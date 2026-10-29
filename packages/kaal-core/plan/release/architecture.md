@@ -9,7 +9,7 @@ Each element names, in brackets, the Requirements it answers.
 - **core/A34** [core/F70]: Two test scripts.
   - `npm test` becomes the consumer entry, `node test/verify.mjs`. It runs the delivered loops, counts the tests in each, and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing.
   - Today's script, which builds with `tsc` and runs the publisher's tests, becomes `npm run test:publisher`.
-  - Engineering's Workspaces lane runs `npm test` in each workspace, so it must run kaal-core's `test:publisher` from `core/C29` on (see the conflicts below).
+  - Engineering's Workspaces lane runs `npm test` in each workspace, so it must run kaal-core's `test:publisher` from `core/C29` on (see the release blockers below).
 - **core/A35** [core/F72, core/F73]: Release acceptance packs and installs:
   - `npm pack` packs kaal-core and each runtime dependency;
   - the tarballs install with `npm install` into a directory under the operating system's temporary directory;
@@ -36,16 +36,18 @@ Each element names, in brackets, the Requirements it answers.
 | 3 | `graph/C3` DO on `main`: reach, reverse and cycles | Graph | — | merged into `kaal/graph` (#593), promotion in flight |
 | 4 | sync `main` → `kaal/core`, carrying `graph/C3` | Core | 3 | after Graph's promotion, in the promotion queue |
 | 5 | `core/C26` DO: Registration Type, `kaal-core/registration`, `verify`, core/T50–T59, T67, T72, T73 GREEN | Core | 1, 4, `core/C11`, `core/C27` (both merged) | — |
-| 6 | `core/C29` DO: delivered documents and tests, `test/verify.mjs`, core/T74–T78 GREEN | Core | 2, 5, and the conflicts below | — |
+| 6 | `core/C29` DO: delivered documents and tests, `test/verify.mjs`, core/T74–T78 GREEN | Core | 2, 5, and the release blockers below | — |
 | 7 | promotion `kaal/core` → `main` | Core | 5, 6 | Owner's go |
 | 8 | publication of `kaal-hosting`, `kaal-graph`, `@kaihacksai/kaal-foundation` 0.0.1 | their owners | — | Owner's go |
 | 9 | publication of kaal-core 0.0.1 | Owner | 7, 8 | Owner's hand |
 
 `core/C29` writes the documents after `core/C26`, so they describe the registration that ships.
 
-## Conflicts for Owner alignment
+## Release blockers
 
-1. **A private dependency.** kaal-core depends on `@kaihacksai/kaal-foundation` 0.0.1, which is marked `private`, so a consumer cannot install it. core/T78 is RED on this. Either Foundation is published, or Core stops depending on it, or its SHA-256 is vendored. Foundation's own decision, then the Owner's.
-2. **Package scope.** Guard publishes as `@kaihacksai/kaal-guard`, while kaal-core, `kaal-graph` and `kaal-hosting` are unscoped and none is on npm yet. Renaming changes every `kaal-core/…` import. The Owner decides before the first publication, because a published name cannot be taken back.
-3. **The result vocabulary.** `verified`, `failed` and `cannot verify` are Guard's (guard/F31–guard/F36). Core reuses the words through Testing's definitions, not Guard's code, since Guard depends on no other KAAL package. If Testing does not define them, Testing owns that decision.
-4. **The test script.** Making `npm test` the consumer entry (`core/A34`) means Engineering's Workspaces lane runs `test:publisher` for kaal-core. That is a one-line Engineering change, needed before `core/C29` merges.
+Each of these blocks the release until the party named resolves it. None is resolved by convenience inside a Core Change, and `core/C29` does not work around any of them.
+
+1. **A private dependency.** kaal-core depends on `@kaihacksai/kaal-foundation` 0.0.1, which is marked `private`, so a consumer cannot install it. core/T78 is RED on this. It is resolved one of two ways. Either Foundation becomes an independently installable, published dependency under its owner's authorization, or Core revises its dependency through a Core Change of its own.
+2. **Package scope and names.** Guard publishes as `@kaihacksai/kaal-guard`. kaal-core, `kaal-graph` and `kaal-hosting` are unscoped, Foundation is scoped, and none of the four is on npm yet. Renaming changes every `kaal-core/…` import. The scope and names of all four need the Owner's alignment before the first publication, because a published name cannot be taken back.
+3. **The result vocabulary.** `test/verify.mjs` reports `verified`, `failed` and `cannot verify`. Their definitions are cited from Testing (testing/C9). Core does not import Guard's semantic authority over them, even though Guard uses the same words (guard/F31–guard/F36). If Testing does not define them, that is Testing's decision to make.
+4. **The publisher's tests.** Once `npm test` is consumer-facing (`core/A34`), Engineering's Workspaces lane must keep running kaal-core's publisher tests through `test:publisher`. That is an Engineering change, needed before `core/C29` merges.

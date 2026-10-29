@@ -17,7 +17,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - typed relationship kinds, such as two relations between the same pair of kinds;
   - a distinction between an absent optional complement and a malformed registration.
 
-  Each of these is a future decision (`plan/registration/architecture.md`), and the delivered documents name each one as a limitation.
+  Each of these is a future decision (`plan/registration/architecture.md`). The delivered documents name each one as an explicit limitation, and `core/C29` does not implement any of them.
 
 ## Functional: delivered documents
 

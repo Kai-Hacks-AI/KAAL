@@ -33,11 +33,11 @@ The reference showed one trap for `core/C29`. `node --test` sets `NODE_TEST_CONT
 The following are validated by review:
 - The documents are coherent for a reader who knows nothing of KAAL. A test checks only that they exist, link what ships, and name what is left out.
 - `docs/testing.md` states coverage honestly, against Testing's definitions.
-- The release dependency map in [Architecture](architecture.md), and its conflicts.
+- The release dependency map in [Architecture](architecture.md), and its release blockers.
 
 ## RED evidence
 
 On `kaal/core`, all five tests are RED. They run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/release.test.mjs`, outside Core's `npm test` until `core/C29`.
 - **Missing deliverables:** T74, T75 and T76 fail on their first assertion, because no `docs/` and no consumer `npm test` exist. That is planning evidence.
 - **Blocked:** T77 is blocked before behavioural assertion, because kaal-core exports no `./registration` until `core/C26`.
-- **Behavioural:** T78 fails because `@kaihacksai/kaal-foundation` is `private`. That is conflict 1 in [Architecture](architecture.md#conflicts-for-owner-alignment).
+- **Behavioural:** T78 fails because `@kaihacksai/kaal-foundation` is `private`. That is release blocker 1 in [Architecture](architecture.md#release-blockers).
