@@ -20,6 +20,8 @@ const node = () => identify(readFileSync(join(CAPABILITY, "Agents.md")));
 const text = () => readFileSync(join(CAPABILITY, "Agents.md"), "utf8");
 const newNode = () => identify(readFileSync(join(CAPABILITY, "NEW.md")));
 const newText = () => readFileSync(join(CAPABILITY, "NEW.md"), "utf8");
+const preachNode = () => identify(readFileSync(join(CAPABILITY, "PREACH.md")));
+const preachText = () => readFileSync(join(CAPABILITY, "PREACH.md"), "utf8");
 
 describe("the Capability Node", () => {
   it("is typed by Core's KAAL Capability and distinct from Core's KAAL Agent", () => {
@@ -38,7 +40,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and requires, keeps no state and relies on no host activation", () => {
-    assert.match(text(), /^It provides the NEW Definition\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
+    assert.match(text(), /^It provides the NEW and PREACH Definitions\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
     assert.match(text(), /it keeps no session state of its own\./);
     assert.match(text(), /Readiness does not depend on any host loading anything without being asked, and it authorizes nothing\.$/m);
   });
@@ -63,13 +65,41 @@ describe("the NEW Definition", () => {
   });
 });
 
+describe("the PREACH Definition", () => {
+  it("is typed by Core's KAAL Definition and distinct from the other Nodes", () => {
+    assert.equal(preachNode().name, "PREACH");
+    assert.deepEqual(preachNode().type, foundation().definition);
+    assert.notEqual(preachNode().id, node().id);
+    assert.notEqual(preachNode().id, newNode().id);
+  });
+
+  it("carries its expansion and the direction Program, Agent, Human", () => {
+    assert.match(preachText(), /^Program Reports Errors, Agent Consults Human\.$/m);
+    assert.match(preachText(), /from Program, to Agent, to Human\./);
+  });
+
+  it("states each step's obligation", () => {
+    assert.match(preachText(), /It invents no semantics: it does not equate, merge, choose or suppress candidates, and what it cannot resolve it reports as unresolved, never as passing\./);
+    assert.match(preachText(), /It resolves only what is already authorized\./);
+    assert.match(preachText(), /the Agent consults the person accountable for it, and that person decides\./);
+    assert.match(preachText(), /^Not every error escalates to a person\./m);
+  });
+
+  it("cites HAPTIC without redefining it, and authorizes nothing", () => {
+    assert.match(preachText(), /^PREACH runs the other way to HAPTIC, which Controls owns, and does not redefine it\./m);
+    assert.doesNotMatch(preachText(), /Human < Agent < Program/);
+    assert.match(preachText(), /^PREACH authorizes nothing\./m);
+  });
+});
+
 describe("admission", () => {
-  it("is admitted as a Capability by Core alone, with the NEW Definition admitted alongside", async () => {
+  it("is admitted as a Capability by Core alone, with the NEW and PREACH Definitions admitted alongside", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-agents-")), "engine");
     await bootstrap(engine);
     const r = await register(engine, "capability", "agents", await readContribution(CAPABILITY));
     assert.deepEqual(r.ids, [node().id]);
     assert.deepEqual(readFileSync(join(engine, "capabilities", "agents", "NEW.md")), readFileSync(join(CAPABILITY, "NEW.md")));
+    assert.deepEqual(readFileSync(join(engine, "capabilities", "agents", "PREACH.md")), readFileSync(join(CAPABILITY, "PREACH.md")));
     assert.deepEqual((await catalog(engine)).capabilities, [{ name: "Agents", id: node().id }]);
     assert.deepEqual((await catalog(engine)).agents, []);
     assert.equal((await verify(engine)).ok, true);
@@ -94,6 +124,7 @@ describe("the package", () => {
       "README.md",
       "capability/Agents.md",
       "capability/NEW.md",
+      "capability/PREACH.md",
       "package.json",
     ]);
   });

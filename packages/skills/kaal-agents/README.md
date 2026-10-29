@@ -5,12 +5,13 @@ KAAL Agents: the capability for an Agent's readiness and operation within KAAL, 
 ```
 capability/Agents.md     the Capability Node, typed by Core's KAAL Capability
 capability/NEW.md        the NEW Definition, typed by KAAL Definition: Agent readiness with little or no prompting
+capability/PREACH.md     the PREACH Definition, typed by KAAL Definition: Program → Agent → Human escalation
 ownership.kaal.json      Agents' own ownership claim (repository data, not delivered)
 ```
 
 ## Responsibilities
 
-This package establishes the capability only. It registers no Agent, keeps no session state, and assumes nothing of a host: no host is relied on to load anything without being asked. What a KAAL Agent is and how Agents are registered and discovered stay with Core. NEW, Next Experience Works, states the readiness ambition; how an Agent finds what is registered stays a matter of realization through Core's registry.
+This package establishes the capability only. It registers no Agent, keeps no session state, and assumes nothing of a host: no host is relied on to load anything without being asked. What a KAAL Agent is and how Agents are registered and discovered stay with Core. NEW, Next Experience Works, states the readiness ambition; how an Agent finds what is registered stays a matter of realization through Core's registry. PREACH, Program Reports Errors, Agent Consults Human, states how an Agent operates when a program reports what it cannot resolve; it cites HAPTIC, which Controls owns, and authorizes nothing.
 
 ## Register the Nodes
 

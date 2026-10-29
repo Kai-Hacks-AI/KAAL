@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "capability", "name": "Agents", "id": "32716b5d9b510c7bbdec9aca5c76ec70f3078497268a61d9b39cade13179b980" },
+  "owner": { "kind": "capability", "name": "Agents", "id": "0a6f46bcf33e5907bba4f0360a61cbd1ee15217aa860e8f1e1d3ad0a4273d912" },
   "paths": ["packages/skills/kaal-agents/"]
 }
