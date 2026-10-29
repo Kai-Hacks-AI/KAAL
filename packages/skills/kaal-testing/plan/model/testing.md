@@ -21,6 +21,31 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/model.te
 
 What stays validation: whether these kinds and results are the ones the Owner means, and whether a consumer's Plans fit them. Guard's `test/verify.json` and Change's FAR composition are the first two to try them.
 
+## Amendment
+
+`testing/C27` adds four planned tests in `packages/skills/kaal-testing/test/plan/current.test.mjs`. They are immutable to DO and CHECK, and `testing/C28` turns them GREEN and adds them to Testing's `npm test`.
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T50: the latest applicable Run, in the consumer's order, is the current evidence; an older Run never stands in for it, and Testing reads no clock | testing/F40 | Requirements |
+| testing/T51: applicability follows the definitions, versions and Test Data the model now declares; a Run of another element or version is disclosed as inapplicable, never counted | testing/F40, testing/F41 | Requirements |
+| testing/T52: an incomplete, unknown or invalid latest applicable Run makes the current quality unknown, and never falls back to an older GREEN | testing/F41 | Requirements |
+| testing/T53: retention is the consumer's: zero, one or many Runs are accepted as given, nothing is kept between calls, and with none retained the quality is unknown | testing/F42 | Requirements |
+
+At `testing/C27`, all four are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./model` (or, once `testing/C15` lands, no `current`). They were checked against a throwaway `current` on top of `testing/C15`'s module. All four pass against it, and each of 12 mutants fails at least one test. The mutants cover:
+- the first applicable Run taken instead of the latest;
+- no element check;
+- no definition version check;
+- no Test Data version check;
+- encompassed Runs not checked;
+- an unreadable Run skipped instead of counted as the latest;
+- an unknown evaluation reported as passed;
+- the allowances dropped;
+- a Suite's findings ignored;
+- no applicable Run reported as passed;
+- a non-list of Runs accepted;
+- the order reversed.
+
 ## RED evidence
 
 The tests run with `node --test packages/skills/kaal-testing/test/plan/model.test.mjs`, outside Testing's `npm test` until `testing/C15`. At `testing/C14`, all fourteen are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./model`.

@@ -23,3 +23,9 @@ The Intents:
 TEST A FINDING (`testing/C6`, Testing's Agent Skill) names a closed list of permitted target kinds: Architecture, Functional requirements, Intent, Nonfunctional requirements, Defects. Those are other Capabilities' kinds, and a closed list prescribes them. Under testing/I10 the rule is open, so `testing/C15` turns the list into guidance for KAAL's own loops: a Test Case normally traces to one subject, and the Skill recommends these kinds without restricting them.
 
 testing/N2's `<capability>/T<n>` is KAAL's internal convention for KAAL's own Cases, not part of the Testing kind. The generic model leaves a Case's identity to its holder (testing/F24), so an external product keeps whatever identities it already uses. Uniqueness within one model is the only intrinsic rule, because references must resolve. (Owner review 5696234641 on #601.)
+
+## Amendment
+
+`testing/C27` amends this PLAN after the Owner's clarification on #630 (comment 6506819731). The latest applicable Test Run represents current evidenced quality, and retained Runs let quality be shown over time. Applicability follows the definitions, versions, Test Data and provenance, not the greatest timestamp. An incomplete, unknown or invalid latest applicable Run never falls back to an older GREEN. Every Run's observation stands for that Run only, and a comparison discloses its scope and version differences. Whether, where, how many and how long Runs are kept is the consumer's, not a Testing-wide policy.
+
+testing/I11 already holds that a Run's results stand for that Run only. This amendment adds what a consumer asks of several Runs: testing/F40, testing/F41 and testing/F42, and `current` in testing/A12. It amends testing/F33 so that retention is plainly the consumer's. It adds no registry, no persistence and no retention duration to Testing.

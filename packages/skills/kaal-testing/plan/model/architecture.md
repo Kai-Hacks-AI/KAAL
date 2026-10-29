@@ -8,6 +8,7 @@ Each element names, in brackets, the Requirements it answers.
   - `data(model)`, the derived view from each Test Data item to its owner and the contexts that reuse it;
   - `results(model, run)`, each Case's, Suite's and Plan's result in that one Run, its effective Test Data and its findings;
   - `evaluate(model, run, { allowances })`, the evaluation of a Plan Run.
+  - `current(model, runs, of, { allowances })`, the current evidenced quality of a Plan, Suite or Case from a consumer's retained Runs, oldest first: `{ of, run, result, findings, runs: [{ run, applicable, differences }] }`, where `run` is the latest applicable Run's identity, or null (`testing/C27`).
 
   A model declares `strategies`, `plans`, `suites` and `cases`. A Plan, Suite or Case may carry a `version` and `data: [{ id, version?, content? | external? }]`, and reuse others' Test Data by `uses: [id]`. A Case may be `retired: true`.
 
@@ -49,6 +50,8 @@ Change composes two ordinary Plans (`change/C2`, #558). It evaluates a Run of th
 | `testing/C15` DO: `kaal-testing/model`, its row in testing/A8's export inventory, TEST A FINDING as guidance, testing/T26–testing/T39 GREEN in Testing's `npm test` | Testing | `testing/C14` |
 | `testing/C16` PLAN amendment of `testing/C4`: `observe`, `outcomes`, `compare` and `report` only (proposed on #385, comment 6489569322), handing outcomes over as Runs of this model | Testing | `testing/C14` |
 | `change/C2` DO | Change | `testing/C15` |
+| `testing/C27` PLAN amendment: current evidenced quality, testing/F40–testing/F42, testing/T50–testing/T53 | Testing | `testing/C14` |
+| `testing/C28` DO: `current`, testing/T50–testing/T53 GREEN | Testing | `testing/C15`, `testing/C27` |
 
 ## Road to kaal-testing 0.0.1
 
