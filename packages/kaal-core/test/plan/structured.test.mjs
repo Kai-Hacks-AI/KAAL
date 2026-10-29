@@ -137,7 +137,8 @@ describe("Structured Frontmatter Values (core/C27)", () => {
 
   it("core/T66 [core/I19, core/A29]: core/A25's Registration shape, with core/T50's fixture kinds and instances, validates against a schema written with these kinds; each break in it is found where it is", async () => {
     const { validate, checkSchema } = await frontmatter();
-    const RULE = { value: "either", of: [{ value: "enum", values: ["any"] }, { ...IDENTITY, list: true }] };
+    const KIND = { value: "either", of: [IDENTITY, { value: "record", fields: { scope: { ...IDENTITY, required: true }, kind: { ...IDENTITY, required: true } } }] };
+    const RULE = { value: "either", of: [{ value: "enum", values: ["any"] }, { ...KIND, list: true }] };
     const TARGET = { value: "either", of: [IDENTITY, { value: "record", fields: { scope: { ...IDENTITY, required: true }, id: { ...IDENTITY, required: true } } }] };
     const registration = {
       "Sample/Registration": {
@@ -145,21 +146,23 @@ describe("Structured Frontmatter Values (core/C27)", () => {
           holder: { ...IDENTITY, required: true },
           scope: { ...IDENTITY, required: true },
           kinds: { value: "map", key: IDENTITY, of: { value: "record", fields: { traces: { ...RULE, required: true }, acyclic: { value: "boolean" } } } },
-          instances: { value: "record", list: true, fields: { id: { ...IDENTITY, required: true }, kind: { ...IDENTITY, required: true }, traces: { ...TARGET, list: true } } },
+          instances: { value: "record", list: true, fields: { id: { ...IDENTITY, required: true }, kind: { ...KIND, required: true }, traces: { ...TARGET, list: true } } },
         },
       },
     };
     assert.deepEqual(checkSchema("Sample/Registration", registration["Sample/Registration"]), []);
     const reg = (body) => Buffer.from(`---\ntype: Sample/Registration\n${body}---\n\nThe registration, explained.\n`);
-    const kinds = "holder: kaal-testing\nscope: testing\nkinds:\n  T: { traces: any }\n  D: { traces: [T], acyclic: true }\n  C: { traces: [] }\n";
-    const acme = "holder: acme-product\nscope: acme\ninstances:\n  - { id: REQ-001, kind: F, traces: [WHY-1] }\n  - { id: NFR.1, kind: N, traces: [WHY-1] }\n  - { id: \"defect:1\", kind: D, traces: [case 2] }\n  - { id: case 2, kind: T, traces: [bb/store, { scope: testing, id: case 1 }] }\n  - { id: src/store.ts, kind: Code }\n";
+    const kinds = "holder: kaal-testing\nscope: testing\nkinds:\n  T: { traces: any }\n  D: { traces: [T, { scope: requirements, kind: F }], acyclic: true }\n  C: { traces: [] }\n";
+    const acme = "holder: acme-product\nscope: acme\ninstances:\n  - { id: REQ-001, kind: { scope: requirements, kind: F }, traces: [WHY-1] }\n  - { id: NFR.1, kind: N, traces: [WHY-1] }\n  - { id: \"defect:1\", kind: D }\n  - { id: case 2, kind: T, traces: [\"defect:1\", bb/store, { scope: testing, id: case 1 }] }\n  - { id: src/store.ts, kind: Code }\n";
     assert.equal(validate(reg(kinds), registration).verdict, "valid");
     assert.equal(validate(reg(acme), registration).verdict, "valid");
     const breaks = [
       [kinds.replace("traces: any", "traces: all"), ["kinds/T/traces"]],
       [kinds.replace("acyclic: true", "acyclic: yes"), ["kinds/D/acyclic"]],
       [kinds.replace("C: { traces: [] }", "C: {}"), ["kinds/C/traces"]],
-      [acme.replace("{ scope: testing, id: case 1 }", "{ scope: testing }"), ["instances/3/traces/1"]],
+      [kinds.replace("{ scope: requirements, kind: F }", "{ scope: requirements }"), ["kinds/D/traces"]],
+      [acme.replace("kind: { scope: requirements, kind: F }", "kind: { scope: requirements }"), ["instances/0/kind"]],
+      [acme.replace("{ scope: testing, id: case 1 }", "{ scope: testing }"), ["instances/3/traces/2"]],
       [acme.replace("{ id: NFR.1, kind: N,", "{ id: NFR.1, kind: N, incoming: [x],"), ["instances/1/incoming"]],
       [acme.replace("- { id: src/store.ts, kind: Code }", "- { kind: Code }"), ["instances/4/id"]],
     ];
