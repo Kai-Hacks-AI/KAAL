@@ -23,12 +23,12 @@ const node = () => section(text("payload/Testing.md"), HEADING, "payload/Testing
 
 /** One of testing/A8's inventories, by its header: each declared row's first cell and its other cells, or the reason the tests are blocked. */
 function table(header, what) {
-  const architecture = text("plan/consumer/architecture.md");
-  const at = architecture.match(new RegExp(`^\\s*${header.replace(/[|]/g, "\\|")}$`, "m"));
-  if (!at) assert.fail(`blocked before behavioural assertion: plan/consumer/architecture.md has no ${what}`);
+  const lines = text("plan/consumer/architecture.md").split("\n");
+  const at = lines.findIndex((line) => line.trim() === header);
+  if (at < 0) assert.fail(`blocked before behavioural assertion: plan/consumer/architecture.md has no ${what}`);
   const width = header.split("|").length - 2;
   const rows = {};
-  for (const line of architecture.slice(at.index + at[0].length).split("\n").slice(2)) {
+  for (const line of lines.slice(at + 2)) {
     const cells = line.trim().match(/^\|(.*)\|$/)?.[1].split("|").map((c) => c.trim());
     if (!cells) break;
     assert.equal(cells.length, width, `malformed ${what} row: ${line.trim()}`);
