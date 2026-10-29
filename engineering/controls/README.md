@@ -21,11 +21,11 @@ Each is one Node in `engineering/controls/`, typed by `Control`. Its text states
 **Two kinds of link, kept apart.**
 - **`Realized by`** is the Graph Edge to the mechanism as a whole, Guard or Branching. It is mechanism-level traceability, and it is kept.
 - **Enforced by** names each actual enforcement point by a stable reference. The identity of each one belongs to the owner of what it names, and a Control only cites it:
-  - `guard-check:<name>` is the repository's Guard check declaration `.kaal/config/guard/<name>.md`. The declarations are Engineering's data in Guard's format, and the name is the file's.
+  - `guard-check:<name>` is the Guard check declaration `.kaal/config/guard/<name>.md`. It is KAAL integration configuration in `.kaal/`, the area KAAL's Capabilities configure, as `.github/` is GitHub's. It is not general repository authority. Engineering writes the declarations in Guard's format, and the name is the file's.
   - `workflow:<file>#<job>` is a job in `.github/workflows/<file>` that a pull request or a schedule runs. It is Engineering's workflow.
   - `branching:<section>` is a section of `engineering/github/branching.md`, Branching's rule text, by its existing heading.
 
-**Gates outside these seven.** `workflow:codeql.yml#analyze` and `workflow:dependency-review.yml#dependency-review` are security gates. They are not among the seven controls proposed here, so they are listed once, here, as known and not yet documented, and the test reads this list. `workflow:guard-release.yml` runs only by dispatch and gates no Change.
+**Gates outside these seven.** `workflow:codeql.yml#analyze` and `workflow:dependency-review.yml#dependency-review` are security gates. They are not among the seven controls proposed here, so they are listed once, here, as known and **uncovered**: no Control documents them. The test reads this list and reports each of them as uncovered on every run. It never counts them as covered, and adding one to a Control is a change to this table, not to the list. `workflow:guard-release.yml` runs only by dispatch and gates no Change.
 
 - **Kept apart.** The automated checks and the review are separate controls, as Controls requires: evidence of one never stands for another. A required check only states that the check must pass. What its pass means is the check's own, and Testing's.
 - **What a Realized by Edge claims.** Only where the control is claimed to be realized. It is not evidence that the check is configured as required, that it ran, or that the control works.
@@ -37,7 +37,7 @@ Each is one Node in `engineering/controls/`, typed by `Control`. Its text states
   - Each Node in `engineering/controls/` is typed by `Control`, and each of its `Realized by` Edges resolves through Graph's `identify` to Guard or Branching.
   - Each Enforced by reference resolves to exactly one mechanism: one declaration file, one job in one workflow, or one heading in `branching.md`. Fixture: a Control citing `guard-check:Nonexistent` makes the case RED.
   - **No undocumented gate.** The set of gates is every `.kaal/config/guard/*.md` declaration plus every job in a workflow that a pull request, a push or a schedule runs. Each must be cited by at least one Control or listed under "Gates outside these seven". Fixtures: a copy of the repository with a new `.kaal/config/guard/New.md`, and one with a new job in `ci.yml`, must each make the case RED, naming the new gate.
-  - **What the test does not claim.** Coverage is not effectiveness. The test shows that every repository-declared gate is documented by a Control. It does not show that a check is required by a ruleset, that it ran, or that the control works. The required checks and review settings of GitHub rulesets live outside the repository, and the test reports them as not verified rather than inferring them.
+  - **What the test does not claim.** Coverage is not effectiveness. The test shows that every repository-declared gate is documented by a Control. It does not show that a check is required by a ruleset, that it ran, or that the control works. The required checks and review settings of GitHub rulesets live outside the repository. The test reports them as not verified, and nothing in this PLAN or its DO claims a ruleset enforces a control.
 
 ## Contracts reused
 
