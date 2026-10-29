@@ -8,10 +8,14 @@ import { kind, read, readFile, reconcile, type Leftover, type Removal, type Writ
 import { declaration, realize, type Contracted, type Digests, type Plan, type SkillSource } from "./agent.js";
 import { checkContract, checkRecord, register, type InstallationRecord } from "./installation.js";
 import { KaalError } from "./node.js";
+import { describe, optional, parse, readRecord } from "./records.js";
 import { sha256 } from "./sha256.js";
 
 /** Where Core keeps its own record of the provider deployments it made (core/F18). */
 export const record = ".kaal/state/core/installation.json";
+
+/** Where Core's own lifecycle installs the Engine's files, whose entries Core's record also holds (core/A21). */
+const ENGINE = ".kaal/";
 
 /** Every Skill's canonical deployment, the Capability's asset when a contract delivers the Skill (core/F36). */
 const CANONICAL = ".agents/skills";
@@ -43,34 +47,6 @@ interface Contract {
   readonly assets: readonly { readonly target: string; readonly kind: string; readonly surface?: string }[];
   readonly record: string;
   readonly provides: readonly { readonly skill: string }[];
-}
-
-const describe = (findings: { key: string | null; rule: string }[]) => findings.map((f) => `${f.key ?? "(document)"}: ${f.rule}`).join("; ");
-
-/** The bytes at `path` under `root`, or `undefined` when nothing is there. */
-async function optional(root: string, path: string): Promise<Buffer | undefined> {
-  const what = await kind(join(root, path));
-  if (what === "missing") return undefined;
-  if (what !== "file") throw new KaalError(`${path} is not a file`);
-  return readFile(join(root, path));
-}
-
-function parse(path: string, bytes: Buffer): unknown {
-  try {
-    return JSON.parse(bytes.toString("utf8"));
-  } catch {
-    throw new KaalError(`${path} is not JSON`);
-  }
-}
-
-/** A record read through Hosting, refused unless it conforms (core/F38), or `undefined` when there is none. */
-async function readRecord(root: string, path: string): Promise<{ record: InstallationRecord | undefined; expect: string; bytes: Buffer | undefined }> {
-  const bytes = await optional(root, path);
-  if (bytes === undefined) return { record: undefined, expect: "absent", bytes };
-  const value = parse(path, bytes);
-  const findings = checkRecord(value);
-  if (findings.length > 0) throw new KaalError(`${path} is not an installation record: ${describe(findings)}`);
-  return { record: value as InstallationRecord, expect: sha256(bytes), bytes };
 }
 
 /** The providers the repository declares (core/F16), none when there is no declaration. */
@@ -158,7 +134,14 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
   }
 
   const own = await readRecord(root, record);
-  const recorded: Digests = Object.fromEntries(Object.entries(own.record?.assets ?? {}).map(([p, e]) => [p, e.sha256]));
+  // Core's record also holds the Engine files Core's own lifecycle installed (core/A21). They are
+  // not provider deployments, so realization neither plans nor prunes them, and keeps their entries.
+  const engine = Object.entries(own.record?.assets ?? {}).filter(([p]) => p.startsWith(ENGINE));
+  const recorded: Digests = Object.fromEntries(
+    Object.entries(own.record?.assets ?? {})
+      .filter(([p]) => !p.startsWith(ENGINE))
+      .map(([p, e]) => [p, e.sha256]),
+  );
   const declared = await providers(root);
   // Every target a realization can name: those it would write into an empty repository.
   const targets = realize({ skills, providers: declared, record: {}, present: {}, contracted }).write.map((w) => w.path);
@@ -187,12 +170,13 @@ export async function realizeIn(root: string, { skills, contracts = [] }: Realiz
     records.push(d.contract.record);
   }
 
-  const assets = Object.fromEntries(
-    Object.entries(plan.record).map(([path, digest]) => {
+  const assets = Object.fromEntries([
+    ...engine,
+    ...Object.entries(plan.record).map(([path, digest]) => {
       const before = own.record?.assets[path];
       return [path, kept.has(path) && before !== undefined ? before : { sha256: digest, version: VERSION }];
     }),
-  );
+  ]);
   const next = own.record === undefined ? { assets } : { ...own.record, assets };
   if (JSON.stringify(next) !== JSON.stringify(own.record) && !(own.record === undefined && Object.keys(assets).length === 0)) {
     write.push({ path: record, expect: own.expect, bytes: json(next) });

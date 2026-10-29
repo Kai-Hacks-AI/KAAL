@@ -171,6 +171,12 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
       if (surface) activated.add(surface);
     }
   }
+  // A registered file of a surface this init does not name is not reinstalled, but its absence is said (F8).
+  const named = { hook: [hook, "the hook"], ci: [ci, "CI"] };
+  for (const { path, surface } of [...of("hook"), ...of("ci")]) {
+    if (named[surface][0] || !assets[path] || existsSync(join(root, path))) continue;
+    todo.push(`${path}: Guard registered it, and the repository no longer has it. Run kaal-guard init --${surface} to reinstall it, or kaal-guard remove --${surface} to deactivate ${named[surface][1]}.`);
+  }
   if (hook) hooksPath(root, { assets, state, at, installed, untouched, todo });
   // Where core.fileMode is false, Git records the hook from the index alone, so it would be committed without its executable bit (F27).
   if (hook && assets[HOOK] && git(root, "config", "--bool", "--get", "core.fileMode").out === "false") {
@@ -181,7 +187,7 @@ export function init(root, { dir, list, record, state, at, declared, hook = fals
   const missing = uncovered(list, mine);
   if (missing.length) {
     todo.push(`No workflow job runs these ci checks, and Guard does not run them in CI on its own. Give a job of your own workflow a step for each:`, ...missing.map((name) => `  ${step(name, config)}`));
-    if (!activated.has("ci") && !own.length) todo.push("  or run kaal-guard init --ci to install Guard's workflow, which runs every ci check in one job and kaal-guard verify.");
+    if (!activated.has("ci") && !own.length) todo.push("  or run kaal-guard init --ci to install Guard's workflow, whose two jobs, Guard and Guard checks, run kaal-guard verify and every ci check.");
   }
   if (!mine.some((d) => d.verify) && Object.values(list.checks).some((c) => c.runs.includes("ci"))) {
     todo.push(`No workflow job runs kaal-guard verify, which shows that a job declares each ci check. Give a job the step:`, `  - run: npx --no kaal-guard verify --config ${config} --github`);
