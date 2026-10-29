@@ -40,6 +40,8 @@ Each Requirement names, in brackets, the Intents it serves.
   - **in an installation,** `npm test` runs the consumer verification only (`core/F70`). The installed package needs neither the publisher's tests nor KAAL's repository.
 
   Core owns its suites, its scripts and their implementations. Engineering runs them in the package's own directory and may select a named suite, but never copies or redefines them.
+
+  Which of the two places applies is detected explicitly, never inferred from a missing file. A damaged source checkout is never mistaken for an installation, so the publisher's tests are never silently skipped. When the place cannot be told, or a required suite is missing, or no suite is declared at all, the result is `cannot verify`. A failing suite always fails the run.
 - **core/F71** [core/I22]: `docs/testing.md` separates what runs where:
   - it names each delivered test file, its loop and what it checks;
   - it names the publisher's Engineering tests (the planned outer tests, the build-time Code tests and the bench) as not delivered and not run in an installation;

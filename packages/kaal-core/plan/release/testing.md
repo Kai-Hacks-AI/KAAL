@@ -11,7 +11,7 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 | core/T76: packed with its runtime dependencies and installed into a clean directory, the installed files are exactly those that the installed `docs/operations.md` lists under "Shipped files", and `npm test` ends in `verified` with exit 0 without starting the publisher suite. A corrupted `dist/index.js` never gives `verified`. With kaal-core intact, a deliberately failing test in any one loop gives `failed` with exit 1. The result is read from the last line of stdout, so npm warnings on stderr do not count. With `dist/index.js` restored, emptying any one loop's delivered test files gives `cannot verify` with exit 2 even though the other loops pass, and so does removing all delivered tests | core/F72, core/F70, core/A35, core/I23 | Intent |
 | core/T77: 0.0.1 contains registration: `kaal-core/registration` ships and exports `assemble` | core/F68 | Requirements |
 | core/T78: every workspace package kaal-core depends on at runtime can be published | core/F73 | Requirements |
-| core/T80: the shipped runner, `test/run.mjs`, run on a fixture package: with `test/plan/` present it runs every declared `test:<name>` suite and never `test` itself; without it, it runs only `test:consumer` and exits with its result; a failing suite makes it exit non-zero | core/F75, core/A34 | Architecture |
+| core/T80: the shipped runner, `test/run.mjs`, on fixture packages. In a source layout, it runs every declared `test:<name>` suite once, never `test` itself, and a failing suite fails it without hiding later suites. Installed under `node_modules`, it runs only `test:consumer` and exits with its result. A damaged source (a marker missing), an ambiguous layout (an installed package with a source marker), an empty inventory, and a missing `test:consumer` or `test:publisher` each give `cannot verify` with exit 2 and run no suite | core/F75, core/A34 | Architecture |
 | core/T79: kaal-core is `@kaihacksai/kaal-core`, and every workspace package it depends on at runtime is named under `@kaihacksai/kaal-` | core/F74 | Requirements |
 
 **Why the tests discriminate.** I checked them with a throwaway reference, which was not committed. It had the six documents, one delivered test for each loop, a `test/verify.mjs`, the runner `test/run.mjs`, the three scripts, and Foundation made public. With it, T74, T75, T76, T78 and T80 turned GREEN. T79 was checked by renaming the reference's packages under `@kaihacksai/`; the reference did not commit those renames, which belong to their owners. T77 stays RED until `core/C26`. Each weaker reference below was caught. The last five came from Codex's review, and T76 was revised to catch each:
@@ -30,6 +30,11 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 | the runner runs only the consumer suite in the source workspace | core/T80 |
 | the runner ignores a failing suite | core/T80 |
 | installed, the runner flattens the consumer's `cannot verify` to `failed` | core/T80 |
+| the runner takes a missing `test/plan/` to mean installed, so a damaged checkout skips the publisher's tests | core/T80 |
+| the runner ignores a source marker in an installed package | core/T80 |
+| the runner passes with no declared suite | core/T80 |
+| the runner passes when `test:publisher` is missing in source | core/T80 |
+| the runner passes when `test:consumer` is missing | core/T80 |
 | ships files that "Shipped files" does not list | core/T76 |
 | reports `cannot verify` when kaal-core fails to import, but `verified` when no test ran | core/T76 |
 | reports `verified` when one loop runs no test while the others pass (only the total is counted) | core/T76 |

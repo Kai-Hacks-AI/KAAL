@@ -9,7 +9,10 @@ Each element names, in brackets, the Requirements it answers.
 - **core/A34** [core/F70, core/F75]: Named suites and one runner.
   - `test:consumer` is the consumer verification, `node test/verify.mjs`. It runs the delivered loops, counts the tests in each, and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing.
   - `test:publisher` is today's script: it builds with `tsc` and runs the publisher's tests.
-  - `npm test` is `node test/run.mjs`, a runner that ships. It runs every declared `test:<name>` script with `npm run`, in the order `package.json` declares them, and never runs `test` itself. In the source workspace it runs them all. In an installation, where `test/plan/` is absent because it never ships, it runs `test:consumer` alone and exits with its result. Anywhere else, it exits non-zero when any suite fails.
+  - `npm test` is `node test/run.mjs`, a runner that ships. It runs declared `test:<name>` scripts with `npm run`, in the order `package.json` declares them, and never runs `test` itself. It first decides where it is:
+    - **installed,** when the package directory's real path sits directly in a `node_modules` directory (`node_modules/<name>` or `node_modules/@scope/<name>`). A workspace link resolves to its source directory, so it is not installed. Installed, the runner runs `test:consumer` alone and exits with its result;
+    - **source,** otherwise, and only when both source markers are present: `src/` and `test/plan/`. Neither ships (`core/F72`). In source, the runner runs every declared `test:<name>` suite, continues past a failing one, and exits non-zero if any failed;
+    - **refused, as `cannot verify` with exit 2, before any suite runs:** an installed package that carries a source marker (ambiguous), a source directory missing a marker (damaged), no declared `test:<name>` suite at all (empty), `test:consumer` missing in either place, or `test:publisher` missing in source. The runner names the reason.
   - Other declared suites, such as today's `test:boundary`, run in the source workspace like any other. `core/C29` decides whether a subset suite stays declared.
   - Engineering's lanes need no change. They run the comprehensive `npm test` in the source workspace. engineering/C6 (#625) adds a Consumer lane for the installed verdict, and `core/C29` takes kaal-core off that lane's not-ready list.
 - **core/A35** [core/F72, core/F73]: Release acceptance packs and installs:
@@ -24,7 +27,7 @@ Each element names, in brackets, the Requirements it answers.
   - Foundation removes `private` from `@kaihacksai/kaal-foundation` and plans its own publication readiness;
   - Core renames kaal-core to `@kaihacksai/kaal-core` in `core/C29`.
 
-  Each owner verifies its own packed consumer experience. A rename cannot be split from the references to the old name without breaking the workspace. So a rename Change updates every import and dependency entry that names its package, in the same PR, and asks each affected owner to review. It changes nothing else in their files. The renames go one at a time, Hosting first and Core last, because they touch the same importers.
+  Each owner verifies its own packed consumer experience. A rename cannot be split from the references to the old name without breaking the workspace. So a rename Change updates every import and dependency entry that names its package, in the same PR. It runs each affected package's own `npm test` before it asks for review, and asks each affected owner to review. It changes nothing else in their files. The renames go one at a time, Hosting first and Core last, because they touch the same importers.
 
 ## Ownership
 

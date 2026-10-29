@@ -173,34 +173,54 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     }
   });
 
-  it("core/T80 [core/F75, core/A34]: the shipped runner runs every declared test:<name> suite in the source workspace and never test itself; installed, it runs only test:consumer and exits with its result; a failing suite fails it", { timeout: 120_000 }, () => {
+  it("core/T80 [core/F75, core/A34]: the shipped runner tells source from installed explicitly: in source it runs every declared test:<name> suite once and never test itself; installed under node_modules it runs only test:consumer; damaged, ambiguous, empty or incomplete layouts are cannot verify and run nothing; a failing suite fails it", { timeout: 300_000 }, () => {
     const runner = join(CORE, "test", "run.mjs");
     assert.ok(existsSync(runner), "blocked before behavioural assertion: test/run.mjs does not exist");
     const work = mkdtempSync(join(tmpdir(), "kaal-core-runner-"));
     try {
+      let n = 0;
       const say = (word, code = 0) => `node -e "console.log(['ran', '${word}'].join(' '));process.exit(${code})"`;
-      const fixture = (scripts, source) => {
-        const dir = mkdtempSync(join(work, "pkg-"));
-        mkdirSync(join(dir, "test"));
+      /** A fixture package with the shipped runner, in a source directory or installed under node_modules, with the given source markers. */
+      const fixture = (scripts, { installed = false, markers = installed ? [] : ["src", "test/plan"] } = {}) => {
+        const dir = installed ? join(work, `app-${++n}`, "node_modules", "fixture") : join(work, `src-${++n}`);
+        mkdirSync(join(dir, "test"), { recursive: true });
         writeFileSync(join(dir, "test", "run.mjs"), readFileSync(runner));
-        if (source) mkdirSync(join(dir, "test", "plan"));
+        for (const m of markers) mkdirSync(join(dir, m), { recursive: true });
         writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "0.0.0", private: true, type: "module", scripts: { test: "node test/run.mjs", ...scripts } }));
         return run("npm", ["test"], dir);
       };
+      const ran = (r) => [...r.out.matchAll(/^ran (\w+)$/gm)].map((m) => m[1]);
       const all = { "test:consumer": say("consumer"), "test:publisher": say("publisher"), "test:extra": say("extra") };
-      const source = fixture(all, true);
+
+      const source = fixture(all);
       assert.equal(source.status, 0, source.out);
-      for (const word of ["consumer", "publisher", "extra"]) assert.match(source.out, new RegExp(`ran ${word}`), `the source npm test runs test:${word}`);
-      assert.equal(source.out.match(/ran consumer/g)?.length, 1, `each suite runs once and npm test never invokes itself: ${source.out}`);
-      const installed = fixture(all, false);
+      assert.deepEqual(ran(source), ["consumer", "publisher", "extra"], `in source every declared suite runs once, in order, and npm test never invokes itself: ${source.out}`);
+
+      const installed = fixture(all, { installed: true });
       assert.equal(installed.status, 0, installed.out);
-      assert.match(installed.out, /ran consumer/);
-      assert.doesNotMatch(installed.out, /ran (publisher|extra)/, "installed, only test:consumer runs");
-      const cannot = fixture({ ...all, "test:consumer": say("consumer", 2) }, false);
+      assert.deepEqual(ran(installed), ["consumer"], "installed, only test:consumer runs");
+      const cannot = fixture({ ...all, "test:consumer": say("consumer", 2) }, { installed: true });
       assert.equal(cannot.status, 2, `installed, the runner exits with the consumer's result: ${cannot.out}`);
-      const failing = fixture({ ...all, "test:publisher": say("publisher", 1) }, true);
+
+      const failing = fixture({ ...all, "test:publisher": say("publisher", 1) });
       assert.notEqual(failing.status, 0, "a failing suite fails the source npm test");
-      assert.match(failing.out, /ran extra/, "a failing suite does not hide the suites after it");
+      assert.deepEqual(ran(failing), ["consumer", "publisher", "extra"], "a failing suite does not hide the suites after it");
+
+      const refused = {
+        "a damaged source checkout, missing test/plan/": fixture(all, { markers: ["src"] }),
+        "a damaged source checkout, missing src/": fixture(all, { markers: ["test/plan"] }),
+        "a damaged source checkout, missing both markers": fixture(all, { markers: [] }),
+        "an installed package carrying a source marker": fixture(all, { installed: true, markers: ["test/plan"] }),
+        "no declared suite": fixture({}),
+        "no test:publisher in source": fixture({ "test:consumer": say("consumer") }),
+        "no test:consumer in source": fixture({ "test:publisher": say("publisher") }),
+        "no test:consumer installed": fixture({ "test:publisher": say("publisher") }, { installed: true }),
+      };
+      for (const [layout, r] of Object.entries(refused)) {
+        assert.equal(r.status, 2, `${layout} is cannot verify: ${r.out}`);
+        assert.match(r.out, /cannot verify/, `${layout} says cannot verify`);
+        assert.deepEqual(ran(r), [], `${layout} runs no suite`);
+      }
     } finally {
       rmSync(work, { recursive: true, force: true });
     }
