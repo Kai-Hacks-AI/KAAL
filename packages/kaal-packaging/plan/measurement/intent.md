@@ -11,3 +11,5 @@ Guard measured its own package by hand in `guard/C117` (#579): packed and unpack
 - **packaging/I1.** Any KAAL package's delivered size is measured the same way, from the package artifact exactly as it was produced, never from its source directory. This holds whatever the ecosystem.
 - **packaging/I2.** Two measurements of the same package can be compared, so growth between versions is visible path by path.
 - **packaging/I3.** Packaging measures and reports, and it decides nothing. Each product owns its size constraints and optimization decisions. Engineering owns when measurement runs and whether any result gates anything.
+
+**Amended in `packaging/C3` (the Owner's review on #614).** Packaging is the capability for KAAL packages: their semantics, structure, contents, delivery contracts and lifecycle. It is not a compression or archive library. How an artifact is laid out on disk, as gzip, tar or zip, belongs to its ecosystem and that ecosystem's own tooling. Packaging states what a KAAL package is and holds, in terms that are the same for every ecosystem. Hosting owns how a command runs on a host and knows nothing of any package ecosystem.
