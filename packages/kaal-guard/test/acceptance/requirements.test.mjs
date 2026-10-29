@@ -1210,7 +1210,7 @@ describe("guard/F2 [guard/I2] named outcomes", () => {
     assert.equal(verdicts(held.guard(["run", "--check", "h"]).output).h?.verdict, "held");
   });
 
-  it('guard/T125 [guard/F2, guard/F18]: an outcomes key "0" or "3", a status Guard reserves for its own verdicts, is refused as cannot judge, naming "4" to "255"', () => {
+  it("guard/T125 [guard/F2, guard/F18]: an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255", () => {
     for (const key of ["0", "3"]) {
       const c = given({ h: { command: exit(0), runs: ["hook", "ci"], outcomes: { [key]: "held" } } });
       for (const args of [["run", "--check", "h"], ["run", "--hook"], ["verify"]]) {
