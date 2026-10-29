@@ -2,21 +2,32 @@
 
 This is `core/C32`, a PLAN Change. It ships no code. It authorizes no DO, synchronization, promotion, rename, version change or publication: those remain the Owner's.
 
-The Owner set the direction in the project chat (2026-10-29 18:13 and 18:14): Core should not need Graph. Each capability is useful on its own, and complementary capabilities add value when present (1+1 > 2, as on #530 and in `core/C30`'s absent-complement decision). More technical packages, such as Foundation and Hosting, may stay mandatory.
+## The Owner's direction
 
-Today kaal-core depends on `kaal-graph` at runtime. It uses three things from it, and two of them are Graph's technical contracts rather than its capability:
-- **Node Form and identity.** These are `readFrontmatter`, `isName`, `isId` and `FormError` from `kaal-graph/form`, and `identify`, `identifyRoot`, `claimsForm` and `sha256`. Every Node Core reads goes through them: the Kernel, `CASE`, `LOVE`, the Installation Contract, and every admitted Node.
-- **Structure over string identities.** `core/C26` uses `graph/C2`'s `reach`, `reverse` and `cycles` for registration's reach, incoming views and cycles. `core/A27` (approved in `core/C24`) says Core keeps no edge index and no cycle detection of its own, and builds no substitute.
-- **The `Graph` class, as a lookup by name and id** (`named`, `node`, `resolve`). Core never walks an Edge.
+The Owner set the direction in two steps:
+- **In project chat (2026-10-29 18:13 and 18:14):** Core should not need Graph. Capabilities complement each other (1+1 > 2), and only technical packages such as Foundation and Hosting may stay mandatory.
+- **On #640 (comment 6508502305), the architectural decision:** no new Form package, and Form does not move into Foundation.
 
-- **core/I24.** kaal-core installs and works without Graph's capability. Its mandatory runtime dependencies are technical packages only. Graph is an optional complement that Core uses when it is present and reports honestly when it is not.
+The decision on #640 rests on BASS, which applies to every capability:
+- Nodes and Edges are valid, readable bare content whether or not `kaal-graph` is installed.
+- Without Graph, an agent works with that content itself. With Graph, it gains deterministic construction, navigation and analysis.
+- Graph does not confer validity, and it does not own a consuming capability's relationship semantics.
 
-## The decision for the Owner
+The decision also separates three things:
+1. **Engineering and build-time use.** The build may use `kaal-graph` to build and verify the Node support delivered within `kaal-core`.
+2. **Consumer runtime dependency.** kaal-core and its delivered Node support work without a separately installed Graph package.
+3. **Capability installation and admission.** Only Graph-specific operational support is absent when Graph is not installed.
 
-This PLAN leaves the architectural choice to the Owner. Core's DO (`core/C33`) does not start before it is made. The Architecture compares the options, says why Graph keeps ownership of what moves, and spells out the release and clean-installation consequences of each.
+## What Core takes from Graph today
 
-- **A. Graph's technical base as its own Graph-owned package (recommended).** Node Form, identity and `graph/C2`'s structural functions move into a mandatory technical package. Graph still owns that package and builds its capability on it: Edges of Nodes, navigation, the CLI and its installation.
-- **B. Form into Foundation.** Foundation would need `yaml` as a dependency, which breaks foundation/N2 (no dependencies), the property that lets Foundation sit beneath everything.
-- **C. Graph stays a dependency.** This is today's state, and nothing new is built. Core installs all of Graph and uses only its technical base.
+Today kaal-core depends on `kaal-graph` at runtime, for three things:
+- **Node Form and identity.** `readFrontmatter`, `isName`, `isId` and `FormError` (Graph's `form.mjs`), and `identify`, `identifyRoot`, `claimsForm` and `sha256` (Graph's `node.mjs`). Every Node Core reads goes through them: the Kernel, `CASE`, `LOVE`, the Installation Contract, and every admitted Node.
+- **The `Graph` class, as a lookup by name and id.** Core uses `named`, `node` and `resolve`. It never walks an Edge.
+- **Planned: `graph/C2`'s `reach`, `reverse` and `cycles`.** `core/C26` uses them for registration's reach, incoming views and cycles (`core/A27`).
 
-The Requirements and Tests are written for A. Under B, only the package that supplies Form changes. Under C, core/F76–F78 and core/T81–T83 are withdrawn, and core/N20 remains as the rule for Graph's capability features.
+## The Intent
+
+- **core/I24.** kaal-core installs and works without Graph.
+  - Its Node support is Graph's contract, delivered inside kaal-core. One authoritative source exists, and it is Graph's.
+  - Core's own admission and registration mechanics are Core's.
+  - Graph's traversal and analysis machinery stays with Graph. Core uses it as an optional complement when Graph is present, and reports honestly when it is not.
