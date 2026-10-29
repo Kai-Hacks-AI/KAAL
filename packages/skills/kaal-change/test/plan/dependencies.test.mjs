@@ -153,4 +153,41 @@ describe("Change Nodes and their dependencies (change/C1)", () => {
     assert.deepEqual(none.findings, [], "no Changes is no finding");
     assert.deepEqual(assess([]).changes, []);
   });
+
+  it("change/T17 [change/F4, change/F12, change/A4]: under content addressing, closing a cycle edits a pinned Change, so the attempt is a stale pin and never a cycle", async () => {
+    const { assess, definitions, change } = await fixture();
+    const a = change("sample/C1");
+    const b = change("sample/C2", [a]);
+    const closing = change("sample/C1", [b]);
+    assert.notEqual(closing.id, a.id, "stating the dependency changes the Change's bytes, and so its id");
+    const r = assess([...definitions, closing, b]);
+    assert.ok(naming(r.findings, "sample/C2", "sample/C1", a.id, "stale").length > 0, "the Edge pinned before the edit is stale");
+    assert.deepEqual(naming(r.findings, "cycle"), [], "no cycle resolves, so none is reported");
+    assert.deepEqual(r.dependsOn("sample/C1", { transitive: true }), ["sample/C2"], "the new Edge resolves");
+    assert.deepEqual(r.dependsOn("sample/C2", { transitive: true }), [], "the stale Edge is not walked");
+    assert.deepEqual(r.dependents("sample/C1", { transitive: true }), [], "nor reversed");
+  });
+
+  it("change/T18 [change/F12, change/A4]: Nodes whose ids are not their bytes' hash can state a cycle, which is a finding naming its Changes, and the views still terminate", async () => {
+    const { assess, definitions, change } = await fixture();
+    // Graph takes any frozen Node as identify() shapes it and does not recompute its id,
+    // so these ids are asserted, not derived from bytes.
+    const ID = { A: "a".repeat(64), B: "b".repeat(64), C: "c".repeat(64) };
+    const forged = (name, id, deps) => {
+      const n = change(name, deps.map(([depName, depId]) => ({ name: depName, id: depId })));
+      return Object.freeze({ ...n, id });
+    };
+    const a = forged("sample/C1", ID.A, [["sample/C2", ID.B]]);
+    const b = forged("sample/C2", ID.B, [["sample/C1", ID.A]]);
+    const self = forged("sample/C3", ID.C, [["sample/C3", ID.C]]);
+    const r = assess([...definitions, a, b, self]);
+    assert.ok(naming(r.findings, "cycle", "sample/C1", "sample/C2").length > 0, "the cycle names each of its Changes");
+    assert.ok(naming(r.findings, "cycle", "sample/C3").length > 0, "a Change depending on itself is a cycle");
+    assert.deepEqual(r.dependsOn("sample/C1", { transitive: true }), ["sample/C2"], "the walk terminates and never lists the start");
+    assert.deepEqual(r.dependents("sample/C1", { transitive: true }), ["sample/C2"]);
+    assert.deepEqual(r.dependsOn("sample/C3", { transitive: true }), [], "a Change is never its own dependency");
+    assert.deepEqual(r.dependents("sample/C3"), []);
+    const acyclic = assess([...definitions, change("sample/C1"), change("sample/C4")]);
+    assert.deepEqual(naming(acyclic.findings, "cycle"), [], "without a cycle there is no cycle finding");
+  });
 });

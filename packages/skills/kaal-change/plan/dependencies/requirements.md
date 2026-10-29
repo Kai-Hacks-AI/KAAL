@@ -32,3 +32,6 @@ Each Requirement names, in brackets, the Intents it serves.
 
   Each lists identities, sorted, and includes only resolved Edges.
 - **change/F6** [change/I3]: The result carries no priority and no order of work beyond the Edges. Which ready Change goes first is Product's.
+- **change/F12** [change/I2]: A cycle among resolved Depends On Edges is a finding naming each of its Changes, sorted, and so is a Change that depends on itself.
+  - The views still terminate. Each lists a Change at most once, and never the Change it starts from.
+  - Content addressing makes such a cycle unresolvable for Nodes read from their bytes (change/A4). The finding covers Nodes whose ids are asserted rather than derived.
