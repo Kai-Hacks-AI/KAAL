@@ -6,6 +6,7 @@ KAAL Change: the capability for orchestrating the work around a Change: what a C
 capability/Change.md              the Capability Node, typed by Core's KAAL Capability
 capability/Change-Definition.md   the Change Definition, typed by KAAL Definition: meaning and self-containment
 capability/Change-Lifecycle.md    the Change Lifecycle Definition, typed by KAAL Definition: a Change's states, read from facts
+capability/Change-Classification.md the Change Classification Definition, typed by KAAL Definition: Normal, Standard and Emergency Changes
 capability/Change-Record.md       the Change Record Definition, typed by KAAL Definition: where a Change's supporting material lives
 capability/CHAOS.md               the CHAOS Definition, typed by KAAL Definition: Changes Help Agents Organize Systematically
 lib/lifecycle.mjs                 the lifecycle reader: kaal-change/lifecycle
