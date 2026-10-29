@@ -58,6 +58,16 @@ function shapeRun(run, f) {
     if (!object(r[key])) { f.push(`run ${name(r.id)}: ${name(key)} must be an object`); r[key] = {}; }
   }
   if (r.runs !== undefined && !Array.isArray(r.runs)) { f.push(`run ${name(r.id)}: runs must be a list`); r.runs = []; }
+  // A provenance or Test Data entry records a version, or null where the definition has none (testing/F31).
+  for (const key of ["provenance", "data"]) {
+    if (r[key] === undefined) continue;
+    const kept = [];
+    for (const [k, v] of Object.entries(r[key])) {
+      if (v === null || nonempty(v)) kept.push([k, v]);
+      else f.push(`run ${name(r.id)}: ${key} of ${name(k)} must be a version or null, not ${name(v)}`);
+    }
+    r[key] = Object.fromEntries(kept);
+  }
   return r;
 }
 
@@ -173,6 +183,12 @@ function walk(m, ix, given, f, inherited, suite, seen) {
   return { kind, occ };
 }
 
+/**
+ * What one Run shows: each Case's, Suite's and Plan's result in it, its effective Test Data and its findings.
+ * These are raw observations of that Run, never a verdict: a `passed` here stands beside any findings and is
+ * not GREEN evidence while findings is nonempty. The only verdict is evaluate's `result`, unknown whenever
+ * there is a finding. How a consumer, such as Change, turns either into its own criterion is that consumer's.
+ */
 export function results(model, run) {
   const findings = check(model);
   const { m } = shape(model);

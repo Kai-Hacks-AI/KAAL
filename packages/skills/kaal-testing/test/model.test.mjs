@@ -100,4 +100,67 @@ describe("model", () => {
       assert.ok(e.findings.some((f) => f.includes("not its declared version")), `${P} ${S}`);
     }
   });
+
+  describe("results are raw observations; only evaluate gives a verdict (Owner review 5703577468)", () => {
+    const m = () => ({
+      plans: [{ id: "P", suites: ["S"] }],
+      suites: [{ id: "S", cases: ["c", "d"] }],
+      cases: [{ id: "c", version: "1" }, { id: "d" }],
+    });
+    const withData = () => ({ ...m(), plans: [{ id: "P", suites: ["S"], data: [{ id: "D", version: "v1" }] }] });
+    const run = (over = {}) => ({ id: "r", of: "P", provenance: { P: null, S: null, c: "1", d: null }, outcomes: {}, runs: [{ id: "s", of: "S", outcomes: { c: "passed", d: "passed" } }], ...over });
+
+    it("a clean Run passes, and is the baseline the negative cases below depart from", () => {
+      assert.equal(evaluate(m(), run()).result, "passed");
+      assert.equal(evaluate(withData(), run({ data: { D: "v1" } })).result, "passed");
+    });
+
+    it("results may show passed beside findings; evaluate is then unknown, never passed", () => {
+      const r = results(withData(), run({ data: { D: "v1", ghost: null } }));
+      assert.ok(r.findings.length > 0);
+      assert.equal(r.plans.P.result, "passed", "results reports the raw observation");
+      assert.equal(evaluate(withData(), run({ data: { D: "v1", ghost: null } })).result, "unknown", "the only verdict is unknown while there is a finding");
+    });
+
+    it("malformed Run provenance never yields a clean passing evaluation", () => {
+      const bad = {
+        "a version that is a number": { P: null, S: null, c: 1, d: null },
+        "an empty version": { P: null, S: null, c: "", d: null },
+        "a version that is an object": { P: null, S: null, c: { v: "1" }, d: null },
+        "an element version that is a list": { P: [], S: null, c: "1", d: null },
+        "another version of the Case": { P: null, S: null, c: "2", d: null },
+        "no version for a versioned Case": { P: null, S: null, c: null, d: null },
+        "a Case it does not identify": { P: null, S: null, c: "1" },
+        "the element it does not identify": { S: null, c: "1", d: null },
+      };
+      for (const [why, provenance] of Object.entries(bad)) assert.notEqual(evaluate(m(), run({ provenance })).result, "passed", why);
+      assert.notEqual(evaluate(m(), run({ runs: [{ id: "s", of: "S", provenance: { c: 7 }, outcomes: { c: "passed", d: "passed" } }] })).result, "passed", "an encompassed Run's malformed provenance");
+    });
+
+    it("conflicting or duplicate occurrences never yield a clean passing evaluation", () => {
+      const twice = (a, b, ids = ["s", "t"]) => run({ runs: [{ id: ids[0], of: "S", outcomes: { c: a, d: "passed" } }, { id: ids[1], of: "S", outcomes: { c: b, d: "passed" } }] });
+      assert.equal(evaluate(m(), twice("passed", "failed")).result, "failed", "a Case observed passing and failing in one Plan Run is failed");
+      assert.equal(evaluate(m(), twice("failed", "passed")).result, "failed", "in either order");
+      assert.equal(evaluate(m(), twice("passed", "skipped")).result, "unknown", "a skipped repetition leaves it unknown");
+      assert.equal(evaluate(m(), twice("passed", "passed", ["s", "s"])).result, "unknown", "a duplicate Run identity is a finding");
+      const both = run({ outcomes: { c: "passed", d: "passed" }, runs: [{ id: "s", of: "S", outcomes: { c: "failed", d: "passed" } }] });
+      assert.equal(evaluate(m(), both).result, "failed", "a Plan-level outcome cannot outvote an encompassed Run's failure");
+      const nested = run({ runs: [{ id: "s", of: "S", outcomes: { d: "passed" }, runs: [{ id: "k1", of: "c", outcomes: { c: "passed" } }, { id: "k2", of: "c", outcomes: { c: "failed" } }] }] });
+      assert.equal(evaluate(m(), nested).result, "failed", "two Case Runs within one Suite Run");
+    });
+
+    it("invalid Test Data provenance never yields a clean passing evaluation", () => {
+      for (const [why, data] of Object.entries({
+        "undeclared Test Data": { D: "v1", ghost: "v1" },
+        "a version that is a number": { D: 1 },
+        "an empty version": { D: "" },
+        "a version that is a list": { D: ["v1"] },
+        "data that is a list": [["D", "v1"]],
+      })) {
+        const e = evaluate(withData(), run({ data }));
+        assert.equal(e.result, "unknown", why);
+        assert.ok(e.findings.length > 0, why);
+      }
+    });
+  });
 });
