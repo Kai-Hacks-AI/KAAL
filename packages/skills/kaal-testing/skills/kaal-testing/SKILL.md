@@ -27,6 +27,14 @@ Record each judged validation item with its judgment, and make an unjudged one f
 
 **Implementation.** Write the smallest test that fails for the right reason, make it pass, then refactor with every test green. Test behaviour, not structure.
 
+## Tests planned before the code
+
+Intent, Requirements and Architecture establish their tests in PLAN. In DO and CHECK, never change a planned test, or the fixtures, expectations, configuration and helpers that give it its meaning, for any reason. Your own implementation tests may change with the design, but never so that they weaken what the planned tests demand.
+
+- **Before coding**, run the planned tests and confirm each fails for the intended missing behaviour. A failure from a missing import, a fixture or a typo is not clean RED. If clearing it would touch a planned test or what gives it its meaning, report it as a planning defect.
+- **At GREEN**, say that the planned tests pass within their coverage, never that the outcome is achieved.
+- **If a planned test is wrong**, stop and report it as a planning defect for ACT. Do not correct it yourself.
+
 ## Tracing each test: TEST A FINDING
 
 **To Enhance Systematic Testing: Architecture, Functional requirements, Intent, Nonfunctional requirements, Defects — Inform Next Generation.**
@@ -54,6 +62,20 @@ To relate coverage to ownership, use `report` from `kaal-testing/report`. A deli
 ## Reporting
 
 Report findings in four kinds, never merged: verified failure, potential defect, architectural concern, unknown. The form for each, and how to state a clean result, is in [references/findings.md](references/findings.md).
+
+## Making a product verifiable by its consumers
+
+When a product is to be verifiable by the people who install it, follow the `Testing` Node's section "Consumer verification" for what it means. In short:
+
+- Deliver only the product's own acceptance or conformance cases, kept apart from engineering-only tests, and declare which cases they are.
+- Document one entry point. Locate the installed product by resolution, never by a source path, and fail closed: fewer cases executed than declared is unknown, never verified.
+- Give exactly one result per run: failed, unknown or verified, each with its own exit status and summary.
+- Name what was exercised: name, version, install location, and byte identity where the installation records one.
+- Work outside the consumer's content, leave it unchanged, and show that it is unchanged. Keep the procedure repeatable, and report each run's observed outcome, evidence and conditions faithfully. Never promise the same result from the same installation.
+- Report conformance and integration as separate verdicts.
+- Treat a consumer's result as the consumer's own observation, never as evidence Testing observed.
+
+Realize this in the product's own code and cite the contract ids. Do not depend on a Testing package for it.
 
 ## Rules
 
