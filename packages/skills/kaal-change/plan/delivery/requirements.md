@@ -9,6 +9,10 @@ Each Requirement names, in brackets, the Intents it serves.
   - It reads nothing from the host and writes nothing.
   - Nodes that are not Changes are ignored, and no Change Nodes give an empty result with no findings.
 - **change/N2** [change/I2, change/I9]: Each outgoing relationship is stated once, in the Node of the Change it goes out from. There is no field for a successor, and every incoming view is computed.
+- **change/N5** [change/I4]: Presence, registration, admission and use are distinct (Owner alignment 6505123872).
+  - **Only what is given.** `assess` reads only the Nodes its caller gives it. A Change Node present in the repository or on disk but not given is absent, and finding it is the caller's choice, never implicit registration.
+  - **No claim beyond Change's own.** No member, finding or exchange entry states or implies that a Change, a relationship or a result is registered, admitted or KAAL-verified. `delivered` is Change's verdict relative to the evidence given, never a KAAL verification.
+  - **Registration is explicit and later.** Registering the kind `Change` and the Succeeds and Delivers types is a later Change of Change's own (Architecture, Ownership). It points at the Change Nodes' outgoing Edges and duplicates none of them. Any Core index, and its materialization and freshness, is Core's separate PLAN.
 
 ## Functional: the Change Node
 

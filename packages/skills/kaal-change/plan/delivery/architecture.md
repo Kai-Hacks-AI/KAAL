@@ -8,7 +8,7 @@ Each element names, in brackets, the Requirements it answers.
   - **The Change Definition's statement of the Change Node.** It is typed by the Change Definition and named by its identity. Its predecessors and Intents are Edges of those two Definitions, and its required Cases are its `requires`.
 
   Change Nodes are found by content, as every Node is. Where a repository keeps them is that repository's choice, as for Change Records (#280).
-- **change/A2** [change/F2–change/F6, change/F12–change/F17, change/N1, change/N2]: `kaal-change/delivery` exports `assess(nodes, { evidence })`. It is pure, imports only `kaal-graph`, and imports no host module. It returns:
+- **change/A2** [change/F2–change/F6, change/F12–change/F17, change/N1, change/N2, change/N5]: `kaal-change/delivery` exports `assess(nodes, { evidence })`. It is pure, imports only `kaal-graph`, and imports no host module. It returns:
   - `changes`, each with its identity and id;
   - `findings`;
   - `has(identity)`, `succeeds(identity, { transitive })`, `successors(identity, { transitive })` and `delivers(identity)`;
@@ -49,7 +49,7 @@ Each element names, in brackets, the Requirements it answers.
 | Graph | representing and traversing Edges, structurally only |
 | Testing | Test Case, Run and result semantics, what `passed` means (`testing/F26`), and each Case's `tests →` trace (`testing/N7`). Its FAR outcome refers to a Change by the same identity `<capability>/C<n>` (#385). |
 | Intent | what an Intent is, and the Intent Nodes a Delivers Edge points to |
-| Core | admission and registration mechanics, and global conformance, never the meaning of a relationship. Under Core's planned typed-relationships PLAN, Change registers the kind `Change` and the relationship types Succeeds (declared `acyclic`) and Delivers. Their instances are the Change Nodes' own Edges, read by name through that registration, never a second list (#600, comment 6503759803). That needs the Owner's decision to relax `core/F47` for Node-backed instances. Until it is taken, Succeeds and Delivers stay outside registration, and no second declaration of them is made anywhere. |
+| Core | admission and registration mechanics, and global conformance, never the meaning of a relationship. Under Core's planned typed-relationships PLAN, Change registers the kind `Change` and the relationship types Succeeds (declared `acyclic`) and Delivers. Their instances are the Change Nodes' own Edges, read by name through that registration, never a second list (#600, comment 6503759803). That needs the Owner's decision to relax `core/F47` for Node-backed instances. That registration is a later Change of Change's own (Owner, #600), never absorbed by Core. Until it lands, Succeeds and Delivers stay outside registration, and no second declaration of them is made anywhere. Presence in a repository is never registration (change/N5). |
 | Packaging | technical package dependencies (`Package —depends on→ Package`), which Succeeds is not |
 | Project | its own sequencing (`before`) and its map. It consumes `exchange()` (#605). |
 | Product | priority. It may point to Changes with an Edge type of its own. |

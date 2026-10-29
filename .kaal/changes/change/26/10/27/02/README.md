@@ -11,7 +11,7 @@ The Owner's invariants in Slack #kaal (thread "PR dependency map", 2026-10-27) a
 This is a PLAN Change. It ships no code.
 
 - `packages/skills/kaal-change/plan/delivery/`: the Intent, the Requirements, the Architecture and the Testing plan.
-- `packages/skills/kaal-change/test/plan/delivery.test.mjs`: change/T1–change/T8 and change/T17–change/T22. They are RED and blocked before behavioural assertion, outside `npm test` until the DO Change.
+- `packages/skills/kaal-change/test/plan/delivery.test.mjs`: change/T1–change/T8 and change/T17–change/T23. They are RED and blocked before behavioural assertion, outside `npm test` until the DO Change.
 
 ## Owner semantic alignment 6503873746
 
@@ -31,6 +31,13 @@ It supersedes the earlier "Depends On" wording.
   - change/T17 establishes it under Graph's actual construction: closing a cycle yields a stale pin.
   - It is qualified, because Graph does not recompute ids, so `assess` reports any cycle among resolved Edges (`change/F12`, change/T18).
   - Cycle findings are Change's succession semantics, distinct from Core's traces and Graph's mechanics.
+
+## Owner alignment 6505123872
+
+Presence, registration, admission and use are distinct (`change/N5`, change/T23).
+- `assess` reads only the Nodes it is given. A Change Node on disk but not given is absent.
+- Nothing in its result claims registration, admission or KAAL verification.
+- Registration is a later Change of Change's own, pointing at the Change Nodes' Edges without duplicating them. Any Core index is Core's separate PLAN.
 
 ## What did not change
 

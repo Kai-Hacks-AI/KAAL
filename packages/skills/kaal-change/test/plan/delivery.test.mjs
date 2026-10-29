@@ -3,7 +3,9 @@
 // the contracts it checks (plan/delivery/*.md). They use kaal-change's
 // public interface and its shipped Definitions, and build Nodes with Graph.
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { createNode, identify } from "kaal-graph";
@@ -324,5 +326,41 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     const onMain = change("sample/C9", [], { requires: ["sample/T8", "engineering/T1"] });
     const notYet = assess([...definitions, onMain], { evidence: PASSED("sample/T8") });
     assert.deepEqual(notYet.delivery("sample/C9").unmet, [{ case: "engineering/T1", result: "absent" }], "a Change that requires an is-on-main Case is not delivered until it passed");
+  });
+
+  it("change/T23 [change/N5, change/I4]: a Change Node present on disk but not given is absent, and nothing in the result claims registration, admission or KAAL verification", async () => {
+    const { assess, definitions, CHANGE, change } = await fixture();
+    const bytes = createNode({ name: "sample/C1", type: CHANGE, frontmatter: { requires: ["sample/T1"] }, body: "# sample/C1\n" }).bytes;
+    const present = identify(bytes);
+    const dir = mkdtempSync(join(tmpdir(), "kaal-change-presence-"));
+    const cwd = process.cwd();
+    try {
+      writeFileSync(join(dir, "sample-C1.md"), bytes);
+      process.chdir(dir);
+      const r = assess(definitions, { evidence: [{ case: "sample/T1", result: "passed" }] });
+      assert.equal(r.has("sample/C1"), false, "presence on disk is not registration: a Change not given is absent");
+      assert.deepEqual(r.exchange().changes, [], "and is not in the exchange");
+      assert.deepEqual(r.findings, [], "nor does it raise a finding");
+    } finally {
+      process.chdir(cwd);
+      rmSync(dir, { recursive: true, force: true });
+    }
+    const pred = change("sample/C2", [], { requires: ["sample/T2"] });
+    const given = assess([...definitions, present, pred, change("sample/C3", [pred], { requires: ["sample/T3"] }, "# sample/C3\n", [])], {
+      evidence: ["sample/T1", "sample/T2", "sample/T3"].map((c) => ({ case: c, result: "passed" })),
+    });
+    const claims = /regist|admi|verif|kaal-?verified/i;
+    const walk = (v, path) => {
+      if (Array.isArray(v)) return v.forEach((x, i) => walk(x, `${path}[${i}]`));
+      if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) {
+        assert.doesNotMatch(k, claims, `${path}.${k} claims registration, admission or verification`);
+        walk(x, `${path}.${k}`);
+      }
+      else if (typeof v === "string") assert.doesNotMatch(v, claims, `${path} claims registration, admission or verification`);
+    };
+    walk(given.exchange(), "exchange()");
+    walk(given.findings, "findings");
+    for (const id of ["sample/C1", "sample/C2", "sample/C3"]) walk(given.delivery(id), `delivery(${id})`);
+    assert.equal(given.delivery("sample/C3").delivered, true, "delivered is Change's verdict on the given evidence, and that is all it says");
   });
 });

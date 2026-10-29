@@ -20,6 +20,7 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 | change/T20: a Change states the Intents it delivers, and an unresolved or stale Intent is a finding | change/I9, change/N2, change/F14 | Intent |
 | change/T21: a Change is satisfied only when Testing's evidence reads every required Case `passed`, and anything else is unmet under Testing's word | change/I10, change/F15, change/F16, change/A10 | Intent |
 | change/T22: a satisfied Change is delivered only when every Change it succeeds is delivered, and no Case about main is implied | change/I2, change/I10, change/F17, change/A10 | Requirements |
+| change/T23: a Change Node present on disk but not given is absent, and nothing in the result claims registration, admission or KAAL verification | change/N5, change/I4 | Requirements |
 
 The following are validated by review:
 - `change/A1` is a placement.
@@ -31,4 +32,4 @@ change/T17 and change/T18 replace the earlier claim that acyclicity follows from
 
 ## RED evidence
 
-At `change/C1`, all fourteen tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./delivery` and ships no Succeeds or Delivers Definition. They run with `node --test packages/skills/kaal-change/test/plan/delivery.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
+At `change/C1`, all fifteen tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./delivery` and ships no Succeeds or Delivers Definition. They run with `node --test packages/skills/kaal-change/test/plan/delivery.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
