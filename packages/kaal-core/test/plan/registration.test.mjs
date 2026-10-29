@@ -254,4 +254,46 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     const strict = nested.map((x) => (x.scope === "requirements" ? { ...x, kinds: { ...x.kinds, F: { ...x.kinds.F, acyclic: true } } } : x));
     assert.ok(naming(assemble([...strict, loop]).findings, "REQ-001", "kaal-requirements", "acyclic").length > 0, "declared acyclic by its owner, it is a finding");
   });
+
+  it("core/T72 [core/I21, core/F66, core/A26]: a term that several owners define is discoverable as one unaligned report naming each scoped kind, its owner, its definition and the rules among them; the kinds stay distinct, identical definitions included, and the report is no finding", async () => {
+    const assemble = await assembler();
+    assert.deepEqual(assemble([...KINDS, SAMPLE]).terms, [], "a term one owner defines is no report");
+    const cases = [
+      reg("kaal-testing", "testing", { T: { traces: "any" }, Case: { traces: [kind("service", "Case")], definition: "testing: Test Case" } }),
+      reg("kaal-service", "service", { Case: { traces: [], definition: "service: Service Case" } }),
+      reg("kaal-change", "change", { C: { traces: [] }, Case: { traces: [], definition: "service: Service Case" } }),
+    ];
+    const all = [...KINDS.filter((r) => !["testing", "change"].includes(r.scope)), ...cases, reg("acme-product", "acme", {}, [inst("WHY-1", I), inst("tc-1", kind("testing", "Case"), at("acme", "sc-1")), inst("sc-1", kind("service", "Case"), "WHY-1")])];
+    const r = assemble(all);
+    assert.equal(r.terms.length, 1, JSON.stringify(r.terms));
+    const [term] = r.terms;
+    assert.equal(term.term, "Case");
+    assert.equal(term.aligned, false, "an unaligned term is reported unaligned, never as resolved");
+    assert.deepEqual(term.kinds.map((k) => [k.scope, k.owner, k.definition]), [["change", "kaal-change", "service: Service Case"], ["service", "kaal-service", "service: Service Case"], ["testing", "kaal-testing", "testing: Test Case"]], "each scoped kind, its owner and its definition");
+    assert.deepEqual(term.related, [{ from: kind("testing", "Case"), to: kind("service", "Case") }], "the candidate relationship is the one a rule states, and none is inferred");
+    assert.equal(r.kinds.filter((k) => k.kind === "Case").length, 3, "identical definitions are not merged");
+    assert.equal(r.findings.length, 1, `the report is no finding: ${JSON.stringify(r.findings)}`);
+    assert.ok(naming(r.findings, "sc-1", "WHY-1", "rule").length > 0, "each Case is judged by its own owner's rule");
+    assert.deepEqual(assemble([...all].reverse()).terms, r.terms, "order does not matter");
+    assert.deepEqual(assemble([]).terms, []);
+  });
+
+  it("core/T73 [core/F50, core/F67]: a bare kind name resolves only in its own scope; where it does not, the finding lists every scope defining that name, a lone candidate included, and no candidate is chosen; a qualified reference resolves", async () => {
+    const assemble = await assembler();
+    const lone = assemble([...KINDS, reg("acme-product", "acme", {}, [inst("x-1", "D")])]);
+    const [unknown] = naming(lone.findings, "x-1", "D");
+    assert.ok(unknown, "a bare name its own scope does not define is unknown, even when one other scope defines it");
+    assert.deepEqual(unknown.candidates.map((c) => [c.scope, c.owner]), [["requirements", "kaal-requirements"]], "the lone candidate is listed with its owner");
+    assert.deepEqual(lone.instances.find((a) => a.id === "x-1").kind, kind("acme", "D"), "and not chosen");
+    const many = [...KINDS, reg("kaal-service", "service", { Case: { traces: [] } }), reg("kaal-review", "review", { Case: { traces: [] } })];
+    const r = assemble([...many, reg("kaal-x", "x", { X: { traces: ["Case"] } }), reg("acme-product", "acme", {}, [inst("y-1", "Case")])]);
+    for (const id of ["y-1", "kaal-x"]) {
+      const [f] = naming(r.findings, id, "Case");
+      assert.ok(f, `${id}: the bare name is a finding`);
+      assert.deepEqual(f.candidates.map((c) => c.scope), ["review", "service"], `${id}: every candidate is listed`);
+    }
+    assert.deepEqual(r.instances.find((a) => a.id === "y-1").kind, kind("acme", "Case"), "no candidate is chosen");
+    const q = assemble([...many, reg("kaal-x", "x", { X: { traces: [kind("service", "Case")] } }), reg("acme-product", "acme", {}, [inst("y-1", kind("review", "Case"))])]);
+    assert.deepEqual(q.findings, [], "a qualified reference resolves to the one it names");
+  });
 });

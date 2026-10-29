@@ -34,7 +34,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Defining.** A registration defines kinds by name in the scope it claims. Two registrations in different scopes that use one name define two kinds, and neither is a collision.
   - **Referring.** A kind is referred to, by an instance's `kind` or by a rule, as a name, meaning the kind of that name in the referring registration's own scope, or as a `{ scope, kind }` pair. This is the same form a trace uses for its target.
   - **One definition.** Because one scope has one holder (`core/F49`), a kind has one definition. A kind in a collided scope does not resolve.
-  - **Unknown.** A kind reference that resolves to no definition is unknown, and an instance of that kind is a finding.
+  - **Unknown.** A kind reference that resolves to no definition is unknown, and an instance of that kind is a finding. The finding lists the candidates (`core/F67`).
 
 ## Functional: rules and instances
 
@@ -65,9 +65,23 @@ Each Requirement names, in brackets, the Intents it serves.
   - An instance that states no trace is reported as **untraced**. That is a report, not a failure, and Core never infers a trace for it.
   - A rule permits a trace and never requires one.
 
+## Functional: shared terms
+
+- **core/F66** [core/I21]: A term that kinds in two or more scopes bear is reported as a shared term:
+  - **What it names.** The term, and each scoped kind bearing it with its owner and the definition its owner registers, if any. It also names the relationships among those kinds that their rules state by name. Core infers no relationship, and an open rule (`any`) states none.
+  - **Unaligned.** The report says the term is unaligned. Core never reports it as aligned, as resolved or as GREEN.
+  - **Nothing merged.** Each kind stays distinct and is judged by its own owner's rule, even when two owners register the same definition and the same rule.
+  - **No finding.** A shared term is a report, like a cycle or an untraced instance. It is not a finding, and `kaal verify` lists it and never fails on it.
+  - **Alignment comes later.** How the owners' alignment is recorded, and which of three outcomes it takes, is not part of this Change. The outcomes are one authoritative meaning that the others consume, meanings kept distinct, or meanings related explicitly. Until a later Change records alignments, every shared term is reported unaligned.
+- **core/F67** [core/I21, core/F50]: Resolution is never silent:
+  - A bare kind name resolves only in the referring registration's own scope.
+  - Where it does not resolve there, the unknown kind finding (`core/F50`) lists every other scope that defines a kind of that name, with its owner. This applies to an instance's `kind` and to a rule alike.
+  - Core chooses none of them, even when there is only one.
+  - A `{ scope, kind }` reference resolves to the kind it names.
+
 ## Functional: reporting
 
-- **core/F56** [core/I17, core/I18]: The result reports four things: the claims, every finding, the observed cycles, and the untraced instances.
+- **core/F56** [core/I17, core/I18, core/I21]: The result reports five things: the claims, every finding, the observed cycles, the untraced instances and, since `core/C30`, the shared terms.
   - Each finding says that it is Core's global verdict.
   - A Capability's local verdict, on its kinds' meaning or its identities' form, is never reported as Core's, and Core's verdict never says that an instance's content is right.
-  - `kaal verify` lists the result beside the Nodes and artifacts. It fails on a collision and on a finding of `core/F50`–`core/F54`. It never fails because an instance is untraced, nor because of a cycle no owner declared prohibited.
+  - `kaal verify` lists the result beside the Nodes and artifacts. It fails on a collision and on a finding of `core/F50`–`core/F54`. It never fails because an instance is untraced, nor because of a cycle no owner declared prohibited, nor because of a shared term.

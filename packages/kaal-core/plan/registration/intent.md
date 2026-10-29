@@ -26,6 +26,10 @@ The Owner's clarification in #kaal (2026-10-28) is carried by `core/C30`, a PLAN
 6. **A Capability's concepts are its own.** Each Capability defines its own concepts, semantics, identity rules, claims, operations and outgoing trace rules. So a kind is named within its owner's scope: two Capabilities that both name a concept `Case` define two kinds, each with its own rule, and neither collides with nor overrides the other. Matching spelling does not make them the same concept. If their meanings are in fact shared, the Capabilities align them and one becomes the authoritative owner, whose definition the other consumes. That is a decision between those Capabilities, not an automatic deduplication, and neither Core nor Graph becomes the default owner (Owner, #600, 2026-10-29).
 7. **Trees are a pointer, not a feature.** Any Capability may organize its content hierarchically, with edge meaning it defines. A hierarchy is a kind whose owner's rule permits its own kind, and a trace from one tree into another is an ordinary outgoing trace. Core requires no tree and no universal schema.
 
+The Owner's alignment on #600 (2026-10-29) applies PREACH to this PLAN. PREACH, Program Reports Errors, Agent Consults Human, runs the other way from HAPTIC's ladder: a program that meets an ambiguity it cannot legitimately resolve reports the facts and the candidates, and invents no semantics. An Agent resolves only what is already authorized, and consults a person when a new meaning or authority decision is needed. Core is not PREACH's owner. It owns only the generic detection and reporting that registration needs:
+
+8. **A shared term is surfaced, never resolved silently.** Qualifying kinds by scope keeps independently owned definitions apart, but it does not tell a reader that three Capabilities each define a `Case`. So assembly reports a term that several owners define, with each scoped kind, its owner and its definition, and the relationships their rules already state. It does not equate, merge, choose or suppress them. Each stays a distinct scoped kind until its owners align it, and the report says it is unaligned. A bare kind name never resolves into another scope, even when only one other scope defines it.
+
 `core/C30` also aligns the fixtures with the Defect model the Owner approved on #583: a Test Case traces to the Defect it tests, and a Defect lists no Test Case.
 
 So three things stay apart:
@@ -46,6 +50,10 @@ So three things stay apart:
   - Each Capability judges what its kinds mean and what its identities look like, and each holder judges its content.
   - Core judges only the assembled graph: who holds what, whether each reference resolves, whether each trace is permitted by its registered rule, and the graph's recursive structure.
   - Neither verdict stands in for the other.
+- **core/I21.** A term that several owners define is discoverable and never resolved silently (`core/C30`):
+  - Assembly reports it, unaligned, with every scoped kind that bears it.
+  - No kind is equated with, merged into, chosen over or hidden behind another.
+  - Recording an alignment's outcome is not part of this Change.
 - **core/I18.** Registration is additive and opt-in:
   - An Engine with no registrations behaves exactly as today.
   - No existing check, Guard's included, depends on registration.

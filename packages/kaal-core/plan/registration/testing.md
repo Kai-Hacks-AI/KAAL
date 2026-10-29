@@ -20,6 +20,8 @@ The planned outer tests live in `packages/kaal-core/test/plan/registration.test.
 | core/T57: `reach` terminates on a cycle and yields each instance once. case 1 → src/store.ts → case 1 is observed in `cycles`. It is no finding without a declaration, or with one on a kind off the cycle, and is a finding naming Code's owner when Code is declared `acyclic`. Cycles and findings are the same in any order | core/F53, core/N14, core/A27 | Architecture |
 | core/T58: an instance that states no trace is untraced, not failed and not inferred | core/I16, core/F55, core/F56 | Intent |
 | core/T59: order does not matter, and no registrations give an empty result | core/N14, core/N16 | Requirements |
+| core/T72: a term several owners define is one report, unaligned, naming each scoped kind with its owner and definition, and the relationships their rules state. The kinds stay distinct, identical definitions included. The report is no finding, does not depend on order, and a term one owner defines is no report | core/I21, core/F66, core/A26 | Intent |
+| core/T73: a bare kind name resolves only in its own scope. Where it does not, the finding lists every scope defining that name, a lone candidate included, and no candidate is chosen. A qualified reference resolves | core/F50, core/F67 | Requirements |
 | core/T67: a hierarchy is a kind whose owner's rule permits its own kind. Children state their parent, a parent's children are derived, `acyclic` is the owner's choice, and a cross-tree trace needs nothing more. Core requires no tree | core/F51, core/F53, core/F54 | Intent |
 
 **Why the tests discriminate.** Each of the following implementations satisfies a weaker contract. I checked each one against the tests with a throwaway reference implementation, which was not committed, and the tests caught every one:
@@ -40,8 +42,18 @@ The planned outer tests live in `packages/kaal-core/test/plan/registration.test.
 | resolves kinds defined in a collided scope | core/T52 |
 | always permits a kind to trace to itself | core/T67 |
 | ignores `acyclic` | core/T54, T57, T67 |
+| reports no shared term | core/T72 |
+| reports a term one owner defines | core/T72 |
+| reports a shared term as aligned | core/T72 |
+| merges kinds that share a definition | core/T72 |
+| infers relationships among the candidates | core/T72 |
+| reports a shared term as a finding | core/T72, T73 |
+| resolves a bare name to the lone other scope defining it | core/T73 |
+| resolves a bare name to the first candidate | core/T73 |
+| lists no candidates | core/T73 |
+| lists only one candidate | core/T73 |
 
-The reference implementation turned all ten GREEN. At `core/C30`, a reference revised to qualified kinds turned all eleven GREEN and caught each of the last five rows.
+The reference implementation turned all ten GREEN. At `core/C30`, a reference revised to qualified kinds turned all eleven GREEN and caught each of the five rows from "keeps kind names global" to "ignores `acyclic`". Revised again to report shared terms, it turned all thirteen GREEN and caught each of the last ten rows.
 
 The following are validated by review:
 - `core/A25` and `core/A28` are placements.
@@ -52,4 +64,4 @@ The following are validated by review:
 
 ## RED evidence
 
-At `core/C24`, all ten tests are RED. At `core/C30`, all eleven are RED for the same reason, and each is **blocked before behavioural assertion**, because kaal-core exports no `./registration`. They run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/registration.test.mjs`, outside Core's `npm test` until `core/C26`. This is planning evidence, not discriminating behavioural RED. The discrimination is the reference-implementation table above.
+At `core/C24`, all ten tests are RED. At `core/C30`, all thirteen are RED for the same reason, and each is **blocked before behavioural assertion**, because kaal-core exports no `./registration`. They run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/registration.test.mjs`, outside Core's `npm test` until `core/C26`. This is planning evidence, not discriminating behavioural RED. The discrimination is the reference-implementation table above.
