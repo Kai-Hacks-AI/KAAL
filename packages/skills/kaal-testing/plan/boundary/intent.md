@@ -20,3 +20,11 @@ This is `testing/C11`, a PLAN Change for C-T2. It ships no code. `testing/C12` t
   - an untouched boundary is "unchanged within the declaration", never "met";
   - whatever the realization did not compare stays unknown.
 - **testing/I9.** Testing interprets and never produces the result. It imports neither Git nor Sealing. It keeps no registry and names no gate.
+  - Testing interprets a verdict that a trust authority attests. It never authenticates one, and a verdict's own labels never make it trusted. Whether the candidate could rewrite the anchor, and whether the comparison was made, stays the authority's: Engineering's, and Sealing's for a Seal (`testing/C19`).
+
+## Amendment
+
+`testing/C19` amends this PLAN after the Owner's review 5699917160 on #617 (`testing/C12`). As planned, `interpret` trusted a verdict on its own labels, such as an anchor of kind `plan-commit` and `bytes: "stored"`. Those labels cannot show that the candidate cannot rewrite the anchor or that the comparison was made. Now:
+- `interpret` takes the trust authority's attestation, bound to the verdict's anchor, as a third input. Without it, the verdict is unknown, and its changes are reported but are not verified failures (testing/F20, testing/T40).
+- A change entry that does not read, an unrecognized change to a declared path, or outside paths that do not read leave the class `unknown`, never `unchanged within the declaration` (testing/F23, testing/T41).
+- testing/T20 to testing/T25 read each verdict with its attestation, and assert what they did before.
