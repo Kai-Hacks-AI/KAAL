@@ -74,7 +74,9 @@ These are written RED first, against today's register, and live beside guard/T11
 | Every "Tested by" cell equals the set derived from Test Case titles, and none is written outside the generated markers | the column does not exist |
 | Every observation names RED or GREEN, a version or commit, and a pull request. No row says "corrected", "established" or "suspected" as a state | the rows say all three |
 | A Defect the Limitations define appears in the register only as `(product)`, and with no prohibited behaviour, Tested by or observation of its own | the six cited rows still carry "Traces to", "Gap" and "Status" |
-| Negative fixtures, each refused, naming the cause: a hand-written "Tested by", a GREEN written as a state, and a product Defect redefined in the register | none is refused today |
+| **Reverse direction.** A fixture register row that traces a Defect to a Test Case, by a "Traces to" cell or a Test Case named in its own cell, is refused, and so is a hand-written "Tested by" | the register traces Defect → Test Case today |
+| **Invented status.** A fixture row carrying a status, such as "corrected", "established", "suspected" or a GREEN written as a lasting state, or a "Status" column, is refused | every register table has a "Status" column |
+| **Duplicate authority.** A fixture register that defines a Defect the Limitations define, or defines one Defect twice, is refused, naming both places | the six cited rows still carry their own gap and status |
 
 ## Order
 
