@@ -21,6 +21,23 @@ function section(markdown, heading, where) {
 /** The Node's consumer verification section, with whitespace runs folded so line wrapping does not matter. */
 const node = () => section(text("payload/Testing.md"), HEADING, "payload/Testing.md").replace(/\s+/g, " ");
 
+/** testing/A8's export inventory: each declared export and its "Consumer verification" cell, or the reason the tests are blocked. */
+function inventory() {
+  const architecture = text("plan/consumer/architecture.md");
+  const header = architecture.match(/^\s*\| Export \| Serves \| Owning Change \| Consumer verification \|$/m);
+  if (!header) assert.fail("blocked before behavioural assertion: plan/consumer/architecture.md has no export inventory");
+  const rows = {};
+  for (const line of architecture.slice(header.index + header[0].length).split("\n").slice(2)) {
+    const cells = line.trim().match(/^\|(.*)\|$/)?.[1].split("|").map((c) => c.trim());
+    if (!cells) break;
+    assert.equal(cells.length, 4, `malformed inventory row: ${line.trim()}`);
+    const exported = cells[0].replace(/^`|`$/g, "");
+    assert.ok(!(exported in rows), `${exported} is declared twice`);
+    rows[exported] = cells[3];
+  }
+  return rows;
+}
+
 /** Asserts each planned statement is in the section verbatim. */
 function states(body, statements) {
   for (const [id, s] of Object.entries(statements)) assert.ok(body.includes(s), `${id} is not stated verbatim: "${s}"`);
@@ -44,11 +61,13 @@ describe("Consumer verification (testing/C9)", () => {
     });
   });
 
-  it("testing/T18 [testing/N5, testing/I6]: the section names no product, package manager, version control system or hosting service, and kaal-testing gains no export or dependency", () => {
+  it("testing/T18 [testing/N5, testing/I6]: the section names no product, package manager, version control system or hosting service, and kaal-testing gains no export or dependency for consumer verification", () => {
     const named = node().match(/\b(npm|pnpm|yarn|node_modules|git|github|guard|kaal-guard)\b/gi) ?? [];
     assert.deepEqual(named, [], "the Definition names a realization");
     const pkg = JSON.parse(text("package.json"));
-    assert.deepEqual(Object.keys(pkg.exports).sort(), ["./acceptance", "./attribution", "./contracts", "./coverage", "./inventory", "./package.json", "./report"]);
+    const rows = inventory();
+    assert.deepEqual(Object.keys(rows).sort(), Object.keys(pkg.exports).sort(), "testing/A8's export inventory declares exactly the package's exports");
+    for (const [exported, serves] of Object.entries(rows)) assert.equal(serves, "no", `${exported} is declared to serve consumer verification`);
     assert.deepEqual(pkg.dependencies, { c8: "12.0.0", "kaal-hosting": "0.0.1" });
   });
 
