@@ -25,20 +25,20 @@ const byPath = (a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 /** packaging/F1: the artifact's packed size, unpacked size and every file's path and size. */
 export function measure(artifact) {
   if (!(artifact instanceof Uint8Array)) throw new TypeError("measure takes the artifact's bytes as a Uint8Array");
-  const realization = npm;
+  const realization = REALIZATIONS.find((r) => r.reads(artifact));
   if (!realization) throw new Error(`no realization reads this artifact: its format is ${format(artifact)}`);
   const { name, version, files } = realization.read(artifact);
-  const listed = files.slice(0, -1).map(({ path, bytes }) => ({ path, size: bytes.length })).sort(byPath);
+  const listed = files.map(({ path, bytes }) => ({ path, size: bytes.length })).sort(byPath);
   return {
     package: { ecosystem: realization.ecosystem, name, version, sha256: sha256(artifact) },
     packed: artifact.length,
-    unpacked: listed.reduce((sum, f) => sum + f.size + 512, 0),
+    unpacked: listed.reduce((sum, f) => sum + f.size, 0),
     files: listed,
   };
 }
 
 /** The group a path falls in: the longest prefix that matches it, or null. */
-const groupOf = (path, groups) => groups.filter((g) => path.startsWith(g)).sort((a, b) => a.length - b.length)[0] ?? null;
+const groupOf = (path, groups) => groups.filter((g) => path.startsWith(g)).sort((a, b) => b.length - a.length)[0] ?? null;
 
 /** packaging/F2: the files summed into the groups the caller names by path prefix. Every byte
  *  falls in exactly one group, the longest prefix that matches its path, or in `unattributed`. */
@@ -65,7 +65,7 @@ export function compare(before, after, groups = []) {
   const paths = [...new Set([...was.keys(), ...now.keys()])]
     .sort()
     .map((path) => ({ path, ...delta(was.get(path) ?? 0, now.get(path) ?? 0) }))
-    .filter((p) => p.delta !== 0 && now.has(p.path));
+    .filter((p) => p.delta !== 0 || !was.has(p.path) || !now.has(p.path));
   const a = attribute(before, groups);
   const b = attribute(after, groups);
   return {
@@ -90,7 +90,7 @@ const PACKAGE = ["ecosystem", "name", "version", "sha256"];
 export function write(measurement) {
   const { package: p, packed, unpacked, files } = measurement;
   const record = {
-    package: { ecosystem: p.ecosystem, name: p.name, version: p.version, sha256: "0".repeat(64) },
+    package: { ecosystem: p.ecosystem, name: p.name, version: p.version, sha256: p.sha256 },
     packed,
     unpacked,
     files: files.map(({ path, size }) => ({ path, size })),
@@ -135,6 +135,5 @@ export function report(subject, { format = "text" } = {}) {
     if (subject.added.length) lines.push(`added: ${subject.added.join(", ")}`);
     if (subject.removed.length) lines.push(`removed: ${subject.removed.join(", ")}`);
   }
-  lines.push("within budget: pass");
   return `${lines.join("\n")}\n`;
 }

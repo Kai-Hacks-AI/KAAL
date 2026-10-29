@@ -139,9 +139,7 @@ function crc32(bytes) {
 export const isGzip = (bytes) => bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
 
 /** The bytes one gzip member holds, checked against its CRC-32 and length. */
-import { gunzipSync } from "node:zlib";
 export function gunzip(bytes) {
-  return gunzipSync(bytes);
   if (!isGzip(bytes) || bytes.length < 18) throw new Error("not a gzip stream");
   if (bytes[2] !== 8) throw new Error("the gzip stream uses a method other than deflate");
   const flags = bytes[3];
