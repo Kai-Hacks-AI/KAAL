@@ -24,21 +24,24 @@ Each Requirement names, in brackets, the Intents it serves.
   A holder produces its registration however it likes. Core reads only the registration, never the holder's other files.
 - **core/F48** [core/I15]: Identity.
   - **What Core requires.** Within its scope, an instance's identity is non-empty text, unique in that scope. Its **assembly identity** is the pair of its scope and that identity. A trace names its target by assembly identity, or by identity alone for a target in the source's own scope.
-  - **What Core never requires.** Core reads scopes and identities as opaque text. It prescribes no grammar, derives nothing from an identity's spelling, and never takes an instance's kind from it. An instance's kind is what its registration states.
+  - **What Core never requires.** Core reads scopes, identities and kind names as opaque text. It prescribes no grammar, derives nothing from an identity's spelling, and never takes an instance's kind from it. An instance's kind is what its registration states.
   - **Who defines the rest.** What an identity of a kind looks like is defined by the kind's owner and judged locally (`core/I17`). The content is the holder's, wherever it lives.
   - **No rewriting.** Core never rewrites an identity, and never moves an instance to its kind owner's scope.
 - **core/F49** [core/I15]: One scope, one holder.
   - When two registrations claim the same scope, that is a collision finding naming the scope and both holders. No instance in a collided scope resolves until one claim is withdrawn.
   - One identity stated twice in one scope is a finding naming both statements.
-- **core/F50** [core/I15, core/I16]: One kind, one definition:
-  - When two registrations define the same kind, that is a collision finding naming both.
-  - A kind no registration defines is unknown, and an instance of that kind is a finding.
+- **core/F50** [core/I15, core/I16]: A kind is its owner's, qualified by its owner's scope (revised by `core/C30`).
+  - **Defining.** A registration defines kinds by name in the scope it claims. Two registrations in different scopes that use one name define two kinds, and neither is a collision.
+  - **Referring.** A kind is referred to, by an instance's `kind` or by a rule, as a name, meaning the kind of that name in the referring registration's own scope, or as a `{ scope, kind }` pair. This is the same form a trace uses for its target.
+  - **One definition.** Because one scope has one holder (`core/F49`), a kind has one definition. A kind in a collided scope does not resolve.
+  - **Unknown.** A kind reference that resolves to no definition is unknown, and an instance of that kind is a finding.
 
 ## Functional: rules and instances
 
 - **core/F51** [core/I16]: A kind's outgoing rule is its owner's alone.
   - **Who registers it.** A rule is registered only by the kind's owner, with the kind's definition. The owner defines the trace concept for its kind, and each instance's holder owns the assertions it makes under that rule. A target never defines what may trace to it, and a cross-capability target does not make the semantics jointly owned.
-  - **Its forms.** A rule is either a list of the kinds its instances may trace to, which may be empty, or `any`, which permits a trace to an instance of any registered kind. Testing, for example, may register its kind open rather than enumerate other Capabilities' kinds.
+  - **Its forms.** A rule is either a list of kind references (`core/F50`) its instances may trace to, which may be empty, or `any`, which permits a trace to an instance of any registered kind. Testing, for example, may register its kind open rather than enumerate other Capabilities' kinds.
+  - **Hierarchies.** A rule may name its own kind. That is how a Capability organizes its content as a tree: a child states its parent, a parent's children are derived (`core/F54`), and `acyclic` is the owner's choice. Core requires no tree.
   - **Validated as registered.** A listed kind that no registration defines is a finding naming the rule's owner and that kind.
   - **Cycles.** The kind's owner may declare its kind `acyclic`: no instance of that kind may lie on a cycle of trace instances. Without a declaration, cycles through the kind are permitted. Core adds no default and no universal prohibition.
   - **No rule is built in.** Core holds no trace matrix of its own, adds no rule and no reverse rule, and treats no kind name specially. What is permitted is exactly what the registered rules permit.

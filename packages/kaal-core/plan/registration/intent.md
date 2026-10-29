@@ -21,9 +21,16 @@ The Owner's review on #518 (2026-10-28) corrected two commitments of the first d
 4. **Identity belongs to the defining Capability.** What an artifact of a kind is, and how it is identified, is defined by the kind's owner. `kaal-requirements` defines what a Functional Requirement is and how one is identified, and the repository that uses it supplies the actual requirements. Core requires only what assembly needs, that each identity is unique and resolvable. It prescribes no grammar, and it does not assume that content lives in its kind owner's repository.
 5. **No universal trace matrix.** Each kind's owner defines which outgoing traces its kind permits, and may leave the targets open. Testing's rule does not have to enumerate other Capabilities' kinds. A target never defines its incoming traces. Core validates the registered rules and the stated instances, and holds no matrix of its own.
 
+The Owner's clarification in #kaal (2026-10-28) is carried by `core/C30`, a PLAN Change that revises this PLAN:
+
+6. **A Capability's concepts are its own.** Each Capability defines its own concepts, semantics, identity rules, claims, operations and outgoing trace rules. So a kind is named within its owner's scope: two Capabilities that both name a concept `Case` define two kinds, each with its own rule, and neither collides with nor overrides the other.
+7. **Trees are a pointer, not a feature.** Any Capability may organize its content hierarchically, with edge meaning it defines. A hierarchy is a kind whose owner's rule permits its own kind, and a trace from one tree into another is an ordinary outgoing trace. Core requires no tree and no universal schema.
+
+`core/C30` also aligns the fixtures with the Defect model the Owner approved on #583: a Test Case traces to the Defect it tests, and a Defect lists no Test Case.
+
 So three things stay apart:
 
-- **the kind definition**, registered by the kind's owner: its name, its outgoing rule, and any `acyclic` declaration;
+- **the kind definition**, registered by the kind's owner in its own scope: its name, its outgoing rule, and any `acyclic` declaration;
 - **the content instance**, registered by whoever holds the content, a Capability or a consuming repository: its identity, its kind, and its outgoing traces;
 - **the generic assembly identity**, which Core forms to tell instances apart: the scope the holder claims, and the identity within that scope, both read as opaque text.
 
