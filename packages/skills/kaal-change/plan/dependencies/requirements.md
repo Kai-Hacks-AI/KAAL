@@ -40,5 +40,8 @@ Each Requirement names, in brackets, the Intents it serves.
   - **The form.** It is `{ changes, findings }`.
     - `changes` holds one entry per walked Change, `{ identity, id, dependsOn }`, sorted by identity. `id` is its content id, and `dependsOn` lists the identities of its resolved direct dependencies, sorted.
     - `findings` holds one entry per finding, `{ kind, change, ... }`, where `kind` is `malformed`, `duplicate`, `unresolved`, `stale`, `not-a-change`, `cycle` or `held-key`. They are sorted by kind, then change, then their JSON.
-  - **Absences.** A Change that is not walked is absent from `changes`, and its finding says why. No stale, unresolved or cycle case becomes a dependency.
+  - **Absences.** A Change that is not walked, because it is malformed or its identity is duplicated, is absent from `changes`, and its finding names it in `change` and says why. A Change that was never given is simply absent, with no finding. No stale, unresolved or cycle case becomes a dependency.
+  - **Provenance.** `id` is the content id of the exact Node bytes the entry was read from. A consumer cites it as the source of any relation it derives from that entry.
+  - **Direct dependency.** `dependsOn` holds direct dependencies only. A transitive closure computed by a consumer is the consumer's own derivation, attributed to Change's direct statements and never presented as stated by Change.
+  - **Findings.** A finding's `change` is the identity it concerns, and its other members are Change's own to define. A consumer passes them through and never reinterprets them.
   - **Determinism.** Identical Nodes, in any order, give byte-identical JSON.
