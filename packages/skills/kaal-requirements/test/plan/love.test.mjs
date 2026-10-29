@@ -87,8 +87,8 @@ describe("kaal-requirements: Packaging Readiness (LOVE)", () => {
     ].sort());
     assert.deepEqual(pkg().exports, { "./package.json": "./package.json" });
     const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
-    for (const f of nodes()) assert.match(readme, new RegExp(`capability/${f.replace(/\./g, "\\.")}`), `README names capability/${f}`);
-    assert.match(readme, /contract\.json/);
+    for (const f of nodes()) assert.ok(readme.includes(`capability/${f}`), `README names capability/${f}`);
+    assert.ok(readme.includes("contract.json"), "README names contract.json");
   });
 
   it("requirements/T14: nothing the package ships imports a module, and it has no dependencies [requirements/N3]", async () => {
