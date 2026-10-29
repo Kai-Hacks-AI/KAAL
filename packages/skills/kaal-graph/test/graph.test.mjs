@@ -6,13 +6,14 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "kaal-hosting";
-import { claimsForm, createNode, edgesOf, FormError, Graph, identify, isId, isName, sha256 } from "kaal-graph";
+import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, readFrontmatter, sha256 } from "kaal-graph";
+import * as form from "kaal-graph/form";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILL = join(PACKAGE, "skills", "kaal-graph");
 const SCRIPT = join(SKILL, "scripts", "graph.mjs");
-// Any Node serves as a type here: Graph gives no type a meaning.
-const f = { definition: { name: "Definition", id: identify(Buffer.from("---\nname: Definition\n---\n\n# Definition\n")).id } };
+// Any Node serves as a type here: Graph gives no type a meaning. This one is a root, read as one.
+const f = { definition: { name: "Definition", id: identifyRoot(Buffer.from("---\nname: Definition\n---\n\n# Definition\n")).id } };
 
 const ref = (n) => ({ name: n.name, id: n.id });
 const yamlRef = (r, indent) => `${indent}name: ${r.name}\n${indent.replace(/- $/, "  ")}id: ${r.id}\n`;
@@ -39,6 +40,17 @@ describe("the Form", () => {
     const bytes = Buffer.from(node("A", T));
     assert.deepEqual(identify(bytes), { id: sha256(bytes), name: "A", type: T, frontmatter: { name: "A", type: T } });
     assert.notEqual(identify(Buffer.from(node("A", T) + " ")).id, identify(bytes).id);
+  });
+
+  it("reads a root, the Node that declares no type, only through identifyRoot", () => {
+    const bytes = Buffer.from(node("Node"));
+    const root = identifyRoot(bytes);
+    assert.deepEqual(root, { id: sha256(bytes), name: "Node", frontmatter: { name: "Node" } });
+    assert.ok(Object.isFrozen(root) && Object.isFrozen(root.frontmatter));
+    assert.throws(() => identify(bytes), (e) => e instanceof FormError && /^untyped: Node declares no type; .* identifyRoot\(\)/.test(e.message), "identify() reads only ordinary Nodes");
+    assert.throws(() => identifyRoot(Buffer.from(node("A", T))), (e) => e instanceof FormError && /not a root: A declares a type, Node/.test(e.message));
+    assert.throws(() => identifyRoot(Buffer.from("---\ntitle: A\n---\n")), FormError);
+    assert.ok(new Graph([root]).resolve({ name: "Node", id: root.id }) === root, "a root is held and resolved like any Node");
   });
 
   it("reads the Form strictly", () => {
@@ -85,15 +97,15 @@ describe("the Form", () => {
       assert.deepEqual([n.name, n.type], ["2024", { name: "true", id }]);
       assert.deepEqual([n.frontmatter.name, n.frontmatter.type], ["2024", { name: "true", id }]);
     }
-    assert.equal(identify(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
-    assert.equal(identify(Buffer.from("---\nname: null\n---\n")).name, "null");
+    assert.equal(identifyRoot(Buffer.from("---\nname: !!str 0x1F\n---\n")).name, "0x1F");
+    assert.equal(identifyRoot(Buffer.from("---\nname: null\n---\n")).name, "null");
     assert.deepEqual(identify(Buffer.from(`---\nname: A\ntype: !!map {name: !!str ${T.name}, id: ${T.id}}\n---\n`)).type, T);
     assert.throws(() => identify(Buffer.from(`---\nname: A\ntype: !!seq [${T.name}, ${T.id}]\n---\n`)), /not in Form/);
   });
 
   it("returns capability-owned frontmatter uninterpreted, typed by YAML 1.2 and frozen", () => {
-    const n = identify(Buffer.from(`---\nname: A\npriority: 3\nweight: 0.5\nenabled: true\nyes: no\nlabel: !!str 42\nowner:\nlist: !!seq [1, "1"]\n---\n`));
-    assert.deepEqual(n.frontmatter, { name: "A", priority: 3, weight: 0.5, enabled: true, yes: "no", label: "42", owner: null, list: [1, "1"] });
+    const n = identify(Buffer.from(`---\nname: A\ntype:\n  name: ${T.name}\n  id: ${T.id}\npriority: 3\nweight: 0.5\nenabled: true\nyes: no\nlabel: !!str 42\nowner:\nlist: !!seq [1, "1"]\n---\n`));
+    assert.deepEqual(n.frontmatter, { name: "A", type: T, priority: 3, weight: 0.5, enabled: true, yes: "no", label: "42", owner: null, list: [1, "1"] });
     assert.ok(Object.isFrozen(n.frontmatter));
   });
 
@@ -127,9 +139,33 @@ describe("the Form", () => {
 
   it("refuses an Edge reference whose name no Node can have", () => {
     for (const name of ["A\rB", "A\u2028B"]) {
-      const r = identify(Buffer.from(`---\nname: R\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${JSON.stringify(name)}\n        id: ${"a".repeat(64)}\n---\n`));
+      const r = identify(Buffer.from(`---\nname: R\ntype:\n  name: ${T.name}\n  id: ${T.id}\nedges:\n  - type:\n      name: Serves\n      id: ${"b".repeat(64)}\n    targets:\n      - name: ${JSON.stringify(name)}\n        id: ${"a".repeat(64)}\n---\n`));
       assert.deepEqual(edgesOf(r), { edges: [], problems: ["edges[0].targets[0] has no valid name"] });
     }
+  });
+});
+
+describe("reading frontmatter", () => {
+  it("reads the frontmatter of any file in Form, a Node or not, and never the body", () => {
+    const one = readFrontmatter(Buffer.from("---\ntype: Sample/Record\nchange: core/C5\ngated: true\nfiles: [a.md]\n---\n\n# One\n"));
+    const two = readFrontmatter(Buffer.from("---\ntype: Sample/Record\nchange: core/C5\ngated: true\nfiles: [a.md]\n---\n\nanything: else\n"));
+    assert.deepEqual(one, { type: "Sample/Record", change: "core/C5", gated: true, files: ["a.md"] });
+    assert.deepEqual(two, one);
+    assert.ok(Object.isFrozen(one) && Object.isFrozen(one.files));
+  });
+
+  it("refuses what the Form refuses, with a FormError", () => {
+    for (const bad of ["# no frontmatter\n", "---\na: 1\n", "---\r\na: 1\r\n---\r\n", "---\n- a\n---\n", "---\na: &x 1\nb: *x\n---\n", "---\na: !!binary aGk=\n---\n", "---\na: 1\na: 2\n---\n"]) {
+      assert.throws(() => readFrontmatter(Buffer.from(bad)), (e) => e instanceof FormError && /^not in Form/.test(e.message), bad);
+    }
+    assert.throws(() => readFrontmatter(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff])), (e) => e instanceof FormError && /^not UTF-8/.test(e.message));
+  });
+
+  it("is offered alone as kaal-graph/form, which imports no host module", () => {
+    assert.equal(form.readFrontmatter, readFrontmatter);
+    assert.equal(form.FormError, FormError);
+    const source = readFileSync(join(SKILL, "scripts", "form.mjs"), "utf8");
+    assert.deepEqual([...source.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s+["']([^"']+)["']/g)].map((m) => m[1] ?? m[2] ?? m[3]), ["yaml"]);
   });
 });
 
@@ -190,17 +226,17 @@ describe("constructing a Node", () => {
   });
 
   it("gives the same bytes and id whatever order groups, targets and keys are given in", () => {
-    const one = createNode({ name: "R", edges: [{ type: serves, targets: [B, A] }, { type: refines, targets: [A] }], frontmatter: { b: { y: 1, x: [2, "2"] }, a: true } });
-    const two = createNode({ name: "R", edges: [{ type: refines, targets: [A] }, { type: serves, targets: [A, B] }], frontmatter: { a: true, b: { x: [2, "2"], y: 1 } } });
+    const one = createNode({ name: "R", type: f.definition, edges: [{ type: serves, targets: [B, A] }, { type: refines, targets: [A] }], frontmatter: { b: { y: 1, x: [2, "2"] }, a: true } });
+    const two = createNode({ name: "R", type: f.definition, edges: [{ type: refines, targets: [A] }, { type: serves, targets: [A, B] }], frontmatter: { a: true, b: { x: [2, "2"], y: 1 } } });
     assert.ok(one.bytes.equals(two.bytes));
     assert.equal(one.node.id, two.node.id);
-    assert.deepEqual(createNode({ name: "R" }).bytes, createNode({ name: "R" }).bytes);
+    assert.deepEqual(createNode({ name: "R", type: f.definition }).bytes, createNode({ name: "R", type: f.definition }).bytes);
   });
 
   it("builds Nodes a Graph relates, checks and traverses", () => {
-    const a = createNode({ name: "A" }).node;
-    const kind = createNode({ name: "Serves" }).node;
-    const r = createNode({ name: "R", edges: [{ type: ref(kind), targets: [ref(a)] }] }).node;
+    const a = createNode({ name: "A", type: f.definition }).node;
+    const kind = createNode({ name: "Serves", type: f.definition }).node;
+    const r = createNode({ name: "R", type: f.definition, edges: [{ type: ref(kind), targets: [ref(a)] }] }).node;
     const g = new Graph([a, kind, r]);
     assert.deepEqual(g.check(), []);
     assert.deepEqual(g.in(a.id), [{ type: ref(kind), source: ref(r) }]);
@@ -208,8 +244,13 @@ describe("constructing a Node", () => {
   });
 
   it("takes a body as given, or none", () => {
-    assert.equal(createNode({ name: "A", body: "Text.\n" }).bytes.toString(), '---\nname: "A"\n---\n\nText.\n');
-    assert.equal(createNode({ name: "A", body: "" }).bytes.toString(), '---\nname: "A"\n---\n');
+    const type = `type:\n  name: "${f.definition.name}"\n  id: "${f.definition.id}"\n`;
+    assert.equal(createNode({ name: "A", type: f.definition, body: "Text.\n" }).bytes.toString(), `---\nname: "A"\n${type}---\n\nText.\n`);
+    assert.equal(createNode({ name: "A", type: f.definition, body: "" }).bytes.toString(), `---\nname: "A"\n${type}---\n`);
+  });
+
+  it("constructs only ordinary Nodes: a Node with no type is refused, never written as a root", () => {
+    assert.throws(() => createNode({ name: "A" }), (e) => e instanceof FormError && /A declares no type/.test(e.message));
   });
 
   it("refuses what would not be a Node in Form with well-formed Edges", () => {
@@ -427,6 +468,12 @@ describe("the graph", () => {
 });
 
 describe("the package", () => {
+  it("delivers KNIFE in Form, typed by a KAAL Definition", () => {
+    const node = identify(readFileSync(join(PACKAGE, "payload", "KNIFE.md")));
+    assert.equal(node.name, "KNIFE");
+    assert.equal(node.type.name, "KAAL Definition");
+  });
+
   it("has an Agent Skill that conforms", async () => {
     assert.deepEqual(checkSkill("kaal-graph", await read(SKILL)), { standard: [], kaal: [], warnings: [] });
   });
@@ -437,7 +484,8 @@ describe("the package", () => {
     const intent = bytes("Intent capture");
     const req = bytes("R", { groups: [{ type: { name: "Serves", id: sha256(serves) }, targets: [{ name: "Intent capture", id: sha256(intent) }] }] });
     mkdirSync(join(dir, "n"));
-    for (const [p, b] of [["n/serves.md", serves], ["n/intent.md", intent], ["n/r.md", req], ["notes.md", Buffer.from("# prose\n")]]) writeFileSync(join(dir, p), b);
+    const root = Buffer.from("---\nname: Root\n---\n");
+    for (const [p, b] of [["n/serves.md", serves], ["n/intent.md", intent], ["n/r.md", req], ["n/root.md", root], ["notes.md", Buffer.from("# prose\n")]]) writeFileSync(join(dir, p), b);
     const run = (...args) => execute(process.execPath, [SCRIPT, ...args], { cwd: dir });
     assert.equal((await run("check", dir)).status, 0);
     assert.equal((await run("in", sha256(intent), dir)).stdout, `Serves\t${sha256(serves)}\tR\t${sha256(req)}\n`);
@@ -447,6 +495,7 @@ describe("the package", () => {
     const misnamed = await run("resolve", "Serves", sha256(intent), dir);
     assert.deepEqual([misnamed.status, misnamed.stderr], [2, `Node ${sha256(intent)} is named Intent capture, not Serves\n`]);
     assert.equal((await run("named", "Nobody", dir)).status, 2);
+    assert.equal((await run("named", "Root", dir)).stdout, `${sha256(root)}\tRoot\t-\n`, "a Node that declares no type is read as a root");
     writeFileSync(join(dir, "n/intent.md"), bytes("Intent capture", { raw: "note: changed\n" }));
     const broken = await run("check", dir);
     assert.equal(broken.status, 1);

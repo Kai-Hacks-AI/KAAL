@@ -1,0 +1,25 @@
+{
+  "about": "KAAL's repository-owned check identities and OS matrix entries on main before Guard, at 3d0e960. Each line must still be present after migration.",
+  "workflows": {
+    "ci.yml": [
+      "name: Hosting (${{ matrix.host }})",
+      "- { host: Windows, os: windows-latest }",
+      "- { host: Linux, os: ubuntu-latest }",
+      "- { host: macOS, os: macos-latest }",
+      "name: Acceptance (${{ matrix.host }})",
+      "name: ${{ matrix.check }}",
+      "- { check: Workspaces, script: \"test:workspaces\" }",
+      "- { check: Acceptance, script: \"test:acceptance\" }",
+      "- { check: Engineering, script: \"test:engineering\" }"
+    ],
+    "change-isolation.yml": ["name: Change Isolation"],
+    "promotion-source.yml": ["name: Promotion Source"],
+    "lineage-synchronization.yml": ["name: Branching"],
+    "branching-audit.yml": ["name: Branching audit"]
+  },
+  "matrices": {
+    "ci.yml": {
+      "Acceptance": ["- { host: Windows, os: windows-latest }", "- { host: macOS, os: macos-latest }"]
+    }
+  }
+}
