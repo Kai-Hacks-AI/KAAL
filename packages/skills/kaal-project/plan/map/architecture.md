@@ -1,16 +1,16 @@
 # Project map: Architecture
 
 - **project/A1.** `kaal-project/map` exports `map` and `render`, the only realization of this PLAN, as pure functions over plain data. Reading Project Plans from the repository, and choosing which to map, are a later Script-level Change (BASS: Script for what must repeat exactly, Skill guidance for what to include or emphasize). That Change does not change the contract.
-- **project/A2.** The output contract (project/F2) is the shape any capability's map can share: typed nodes and typed, owned, sourced relations. Who finally owns that shape is an open Owner decision (D1). Until it is decided, Project uses the shape as stated here and owns no other capability's kinds.
-- **project/A3.** Composition is by data, not by import. A consumer, or an agent with Skill guidance, passes Change's map output to Project's `map` (project/F3) or concatenates contracts. Whether Graph provides a generic combine is an open Owner decision (D2).
+- **project/A2.** Each capability owns the contract and the meaning of the map it delivers. Project owns Project's map contract (project/F2), Change owns Change's, and Product owns Product's. Matching shapes or terms transfer no ownership. Graph owns Graph's own semantics, its Nodes, Edges, traversal, reverse views and cycles. It may serve as a mechanism, but it is not the semantic authority for any map. Any shared interoperability contract would need explicit agreement and a separately justified owner, and this PLAN proposes none.
+- **project/A3.** Composition is by the consumer or an agent, through explicitly agreed interfaces. For Change, that interface is the complement `{ has, dependsOn }` of project/F3, matching change/F5 (#530). It is to be aligned with Change before either DO relies on it. Composition keeps each relation's qualified identity, provenance and owning authority. A Graph-provided generic combine is neither authorized nor required. A same-term or cross-capability conflict of meaning is surfaced for negotiation under PREACH, never resolved automatically.
 
 | Who | Owns |
 | --- | --- |
-| Change | Change identities, Depends On declarations and lifecycle facts, and the Change map that states them |
-| Project | Projects, governance, grouping, project-level sequencing, and this map |
+| Change | Change identities, the Depends On relationship and its facts (#530), and Change's own map contract |
+| Project | Projects, governance, grouping, project-level sequencing, and Project's map contract |
 | Program | cross-Project coordination, when realized (no map before it is) |
-| Product | priority, desired direction and product-level sequencing, and the Product map |
-| Graph | generic traversal and derived views, with no domain meaning |
+| Product | priority, desired direction, product-level sequencing, and Product's map contract |
+| Graph | Graph semantics: Nodes, Edges, traversal, reverse views and cycles, usable as a mechanism and never as another capability's semantic authority |
 | Engineering | which maps run where, for example in the review queue |
 
 ## Change graph
@@ -19,15 +19,17 @@
 | --- | --- | --- |
 | `project/C2` PLAN, this Change | Project | #279 (merged) |
 | DO: `kaal-project/map`, with project/T1–project/T7 GREEN | Project | `project/C2` |
-| Change map PLAN and DO, including where Depends On is declared (D3) | Change | Change's Record and Lifecycle |
-| Product map PLAN and DO, with the negative case that priority is never dependency | Product | the output contract |
+| `change/C1`, Change Nodes and Depends On (#530) | Change | — |
+| Product map PLAN and DO, with the negative case that priority is never dependency | Product | Product's own contract only |
 | A Script that reads Project Plans from the repository | Project | the DO Change |
 
-Project's DO does not wait on Change's map: project/T2 gives Change's output as data. The composed scenario across real repositories waits on both.
+Project's PLAN does not wait on #530. project/T2 passes a Change complement as plain data. Before Project's DO relies on `{ has, dependsOn }`, that interface is aligned with Change. The composed scenario across real repositories waits on both DOs.
 
-## Open Owner decisions
+## Owner alignment (on #605, 2026-10-29)
 
-- **D1:** who owns the output contract. Graph, as typed Nodes and Edges (recommended), or each capability.
-- **D2:** composition by a consumer or agent with Skill guidance (recommended to start), or a Graph-provided generic combine.
-- **D3:** where a Change declares Depends On. This is Change's to propose.
-- **D4:** the order. Change's and Project's maps first, Product's in parallel (recommended).
+- **D1:** each capability owns its map's contract and meaning. There is no universal Graph-owned output contract.
+- **D2:** composition is done by the consumer or an agent, through agreed interfaces, preserving qualified identity, provenance and authority. There is no Graph combine.
+- **D3:** Change defines and owns Depends On (#530), and Project consumes its declared facts.
+- **D4:** Change and Project plan independently, with Product in parallel. Any shared interface is aligned before a DO depends on it.
+
+There is no open decision on shared contract ownership: this PLAN proposes no shared contract.
