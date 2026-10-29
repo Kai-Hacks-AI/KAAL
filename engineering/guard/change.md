@@ -506,6 +506,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   3. `guard/C116` DO (#573), approved. Two limits are stated, with guard/T123.
   4. `guard/C118` PLAN (#570), then DO (#577), both approved. guard/T114 is not applicable on Windows, with its reason.
   5. `guard/C113` PLAN (#571), then DO (#576), both approved. guard/F42 declares the paths from `0.0.2`, `0.0.3` and `0.0.4`, and guard/T118 takes its sources from that declaration. As the last of the three to land, it also makes guard/A6 cite guard/F42 so that guard/T126 stays GREEN. That is a correction to an approved PR, so it needs the Owner's approval again.
+  5c. `guard/C131`: Engineering's Defect register corrected first (`engineering/C8`, #645), with guard/T130 as the gate; `guard/C132` before it if the Owner chooses option A on #645.
   6. `guard/C125`: version `0.0.5` and its release notes. This is the bump, and it needs the Owner's authorization. `package.json`, the README's notes for `0.0.5` and the manifest are regenerated. No behaviour changes.
   7. `guard/C126`: acceptance of the candidate before publication, on the exact SHA of `guard/C125`, with the evidence below. It records evidence only and changes nothing.
   8. `guard/C127`: publication through Guard Release. Packing alone may be dispatched. Publishing needs the Owner's own words and approval of the `npm` environment.
@@ -558,6 +559,18 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   - **One authority.** The six Defects are now defined in the package. Engineering's register keeps its model, Defect → Test Case with a Status column, as this PLAN's "Not here" says. Its six rows now cite them as `| guard/D1 (product) | …`. guard/T111 recognises both forms, and it now also requires every Defect a publisher case's title cites to be defined. guard/A20's list of canonical forms says the same.
   - **Generated.** guard/T107 and the manifest generator read Defect rows as product identifiers, and the manifest and the trace were regenerated.
   - This DO authorizes no version bump, promotion or publication.
+
+**A release prerequisite: Engineering's Defect register (`guard/C131`, PLAN).** On #638 (comment 6509672482) the Owner decided that `0.0.5` is not promoted or published until Engineering's legacy Defect register follows the product's model. That means Test Case → Defect traces, a derived "Tested by", RED and GREEN observed per version and Test Run, no permanent status, and the product's Defects cited, never redefined. Engineering owns the register and the Change that corrects it: `engineering/C8`, PLAN on #645, with its DO to follow. This PLAN adds that prerequisite to the path in `guard/C124`, with a gate.
+- **In the sequence.** The `engineering/C8` DO lands on `kaal/guard-release` before `guard/C125`, the bump. A PLAN alone does not satisfy the prerequisite.
+- **The gate in `guard/C126`.** Before the candidate is accepted, the publisher checks on the exact SHA that the correction actually landed:
+  - no Defect table in `engineering/guard/` has a column that traces Defect → Test Case, and none has a Status column;
+  - every Defect the package defines is cited there in the form guard/T111 recognises, never redefined;
+  - `engineering/C8`'s own tests are GREEN.
+
+  The DO of this Change writes guard/T130 as an Engineering-side Guard case in `engineering/guard/acceptance/`. It runs in the Guard jobs and is named in `guard/C126`'s evidence. Until `engineering/C8` lands, guard/T130 is RED, so the gate cannot pass early.
+- **A Guard Change if the Owner chooses option A on #645.** guard/T111 lets a product case cite only Defects the package defines. So for guard/T84–guard/T92 and guard/T100 to trace to guard/D6–guard/D14 and guard/D18, Guard would define those ten Defects in `docs/limitations.md` as Defects found before a release, and add each to its case's title. guard/T127 then derives their "Tested by" and checks their observations. That would be `guard/C132`, PLAN then DO, landing before the `engineering/C8` DO. Engineering would keep only guard/D4 (retracted) and guard/D15 (External delivery). Under option B, no Guard Change is needed.
+- **Place in the path to `0.0.5`.** Step 5c: `guard/C132` if option A, then the `engineering/C8` DO, then guard/T130 GREEN. All of it before `guard/C125`.
+- **Authorization.** Approving this PLAN authorizes `guard/C131`'s DO only, which is guard/T130 and the path's record. It authorizes no version bump, promotion, synchronization or publication, and it does not reopen the approval of the `guard/C123` DO.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
@@ -677,6 +690,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | DO |
 | `guard/C123` | — | Guard | `0.0.5`: Test Cases trace to the Defects they test; the product shows their observations | `guard/C119` | DO |
 | `guard/C124` | — | Guard | The path to `0.0.5`: the remaining Changes in collector order, the evidence that accepts the release, and what stays out pending the Owner | `guard/C111`, `guard/C119` | PLAN |
+| `guard/C131` | — | Guard | Release prerequisite for `0.0.5`: Engineering's Defect register corrected (`engineering/C8`, #645), gated by guard/T130 (the Owner on #638) | `guard/C124` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
