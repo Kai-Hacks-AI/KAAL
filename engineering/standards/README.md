@@ -27,7 +27,7 @@
 These live in `engineering/` and apply as stated:
 
 - **Shipped tests stand alone.** A KAAL package's installed `npm test` needs neither its publisher tests nor this repository. It `Applies to` every shipped package, and it is the Owner's convention on #625. It is verified by the Consumer lane (engineering/C6) and by engineering/T4 below.
-- **Representation is not Engineering's to restate.** Core's Deterministic Frontmatter (`N1`–`N3`, `F8`) is its authority, so the Standard is Core's. Engineering cites it in the view, and the first draft's engineering/N1 is withdrawn. Until Core declares it as a Standard Node, the view lists it as unresolved, naming Core. #609's evidence and the Owner's decisions there stay with their owners.
+- **Representation is not Engineering's to restate.** Core's Deterministic Frontmatter (`N1`–`N3`, `F8`) is its authority, so the Standard is Core's. Engineering cites it in the view, and the first draft's representation requirement is withdrawn. Until Core declares it as a Standard Node, the view lists it as unresolved, naming Core. #609's evidence and the Owner's decisions there stay with their owners.
 
 ## Test Cases
 
