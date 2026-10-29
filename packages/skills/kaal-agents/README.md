@@ -6,6 +6,9 @@ KAAL Agents: the capability for an Agent's readiness and operation within KAAL, 
 capability/Agents.md     the Capability Node, typed by Core's KAAL Capability
 capability/NEW.md        the NEW Definition, typed by KAAL Definition: Agent readiness with little or no prompting
 capability/PREACH.md     the PREACH Definition, typed by KAAL Definition: Program → Agent → Human escalation
+bin/kaal-agents.mjs      orient (NEW) and preach check (PREACH)
+lib/                     orientation, Git, Core's catalog and the PREACH check
+skills/kaal-agents/      the Skill: starting work from durable sources, escalating through PREACH
 ownership.kaal.json      Agents' own ownership claim (repository data, not delivered)
 ```
 
