@@ -29,7 +29,12 @@ const FACTS = {
   digest: "d".repeat(64),
   cases: ["acme/T1", "acme/T2"],
   target: "acme/T2",
+  applicability: {},
 };
+/** The applicability the harness established itself for the targeted case: a platform scope that excludes this platform, and a reason. */
+const SCOPE = { platforms: ["win32"], reason: "acme/T2 checks Windows ACLs" };
+/** The facts in scenario `id`: only where the manifest declares the targeted case not applicable did the harness establish its applicability. */
+const factsFor = (id) => (id === "not-applicable" ? { ...FACTS, applicability: { [FACTS.target]: SCOPE } } : FACTS);
 /** What the contract expects in each scenario, owned by these tests rather than read from the implementation. */
 const EXPECTED = {
   clean: { result: "verified", cases: "pass" },
@@ -43,6 +48,7 @@ const EXPECTED = {
   "case-skipped": { result: "unknown", cases: "pass", target: "skipped" },
   "case-todo": { result: "unknown", cases: "pass", target: "todo" },
   "not-applicable": { result: "verified", cases: "pass", target: "not applicable" },
+  "inapplicable-unsupported": { result: "unknown", cases: "pass", target: "not run" },
   "case-failing": { result: "failed", cases: "pass", target: "fail" },
   "consumer-changed": { result: "failed", cases: "pass" },
 };
@@ -57,7 +63,7 @@ function conforming({ id }) {
     platform: FACTS.platform,
     node: FACTS.node,
     digest: FACTS.digest,
-    cases: cases === "none" ? [] : FACTS.cases.map((name) => ({ name, outcome: outcome(name) })),
+    cases: cases === "none" ? [] : FACTS.cases.map((name) => ({ name, outcome: outcome(name), ...(outcome(name) === "not applicable" ? { applicability: structuredClone(SCOPE) } : {}) })),
   };
   return summary;
 }
@@ -110,7 +116,7 @@ describe("The shared observable result contract for consumer verifiers (testing/
   it("testing/T56 [testing/F45]: a verifier that shows what the contract expects conforms in every scenario", async () => {
     const { observe, judge, SCENARIOS } = await contract();
     for (const s of SCENARIOS) {
-      const j = judge(s.id, observe(run(conforming(s), EXIT[s.result]), VERIFIER), FACTS);
+      const j = judge(s.id, observe(run(conforming(s), EXIT[s.result]), VERIFIER), factsFor(s.id));
       assert.deepEqual([j.scenario, j.conforms, j.differences], [s.id, true, []], s.id);
     }
     assert.equal(judge("no-such-scenario", observe(run(conforming(SCENARIOS[0]), 0), VERIFIER), FACTS).conforms, false);
@@ -122,7 +128,7 @@ describe("The shared observable result contract for consumer verifiers (testing/
     const differs = (id, change, exit = EXIT[scenario(id).result]) => {
       const summary = conforming(scenario(id));
       change(summary);
-      const j = judge(id, observe(run(summary, exit), VERIFIER), FACTS);
+      const j = judge(id, observe(run(summary, exit), VERIFIER), factsFor(id));
       return j.conforms === false && j.differences.length > 0;
     };
     assert.ok(differs("clean", () => {}, 2), "the right word with another exit status");
@@ -142,7 +148,7 @@ describe("The shared observable result contract for consumer verifiers (testing/
     assert.ok(differs("file-changed", (s) => (s.cases = [{ name: "acme/T1" }, { name: "acme/T2", outcome: "green" }])), "cases without an outcome the contract names, whatever the scenario");
     assert.ok(differs("case-skipped", (s) => (s.cases[1].outcome = "pass")), "the skipped case reported as passing");
     assert.ok(differs("case-failing", (s) => (s.cases[0].outcome = "fail")), "another case reported as failing");
-    assert.ok(differs("not-applicable", (s) => (s.cases[1].outcome = "skipped")), "an inapplicable case reported as skipped");
+    assert.ok(differs("not-applicable", (s) => ((s.cases[1].outcome = "skipped"), delete s.cases[1].applicability)), "an inapplicable case reported as skipped");
     assert.ok(differs("case-missing", (s) => s.cases.pop()), "the missing case not reported as not run");
     assert.ok(differs("no-case", (s) => s.cases.push({ name: "acme/T9", outcome: "pass" })), "a case reported where none is declared");
   });
@@ -154,10 +160,53 @@ describe("The shared observable result contract for consumer verifiers (testing/
         const summary = { ...conforming(s), result: VERIFIER.words[claimed] };
         if (claimed === "verified") delete summary.cause;
         else summary.cause ??= "claimed";
-        const j = judge(s.id, observe(run(summary, EXIT[claimed]), VERIFIER), FACTS);
+        const j = judge(s.id, observe(run(summary, EXIT[claimed]), VERIFIER), factsFor(s.id));
         assert.equal(j.conforms, false, `${s.id}: a verifier claiming ${claimed} where ${s.result} is expected`);
       }
     }
     assert.equal(judge("clean", { observation: null, findings: ["no summary line"] }, FACTS).conforms, false, "a run with no observation never conforms");
+  });
+
+  it("testing/T59 [testing/F47]: a case is not applicable only where the harness itself established an explicit platform scope that excludes the platform, and a reason; a skipped, todo or unsupported case claimed inapplicable never verifies", async () => {
+    const { observe, judge, SCENARIOS } = await contract();
+    const verdict = (id, summary, exit, facts = factsFor(id)) => judge(id, observe(run(summary, exit), VERIFIER), facts);
+    const claimInapplicable = (id) => {
+      const summary = conforming({ id });
+      summary.result = VERIFIER.words.verified;
+      delete summary.cause;
+      summary.cases[1] = { name: FACTS.target, outcome: "not applicable", applicability: structuredClone(SCOPE) };
+      return summary;
+    };
+    for (const id of ["case-skipped", "case-todo", "inapplicable-unsupported"]) {
+      assert.notEqual(SCENARIOS.find((s) => s.id === id).result, "verified", `${id} is never verified`);
+      assert.equal(verdict(id, claimInapplicable(id), EXIT.verified).conforms, false, `${id}: the case converted into a claimed inapplicable one, verified`);
+      const quiet = { ...claimInapplicable(id), result: VERIFIER.words.unknown, cause: "claimed" };
+      assert.equal(verdict(id, quiet, EXIT.unknown).conforms, false, `${id}: the case claimed inapplicable, even under unknown`);
+    }
+    const unestablished = {
+      "no applicability": { ...FACTS, applicability: {} },
+      "a scope that includes this platform": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, platforms: ["win32", "linux"] } } },
+      "no platform scope": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, platforms: [] } } },
+      "no reason": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, reason: "" } } },
+      "applicability only inherited": { ...FACTS, applicability: Object.create({ [FACTS.target]: SCOPE }) },
+    };
+    for (const [why, facts] of Object.entries(unestablished)) {
+      const summary = conforming({ id: "not-applicable" });
+      if (Object.hasOwn(facts.applicability, FACTS.target)) summary.cases[1].applicability = structuredClone(facts.applicability[FACTS.target]);
+      assert.equal(verdict("not-applicable", summary, EXIT.verified, facts).conforms, false, `the harness established ${why}, and the verifier shows the same`);
+    }
+    const shown = {
+      "no applicability": (c) => delete c.applicability,
+      "another reason": (c) => (c.applicability.reason = "it is not needed"),
+      "another platform scope": (c) => (c.applicability.platforms = ["darwin"]),
+    };
+    for (const [why, change] of Object.entries(shown)) {
+      const summary = conforming({ id: "not-applicable" });
+      change(summary.cases[1]);
+      assert.equal(verdict("not-applicable", summary, EXIT.verified).conforms, false, `the verifier shows ${why}`);
+    }
+    const other = conforming({ id: "clean" });
+    other.cases[0] = { name: "acme/T1", outcome: "not applicable", applicability: structuredClone(SCOPE) };
+    assert.equal(verdict("not-applicable", other, EXIT.verified).conforms, false, "another case claimed inapplicable on the targeted case's applicability");
   });
 });
