@@ -1,0 +1,3 @@
+# Node identity is the SHA-256 of exact bytes, and the Guard fixture is a published artifact.
+capability/** -text
+test/fixtures/** binary
