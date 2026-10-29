@@ -14,8 +14,8 @@ Each element names, in brackets, the Requirements it answers.
 | --- | --- | --- |
 | `architecture/C5` DO, LOVE (#485), unchanged | Architecture | `architecture/C6` (#524) |
 | `architecture/C8` PLAN, this Change | Architecture | `architecture/C5` |
-| `requirements/C…` PLAN: Requirements' own composition expectations | Requirements | none (coordinated with `architecture/C8`) |
-| `architecture/C9` SYNC main → kaal/architecture, once `kaal/requirements` (#276, #553) is promoted, so both packages can be packed together | Architecture | `architecture/C8`, Requirements' promotion |
+| `requirements/C1` PLAN (#590): Requirements' own composition expectations | Requirements | none (coordinated with `architecture/C8`) |
+| `architecture/C9` SYNC main → kaal/architecture, once `kaal/requirements` carrying the Requirement Definition (#553) is promoted; that promotion needs no Architecture Change, so `requirements/C2` waiting on `architecture/C11` makes no cycle, so both packages can be packed together | Architecture | `architecture/C8`, Requirements' promotion |
 | `architecture/C10` the planned tests, written and recorded RED | Architecture | `architecture/C9` |
 | `architecture/C11` DO: `Placement`, the Skill section, the Node sentence; GREEN | Architecture | `architecture/C10` |
 
