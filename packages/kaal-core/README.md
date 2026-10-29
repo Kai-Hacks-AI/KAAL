@@ -141,7 +141,7 @@ The state depends only on the admitted Nodes, the artifact's frontmatter and the
 
 ### Frontmatter
 
-`kaal-core/frontmatter` validates the YAML frontmatter of KAAL's collaborative Markdown artifacts, deterministically and from the frontmatter alone: the body never changes the result. Each Capability owns its Types and their schemas and supplies them as a mapping from Type name, `<Capability>/<Type>`, to schema. A schema lists every key the Type allows, each with one value kind (`id`, `name`, `enum`, `ref`, `path`, `boolean`, `number` or `parameter`), optionally as a list or required; there is no free-text kind, prose keys such as `description` are refused, and `type`, which names the artifact's Type, is never declared. Reading the YAML is Graph's (`kaal-graph/form`). The module is pure, and imports no host module.
+`kaal-core/frontmatter` validates the YAML frontmatter of KAAL's collaborative Markdown artifacts, deterministically and from the frontmatter alone: the body never changes the result. Each Capability owns its Types and their schemas and supplies them as a mapping from Type name, `<Capability>/<Type>`, to schema. A schema lists every key the Type allows, each with one value kind (`id`, `name`, `enum`, `ref`, `path`, `boolean`, `number` or `parameter`), optionally as a list or required. Structured values nest declarations: a `record` is a closed mapping of declared `fields`, a `map` has keys matching a `parameter` declaration (`key`) and values matching `of`, and an `either` conforms when any of its two or more alternatives (`of`) does; `required` applies to a top-level key or a record field. A finding inside a structured value carries `at`, a JSON Pointer (RFC 6901) to where it is, and flat findings carry none; there is no free-text kind, prose keys such as `description` are refused, and `type`, which names the artifact's Type, is never declared. Reading the YAML is Graph's (`kaal-graph/form`). The module is pure, and imports no host module.
 
 ```js
 import { checkSchema, validate } from "kaal-core/frontmatter";
@@ -167,6 +167,17 @@ checkContract({ format: installationFormat(), capability: "sample", version: "0.
 ```
 
 An asset marked with a `surface`, such as `hook`, is installed only when a consumer opts in, by the Capability's own command; Core never realizes it. The record a contract names maps each file the Capability owns to its `sha256` and `version`, and any other member is the Capability's. `checkRecord(record)` returns its findings, and `register({ contract, record, written })` returns the record once the files Core wrote are registered: only asset files Core wrote, with the contract's version, keeping every other entry and member.
+
+### Installation Contract Conformance
+
+`kaal-core/conformance` offers Core's own Test Cases for the Installation Contract, core/T10 to core/T13, as reusable cases over any contract instance. `installationConformance(instance)` checks that the instance conforms, then that `checkContract` refuses each of the cases' mutations of it: unknown and missing members, wrong types, unsafe targets, catalogue entries that name no asset, and Skills provided at another location. It returns one result per case, and a test runner wraps each in a test of its own. A mutation that cannot be applied to the instance is a failure, never a pass. The module registers no test, imports no test harness, and nothing in Core's runtime loads it.
+
+```js
+import { installationConformance } from "kaal-core/conformance";
+
+installationConformance(contract);
+// [{ id: "core/T10", holds: true, failures: [] }, { id: "core/T11", ... }, { id: "core/T12", ... }, { id: "core/T13", ... }]
+```
 
 ### Agent Realization
 
