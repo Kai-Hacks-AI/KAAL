@@ -63,7 +63,7 @@ When a product is to be verifiable by the people who install it, follow the `Tes
 - Document one entry point. Locate the installed product by resolution, never by a source path, and fail closed: fewer cases executed than declared is unknown, never verified.
 - Give exactly one result per run: failed, unknown or verified, each with its own exit status and summary.
 - Name what was exercised: name, version, install location, and byte identity where the installation records one.
-- Work outside the consumer's content, leave it unchanged, and show that it is unchanged. A repeated run gives the same result.
+- Work outside the consumer's content, leave it unchanged, and show that it is unchanged. Keep the procedure repeatable, and report each run's observed outcome, evidence and conditions faithfully. Never promise the same result from the same installation.
 - Report conformance and integration as separate verdicts.
 - Treat a consumer's result as the consumer's own observation, never as evidence Testing observed.
 

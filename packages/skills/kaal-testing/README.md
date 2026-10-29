@@ -119,7 +119,7 @@ The observation does not outlive the process. A run kept on disk, or handed to a
 
 ## Consumer verification
 
-The `Testing` Node states what it takes for a consumer to verify an installed product without its source (testing/F11–F17). The product delivers its own declared acceptance or conformance cases and one entry point that fails closed. Each run gives one result, failed, unknown or verified, each with its own exit status and summary, and names the subject it exercised. The run leaves the consumer's content unchanged and is repeatable, and it keeps product conformance apart from consumer integration. A consumer's result is its own observation, not evidence Testing observed. The section names no realization. npm is the first, recorded in `plan/consumer/architecture.md` (testing/A9). kaal-testing ships no mechanism for it.
+The `Testing` Node states what it takes for a consumer to verify an installed product without its source (testing/F11–F17). The product delivers its own declared acceptance or conformance cases and one entry point that fails closed. Each run gives one result, failed, unknown or verified, each with its own exit status and summary, and names the subject it exercised. The run leaves the consumer's content unchanged, its procedure is repeatable, and each run reports the outcome and conditions it observed, never a promise that the same installation gives the same result. It keeps product conformance apart from consumer integration. A consumer's result is its own observation, not evidence Testing observed. The section names no realization. npm is the first, recorded in `plan/consumer/architecture.md` (testing/A9). kaal-testing ships no mechanism for it.
 
 ## Boundaries
 

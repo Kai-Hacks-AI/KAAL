@@ -40,7 +40,7 @@ Each run gives exactly one result. It is failed when any case failed. It is unkn
 
 The evidence names what was exercised: the product's name, its version, where it is installed, and the identity of its bytes where the installation records one. What the installation does not record stays unknown.
 
-A run works outside the consumer's content and leaves that content as it found it, and it shows that it did. Repeating a run against the same installation gives the same result.
+A run works outside the consumer's content and leaves that content as it found it, and it shows that it did. Its procedure is repeatable: the same entry point can be run again against the same installation. Each run reports faithfully the outcome it observed, with its evidence and the conditions it ran under. The same installation does not promise the same outcome, since time, network, environment or a case's own nondeterminism may differ between runs, so each result stands for its own run only.
 
 Product conformance and consumer integration are separate scopes. Conformance shows that the installed product behaves as its contract states, in surroundings the run builds for itself. Integration shows that the product is installed and configured correctly in one consumer. Each has its own verdict, and neither stands in for the other.
 
