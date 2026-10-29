@@ -11,9 +11,10 @@ Each Requirement names, in brackets, the Intents it serves.
 
 - **testing/F24** [testing/I10]: Identities belong to their holder. Every Strategy, Plan, Suite and Case has an identity, a nonempty string its holder assigns, unique across the model so that references resolve. Testing prescribes no format, prefix or numbering. A missing, empty or duplicate identity is a finding.
   - KAAL's own Cases follow testing/N2, `<capability>/T<n>`. That is KAAL's internal convention, enforced by KAAL's own Engineering checks, and the generic model neither requires nor checks it.
-- **testing/F25** [testing/I10]: Relationships, each outgoing and stated once.
-  - A Strategy names its Plans, a Plan its Suites and a Suite its Cases.
-  - A Case is defined once and may be in several Suites.
+- **testing/F25** [testing/I10]: Relationships, each outgoing, owned by the containing definition and stated once there. The other direction is derived.
+  - A Strategy names 1..n Plans, and a Plan may serve 0..n Strategies.
+  - A Plan names 1..n Suites, and a Suite may serve 0..n Plans.
+  - A Suite names 0..n Cases, and a Case may be in 0..n Suites. A Case is defined once.
   - Only the levels a product uses are declared: Cases alone, or Suites of Cases, are a model.
   - A reference to an undeclared element is a finding, as is any key the kind does not define.
 - **testing/F26** [testing/I11]: A Case's result is `passed` or `failed` as observed. A Case that did not run, or ran as skipped or `todo`, is `unknown`. Within a Plan, a Case the Plan declares inapplicable, with a reason, before the run is `inapplicable`, but only when it did not run: a declaration never hides an observed outcome.

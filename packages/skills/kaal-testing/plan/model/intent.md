@@ -4,6 +4,7 @@ This is `testing/C14`, a PLAN Change. It ships no code. `testing/C15` turns its 
 
 It answers two Owner directions:
 - the review of #385 (comment 6489540871): Testing defines the Strategy → Plan ↔ Suite ↔ Case kinds, their identity and relationship rules, and their result mechanics; each consumer owns its concrete instances; a Case owns an outgoing **tests →** trace to its subject; history and acceptance policy stay apart; FAR is Change's composition of ordinary Plans;
+- the Owner alignment on #583 (comment 6495452330): Strategy → 1..n Plans, Plan ↔ Suite n..m, Suite ↔ Case n..m, with Testing formalizing relationship ownership and multiplicities. This PLAN does that. The alignment's Runs, provenance, retention, Test Data and retired Cases are planned separately in `testing/C18`;
 - the Owner clarification in the #kaal research thread on maturing `kaal-testing` (2026-10-28 17:16 CET): each Capability defines its own concepts, identity rules and outgoing trace rules; incoming traces are never declared by the receiver, only derived; an open Testing trace rule must not prescribe other Capabilities' kinds; there is no mandatory universal tree or schema.
 
 What exists, and what this Change does not repeat:

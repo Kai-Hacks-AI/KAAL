@@ -59,7 +59,7 @@ describe("Kinds, identities and relationships (testing/C14)", () => {
     }
   });
 
-  it("testing/T27 [testing/F25]: only the levels a product uses are declared; a Case is defined once and may be in several Suites; a reference to an undeclared element is a finding", async () => {
+  it("testing/T27 [testing/F25]: only the levels a product uses are declared; a Strategy names at least one Plan and a Plan at least one Suite; a Case is defined once and may be in several Suites; a reference to an undeclared element is a finding", async () => {
     const { check } = await model();
     assert.deepEqual(check({ suites: [{ id: "lean/S1", cases: ["lean/T1"] }], cases: [{ id: "lean/T1" }] }), [], "a Suite of Cases alone is a model");
     assert.deepEqual(check({ cases: [{ id: "lean/T1" }] }), [], "Cases alone are a model");
@@ -72,6 +72,16 @@ describe("Kinds, identities and relationships (testing/C14)", () => {
     const twice = SAMPLE();
     twice.cases.push({ id: "sample/T2" });
     assert.ok(check(twice).some((f) => f.includes("sample/T2")), "a Case is defined once");
+    const strategy = SAMPLE();
+    strategy.strategies[0].plans = [];
+    assert.ok(check(strategy).some((f) => f.includes("sample/strategy")), "a Strategy names at least one Plan");
+    const plan = SAMPLE();
+    plan.plans[0].suites = [];
+    assert.ok(check(plan).some((f) => f.includes("sample/P1")), "a Plan names at least one Suite");
+    const shared = SAMPLE();
+    shared.plans.push({ id: "sample/P2", suites: ["sample/S1"] });
+    shared.strategies.push({ id: "sample/other", plans: ["sample/P1", "sample/P2"] });
+    assert.deepEqual(check(shared), [], "a Suite may serve several Plans, and a Plan several Strategies");
   });
 
   it("testing/T28 [testing/N7]: a Case's tests → subjects are opaque to Testing, of any kind; incoming views are derived, never declared", async () => {
