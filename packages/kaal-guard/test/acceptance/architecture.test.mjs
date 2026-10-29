@@ -260,6 +260,7 @@ describe("Architecture conformance", () => {
     const wrong = limitations.replace(/^(\| guard\/D5 \|[^|]*\| )delivered: guard\/T81( \|)/m, "$1delivered: guard/T94$2");
     assert.notEqual(wrong, limitations, "the fixture did not change the copy");
     assert.ok(defects(wrong, testing, titles).some((f) => f.startsWith("guard/D5: Tested by")), "a Tested by that names a case not citing its Defect is not refused");
+  });
 
   it("guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it", () => {
     const requirements = source("docs/requirements.md");
@@ -279,6 +280,7 @@ describe("Architecture conformance", () => {
     assert.deepEqual(columns, ["From", "Path", "Prerequisites", "What changes, and what is kept", "If it fails", "Verify"], "the table does not have the declared columns");
     const rows = table.slice(2).map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
     assert.ok(rows.length > 0, "guard/F42 declares no supported source");
+    assert.equal(new Set(rows.map(([from]) => from)).size, rows.length, "guard/F42 declares a source twice");
     for (const [from, ...cells] of rows) {
       const version = /^`(\d+\.\d+\.\d+)`$/.exec(from)?.[1];
       assert.ok(version, `a source is not a version: ${from}`);

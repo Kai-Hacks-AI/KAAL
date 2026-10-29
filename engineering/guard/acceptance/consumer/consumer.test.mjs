@@ -26,6 +26,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { admits, declaredPaths } from "./paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KAAL = resolve(HERE, "..", "..", "..", "..");
@@ -81,21 +82,6 @@ const tree = (dir) =>
     .map((f) => [f, readFileSync(join(dir, f), "utf8")]);
 
 /**
- * The upgrade paths a release declares under guard/F42 (guard/C113): the release they lead to and the
- * source versions it supports, or null for a release that declares none, as every release before 0.0.5.
- */
-function declaredPaths(text) {
-  const at = text.indexOf("**guard/F42 ");
-  const head = at < 0 ? null : /Supported upgrade paths to `(\d+\.\d+\.\d+)`/.exec(text.slice(at));
-  if (!head) return null;
-  const lines = text.slice(at + head.index).split("\n");
-  const start = lines.findIndex((l) => l.startsWith("|"));
-  const end = lines.findIndex((l, i) => i > start && !l.startsWith("|"));
-  const sources = lines.slice(start + 2, end < 0 ? undefined : end).map((l) => /^\| `(\d+\.\d+\.\d+)` \|/.exec(l)?.[1]).filter(Boolean);
-  return { target: head[1], sources };
-}
-
-/**
  * What the two candidates ship, read from their packages installed side by side before any behavioural
  * step (guard/C112): each candidate's Installation Contract, and each managed asset's content as it ships.
  */
@@ -111,7 +97,7 @@ function shipped(h, older, newer) {
       }),
     );
     const requirements = join(r.dir, ROOT, "docs", "requirements.md");
-    return { contract, assets, paths: existsSync(requirements) ? declaredPaths(readFileSync(requirements, "utf8")) : null };
+    return { contract, assets, paths: declaredPaths(existsSync(requirements) ? readFileSync(requirements, "utf8") : null) };
   };
   const from = side(older.spec);
   const to = side(newer.spec);
@@ -354,11 +340,13 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     // The harness's own variants change a package after its manifest was made, so their verification cannot pass by design.
     if (!applies(t, !/-candidate\.\d+$/.test(newer.version), `${newer.version} is a variant the harness built, not a release whose verification can pass; name the pair with GUARD_CANDIDATES`)) return;
     const pair = shipped(h, older, newer);
-    // The target release owns its supported paths (guard/C113): a pair it does not declare is not a path it supports.
-    if (pair.to.paths) {
-      t.diagnostic(`${newer.version} declares upgrade paths from: ${pair.to.paths.sources.join(", ")}`);
-      if (!applies(t, pair.to.paths.sources.includes(older.version), `${newer.version} declares no upgrade path from ${older.version}`)) return;
-    }
+    // The target release owns its supported paths (guard/C113). A malformed declaration, or none from 0.0.5 on,
+    // is a finding and never evidence; a pair a valid declaration does not list is not a path it supports.
+    const path = admits(pair.to.paths, older, newer, { gate: newer.source === "registry" || process.env.GUARD_RELEASE_GATE === "1" });
+    assert.equal(path.finding, undefined, path.finding);
+    if (path.verdict === "legacy") t.diagnostic(`${newer.version} predates guard/F42 and declares no upgrade paths`);
+    else t.diagnostic(`${newer.version} declares upgrade paths to ${pair.to.paths.target} from: ${pair.to.paths.sources.join(", ")}`);
+    if (!applies(t, path.verdict !== "undeclared", `${newer.version} declares no upgrade path from ${older.version}`)) return;
     const hook = ".githooks/pre-push";
     const managed = Object.values(pair.to.assets).filter((a) => a.surface !== undefined && (a.target ?? a.path) !== hook);
 

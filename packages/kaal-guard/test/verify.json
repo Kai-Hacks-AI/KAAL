@@ -1,6 +1,7 @@
 {
   "cases": [
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
@@ -198,6 +199,7 @@
     "guard/F39",
     "guard/F40",
     "guard/F41",
+    "guard/F42",
     "guard/N1",
     "guard/N2",
     "guard/N3",
@@ -249,6 +251,11 @@
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T107 [guard/I9, guard/F37, guard/A19]: the package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations; every identifier a delivered case cites is defined there; and no document there cites an Engineering path or a Change as its authority",
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused"
+      ]
+    },
+    "guard/F42": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it"
       ]
     },
     "guard/A21": {
@@ -789,14 +796,14 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "faa1ff81175db7145eb4bbd65720715916f7f110c799f276373596c6b0f75258",
+    "README.md": "c6e89f22a7ba466d3534b2cf3ed2a02768b4c7c2e53884d3b37f39e9cf030c0a",
     "bin/kaal-guard.mjs": "2fd01706b67dee8f0bdfd207a377534392942ba1666c8082a016fe5999569611",
     "contract.json": "6f334cc83897094a4a234c841a87abc8d87a7816c5ded8aeb5a55d0af2ac823e",
-    "docs/architecture.md": "97ca0d092ab57f9aa4e5586c1bfd48f18f5f6750b1133d1f6478268a7af9d381",
+    "docs/architecture.md": "8b66af964b7ca0cf8aa5e14e1ddbb5dfdba3cff45b82fb1b76ce810517b3d309",
     "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
     "docs/limitations.md": "77bda8d9877a077b89802b6c37dd6e921fd2f1b536817e8731455c1fc3094c56",
-    "docs/requirements.md": "e82b4e7dd1eb2b99d0f3bed006e8b8de3b8bf5b7a15bb8066635c162521645cd",
-    "docs/testing.md": "5d418cf70ddbe6ccf18b1fa98c004a1bbc3da5c64a91b0fd3901aba8df7b933c",
+    "docs/requirements.md": "64ef8fac09b96b88461763be835011d404903480cfa86871d4884b81ce427165",
+    "docs/testing.md": "f9131866019048d72fa2f26ed98918e7d4ae5a8aaa7506d526f4a2c4bba75087",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -814,7 +821,7 @@
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "ea743d0411b3e9e3dc59f1b8c00b7c62ccd5dfabc53a22ad8c9e93c2430f5fa6",
+    "test/acceptance/architecture.test.mjs": "aca8b31943f055f76b82df3c7890677cced2476e06763b53d9278fc00208b0e2",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
     "test/acceptance/requirements.test.mjs": "6855229bab3df63631feaaee03e47baad3bd6933f302d8411b3d190bf1c38e0a",
