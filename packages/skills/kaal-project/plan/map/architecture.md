@@ -6,7 +6,7 @@
 
 | Who | Owns |
 | --- | --- |
-| Change | Change identities, the Depends On relationship and its facts (#530), and Change's own map contract |
+| Change | Change identities, the Succeeds and Delivers relationships and their facts, delivery (#530), and Change's own map contract |
 | Project | Projects, governance, grouping, project-level sequencing, and Project's map contract |
 | Program | cross-Project coordination, when realized (no map before it is) |
 | Product | priority, desired direction, product-level sequencing, and Product's map contract |
@@ -19,7 +19,7 @@
 | --- | --- | --- |
 | `project/C2` PLAN, this Change | Project | #279 (merged) |
 | DO: `kaal-project/map`, with project/T1–project/T7 GREEN | Project | `project/C2` |
-| `change/C1`, Change Nodes and Depends On (#530) | Change | — |
+| `change/C1`, Change Nodes, Succeeds, Delivers and delivery (#530) | Change | — |
 | Product map PLAN and DO, with the negative case that priority is never dependency | Product | Product's own contract only |
 | A Script that reads Project Plans from the repository | Project | the DO Change |
 
@@ -29,7 +29,7 @@ Project's PLAN does not wait on #530. project/T2 passes Change's exchange as pla
 
 - **D1:** each capability owns its map's contract and meaning. There is no universal Graph-owned output contract.
 - **D2:** composition is done by the consumer or an agent, through agreed interfaces, preserving qualified identity, provenance and authority. There is no Graph combine.
-- **D3:** Change defines and owns Depends On (#530), and Project consumes its declared facts.
+- **D3:** Change defines and owns Depends On (#530), and Project consumes its declared facts. Renamed by the Owner alignment on #530 (6503873746): Change owns **Succeeds**, a temporal delivery prerequisite distinct from Project's `before` and from Packaging's package dependencies.
 - **D4:** Change and Project plan independently, with Product in parallel. Any shared interface is aligned before a DO depends on it.
 
 There is no open decision on shared contract ownership: this PLAN proposes no shared contract. The exchange is Change's output, consumed by Project.

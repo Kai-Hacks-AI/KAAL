@@ -33,14 +33,14 @@ const plan = (over = {}) => ({
 /** A stand-in content id for a Change identity. */
 const ID = (identity) => identity.at(-1).repeat(64);
 
-/** Change's exchange, as a consumer passes it, plain data (change/F13, #530). sample/C2 depends on sample/C1. */
+/** Change's exchange, as a consumer passes it, plain data (change/F13, #530). sample/C2 succeeds sample/C1. Members this map does not consume ride along. */
 const changes = (ids = ["sample/C1", "sample/C2", "sample/C3"], deps = { "sample/C2": ["sample/C1"] }, findings = []) => ({
-  changes: ids.map((identity) => ({ identity, id: ID(identity), dependsOn: [...(deps[identity] ?? [])] })),
+  changes: ids.map((identity) => ({ identity, id: ID(identity), succeeds: [...(deps[identity] ?? [])], delivers: [], requires: [] })),
   findings,
 });
 
 const PROJECT = (name) => ({ name, owner: "Project" });
-const DEPENDS_ON = Object.freeze({ from: "sample/C2", to: "sample/C1", relation: { name: "Depends On", owner: "Change" }, source: ID("sample/C2") });
+const SUCCEEDS = Object.freeze({ from: "sample/C2", to: "sample/C1", relation: { name: "Succeeds", owner: "Change" }, source: ID("sample/C2") });
 const project = (from, to, name) => ({ from, to, relation: PROJECT(name), source: "sample/P1" });
 
 /** The findings whose text names every given word. */
@@ -68,7 +68,7 @@ describe("the Project map (project/C2)", () => {
     });
   });
 
-  it("project/T2 [project/I2, project/I4, project/F2, project/F3]: with Change's exchange, Depends On is Change's, qualified and sourced to the dependent's content id, and the governed Changes are resolved with their id", async () => {
+  it("project/T2 [project/I2, project/I4, project/F2, project/F3]: with Change's exchange, Succeeds is Change's, qualified and sourced to the succeeding Change's content id, and the governed Changes are resolved with their id", async () => {
     const { map } = await projectMap();
     const out = map([plan()], { changes: changes() });
     assert.deepEqual(out.findings, []);
@@ -76,16 +76,16 @@ describe("the Project map (project/C2)", () => {
       out.nodes.filter((n) => n.kind === "change"),
       ["sample/C1", "sample/C2", "sample/C3"].map((identity) => ({ identity, kind: "change", owner: "Change", resolved: true, id: ID(identity) })),
     );
-    assert.deepEqual(out.relations.filter((r) => r.relation.owner === "Change"), [DEPENDS_ON]);
+    assert.deepEqual(out.relations.filter((r) => r.relation.owner === "Change"), [SUCCEEDS]);
   });
 
-  it("project/T3 [project/I2, project/F1, project/F2, project/F3]: Project's before is never a dependency, Project owns only its three relation names, and a Plan that states a dependency is a finding", async () => {
+  it("project/T3 [project/I2, project/F1, project/F2, project/F3]: Project's before is never Succeeds, Project owns only its three relation names, and a Plan that states a relation between Changes that is Change's is a finding", async () => {
     const { map } = await projectMap();
     for (const out of [map([plan()]), map([plan()], { changes: changes(undefined, {}) })]) {
       assert.deepEqual(out.relations.filter((r) => r.relation.owner !== "Project"), [], "before gives no relation of Change's");
       assert.deepEqual([...new Set(out.relations.map((r) => r.relation.name))].sort(), ["before", "governs", "grouped with"]);
     }
-    for (const member of ["dependsOn", "dependencies"]) {
+    for (const member of ["succeeds", "dependsOn", "dependencies"]) {
       const out = map([plan({ [member]: [{ from: "sample/C2", to: "sample/C1" }] })]);
       assert.equal(naming(out.findings, member).length, 1, `a Plan stating ${member} is a finding naming it`);
       assert.deepEqual(out.relations.filter((r) => r.relation.owner !== "Project" || !["governs", "grouped with", "before"].includes(r.relation.name)), [], `${member} gives no relation`);
@@ -111,8 +111,8 @@ describe("the Project map (project/C2)", () => {
 
   it("project/T5 [project/I3, project/F1, project/F2, project/F3]: a governed Change Change's exchange does not list is unresolved and reported, Change's findings pass through as Change's, and a malformed Plan member is a finding naming it", async () => {
     const { map } = await projectMap();
-    const stale = { kind: "stale", change: "sample/C3", dependency: "sample/C1" };
-    const elsewhere = { kind: "unresolved", change: "other/C7", dependency: "other/C8" };
+    const stale = { kind: "stale", change: "sample/C3", predecessor: "sample/C1" };
+    const elsewhere = { kind: "unresolved", change: "other/C7", predecessor: "other/C8" };
     const out = map([plan()], { changes: changes(["sample/C1", "sample/C2"], undefined, [stale, elsewhere]) });
     assert.deepEqual(out.nodes.find((n) => n.identity === "sample/C3"), { identity: "sample/C3", kind: "change", owner: "Change", resolved: false });
     assert.equal(naming(out.findings, "Project", "sample/C3").length, 1, "the missing Change is reported by Project");
@@ -135,7 +135,7 @@ describe("the Project map (project/C2)", () => {
       [
         "- sample/P1",
         "  - sample/C2",
-        "    - Depends On sample/C1 (Change)",
+        "    - Succeeds sample/C1 (Change)",
         "    - grouped with sample/C1 (Project)",
         "  - sample/C3",
         "    - before sample/C1 (Project)",
@@ -152,7 +152,7 @@ describe("the Project map (project/C2)", () => {
 
   it("project/T7 [project/I2, project/I4]: removing Change's exchange removes every relation and finding Change owns and nothing Project owns", async () => {
     const { map } = await projectMap();
-    const composed = map([plan()], { changes: changes(undefined, undefined, [{ kind: "stale", change: "sample/C2", dependency: "sample/C1" }]) });
+    const composed = map([plan()], { changes: changes(undefined, undefined, [{ kind: "stale", change: "sample/C2", predecessor: "sample/C1" }]) });
     const alone = map([plan()]);
     assert.deepEqual(composed.relations.filter((r) => r.relation.owner === "Project"), alone.relations);
     assert.deepEqual(alone.relations.filter((r) => r.relation.owner !== "Project"), []);
