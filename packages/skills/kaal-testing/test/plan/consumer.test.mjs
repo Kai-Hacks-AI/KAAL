@@ -35,10 +35,10 @@ describe("Consumer verification (testing/C9)", () => {
     });
   });
 
-  it("testing/T17 [testing/F14, testing/F15, testing/F16, testing/F17]: the Node states the named subject, isolation and repeatability, the two scopes, and whose observation a consumer's result is, verbatim", () => {
+  it("testing/T17 [testing/F14, testing/F15, testing/F16, testing/F17]: the Node states the named subject, isolation and a repeatable procedure, the two scopes, and whose observation a consumer's result is, verbatim", () => {
     states(node(), {
       "testing/F14": "The evidence names what was exercised: the product's name, its version, where it is installed, and the identity of its bytes where the installation records one. What the installation does not record stays unknown.",
-      "testing/F15": "A run works outside the consumer's content and leaves that content as it found it, and it shows that it did. Repeating a run against the same installation gives the same result.",
+      "testing/F15": "A run works outside the consumer's content and leaves that content as it found it, and it shows that it did. Its procedure is repeatable: the same entry point can be run again against the same installation. Each run reports faithfully the outcome it observed, with its evidence and the conditions it ran under. The same installation does not promise the same outcome, since time, network, environment or a case's own nondeterminism may differ between runs, so each result stands for its own run only.",
       "testing/F16": "Product conformance and consumer integration are separate scopes. Conformance shows that the installed product behaves as its contract states, in surroundings the run builds for itself. Integration shows that the product is installed and configured correctly in one consumer. Each has its own verdict, and neither stands in for the other.",
       "testing/F17": "A consumer's result is the consumer's own observation of its run. It is not evidence Testing observed, and it changes no classification of a product's contracts.",
     });
