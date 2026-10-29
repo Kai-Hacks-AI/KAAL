@@ -12,3 +12,17 @@ The planned outer tests will live in `packages/skills/kaal-requirements/test/pla
 | requirements/T14: no file the package ships imports a module, and its `package.json` has no `dependencies` | requirements/N3 | Architecture |
 
 requirements/T13 is RED until `core/C29` lands, **blocked before behavioural assertion**: no Core path applies a Capability's Node assets. It runs outside the package's `npm test` until then, so the collector's lanes stay green.
+
+## RED evidence
+
+At `requirements/C6`, four tests are RED and requirements/T14 is GREEN, as planned. They run with `npm run build -w kaal-hosting -w kaal-core && node --test packages/skills/kaal-requirements/test/plan/love.test.mjs`, outside the package's `npm test` until `requirements/C7`, so the collector's lanes stay green.
+
+| Test | Result at `requirements/C6` |
+| --- | --- |
+| requirements/T9 | RED, **blocked before behavioural assertion**: `contract.json` does not exist. `kaal-core/installation` also reaches `kaal/requirements` only with its promotion SYNC, so `requirements/C7` follows that SYNC |
+| requirements/T10 | RED, **blocked before behavioural assertion**: `contract.json` does not exist |
+| requirements/T11 | RED on its behavioural assertion: the Node does not state the Defect boundary |
+| requirements/T12 | RED on its behavioural assertion: the packed package does not hold `contract.json` |
+| requirements/T14 | GREEN: it guards `requirements/N3` through the DO Change, and no Defect traces to it |
+
+requirements/T13 is not written at `requirements/C6`. Its install, upgrade and remove steps call Core's contribution lifecycle, and `core/C29` has not named that interface yet. A test written against a guessed interface would fabricate its RED. It is written, and recorded, in `requirements/C9`, once `core/C29` is on `kaal/requirements`.
