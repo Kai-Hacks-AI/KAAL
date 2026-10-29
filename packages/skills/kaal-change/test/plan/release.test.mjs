@@ -121,8 +121,9 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     assert.ok(consumerTests.length > 0);
     for (const f of [...consumerTests, "test/verify.mjs"]) {
       const src = readFileSync(join(PACKAGE, f), "utf8");
-      for (const [, from, dynamic] of src.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g)) {
-        const spec = from ?? dynamic;
+      // Every way a module is loaded: `from`, a side-effect import, a dynamic import, and require.
+      for (const [, from, bare, dynamic, required] of src.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\s+["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)|\brequire\(\s*["']([^"']+)["']\s*\)/g)) {
+        const spec = from ?? bare ?? dynamic ?? required;
         if (f === "test/verify.mjs") {
           assert.ok(spec.startsWith("node:"), `the verifier imports ${spec}: it uses only Node's built-ins, never the runtime it verifies`);
           continue;
