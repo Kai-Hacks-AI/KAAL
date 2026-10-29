@@ -505,7 +505,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   3. `guard/C116` DO (#573), approved. Two limits are stated, with guard/T123.
   4. `guard/C118` PLAN (#570), then DO (#577), both approved. guard/T114 is not applicable on Windows, with its reason.
   5. `guard/C113` PLAN (#571), then DO (#576), both approved. guard/F42 declares the paths from `0.0.2`, `0.0.3` and `0.0.4`, and guard/T118 takes its sources from that declaration. As the last of the three to land, it also makes guard/A6 cite guard/F42 so that guard/T126 stays GREEN. That is a correction to an approved PR, so it needs the Owner's approval again.
-  5a. `guard/C129`: the source `npm test` comprehensive and the installed one consumer-only, per the Owner's convention on #625. PLAN first.
+  5a. `guard/C129`: tests placed by the realization they verify, as the Owner ruled on #631. Engineering Tests stay in Engineering, and the package's `npm test` runs its own tests. guard/T134 checks the placement. PLAN first.
   6. `guard/C125`: version `0.0.5` and its release notes. This is the bump, and it needs the Owner's authorization. `package.json`, the README's notes for `0.0.5` and the manifest are regenerated. No behaviour changes.
   7. `guard/C126`: acceptance of the candidate before publication, on the exact SHA of `guard/C125`, with the evidence below. It records evidence only and changes nothing.
   8. `guard/C127`: publication through Guard Release. Packing alone may be dispatched. Publishing needs the Owner's own words and approval of the `npm` environment.
@@ -525,25 +525,32 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Test Cases.** None new. The release Changes cite the cases named above. `guard/C125` and later ones get their identifiers when they are raised.
 - **Authorization.** Approving this PLAN approves the path and the order. Each step still needs its own approval, and the bump, publication, synchronization and promotion each need the Owner's explicit authorization.
 
-**Comprehensive in source, consumer-only once installed (`guard/C129`, PLAN).** This follows the Owner's test-entry convention on #625 (`engineering/C6`). In the source workspace, a package's `npm test` is the comprehensive entry point: it runs its publisher, consumer and other declared suites, and never invokes itself. In the installed package, `npm test` runs consumer verification only, and needs neither publisher suites nor KAAL's repository. Each package owns its suites, and Engineering orchestrates them in the package's own directory without copying, relocating or redefining them. Consumer verification exercises the packed artifact, not the source tree, and Guard assesses that evidence.
-- **Where Guard is today.** `scripts.test` is `node test/verify.mjs`, consumer verification in source as well as once installed. Guard's Engineering-side cases (guard/T101–guard/T106, guard/T108–guard/T111, guard/T113–guard/T118, guard/T120 and guard/T121) live in `engineering/guard/acceptance/` with their harness in `engineering/guard/consumer/`. They run only from the root `test:engineering` script and the `.github/` jobs, so the source `npm test` is not comprehensive.
-- **The constraint.** npm ships `scripts.test` unchanged, so one script must be comprehensive in source and consumer-only once installed. guard/A8 and guard/T30 also forbid any package file from referencing an Engineering path.
-- **Option A (recommended): Guard's publisher suites live in the package's source tree and are not shipped.** The Engineering-side cases and their harness move to `packages/kaal-guard/test/publisher/`, which stays out of `files`. `scripts.test` becomes a shipped runner, `test/run.mjs`. It always runs consumer verification and then, only where `test/publisher/` is present, runs those suites with `node --test`, never `npm test`. Installed, the directory is absent, so `npm test` is consumer-only. guard/A8 and guard/T30 are narrowed to the shipped files, and a new case checks that the packed file list holds no `test/publisher/`. Placement still follows the realization rule from #574: the cases stay Engineering-side by contract, and only their directory changes. The open point is the harness. It packs with `npm pack`, but it also resolves KAAL's root and clones KAAL's current commit for the cases that need a KAAL consumer (`kaalClone`). The DO keeps those cases as an explicit, unshipped publisher-only dependency on KAAL's tree and says so, or it moves them to Engineering's lane. Each case is placed by the realization it verifies.
-- **Option B: the suites stay in `engineering/guard/`.** The package's `npm test` stays consumer-only everywhere, and Engineering's lane runs Guard's publisher suites from `engineering/guard/` beside it. This keeps guard/A8 as it is, but it does not meet the convention: the source `npm test` is not comprehensive, and Engineering would be running Guard-owned suites outside Guard's directory.
-- **Guard's assessment of consumer evidence (point 4 on #625).** For Guard, the evidence that counts is this:
-  - The packed artifact, installed offline outside the repository, whose installed `npm test` runs consumer verification only and ends `verified`.
-  - Its output lists the publisher allocations (among them guard/F33 and guard/F34) and never reports them as passed.
-  - The packed file list holds no publisher suite, Engineering path or KAAL dependency.
-  - The source `npm test` runs every declared suite once, GREEN.
-  - For a release, the packed evidence is on the exact SHA on Linux, macOS and Windows (`guard/C126`).
-  Engineering's Consumer lane (`engineering/C6`, F3) supplies the first three for every workspace. Guard judges them against this list, and source-tree runs never stand in for them.
-- **Place in the path to `0.0.5`.** After `guard/C113` and before `guard/C125`, so that `0.0.5` ships the new test entry. It needs no synchronization of its own.
-- **Test Cases.** Planned for the DO, each RED first:
-  - a case that the packed file list holds no `test/publisher/` path;
-  - a case that the source `npm test` runs the consumer verification and every publisher suite exactly once, without invoking `npm test`;
-  - a case that the installed `npm test` runs no publisher suite.
-  Their identifiers are assigned when the Owner chooses an option.
-- **Authorization.** Approving this PLAN with an option chosen authorizes `guard/C129`'s DO only: no version bump, promotion or publication.
+**Tests placed by the realization they verify (`guard/C129`, PLAN).** The first version of this PLAN followed the Owner's test-entry convention on #625 and recommended moving Guard's Engineering-side suites into `packages/kaal-guard/test/publisher/`, so that the source `npm test` would be comprehensive. The Owner rejected that option on #631 (comment 6510328744) and set the placement rule:
+- Engineering Tests stay in Engineering.
+- Embedded Tests belong to the capability package.
+- External Tests are defined for their specific consumer or context.
+
+Classification follows the realization being verified, not where it is convenient to invoke a test. A package's `npm test` owns that package's own tests, and the installed command runs the consumer tests the package ships. Engineering's comprehensive lane (`engineering/C6`, #625) runs its own Engineering Tests beside each package's own tests. It combines the evidence by owner and never copies or redefines a case. This PLAN replaces the earlier one. It also corrects the earlier reading of the convention: Guard's source `npm test` runs Guard's package tests, not every suite that concerns Guard.
+- **Where Guard is today, and what does not move.**
+  - `scripts.test` is `node test/verify.mjs`. In source and once installed, it runs the Embedded Tests the package ships (`test/unit/`, `test/acceptance/`) and checks them against `test/verify.json`. That already meets the rule, so the script does not change.
+  - Guard's Engineering Tests stay where they are: guard/T101–guard/T106, guard/T108–guard/T111, guard/T113–guard/T118, guard/T120, guard/T121 and guard/T133 in `engineering/guard/acceptance/`, with their harness in `engineering/guard/consumer/`. Engineering's lane runs them. Nothing moves into the package, and guard/A8 and guard/T30 keep forbidding any package file from referring to an Engineering path.
+  - Guard's External Tests (`engineering/guard/acceptance/external.test.mjs`) verify a delivery into a specific target. Under the rule, they need their own declared placement and execution contract for that consumer. That is a separate question for the Owner, raised as its own Change, and is not settled here.
+- **What the DO adds: the placement is checked, not just stated.** One Engineering-side case, guard/T134, reads both Test Plans and every Guard test file. It refuses:
+  - a case in the package's `test/` that the package's `docs/testing.md` does not define, or a test file there that the packed file list or `test/verify.json` does not hold (the package's tests are all shipped, so `npm test` runs the same set in source and installed);
+  - a case in `engineering/guard/acceptance/` that `engineering/guard/testing.md` does not define, or that the package's docs define;
+  - a `scripts.test` that invokes `npm test` recursively, or names any path outside the package.
+
+  It has a negative fixture for each refusal. It is GREEN-expected on the base, because the placement already follows the rule. Its evidence is the fixtures, each of which turns it RED.
+- **Guard's assessment of consumer evidence (point 4 on #625).** Unchanged from the first version. The evidence that counts:
+  - The packed artifact, installed offline outside the repository, whose installed `npm test` ends `verified`.
+  - That run lists the publisher allocations (among them guard/F33 and guard/F34) and never reports them as passed.
+  - The packed file list holds no Engineering path and no KAAL dependency.
+  - For a release, that evidence is on the exact SHA on Linux, macOS and Windows (`guard/C126`).
+
+  Engineering's lane supplies this evidence for every workspace and combines it with Guard's Engineering Tests by owner. Guard judges it against this list, and a source-tree run never stands in for it.
+- **Place in the path to `0.0.5`.** After `guard/C113` and before `guard/C125`. It needs no synchronization of its own and ships no package change.
+- **Test Cases.** guard/T134, planned here and written in the DO.
+- **Authorization.** Approving this PLAN authorizes `guard/C129`'s DO only: no version bump, synchronization, promotion or publication.
 
 **Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
 
@@ -663,7 +670,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | PLAN |
 | `guard/C123` | — | Guard | `0.0.5`: the defect table names each defect's establishing Test Case | `guard/C119` | not created |
 | `guard/C124` | — | Guard | The path to `0.0.5`: the remaining Changes in collector order, the evidence that accepts the release, and what stays out pending the Owner | `guard/C111`, `guard/C119` | PLAN |
-| `guard/C129` | — | Guard | The source `npm test` runs every suite Guard owns, and the installed one runs consumer verification only (the Owner's convention on #625) | `guard/C124` | PLAN |
+| `guard/C129` | — | Guard | Tests placed by the realization they verify: Engineering Tests in Engineering, the package's `npm test` runs its own tests; guard/T134 (the Owner on #631) | `guard/C124` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
