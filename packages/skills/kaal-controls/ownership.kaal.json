@@ -1,4 +1,4 @@
 {
-  "owner": { "kind": "skill", "name": "Controls", "id": "667d1035bd3468ea6dfe47c997a8825558e1fa6478eb31563d1c94836c391762" },
+  "owner": { "kind": "capability", "name": "Controls", "id": "28c0fb471e65df6b24e50c18fae63c6b8ac52ebc691a889a7d3661f966480a8c" },
   "paths": ["packages/skills/kaal-controls/"]
 }

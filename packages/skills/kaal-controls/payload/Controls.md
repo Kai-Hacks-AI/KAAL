@@ -1,8 +1,8 @@
 ---
 name: Controls
 type:
-  name: KAAL Skill
-  id: 4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933
+  name: KAAL Capability
+  id: 56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e
 ---
 
 # Controls
@@ -17,7 +17,7 @@ A control is a measure taken toward an objective. Reasoning about a control keep
 - **Evidence**: what has actually been observed, such as the configuration of the system that enforces a control, a result produced for the specific subject, or an approval. Evidence that a control is configured is not evidence that it operated.
 - **Effectiveness**: whether the control, operating as designed, achieves its objective, within its stated limits.
 
-Type is a matter of design, distinct from assurance. A directive is directive by design, and a preventive design remains preventive while its operation is unobserved; only what is claimed about it changes. An assurance claim is no stronger than the evidence observed. Evidence that a control is configured is not evidence that it operated, operating once does not show it is effective, and a detective control that reports nothing has not shown that nothing is there. What has not been verified is stated as unverified. A preventive claim names the action it prevents, the actor or interface it applies to, and the enforcement boundary within which it holds. It never promises that the action is impossible: whoever acts outside that boundary, such as an administrator able to bypass it, is not covered.
+Type is a matter of design, distinct from assurance. A directive is directive by design, and a preventive design remains preventive while its operation is unobserved; only what is claimed about it changes. An assurance claim is no stronger than the evidence observed. Evidence that a control is configured is not evidence that it operated, and operating once does not show it is effective. What verification and validation are, what a finding is, and what a clean result does and does not show are Testing's: a detective control that reports nothing gives a clean result, which never shows that nothing is there, and a fact about a control that was not observed stays unknown. A preventive claim names the action it prevents, the actor or interface it applies to, and the enforcement boundary within which it holds. It never promises that the action is impossible: whoever acts outside that boundary, such as an administrator able to bypass it, is not covered.
 
 Independent controls stay independent when a gate combines them. A review, an automated check, a sign-off and the execution of the governed action are distinct, and evidence of one never stands in for another. A sign-off is a decision by whoever is accountable, not a type of control. A review or a verification is independent only when whoever performed it is not whoever did the work, and distinct accounts are evidence of distinct credentials, not of distinct people.
 

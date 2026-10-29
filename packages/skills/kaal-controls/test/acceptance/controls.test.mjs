@@ -49,12 +49,12 @@ describe("the installed package", () => {
     assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).dependencies, undefined);
   });
 
-  it("is admitted as a Skill by Core alone", async () => {
+  it("controls/T4: is admitted as a Capability by Core alone", async () => {
     assert.match(await run(kaal, ["init", "--engine", engine], host), /bootstrapped/);
-    assert.match(await run(kaal, ["register", "skill", "kaal-controls", join(installed, "payload"), "--engine", engine], host), /^registered skill kaal-controls/);
+    assert.match(await run(kaal, ["register", "capability", "kaal-controls", join(installed, "payload"), "--engine", engine], host), /^registered capability kaal-controls/);
     const id = (await run(kaal, ["identify", join(installed, "payload", "Controls.md")], host)).split("\t")[0];
     const listed = (await run(kaal, ["list", "--engine", engine], host)).trim().split("\n").map((l) => l.split("\t"));
-    assert.deepEqual(listed.filter(([, , name]) => name === "Controls"), [["skill", id, "Controls"]]);
+    assert.deepEqual(listed.filter(([, , name]) => name === "Controls"), [["capability", id, "Controls"]]);
     assert.match(await run(kaal, ["verify", "--engine", engine], host), /^ok/);
   });
 });
@@ -73,7 +73,7 @@ describe("a documented control", () => {
     const controls = { name: "Controls", id: await id(join(installed, "payload", "Controls.md")) };
     const dir = join(work, "documented");
     mkdirSync(dir);
-    // Realized by Controls' own Skill Node only to have a target present; any realizing Node serves.
+    // Realized by Controls' own Capability Node only to have a target present; any realizing Node serves.
     writeFileSync(
       join(dir, "Example-review.md"),
       `---\nname: Example review\ntype:\n  name: ${control.name}\n  id: "${control.id}"\nedges:\n  - type:\n      name: ${realizedBy.name}\n      id: "${realizedBy.id}"\n    targets:\n      - name: ${controls.name}\n        id: "${controls.id}"\n---\n\n# Example review\n`,

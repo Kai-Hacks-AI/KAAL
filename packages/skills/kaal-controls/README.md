@@ -1,9 +1,9 @@
 # kaal-controls
 
-KAAL Controls: the semantics of controls, and assurance claims calibrated to the evidence. It is not part of Core. Core provides the `KAAL Skill` type and admission, and this capability joins through them.
+KAAL Controls: the semantics of controls, and assurance claims calibrated to the evidence. It is not part of Core. Core provides the `KAAL Capability` type and admission, and this capability joins through them.
 
 ```
-payload/Controls.md            the Skill Node, typed by Core's KAAL Skill
+payload/Controls.md            the Capability Node, typed by Core's KAAL Capability
 payload/Control.md             the Definition a documented control is typed by
 payload/Realized-by.md         the Definition of the Edge from a control to where it is realized
 payload/VARISC.md              the Definition of the roles actors hold on an activity
@@ -15,7 +15,7 @@ The Node carries what Controls means to KAAL. The Agent Skill tells an Agent how
 
 ## What it teaches
 
-A control's objective, type, mechanism, evidence and effectiveness are analytical distinctions, kept apart when reasoning and making claims; they are not a schema every control must fill in. Directive, preventive, detective and corrective are an initial vocabulary of types, not a closed taxonomy. Type is a matter of design and distinct from assurance: an assurance claim is no stronger than the evidence observed, so configured is not operating and operating once is not effective. A scanner detects, and a required gate prevents only the particular action it governs. A preventive claim names the action, the actor or interface, and the enforcement boundary, and never promises that the action is impossible. Independent controls stay independent when a gate combines them.
+A control's objective, type, mechanism, evidence and effectiveness are analytical distinctions, kept apart when reasoning and making claims; they are not a schema every control must fill in. Directive, preventive, detective and corrective are an initial vocabulary of types, not a closed taxonomy. Type is a matter of design and distinct from assurance: an assurance claim is no stronger than the evidence observed, so configured is not operating and operating once is not effective. What verification, validation, a finding and a clean result mean is Testing's, and Controls cites it. A scanner detects, and a required gate prevents only the particular action it governs. A preventive claim names the action, the actor or interface, and the enforcement boundary, and never promises that the action is impossible. Independent controls stay independent when a gate combines them.
 
 VARISC names the roles actors hold on an activity: Responsible, Accountable, Consulted, Informed, Verify (deterministic verification) and Sign-off (the Accountable actor's decision). Roles are distinct from structural ownership, which belongs to capabilities, Agents, Skills and Extensions, never to actors.
 
@@ -32,7 +32,7 @@ Controls is semantic and behavioural only. It keeps no registry or catalogue of 
 ## Register the Node
 
 ```sh
-npx kaal register skill kaal-controls node_modules/kaal-controls/payload
+npx kaal register capability kaal-controls node_modules/kaal-controls/payload
 ```
 
 ## License

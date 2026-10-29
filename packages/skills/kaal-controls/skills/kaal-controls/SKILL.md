@@ -30,8 +30,7 @@ Classify by design; claim by evidence. The type says what a control is designed 
 - **Documented is not enforced.** A description of a control is not evidence that it operates. For a directive, say "the rule requires", not "it is impossible to". For a preventive design you only know from its description, say what it is designed to block and that you have not observed it operating.
 - **Configured is not operating.** Having seen a setting shows design. To say it operates, cite a result it produced for the subject in question.
 - **Operating once is not effective.** One result shows that the control ran, not that it achieves its objective.
-- **Nothing found is not nothing there.** When a detective control reports no findings, say that it reported none, within its limits; do not say the problem is absent.
-- **Unverified is said.** When you cannot observe a fact, for example because you lack access, say it is unverified. Do not fill the gap from defaults or from what is usual.
+- **Read results as Testing reads them.** What verification, validation, a finding and a clean result mean is Testing's: follow the `kaal-testing` Agent Skill. A detective control that reports nothing gives a clean result: say it reported none, within its limits, never that the problem is absent. A fact you could not observe stays unknown; do not fill the gap from defaults or from what is usual.
 
 ## Scope every preventive claim
 
