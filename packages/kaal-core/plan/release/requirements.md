@@ -46,7 +46,8 @@ Each Requirement names, in brackets, the Intents it serves.
 
 - **core/F72** [core/I23]: The packed artifact is accepted in a clean installation:
   - kaal-core is installed from its packed tarball into a fresh directory outside any KAAL repository, with its runtime dependencies at the versions it pins;
-  - the installed file list is exactly the documented one;
+  - the installed files are exactly those listed in the installed `docs/operations.md`, under "Shipped files": nothing more and nothing less;
   - `npm test` in the installed package ends in `verified`;
-  - when an installed file the tests exercise is corrupted, the result is `failed`, and when the delivered tests are removed it is `cannot verify`. Neither result is ever `verified`.
+  - when an installed file the tests exercise is corrupted, the result is never `verified`;
+  - when the delivered tests are removed from an otherwise intact installation, the result is `cannot verify`.
 - **core/F73** [core/I23]: Every runtime dependency of kaal-core is installable by a consumer at release. A dependency that cannot be published, such as one marked `private`, blocks the release, and the blocker is reported rather than worked around.

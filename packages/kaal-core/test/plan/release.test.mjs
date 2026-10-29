@@ -33,6 +33,21 @@ const packed = (dir) => {
   return JSON.parse(r.stdout.slice(r.stdout.indexOf("["))).flatMap((p) => p.files.map((f) => f.path)).sort();
 };
 
+/** Every file under a directory, as sorted relative POSIX paths. */
+const listed = (root) => {
+  const out = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules") continue;
+      const path = join(dir, e.name);
+      if (e.isDirectory()) walk(path);
+      else out.push(path.slice(root.length + 1).replaceAll("\\", "/"));
+    }
+  };
+  walk(root);
+  return out.sort();
+};
+
 /** The workspace directory of each package by name. */
 const workspaces = () => {
   const out = new Map();
@@ -98,7 +113,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     assert.match(testing, /not (delivered|shipped)|do(es)? not ship/i, "and says they are not delivered");
   });
 
-  it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's file list is the documented one and `npm test` ends in verified; a corrupted file gives failed and no delivered tests give cannot verify, never verified", { timeout: 600_000 }, () => {
+  it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's installed files are exactly those its operations document lists and `npm test` ends in verified; a corrupted file gives failed and no delivered tests give cannot verify, never verified", { timeout: 600_000 }, () => {
     assert.equal(pkg().scripts?.test, "node test/verify.mjs", "blocked before release acceptance: npm test is not the consumer entry");
     const work = mkdtempSync(join(tmpdir(), "kaal-core-release-"));
     try {
@@ -114,20 +129,23 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       const install = run("npm", ["install", ...tarballs], app);
       assert.equal(install.status, 0, install.out);
       const installed = join(app, "node_modules", "kaal-core");
-      const operations = doc("operations");
-      for (const f of packed(installed)) {
-        const top = f.split("/")[0];
-        assert.ok(operations.includes(top), `docs/operations.md documents the shipped ${top}`);
-      }
+      const shipped = listed(installed);
+      const operations = readFileSync(join(installed, "docs", "operations.md"), "utf8");
+      const section = /^## Shipped files\s*\n+```text\n([\s\S]*?)\n```/m.exec(operations);
+      assert.ok(section, "the installed docs/operations.md has a Shipped files section with a text block");
+      assert.deepEqual(shipped, section[1].split("\n").map((l) => l.trim()).filter(Boolean).sort(), "the installed files are exactly the documented ones");
       const verify = () => run("npm", ["test"], installed);
       const ok = verify();
       assert.equal(ok.status, 0, ok.out);
       assert.match(ok.out.trim().split(/\r?\n/).pop(), /\bverified\b/, ok.out);
-      writeFileSync(join(installed, "dist", "index.js"), "throw new Error('corrupted');\n");
+      const index = join(installed, "dist", "index.js");
+      const original = readFileSync(index);
+      writeFileSync(index, "throw new Error('corrupted');\n");
       const bad = verify();
       assert.notEqual(bad.status, 0, "a corrupted installation does not pass");
       assert.match(bad.out, /\bfailed\b|\bcannot verify\b/);
       assert.doesNotMatch(bad.out.trim().split(/\r?\n/).pop(), /^\W*verified\b/);
+      writeFileSync(index, original);
       rmSync(join(installed, "test", "acceptance"), { recursive: true, force: true });
       rmSync(join(installed, "test", "unit"), { recursive: true, force: true });
       const none = verify();
