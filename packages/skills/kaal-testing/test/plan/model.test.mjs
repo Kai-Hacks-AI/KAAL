@@ -36,22 +36,27 @@ const SAMPLE = () => ({
 const GREEN = { "sample/T1": "passed", "sample/T2": "passed", "sample/T3": "passed" };
 
 describe("Kinds, identities and relationships (testing/C14)", () => {
-  it("testing/T26 [testing/F24]: every element has a qualified identity, unique across the model, and a Case's identity is `<qualifier>/T<n>`", async () => {
-    const { check } = await model();
+  it("testing/T26 [testing/F24]: identities are the holder's: any nonempty string, unique across the model; Testing imposes no format, and a model whose Cases use another holder's identities is checked and evaluated like any other", async () => {
+    const { check, evaluate } = await model();
     assert.deepEqual(check(SAMPLE()), []);
+    const theirs = {
+      plans: [{ id: "Release gate", suites: ["smoke"] }],
+      suites: [{ id: "smoke", cases: ["login works", "TC-0042", "42"] }],
+      cases: [{ id: "login works" }, { id: "TC-0042" }, { id: "42" }],
+    };
+    assert.deepEqual(check(theirs), [], "an external holder's identities are its own");
+    const e = evaluate(theirs, { "login works": "passed", "TC-0042": "failed", 42: "passed" }, "Release gate", { allowances: [{ case: "TC-0042", cite: "ticket 7" }] });
+    assert.equal(e.result, "passed");
+    assert.equal(e.cases["TC-0042"], "failed");
     const m = SAMPLE();
     m.suites[1].id = "sample/S1";
     assert.ok(check(m).some((f) => f.includes("sample/S1")), "a duplicate identity is a finding");
-    for (const id of ["T1", "sample/1", "sample/", "/T1"]) {
+    for (const id of ["", 7, undefined]) {
       const bad = SAMPLE();
       bad.cases[2].id = id;
       bad.suites[1].cases[1] = id;
-      assert.ok(check(bad).some((f) => f.includes(id)), `${id} is a finding`);
+      assert.ok(check(bad).length > 0, `${JSON.stringify(id)} is not an identity`);
     }
-    const plan = SAMPLE();
-    plan.plans[0].id = "P1";
-    plan.strategies[0].plans = ["P1"];
-    assert.ok(check(plan).some((f) => f.includes("P1")), "an unqualified Plan identity is a finding");
   });
 
   it("testing/T27 [testing/F25]: only the levels a product uses are declared; a Case is defined once and may be in several Suites; a reference to an undeclared element is a finding", async () => {

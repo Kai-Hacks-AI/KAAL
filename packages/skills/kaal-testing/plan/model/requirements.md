@@ -9,7 +9,8 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional
 
-- **testing/F24** [testing/I10]: Identities. Every Strategy, Plan, Suite and Case has an identity `<qualifier>/<name>`, unique across the model. A Case's identity is `<qualifier>/T<n>`, as testing/N2 states. An invalid or duplicate identity is a finding.
+- **testing/F24** [testing/I10]: Identities belong to their holder. Every Strategy, Plan, Suite and Case has an identity, a nonempty string its holder assigns, unique across the model so that references resolve. Testing prescribes no format, prefix or numbering. A missing, empty or duplicate identity is a finding.
+  - KAAL's own Cases follow testing/N2, `<capability>/T<n>`. That is KAAL's internal convention, enforced by KAAL's own Engineering checks, and the generic model neither requires nor checks it.
 - **testing/F25** [testing/I10]: Relationships, each outgoing and stated once.
   - A Strategy names its Plans, a Plan its Suites and a Suite its Cases.
   - A Case is defined once and may be in several Suites.

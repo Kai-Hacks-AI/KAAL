@@ -21,4 +21,4 @@ The Intents:
 
 TEST A FINDING (`testing/C6`, Testing's Agent Skill) names a closed list of permitted target kinds: Architecture, Functional requirements, Intent, Nonfunctional requirements, Defects. Those are other Capabilities' kinds, and a closed list prescribes them. Under testing/I10 the rule is open, so `testing/C15` turns the list into guidance for KAAL's own loops: a Test Case normally traces to one subject, and the Skill recommends these kinds without restricting them.
 
-Not a contradiction: testing/N2's `<capability>/T<n>` is Testing's identity rule for its own kind, which testing/I10 keeps.
+testing/N2's `<capability>/T<n>` is KAAL's internal convention for KAAL's own Cases, not part of the Testing kind. The generic model leaves a Case's identity to its holder (testing/F24), so an external product keeps whatever identities it already uses. Uniqueness within one model is the only intrinsic rule, because references must resolve. (Owner review 5696234641 on #601.)
