@@ -58,6 +58,16 @@ async function fixture() {
 const INTENT = Object.freeze({ name: "Intent", id: "1".repeat(64) });
 const intentNode = (name, body = `# ${name}\n`) => identify(createNode({ name, type: INTENT, frontmatter: {}, body }).bytes);
 
+/** Testing's evaluation of one Run, as `evaluate` gives it (testing/F28): its result, its Cases' results, and its findings. */
+function evaluation(cases, findings = []) {
+  const rs = Object.values(cases);
+  const result = findings.length ? "unknown" : rs.includes("failed") ? "failed" : rs.some((r) => r !== "passed" && r !== "inapplicable") ? "unknown" : rs.every((r) => r === "inapplicable") ? "inapplicable" : "passed";
+  return { run: "run", plan: "plan", result, cases, suites: {}, allowed: [], stale: [], findings };
+}
+
+/** One clean evaluation per Case Result given. */
+const E = (entries) => entries.map(({ case: c, result }) => evaluation({ [c]: result }));
+
 /** The findings whose text names every given word. */
 const naming = (findings, ...words) => findings.filter((f) => words.every((w) => JSON.stringify(f).includes(w)));
 
@@ -231,7 +241,7 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     assert.ok(!kinds.includes("no-tests"), "without evidence, a Change without required Cases is no finding");
     assert.deepEqual(kinds, [...kinds].sort(), "findings are sorted by kind");
     assert.equal(JSON.stringify(assess([...nodes].reverse()).exchange()), JSON.stringify(data), "byte-identical in any order");
-    const evidence = [{ case: "sample/T2", result: "passed" }, { case: "sample/T1", result: "passed" }];
+    const evidence = E([{ case: "sample/T2", result: "passed" }, { case: "sample/T1", result: "passed" }]);
     const given = assess(nodes, { evidence }).exchange();
     for (const c of given.changes) assert.deepEqual(Object.keys(c).sort(), ["awaiting", "delivered", "delivers", "id", "identity", "requires", "satisfied", "succeeds", "unmet"], "with evidence, the delivery members");
     assert.ok(given.findings.some((f) => f.kind === "no-tests" && f.change === "sample/C2"), "with evidence, a Change without required Cases is a no-tests finding");
@@ -260,17 +270,17 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     const c1 = change("sample/C1", [], { requires: ["sample/T1", "sample/T2"] });
     const nodes = [...definitions, c1];
     assert.equal(assess(nodes).delivery("sample/C1"), undefined, "without evidence there is no delivery result");
-    const green = assess(nodes, { evidence: [{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "other/T9", result: "failed" }] });
+    const green = assess(nodes, { evidence: E([{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "other/T9", result: "failed" }]) });
     assert.equal(green.delivery("sample/C1").satisfied, true, "every required Case passed; a Case not required is not counted");
     assert.deepEqual(green.delivery("sample/C1").unmet, []);
     for (const word of ["failed", "unknown", "inapplicable", "skip", "todo", "blocked", "GREEN", "pass"]) {
-      const r = assess(nodes, { evidence: [{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: word }] });
+      const r = assess(nodes, { evidence: E([{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: word }]) });
       assert.equal(r.delivery("sample/C1").satisfied, false, `${word} is not passed`);
       assert.deepEqual(r.delivery("sample/C1").unmet, [{ case: "sample/T2", result: word }], `${word} passes through as Testing said it`);
     }
-    const notRun = assess(nodes, { evidence: [{ case: "sample/T2", result: "passed" }] });
+    const notRun = assess(nodes, { evidence: E([{ case: "sample/T2", result: "passed" }]) });
     assert.deepEqual(notRun.delivery("sample/C1").unmet, [{ case: "sample/T1", result: "absent" }], "a Case with no result given is unmet as absent");
-    const conflicting = assess(nodes, { evidence: [{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "sample/T2", result: "failed" }] });
+    const conflicting = assess(nodes, { evidence: E([{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "sample/T2", result: "failed" }]) });
     assert.equal(conflicting.delivery("sample/C1").satisfied, false, "a Case is met only when every entry for it is passed");
     for (const requires of [undefined, []]) {
       const none = change("sample/C2", [], requires ? { requires } : {});
@@ -281,19 +291,19 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     }
     for (const entry of ["", 7]) {
       const bad = change("sample/C3", [], { requires: ["sample/T1", entry] });
-      const b = assess([...definitions, bad], { evidence: [{ case: "sample/T1", result: "passed" }, { case: entry, result: "passed" }] });
+      const b = assess([...definitions, bad], { evidence: E([{ case: "sample/T1", result: "passed" }, { case: entry, result: "passed" }]) });
       assert.ok(naming(b.findings, "sample/C3", "malformed-test").length > 0, `${JSON.stringify(entry)} is not a Case identity`);
       assert.equal(b.delivery("sample/C3").satisfied, false, "and the Change is not satisfied");
     }
     const repeated = change("sample/C4", [], { requires: ["sample/T1", "sample/T1"] });
-    const rr = assess([...definitions, repeated], { evidence: [{ case: "sample/T1", result: "passed" }] });
+    const rr = assess([...definitions, repeated], { evidence: E([{ case: "sample/T1", result: "passed" }]) });
     assert.ok(naming(rr.findings, "sample/C4", "sample/T1", "malformed-test").length > 0, "a repeated entry is a finding");
     assert.equal(rr.delivery("sample/C4").satisfied, false);
   });
 
   it("change/T22 [change/I2, change/I10, change/F17, change/A10]: a satisfied Change is delivered only when every Change it succeeds is delivered, and no Case about main is implied", async () => {
     const { assess, definitions, change } = await fixture();
-    const PASSED = (...cases) => cases.map((c) => ({ case: c, result: "passed" }));
+    const PASSED = (...cases) => [evaluation(Object.fromEntries(cases.map((c) => [c, "passed"])))];
     const a = change("sample/C1", [], { requires: ["sample/T1"] });
     const b = change("sample/C2", [a], { requires: ["sample/T2"] });
     const c = change("sample/C3", [b], { requires: ["sample/T3"] });
@@ -337,7 +347,7 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     try {
       writeFileSync(join(dir, "sample-C1.md"), bytes);
       process.chdir(dir);
-      const r = assess(definitions, { evidence: [{ case: "sample/T1", result: "passed" }] });
+      const r = assess(definitions, { evidence: E([{ case: "sample/T1", result: "passed" }]) });
       assert.equal(r.has("sample/C1"), false, "presence on disk is not registration: a Change not given is absent");
       assert.deepEqual(r.exchange().changes, [], "and is not in the exchange");
       assert.deepEqual(r.findings, [], "nor does it raise a finding");
@@ -347,7 +357,7 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     }
     const pred = change("sample/C2", [], { requires: ["sample/T2"] });
     const given = assess([...definitions, present, pred, change("sample/C3", [pred], { requires: ["sample/T3"] }, "# sample/C3\n", [])], {
-      evidence: ["sample/T1", "sample/T2", "sample/T3"].map((c) => ({ case: c, result: "passed" })),
+      evidence: E(["sample/T1", "sample/T2", "sample/T3"].map((c) => ({ case: c, result: "passed" }))),
     });
     const claims = /regist|admi|verif|kaal-?verified/i;
     const walk = (v, path) => {
@@ -362,5 +372,25 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     walk(given.findings, "findings");
     for (const id of ["sample/C1", "sample/C2", "sample/C3"]) walk(given.delivery(id), `delivery(${id})`);
     assert.equal(given.delivery("sample/C3").delivered, true, "delivered is Change's verdict on the given evidence, and that is all it says");
+  });
+
+  it("change/T30 [change/F16, change/F27, change/A10]: raw Run observations and evaluations with findings never count as GREEN, a clean evaluation counts for its Cases even when another Case is unknown, and an allowed Case stays unmet", async () => {
+    const { assess, definitions, change } = await fixture();
+    const nodes = [...definitions, change("sample/C1", [], { requires: ["sample/T1"] })];
+    const verdict = (evidence) => assess(nodes, { evidence }).delivery("sample/C1");
+    const raw = { run: "run", of: "plan", cases: { "sample/T1": "passed" }, suites: {}, plans: {}, data: {}, findings: [] };
+    assert.deepEqual(verdict([raw]), { satisfied: false, delivered: false, unmet: [{ case: "sample/T1", result: "unevaluated" }], awaiting: [] }, "raw observations of a Run are never a verdict");
+    const withFindings = { ...evaluation({ "sample/T1": "passed" }), result: "passed", findings: ["run run: provenance does not identify sample/T1"] };
+    assert.deepEqual(verdict([withFindings]).unmet, [{ case: "sample/T1", result: "unevaluated" }], "an evaluation with findings does not count, even if it says passed");
+    const { findings, ...noFindings } = evaluation({ "sample/T1": "passed" });
+    assert.equal(findings.length, 0);
+    assert.equal(verdict([noFindings]).satisfied, false, "an evaluation that states no findings does not count");
+    assert.equal(verdict([{ case: "sample/T1", result: "passed" }]).satisfied, false, "nor does a bare Case Result");
+    assert.equal(verdict([withFindings, evaluation({ "sample/T1": "passed" })]).satisfied, true, "a clean evaluation counts beside one that does not");
+    const partial = evaluation({ "sample/T1": "passed", "sample/T9": "unknown" });
+    assert.equal(partial.result, "unknown");
+    assert.equal(verdict([partial]).satisfied, true, "another Case's unknown is not a finding, and does not discount this one");
+    const allowed = { ...evaluation({ "sample/T1": "failed" }), result: "passed", allowed: [{ case: "sample/T1", cite: "sample/C2" }] };
+    assert.deepEqual(verdict([allowed]).unmet, [{ case: "sample/T1", result: "failed" }], "an allowed Case stays failed, and unmet");
   });
 });

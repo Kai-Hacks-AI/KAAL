@@ -55,11 +55,17 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Distinct from what a Case tests.** `requires` is the Change's own outgoing statement of its delivery boundary. A Case's `tests →` trace is Testing's and the Case's (`testing/N7`), and Change neither derives `requires` from it nor states it again.
   - **No zero-test delivery.** Given evidence, a Change that states no `requires`, or an empty list, is a finding (`no-tests`) and is never satisfied.
   - **Malformed entries.** An entry that is not a nonempty string, or that repeats, is a finding naming the Change and the entry, and the Change is not satisfied.
-- **change/F16** [change/I10]: `assess(nodes, { evidence })` takes Testing's Case Results as plain data: a list of `{ case, result }`, where `case` is a Case identity and `result` is Testing's own word for it (`testing/F26`).
-  - **Passed is Testing's.** A required Case is met only when the evidence holds it, and every entry for it reads `passed` exactly. That is the Owner's GREEN.
-  - **Everything else is unmet.** A required Case absent from the evidence is unmet as `absent`, which is Change's own word for "no result was given". Any other result, such as `failed`, `unknown` or `inapplicable`, is unmet under Testing's word, passed through unchanged. Change never maps one result onto another.
+- **change/F16** [change/I10]: `assess(nodes, { evidence })` takes Testing's evaluations as plain data. `evidence` is a list of evaluations, each as Testing's `evaluate` gives it (`testing/F28`): its `result`, its `cases`, mapping each Case identity to Testing's own word for it (`testing/F26`), and its `findings`.
+  - **Passed is Testing's.** A required Case is met only when some evaluation that counts (change/F27) holds it, and every evaluation that counts and holds it reads `passed` for it exactly. That is the Owner's GREEN.
+  - **Everything else is unmet.** A required Case that an evaluation which counts holds as anything other than `passed`, such as `failed`, `unknown` or `inapplicable`, is unmet under Testing's word, passed through unchanged. Change never maps one result onto another.
+  - **Change's own words.** A required Case that only evaluations which do not count hold is unmet as `unevaluated`. One that no evaluation holds is unmet as `absent`. Neither is a Testing result.
   - **Satisfied** is true only when every required Case is met.
   - **Without evidence** no Change has a delivery result. Its absence never reads as not delivered, and never as delivered.
+- **change/F27** [change/I10]: **Only evaluated, clean evidence counts** (the Owner's review 5703577468 on #630).
+  - **What counts.** An evaluation counts only when it has a `result` and its `findings` is an empty list.
+  - **What does not count.** Raw Run observations (`results`, which have no `result`) never count, however they read: they are observations of one Run, never a verdict. Neither does an evaluation with any finding, whose `result` Testing gives as `unknown`, nor anything that is not shaped as an evaluation.
+  - **Unknown elsewhere is not a finding.** An evaluation without findings counts for each Case it holds, even when its overall `result` is `unknown` because another Case did not run.
+  - **Allowances.** An allowed Case stays `failed` in an evaluation's `cases` (`testing/F28`), so it is unmet, even when the evaluation's overall `result` is `passed`.
 - **change/F17** [change/I2, change/I10]: Given evidence, a walked Change is **delivered** when it is satisfied and every Change it succeeds is delivered.
   - A satisfied Change with a predecessor that is not delivered is not delivered, and lists that predecessor as `awaiting`.
   - A Succeeds Edge that is unresolved, stale or not to a Change holds its Change from delivery, and is listed as `awaiting` under the pinned name.
