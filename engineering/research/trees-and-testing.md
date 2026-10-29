@@ -1,6 +1,6 @@
 # Owned trees, traces and a reusable Testing package: research
 
-This is research for the Owner, not a Definition, a PLAN or an authorization. It answers the Owner's question in #kaal (2026-10-27): can KAAL's Node and Edge model hold independently owned trees for Intent, Requirements and Architecture, joined by explicit traces, and what would make `kaal-testing` a useful independent package? It is revised to the Owner's clarification of 2026-10-28 17:16 CET on capability autonomy, identity and trees. Nothing here edits a contract. Where a current contract conflicts with the clarification, that is reported as analysis.
+This is research for the Owner, not a Definition, a PLAN or an authorization. It answers the Owner's question in #kaal (2026-10-27): can KAAL's Node and Edge model hold independently owned trees for Intent, Requirements and Architecture, joined by explicit traces? The Testing package half of the question is Testing's, in its own PR. It is revised to the Owner's clarification of 2026-10-28 17:16 CET on capability autonomy, identity and trees. Nothing here edits a contract. Where a current contract conflicts with the clarification, that is reported as analysis.
 
 ## The clarification it follows
 
@@ -39,25 +39,10 @@ This is research for the Owner, not a Definition, a PLAN or an authorization. It
 
 **Migration-path assurance** stays a cross-product NFR. Each product owns it in its own Requirements. Change owns the authorized transition, Testing supplies transition evidence without policy, and operations runs outside Git.
 
-## Testing package: recommendation
+## Testing package
 
-**Option 2, a small runtime with no runtime dependencies, after #385's DO.** It is revised in three ways:
-- **Testing's own concepts.** Testing defines Strategy, Plan, Suite and Case, their identity rules for its own content, and one outgoing rule: a Case traces to `any`. Testing never interprets a target.
-- **Consumer identities as given.** The package reads a consumer's declared Suite and Case identities. It requires no KAAL spelling such as `<cap>/T<n>`.
-- **Consumer data, not constants.** Loops and target kinds are the consumer's data.
-
-The package offers observe, outcomes, classify, evaluate, a reporter and a fail-closed consumer entry (exit 0, 1 or 2). Acceptance and coverage built on Hosting stay KAAL-internal. Strategy and Plan stay the consumer's documents. Guard `0.0.4` is the reference: it has no dependencies, its manifest is its own data, and its exit codes are the shape option 2 generalizes.
-
-## Contradictions with current contracts (analysis only)
-
-1. **`testing/N2`** fixes a Case's identity as `<cap>/T<n>`. That is fine as KAAL's own convention. As a package rule, it would prescribe consumers' identities, against clarification point 2.
-2. **`LOOPS` in `kaal-testing/lib/contracts.mjs`** hardcodes Intent, Requirements, Architecture and Code. That is Testing naming other owners' kinds, against point 1.
-3. **TEST A FINDING** (`testing/C4`, #385, on `kaal/testing`) lists the permitted target kinds of a Case: Architecture, Functional and Nonfunctional Requirements, Intent and Defects. A closed list is against point 1 and against `core/F51`'s `any`.
-4. **Guard** is consistent: its loops, identifiers and manifest are its own data.
-
-These go to their owners, Testing for 1–3, as separate Changes if the Owner wants them. This document authorizes none of them.
+Testing owns this part and answers it in its own PLAN PR into `kaal/testing`, linked from the Slack thread. That PLAN covers Strategy, Plan, Suite and Case as Testing's optional tree, an open outgoing Case rule that prescribes no other capability's kinds, derived incoming views, and package option 2 with no Hosting dependency. Engineering's earlier points stand as input only: Guard `0.0.4` proves a product verification entry needs no runtime dependencies, and its loops, identifiers and manifest are Guard's own data, consistent with the clarification.
 
 ## Open for the Owner
 
-- Whether Testing should restate TEST A FINDING as an outgoing rule of `any`, keeping the list only as guidance.
-- Whether `testing/N2` should become KAAL's convention rather than a package rule.
+- Nothing on the trees beyond confirming option B. Each owner's Definitions follow as their Capabilities land.
