@@ -35,14 +35,17 @@ describe("the Change Classification Definition", () => {
     assert.match(text, /Each Change that stays within the procedure is authorized by it, and one that leaves it is a Normal Change\. Authorizing the procedure is itself a Normal Change\./);
   });
 
-  it("lets urgency reorder an Emergency Change without removing any of its controls", () => {
-    assert.match(text, /It does not remove its assessment, authorization, verification or evidence, and it is reviewed afterwards like any other\./);
+  it("lets urgency reorder an Emergency Change and retime its authorization, keeping its assurance and accountability", () => {
+    assert.match(text, /Urgency may change the order of its controls and the timing of its authorization\. It keeps the assurance those controls exist for, accounts for what it deferred, and is reviewed afterwards like any other\./);
   });
 
-  it("changes no control, and leaves verification, validation, gates and realization to their owners", () => {
-    assert.match(text, /The class changes no control\./);
-    assert.match(text, /verification, which is Testing's, the same validation and approval, which are Review's, and the same integration gates, which are Engineering's\./);
-    assert.match(text, /a repository that embeds KAAL chooses which of them it applies and how strictly\./);
+  it("preserves control objectives and their evidence, not identical mechanisms, and leaves rigor and realization to the consumer and the owners", () => {
+    assert.match(text, /^A class preserves control objectives, not mechanisms\./m);
+    assert.match(text, /the objectives of verification, which is Testing's, of validation and approval, which are Review's, and of the integration gates, which are Engineering's, and the evidence each requires\./);
+    assert.match(text, /It does not require the same procedure for every class/);
+    assert.match(text, /Urgency never silently discards a required control\./);
+    assert.match(text, /chooses which of them it applies, the governance rigor each carries and how it is realized, without Change overriding Testing, Review or Engineering\./);
     assert.match(text, /belongs to the capability that realizes it\./);
+    assert.doesNotMatch(text, /the same verification|the same validation|the same integration gates/, "no identical procedure is mandated");
   });
 });

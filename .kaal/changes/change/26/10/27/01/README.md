@@ -10,9 +10,9 @@ In the Project contract review (KAAL #279, comment 6449834529), the Owner placed
 
 - `capability/Change-Classification.md` is a new `KAAL Definition`. It defines the three classes and states three limits:
   - The class is not a lifecycle state.
-  - The class changes no control: verification stays Testing's, validation and approval stay Review's, and gates stay Engineering's.
-  - Each repository chooses which classes it applies and how strictly.
-- An Emergency Change reorders its controls but removes none of them, consistent with Engineering's hotfix route ("Nothing is relaxed").
+  - A class preserves control objectives and their evidence, not identical mechanisms: verification stays Testing's, validation and approval stay Review's, and gates stay Engineering's.
+  - Each embedding repository chooses which classes it applies, their governance rigor and their realization (Owner review 5695772463).
+- An Emergency Change may reorder its controls and retime its authorization, keeping their assurance and accounting afterwards. Urgency never silently discards a required control.
 - `capability/Change.md` now provides it. `ownership.kaal.json` carries the Capability Node's new id, `README.md` lists it, and `test/classification.test.mjs` covers it.
 
 ## Linked, not repeated
