@@ -1,0 +1,35 @@
+# Consumer Verifier Conformance: Testing
+
+The planned outer tests live in `packages/skills/kaal-testing/test/plan/verifiers.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `testing/C30` turns them GREEN and adds them to Testing's `npm test`. The verifier in them is a made-up one, with Guard's words under its own prefix, and the facts are given as plain data.
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T54: the contract names its scenarios, each with the change a harness makes and the result every conforming verifier shows, and covers at least hosting/F26's minimum set | testing/F43 | Requirements |
+| testing/T55: a run is observed from its exit status and its one summary line, read through the verifier's declared words; anything else is no observation | testing/F44 | Requirements |
+| testing/T56: a verifier that shows what the contract expects conforms in every scenario | testing/F45 | Requirements |
+| testing/T57: a matching result label is never enough: exit status, cause, package, platform, Node, digest and every case's outcome are each compared with the harness's facts | testing/F45 | Requirements |
+| testing/T58: a verifier that claims any other result than the scenario's never conforms, on zero or absent cases, a missing or tampered manifest or installation, skipped, todo or inapplicable cases, failures, or a changed consumer | testing/F46 | Requirements |
+
+## RED evidence
+
+The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all five are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
+
+**Checked against a throwaway implementation.** A18 was implemented outside the repository. All five tests pass against it, and each of 22 mutants of it fails at least one test. The mutants cover:
+- two summary lines accepted;
+- result words that are not distinct;
+- an undeclared word read as verified;
+- the result or the expected exit status not compared;
+- the cause rule loosened either way;
+- the location, platform or Node version not compared;
+- the digest not compared;
+- a duplicate or missing case accepted;
+- a case reported where none is declared;
+- other cases' outcomes not compared;
+- the targeted case's outcome taken as pass;
+- no observation, or an unknown scenario, conforming;
+- the scenarios left mutable;
+- an inapplicable case expected unknown;
+- a scenario dropped;
+- the case shape not checked.
+
+testing/N9 is checked by review of `testing/C30`: the module imports nothing.
