@@ -73,7 +73,7 @@ const runtime = () => {
         walk(dep);
       }
   };
-  walk("kaal-core");
+  walk(pkg().name);
   return seen;
 };
 
@@ -128,7 +128,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       writeFileSync(join(app, "package.json"), JSON.stringify({ name: "consumer", version: "1.0.0", private: true }));
       const install = run("npm", ["install", ...tarballs], app);
       assert.equal(install.status, 0, install.out);
-      const installed = join(app, "node_modules", "kaal-core");
+      const installed = join(app, "node_modules", ...pkg().name.split("/"));
       const shipped = listed(installed);
       const operations = readFileSync(join(installed, "docs", "operations.md"), "utf8");
       const section = /^## Shipped files\s*\n+```text\n([\s\S]*?)\n```/m.exec(operations);
@@ -173,9 +173,9 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
   it("core/T77 [core/F68]: 0.0.1 contains registration: kaal-core/registration ships and exports assemble", async () => {
     let m;
     try {
-      m = await import("kaal-core/registration");
+      m = await import(`${pkg().name}/registration`);
     } catch (e) {
-      assert.fail(`blocked before behavioural assertion: kaal-core exports no ./registration (${e.code ?? e.message})`);
+      assert.fail(`blocked before behavioural assertion: ${pkg().name} exports no ./registration (${e.code ?? e.message})`);
     }
     assert.equal(typeof m.assemble, "function");
     assert.ok(packed(CORE).some((f) => f === "dist/registration.js"), "dist/registration.js is in the packed file list");
@@ -185,5 +185,12 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     const deps = runtime();
     assert.ok(deps.size > 0, "kaal-core's runtime dependencies are found");
     for (const [name, dir] of deps) assert.notEqual(JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).private, true, `${name} is private, so a consumer cannot install it`);
+  });
+
+  it("core/T79 [core/F74]: kaal-core and every workspace package it depends on at runtime publish under the @kaihacksai/kaal-* namespace", () => {
+    assert.equal(pkg().name, "@kaihacksai/kaal-core");
+    const deps = runtime();
+    assert.ok(deps.size > 0, "kaal-core's runtime dependencies are found");
+    for (const name of deps.keys()) assert.match(name, /^@kaihacksai\/kaal-/, `${name} is not named under @kaihacksai/kaal-`);
   });
 });

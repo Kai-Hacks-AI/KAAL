@@ -50,4 +50,5 @@ Each Requirement names, in brackets, the Intents it serves.
   - `npm test` in the installed package ends in `verified`;
   - when an installed file the tests exercise is corrupted, the result is never `verified`;
   - when the delivered tests are removed from an otherwise intact installation, the result is `cannot verify`.
-- **core/F73** [core/I23]: Every runtime dependency of kaal-core is installable by a consumer at release. A dependency that cannot be published, such as one marked `private`, blocks the release, and the blocker is reported rather than worked around.
+- **core/F73** [core/I23]: Every runtime dependency of kaal-core is installable by a consumer at release. A dependency that cannot be published, such as one marked `private`, blocks the release, and the blocker is reported rather than worked around. `@kaihacksai/kaal-foundation` is published independently, under its owner's plan and the Owner's authorization.
+- **core/F74** [core/I23]: kaal-core publishes as `@kaihacksai/kaal-core`, and each runtime dependency that is a KAAL workspace package publishes under the `@kaihacksai/kaal-*` namespace. Core renames only kaal-core. Each other package is renamed by its owner's Change, never by a Core Change.
