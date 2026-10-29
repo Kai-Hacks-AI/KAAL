@@ -116,6 +116,10 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
       const src = readFileSync(join(PACKAGE, f), "utf8");
       for (const [, from, dynamic] of src.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g)) {
         const spec = from ?? dynamic;
+        if (f === "test/verify.mjs") {
+          assert.ok(spec.startsWith("node:"), `the verifier imports ${spec}: it uses only Node's built-ins, never the runtime it verifies`);
+          continue;
+        }
         const ok = spec.startsWith("node:") || spec.startsWith(`${NAME}/`) || (spec.startsWith(".") && !spec.includes("lib/"));
         assert.ok(ok, `${f} imports ${spec}, not a public entry point or a built-in`);
       }
