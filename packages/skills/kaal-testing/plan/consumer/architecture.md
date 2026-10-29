@@ -12,6 +12,7 @@ Each element names, in brackets, the Requirements it answers.
     | Export | Serves | Owning Change | Consumer verification |
     | --- | --- | --- | --- |
     | `./acceptance` | capability acceptance: the producer runs its scenarios against its own packed bytes before release | Testing | no |
+    | `./boundary` | PLAN boundary integrity: interpreting a realization's verdict on one concern owner's declaration | `testing/C12` | no |
     | `./attribution` | CASE-owned file attribution | Testing | no |
     | `./contracts` | contract evidence of a capability's mapping | Testing | no |
     | `./coverage` | execution and evidence of a capability's own tests | Testing | no |
