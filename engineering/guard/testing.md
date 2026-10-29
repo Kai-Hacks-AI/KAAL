@@ -319,6 +319,101 @@ guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15
 | --- | --- | --- | --- | --- |
 | Delivered with the package, so defined in its `docs/testing.md`: guard/T119 checks that in a consumer that ran `init --ci`, every `actions/checkout` step of the installed `.github/workflows/guard.yml` sets `persist-credentials: false`, and the installed content is catalogued for that path in `contract.json` together with the contents published from `0.0.2` on (`0.0.2`; `0.0.3` and `0.0.4`) | guard/N15, guard/F29 | `guard/C114` | RED: "a checkout step keeps the run's credential" | GREEN |
 
+## Package size, measured (`guard/C117`)
+
+The measurement `guard/C117` plans, taken on Linux with Node 24 and npm 11.
+
+- **What was measured.** Three packages were measured.
+  - The published `0.0.3` and `0.0.4`, as `npm pack @kaihacksai/kaal-guard@<v>` fetches them.
+  - The candidate, `npm pack` of `packages/kaal-guard` at `kaal/guard-release` 0dfa27e. It is byte for byte `0.0.4` (the same 115,661-byte tarball), because no `0.0.5` product Change has landed yet.
+  - A `0.0.5` preview: a local merge, never pushed, of the open DOs #572 (`guard/C114`), #573 (`guard/C116`), #574 (`guard/C115`) and #576 (`guard/C113`), with its manifest regenerated and its 132 delivered cases GREEN.
+- **The two measures.** Unpacked is each file's bytes. gzip is that file alone at `gzip -9`, so a share is comparable across parts. The tarball compresses all files as one stream, so its size is smaller than the sum of the files' gzip sizes. It is measured, not summed.
+- **Check of the method.** Repacking the extracted `0.0.4` unchanged gives the same 115,661 bytes. The registry's `dist.unpackedSize` for `0.0.3` and `0.0.4` (111,016 and 479,822) equals the unpacked totals.
+
+| Part | `0.0.3` unpacked | `0.0.3` gzip | `0.0.4` unpacked | `0.0.4` gzip | share of `0.0.4` | `0.0.5` preview unpacked | `0.0.5` preview gzip |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `lib/` | 71,303 | 25,491 | 71,303 | 25,491 | 19.4% | 71,303 | 25,491 |
+| `bin/` | 6,278 | 2,321 | 6,278 | 2,321 | 1.8% | 6,725 | 2,478 |
+| `templates/` | 4,156 | 1,863 | 4,156 | 1,863 | 1.4% | 4,244 | 1,881 |
+| `skills/` | 5,241 | 2,215 | 5,241 | 2,215 | 1.7% | 5,241 | 2,215 |
+| `contract.json` | 2,036 | 775 | 2,036 | 775 | 0.6% | 2,110 | 816 |
+| `package.json` | 688 | 387 | 753 | 399 | 0.3% | 827 | 414 |
+| `README.md` | 20,245 | 7,313 | 27,291 | 9,528 | 7.2% | 28,691 | 9,961 |
+| `LICENSE` | 1,069 | 649 | 1,069 | 649 | 0.5% | 1,069 | 649 |
+| `docs/` | 0 | 0 | 82,117 | 28,013 | 21.3% | 87,647 | 29,191 |
+| `test/acceptance/` | 0 | 0 | 103,425 | 27,429 | 20.9% | 109,910 | 29,327 |
+| `test/unit/` | 0 | 0 | 46,281 | 13,257 | 10.1% | 46,281 | 13,257 |
+| `test/verify.mjs` | 0 | 0 | 22,484 | 7,023 | 5.3% | 22,889 | 7,226 |
+| `test/verify.json` | 0 | 0 | 107,388 | 12,502 | 9.5% | 111,737 | 13,415 |
+| **All 35 files** | 111,016 | 41,014 | 479,822 | 131,465 | 100% | 498,674 | 136,321 |
+| **Tarball (`.tgz`)** | | 35,263 | | 115,661 | | | 120,186 |
+
+**What grew, and why.** `0.0.4` is 3.3× `0.0.3` as a tarball (115,661 against 35,263) and 4.3× unpacked. Everything that grew is consumer verification and the product contract (guard/I8, guard/I9):
+- `docs/`, 28,013 gzip;
+- `test/acceptance/`, 27,429;
+- `test/unit/`, 13,257;
+- `test/verify.json`, 12,502;
+- `test/verify.mjs`, 7,023.
+
+Together they are 67% of `0.0.4`'s gzip bytes. `lib/`, `bin/`, `templates/` and `skills/` did not change. The README grew by 2,215 gzip bytes, its `0.0.4` release notes and the verification section. The `0.0.5` preview adds 4,525 tarball bytes (+3.9%), from the new cases, guard/F41, guard/F42 and guard/N15, and their manifest entries.
+
+**`test/verify.json`.** It is the largest file unpacked (107,388 bytes), but it compresses 8.6 to 1, to 12,502. Of its pretty-printed bytes, 71,354 are `coverage`, which repeats each case's full title under every identifier it covers, and 25,109 are `cases`. Its compressed share is 9.5%.
+
+**Reduction options, measured.** Each option was applied to the extracted `0.0.4` and packed with `npm pack`, so every saving below is a measured tarball, not an estimate from the JSON's size.
+
+| Option | `verify.json` unpacked | Tarball | Saving | What it costs |
+| --- | ---: | ---: | ---: | --- |
+| None (`0.0.4`) | 107,388 | 115,661 | — | — |
+| A. Serialise `verify.json` without indentation | 102,109 | 115,365 | 296 (0.3%) | The manifest is no longer readable in a diff or an editor without a formatter. Only the generator changes. |
+| B. Name each case once: `coverage` cites cases by their index in `cases` | 41,292 | 112,685 | 2,976 (2.6%) | A reader must look an index up to see which case covers an identifier. The generator and `test/verify.mjs` change, and the manifest's form in guard/A18 changes. guard/T101–guard/T110 must stay GREEN. |
+| A and B together | 36,013 | 112,387 | 3,274 (2.8%) | Both of the above |
+
+- **What the options do not touch.** None of them removes a case, a loop, an identifier, an allocation or a file. Removing what verification needs (`test/`, `docs/`) is not an option, because guard/I8 and guard/I9 require it to ship.
+- **What this shows.** The tarball grew because the product now ships its verification and its contract. What it ships compresses well. The largest saving that keeps every case and every meaning is 2.8% of the tarball, and 15% unpacked, at the cost of a less readable manifest.
+- **The Owner's decision (#579): None.** No reduction is made and no size budget is set. Every case, the coverage and the manifest's meaning are kept.
+
+<details><summary>Every shipped path of <code>0.0.4</code>, largest compressed first</summary>
+
+| Path | `0.0.4` unpacked | `0.0.4` gzip |
+| --- | ---: | ---: |
+| `test/acceptance/requirements.test.mjs` | 79,552 | 18,497 |
+| `docs/requirements.md` | 47,702 | 15,428 |
+| `test/verify.json` | 107,388 | 12,502 |
+| `README.md` | 27,291 | 9,528 |
+| `test/verify.mjs` | 22,484 | 7,023 |
+| `lib/lifecycle.mjs` | 20,599 | 6,333 |
+| `lib/config.mjs` | 15,500 | 5,555 |
+| `test/unit/lifecycle.test.mjs` | 21,867 | 5,532 |
+| `docs/testing.md` | 16,718 | 5,358 |
+| `test/unit/runner.test.mjs` | 16,942 | 5,207 |
+| `test/acceptance/harness.mjs` | 10,943 | 4,106 |
+| `test/acceptance/architecture.test.mjs` | 9,178 | 3,401 |
+| `docs/architecture.md` | 8,852 | 3,388 |
+| `lib/github.mjs` | 8,468 | 3,377 |
+| `lib/state.mjs` | 7,863 | 2,703 |
+| `lib/runner.mjs` | 7,232 | 2,580 |
+| `test/unit/config.test.mjs` | 7,472 | 2,518 |
+| `bin/kaal-guard.mjs` | 6,278 | 2,321 |
+| `docs/intent.md` | 4,856 | 2,159 |
+| `skills/kaal-guard/SKILL.md` | 5,116 | 2,092 |
+| `lib/trusted.mjs` | 4,810 | 1,718 |
+| `docs/limitations.md` | 3,989 | 1,680 |
+| `lib/command.mjs` | 3,546 | 1,537 |
+| `test/acceptance/intent.test.mjs` | 3,752 | 1,425 |
+| `templates/pre-push` | 2,203 | 954 |
+| `lib/reminder.mjs` | 1,854 | 851 |
+| `contract.json` | 2,036 | 775 |
+| `LICENSE` | 1,069 | 649 |
+| `templates/guard.yml` | 1,614 | 615 |
+| `lib/git.mjs` | 917 | 528 |
+| `package.json` | 753 | 399 |
+| `lib/node.mjs` | 514 | 309 |
+| `templates/workflow.gitattributes` | 171 | 149 |
+| `templates/hook.gitattributes` | 168 | 145 |
+| `skills/kaal-guard/.gitattributes` | 125 | 123 |
+
+</details>
+
 ## What a consumer reads and types (`guard/C115`)
 
 guard/T120–guard/T122 are planned in `guard/C115`. guard/T122 is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs`, delivered with the package. guard/T120 and guard/T121 check the verification's own output, whose identifiers (guard/F33, guard/F34) are allocated to this plan, so they are Engineering cases in `engineering/guard/acceptance/package.test.mjs`, run against a packed candidate in a fresh consumer.
