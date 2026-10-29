@@ -46,6 +46,16 @@ Write "writes through this interface are rejected for a credential without write
 
 A review, an automated check, a sign-off and the execution of the action they govern are separate. A passing check is not an approval, an approval is not a passing check, and neither is the decision to proceed or the act of proceeding. A gate that requires several of them combines them without any one standing in for another. Call a review or verification independent only when you know whoever performed it did not do the work; two account names show two credentials, not two people.
 
+## Hunt for misbehaving elements
+
+Apply the `CATCH ME IF YOU CAN` Node: do not accept a result because it looks finished. Read the Node for the principle.
+
+- Hunt any element: requirements, architecture, tests, evidence, configurations and behaviour, not only Agents. A GREEN result or artifacts that agree with each other are where you start.
+- Call a suspicion a suspicion until evidence decides it. Look first for a check whose result would differ if the suspicion held. Say "undecided" where no check can decide, "refuted" where the evidence refutes it, and "found nothing within what I examined" where you found nothing.
+- Challenge both sides of a relationship, each against its own contract, not only against the other side.
+- Hunting your own work is a self-check: do it, and call it one. Claim independent assurance only when whoever hunted did not produce the work.
+- Do not define findings, defects, review judgments or how other capabilities work. Where their contracts are present, use them in their own terms.
+
 ## Name the roles on an activity
 
 When you say who did what on an activity, such as a Change, use the roles of the `VARISC` Node: **Responsible** performs the work, **Accountable** answers for the outcome, **Consulted** gives input, **Informed** is told, **Verify** verifies, and **Sign-off** accepts the outcome. Read the Node for what each means.
