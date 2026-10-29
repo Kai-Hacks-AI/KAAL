@@ -6,8 +6,9 @@
 //
 // Determinism costs a sort: identities and each successor list are sorted by UTF-16
 // code units, O(V log V + E log E), and every walk after it is O(V + E). No function
-// recurses, so depth never exhausts the stack. Results are frozen and the caller's own;
-// the input is never changed.
+// recurses, so depth never exhausts the stack. Results are immutable: cycles are frozen
+// arrays, and reverse is a read-only relation that offers no way to write. The input
+// is never changed.
 
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -89,11 +90,60 @@ export function* reach(successors, start) {
   }
 }
 
-/** The predecessors of every identity, sorted, as a frozen Map: incoming relationships derived, never stored. */
+/**
+ * A read-only view of a relation from identity to frozen identities: Map's reading
+ * interface (size, get, has, keys, values, entries, forEach, iteration) and nothing
+ * that writes. The view and its prototype are frozen and the Map behind it is private,
+ * so a caller can read it but never change it.
+ */
+class Relation {
+  #map;
+
+  constructor(map) {
+    this.#map = map;
+    Object.freeze(this);
+  }
+
+  get size() {
+    return this.#map.size;
+  }
+
+  get(id) {
+    return this.#map.get(id);
+  }
+
+  has(id) {
+    return this.#map.has(id);
+  }
+
+  keys() {
+    return this.#map.keys();
+  }
+
+  values() {
+    return this.#map.values();
+  }
+
+  entries() {
+    return this.#map.entries();
+  }
+
+  forEach(callback, thisArg) {
+    for (const [id, list] of this.#map) callback.call(thisArg, list, id, this);
+  }
+
+  [Symbol.iterator]() {
+    return this.#map.entries();
+  }
+}
+Object.freeze(Relation.prototype);
+Object.freeze(Relation);
+
+/** The predecessors of every identity, sorted, as a read-only relation: incoming relationships derived, never stored. */
 export function reverse(successors) {
   const adjacency = normalize(successors);
   const predecessors = new Map([...adjacency.keys()].map((id) => [id, []]));
   for (const [id, out] of adjacency) for (const target of out) predecessors.get(target).push(id);
   for (const list of predecessors.values()) Object.freeze(list);
-  return Object.freeze(predecessors);
+  return new Relation(predecessors);
 }

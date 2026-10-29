@@ -65,5 +65,5 @@ export type Successors = ReadonlyMap<string, Iterable<string>> | Readonly<Record
 export function cycles(successors: Successors): readonly (readonly string[])[];
 /** `start` and every identity reachable from it, each once, breadth-first along sorted successors. */
 export function reach(successors: Successors, start: string): Generator<string, void, undefined>;
-/** The predecessors of every identity, sorted. */
+/** The predecessors of every identity, sorted, as a read-only relation: Map's reading interface and no way to write. */
 export function reverse(successors: Successors): ReadonlyMap<string, readonly string[]>;
