@@ -1,6 +1,6 @@
 # Guard: Limitations
 
-What Guard does not establish, and the defects that reached a published version. The obligations they concern are in [Requirements](requirements.md).
+What Guard does not establish, and the Defects that reached a published version. The obligations they concern are in [Requirements](requirements.md).
 
 ## What Guard does not establish
 
@@ -15,16 +15,21 @@ What Guard does not establish, and the defects that reached a published version.
 
 ## Defects in published versions
 
-A defect is established only by a Test Case that proved it failing. The versions it affects and the version that corrects it are named here.
+A Defect is a durable statement of behaviour Guard must not show: a negative Requirement. A Test Case tests it and says so in its title, beside the Requirement it verifies. "Tested by" is derived from those titles and is never written on its own. Each case is named under its realization:
+- **delivered**: in this package, and run by your installation's `npm test`;
+- **publisher**: a Guard case that only the publisher runs, against a packed candidate, allocated in [Testing](testing.md); your run never reports it as passed;
+- **retired**: a case retired with `0.0.1` that no longer runs, kept as historical evidence.
 
-| Affected | Corrected in | Defect | What happened |
+An observed RED established the Defect in the version named. An observed GREEN evidences its correction from that version, within the case's scope. A later GREEN never erases a RED, and a Defect has no status.
+
+| Defect | Prohibited behaviour | Tested by | Observed in Test Runs |
 | --- | --- | --- | --- |
-| `0.0.1` | `0.0.2` | guard/D1 | `upgrade` skipped every asset the installation record did not list, so an asset the repository lacked was never installed or recorded (guard/F13). |
-| `0.0.1` | `0.0.2` | guard/D2 | The record did not hold the version that wrote each asset, and `upgrade` named no versions (guard/F14). |
-| `0.0.1` | `0.0.2` | guard/D3 | `init` judged existing files by path, not existing integration by declared check, so it could add a workflow that duplicated the repository's own jobs (guard/F17). |
-| `0.0.1` | `0.0.2` | guard/D5 | The base copy of a trusted checker lost the mode the base records, so an executable checker run as `./checker.sh` failed to start and its check was cannot judge (guard/F7). |
-| `0.0.2` | `0.0.3` | guard/D16 | Guard read a trusted check's declaration from the candidate, so a candidate that dropped `trusted`, rewrote the command or deleted the declaration could run its own checker, or none, and pass (guard/F7). |
-| `0.0.2` | `0.0.3` | guard/D17 | The package's own `npm test` still ran the retired `0.0.1` suite, which failed (guard/N6). |
+| guard/D1 | `upgrade` must not skip an asset the installation record does not list: an asset the repository lacks is installed and recorded (guard/F13) | retired: guard/T38 | RED in `0.0.1` (guard/T38, `packed`, Linux); its case was retired with `0.0.1`, so no GREEN is observed against it |
+| guard/D2 | the record must not omit the version that wrote each asset, and `upgrade` must name the versions (guard/F14) | retired: guard/T39 | RED in `0.0.1` (guard/T39, `packed`, Linux); its case was retired with `0.0.1`, so no GREEN is observed against it |
+| guard/D3 | `init` must not judge existing integration by path, adding a workflow that duplicates the repository's own jobs (guard/F17) | publisher: guard/T43 | RED in `0.0.1` (guard/T43, `packed`, Linux); GREEN from `0.0.2` (guard/T43, publisher) |
+| guard/D5 | the base copy of a trusted checker must not lose the mode the base records, so that an executable checker run as `./checker.sh` cannot start (guard/F7) | delivered: guard/T81 | RED in `0.0.1` (guard/T81); GREEN from `0.0.2` (guard/T81) |
+| guard/D16 | Guard must not read a trusted check's declaration from the candidate, which lets a candidate drop `trusted`, rewrite the command or delete the declaration and pass (guard/F7) | delivered: guard/T94, guard/T95, guard/T96 | RED in `0.0.2` (guard/T94–guard/T96); GREEN from `0.0.3` (guard/T94–guard/T96) |
+| guard/D17 | the package's own `npm test` must not run a retired suite (guard/N6) | publisher: guard/T98 | RED in `0.0.2` (guard/T98); GREEN from `0.0.3` (guard/T98, publisher) |
 
 `0.0.2` is a deliberate breaking change from `0.0.1`, not a defect: there is no migration, no dual format and no rollback across it (guard/I5). The release notes in the README say how a `0.0.1` repository sets `0.0.2` up.
 

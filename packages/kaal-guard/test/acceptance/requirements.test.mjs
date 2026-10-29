@@ -147,7 +147,7 @@ describe("guard/F7 [guard/I1, guard/I2] trusted checker", () => {
     assert.equal(verdicts(r.output).judge?.verdict, "fail");
   });
 
-  it("guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict", () => {
+  it("guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict", () => {
     const windows = process.platform === "win32";
     const c = consumer();
     c.write("checks/judge.sh", "#!/bin/sh\nexit 0\n");
@@ -180,7 +180,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     return { c, r, judged: verdicts(r.output).judge };
   }
 
-  it("guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs", () => {
+  it("guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs", () => {
     const { c, r, judged } = candidate((c) => {
       c.write("checks/judge.mjs", checker("judge-ran", 0));
       c.checks({ judge: { ...judge, trusted: undefined }, other });
@@ -191,7 +191,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.ok(!c.exists("judge-ran"), "a checker ran for a trusted check whose declaration the candidate changed");
   });
 
-  it("guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs", () => {
+  it("guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs", () => {
     const rewritten = candidate((c) => {
       c.write("checks/certify.mjs", checker("certify-ran", 0));
       c.checks({ judge: { ...judge, command: "node checks/certify.mjs" }, other });
@@ -208,7 +208,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.ok(!softened.c.exists("judge-ran"), "the checker ran for a declaration the candidate changed");
   });
 
-  it("guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass", () => {
+  it("guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass", () => {
     const { r, judged } = candidate((c) => c.checks({ other }));
     assert.equal(judged?.verdict, "cannot judge", r.output);
     assert.notEqual(r.status, 0, r.output);
