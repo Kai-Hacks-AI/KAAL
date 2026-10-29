@@ -27,13 +27,16 @@ Each element names, in brackets, the Requirements it answers.
 
 `packaging/C2`'s first DO read npm artifacts with its own gzip, DEFLATE and tar parser. From Packaging's seat that was the wrong owner. A KAAL package's delivered contents are what its ecosystem delivers, and the ecosystem's own tooling is the authority on that. A second parser can disagree with it, and its correctness and resource safety then become Packaging's to maintain, for formats Packaging does not own.
 
-- **packaging/A6** [packaging/F1, packaging/F6, packaging/N3, packaging/N4]: Ecosystem tooling through Hosting.
-  - The npm realization runs `npm pack <artifact> --dry-run --json --ignore-scripts --offline` through `kaal-hosting`'s `execute`, and maps npm's report into the description. npm states each file's path and size, the entry count and the unpacked size of the artifact it was given.
-  - The packed size and the SHA-256 are taken from the artifact's own bytes, read through `kaal-hosting`'s `readFile`, never from the tool.
+- **packaging/A6** [packaging/F1, packaging/F6, packaging/N3, packaging/N4, packaging/N6] (amended after the Owner's review on #616): Ecosystem tooling through Hosting. `npm.md` holds the evidence for every choice here.
+  - The npm realization runs `npm pack --dry-run --json --ignore-scripts --offline --cache <work>/cache --logs-max=0 --no-update-notifier --userconfig <work>/npmrc -- <artifact>` through `kaal-hosting`'s `execute`, with the arguments as an array and `<work>` as the working directory. No shell reads them. The options come first and `--` ends them, so no artifact name can be read as an option. The cache, logs and user configuration stay inside `<work>`, which the caller gives empty.
+  - `<artifact>` must be absolute and end in `.tgz`, `.tar.gz` or `.tar`. npm reads anything else as a registry name or a directory, so the realization refuses it before npm runs.
+  - Just before the pack, `npm --version` runs the same way. Its output, trimmed, must be a semantic version, at least 11.18.0 (`packaging/N6`), and it is recorded as it was printed.
+  - npm states each file's path and size, the entry count and the unpacked size. The realization maps that into the description and checks it (`packaging/N4`). It ignores `bundled` and `mode`.
+  - The packed size and the SHA-256 are taken from the artifact's own bytes, read through `kaal-hosting`'s `readFile` before npm runs and again after, never from the tool.
   - Hosting runs the command and knows nothing of npm. npm's semantics stay in Packaging's npm realization. Packaging parses no archive format.
   - Its dependencies are exactly `packaging/A1`'s: `kaal-hosting` and `kaal-foundation`.
-- **What Packaging claims, and what it does not.** It claims the description it accepted, checked by `packaging/N4`. It does not claim the ecosystem tool's own robustness against a hostile artifact. That robustness is the tool's, as it is for every consumer who installs the package with that tool.
-- **The interface, kept.** `attribute`, `compare`, `write`/`read` and `report` work on the description only, so they are unchanged. `measure` becomes asynchronous and takes the artifact's location, because its realization runs a tool. Groups stay prefixes the caller names. Grouping by a package's own declared parts, such as an Installation Contract's assets, is a later increment.
+- **What Packaging claims, and what it does not.** It claims the description it accepted, checked by `packaging/N4`. It does not claim the ecosystem tool's robustness against a hostile artifact. npm's time and memory grow with the artifact (`npm.md`), so `measure` is for artifacts of known provenance (`packaging/N5`).
+- **The interface, kept.** `attribute`, `compare`, `write`/`read` and `report` work on the description only, so they are unchanged. `measure(artifact, { work, limits })` becomes asynchronous and takes the artifact's location and a working directory, because its realization runs a tool. Its limits become `files`, `path`, `unpacked` and `output`. The old `archive` limit goes, because Packaging decompresses nothing. Groups stay prefixes the caller names. Grouping by a package's own declared parts, such as an Installation Contract's assets, is a later increment.
 - **Where measurement runs.** It runs where the ecosystem's tool is installed, as it is in KAAL Engineering's lanes. Where the tool is missing, `measure` refuses and names it (`packaging/F6`).
 - **Boundaries.** No other Capability changes. Hosting's `execute` and `readFile` are used as they are, and Engineering's driver is still planned after `packaging/C2`. A change to any of these returns to the Owner for alignment.
 
@@ -41,3 +44,7 @@ Each element names, in brackets, the Requirements it answers.
 | --- | --- | --- |
 | `packaging/C3` PLAN amendment, this Change | Packaging | `packaging/C1`; the Owner's review on #614 |
 | `packaging/C2` DO, reworked to `packaging/A6`: the own reader removed, the amended tests GREEN | Packaging | `packaging/C3` |
+
+## For the Owner (#616)
+
+**Untrusted artifacts.** **A (recommended):** `packaging/C2` measures artifacts of known provenance only, as `packaging/N5` states, and Engineering's driver measures the tarballs its own job has just packed. **B:** first, a Hosting Change gives `execute` a time limit and an output limit, so a hostile artifact is stopped rather than measured. B still leaves memory unbounded, since no host-neutral mechanism caps it. B would be Hosting's Change, for the Owner to align, and `packaging/C3` does not propose it.
