@@ -8,11 +8,11 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 | --- | --- | --- |
 | core/T74: the package ships Intent, Requirements, Architecture, limitations, operations and testing documents. The README links each, no delivered document links a file that does not ship or a repository plan, and the limitations name what 0.0.1 leaves out | core/F69, core/N19, core/A33 | Requirements |
 | core/T75: `npm test` is the consumer entry and builds nothing, and the publisher's tests have their own script. The delivered loops ship and the planned tests do not. `docs/testing.md` names every delivered test file, and names the planned tests as not delivered | core/F70, core/F71, core/A33, core/A34 | Architecture |
-| core/T76: packed with its runtime dependencies and installed into a clean directory, the installed files are exactly those that the installed `docs/operations.md` lists under "Shipped files", and `npm test` ends in `verified` with exit 0. A corrupted `dist/index.js` never gives `verified`. With `dist/index.js` restored and no delivered tests, the result is `cannot verify` with exit 2 | core/F72, core/F70, core/A35, core/I23 | Intent |
+| core/T76: packed with its runtime dependencies and installed into a clean directory, the installed files are exactly those that the installed `docs/operations.md` lists under "Shipped files", and `npm test` ends in `verified` with exit 0. A corrupted `dist/index.js` never gives `verified`. With `dist/index.js` restored, emptying any one loop's delivered test files gives `cannot verify` with exit 2 even though the other loops pass, and so does removing all delivered tests | core/F72, core/F70, core/A35, core/I23 | Intent |
 | core/T77: 0.0.1 contains registration: `kaal-core/registration` ships and exports `assemble` | core/F68 | Requirements |
 | core/T78: every workspace package kaal-core depends on at runtime can be published | core/F73 | Requirements |
 
-**Why the tests discriminate.** I checked them with a throwaway reference, which was not committed. It had the six documents, one delivered test for each loop, a `test/verify.mjs`, the two scripts, and Foundation made public. With it, T74, T75, T76 and T78 turned GREEN. T77 stays RED until `core/C26`. Each weaker reference below was caught. The last two came from Codex's review, and before T76 was revised it let the last one through:
+**Why the tests discriminate.** I checked them with a throwaway reference, which was not committed. It had the six documents, one delivered test for each loop, a `test/verify.mjs`, the two scripts, and Foundation made public. With it, T74, T75, T76 and T78 turned GREEN. T77 stays RED until `core/C26`. Each weaker reference below was caught. The last four came from Codex's review, and T76 was revised to catch each:
 
 | Weaker reference | Caught by |
 | --- | --- |
@@ -24,8 +24,10 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 | a runtime dependency is private | core/T78 |
 | ships files that "Shipped files" does not list | core/T76 |
 | reports `cannot verify` when kaal-core fails to import, but `verified` when no test ran | core/T76 |
+| reports `verified` when one loop runs no test while the others pass (only the total is counted) | core/T76 |
+| counts a test file that declares no test as one test (the `# tests` summary of `node --test`) | core/T76 |
 
-The reference showed one trap for `core/C29`. `node --test` sets `NODE_TEST_CONTEXT` for the processes it starts, so `test/verify.mjs` must clear it when it starts the delivered loops. Otherwise their results go to the outer runner, and every loop counts zero tests.
+The reference showed one trap for `core/C29`. `node --test` sets `NODE_TEST_CONTEXT` for the processes it starts, so `test/verify.mjs` must clear it when it starts the delivered loops. Otherwise their results go to the outer runner, and every loop counts zero tests. A second trap: `node --test` reports a file that declares no test as one passing test, so its `# tests` summary cannot show an empty loop. The verifier must count only the tests the files declare.
 
 The following are validated by review:
 - The documents are coherent for a reader who knows nothing of KAAL. A test checks only that they exist, link what ships, and name what is left out.

@@ -113,7 +113,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     assert.match(testing, /not (delivered|shipped)|do(es)? not ship/i, "and says they are not delivered");
   });
 
-  it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's installed files are exactly those its operations document lists and `npm test` ends in verified; a corrupted file gives failed and no delivered tests give cannot verify, never verified", { timeout: 600_000 }, () => {
+  it("core/T76 [core/F72, core/F70, core/A35, core/I23]: packed and installed into a clean directory, kaal-core's installed files are exactly those its operations document lists and `npm test` ends in verified; a corrupted file is never verified, and any one loop that runs no test, or no delivered tests at all, gives cannot verify", { timeout: 600_000 }, () => {
     assert.equal(pkg().scripts?.test, "node test/verify.mjs", "blocked before release acceptance: npm test is not the consumer entry");
     const work = mkdtempSync(join(tmpdir(), "kaal-core-release-"));
     try {
@@ -146,6 +146,15 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       assert.match(bad.out, /\bfailed\b|\bcannot verify\b/);
       assert.doesNotMatch(bad.out.trim().split(/\r?\n/).pop(), /^\W*verified\b/);
       writeFileSync(index, original);
+      const loops = [...LOOPS.map((l) => [l, [join(installed, "test", "acceptance", `${l}.test.mjs`)]]), ["code", readdirSync(join(installed, "test", "unit")).filter((f) => f.endsWith(".test.mjs")).map((f) => join(installed, "test", "unit", f))]];
+      for (const [loop, paths] of loops) {
+        const kept = paths.map((path) => [path, readFileSync(path)]);
+        for (const [path] of kept) writeFileSync(path, 'import "node:test";\n');
+        const empty = verify();
+        for (const [path, bytes] of kept) writeFileSync(path, bytes);
+        assert.equal(empty.status, 2, `the ${loop} loop ran no test while the others passed: ${empty.out}`);
+        assert.match(empty.out, /cannot verify/, `an empty ${loop} loop is never verified`);
+      }
       rmSync(join(installed, "test", "acceptance"), { recursive: true, force: true });
       rmSync(join(installed, "test", "unit"), { recursive: true, force: true });
       const none = verify();
