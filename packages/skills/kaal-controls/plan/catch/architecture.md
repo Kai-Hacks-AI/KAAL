@@ -2,7 +2,7 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **controls/A3** [controls/F4–controls/F8, controls/N3]: `controls/C5` adds `payload/CATCH-ME-IF-YOU-CAN.md`, a `KAAL Definition` named `CATCH ME IF YOU CAN`, beside `HAPTIC.md`. It holds the verbatim expansion and the principle in the terms of controls/F5–controls/F8. It cites `Controls` for detective controls and independence, and Testing and Review by name. The `Controls` Node is not edited, so its id does not change.
+- **controls/A3** [controls/F4–controls/F8 with controls/F6a, controls/N3]: `controls/C5` adds `payload/CATCH-ME-IF-YOU-CAN.md`, a `KAAL Definition` named `CATCH ME IF YOU CAN`, beside `HAPTIC.md`. It holds the verbatim expansion and the principle in the terms of controls/F5–controls/F8. It cites `Controls` for detective controls and independence, and Testing and Review by name. The `Controls` Node is not edited, so its id does not change.
 - **controls/A4** [controls/F9]: `skills/kaal-controls/SKILL.md` gains the section "Hunt for misbehaving elements" after "Keep independent controls apart". The README's file list and its "What it teaches" section each gain one line.
 
 ## Options considered
@@ -24,7 +24,7 @@ Each element names, in brackets, the Requirements it answers.
 ## Contracts reused
 
 - **Core**: `KAAL Definition` and admission.
-- **Testing**: the kinds of findings, the meaning of a clean result, and how a Defect traces to the Test Case that proves it RED.
+- **Testing**: the kinds of findings, the meaning of a clean result, and everything about Defects. They are cited by owner, not restated, so a change in Testing needs no change in Controls.
 - **Review**: validation where verification cannot decide.
 
 Nothing new is added to any of them.
