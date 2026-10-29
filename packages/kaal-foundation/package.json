@@ -1,7 +1,6 @@
 {
   "name": "@kaihacksai/kaal-foundation",
   "version": "0.0.1",
-  "private": true,
   "description": "KAAL Foundation: the shared, dependency-free primitives every KAAL Capability may build on.",
   "license": "MIT",
   "type": "module",
@@ -13,10 +12,16 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "lib"
+    "lib",
+    "docs",
+    "test/consumer",
+    "test/verify.mjs",
+    "test/run.mjs"
   ],
   "scripts": {
-    "test": "node --test test/plan/sha256.test.mjs"
+    "test": "node test/run.mjs",
+    "test:consumer": "node test/verify.mjs",
+    "test:publisher": "node --test test/plan/sha256.test.mjs test/plan/publication.test.mjs"
   },
   "engines": {
     "node": ">=24"
