@@ -11,7 +11,7 @@ The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/boun
 | hosting/T36: `shell: true`, a `cmd.exe` or `mkfifo` command, `net` listening on a path, a literal mode to `chmodSync`, a `"junction"` link, `process.getuid`, `PATHEXT` and `os.homedir` are `host-api` findings; the portable form of each is not | hosting/F28 | Requirements |
 | hosting/T37: an acknowledgement with a reason, at the end of the line or just above it, sets `acknowledged` and keeps the finding; one without a reason, or further away, does not | hosting/F30 | Requirements |
 | hosting/T38: TypeScript and CommonJS are read, declarations and non-sources are skipped with a reason, scope follows the path rule or the caller's, the same input gives the same report, and coverage and exclusions are stated | hosting/F27, hosting/F32 | Requirements |
-| hosting/T39: `boundarySuite` on a capability with a direct `node:fs/promises` import and a T114-like skip passes, emits the registration finding and the `inspect` violation on one `kaal-hosting-boundary` line named for the capability, and fails on a root that is not a directory | hosting/F31, hosting/F30 | Intent |
+| hosting/T39: `boundarySuite` on a capability with a direct `node:fs/promises` import and a T114-like skip passes, emits the registration finding and the `inspect` violation on one `kaal-hosting-boundary` line named for the capability, and fails on a root that is not a directory; called on its own as a command, it prints the same line | hosting/F31, hosting/F30 | Intent |
 
 hosting/A12 and hosting/A13 are placements, validated by review. The Limits are stated, not tested.
 
@@ -21,7 +21,7 @@ At `hosting/C13`, hosting/T32–T38 are blocked before behavioural assertion: `k
 
 ## Checked against a throwaway reference
 
-The reference was not committed. It was a `couplings` of about 150 lines that blanks comments, tracks module names, named imports, destructurings and aliases, and classifies by the enclosing `if`, ternary, skip option or assertion call, plus a 20-line `boundarySuite`. With it, all of hosting/T32–T39 are GREEN on Node 24. Each weaker variant was caught:
+The reference was not committed. It was a `couplings` of about 150 lines that blanks comments, tracks module names, named imports, destructurings and aliases, and classifies by the enclosing `if`, ternary, skip option or assertion call, plus a 30-line `boundarySuite` with its command form. With it, all of hosting/T32–T39 are GREEN on Node 24. Each weaker variant was caught:
 
 | Weaker reference | Caught by |
 | --- | --- |
@@ -38,5 +38,7 @@ The reference was not committed. It was a `couplings` of about 150 lines that bl
 | fails the suite on a finding | hosting/T39 |
 | leaves `inspect` out of the suite | hosting/T39 |
 | passes when the root does not exist | hosting/T39 |
+| cannot be called on its own as a command | hosting/T39 |
+| as a command, ignores the declared builtins | hosting/T39 |
 
 It also showed that the suite's line must reach Engineering unescaped. Under `node --test` with the TAP reporter, the line arrives as a comment with its quotes escaped, so hosting/T39 runs the suite's file directly.

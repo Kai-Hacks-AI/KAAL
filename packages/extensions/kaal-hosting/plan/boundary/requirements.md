@@ -20,6 +20,8 @@ Each Requirement names, in brackets, the Intents it serves.
 - **hosting/F31** [hosting/I8]: **The reusable suite.** `boundarySuite({ name, root, builtins, test })` registers one `node:test` suite for a capability named `name`, whose sources are under `root`, read through Hosting's `read`. `builtins` are the host modules the capability declares it may import, as `inspect` takes them, and default to none. `test` is passed to `couplings`. The suite has one case. It inspects the sources with `couplings`, and with the existing `inspect` against `builtins`. Every finding and every violation is emitted as a diagnostic, and the whole result is written as one line `kaal-hosting-boundary {…}`, carrying the capability's `name`, `findings`, `violations`, `validation`, `outside`, `skipped`, `coverage` and `exclusions`. With that line, Engineering can report per capability without rules of its own.
 
   A finding or a violation never fails the case. The case fails only when the inspection cannot complete, for example when `root` is not a directory or a source cannot be read.
+
+  The suite can also be called on its own, without any capability importing Hosting. `node packages/extensions/kaal-hosting/conformance/boundary.mjs --name <name> --root <dir> [--builtin <module>]…` runs the same suite and prints the same line. In Testing's Plan → Suite → Case model, this is a Suite, and each capability inspected is one Case. The Plan that runs it belongs to Engineering.
 - **hosting/F32** [hosting/I8]: **Stated coverage.** The report carries `coverage` and `exclusions`, as `inspect` does. A report with no finding means none was found within that coverage, never that the capability complies.
 
 ## Nonfunctional

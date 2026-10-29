@@ -200,7 +200,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.ok(Array.isArray(report.exclusions) && report.exclusions.some((e) => /data|run time|outside/i.test(e)));
   });
 
-  it("hosting/T39 [hosting/F31, hosting/F30]: the reusable suite inspects a capability's sources, emits each finding and one kaal-hosting-boundary line for it, and fails only when the inspection cannot complete", async () => {
+  it("hosting/T39 [hosting/F31, hosting/F30]: the reusable suite inspects a capability's sources, emits each finding and one kaal-hosting-boundary line for it, fails only when the inspection cannot complete, and can be called on its own as a command", async () => {
     const root = mkdtempSync(join(tmpdir(), "kaal-boundary-"));
     mkdirSync(join(root, "src"));
     mkdirSync(join(root, "test"));
@@ -225,5 +225,15 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.ok(Array.isArray(result.violations) && result.violations.some((v) => v.builtin === "node:fs/promises"), "the existing inspect is not part of the suite");
     const missing = await run(join(root, "no-such-capability"));
     assert.notEqual(missing.status, 0, "an inspection that cannot complete passed");
+
+    // Called on its own, with no capability importing Hosting.
+    const alone = await execute(process.execPath, [SUITE, "--name", "fixture", "--root", root, "--builtin", "node:fs/promises", "--builtin", "node:test"], { cwd: root, env });
+    assert.equal(alone.status, 0, `${alone.stdout}${alone.stderr}`);
+    const own = alone.stdout.split(/\r?\n/).map((l) => l.trim()).find((l) => l.startsWith("kaal-hosting-boundary "));
+    assert.ok(own, `no kaal-hosting-boundary line from the command\n${alone.stdout}`);
+    const ownResult = JSON.parse(own.slice("kaal-hosting-boundary ".length));
+    assert.equal(ownResult.name, "fixture");
+    assert.deepEqual(ownResult.findings, result.findings);
+    assert.deepEqual(ownResult.violations, [], "a declared builtin is still a violation");
   });
 });
