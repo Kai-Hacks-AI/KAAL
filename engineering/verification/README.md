@@ -46,13 +46,15 @@ These are Testing's cases, named here only so the dependency is explicit. Each m
 
 Engineering runs each against a fixture package in a scratch directory. A case counts only once it is observed RED.
 
+**Per platform, as observed.** The harness is host-neutral, and each run records the platform it ran on, per testing/C29's summary. Running it on Windows, macOS and Linux is the separate `.github/` Change named under Order. Comparing what each platform observed belongs to engineering/C9, not here.
+
 **Counting tests needs a stated reporter.** On Node 24, `node --test` uses the spec reporter even when its output is piped, so counting TAP `ok` lines from the default output finds zero tests (Core, #642). Testing's cases therefore read a result whose format is stated, such as `--test-reporter=tap` or a structured result. They never rely on a runner's default output.
 
 ## Dependencies
 
 | Prerequisite | Owner | Kind | State today |
 | --- | --- | --- | --- |
-| Reusable consumer-verification conformance cases, the negative scenarios included | Testing | Technical: the DO imports and runs them. Order prerequisite | **Not delivered.** `kaal-testing`'s existing model defines the semantics, but it is not yet a conformance suite. Testing plans one in its own Change |
+| Reusable consumer-verification conformance cases, the negative scenarios included | Testing | Technical: the DO calls `kaal-testing/verifiers` (`observe`, `judge`). Order prerequisite | **Planned in testing/C29 (#639):** the frozen scenarios, the summary contract, and `applicability`, under which "not applicable" never verifies. `kaal-testing`'s current model is not yet that suite |
 | The entrypoint convention for installed `npm test`, and what a package ships for it | Packaging | Semantic reference: the cases test against it. Order prerequisite | Not yet stated. Packaging plans it in its own Change |
 | Engineering's packer, `engineering/delivery/pack.mjs` | Engineering | Technical, already on `main` | Available |
 | Integration gates on these results | Guard | None for this Change. Guard decides separately whether a gate applies | Unchanged |
