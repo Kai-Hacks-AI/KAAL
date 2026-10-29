@@ -7,7 +7,9 @@ type:
 
 # PDCA
 
-PDCA: Plan, Do, Check, Act. PDCA is a learning and improvement cycle for a unit of work at any level: four Activities ordered as a loop.
+PDCA: Plan, Do, Check, Act. PDCA is a Process Template, delivered by Process for any capability to adopt. It is a learning and improvement cycle for a unit of work at any level: four Activities ordered as a loop.
+
+As a template, PDCA is not an instantiated Change, Engineering or Learning process, and not a universal mandatory workflow. It defines reusable phases and their generic expectations, and dictates none of the semantics of Testing, Change, Review, Learning or Engineering. A capability that adopts it owns its particular process: its adaptations, applicability, conditions, decisions and realization.
 
 - **Plan**: establish, before Do, what the work is to achieve and how its achievement will be judged: its intent, its requirements and architecture where they apply, and its outer acceptance boundary, including the planned tests that protect it.
 - **Do**: perform only the work the plan actually needs: a change in behavior, documentation, tests and evidence, or no change at all where the planned condition is found to hold already. Do may contain further PDCA cycles of its own.
