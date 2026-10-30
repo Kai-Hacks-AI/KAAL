@@ -1,6 +1,6 @@
 # Standards across KAAL: Engineering's part
 
-> PLAN (engineering/C5): nothing below exists yet. This PLAN is revised to the Owner's alignment on #610 (comment 6504619909). A standard is a KAAL Node owned by the Capability whose standard it is. Graph discovers and relates them. Engineering keeps no register and restates no other Capability's standard. It owns its own Engineering standards, derives a cross-Capability view, and orchestrates conformance checks. The first draft's central register is withdrawn. Revised again to the Owner's review on #610 (review 5715338615): `Standard` and `Applies to` carry domain semantics and are not assigned to Core, and each scope term is referenced at its own owner. Extended to package-release readiness at the Owner's request (#610, comments 6529592861 and 6529734792); see "Release readiness".
+> PLAN (engineering/C5): nothing below exists yet. This PLAN is revised to the Owner's alignment on #610 (comment 6504619909). A standard is a KAAL Node owned by the Capability whose standard it is. Graph discovers and relates them. Engineering keeps no register and restates no other Capability's standard. It owns its own Engineering standards, derives a cross-Capability view, and orchestrates conformance checks. The first draft's central register is withdrawn. Revised again to the Owner's review on #610 (review 5715338615): `Standard` and `Applies to` carry domain semantics and are not assigned to Core, and each scope term is referenced at its own owner. Extended to package-release readiness at the Owner's request (#610, comments 6529592861 and 6529734792); see "Release readiness". Revised to the Owner's priority on #610 (comment 6531212582, review 5717462274): readiness consumes Packaging's merged generic contract and its conformance suite, and comes first. Standards ownership stays unresolved.
 
 ## The Node model
 
@@ -32,15 +32,15 @@
 
 The Owner asked for a discoverable, testable minimum package-release baseline, with C5 as Engineering's coordination point. Every KAAL package answers to **two independently authoritative contracts**, and both are tested against the **same exact packed-and-installed candidate**:
 
-1. **The generic KAAL Package contract, Packaging's.** Its Intent, Requirements, Architecture and reusable conformance cases apply to every KAAL package. It references Testing's semantics (the installed run, results, evidence) and Hosting's (host compatibility) and does not redefine them. **It does not exist yet.** Packaging plans it in its own Change, packaging/C4. Engineering states none of it.
+1. **The generic KAAL Package contract, Packaging's.** Its Intent, Requirements, Architecture and reusable conformance cases apply to every KAAL package. It references Testing's semantics (the installed run, results, evidence) and Hosting's (host compatibility) and does not redefine them. Its PLAN, packaging/C4 (#658), is merged. Its suite, `kaal-packaging/conformance` with packaging/T15–T26, is packaging/C5 (#660). Engineering states none of it and reimplements none of its assertions.
 2. **Each package's specific contract, its delivering capability's.** Examples are Guard's shipped `docs/`, Hosting's release plan (#629), Core's (#622) and Graph's (#627).
 
 `engineering/research/release-baseline.md` traces the Owner's twenty candidates to their owners and existing IDs. It finds that 18 of them are generic, but today each product states them for itself. It also finds seven conflicts and nine gaps, returned under "Returned to owners" below. Engineering adopts none of them as its own requirement.
 
 **What Engineering does:**
 
-- **engineering/F17. Discover both contracts.** For each workspace package, Engineering finds its generic contract's cases (Packaging's, once they ship) and its specific contract's cases (the package's own Embedded Tests and its declared cases). It finds them through Graph and each package's declared entrypoints, with no list kept in Engineering. A package with neither contract discoverable is reported unresolved, naming it.
-- **engineering/F18. Run both on one candidate.** Engineering packs the package once, records the tarball's identity with Packaging's `measure` (SHA-256), installs that tarball into a clean host outside this repository, as engineering/C7 does, and runs both suites against that installation. Each result names the artifact identity it ran against.
+- **engineering/F17. Discover both contracts.** For each workspace package, Engineering finds its generic contract's cases, which are Packaging's `conform` over the installed package, and its specific contract's cases: the package's own installed verification and any conformance cases its owner declares for the candidate. It finds them through Graph and each package's declared entrypoints, with no list kept in Engineering. A package with neither contract discoverable is reported unresolved, naming it.
+- **engineering/F18. Run both on one candidate.** Engineering packs the package once and records the tarball's identity with Packaging's `measure` (SHA-256). It records it again just before installing, and a difference stops the run as unresolved. It installs that tarball into a clean host outside this repository, as engineering/C7 does, and runs both suites against that installation. Each result names the artifact identity it ran against, and the report keeps each Test Run's evidence.
 - **engineering/F19. Report two results and a combined state.** The report gives the generic result, the specific result and a combined readiness state. Each states its verified, validated and unresolved claims separately, in Testing's terms. The combined state is ready only when both results verify on the same identity and every applicable Requirement has a case or a recorded validation. Anything else is not ready, and the report names the cause. Release acceptance is the Owner's recorded authorization. No report stands for it, and neither does CI GREEN.
 - **engineering/N10. No false GREEN.** These things never yield a ready state: a document or test file that only exists; a publisher-source test that passed; a missing, skipped or inapplicable case without its owner's declared applicability; or a result whose artifact identity differs from the other's.
 
@@ -55,11 +55,32 @@ The Owner asked for a discoverable, testable minimum package-release baseline, w
 | engineering/T35 | A runtime dependency that does not install from the registry, and a case marked inapplicable on a platform the package declares, are reported, never GREEN | One that skips dependency installation, or treats inapplicable as passed |
 | engineering/T36 | CI GREEN on a commit, without a readiness report on its candidate, is never shown as ready | One that reads the CI state |
 
-**Scope.** This is an Engineering PLAN increment of C5. Its DO is its own bounded Change. It waits for the following, and it does not broaden C5's first DO:
+**The four negative paths the Owner named** (comment 6531212582):
 
-- Packaging's packaging/C4, for the generic contract's cases. Until that ships, every package's generic result is unresolved, never GREEN.
+| Path | Generic, decided by Packaging's cases | Specific and orchestration, Engineering's case |
+| --- | --- | --- |
+| Absent suite | packaging/F9, F14 (T17, T26) | engineering/T29, T30 |
+| Uncovered requirement | packaging/F13 (T21) | engineering/T31 |
+| Misleading source-only GREEN | packaging/F9, F14, N9 (T17, T24, T26) | engineering/T34, T36 |
+| Artifact mismatch | packaging/F11 (T19) | engineering/T33 |
+
+**Dependency and evidence map.** Each piece of evidence comes from its owner. Engineering composes them, and duplicates none of them:
+
+| Evidence | Owner and Change | State | Engineering uses it as |
+| --- | --- | --- | --- |
+| The generic result, per Requirement | Packaging, packaging/C5 (#660) | open | `conform(installed, { consumer })`, unchanged |
+| The verifier result and applicability | Testing, testing/C29 (#639) | open | The meaning of each result line. Until it lands, anything that depends on it is unresolved |
+| The root's applicable suites, each with its owner and context | Engineering, engineering/C6 (#655) | open | Which specific suites exist for a package, and in which context |
+| Artifact identity | Packaging `measure` (packaging/F4) | merged | The SHA-256 recorded with every result |
+| Install into a clean host | Engineering, engineering/C7 (#641) | approved PLAN | The harness that installs the candidate |
+| Each product's specific suite | Its delivering capability | per product | Run as the package declares it |
+
+**Scope.** This is an Engineering PLAN increment of C5. The release-readiness DO is its own bounded Change. It does not wait for the Standards decision, and it does not broaden C5's first DO. It waits for:
+
+- #660, merged and reachable from `kaal/engineering`. That needs `kaal/packaging` promoted to main and `kaal/engineering` synced, both on the Owner's authorization. Until then, every generic result is unresolved, never GREEN.
+- #655, for the root's declared suites.
 - engineering/C7's packed-artifact harness, which it reuses.
-- The Standards decision above. Readiness is reported whether or not Standards exists.
+- #639, for results that depend on the verifier contract. It runs without it, and reports those results unresolved.
 
 It changes no ruleset, gates nothing yet, and publishes nothing.
 
@@ -67,10 +88,10 @@ It changes no ruleset, gates nothing yet, and publishes nothing.
 
 These come from `engineering/research/release-baseline.md`, with file and line there. Engineering decides none of them.
 
-- **To Packaging (packaging/C4):**
-  - the entrypoint convention, which settles what a source `npm test` runs: core/F75 against engineering/C6, hosting/F20 and graph/F6;
-  - where Operations documentation lives: core/F69 and graph/F5 against guard/F37 and hosting/F18;
-  - package identity, and the duty to declare platforms and runtime, which Core's and Change's plans omit.
+- **To Packaging, settled by packaging/C4 (#658):**
+  - the entrypoint convention: `npm test` depends on its context (D1, packaging/A11);
+  - where Operations documentation lives: `docs/operations.md`, which the README links (D2, packaging/F8);
+  - package identity, and the duty to declare platforms and runtime (packaging/F7, F12).
 - **To Testing:**
   - whether a tampered installed file is failed (graph/F6) or unknown (hosting/F21, guard/F33, testing/F43);
   - coverage and allocation semantics, which no testing/ ID defines;
@@ -105,19 +126,23 @@ T10 and T11 orchestrate checks whose rules are other owners'. Core owns the fron
 
 | Concept | Owner | Kind | Needed for C5? |
 | --- | --- | --- | --- |
-| `Standard`, `Applies to` | A bounded **Standards** capability, proposed below, not yet authorized | Technical: Standard Nodes are typed by `Standard`. The DO cannot start until they exist | **Yes** |
+| `Standard`, `Applies to` | **Unresolved.** A bounded Standards capability is proposed below, not yet authorized, and Core is not assumed | Technical: Standard Nodes are typed by `Standard`. The Standards view DO cannot start until they exist | **Yes, for the Standards view only** |
 | Scope Nodes | Core, Packaging, and an owner to be decided (see "Scope terms") | Semantic reference: an `Applies to` target | No. A Standard whose scope does not resolve is reported unresolved |
 | Node lookup, Edges, derived incoming views | Graph | Technical, already used by Engineering's tests | Yes, on `main` |
 | Verification, validation, unknown | Testing | Semantic reference | Yes, as a reference only |
 | Ownership claims | Testing (the format, moving to Markdown per #609) and each Capability | Semantic reference: the owner of a path | Yes, as a reference only. The view follows the format when it moves |
 | Parametrized conformance cases | Each Standard's owner | Technical, per Standard, once the owner ships them | No, for C5. A Standard without cases is shown unresolved |
 | Representation Standard | Core | Semantic reference | No. It is shown unresolved until Core declares it |
-| Generic KAAL Package contract and its cases | Packaging (packaging/C4, to be planned) | Technical, for engineering/F17–F19 only | No, for C5's first DO. Until it ships, each generic result is unresolved |
+| Generic KAAL Package contract and its cases | Packaging (packaging/C4 #658, merged; its suite packaging/C5 #660) | Technical, for engineering/F17–F19 only | Yes, for the readiness DO. Until it is reachable, each generic result is unresolved |
+| Root suites, by owner and context | Engineering (engineering/C6, #655) | Technical | Yes, for engineering/F17 |
+| Verifier result and applicability | Testing (testing/C29, #639) | Semantic reference | No. What depends on it is unresolved until it lands |
 | Each package's specific contract | Its delivering capability (Guard, Hosting #629, Core #622, Graph #627, …) | Technical, through its declared entrypoints | Yes, for engineering/F17–F19 |
 | Packed-artifact harness | Engineering (engineering/C7, #641) | Technical | Yes, for engineering/F18 |
 | Artifact identity | Packaging (`measure`, packaging/F4) | Technical | Yes, for engineering/F18 |
 
-## Who owns `Standard`: returned to the Owner
+## Who owns `Standard`: unresolved, returned to the Owner
+
+**Status: unresolved.** No capability owns `Standard` or `Applies to` until the Owner decides. Core is not the owner by default or by convenience. Until the decision, Engineering's Standards view has no DO, and nothing here assumes an owner.
 
 **No existing capability has this charter.** Checked on `main` and on every `kaal/*` collector's Capability Nodes:
 
@@ -141,4 +166,4 @@ T10 and T11 orchestrate checks whose rules are other owners'. Core owns the fron
 1. Creating the Standards capability, with the scope above. Recommended. The alternative is to keep `Standard` in Core after all, which the review advises against.
 2. The owner of the repository-native scope: Engineering, recommended, or another.
 
-Approving this PLAN authorizes the engineering/C5 DO only, after `Standard` and `Applies to` are available in `kaal/engineering` under their owner's own Change. It does not create the Standards capability: that needs the Owner's authorization above and its own PLAN. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
+Approving this PLAN authorizes two bounded DOs, each only once its prerequisites are met. The release-readiness DO needs the prerequisites listed under "Release readiness". The Standards view DO needs `Standard` and `Applies to` to be available in `kaal/engineering` under their owner's own Change, once the Owner has decided who that is. It does not create the Standards capability: that needs the Owner's authorization above and its own PLAN. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
