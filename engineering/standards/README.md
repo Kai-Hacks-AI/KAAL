@@ -1,6 +1,6 @@
 # Standards across KAAL: Engineering's part
 
-> PLAN (engineering/C5): nothing below exists yet. This PLAN is revised to the Owner's alignment on #610 (comment 6504619909). A standard is a KAAL Node owned by the Capability whose standard it is. Graph discovers and relates them. Engineering keeps no register and restates no other Capability's standard. It owns its own Engineering standards, derives a cross-Capability view, and orchestrates conformance checks. The first draft's central register is withdrawn.
+> PLAN (engineering/C5): nothing below exists yet. This PLAN is revised to the Owner's alignment on #610 (comment 6504619909). A standard is a KAAL Node owned by the Capability whose standard it is. Graph discovers and relates them. Engineering keeps no register and restates no other Capability's standard. It owns its own Engineering standards, derives a cross-Capability view, and orchestrates conformance checks. The first draft's central register is withdrawn. Revised again to the Owner's review on #610 (review 5715338615): `Standard` and `Applies to` carry domain semantics and are not assigned to Core, and each scope term is referenced at its own owner.
 
 ## The Node model
 
@@ -8,10 +8,16 @@
 - **Ownership and applicability are distinct.** A Standard declares where it applies through Edges typed by `Applies to`. Each Edge points at the Node it applies to:
   - a Capability Node, for one Capability;
   - a Definition such as `KAAL Capability`, for every Node typed by it, which is how cross-Capability scope is stated;
-  - one of the scope Definitions below.
+  - the Node that defines a scope, at that scope's own owner (see "Scope terms").
 
   Applying to a Capability gives its owner no say over the standard, and gives the standard's owner no ownership of that Capability.
-- **Scope Definitions.** These name the contexts the first draft listed: repository-native, `.kaal` integration and package. They are Definitions, so a Standard can apply to one through an Edge. Who owns each one is part of the Owner decision below.
+- **Scope terms.** The first draft named three contexts: repository-native, `.kaal` integration and package. None is invented here, and none is assigned to one owner for convenience. Each is referenced at the owner whose charter already covers it, and its meaning is not restated:
+
+  | Scope | Owner, by charter | The Node an `Applies to` Edge points at |
+  | --- | --- | --- |
+  | `.kaal` integration | Core: "installation contracts", the management that makes a repository KAAL-managed (`Core.md`) | Core's `Installation Contract` Definition, on `main` |
+  | package | Packaging: "how KAAL's deliverables become packages and what those packages are" (`Packaging.md`, #614) | Packaging's Capability Node; a `Package` Definition only if Packaging plans one |
+  | repository-native | No Capability defines it today. Engineering engineers this repository, so it is the candidate | Returned to the Owner below; until decided, a Standard applying to it is reported unresolved |
 - **Verification belongs to the Standard's owner.** A Standard names the Test Cases that verify conformance to it, by title. The owner writes them as reusable parametrized cases, as Core does for Installation Contracts (engineering/C4, #607). A claim no test can decide is validated by human–agent judgment, recorded, or left visibly unresolved, in Testing's terms. It is never shown as passing.
 
 ## What Engineering does
@@ -48,20 +54,36 @@ T10 and T11 orchestrate checks whose rules are other owners'. Core owns the fron
 
 | Concept | Owner | Kind | Needed for C5? |
 | --- | --- | --- | --- |
-| `Standard`, `Applies to`, the scope Definitions | Owner decision below | Technical: Standard Nodes are typed by `Standard`. Also an order prerequisite | **Yes** |
+| `Standard`, `Applies to` | A bounded **Standards** capability, proposed below, not yet authorized | Technical: Standard Nodes are typed by `Standard`. The DO cannot start until they exist | **Yes** |
+| Scope Nodes | Core, Packaging, and an owner to be decided (see "Scope terms") | Semantic reference: an `Applies to` target | No. A Standard whose scope does not resolve is reported unresolved |
 | Node lookup, Edges, derived incoming views | Graph | Technical, already used by Engineering's tests | Yes, on `main` |
 | Verification, validation, unknown | Testing | Semantic reference | Yes, as a reference only |
 | Ownership claims | Testing (the format, moving to Markdown per #609) and each Capability | Semantic reference: the owner of a path | Yes, as a reference only. The view follows the format when it moves |
 | Parametrized conformance cases | Each Standard's owner | Technical, per Standard, once the owner ships them | No, for C5. A Standard without cases is shown unresolved |
 | Representation Standard | Core | Semantic reference | No. It is shown unresolved until Core declares it |
 
-## Owner decision
+## Who owns `Standard`: returned to the Owner
 
-**Who owns `Standard`, `Applies to` and the scope Definitions?** They are KAAL-wide kinds that every Capability uses, so the owner should be one that every Capability may already reference.
+**No existing capability has this charter.** Checked on `main` and on every `kaal/*` collector's Capability Nodes:
 
-- **A: Core,** alongside `KAAL Definition` and `KAAL Capability`. Every Capability already references Core. **Selected by the Owner** (#610, review 5712653273), in Core's own bounded Change. An `Applies to` Edge declares applicability only. It is neither authorization nor evidence that anything ran, and a missing case or missing evidence stays unresolved.
-- **B: Engineering.** Every other Capability's Standards would then be typed by an Engineering Definition, and Engineering would be at the centre of a concept the Owner distributes.
+- Core manages what makes a repository KAAL-managed and "owns none of the domain semantics" of the disciplines (`Core.md`).
+- Controls is "for understanding controls"; it "keeps no registry or catalogue" and "maps to no compliance framework" (`Controls.md`).
+- Architecture holds architectural decisions and their grounds; its principles, such as `URBAN`, are its own decisions, not a charter for every Capability's standards (`Architecture.md`).
+- Testing owns verification and evidence, not what a standard is.
+- Change's "Standard Change" is a Change class, an unrelated sense of the word.
+- Graph owns Node and Edge mechanics only.
 
-Under either option, Engineering owns the `.kaal` integration and repository-native scope Definitions only if the Owner says so.
+**Proposal: a bounded Standards capability,** in its own package and PLAN, with its own Definitions and tests. It is not created by this PLAN, and nothing moves into Core, Controls or Engineering.
 
-Approving this PLAN authorizes the engineering/C5 DO only, after the `Standard` Definition is on `main` and synchronized into `kaal/engineering` under its owner's own Change. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
+- **Its scope, and only that.** What a Standard is, what `Applies to` means, and what conformance obligation a Standard creates: an owner's Test Cases decide it, or recorded judgment validates it, or it stays visibly unresolved.
+- **The minimal interoperable contract.** Two Definitions, `Standard` and `Applies to`, and the rule that a Standard names its conformance cases by title. `Applies to` declares applicability only: it is neither authorization nor evidence that anything ran. Any Capability can conform by data alone, with no runtime import.
+- **What it does not own.** No register or catalogue: Standard instances and their content stay with their owners. No scope term: each stays at its owner. No checking of anyone's conformance: each owner ships its cases, and Engineering orchestrates them here.
+- **Optional complements, each through its own contract.** Graph, for discovery and derived incoming views. Testing, for verified, validated and unknown; without it, every obligation reads unresolved. Controls, where a Standard is also documented as a control. Engineering, which orchestrates in this repository. Standards works without any of them.
+
+**What this changes elsewhere.** Core's #656 (core/C34) plans `Standard`, `Applies to` and the scope Definitions in Core, following the earlier selection. Under this proposal it would be withdrawn or narrowed, and that is Core's Change to make once the Owner decides; this PLAN changes nothing in Core.
+
+**For the Owner to authorize:**
+1. Creating the Standards capability, with the scope above. Recommended. The alternative is to keep `Standard` in Core after all, which the review advises against.
+2. The owner of the repository-native scope: Engineering, recommended, or another.
+
+Approving this PLAN authorizes the engineering/C5 DO only, after `Standard` and `Applies to` are available in `kaal/engineering` under their owner's own Change. It does not create the Standards capability: that needs the Owner's authorization above and its own PLAN. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
