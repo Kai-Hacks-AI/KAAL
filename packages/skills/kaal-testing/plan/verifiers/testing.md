@@ -18,7 +18,7 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/verifier
 
 The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all nine are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
 
-**Checked against a throwaway implementation.** A18 was implemented outside the repository. All nine tests pass against it, and each of 73 mutants of it fails at least one test. The mutants cover:
+**Checked against a throwaway implementation.** A18 was implemented outside the repository. All nine tests pass against it, and each of 75 mutants of it fails at least one test. The mutants cover:
 - two summary lines accepted;
 - result words that are not distinct;
 - an undeclared word read as verified;
@@ -42,6 +42,6 @@ The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers
 - the diagnosis not judged, a verified run's diagnosis accepted, malformed evidence or uncertainty accepted, neither evidence nor uncertainty accepted, an unnamed step kind or empty step accepted, a precise fix under uncertainty accepted, or an exploratory step other than analyze accepted;
 - an empty platform or complement name accepted, a malformed complement list ignored beside a platform scope, a required dependency accepted as an absent complement, a complement's absence read from an inherited key or not checked, either exclusion dropped, the shown platforms or complements not compared, or a complement, dependency or complement-present scenario dropped or its result changed; and for `absent`, the complement's presence read from an inherited key, that exclusion dropped, the list unchecked for a required dependency, or the shown list not compared.
 
-testing/F50 is checked by testing/T54 and testing/T58: each scenario's expected result is the tests' own, and a verifier that claims failed for a tampered installation, or for any other scenario that expects unknown, never conforms. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
+testing/F50 is checked by testing/T54 and testing/T58: each scenario's expected result is the tests' own, and a verifier that claims failed for a tampered installation, or for any other scenario that expects unknown, never conforms. T58 builds each claim with exactly the diagnosis testing/F49 asks of the claimed result, and also claims it by the result word alone, so its refusals test the result and not the diagnosis; two more mutants, comparing the result only for one side, are each killed. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
 
 testing/N9 is checked by review of `testing/C30`: the module imports nothing.

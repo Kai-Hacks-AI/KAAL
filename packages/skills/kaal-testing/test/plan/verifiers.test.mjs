@@ -85,6 +85,12 @@ function conforming({ id }) {
   };
   return summary;
 }
+/** `summary` claiming `result`, with exactly the diagnosis testing/F49 asks of that result, so only the claim itself can disagree. */
+function claiming(summary, result) {
+  const { cause, evidence, uncertainty, next, ...rest } = summary;
+  if (result === "verified") return { ...rest, result: VERIFIER.words.verified };
+  return { ...rest, result: VERIFIER.words[result], cause: cause ?? "claimed", evidence: evidence ?? ["what the verifier claims"], next: next ?? { kind: "diagnostic", step: "inspect the evidence" } };
+}
 const run = (summary, exit, extra = "") => ({ exit, stdout: `case acme/T1 ...\n${extra}${VERIFIER.prefix}${JSON.stringify(summary)}\nnpm notice after it\n` });
 
 describe("The shared observable result contract for consumer verifiers (testing/C29)", () => {
@@ -175,11 +181,14 @@ describe("The shared observable result contract for consumer verifiers (testing/
     const { observe, judge, SCENARIOS } = await contract();
     for (const s of SCENARIOS) {
       for (const claimed of ["verified", "failed", "unknown"].filter((r) => r !== s.result)) {
-        const summary = { ...conforming(s), result: VERIFIER.words[claimed] };
-        if (claimed === "verified") delete summary.cause;
-        else summary.cause ??= "claimed";
-        const j = judge(s.id, observe(run(summary, EXIT[claimed]), VERIFIER), factsFor(s.id));
-        assert.equal(j.conforms, false, `${s.id}: a verifier claiming ${claimed} where ${s.result} is expected`);
+        const summary = claiming(conforming(s), claimed);
+        for (const exit of [EXIT[claimed], EXIT[s.result]]) {
+          const j = judge(s.id, observe(run(summary, exit), VERIFIER), factsFor(s.id));
+          assert.equal(j.conforms, false, `${s.id}: a verifier claiming ${claimed}, exiting ${exit}, where ${s.result} is expected`);
+        }
+        const wordOnly = { ...conforming(s), result: VERIFIER.words[claimed] };
+        const j = judge(s.id, observe(run(wordOnly, EXIT[s.result]), VERIFIER), factsFor(s.id));
+        assert.equal(j.conforms, false, `${s.id}: only the result word claims ${claimed}, where ${s.result} is expected`);
       }
     }
     assert.equal(judge("clean", { observation: null, findings: ["no summary line"] }, FACTS).conforms, false, "a run with no observation never conforms");
@@ -189,16 +198,14 @@ describe("The shared observable result contract for consumer verifiers (testing/
     const { observe, judge, SCENARIOS } = await contract();
     const verdict = (id, summary, exit, facts = factsFor(id)) => judge(id, observe(run(summary, exit), VERIFIER), facts);
     const claimInapplicable = (id) => {
-      const summary = conforming({ id });
-      summary.result = VERIFIER.words.verified;
-      delete summary.cause;
+      const summary = claiming(conforming({ id }), "verified");
       summary.cases[1] = { name: FACTS.target, outcome: "not applicable", applicability: structuredClone(SCOPE) };
       return summary;
     };
     for (const id of ["case-skipped", "case-todo", "inapplicable-unsupported"]) {
       assert.notEqual(SCENARIOS.find((s) => s.id === id).result, "verified", `${id} is never verified`);
       assert.equal(verdict(id, claimInapplicable(id), EXIT.verified).conforms, false, `${id}: the case converted into a claimed inapplicable one, verified`);
-      const quiet = { ...claimInapplicable(id), result: VERIFIER.words.unknown, cause: "claimed" };
+      const quiet = claiming(claimInapplicable(id), "unknown");
       assert.equal(verdict(id, quiet, EXIT.unknown).conforms, false, `${id}: the case claimed inapplicable, even under unknown`);
     }
     const unestablished = {
@@ -233,7 +240,7 @@ describe("The shared observable result contract for consumer verifiers (testing/
   it("testing/T60 [testing/F48]: neither evasion verifies: a declared case silently omitted on a platform, or replaced there by a stand-in, stays visible as not run; an inapplicable case is never counted as passed", async () => {
     const { observe, judge } = await contract();
     const verdict = (id, summary, exit) => judge(id, observe(run(summary, exit), VERIFIER), factsFor(id));
-    const greenLooking = (id, cases) => ({ ...conforming({ id }), result: VERIFIER.words.verified, cause: undefined, cases });
+    const greenLooking = (id, cases) => ({ ...claiming(conforming({ id }), "verified"), cases });
     for (const id of ["case-omitted", "case-substituted"]) {
       assert.equal(verdict(id, conforming({ id }), EXIT.unknown).conforms, true, `${id}: a verifier that shows the declared case as not run conforms`);
       const omitted = [{ name: "acme/T1", outcome: "pass" }];
@@ -314,7 +321,7 @@ describe("The shared observable result contract for consumer verifiers (testing/
     const missing = { ...FACTS, applicability: { [FACTS.target]: { requires: ["@acme/core"], reason: "acme/T2 needs the core" } }, complements: { "@acme/core": "absent" } };
     const claimed = conforming({ id: "dependency-missing" });
     claimed.cases = [{ name: "acme/T1", outcome: "pass" }, { name: FACTS.target, outcome: "not applicable", applicability: structuredClone(missing.applicability[FACTS.target]) }];
-    assert.equal(judge("dependency-missing", observe(run({ ...claimed, result: VERIFIER.words.verified, cause: undefined, evidence: undefined, next: undefined }, EXIT.verified), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, verified");
+    assert.equal(judge("dependency-missing", observe(run(claiming(claimed, "verified"), EXIT.verified), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, verified");
     assert.equal(judge("dependency-missing", observe(run(claimed, EXIT.unknown), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, even under unknown");
     assert.equal(judge("dependency-missing", observe(run(conforming({ id: "dependency-missing" }), EXIT.unknown), VERIFIER), FACTS).conforms, true, "a missing required dependency reported unknown conforms");
     const without = factsFor("complement-present");
