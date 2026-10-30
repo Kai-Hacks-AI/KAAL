@@ -1,6 +1,6 @@
 # Engineering's controls
 
-> PLAN (engineering/C3): nothing below exists yet. This PLAN proposes seven Controls for the engineering concerns Engineering owns in this repository, each with its own Intent, Requirements, Architecture, Tests and realization, revised to the Owner's Control model (#585, comment 6501504603). The seven are a proposed, bounded scope. The DO waits for one thing only: Controls (`kaal-controls`, with `Control` and `Realized by`) being on `main` and synchronized into `kaal/engineering`. "Dependencies" below separates that from what is only a semantic reference and from what can be deferred.
+> PLAN (engineering/C3): nothing below exists yet. This PLAN proposes seven Controls for the engineering concerns Engineering owns in this repository, each with its own Intent, Requirements, Architecture, Tests and realization, revised to the Owner's Control model (#585, comment 6501504603). The seven are a **bounded first delivery**, not a claim of complete coverage of Engineering's gates (#585, comment 6522975178): CodeQL and Dependency Review stay uncovered, and every report says so. The DO waits for one thing only: Controls (`kaal-controls`, with `Control` and `Realized by`) being on `main` and synchronized into `kaal/engineering`. "Dependencies" below separates that from what is only a semantic reference and from what can be deferred.
 
 ## The model, as the Owner set it
 
@@ -10,9 +10,11 @@ A Control is a bounded, enduring engineering concern. It has an Intent. Requirem
 - **Reuse, not copies.** Every realization below already exists under its current owner: Engineering's checkers, Guard's check declarations, Branching's rules. A Control's Architecture names each one by a stable reference. Nothing is copied into `engineering/controls/`.
 - **Assurance uses KAAL's own terms, not a separate notion of effectiveness.** Testing defines verification and validation, and Controls calibrates claims by them. Every claim of a Control, its Intent included, gets one of three assurance states:
   - **verified**: a Test Case decides it deterministically. This is preferred wherever a claim is testable, at every level, the Intent included.
-  - **validated**: a person or an Agent judged it, because it rests on judgment rather than a test. The record names who judged, what, and where: for example, the Owner's review of the Control's PLAN. Human judgment is a first-class way to assure a claim, not a fallback.
+  - **validated**: a person or an Agent judged it, because it rests on judgment rather than a test. The record names who judged, what, and where: for example, the Owner's review of the Control's PLAN. Human judgment is a first-class way to assure a claim, not a fallback. A validation assures a **design claim** only: that the Intent is the right concern and the design answers it. It never shows that the control operated.
   - **unresolved**: neither has decided it yet. It is shown on every run, never as passing. This is Testing's "unknown".
-- **Neither traceability nor a declared rule proves operation.** A `Realized by` Edge says where a control is claimed to be realized. A GitHub rule declares what should happen. Neither shows that the control operated. A claim about operation is verified only from an observed record, such as a check's result for a named commit. Otherwise it stays unresolved.
+- **Design claims and operation claims are kept apart.** Each testing.md row says which it is.
+  - A **design claim** is about the Intent, the Requirements and the Architecture. It is verified by a Test Case, or validated by a judgment such as the Owner's review of this PLAN.
+  - An **operation claim** says the control acted on a particular pull request, commit or schedule. It is verified only from an observed record: a Run, a check result for a named commit, or a merge record. No review, `Realized by` Edge or declared GitHub rule stands for one. An operation claim without such a record is unresolved, and it is never validated.
 - **Escalation, without new machinery.** When the structural test finds something it cannot decide, such as a gate no Control cites, two Capabilities claiming one path, or a reference that resolves twice, it reports the finding as unresolved and decides nothing. The Agent working the Change investigates with the authority it already has, and takes anything that needs a new decision to the Owner. This follows the direction PREACH describes. It is cited as a description, not as a contract (see "Dependencies").
 
 ## Layout
@@ -113,10 +115,18 @@ The bracket traces are the form every PLAN in this repository uses today. When R
 - **A1** [F1]. It is directive today and kept by hand, as `branching:One promotion at a time` says. engineering/C2's Test Cases realize it once they are GREEN. It is `Realized by` Branching.
 - **Assurance.**
   - I1 is validated by the Owner's review of this PLAN.
-  - F1 is unresolved as a verification until engineering/C2's Test Cases are GREEN. Until then, the queue is kept by people and Agents, and each promotion's go is the Owner's own validation, recorded on its pull request.
+  - F1 is unresolved as a verification until engineering/C2's Test Cases are GREEN. Until then, the queue is kept by people and Agents.
+  - Each promotion's go is the Owner's validation of that decision, recorded on its pull request. It is a design judgment, and it is not evidence that only one pair was open. That operation claim stays unresolved until a case reads it from observed pull request records.
   - Mechanism level: Human today, Program once engineering/C2 lands. In HAPTIC's terms, that is the control moving up the ladder.
 
-**Gates outside these seven.** `workflow:codeql.yml#analyze` and `workflow:dependency-review.yml#dependency-review` are security gates. No Control documents them, so they are listed here as known and **uncovered**, and the structural test reports them as uncovered on every run. Covering one is a change to this PLAN's scope, not to that list. `workflow:guard-release.yml` runs only by dispatch and gates no Change.
+## Coverage: a bounded first delivery
+
+The invariant: **every discovered gate is either mapped to an owned Control, or reported as an unresolved coverage finding.** There are no silent exclusions, and partial coverage is never an overall GREEN.
+
+- **Discovered, not listed.** The structural test discovers gates from the repository itself: every `.kaal/config/guard/*.md` declaration, and every workflow job that a pull request, push, merge group or schedule runs. It does not read them from this PLAN.
+- **Uncovered today.** `workflow:codeql.yml#analyze` and `workflow:dependency-review.yml#dependency-review` are security gates that no Control documents. Each is reported as an **unresolved coverage finding** on every run, naming the gate. Covering one is a later Change to this scope.
+- **Not a gate, stated.** `workflow:guard-release.yml` runs only by dispatch and gates no Change. It is listed as not a gate, with that reason, on every run. The test checks the reason from the workflow's own triggers, so if the workflow gains a pull request, push or schedule trigger, it becomes an uncovered gate.
+- **The overall result.** The coverage report's overall state is unresolved while any coverage finding is open, whatever the seven Controls show. It never reads as complete or GREEN on partial coverage.
 
 ## Branching as a Definition Node
 
@@ -130,13 +140,16 @@ This is the Owner's decision A on #585. The DO gives `engineering/github/branchi
 | --- | --- | --- |
 | Each Control is whole | Every `engineering/controls/<control>/` holds its Control Node, typed by `Control`, and the four files. The Node's link to its intent.md resolves | A Control directory with no requirements.md |
 | Traces resolve | Every Requirement names an Intent that exists, every Architecture element names Requirements that exist, and every testing.md row names a Requirement | A Requirement citing `I9`, which does not exist |
-| Every claim has an assurance state | Every Intent and Requirement has a testing.md row: **verified**, citing a test file and `describe` title that exist; **validated**, naming who judged, what, and a link to where; or **unresolved**, with its reason. Unresolved rows are listed on every run, never as passing | A row citing a `describe` title that is not in the file. A validated row with no link. A Requirement with no row |
+| Every claim has an assurance state | Every Intent and Requirement has a testing.md row, marked as a design or an operation claim: **verified**, citing a test file and `describe` title that exist; **validated**, naming who judged, what, and a link to where; or **unresolved**, with its reason. Unresolved rows are listed on every run, never as passing | A row citing a `describe` title that is not in the file. A validated row with no link. A Requirement with no row |
 | References resolve | Every `guard-check:`, `workflow:`, `branching:` and `code:` reference resolves to exactly one declaration, job, heading or export | A Control citing `guard-check:Nonexistent` |
-| No undocumented gate | Every `.kaal/config/guard/*.md` declaration, and every job a pull request, push or schedule runs, is cited by a Control or listed as uncovered | A new `.kaal/config/guard/New.md`. A new job in `ci.yml` |
+| No undocumented gate | Every discovered gate, every `.kaal/config/guard/*.md` declaration and every job a pull request, push, merge group or schedule runs, is cited by a Control or reported as an unresolved coverage finding, naming it | A new `.kaal/config/guard/New.md`. A new job in `ci.yml`. A schedule trigger added to `guard-release.yml` |
+| No GREEN on partial coverage | While any coverage finding is open, the report's overall state is unresolved, never complete or GREEN, even when every Control's claims are verified or validated | Today's tree, with CodeQL and Dependency Review uncovered, reported as complete |
+| No silent exclusion | A gate can leave the report only by being cited by a Control. Anything listed as not a gate carries a reason the test checks against its triggers | An exclusion list that drops `codeql.yml` |
+| Operation needs observed evidence | Every testing.md row says whether it is a design or an operation claim. An operation claim is verified only by citing an observed Run, check result or merge record, or else stays unresolved. A validated operation claim is refused | A row claiming "Change Isolation ran on #NNN" as validated by the Owner's review. An operation row citing a ruleset as its evidence |
 | Nothing copied | `engineering/controls/` holds only Markdown | A `.mjs` file placed in a Control directory |
 | Realized by | Each `Realized by` Edge resolves through Graph's `identify` to Guard or Branching | An Edge to a Node that does not exist |
 
-**What these tests do not claim.** Coverage is not effectiveness. They show that every repository-declared gate is documented by a Control, and that every claim is verified, validated or visibly unresolved. They do not show that a ruleset requires a check, that a check ran, or that a control works. Nothing in this PLAN or its DO claims a ruleset enforces a control.
+**What these tests do not claim.** Coverage is not effectiveness. They show that every discovered gate is documented by a Control or reported as a coverage finding, and that every claim is verified, validated or visibly unresolved. They do not show that a ruleset requires a check, that a check ran, or that a control works. Nothing in this PLAN or its DO claims a ruleset enforces a control.
 
 ## Dependencies
 
@@ -168,6 +181,6 @@ Core's admission (`register`, `catalog`), Graph's `identify` and Edge form, and 
 ## Owner decisions
 
 1. **Branching's Node.** Decided, A (#585): `branching.md` becomes a KAAL Definition Node, with its rules and ownership unchanged.
-2. **The scope.** Are these seven the right Controls to document first? The DO documents exactly the approved list, and the two security gates stay visibly uncovered.
+2. **The scope.** These seven are a bounded first delivery. The DO documents exactly the approved list, and the two security gates stay reported as unresolved coverage findings until a later Change covers them.
 
 Approving this PLAN authorizes the engineering/C3 DO only, once Controls is on `main`. It authorizes no synchronization, promotion or publication, and no change to any check, ruleset or workflow.
