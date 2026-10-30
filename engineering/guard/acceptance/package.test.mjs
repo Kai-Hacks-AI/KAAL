@@ -657,7 +657,7 @@ describe("guard/F40 platforms in Guard's tests", () => {
       const found = audit({ files: { ...files, "fixture.mjs": `it("guard/T0 [guard/F3] runs everywhere", () => {});\n${fixture}` }, engineering, delivered });
       assert.ok(found.some((f) => f.startsWith("fixture.mjs:")), `${name} is not refused: ${JSON.stringify(found)}`);
     }
-    const row = engineering.split("\n").find((l) => l.startsWith("| guard/T114 |"));
+    const row = engineering.split(/\r?\n/).find((l) => l.startsWith("| guard/T114 |"));
     const cells = row.split(" | ");
     const edits = {
       ...Object.fromEntries(Object.entries(fixtures.plan).map(([name, [from, to]]) => [name, row.replace(from, to)])),
