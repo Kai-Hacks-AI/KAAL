@@ -12,12 +12,13 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/verifier
 | testing/T59: a case is not applicable only where the harness established an explicit platform scope excluding the platform, and a reason; a skipped, todo or unsupported case claimed inapplicable never verifies | testing/F47 | Requirements |
 | testing/T60: neither evasion verifies: a declared case silently omitted on a platform, or replaced there by a stand-in, stays visible as not run; an inapplicable case is never counted as passed | testing/F48 | Requirements |
 | testing/T61: a run that is not verified reports its observation, its evidence or uncertainty, and a next step that claims no more than it knows; a verified run reports none | testing/F49 | Requirements |
+| testing/T62: a case that needs an optional complement is not applicable only where the harness established that complement absent and optional; a missing required dependency never makes a case inapplicable, and never verifies | testing/F47 | Requirements |
 
 ## RED evidence
 
-The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all eight are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
+The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all nine are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
 
-**Checked against a throwaway implementation.** A18 was implemented outside the repository. All eight tests pass against it, and each of 51 mutants of it fails at least one test. The mutants cover:
+**Checked against a throwaway implementation.** A18 was implemented outside the repository. All nine tests pass against it, and each of 66 mutants of it fails at least one test. The mutants cover:
 - two summary lines accepted;
 - result words that are not distinct;
 - an undeclared word read as verified;
@@ -38,6 +39,9 @@ The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers
 - applicability read from an inherited key, its platform scope allowed to be empty or to include the platform, its reason allowed to be empty, the shown scope or reason not compared, or the claim not checked at all;
 - the unsupported-inapplicability scenario dropped;
 - an undeclared reported case accepted, the omission or substitution scenario dropped, or omission expected verified;
-- the diagnosis not judged, a verified run's diagnosis accepted, malformed evidence or uncertainty accepted, neither evidence nor uncertainty accepted, an unnamed step kind or empty step accepted, a precise fix under uncertainty accepted, or an exploratory step other than analyze accepted. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
+- the diagnosis not judged, a verified run's diagnosis accepted, malformed evidence or uncertainty accepted, neither evidence nor uncertainty accepted, an unnamed step kind or empty step accepted, a precise fix under uncertainty accepted, or an exploratory step other than analyze accepted;
+- an empty platform or complement name accepted, a malformed complement list ignored beside a platform scope, a required dependency accepted as an absent complement, a complement's absence read from an inherited key or not checked, either exclusion dropped, the shown platforms or complements not compared, or the complement or dependency scenario dropped or its result changed.
+
+testing/F50 is checked by testing/T54 and testing/T58: each scenario's expected result is the tests' own, and a verifier that claims failed for a tampered installation, or for any other scenario that expects unknown, never conforms. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
 
 testing/N9 is checked by review of `testing/C30`: the module imports nothing.

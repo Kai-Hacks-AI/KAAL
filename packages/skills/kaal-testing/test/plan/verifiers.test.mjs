@@ -30,6 +30,8 @@ const FACTS = {
   cases: ["acme/T1", "acme/T2"],
   target: "acme/T2",
   applicability: {},
+  dependencies: ["@acme/core"],
+  complements: {},
 };
 /** The applicability the harness established itself for the targeted case: a platform scope that excludes this platform, and a reason. */
 const SCOPE = { platforms: ["win32"], reason: "acme/T2 checks Windows ACLs" };
@@ -37,7 +39,14 @@ const SCOPE = { platforms: ["win32"], reason: "acme/T2 checks Windows ACLs" };
  * The facts in scenario `id`: where the manifest declares no case, the harness established none; only where it
  * declares the targeted case not applicable did the harness establish its applicability.
  */
-const factsFor = (id) => (id === "no-case" ? { ...FACTS, cases: [], target: undefined } : id === "not-applicable" ? { ...FACTS, applicability: { [FACTS.target]: SCOPE } } : FACTS);
+/** The applicability the harness established for the targeted case where it needs an optional complement the consumer has not installed. */
+const COMPLEMENT = { requires: ["@acme/graph"], reason: "acme/T2 exercises the Graph complement" };
+const FACTS_BY = {
+  "no-case": { ...FACTS, cases: [], target: undefined },
+  "not-applicable": { ...FACTS, applicability: { [FACTS.target]: SCOPE } },
+  "complement-absent": { ...FACTS, applicability: { [FACTS.target]: COMPLEMENT }, complements: { "@acme/graph": "absent" } },
+};
+const factsFor = (id) => FACTS_BY[id] ?? FACTS;
 /** What the contract expects in each scenario, owned by these tests rather than read from the implementation. */
 const EXPECTED = {
   clean: { result: "verified", cases: "pass" },
@@ -53,6 +62,8 @@ const EXPECTED = {
   "case-skipped": { result: "unknown", cases: "pass", target: "skipped" },
   "case-todo": { result: "unknown", cases: "pass", target: "todo" },
   "not-applicable": { result: "verified", cases: "pass", target: "not applicable" },
+  "complement-absent": { result: "verified", cases: "pass", target: "not applicable" },
+  "dependency-missing": { result: "unknown", cases: "any" },
   "inapplicable-unsupported": { result: "unknown", cases: "pass", target: "not run" },
   "case-failing": { result: "failed", cases: "pass", target: "fail" },
   "consumer-changed": { result: "failed", cases: "pass" },
@@ -68,7 +79,7 @@ function conforming({ id }) {
     platform: FACTS.platform,
     node: FACTS.node,
     digest: FACTS.digest,
-    cases: cases === "none" ? [] : FACTS.cases.map((name) => ({ name, outcome: outcome(name), ...(outcome(name) === "not applicable" ? { applicability: structuredClone(SCOPE) } : {}) })),
+    cases: cases === "none" ? [] : FACTS.cases.map((name) => ({ name, outcome: outcome(name), ...(outcome(name) === "not applicable" ? { applicability: structuredClone(factsFor(id).applicability[name]) } : {}) })),
   };
   return summary;
 }
@@ -193,6 +204,8 @@ describe("The shared observable result contract for consumer verifiers (testing/
       "a scope that includes this platform": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, platforms: ["win32", "linux"] } } },
       "no platform scope": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, platforms: [] } } },
       "no reason": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, reason: "" } } },
+      "a platform scope naming an empty platform": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, platforms: [""] } } },
+      "a malformed complement list beside a platform scope": { ...FACTS, applicability: { [FACTS.target]: { ...SCOPE, requires: [] } } },
       "applicability only inherited": { ...FACTS, applicability: Object.create({ [FACTS.target]: SCOPE }) },
     };
     for (const [why, facts] of Object.entries(unestablished)) {
@@ -269,5 +282,38 @@ describe("The shared observable result contract for consumer verifiers (testing/
     for (const [why, change] of Object.entries({ "a next step": (s) => (s.next = { kind: "diagnostic", step: "inspect" }), "an uncertainty": (s) => (s.uncertainty = "none"), "evidence": (s) => (s.evidence = ["all passed"]) })) {
       assert.equal(verdict("clean", change, EXIT.verified).conforms, false, `a verified run that reports ${why}`);
     }
+  });
+
+  it("testing/T62 [testing/F47]: a case that needs an optional complement is not applicable only where the harness established that complement absent and optional; a missing required dependency never makes a case inapplicable, and never verifies", async () => {
+    const { observe, judge } = await contract();
+    const id = "complement-absent";
+    const verdict = (facts, change = () => {}, scenario = id, exit = EXIT.verified) => {
+      const summary = conforming({ id });
+      change(summary.cases[1]);
+      return judge(scenario, observe(run(summary, exit), VERIFIER), facts);
+    };
+    const base = factsFor(id);
+    assert.equal(verdict(base).conforms, true, "the complement established absent and optional");
+    const unestablished = {
+      "the complement present": { ...base, complements: { "@acme/graph": "present" } },
+      "nothing about the complement": { ...base, complements: {} },
+      "the complement's absence only inherited": { ...base, complements: Object.create({ "@acme/graph": "absent" }) },
+      "the complement a required dependency": { ...base, dependencies: ["@acme/core", "@acme/graph"] },
+      "no complement named": { ...base, applicability: { [FACTS.target]: { ...COMPLEMENT, requires: [] } } },
+      "no reason": { ...base, applicability: { [FACTS.target]: { ...COMPLEMENT, reason: "" } } },
+      "neither a platform scope nor a complement": { ...base, applicability: { [FACTS.target]: { reason: COMPLEMENT.reason } } },
+    };
+    for (const [why, facts] of Object.entries(unestablished)) {
+      const shown = (c) => Object.hasOwn(facts.applicability, FACTS.target) && (c.applicability = structuredClone(facts.applicability[FACTS.target]));
+      assert.equal(verdict(facts, shown).conforms, false, `the harness established ${why}`);
+    }
+    assert.equal(verdict(base, (c) => (c.applicability.requires = ["@acme/other"])).conforms, false, "the verifier names another complement");
+    assert.equal(verdict(base, (c) => (c.applicability = structuredClone(SCOPE))).conforms, false, "the verifier gives a platform scope for a complement's absence");
+    const missing = { ...FACTS, applicability: { [FACTS.target]: { requires: ["@acme/core"], reason: "acme/T2 needs the core" } }, complements: { "@acme/core": "absent" } };
+    const claimed = conforming({ id: "dependency-missing" });
+    claimed.cases = [{ name: "acme/T1", outcome: "pass" }, { name: FACTS.target, outcome: "not applicable", applicability: structuredClone(missing.applicability[FACTS.target]) }];
+    assert.equal(judge("dependency-missing", observe(run({ ...claimed, result: VERIFIER.words.verified, cause: undefined, evidence: undefined, next: undefined }, EXIT.verified), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, verified");
+    assert.equal(judge("dependency-missing", observe(run(claimed, EXIT.unknown), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, even under unknown");
+    assert.equal(judge("dependency-missing", observe(run(conforming({ id: "dependency-missing" }), EXIT.unknown), VERIFIER), FACTS).conforms, true, "a missing required dependency reported unknown conforms");
   });
 });
