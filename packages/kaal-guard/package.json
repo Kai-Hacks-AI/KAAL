@@ -1,6 +1,6 @@
 {
   "name": "@kaihacksai/kaal-guard",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Connects a repository's own checks to its local Git hooks and to GitHub CI, with one meaning per check.",
   "license": "MIT",
   "repository": {
@@ -17,10 +17,15 @@
     "lib",
     "templates",
     "skills",
-    "contract.json"
+    "contract.json",
+    "docs",
+    "test/acceptance",
+    "test/unit",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs test/acceptance/*.test.mjs"
+    "test": "node test/verify.mjs"
   },
   "engines": {
     "node": ">=24"
