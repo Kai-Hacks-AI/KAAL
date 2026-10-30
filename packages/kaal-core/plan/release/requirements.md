@@ -38,7 +38,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - **failed**, when a declared case failed;
   - **cannot verify**, in every other case. These include:
     - the manifest is missing or unreadable;
-    - an installed file is missing, added or changed against it;
+    - an installed file is missing, added or changed against it. An added file counts only in an installation, because a source workspace also holds files that do not ship (`core/A43`);
     - a declared case did not run, was skipped or was marked todo;
     - a case ran that the manifest does not declare;
     - no case is declared;

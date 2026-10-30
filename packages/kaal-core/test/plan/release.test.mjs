@@ -227,7 +227,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
   });
 
   // Added by core/C36: the shipped verifier decides on the declared inventory, never on counts (core/F70, core/A43).
-  it("core/T91 [core/F70, core/F85, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed, added or missing file, a missing manifest and an empty inventory are each cannot verify, a declared failing case is failed, each result names its evidence and cause, and the fixture is left as it was", { timeout: 300_000 }, () => {
+  it("core/T91 [core/F70, core/F85, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each result names its evidence and cause, and the fixture is left as it was", { timeout: 300_000 }, () => {
     const verifier = join(CORE, "test", "verify.mjs");
     assert.ok(existsSync(verifier), "blocked before behavioural assertion: no shipped test/verify.mjs");
     const sha = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -248,8 +248,9 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     try {
       let n = 0;
       /** A fixture package: its files, then a manifest consistent with them unless `after` changes the files afterwards. */
-      const fixture = ({ files = PASSING, cases = DECLARED, manifest = true, after } = {}) => {
-        const dir = join(work, `f${n++}`);
+      // Installed-shaped unless `source`: the verifier tells an installation by its directory sitting directly in node_modules (core/A34, core/A43).
+      const fixture = ({ files = PASSING, cases = DECLARED, manifest = true, after, source = false } = {}) => {
+        const dir = source ? join(work, `f${n++}`) : join(work, `f${n++}`, "node_modules", "fixture");
         const all = { "package.json": JSON.stringify({ name: "fixture", version: "1.0.0", type: "module" }), ...files };
         for (const [path, text] of Object.entries(all)) {
           mkdirSync(dirname(join(dir, path)), { recursive: true });
@@ -291,6 +292,9 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       expect(fixture({ after: (dir) => rmSync(join(dir, "package.json")) }), 2, "cannot verify", "a file the manifest lists is missing", "package.json");
       const nested = fixture({ after: (dir) => { mkdirSync(join(dir, "node_modules", "dep"), { recursive: true }); writeFileSync(join(dir, "node_modules", "dep", "index.js"), ""); } });
       expect(nested, 0, "verified", "a nested node_modules is the consumer's, not the package's");
+      const checkout = fixture({ source: true, after: (dir) => { for (const marker of ["src", "test/plan"]) { mkdirSync(join(dir, marker), { recursive: true }); writeFileSync(join(dir, marker, "unshipped.mjs"), "export {};\n"); } } });
+      expect(checkout, 0, "verified", "a source workspace holds files that do not ship, and they are not added files");
+      expect(fixture({ source: true, after: (dir) => writeFileSync(join(dir, "test", "unit", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "in source too, a shipped file changed after the manifest was made", "test/unit/code.test.mjs");
       const bare = verify(fixture({ manifest: false }));
       assert.equal(bare.status, 2, `no manifest: ${bare.out}`);
       assert.match(bare.last, /cannot verify/, `no manifest is never verified: ${bare.out}`);
