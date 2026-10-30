@@ -227,7 +227,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
   });
 
   // Added by core/C36: the shipped verifier decides on the declared inventory, never on counts (core/F70, core/A43).
-  it("core/T91 [core/F70, core/F85, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each result names its evidence and cause, and the fixture is left as it was", { timeout: 300_000 }, () => {
+  it("core/T91 [core/F70, core/F85, core/F87, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each run emits one execution record naming its candidate and each required case's outcome, each result names its candidate, evidence and cause, and the fixture is left as it was", { timeout: 300_000 }, () => {
     const verifier = join(CORE, "test", "verify.mjs");
     assert.ok(existsSync(verifier), "blocked before behavioural assertion: no shipped test/verify.mjs");
     const sha = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -239,10 +239,10 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       "test/unit/code.test.mjs": 'import { writeFileSync } from "node:fs";\nimport { it } from "node:test";\nit("d", () => { writeFileSync("written-by-a-case.txt", "x"); });\n',
     };
     const DECLARED = [
-      { file: "test/acceptance/intent.test.mjs", name: "S > a" },
-      { file: "test/acceptance/requirements.test.mjs", name: "b" },
-      { file: "test/acceptance/architecture.test.mjs", name: "c" },
-      { file: "test/unit/code.test.mjs", name: "d" },
+      { file: "test/acceptance/intent.test.mjs", name: "S > a", tests: ["core/I1"] },
+      { file: "test/acceptance/requirements.test.mjs", name: "b", tests: ["core/F1"] },
+      { file: "test/acceptance/architecture.test.mjs", name: "c", tests: ["core/A1"] },
+      { file: "test/unit/code.test.mjs", name: "d", tests: ["core/F1"] },
     ];
     const work = mkdtempSync(join(tmpdir(), "kaal-core-verifier-"));
     try {
@@ -265,13 +265,20 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       };
       const verify = (dir) => {
         const r = run(process.execPath, [join(dir, "test", "verify.mjs")], dir);
-        return { ...r, last: r.stdout.trim().split(/\r?\n/).pop() ?? "" };
+        const lines = r.stdout.trim().split(/\r?\n/);
+        const records = lines.filter((l) => l.startsWith("kaal-core-execution: "));
+        return { ...r, last: lines.pop() ?? "", record: records.length === 1 ? JSON.parse(records[0].slice("kaal-core-execution: ".length)) : undefined, records: records.length };
       };
+      /** The execution record's outcome for each case, by name (core/F87). */
+      const outcomes = (r) => Object.fromEntries((r.record?.cases ?? []).map((c) => [c.name, c.outcome]));
       const expect = (dir, status, word, why, cause) => {
         const r = verify(dir);
         assert.equal(r.status, status, `${why}: ${r.out}`);
         assert.match(r.last, new RegExp(`\\b${word}\\b`), `${why}: ${r.out}`);
+        assert.match(r.last, /fixture@1\.0\.0/, `the result line names the candidate: ${r.out}`);
         assert.match(r.last, /\d+ declared, \d+ executed/, `the result line states its evidence: ${r.out}`);
+        assert.equal(r.records, 1, `each run emits exactly one execution record before its result (core/F87): ${r.out}`);
+        assert.deepEqual({ name: r.record.candidate?.name, version: r.record.candidate?.version }, { name: "fixture", version: "1.0.0" }, `the record names its candidate: ${r.out}`);
         if (cause) assert.ok(r.last.includes(cause), `the result line names its cause, ${cause}: ${r.out}`);
         return r;
       };
@@ -280,16 +287,21 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       const before = Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))]));
       const ok = expect(good, 0, "verified", "an intact fixture whose declared cases all pass");
       assert.match(ok.last, /4 declared, 4 executed/, ok.out);
+      assert.equal(ok.record.candidate.manifest, sha(join(good, "test", "verify.json")), "the record identifies the candidate by its manifest's SHA-256");
+      assert.deepEqual(outcomes(ok), { "S > a": "passed", b: "passed", c: "passed", d: "passed" }, "every required case executed successfully");
       assert.deepEqual(Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))])), before, "verification leaves the package as it was (core/N23)");
 
       expect(fixture({ cases: [...DECLARED, { file: "test/unit/code.test.mjs", name: "e" }] }), 2, "cannot verify", "a declared case that never ran", "e");
-      expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit.skip("d", () => {});\n' } }), 2, "cannot verify", "a declared case that was skipped", "d");
+      const skipped = expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit.skip("d", () => {});\n' } }), 2, "cannot verify", "a declared case that was skipped", "d");
+      assert.equal(outcomes(skipped).d, "skipped", `the record shows the case as skipped, not passed: ${skipped.out}`);
       expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit.todo("d", () => {});\n' } }), 2, "cannot verify", "a declared case marked todo", "d");
       expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit("d", () => {});\nit("extra", () => {});\n' } }), 2, "cannot verify", "an undeclared case that ran", "extra");
-      expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit("d", () => { throw new Error("deliberate"); });\n' } }), 1, "failed", "a declared case that failed, with the files intact", "d");
-      expect(fixture({ after: (dir) => writeFileSync(join(dir, "test", "unit", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "a file changed after the manifest was made", "test/unit/code.test.mjs");
+      const failing = expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit("d", () => { throw new Error("deliberate"); });\n' } }), 1, "failed", "a declared case that failed, with the files intact", "d");
+      assert.equal(outcomes(failing).d, "failed", `the record shows the failed execution: ${failing.out}`);
+      const changed = expect(fixture({ after: (dir) => writeFileSync(join(dir, "test", "unit", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "a file changed after the manifest was made", "test/unit/code.test.mjs");
+      assert.ok(Object.values(outcomes(changed)).every((o) => o === "not run"), `an inconsistent candidate runs no case, so its record evidences nothing about it: ${changed.out}`);
       expect(fixture({ after: (dir) => writeFileSync(join(dir, "added.mjs"), "export {};\n") }), 2, "cannot verify", "a file the manifest does not list", "added.mjs");
-      expect(fixture({ after: (dir) => rmSync(join(dir, "package.json")) }), 2, "cannot verify", "a file the manifest lists is missing", "package.json");
+      expect(fixture({ after: (dir) => rmSync(join(dir, "test", "acceptance", "architecture.test.mjs")) }), 2, "cannot verify", "a file the manifest lists is missing", "test/acceptance/architecture.test.mjs");
       const nested = fixture({ after: (dir) => { mkdirSync(join(dir, "node_modules", "dep"), { recursive: true }); writeFileSync(join(dir, "node_modules", "dep", "index.js"), ""); } });
       expect(nested, 0, "verified", "a nested node_modules is the consumer's, not the package's");
       const checkout = fixture({ source: true, after: (dir) => { for (const marker of ["src", "test/plan"]) { mkdirSync(join(dir, marker), { recursive: true }); writeFileSync(join(dir, marker, "unshipped.mjs"), "export {};\n"); } } });
@@ -305,7 +317,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
   });
 
   // Added by core/C36: declared runtime and platforms, and a manifest made from what is packed (core/F85, core/F86).
-  it("core/T92 [core/F85, core/F86, core/A43]: kaal-core declares Node.js 24 or later, its operations document names Linux, macOS and Windows as supported platforms, and once built its manifest lists exactly the files npm packs, each at its SHA-256", () => {
+  it("core/T92 [core/F85, core/F86, core/A43]: kaal-core declares Node.js 24 or later, its operations document names Linux, macOS and Windows as supported platforms, and once built its manifest lists exactly the files npm packs, each at its SHA-256, and declares each case with the core/ subjects it tests", () => {
     assert.equal(pkg().engines?.node, ">=24", "kaal-core declares its runtime");
     const operations = doc("operations");
     const platforms = /^## Supported platforms\s*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(operations);
@@ -319,7 +331,10 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     assert.deepEqual(Object.keys(manifest.files).sort(), files.filter((f) => f !== "test/verify.json"), "the manifest lists exactly the other packed files");
     for (const [file, digest] of Object.entries(manifest.files)) assert.equal(digest, createHash("sha256").update(readFileSync(join(CORE, file))).digest("hex"), `${file} is listed at its SHA-256`);
     assert.ok(Array.isArray(manifest.cases) && manifest.cases.length > 0, "the manifest declares the Embedded Test Cases");
-    for (const c of manifest.cases) assert.ok(files.includes(c.file) && typeof c.name === "string" && c.name.length > 0, `each declared case names a shipped file and a name: ${JSON.stringify(c)}`);
+    for (const c of manifest.cases) {
+      assert.ok(files.includes(c.file) && typeof c.name === "string" && c.name.length > 0, `each declared case names a shipped file and a name: ${JSON.stringify(c)}`);
+      assert.ok(Array.isArray(c.tests) && c.tests.length > 0 && c.tests.every((id) => /^core\/[IFNAD]\d+$/.test(id)), `each declared case names the core/ subjects it tests: ${JSON.stringify(c)}`);
+    }
   });
 
   it("core/T77 [core/F68]: 0.0.1 contains registration: kaal-core/registration ships and exports assemble", async () => {

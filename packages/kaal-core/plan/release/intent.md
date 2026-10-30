@@ -30,5 +30,7 @@ Packaging's generic KAAL Package contract (packaging/C4, #658) asks each product
 - No requirement kept the consumer's environment intact.
 - Consistency with the shipped list was not told apart from provenance.
 
-`core/C36` closes each gap by citing the generic duty and Testing's meaning, never by restating them. It revises `core/F70`, `core/F72`, `core/A33`, `core/A34` and core/T76, and adds `core/F85`, `core/F86`, `core/N23`, `core/A43`, core/T91 and core/T92. Each place it changes is marked "revised by `core/C36`".
+`core/C36` closes each gap by citing the generic duty and Testing's meaning, never by restating them. The Owner then set the model on #673: **Testing = verification; Review = validation.** `verified` is Testing's evidence-backed relationship. It holds when every required Test Case of a candidate has executed successfully against that candidate. Core does not redefine it. kaal-core's shipped manifest declares the required inventory and lets a run check file consistency. Its verifier produces Test Executions. The derived relationship, and its lifecycle as candidates and runs change, stay Testing's.
+
+It revises `core/F70`, `core/F72`, `core/A33`, `core/A34` and core/T76, and adds `core/F85`, `core/F86`, `core/F87`, `core/N23`, `core/A43`, core/T91 and core/T92. Each place it changes is marked "revised by `core/C36`".
 

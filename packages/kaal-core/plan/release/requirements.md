@@ -31,22 +31,16 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional: delivered tests
 
-- **core/F70** [core/I22] (revised by `core/C36`): The package ships its consumer tests, which are its Embedded verification contract (packaging/F9). In an installation, `npm test` from the package's directory, for example `npm explore kaal-core -- npm test`, runs them against the installed copy.
+- **core/F70** [core/I22] (revised by `core/C36`): The package ships its consumer tests, which are its Embedded verification contract (packaging/F9). In an installation, `npm test` from the package's directory, for example `npm explore kaal-core -- npm test`, runs them against the installed copy, the candidate, and reports Testing's result for that run. It ends in exactly one result.
 
-  The run checks the installed files against the shipped manifest (`core/F85`). It then runs exactly the cases the manifest declares, and ends in exactly one result:
-  - **verified**, when every installed file matches the manifest and every declared case ran and none failed;
-  - **failed**, when a declared case failed;
-  - **cannot verify**, in every other case. These include:
-    - the manifest is missing or unreadable;
-    - an installed file is missing, added or changed against it. An added file counts only in an installation, because a source workspace also holds files that do not ship (`core/A43`);
-    - a declared case did not run, was skipped or was marked todo;
-    - a case ran that the manifest does not declare;
-    - no case is declared;
-    - the installed copy cannot be exercised.
+  **What `verified` means is Testing's, not Core's.** Testing = verification and Review = validation, as the Owner set on #673. `verified` is the evidence-backed relationship by which every required Test Case of the candidate has executed successfully against it. A missing, skipped, unexecuted or failed required case cannot establish it. kaal-core neither redefines nor widens that meaning. It realizes it for its own package:
+  - **the required cases** are the Embedded Test Cases the shipped manifest declares (`core/F85`). Which of them apply on a given platform follows testing/F47;
+  - **the candidate** is the installed copy, identified as `core/F87` states. Its files are first checked against the manifest. This consistency check is not the meaning of `verified`. It establishes that the run is about the candidate the inventory describes. When it fails, the run cannot be evidence about that candidate, so it is `cannot verify` (testing/F14). Whether Testing later calls a changed file failed or unknown is Testing's to settle (#610). Until then, kaal-core reports `cannot verify`, which is never `verified`;
+  - **the result.** `verified` when every required case executed successfully. `failed` when a required case executed and failed. Otherwise `cannot verify`, Testing's unknown. That covers a required case that did not run, was skipped or was marked todo, an undeclared case that ran, no declared case, and a candidate that cannot be exercised.
 
-  These results are kaal-core's names for Testing's results, and their meaning is Testing's (testing/F12, testing/F13): fewer executed cases than declared is never `verified`. `cannot verify` is Testing's unknown. Whether a changed file is failed or unknown is Testing's to settle (#610). Until it does, kaal-core reports `cannot verify`, which is never `verified`.
+  No result kaal-core reports is a validation. `validated` is Review's judgment, never an automatic consequence of a GREEN run.
 
-  The result is the last line of standard output, and the exit status is 0, 1 or 2 respectively (packaging/F10). For `failed` and `cannot verify`, the line names the cause: the file or case concerned. Every result line states the number of declared and executed cases as its evidence (testing/F14). Its exact form follows Testing's verifier contract once the Owner approves it (testing/C29, #639).
+  The result is the last line of standard output, and the exit status is 0, 1 or 2 respectively (packaging/F10). The line names the candidate and the declared and executed counts. For `failed` and `cannot verify`, it also names the cause: the file or case concerned. Its exact form follows Testing's verifier contract once the Owner approves it (testing/C29, #639).
 
   The delivered tests need only Node and the package's runtime dependencies, never the repository, a build tool or the network (packaging/N8).
 - **core/F75** [core/I22, core/I23]: One test entry, two places, as the Owner set the convention on #625 (comment 6504401799):
@@ -72,9 +66,18 @@ Each Requirement names, in brackets, the Intents it serves.
   - when an installed file the tests exercise is corrupted, the result is never `verified`;
   - when a delivered test file is changed or emptied, the result is `cannot verify`, because the file no longer matches the manifest;
   - when the delivered tests are removed from an otherwise intact installation, the result is `cannot verify`.
-- **core/F85** [core/I22, core/I23] (added by `core/C36`): **The shipped manifest**, which realizes packaging/F11. kaal-core ships one manifest. It lists every other file the package delivers, with that file's SHA-256, and it declares every Embedded Test Case, each by its delivered file and its full name.
+- **core/F85** [core/I22, core/I23] (added by `core/C36`): **The shipped manifest**, which realizes packaging/F11. kaal-core ships one manifest. It lists every other file the package delivers, with that file's SHA-256. It also declares every required Embedded Test Case by its delivered file, its full name and the `core/…` Intents, Requirements, Architecture elements or Defects it tests. That last part is the Test Case —tests→ subject relationship in Testing's model.
 
   The manifest is generated when the package is built, from the files it describes, and is never edited by hand. Consistency with the manifest is not provenance (testing/F14). A matching installation shows that the files agree with the manifest the package carries, not that they are the bytes the publisher packed. The packed artifact's identity is Packaging's (packaging/F4), and Engineering records it.
+- **core/F87** [core/I22, core/I23] (added by `core/C36`): **Execution evidence, and the derived `verified` relationship.**
+  - **One run is one Test Execution.** The verifier emits it on standard output, before the result line, as one machine-readable record. The record holds:
+    - the candidate: the package's name, its version, and the SHA-256 of its shipped manifest;
+    - each required case with its outcome for that run: passed, failed, skipped, todo or not run.
+  - **Where the evidence lives.** kaal-core persists nothing in the consumer's environment (`core/N23`). The record lives with whoever ran the verification: a consumer's terminal or CI log, or Engineering's release-readiness record. Engineering keys that record by the packed artifact's identity (packaging/F4, engineering/F17–F19).
+  - **The derived relationship belongs to Testing.** Testing owns the meaning and lifecycle of `verified` between the subject and its candidate, and Graph provides only the relationship mechanism. Core neither stores nor updates the relationship. Core guarantees its inputs:
+    - a record speaks only for the candidate it names;
+    - a different candidate starts with no evidence, so earlier runs never carry over to it. That covers another version, another manifest, or another packed artifact;
+    - a later record for the same candidate supersedes an earlier one. A later run that fails or misses a required case invalidates an earlier `verified`.
 - **core/F86** [core/I22] (added by `core/C36`): **Declared runtime and platforms**, which realizes packaging/F12.
   - The package declares Node.js 24 or later as its runtime.
   - `docs/operations.md` names the platforms kaal-core supports: Linux, macOS and Windows, which are the hosts Hosting supports.
