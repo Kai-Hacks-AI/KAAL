@@ -432,6 +432,14 @@ guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-gu
 | --- | --- | --- | --- | --- |
 | Delivered with the package, so defined in its `docs/testing.md`: guard/T123 checks that the delivered README states that hook activation is per clone and needs `init --hook` in each clone, and that the installation record is a tracked file Guard does not protect; it no longer says that only Guard writes the record | guard/F29, guard/F30 | `guard/C116` | RED: the README says "Only Guard writes the record and the state" and only hints at per-clone activation | GREEN |
 
+## Each release declares its upgrade paths (`guard/C113`)
+
+guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package. From `guard/C113` on, guard/T118 takes its sources from the table guard/T124 checks.
+
+| Test | Checks | Written in | Intended evidence against `0.0.4` |
+| --- | --- | --- | --- |
+| guard/T124: the delivered `docs/requirements.md` declares, under guard/F42, each supported source version with its path, prerequisites, changes and kept files, failure and recovery, and verification. Each declared source is a version the package's catalogue knows, the installed version is not among them, and the README's release notes point to the table | guard/F42 | `guard/C113` | RED: no release declares its upgrade paths |
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
