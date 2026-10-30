@@ -44,6 +44,25 @@ Every report also carries `coverage` and `exclusions`, a fixed statement of what
 
 The parser is [`es-module-lexer`](https://www.npmjs.com/package/es-module-lexer).
 
+## Platform coupling conformance
+
+Hosting is the one KAAL capability that realizes host differences. Every other capability leaves the host to Hosting, in its production code and in its tests. `couplings(files, { test })`, also from `kaal-hosting/conformance`, finds where the JavaScript and TypeScript sources among `files` couple to a particular platform. Comments do not count. It finds three things: code asking which platform it is (`platform-query`), string literals naming a platform (`platform-literal`), and host-specific mechanisms such as `shell: true`, `mkfifo` or a literal file mode (`host-api`). An identifier bound to one of these in the same file is found wherever it is used.
+
+Every source is either production or test code: paths under `test`, `tests`, `__tests__`, `fixtures` or `scripts`, and `.test.`/`.spec.` files, are test code. Each finding in production code is a `coupling`. In test code, a finding has one of three kinds:
+
+- `registration`: it decides whether a test runs;
+- `dilution`: it decides what is asserted;
+- `setup`: anything else.
+
+A `// kaal-hosting: platform <reason>` comment marks a finding `acknowledged`. That is evidence for a reviewer, never an approval.
+
+The suite runs it for one capability, which never depends on Hosting to be inspected:
+
+- `boundary({ name, root, builtins })` and `boundarySuite(options)`, from `kaal-hosting/boundary`, the only entry that loads `node:test`.
+- The command `kaal-hosting-boundary --name <name> --root <dir> [--builtin <module>]…`.
+
+Each writes one `kaal-hosting-boundary {…}` line. Three deterministic cases (`inspection completes`, `host modules are declared`, `production code leaves the host to Hosting`) give `result` as `verified`, `failed` or `unknown`. Every other finding is a review request with a stable `id`, for Review to judge. The command exits 0, 1, 2, or 3 (verified with a review requested). `skills/kaal-hosting-boundary/SKILL.md` tells a reviewer what each case and kind asks.
+
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.

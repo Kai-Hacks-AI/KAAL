@@ -163,3 +163,6 @@ export async function inspect(files: Files, expected: Expectation): Promise<Repo
   report.outside.sort(order);
   return report;
 }
+
+export { COUPLING_COVERAGE, COUPLING_EXCLUSIONS, couplings } from "./couplings.js";
+export type { CouplingOptions, CouplingReport, Finding, FindingKind, Rule, Scope, Source } from "./couplings.js";

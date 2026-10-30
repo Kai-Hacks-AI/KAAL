@@ -1,0 +1,2 @@
+# Shipped review instructions keep their exact bytes on every host (hosting/T40 reads them).
+skills/** -text
