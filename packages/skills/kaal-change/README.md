@@ -9,6 +9,10 @@ capability/Change-Lifecycle.md    the Change Lifecycle Definition, typed by KAAL
 capability/Change-Classification.md the Change Classification Definition, typed by KAAL Definition: Normal, Standard and Emergency Changes
 capability/Change-Record.md       the Change Record Definition, typed by KAAL Definition: where a Change's supporting material lives
 capability/CHAOS.md               the CHAOS Definition, typed by KAAL Definition: Changes Help Agents Organize Systematically
+capability/Succeeds.md            the Succeeds Definition, typed by KAAL Definition: a Change's temporal delivery prerequisites
+capability/Delivers.md            the Delivers Definition, typed by KAAL Definition: the Intents a Change delivers
+lib/definitions.mjs               the shipped Definitions as references, { name, id }
+lib/delivery.mjs                  Change Nodes, succession and delivery, with Graph as an optional complement: kaal-change/delivery
 lib/lifecycle.mjs                 the lifecycle reader: kaal-change/lifecycle
 lib/record.mjs                    the record path syntax and numbering, under a chosen root: kaal-change/record
 ownership.kaal.json               Change's own ownership claim (repository data, not delivered)
@@ -17,6 +21,21 @@ ownership.kaal.json               Change's own ownership claim (repository data,
 ## Responsibilities
 
 A Change coordinates engineering's concerns (GLUE's Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects) without owning them. It uses Testing for verification and Review for validation, and references their evidence and judgments. Change defines the available ways to manage Changes, and a repository that embeds KAAL chooses which it applies and how strictly. Its record, `<root>/<capability>/YY/MM/DD/CC/` under a root the consuming context chooses (`.kaal/changes/` in KAAL's own repository), holds supporting material and references the work, which stays with its owners. The path is an address, not an identity, and Core admits nothing from it. A pull request is one realization of a Change, and integrating a Change never proves that the Intent it realizes achieved its Outcome.
+
+## Assess Changes
+
+A Change Node is typed by the Change Definition and named by its identity, `<namespace>/C<n>`. It states the Changes it succeeds and the Intents it delivers as Edges of the Succeeds and Delivers Definitions, and its required Test Cases as `requires`. `assess` reads only the Nodes it is given:
+
+```js
+import { assess } from "kaal-change/delivery";
+
+const r = assess(nodes, { evidence: { by: "release-selector", evaluations } });
+r.succeeds("sample/C2", { transitive: true });   // its predecessors
+r.delivery("sample/C2");                          // { satisfied, delivered, unmet, awaiting, by, basis }
+r.exchange();                                     // plain data for another capability
+```
+
+`evidence` is optional. It is the caller's selection of Testing's evaluations, one per Plan, and `by` names who selected it. Only an evaluation with a `result` and no findings counts. Without evidence there is no delivery result. Graph is an optional complement: without it, `assess` gives the one finding `cannot-assess`, naming Graph and the next step, and no verdict.
 
 ## Register the Nodes
 
