@@ -483,7 +483,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Order.** `guard/C121` first: it is the only one where a requirement disagrees with shipped behaviour. The other three are independent.
 - **Authorization.** Approving this PLAN authorizes the four Changes to be raised as PLANs for review. It authorizes no DO, no version bump, no promotion and no publication.
 
-**`Guard/Check` in Core's value kinds (`guard/C130`, PLAN).** The Owner decided on #609 (comment 6504548445) that Guard owns this correction. Guard defines and validates `command` and `outcomes` within Core's existing value kinds (`core/F1` in `kaal-core`'s frontmatter plan). A Core Change is raised only if Guard shows those kinds are insufficient. The evidence is §4 of Engineering's representation research on #609.
+**`Guard/Check` in Core's value kinds (`guard/C130`, PLAN, revised).** The Owner decided on #609 (comment 6504548445) that Guard owns this correction. Guard defines and validates `command` and `outcomes` within Core's existing value kinds (`core/F1` in `kaal-core`'s frontmatter plan). A Core Change is raised only if Guard shows those kinds are insufficient. The evidence is §4 of Engineering's representation research on #609.
 - **The finding.** `core/F1` has no free-text kind and allows a mapping only as a `ref`, and `core/F8` says a Capability's own validator is never looser than `core/F1`–`core/F6`. Guard's validator (`lib/config.mjs`) accepts `command` as any string that parses into words, and `outcomes` as a map from exit status to `held`. So the `Guard/Check` Type has no `core/F1` schema. guard/F1 also says "Its publisher checks that conformance with Core's validator before each release", and no such check exists.
 - **The schema, member by member.**
   - `type`: the discriminator, which no schema declares (`core/F6`).
@@ -503,6 +503,22 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Test Cases.**
   - guard/T128 is a delivered Requirements case, RED first against `0.0.4`. It checks that `held: [4]` is accepted and gives held on exit 4, and that `outcomes: {"4": held}` is refused with a next step that names `held`. It also checks that statuses `0`–`3`, a status above `255`, a non-number and a duplicate status are each refused.
   - guard/T129 is an Engineering-side case: the conformance check guard/F1 promises. It runs `kaal-core/frontmatter` with Guard's `Guard/Check` schema, stated in `core/F1` kinds, over a corpus of valid and invalid declarations. Guard's validator must never accept what Core's refuses. It is publisher-only, because the package depends on no Core module (guard/A8), and it is Guard's by the realization rule (#574).
+- **The migration from `outcomes` to `held`, made explicit (the Owner's review 5717448310).**
+  - **Each upgrade source of `0.0.5`.** guard/F42 names `0.0.2`, `0.0.3` and `0.0.4`. Each accepted `outcomes` as a map from a decimal string to `held`, and none knew `held`. guard/F42's row for each source states the same step: every declaration with `outcomes: {"N": held, …}` becomes `held: [N, …]`, with the same statuses in ascending order. `upgrade` does not rewrite it. Until the step is taken, the target refuses the declaration as cannot judge, naming the file and the exact line to write. guard/T118 exercises each declared source with such a declaration. It checks what is refused before the step, what is kept byte for byte, and that the target is verified after it.
+  - **Embedded consumer configurations.** The step applies to any declaration in a consumer's configuration directory, whatever its source. That includes a declaration written by hand and one a Skill wrote. KAAL's three declarations are the first real instance, migrated in this DO.
+  - **Mixed and ambiguous forms are refused, never resolved.** In each case the refusal is cannot judge, names the file, and gives the line to write:
+    - a declaration with both `outcomes` and `held`, even when the two agree;
+    - `outcomes` with any value other than `held`;
+    - a `held` that is not a flow list of integers, for example a map or a string;
+    - a status listed twice, in `held` or as a duplicate key in `outcomes`;
+    - a status in `0`–`3`, above `255`, negative, or not an integer.
+
+    guard/T128 holds one negative case for each of these. guard/T118 holds the mixed form in a consumer before the upgrade.
+- **Two validations, kept apart.**
+  - **Core's generic validation.** It checks only that a declaration's frontmatter fits the `Guard/Check` schema in `core/F1` kinds: types, enums, the `parameter` pattern, and a list of `number`.
+  - **Guard's semantic validation.** It lives in `lib/config.mjs` and adds the rest: the status range, uniqueness, the reserved `0`–`3`, the parse of `command`, the `trusted` path and the refusal of `outcomes`. It is never looser than Core's (`core/F8`).
+  - **Neither imports the other.** The package depends on no Core module (guard/A8). guard/T129 compares the two over one corpus: Guard never accepts what Core refuses. Where Guard alone refuses, it is listed as semantic, so the corpus shows which layer refused each case.
+- **Both contracts stay testable on the installed package.** Guard's own contract is tested by guard/T128, which is delivered, so it runs in the installed `npm test` against the installed copy. The generic Packaging contract (`packaging/C4`, packaging/F9 and packaging/F11) is tested by Packaging's reusable cases, run by Engineering against the same installed candidate. This Change adds nothing that either of them would have to skip. guard/T129 is the publisher's, and it never runs in the installed package.
 - **Place in the path to `0.0.5`.** After `guard/C113` (#576) and `guard/C129`, and before `guard/C125`. It is a consumer-visible format change, so it ships in `0.0.5`, with its notes and guard/F42's row.
 - **The Owner's decision (#632, review 5706021452).** `0.0.5` accepts `held` only and refuses `outcomes`, with no compatibility alias. The refusal names the exact `held` line to write. The shipped upgrade-path documentation (guard/F42's rows for `0.0.2`, `0.0.3` and `0.0.4`) and the transition acceptance both cover existing consumer declarations:
   - guard/T118's consumer holds a declaration with `outcomes: {"4": held}` before it upgrades.
