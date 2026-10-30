@@ -33,7 +33,9 @@ Neither checkout in Guard's workflow keeps the run's token in the repository's G
 - the hook in `.githooks` is the one Guard installed,
 - Git runs no hooks of the repository's own from `.git/hooks`, which setting it would turn off.
 
-Every file Guard writes is content the package catalogues in its `contract.json`, an instance of KAAL Core's Installation Contract format and the one list of the files Guard installs, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
+Hook activation is per clone. `core.hooksPath` is local Git configuration, so it is never committed, and a fresh clone runs no hook even though it has `.githooks/pre-push`: run `npx kaal-guard init --hook` in each clone that should run it. The committed hook file alone activates nothing.
+
+Every file Guard writes is content the package catalogues in its `contract.json`, an instance of KAAL Core's Installation Contract format and the one list of the files Guard installs, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Guard writes the record and the state, but it does not protect them. The record is a tracked file anyone can edit, and Guard decides what is its own from the record and the SHA-256 alone, so a hand-edited record can make Guard treat a file as its own, or as yours. Review changes to `.kaal/state/guard/installation.json` like any other change.
 
 Each directory Guard writes into gets a `.gitattributes` of Guard's own: `.githooks/.gitattributes` beside the hook, `.github/workflows/.gitattributes` beside the workflow, and one in the Skill's directory. Each one marks only Guard's own files `-text`, so a clone with `core.autocrlf=true` keeps them byte for byte and they stay Guard's. It is a catalogued, registered file like the others. Beside a hook or workflow of the repository's own, or in a Skill directory that holds files of the repository's own, it is not installed, and `init` says why.
 
@@ -96,9 +98,11 @@ npx kaal-guard verify [--github]      # each ci check is declared by a workflow 
 npx kaal-guard init [--hook] [--ci]   # prepares Guard, and activates the surfaces you name
 npx kaal-guard upgrade                # moves only registered, unmodified files to this version's content
 npx kaal-guard remove [--hook] [--ci] # undoes the surfaces you name, or everything; keeps your declarations
+npx kaal-guard --version              # prints the installed version
+npx kaal-guard --help                 # prints the usage
 ```
 
-Every command takes `--config <dir>`. `--github` adds GitHub annotations and a step-summary table.
+Every command takes `--config <dir>`; `--version` and `--help` take nothing, need no repository and read or write nothing in it. `--github` adds GitHub annotations and a step-summary table.
 
 `upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs a file a newer version adds only for a surface you activated, or for the Skill, which every `init` installs, and never activates a surface: only `init --hook` and `init --ci` do. A registered file of an activated surface, or of the Skill, that the repository no longer has is reinstalled. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
 
@@ -193,6 +197,7 @@ The installed files are checked against a manifest that ships inside the package
 It does not tell you these:
 - **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
 - **Behaviour no case covers**, the promises allocated to the publisher's Engineering Test Plan, and those no Test Case verifies. The output lists them.
+- **That the verifier itself is correct.** Your run is judged by the verifier it reports from. Guard's cases of the verification itself run only in the publisher's Engineering, against a packed candidate before release. The output lists what they check as allocated to the publisher, never as passed.
 - **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
 
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.
