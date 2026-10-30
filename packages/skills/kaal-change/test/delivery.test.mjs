@@ -53,6 +53,23 @@ describe("kaal-change/delivery (change/C8)", () => {
     assert.deepEqual(r.delivery("sample/C1"), { satisfied: false, delivered: false, unmet: [{ case: "sample/T1", result: "failed" }], awaiting: [], by: "selector", basis: ["failed-run"] });
   });
 
+  it("does not walk a Change whose Edges are malformed, so it is never delivered on relationships Graph dropped", () => {
+    const definition = identify(readFileSync(join(PACKAGE, "capability", "Change-Definition.md")));
+    const first = identify(createNode({ name: "sample/C1", type: CHANGE, frontmatter: { requires: ["sample/T1"] }, body: "# sample/C1\n" }).bytes);
+    const pin = `      - name: sample/C1\n        id: ${first.id}\n`;
+    const second = identify(Buffer.from([
+      "---", "name: sample/C2", "type:", `  name: ${CHANGE.name}`, `  id: ${CHANGE.id}`, "edges:", "  - type:", `      name: ${SUCCEEDS.name}`, `      id: ${SUCCEEDS.id}`, "    targets:",
+    ].join("\n") + "\n" + pin + pin + "requires:\n  - sample/T2\n---\n\n# sample/C2\n"));
+    const evaluation = { run: "run-a", plan: "plan-a", result: "passed", cases: { "sample/T2": "passed" }, findings: [] };
+    const r = assess([definition, first, second], { evidence: { by: "selector", evaluations: [evaluation] } });
+    assert.equal(r.has("sample/C2"), false, "it is not walked");
+    assert.equal(r.delivery("sample/C2"), undefined, "and has no delivery result");
+    const finding = r.findings.find((f) => f.change === "sample/C2");
+    assert.equal(finding?.kind, "malformed");
+    assert.equal(finding.reason, "malformed Edges");
+    assert.ok(finding.problems.some((p) => /repeats target sample\/C1/.test(p)), JSON.stringify(finding));
+  });
+
   it("without Graph, gives cannot-assess and no verdict, view or exchange", () => {
     const r = isolated();
     assert.equal(r.status, 0, r.err);

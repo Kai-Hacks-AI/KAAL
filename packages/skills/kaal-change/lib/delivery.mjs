@@ -49,7 +49,12 @@ export function assess(nodes, { evidence } = {}) {
   for (const [identity, found] of [...byIdentity].sort(([a], [b]) => compare(a, b))) {
     if (!IDENTITY.test(identity)) findings.push({ kind: "malformed", change: identity, reason: "not <namespace>/C<n>" });
     else if (found.length > 1) findings.push({ kind: "duplicate", change: identity, ids: sorted(found.map((n) => n.id)) });
-    else walked.set(identity, found[0]);
+    else {
+      // Graph drops every Edge of a Node whose Edges are malformed, so its relationships cannot be read, and it is not walked.
+      const { problems } = graph.edgesOf(found[0]);
+      if (problems.length) findings.push({ kind: "malformed", change: identity, reason: "malformed Edges", problems: [...problems] });
+      else walked.set(identity, found[0]);
+    }
   }
 
   /** An Edge's target as Graph resolves it, or the finding it is (change/F4, change/F14). */
