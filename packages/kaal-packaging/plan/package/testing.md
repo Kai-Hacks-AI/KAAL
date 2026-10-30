@@ -14,5 +14,24 @@ The DO writes these cases in `packages/kaal-packaging/test/plan/package.test.mjs
 | packaging/T22 | N7: the consumer's project is byte-identical after verification | A verifier that writes a cache file beside the consumer's `package.json` |
 | packaging/T23 | N8: the installed verification runs with only the package's declared runtime dependencies | A verifier that imports `kaal-testing` without declaring it |
 | packaging/T24 | N9: a case that passes on presence alone is detected | A suite case that checks only that `docs/requirements.md` exists, run against a fixture whose requirements contradict its behaviour |
+| packaging/T25 | N10: every generic Requirement that depends on another owner's meaning cites that owner's ID, and each cited ID exists on its branch | A Requirement that defines `unknown` itself. A citation of `testing/F99` |
+
+**Trace.** Every generic Requirement has a discriminating case:
+
+| Requirement | Case |
+| --- | --- |
+| packaging/F7 | T15 |
+| packaging/F8 | T16 |
+| packaging/F9 | T17 |
+| packaging/F10 | T18 |
+| packaging/F11 | T19 |
+| packaging/F12 | T20 |
+| packaging/F13 | T21 |
+| packaging/N7 | T22 |
+| packaging/N8 | T23 |
+| packaging/N9 | T17, T24 |
+| packaging/N10 | T25 |
+
+A tampered installed file in T19 is reported unknown, not failed, per testing/F43. T17's fixture follows D1 once the Owner decides it, and T16's follows D2.
 
 Every result is verified, failed or unknown, in Testing's terms. A package that the suite cannot decide is unknown, never verified.
