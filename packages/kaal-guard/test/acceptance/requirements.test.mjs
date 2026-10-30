@@ -3,7 +3,8 @@
 // Intent (I…), for reading only. N1 is
 // these tests on Linux, macOS and Windows; N6 is verified by T30. Planned in PLAN; DO and CHECK do not change them.
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -146,7 +147,7 @@ describe("guard/F7 [guard/I1, guard/I2] trusted checker", () => {
     assert.equal(verdicts(r.output).judge?.verdict, "fail");
   });
 
-  it("guard/T81 [guard/F7]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict", () => {
+  it("guard/T81 [guard/F7, guard/D5]: a trusted checker Git records as executable keeps that mode in its base copy, so a check that runs it directly passes on the base's verdict", () => {
     const windows = process.platform === "win32";
     const c = consumer();
     c.write("checks/judge.sh", "#!/bin/sh\nexit 0\n");
@@ -179,7 +180,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     return { c, r, judged: verdicts(r.output).judge };
   }
 
-  it("guard/T94 [guard/F7, guard/N4]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs", () => {
+  it("guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs", () => {
     const { c, r, judged } = candidate((c) => {
       c.write("checks/judge.mjs", checker("judge-ran", 0));
       c.checks({ judge: { ...judge, trusted: undefined }, other });
@@ -190,7 +191,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.ok(!c.exists("judge-ran"), "a checker ran for a trusted check whose declaration the candidate changed");
   });
 
-  it("guard/T95 [guard/F7, guard/N4]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs", () => {
+  it("guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs", () => {
     const rewritten = candidate((c) => {
       c.write("checks/certify.mjs", checker("certify-ran", 0));
       c.checks({ judge: { ...judge, command: "node checks/certify.mjs" }, other });
@@ -207,7 +208,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.ok(!softened.c.exists("judge-ran"), "the checker ran for a declaration the candidate changed");
   });
 
-  it("guard/T96 [guard/F7, guard/N4]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass", () => {
+  it("guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass", () => {
     const { r, judged } = candidate((c) => c.checks({ other }));
     assert.equal(judged?.verdict, "cannot judge", r.output);
     assert.notEqual(r.status, 0, r.output);
@@ -1267,5 +1268,26 @@ describe("guard/N15 [guard/I1, guard/I5] no credential left behind", () => {
     // The workflow's published contents from 0.0.2 on (0.0.1 has no catalogue; guard/I5): 0.0.2, then 0.0.3 and 0.0.4.
     for (const earlier of ["832be35f6d149493adfcb171fc159d707f762915f2e2cd57a159b2aeb8e14acf", "3635321ec5949c64b7a03206f5958a65d1351662b43baeb4efccb75131c59070"])
       assert.ok(catalogued.includes(earlier), `the catalogue no longer holds the earlier workflow content ${earlier}`);
+  });
+});
+
+describe("guard/F41 [guard/I5] the version and the usage", () => {
+  it("guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged", () => {
+    const c = consumer();
+    const outside = mkdtempSync(join(tmpdir(), "kaal-guard-outside-"));
+    try {
+      writeFileSync(join(outside, "keep.txt"), "kept\n");
+      const version = c.guard(["--version"], {}, outside);
+      assert.equal(version.status, 0, `--version exited ${version.status}: ${version.output}`);
+      assert.equal(version.stdout.trim(), c.version(), "--version does not print the installed version alone");
+      const help = c.guard(["--help"], {}, outside);
+      assert.equal(help.status, 0, `--help exited ${help.status}: ${help.output}`);
+      assert.match(help.stdout, /^usage: kaal-guard run /m, "--help does not print the usage");
+      for (const command of ["verify", "init", "remove", "upgrade"]) assert.match(help.stdout, new RegExp(`kaal-guard .*\\b${command}\\b`), `the usage does not name ${command}`);
+      assert.deepEqual(readdirSync(outside), ["keep.txt"], "--version or --help wrote into the directory");
+      assert.equal(readFileSync(join(outside, "keep.txt"), "utf8"), "kept\n");
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
   });
 });

@@ -96,9 +96,11 @@ npx kaal-guard verify [--github]      # each ci check is declared by a workflow 
 npx kaal-guard init [--hook] [--ci]   # prepares Guard, and activates the surfaces you name
 npx kaal-guard upgrade                # moves only registered, unmodified files to this version's content
 npx kaal-guard remove [--hook] [--ci] # undoes the surfaces you name, or everything; keeps your declarations
+npx kaal-guard --version              # prints the installed version
+npx kaal-guard --help                 # prints the usage
 ```
 
-Every command takes `--config <dir>`. `--github` adds GitHub annotations and a step-summary table.
+Every command takes `--config <dir>`; `--version` and `--help` take nothing, need no repository and read or write nothing in it. `--github` adds GitHub annotations and a step-summary table.
 
 `upgrade` reports each file as upgraded or current, with the versions it moves between, or as kept: modified since Guard wrote it, which keeps its registered version, or not Guard's. It installs a file a newer version adds only for a surface you activated, or for the Skill, which every `init` installs, and never activates a surface: only `init --hook` and `init --ci` do. A registered file of an activated surface, or of the Skill, that the repository no longer has is reinstalled. Installing an earlier version from `0.0.2` on and running `upgrade` moves unmodified files back the same way.
 
@@ -193,6 +195,7 @@ The installed files are checked against a manifest that ships inside the package
 It does not tell you these:
 - **Where the bytes came from.** Someone who could edit the installed files could also edit the manifest, so only your lockfile's integrity and npm's provenance can answer that.
 - **Behaviour no case covers**, the promises allocated to the publisher's Engineering Test Plan, and those no Test Case verifies. The output lists them.
+- **That the verifier itself is correct.** Your run is judged by the verifier it reports from. Guard's cases of the verification itself run only in the publisher's Engineering, against a packed candidate before release. The output lists what they check as allocated to the publisher, never as passed.
 - **Changes outside the comparison.** The comparison takes in every path in your project except `node_modules` directories, and adds Guard's installed copy. A symbolic link counts by its target, not by what it points to. Git's object store and files over 64 MiB count by size and modification time only. Your other dependencies, the temporary directory the cases use, and npm's cache and logs in your home directory are not compared.
 
 This judges the package only, not how your repository uses it. For your repository's integration, run `npx kaal-guard verify`. The result is your own observation of your run.
