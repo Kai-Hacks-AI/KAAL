@@ -11,12 +11,13 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/verifier
 | testing/T58: a verifier that claims any other result than the scenario's never conforms, on zero or absent cases, a missing or tampered manifest or installation, skipped, todo or inapplicable cases, failures, or a changed consumer | testing/F46 | Requirements |
 | testing/T59: a case is not applicable only where the harness established an explicit platform scope excluding the platform, and a reason; a skipped, todo or unsupported case claimed inapplicable never verifies | testing/F47 | Requirements |
 | testing/T60: neither evasion verifies: a declared case silently omitted on a platform, or replaced there by a stand-in, stays visible as not run; an inapplicable case is never counted as passed | testing/F48 | Requirements |
+| testing/T61: a run that is not verified reports its observation, its evidence or uncertainty, and a next step that claims no more than it knows; a verified run reports none | testing/F49 | Requirements |
 
 ## RED evidence
 
-The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all seven are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
+The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers.test.mjs`, outside Testing's `npm test` until `testing/C30`. At `testing/C29`, all eight are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./verifiers`.
 
-**Checked against a throwaway implementation.** A18 was implemented outside the repository. All seven tests pass against it, and each of 39 mutants of it fails at least one test. The mutants cover:
+**Checked against a throwaway implementation.** A18 was implemented outside the repository. All eight tests pass against it, and each of 51 mutants of it fails at least one test. The mutants cover:
 - two summary lines accepted;
 - result words that are not distinct;
 - an undeclared word read as verified;
@@ -36,6 +37,7 @@ The tests run with `node --test packages/skills/kaal-testing/test/plan/verifiers
 - any scenario's targeted outcome changed to pass;
 - applicability read from an inherited key, its platform scope allowed to be empty or to include the platform, its reason allowed to be empty, the shown scope or reason not compared, or the claim not checked at all;
 - the unsupported-inapplicability scenario dropped;
-- an undeclared reported case accepted, the omission or substitution scenario dropped, or omission expected verified. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
+- an undeclared reported case accepted, the omission or substitution scenario dropped, or omission expected verified;
+- the diagnosis not judged, a verified run's diagnosis accepted, malformed evidence or uncertainty accepted, neither evidence nor uncertainty accepted, an unnamed step kind or empty step accepted, a precise fix under uncertainty accepted, or an exploratory step other than analyze accepted. The tests own each scenario's expected result, cases and target, so they never read their expectation from the implementation.
 
 testing/N9 is checked by review of `testing/C30`: the module imports nothing.

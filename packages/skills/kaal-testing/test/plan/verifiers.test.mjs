@@ -60,7 +60,7 @@ function conforming({ id }) {
   const outcome = (name) => (target && name === FACTS.target ? target : "pass");
   const summary = {
     result: VERIFIER.words[result],
-    ...(result === "verified" ? {} : { cause: `the ${id} scenario` }),
+    ...(result === "verified" ? {} : { cause: `the ${id} scenario`, evidence: [`what the verifier observed in ${id}`], next: { kind: "diagnostic", step: "inspect the evidence" } }),
     package: { ...FACTS.package },
     platform: FACTS.platform,
     node: FACTS.node,
@@ -229,5 +229,42 @@ describe("The shared observable result contract for consumer verifiers (testing/
     const counted = conforming({ id: "not-applicable" });
     counted.cases[1] = { name: FACTS.target, outcome: "pass" };
     assert.equal(verdict("not-applicable", counted, EXIT.verified).conforms, false, "an established inapplicable case counted as passed");
+  });
+
+  it("testing/T61 [testing/F49]: a run that is not verified reports its observation, its evidence or its uncertainty, and a next step that claims no more than it knows; a verified run reports none", async () => {
+    const { observe, judge } = await contract();
+    const verdict = (id, change, exit) => {
+      const summary = conforming({ id });
+      change(summary);
+      return judge(id, observe(run(summary, exit), VERIFIER), factsFor(id));
+    };
+    const known = (s) => ((s.next = { kind: "precise", step: "reinstall the package, then run its verification again" }), delete s.uncertainty);
+    const unexplained = (s) => (delete s.evidence, (s.uncertainty = "the cause is not established"));
+    const conforms = {
+      "a precise next step on an established cause": known,
+      "a diagnostic next step under uncertainty": (s) => (unexplained(s), (s.next = { kind: "diagnostic", step: "inspect the installed files" })),
+      "an exploratory analyze under uncertainty": (s) => (unexplained(s), (s.next = { kind: "exploratory", step: "analyze" })),
+      "evidence beside a stated uncertainty, with a diagnostic step": (s) => (s.uncertainty = "a second cause is not ruled out"),
+    };
+    for (const [why, change] of Object.entries(conforms)) assert.equal(verdict("manifest-absent", change, EXIT.unknown).conforms, true, why);
+    const refused = {
+      "no next step": (s) => delete s.next,
+      "a next step of a kind the contract does not name": (s) => (s.next = { kind: "automatic", step: "recovered" }),
+      "a next step without a step": (s) => (s.next = { kind: "diagnostic", step: "" }),
+      "a precise fix fabricated under uncertainty": (s) => (unexplained(s), (s.next = { kind: "precise", step: "set FLAG=1" })),
+      "a precise fix beside an uncertainty": (s) => (known(s), (s.uncertainty = "a second cause is not ruled out")),
+      "neither evidence nor uncertainty": (s) => delete s.evidence,
+      "evidence that is not a list of statements": (s) => (s.evidence = "it broke"),
+      "evidence with an empty statement": (s) => (s.evidence = ["it broke", ""]),
+      "an empty uncertainty": (s) => (unexplained(s), (s.uncertainty = "")),
+      "an exploratory step other than analyze": (s) => (unexplained(s), (s.next = { kind: "exploratory", step: "try reinstalling" })),
+    };
+    for (const [why, change] of Object.entries(refused)) {
+      assert.equal(verdict("manifest-absent", change, EXIT.unknown).conforms, false, `unknown: ${why}`);
+      assert.equal(verdict("case-failing", change, EXIT.failed).conforms, false, `failed: ${why}`);
+    }
+    for (const [why, change] of Object.entries({ "a next step": (s) => (s.next = { kind: "diagnostic", step: "inspect" }), "an uncertainty": (s) => (s.uncertainty = "none"), "evidence": (s) => (s.evidence = ["all passed"]) })) {
+      assert.equal(verdict("clean", change, EXIT.verified).conforms, false, `a verified run that reports ${why}`);
+    }
   });
 });
