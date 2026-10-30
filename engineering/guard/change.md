@@ -639,6 +639,15 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Place in the path to `0.0.5`.** Step 5c: `guard/C132` if option A, then the `engineering/C8` DO, then guard/T130 GREEN. All of it before `guard/C125`.
 - **Authorization.** Approving this PLAN authorizes `guard/C131`'s DO only, which is guard/T130 and the path's record. It authorizes no version bump, promotion, synchronization or publication, and it does not reopen the approval of the `guard/C123` DO.
 
+**Each release declares its upgrade paths (`guard/C113`, PLAN).** On #552 the Owner set out that the target release owns its supported migration paths. guard/F11–guard/F16 say how `upgrade` behaves, but no release says which earlier versions it supports moving from, or what a consumer on each must do. `0.0.4` is published and immutable, so this starts with `0.0.5`.
+- **Requirement.** The DO adds guard/F42 to the product's requirements: "**Supported upgrade paths.** [guard/I5] Each release declares the earlier versions it supports moving from. For each one it states: the path (a dependency and lockfile change, then `upgrade`), its prerequisites, what changes and what is kept, how a failure shows and how to recover, and how to verify the result (`npm explore @kaihacksai/kaal-guard -- npm test`, then `kaal-guard verify`). A version it does not declare is not supported, and the release says what to do instead."
+- **Where it is declared.** In the shipped docs, as one table in `docs/requirements.md` under guard/F42, with a pointer in the README's "Release notes". `contract.json` is an instance of Core's Installation Contract format, which Core owns. A machine-readable member there is Core's to define, so it is asked of Core as a question, and `guard/C113` does not wait for it.
+- **For `0.0.5`.** The declared sources are `0.0.2`, `0.0.3` and `0.0.4`, the versions the catalogue knows. `0.0.1` stays unsupported, with fresh setup as the next step, as the `0.0.2` notes already say.
+- **Transition evidence.** guard/T118 runs for each source the target declares, read from that table, so its evidence and the release's declaration cannot drift. guard/T65–guard/T68 keep their declared applicability.
+- **Test Cases.** guard/T124 is a product case in `test/acceptance/architecture.test.mjs`, delivered with the package. It is RED first against `0.0.4`, which declares no paths.
+- **Not here.** Recording a particular consumer's migration is operational, not Guard's. The cross-product migration-assurance requirement stays with its owners as a separate question.
+- **Authorization.** Approving this PLAN authorizes `guard/C113`'s DO only: no version bump, promotion or publication.
+
 **Not in scope of `guard/C107` and `guard/C108`.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review were tracked separately. `guard/C111` has since triaged them: M1 into `guard/C114`, N7 into `guard/C115`, M2 and M3 into `guard/C116`, and N6 into `guard/C117`.
 
 **How it fits the promotion (`guard/C107`).** One sync and one promotion still carry `0.0.4`.
@@ -745,7 +754,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`: the desired result, and the applicable transition cases for `registry` `0.0.2` and `0.0.3` → `0.0.4`, guard/T118 included, all GREEN ([Testing](testing.md#release-acceptance-of-004-guardc101)) | `guard/C100`, `guard/C112` | evidence recorded; acceptance waits on the Owner |
 | `guard/C111` | — | Guard | After `0.0.4`: the deferred findings of its release, n1–n3, N6, N7 and M1–M3, triaged into bounded Changes | `guard/C101` | PLAN |
 | `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN #557, merged; DO: guard/T118 GREEN for both sources |
-| `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
+| `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract; guard/F42, guard/T124 | `guard/C112` | PLAN |
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | DO |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7); guard/F41, guard/T120–guard/T122 | `guard/C111` | DO |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
