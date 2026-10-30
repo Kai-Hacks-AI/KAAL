@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "./check.mjs";
+import { MIGRATIONS, check } from "./check.mjs";
 
 const CLI = join(dirname(fileURLToPath(import.meta.url)), "check.mjs");
 
@@ -105,6 +105,39 @@ describe("ordinary changes", () => {
 describe("aggregate changes", () => {
   it("do not bypass isolation: Core bundled with unrelated files does not conform", () => {
     assert.notDeepEqual(check([".gitattributes", "AGENTS.md", "README.md", "packages/kaal-core/src/cli.ts"]), []);
+  });
+});
+
+describe("declared migrations", () => {
+  const [c11] = MIGRATIONS;
+  const core = ["packages/kaal-core/package.json", "packages/kaal-core/src/hosting.ts", "package.json", "package-lock.json"];
+
+  it("pass a change that carries exactly a declared migration's paths with Core", () => {
+    assert.equal(c11.change, "hosting/C11");
+    passes([...core, ...c11.paths]);
+    passes([...c11.paths].reverse().concat(core));
+  });
+
+  it("do not pass one path more", () => {
+    fails([...core, ...c11.paths, "packages/kaal-sealing/src/seal.ts"], ...c11.paths, "packages/kaal-sealing/src/seal.ts");
+  });
+
+  it("do not pass a part of a migration, so no later Change can reuse it", () => {
+    const part = c11.paths.slice(1);
+    fails([...core, ...part], ...part);
+    fails([...core, c11.paths[0]], c11.paths[0]);
+  });
+
+  it("leave .github travels alone in force", () => {
+    assert.ok(check([...core, ...c11.paths, ".github/workflows/x.yml"]).some((v) => v.startsWith(".github travels alone")));
+  });
+
+  it("never name a Core or supporting path, and never list a path twice", () => {
+    for (const m of MIGRATIONS) {
+      assert.deepEqual(check(m.paths), [], `${m.change} names no Core path, so alone it is an ordinary change`);
+      assert.deepEqual(check(m.paths), [], );
+      for (const p of m.paths) assert.ok(!p.startsWith("packages/kaal-core/") && !p.startsWith(".kaal/") && !p.startsWith(".github/"), p);
+    }
   });
 });
 
