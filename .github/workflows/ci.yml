@@ -1,11 +1,14 @@
 # Runs KAAL's tests. Each job runs one check that KAAL lists in guard.json through kaal-guard, which
 # reports its verdict; what a check tests is defined there and in the code it runs, never here. The
-# Guard job runs kaal-guard's own tests and kaal-guard verify, which shows that a job declares every
-# ci check in Guard's declared form (declared integration only). kaal-guard's own tests include its
-# outer tests, which install the packed package alone into fresh repositories: like Acceptance, they
-# run on every supported OS, Linux in the Guard job, Windows and macOS in Guard (Windows, macOS).
-# The Linux Guard job builds KAAL's workspace first, since guard/T46's file (workspace.test.mjs) needs
-# it; the Windows and macOS jobs install nothing and leave that file out.
+# Guard jobs run Guard's declared suites through engineering/guard/suites.mjs (guard/C129), and the
+# Linux one also runs kaal-guard verify, which shows that a job declares every ci check in Guard's
+# declared form (declared integration only). The suites are the ones Guard's three Test Plans declare,
+# Embedded, Engineering and External, each with its owner and the hosts it runs on; this file names no
+# test file. On each host the script runs every suite declared for that host, prints one line per suite
+# with its owner and outcome, and names each suite left out of that host with its plan's reason; such a
+# suite is never counted as passed. Guard runs on Linux, and on Windows and macOS in Guard (Windows,
+# macOS). The Linux Guard job builds KAAL's workspace first, since guard/T46's file
+# (workspace.test.mjs) needs it.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -85,7 +88,7 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run build
-      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/*.test.mjs
+      - run: node engineering/guard/suites.mjs
       - run: npx --no kaal-guard verify --github
 
   guard-hosts:
@@ -102,4 +105,4 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/external.test.mjs engineering/guard/acceptance/kaal.test.mjs engineering/guard/acceptance/package.test.mjs
+      - run: node engineering/guard/suites.mjs
