@@ -172,7 +172,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.ok(on(3).length > 0 && on(3).every((f) => f.acknowledged === "Windows holds no FIFO in a directory"));
     assert.ok(on(4).length > 0 && on(4).every((f) => f.acknowledged === "CRLF is out of scope"));
     for (const line of [6, 9]) assert.ok(on(line).length > 0 && on(line).every((f) => f.acknowledged === undefined), `line ${line} is acknowledged`);
-    assert.ok(report.findings.every((f) => f.kind === "registration"));
+    assert.ok(report.findings.every((f) => f.kind === "registration"), "an acknowledgement changed a finding's kind");
   });
 
   it("hosting/T38 [hosting/F27, hosting/F32]: TypeScript is read, declarations and non-sources are skipped with a reason, scope follows the path or the caller's rule, and the report is stable and states its coverage", async () => {
@@ -189,6 +189,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.deepEqual(at(report, "src/a.ts", 1), [["platform-query", "coupling"]]);
     assert.deepEqual(report.skipped.map((s) => s.file).sort(), ["package.json", "src/b.d.ts"]);
     assert.ok(report.skipped.every((s) => typeof s.reason === "string" && s.reason.length > 0));
+    assert.deepEqual(report.sources.map((s) => s.file), ["lib/fixtures/f.mjs", "lib/x.spec.ts", "scripts/run.mjs", "src/a.ts", "test/helpers.cjs"]);
     const scope = (file) => report.findings.find((f) => f.file === file)?.scope;
     assert.equal(scope("src/a.ts"), "production");
     for (const file of ["scripts/run.mjs", "lib/fixtures/f.mjs", "lib/x.spec.ts", "test/helpers.cjs"]) assert.equal(scope(file), "test", file);
@@ -200,40 +201,95 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.ok(Array.isArray(report.exclusions) && report.exclusions.some((e) => /data|run time|outside/i.test(e)));
   });
 
-  it("hosting/T39 [hosting/F31, hosting/F30]: the reusable suite inspects a capability's sources, emits each finding and one kaal-hosting-boundary line for it, fails only when the inspection cannot complete, and can be called on its own as a command", async () => {
-    const root = mkdtempSync(join(tmpdir(), "kaal-boundary-"));
-    mkdirSync(join(root, "src"));
-    mkdirSync(join(root, "test"));
-    writeFileSync(join(root, "src", "index.mjs"), 'import { readFile } from "node:fs/promises";\nexport const r = (p) => readFile(p);\n');
-    writeFileSync(join(root, "test", "t114.test.mjs"), 'import { it } from "node:test";\nit("special files", { skip: process.platform === "win32" }, () => {});\n');
+  it("hosting/T39 [hosting/F31, hosting/F30, hosting/F32, hosting/N5]: the reusable suite, on a capability with T114-style skipped tests and assertions, reports every finding at its exact place on one kaal-hosting-boundary line, keeps acknowledged ones counted, states which sources and tests it read, and fails only on a deterministic failure; called on its own as a command, it prints the same line", async () => {
+    const capability = (tree) => {
+      const root = mkdtempSync(join(tmpdir(), "kaal-boundary-"));
+      for (const [path, text] of Object.entries(tree)) {
+        mkdirSync(dirname(join(root, path)), { recursive: true });
+        writeFileSync(join(root, path), text);
+      }
+      return root;
+    };
+    // The negative fixture: production code reaching past Hosting, and T114-style tests and assertions skipped on Windows.
+    const negative = capability({
+      "src/index.mjs": 'import { readFile } from "node:fs/promises";\nexport const r = (p) => readFile(p);\n',
+      "test/t114.test.mjs": [
+        'import assert from "node:assert/strict";', // 1
+        'import { it } from "node:test";', // 2
+        'const WINDOWS = process.platform === "win32";', // 3
+        'it("special files", { skip: WINDOWS }, () => {});', // 4
+        'it("mode", () => {', // 5
+        "  if (!WINDOWS) assert.equal(mode(), 0o755);", // 6
+        "});", // 7
+        "// kaal-hosting: platform Windows holds no FIFO in a directory", // 8
+        'it("fifo", { skip: process.platform === "win32" }, () => {});', // 9
+      ].join("\n"),
+      "test/fixtures/tree.mjs": 'export const separator = process.platform === "win32" ? "\\\\" : "/";\n',
+      "scripts/build.mjs": "export const ok = 1;\n",
+      "README.md": "# fixture\n",
+    });
+    // The positive fixture: a capability that leaves the host to Hosting, with a skip that does not depend on the platform.
+    const positive = capability({
+      "src/index.mjs": "export const add = (a, b) => a + b;\n",
+      "test/add.test.mjs": 'import { it } from "node:test";\nit("adds", { skip: !process.env.SLOW }, () => {});\n',
+    });
     const driver = (target) => `import { boundarySuite } from ${JSON.stringify(pathToFileURL(SUITE).href)};\nboundarySuite({ name: "fixture", root: ${JSON.stringify(target)} });\n`;
     const env = { ...process.env };
     delete env.NODE_TEST_CONTEXT;
+    const boundary = (output) => {
+      const line = output.stdout.split(/\r?\n/).map((l) => l.trim()).find((l) => l.startsWith("kaal-hosting-boundary "));
+      assert.ok(line, `no kaal-hosting-boundary line\n${output.stdout}${output.stderr}`);
+      return JSON.parse(line.slice("kaal-hosting-boundary ".length));
+    };
     const run = async (target) => {
       const script = join(mkdtempSync(join(tmpdir(), "kaal-boundary-driver-")), "driver.test.mjs");
       writeFileSync(script, driver(target));
       // Run directly, so the suite's own output reaches stdout as written, with no reporter's escaping.
-      return execute(process.execPath, [script], { cwd: root, env });
+      return execute(process.execPath, [script], { cwd: tmpdir(), env });
     };
-    const found = await run(root);
+    const finding = (line, column, rule, kind, construct, acknowledged) => ({ file: "test/t114.test.mjs", line, column, scope: "test", rule, kind, construct, ...(acknowledged ? { acknowledged } : {}) });
+
+    const found = await run(negative);
     assert.equal(found.status, 0, `a finding failed the suite\n${found.stdout}${found.stderr}`);
-    const line = found.stdout.split(/\r?\n/).map((l) => l.trim()).find((l) => l.startsWith("kaal-hosting-boundary "));
-    assert.ok(line, `no kaal-hosting-boundary line\n${found.stdout}`);
-    const result = JSON.parse(line.slice("kaal-hosting-boundary ".length));
+    const result = boundary(found);
     assert.equal(result.name, "fixture");
-    assert.ok(result.findings.some((f) => f.file === "test/t114.test.mjs" && f.kind === "registration"), "the T114-like skip is not reported");
-    assert.ok(Array.isArray(result.violations) && result.violations.some((v) => v.builtin === "node:fs/promises"), "the existing inspect is not part of the suite");
-    const missing = await run(join(root, "no-such-capability"));
+    assert.deepEqual(result.failures, [], "a static finding was reported as a failure");
+    assert.deepEqual(result.findings, [
+      { file: "test/fixtures/tree.mjs", line: 1, column: 26, scope: "test", rule: "platform-query", kind: "setup", construct: "process.platform" },
+      { file: "test/fixtures/tree.mjs", line: 1, column: 47, scope: "test", rule: "platform-literal", kind: "setup", construct: '"win32"' },
+      finding(3, 17, "platform-query", "setup", "process.platform"),
+      finding(3, 38, "platform-literal", "setup", '"win32"'),
+      finding(4, 29, "platform-query", "registration", "WINDOWS"),
+      finding(6, 8, "platform-query", "dilution", "WINDOWS"),
+      finding(9, 20, "platform-query", "registration", "process.platform", "Windows holds no FIFO in a directory"),
+      finding(9, 41, "platform-literal", "registration", '"win32"', "Windows holds no FIFO in a directory"),
+    ]);
+    assert.deepEqual(result.summary, { coupling: 0, registration: 3, dilution: 1, setup: 4, acknowledged: 2 }, "an acknowledged registration is not counted");
+    assert.deepEqual(result.sources, [
+      { file: "scripts/build.mjs", scope: "test" },
+      { file: "src/index.mjs", scope: "production" },
+      { file: "test/fixtures/tree.mjs", scope: "test" },
+      { file: "test/t114.test.mjs", scope: "test" },
+    ]);
+    assert.deepEqual(result.skipped.map((s) => s.file), ["README.md"]);
+    assert.ok(result.violations.some((v) => v.builtin === "node:fs/promises"), "the existing inspect is not part of the suite");
+
+    const clean = boundary(await run(positive));
+    assert.deepEqual([clean.failures, clean.findings, clean.violations.filter((v) => v.builtin !== "node:test")], [[], [], []]);
+    assert.deepEqual(clean.summary, { coupling: 0, registration: 0, dilution: 0, setup: 0, acknowledged: 0 });
+
+    const missing = await run(join(negative, "no-such-capability"));
     assert.notEqual(missing.status, 0, "an inspection that cannot complete passed");
+    const failed = boundary(missing);
+    assert.ok(failed.failures.length > 0, "a deterministic failure is not stated");
+    assert.deepEqual(failed.findings, []);
 
     // Called on its own, with no capability importing Hosting.
-    const alone = await execute(process.execPath, [SUITE, "--name", "fixture", "--root", root, "--builtin", "node:fs/promises", "--builtin", "node:test"], { cwd: root, env });
+    const alone = await execute(process.execPath, [SUITE, "--name", "fixture", "--root", negative, "--builtin", "node:fs/promises", "--builtin", "node:test", "--builtin", "node:assert/strict"], { cwd: negative, env });
     assert.equal(alone.status, 0, `${alone.stdout}${alone.stderr}`);
-    const own = alone.stdout.split(/\r?\n/).map((l) => l.trim()).find((l) => l.startsWith("kaal-hosting-boundary "));
-    assert.ok(own, `no kaal-hosting-boundary line from the command\n${alone.stdout}`);
-    const ownResult = JSON.parse(own.slice("kaal-hosting-boundary ".length));
-    assert.equal(ownResult.name, "fixture");
-    assert.deepEqual(ownResult.findings, result.findings);
-    assert.deepEqual(ownResult.violations, [], "a declared builtin is still a violation");
+    const own = boundary(alone);
+    assert.equal(own.name, "fixture");
+    assert.deepEqual(own.findings, result.findings);
+    assert.deepEqual(own.violations, [], "a declared builtin is still a violation");
   });
 });
