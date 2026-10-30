@@ -25,6 +25,7 @@ Each Requirement names, in brackets, the Intents it serves, and the packaging/ R
   - In the source workspace, `npm test` runs every suite the package declares as a `test:<name>` script: at least `test:publisher` (today's suite, with the workspace builds it needs) and `test:consumer` (the installed verification). It never invokes itself.
   - In an installation, `npm test` runs `test:consumer` only.
   - Which place applies is detected explicitly, never inferred from a missing file, as foundation/F9 states. When the place cannot be told, the result is unknown.
+  - Asked with `--list` (`npm test -- --list`), the entry runs nothing. It prints one line `kaal-testing-suite <script>` for each suite it would run in the detected place, and it runs exactly those suites otherwise.
   - No `pretest` step runs.
 - **testing/F63** [testing/I17] (packaging/F10): **One result, by the shared contract.**
   - The installed verification, `test/verify.mjs`, ends in exactly one of Testing's results: `verified`, `failed` or `unknown` (testing/F13). The exit statuses are 0, 1 and 2 (testing/A9).
@@ -52,7 +53,7 @@ Each Requirement names, in brackets, the Intents it serves, and the packaging/ R
 ## Nonfunctional
 
 - **testing/N12** [testing/I17] (packaging/N7, packaging/N8):
-  - The verification leaves the consumer intact, as testing/F15 states, and writes only in a scratch space it removes.
+  - The verification leaves the whole consumer intact, its installed packages included, as testing/F15 states. It writes only in a scratch space it removes.
   - `test/verify.mjs` imports only Node's built-ins, never the package's own `lib/`, so a broken library cannot mask itself. The same holds for hosting/N4.
 - **testing/N13** [testing/I17] (packaging/N9): No delivered case reads this repository, its `plan/` or another package's sources.
 

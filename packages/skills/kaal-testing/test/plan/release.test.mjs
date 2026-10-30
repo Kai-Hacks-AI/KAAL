@@ -32,6 +32,10 @@ function files(dir, skip = ["node_modules"]) {
   return out.sort();
 }
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+/** The suites the test entry names, one `kaal-testing-suite <script>` line each, when asked with `--list`. */
+const suites = (stdout) => stdout.split(/\r?\n/).filter((l) => l.startsWith("kaal-testing-suite ")).map((l) => l.slice("kaal-testing-suite ".length).trim()).sort();
+/** Every file of `dir` with its SHA-256, the installed packages included. */
+const snapshot = (dir) => Object.fromEntries(files(dir, []).map((p) => [p, sha256(readFileSync(join(dir, p)))]));
 
 describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
   it("testing/T74 [testing/F59]: the package states its scoped name, its version, public access and exact registry dependencies, and no importer uses its old name", async () => {
@@ -78,12 +82,16 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     for (const [c, a] of Object.entries(manifest.applicability ?? {})) assert.ok(manifest.cases.includes(c) && typeof a.reason === "string" && a.reason.length > 0, `${c}'s applicability is a declared case's, with a reason`);
   });
 
-  it("testing/T77 [testing/F62]: in the source workspace npm test runs every declared suite, the publisher's and the consumer's; nothing it needs runs in an installation", () => {
+  it("testing/T77 [testing/F62]: in the source workspace npm test runs every declared suite, the publisher's and the consumer's; nothing it needs runs in an installation", async () => {
     const { scripts } = json(join(PACKAGE, "package.json"));
     assert.ok(scripts["test:publisher"] && scripts["test:consumer"], "the source Test Plan declares the publisher's and the consumer's suites");
     assert.equal(scripts.pretest, undefined, "no pretest step runs before the installed verification");
     assert.match(scripts["test:consumer"], /test\/verify\.mjs/, "the consumer suite is the installed verification");
     assert.doesNotMatch(scripts.test, /npm (run )?test(\s|$)/, "npm test never invokes itself");
+    const plan = await execute("npm", ["test", "--", "--list"], { cwd: PACKAGE });
+    assert.equal(plan.status, 0, plan.stderr);
+    const declared = Object.keys(scripts).filter((k) => /^test:[a-z][a-z0-9-]*$/.test(k)).sort();
+    assert.deepEqual(suites(plan.stdout), declared, "in the source workspace the entry runs every declared test:<name> suite");
   });
 
   it("testing/T78 [testing/F59, testing/F61, testing/F63, testing/F64, testing/N12]: packed and installed alone in a fresh consumer, npm test there verifies the installed copy and conforms to the shared verifier contract's clean scenario", async () => {
@@ -102,7 +110,11 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     const install = await execute("npm", ["install", "--no-audit", "--no-fund", ...tarballs], { cwd: consumer });
     assert.equal(install.status, 0, install.stderr);
     const location = realpathSync(join(consumer, "node_modules", ...NAME.split("/")));
+    const listed = await execute("npm", ["explore", NAME, "--", "npm", "test", "--", "--list"], { cwd: consumer });
+    assert.deepEqual(suites(listed.stdout), ["test:consumer"], "in an installation the entry runs the consumer verification only");
+    const before = snapshot(consumer);
     const run = await execute("npm", ["explore", NAME, "--", "npm", "test"], { cwd: consumer });
+    assert.deepEqual(snapshot(consumer), before, "the verification leaves the whole consumer, its installed packages included, as it was");
     const manifest = json(join(location, "test/verify.json"));
     const lines = files(location).filter((p) => p !== "test/verify.json").map((p) => `${p}\0${sha256(readFileSync(join(location, p)))}\n`);
     const facts = {
