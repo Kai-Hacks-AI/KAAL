@@ -33,8 +33,11 @@ const FACTS = {
 };
 /** The applicability the harness established itself for the targeted case: a platform scope that excludes this platform, and a reason. */
 const SCOPE = { platforms: ["win32"], reason: "acme/T2 checks Windows ACLs" };
-/** The facts in scenario `id`: only where the manifest declares the targeted case not applicable did the harness establish its applicability. */
-const factsFor = (id) => (id === "not-applicable" ? { ...FACTS, applicability: { [FACTS.target]: SCOPE } } : FACTS);
+/**
+ * The facts in scenario `id`: where the manifest declares no case, the harness established none; only where it
+ * declares the targeted case not applicable did the harness establish its applicability.
+ */
+const factsFor = (id) => (id === "no-case" ? { ...FACTS, cases: [], target: undefined } : id === "not-applicable" ? { ...FACTS, applicability: { [FACTS.target]: SCOPE } } : FACTS);
 /** What the contract expects in each scenario, owned by these tests rather than read from the implementation. */
 const EXPECTED = {
   clean: { result: "verified", cases: "pass" },
