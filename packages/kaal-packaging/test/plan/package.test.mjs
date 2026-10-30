@@ -76,13 +76,43 @@ function summary(name, { result = "verified", exit, executed, passed, failed = 0
   return `${name}-verification ${JSON.stringify({ result, exit, cases: { executed, passed, failed }, causes })}`;
 }
 
-/** The verifier a conforming fixture ships: it runs its declared cases and prints the result line. */
+/**
+ * The verifier a conforming fixture ships: each case it runs calls the shipped module and checks
+ * its answer, and the result line names each execution by case. `cases` is how many of the
+ * declared cases it runs, in order, or the exact list of case identities it runs.
+ */
 function verifier(name, cases) {
-  return `const cases = ${cases};
-console.log(cases + " passed");
-console.log(${JSON.stringify(summary(name, { exit: 0, executed: "CASES", passed: "CASES" }))}.replaceAll('"CASES"', String(cases)));
+  const ids = Array.isArray(cases) ? cases : ["fixture/T1", "fixture/T2", "fixture/T3"].slice(0, cases);
+  return `import { add } from "../lib/add.mjs";
+const checks = { "fixture/T1": () => add(2, 3) === 5, "fixture/T2": () => add(0, 0) === 0, "fixture/T3": () => add(-1, 1) === 0, "fixture/T4": () => true };
+const cases = ${JSON.stringify(ids)}.map((id) => ({ name: id, outcome: checks[id]() ? "pass" : "fail" }));
+const failed = cases.filter((c) => c.outcome === "fail").length;
+const result = failed ? "failed" : "verified";
+console.log(\`\${cases.length - failed} passed\`);
+console.log(${JSON.stringify(name)} + "-verification " + JSON.stringify({ result, exit: failed ? 1 : 0, cases, causes: failed ? ["a case failed"] : [] }));
+process.exitCode = failed ? 1 : 0;
 `;
 }
+
+/** A verifier that reports every declared case passed after checking only that `docs/requirements.md` exists. */
+const PRESENCE = `import { existsSync } from "node:fs";
+const ok = existsSync(new URL("../docs/requirements.md", import.meta.url));
+const cases = ["fixture/T1", "fixture/T2", "fixture/T3"].map((id) => ({ name: id, outcome: ok ? "pass" : "fail" }));
+console.log("3 passed");
+console.log("kaal-fixture-verification " + JSON.stringify({ result: "verified", exit: 0, cases, causes: [] }));
+`;
+
+/** A verifier that reports every declared case passed after checking only the shipped files' digests against the manifest. */
+const DIGESTS = `import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+const at = (p) => new URL("../" + p, import.meta.url);
+const manifest = JSON.parse(readFileSync(at("test/verify.json"), "utf8"));
+const ok = Object.entries(manifest.files).every(([p, d]) => createHash("sha256").update(readFileSync(at(p))).digest("hex") === d);
+const cases = manifest.cases.map((id) => ({ name: id, outcome: ok ? "pass" : "fail" }));
+console.log(cases.length + " passed");
+console.log("kaal-fixture-verification " + JSON.stringify({ result: ok ? "verified" : "unknown", exit: ok ? 0 : 2, cases, causes: ok ? [] : ["a file differs"] }));
+process.exitCode = ok ? 0 : 2;
+`;
 
 /**
  * A conforming KAAL package's files, with `change` applied: a path set to `undefined` is left out,
@@ -154,7 +184,7 @@ function install(files, { deps = {}, tamper = {}, around = {} } = {}) {
 async function conform(files, options) {
   const { conform } = await suite();
   const { dir, consumer } = install(files, options);
-  const report = await conform(dir, { consumer, env: ENV });
+  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe") });
   return { report, by: Object.fromEntries(report.findings.map((f) => [f.requirement, f])), dir, consumer };
 }
 
@@ -194,11 +224,11 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
   it("packaging/T17 F9, N9: the installed npm test executes the Embedded verification against the installed copy", async () => {
     const good = await conform(conforming());
     expect(good.by, "packaging/F9", "verified", /installed copy/);
-    expect(good.by, "packaging/N9", "verified", /3 cases ran/);
+    expect(good.by, "packaging/N9", "verified", /depends on their behaviour/);
 
     // Installed inside a checkout, a relative import of the checkout resolves and the run succeeds.
     // It still does not run against the installed copy alone.
-    const checkout = `import { add } from "../../../packages/kaal-fixture/lib/add.mjs";\n${verifier("kaal-fixture", 3)}`;
+    const checkout = `import { add as fromCheckout } from "../../../packages/kaal-fixture/lib/add.mjs";\nfromCheckout(1, 1);\n${verifier("kaal-fixture", 3)}`;
     const around = { "packages/kaal-fixture/lib/add.mjs": "export const add = (a, b) => a + b;\n" };
     const reach = await conform(conforming({ files: { "test/verify.mjs": checkout } }), { around });
     expect(reach.by, "packaging/F10", "verified");
@@ -223,14 +253,31 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     expect((await conform(conforming({ files: { "test/verify.mjs": exit } }))).by, "packaging/F10", "failed", /reported verified but exited 1/);
   });
 
-  it("packaging/T19 F11: a changed installed file and an unrun declared case are reported, never verified", async () => {
-    expect((await conform(conforming())).by, "packaging/F11", "verified");
+  it("packaging/T19 F11: a changed installed file, and a declared case missing, run twice or replaced, are reported, never verified", async () => {
+    expect((await conform(conforming())).by, "packaging/F11", "verified", /each of the 3 declared cases ran exactly once/);
 
     const tampered = await conform(conforming(), { tamper: { "lib/add.mjs": "export const add = (a, b) => a - b;\n" } });
     expect(tampered.by, "packaging/F11", "unknown", /lib\/add\.mjs differs from the manifest/);
 
-    const two = conforming({ files: { "test/verify.mjs": verifier("kaal-fixture", 2) } });
-    expect((await conform(two)).by, "packaging/F11", "unknown", /1 of 3 declared cases did not run/);
+    const ran = async (cases) => (await conform(conforming({ files: { "test/verify.mjs": verifier("kaal-fixture", cases) } }))).by;
+    expect(await ran(["fixture/T1", "fixture/T2"]), "packaging/F11", "unknown", /declared cases did not run: fixture\/T3/);
+    // Three executions, as many as declared: one case twice, another not at all.
+    const twice = (await ran(["fixture/T1", "fixture/T1", "fixture/T2"]))["packaging/F11"];
+    assert.equal(twice.result, "unknown");
+    assert.match(twice.cause, /fixture\/T1 \(2 times\)/);
+    assert.match(twice.cause, /did not run: fixture\/T3/);
+    // Three executions again: a stand-in in place of a declared case.
+    const standIn = (await ran(["fixture/T1", "fixture/T2", "fixture/T4"]))["packaging/F11"];
+    assert.equal(standIn.result, "unknown");
+    assert.match(standIn.cause, /the manifest does not declare: fixture\/T4/);
+    assert.match(standIn.cause, /did not run: fixture\/T3/);
+
+    // Counts only, however right, say nothing about which cases ran.
+    const counts = `console.log("3 passed");\nconsole.log(${JSON.stringify(summary("kaal-fixture", { exit: 0, executed: 3, passed: 3 }))});\n`;
+    expect((await conform(conforming({ files: { "test/verify.mjs": counts } }))).by, "packaging/F11", "unknown", /reports counts, not each case by name/);
+    // A declared case reported as not run is not run.
+    const notRun = verifier("kaal-fixture", 3).replace('const failed =', 'cases[2].outcome = "not run";\nconst failed =');
+    expect((await conform(conforming({ files: { "test/verify.mjs": notRun } }))).by, "packaging/F11", "unknown", /reported but did not run: fixture\/T3 \(not run\)/);
 
     expect((await conform(conforming({ manifest: null }))).by, "packaging/F11", "unknown", /no manifest/);
   });
@@ -266,17 +313,28 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     assert.equal(r.report.result, "failed");
   });
 
-  it("packaging/T24 N9: a package whose documents are all present is still decided by its behaviour", async () => {
-    // Every document a presence check would look for is shipped, and docs/requirements.md promises
-    // a case for fixture/F1. The verifier runs none and still claims verified.
-    const empty = `console.log("0 passed");\nconsole.log(${JSON.stringify(summary("kaal-fixture", { exit: 0, executed: 0, passed: 0 }))});\n`;
-    const r = await conform(conforming({ files: { "test/verify.mjs": empty } }));
-    expect(r.by, "packaging/F8", "verified");
-    expect(r.by, "packaging/N9", "failed", /no case ran/);
-    assert.equal(r.report.result, "failed");
+  it("packaging/T24 N9: a verification that passes on presence, whatever the package does, is detected; a count never certifies behaviour", async () => {
+    // Its documents are all shipped and docs/requirements.md says fixture/F1: "It adds". Its
+    // module subtracts, and its verifier checks only that the document exists.
+    const subtracts = { "lib/add.mjs": "export const add = (a, b) => a - b;\n" };
+    const presence = await conform(conforming({ files: { ...subtracts, "test/verify.mjs": PRESENCE } }));
+    expect(presence.by, "packaging/F8", "verified");
+    assert.deepEqual(presence.report.reported, { result: "verified", exit: 0, causes: [] });
+    expect(presence.by, "packaging/N9", "failed", /still reports verified: it decides from presence, not behaviour/);
+    assert.equal(presence.report.result, "failed");
 
-    const untold = `console.log("verified");\n`;
-    expect((await conform(conforming({ files: { "test/verify.mjs": untold } }))).by, "packaging/N9", "unknown", /without saying how many cases ran/);
+    // Digests are presence too: the probe keeps the manifest consistent with what it broke.
+    expect((await conform(conforming({ files: { "test/verify.mjs": DIGESTS } }))).by, "packaging/N9", "failed", /from presence/);
+
+    // A bare verified, with no count, is decided the same way.
+    expect((await conform(conforming({ files: { "test/verify.mjs": `console.log("verified");\n` } }))).by, "packaging/N9", "failed", /from presence/);
+
+    const empty = `console.log("0 passed");\nconsole.log(${JSON.stringify(summary("kaal-fixture", { exit: 0, executed: 0, passed: 0 }))});\n`;
+    expect((await conform(conforming({ files: { "test/verify.mjs": empty } }))).by, "packaging/N9", "failed", /no case ran/);
+
+    // A verification whose cases call the module: verified, for exactly that, and no more.
+    expect((await conform(conforming())).by, "packaging/N9", "verified", /no longer reports verified .*Whether its assertions are adequate is its owner's/);
+    expect((await conform(conforming(), { work: null })).by, "packaging/N9", "unknown", /no working directory/);
   });
 
   it("packaging/T25 N10: every cited ID exists in its owner's plan, and no Testing term is restated", async () => {

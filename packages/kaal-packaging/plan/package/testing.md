@@ -40,7 +40,7 @@ Every result is verified, failed or unknown, in Testing's terms. A package that 
 
 ## RED evidence (packaging/C5)
 
-Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_PACKAGE_PATH_NOT_EXPORTED`), which is not evidence. The discriminating RED came from 23 deliberately wrong suites, each one change to `lib/conformance.mjs`, run against all thirteen cases on Node 24.22.1 with npm 11.19.1. Every one was caught:
+Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_PACKAGE_PATH_NOT_EXPORTED`), which is not evidence. The discriminating RED came from deliberately wrong suites, each one change to `lib/conformance.mjs`, run against all thirteen cases on Node 24.22.1 with npm 11.19.1. Every one was caught:
 
 | Wrong suite | Caught by |
 | --- | --- |
@@ -53,14 +53,22 @@ Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_
 | F10 ignores failed cases under `verified` | T18 |
 | F10 accepts a result without a cause | T18 |
 | F11 ignores a changed file | T19 |
-| F11 ignores declared cases that did not run | T19 |
+| F11 ignores a declared case that did not run | T19 |
+| F11 ignores a case run twice | T19 |
+| F11 ignores an undeclared stand-in | T19 |
+| F11 accepts counts in place of identities | T18, T19, T24 |
+| F11 counts a case reported `not run` as run | T19 |
 | F11 reports a changed file as failed, not unknown | T19 |
 | F12 accepts undeclared platforms | T20 |
 | F13 verifies an untraced identifier | T21 |
 | N7 ignores a changed consumer | T22 |
 | N8 trusts any import | T23 |
 | N9 accepts `verified` with no case run | T24 |
-| N9 accepts `verified` without a count | T24 |
+| N9 certifies a positive count without the probe | T17, T24 |
+| N9's probe leaves the manifest's digests as shipped | T24 |
+| N9's probe breaks no module | T17, T24, A7 |
+| N9's probe counts a `verified` probe as behaviour | T24 |
+| N9 verifies without a working directory | T24 |
 | N10 accepts a citation its owner does not define | T25 |
 | N10 accepts a restated Testing term | T25 |
 | N10 verifies an unresolved citation | T25 |
@@ -69,3 +77,7 @@ Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_
 | F14 accepts an undeclared suite | T26 |
 
 The first run left two survivors in F9: T17's checkout fixture failed at run time, so the static check was never the deciding one. T17 now installs that fixture inside a checkout, where the import resolves and the run succeeds, and only the suite's own check fails it.
+
+**Revised to the Owner's review on #660 (5718600645).**
+- **F11 by identity.** Counts, even equal ones, do not show which declared cases ran. The suite reads testing/C29's per-case list (`cases`, one `{ name, outcome }` per reported execution, #639) and reconciles it with the manifest by name. A declared case missing, reported twice, or reported `skipped`, `todo` or `not run`, and a reported case the manifest does not declare, are each unknown. A run that reports counts only is unknown, never verified. T19's fixtures run three cases, as many as are declared, with one twice or a stand-in in place of one.
+- **N9 by behaviour.** A count never certifies behaviour. In a scratch working directory, never in the consumer, the suite installs a copy of the package with every shipped module outside `test/` broken, and the manifest's digests rewritten to match. Then it runs the copy's `npm test`. A verification that still reports `verified` decides from presence and is failed. One that no longer does depends on the modules' behaviour, and the finding says that this is all it shows. Whether its assertions are adequate stays with its owner. T24's fixture ships every document, while its module contradicts `docs/requirements.md`, and its verifier checks only that the document exists. A second fixture checks only the manifest's digests. Both are failed.

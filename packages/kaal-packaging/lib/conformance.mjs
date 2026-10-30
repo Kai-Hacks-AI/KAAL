@@ -11,7 +11,7 @@
 // Every host operation goes through kaal-hosting, and SHA-256 comes from kaal-foundation
 // (packaging/A1, packaging/N3).
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute, kind, read, readFile } from "kaal-hosting";
+import { execute, initialize, kind, read, readFile } from "kaal-hosting";
 import builtins from "./builtins.json" with { type: "json" };
 
 /** The documents a KAAL package ships (packaging/F8, the Owner's D2 on #658). */
@@ -95,9 +95,15 @@ export function resultLine(stdout) {
   return { error: `its last line is not a result: ${JSON.stringify(line.slice(0, 120))}` };
 }
 
+/** The outcome words of testing/C29's per-case entries (#639, testing/F44): hosting/F21's, and todo. */
+const RAN = new Set(["pass", "fail"]);
+const ACCOUNTED = new Set(["pass", "fail", "not applicable"]);
+
 /** How many declared cases the run says it executed, when it says. */
 function executedOf(parsed, stdout) {
-  const n = parsed.summary?.cases?.executed;
+  const cases = parsed.summary?.cases;
+  if (Array.isArray(cases)) return cases.filter((c) => RAN.has(c?.outcome)).length;
+  const n = cases?.executed;
   if (Number.isInteger(n)) return n;
   const m = [...stdout.matchAll(/\b(\d+) (?:passed|executed)\b/g)].at(-1);
   return m ? Number(m[1]) : undefined;
@@ -126,22 +132,35 @@ function verification(pkg, files, run) {
   const problems = [];
   if (EXIT[parsed.result] !== run.status) problems.push(`it reported ${parsed.result} but exited ${run.status}`);
   if (parsed.exit !== undefined && parsed.exit !== run.status) problems.push(`its line names exit ${parsed.exit} but it exited ${run.status}`);
-  const failedCases = Number.isInteger(parsed.summary?.cases?.failed) ? parsed.summary.cases.failed : Number([...run.stdout.matchAll(/\b(\d+) failed\b/g)].at(-1)?.[1] ?? 0);
+  const cases = parsed.summary?.cases;
+  const failedCases = Array.isArray(cases)
+    ? cases.filter((c) => c?.outcome === "fail").length
+    : Number.isInteger(cases?.failed)
+      ? cases.failed
+      : Number([...run.stdout.matchAll(/\b(\d+) failed\b/g)].at(-1)?.[1] ?? 0);
   if (parsed.result === "verified" && failedCases > 0) problems.push(`it reported verified with ${failedCases} cases failed`);
   if (parsed.result !== "verified" && parsed.causes.length === 0) problems.push(`it reported ${parsed.result} without a cause`);
   const f10 = problems.length ? finding("packaging/F10", "failed", problems.join("; ")) : finding("packaging/F10", "verified", `${parsed.result}, exit ${run.status}`);
-  let n9;
-  if (parsed.result !== "verified") n9 = finding("packaging/N9", "verified", `it did not claim verified`);
-  else {
-    const executed = executedOf(parsed, run.stdout);
-    if (executed === undefined) n9 = finding("packaging/N9", "unknown", "it reported verified without saying how many cases ran");
-    else if (executed === 0) n9 = finding("packaging/N9", "failed", "it reported verified, but no case ran");
-    else n9 = finding("packaging/N9", "verified", `it reported verified after ${executed} cases ran`);
-  }
-  return { run: { ...reported, parsed }, findings: [f9, f10, n9] };
+  // packaging/N9 is decided by the behaviour probe (`probe`), not here: a count alone never
+  // certifies behaviour. A verified run with no case at all is failed without one.
+  let n9 = null;
+  if (parsed.result !== "verified") n9 = finding("packaging/N9", "verified", "it did not claim verified, so it claims nothing on presence alone");
+  else if (executedOf(parsed, run.stdout) === 0) n9 = finding("packaging/N9", "failed", "it reported verified, but no case ran");
+  return { run: { ...reported, parsed }, findings: [f9, f10, ...(n9 ? [n9] : [])] };
 }
 
-/** packaging/F11: the installed files against the shipped manifest, and every declared case run. */
+/**
+ * The cases a run reports, by identity, in testing/C29's form (#639, testing/F44–F45): the
+ * summary's `cases` is an ordered list, one entry per reported execution, each `{ name, outcome }`.
+ * A run that reports counts only says nothing about which cases ran.
+ */
+function executions(run) {
+  const cases = run?.parsed.summary?.cases;
+  if (!Array.isArray(cases)) return undefined;
+  return cases.map((c) => ({ name: typeof c?.name === "string" ? c.name : null, outcome: c?.outcome }));
+}
+
+/** packaging/F11: the installed files against the shipped manifest, and every declared case run exactly once. */
 function manifest(files, verify, run) {
   if (!verify || typeof verify.files !== "object" || verify.files === null) {
     return finding("packaging/F11", "unknown", "the package ships no manifest of its files with their SHA-256 (test/verify.json)");
@@ -155,14 +174,25 @@ function manifest(files, verify, run) {
   for (const path of Object.keys(files)) if (!(path in listed) && path !== "test/verify.json") problems.push(`${path} is not in the manifest`);
   if (!Array.isArray(verify.cases)) problems.push("the manifest declares no case inventory");
   else if (run) {
-    const counts = run.parsed.summary?.cases;
-    const ran = Number.isInteger(counts?.executed) ? counts.executed + (Number.isInteger(counts.notApplicable) ? counts.notApplicable : 0) : undefined;
-    if (ran === undefined) problems.push("the run does not say how many declared cases it executed");
-    else if (ran < verify.cases.length) problems.push(`${verify.cases.length - ran} of ${verify.cases.length} declared cases did not run`);
+    const ran = executions(run);
+    if (ran === undefined) problems.push("the run reports counts, not each case by name (testing/C29's `cases`), so which declared cases ran cannot be told");
+    else {
+      const declared = new Set(verify.cases);
+      const seen = new Map();
+      for (const { name } of ran) seen.set(name, (seen.get(name) ?? 0) + 1);
+      const missing = verify.cases.filter((id) => !seen.has(id));
+      const unrun = ran.filter(({ name, outcome }) => declared.has(name) && !ACCOUNTED.has(outcome)).map(({ name, outcome }) => `${name} (${outcome ?? "no outcome"})`);
+      if (unrun.length) problems.push(`declared cases were reported but did not run: ${unrun.join(", ")}`);
+      const twice = [...seen].filter(([id, n]) => id !== null && n > 1).map(([id, n]) => `${id} (${n} times)`);
+      const undeclared = [...seen.keys()].filter((id) => id === null || !declared.has(id)).map((id) => id ?? "an outcome naming no case");
+      if (missing.length) problems.push(`declared cases did not run: ${missing.join(", ")}`);
+      if (twice.length) problems.push(`declared cases ran more than once: ${twice.join(", ")}`);
+      if (undeclared.length) problems.push(`cases ran that the manifest does not declare: ${undeclared.join(", ")}`);
+    }
   }
   // Consistency with a shipped manifest is not provenance (testing/F14), and a mismatch makes the
   // evidence untrustworthy rather than showing the contract broken: unknown (testing/F43).
-  return problems.length ? finding("packaging/F11", "unknown", problems.join("; ")) : finding("packaging/F11", "verified", `${Object.keys(listed).length} files match the manifest, and every declared case ran`);
+  return problems.length ? finding("packaging/F11", "unknown", problems.join("; ")) : finding("packaging/F11", "verified", `${Object.keys(listed).length} files match the manifest, and each of the ${verify.cases.length} declared cases ran exactly once`);
 }
 
 /** packaging/F12: the runtime and the platforms are declared. Their meaning is Hosting's. */
@@ -251,17 +281,73 @@ function projectOf(dir) {
   return at.length ? dir.slice(0, Math.min(...at)) : dir;
 }
 
+/** The text that replaces every shipped module in the behaviour probe. */
+const BROKEN = 'throw new Error("kaal-packaging N9 probe: this module was broken on purpose");\n';
+
+/**
+ * packaging/N9's behaviour probe. In `work`, never in the consumer, it installs a copy of the
+ * package beside the consumer's dependencies with every shipped module outside test/ broken, and
+ * the shipped manifest's digests rewritten to match, so that a verification that checks only
+ * presence or digests cannot tell the difference. It runs that copy's `npm test` once. A
+ * verification that still reports verified decides from presence, not behaviour: failed. One that
+ * no longer does depends on the modules' behaviour; whether its assertions are adequate stays its
+ * owner's, and the finding says so.
+ */
+async function probe(pkg, files, root, { work, env }) {
+  if (work === undefined) return finding("packaging/N9", "unknown", "no working directory was given for the behaviour probe, so behaviour was not checked");
+  const modules = Object.keys(files).filter((p) => /\.(mjs|cjs|js)$/.test(p) && !p.startsWith("test/"));
+  if (modules.length === 0) return finding("packaging/N9", "unknown", "the package ships no module outside test/ to break, so behaviour cannot be told from presence here");
+  const copy = { ...files };
+  for (const p of modules) copy[p] = Buffer.from(BROKEN);
+  if ("test/verify.json" in copy) {
+    try {
+      const v = JSON.parse(copy["test/verify.json"].toString("utf8"));
+      if (v.files && typeof v.files === "object") for (const p of modules) if (p in v.files) v.files[p] = sha256(copy[p]);
+      copy["test/verify.json"] = Buffer.from(JSON.stringify(v, null, 2) + "\n");
+    } catch {
+      // An unreadable manifest is F11's finding; the probe runs with it as shipped.
+    }
+  }
+  const tree = { "package.json": Buffer.from(JSON.stringify({ name: "kaal-packaging-probe", private: true }) + "\n") };
+  let dependencies = {};
+  try {
+    dependencies = await read(join(root, "node_modules"));
+  } catch (e) {
+    return finding("packaging/N9", "unknown", `the behaviour probe could not copy the consumer's dependencies: ${e.message}`);
+  }
+  const own = `${pkg.name}/`;
+  for (const [p, bytes] of Object.entries(dependencies)) if (!p.startsWith(own) && !p.startsWith(".")) tree[`node_modules/${p}`] = bytes;
+  for (const [p, bytes] of Object.entries(copy)) tree[`node_modules/${own}${p}`] = bytes;
+  let r;
+  try {
+    await initialize(work, tree);
+    r = await execute("npm", ["test", "--silent"], { cwd: join(work, `node_modules/${pkg.name}`), env });
+  } catch (e) {
+    return finding("packaging/N9", "unknown", `the behaviour probe could not run: ${e.message}`);
+  }
+  const parsed = resultLine(r.stdout);
+  if (!parsed.error && parsed.result === "verified" && r.status === 0) {
+    return finding("packaging/N9", "failed", `with all ${modules.length} shipped modules outside test/ broken, its verification still reports verified: it decides from presence, not behaviour`);
+  }
+  return finding(
+    "packaging/N9",
+    "verified",
+    `with its ${modules.length} shipped modules broken, its verification no longer reports verified (${parsed.error ? "no result" : parsed.result}): it depends on their behaviour. Whether its assertions are adequate is its owner's to show`,
+  );
+}
+
 /** The overall result: failed when any finding failed, unknown when any is unknown, else verified. */
 const overall = (findings) => (findings.some((f) => f.result === "failed") ? "failed" : findings.some((f) => f.result === "unknown") ? "unknown" : "verified");
 
 /**
  * The generic KAAL Package contract, decided against the package installed at `dir` (absolute)
  * inside the consumer project `consumer` (absolute, default: the directory holding its
- * node_modules). It runs the package's installed `npm test` there once. It returns each
- * finding, the overall result, and what the package's own verification reported, which is the
- * package's specific contract and not Packaging's to judge.
+ * node_modules). It runs the package's installed `npm test` there once, and once more for the
+ * behaviour probe in `work` (absolute; a missing or empty directory the caller owns and removes).
+ * It returns each finding, the overall result, and what the package's own verification reported,
+ * which is the package's specific contract and not Packaging's to judge.
  */
-export async function conform(dir, { consumer, env } = {}) {
+export async function conform(dir, { consumer, env, work } = {}) {
   if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);
   const root = consumer ?? projectOf(dir);
   const pkg = await manifestOf(dir);
@@ -283,8 +369,9 @@ export async function conform(dir, { consumer, env } = {}) {
       run = { error: e.message };
     }
   }
-  const after = await snapshot(root);
   const checked = verification(pkg, files, run);
+  const n9 = checked.findings.find((f) => f.requirement === "packaging/N9") ?? (await probe(pkg, files, root, { work, env }));
+  const after = await snapshot(root);
   const findings = [
     identity(pkg),
     documents(files),
@@ -294,7 +381,7 @@ export async function conform(dir, { consumer, env } = {}) {
     coverage(verify),
     intact(before, after),
     selfContained(pkg, files),
-    checked.findings.find((f) => f.requirement === "packaging/N9"),
+    n9,
   ];
   return {
     package: { name: pkg.name, version: pkg.version, location: dir },

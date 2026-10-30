@@ -28,9 +28,11 @@ export const EMBEDDED: readonly string[];
 /**
  * The generic KAAL Package contract, decided against the package installed at `dir` (absolute)
  * inside the consumer project `consumer` (absolute; default: the directory holding its
- * node_modules). It runs the installed `npm test` once, with `env`.
+ * node_modules). It runs the installed `npm test` once, with `env`, and once more as packaging/N9's
+ * behaviour probe in `work`, a missing or empty directory the caller owns and removes. Without
+ * `work`, packaging/N9 is unknown.
  */
-export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined> }): Promise<Conformance>;
+export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string }): Promise<Conformance>;
 
 /** packaging/F14, decided against a package's source workspace at `dir` (absolute). */
 export function conformSource(dir: string, options?: { env?: Record<string, string | undefined> }): Promise<Finding>;
