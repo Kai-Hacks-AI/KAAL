@@ -17,7 +17,7 @@ Each element names, in brackets, the Requirements it answers.
 | Testing | the general test outcomes and the cross-platform evidence semantics: the same declared cases on every platform, each visible everywhere, exemption only by established applicability, the combined result, and refusing a platform scope outside the boundary as evidence. Testing authorizes no operating-system exception. |
 | Hosting | the operating-system boundary: its OS-specific implementation and tests, and its declared platform scopes. It also owns the architectural rule that nothing else knows the OS, and supplies the cross-capability conformance suite and review guidance that challenge OS-specific implementation, assertions, test selection and applicability in every other capability. |
 | Each package | its supported platforms (packaging/F12), its cases, and each case's applicability by optional complement |
-| Engineering (#641) | executing and enforcing the checks, and reporting their evidence: running each supported platform on the one candidate, establishing each run's facts and `osBoundary` from Hosting's declaration, running Hosting's suite, and passing each unresolved challenge finding as `challenged`. Engineering takes no ownership of Hosting's rule. |
+| Engineering (#641) | executing and enforcing the checks, and reporting their evidence: running each supported platform on the one candidate, establishing each run's facts and `osBoundary` from Hosting's declaration (`osBoundary(name)`, hosting/F36), running Hosting's suite, and passing `challenged` from Hosting's portability audit (`portability().challenged`, hosting/F40). Engineering takes no ownership of Hosting's rule. |
 
 ## In the release lane
 
@@ -25,7 +25,7 @@ For each candidate, Engineering:
 1. packs the candidate and installs it into a fresh consumer on Linux, Windows and macOS;
 2. runs the package's own verifier on each platform, then `observe` and `judge` (testing/A18) on each run;
 3. runs Hosting's cross-capability suite against the candidate's sources and tests, and gives Hosting's review guidance to the review of each Change, reporting every unresolved finding by case;
-4. establishes `osBoundary` from Hosting's declaration of the boundary, which is `true` for Hosting alone;
+4. establishes `osBoundary` from Hosting's declaration of the boundary, `osBoundary(name)` (hosting/F36), which is `true` for Hosting alone, and never from the package's own claim;
 5. calls `parity(runs, { supported, osBoundary, challenged })` and reports its result and findings beside the package's own results.
 
 A platform scope in a non-Hosting package is then refused twice: Hosting's suite reports it as a violation, and `parity` refuses to count it as evidence (testing/F67).
