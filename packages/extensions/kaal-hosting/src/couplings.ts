@@ -134,7 +134,7 @@ function groups(code: string, open: string, close: string): [number, number][] {
   return out;
 }
 
-const escape = (name: string): string => name.replace(/[$]/g, "\\$");
+const escape = (name: string): string => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const REGISTRATION = /\b(it|test|describe|suite)(\s*\.\s*(skip|todo|only))?\s*\(|\.skip\s*\(|\.todo\s*\(/;
 const ASSERTION = /(\bassert(\s*\.\s*\w+)*|\bt\s*\.\s*assert\s*\.\s*\w+|\bexpect\s*\([^]*?\)\s*(\.\s*\w+)+)\s*$/;
 
