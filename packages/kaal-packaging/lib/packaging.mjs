@@ -2,27 +2,19 @@
 // exactly as it was produced, compares two measurements, and reports sizes and deltas. It
 // decides nothing (packaging/I3, packaging/N2): no budget, no threshold, no verdict.
 //
-// The measurement and the record name no ecosystem (packaging/A5). Reading an artifact's format
-// is an ecosystem realization's; the first one reads npm (./npm/realization.mjs). A format no
-// realization reads is refused, naming the format.
+// The measurement and the record name no ecosystem (packaging/A5). Describing an artifact is an
+// ecosystem realization's, which asks that ecosystem's own tooling (packaging/A6); the first one
+// asks npm (./npm/realization.mjs). Packaging parses no archive. It checks what the tool reports
+// (packaging/N4), and takes the packed size and SHA-256 from the artifact's own bytes.
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
+import { readFile } from "kaal-hosting";
 import * as npm from "./npm/realization.mjs";
 
 const REALIZATIONS = [npm];
 
-/** Names an artifact format no realization reads, from its leading bytes. */
-function format(bytes) {
-  const b = (i) => bytes[i];
-  if (b(0) === 0x50 && b(1) === 0x4b && b(2) === 0x03 && b(3) === 0x04) return "zip";
-  if (b(0) === 0x42 && b(1) === 0x5a && b(2) === 0x68) return "bzip2";
-  if (b(0) === 0xfd && b(1) === 0x37 && b(2) === 0x7a && b(3) === 0x58 && b(4) === 0x5a) return "xz";
-  if (b(0) === 0x28 && b(1) === 0xb5 && b(2) === 0x2f && b(3) === 0xfd) return "zstd";
-  return "unknown";
-}
-
-/** The default limits on what reading one artifact may produce. The artifact's bytes are untrusted:
- *  an archive beyond any limit is refused, naming the limit, before more is decompressed. */
-export const LIMITS = Object.freeze({ archive: 512 * 1024 * 1024, files: 50_000, path: 1024 });
+/** The default limits on what Packaging accepts from a tool (packaging/N4): the number of files,
+ *  the UTF-8 bytes in one path, the unpacked size, and the characters of the tool's output. */
+export const LIMITS = Object.freeze({ files: 50_000, path: 1024, unpacked: 1024 * 1024 * 1024, output: 50_000 * (1024 + 128) + 4096 });
 
 function limitsOf(given) {
   const limits = { ...LIMITS, ...given };
@@ -33,22 +25,58 @@ function limitsOf(given) {
   return limits;
 }
 
+/** Whether a location is absolute on any host: `/…`, `C:\…` or `C:/…`, or `\\server\…`. */
+const absolute = (p) => p.startsWith("/") || /^[A-Za-z]:[\\/]/.test(p) || p.startsWith("\\\\");
+
+/** The artifact's format, named from its location's extension, for a refusal. */
+const formatOf = (p) => /\.([^./\\]+)$/.exec(p)?.[1] ?? "unknown";
+
+/** A package path is relative, with no empty, `.` or `..` segment and no backslash. */
+const safe = (path) => path !== "" && !path.startsWith("/") && !path.includes("\\") && path.split("/").every((s) => s !== "" && s !== "." && s !== "..");
+
 const byPath = (a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 
-/** packaging/F1: the artifact's packed size, unpacked size and every file's path and size. `limits`
- *  narrows or widens LIMITS: `archive` (decompressed bytes), `files` and `path` (bytes per path). */
-export function measure(artifact, limits = {}) {
-  if (!(artifact instanceof Uint8Array)) throw new TypeError("measure takes the artifact's bytes as a Uint8Array");
+/** packaging/N4: what the tool reported, checked against the artifact's own bytes and the limits. */
+function check(d, bytes, limits) {
+  const tool = `${d.tool.name} ${d.tool.version}`;
+  if (d.files.length > limits.files) throw new Error(`${tool} reported more than the limit of ${limits.files} files`);
+  if (d.files.length !== d.entries) throw new Error(`${tool} reported ${d.entries} entries but ${d.files.length} files`);
+  const seen = new Set();
+  let sum = 0;
+  for (const { path, size } of d.files) {
+    if (new TextEncoder().encode(path).length > limits.path) throw new Error(`${tool} reported a path longer than the limit of ${limits.path} bytes: ${JSON.stringify(path.slice(0, 80))}…`);
+    if (!safe(path)) throw new Error(`${tool} reported an unsafe path: ${JSON.stringify(path.slice(0, 200))}`);
+    if (seen.has(path)) throw new Error(`${tool} reported ${path} twice`);
+    seen.add(path);
+    sum += size;
+  }
+  if (sum !== d.unpacked) throw new Error(`${tool} reported an unpacked size of ${d.unpacked} bytes, but its files add up to ${sum}`);
+  if (d.unpacked > limits.unpacked) throw new Error(`${tool} reported more than the unpacked limit of ${limits.unpacked} bytes`);
+  if (d.packed !== bytes.length) throw new Error(`${tool} reported a packed size of ${d.packed} bytes, but the artifact holds ${bytes.length}`);
+}
+
+/**
+ * packaging/F1: the artifact's description. `artifact` is the absolute location of a package
+ * artifact of known provenance (packaging/N5), and `work` a directory for the ecosystem's tool,
+ * where its cache and configuration stay. `limits` narrows or widens LIMITS.
+ */
+export async function measure(artifact, { work, limits = {} } = {}) {
+  if (typeof artifact !== "string" || !absolute(artifact)) throw new TypeError("measure takes the absolute location of a package artifact");
+  if (typeof work !== "string" || !absolute(work)) throw new TypeError("measure takes an absolute working directory for the ecosystem's tool");
   const bounded = limitsOf(limits);
   const realization = REALIZATIONS.find((r) => r.reads(artifact));
-  if (!realization) throw new Error(`no realization reads this artifact: its format is ${format(artifact)}`);
-  const { name, version, files } = realization.read(artifact, bounded);
-  const listed = files.map(({ path, bytes }) => ({ path, size: bytes.length })).sort(byPath);
+  if (!realization) throw new Error(`no realization reads this artifact: its format is ${formatOf(artifact)}`);
+  const bytes = await readFile(artifact);
+  const before = sha256(bytes);
+  const d = await realization.describe(artifact, work, bounded);
+  if (sha256(await readFile(artifact)) !== before) throw new Error(`the artifact changed while ${d.tool.name} described it`);
+  check(d, bytes, bounded);
   return {
-    package: { ecosystem: realization.ecosystem, name, version, sha256: sha256(artifact) },
-    packed: artifact.length,
-    unpacked: listed.reduce((sum, f) => sum + f.size, 0),
-    files: listed,
+    package: { ecosystem: realization.ecosystem, name: d.name, version: d.version, sha256: before },
+    tool: d.tool,
+    packed: bytes.length,
+    unpacked: d.unpacked,
+    files: [...d.files].sort(byPath),
   };
 }
 
@@ -98,14 +126,16 @@ export function compare(before, after, groups = []) {
   };
 }
 
-const MEMBERS = ["package", "packed", "unpacked", "files"];
+const MEMBERS = ["package", "tool", "packed", "unpacked", "files"];
+const TOOL = ["name", "version"];
 const PACKAGE = ["ecosystem", "name", "version", "sha256"];
 
 /** packaging/F4: a measurement as a record, machine-owned state the caller keeps where it chooses. */
 export function write(measurement) {
-  const { package: p, packed, unpacked, files } = measurement;
+  const { package: p, tool, packed, unpacked, files } = measurement;
   const record = {
     package: { ecosystem: p.ecosystem, name: p.name, version: p.version, sha256: p.sha256 },
+    tool: { name: tool.name, version: tool.version },
     packed,
     unpacked,
     files: files.map(({ path, size }) => ({ path, size })),
@@ -121,6 +151,8 @@ export function read(record) {
     keys(value) === [...MEMBERS].sort().join() &&
     keys(value.package) === [...PACKAGE].sort().join() &&
     PACKAGE.every((k) => typeof value.package[k] === "string") &&
+    keys(value.tool) === [...TOOL].sort().join() &&
+    TOOL.every((k) => typeof value.tool[k] === "string") &&
     /^[0-9a-f]{64}$/.test(value.package.sha256) &&
     Number.isInteger(value.packed) &&
     Number.isInteger(value.unpacked) &&
@@ -139,7 +171,7 @@ export function report(subject, { format = "text" } = {}) {
   if (format !== "text") throw new Error(`report renders text or json, not ${format}`);
   const lines = [];
   if ("files" in subject) {
-    lines.push(`${label(subject.package)}`, `packed ${subject.packed} bytes, unpacked ${subject.unpacked} bytes, ${subject.files.length} files`);
+    lines.push(`${label(subject.package)}, described by ${subject.tool.name} ${subject.tool.version}`, `packed ${subject.packed} bytes, unpacked ${subject.unpacked} bytes, ${subject.files.length} files`);
     for (const f of subject.files) lines.push(`  ${f.size}\t${f.path}`);
   } else {
     lines.push(`${label(subject.before)} -> ${label(subject.after)}`);

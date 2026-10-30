@@ -17,12 +17,13 @@
     "lib"
   ],
   "scripts": {
-    "test": "node --test test/plan/measurement.test.mjs test/reader.test.mjs"
+    "test": "node --test test/plan/measurement.test.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "@kaihacksai/kaal-foundation": "0.0.1"
+    "@kaihacksai/kaal-foundation": "0.0.1",
+    "kaal-hosting": "0.0.1"
   }
 }
