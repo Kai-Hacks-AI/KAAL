@@ -505,10 +505,10 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     }
   });
 
-  it("guard/T131 [guard/F33, guard/F35]: a consumer holding a cycle of symbolic links is verified, exit 0, within the case's time limit, following neither link; replacing one link of the cycle with a regular file between snapshots is failed, naming it; a directory replaced by a regular file, and a regular file replaced by a directory, are each failed, naming the path", async (t) => {
+  it("guard/T131 [guard/F33, guard/F35]: a consumer holding a cycle of symbolic links is verified, exit 0, within the case's time limit, following neither link; replacing one link of the cycle with a regular file between snapshots is failed, naming it; a directory replaced by a regular file, a regular file replaced by a directory, and an empty directory replaced by a symbolic link are each failed, naming the path", async (t) => {
     const c = consumer();
     const asked = `${MINI} > guard/T0 changes an entry's kind when asked`;
-    reduce(c, `import { it } from "node:test";\nimport { mkdirSync, rmSync, writeFileSync } from "node:fs";\nit("guard/T0 changes an entry's kind when asked", () => {\n  const to = process.env.GUARD_T131_TO, at = process.env.GUARD_T131_AT;\n  if (!at) return;\n  rmSync(at, { recursive: true, force: true });\n  if (to === "file") writeFileSync(at, "a regular file now\\n");\n  else mkdirSync(at);\n});\n`, [asked]);
+    reduce(c, `import { it } from "node:test";\nimport { mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";\nit("guard/T0 changes an entry's kind when asked", () => {\n  const to = process.env.GUARD_T131_TO, at = process.env.GUARD_T131_AT;\n  if (!at) return;\n  rmSync(at, { recursive: true, force: true });\n  if (to === "file") writeFileSync(at, "a regular file now\\n");\n  else if (to === "link") symlinkSync("t131.file", at, "file");\n  else mkdirSync(at);\n});\n`, [asked]);
     try {
       symlinkSync("t131.b", join(c.dir, "t131.a"), "file");
       symlinkSync("t131.a", join(c.dir, "t131.b"), "file");
@@ -518,6 +518,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     mkdirSync(join(c.dir, "t131.dir"));
     writeFileSync(join(c.dir, "t131.dir", "inside.txt"), "inside\n");
     writeFileSync(join(c.dir, "t131.file"), "a regular file\n");
+    mkdirSync(join(c.dir, "t131.empty"));
     const LIMIT = 5 * 60 * 1000;
     const r = c.verify({}, LIMIT);
     assert.notEqual(r.status, null, `the run did not complete within ${LIMIT / 1000} s:\n${r.output.slice(-4000)}`);
@@ -525,7 +526,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.equal(s.result, "verified", `a cycle of links gave ${s.result}:\n${r.output.slice(-4000)}`);
     assert.equal(r.status, 0);
     assert.deepEqual(s.consumer.changed, [], "the summary names a changed path");
-    for (const [at, to, what] of [["t131.a", "file", "a link of the cycle replaced with a regular file"], ["t131.dir", "file", "a directory replaced with a regular file"], ["t131.file", "dir", "a regular file replaced with a directory"]]) {
+    for (const [at, to, what] of [["t131.a", "file", "a link of the cycle replaced with a regular file"], ["t131.dir", "file", "a directory replaced with a regular file"], ["t131.file", "dir", "a regular file replaced with a directory"], ["t131.empty", "link", "an empty directory replaced with a symbolic link"]]) {
       const v = c.verify({ GUARD_T131_AT: join(c.dir, at), GUARD_T131_TO: to }, LIMIT);
       assert.notEqual(v.status, null, `${what}: the run did not complete within ${LIMIT / 1000} s`);
       const u = observed(t, what, v);
