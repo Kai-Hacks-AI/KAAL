@@ -64,8 +64,8 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     assert.match(text(join(PACKAGE, "docs/operations.md")), /^## Shipped files$/m, "Operations lists the shipped files");
   });
 
-  it("testing/T76 [testing/F61, testing/F64, testing/F65, testing/F66]: the shipped manifest gives every other shipped file's SHA-256, the delivered cases, the supported platforms, and a resolved coverage of every identifier the documents define", async () => {
-    const { account } = await import(`${NAME}/verifiers`);
+  it("testing/T76 [testing/F61, testing/F64, testing/F65, testing/F66]: the shipped manifest gives every other shipped file's SHA-256, the delivered cases as a model that checks clean and traces each to identifiers the documents define, every supported platform, and no platform-scoped applicability", async () => {
+    const { check, tested } = await import(`${NAME}/model`);
     const manifest = json(join(PACKAGE, "test/verify.json"));
     const listed = (await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE })).stdout;
     const shipped = JSON.parse(listed)[0].files.map((f) => f.path).filter((p) => p !== "test/verify.json").sort();
@@ -76,12 +76,18 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     for (const c of manifest.cases) assert.ok(delivered.includes(c), `${c} is a delivered case`);
     assert.deepEqual([...manifest.platforms].sort(), ["darwin", "linux", "win32"], "Linux, macOS and Windows are supported");
     assert.equal(json(join(PACKAGE, "package.json")).engines?.node, ">=24");
-    const identifiers = [...new Set(DOCS.flatMap((d) => [...text(join(PACKAGE, d)).matchAll(/\*\*(testing\/[IFNA]\d+)\*\*/g)].map((m) => m[1])))];
-    assert.ok(identifiers.length > 0, "the documents define identifiers");
-    const trace = account({ identifiers, coverage: manifest.coverage, cases: manifest.cases });
-    assert.deepEqual(trace.findings, []);
-    assert.deepEqual(trace.entries.filter((e) => !["traced", "allocated", "unverified"].includes(e.state)), [], "every shipped identifier is traced, allocated or stated unverified, and no other is named");
-    for (const [c, a] of Object.entries(manifest.applicability ?? {})) assert.ok(manifest.cases.includes(c) && typeof a.reason === "string" && a.reason.length > 0, `${c}'s applicability is a declared case's, with a reason`);
+    assert.deepEqual(check(manifest.model), [], "the delivered cases form a model with no finding");
+    const modelled = (manifest.model.cases ?? []).filter((c) => !c.retired);
+    assert.deepEqual(modelled.map((c) => c.id).sort(), [...manifest.cases].sort(), "the model's Cases are exactly the delivered cases");
+    for (const c of modelled) assert.ok(Array.isArray(c.tests) && c.tests.length > 0, `${c.id} names what it tests`);
+    const identifiers = new Set(DOCS.flatMap((d) => [...text(join(PACKAGE, d)).matchAll(/\*\*(testing\/[IFNA]\d+)\*\*/g)].map((m) => m[1])));
+    for (const target of Object.keys(tested(manifest.model))) assert.ok(identifiers.has(target), `${target}, which a delivered case tests, is defined in the documents`);
+    assert.equal(Object.hasOwn(manifest, "coverage"), false, "no coverage map stands beside the model: evidence is derived from it");
+    for (const [c, a] of Object.entries(manifest.applicability ?? {})) {
+      assert.ok(manifest.cases.includes(c) && typeof a.reason === "string" && a.reason.length > 0, `${c}'s applicability is a declared case's, with a reason`);
+      assert.equal(Object.hasOwn(a, "platforms"), false, `${c} is not scoped by platform: only Hosting owns OS-specific behaviour`);
+      assert.ok([a.requires, a.absent].some((l) => Array.isArray(l) && l.length > 0), `${c}'s applicability names an optional complement`);
+    }
   });
 
   it("testing/T77 [testing/F62]: in the source workspace npm test runs every declared suite, the publisher's and the consumer's; nothing it needs runs in an installation", async () => {
@@ -133,12 +139,16 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     assert.deepEqual(j.differences, [], run.stdout + run.stderr);
   });
 
-  it("testing/T79 [testing/N12, testing/N13]: the installed verification imports only Node's built-ins, so a broken library cannot mask itself, and no delivered case reads this repository", () => {
+  it("testing/T79 [testing/F65, testing/N12, testing/N13]: the installed verification imports only Node's built-ins, so a broken library cannot mask itself; no delivered case reads this repository; and no shipped file branches on the operating system", async () => {
     const entry = text(join(PACKAGE, "test/verify.mjs"));
     for (const m of entry.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/g)) assert.match(m[1] ?? m[2], /^node:/, `the verification imports ${m[1] ?? m[2]}`);
     for (const p of files(join(PACKAGE, "test")).filter((x) => /^(acceptance|unit)\//.test(x))) {
       const body = text(join(PACKAGE, "test", p));
       assert.doesNotMatch(body, /\.\.\/\.\.\/\.\.|\bplan\/|packages\/|engineering\//, `test/${p} reads only the installed package`);
+    }
+    const packed = JSON.parse((await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE })).stdout)[0].files.map((f) => f.path);
+    for (const p of packed.filter((x) => /\.(mjs|cjs|js)$/.test(x))) {
+      assert.doesNotMatch(text(join(PACKAGE, p)), /["'`](win32|darwin|linux)["'`]|\bos\.platform\(|\bplatform\(\)|node:os["']/, `${p} names no operating system: OS-specific behaviour is Hosting's`);
     }
   });
 });
