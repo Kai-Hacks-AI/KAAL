@@ -27,7 +27,14 @@ const EXIT = { verified: 0, failed: 1, "cannot verify": 2, unknown: 2 };
 const BUILTINS = new Set(builtins);
 
 const finding = (requirement, result, cause) => ({ requirement, result, cause });
-const join = (dir, path) => `${dir.replace(/[\\/]+$/, "")}/${path}`;
+
+/** `path` under `dir`, whatever separators `dir` ends with. */
+function join(dir, path) {
+  let end = dir.length;
+  while (end > 0 && (dir[end - 1] === "/" || dir[end - 1] === "\\")) end--;
+  return `${dir.slice(0, end)}/${path}`;
+}
+
 const text = async (path) => (await readFile(path)).toString("utf8");
 
 async function manifestOf(dir) {
@@ -83,8 +90,8 @@ export function resultLine(stdout) {
     const causes = Array.isArray(summary.causes) ? summary.causes.filter((c) => typeof c === "string" && c.trim() !== "") : [];
     return { result: summary.result, exit: summary.exit, causes, summary };
   }
-  const bare = /^(verified|failed|cannot verify|unknown)(?::\s*(.*))?$/.exec(line);
-  if (bare) return { result: bare[1], exit: EXIT[bare[1]], causes: bare[2] ? [bare[2]] : [], summary: null };
+  const bare = /^(verified|failed|cannot verify|unknown)(?::(.*))?$/.exec(line);
+  if (bare) return { result: bare[1], exit: EXIT[bare[1]], causes: bare[2]?.trim() ? [bare[2].trim()] : [], summary: null };
   return { error: `its last line is not a result: ${JSON.stringify(line.slice(0, 120))}` };
 }
 
@@ -238,6 +245,12 @@ function selfContained(pkg, files) {
     : finding("packaging/N8", "verified", "every shipped module imports only Node's modules, the package and its declared dependencies");
 }
 
+/** The consumer project an installed package sits in: the directory holding its first node_modules. */
+function projectOf(dir) {
+  const at = [..."/\\"].flatMap((a) => [..."/\\"].map((b) => dir.indexOf(`${a}node_modules${b}`))).filter((i) => i >= 0);
+  return at.length ? dir.slice(0, Math.min(...at)) : dir;
+}
+
 /** The overall result: failed when any finding failed, unknown when any is unknown, else verified. */
 const overall = (findings) => (findings.some((f) => f.result === "failed") ? "failed" : findings.some((f) => f.result === "unknown") ? "unknown" : "verified");
 
@@ -250,7 +263,7 @@ const overall = (findings) => (findings.some((f) => f.result === "failed") ? "fa
  */
 export async function conform(dir, { consumer, env } = {}) {
   if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);
-  const root = consumer ?? dir.replace(/[\\/]node_modules[\\/].*$/, "");
+  const root = consumer ?? projectOf(dir);
   const pkg = await manifestOf(dir);
   const files = await delivered(dir);
   let verify = null;
@@ -296,7 +309,15 @@ export const EMBEDDED = ["test:embedded", "test:consumer"];
 
 /** The declared suites a source `npm test` script runs, when it states them; `null` when it does not. */
 function followed(script, suites) {
-  const named = [...script.matchAll(/\bnpm(?:\s+--?[\w-]+)*\s+run(?:-script)?\s+(test:[\w:.-]+)/g)].map((m) => m[1]);
+  // Read word by word: `npm`, any flags, `run` or `run-script`, then the suite's name.
+  const words = script.split(/\s+/).filter(Boolean);
+  const named = [];
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== "npm") continue;
+    let j = i + 1;
+    while (j < words.length && words[j].startsWith("-")) j++;
+    if ((words[j] === "run" || words[j] === "run-script") && /^test:[\w:.-]+$/.test(words[j + 1] ?? "")) named.push(words[j + 1]);
+  }
   if (named.length) return named;
   const same = Object.entries(suites).filter(([, command]) => command.trim() === script.trim()).map(([name]) => name);
   return same.length ? same : null;
