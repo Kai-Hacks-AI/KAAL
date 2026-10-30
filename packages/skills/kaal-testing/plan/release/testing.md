@@ -19,7 +19,7 @@ The tests run with `node --test packages/skills/kaal-testing/test/plan/release.t
   - testing/T74: the name is `kaal-testing`, not `@kaihacksai/kaal-testing`;
   - testing/T77: no `test:publisher` or `test:consumer` suite is declared.
 - **Blocked RED**, by an absent artifact before any behavioural assertion. These are not counted as discriminating:
-  - testing/T75: `docs/intent.md` does not exist;
+  - testing/T75: `docs/intent.md` is not in the packed package;
   - testing/T76: `@kaihacksai/kaal-testing/verifiers` cannot be imported until `testing/C36`, `account` does not exist until `testing/C34`, and `test/verify.json` does not exist;
   - testing/T78: `@kaihacksai/kaal-testing/verifiers` cannot be imported until `testing/C36`;
   - testing/T79: `test/verify.mjs` does not exist.

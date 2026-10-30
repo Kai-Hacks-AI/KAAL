@@ -4,9 +4,9 @@
 // installed copy only, and judge the installed verification with Testing's own shared contract (testing/C29).
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, relative, sep } from "node:path";
+import { join, posix, relative, sep } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
@@ -50,12 +50,14 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     assert.equal(r.stdout.trim(), "", "no module specifier, dependency or workspace entry names kaal-testing by its old name");
   });
 
-  it("testing/T75 [testing/F60]: the package ships its six documents; they cite no plan, Change or repository path as authority, and the README links each", () => {
-    for (const d of DOCS) assert.ok(existsSync(join(PACKAGE, d)), `${d} ships`);
+  it("testing/T75 [testing/F60]: the package ships its six documents; they cite no plan, Change or repository path as authority, and the README links each", async () => {
+    const packed = JSON.parse((await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE })).stdout)[0].files.map((f) => f.path);
+    for (const d of [...DOCS, "README.md"]) assert.ok(packed.includes(d), `${d} is in the packed package`);
+    const local = (from, target) => posix.normalize(posix.join(posix.dirname(from), target));
     for (const d of DOCS) {
       const body = text(join(PACKAGE, d));
       assert.doesNotMatch(body, /\bplan\/|\btesting\/C\d+|\bengineering\/|github\.com\/[^)\s]*\/pull\//, `${d} cites no plan, Change, Engineering path or pull request`);
-      for (const [, target] of body.matchAll(/\]\(([^)#\s]+)/g)) if (!/^https?:/.test(target)) assert.ok(existsSync(join(PACKAGE, "docs", target)), `${d} links ${target}, which ships`);
+      for (const [, target] of body.matchAll(/\]\(([^)#\s]+)/g)) if (!/^https?:/.test(target)) assert.ok(packed.includes(local(d, target)), `${d} links ${target}, which is packed`);
     }
     const readme = text(join(PACKAGE, "README.md"));
     for (const d of DOCS) assert.ok(readme.includes(`](${d})`), `the README links ${d}`);
