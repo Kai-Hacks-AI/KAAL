@@ -228,6 +228,15 @@ describe("Architecture conformance", () => {
     assert.deepEqual(docs.match(/engineering\/|guard\/C\d+|\]\(\.\.\//g) ?? [], [], "docs/ cites an Engineering path, a Change, or a document outside the package");
   });
 
+  it("guard/T123 [guard/F29, guard/F30]: the README states that hook activation is per clone and needs init --hook in each clone, and that the installation record is a tracked file Guard writes but does not protect", () => {
+    const readme = source("README.md");
+    assert.match(readme, /Hook activation is per clone\./, "the README does not say that hook activation is per clone");
+    assert.match(readme, /run `npx kaal-guard init --hook` in each clone/, "the README does not say to run init --hook in each clone");
+    assert.match(readme, /does not protect them/, "the README does not say that Guard does not protect the record and the state");
+    assert.match(readme, /Review changes to `\.kaal\/state\/guard\/installation\.json`/, "the README does not say to review changes to the installation record");
+    assert.ok(!readme.includes("Only Guard writes the record"), "the README still says that only Guard writes the record");
+  });
+
   it("guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs", () => {
     present("docs/architecture.md");
     const architecture = source("docs/architecture.md");
