@@ -21,7 +21,7 @@ function established(facts, name) {
   const a = Object.hasOwn(facts?.applicability ?? {}, name) ? facts.applicability[name] : null;
   if (!plain(a) || !nonempty(a.reason)) return null;
   if (a.platforms !== undefined && !names(a.platforms)) return null;
-  const optional = (list) => names(list) && !list.some((c) => (facts.dependencies ?? []).includes(c));
+  const optional = (list) => names(list) && Array.isArray(facts.dependencies) && !list.some((c) => facts.dependencies.includes(c));
   if ((a.requires !== undefined && !optional(a.requires)) || (a.absent !== undefined && !optional(a.absent))) return null;
   const is = (c, state) => Object.hasOwn(facts.complements ?? {}, c) && facts.complements[c] === state;
   const offPlatform = a.platforms !== undefined && !a.platforms.includes(facts.platform);
@@ -113,7 +113,10 @@ export function judge(scenarioId, observed, facts) {
   differences.push(...diagnosis(s.result, o));
   const pkg = plain(facts?.package) ? facts.package : {};
   const unestablished = [...["name", "version", "location"].filter((k) => !nonempty(pkg[k])).map((k) => `package ${k}`), ...["platform", "node", "digest"].filter((k) => !nonempty(facts?.[k]))];
-  if (!Array.isArray(facts?.cases) || !facts.cases.every(nonempty) || (s.cases === "pass" && facts.cases.length === 0)) unestablished.push("declared cases");
+  if (!Array.isArray(facts?.cases) || !facts.cases.every(nonempty) || (s.cases === "pass" && facts.cases.length === 0) || (s.cases === "none" && facts.cases.length > 0)) unestablished.push("declared cases");
+  if (!Array.isArray(facts?.dependencies) || !facts.dependencies.every(nonempty)) unestablished.push("required dependencies");
+  if (!plain(facts?.applicability)) unestablished.push("applicability");
+  if (!plain(facts?.complements)) unestablished.push("complement states");
   if (s.target && !(nonempty(facts?.target) && Array.isArray(facts?.cases) && facts.cases.includes(facts.target))) unestablished.push("declared case the scenario targets");
   for (const f of unestablished) differences.push(`the harness established no ${f}`);
   for (const k of ["name", "version", "location"]) if (o.package?.[k] !== pkg[k]) differences.push(`package ${k} is ${JSON.stringify(o.package?.[k])}, the installed package's is ${JSON.stringify(pkg[k])}`);

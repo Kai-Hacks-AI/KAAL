@@ -69,6 +69,17 @@ describe("verifiers", () => {
     }
   });
 
+  it("never conforms when the harness established no dependency inventory, applicability or complement states, or declared cases for no-case", () => {
+    const facts = { ...FACTS, target: "acme/T1", applicability: { "acme/T1": { requires: ["core"], reason: "r" } }, complements: { core: "absent" } };
+    const summary = { ...CLEAN, cases: [{ name: "acme/T1", outcome: "not applicable", applicability: { requires: ["core"], reason: "r" } }] };
+    const run = observe({ exit: 0, stdout: line(summary) }, VERIFIER);
+    assert.equal(judge("complement-absent", run, facts).conforms, true);
+    for (const k of ["dependencies", "applicability", "complements"]) assert.equal(judge("complement-absent", run, { ...facts, [k]: undefined }).conforms, false, k);
+    const none = { ...CLEAN, result: "cannot verify", cause: "c", uncertainty: "u", next: { kind: "exploratory", step: "analyze" }, cases: [] };
+    assert.equal(judge("no-case", observe({ exit: 2, stdout: line(none) }, VERIFIER), { ...FACTS, cases: [] }).conforms, true);
+    assert.equal(judge("no-case", observe({ exit: 2, stdout: line(none) }, VERIFIER), FACTS).conforms, false);
+  });
+
   it("does not let a repeated applicability entry stand in for one the harness established", () => {
     const facts = { ...FACTS, target: "acme/T1", applicability: { "acme/T1": { platforms: ["win32", "darwin"], reason: "r" } } };
     const claim = (platforms) => judge("not-applicable", observe({ exit: 0, stdout: line({ ...CLEAN, cases: [{ name: "acme/T1", outcome: "not applicable", applicability: { platforms, reason: "r" } }] }) }, VERIFIER), facts).conforms;
