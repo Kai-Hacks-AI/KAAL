@@ -432,6 +432,53 @@ guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-gu
 | --- | --- | --- | --- | --- |
 | Delivered with the package, so defined in its `docs/testing.md`: guard/T123 checks that the delivered README states that hook activation is per clone and needs `init --hook` in each clone, and that the installation record is a tracked file Guard does not protect; it no longer says that only Guard writes the record | guard/F29, guard/F30 | `guard/C116` | RED: the README says "Only Guard writes the record and the state" and only hints at per-clone activation | GREEN |
 
+## Platforms (`guard/C118`)
+
+Every Guard case is registered on every host with the same title and the same body. Where a case cannot apply on a platform, the reason is declared here, outside the case, and `engineering/guard/acceptance/platforms.mjs` reads it: on that platform the case ends as `not applicable: <reason>` before its body runs, is never absent, and is never counted GREEN. A declaration needs evidence that does not come from the case, and Review's recorded judgment. The package's own exceptions are declared in its `docs/testing.md` (guard/F40).
+
+<!-- applicability: Engineering-side cases -->
+| Case | Not applicable on | Why | Evidence | Review |
+| --- | --- | --- | --- | --- |
+| guard/T114 | win32 | Windows holds no FIFO or socket in a directory tree, so the snapshot's `kind:` branch cannot be reached there; guard/T131 covers the shared half on every host | Hosting on #650: only sockets and FIFOs cannot be placed on Windows, and Hosting's own conformance excludes win32 for sockets (https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723) | requested on #577 |
+<!-- end of applicability -->
+
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T131: a consumer holding a cycle of symbolic links is verified, exit 0, within the case's time limit, following neither link; replacing one link of the cycle with a regular file between snapshots is failed, naming it; a directory replaced by a regular file, and a regular file replaced by a directory, are each failed, naming the path. A host that refuses to make a symbolic link ends the case RED as blocked, never not applicable or GREEN | guard/F33, guard/F35 | `guard/C118` | GREEN-expected: the snapshot reads with `lstat` and records kinds; a copy that follows links, and a copy that ignores kind, each turn it RED | |
+| guard/T132: every Guard test file, in the package's `test/` and in `engineering/guard/acceptance/`, registers each case on every platform; no case skips, marks todo or returns by platform; a `skip` by platform matches the package's declared row for that exact case; every declared exception names Node's platforms, not all of them, a reason, linked evidence and a linked Review judgment; every other platform reference is listed below, or raised as a Change; and no listed row is stale | guard/F40 | `guard/C118` | RED: guard/T114 is registered only off Windows, and no platform reference is listed | |
+
+**Platform differences.** Each row is a place where setup differs by host while the Guard assertion keeps its strength. A reference that only reports the platform in a diagnostic is not listed.
+
+<!-- platform differences -->
+| File | Reference | Difference | Why the assertion keeps its strength |
+| --- | --- | --- | --- |
+| `engineering/guard/acceptance/package.test.mjs` | `const WINDOWS = process.platform === "win32";` | names the host for the rows below | defines no behaviour |
+| `engineering/guard/acceptance/package.test.mjs` | `const NPM = WINDOWS ? "npm.cmd" : "npm";` | npm's launcher is `npm.cmd` on Windows | the same npm runs the same command; only its file name differs |
+| `engineering/guard/acceptance/package.test.mjs` | `shell: WINDOWS && file === "npm"` | Node runs a `.cmd` launcher only through a shell | the command and its arguments are the same |
+| `engineering/guard/acceptance/package.test.mjs` | `WINDOWS ? "git.exe" : "git"` | Git's file name on Windows | it checks the same precondition: no Git beside Node |
+| `engineering/guard/acceptance/package.test.mjs` | `...(WINDOWS ? {} : { npm_config_shell: "/bin/sh", npm_config_script_shell: "/bin/sh" })` | off Windows, npm's script shell is pinned to `/bin/sh` with Git off `PATH`; Windows uses `cmd` | the same assertion runs on every host: no Git on `PATH` is named |
+| `engineering/guard/acceptance/package.test.mjs` | `const here = process.platform;` | guard/T110's fixture declares the current host not applicable | the fixture is built for whichever host runs it, and the same assertions run on every host |
+| `engineering/guard/acceptance/package.test.mjs` | `{ skip: process.platform === ${JSON.stringify(here)} }` | the fixture's skipped case, in the source guard/T110 writes | it is fixture text, judged by the same assertions on every host |
+| `engineering/guard/acceptance/consumer/consumer.test.mjs` | `shell: process.platform === "win32"` | Node runs npm's `.cmd` launcher only through a shell | the command and its arguments are the same |
+| `packages/kaal-guard/test/acceptance/harness.mjs` | `const WINDOWS = process.platform === "win32";` | names the host for the row below | defines no behaviour |
+| `packages/kaal-guard/test/acceptance/harness.mjs` | `shell: WINDOWS && file === "npm"` | Node runs a `.cmd` launcher only through a shell | the command and its arguments are the same |
+| `packages/kaal-guard/test/unit/runner.test.mjs` | `platform: "win32"` | a simulated Windows host for the runner's command resolution | it runs on every host, with the same assertions |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `if (process.platform !== "win32") chmodSync(join(c.dir, ".githooks", "pre-push"), 0o755);` | guard/T73's fixture sets the hook's mode where the file system has one | setup only: the assertions that follow are the same on every host |
+<!-- end of platform differences -->
+
+**Raised, not accepted.** Each row is a platform difference that may weaken an assertion on one host. It is not accepted as kept. It is raised to the Owner as its own Change, and stays here only until that Change resolves it.
+
+<!-- raised platform differences -->
+| File | Reference | Change |
+| --- | --- | --- |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `const windows = process.platform === "win32";` | guard/C135: guard/T81 runs the checker with `sh` on Windows, so the base copy's mode is not exercised there |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `command: windows ? "sh checks/judge.sh" : "./checks/judge.sh"` | guard/C135: as above |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `if (!windows) chmodSync(join(c.dir, "checks/judge.sh"), 0o755);` | guard/C135: as above |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `if (process.platform !== "win32") assert.ok(statSync(join(c.dir, path)).mode & 0o111` | guard/C135: guard/T72 does not assert the hook's executable bit on Windows |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `const WINDOWS = process.platform === "win32";` | guard/C135: serves the row below |
+| `packages/kaal-guard/test/acceptance/requirements.test.mjs` | `if (WINDOWS && e.code === "EPERM") return false;` | guard/C135: where Windows refuses a symbolic link, guard/T84 and guard/T89 skip that entry without saying so |
+<!-- end of raised platform differences -->
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.

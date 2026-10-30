@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import fs from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
 import { createServer } from "node:net";
@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { after, describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { applicability, audit, PLAN } from "./platforms.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "../../..");
@@ -466,8 +467,8 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.deepEqual(left(tmp), [], "a failing run left entries in its temporary directory");
   });
 
-  // Windows' file system has neither Unix sockets nor FIFOs, so this case is registered on Linux and macOS only.
-  (WINDOWS ? () => {} : it)("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
+  // Registered on every host; where the Engineering Test Plan declares it not applicable, it ends before its body (guard/C118).
+  it("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", applicability("guard/T114"), async (t) => {
     const c = consumer();
     const passes = `${MINI} > guard/T0 passes`;
     const replaces = `${MINI} > guard/T0 replaces the FIFO when asked`;
@@ -501,6 +502,36 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
       assert.ok(u.consumer.changed.includes("t114.fifo"), `the summary does not name t114.fifo changed: ${JSON.stringify(u.consumer.changed)}`);
     } finally {
       server.close();
+    }
+  });
+
+  it("guard/T131 [guard/F33, guard/F35]: a consumer holding a cycle of symbolic links is verified, exit 0, within the case's time limit, following neither link; replacing one link of the cycle with a regular file between snapshots is failed, naming it; a directory replaced by a regular file, and a regular file replaced by a directory, are each failed, naming the path", async (t) => {
+    const c = consumer();
+    const asked = `${MINI} > guard/T0 changes an entry's kind when asked`;
+    reduce(c, `import { it } from "node:test";\nimport { mkdirSync, rmSync, writeFileSync } from "node:fs";\nit("guard/T0 changes an entry's kind when asked", () => {\n  const to = process.env.GUARD_T131_TO, at = process.env.GUARD_T131_AT;\n  if (!at) return;\n  rmSync(at, { recursive: true, force: true });\n  if (to === "file") writeFileSync(at, "a regular file now\\n");\n  else mkdirSync(at);\n});\n`, [asked]);
+    try {
+      symlinkSync("t131.b", join(c.dir, "t131.a"), "file");
+      symlinkSync("t131.a", join(c.dir, "t131.b"), "file");
+    } catch (e) {
+      assert.fail(`blocked before behavioural assertion: this host refuses to make a symbolic link (${e.code}), so the cycle cannot be set up`);
+    }
+    mkdirSync(join(c.dir, "t131.dir"));
+    writeFileSync(join(c.dir, "t131.dir", "inside.txt"), "inside\n");
+    writeFileSync(join(c.dir, "t131.file"), "a regular file\n");
+    const LIMIT = 5 * 60 * 1000;
+    const r = c.verify({}, LIMIT);
+    assert.notEqual(r.status, null, `the run did not complete within ${LIMIT / 1000} s:\n${r.output.slice(-4000)}`);
+    const s = observed(t, "a consumer holding a cycle of symbolic links", r);
+    assert.equal(s.result, "verified", `a cycle of links gave ${s.result}:\n${r.output.slice(-4000)}`);
+    assert.equal(r.status, 0);
+    assert.deepEqual(s.consumer.changed, [], "the summary names a changed path");
+    for (const [at, to, what] of [["t131.a", "file", "a link of the cycle replaced with a regular file"], ["t131.dir", "file", "a directory replaced with a regular file"], ["t131.file", "dir", "a regular file replaced with a directory"]]) {
+      const v = c.verify({ GUARD_T131_AT: join(c.dir, at), GUARD_T131_TO: to }, LIMIT);
+      assert.notEqual(v.status, null, `${what}: the run did not complete within ${LIMIT / 1000} s`);
+      const u = observed(t, what, v);
+      assert.equal(u.result, "failed", `${what} gave ${u.result}:\n${v.output.slice(-4000)}`);
+      assert.equal(v.status, 1);
+      assert.ok(u.consumer.changed.includes(at), `${what}: the summary does not name ${at} changed: ${JSON.stringify(u.consumer.changed)}`);
     }
   });
 
@@ -599,5 +630,48 @@ describe("guard/I8 what a consumer reads in the verification", { timeout: 30 * 6
       assert.ok(!next.includes("a fallback"), `the next step names the fallback, not the declared URL: ${next}`);
       assert.ok(!r.output.includes("the package's maintainers"), "the output still asks for a report to the package's maintainers");
     }
+  });
+});
+
+describe("guard/F40 platforms in Guard's tests", () => {
+  it("guard/T132 [guard/F40]: every Guard test file registers each case on every platform; no case skips, marks todo or returns by platform; a skip by platform matches the package's declared row; every declared exception names its platforms, a reason, linked evidence and a linked Review judgment; every other platform reference is listed or raised as a Change; and no listed row is stale", () => {
+    const ROOT = join(HERE, "..", "..", "..");
+    const roots = ["packages/kaal-guard/test", "engineering/guard/acceptance"];
+    const files = {};
+    for (const root of roots) {
+      for (const f of readdirSync(join(ROOT, root), { recursive: true })) {
+        const path = `${root}/${String(f).split("\\").join("/")}`;
+        // The verifier is product code, and the helper names the platforms it reads.
+        if (!path.endsWith(".mjs") || path.endsWith("/test/verify.mjs") || path.endsWith("/platforms.mjs") || path.includes("/fixtures/")) continue;
+        files[path] = readFileSync(join(ROOT, path), "utf8");
+      }
+    }
+    const engineering = readFileSync(PLAN, "utf8");
+    const delivered = readFileSync(join(ROOT, "packages", "kaal-guard", "docs", "testing.md"), "utf8");
+    assert.deepEqual(audit({ files, engineering, delivered }), [], "Guard's tests branch on the platform where no Test Plan says why");
+
+    // Negative fixtures, kept apart so this file names no platform itself: each must be refused.
+    const fixtures = JSON.parse(readFileSync(join(HERE, "fixtures", "platforms.json"), "utf8"));
+    for (const [name, fixture] of Object.entries(fixtures.sources)) {
+      const found = audit({ files: { ...files, "fixture.mjs": `it("guard/T0 [guard/F3] runs everywhere", () => {});\n${fixture}` }, engineering, delivered });
+      assert.ok(found.some((f) => f.startsWith("fixture.mjs:")), `${name} is not refused: ${JSON.stringify(found)}`);
+    }
+    const row = engineering.split("\n").find((l) => l.startsWith("| guard/T114 |"));
+    const cells = row.split(" | ");
+    const edits = {
+      ...Object.fromEntries(Object.entries(fixtures.plan).map(([name, [from, to]]) => [name, row.replace(from, to)])),
+      "no reason": cells.map((c, i) => (i === 2 ? "" : c)).join(" | "),
+      "no linked evidence": cells.map((c, i) => (i === 3 ? "Hosting said so" : c)).join(" | "),
+      "no linked Review judgment": row.replace(/\| [^|]+ \|$/, "| approved in chat |"),
+    };
+    for (const [name, edited] of Object.entries(edits)) {
+      assert.notEqual(edited, row, `the fixture for ${name} did not change the row`);
+      const found = audit({ files, engineering: engineering.replace(row, edited), delivered });
+      assert.ok(found.some((f) => f.startsWith("guard/T114:")), `a declaration with ${name} is not refused`);
+    }
+    const stale = audit({ files: { ...files, "packages/kaal-guard/test/acceptance/harness.mjs": "" }, engineering, delivered });
+    assert.ok(stale.some((f) => f.includes("matches no line")), "a stale listed difference is not refused");
+    const unnamed = engineering.replace(/(\| guard\/C135: )/, "| ");
+    assert.ok(audit({ files, engineering: unnamed, delivered }).some((f) => f.includes("names no Change")), "a raised difference with no Change is not refused");
   });
 });

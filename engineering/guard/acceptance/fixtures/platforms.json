@@ -1,0 +1,14 @@
+{
+  "comment": "guard/T132's negative fixtures (guard/C118): test sources and Test Plan edits that must each be refused.",
+  "sources": {
+    "registration off one platform": "(WINDOWS ? () => {} : it)(\"guard/T0 x\", () => {});\n",
+    "a skip inside a case": "it(\"guard/T0 x\", (t) => {\n  if (process.platform === \"win32\") return t.skip(\"not here\");\n});\n",
+    "a todo inside a case": "it(\"guard/T0 x\", (t) => {\n  if (process.platform === \"darwin\") t.todo(\"later\");\n});\n",
+    "an undeclared skip option": "it(\"guard/T0 undeclared\", { skip: process.platform === \"darwin\" }, () => {});\n",
+    "an unlisted platform reference": "const fast = process.platform === \"linux\";\n"
+  },
+  "plan": {
+    "every platform": ["| win32 |", "| linux, darwin, win32 |"],
+    "not Node's name": ["| win32 |", "| windows |"]
+  }
+}
