@@ -2,19 +2,33 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **core/A33** [core/F69, core/F70, core/N19]: Delivered layout. `package.json` `files` adds `docs`, `test/acceptance`, `test/unit` and `test/verify.mjs`, beside `dist`, `payload` and `installation.kaal.json`.
+- **core/A33** [core/F69, core/F70, core/F85, core/N19] (revised by `core/C36`): Delivered layout. `package.json` `files` adds `docs`, `test/acceptance`, `test/unit`, `test/verify.mjs` and the manifest `test/verify.json`, beside `dist`, `payload` and `installation.kaal.json`.
   - `test/acceptance/` holds one file for each outer loop: `intent`, `requirements` and `architecture`.
   - `test/unit/` holds the Code tests that need no build.
   - The delivered tests are plain `node:test` files that import kaal-core by its package name, so they exercise whichever copy is installed.
 - **core/A34** [core/F70, core/F75]: Named suites and one runner.
-  - `test:consumer` is the consumer verification, `node test/verify.mjs`. It runs the delivered loops, counts the tests in each, and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing.
+  - `test:consumer` is the consumer verification, `node test/verify.mjs`. It checks the installation against `test/verify.json`, runs the delivered loops, compares the cases that ran with the declared cases (`core/A43`), and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing. (Revised by `core/C36`: it no longer decides on counts.)
   - `test:publisher` is today's script: it builds with `tsc` and runs the publisher's tests.
   - `npm test` is `node test/run.mjs`, a runner that ships. It runs declared `test:<name>` scripts with `npm run`, in the order `package.json` declares them, and never runs `test` itself. It first decides where it is:
     - **installed,** when the package directory's real path sits directly in a `node_modules` directory (`node_modules/<name>` or `node_modules/@scope/<name>`). A workspace link resolves to its source directory, so it is not installed. Installed, the runner runs `test:consumer` alone and exits with its result;
     - **source,** otherwise, and only when both source markers are present: `src/` and `test/plan/`. Neither ships (`core/F72`). In source, the runner runs every declared `test:<name>` suite, continues past a failing one, and exits non-zero if any failed;
     - **refused, as `cannot verify` with exit 2, before any suite runs:** an installed package that carries a source marker (ambiguous), a source directory missing a marker (damaged), no declared `test:<name>` suite at all (empty), `test:consumer` missing in either place, or `test:publisher` missing in source. The runner names the reason.
   - Other declared suites, such as today's `test:boundary`, run in the source workspace like any other. `core/C29` decides whether a subset suite stays declared.
-  - Engineering's lanes need no change. They run the comprehensive `npm test` in the source workspace. engineering/C6 (#625) adds a Consumer lane for the installed verdict, and `core/C29` takes kaal-core off that lane's not-ready list.
+  - Engineering's lanes need no change. They run the comprehensive `npm test` in the source workspace. (Revised by `core/C36`: the earlier reference to an engineering/C6 Consumer lane was stale.)
+    - Verification of the packed artifact is engineering/C7 (#641).
+    - Release readiness is engineering/C5 (engineering/F17–F19, #610). It runs Packaging's conformance suite (packaging/A7) beside kaal-core's own verification on one packed-and-installed candidate.
+    - Under packaging/A11, kaal-core's comprehensive source `npm test` is a legitimate declared Test Plan (packaging/F14).
+- **core/A43** [core/F70, core/F85, core/F87, core/N23] (added by `core/C36`): The manifest and the verifier.
+  - **The manifest's form.** `test/verify.json` holds:
+    - `files`, mapping each delivered path to its SHA-256. The paths are POSIX paths relative to the package directory. Neither the manifest itself nor a `node_modules` directory nested in the package is listed, since npm may place dependencies there in a consumer's installation;
+    - `cases`, a list of `{ file, name, tests }`. `name` joins a case's suite names and its own title with ` > `. `tests` lists the `core/…` identifiers that the case's title cites, as the delivered tests already name what they check.
+  - **How the manifest is made.** The build writes it from the packed file list, before `npm pack`. It finds the cases by running the delivered loops once with Node's TAP reporter, and records each one that runs.
+  - **What the verifier does.** `test/verify.mjs` first checks consistency, which establishes the candidate and is not the meaning of `verified` (`core/F70`). It hashes the package's files, outside any nested `node_modules`, and compares them with `files`. A missing or changed file is `cannot verify`, and it names the first path that differs. An added file is `cannot verify` only in an installation, which the verifier tells apart by `core/A34`'s rule: the package directory's real path sits directly in a `node_modules` directory. A source workspace legitimately holds files that do not ship, such as `src/` and `test/plan/`. There, the verifier checks the shipped files the manifest lists and ignores the rest, and core/T92 keeps the manifest equal to what `npm pack` ships. The manifest is written by the build, which `test:publisher` runs before `test:consumer` in the source `npm test`. A source workspace that has not been built has no manifest, and that is `cannot verify`. Only when the files match does it run the delivered loops, with `--test-reporter=tap` and with `NODE_TEST_CONTEXT` cleared, in a scratch working directory under the operating system's temporary directory, which it removes. It reads each case's result from TAP and compares the cases that ran with `cases`:
+    - a declared case that is missing, skipped or todo is `cannot verify`, and so is an undeclared case that ran;
+    - a declared case that failed is `failed`;
+    - otherwise every required case executed successfully, and the result is `verified`.
+  - **The execution record** (`core/F87`) is one line, `kaal-core-execution: ` followed by JSON: `{ "candidate": { "name", "version", "manifest" }, "cases": [{ "file", "name", "outcome" }] }`. `manifest` is the SHA-256 of `test/verify.json`, and `outcome` is one of `passed`, `failed`, `skipped`, `todo` or `not run`. When consistency fails, the record names the candidate and marks every case `not run`.
+  - **The result line** is `kaal-core: <result>: <name>@<version>: <declared> declared, <executed> executed[: <cause>]`, and it is the last line of standard output.
 - **core/A35** [core/F72, core/F73]: Release acceptance packs and installs:
   - `npm pack` packs kaal-core and each runtime dependency;
   - the tarballs install with `npm install` into a directory under the operating system's temporary directory;
@@ -45,6 +59,7 @@ Each element names, in brackets, the Requirements it answers.
 | --- | --- | --- | --- | --- |
 | 1 | `core/C30` PLAN (#600): scoped kinds, hierarchies, shared terms, candidates | Core | `core/C24` | open, awaiting review |
 | 2 | `core/C28` PLAN, this Change | Core | the Owner's 0.0.1 decision on #600 | this PR |
+| 2a | `core/C36` PLAN: alignment with the KAAL Package contract (`core/F85`, `core/F86`, `core/N23`, `core/A43`), added by `core/C36` | Core | 2, packaging/C4 (#658) | this revision |
 | 3 | `graph/C3` DO on `main`: reach, reverse and cycles | Graph | — | merged into `kaal/graph` (#593), promotion in flight |
 | 4 | sync `main` → `kaal/core`, carrying `graph/C3` | Core | 3 | after Graph's promotion, in the promotion queue |
 | 5 | `core/C26` DO: Registration Type, `kaal-core/registration`, `verify`, core/T50–T59, T67, T72, T73 GREEN | Core | 1, 4, `core/C11`, `core/C27` (both merged) | — |
@@ -52,7 +67,7 @@ Each element names, in brackets, the Requirements it answers.
 | 7 | Graph PLAN and DO: rename to `@kaihacksai/kaal-graph` | Graph | 6 | to be raised by Graph |
 | 8 | Foundation PLAN and DO: publishable, independently installable `@kaihacksai/kaal-foundation` | Foundation | — | to be raised by Foundation |
 | 9 | `engineering/C6`: the Consumer lane, which runs each installed package's `npm test` | Engineering | — | #625, open |
-| 10 | `core/C29` DO: rename to `@kaihacksai/kaal-core`, delivered documents and tests, `test/verify.mjs`, core/T74–T80 GREEN | Core | 2, 5, 7, 8, and release blocker 3 | — |
+| 10 | `core/C29` DO: rename to `@kaihacksai/kaal-core`, delivered documents and tests, `test/verify.mjs` and `test/verify.json`, core/T74–T80, T91 and T92 GREEN | Core | 2, 2a, 5, 7, 8, and release blocker 3 | — |
 | 11 | promotions of Hosting, Graph and Foundation, and of `kaal/core` → `main` | each owner | 6–10 | Owner's go |
 | 12 | publication of `@kaihacksai/kaal-hosting`, `@kaihacksai/kaal-graph` and `@kaihacksai/kaal-foundation` 0.0.1 | their owners | 11 | Owner's go |
 | 13 | publication of `@kaihacksai/kaal-core` 0.0.1 | Owner | 11, 12 | Owner's hand |
