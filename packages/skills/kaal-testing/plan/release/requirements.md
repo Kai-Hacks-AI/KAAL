@@ -42,13 +42,13 @@ Each Requirement names, in brackets, the Intents it serves, and the packaging/ R
   - `hashes`: the SHA-256 of every other shipped file;
   - `cases`: the delivered cases, by name;
   - `model`: the delivered cases as Testing's own model (testing/F66);
-  - `applicability`: testing/F47's form, per case, by optional complement only (testing/F65);
+  - `applicability`: testing/F47's form, per case. It is empty, because no delivered case is scoped by platform (testing/F65) and Testing 0.0.1 has no optional complement;
   - `platforms`: testing/F65's list.
 
   The run's `digest` is the SHA-256 of one line `<path>\0<sha256>\n` per installed file other than the manifest and the copy's own `node_modules`, in path order, as hosting/F22 states. Consistency with the manifest is not provenance (testing/F14).
 - **testing/F65** [testing/I17] (packaging/F12): **Platforms and runtime, by Hosting's boundary.**
   - The package declares portability: it supports Linux, macOS and Windows on Node 24 or later. `engines` and the manifest's `platforms` state this.
-  - Testing authorizes no OS-specific exemption. No delivered case is scoped by platform: its applicability names optional complements only (`requires`, `absent`), never `platforms`. Every delivered case runs, with the same identity and assertions, on every supported platform.
+  - Testing authorizes no OS-specific exemption. No delivered case is scoped by platform. Applicability could name only optional complements (`requires`, `absent`), and Testing 0.0.1 has none, so no delivered case is inapplicable anywhere. Every delivered case runs, with the same identity and assertions, on every supported platform.
   - No shipped file branches on the operating system. Every command, read and write the shipped library makes goes through Hosting.
   - Hosting owns OS-specific behaviour, in solutions and in tests. Its cross-capability boundary suite and review guides (`kaal-hosting/boundary`, hosting/C13/C14, extended by hosting/C16) challenge this package's implementation, test selection, assertions and applicability. Their result on the candidate is release evidence, and Testing does not restate their rule.
 - **testing/F66** [testing/I17] (packaging/F13): **Traceability, derived.**

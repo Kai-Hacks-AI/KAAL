@@ -6,10 +6,10 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/release.
 | --- | --- | --- |
 | testing/T74: the package states its scoped name, its version, public access and exact registry dependencies, and no importer uses its old name | testing/F59 | Requirements |
 | testing/T75: the package ships its six documents; they cite no plan, Change or repository path as authority, and the README links each | testing/F60 | Requirements |
-| testing/T76: the shipped manifest gives every other shipped file's SHA-256, the delivered cases as a model that checks clean and traces each to identifiers the documents define, every supported platform, and no platform-scoped applicability | testing/F61, testing/F64, testing/F65, testing/F66 | Requirements |
+| testing/T76: the shipped manifest gives every other shipped file's SHA-256, the delivered cases as a model that checks clean and traces each to identifiers the documents define, every supported platform, and no applicability, so no case is scoped by platform | testing/F61, testing/F64, testing/F65, testing/F66 | Requirements |
 | testing/T77: in the source workspace npm test runs every declared suite, the publisher's and the consumer's; nothing it needs runs in an installation | testing/F62 | Requirements |
 | testing/T78: packed and installed alone in a fresh consumer, npm test there verifies the installed copy and conforms to the shared verifier contract's clean scenario | testing/F59, testing/F61, testing/F63, testing/F64, testing/N12 | Architecture |
-| testing/T79: the installed verification imports only Node's built-ins, so a broken library cannot mask itself; no delivered case reads this repository; and no shipped file branches on the operating system | testing/F65, testing/N12, testing/N13 | Architecture |
+| testing/T79: the installed verification imports only Node's built-ins, by any import form, so a broken library cannot mask itself; no delivered case reads this repository; and no shipped file branches on the operating system | testing/F65, testing/N12, testing/N13 | Architecture |
 
 ## RED evidence
 
