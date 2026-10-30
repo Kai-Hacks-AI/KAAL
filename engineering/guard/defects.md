@@ -50,14 +50,14 @@ guard/D1, D2, D3, D5, D16 and D17 stay cited as `| guard/D<n> (product) | …`, 
 
 A product Test Case can cite only identifiers the package defines. guard/T111 enforces this, and #638 kept it. guard/T84–guard/T92 (`packages/kaal-guard/test/acceptance/requirements.test.mjs`) and guard/T100 (`packages/kaal-guard/test/unit/runner.test.mjs`) are product cases. So their titles cannot name D6–D14 or D18 while Engineering's register defines them.
 
-- **A (recommended).** D6–D14 and D18 are prohibited behaviour of Guard itself, found in a candidate before it was released. Guard defines them in its product documents, and its Change adds them to those Test Cases' titles. Engineering's register then cites them as `(product)`, and defines only the two whose Test Cases are Engineering's:
+- **A (recommended).** D6–D14 and D18 are prohibited behaviour of Guard itself, found in a candidate before it was released. Guard defines them in its product documents, and its Change adds them to those Test Cases' titles. Engineering's register then cites them as `(product)`, and defines only the two whose prohibited behaviour is in a concern or realization Engineering owns. Defect ownership follows the owner of the prohibited behaviour, not the Test Case's location:
   - guard/D4, tested by guard/T44 and retracted;
   - guard/D15, tested by guard/T93: the External delivery's workflow, outside the package.
 
   This needs one Guard Change, landing before this DO, both on `kaal/guard-release`.
 - **B.** Engineering keeps defining D6–D14 and D18, and the package admits citations of Engineering-defined Defects in a separate, undelivered form. That loosens guard/T111, which is Guard's to decide, so B is not proposed.
 
-The DO follows A unless the Owner decides otherwise. The Guard Change belongs to the Guard thread. Engineering asks for it and writes nothing in `packages/kaal-guard/`.
+The Owner selected A in the review of this PLAN. The Guard Change belongs to the Guard thread. Engineering asks for it and writes nothing in `packages/kaal-guard/`.
 
 ## Engineering's own Test Case titles
 
