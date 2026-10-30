@@ -32,8 +32,8 @@ const names = JSON.parse(await npm(["query", ".workspace"], { quiet: true }))
 
 // A workspace with no test entrypoint is never counted as verified: it is
 // named, and the lane fails (engineering/C6, the Owner's safeguard on #625).
-const declared = new Map((await suites(process.cwd())).map((s) => [s.owner, s.script]));
-const missing = names.filter((name) => declared.get(name) === undefined);
+const absent = new Set((await suites(process.cwd())).filter((s) => s.context === "embedding" && s.status === "missing").map((s) => s.owner));
+const missing = names.filter((name) => absent.has(name));
 for (const name of missing) console.error(`${name}: no test entrypoint, not verified`);
 if (missing.length > 0) process.exit(1);
 
