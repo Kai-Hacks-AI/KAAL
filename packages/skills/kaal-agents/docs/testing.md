@@ -4,7 +4,7 @@ This is the Product Verification Test Plan of `kaal-agents`: the one that ships,
 
 ## Where they run
 
-- **Delivered cases.** They live in `test/consumer/`, and run in your installation through `npm explore kaal-agents -- npm test` ([Operations](operations.md)). Each case creates what it needs in the operating system's temporary directory, and needs only Node and Git.
+- **Delivered cases.** They live in `test/consumer/`, and run in your installation through `node node_modules/kaal-agents/test/verify.mjs` ([Operations](operations.md)). Each case creates what it needs in the operating system's temporary directory, and needs only Node and Git.
 - **Allocated to the publisher.** These need the KAAL checkout, and run in the publisher's repository, not in your installation.
 
 ## Delivered cases
@@ -36,7 +36,7 @@ This is the Product Verification Test Plan of `kaal-agents`: the one that ships,
 | --- | --- |
 | **agents/T4**: with Core installed in the directory and Agents admitted, the catalog lists Agents and the exit is 0. Authority stays unresolved | agents/F1, agents/F2, agents/A3 |
 | **agents/T13**: in a copy of the package, `verify` is verified (0). A changed shipped file makes it failed (1), naming the file. An empty case inventory makes it cannot verify (2) | agents/F7, agents/N3 |
-| **agents/T15**: the packed tarball installs in a clean directory with no checkout and no network. There, `orient` runs, and `npm explore kaal-agents -- npm test` is verified | agents/I4, agents/F7 |
+| **agents/T15**: the packed tarball installs in a clean directory with no checkout and no network. There, `orient` runs, and `npm explore kaal-agents -- npm test` is verified. It does not pass in this version, and must pass before 0.0.1 is released ([Limitations](limitations.md)) | agents/I4, agents/F7 |
 
 ## Verified by no Test Case
 

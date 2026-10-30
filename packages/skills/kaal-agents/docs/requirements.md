@@ -70,7 +70,7 @@ Each Requirement names, in brackets, the Intents it serves. The Intents are in [
 - **agents/F6** [agents/I4]: The package carries `docs/` with Intent, Requirements, Architecture, Operations, Limitations and Testing.
   - Every identifier a delivered case cites is defined there.
   - No document cites a path of the publisher's repository or a Change as its authority.
-- **agents/F7** [agents/I4]: `test/verify.mjs`, which `npm explore kaal-agents -- npm test` runs in an installation, verifies the installed package.
+- **agents/F7** [agents/I4]: `test/verify.mjs` verifies the installed package. It runs directly with `node` from the consumer's project, and is the command an installation's `npm test` will run (see [Limitations](limitations.md) for this version).
   - It checks the installed files against the shipped manifest, `test/verify.json`, and runs every delivered consumer case.
   - It ends in exactly one result: verified (exit 0), failed (exit 1) or cannot verify (exit 2).
   - A changed or missing shipped file is failed, and so is a failing case.

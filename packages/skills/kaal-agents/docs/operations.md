@@ -42,8 +42,10 @@ npx kaal register capability agents node_modules/kaal-agents/capability
 
 ## Verify the installation
 
+Run the consumer verifier directly, from the project you installed the package in:
+
 ```sh
-npm explore kaal-agents -- npm test
+node node_modules/kaal-agents/test/verify.mjs
 ```
 
 This runs `test/verify.mjs` against the installed copy (agents/F7). It checks the shipped files against `test/verify.json`, runs every delivered case, and ends in exactly one result:
@@ -53,3 +55,5 @@ This runs `test/verify.mjs` against the installed copy (agents/F7). It checks th
 - **cannot verify (2):** a prerequisite is missing, the manifest cannot be read, it declares no cases, or a declared case did not run. Each cause is named. Fix the cause, then run the command again.
 
 The verification needs no network and no KAAL source checkout.
+
+**Not yet: `npm explore kaal-agents -- npm test`.** In this version, the package's `npm test` script is still the publisher's: it runs tests that need the KAAL checkout and do not ship. So `npm explore kaal-agents -- npm test` fails in an installation. Use the direct command above. Before `kaal-agents` 0.0.1 is released, `npm test` becomes the consumer's entry and runs exactly this verifier (see [Limitations](limitations.md)).
