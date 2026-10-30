@@ -193,9 +193,10 @@ function deliver({ evidence, walked, requires, predecessors, held, onCycle, find
       else if (conflicting.has(c)) unmet.push({ case: c, result: "conflicting" });
       else if (!results) unmet.push({ case: c, result: uncounted.has(c) ? "unevaluated" : "absent" });
       else {
+        // Every counted evaluation is part of the basis, whatever it reads for the Case.
+        basis.push(...results.map((r) => r.run));
         const other = sorted(results.map((r) => r.result).filter((r) => r !== "passed"));
         if (other.length) unmet.push({ case: c, result: other[0] });
-        else basis.push(...results.map((r) => r.run));
       }
     }
     const malformed = findings.some((f) => f.kind === "malformed-test" && f.change === identity);

@@ -8,7 +8,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { identify } from "kaal-graph";
+import { createNode, identify } from "kaal-graph";
+import { assess } from "kaal-change/delivery";
 import { CHANGE, DELIVERS, SUCCEEDS } from "../lib/definitions.mjs";
 
 const PACKAGE = fileURLToPath(new URL("../", import.meta.url));
@@ -42,6 +43,14 @@ describe("kaal-change/delivery (change/C8)", () => {
 
   it("is provided by the Capability Node", () => {
     assert.match(readFileSync(join(PACKAGE, "capability", "Change.md"), "utf8"), /^It also provides the Succeeds and Delivers Definitions,/m);
+  });
+
+  it("cites in its basis every counted evaluation, including one that does not pass", () => {
+    const definition = identify(readFileSync(join(PACKAGE, "capability", "Change-Definition.md")));
+    const node = identify(createNode({ name: "sample/C1", type: CHANGE, frontmatter: { requires: ["sample/T1"] }, body: "# sample/C1\n" }).bytes);
+    const evaluation = { run: "failed-run", plan: "plan-a", result: "failed", cases: { "sample/T1": "failed" }, findings: [] };
+    const r = assess([definition, node], { evidence: { by: "selector", evaluations: [evaluation] } });
+    assert.deepEqual(r.delivery("sample/C1"), { satisfied: false, delivered: false, unmet: [{ case: "sample/T1", result: "failed" }], awaiting: [], by: "selector", basis: ["failed-run"] });
   });
 
   it("without Graph, gives cannot-assess and no verdict, view or exchange", () => {
