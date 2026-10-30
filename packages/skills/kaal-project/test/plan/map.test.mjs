@@ -159,4 +159,42 @@ describe("the Project map (project/C2)", () => {
     assert.deepEqual(composed.findings.filter((f) => f.owner === "Project"), alone.findings);
     assert.deepEqual(alone.findings.filter((f) => f.owner !== "Project"), []);
   });
+  it("project/T8 [project/I3, project/F3]: a missing Change complement stays honestly unresolved: with no exchange, with an exchange that lists no Changes, and with Change's cannot-assess finding alone, every governed Change is unresolved and named, no Succeeds appears, and Change's finding passes through unchanged", async () => {
+    const { map } = await projectMap();
+    const governed = ["sample/C1", "sample/C2", "sample/C3"];
+    const unresolved = (out) => governed.every((c) => out.nodes.find((n) => n.identity === c)?.resolved === false);
+    const alone = map([plan()]);
+    assert.ok(unresolved(alone), "no exchange: every governed Change is unresolved");
+    assert.deepEqual(alone.findings.filter((f) => f.owner === "Change"), []);
+    const cannot = { kind: "cannot-assess", peer: "@kaihacksai/kaal-graph", next: [{ action: "install", peer: "@kaihacksai/kaal-graph" }, { action: "analyze" }] };
+    for (const [label, exchange] of [["an empty exchange", { changes: [], findings: [] }], ["cannot-assess alone", { findings: [cannot] }]]) {
+      const out = map([plan()], { changes: exchange });
+      assert.ok(unresolved(out), `${label}: every governed Change is unresolved`);
+      for (const c of governed) assert.equal(naming(out.findings, "Project", c).length, 1, `${label}: Project names ${c}`);
+      assert.deepEqual(out.relations.filter((r) => r.relation.owner !== "Project"), [], `${label}: no Succeeds`);
+      assert.ok(out.nodes.every((n) => !("id" in n)), `${label}: no content id is invented`);
+    }
+    const out = map([plan()], { changes: { findings: [cannot] } });
+    assert.deepEqual(out.findings.filter((f) => f.owner === "Change"), [{ owner: "Change", ...cannot }], "cannot-assess passes through unchanged");
+    assert.doesNotMatch(JSON.stringify(out), /"(?:delivered|satisfied)"/, "nothing reads as delivered or satisfied");
+  });
+
+  it("project/T9 [project/I2, project/I4, project/F3]: Project's coordination order never becomes a Change prerequisite: a before gives no Succeeds, a Succeeds gives no before, and where both hold between the same Changes, both appear, each under its owner", async () => {
+    const { map, render } = await projectMap();
+    const before = map([plan()], { changes: changes(undefined, {}) });
+    assert.deepEqual(before.relations.filter((r) => r.relation.name === "before"), [project("sample/C3", "sample/C1", "before")]);
+    assert.deepEqual(before.relations.filter((r) => r.relation.owner === "Change"), [], "a before gives no Succeeds");
+    const succeeds = map([plan({ sequencing: [] })], { changes: changes() });
+    assert.deepEqual(succeeds.relations.filter((r) => r.relation.owner === "Change"), [SUCCEEDS]);
+    assert.deepEqual(succeeds.relations.filter((r) => r.relation.name === "before"), [], "a Succeeds gives no before");
+    const both = map([plan({ sequencing: [{ before: "sample/C1", after: "sample/C2" }] })], { changes: changes() });
+    assert.deepEqual(
+      both.relations.filter((r) => r.from === "sample/C1" || r.relation.owner === "Change").filter((r) => ["before", "Succeeds"].includes(r.relation.name)),
+      [project("sample/C1", "sample/C2", "before"), SUCCEEDS],
+      "both hold, each under its owner, neither merged nor derived",
+    );
+    const tree = render(both);
+    assert.match(tree, /^ {4}- before sample\/C2 \(Project\)$/m);
+    assert.match(tree, /^ {4}- Succeeds sample\/C1 \(Change\)$/m);
+  });
 });
