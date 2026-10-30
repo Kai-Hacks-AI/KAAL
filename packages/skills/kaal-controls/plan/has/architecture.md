@@ -7,12 +7,19 @@ Each element names, in brackets, the Requirements it answers.
   - `payload/Realized-by.md` is removed.
   - `payload/Control.md` is revised: a Control has one or more Intents through `Has`, carries no other outgoing Edge, and shows realization only through the chain.
   - The paragraph of `payload/Controls.md` on documenting a control is revised to match, so the ids of `Control` and `Controls` change. `ownership.kaal.json` follows `Controls`' new id.
-- **controls/A6** [controls/F14, controls/N4, controls/N5]: The check.
-  - The package exports `kaal-controls/conformance`, a pure function over an Engine, in a `lib/` beside the payload, as Testing ships its own.
-  - It uses only Core's admission and Graph's Edge form, which every consumer already has, and imports nothing from Intent.
-  - It finds Intent's authoritative Definition as decision 2 below settles, and returns one outcome per Control from controls/N5, with reasons.
-  - It also returns one run result, failed, unknown or verified, each with its own exit status, following Testing's consumer-verification semantics. Where Testing is present, a consumer can run the suite as its own conformance cases. Where Testing is absent, the same result and exit status stand on their own, because Controls takes no dependency on Testing either.
+- **controls/A6** [controls/F14, controls/F16, controls/F17, controls/N4–controls/N6]: The suite, in a `lib/` beside the payload, as Testing ships its own.
+  - **`kaal-controls/conformance`** exports `assess(contexts)`, a pure function over controls/F17's plain-data contexts. It imports nothing from Core, Graph, Testing or Intent.
+    - It holds, as data, the ids of `Control` and `Has`, and Intent's `Intent` Definition id (decision 2A). It treats Intent as present in a context only when that id resolves there.
+    - It returns one outcome per Control with its reason and owner, one result per owner with its exit status, and states whether the Nodes were admitted or supplied.
+  - **`kaal-controls/conformance/core`** is the adapter. It is used only where Core is installed, and Core is an optional peer, never a dependency.
+    - Given the Engine and the owner contexts the caller names, it builds those contexts from Core's admitted Nodes and calls `assess`.
+    - It decides no admission itself.
+    - A Control that Core admitted but that falls in no named context is passed on as unattributed.
 - **controls/A7** [controls/F15]: `skills/kaal-controls/SKILL.md` and `README.md` are revised to controls/F15.
+
+## Distributed ownership
+
+Controls owns the generic model, meaning `Control`, `Has`, the cardinality and the conformance rules, and the suite that checks them. The Controls themselves belong to whoever defines them: each KAAL capability for its own concerns, and each consumer repository for its own. Engineering's seven Controls (#585) are Engineering's. Each owner runs the suite over its own context and keeps its own results. Controls keeps no registry of Controls, and its report attributes every outcome to its owner and merges none.
 
 ## Two authorities, kept apart
 
@@ -30,30 +37,16 @@ Checked on every branch on 2026-10-30:
 
 Controls does not settle these. They are listed so that nothing contradictory is kept silently.
 
-1. **Engineering #585, direct Edges.** Under controls/F13, Engineering's Control Nodes carry only `Has`. Their realization is shown through the chain, with their own architecture.md naming the realizing code and checks, as it already does with `code:`, `guard-check:` and `workflow:`. The structural test's "Realized by" row would become "each Control conforms by Controls' check". This is Engineering's revision to make.
+1. **Engineering #585, direct Edges.** Engineering's Controls stay Engineering's, and Engineering runs Controls' suite over its own context. Under controls/F13, Engineering's Control Nodes carry only `Has`. Their realization is shown through the chain, with their own architecture.md naming the realizing code and checks, as it already does with `code:`, `guard-check:` and `workflow:`. The structural test's "Realized by" row would become "each Control conforms by Controls' check". This is Engineering's revision to make.
 2. **The chain's later links have no typed traces yet.** No branch defines a typed trace for Requirements → Intent, Architecture → Requirements, Test Case → Requirement, or Code → deployed realization. Test Case → Defect is planned in #583. Until each exists, a check that walks the chain can report those links only as unresolved. Which capability owns the last link, Code → deployed realization, is not settled.
 3. **Intent's authoritative type.** Intent's `Intent` Definition exists only on `kaal/intent`. That package is still typed `KAAL Skill`, not `KAAL Capability`. It is not in the promotion queue. With controls/N4, Controls does not wait for it. Its cases with Intent present stay blocked, not counted, until a consumer can install it.
 
-## Owner decisions
+## Owner decisions, settled on #619
 
-### 1. Name, cardinality and target: decided on #619
-
-`Has`, read as *Control Has Intent*; one or more Intents per Control; Intent as an optional complement. This PLAN records these decisions and opens no option on them.
-
-### 2. How the check recognizes Intent's authoritative Definition
-
-| Option | Consequences | Compatibility |
-| --- | --- | --- |
-| **A. By identity, held in the check** (recommended) | `Has`'s text names `Intent` by name only. The check holds Intent's Definition id as data, and treats Intent as present when the Engine admits a Node with that id. Verification is exact and cannot be spoofed by another Node named `Intent`. If Intent changes its Definition, a Controls Change updates the data, and `Has`'s id and every Control's Edges stay valid. | No dependency. A stale id makes Intent look absent, which is reported as unresolved, not as a pass. |
-| B. By name | Intent is present when exactly one admitted `KAAL Definition` is named `Intent`. Two such Nodes are unresolved. Nothing to update when Intent changes. | Any capability could define a Node named `Intent` and be taken for the authority. |
-| C. By identity, in `Has`'s text | Like A, but the id is written into the Definition. | Every change to Intent's Definition changes `Has`'s id, which breaks every Control's Edges. |
-
-### 3. Retiring `Realized by`
-
-| Option | Consequences | Compatibility |
-| --- | --- | --- |
-| **A. Remove it** (recommended) | No Definition remains that offers the shortcut. controls/F13 makes any other outgoing Edge from a Control nonconforming. | Free now (see above). Engineering #585 must drop its `Realized by` Edges. |
-| B. Keep it, deprecated | Existing text keeps resolving, but the Definition still invites the shortcut that controls/F13 forbids. | It defers the cost to after promotion, when it is no longer free. |
+- **Name, cardinality and target.** `Has`, read as *Control Has Intent*, with one or more Intents. Intent is an optional complement.
+- **2A.** Intent's authoritative Definition id is held as data by the suite, with no runtime dependency on Intent. If Intent changes its Definition, a Controls Change updates the data, and `Has`'s id and every Control's Edges stay valid. A stale id makes Intent look absent, which is reported as unresolved, never as a pass.
+- **3A.** `Realized by` is retired. The trace to realization proceeds through the independently owned chain.
+- **Ownership is distributed, and Controls stands alone.** Core is preferred, but the suite runs without Core (controls/N6, controls/F16, controls/F17).
 
 ## Change graph
 
@@ -67,8 +60,9 @@ Controls does not settle these. They are listed so that nothing contradictory is
 
 ## Contracts reused
 
-- **Core**: `KAAL Definition` and admission.
-- **Graph**: the Edge form, resolution and derived incoming views.
+- **Core**: `KAAL Definition`, for the payload's Nodes.
+- **Graph**: the Edge form, whose shape controls/F17's input follows, and derived incoming views. The suite does not import Graph.
 - **Controls**: `Control` and the limits of assurance in `Controls`.
+- **Core**, optional: discovery, admission and composition through the adapter. The suite does not depend on it.
 - **Testing**, optional: its result semantics (verified failure and unknown findings; failed, unknown and verified runs), followed and never redefined.
 - **Intent**, optional: its `Intent` Definition, referred to and never restated.
