@@ -1,5 +1,5 @@
 // testing/C31 planned outer tests: one candidate's runs on every supported platform show the same declared
-// cases, each visible everywhere. Immutable to DO and CHECK; testing/C32 turns them GREEN. Each title names the
+// cases, each visible everywhere, and only the operating-system boundary scopes a case by platform. Immutable to DO and CHECK; testing/C32 turns them GREEN. Each title names the
 // contracts it checks (plan/parity/*.md). They use kaal-testing's public interface only, on runs given as their
 // exit status and output, and on facts a publisher's harness established on each platform.
 import assert from "node:assert/strict";
@@ -21,8 +21,10 @@ const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", 
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 const SUPPORTED = ["linux", "darwin", "win32"];
 const [T1, T2, T3] = ["acme/T1", "acme/T2", "acme/T3"];
-/** The applicability the harness established for acme/T3: it applies on Windows only, with a reason. */
+/** An applicability for acme/T3 that only the operating-system boundary may declare: Windows only, with a reason. */
 const WINDOWS = { platforms: ["win32"], reason: "acme/T3 checks Windows ACLs" };
+/** The applicability the harness established for acme/T3 in any package: it needs an optional complement, with a reason. */
+const GRAPH = { requires: ["@acme/graph"], reason: "acme/T3 exercises the Graph complement" };
 /** What the harness established on `platform` for the one candidate. */
 const factsOn = (platform, extra = {}) => ({
   package: { name: "@acme/thing", version: "1.2.3", location: `/consumer-${platform}/node_modules/@acme/thing` },
@@ -30,13 +32,13 @@ const factsOn = (platform, extra = {}) => ({
   node: "v24.1.0",
   digest: "d".repeat(64),
   cases: [T1, T2, T3],
-  applicability: { [T3]: WINDOWS },
+  applicability: { [T3]: GRAPH },
   dependencies: [],
-  complements: {},
+  complements: { "@acme/graph": platform === "darwin" ? "absent" : "present" },
   ...extra,
 });
-/** The case acme/T3 reports on `platform` when every case does what the contract expects. */
-const honest = (platform, name) => (name === T3 && platform !== "win32" ? { name, outcome: "not applicable", applicability: structuredClone(WINDOWS) } : { name, outcome: "pass" });
+/** The case `name` reports on `platform` when every case does what the contract expects: macOS's consumer has not installed Graph. */
+const honest = (platform, name) => (name === T3 && platform === "darwin" ? { name, outcome: "not applicable", applicability: structuredClone(GRAPH) } : { name, outcome: "pass" });
 /** One platform's run: its summary, with `cases` and `result` as given, observed through the verifier's words. */
 function runOn(observe, platform, { cases, result = "verified", facts = {} } = {}) {
   const f = factsOn(platform, facts);
@@ -100,37 +102,51 @@ describe("Cross-platform inventory parity for one candidate (testing/C31)", () =
     assert.deepEqual(outcomesOf(p, T1), { linux: "pass", darwin: "pass", win32: "pass" }, "each case shows its outcome on every platform");
   });
 
-  it("testing/T72 [testing/F57]: a case is not applicable on a platform only with that platform's established applicability, is never counted as passed, and a case not applicable on every platform is exercised on none", async () => {
+  it("testing/T72 [testing/F57, testing/F67]: a case is not applicable on a platform only with that platform's established applicability, and by a platform scope only in the operating-system boundary; it is never counted as passed, and a case not applicable on every platform is exercised on none", async () => {
     const { observe, parity } = await contract();
     const p = parity(SUPPORTED.map((pl) => runOn(observe, pl)), { supported: SUPPORTED });
-    assert.deepEqual(outcomesOf(p, T3), { linux: "not applicable", darwin: "not applicable", win32: "pass" }, "not applicable stays not applicable, never pass");
+    assert.deepEqual(p.findings, []);
+    assert.equal(p.result, "verified", "an optional complement established absent exempts a case in any package");
+    assert.deepEqual(outcomesOf(p, T3), { linux: "pass", darwin: "not applicable", win32: "pass" }, "not applicable stays not applicable, never pass");
+    const windowsOnly = SUPPORTED.map((pl) => runOn(observe, pl, { facts: { applicability: { [T3]: WINDOWS } }, cases: [{ name: T1, outcome: "pass" }, { name: T2, outcome: "pass" }, pl === "win32" ? { name: T3, outcome: "pass" } : { name: T3, outcome: "not applicable", applicability: structuredClone(WINDOWS) }] }));
+    const boundary = parity(windowsOnly, { supported: SUPPORTED, osBoundary: true });
+    assert.equal(boundary.result, "verified", "the operating-system boundary may scope a case by platform");
+    assert.deepEqual(outcomesOf(boundary, T3), { linux: "not applicable", darwin: "not applicable", win32: "pass" });
+    for (const [why, opts] of Object.entries({ "any other package": {}, "a package said not to be the boundary": { osBoundary: false } })) {
+      const v = parity(windowsOnly, { supported: SUPPORTED, ...opts });
+      assert.equal(v.result, "unknown", `${why}: an operating-system scope outside the boundary is an architectural violation, never an exemption`);
+      assert.ok(v.findings.some((f) => f.includes(T3) && f.includes("platform")), `${why}: the finding names the case and the platform scope`);
+      assert.deepEqual(outcomesOf(v, T3), { linux: "not run", darwin: "not run", win32: "pass" }, `${why}: the case is not run where it claimed an exemption`);
+    }
+    assert.equal(parity(windowsOnly, { supported: SUPPORTED, osBoundary: "yes" }).result, "unknown", "whether the package is the boundary is established, never assumed");
+    assert.equal(parity(SUPPORTED.map((pl) => runOn(observe, pl)), { supported: SUPPORTED, osBoundary: "yes" }).result, "unknown", "an answer that is not established is a finding even where no case is scoped by platform");
     const unsupported = SUPPORTED.map((pl) => runOn(observe, pl, { cases: [{ name: T1, outcome: "pass" }, { name: T2, outcome: pl === "linux" ? "not applicable" : "pass", ...(pl === "linux" ? { applicability: { platforms: ["darwin", "win32"], reason: "r" } } : {}) }, honest(pl, T3)] }));
-    const u = parity(unsupported, { supported: SUPPORTED });
+    const u = parity(unsupported, { supported: SUPPORTED, osBoundary: true });
     assert.equal(u.result, "unknown", "a not applicable claim the harness did not establish on that platform never verifies");
     assert.equal(outcomesOf(u, T2).linux, "not run");
     assert.ok(u.findings.some((f) => f.includes(T2)), "the finding names the case");
     const nowhere = SUPPORTED.map((pl) => runOn(observe, pl, { facts: { applicability: { [T3]: { platforms: ["aix"], reason: "r" } } }, cases: [{ name: T1, outcome: "pass" }, { name: T2, outcome: "pass" }, { name: T3, outcome: "not applicable", applicability: { platforms: ["aix"], reason: "r" } }] }));
-    const n = parity(nowhere, { supported: SUPPORTED });
+    const n = parity(nowhere, { supported: SUPPORTED, osBoundary: true });
     assert.equal(n.result, "unknown", "a case not applicable on every supported platform is exercised on none");
     assert.ok(n.findings.some((f) => f.includes(T3)), "the finding names the case");
   });
 
-  it("testing/T73 [testing/F58]: together the runs are failed when any platform's is, verified only when every platform's is and nothing is found, and unknown otherwise; an unresolved weakening finding never verifies", async () => {
+  it("testing/T73 [testing/F58]: together the runs are failed when any platform's is, verified only when every platform's is and nothing is found, and unknown otherwise; an unresolved challenge finding never verifies", async () => {
     const { observe, parity } = await contract();
     const failing = [runOn(observe, "linux"), runOn(observe, "darwin", { result: "failed", cases: [{ name: T1, outcome: "pass" }, { name: T2, outcome: "fail" }, honest("darwin", T3)] }), runOn(observe, "win32")];
     assert.equal(parity(failing, { supported: SUPPORTED }).result, "failed");
     const changed = [runOn(observe, "linux"), runOn(observe, "darwin", { result: "failed" }), runOn(observe, "win32")];
     assert.equal(parity(changed, { supported: SUPPORTED }).result, "failed", "a platform whose run is failed with every case passing, as when the consumer changed, fails the whole");
-    assert.equal(parity(failing, { supported: SUPPORTED, weakening: [T1] }).result, "failed", "an established failure stays failed");
+    assert.equal(parity(failing, { supported: SUPPORTED, challenged: [T1] }).result, "failed", "an established failure stays failed");
     const unknownOne = [runOn(observe, "linux"), runOn(observe, "darwin", { result: "unknown" }), runOn(observe, "win32")];
     assert.equal(parity(unknownOne, { supported: SUPPORTED }).result, "unknown", "one platform's unknown leaves the whole unknown");
     const claimed = [runOn(observe, "linux"), runOn(observe, "darwin", { cases: [{ name: T1, outcome: "pass" }, { name: T2, outcome: "skipped" }, honest("darwin", T3)] }), runOn(observe, "win32")];
     assert.equal(parity(claimed, { supported: SUPPORTED }).result, "unknown", "a run claiming verified with a skipped case never makes the whole verified");
     const clean = SUPPORTED.map((pl) => runOn(observe, pl));
-    const weak = parity(clean, { supported: SUPPORTED, weakening: [T2] });
-    assert.equal(weak.result, "unknown", "an unresolved weakening finding leaves its case's evidence unknown");
+    const weak = parity(clean, { supported: SUPPORTED, challenged: [T2] });
+    assert.equal(weak.result, "unknown", "an unresolved challenge finding, from Hosting's suite or Engineering's enforcement, leaves its case's evidence unknown");
     assert.ok(weak.findings.some((f) => f.includes(T2)));
-    assert.equal(parity(clean, { supported: SUPPORTED, weakening: "acme/T2" }).result, "unknown", "weakening that is not a list is not ignored");
+    assert.equal(parity(clean, { supported: SUPPORTED, challenged: "acme/T2" }).result, "unknown", "challenged cases that are not a list are not ignored");
     const lost = [runOn(observe, "linux"), { observed: { observation: null, findings: ["no summary line"] }, facts: factsOn("darwin") }, runOn(observe, "win32")];
     assert.equal(parity(lost, { supported: SUPPORTED }).result, "unknown", "a platform with no observation leaves the whole unknown");
   });

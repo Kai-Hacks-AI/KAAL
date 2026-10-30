@@ -21,10 +21,17 @@ Each Requirement names, in brackets, the Intents it serves.
 - **testing/F58** [testing/I16]: **What the runs establish together.**
   - The runs are **failed** when any platform's run is failed (testing/F50), whatever else is found.
   - Otherwise they are **verified** only when every platform's run is verified, nothing is found, and every case passed or is established not applicable on each platform.
-  - Otherwise they are **unknown**. This includes a platform with no observation, and a case on which Engineering's enforcement left an unresolved weakening finding (#641), given as `weakening`, a list of case names.
+  - Otherwise they are **unknown**. This includes a platform with no observation, a violation of testing/F67, and a case with an unresolved challenge finding. The challenge findings come from Hosting's cross-capability suite and review, or from Engineering's enforcement (#641), and are given as `challenged`, a list of case names.
 
-  A weakening finding never verifies, and it never turns a failure into anything else.
+  A challenge finding never verifies, and it never turns a failure into anything else.
+- **testing/F67** [testing/I16]: **Only the operating-system boundary scopes a case by platform.**
+  - Hosting is the only KAAL capability in which operating-system-specific behaviour is acceptable, in its solution and in its tests. Every other capability stays OS-agnostic.
+  - A case exempted on a platform by a platform scope (testing/F47 `platforms`) is an exemption only where the harness established that the package is the operating-system boundary, given as `osBoundary: true`.
+  - In any other package, a platform scope is an **architectural violation**, never an exemption. It is a finding that names the case and the platform scope. The case is `not run` on each platform where it claimed the exemption, and the runs are unknown.
+  - Whether a package is the boundary is established, never assumed. A value other than `true` or `false` is a finding.
+  - An applicability by optional complement (`requires`, `absent`) stays open to every package. It depends on what the consumer installed, not on the operating system.
+  - Testing authorizes no operating-system exception. Which capability is the boundary is Hosting's architectural rule. Testing only refuses to count a platform scope outside it as evidence.
 
 ## Nonfunctional
 
-- **testing/N11** [testing/I16]: Parity is pure, as testing/N9 states for the contract: `parity` reads nothing from a host, runs nothing, keeps nothing and changes no input. How each platform is run, and how weakening is detected, are Engineering's (#641).
+- **testing/N11** [testing/I16]: Parity is pure, as testing/N9 states for the contract: `parity` reads nothing from a host, runs nothing, keeps nothing and changes no input. How each platform is run is Engineering's (#641). Detecting operating-system-specific implementation, assertions, test selection and applicability outside Hosting is Hosting's suite and review guidance, run by Engineering.
