@@ -27,10 +27,8 @@ The table becomes `| Defect | Prohibited behaviour | Tested by | Observed in Tes
 
 **Defects Engineering defines: guard/D4 and guard/D15 only.** Each observation names the same four things as `guard/C132` (#653) requires of the product's: its result, RED or GREEN; the candidate (version, `packed` or `registry`, and commit, where recorded); the environment (OS and Node version, where recorded, and nothing claimed where not); and the Test Run, meaning the Change and its pull request or the CI run.
 
-| Defect | Test Case | Observed in Test Runs |
-| --- | --- | --- |
-| guard/D4 | guard/T44 (Engineering, retired) | RED: `0.0.1`, `packed`, Linux, in K2b. Then the Owner's ruling on #336 (`guard/C23`) withdrew the contract it stated. That is a change of definition, recorded as such, not a status and not a GREEN |
-| guard/D15 | guard/T93 (Engineering) | RED: on `kaal/guard`, in `guard/C73` (#441). GREEN: from `guard/C74` (#442) |
+- For guard/D4, tested by guard/T44 (Engineering, retired): RED in `0.0.1`, `packed`, Linux, in K2b. The Owner's ruling on #336 (`guard/C23`) then withdrew the contract it stated. That is recorded as a change of definition, not as a status and not as a GREEN.
+- For guard/D15, tested by guard/T93 (Engineering): RED on `kaal/guard`, in `guard/C73` (#441). GREEN from `guard/C74` (#442).
 
 The DO checks each pull request's recorded check results before writing an entry. An entry it cannot evidence that way is left out and named as unobserved, never guessed. Under `guard/C129` (#631), guard/T93 moves to External's own Test Plan, and guard/D15 moves with it. Until then, it stays here.
 
@@ -68,6 +66,6 @@ These are written RED first, against today's register, and live beside guard/T11
 
 1. **`guard/C132`'s DO** (#653's PLAN) defines guard/D6–guard/D14 and guard/D18 in the package and adds them to their Test Cases' titles, on `kaal/guard-release`.
 2. **The engineering/C8 DO**, on `kaal/guard-release` after step 1, written RED first. Its pull request shows guard/T111 GREEN, with every Defect defined exactly once, on its merge with step 1's head, and it follows that head if it changes.
-3. **guard/T130 GREEN** on the exact candidate SHA (`guard/C131`), before `guard/C125`.
+3. **The release check:** guard/T130 GREEN on the exact candidate SHA (`guard/C131`), before `guard/C125`.
 
 Approving this PLAN authorizes the engineering/C8 DO only. It authorizes no synchronization, promotion or publication, and nothing in `packages/kaal-guard/`.
