@@ -10,6 +10,7 @@ The planned outer tests live in `packages/skills/kaal-change/test/plan/release.t
 | change/T27: the manifest declares every consumer case with when it applies, and the hash of every other shipped file; there are absence and Graph cases; its cases import only public entry points, the verifier only built-ins, and no publisher-only test is shipped | change/F22, change/F24, change/N7, change/A14, change/A15 | Architecture |
 | change/T28: in a clean consumer, the packed package verifies with Graph over the full delivery path, and verifies without Graph over the cannot-assess contract, with the Graph cases not applicable; a failing case is failed, and a changed file, a missing manifest or an applicable case that did not run is unknown | change/I11, change/I13, change/I14, change/F19, change/F22, change/F23, change/F25 | Intent |
 | change/T29: uninstalling leaves the consumer's Change Records and Change Nodes byte-identical, and verification writes nothing outside its temporary directory | change/I15, change/F26, change/N7 | Intent |
+| change/T33: without Graph, the installed package's `cannot-assess` names `@kaihacksai/kaal-graph` and offers exactly install-and-retry and analyze, gives no verdict, installs and writes nothing, and consumer verification states the same next step | change/F19, change/F29 | Requirements |
 
 change/T28's Graph scenario packs Graph and Hosting from this repository. It turns GREEN only once Graph is packed under its published name `@kaihacksai/kaal-graph`, which is Graph's rename, not Change's.
 
@@ -20,4 +21,4 @@ The following are validated by review:
 
 ## RED evidence
 
-At `change/C4` all six are RED. change/T24–change/T27 are discriminating behavioural REDs on the current package: its name is unscoped, and it ships no `docs/`, no manifest and no consumer tests. change/T28 and change/T29 are blocked before behavioural assertion, because the package has no consumer verification to run. They run with `node --test packages/skills/kaal-change/test/plan/release.test.mjs`, outside `npm test`.
+At `change/C4` all seven are RED. change/T24–change/T27 are discriminating behavioural REDs on the current package: its name is unscoped, and it ships no `docs/`, no manifest and no consumer tests. change/T28, change/T29 and change/T33 are blocked before behavioural assertion, because the package has no consumer verification to run. They run with `node --test packages/skills/kaal-change/test/plan/release.test.mjs`, outside `npm test`.

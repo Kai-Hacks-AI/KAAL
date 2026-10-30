@@ -208,4 +208,47 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
       rmSync(out, { recursive: true, force: true });
     }
   });
+  it("change/T33 [change/F19, change/F29]: without Graph, the installed package's cannot-assess names @kaihacksai/kaal-graph and offers exactly install-and-retry and analyze, gives no verdict, installs and writes nothing, and consumer verification states the same next step", { timeout: 300_000 }, () => {
+    verifier();
+    const out = mkdtempSync(join(tmpdir(), "kaal-change-pack-"));
+    try {
+      const dir = consumer([pack(PACKAGE, out)]);
+      writeFileSync(join(dir, "sample-C1.md"), "---\nname: sample/C1\n---\n\n# sample/C1\n");
+      const before = snapshot(dir);
+      const modules = readdirSync(join(dir, "node_modules"), { recursive: true }).sort();
+      const probe = `const { assess } = await import(${JSON.stringify(`${NAME}/delivery`)});
+        const node = { name: "sample/C1", bytes: new TextEncoder().encode("---\\nname: sample/C1\\n---\\n") };
+        const r = await assess([node], { evidence: { by: "consumer", evaluations: [] } });
+        const plain = (v) => typeof v === "function" ? "<function>" : v;
+        process.stdout.write(JSON.stringify(r, (k, v) => plain(v)));`;
+      const run = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: dir, encoding: "utf8", timeout: 60_000 });
+      assert.equal(run.status, 0, `./delivery loads and assess returns without Graph:\n${run.stdout}${run.stderr}`);
+      const r = JSON.parse(run.stdout);
+      assert.deepEqual(r.findings, [{
+        kind: "cannot-assess",
+        peer: PEER,
+        next: [{ action: "install", peer: PEER }, { action: "analyze" }],
+      }], "exactly one finding: the missing peer and exactly the two next steps, in order");
+      const text = run.stdout;
+      for (const verdict of ["satisfied", "delivered", "unmet", "awaiting", "failed", "passed"]) {
+        assert.ok(!text.includes(`"${verdict}"`), `no ${verdict} appears: inability to assess is never a delivery result`);
+      }
+      assert.ok(!/npm (i|install)\b|https?:|\.(mjs|js|json)\b/.test(JSON.stringify(r.findings)), "no invented remedy: no command, URL or file is named");
+      assert.deepEqual(readdirSync(join(dir, "node_modules"), { recursive: true }).sort(), modules, "nothing was installed");
+      assert.ok(!existsSync(join(dir, "node_modules", PEER)), "Graph was not installed silently");
+      assert.deepEqual(snapshot(dir), before, "assess wrote nothing in the consumer");
+      const evidence = verify(dir);
+      assert.equal(evidence.status, 0, `the installation still verifies:\n${evidence.out}`);
+      const reasons = evidence.out.split("\n").filter((l) => /not applicable/i.test(l));
+      assert.ok(reasons.length > 0, `the Graph cases are listed as not applicable:\n${evidence.out}`);
+      for (const line of reasons) {
+        assert.ok(line.includes(PEER), `the reason names ${PEER}: ${line}`);
+        assert.match(line, /install/i, `and the next step, install and retry: ${line}`);
+        assert.match(line, /analy[sz]e/i, `or analyze: ${line}`);
+      }
+      rmSync(dir, { recursive: true, force: true });
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
 });

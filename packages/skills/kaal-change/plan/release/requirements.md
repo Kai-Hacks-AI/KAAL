@@ -19,6 +19,16 @@ Each Requirement names, in brackets, the Intents it serves.
 - **change/F19** [change/I11]: Without Graph installed, every entry point but `./delivery` works.
   - `./delivery` still loads. `assess` returns no verdict, no views and no exchange, only one finding: `cannot-assess`, naming the missing optional peer.
   - It never throws an unexplained module error, and never reads as delivered or as not delivered.
+- **change/F29** [change/I11, change/I13]: **`cannot-assess` is a diagnostic a consumer can act on** (the Owner's follow-up 6517590098). Its one finding is `{ kind: "cannot-assess", peer, next }`.
+  - **It names what is missing.** `peer` is exactly `@kaihacksai/kaal-graph`.
+  - **It says what to do next.** `next` is Change's own recovery guidance for this case, in this order, and nothing else:
+    - `{ action: "install", peer: "@kaihacksai/kaal-graph" }`: install or enable Graph in the consumer, then assess again;
+    - `{ action: "analyze" }`: read the Change Nodes as Bare content, with an agent's or a person's help. It is offered because no more precise action is known without Graph.
+  - **No invented remedy.** No other action is offered, and none names a file, a command or a package other than the peer.
+  - **Inability is not failure.** It is never a delivery result. Nothing reads as delivered, not delivered, satisfied or failed.
+  - **Nothing is done on the consumer's behalf.** `assess` installs nothing, resolves nothing from the network, and writes nothing.
+  - **Whose contract.** The form of a diagnostic is Testing's. Change supplies only the guidance of its own case. Testing defines no diagnostic form yet, so these members are Change's own (change/F13), and adopting a later Testing form is a Change of Change's own.
+  - **Consumer verification carries it.** Without Graph, the evidence's reason for each Graph case that does not apply names `@kaihacksai/kaal-graph` and the same next step.
 
 ## Functional: documentation
 

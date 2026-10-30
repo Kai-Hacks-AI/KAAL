@@ -16,8 +16,8 @@ Change 0.0.1 is one of the Owner's five delivery objectives (2026-10-29).
 
 This is a PLAN Change. It ships no code.
 
-- `packages/skills/kaal-change/plan/release/`: the Intent (change/I11–I15), the Requirements (change/N6–N7, change/F18–F26), the Architecture (change/A11–A16) and the Testing plan.
-- `packages/skills/kaal-change/test/plan/release.test.mjs`: change/T24–change/T29, RED.
+- `packages/skills/kaal-change/plan/release/`: the Intent (change/I11–I15), the Requirements (change/N6–N7, change/F18–F26, change/F29), the Architecture (change/A11–A16) and the Testing plan.
+- `packages/skills/kaal-change/test/plan/release.test.mjs`: change/T24–change/T29 and change/T33, RED.
 
 It proposes these Owner decisions:
 - the package is `@kaihacksai/kaal-change`;
@@ -31,6 +31,15 @@ Verifying the installed package is distinct from assessing a Change's delivery (
 - **What stays honest.** A failing case is failed. An applicable case that did not run, a changed file or a missing manifest is unknown.
 
 change/T28 and change/F25 cover each scenario, and the exclusion option is gone.
+
+## Owner follow-up 6517590098
+
+`cannot-assess` is a diagnostic a consumer can act on (`change/F29`).
+- It names `@kaihacksai/kaal-graph`, and offers exactly two next steps: install or enable Graph and assess again, or analyze the Bare content with an agent's or a person's help.
+- It is never a failed delivery. `assess` installs nothing and writes nothing.
+- Testing owns the diagnostic form. Change supplies its own case's guidance, as its own finding members until Testing defines a form.
+
+change/T33 is the bounded negative test of the consumer-facing diagnostic.
 
 ## Not authorized here
 
