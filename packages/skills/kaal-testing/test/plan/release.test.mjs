@@ -148,7 +148,7 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     }
     const packed = JSON.parse((await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE })).stdout)[0].files.map((f) => f.path);
     for (const p of packed.filter((x) => /\.(mjs|cjs|js)$/.test(x))) {
-      assert.doesNotMatch(text(join(PACKAGE, p)), /["'`](win32|darwin|linux)["'`]|\bos\.platform\(|\bplatform\(\)|node:os["']/, `${p} names no operating system: OS-specific behaviour is Hosting's`);
+      assert.doesNotMatch(text(join(PACKAGE, p)), /["'`](win32|darwin|linux)["'`]|\bprocess\.platform\s*[!=]==?|[!=]==?\s*process\.platform\b|\bos\.(platform|type)\(|\b(platform|type)\(\)/, `${p} branches on no operating system: OS-specific behaviour is Hosting's, and a portable built-in such as tmpdir() is not a branch`);
     }
   });
 });
