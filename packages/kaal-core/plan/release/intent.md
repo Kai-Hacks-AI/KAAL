@@ -19,3 +19,16 @@ Never claim that publisher-only tests ran in a consumer's installation, and neve
   - Its registration scope is that of `core/C24` as revised by `core/C30`: scoped kind identities, owner-defined outgoing rules, derived incoming views, discoverable same-term ambiguity, and non-silent reporting compatible with PREACH.
   - Core gains no semantic ownership. What a kind means, and how a shared term is aligned, stay with their owners.
 - **core/I23.** A release is accepted from the packed artifact in a clean installation, not from the repository: the shipped file list, the test entrypoint, the dependencies and the failure behaviour are observed where a consumer observes them.
+
+## Revision: `core/C36`, alignment with the KAAL Package contract
+
+`core/C36` is a PLAN Change that revises this one before `core/C29` starts. Like this PLAN, it authorizes no synchronization, promotion, version change or npm publication.
+
+Packaging's generic KAAL Package contract (packaging/C4, #658) asks each product to state how it meets each generic duty, in the runtime-dependency order the Owner set: Foundation, Hosting, Graph, then Core. Engineering's release-baseline trace (#610, `engineering/research/release-baseline.md`) found where kaal-core falls short:
+- `core/F70` decided `verified` on counts, with no declared inventory of cases. A delivered case that silently stops running would still read `verified`, which is the false GREEN `core/I22` rules out.
+- kaal-core declared no supported platforms.
+- No requirement kept the consumer's environment intact.
+- Consistency with the shipped list was not told apart from provenance.
+
+`core/C36` closes each gap by citing the generic duty and Testing's meaning, never by restating them. It revises `core/F70`, `core/F72`, `core/A33`, `core/A34` and core/T76, and adds `core/F85`, `core/F86`, `core/N23`, `core/A43`, core/T91 and core/T92. Each place it changes is marked "revised by `core/C36`".
+
