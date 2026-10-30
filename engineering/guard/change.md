@@ -457,6 +457,25 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Authorization.** Approving this PLAN authorizes `guard/C121`'s DO only: no version bump, promotion or publication.
 - **DO (`guard/C121`).** guard/T125 was committed first and is GREEN against `0.0.4`, because the behaviour already holds. It is RED when `lib/config.mjs` stops reserving `0` and `3`, checked by hand, so it is not vacuous. guard/F2's "Named outcomes" bullet now names `"4"` to `"255"` and says why `"0"` to `"3"` are refused. `lib/` and the README are unchanged. The manifest was regenerated. This DO authorizes no version bump, promotion or publication.
 
+**Defects found before a release, defined by the product (`guard/C132`, PLAN).** The Owner chose option A on #645 (`engineering/C8`) and approved it on #646 (`guard/C131`, review 5711485981). Guard defines the Defects its delivered cases test, and its cases trace out to them. Engineering's register then cites them and no longer authors a Defect → Test Case trace or a permanent Status. This PLAN is the Guard half, and it lands before the `engineering/C8` DO.
+- **Which Defects.** These ten were found by the publisher's release reviews before any published version shipped them:
+  - guard/D6–guard/D14 were found in the `0.0.2` candidate. Each was established when guard/T84–guard/T92 were recorded RED in `guard/C63` (#433), and corrected before `0.0.2` was published.
+  - guard/D18 was found in the `0.0.3` candidate. It was established when guard/T100 was recorded RED on the uncorrected runner in `guard/C92` (#505), and corrected there.
+
+  Their cases are all delivered: guard/T84–guard/T92 in `test/acceptance/requirements.test.mjs`, and guard/T100 in `test/unit/runner.test.mjs`. guard/D4 (retracted) and guard/D15 (External delivery) stay in Engineering's register. They are not the package's.
+- **In the product.**
+  - `docs/limitations.md` gets a second table, "Defects found before a release". It has the same columns as "Defects in published versions": Defect, Prohibited behaviour, Tested by, Observed in Test Runs.
+  - Each behaviour is stated as a prohibition.
+  - Observations are scoped by candidate and environment and never claim a published version: for example "RED in the `0.0.2` candidate (`packed`, Linux, before release); GREEN from `0.0.2`". A consumer reads that these were never in a version they could install.
+  - "Tested by" is derived by realization, so for all ten it reads "delivered".
+- **Case titles.** guard/T84–guard/T92 cite guard/D6–guard/D14 in order, and guard/T100 cites guard/D18. Each keeps the Requirements it verifies.
+- **No duplicate definition.** Engineering's ten rows for these Defects become the citing form, `| guard/Dn (product) | …`, as `guard/C123` did for the first six. guard/T111 then still finds each Defect defined exactly once. Removing Engineering's authored Traces-to and Status columns is `engineering/C8`'s DO, not this one.
+- **Widening guard/T127.** It reads both tables. Its negative fixtures add a Defect in "found before a release" whose observation claims a RED in a published version, and a Defect defined in both tables. Each must be refused. guard/T107 and the manifest generator already read Defect rows from `docs/limitations.md`. The manifest and the trace are regenerated.
+- **Interaction with `guard/C130`.** guard/T91 tests guard/D13: an `outcomes` key with a leading zero. `guard/C130` replaces `outcomes` with `held`, where a status is a number and has no leading zero. guard/D13 stays a durable, historical prohibition with its observations. In `guard/C130`'s DO, guard/T91 either asserts the same prohibition against `held`, or is retired there with its evidence kept. That DO says which. This PLAN does not decide it.
+- **Test Cases.** No new identifier. guard/T127 is widened, and is RED first for the new section. guard/T111 and guard/T107 stay GREEN.
+- **Place in the path to `0.0.5`.** Step 5c: this DO, then the `engineering/C8` DO, then guard/T130 GREEN on the exact candidate SHA (`guard/C131`). All of it comes before `guard/C125`.
+- **Authorization.** Approving this PLAN authorizes `guard/C132`'s DO only: no version bump, synchronization, promotion or publication.
+
 **Architecture places every module and serves every Requirement (`guard/C122`, PLAN).** A-1, A-2 and A-3 from `guard/C119`. Architecture says it "gives each one positive ownership", yet seven of the ten modules in `lib/` are named by no element, and guard/F11–guard/F17, guard/F29, guard/F30 and guard/N1 are cited by none.
 - **Placement (A-1).** Each module in `lib/` is named by exactly one element. `command.mjs` (the words of a `command`, guard/F9) and `trusted.mjs` (the base copy of a trusted checker, guard/F7) by guard/A3 Runner, which runs them. `state.mjs` (the installation record and local state, guard/F29) by guard/A6 Lifecycle, the only writer. `reminder.mjs` by guard/A15 Reminder. `node.mjs` and `git.mjs` (the Node and Git prerequisites, guard/N1) by guard/A7, which places the command that imports them before anything else, and guard/A7 cites guard/N1. `config.mjs` reads and validates the declarations (guard/F18) for the runner, the lifecycle and the GitHub adapter alike, so placing it under any one of them would misstate it; the DO adds guard/A21 Declarations [guard/F1, guard/F18] for it, beside guard/A1, which stays the repository's data.
 - **Trace (A-2).** guard/A6 cites guard/F11–guard/F17, guard/F29 and guard/F30, which it already implements. guard/F41 (`guard/C115`), guard/F42 (`guard/C113`) and guard/N15 (`guard/C114`) are cited once each has landed on `kaal/guard-release`; the DO is raised after them or cites those that have landed and says which remain.
@@ -579,25 +598,6 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Place in the path to `0.0.5`.** Step 5c: `guard/C132` if option A, then the `engineering/C8` DO, then guard/T130 GREEN. All of it before `guard/C125`.
 - **Authorization.** Approving this PLAN authorizes `guard/C131`'s DO only, which is guard/T130 and the path's record. It authorizes no version bump, promotion, synchronization or publication, and it does not reopen the approval of the `guard/C123` DO.
 
-**Defects found before a release, defined by the product (`guard/C132`, PLAN).** The Owner chose option A on #645 (`engineering/C8`) and approved it on #646 (`guard/C131`, review 5711485981). Guard defines the Defects its delivered cases test, and its cases trace out to them. Engineering's register then cites them and no longer authors a Defect → Test Case trace or a permanent Status. This PLAN is the Guard half, and it lands before the `engineering/C8` DO.
-- **Which Defects.** These ten were found by the publisher's release reviews before any published version shipped them:
-  - guard/D6–guard/D14 were found in the `0.0.2` candidate. Each was established when guard/T84–guard/T92 were recorded RED in `guard/C63` (#433), and corrected before `0.0.2` was published.
-  - guard/D18 was found in the `0.0.3` candidate. It was established when guard/T100 was recorded RED on the uncorrected runner in `guard/C92` (#505), and corrected there.
-
-  Their cases are all delivered: guard/T84–guard/T92 in `test/acceptance/requirements.test.mjs`, and guard/T100 in `test/unit/runner.test.mjs`. guard/D4 (retracted) and guard/D15 (External delivery) stay in Engineering's register. They are not the package's.
-- **In the product.**
-  - `docs/limitations.md` gets a second table, "Defects found before a release". It has the same columns as "Defects in published versions": Defect, Prohibited behaviour, Tested by, Observed in Test Runs.
-  - Each behaviour is stated as a prohibition.
-  - Observations are scoped by candidate and environment and never claim a published version: for example "RED in the `0.0.2` candidate (`packed`, Linux, before release); GREEN from `0.0.2`". A consumer reads that these were never in a version they could install.
-  - "Tested by" is derived by realization, so for all ten it reads "delivered".
-- **Case titles.** guard/T84–guard/T92 cite guard/D6–guard/D14 in order, and guard/T100 cites guard/D18. Each keeps the Requirements it verifies.
-- **No duplicate definition.** Engineering's ten rows for these Defects become the citing form, `| guard/Dn (product) | …`, as `guard/C123` did for the first six. guard/T111 then still finds each Defect defined exactly once. Removing Engineering's authored Traces-to and Status columns is `engineering/C8`'s DO, not this one.
-- **Widening guard/T127.** It reads both tables. Its negative fixtures add a Defect in "found before a release" whose observation claims a RED in a published version, and a Defect defined in both tables. Each must be refused. guard/T107 and the manifest generator already read Defect rows from `docs/limitations.md`. The manifest and the trace are regenerated.
-- **Interaction with `guard/C130`.** guard/T91 tests guard/D13: an `outcomes` key with a leading zero. `guard/C130` replaces `outcomes` with `held`, where a status is a number and has no leading zero. guard/D13 stays a durable, historical prohibition with its observations. In `guard/C130`'s DO, guard/T91 either asserts the same prohibition against `held`, or is retired there with its evidence kept. That DO says which. This PLAN does not decide it.
-- **Test Cases.** No new identifier. guard/T127 is widened, and is RED first for the new section. guard/T111 and guard/T107 stay GREEN.
-- **Place in the path to `0.0.5`.** Step 5c: this DO, then the `engineering/C8` DO, then guard/T130 GREEN on the exact candidate SHA (`guard/C131`). All of it comes before `guard/C125`.
-- **Authorization.** Approving this PLAN authorizes `guard/C132`'s DO only: no version bump, synchronization, promotion or publication.
-
 **Not in scope of `guard/C107` and `guard/C108`.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review were tracked separately. `guard/C111` has since triaged them: M1 into `guard/C114`, N7 into `guard/C115`, M2 and M3 into `guard/C116`, and N6 into `guard/C117`.
 
 **How it fits the promotion (`guard/C107`).** One sync and one promotion still carry `0.0.4`.
@@ -716,8 +716,8 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | DO |
 | `guard/C123` | — | Guard | `0.0.5`: Test Cases trace to the Defects they test; the product shows their observations | `guard/C119` | DO |
 | `guard/C124` | — | Guard | The path to `0.0.5`: the remaining Changes in collector order, the evidence that accepts the release, and what stays out pending the Owner | `guard/C111`, `guard/C119` | PLAN |
-| `guard/C131` | — | Guard | Release prerequisite for `0.0.5`: Engineering's Defect register corrected (`engineering/C8`, #645), gated by guard/T130 (the Owner on #638) | `guard/C124` | PLAN |
 | `guard/C132` | — | Guard | Defects found before a release (guard/D6–guard/D14, guard/D18) defined in the product's Limitations; their delivered cases trace out to them; Engineering's rows cite them (the Owner's option A on #645, #646) | `guard/C123` | PLAN |
+| `guard/C131` | — | Guard | Release prerequisite for `0.0.5`: Engineering's Defect register corrected (`engineering/C8`, #645), gated by guard/T130 (the Owner on #638) | `guard/C124` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
 | `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
