@@ -54,6 +54,20 @@ describe("verifiers", () => {
     assert.equal(judge("complement-absent", observe({ exit: 0, stdout: line(summary) }, VERIFIER), inherited).conforms, false, "toString on Object.prototype is not a complement established absent");
   });
 
+  it("never conforms when the harness established none of the run's identifying facts or declared cases", () => {
+    const bare = observe({ exit: 0, stdout: 'v {"result":"verified","cases":[]}' }, { prefix: "v ", words: VERIFIER.words });
+    for (const facts of [undefined, {}, { cases: [] }]) assert.equal(judge("clean", bare, facts).conforms, false, JSON.stringify(facts));
+    for (const k of ["platform", "node", "digest"]) assert.equal(judge("clean", observe({ exit: 0, stdout: line({ ...CLEAN, [k]: undefined }) }, VERIFIER), { ...FACTS, [k]: undefined }).conforms, false, k);
+    assert.equal(judge("clean", observe({ exit: 0, stdout: line({ ...CLEAN, package: {} }) }, VERIFIER), { ...FACTS, package: {} }).conforms, false);
+  });
+
+  it("does not let a repeated applicability entry stand in for one the harness established", () => {
+    const facts = { ...FACTS, target: "acme/T1", applicability: { "acme/T1": { platforms: ["win32", "darwin"], reason: "r" } } };
+    const claim = (platforms) => judge("not-applicable", observe({ exit: 0, stdout: line({ ...CLEAN, cases: [{ name: "acme/T1", outcome: "not applicable", applicability: { platforms, reason: "r" } }] }) }, VERIFIER), facts).conforms;
+    assert.equal(claim(["darwin", "win32"]), true);
+    assert.equal(claim(["win32", "win32"]), false);
+  });
+
   it("keeps the scenarios frozen, each with a unique identity and an expected result", () => {
     assert.ok(Object.isFrozen(SCENARIOS) && SCENARIOS.every(Object.isFrozen));
     assert.equal(new Set(SCENARIOS.map((s) => s.id)).size, SCENARIOS.length);

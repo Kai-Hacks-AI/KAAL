@@ -9,7 +9,7 @@ const OUTCOMES = ["pass", "fail", "skipped", "todo", "not applicable", "not run"
 const plain = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
 const nonempty = (s) => typeof s === "string" && s !== "";
 const names = (x) => Array.isArray(x) && x.length > 0 && x.every(nonempty);
-const setEq = (a, b) => (a === undefined && b === undefined) || (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x) => b.includes(x)));
+const setEq = (a, b) => (a === undefined && b === undefined) || (Array.isArray(a) && Array.isArray(b) && a.every((x) => b.includes(x)) && b.every((x) => a.includes(x)));
 /**
  * The applicability the harness established for `name`, when it explicitly excludes this run, with a reason:
  * a platform scope that excludes the run's platform; optional complements the case requires, at least one of
@@ -111,7 +111,10 @@ export function judge(scenarioId, observed, facts) {
   if (o.exit !== EXIT[s.result]) differences.push(`exit status is ${o.exit}, the scenario expects ${EXIT[s.result]}`);
   if (s.result === "verified" ? o.cause !== undefined && o.cause !== null : !nonempty(o.cause)) differences.push(s.result === "verified" ? "a verified run names a cause" : "the run names no cause");
   differences.push(...diagnosis(s.result, o));
-  const pkg = facts?.package ?? {};
+  const pkg = plain(facts?.package) ? facts.package : {};
+  const unestablished = [...["name", "version", "location"].filter((k) => !nonempty(pkg[k])).map((k) => `package ${k}`), ...["platform", "node", "digest"].filter((k) => !nonempty(facts?.[k]))];
+  if (!Array.isArray(facts?.cases) || !facts.cases.every(nonempty) || (s.cases === "pass" && facts.cases.length === 0)) unestablished.push("declared cases");
+  for (const f of unestablished) differences.push(`the harness established no ${f}`);
   for (const k of ["name", "version", "location"]) if (o.package?.[k] !== pkg[k]) differences.push(`package ${k} is ${JSON.stringify(o.package?.[k])}, the installed package's is ${JSON.stringify(pkg[k])}`);
   for (const k of ["platform", "node"]) if (o[k] !== facts?.[k]) differences.push(`${k} is ${JSON.stringify(o[k])}, the run's is ${JSON.stringify(facts?.[k])}`);
   if (!["manifest-absent", "manifest-malformed"].includes(s.id) && o.digest !== facts?.digest) differences.push(`digest is ${JSON.stringify(o.digest)}, the recomputed digest is ${JSON.stringify(facts?.digest)}`);
