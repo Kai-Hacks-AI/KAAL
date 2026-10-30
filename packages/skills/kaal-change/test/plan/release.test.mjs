@@ -17,7 +17,9 @@ const HOSTING = join(PACKAGE, "../../extensions/kaal-hosting");
 const NAME = "@kaihacksai/kaal-change";
 const PEER = "@kaihacksai/kaal-graph";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-const npm = (args, cwd) => execFileSync("npm", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+/** Every subprocess is bounded: a synchronous call blocks the event loop, so a test timeout alone cannot stop it. */
+const BOUND = 120_000;
+const npm = (args, cwd) => execFileSync("npm", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: BOUND });
 
 /** The files npm would pack, relative to the package. */
 const packed = () => JSON.parse(npm(["pack", "--dry-run", "--json", "--ignore-scripts"], PACKAGE))[0].files.map((f) => f.path).sort();
@@ -47,7 +49,8 @@ function pack(from, out, { scripts = false } = {}) {
 
 /** Runs the installed package's consumer verification, as the consumer would. */
 function verify(dir, ...args) {
-  const r = spawnSync("npm", ["test", "--", ...args], { cwd: join(dir, "node_modules", NAME), encoding: "utf8" });
+  const r = spawnSync("npm", ["test", "--", ...args], { cwd: join(dir, "node_modules", NAME), encoding: "utf8", timeout: BOUND });
+  assert.ok(!r.error, `consumer verification ended within ${BOUND} ms: ${r.error?.message}`);
   return { status: r.status, out: `${r.stdout}${r.stderr}` };
 }
 
@@ -221,7 +224,7 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
         const r = await assess([node], { evidence: { by: "consumer", evaluations: [] } });
         const plain = (v) => typeof v === "function" ? "<function>" : v;
         process.stdout.write(JSON.stringify(r, (k, v) => plain(v)));`;
-      const run = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: dir, encoding: "utf8", timeout: 60_000 });
+      const run = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: dir, encoding: "utf8", timeout: BOUND });
       assert.equal(run.status, 0, `./delivery loads and assess returns without Graph:\n${run.stdout}${run.stderr}`);
       const r = JSON.parse(run.stdout);
       assert.deepEqual(r.findings, [{
