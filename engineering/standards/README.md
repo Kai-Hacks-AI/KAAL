@@ -1,6 +1,6 @@
 # Standards across KAAL: Engineering's part
 
-> PLAN (engineering/C5): nothing below exists yet. This PLAN is revised to the Owner's alignment on #610 (comment 6504619909). A standard is a KAAL Node owned by the Capability whose standard it is. Graph discovers and relates them. Engineering keeps no register and restates no other Capability's standard. It owns its own Engineering standards, derives a cross-Capability view, and orchestrates conformance checks. The first draft's central register is withdrawn. Revised again to the Owner's review on #610 (review 5715338615): `Standard` and `Applies to` carry domain semantics and are not assigned to Core, and each scope term is referenced at its own owner. Extended to package-release readiness at the Owner's request (#610, comments 6529592861 and 6529734792); see "Release readiness". Revised to the Owner's priority on #610 (comment 6531212582, review 5717462274): readiness consumes Packaging's merged generic contract and its conformance suite, and comes first. Standards ownership stays unresolved.
+> PLAN (engineering/C5): nothing below exists yet. This PLAN is revised to the Owner's alignment on #610 (comment 6504619909). A standard is a KAAL Node owned by the Capability whose standard it is. Graph discovers and relates them. Engineering keeps no register of other Capabilities' standards and restates none of them. Its own Engineering-specific register is under "Engineering's own standards register". It owns its own Engineering standards, derives a cross-Capability view, and orchestrates conformance checks. The first draft's central register is withdrawn. Revised again to the Owner's review on #610 (review 5715338615): `Standard` and `Applies to` carry domain semantics and are not assigned to Core, and each scope term is referenced at its own owner. Extended to package-release readiness at the Owner's request (#610, comments 6529592861 and 6529734792); see "Release readiness". Revised to the Owner's priority on #610 (comment 6531212582, review 5717462274): readiness consumes Packaging's merged generic contract and its conformance suite, and comes first. Standards ownership stays unresolved. Revised to the Owner's architectural alignment on #610 (comment 6535084421): every capability applies BASS on its own, and discovery has two valid paths, with Core and without it. See "Discovery: two paths".
 
 ## The Node model
 
@@ -20,9 +20,42 @@
   | repository-native | No Capability defines it today. Engineering engineers this repository, so it is the candidate | Returned to the Owner below; until decided, a Standard applying to it is reported unresolved |
 - **Verification belongs to the Standard's owner.** A Standard names the Test Cases that verify conformance to it, by title. The owner writes them as reusable parametrized cases, as Core does for Installation Contracts (engineering/C4, #607). A claim no test can decide is validated by human–agent judgment, recorded, or left visibly unresolved, in Testing's terms. It is never shown as passing.
 
+## Discovery: two paths
+
+The Owner's rule (#610, comment 6535084421): **every capability applies BASS on its own. Core is preferred when it is present, and never required for a capability to be discoverable or usable.** The first draft's choice between A (`AGENTS.md` and per-capability README links) and B (a register alone) is withdrawn. Two paths replace it, and both are valid.
+
+**Path 1: Core present.**
+- The repository's `AGENTS.md` bootstraps KAAL and points to the Engine, as it does today (`AGENTS.md` → `.kaal/AGENTS.md`). It names no capability and no obligation, so it never becomes a second directory.
+- Core gives the preferred discovery and resolution: the capabilities registered in the Engine (`kaal list`), and, for each one, where it declares its applicable obligations. Core owns these mechanics: registration, the catalog and resolution. It owns none of the obligations' meaning. A resolved obligation means what its owner's text says.
+
+**Path 2: Core absent.**
+- Each capability, Engineering included, exposes its own BASS contract, discoverable without Core:
+  - *Bare*: its entry document, which links its authoritative obligations. For a package, this is the README that packaging/F8 makes the discoverable entry, and its `docs/requirements.md`. For Engineering, it is `engineering/README.md`, which links its standards register.
+  - *Agent*: no capability needs an instruction file to be found. A repository may point to a capability's entry from its own `AGENTS.md`. That is the repository's choice, and no capability requires it.
+  - *Skill*: a capability's Skill, where it ships one, as Guard's `kaal-guard` does (guard/F19).
+  - *Script*: a deterministic step, where one is justified. For Engineering, that is `npm run standards`.
+- No Core installation, `.kaal/` Engine or registration is a prerequisite. In this repository, Engineering finds the candidates from the package manager's own declaration, the root `package.json` `workspaces`, and from its own tree. It writes nothing into `.kaal/`, which stays the Engine's and never becomes the repository's own structure.
+
+**Both paths, one result.**
+- **engineering/F22. Core preferred, never required.** When an Engine is present and valid, Engineering resolves through Core first. A capability that exposes its own contract but is not registered is still found by Path 2, and it is reported as unregistered: Core is not shown as having resolved it.
+- **engineering/F23. Agreement.** Where a capability is found by both paths, the two must name the same obligations. A difference is reported unresolved, naming the capability, both sources and the difference. Engineering picks neither side.
+- **engineering/F24. Failed discovery is unresolved.** Each failure is reported unresolved, naming what failed and where. It is never read as "no applicable standards". The failures are: an Engine that is present but fails `kaal verify`; a registered capability whose obligations entry is missing or unreadable; a candidate with no entry document; an entry that links no obligations; and an obligation entry that does not parse. "None apply" is reported only where a capability's contract states that none apply.
+- **engineering/N11. No central directory.** Neither path adds a list of capabilities or obligations to `AGENTS.md` or to `.kaal/`. Each capability's contract is the only place its obligations are stated.
+
+## Engineering's own standards register
+
+Engineering owns its Engineering-specific standards register, `engineering/standards/register.md`, which `engineering/README.md` links. The register is collaborative Markdown with validated frontmatter, per the representation rule under "Engineering's own Standards". It owns three things:
+- *which* Engineering standards exist;
+- *where* each applies;
+- *how* each is enforced: by which lane, check or Test Case, or as discovered only.
+
+Each standard's domain meaning stays with its authoritative owner. An entry that rests on another owner's semantics cites that owner and restates nothing. Examples are Testing's results, Packaging's package contract and Core's frontmatter. The register holds no other capability's standards. Each capability exposes its own through its own contract, by the paths above.
+
+**engineering/N12. No obligation without an owner.** A register entry names its authority, the Owner's ruling or the owner's ID it rests on, its scope and its enforcement. An entry missing any of these is reported unresolved.
+
 ## What Engineering does
 
-- **engineering/F4. Discovery, without a list.** Engineering finds every Standard through Graph: every Node typed by `Standard`, and its `Applies to` Edges. Incoming relationships, such as which Standards apply to a given Capability, are views derived by Graph and never stored. A new Standard is found with no edit to Engineering.
+- **engineering/F4. Discovery, without a list.** Engineering finds each capability's obligations by the two paths under "Discovery: two paths", never from a list of its own. Where obligations are Nodes, incoming relationships, such as which Standards apply to a given Capability, are views derived by Graph and never stored. A new capability, or a new obligation, is found with no edit to Engineering.
 - **engineering/F5. A derived view.** `npm run standards` writes a report. For each Standard it gives its name, id, owner, what it applies to, its verifying Test Cases, and the state of each: verified, validated or unresolved. It copies no Standard's text. It is generated output and never checked in, so it cannot become a second source of truth.
 - **engineering/F6. Orchestrated conformance.** For each Standard, Engineering runs the owner's parametrized cases over each subject the Standard applies to, as engineering/C4 does for Installation Contracts. Engineering adds no assertion of its own to another owner's standard.
 - **engineering/N1. No consumer is bound.** Standards bind what KAAL engineers in this repository. Installing a KAAL package binds no consumer to them, and no check runs against a consumer repository. A Package states for itself what it guarantees its consumers.
@@ -120,6 +153,15 @@ These go in `engineering/standards/standards.test.mjs` and join `npm run test:en
 | engineering/T10 | Undiscoverable obligations. A fixture Standard reachable from no `Applies to` Edge, and a fixture collaborative Markdown artifact whose `type` resolves to no Definition, are each reported unresolved, naming the artifact and its owner | One that only lists what resolves |
 | engineering/T11 | Misrepresented obligations. Engineering runs the owners' cases over every tracked `.json` file. A file whose format no owner declares machine-only, and a JSON artifact carrying a human decision record such as a `review` sign-off, each fail, naming the file and the owner who decides | One that accepts any `.json` file |
 
+| engineering/T41 | Core present. In a fixture with a valid Engine that registers a capability, that capability's obligations are found through Core, and the report says Core resolved them | One that reads a list in `AGENTS.md` |
+| engineering/T42 | Core absent. In a fixture with no `.kaal/` and no `kaal-core`, Engineering's own register and each workspace capability's obligations are found through their own contracts | One that requires the Engine, or returns nothing without it |
+| engineering/T43 | Core preferred, never required. With an Engine present, a capability that exposes its own contract but is not registered is found, and reported as unregistered | One that consults only Core when an Engine exists |
+| engineering/T44 | Failed discovery. An Engine that fails `kaal verify`, a registered capability whose obligations entry is missing, an entry document that links no obligations, and an obligation entry that does not parse are each reported unresolved, naming the cause. None reads as "no applicable standards" | One that treats a failed lookup as an empty result |
+| engineering/T45 | Disagreement. A capability whose two paths name different obligations is reported unresolved, naming both sources | One that takes Core's answer and ignores the capability's own |
+| engineering/T46 | No central directory. After `npm run standards`, `AGENTS.md` and `.kaal/` are byte-identical to before. A fixture `AGENTS.md` that lists capabilities is not used as a source | One that writes or reads a directory there |
+
+T41–T46 run on fixtures in a scratch directory with no network. T42 runs with no KAAL package installed but Hosting.
+
 T10 and T11 orchestrate checks whose rules are other owners'. Core owns the frontmatter cases, and each JSON format's owner declares in its Type or Standard that the format is machine-only. Engineering adds no rule of its own to either. Their numbers skip T5–T9, which engineering/C6 (#625) plans.
 
 ## Dependencies
@@ -128,7 +170,9 @@ T10 and T11 orchestrate checks whose rules are other owners'. Core owns the fron
 | --- | --- | --- | --- |
 | `Standard`, `Applies to` | **Unresolved.** A bounded Standards capability is proposed below, not yet authorized, and Core is not assumed | Technical: Standard Nodes are typed by `Standard`. The Standards view DO cannot start until they exist | **Yes, for the Standards view only** |
 | Scope Nodes | Core, Packaging, and an owner to be decided (see "Scope terms") | Semantic reference: an `Applies to` target | No. A Standard whose scope does not resolve is reported unresolved |
-| Node lookup, Edges, derived incoming views | Graph | Technical, already used by Engineering's tests | Yes, on `main` |
+| Discovery and resolution of registered capabilities (Path 1) | Core: registration, the catalog, `kaal list`, `kaal verify` | Technical, an optional complement | No. Without Core, Path 2 discovers. A Core that is present but failing is unresolved (engineering/F24) |
+| Each capability's own BASS contract (Path 2) | Each capability; for packages, Packaging's discoverable entry (packaging/F8) | Semantic reference: where the obligations are | Yes. A capability without one is unresolved |
+| Node lookup, Edges, derived incoming views | Graph | Technical, already used by Engineering's tests, where obligations are Nodes | Not for discovery. Neither path requires it |
 | Verification, validation, unknown | Testing | Semantic reference | Yes, as a reference only |
 | Ownership claims | Testing (the format, moving to Markdown per #609) and each Capability | Semantic reference: the owner of a path | Yes, as a reference only. The view follows the format when it moves |
 | Parametrized conformance cases | Each Standard's owner | Technical, per Standard, once the owner ships them | No, for C5. A Standard without cases is shown unresolved |
@@ -160,10 +204,14 @@ T10 and T11 orchestrate checks whose rules are other owners'. Core owns the fron
 - **What it does not own.** No register or catalogue: Standard instances and their content stay with their owners. No scope term: each stays at its owner. No checking of anyone's conformance: each owner ships its cases, and Engineering orchestrates them here.
 - **Optional complements, each through its own contract.** Graph, for discovery and derived incoming views. Testing, for verified, validated and unknown; without it, every obligation reads unresolved. Controls, where a Standard is also documented as a control. Engineering, which orchestrates in this repository. Standards works without any of them.
 
-**What this changes elsewhere.** Core's #656 (core/C34) plans `Standard`, `Applies to` and the scope Definitions in Core, following the earlier selection. Under this proposal it would be withdrawn or narrowed, and that is Core's Change to make once the Owner decides; this PLAN changes nothing in Core.
+**What this changes elsewhere: #656.** Core's #656 (core/C34) plans `Standard`, `Applies to` and the scope Definitions in Core, following the earlier selection. The Owner's alignment (comment 6535084421) separates the two concerns:
+- **Core owns the discovery mechanics** of Path 1: resolving registered capabilities and where each declares its obligations.
+- **Core owns none of the obligations' semantics,** and no generic Standards semantics by default.
+
+So #656 is to be narrowed to the mechanics, if Core needs any beyond today's registration and catalog, or withdrawn. That is Core's Change to make. This PLAN changes nothing in Core, and it asks the Core thread to propose the narrowing on #656. The generic meaning of `Standard` and `Applies to` stays unresolved, as above. Neither discovery path needs it: each capability states its obligations in its own contract, and a shared Definition can type them later as an enrichment.
 
 **For the Owner to authorize:**
 1. Creating the Standards capability, with the scope above. Recommended. The alternative is to keep `Standard` in Core after all, which the review advises against.
 2. The owner of the repository-native scope: Engineering, recommended, or another.
 
-Approving this PLAN authorizes two bounded DOs, each only once its prerequisites are met. The release-readiness DO needs the prerequisites listed under "Release readiness". The Standards view DO needs `Standard` and `Applies to` to be available in `kaal/engineering` under their owner's own Change, once the Owner has decided who that is. It does not create the Standards capability: that needs the Owner's authorization above and its own PLAN. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
+Approving this PLAN authorizes three bounded DOs, each only once its prerequisites are met. The release-readiness DO needs the prerequisites listed under "Release readiness". The discovery and register DO, F4, F22–F24, N11, N12 and T41–T46, needs only what is on `main` today: Core's `kaal list` and `kaal verify` for Path 1, and each capability's own entry for Path 2. It types no obligation by `Standard`. The third DO types obligations as `Standard` Nodes and orchestrates owners' parametrized cases over them (F5, F6). It waits until `Standard` and `Applies to` are available in `kaal/engineering` under their owner's own Change, once the Owner has decided who that is. It does not create the Standards capability: that needs the Owner's authorization above and its own PLAN. It authorizes no synchronization, promotion or publication, and no Change in another Capability's tree.
