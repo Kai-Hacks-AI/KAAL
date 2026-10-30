@@ -38,5 +38,5 @@ A platform scope in a non-Hosting package is then refused twice: Hosting's suite
 | --- | --- | --- |
 | `testing/C31` PLAN, this Change | Testing | none |
 | `testing/C32` DO: `parity` in `kaal-testing/verifiers`, testing/T70–testing/T73 GREEN in Testing's `npm test` | Testing | `testing/C31` |
-| `hosting/C…` the cross-capability suite and review guidance that challenge OS-specific behaviour outside Hosting | Hosting | `testing/C31` |
-| `engineering/C…` the release lane runs Hosting's suite and calls `parity` on each candidate's Linux, Windows and macOS runs (#641) | Engineering | `testing/C32`, `hosting/C…` |
+| `hosting/C13`/`hosting/C14` (#650), extended by `hosting/C16`: the cross-capability suite and review guidance that challenge OS-specific behaviour outside Hosting. `hosting/C16` adds platform-scoped applicability in manifests and the Hosting-owned declaration from which Engineering establishes `osBoundary` | Hosting | `hosting/C16` on `testing/C31` |
+| `engineering/C…` the release lane runs Hosting's suite and calls `parity` on each candidate's Linux, Windows and macOS runs (#641) | Engineering | `testing/C32`, `hosting/C14`, `hosting/C16` |
