@@ -99,15 +99,20 @@ function shipped(h, older, newer) {
     const requirements = join(r.dir, ROOT, "docs", "requirements.md");
     return { contract, assets, paths: declaredPaths(existsSync(requirements) ? readFileSync(requirements, "utf8") : null) };
   };
-  const from = side(older.spec);
+  // The newer candidate is read first, and the older only when a case asks for it, so a source the target
+  // does not support is reported from the target's declaration, before anything of the source is read.
   const to = side(newer.spec);
+  let from;
+  const older_ = () => (from ??= side(older.spec));
   return {
-    from,
+    get from() {
+      return older_();
+    },
     to,
     /** Whether the asset at target ships with different content in the two candidates. */
-    differs: (target) => from.assets[target]?.content !== to.assets[target]?.content,
+    differs: (target) => older_().assets[target]?.content !== to.assets[target]?.content,
     /** The assets the newer candidate adds to a surface. */
-    added: (surface) => Object.values(to.assets).filter((a) => a.surface === surface && !from.assets[a.target ?? a.path]),
+    added: (surface) => Object.values(to.assets).filter((a) => a.surface === surface && !older_().assets[a.target ?? a.path]),
   };
 }
 
