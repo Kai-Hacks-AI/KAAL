@@ -11,6 +11,7 @@
 import { resolve } from "node:path";
 import { execute } from "kaal-hosting";
 import { evidenceDir, lane } from "./evidence.mjs";
+import { suites } from "./suites.mjs";
 
 const HOSTING = "kaal-hosting";
 
@@ -29,6 +30,13 @@ const names = JSON.parse(await npm(["query", ".workspace"], { quiet: true }))
   .map(({ name }) => name)
   .filter((name) => name !== HOSTING);
 
+// A workspace with no test entrypoint is never counted as verified: it is
+// named, and the lane fails (engineering/C6, the Owner's safeguard on #625).
+const declared = new Map((await suites(process.cwd())).map((s) => [s.owner, s.script]));
+const missing = names.filter((name) => declared.get(name) === undefined);
+for (const name of missing) console.error(`${name}: no test entrypoint, not verified`);
+if (missing.length > 0) process.exit(1);
+
 if (dir === undefined) {
-  for (const name of names) await npm(["test", "--if-present", "-w", name]);
+  for (const name of names) await npm(["test", "-w", name]);
 } else if (!(await lane(names, resolve(dir)))) process.exit(1);

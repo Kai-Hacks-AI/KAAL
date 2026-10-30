@@ -1,6 +1,6 @@
 # Engineering's test lanes
 
-> PLAN (engineering/C6): nothing below exists yet. This PLAN applies the Owner's test-placement decision to Engineering's source lanes, and to how a lane selects suites (#625, comment 6510333640, which supersedes the earlier reading that a package's source `npm test` runs every publisher suite; the same decision on Guard's #631). It started from Core's release PLAN, core/C28 (#622, core/A36). Consumer verification of the packed artifact, and its conformance, are not part of this Change. They are engineering/C7 (#641). Approving this PLAN authorizes only the engineering/C6 DO, on `kaal/engineering`.
+> engineering/C6, planned in #625 and realized by its DO in `suites.mjs`, `comprehensive.mjs` and `lanes.test.mjs`. It applies the Owner's test-placement decision to Engineering's source lanes, and to how a lane selects suites (#625, comment 6510333640, which supersedes the earlier reading that a package's source `npm test` runs every publisher suite; the same decision on Guard's #631). It started from Core's release PLAN, core/C28 (#622, core/A36). Consumer verification of the packed artifact, and its conformance, are not part of this Change. They are engineering/C7 (#641). The Owner approved the PLAN with one implementation safeguard, recorded under engineering/F3.
 
 ## Where a test lives, as the Owner set it
 
@@ -17,6 +17,7 @@ A package's `npm test` need not import, copy or relocate Engineering Tests. Its 
 - **engineering/F1. The comprehensive lane orchestrates both owners.** It runs Engineering's own suites under `engineering/`, and each package's `npm test --if-present -w <name>` in the package's own directory, as the Workspaces lane, the evidence lane and Testing's coverage runner already do. It copies, relocates and redefines no case of either. This Change pins that with a test, so a later edit cannot quietly substitute another script or drop either side.
 - **engineering/F2. Explicit suite selection.** A lane that needs a single package suite names it in the lane itself, as `npm run test:<name> -w <name>`, through one helper in `engineering/lanes/`. The helper refuses a suite the package does not declare and names it. It never falls back to another script. No lane selects a suite today, so the helper is used first by whichever later lane needs it.
 - **engineering/F3. Combined evidence.** The comprehensive lane's result lists each suite it ran with its owner, Engineering or the package, and its location, and keeps each one's outcome as that suite reported it. A failure on either side fails the lane, and neither side's result stands for the other's.
+- **The Owner's safeguard (#625, review 5712215303).** A workspace with no `test` entrypoint is never counted as verified: neither lane runs `npm test --if-present`. The workspace is reported as having no test entrypoint, and the lane fails. Whether an absence is allowed is for the applicable package contract to say, and no contract allows one today.
 - **engineering/N2. Nothing is rewritten.** No lane writes, copies or rewrites a package's tests or scripts.
 
 ## What other Capabilities own
