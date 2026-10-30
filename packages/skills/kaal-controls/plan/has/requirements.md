@@ -1,21 +1,37 @@
-# A Control has its Intent: Requirements
+# A Control has its Intents: Requirements
 
 Each Requirement names, in brackets, the Intents it serves.
 
 ## Nonfunctional
 
-- **controls/N4** [controls/I3]: The Edge adds no package dependency to Controls' payload, no registry and no check that Controls executes. It is a Definition that Core admits like `Realized by`. The ids of `Realized by`, `VARISC`, `HAPTIC` and `CATCH ME IF YOU CAN` stay unchanged. `Control`'s id stays unchanged unless the Owner takes decision 2 B, which amends `controls/N1` for `Control` alone (see [Architecture](architecture.md#backward-compatibility-observed)).
+- **controls/N4** [controls/I5]: Controls takes no package or runtime dependency on Intent. Its promotion does not depend on Intent's. A consumer without Intent installed can document and check Controls.
+- **controls/N5** [controls/I3, controls/I5]: A check of a Control has three distinct outcomes, and no outcome stands in for another.
+  - **Conforming**: every rule is decided and holds.
+  - **Nonconforming**: a rule is decided and broken, for example a malformed Edge or a wrong target.
+  - **Unresolved**: a rule cannot be decided because an optional complement is absent.
+
+  Unresolved is never reported as conforming, so a check with any unresolved part is not GREEN.
 
 ## Functional
 
-- **controls/F10** [controls/I3]: The Edge Definition is a Node typed by Core's `KAAL Definition` in Controls' payload, named as the Owner decides (decision 1). An Edge typed by it goes from a `Control` to the Intent the Control has. Which Nodes may be that target is decision 3.
-- **controls/F11** [controls/I3] **Meaning.** Stated from the Control's side, in Controls' own terms:
-  - A Control has one Intent, through one Edge with one target. A concern with two Intents is two Controls. Whether a Control may also have none is decision 2.
-  - The Intent endures with the Control. The Edge says why the Control exists, never that the Intent is met, and a Control is not finished because its Intent is stated.
-  - `Has` is not `Realized by`. `Has` points to why the Control exists, and `Realized by` to where it is realized. Neither Edge is evidence that the control is in place, operates or is effective.
-  - `Has` is not a Change delivering an Intent. Nothing about a Change's lifecycle applies to a Control through this Edge.
-- **controls/F12** [controls/I3] **Boundary.** Controls owns only the outgoing Edge.
-  - The target keeps its own kind's meaning. Naming the target's kind belongs to the relationship. Saying what an Intent is does not, so the Definition never restates it, whichever target option the Owner takes.
-  - Incoming views, such as the Controls that have a given Intent, are derived by Graph's generic mechanics. Controls defines no reverse Edge.
-  - Requirements answering the Intent, and Architecture answering the Requirements, are those capabilities' outgoing traces, not Controls'.
-- **controls/F13** [controls/I3]: Controls' Agent Skill, under "Document a specific control", says to point to the Control's Intent with one Edge of this type, as the Owner decides it. The README's file list and its "Documenting a specific control" section each gain one line.
+- **controls/F10** [controls/I3]: `Has` is a Node typed by Core's `KAAL Definition` in Controls' payload. An Edge typed by `Has` goes from a `Control` to an Intent the Control has. It is read in context as *Control Has Intent*: its source and its target give it its meaning.
+- **controls/F11** [controls/I3] **Cardinality.** This is a source-side rule, and Controls owns it.
+  - A Control has one or more Intents, as the targets of its `Has` Edge.
+  - A Control with no Intent is nonconforming, because it is incomplete.
+  - Several Intents are valid. They are one Control, and they do not make it several Controls.
+- **controls/F12** [controls/I3, controls/I5] **Target.** Each target is checked as follows.
+  - **Malformed.** Where the Edge is not in Graph's well-formed Edge form, the Control is nonconforming, whether or not Intent is present.
+  - **Intent present.** Each target resolves to an admitted Node typed by Intent's authoritative `Intent` Definition, or the Control is nonconforming: a wrong or unresolvable target.
+  - **Intent absent.** A well-formed target whose type cannot be verified is unresolved, and is reported as an absent optional complement, distinct from malformed.
+  - **Boundary.** Controls names the target's kind and never states what an Intent is. Incoming views, such as the Controls that have an Intent, are derived by Graph's mechanics. Controls defines no reverse Edge.
+- **controls/F13** [controls/I4] **No shortcut.** A Control's only outgoing Edge type is `Has`. Any other outgoing Edge from a Control, including one to a realizing mechanism, is nonconforming.
+  - `Realized by` is retired from Controls' payload.
+  - Controls states that a Control's realization is evidenced only through the trace chain in controls/I4, and that a deployed mechanism is not evidence of an effective Control merely because it exists.
+  - Every link after the first is its source owner's. Controls neither defines nor restates them. Test Cases trace to Defects in the direction Testing and Guard agreed (#583), and observations belong to Test Runs. Both are named here only as the chain's later links.
+- **controls/F14** [controls/I3, controls/I5]: Controls provides an executable check of controls/F11–controls/F13 for a given Engine. It reports the outcomes of controls/N5 for each Control, with the reason for each nonconforming or unresolved finding. It decides only Controls' own source-side rules. It does not walk or judge the later links of the chain.
+- **controls/F15** [controls/I3, controls/I4]: `Control` and `Controls` are revised to this model. Controls' Agent Skill, under "Document a specific control", says:
+  - write each Intent the Control has as a target of one `Has` Edge;
+  - never point a Control at a mechanism;
+  - show realization through the chain, and run Controls' check.
+
+  The README follows.

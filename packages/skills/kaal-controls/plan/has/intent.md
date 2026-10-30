@@ -1,9 +1,11 @@
-# A Control has its Intent: Intent
+# A Control has its Intents: Intent
 
-This is `controls/C6`, a PLAN Change. It ships no Node, code or test. `controls/C7` realizes it.
+This is `controls/C6`, a PLAN Change. It ships no Node, code or test. `controls/C7` realizes it once the Owner has aligned it.
 
-The Owner has aligned what a Control is (#585): a bounded, enduring concern with an Intent, Requirements, Architecture, Tests and Code. It is comparable to a Change, but differs in purpose. A Change delivers an Intent once and is done. A Control has an Intent for as long as the concern lasts. The capability that owns the source of an outgoing trace owns its meaning, so Controls owns `Control —has→ Intent`.
+The Owner has aligned what a Control is (#585, #619): a bounded, enduring concern that has one or more Intents. It is comparable to a Change, but differs in purpose. A Change delivers an Intent once and is done. A Control has its Intents for as long as the concern lasts. The capability that owns the source of an outgoing trace owns its meaning, so Controls owns `Control Has Intent`.
 
-Controls defines `Control` and `Realized by`, but no Edge from a Control to its Intent. A Control can say how it is realized and not why it exists. Engineering's first Control instances (engineering/C3) need that Edge before they can be written.
+Today a Control says where it is realized, through `Realized by`, and not why it exists. That Edge is a shortcut: it jumps from a Control straight to a mechanism, past everything that would show the mechanism answers the concern. A mechanism that exists is not evidence that a Control is effective.
 
-- **controls/I3**: Controls states, as an Edge Definition, that a Control has an Intent: the enduring reason the concern exists, which its Requirements answer. Controls owns what the Edge means from the Control's side. The Intent keeps its own meaning, Graph keeps the mechanics, and nothing about the Intent's kind, its capture or its authorization moves to Controls.
+- **controls/I3**: A Control has one or more Intents, and Controls states that as its own Edge, `Has`. A Control without an Intent is incomplete.
+- **controls/I4**: A Control's realization is shown only through the trace chain Control → Intent → Requirements → Architecture → Test Cases and Defects → Code → deployed realization. Controls owns the chain's first link, and each later link stays with the capability that owns its source. Controls no longer offers a direct Edge from a Control to a mechanism.
+- **controls/I5**: Controls stays usable on its own. Intent is an optional complement: where it is present, a Control's Intents are checked against Intent's authoritative type; where it is absent, that check is reported as unresolved, never as passing. Controls never redefines what an Intent is.
