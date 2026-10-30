@@ -37,3 +37,35 @@ The DO writes these cases in `packages/kaal-packaging/test/plan/package.test.mjs
 A tampered installed file in T19 is reported unknown, not failed, per testing/F43. T16 checks `docs/operations.md` and the README's link to it (D2). T17 and T26 follow the context model (D1, packaging/A11): the installed context in T17, the source workspace in T26. Packaging tests neither the root nor an external repository.
 
 Every result is verified, failed or unknown, in Testing's terms. A package that the suite cannot decide is unknown, never verified.
+
+## RED evidence (packaging/C5)
+
+Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_PACKAGE_PATH_NOT_EXPORTED`), which is not evidence. The discriminating RED came from 23 deliberately wrong suites, each one change to `lib/conformance.mjs`, run against all thirteen cases on Node 24.22.1 with npm 11.19.1. Every one was caught:
+
+| Wrong suite | Caught by |
+| --- | --- |
+| F7 accepts any version or range | T15 |
+| F8 accepts an empty document | T16 |
+| F8 ignores the README link | T16 |
+| F9 ignores a verifier that reaches into the checkout | T17 |
+| F9 verifies a run that reported no result | T17 |
+| F10 ignores a result that contradicts the exit | T18 |
+| F10 ignores failed cases under `verified` | T18 |
+| F10 accepts a result without a cause | T18 |
+| F11 ignores a changed file | T19 |
+| F11 ignores declared cases that did not run | T19 |
+| F11 reports a changed file as failed, not unknown | T19 |
+| F12 accepts undeclared platforms | T20 |
+| F13 verifies an untraced identifier | T21 |
+| N7 ignores a changed consumer | T22 |
+| N8 trusts any import | T23 |
+| N9 accepts `verified` with no case run | T24 |
+| N9 accepts `verified` without a count | T24 |
+| N10 accepts a citation its owner does not define | T25 |
+| N10 accepts a restated Testing term | T25 |
+| N10 verifies an unresolved citation | T25 |
+| F14 accepts a plan without the Embedded verification | T26 |
+| F14 accepts an `npm test` that states no suite | T26 |
+| F14 accepts an undeclared suite | T26 |
+
+The first run left two survivors in F9: T17's checkout fixture failed at run time, so the static check was never the deciding one. T17 now installs that fixture inside a checkout, where the import resolves and the run succeeds, and only the suite's own check fails it.

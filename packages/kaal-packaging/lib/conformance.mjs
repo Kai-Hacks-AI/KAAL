@@ -1,0 +1,379 @@
+// The generic KAAL Package contract's conformance suite (packaging/C4, packaging/A7). It decides
+// each generic Requirement against one installed KAAL package, from that package's behaviour and
+// bytes, never from a file merely existing (packaging/N9). No KAAL package imports it: Engineering
+// runs it from outside, beside the package's own suite, on the same installed candidate.
+//
+// Results are Testing's: verified, failed or unknown (testing/F13). Packaging defines none of its
+// own (packaging/N10). A tampered installed file is unknown, not failed (testing/F43). Until
+// Testing's verifier contract (testing/C29) is approved, a result line is checked only for what
+// every product already agrees on: the three results and exit codes 0, 1 and 2.
+//
+// Every host operation goes through kaal-hosting, and SHA-256 comes from kaal-foundation
+// (packaging/A1, packaging/N3).
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
+import { execute, kind, read, readFile } from "kaal-hosting";
+import builtins from "./builtins.json" with { type: "json" };
+
+/** The documents a KAAL package ships (packaging/F8, the Owner's D2 on #658). */
+export const DOCUMENTS = ["intent", "requirements", "architecture", "testing", "limitations", "operations"].map((d) => `docs/${d}.md`);
+
+/** An exact version: no range, tag, URL, path or Git reference. */
+const EXACT = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+
+/** Each result a verifier may report, with the exit code every product pairs with it. */
+const EXIT = { verified: 0, failed: 1, "cannot verify": 2, unknown: 2 };
+
+/** Node's own modules, which a self-contained verifier may import unprefixed without declaring them. */
+const BUILTINS = new Set(builtins);
+
+const finding = (requirement, result, cause) => ({ requirement, result, cause });
+const join = (dir, path) => `${dir.replace(/[\\/]+$/, "")}/${path}`;
+const text = async (path) => (await readFile(path)).toString("utf8");
+
+async function manifestOf(dir) {
+  return JSON.parse(await text(join(dir, "package.json")));
+}
+
+/** The installed files a package delivers: everything under its directory but its own node_modules. */
+async function delivered(dir) {
+  const files = await read(dir);
+  for (const path of Object.keys(files)) if (path === "node_modules" || path.startsWith("node_modules/")) delete files[path];
+  return files;
+}
+
+/** packaging/F7: one name, one exact version, and exact registry dependencies. */
+function identity(pkg) {
+  const problems = [];
+  if (typeof pkg.name !== "string" || pkg.name === "") problems.push("it states no name");
+  if (typeof pkg.version !== "string" || !EXACT.test(pkg.version)) problems.push(`its version ${JSON.stringify(pkg.version)} is not one exact version`);
+  for (const field of ["dependencies", "optionalDependencies", "peerDependencies"]) {
+    for (const [name, spec] of Object.entries(pkg[field] ?? {})) {
+      if (typeof spec !== "string" || !EXACT.test(spec)) problems.push(`${field} ${name} is ${JSON.stringify(spec)}, not one exact registry version`);
+    }
+  }
+  return problems.length ? finding("packaging/F7", "failed", problems.join("; ")) : finding("packaging/F7", "verified", `${pkg.name}@${pkg.version}`);
+}
+
+/** packaging/F8: every shipped document is present and non-empty, and the README links Operations. */
+function documents(files) {
+  const problems = [];
+  for (const doc of DOCUMENTS) {
+    if (!(doc in files)) problems.push(`${doc} is not shipped`);
+    else if (files[doc].toString("utf8").trim() === "") problems.push(`${doc} is empty`);
+  }
+  const readme = files["README.md"]?.toString("utf8");
+  if (readme === undefined) problems.push("README.md is not shipped");
+  else if (!/\]\((?:\.\/)?docs\/operations\.md(?:#[^)]*)?\)/.test(readme)) problems.push("README.md does not link docs/operations.md");
+  return problems.length ? finding("packaging/F8", "failed", problems.join("; ")) : finding("packaging/F8", "verified", `${DOCUMENTS.length} documents shipped; the README links docs/operations.md`);
+}
+
+/** The result a verifier reported on its last line, or why none could be read. */
+export function resultLine(stdout) {
+  const line = stdout.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).at(-1);
+  if (line === undefined) return { error: "it printed nothing" };
+  const structured = /^(\S+) (\{.*\})$/.exec(line);
+  if (structured) {
+    let summary;
+    try {
+      summary = JSON.parse(structured[2]);
+    } catch {
+      return { error: `its last line is not a result: ${JSON.stringify(line.slice(0, 120))}` };
+    }
+    if (!(summary.result in EXIT)) return { error: `its last line reports ${JSON.stringify(summary.result)}, which is not a result` };
+    const causes = Array.isArray(summary.causes) ? summary.causes.filter((c) => typeof c === "string" && c.trim() !== "") : [];
+    return { result: summary.result, exit: summary.exit, causes, summary };
+  }
+  const bare = /^(verified|failed|cannot verify|unknown)(?::\s*(.*))?$/.exec(line);
+  if (bare) return { result: bare[1], exit: EXIT[bare[1]], causes: bare[2] ? [bare[2]] : [], summary: null };
+  return { error: `its last line is not a result: ${JSON.stringify(line.slice(0, 120))}` };
+}
+
+/** How many declared cases the run says it executed, when it says. */
+function executedOf(parsed, stdout) {
+  const n = parsed.summary?.cases?.executed;
+  if (Number.isInteger(n)) return n;
+  const m = [...stdout.matchAll(/\b(\d+) (?:passed|executed)\b/g)].at(-1);
+  return m ? Number(m[1]) : undefined;
+}
+
+/** packaging/F9, F10 and N9: the installed `npm test`, its result line, and evidence that cases ran. */
+function verification(pkg, files, run) {
+  const reach = imports(files).filter(({ path, specifier }) => specifier.startsWith("/") || (specifier.startsWith(".") && escapes(path, specifier))).map(({ path, specifier }) => `${path} imports ${specifier}`);
+  if (pkg.scripts?.test === undefined) {
+    const cause = "the package declares no npm test";
+    return { run: null, findings: [finding("packaging/F9", "failed", cause), finding("packaging/F10", "failed", cause), finding("packaging/N9", "unknown", cause)] };
+  }
+  if (run.error) {
+    const cause = `npm test could not be run: ${run.error}`;
+    return { run: null, findings: [finding("packaging/F9", "unknown", cause), finding("packaging/F10", "unknown", cause), finding("packaging/N9", "unknown", cause)] };
+  }
+  const parsed = resultLine(run.stdout);
+  if (parsed.error) {
+    const cause = `the installed npm test exited ${run.status} and reported no result: ${parsed.error}${reach.length ? `; it reaches outside the installed copy: ${reach.sort().join("; ")}` : ""}`;
+    return { run: null, findings: [finding("packaging/F9", "failed", cause), finding("packaging/F10", "failed", cause), finding("packaging/N9", "unknown", "no result was reported")] };
+  }
+  const reported = { result: parsed.result, exit: run.status, causes: parsed.causes };
+  const f9 = reach.length
+    ? finding("packaging/F9", "failed", `the installed verification reaches outside the installed copy: ${reach.sort().join("; ")}`)
+    : finding("packaging/F9", "verified", `the installed npm test ran against the installed copy and reported ${parsed.result}`);
+  const problems = [];
+  if (EXIT[parsed.result] !== run.status) problems.push(`it reported ${parsed.result} but exited ${run.status}`);
+  if (parsed.exit !== undefined && parsed.exit !== run.status) problems.push(`its line names exit ${parsed.exit} but it exited ${run.status}`);
+  const failedCases = Number.isInteger(parsed.summary?.cases?.failed) ? parsed.summary.cases.failed : Number([...run.stdout.matchAll(/\b(\d+) failed\b/g)].at(-1)?.[1] ?? 0);
+  if (parsed.result === "verified" && failedCases > 0) problems.push(`it reported verified with ${failedCases} cases failed`);
+  if (parsed.result !== "verified" && parsed.causes.length === 0) problems.push(`it reported ${parsed.result} without a cause`);
+  const f10 = problems.length ? finding("packaging/F10", "failed", problems.join("; ")) : finding("packaging/F10", "verified", `${parsed.result}, exit ${run.status}`);
+  let n9;
+  if (parsed.result !== "verified") n9 = finding("packaging/N9", "verified", `it did not claim verified`);
+  else {
+    const executed = executedOf(parsed, run.stdout);
+    if (executed === undefined) n9 = finding("packaging/N9", "unknown", "it reported verified without saying how many cases ran");
+    else if (executed === 0) n9 = finding("packaging/N9", "failed", "it reported verified, but no case ran");
+    else n9 = finding("packaging/N9", "verified", `it reported verified after ${executed} cases ran`);
+  }
+  return { run: { ...reported, parsed }, findings: [f9, f10, n9] };
+}
+
+/** packaging/F11: the installed files against the shipped manifest, and every declared case run. */
+function manifest(files, verify, run) {
+  if (!verify || typeof verify.files !== "object" || verify.files === null) {
+    return finding("packaging/F11", "unknown", "the package ships no manifest of its files with their SHA-256 (test/verify.json)");
+  }
+  const problems = [];
+  const listed = verify.files;
+  for (const [path, digest] of Object.entries(listed)) {
+    if (!(path in files)) problems.push(`${path} is missing`);
+    else if (sha256(files[path]) !== digest) problems.push(`${path} differs from the manifest`);
+  }
+  for (const path of Object.keys(files)) if (!(path in listed) && path !== "test/verify.json") problems.push(`${path} is not in the manifest`);
+  if (!Array.isArray(verify.cases)) problems.push("the manifest declares no case inventory");
+  else if (run) {
+    const counts = run.parsed.summary?.cases;
+    const ran = Number.isInteger(counts?.executed) ? counts.executed + (Number.isInteger(counts.notApplicable) ? counts.notApplicable : 0) : undefined;
+    if (ran === undefined) problems.push("the run does not say how many declared cases it executed");
+    else if (ran < verify.cases.length) problems.push(`${verify.cases.length - ran} of ${verify.cases.length} declared cases did not run`);
+  }
+  // Consistency with a shipped manifest is not provenance (testing/F14), and a mismatch makes the
+  // evidence untrustworthy rather than showing the contract broken: unknown (testing/F43).
+  return problems.length ? finding("packaging/F11", "unknown", problems.join("; ")) : finding("packaging/F11", "verified", `${Object.keys(listed).length} files match the manifest, and every declared case ran`);
+}
+
+/** packaging/F12: the runtime and the platforms are declared. Their meaning is Hosting's. */
+function platforms(pkg) {
+  if (typeof pkg.engines?.node !== "string" || pkg.engines.node.trim() === "") return finding("packaging/F12", "failed", "the package declares no runtime (engines.node)");
+  if (!Array.isArray(pkg.os) || pkg.os.length === 0) return finding("packaging/F12", "unknown", `the runtime is declared (node ${pkg.engines.node}), but no platforms are (os)`);
+  return finding("packaging/F12", "verified", `node ${pkg.engines.node} on ${pkg.os.join(", ")}`);
+}
+
+/** packaging/F13: every shipped identifier is covered, allocated, or declared unverified with a reason. */
+function coverage(verify) {
+  if (!verify || !Array.isArray(verify.identifiers)) return finding("packaging/F13", "unknown", "the package ships no coverage trace (test/verify.json identifiers)");
+  const covered = verify.coverage ?? {};
+  const allocated = verify.allocated ?? {};
+  const unverified = verify.unverified ?? {};
+  const untraced = verify.identifiers.filter((id) => {
+    const cases = Object.values(covered[id] ?? {}).flat();
+    return cases.length === 0 && typeof allocated[id] !== "string" && !(typeof unverified[id] === "string" && unverified[id].trim() !== "");
+  });
+  return untraced.length
+    ? finding("packaging/F13", "unknown", `${untraced.length} identifiers have neither a case nor an allocation: ${untraced.join(", ")}`)
+    : finding("packaging/F13", "verified", `${verify.identifiers.length} identifiers traced`);
+}
+
+/** The consumer's project, byte for byte, or why it cannot be read. */
+async function snapshot(root) {
+  try {
+    return await read(root);
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+/** packaging/N7: the consumer's project, byte for byte, before and after. */
+function intact(before, after) {
+  if (before.error || after.error) return finding("packaging/N7", "unknown", `the consumer could not be compared: ${before.error ?? after.error}`);
+  const changed = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter((p) => !(p in before) || !(p in after) || !before[p].equals(after[p])).sort();
+  return changed.length
+    ? finding("packaging/N7", "failed", `verification changed the consumer: ${changed.slice(0, 10).join(", ")}${changed.length > 10 ? ", …" : ""}`)
+    : finding("packaging/N7", "verified", "the consumer is unchanged");
+}
+
+/** Every import specifier a shipped module names, by the module's path. */
+function imports(files) {
+  const found = [];
+  for (const [path, bytes] of Object.entries(files)) {
+    if (!/\.(mjs|cjs|js)$/.test(path)) continue;
+    for (const m of bytes.toString("utf8").matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*)["']([^"']+)["']/g)) found.push({ path, specifier: m[1] });
+  }
+  return found;
+}
+
+/** Whether a relative specifier in the module at `path` leaves the package's own directory. */
+function escapes(path, specifier) {
+  const parts = path.split("/").slice(0, -1);
+  for (const part of specifier.split("/")) {
+    if (part === "..") {
+      if (parts.length === 0) return true;
+      parts.pop();
+    } else if (part !== ".") parts.push(part);
+  }
+  return false;
+}
+
+/** The package a bare specifier names: `@scope/name` or `name`. */
+const packageOf = (specifier) => specifier.split("/").slice(0, specifier.startsWith("@") ? 2 : 1).join("/");
+
+/** packaging/N8: every shipped module imports only Node's own modules, the package, and its declared dependencies. */
+function selfContained(pkg, files) {
+  const declared = new Set([pkg.name, ...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.optionalDependencies ?? {})]);
+  const undeclared = new Set();
+  for (const { path, specifier: s } of imports(files)) {
+    if (s.startsWith(".") || s.startsWith("/") || s.startsWith("node:") || s.startsWith("#")) continue;
+    const name = packageOf(s);
+    if (BUILTINS.has(name) || declared.has(name)) continue;
+    undeclared.add(`${path} imports ${name}`);
+  }
+  return undeclared.size
+    ? finding("packaging/N8", "failed", `undeclared imports: ${[...undeclared].sort().join("; ")}`)
+    : finding("packaging/N8", "verified", "every shipped module imports only Node's modules, the package and its declared dependencies");
+}
+
+/** The overall result: failed when any finding failed, unknown when any is unknown, else verified. */
+const overall = (findings) => (findings.some((f) => f.result === "failed") ? "failed" : findings.some((f) => f.result === "unknown") ? "unknown" : "verified");
+
+/**
+ * The generic KAAL Package contract, decided against the package installed at `dir` (absolute)
+ * inside the consumer project `consumer` (absolute, default: the directory holding its
+ * node_modules). It runs the package's installed `npm test` there once. It returns each
+ * finding, the overall result, and what the package's own verification reported, which is the
+ * package's specific contract and not Packaging's to judge.
+ */
+export async function conform(dir, { consumer, env } = {}) {
+  if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);
+  const root = consumer ?? dir.replace(/[\\/]node_modules[\\/].*$/, "");
+  const pkg = await manifestOf(dir);
+  const files = await delivered(dir);
+  let verify = null;
+  if ("test/verify.json" in files) {
+    try {
+      verify = JSON.parse(files["test/verify.json"].toString("utf8"));
+    } catch {
+      verify = null;
+    }
+  }
+  const before = await snapshot(root);
+  let run = {};
+  if (pkg.scripts?.test !== undefined) {
+    try {
+      run = await execute("npm", ["test", "--silent"], { cwd: dir, env });
+    } catch (e) {
+      run = { error: e.message };
+    }
+  }
+  const after = await snapshot(root);
+  const checked = verification(pkg, files, run);
+  const findings = [
+    identity(pkg),
+    documents(files),
+    ...checked.findings.filter((f) => f.requirement !== "packaging/N9"),
+    manifest(files, verify, checked.run),
+    platforms(pkg),
+    coverage(verify),
+    intact(before, after),
+    selfContained(pkg, files),
+    checked.findings.find((f) => f.requirement === "packaging/N9"),
+  ];
+  return {
+    package: { name: pkg.name, version: pkg.version, location: dir },
+    result: overall(findings),
+    findings,
+    reported: checked.run ? { result: checked.run.result, exit: checked.run.exit, causes: checked.run.causes } : null,
+  };
+}
+
+/** The names under which a source Test Plan declares its Embedded verification in the npm realization (packaging/A10, README). */
+export const EMBEDDED = ["test:embedded", "test:consumer"];
+
+/** The declared suites a source `npm test` script runs, when it states them; `null` when it does not. */
+function followed(script, suites) {
+  const named = [...script.matchAll(/\bnpm(?:\s+--?[\w-]+)*\s+run(?:-script)?\s+(test:[\w:.-]+)/g)].map((m) => m[1]);
+  if (named.length) return named;
+  const same = Object.entries(suites).filter(([, command]) => command.trim() === script.trim()).map(([name]) => name);
+  return same.length ? same : null;
+}
+
+/**
+ * packaging/F14: a package's source workspace at `dir` declares its Test Plan as named
+ * `test:<suite>` scripts, its Embedded verification among them, and its `npm test` there runs
+ * declared suites and reports a result. An `npm test` that does not say which suites it runs
+ * cannot be decided from outside, and is unknown.
+ */
+export async function conformSource(dir, { env } = {}) {
+  const pkg = await manifestOf(dir);
+  const scripts = pkg.scripts ?? {};
+  const suites = Object.fromEntries(Object.entries(scripts).filter(([name]) => name.startsWith("test:")));
+  if (scripts.test === undefined) return finding("packaging/F14", "failed", "the source workspace declares no npm test");
+  if (Object.keys(suites).length === 0) return finding("packaging/F14", "failed", "the source workspace declares no Test Plan: no test:<suite> script");
+  const embedded = EMBEDDED.filter((name) => name in suites);
+  if (embedded.length === 0) return finding("packaging/F14", "failed", `the Test Plan omits the Embedded verification (${EMBEDDED.join(" or ")})`);
+  const runs = followed(scripts.test, suites);
+  if (runs === null) return finding("packaging/F14", "unknown", `npm test (${JSON.stringify(scripts.test)}) does not state which declared suites it runs`);
+  const missing = runs.filter((name) => !(name in suites));
+  if (missing.length) return finding("packaging/F14", "failed", `npm test runs ${missing.join(", ")}, which the Test Plan does not declare`);
+  let run;
+  try {
+    run = await execute("npm", ["test", "--silent"], { cwd: dir, env });
+  } catch (e) {
+    return finding("packaging/F14", "unknown", `npm test could not be run: ${e.message}`);
+  }
+  const parsed = resultLine(run.stdout);
+  if (parsed.error) return finding("packaging/F14", "failed", `the source npm test exited ${run.status} and reported no result: ${parsed.error}`);
+  if (EXIT[parsed.result] !== run.status) return finding("packaging/F14", "failed", `the source npm test reported ${parsed.result} but exited ${run.status}`);
+  return finding("packaging/F14", "verified", `the source npm test runs ${runs.join(", ")} of the declared ${Object.keys(suites).join(", ")}, and reported ${parsed.result}`);
+}
+
+/** Testing's result terms, which no Packaging Requirement may define (packaging/N10). */
+const TERMS = /[`*"](verified|failed|unknown|cannot verify)[`*"]\s+(?:means|is when|is reported when|is defined as|denotes)\b/i;
+
+/** Every cited `<capability>/<ID>`, with ranges such as `testing/F11–F12` expanded. */
+export function cited(text) {
+  const ids = new Set();
+  for (const m of text.matchAll(/\b([a-z][a-z-]*)\/([A-Z]+)(\d+)(?:[–-]\2?(\d+))?\b/g)) {
+    const [, owner, letter, from, to] = m;
+    for (let n = Number(from); n <= Number(to ?? from); n++) ids.add(`${owner}/${letter}${n}`);
+  }
+  return [...ids].sort();
+}
+
+/** Every `<capability>/<ID>` a plan document defines: as a bold term, a heading, or a table row's first cell. */
+export function defined(text) {
+  const ids = new Set();
+  for (const m of text.matchAll(/(?:\*\*|^#+\s+|^\|\s*)([a-z][a-z-]*\/[A-Z]+\d+)\b/gm)) ids.add(m[1]);
+  return ids;
+}
+
+/**
+ * packaging/N10: the Requirements in `requirements` (text) cite every meaning another owner
+ * holds, define none of Testing's result terms, and cite only IDs that exist. `plans` maps each
+ * owner's plan documents (path to text), as they stand on that owner's branch. A citation of an
+ * owner none of whose plans is given is unresolved: unknown, never verified.
+ */
+export function references(requirements, plans) {
+  const known = new Set();
+  for (const doc of [requirements, ...Object.values(plans)]) for (const id of defined(doc)) known.add(id);
+  const owners = new Set([...known].map((id) => id.split("/")[0]));
+  const problems = [];
+  for (const line of requirements.split(/\r?\n/)) {
+    const term = TERMS.exec(line);
+    if (term && !/\btesting\/[A-Z]+\d+/.test(line)) problems.push(`it defines ${JSON.stringify(term[1])} itself instead of citing Testing`);
+  }
+  const unresolved = [];
+  for (const id of cited(requirements)) {
+    if (known.has(id)) continue;
+    if (owners.has(id.split("/")[0])) problems.push(`${id} does not exist in its owner's plan`);
+    else unresolved.push(id);
+  }
+  if (problems.length) return finding("packaging/N10", "failed", problems.join("; "));
+  if (unresolved.length) return finding("packaging/N10", "unknown", `the owners' plans are not here to resolve ${unresolved.join(", ")}`);
+  return finding("packaging/N10", "verified", "every cited ID exists in its owner's plan, and no Testing term is defined here");
+}
