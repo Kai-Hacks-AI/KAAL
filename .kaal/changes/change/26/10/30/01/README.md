@@ -21,8 +21,8 @@ The Owner's alignment on #530 named Succeeds, Delivers and the delivery criterio
 ## Verified by
 
 - All eighteen planned tests in `test/plan/delivery.test.mjs` are GREEN, and now run in `npm test`.
-- `test/delivery.test.mjs` adds three Code tests: the shipped Definitions are the ones the runtime names; without Graph there is `cannot-assess` and nothing else; and a missing dependency of Graph propagates.
-- `npm test -w kaal-change` passes 89 of 89. `npm run test:engineering`, `npm run test:acceptance` and `npm test -w kaal-testing` pass.
+- `test/delivery.test.mjs` adds four Code tests: the shipped Definitions are the ones the runtime names; the Capability Node provides them; without Graph there is `cannot-assess` and nothing else; and a missing dependency of Graph propagates.
+- `npm test -w kaal-change` passes 90 of 90. `npm run test:engineering`, `npm run test:acceptance` and `npm test -w kaal-testing` pass.
 
 ## What did not change
 

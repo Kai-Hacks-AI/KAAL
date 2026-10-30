@@ -40,6 +40,10 @@ describe("kaal-change/delivery (change/C8)", () => {
     }
   });
 
+  it("is provided by the Capability Node", () => {
+    assert.match(readFileSync(join(PACKAGE, "capability", "Change.md"), "utf8"), /^It also provides the Succeeds and Delivers Definitions,/m);
+  });
+
   it("without Graph, gives cannot-assess and no verdict, view or exchange", () => {
     const r = isolated();
     assert.equal(r.status, 0, r.err);
