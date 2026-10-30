@@ -133,7 +133,7 @@ describe("Deterministic Frontmatter (core/C5)", () => {
       const imports = /\bfrom\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s+["']([^"']+)["']/g;
       for (const [, staticSpec, dynamicSpec, bareSpec] of source.matchAll(imports)) {
         const spec = staticSpec ?? dynamicSpec ?? bareSpec;
-        if (spec.startsWith("node:") || spec === "@kaihacksai/kaal-hosting" || spec.startsWith("kaal-hosting/")) host.push(spec);
+        if (spec.startsWith("node:") || spec === "@kaihacksai/kaal-hosting" || spec.startsWith("@kaihacksai/kaal-hosting/")) host.push(spec);
         else if (spec.startsWith(".")) visit(new URL(spec, url).href);
         else visit(import.meta.resolve(spec, url));
       }
