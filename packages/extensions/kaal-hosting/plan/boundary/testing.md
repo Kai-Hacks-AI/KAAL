@@ -42,6 +42,9 @@ The reference was not committed. It was a `couplings` of about 150 lines that bl
 | does not test production coupling | hosting/T39 |
 | reports a pending review as a passed case | hosting/T39 |
 | asks the reviewer nothing | hosting/T39 |
+| gives a review request an outcome | hosting/T39 |
+| gives a review request an id that changes between runs | hosting/T39 |
+| names a rule without Hosting as its owner | hosting/T39 |
 | leaves acknowledged findings out of the `summary` | hosting/T39 |
 | leaves `inspect` out of the suite | hosting/T39 |
 | reports an incomplete inspection as `failed` | hosting/T39 |

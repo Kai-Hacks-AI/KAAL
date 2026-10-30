@@ -203,7 +203,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.ok(Array.isArray(report.exclusions) && report.exclusions.some((e) => /data|run time|outside/i.test(e)));
   });
 
-  it("hosting/T39 [hosting/F31, hosting/F33, hosting/F30, hosting/F32, hosting/N5]: the shipped suite tests deterministically what it can and requests a review for the rest: on a capability with production coupling and T114-style skipped tests and assertions it fails, gives every finding at its exact place, requests a review for each test-code finding, acknowledged ones included, and states the sources it read; a capability needing only judgment is never passed; a clean one is verified; one that cannot be inspected is unknown; the command gives the same result with distinct exit codes", async () => {
+  it("hosting/T39 [hosting/F31, hosting/F33, hosting/F30, hosting/F32, hosting/N5]: the shipped suite tests deterministically what it can and requests a review for the rest: on a capability with production coupling and T114-style skipped tests and assertions it fails, gives every finding at its exact place, requests a review, under a stable id and Hosting's rule, for each test-code finding, acknowledged ones included, and states the sources it read; a capability needing only judgment is never passed; a clean one is verified; one that cannot be inspected is unknown; the command gives the same result with distinct exit codes", async () => {
     const capability = (tree) => {
       const root = mkdtempSync(join(tmpdir(), "kaal-boundary-"));
       for (const [path, text] of Object.entries(tree)) {
@@ -283,6 +283,10 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.equal(result.review, "requested");
     assert.deepEqual(result.reviews.map((r) => r.finding), tests, "a test-code finding is not put to review, or an acknowledgement approved one");
     assert.ok(result.reviews.every((r) => typeof r.question === "string" && r.question.length > 0), "a review request asks nothing");
+    for (const r of result.reviews) {
+      assert.deepEqual(Object.keys(r).sort(), ["finding", "id", "owner", "question", "rule"], "a review request carries an outcome or lacks a member");
+      assert.deepEqual([r.owner, r.rule, r.id], ["Hosting", `kaal-hosting/${r.finding.rule}`, `kaal-hosting/${r.finding.rule}@${r.finding.file}:${r.finding.line}:${r.finding.column}`]);
+    }
     assert.deepEqual(result.summary, { coupling: 1, registration: 3, dilution: 1, setup: 4, acknowledged: 3 });
     assert.deepEqual(result.sources, [
       { file: "scripts/build.mjs", scope: "test" },
@@ -313,6 +317,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.equal(alone.status, 1, `${alone.stdout}${alone.stderr}`);
     const own = boundary(alone);
     assert.deepEqual(own.findings, result.findings);
+    assert.deepEqual(own.reviews.map((r) => r.id), result.reviews.map((r) => r.id), "a review request's id changes between runs");
     assert.deepEqual(own.violations, [], "a declared builtin is still a violation");
     assert.deepEqual(outcomes(own), { "inspection completes": "pass", "host modules are declared": "pass", "production code leaves the host to Hosting": "fail" });
     assert.equal((await command(judgment)).status, 3, "review requested is not its own exit code");
