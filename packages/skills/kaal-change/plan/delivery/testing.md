@@ -36,3 +36,7 @@ change/T17 and change/T18 replace the earlier claim that acyclicity follows from
 ## RED evidence
 
 At `change/C1` and `change/C7`, all eighteen tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./delivery` and ships no Succeeds or Delivers Definition. They run with `node --test packages/skills/kaal-change/test/plan/delivery.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
+
+## GREEN evidence
+
+At `change/C8`, the DO of this plan, all eighteen are GREEN and run in `kaal-change`'s `npm test`, beside the Code tests in `test/delivery.test.mjs`.
