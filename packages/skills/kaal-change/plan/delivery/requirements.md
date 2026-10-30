@@ -55,11 +55,27 @@ Each Requirement names, in brackets, the Intents it serves.
   - **Distinct from what a Case tests.** `requires` is the Change's own outgoing statement of its delivery boundary. A Case's `tests →` trace is Testing's and the Case's (`testing/N7`), and Change neither derives `requires` from it nor states it again.
   - **No zero-test delivery.** Given evidence, a Change that states no `requires`, or an empty list, is a finding (`no-tests`) and is never satisfied.
   - **Malformed entries.** An entry that is not a nonempty string, or that repeats, is a finding naming the Change and the entry, and the Change is not satisfied.
-- **change/F16** [change/I10]: `assess(nodes, { evidence })` takes Testing's Case Results as plain data: a list of `{ case, result }`, where `case` is a Case identity and `result` is Testing's own word for it (`testing/F26`).
-  - **Passed is Testing's.** A required Case is met only when the evidence holds it, and every entry for it reads `passed` exactly. That is the Owner's GREEN.
-  - **Everything else is unmet.** A required Case absent from the evidence is unmet as `absent`, which is Change's own word for "no result was given". Any other result, such as `failed`, `unknown` or `inapplicable`, is unmet under Testing's word, passed through unchanged. Change never maps one result onto another.
+- **change/F16** [change/I10]: `assess(nodes, { evidence })` takes the evidence a caller selected (change/F28) as plain data: `{ by, evaluations }`. `by` names who selected it. Each evaluation is as Testing's `evaluate` gives it (`testing/F28`): its `run`, its `plan`, its `result`, its `cases`, mapping each Case identity to Testing's own word for it (`testing/F26`), and its `findings`.
+  - **Passed is Testing's.** A required Case is met only when some evaluation that counts (change/F27) holds it, and every evaluation that counts and holds it reads `passed` for it exactly. That is the Owner's GREEN.
+  - **Everything else is unmet.** A required Case that an evaluation which counts holds as anything other than `passed`, such as `failed`, `unknown` or `inapplicable`, is unmet under Testing's word, passed through unchanged. Change never maps one result onto another, and never combines a `passed` with any other result into GREEN.
+  - **Change's own words.** None of these is a Testing result.
+    - `absent`: no evaluation holds the required Case.
+    - `unevaluated`: only evaluations that do not count hold it.
+    - `conflicting`: it is held by evaluations of one Plan that the selection did not resolve (change/F28).
   - **Satisfied** is true only when every required Case is met.
+  - **Basis.** Each delivery result names `by`, and as `basis` the runs of the evaluations it counted, sorted. It is Change's decision on that selection and nothing more.
   - **Without evidence** no Change has a delivery result. Its absence never reads as not delivered, and never as delivered.
+- **change/F27** [change/I10]: **Only evaluated evidence without findings can count** (the Owner's reviews 5703577468 on #630 and 5705662282 on #635).
+  - **What can count.** An evaluation can count only when it has a `result` and its `findings` is an empty list.
+  - **What an empty list is not.** It is Testing's statement that its interpretation found nothing wrong. It is not authentication, not freshness and not applicability, which are the selection's (change/F28).
+  - **What never counts.** Raw Run observations (`results`, which have no `result`) never count, however they read: they are observations of one Run, never a verdict. Neither does an evaluation with any finding, whose `result` Testing gives as `unknown`, nor anything that is not shaped as an evaluation.
+  - **Unknown elsewhere is not a finding.** An evaluation without findings counts for each Case it holds, even when its overall `result` is `unknown` because another Case did not run.
+  - **Allowances.** An allowed Case stays `failed` in an evaluation's `cases` (`testing/F28`), so it is unmet, even when the evaluation's overall `result` is `passed`.
+- **change/F28** [change/I10]: **The caller selects the evidence, and Change never does** (the Owner's review 5705662282).
+  - **The contract.** The caller, or a trusted evidence authority it relies on, selects the evaluations that are current and applicable: which Run of each Plan, and of which definition versions. `by` names that selector, a nonempty string, and is accountable for the selection. Change neither authenticates nor checks it.
+  - **One evaluation per Plan.** The selection holds the current evaluation of each Plan, and no history. Two or more evaluations of one Plan are a conflict the selection did not resolve. Change never picks the newer or the better one, and never lets an older clean `passed` stand beside a newer `unknown` or `failed`. Every Case they hold is unmet as `conflicting`.
+  - **No selector, no evidence.** Evidence without a `by`, or whose `evaluations` is not a list, counts no evaluation, and every required Case is unmet as `unevaluated`.
+  - **Order.** The order of the evaluations never matters.
 - **change/F17** [change/I2, change/I10]: Given evidence, a walked Change is **delivered** when it is satisfied and every Change it succeeds is delivered.
   - A satisfied Change with a predecessor that is not delivered is not delivered, and lists that predecessor as `awaiting`.
   - A Succeeds Edge that is unresolved, stale or not to a Change holds its Change from delivery, and is listed as `awaiting` under the pinned name.
@@ -72,9 +88,10 @@ Each Requirement names, in brackets, the Intents it serves.
       - `succeeds` lists the identities of its resolved direct predecessors, sorted.
       - `delivers` lists the names of its resolved Intents, sorted.
       - `requires` lists its required Case identities, sorted.
-    - Given evidence, each entry also carries `satisfied`, `delivered`, `unmet` and `awaiting`.
+    - Given evidence, each entry also carries `satisfied`, `delivered`, `unmet`, `awaiting`, `by` and `basis`.
       - `unmet` lists `{ case, result }` for each required Case that is not met, sorted by case.
       - `awaiting` lists the identities that hold it from delivery, sorted.
+      - `by` and `basis` are as change/F16 gives them.
     - `findings` holds one entry per finding, `{ kind, change, ... }`. Its `kind` is one of `malformed`, `duplicate`, `unresolved`, `stale`, `not-a-change`, `cycle`, `held-key`, `no-tests` or `malformed-test`. They are sorted by kind, then change, then their JSON.
   - **Absences.** A Change that is not walked, because it is malformed or its identity is duplicated, is absent from `changes`, and its finding names it in `change` and says why. A Change that was never given is simply absent, with no finding. No stale, unresolved or cycle case becomes a predecessor or an Intent.
   - **Provenance.** `id` is the content id of the exact Node bytes the entry was read from. A consumer cites it as the source of any relation it derives from that entry.
