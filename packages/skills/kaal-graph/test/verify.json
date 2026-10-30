@@ -65,8 +65,8 @@
     "docs/architecture.md": "12d78bb3594f9fecc2f04964a195cd2127837f2fd9c3a9332d27d1f3a8a51620",
     "docs/intent.md": "c142ae74f97a219174f588ec3ac63a64eee4fd0346851cb91fc1ec388ffc9409",
     "docs/limitations.md": "77e3d689126082e54498c119159ecf196b7960512de060d9a2a4c4b66f25495e",
-    "docs/operations.md": "dce6f1ffce3a7df4de93dcafe39fdc39b5f7fc4f3772a55057c1b87d04a5a4d6",
-    "docs/requirements.md": "250b7cdad266452ea35f6dad47c18162008ba62c9eb916cc9a5f066638298615",
+    "docs/operations.md": "700b22f30660bfd4c4d5a18491bd2bf5dcd26791cf1240b661e62924ddceac74",
+    "docs/requirements.md": "a6d7c4c710bb836d33916607606dc3bb9745ded99843f4a15d48443f000f2ee1",
     "docs/testing.md": "737a40befcd6e3a56af96bb3786f5bcd22161d7a737a17c4db8dedebc287b162",
     "package.json": "5345aeab1082cc258ecbfc829a9acd0cf3286a8f682e736e998578be61ce0c08",
     "payload/Graph.md": "f1b5b4861dc19e0b18b67cfc8fcf95771c8d50e6eb51cfb6c535b7a4031994c4",
@@ -85,6 +85,6 @@
     "test/embedded/declarations.test.mjs": "49b2e6c35c8ce51afda0076a2b588641164d3efb9454f7e730ae467f8e52161b",
     "test/embedded/graph.test.mjs": "6734918e4a8f2ebf569d661a41b964aa93931b0db3229344f777176dbe3d55f3",
     "test/embedded/structure.test.mjs": "83c1a8d3a2de18133810aba18ba6535ad4e11b6754fcc55d1067c3366063dc25",
-    "test/verify.mjs": "841faaacf7f1e2efee2d9b4860fa568108789b15401963afd0b56e2a74bf1918"
+    "test/verify.mjs": "2cc70d54af485c3f7d61c3463faa05c71c9dbfd6a710ccafff38256569cb3903"
   }
 }

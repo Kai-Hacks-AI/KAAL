@@ -75,10 +75,12 @@ npx kaal register skill kaal-graph node_modules/kaal-graph/payload
 npm explore kaal-graph -- npm test
 ```
 
-This runs `test/verify.mjs` against the installed copy (graph/F6). It checks the shipped files against `test/verify.json`, runs every embedded case, and ends in exactly one result:
+This runs `test/verify.mjs` against the installed copy (graph/F6). It checks the shipped files against `test/verify.json`, runs every embedded case in a scratch directory it removes, checks that your project is unchanged, and ends in exactly one result:
 
 - **verified (0):** every shipped file matches the manifest, and every declared case ran and passed.
-- **failed (1):** a shipped file differs, is missing or is not in the manifest, or a case failed. Each cause is named. Reinstall the package, then run the command again.
-- **cannot verify (2):** a prerequisite is missing, the manifest cannot be read, it declares no cases, or a declared case did not run. Each cause is named. Fix the cause, then run the command again.
+- **failed (1):** a declared case failed, or your project changed during the run. Each cause is named.
+- **cannot verify (2):** a prerequisite is missing; the manifest is absent, cannot be read or declares no cases; an installed file differs from the manifest, is missing or is not in it; a declared case was skipped, marked todo or did not run; or a case ran that the manifest does not declare. Each cause is named, with its next step. When the installed files differ, reinstall the package, then run the command again.
+
+Its last line is the summary, `kaal-graph-verification ` followed by JSON, for a program to read: the result, its cause, evidence and next step, the package's name, version and location, the platform and Node version, the digest of the installed files, and every declared case with its outcome.
 
 `node node_modules/kaal-graph/test/verify.mjs` runs the same verification directly. It needs no network and no KAAL source checkout, and it builds nothing.
