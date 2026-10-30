@@ -63,6 +63,7 @@ describe("kaal-testing", () => {
       "lib/observed.mjs",
       "lib/report.mjs",
       "lib/reporter.mjs",
+      "lib/verifiers.mjs",
       "package.json",
       "payload/Testing.md",
       "skills/kaal-testing/SKILL.md",
