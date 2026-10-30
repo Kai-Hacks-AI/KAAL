@@ -1,17 +1,18 @@
+// Embedded cases (graph/F7): shipped Graph behaviour, run by test/verify.mjs against the copy they ship in.
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { checkSkill } from "kaal-engineer-skill";
-import { execute, read } from "kaal-hosting";
+import { execute } from "kaal-hosting";
 import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, readFrontmatter, sha256 } from "kaal-graph";
 import * as form from "kaal-graph/form";
 
-const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// The copy of the package these cases ship in: the installed one, or the source in the repository.
+const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SKILL = join(PACKAGE, "skills", "kaal-graph");
-const SCRIPT = join(SKILL, "scripts", "graph.mjs");
+const SCRIPT = join(PACKAGE, JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).bin["kaal-graph"]);
 // Any Node serves as a type here: Graph gives no type a meaning. This one is a root, read as one.
 const f = { definition: { name: "Definition", id: identifyRoot(Buffer.from("---\nname: Definition\n---\n\n# Definition\n")).id } };
 
@@ -472,10 +473,6 @@ describe("the package", () => {
     const node = identify(readFileSync(join(PACKAGE, "payload", "KNIFE.md")));
     assert.equal(node.name, "KNIFE");
     assert.equal(node.type.name, "KAAL Definition");
-  });
-
-  it("has an Agent Skill that conforms", async () => {
-    assert.deepEqual(checkSkill("kaal-graph", await read(SKILL)), { standard: [], kaal: [], warnings: [] });
   });
 
   it("checks and navigates Nodes on disk", async () => {

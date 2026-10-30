@@ -19,12 +19,17 @@
     "kaal-graph": "skills/kaal-graph/scripts/graph.mjs"
   },
   "files": [
+    "docs",
     "payload",
-    "skills"
+    "skills",
+    "test/embedded",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-hosting",
-    "test": "node --test test/graph.test.mjs test/ownership.test.mjs test/structure.test.mjs test/declarations.test.mjs test/plan/cycles.test.mjs"
+    "test": "node test/verify.mjs",
+    "test:publisher": "node --test \"test/publisher/*.test.mjs\" && node --test --test-name-pattern=\"^graph/T(8|9|1[0-24-5]) \" test/plan/release.test.mjs && node test/verify.mjs",
+    "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"
