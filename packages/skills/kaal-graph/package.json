@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-hosting",
-    "test": "node --test test/graph.test.mjs test/ownership.test.mjs test/structure.test.mjs test/plan/cycles.test.mjs"
+    "test": "node --test test/graph.test.mjs test/ownership.test.mjs test/structure.test.mjs test/declarations.test.mjs test/plan/cycles.test.mjs"
   },
   "engines": {
     "node": ">=24"
