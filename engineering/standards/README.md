@@ -59,7 +59,7 @@ T10 and T11 orchestrate checks whose rules are other owners'. Core owns the fron
 
 **Who owns `Standard`, `Applies to` and the scope Definitions?** They are KAAL-wide kinds that every Capability uses, so the owner should be one that every Capability may already reference.
 
-- **A (recommended): Core,** alongside `KAAL Definition` and `KAAL Capability`. Every Capability already references Core.
+- **A: Core,** alongside `KAAL Definition` and `KAAL Capability`. Every Capability already references Core. **Selected by the Owner** (#610, review 5712653273), in Core's own bounded Change. An `Applies to` Edge declares applicability only. It is neither authorization nor evidence that anything ran, and a missing case or missing evidence stays unresolved.
 - **B: Engineering.** Every other Capability's Standards would then be typed by an Engineering Definition, and Engineering would be at the centre of a concept the Owner distributes.
 
 Under either option, Engineering owns the `.kaal` integration and repository-native scope Definitions only if the Owner says so.
