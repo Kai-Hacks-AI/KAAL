@@ -26,6 +26,18 @@ describe("kaal-review", () => {
     assert.deepEqual(node.type, foundation().definition);
   });
 
+  it("delivers ROWING in Form, typed by Core's KAAL Definition", () => {
+    const node = identify(readFileSync(join(PAYLOAD, "ROWING.md")));
+    assert.equal(node.name, "ROWING");
+    assert.deepEqual(node.type, foundation().definition);
+  });
+
+  it("delivers TOGETHER WE CAN GO FAR in Form, typed by Core's KAAL Definition", () => {
+    const node = identify(readFileSync(join(PAYLOAD, "TOGETHER-WE-CAN-GO-FAR.md")));
+    assert.equal(node.name, "TOGETHER WE CAN GO FAR");
+    assert.deepEqual(node.type, foundation().definition);
+  });
+
   it("claims its own tree by Review's exact name and id", () => {
     const node = identify(readFileSync(join(PAYLOAD, "Review.md")));
     const { claim, finding } = readClaim(`packages/skills/kaal-review/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
@@ -38,13 +50,13 @@ describe("kaal-review", () => {
     assert.deepEqual(checkSkill("kaal-review", await read(join(PACKAGE, "skills", "kaal-review"))), { standard: [], kaal: [], warnings: [] });
   });
 
-  it("is admitted into a fresh Engine with both its Nodes, and discovered there as a Skill", async () => {
+  it("is admitted into a fresh Engine with all its Nodes, and discovered there as a Skill", async () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-review-"));
     await bootstrap(dir);
     const before = new Set((await loadEngine(dir)).nodes.map((n) => n.id));
     await register(dir, "skill", "kaal-review", await readContribution(PAYLOAD));
     const added = (await loadEngine(dir)).nodes.map((n) => n.id).filter((id) => !before.has(id));
-    const ids = ["Review.md", "HOW-ARE-WE-DOING.md"].map((f) => identify(readFileSync(join(PAYLOAD, f))).id);
+    const ids = ["Review.md", "HOW-ARE-WE-DOING.md", "ROWING.md", "TOGETHER-WE-CAN-GO-FAR.md"].map((f) => identify(readFileSync(join(PAYLOAD, f))).id);
     assert.deepEqual(added.sort(), ids.sort());
     assert.deepEqual((await catalog(dir)).skills.map((r) => r.name), ["Review"]);
   });
@@ -57,7 +69,9 @@ describe("kaal-review", () => {
       "README.md",
       "package.json",
       "payload/HOW-ARE-WE-DOING.md",
+      "payload/ROWING.md",
       "payload/Review.md",
+      "payload/TOGETHER-WE-CAN-GO-FAR.md",
       "skills/kaal-review/SKILL.md",
     ]);
   });

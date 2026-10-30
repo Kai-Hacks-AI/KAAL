@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/check-skill.test.mjs test/conformance.test.mjs"
+    "test": "node --test test/check-skill.test.mjs test/conformance.test.mjs test/plan/skill-format.test.mjs"
   },
   "engines": {
     "node": ">=24"
@@ -28,6 +28,7 @@
     "yaml": "2.9.1"
   },
   "devDependencies": {
-    "kaal-core": "0.0.1"
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1"
   }
 }
