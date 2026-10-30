@@ -11,6 +11,7 @@ Each element names, in brackets, the Requirements it answers.
   - The package exports `kaal-controls/conformance`, a pure function over an Engine, in a `lib/` beside the payload, as Testing ships its own.
   - It uses only Core's admission and Graph's Edge form, which every consumer already has, and imports nothing from Intent.
   - It finds Intent's authoritative Definition as decision 2 below settles, and returns one outcome per Control from controls/N5, with reasons.
+  - It also returns one run result, failed, unknown or verified, each with its own exit status, following Testing's consumer-verification semantics. Where Testing is present, a consumer can run the suite as its own conformance cases. Where Testing is absent, the same result and exit status stand on their own, because Controls takes no dependency on Testing either.
 - **controls/A7** [controls/F15]: `skills/kaal-controls/SKILL.md` and `README.md` are revised to controls/F15.
 
 ## Two authorities, kept apart
@@ -69,4 +70,5 @@ Controls does not settle these. They are listed so that nothing contradictory is
 - **Core**: `KAAL Definition` and admission.
 - **Graph**: the Edge form, resolution and derived incoming views.
 - **Controls**: `Control` and the limits of assurance in `Controls`.
+- **Testing**, optional: its result semantics (verified failure and unknown findings; failed, unknown and verified runs), followed and never redefined.
 - **Intent**, optional: its `Intent` Definition, referred to and never restated.
