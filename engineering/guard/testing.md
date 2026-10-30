@@ -439,7 +439,7 @@ Every Guard case is registered on every host with the same title and the same bo
 <!-- applicability: Engineering-side cases -->
 | Case | Not applicable on | Why | Evidence | Review |
 | --- | --- | --- | --- | --- |
-| guard/T114 | win32 | no fixture Node can make places a FIFO or socket in the tree on Windows, so the snapshot's `kind:` branch cannot be reached there; guard/T131 covers the shared half on every host | Hosting on #650: only sockets and FIFOs cannot be placed on Windows, and Hosting's own conformance excludes win32 for sockets (https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723), read with the snapshot's own branches in [`guard/C118`](change.md), which explains why a link cycle reaches the `link:` branch and not `kind:` | requested on #577 |
+| guard/T114 | win32 | no fixture Node can make places a FIFO or socket in the tree on Windows, so the snapshot's `kind:` branch cannot be reached there; guard/T131 covers the shared half on every host | Hosting on #650: only sockets and FIFOs cannot be placed on Windows, and Hosting's own conformance excludes win32 for sockets (https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723), read with the snapshot's own branches in [`guard/C118`](change.md), which explains why a link cycle reaches the `link:` branch and not `kind:` | https://github.com/Kai-Hacks-AI/KAAL/pull/577#pullrequestreview-5718863074 |
 <!-- end of applicability -->
 
 | Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
@@ -481,11 +481,14 @@ Every Guard case is registered on every host with the same title and the same bo
 
 ## Each release declares its upgrade paths (`guard/C113`)
 
-guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package. From `guard/C113` on, guard/T118 takes its sources from the table guard/T124 checks.
+guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package. From `guard/C113` on, guard/T118 takes its sources from the table guard/T124 checks. guard/T133, added in the DO at the Owner's review on #576, is an Engineering-side case in `engineering/guard/acceptance/package.test.mjs`: it checks how guard/T118 reads that table (`engineering/guard/acceptance/consumer/paths.mjs`), with a negative fixture for each malformed form.
 
-| Test | Checks | Written in | Intended evidence against `0.0.4` |
-| --- | --- | --- | --- |
-| guard/T124: the delivered `docs/requirements.md` declares, under guard/F42, each supported source version with its path, prerequisites, changes and kept files, failure and recovery, and verification. Each declared source is a version the package's catalogue knows, the installed version is not among them, and the README's release notes point to the table | guard/F42 | `guard/C113` | RED: no release declares its upgrade paths |
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T124 checks that the delivered `docs/requirements.md` declares, under guard/F42, each supported source version with its path, prerequisites, changes and kept files, failure and recovery, and verification. Each declared source is a version the package's catalogue knows, the installed version is not among them, and the README's release notes point to the table | guard/F42 | `guard/C113` | RED: no release declares its upgrade paths | GREEN |
+| guard/T133: guard/T118 reads a target release's guard/F42 declaration fail-closed. Legacy absence before `0.0.5`, a valid declaration and a malformed one are distinct. A corrupted heading or table, no source, a duplicate or invalid source, or absence from `0.0.5` on is a finding and never admits a transition. At the release gate the declared target equals the candidate's version | guard/F42 | `guard/C113` (the Owner on #576) | RED: a malformed declaration was read as none, and guard/T118 took the legacy path | GREEN |
+
+**Release acceptance with declared paths (`guard/C113`).** A release that declares upgrade paths under guard/F42 is accepted only with guard/T118 GREEN, from a `registry` run (`GUARD_CANDIDATES=registry:<source>,packed` before publication, or `registry:<source>,registry:<target>` after it), for every source it declares. A declared source with no such run, or with a RED one, blocks acceptance. guard/T118 reports a source the target does not declare as not applicable, so that run is not evidence of a supported path. guard/T118 fails, and is never evidence, when the target's declaration is malformed, or absent from `0.0.5` on. Only a release before `0.0.5` with no guard/F42 takes the legacy path. At the release gate the declared target must equal the candidate's version exactly: a `registry` target always, and the bumped `packed` candidate of `guard/C126` with `GUARD_RELEASE_GATE=1`. Before the bump, a staged declaration may lead to a later version than the packed candidate's. The release Change also shows that the table leads to exactly the version it publishes.
 
 ## Defects
 
