@@ -1,12 +1,12 @@
 // hosting/C13 planned outer tests: the platform coupling conformance suite
-// (hosting/F27–hosting/F32, hosting/N5). Immutable to DO and CHECK;
+// (hosting/F27–hosting/F34, hosting/N5). Immutable to DO and CHECK;
 // hosting/C14 turns them GREEN. Each title names the contracts it checks.
 // The fixtures are the suite's positive and negative cases: each rule and each
 // kind has one that must be found and a similar one that must not
-// (hosting/N5). They reach Hosting through its build and its publisher-only
-// suite by path, never through the package name, so a rename needs no edit.
+// (hosting/N5). They reach Hosting through its build, its command and its
+// manifest by path, never through the package name, so a rename needs no edit.
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
@@ -15,7 +15,9 @@ import { execute } from "../../dist/index.js";
 import * as conformance from "../../dist/conformance.js";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const SUITE = join(PACKAGE, "conformance", "boundary.mjs");
+const SUITE = join(PACKAGE, "dist", "boundary.js");
+const COMMAND = join(PACKAGE, "bin", "kaal-hosting-boundary.mjs");
+const SKILL = join(PACKAGE, "skills", "kaal-hosting-boundary", "SKILL.md");
 
 /** Sources keyed by path, as Hosting's `read` returns them. */
 const files = (sources) => Object.fromEntries(Object.entries(sources).map(([path, text]) => [path, Buffer.from(text)]));
@@ -201,7 +203,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.ok(Array.isArray(report.exclusions) && report.exclusions.some((e) => /data|run time|outside/i.test(e)));
   });
 
-  it("hosting/T39 [hosting/F31, hosting/F30, hosting/F32, hosting/N5]: the reusable suite, on a capability with T114-style skipped tests and assertions, reports every finding at its exact place on one kaal-hosting-boundary line, keeps acknowledged ones counted, states which sources and tests it read, and fails only on a deterministic failure; called on its own as a command, it prints the same line", async () => {
+  it("hosting/T39 [hosting/F31, hosting/F33, hosting/F30, hosting/F32, hosting/N5]: the shipped suite tests deterministically what it can and requests a review for the rest: on a capability with production coupling and T114-style skipped tests and assertions it fails, gives every finding at its exact place, requests a review for each test-code finding, acknowledged ones included, and states the sources it read; a capability needing only judgment is never passed; a clean one is verified; one that cannot be inspected is unknown; the command gives the same result with distinct exit codes", async () => {
     const capability = (tree) => {
       const root = mkdtempSync(join(tmpdir(), "kaal-boundary-"));
       for (const [path, text] of Object.entries(tree)) {
@@ -210,30 +212,35 @@ describe("hosting/C13: platform coupling conformance", () => {
       }
       return root;
     };
+    const t114 = [
+      'import assert from "node:assert/strict";', // 1
+      'import { it } from "node:test";', // 2
+      'const WINDOWS = process.platform === "win32";', // 3
+      'it("special files", { skip: WINDOWS }, () => {});', // 4
+      'it("mode", () => {', // 5
+      "  if (!WINDOWS) assert.equal(mode(), 0o755);", // 6
+      "});", // 7
+      "// kaal-hosting: platform Windows holds no FIFO in a directory", // 8
+      'it("fifo", { skip: process.platform === "win32" }, () => {});', // 9
+    ].join("\n");
     // The negative fixture: production code reaching past Hosting, and T114-style tests and assertions skipped on Windows.
     const negative = capability({
-      "src/index.mjs": 'import { readFile } from "node:fs/promises";\nexport const r = (p) => readFile(p);\n',
-      "test/t114.test.mjs": [
-        'import assert from "node:assert/strict";', // 1
-        'import { it } from "node:test";', // 2
-        'const WINDOWS = process.platform === "win32";', // 3
-        'it("special files", { skip: WINDOWS }, () => {});', // 4
-        'it("mode", () => {', // 5
-        "  if (!WINDOWS) assert.equal(mode(), 0o755);", // 6
-        "});", // 7
-        "// kaal-hosting: platform Windows holds no FIFO in a directory", // 8
-        'it("fifo", { skip: process.platform === "win32" }, () => {});', // 9
-      ].join("\n"),
+      "src/index.mjs": 'import { readFile } from "node:fs/promises";\nexport const r = (p) => readFile(p);\nexport const eol = process.platform; // kaal-hosting: platform acknowledged, still a coupling\n',
+      "test/t114.test.mjs": t114,
       "test/fixtures/tree.mjs": 'export const separator = process.platform === "win32" ? "\\\\" : "/";\n',
       "scripts/build.mjs": "export const ok = 1;\n",
       "README.md": "# fixture\n",
     });
+    // Only judgment: production leaves the host to Hosting, and a test fixture is built per platform.
+    const judgment = capability({
+      "src/index.mjs": "export const add = (a, b) => a + b;\n",
+      "test/fixtures/tree.mjs": 'export const separator = process.platform === "win32" ? "\\\\" : "/";\n',
+    });
     // The positive fixture: a capability that leaves the host to Hosting, with a skip that does not depend on the platform.
-    const positive = capability({
+    const clean = capability({
       "src/index.mjs": "export const add = (a, b) => a + b;\n",
       "test/add.test.mjs": 'import { it } from "node:test";\nit("adds", { skip: !process.env.SLOW }, () => {});\n',
     });
-    const driver = (target) => `import { boundarySuite } from ${JSON.stringify(pathToFileURL(SUITE).href)};\nboundarySuite({ name: "fixture", root: ${JSON.stringify(target)} });\n`;
     const env = { ...process.env };
     delete env.NODE_TEST_CONTEXT;
     const boundary = (output) => {
@@ -241,20 +248,27 @@ describe("hosting/C13: platform coupling conformance", () => {
       assert.ok(line, `no kaal-hosting-boundary line\n${output.stdout}${output.stderr}`);
       return JSON.parse(line.slice("kaal-hosting-boundary ".length));
     };
-    const run = async (target) => {
+    const driver = (target, builtins) => `import { boundarySuite } from ${JSON.stringify(pathToFileURL(SUITE).href)};\nboundarySuite({ name: "fixture", root: ${JSON.stringify(target)}, builtins: ${JSON.stringify(builtins)} });\n`;
+    const run = async (target, builtins = []) => {
       const script = join(mkdtempSync(join(tmpdir(), "kaal-boundary-driver-")), "driver.test.mjs");
-      writeFileSync(script, driver(target));
+      writeFileSync(script, driver(target, builtins));
       // Run directly, so the suite's own output reaches stdout as written, with no reporter's escaping.
       return execute(process.execPath, [script], { cwd: tmpdir(), env });
     };
+    const command = (target, builtins = []) => execute(process.execPath, [COMMAND, "--name", "fixture", "--root", target, ...builtins.flatMap((b) => ["--builtin", b])], { cwd: tmpdir(), env });
+    const outcomes = (result) => Object.fromEntries(result.cases.map((c) => [c.name, c.outcome]));
     const finding = (line, column, rule, kind, construct, acknowledged) => ({ file: "test/t114.test.mjs", line, column, scope: "test", rule, kind, construct, ...(acknowledged ? { acknowledged } : {}) });
+    const BUILTINS = ["node:fs/promises", "node:test", "node:assert/strict"];
 
+    // Deterministic: undeclared host modules and production coupling fail, even when acknowledged.
     const found = await run(negative);
-    assert.equal(found.status, 0, `a finding failed the suite\n${found.stdout}${found.stderr}`);
+    assert.notEqual(found.status, 0, "a deterministic failure passed");
     const result = boundary(found);
     assert.equal(result.name, "fixture");
-    assert.deepEqual(result.failures, [], "a static finding was reported as a failure");
-    assert.deepEqual(result.findings, [
+    assert.equal(result.result, "failed");
+    assert.deepEqual(outcomes(result), { "inspection completes": "pass", "host modules are declared": "fail", "production code leaves the host to Hosting": "fail" });
+    assert.deepEqual(result.failures, []);
+    const tests = [
       { file: "test/fixtures/tree.mjs", line: 1, column: 26, scope: "test", rule: "platform-query", kind: "setup", construct: "process.platform" },
       { file: "test/fixtures/tree.mjs", line: 1, column: 47, scope: "test", rule: "platform-literal", kind: "setup", construct: '"win32"' },
       finding(3, 17, "platform-query", "setup", "process.platform"),
@@ -263,8 +277,13 @@ describe("hosting/C13: platform coupling conformance", () => {
       finding(6, 8, "platform-query", "dilution", "WINDOWS"),
       finding(9, 20, "platform-query", "registration", "process.platform", "Windows holds no FIFO in a directory"),
       finding(9, 41, "platform-literal", "registration", '"win32"', "Windows holds no FIFO in a directory"),
-    ]);
-    assert.deepEqual(result.summary, { coupling: 0, registration: 3, dilution: 1, setup: 4, acknowledged: 2 }, "an acknowledged registration is not counted");
+    ];
+    assert.deepEqual(result.findings, [{ file: "src/index.mjs", line: 3, column: 20, scope: "production", rule: "platform-query", kind: "coupling", construct: "process.platform", acknowledged: "acknowledged, still a coupling" }, ...tests]);
+    // Judgment: every test-code finding is a review request, an acknowledged one too, and none is a passed case.
+    assert.equal(result.review, "requested");
+    assert.deepEqual(result.reviews.map((r) => r.finding), tests, "a test-code finding is not put to review, or an acknowledgement approved one");
+    assert.ok(result.reviews.every((r) => typeof r.question === "string" && r.question.length > 0), "a review request asks nothing");
+    assert.deepEqual(result.summary, { coupling: 1, registration: 3, dilution: 1, setup: 4, acknowledged: 3 });
     assert.deepEqual(result.sources, [
       { file: "scripts/build.mjs", scope: "test" },
       { file: "src/index.mjs", scope: "production" },
@@ -274,22 +293,43 @@ describe("hosting/C13: platform coupling conformance", () => {
     assert.deepEqual(result.skipped.map((s) => s.file), ["README.md"]);
     assert.ok(result.violations.some((v) => v.builtin === "node:fs/promises"), "the existing inspect is not part of the suite");
 
-    const clean = boundary(await run(positive));
-    assert.deepEqual([clean.failures, clean.findings, clean.violations.filter((v) => v.builtin !== "node:test")], [[], [], []]);
-    assert.deepEqual(clean.summary, { coupling: 0, registration: 0, dilution: 0, setup: 0, acknowledged: 0 });
+    const asked = await run(judgment);
+    const pending = boundary(asked);
+    assert.deepEqual([pending.result, pending.review, pending.reviews.length], ["verified", "requested", 2]);
+    assert.match(asked.stdout, /todo 1\b/, "a pending review is reported as a passed case");
+
+    const verified = boundary(await run(clean, ["node:test"]));
+    assert.deepEqual([verified.result, verified.review, verified.findings, verified.reviews], ["verified", "none", [], []]);
 
     const missing = await run(join(negative, "no-such-capability"));
     assert.notEqual(missing.status, 0, "an inspection that cannot complete passed");
     const failed = boundary(missing);
+    assert.equal(failed.result, "unknown");
     assert.ok(failed.failures.length > 0, "a deterministic failure is not stated");
     assert.deepEqual(failed.findings, []);
 
-    // Called on its own, with no capability importing Hosting.
-    const alone = await execute(process.execPath, [SUITE, "--name", "fixture", "--root", negative, "--builtin", "node:fs/promises", "--builtin", "node:test", "--builtin", "node:assert/strict"], { cwd: negative, env });
-    assert.equal(alone.status, 0, `${alone.stdout}${alone.stderr}`);
+    // Called as a command, with no capability importing Hosting.
+    const alone = await command(negative, BUILTINS);
+    assert.equal(alone.status, 1, `${alone.stdout}${alone.stderr}`);
     const own = boundary(alone);
-    assert.equal(own.name, "fixture");
     assert.deepEqual(own.findings, result.findings);
     assert.deepEqual(own.violations, [], "a declared builtin is still a violation");
+    assert.deepEqual(outcomes(own), { "inspection completes": "pass", "host modules are declared": "pass", "production code leaves the host to Hosting": "fail" });
+    assert.equal((await command(judgment)).status, 3, "review requested is not its own exit code");
+    assert.equal((await command(clean, ["node:test"])).status, 0);
+    assert.equal((await command(join(negative, "no-such-capability"))).status, 2);
+  });
+
+  it("hosting/T40 [hosting/F34, hosting/F31]: the package ships the suite, its command and its review instructions for consumers, and neither the production nor the inspection entry loads a test harness", () => {
+    const manifest = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
+    assert.equal(manifest.exports?.["./boundary"]?.default, "./dist/boundary.js");
+    assert.equal(manifest.bin?.["kaal-hosting-boundary"], "bin/kaal-hosting-boundary.mjs");
+    for (const entry of ["bin", "skills"]) assert.ok(manifest.files.includes(entry), `${entry} does not ship`);
+    for (const entry of ["dist/index.js", "dist/conformance.js"]) assert.doesNotMatch(readFileSync(join(PACKAGE, entry), "utf8"), /["']node:test["']/, `${entry} loads node:test`);
+    assert.ok(existsSync(SKILL), "no review instructions");
+    const skill = readFileSync(SKILL, "utf8");
+    assert.match(skill, /^---\nname: kaal-hosting-boundary\ndescription: \S/);
+    assert.match(skill, /^## Bare/m, "the instructions do not start from the line alone");
+    for (const word of ["kaal-hosting-boundary", "coupling", "registration", "dilution", "setup", "acknowledged", "PREACH"]) assert.ok(skill.includes(word), `the instructions do not cover ${word}`);
   });
 });
