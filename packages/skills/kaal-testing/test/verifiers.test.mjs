@@ -61,6 +61,14 @@ describe("verifiers", () => {
     assert.equal(judge("clean", observe({ exit: 0, stdout: line({ ...CLEAN, package: {} }) }, VERIFIER), { ...FACTS, package: {} }).conforms, false);
   });
 
+  it("never conforms to a targeted scenario whose target the harness did not establish among the declared cases", () => {
+    for (const target of [undefined, "", "acme/T9"]) {
+      assert.equal(judge("not-applicable", observe({ exit: 0, stdout: line(CLEAN) }, VERIFIER), { ...FACTS, target }).conforms, false, String(target));
+      const unknown = { ...CLEAN, result: "cannot verify", cause: "c", uncertainty: "u", next: { kind: "exploratory", step: "analyze" } };
+      assert.equal(judge("case-skipped", observe({ exit: 2, stdout: line(unknown) }, VERIFIER), { ...FACTS, target }).conforms, false, String(target));
+    }
+  });
+
   it("does not let a repeated applicability entry stand in for one the harness established", () => {
     const facts = { ...FACTS, target: "acme/T1", applicability: { "acme/T1": { platforms: ["win32", "darwin"], reason: "r" } } };
     const claim = (platforms) => judge("not-applicable", observe({ exit: 0, stdout: line({ ...CLEAN, cases: [{ name: "acme/T1", outcome: "not applicable", applicability: { platforms, reason: "r" } }] }) }, VERIFIER), facts).conforms;

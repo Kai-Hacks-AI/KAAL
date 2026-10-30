@@ -114,6 +114,7 @@ export function judge(scenarioId, observed, facts) {
   const pkg = plain(facts?.package) ? facts.package : {};
   const unestablished = [...["name", "version", "location"].filter((k) => !nonempty(pkg[k])).map((k) => `package ${k}`), ...["platform", "node", "digest"].filter((k) => !nonempty(facts?.[k]))];
   if (!Array.isArray(facts?.cases) || !facts.cases.every(nonempty) || (s.cases === "pass" && facts.cases.length === 0)) unestablished.push("declared cases");
+  if (s.target && !(nonempty(facts?.target) && Array.isArray(facts?.cases) && facts.cases.includes(facts.target))) unestablished.push("declared case the scenario targets");
   for (const f of unestablished) differences.push(`the harness established no ${f}`);
   for (const k of ["name", "version", "location"]) if (o.package?.[k] !== pkg[k]) differences.push(`package ${k} is ${JSON.stringify(o.package?.[k])}, the installed package's is ${JSON.stringify(pkg[k])}`);
   for (const k of ["platform", "node"]) if (o[k] !== facts?.[k]) differences.push(`${k} is ${JSON.stringify(o[k])}, the run's is ${JSON.stringify(facts?.[k])}`);
