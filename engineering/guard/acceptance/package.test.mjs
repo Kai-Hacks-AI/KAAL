@@ -1,7 +1,7 @@
 // Guard outer acceptance, Engineering part: the package's own tests and its consumer verification.
 // Requirements verification T98 [N6] (guard/C76, revised in guard/C98), T101–T106 [I8] (guard/C97,
 // written in guard/C98), T108–T110 [F38–F40] (guard/C102, written in guard/C104) and T113–T117
-// (guard/C107, written in guard/C108). Planned in PLAN; DO and CHECK do not change it.
+// (guard/C107, written in guard/C108), and T133 [F42] (guard/C113, at the Owner's review on #576). Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -599,5 +599,45 @@ describe("guard/I8 what a consumer reads in the verification", { timeout: 30 * 6
       assert.ok(!next.includes("a fallback"), `the next step names the fallback, not the declared URL: ${next}`);
       assert.ok(!r.output.includes("the package's maintainers"), "the output still asks for a report to the package's maintainers");
     }
+  });
+});
+
+describe("guard/I5 the upgrade paths guard/T118 reads", () => {
+  it("guard/T133 [guard/F42]: guard/T118 reads a target release's guard/F42 declaration fail-closed: legacy absence before 0.0.5, a valid declaration and a malformed one are distinct; a corrupted heading or table, no source, a duplicate or invalid source, or absence from 0.0.5 on is a finding and never admits a transition; at the release gate the declared target equals the candidate's version", async () => {
+    const { admits, declaredPaths } = await import(pathToFileURL(join(HERE, "consumer", "paths.mjs")).href);
+    const text = readFileSync(join(HERE, "..", "..", "..", "packages", "kaal-guard", "docs", "requirements.md"), "utf8");
+    const valid = declaredPaths(text);
+    assert.deepEqual(valid, { kind: "declared", target: "0.0.5", sources: ["0.0.2", "0.0.3", "0.0.4"] }, "the shipped declaration is not read as declared");
+    assert.deepEqual(declaredPaths(null), { kind: "absent" }, "a release with no docs/requirements.md is not absent");
+    assert.deepEqual(declaredPaths(text.replace("**guard/F42 ", "**guard/F99 ")), { kind: "absent" }, "a release with no guard/F42 is not absent");
+    const row = (v) => text.split("\n").find((l) => l.startsWith(`| \`${v}\` |`));
+    const corrupted = {
+      "a corrupted heading": text.replace("Supported upgrade paths to `0.0.5`:", "Upgrade paths to `0.0.5`:"),
+      "a heading with no table": text.replace(/(Supported upgrade paths to `0\.0\.5`:\n\n)\|/, "$1Not a table.\n|"),
+      "corrupted columns": text.replace("| From | Path |", "| Source | Path |"),
+      "no separator row": text.replace(/\n\| --- \| --- \| --- \| --- \| --- \| --- \|\n/, "\n"),
+      "no source": text.replace(row("0.0.2") + "\n", "").replace(row("0.0.3") + "\n", "").replace(row("0.0.4") + "\n", ""),
+      "a duplicate source": text.replace(row("0.0.3"), row("0.0.2")),
+      "a source that is not a version": text.replace(row("0.0.2"), row("0.0.2").replace("| `0.0.2` |", "| 0.0.2 or later |")),
+      "a source not earlier than the target": text.replace(row("0.0.4"), row("0.0.4").replace("| `0.0.4` |", "| `0.0.5` |")),
+      "an empty column": text.replace(row("0.0.3"), row("0.0.3").replace(/\| [^|]+ \|$/, "|  |")),
+      "a row with a missing column": text.replace(row("0.0.3"), row("0.0.3").replace(/ [^|]+ \|$/, "")),
+    };
+    for (const [name, fixture] of Object.entries(corrupted)) {
+      assert.notEqual(fixture, text, `the fixture for ${name} did not change the copy`);
+      const read = declaredPaths(fixture);
+      assert.equal(read.kind, "malformed", `${name} is read as ${read.kind}`);
+      const verdict = admits(read, { version: "0.0.4" }, { version: "0.0.5" }, { gate: true });
+      assert.ok(verdict.finding && !verdict.verdict, `${name} admits a transition`);
+    }
+    const v = (version) => ({ version });
+    assert.deepEqual(admits({ kind: "absent" }, v("0.0.3"), v("0.0.4"), { gate: true }), { verdict: "legacy" }, "a legacy target is not legacy");
+    assert.ok(admits({ kind: "absent" }, v("0.0.4"), v("0.0.5"), { gate: true }).finding, "absence from 0.0.5 on is not a finding");
+    assert.deepEqual(admits(valid, v("0.0.4"), v("0.0.5"), { gate: true }), { verdict: "declared" }, "a declared source at the gate is not admitted");
+    assert.deepEqual(admits(valid, v("0.0.1"), v("0.0.5"), { gate: true }), { verdict: "undeclared" }, "an undeclared source is admitted");
+    assert.ok(admits(valid, v("0.0.4"), v("0.0.6"), { gate: true }).finding, "at the gate, a declared target other than the candidate's version is not a finding");
+    assert.ok(admits(valid, v("0.0.4"), v("0.0.4"), { gate: true }).finding, "at the gate, a staged target is tolerated");
+    assert.deepEqual(admits(valid, v("0.0.3"), v("0.0.4"), { gate: false }), { verdict: "declared" }, "before the gate, a staged declaration is not tolerated");
+    assert.ok(admits(valid, v("0.0.4"), v("0.0.6"), { gate: false }).finding, "before the gate, a target earlier than the candidate is not a finding");
   });
 });
