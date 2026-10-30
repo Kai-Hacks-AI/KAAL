@@ -2,13 +2,27 @@
 
 KAAL Graph: the capability for the general mechanics of Nodes, their Form and identity, construction and lookup, and the Edges that relate them, with derived indexes and traversal. It is not part of Core. Graph implements the Node Form and identity that the Kernel in Core's payload states, and interprets the `edges` in a Node's frontmatter. Core owns the initial foundation and the CASE lifecycle, decides which Nodes an Engine admits, and uses Graph for Node mechanics. Graph depends on Hosting alone.
 
+## Documentation
+
+- [Intent](docs/intent.md): why Graph exists.
+- [Requirements](docs/requirements.md): what it promises.
+- [Architecture](docs/architecture.md): where each promise is realized.
+- [Operations](docs/operations.md): how to install, use and verify it.
+- [Limitations](docs/limitations.md): what it does not establish.
+- [Testing](docs/testing.md): the cases your installation runs.
+
+## Layout
+
 ```
+docs/                                    the documents above
 payload/Graph.md                         the Skill Node, typed by Core's KAAL Skill
 skills/kaal-graph/                       the Agent Skill: SKILL.md, references/edges.md,
                                          scripts/edges.mjs (the API, typed by edges.d.ts),
                                          scripts/structure.mjs (reach, reverse, cycles),
                                          scripts/form.mjs (reading frontmatter), scripts/node.mjs
                                          (Form and identity, typed by node.d.ts) and scripts/graph.mjs
+test/verify.mjs, test/verify.json        the consumer's verification, and its manifest
+test/embedded/                           the embedded cases it runs
 ```
 
 ## Edges
@@ -48,6 +62,14 @@ Files are read through kaal-hosting. Each Markdown file that begins like frontma
 ```sh
 npx kaal register skill kaal-graph node_modules/kaal-graph/payload    # Core decides
 ```
+
+## Verify
+
+```sh
+npm explore kaal-graph -- npm test
+```
+
+It checks the installed files against the shipped manifest, runs every embedded case against the installed copy, and ends verified (0), failed (1) or cannot verify (2). See [Operations](docs/operations.md).
 
 ## License
 

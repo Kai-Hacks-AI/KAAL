@@ -8,7 +8,7 @@ The planned tests live in `packages/skills/kaal-graph/test/plan/release.test.mjs
 | graph/T9: `npm test` is `node test/verify.mjs` and builds nothing. `test:publisher` runs `test/publisher/` and the same verify, and never runs an embedded case a second time | graph/F6, graph/F7, graph/A5 | Architecture |
 | graph/T10: `files` ships `docs`, `payload`, `skills`, `test/embedded`, `test/verify.mjs` and `test/verify.json`, and not `plan`, `test/plan` or `test/publisher` | graph/F7, graph/A5 | Architecture |
 | graph/T11: the name is `@kaihacksai/kaal-graph`, and every KAAL runtime dependency is `@kaihacksai/kaal-*` | graph/F8 | Requirements |
-| graph/T12: in a copy of the package, verify is verified (0). A changed shipped file is failed (1), naming it. An empty case inventory is unknown (2) | graph/F6 | Requirements |
+| graph/T12: in a copy of the package, verify is verified (0). A changed shipped file is unknown (2), naming it (amended at `graph/C5`). An empty case inventory is unknown (2) | graph/F6 | Requirements |
 | graph/T14: `form.mjs`, `node.mjs` and their declarations import only `yaml`, `node:` built-ins and each other. Blocked until `node.d.ts` exists (`graph/C7`) | graph/N7 | Architecture |
 | graph/T15: every existing case is placed exactly once: each one that verifies shipped behaviour is embedded, each Engineering-side one stays out of the package, and no test file is left unplaced | graph/F7 | Requirements |
 | graph/T13: the packed tarball and its packed runtime dependencies install into a clean directory. There, the installed files match `docs/operations.md`, `npm test` is verified, and `kaal-graph check` passes on the shipped payload (publisher) | graph/F9, graph/I4 | Intent |

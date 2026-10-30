@@ -146,7 +146,7 @@ describe("Graph 0.0.1 consumer contract", () => {
     assert.ok(Object.keys(p.dependencies ?? {}).includes("@kaihacksai/kaal-hosting"));
   });
 
-  it("graph/T12 [graph/F6]: in a copy of the package, verify is verified (0); a changed shipped file is failed (1), naming it; an empty case inventory is unknown (2)", () => {
+  it("graph/T12 [graph/F6]: in a copy of the package, verify is verified (0); a changed shipped file is unknown (2), naming it; an empty case inventory is unknown (2)", () => {
     blocked(VERIFY, "test/verify.mjs");
     const copy = () => {
       const dir = join(tmp(), "package");
@@ -160,7 +160,7 @@ describe("Graph 0.0.1 consumer contract", () => {
     const changed = copy();
     appendFileSync(join(changed, "skills", "kaal-graph", "scripts", "structure.mjs"), "\n");
     const c = verify(changed);
-    assert.equal(c.status, 1, output(c));
+    assert.equal(c.status, 2, output(c));
     assert.match(output(c), /skills\/kaal-graph\/scripts\/structure\.mjs/);
     const empty = copy();
     const manifest = JSON.parse(readFileSync(join(empty, "test", "verify.json"), "utf8"));
