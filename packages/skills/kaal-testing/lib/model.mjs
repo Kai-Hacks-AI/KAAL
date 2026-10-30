@@ -1,5 +1,6 @@
 // kaal-testing/model: Testing's kinds (Strategy, Plan, Suite, Case), their identities and
-// relationships, Test Data ownership, and each Run's results and Plan evaluation (testing/C14).
+// relationships, Test Data ownership, each Run's results and Plan evaluation (testing/C14), and the
+// current evidenced quality over a consumer's retained Runs (testing/C27).
 // Models and Runs are plain data handed in; the module keeps none and imports nothing.
 const DATUM = ["id", "version", "content", "external"];
 const KEYS = {
@@ -238,4 +239,63 @@ export function evaluate(model, run, given = {}) {
   for (const a of list) (cases[a.case] === "failed" ? allowed : cases[a.case] === "unknown" ? [] : stale).push(a);
   const allow = new Set(allowed.map((a) => a.case));
   return { ...out, result: agg(Object.entries(cases).map(([c, v]) => (allow.has(c) ? "passed" : v))) };
+}
+
+/** The version the model now declares for a definition or Test Data item, null where it declares none, or undefined if it declares no such id. */
+function declaredVersion(ix, id) {
+  for (const kind of ["plans", "suites", "cases"]) if (ix.ids[kind].has(id)) return ix.ids[kind].get(id).version ?? null;
+  if (ix.data.has(id)) return ix.data.get(id).datum.version ?? null;
+  return undefined;
+}
+
+/** A recorded version that reads: a nonempty string, or null for an unversioned item. */
+const recorded = (v) => v === null || nonempty(v);
+
+/**
+ * How a readable Run of `of` differs from the definitions the model now declares: [] when it is applicable.
+ * A recorded version that does not read cannot show a difference; the Run's own evaluation finds it.
+ */
+function differences(ix, run, of, inherited = {}) {
+  const out = [];
+  if (run.of !== of && inherited.of === undefined) out.push(`it is a Run of ${name(run.of)}, not of ${name(of)}`);
+  const provenance = { ...inherited.provenance, ...(object(run.provenance) ? run.provenance : {}) };
+  for (const [id, v] of Object.entries(provenance)) {
+    const now = declaredVersion(ix, id);
+    if (now !== undefined && recorded(v) && v !== now) out.push(`it executed ${name(id)} at ${name(v)}, and the model now declares ${name(now)}`);
+  }
+  for (const [id, v] of Object.entries(object(run.data) ? run.data : {})) {
+    const now = declaredVersion(ix, id);
+    if (now !== undefined && recorded(v) && v !== now) out.push(`its Test Data ${name(id)} is at ${name(v)}, and the model now declares ${name(now)}`);
+  }
+  for (const child of Array.isArray(run.runs) ? run.runs : []) if (object(child)) out.push(...differences(ix, child, of, { of, provenance }));
+  return out;
+}
+
+/**
+ * The current evidenced quality of a Plan, Suite or Case, from the Runs a consumer retained, oldest first:
+ * its latest applicable Run's result, never an older one's. A Run is applicable when it is a Run of that
+ * element and records the versions the model now declares. A Run that does not read cannot be shown
+ * inapplicable, so it stands as the latest and the result is unknown. Testing reads no clock and keeps no Run.
+ */
+export function current(model, runs, of, given = {}) {
+  const findings = [];
+  const ix = index(shape(model).m);
+  const list = Array.isArray(runs) ? runs : [];
+  if (!Array.isArray(runs)) findings.push("runs must be a list, oldest first");
+  const seen = list.map((run) => (object(run) && typeof run.of === "string" ? { run: run.id, applicable: false, differences: differences(ix, run, of) } : { run: object(run) ? run.id : undefined, applicable: true, differences: [], unread: true }));
+  for (const s of seen) if (!s.unread) s.applicable = s.differences.length === 0;
+  const at = seen.map((s) => s.applicable).lastIndexOf(true);
+  const out = { of, run: at < 0 ? null : seen[at].run, runs: seen.map(({ run, applicable, differences }) => ({ run, applicable, differences })) };
+  if (at < 0) return { ...out, result: "unknown", findings: [...findings, `no retained Run of ${name(of)} is applicable to the model as it now stands`] };
+  const latest = list[at];
+  const kind = ix.ids.plans.has(of) ? "plan" : ix.ids.suites.has(of) ? "suite" : ix.ids.cases.has(of) ? "case" : null;
+  if (kind === "plan") {
+    const e = evaluate(model, latest, given);
+    return { ...out, result: e.result, findings: [...findings, ...e.findings] };
+  }
+  const r = results(model, latest);
+  const all = [...findings, ...r.findings];
+  if (object(given) && Object.keys(given).length) all.push("allowances apply only to a Plan's evaluation");
+  const value = kind === "suite" ? r.suites[of] : kind === "case" ? r.cases[of] : undefined;
+  return { ...out, result: all.length || value === undefined ? "unknown" : value, findings: all };
 }
