@@ -117,8 +117,8 @@ export function assess(nodes, { evidence } = {}) {
   const closure = (view, start) => {
     const seen = new Set();
     const queue = [...(view.get(start) ?? [])];
-    while (queue.length) {
-      const next = queue.shift();
+    for (let head = 0; head < queue.length; head++) {
+      const next = queue[head];
       if (next === start || seen.has(next)) continue;
       seen.add(next);
       queue.push(...view.get(next));
@@ -127,19 +127,17 @@ export function assess(nodes, { evidence } = {}) {
   };
 
   // change/F12: a cycle among resolved Succeeds Edges names each of its Changes.
-  const ahead = new Map([...walked.keys()].map((identity) => [identity, closure(predecessors, identity)]));
+  // The components come predecessors first, which is the order delivery is decided in.
+  const components = stronglyConnected([...walked.keys()], predecessors);
   const onCycle = new Set();
-  for (const identity of walked.keys()) {
-    if (onCycle.has(identity)) continue;
-    const back = ahead.get(identity).filter((p) => ahead.get(p).includes(identity));
-    if (!predecessors.get(identity).includes(identity) && back.length === 0) continue;
-    const members = sorted([identity, ...back]);
+  for (const members of components) {
+    if (members.length === 1 && !predecessors.get(members[0]).includes(members[0])) continue;
     for (const member of members) onCycle.add(member);
     findings.push({ kind: "cycle", change: members[0], changes: members });
   }
   findings.sort((a, b) => compare(a.kind, b.kind) || compare(a.change, b.change) || compare(JSON.stringify(a), JSON.stringify(b)));
 
-  const delivery = evidence == null ? undefined : deliver({ evidence, walked, requires, predecessors, held, onCycle, findings });
+  const delivery = evidence == null ? undefined : deliver({ evidence, walked, requires, predecessors, held, onCycle, components, findings });
   const view = (map) => (identity, { transitive = false } = {}) => (transitive ? closure(map, identity) : (map.get(identity) ?? []).filter((x) => x !== identity));
   const identities = [...walked.keys()];
 
@@ -170,7 +168,7 @@ export function assess(nodes, { evidence } = {}) {
 const counts = (e) => isObject(e) && isText(e.run) && isText(e.plan) && isText(e.result) && isObject(e.cases) && Array.isArray(e.findings) && e.findings.length === 0;
 
 /** Delivery for every walked Change, from the evidence the caller selected (change/F16, change/F17, change/F28). */
-function deliver({ evidence, walked, requires, predecessors, held, onCycle, findings }) {
+function deliver({ evidence, walked, requires, predecessors, held, onCycle, components, findings }) {
   const by = isObject(evidence) && isText(evidence.by) ? evidence.by : null;
   const selected = by !== null && Array.isArray(evidence.evaluations);
   const evaluations = selected ? evidence.evaluations : [];
@@ -209,18 +207,71 @@ function deliver({ evidence, walked, requires, predecessors, held, onCycle, find
   }
 
   // change/F17: delivered when satisfied and every predecessor is delivered. Nothing on a cycle is.
+  // The components come predecessors first, so each predecessor is decided before its successors, without recursion.
   const delivered = new Map();
-  const isDelivered = (identity) => {
-    if (!delivered.has(identity)) {
-      delivered.set(identity, false);
-      delivered.set(identity, own.get(identity).satisfied && !onCycle.has(identity) && held.get(identity).length === 0 && predecessors.get(identity).every(isDelivered));
+  for (const members of components) {
+    for (const identity of members) {
+      const ready = !onCycle.has(identity) && own.get(identity).satisfied && held.get(identity).length === 0 && predecessors.get(identity).every((p) => delivered.get(p) === true);
+      delivered.set(identity, ready);
     }
-    return delivered.get(identity);
-  };
+  }
+  const isDelivered = (identity) => delivered.get(identity);
 
   return new Map([...walked.keys()].map((identity) => {
     const { satisfied, unmet, basis } = own.get(identity);
     const awaiting = sorted([...held.get(identity), ...predecessors.get(identity).filter((p) => !isDelivered(p))]);
     return [identity, { satisfied, delivered: isDelivered(identity), unmet, awaiting, by, basis }];
   }));
+}
+
+/**
+ * The strongly connected components of the Changes under a view, each sorted,
+ * in Tarjan's order: every component after the components it reaches. Under
+ * predecessors, that is predecessors first. It keeps its own stack, so a long
+ * chain of succession never exhausts the call stack.
+ */
+function stronglyConnected(identities, view) {
+  const index = new Map();
+  const low = new Map();
+  const stack = [];
+  const onStack = new Set();
+  const components = [];
+  let next = 0;
+  for (const root of identities) {
+    if (index.has(root)) continue;
+    const frames = [{ identity: root, edges: view.get(root), at: 0 }];
+    index.set(root, next);
+    low.set(root, next++);
+    stack.push(root);
+    onStack.add(root);
+    while (frames.length) {
+      const frame = frames.at(-1);
+      if (frame.at < frame.edges.length) {
+        const to = frame.edges[frame.at++];
+        if (!index.has(to)) {
+          index.set(to, next);
+          low.set(to, next++);
+          stack.push(to);
+          onStack.add(to);
+          frames.push({ identity: to, edges: view.get(to), at: 0 });
+        } else if (onStack.has(to)) low.set(frame.identity, Math.min(low.get(frame.identity), index.get(to)));
+        continue;
+      }
+      frames.pop();
+      if (frames.length) {
+        const parent = frames.at(-1).identity;
+        low.set(parent, Math.min(low.get(parent), low.get(frame.identity)));
+      }
+      if (low.get(frame.identity) !== index.get(frame.identity)) continue;
+      const members = [];
+      let member;
+      do {
+        member = stack.pop();
+        onStack.delete(member);
+        members.push(member);
+      } while (member !== frame.identity);
+      components.push(members.sort(compare));
+    }
+  }
+  return components;
 }

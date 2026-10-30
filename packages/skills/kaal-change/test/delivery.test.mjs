@@ -70,6 +70,37 @@ describe("kaal-change/delivery (change/C8)", () => {
     assert.ok(finding.problems.some((p) => /repeats target sample\/C1/.test(p)), JSON.stringify(finding));
   });
 
+  it("decides delivery along a long chain of succession iteratively, deterministically, and propagates an unmet predecessor to its end", () => {
+    const LENGTH = 20_000;
+    const definitions = ["Change-Definition.md", "Succeeds.md"].map((f) => identify(readFileSync(join(PACKAGE, "capability", f))));
+    const chain = [];
+    for (let n = 1; n <= LENGTH; n++) {
+      const name = `sample/C${n}`;
+      const edges = n > 1 ? [{ type: SUCCEEDS, targets: [{ name: chain[n - 2].name, id: chain[n - 2].id }] }] : undefined;
+      chain.push(identify(createNode({ name, type: CHANGE, ...(edges ? { edges } : {}), frontmatter: { requires: [`sample/T${n}`] }, body: `# ${name}\n` }).bytes));
+    }
+    const evidence = (failing) => ({
+      by: "selector",
+      evaluations: [{ run: "run-a", plan: "plan-a", result: failing ? "failed" : "passed", findings: [], cases: Object.fromEntries(chain.map((_, i) => [`sample/T${i + 1}`, failing === i + 1 ? "failed" : "passed"])) }],
+    });
+    const last = `sample/C${LENGTH}`;
+
+    const passing = assess([...definitions, ...chain], { evidence: evidence(0) });
+    assert.equal(passing.delivery(last).delivered, true, "every predecessor delivered, so the last Change is delivered");
+    assert.equal(passing.succeeds(last, { transitive: true }).length, LENGTH - 1, "and its transitive view holds the whole chain");
+
+    const blocked = assess([...definitions, ...chain], { evidence: evidence(1) });
+    assert.deepEqual(blocked.delivery("sample/C1").unmet, [{ case: "sample/T1", result: "failed" }], "the first Change is unmet");
+    for (const n of [2, LENGTH / 2, LENGTH]) {
+      const d = blocked.delivery(`sample/C${n}`);
+      assert.equal(d.satisfied, true, `sample/C${n} satisfies its own Case`);
+      assert.equal(d.delivered, false, `and is not delivered, because the unmet predecessor propagates`);
+      assert.deepEqual(d.awaiting, [`sample/C${n - 1}`], "awaiting its direct predecessor");
+    }
+    const reversed = assess([...chain].reverse().concat(definitions), { evidence: evidence(1) });
+    assert.deepEqual(reversed.exchange(), blocked.exchange(), "the order of the Nodes never matters");
+  });
+
   it("without Graph, gives cannot-assess and no verdict, view or exchange", () => {
     const r = isolated();
     assert.equal(r.status, 0, r.err);
