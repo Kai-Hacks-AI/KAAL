@@ -34,3 +34,36 @@ The cases keep their numbers. Where a case's meaning changes, its new title repl
 packaging/T9, packaging/T10 and packaging/T13 run against a stand-in tool, a script on a `PATH` the test controls, that writes each wrong report or version. So they do not depend on how npm behaves. packaging/T1, packaging/T7, packaging/T11, packaging/T12 and packaging/T14 run the npm the lane has installed, which must be at least 11.18.0. A lane with an older npm refuses them, naming its version, and that counts as RED, not as a pass. Each case is first RED against a deliberately wrong implementation, as the cases above were.
 
 **The public interface moves with the cases.** `measure(artifact, { work, limits })` is asynchronous, and `LIMITS` becomes `files`, `path`, `unpacked` and `output`. `packaging/C2`'s README, its `.d.ts` and every case use that form. Nothing keeps the old synchronous `measure(bytes)`.
+
+## RED evidence
+
+The cases are in `packages/kaal-packaging/test/plan/measurement.test.mjs` and run with `npm test -w kaal-packaging`.
+
+- **Before any code, all eight original cases were blocked, not RED.** The first assertion failed because `kaal-packaging` did not resolve. That shows only that the package was missing, so it is not counted as evidence.
+- **After `packaging/C3`, each of the fourteen cases was run against deliberately wrong implementations, one at a time.** Each was a single edit to the implementation that turns them GREEN, run with npm 11.19.1 on Node 24.22.1. Every case is RED on its behavioural assertion against at least one of them.
+
+| Wrong implementation | RED |
+| --- | --- |
+| counts a 512-byte header per file into the unpacked size | packaging/T1, packaging/T2, packaging/T6, packaging/T7, packaging/T10 |
+| drops the last file | packaging/T1, packaging/T2, packaging/T7, packaging/T14 |
+| puts a file in the shortest matching group, not the longest | packaging/T2 |
+| leaves removed paths out of the comparison | packaging/T3 |
+| writes a record with a SHA-256 that is not the artifact's | packaging/T4 |
+| writes a record without the tool | packaging/T4, packaging/T8 |
+| ends every text report with "within budget: pass" | packaging/T5 |
+| imports `node:zlib` | packaging/T6, packaging/T8 |
+| reads every artifact as npm's, so a `zip` is not refused | packaging/T8, packaging/T12 |
+| lets npm's start failure escape unnamed | packaging/T9 |
+| ignores npm's exit status | packaging/T9 |
+| accepts an unsafe path | packaging/T10, packaging/T11 |
+| accepts a path listed twice | packaging/T10, packaging/T11 |
+| does not check the files' sum, the entry count, the packed size or the output limit (four implementations) | packaging/T10 |
+| does not check whether the artifact changed while npm ran | packaging/T10 |
+| accepts a relative location | packaging/T12 |
+| accepts npm below 11.18.0 | packaging/T13 |
+| records the version without its pre-release | packaging/T13 |
+| lets npm read the user's configuration and cache | packaging/T14 |
+
+One edit was not RED: dropping the `--` before the artifact. `measure` takes only an absolute location, and no absolute location begins with `-`, so no case through the public interface can tell the two apart. The `--` is kept as defence in depth, as `npm.md` recommends.
+
+While writing `packaging/T11`, npm 11.19.1 reported a directory entry `package/` as an empty path. `npm.md` records it, `packaging/T11` checks it, and `measure` refuses it as an unsafe path. npm packs no directory entries, so a tarball npm packed is not affected.

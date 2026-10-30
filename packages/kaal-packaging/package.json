@@ -1,0 +1,29 @@
+{
+  "name": "kaal-packaging",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Packaging: how KAAL's deliverables become packages. This increment measures a package artifact's delivered size.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/packaging.d.ts",
+      "default": "./lib/packaging.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "capability",
+    "lib"
+  ],
+  "scripts": {
+    "test": "node --test test/plan/measurement.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@kaihacksai/kaal-foundation": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  }
+}

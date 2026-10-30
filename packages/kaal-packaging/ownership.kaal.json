@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Packaging", "id": "7bb7f9eeba38848847af8043265c4f07ffcc07bb1a0a0c6e635431c740309eae" },
+  "paths": ["packages/kaal-packaging/"]
+}

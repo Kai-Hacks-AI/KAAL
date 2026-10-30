@@ -28,6 +28,7 @@
 | `package/a\b.txt` | `a\b.txt` |
 | `package/a.txt` twice | `a.txt` twice, both sizes counted |
 | a symbolic link | nothing: the entry is left out |
+| a directory entry `package/` | an empty path, size 0 (observed on 11.19.1 while writing `packaging/T11`; npm packs no directory entries) |
 
 A dry run writes none of these files. Packaging still refuses every one of these paths (`packaging/N4`) and does not normalize them, so a recorded path is always the path npm reported.
 
