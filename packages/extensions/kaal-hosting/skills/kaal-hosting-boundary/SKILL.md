@@ -43,3 +43,7 @@ A capability may write `// kaal-hosting: platform <reason>` at the end of the fi
 ## Escalation
 
 An agent records its judgment through Review, citing the request's `id`. When an agent's authority is not enough to settle a request, it escalates to a human through PREACH. The request stays open in the result until Review's record says otherwise.
+
+## Hosts and applicability
+
+For host facts, the fixtures that need them, the applicability rules, the portability audit and the `host-applicability` review, read `HOSTS.md` beside this Skill.
