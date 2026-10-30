@@ -17,7 +17,7 @@
 import { join } from "node:path";
 import { evaluate, foundation } from "kaal-core";
 import { Graph } from "kaal-graph";
-import { execute, readFile } from "kaal-hosting";
+import { execute, readFile } from "@kaihacksai/kaal-hosting";
 import { attribute, isClaimFile, KINDS } from "kaal-testing/attribution";
 import { inventory } from "kaal-testing/inventory";
 
