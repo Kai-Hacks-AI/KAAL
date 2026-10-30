@@ -211,7 +211,7 @@ function publisher(dir) {
 }
 
 describe("guard/N6 [guard/I5] the package's own tests", () => {
-  it("guard/T98 [guard/N6]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs; there, npm test is cannot verify, never a pass", (t) => {
+  it("guard/T98 [guard/N6, guard/D17]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs; there, npm test is cannot verify, never a pass", (t) => {
     // `npm test` is the consumer's verification of the installed copy (guard/F32), so the package's own
     // tests are run by their files.
     const r = spawnSync(process.execPath, ["--test", "test/unit/*.test.mjs", "test/acceptance/*.test.mjs"], { cwd: PACKAGE, env: clean(), encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });

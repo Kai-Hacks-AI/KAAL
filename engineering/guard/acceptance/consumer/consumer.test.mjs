@@ -169,7 +169,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(line(push.output), line(direct.output), "the hook's verdict differs from run --hook with the same facts");
   });
 
-  it("guard/T43 (H4) [guard/I5, guard/F17]: init on KAAL adds nothing that duplicates KAAL's existing integration", async (t) => {
+  it("guard/T43 (H4) [guard/I5, guard/F17, guard/D3]: init on KAAL adds nothing that duplicates KAAL's existing integration", async (t) => {
     const h = await a12();
     const candidate = h.candidate();
     announce(t, candidate);
