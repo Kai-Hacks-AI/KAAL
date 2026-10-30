@@ -1,6 +1,8 @@
 # Graph 0.0.1: Intent
 
-This is `graph/C4`, a PLAN Change. It ships no code. It fixes the consumer contract of Graph's first release, `@kaihacksai/kaal-graph@0.0.1`. That covers your sequencing question on #621 and your namespace alignment on #622 (comment 6503611371). `graph/C5` and `graph/C6` turn its planned tests GREEN, one Change at a time.
+This is `graph/C4`, a PLAN Change. It ships no code. It fixes the consumer contract of Graph's first release, `@kaihacksai/kaal-graph@0.0.1`, under your namespace alignment on #622 (comment 6503611371). `graph/C5` and `graph/C6` turn its planned tests GREEN, one Change at a time.
+
+Per your decision on #621, Graph is not promoted early. `kaal/graph` is promoted to `main` only as the accepted release candidate, after `graph/C6`. Under core/C32 (#640), Core needs no Graph at runtime. Core copies Graph's `form.mjs`, `node.mjs` and their declarations byte for byte at build time, so Graph stays their only authoritative source.
 
 Graph's scope stays as it is: a Node's Form and identity, the Edges embedded in Nodes, structural navigation (`reach`, `reverse`, `cycles`), and the `kaal-graph` CLI. It never gives a consumer's relationships their meaning. This Change adds no semantics.
 

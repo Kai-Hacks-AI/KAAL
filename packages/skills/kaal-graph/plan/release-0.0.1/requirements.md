@@ -31,3 +31,4 @@ Each Requirement names, in brackets, the Intents it serves.
 
 - **graph/N5** [graph/I6]: Additive. Every export, Node id and CLI behaviour is unchanged, and graph/T1–graph/T7 and Graph's existing tests stay GREEN.
 - **graph/N6** [graph/I4]: Platforms. It behaves the same on Linux, macOS and Windows, under Node 24 or later.
+- **graph/N7** [graph/I6]: Copyable Form. `form.mjs` and `node.mjs`, with `form.d.ts` and `node.d.ts`, import only `yaml`, `node:` built-ins and each other. Core's build copies these four files byte for byte (core/C32), so they must work on their own, with no other Graph file beside them.
