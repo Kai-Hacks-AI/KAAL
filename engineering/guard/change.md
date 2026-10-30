@@ -449,6 +449,38 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Authorization.** Approving this PLAN authorizes the measurement only. A reduction takes the Owner's choice on the DO PR.
 - **DO (`guard/C117`), the measurement.** It is recorded in `testing.md` under "Package size, measured": each shipped path's unpacked and gzip bytes for `0.0.3`, `0.0.4`, the candidate (byte for byte `0.0.4`) and a local `0.0.5` preview. The growth since `0.0.3` is consumer verification and the product contract, 67% of `0.0.4`'s gzip bytes. Two reductions that keep every case and meaning were applied and packed. They save 296 and 2,976 tarball bytes, 3,274 (2.8%) together. They came back to the Owner as options. The Owner chose None on #579: the growth is the product contract and its verification, and 0.3%–2.8% does not justify a less readable manifest or added complexity. Nothing is reduced and no size budget is set. Reusable package-size measurement goes to Packaging, as a separate PLAN. No product file changes.
 
+**Tests placed by the realization they verify (`guard/C129`, PLAN, revised).** The Owner set the placement rule on #631 (comment 6510328744) and refined it in review 5717447773. This revision replaces the earlier ones. Classification follows the realization a test verifies, not where it is convenient to run it. Guard has three realizations, each with its own Test Plan and owner:
+- **Engineering Tests belong to Engineering.** They verify KAAL's own handling of Guard: the publisher's checks, KAAL's integration and release acceptance. They live in `engineering/guard/`, and `engineering/guard/testing.md` is their Test Plan.
+- **Embedded Tests verify the installed Guard contract.** They ship in the package (`test/unit/`, `test/acceptance/`), the package's `docs/testing.md` is their Test Plan, and `test/verify.json` lists them.
+- **External Tests verify External, with External's own Test Plan and ownership.** External means a KAAL-loaded agent that uses KAAL's knowledge to serve another repository. It is not a consumer of the Guard package: the delivery is naked and installs no `@kaihacksai/kaal-guard`. Its cases (guard/T3, guard/T56, guard/T83, guard/T93, guard/T112) are today rows of Engineering's Test Plan and live in `engineering/guard/acceptance/external.test.mjs`, beside its tooling in `engineering/guard/external/`. That mixes two owners.
+- **How this fits Packaging and Engineering.** It matches the context rule of `packaging/C4` (packaging/A11, #658), and the comprehensive lane of `engineering/C6` (#655).
+  - **The installed `npm test`.** It runs the Embedded verification only (packaging/F9). Guard's `scripts.test`, `node test/verify.mjs`, already does this.
+  - **The source `npm test`.** It follows the package's declared source Test Plan (packaging/F14). Guard declares one suite, its Embedded verification, so it is the consumer-only form, as hosting/F20 is.
+  - **The root `npm test`.** It is Engineering's. Under #655 it runs every workspace's `npm test`, then Engineering's own declared suites, and reports each one by owner. Guard declares where its suites are; Engineering orchestrates them.
+- **The gap: suites that no lane runs, so a GREEN can be false.** At this base the root `npm test` runs one of Guard's Engineering suites, `authority.test.mjs`, through `test:engineering`. The `Guard` job in `ci.yml` globs `engineering/guard/acceptance/*.test.mjs`, which misses `acceptance/consumer/consumer.test.mjs` (guard/T36, guard/T40, guard/T42, guard/T43, guard/T64–guard/T68, guard/T118). The Windows and macOS jobs list three of the five files by name. So a lane can be GREEN with a declared Guard case never run, and nothing reports it.
+- **What the DO changes.**
+  1. **External gets its own Test Plan.** It is a new `engineering/guard/external/testing.md`, owned by External, and Guard is accountable for it. The five External rows move there from `engineering/guard/testing.md` with their identifiers unchanged. The test file moves to `engineering/guard/external/acceptance/external.test.mjs`, beside its tooling. Engineering's Test Plan points to it and no longer defines those cases.
+  2. **Every suite is declared with its owner.** Each Test Plan has a "Suites" table: owner, location, the command that runs it, and the hosts it runs on. A host left out needs a declared reason, as `guard/C118` requires. Guard declares three: Embedded (`npm test -w @kaihacksai/kaal-guard`); Engineering (every `*.test.mjs` under `engineering/guard/acceptance/` and `engineering/guard/consumer/`); External (`engineering/guard/external/`).
+  3. **Root orchestration where it applies.** Engineering's lane runs each declared Guard suite as its own suite with its owner, as #655 does for workspaces. External needs a fresh target and runs only where the lane can make one. Where it cannot, the lane reports it as "not run", never as passed. The orchestration is Engineering's change. Guard's DO supplies the declarations and the guard below, and asks Engineering for the lane entry on the DO PR.
+- **Placement and the false-GREEN guard, as one Engineering-side case, guard/T134.** It reads the three Test Plans, their Suites tables, every Guard test file, root `package.json` and the Guard jobs in `.github/workflows/`. It refuses:
+  - a case defined in one Test Plan but located under another owner's path, or defined in two;
+  - a test file under the package's `test/` that the packed file list or `test/verify.json` does not hold;
+  - a `scripts.test` that invokes `npm test` recursively, or names a path outside the package;
+  - **the false-GREEN case:** a Guard test file that no declared suite covers, or a declared suite that no lane runs on a host it declares, naming the file or the suite and the lane. The negative fixtures include today's misses: the `consumer/` directory under the `Guard` job's glob, and a file the Windows job omits.
+
+  It has a negative fixture for each refusal. It is RED first on this base, because of the gap above, and GREEN once the DO's declarations and Engineering's lane entry land.
+- **Guard's assessment of consumer evidence (point 4 on #625).** Unchanged. The evidence that counts:
+  - the packed artifact, installed offline outside the repository, whose installed `npm test` ends `verified`;
+  - that run lists the publisher allocations (among them guard/F33 and guard/F34) and never reports them as passed;
+  - the packed file list holds no Engineering path and no KAAL dependency;
+  - for a release, all of it on the exact SHA on Linux, macOS and Windows (`guard/C126`).
+  
+  A source-tree run never stands in for it.
+- **Not here.** No Embedded Test moves, and `scripts.test` does not change. guard/A8 and guard/T30 still forbid any package file from referring to an Engineering or External path.
+- **Place in the path to `0.0.5`.** It goes after `guard/C113` and before `guard/C125`. It changes no package file. It depends on Engineering's lane entry under #655 for guard/T134 to turn GREEN.
+- **Test Cases.** guard/T134 is planned here and written in the DO. The five External cases keep their identifiers.
+- **Authorization.** Approving this PLAN authorizes `guard/C129`'s DO only: no version bump, synchronization, promotion or publication.
+
 **An outside read of the product documents, triaged (`guard/C119`, PLAN).** The Owner shared an outside read of Guard's product documents at f0d1eb9 (Perplexity, project chat, 2026-10-28). It covers Intent, Requirements, Architecture and the defect history in Limitations, with findings I-1–I-3, R-1–R-5, A-1–A-4 and D-1–D-3. The Owner's rule: a finding counts only if it is proven against the documents. Being true does not make it a correction. Each finding was checked against `packages/kaal-guard/docs/` and `lib/` on `kaal/guard-release`, and against the `0.0.5` Changes already open (`guard/C113`–`guard/C118`). This PLAN changes no product file.
 
 | Finding | Verdict | Evidence |
@@ -483,6 +515,51 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Order.** `guard/C121` first: it is the only one where a requirement disagrees with shipped behaviour. The other three are independent.
 - **Authorization.** Approving this PLAN authorizes the four Changes to be raised as PLANs for review. It authorizes no DO, no version bump, no promotion and no publication.
 
+**`Guard/Check` in Core's value kinds (`guard/C130`, PLAN, revised).** The Owner decided on #609 (comment 6504548445) that Guard owns this correction. Guard defines and validates `command` and `outcomes` within Core's existing value kinds (`core/F1` in `kaal-core`'s frontmatter plan). A Core Change is raised only if Guard shows those kinds are insufficient. The evidence is §4 of Engineering's representation research on #609.
+- **The finding.** `core/F1` has no free-text kind and allows a mapping only as a `ref`, and `core/F8` says a Capability's own validator is never looser than `core/F1`–`core/F6`. Guard's validator (`lib/config.mjs`) accepts `command` as any string that parses into words, and `outcomes` as a map from exit status to `held`. So the `Guard/Check` Type has no `core/F1` schema. guard/F1 also says "Its publisher checks that conformance with Core's validator before each release", and no such check exists.
+- **The schema, member by member.**
+  - `type`: the discriminator, which no schema declares (`core/F6`).
+  - `command`: `parameter`, with the pattern `^[^\r\n]*\S[^\r\n]*$` (one line, not blank). Guard's own check that the line parses into a program and its words stays as type-specific validation (`core/F8`), never looser.
+  - `runs`: a required list of `enum` [`hook`, `ci`].
+  - `facts`: a list of `enum` over Guard's facts.
+  - `trusted`: `path`.
+  - `held`: a list of `number`. It replaces `outcomes`. Guard's own checks keep each status an integer from `4` to `255`, never `0`–`3`, and listed once. `held: [4]` means what `outcomes: {"4": held}` meant, and the canonical-decimal rule for string keys falls away, because the statuses are numbers.
+
+  `core/F1`'s kinds are sufficient, so no Core Change is needed.
+- **What the DO changes.**
+  - guard/F1 and guard/F2 state the schema above. guard/F1's parsing subset loses the flow map and gains the flow list of integers.
+  - `lib/config.mjs` validates `held` and refuses `outcomes`. The refusal names `held` and gives the exact line to write, for example "write held: [4]".
+  - The README, the Skill and the examples follow.
+  - guard/F42's table for `0.0.5` gains the change under "what changes": a declaration that uses `outcomes` is refused until it says `held`. The table shows the line to write. `upgrade` never rewrites a declaration, because declarations are the repository's (guard/A1).
+- **KAAL's own declarations.** `.kaal/config/guard/Branching.md`, `Branching-audit.md` and `Promotion-Source.md` each carry `outcomes: {"4": held}`. KAAL uses the workspace's Guard, so the DO changes each of them to `held: [4]` in the same commit, otherwise KAAL's own checks would turn cannot judge. Their meaning is unchanged. The files are the KAAL repository's, so Engineering is asked to agree on the PR.
+- **Test Cases.**
+  - guard/T128 is a delivered Requirements case, RED first against `0.0.4`. It checks that `held: [4]` is accepted and gives held on exit 4, and that `outcomes: {"4": held}` is refused with a next step that names `held`. It also checks that statuses `0`–`3`, a status above `255`, a non-number and a duplicate status are each refused.
+  - guard/T129 is an Engineering-side case: the conformance check guard/F1 promises. It runs `kaal-core/frontmatter` with Guard's `Guard/Check` schema, stated in `core/F1` kinds, over a corpus of valid and invalid declarations. Guard's validator must never accept what Core's refuses. It is publisher-only, because the package depends on no Core module (guard/A8), and it is Guard's by the realization rule (#574).
+- **The migration from `outcomes` to `held`, made explicit (the Owner's review 5717448310).**
+  - **Each upgrade source of `0.0.5`.** guard/F42 names `0.0.2`, `0.0.3` and `0.0.4`. Each accepted `outcomes` as a map from a decimal string to `held`, and none knew `held`. guard/F42's row for each source states the same step: every declaration with `outcomes: {"N": held, …}` becomes `held: [N, …]`, with the same statuses in ascending order. `upgrade` does not rewrite it. Until the step is taken, the target refuses the declaration as cannot judge, naming the file and the exact line to write. guard/T118 exercises each declared source with such a declaration. It checks what is refused before the step, what is kept byte for byte, and that the target is verified after it.
+  - **Embedded consumer configurations.** The step applies to any declaration in a consumer's configuration directory, whatever its source. That includes a declaration written by hand and one a Skill wrote. KAAL's three declarations are the first real instance, migrated in this DO.
+  - **Mixed and ambiguous forms are refused, never resolved.** In each case the refusal is cannot judge, names the file, and gives the line to write:
+    - a declaration with both `outcomes` and `held`, even when the two agree;
+    - `outcomes` with any value other than `held`;
+    - a `held` that is not a flow list of integers, for example a map or a string;
+    - a status listed twice, in `held` or as a duplicate key in `outcomes`;
+    - a status in `0`–`3`, above `255`, negative, or not an integer.
+
+    guard/T128 holds one negative case for each of these. guard/T118 holds the mixed form in a consumer before the upgrade.
+- **Two validations, kept apart.**
+  - **Core's generic validation.** It checks only that a declaration's frontmatter fits the `Guard/Check` schema in `core/F1` kinds: types, enums, the `parameter` pattern, and a list of `number`.
+  - **Guard's semantic validation.** It lives in `lib/config.mjs` and adds the rest: the status range, uniqueness, the reserved `0`–`3`, the parse of `command`, the `trusted` path and the refusal of `outcomes`. It is never looser than Core's (`core/F8`).
+  - **Neither imports the other.** The package depends on no Core module (guard/A8). guard/T129 compares the two over one corpus: Guard never accepts what Core refuses. Where Guard alone refuses, it is listed as semantic, so the corpus shows which layer refused each case.
+- **Both contracts stay testable on the installed package.** Guard's own contract is tested by guard/T128, which is delivered, so it runs in the installed `npm test` against the installed copy. The generic Packaging contract (`packaging/C4`, packaging/F9 and packaging/F11) is tested by Packaging's reusable cases, run by Engineering against the same installed candidate. This Change adds nothing that either of them would have to skip. guard/T129 is the publisher's, and it never runs in the installed package.
+- **Place in the path to `0.0.5`.** After `guard/C113` (#576) and `guard/C129`, and before `guard/C125`. It is a consumer-visible format change, so it ships in `0.0.5`, with its notes and guard/F42's row.
+- **The Owner's decision (#632, review 5706021452).** `0.0.5` accepts `held` only and refuses `outcomes`, with no compatibility alias. The refusal names the exact `held` line to write. The shipped upgrade-path documentation (guard/F42's rows for `0.0.2`, `0.0.3` and `0.0.4`) and the transition acceptance both cover existing consumer declarations:
+  - guard/T118's consumer holds a declaration with `outcomes: {"4": held}` before it upgrades.
+  - After `upgrade`, the declaration is kept byte for byte, and the target refuses it, naming `held: [4]`.
+  - Once the consumer writes `held: [4]`, the check gives held on exit 4, and the target's verification gives verified.
+
+  The KAAL migration of the three declarations lands in the same DO, with Engineering's review.
+- **Authorization.** Approving this PLAN authorizes `guard/C130`'s DO only: no version bump, promotion or publication.
+
 **Reserved statuses, as guard/F2 should name them (`guard/C121`, PLAN).** R-1 from `guard/C119`, first in its order. guard/F2's bullet on named outcomes says an `outcomes` key is `"0"` to `"255"`. The code and the README already reserve `"0"`–`"3"`: `lib/config.mjs` refuses them, because Guard owns those statuses (`OWN`), and the README twice names `"4"` to `"255"`. The requirement is the outlier, and no Test Case covers `"0"`–`"3"`.
 - **Requirement.** In guard/F2's "Named outcomes" bullet, "`"0"` to `"255"`" becomes "`"4"` to `"255"`", followed by: "`"0"` to `"3"` are Guard's own verdicts and cannot be renamed; a key naming one is refused as cannot judge, naming `"4"` to `"255"`." Nothing else in guard/F2 changes.
 - **Product change.** None in `lib/` or the README. The behaviour already holds.
@@ -490,6 +567,45 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Not here.** The other findings of `guard/C119`, which `guard/C120`, `guard/C122` and `guard/C123` carry.
 - **Authorization.** Approving this PLAN authorizes `guard/C121`'s DO only: no version bump, promotion or publication.
 - **DO (`guard/C121`).** guard/T125 was committed first and is GREEN against `0.0.4`, because the behaviour already holds. It is RED when `lib/config.mjs` stops reserving `0` and `3`, checked by hand, so it is not vacuous. guard/F2's "Named outcomes" bullet now names `"4"` to `"255"` and says why `"0"` to `"3"` are refused. `lib/` and the README are unchanged. The manifest was regenerated. This DO authorizes no version bump, promotion or publication.
+
+**Defects found before a release, defined by the product (`guard/C132`, PLAN, revised).** The Owner chose option A on #645 (`engineering/C8`) and approved it on #646 (`guard/C131`, review 5711485981). Guard defines the Defects its delivered cases test, and its cases trace out to them. Engineering's register then cites them and no longer authors a Defect → Test Case trace or a permanent Status. This PLAN is the Guard half, and it lands before the `engineering/C8` DO.
+- **Which Defects.** These ten were found by the publisher's release reviews before any published version shipped them:
+  - guard/D6–guard/D14 were found in the `0.0.2` candidate. Each was established when guard/T84–guard/T92 were recorded RED in `guard/C63` (#433), and corrected before `0.0.2` was published.
+  - guard/D18 was found in the `0.0.3` candidate. It was established when guard/T100 was recorded RED on the uncorrected runner in `guard/C92` (#505), and corrected there.
+
+  Their cases are all delivered: guard/T84–guard/T92 in `test/acceptance/requirements.test.mjs`, and guard/T100 in `test/unit/runner.test.mjs`. guard/D4 (retracted) and guard/D15 (External delivery) stay in Engineering's register. They are not the package's.
+- **In the product.**
+  - `docs/limitations.md` gets a second table, "Defects found before a release". It has the same columns as "Defects in published versions": Defect, Prohibited behaviour, Tested by, Observed in Test Runs.
+  - Each behaviour is stated as a prohibition.
+  - Observations are scoped by candidate and environment and never claim a published version: for example "RED in the `0.0.2` candidate (`packed`, Linux, before release); GREEN from `0.0.2`". A consumer reads that these were never in a version they could install.
+  - "Tested by" is derived by realization, so for all ten it reads "delivered".
+- **Case titles.** guard/T84–guard/T92 cite guard/D6–guard/D14 in order, and guard/T100 cites guard/D18. Each keeps the Requirements it verifies.
+- **No duplicate definition.** Engineering's ten rows for these Defects become the citing form, `| guard/Dn (product) | …`, as `guard/C123` did for the first six. guard/T111 then still finds each Defect defined exactly once. Removing Engineering's authored Traces-to and Status columns is `engineering/C8`'s DO, not this one.
+- **Widening guard/T127.** It reads both tables. Its negative fixtures add a Defect in "found before a release" whose observation claims a RED in a published version, and a Defect defined in both tables. Each must be refused. guard/T107 and the manifest generator already read Defect rows from `docs/limitations.md`. The manifest and the trace are regenerated.
+- **Observations, tied to their runs (the Owner's review 5717449664).** Each entry in "Observed in Test Runs" names four things, as `guard/C123`'s table does:
+  - its result, RED or GREEN;
+  - the candidate: the version, `packed` or `registry`, and the commit where the publisher recorded one;
+  - the environment: the OS and Node version, where the publisher recorded them, and nothing claimed where it did not;
+  - the Test Run that observed it: the Change and its pull request, or the CI run.
+  
+  An entry is written only from a run that happened. guard/D6–guard/D14 come from `guard/C63` (#433), RED, and from `guard/C64`–`guard/C68`, GREEN. guard/D18 comes from `guard/C92` (#505). A later GREEN is added beside the RED and never replaces it. There is no Status column, and nothing reads a Defect as closed. A Defect stays durable, and its RED stays the evidence that established it.
+- **Tested by, derived.** "Tested by" is generated from the case titles by `verify-manifest.mjs`, between markers, as the product trace already is. No one writes it by hand.
+- **More negative fixtures for guard/T127.**
+  - an observation that names no candidate or no Test Run;
+  - a Defect in "found before a release" with GREEN entries only, which no RED ever established;
+  - a "Tested by" that differs from the one derived from the titles.
+  
+  Each is refused, naming the Defect.
+- **Reconciled with `engineering/C8` (#645) before the DO.** The identifiers line up as follows:
+  - The package defines and ships guard/D1–guard/D3, guard/D5, guard/D6–guard/D14, guard/D16, guard/D17 and guard/D18, in `docs/limitations.md` and the manifest's trace.
+  - #645's register cites each of those as `| guard/Dn (product) | …` and defines none of them. It keeps only guard/D4 (retracted, guard/T44).
+  - guard/D15 is tested by guard/T93, the External delivery's workflow, and is never shipped. Under `guard/C129` (#631), guard/T93 moves to External's own Test Plan, so guard/D15 moves with it. Until then it stays in Engineering's register.
+  
+  The DO PR shows a trial merge with #645's head on which both are GREEN: guard/T111, every Defect defined exactly once, and #645's duplicate-authority case. If #645 has changed by then, the DO follows its head and says what changed.
+- **Interaction with `guard/C130`.** guard/T91 tests guard/D13: an `outcomes` key with a leading zero. `guard/C130` replaces `outcomes` with `held`, where a status is a number and has no leading zero. guard/D13 stays a durable, historical prohibition with its observations. In `guard/C130`'s DO, guard/T91 either asserts the same prohibition against `held`, or is retired there with its evidence kept. That DO says which. This PLAN does not decide it.
+- **Test Cases.** No new identifier. guard/T127 is widened, and is RED first for the new section. guard/T111 and guard/T107 stay GREEN.
+- **Place in the path to `0.0.5`.** Step 5c: this DO, then the `engineering/C8` DO, then guard/T130 GREEN on the exact candidate SHA (`guard/C131`). All of it comes before `guard/C125`.
+- **Authorization.** Approving this PLAN authorizes `guard/C132`'s DO only: no version bump, synchronization, promotion or publication.
 
 **Architecture places every module and serves every Requirement (`guard/C122`, PLAN).** A-1, A-2 and A-3 from `guard/C119`. Architecture says it "gives each one positive ownership", yet seven of the ten modules in `lib/` are named by no element, and guard/F11–guard/F17, guard/F29, guard/F30 and guard/N1 are cited by none.
 - **Placement (A-1).** Each module in `lib/` is named by exactly one element. `command.mjs` (the words of a `command`, guard/F9) and `trusted.mjs` (the base copy of a trusted checker, guard/F7) by guard/A3 Runner, which runs them. `state.mjs` (the installation record and local state, guard/F29) by guard/A6 Lifecycle, the only writer. `reminder.mjs` by guard/A15 Reminder. `node.mjs` and `git.mjs` (the Node and Git prerequisites, guard/N1) by guard/A7, which places the command that imports them before anything else, and guard/A7 cites guard/N1. `config.mjs` reads and validates the declarations (guard/F18) for the runner, the lifecycle and the GitHub adapter alike, so placing it under any one of them would misstate it; the DO adds guard/A21 Declarations [guard/F1, guard/F18] for it, beside guard/A1, which stays the repository's data.
@@ -557,6 +673,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   3. `guard/C116` DO (#573), approved. Two limits are stated, with guard/T123.
   4. `guard/C118` PLAN (#570, revised), then DO (#577). A portable fixture for guard/T114 is assessed with Hosting (#650). Failing that, its Windows inapplicability is declared in the Test Plan and reviewed. guard/T131 is its portable complement, and guard/T132 refuses undeclared platform branches.
   5. `guard/C113` PLAN (#571), then DO (#576), both approved. guard/F42 declares the paths from `0.0.2`, `0.0.3` and `0.0.4`, and guard/T118 takes its sources from that declaration. As the last of the three to land, it also makes guard/A6 cite guard/F42 so that guard/T126 stays GREEN. That is a correction to an approved PR, so it needs the Owner's approval again.
+  5a. `guard/C129`: tests placed by the realization they verify (the Owner on #631): Engineering, Embedded and External each with its own Test Plan and owner; every suite declared and run by a lane; guard/T134 refuses a suite no lane runs. PLAN first.
   5c. `guard/C131`: Engineering's Defect register corrected first (`engineering/C8`, #645), with guard/T130 as the gate; `guard/C132` before it if the Owner chooses option A on #645.
   6. `guard/C125`: version `0.0.5` and its release notes. This is the bump, and it needs the Owner's authorization. `package.json`, the README's notes for `0.0.5` and the manifest are regenerated. No behaviour changes.
   7. `guard/C126`: acceptance of the candidate before publication, on the exact SHA of `guard/C125`, with the evidence below. It records evidence only and changes nothing.
@@ -657,6 +774,32 @@ This revision replaces the first version. The DO changes shipped test files and 
 - **A Guard Change if the Owner chooses option A on #645.** guard/T111 lets a product case cite only Defects the package defines. So for guard/T84–guard/T92 and guard/T100 to trace to guard/D6–guard/D14 and guard/D18, Guard would define those ten Defects in `docs/limitations.md` as Defects found before a release, and add each to its case's title. guard/T127 then derives their "Tested by" and checks their observations. That would be `guard/C132`, PLAN then DO, landing before the `engineering/C8` DO. Engineering would keep only guard/D4 (retracted) and guard/D15 (External delivery). Under option B, no Guard Change is needed.
 - **Place in the path to `0.0.5`.** Step 5c: `guard/C132` if option A, then the `engineering/C8` DO, then guard/T130 GREEN. All of it before `guard/C125`.
 - **Authorization.** Approving this PLAN authorizes `guard/C131`'s DO only, which is guard/T130 and the path's record. It authorizes no version bump, promotion, synchronization or publication, and it does not reopen the approval of the `guard/C123` DO.
+
+**Each release declares its upgrade paths (`guard/C113`, PLAN).** On #552 the Owner set out that the target release owns its supported migration paths. guard/F11–guard/F16 say how `upgrade` behaves, but no release says which earlier versions it supports moving from, or what a consumer on each must do. `0.0.4` is published and immutable, so this starts with `0.0.5`.
+- **Requirement.** The DO adds guard/F42 to the product's requirements: "**Supported upgrade paths.** [guard/I5] Each release declares the earlier versions it supports moving from. For each one it states: the path (a dependency and lockfile change, then `upgrade`), its prerequisites, what changes and what is kept, how a failure shows and how to recover, and how to verify the result (`npm explore @kaihacksai/kaal-guard -- npm test`, then `kaal-guard verify`). A version it does not declare is not supported, and the release says what to do instead."
+- **Where it is declared.** In the shipped docs, as one table in `docs/requirements.md` under guard/F42, with a pointer in the README's "Release notes". `contract.json` is an instance of Core's Installation Contract format, which Core owns. A machine-readable member there is Core's to define, so it is asked of Core as a question, and `guard/C113` does not wait for it.
+- **For `0.0.5`.** The declared sources are `0.0.2`, `0.0.3` and `0.0.4`, the versions the catalogue knows. `0.0.1` stays unsupported, with fresh setup as the next step, as the `0.0.2` notes already say.
+- **Transition evidence.** guard/T118 runs for each source the target declares, read from that table, so its evidence and the release's declaration cannot drift. guard/T65–guard/T68 keep their declared applicability.
+- **Test Cases.** guard/T124 is a product case in `test/acceptance/architecture.test.mjs`, delivered with the package. It is RED first against `0.0.4`, which declares no paths.
+- **Not here.** Recording a particular consumer's migration is operational, not Guard's. The cross-product migration-assurance requirement stays with its owners as a separate question.
+- **Authorization.** Approving this PLAN authorizes `guard/C113`'s DO only: no version bump, promotion or publication.
+- **DO (`guard/C113`).** guard/T124 was committed first and was RED against `0.0.4` ("docs/requirements.md defines no guard/F42"). It is GREEN.
+  - **The declaration.** `docs/requirements.md` defines guard/F42 after guard/F16 and gives one table, "Supported upgrade paths to `0.0.5`", with a row each for `0.0.2`, `0.0.3` and `0.0.4`: the path, the prerequisites, what changes and what is kept, how a failure shows and how to go back, and how to verify. `0.0.1` and any version not listed are declared unsupported, with fresh setup as the next step. The README's release notes point to it. What each row says changes was read from the published packages: `0.0.2`, `0.0.3` and `0.0.4` ship the same hook, `.gitattributes` files and Skill, so in `0.0.5` only the workflow moves (`guard/C114`).
+  - **Before the version bump.** For guard/T124: The tree still says `0.0.4`, and the bump belongs to the `0.0.5` release Change. So guard/T124 asks that the table lead to the installed version or a later one being prepared, and that each source is earlier than it and from `0.0.2` on. A published package whose table leads to an earlier release fails it. The release Change shows that the table leads to exactly the version it publishes.
+  - **The transition case reads the declaration.** For guard/T118, `shipped()` now reads the newer candidate's guard/F42 table. When the target declares paths, a pair whose source it does not declare is reported not applicable ("declares no upgrade path from …"). A target that declares none, as every release up to `0.0.4`, keeps the earlier behaviour. The declaration, not the asset catalogue, says which sources are supported.
+  - **What blocks release acceptance.** A release that declares paths is accepted only with guard/T118 GREEN, from a `registry` run, for each declared source. Each run is to `packed` before publication, or to the published release after it. A declared source with no such run, or a RED one, blocks acceptance. `testing.md` records this beside the run table.
+  - **Read fail-closed (the Owner on #576, review 5705922662).** The Owner found one fail-open path. guard/T118 read a malformed or unreadable guard/F42 declaration as no declaration and took the legacy path. `engineering/guard/acceptance/consumer/paths.mjs` now reads the declaration as one of three things:
+    - absent: there is no guard/F42. That is the legacy path, and it is allowed only for a target before `0.0.5`.
+    - declared: a valid declaration.
+    - malformed: a corrupted heading or table, wrong columns, no separator, no source, a duplicate source, a source that is not an earlier version, or an empty or missing column.
+
+    A malformed declaration, or a missing one from `0.0.5` on, fails guard/T118 with an explicit finding. It is never counted as evidence of a supported transition. At the release gate, the declared target must equal the candidate's version exactly. That means a `registry` target always, and the bumped `packed` candidate of `guard/C126` run with `GUARD_RELEASE_GATE=1`. Before the bump, a staged declaration may lead to a later version than the packed candidate's.
+
+    The new Engineering-side guard/T133, in `engineering/guard/acceptance/package.test.mjs` so that it runs on every host, holds one negative fixture for each malformed form and each gate rule. guard/T124 also refuses a duplicate source. The per-source `registry` → `packed` GREEN evidence that guard/T118 requires is unchanged, and so is the Owner's prerequisite that Engineering's Defect trace is corrected first (#638).
+  - **An unsupported source is reported, not crashed on.** guard/T118 read both candidates' Installation Contracts before it read the target's declaration. A source with no `contract.json`, such as `0.0.1`, failed with `ENOENT` instead of being reported. `shipped()` now reads the target first, and reads the source only when a case needs it. So `registry` `0.0.1` against the `0.0.5` candidate reports "not applicable: 0.0.5 declares no upgrade path from 0.0.1": neither GREEN nor RED, and never counted as passed.
+  - **Architecture.** guard/A6 cites guard/F42, as planned in `guard/C124`, so guard/T126 stays GREEN. Its text says that `upgrade` supports the declared sources and does not read the table at run time.
+  - **Not here.** Recording one consumer's migration is Operations'. A common machine-readable declaration in Core's Installation Contract is still a separate question for Core.
+  - This DO authorizes no version bump, promotion or publication.
 
 **Not in scope of `guard/C107` and `guard/C108`.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review were tracked separately. `guard/C111` has since triaged them: M1 into `guard/C114`, N7 into `guard/C115`, M2 and M3 into `guard/C116`, and N6 into `guard/C117`.
 
@@ -764,7 +907,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C101` | — | Guard | Release acceptance of `0.0.4`: the desired result, and the applicable transition cases for `registry` `0.0.2` and `0.0.3` → `0.0.4`, guard/T118 included, all GREEN ([Testing](testing.md#release-acceptance-of-004-guardc101)) | `guard/C100`, `guard/C112` | evidence recorded; acceptance waits on the Owner |
 | `guard/C111` | — | Guard | After `0.0.4`: the deferred findings of its release, n1–n3, N6, N7 and M1–M3, triaged into bounded Changes | `guard/C101` | PLAN |
 | `guard/C112` | — | Guard | Transition acceptance of `0.0.4`: guard/T118 for each declared source, and declared applicability for guard/T65, guard/T66 and guard/T68 | `guard/C100` | PLAN #557, merged; DO: guard/T118 GREEN for both sources |
-| `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract | `guard/C112` | not created |
+| `guard/C113` | — | Guard | `0.0.5`: the target release declares its migration paths in the product contract; guard/F42, guard/T124, guard/T133 | `guard/C112` | DO |
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | DO |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7); guard/F41, guard/T120–guard/T122 | `guard/C111` | DO |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
@@ -772,10 +915,13 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C118` | — | Guard | guard/T114 on every host: a portable fixture assessed with Hosting; its Windows inapplicability declared in the Test Plan and reviewed, never decided in the case; portable guard/T131; guard/T132 refuses undeclared platform branches (n3, the Owner on #570 and #577) | `guard/C111` | PLAN |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
+| `guard/C129` | — | Guard | Tests placed by the realization they verify: Engineering, Embedded and External, each with its own Test Plan and owner; External's Test Plan split out; suites declared and orchestrated by Engineering's lane; guard/T134 refuses misplacement and a false GREEN from omitted suites (the Owner on #631) | `guard/C124` | PLAN |
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | DO |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | DO |
+| `guard/C130` | — | Guard | `0.0.5`: `Guard/Check` stated in Core's value kinds: `command` as a `parameter`, `held` as a list of `number` in place of `outcomes`, and the promised conformance check (the Owner on #609) | `guard/C124` | PLAN |
 | `guard/C123` | — | Guard | `0.0.5`: Test Cases trace to the Defects they test; the product shows their observations | `guard/C119` | DO |
 | `guard/C124` | — | Guard | The path to `0.0.5`: the remaining Changes in collector order, the evidence that accepts the release, and what stays out pending the Owner | `guard/C111`, `guard/C119` | PLAN |
+| `guard/C132` | — | Guard | Defects found before a release (guard/D6–guard/D14, guard/D18) defined in the product's Limitations; their delivered cases trace out to them; Engineering's rows cite them (the Owner's option A on #645, #646) | `guard/C123` | PLAN |
 | `guard/C131` | — | Guard | Release prerequisite for `0.0.5`: Engineering's Defect register corrected (`engineering/C8`, #645), gated by guard/T130 (the Owner on #638) | `guard/C124` | PLAN |
 | `guard/C135` | — | Guard | Three Windows differences in delivered cases, raised by guard/T132: guard/T81's checker mode, guard/T72's hook bit and the `link` helper of guard/T84 and guard/T89, each at equal strength on every host, with Hosting's host facts and Testing's applicability, not applicable kept apart from untested; guard/T136 | `guard/C118` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |

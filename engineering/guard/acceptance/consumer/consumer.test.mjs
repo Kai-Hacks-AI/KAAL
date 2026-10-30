@@ -26,6 +26,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { admits, declaredPaths } from "./paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KAAL = resolve(HERE, "..", "..", "..", "..");
@@ -95,17 +96,23 @@ function shipped(h, older, newer) {
         return [a.target ?? a.path, { ...a, content: JSON.stringify(a.kind === "directory" ? tree(at) : readFileSync(at, "utf8")) }];
       }),
     );
-    return { contract, assets };
+    const requirements = join(r.dir, ROOT, "docs", "requirements.md");
+    return { contract, assets, paths: declaredPaths(existsSync(requirements) ? readFileSync(requirements, "utf8") : null) };
   };
-  const from = side(older.spec);
+  // The newer candidate is read first, and the older only when a case asks for it, so a source the target
+  // does not support is reported from the target's declaration, before anything of the source is read.
   const to = side(newer.spec);
+  let from;
+  const older_ = () => (from ??= side(older.spec));
   return {
-    from,
+    get from() {
+      return older_();
+    },
     to,
     /** Whether the asset at target ships with different content in the two candidates. */
-    differs: (target) => from.assets[target]?.content !== to.assets[target]?.content,
+    differs: (target) => older_().assets[target]?.content !== to.assets[target]?.content,
     /** The assets the newer candidate adds to a surface. */
-    added: (surface) => Object.values(to.assets).filter((a) => a.surface === surface && !from.assets[a.target ?? a.path]),
+    added: (surface) => Object.values(to.assets).filter((a) => a.surface === surface && !older_().assets[a.target ?? a.path]),
   };
 }
 
@@ -338,6 +345,13 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     // The harness's own variants change a package after its manifest was made, so their verification cannot pass by design.
     if (!applies(t, !/-candidate\.\d+$/.test(newer.version), `${newer.version} is a variant the harness built, not a release whose verification can pass; name the pair with GUARD_CANDIDATES`)) return;
     const pair = shipped(h, older, newer);
+    // The target release owns its supported paths (guard/C113). A malformed declaration, or none from 0.0.5 on,
+    // is a finding and never evidence; a pair a valid declaration does not list is not a path it supports.
+    const path = admits(pair.to.paths, older, newer, { gate: newer.source === "registry" || process.env.GUARD_RELEASE_GATE === "1" });
+    assert.equal(path.finding, undefined, path.finding);
+    if (path.verdict === "legacy") t.diagnostic(`${newer.version} predates guard/F42 and declares no upgrade paths`);
+    else t.diagnostic(`${newer.version} declares upgrade paths to ${pair.to.paths.target} from: ${pair.to.paths.sources.join(", ")}`);
+    if (!applies(t, path.verdict !== "undeclared", `${newer.version} declares no upgrade path from ${older.version}`)) return;
     const hook = ".githooks/pre-push";
     const managed = Object.values(pair.to.assets).filter((a) => a.surface !== undefined && (a.target ?? a.path) !== hook);
 
