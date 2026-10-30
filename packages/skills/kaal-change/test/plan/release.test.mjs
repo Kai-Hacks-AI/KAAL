@@ -84,8 +84,9 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     for (const f of ["docs/intent.md", "test/verify.mjs", "test/verify.json", "lib/delivery.mjs"]) assert.ok(files.includes(f), `${f} is shipped`);
   });
 
-  it("change/T25 [change/I12, change/F20, change/A13]: the shipped docs/ covers intent, requirements, architecture, testing and limitations, defines every identifier a shipped case cites, and cites no plan, record or Change as authority", () => {
-    const docs = ["intent", "requirements", "architecture", "testing", "limitations"].map((d) => `docs/${d}.md`);
+  it("change/T25 [change/I12, change/F20, change/A13]: the shipped docs/ covers intent, requirements, architecture, testing, limitations and operations, defines every identifier a shipped case cites, and cites no plan, record or Change as authority", () => {
+    const docs = ["intent", "requirements", "architecture", "testing", "limitations", "operations"].map((d) => `docs/${d}.md`);
+    for (const d of docs) assert.ok(packed().includes(d), `${d} is in the packed artifact`);
     for (const d of docs) assert.ok(existsSync(join(PACKAGE, d)), `${d} is shipped`);
     const text = docs.map((d) => readFileSync(join(PACKAGE, d), "utf8")).join("\n");
     for (const forbidden of [/plan\//, /\.kaal\/changes/, /engineering\//, /\b[a-z][a-z0-9-]*\/C[1-9][0-9]*\b/]) {
@@ -97,17 +98,22 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     for (const id of cited) assert.match(text, new RegExp(`\\*\\*${id.replace("/", "\\/")}\\b`), `${id} is defined in docs/`);
   });
 
-  it("change/T26 [change/F21]: the README states start, use, verify, register, remove and release notes", () => {
-    const headings = readFileSync(join(PACKAGE, "README.md"), "utf8").split("\n").filter((l) => /^#{2,3} /.test(l)).map((l) => l.replace(/^#+ /, ""));
-    for (const h of ["Start", "Use", "Verify the installed package", "Register", "Remove", "Release notes"]) {
-      assert.ok(headings.some((x) => x.startsWith(h)), `the README has a "${h}" section`);
-    }
+  it("change/T26 [change/F21, change/F30]: docs/operations.md states start, platforms, use, verify, register, remove and release notes, and the README links every shipped document and does not state operation again", () => {
+    const sections = (text) => text.split("\n").filter((l) => /^#{2,3} /.test(l)).map((l) => l.replace(/^#+ /, ""));
+    const OPERATIONS = ["Start", "Platforms", "Use", "Verify the installed package", "Register", "Remove", "Release notes"];
+    assert.ok(existsSync(join(PACKAGE, "docs/operations.md")), "docs/operations.md is shipped");
+    const operations = readFileSync(join(PACKAGE, "docs/operations.md"), "utf8");
+    for (const h of OPERATIONS) assert.ok(sections(operations).some((x) => x.startsWith(h)), `docs/operations.md has a "${h}" section`);
+    assert.match(operations, new RegExp(`npm install ${NAME.replace("/", "\\/")}`), "Start names the package");
+    assert.match(operations, new RegExp(`${PEER.replace("/", "\\/")}[^\\n]*optional|optional[^\\n]*${PEER.replace("/", "\\/")}`, "i"), "and says Graph is optional");
     const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
-    assert.match(readme, new RegExp(`npm install ${NAME.replace("/", "\\/")}`), "Start names the package");
-    assert.match(readme, /optional/i, "and says Graph is optional");
+    for (const d of ["intent", "requirements", "architecture", "testing", "limitations", "operations"]) {
+      assert.match(readme, new RegExp(`\\]\\((\\./)?docs/${d}\\.md\\)`), `the README links docs/${d}.md`);
+    }
+    for (const h of OPERATIONS) assert.ok(!sections(readme).some((x) => x.startsWith(h)), `the README does not state "${h}" again: docs/operations.md is authoritative`);
   });
 
-  it("change/T27 [change/F22, change/F23, change/F24, change/N7, change/A14, change/A15]: the manifest declares every consumer case with when it applies, and the hash of every other shipped file; there are absence and Graph cases; its cases import only public entry points, the verifier only built-ins, and no publisher-only test is shipped", () => {
+  it("change/T27 [change/F22, change/F23, change/F24, change/F30, change/N7, change/A14, change/A15]: the manifest declares every consumer case with when it applies, and the hash of every other shipped file; there are absence and Graph cases; its cases import only public entry points, the verifier only built-ins, and no publisher-only test is shipped", () => {
     const files = packed();
     assert.ok(existsSync(join(PACKAGE, "test/verify.json")), "the package ships test/verify.json");
     const m = JSON.parse(readFileSync(join(PACKAGE, "test/verify.json"), "utf8"));
@@ -137,7 +143,8 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
     }
     assert.ok(!files.some((f) => /^test\/(plan|acceptance)\//.test(f) || /^test\/[^/]+\.test\.mjs$/.test(f)), "no publisher-only test is shipped");
     assert.ok(manifest().scripts?.["test:publisher"], "the publisher's tests run as test:publisher");
-    assert.equal(manifest().scripts?.test, "node test/verify.mjs", "npm test is the consumer verification");
+    assert.equal(manifest().scripts?.["test:embedded"], "node test/verify.mjs", "the Embedded verification is a declared suite");
+    assert.equal(manifest().scripts?.test, "npm run test:embedded", "npm test runs the Embedded verification, in the source workspace and once installed");
   });
 
   it("change/T28 [change/I11, change/I13, change/I14, change/F19, change/F22, change/F23, change/F25]: in a clean consumer, the packed package verifies with Graph over the full delivery path, and verifies without Graph over the cannot-assess contract, with the Graph cases not applicable; a failing case is failed, and a changed file, a missing manifest or an applicable case that did not run is unknown", () => {
@@ -248,6 +255,55 @@ describe("kaal-change 0.0.1 release (change/C4)", () => {
         assert.ok(line.includes(PEER), `the reason names ${PEER}: ${line}`);
         assert.match(line, /install/i, `and the next step, install and retry: ${line}`);
         assert.match(line, /analy[sz]e/i, `or analyze: ${line}`);
+      }
+      rmSync(dir, { recursive: true, force: true });
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
+
+  it("change/T34 [change/F31, change/A14]: the runtime is declared as Node.js 24 or later and the platforms as Linux, Windows and macOS; lib/ imports no host module, and the verifier starts its cases with the running Node executable, never through a shell", () => {
+    assert.equal(manifest().engines?.node, ">=24", "engines declares Node.js 24 or later");
+    assert.ok(existsSync(join(PACKAGE, "docs/operations.md")), "docs/operations.md is shipped");
+    const platforms = readFileSync(join(PACKAGE, "docs/operations.md"), "utf8").split(/^#{2,3} /m).find((x) => x.startsWith("Platforms")) ?? "";
+    for (const os of ["Linux", "Windows", "macOS"]) assert.match(platforms, new RegExp(`\\b${os}\\b`), `the Platforms section names ${os}`);
+    for (const f of packed().filter((f) => f.startsWith("lib/"))) {
+      assert.doesNotMatch(readFileSync(join(PACKAGE, f), "utf8"), /["']node:(fs|child_process|os|path|process|net|http|https|worker_threads)["']/, `${f} imports no host module`);
+    }
+    assert.ok(existsSync(join(PACKAGE, "test/verify.mjs")), "the package ships test/verify.mjs");
+    const verifier = readFileSync(join(PACKAGE, "test/verify.mjs"), "utf8");
+    assert.match(verifier, /process\.execPath/, "the verifier starts cases with the running Node executable");
+    assert.doesNotMatch(verifier, /shell\s*:\s*true|\bexecSync\(|\bexec\(/, "and never through a shell");
+  });
+
+  it("change/T35 [change/F32, change/F29, change/A14]: the manifest traces every Requirement docs/requirements.md defines to declared cases or an allocation; without Graph, a Requirement traced only to Graph cases is reported unresolved with the peer and the next step, and never as covered", { timeout: 300_000 }, () => {
+    verifier();
+    const m = JSON.parse(readFileSync(join(PACKAGE, "test/verify.json"), "utf8"));
+    const defined = [...new Set(readFileSync(join(PACKAGE, "docs/requirements.md"), "utf8").match(/\*\*change\/[NF][0-9]+\*\*/g) ?? [])].map((x) => x.replace(/\*/g, "")).sort();
+    assert.ok(defined.length > 0, "docs/requirements.md defines Requirements");
+    assert.deepEqual(Object.keys(m.requirements ?? {}).sort(), defined, "the manifest traces exactly the defined Requirements");
+    const names = new Set(m.cases.map((c) => c.name));
+    const graphOnly = [];
+    for (const [id, trace] of Object.entries(m.requirements)) {
+      if (Array.isArray(trace)) {
+        assert.ok(trace.length > 0, `${id} is traced to at least one case`);
+        for (const n of trace) assert.ok(names.has(n), `${id} is traced to ${n}, a declared case`);
+        if (trace.every((n) => m.cases.find((c) => c.name === n).when === "graph")) graphOnly.push(id);
+      } else {
+        assert.match(String(trace?.allocated ?? ""), /\S/, `${id} is traced to a case or names its allocation`);
+      }
+    }
+    assert.ok(graphOnly.length > 0, "some Requirement is decided only with Graph");
+    const out = mkdtempSync(join(tmpdir(), "kaal-change-pack-"));
+    try {
+      const dir = consumer([pack(PACKAGE, out)]);
+      const evidence = verify(dir);
+      assert.equal(evidence.status, 0, `an absent complement does not by itself make the result unknown:\n${evidence.out}`);
+      const lines = evidence.out.split("\n");
+      for (const id of graphOnly) {
+        const about = lines.filter((l) => new RegExp(`\\b${id.replace("/", "\\/")}\\b`).test(l));
+        assert.ok(about.some((l) => /unresolved/i.test(l) && l.includes(PEER) && /install/i.test(l) && /analy[sz]e/i.test(l)), `${id} is unresolved, naming ${PEER} and the next step:\n${about.join("\n")}`);
+        assert.ok(!about.some((l) => /\b(covered|verified)\b/i.test(l) && !/unresolved/i.test(l)), `${id} is never reported covered or verified`);
       }
       rmSync(dir, { recursive: true, force: true });
     } finally {
