@@ -58,6 +58,21 @@ async function fixture() {
 const INTENT = Object.freeze({ name: "Intent", id: "1".repeat(64) });
 const intentNode = (name, body = `# ${name}\n`) => identify(createNode({ name, type: INTENT, frontmatter: {}, body }).bytes);
 
+/** Testing's evaluation of one Run, as `evaluate` gives it (testing/F28): its run and Plan, its result, its Cases' results, and its findings. */
+let runs = 0;
+function evaluation(cases, findings = [], { plan, run } = {}) {
+  runs += 1;
+  const rs = Object.values(cases);
+  const result = findings.length ? "unknown" : rs.includes("failed") ? "failed" : rs.some((r) => r !== "passed" && r !== "inapplicable") ? "unknown" : rs.every((r) => r === "inapplicable") ? "inapplicable" : "passed";
+  return { run: run ?? `run-${runs}`, plan: plan ?? `plan-${runs}`, result, cases, suites: {}, allowed: [], stale: [], findings };
+}
+
+/** The selector a caller names for the evidence it selected (change/F28). */
+const SELECTOR = "sample-selector";
+
+/** A selection of one clean evaluation per Case Result given, each of its own Plan. */
+const E = (entries) => ({ by: SELECTOR, evaluations: entries.map(({ case: c, result }) => evaluation({ [c]: result })) });
+
 /** The findings whose text names every given word. */
 const naming = (findings, ...words) => findings.filter((f) => words.every((w) => JSON.stringify(f).includes(w)));
 
@@ -231,11 +246,11 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     assert.ok(!kinds.includes("no-tests"), "without evidence, a Change without required Cases is no finding");
     assert.deepEqual(kinds, [...kinds].sort(), "findings are sorted by kind");
     assert.equal(JSON.stringify(assess([...nodes].reverse()).exchange()), JSON.stringify(data), "byte-identical in any order");
-    const evidence = [{ case: "sample/T2", result: "passed" }, { case: "sample/T1", result: "passed" }];
+    const evidence = E([{ case: "sample/T2", result: "passed" }, { case: "sample/T1", result: "passed" }]);
     const given = assess(nodes, { evidence }).exchange();
-    for (const c of given.changes) assert.deepEqual(Object.keys(c).sort(), ["awaiting", "delivered", "delivers", "id", "identity", "requires", "satisfied", "succeeds", "unmet"], "with evidence, the delivery members");
+    for (const c of given.changes) assert.deepEqual(Object.keys(c).sort(), ["awaiting", "basis", "by", "delivered", "delivers", "id", "identity", "requires", "satisfied", "succeeds", "unmet"], "with evidence, the delivery members");
     assert.ok(given.findings.some((f) => f.kind === "no-tests" && f.change === "sample/C2"), "with evidence, a Change without required Cases is a no-tests finding");
-    assert.equal(JSON.stringify(assess([...nodes].reverse(), { evidence: [...evidence].reverse() }).exchange()), JSON.stringify(given), "byte-identical in any order of evidence too");
+    assert.equal(JSON.stringify(assess([...nodes].reverse(), { evidence: { ...evidence, evaluations: [...evidence.evaluations].reverse() } }).exchange()), JSON.stringify(given), "byte-identical in any order of evidence too");
   });
 
   it("change/T20 [change/I9, change/N2, change/F14]: a Change states the Intents it delivers, and an unresolved or stale Intent is a finding", async () => {
@@ -260,40 +275,40 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     const c1 = change("sample/C1", [], { requires: ["sample/T1", "sample/T2"] });
     const nodes = [...definitions, c1];
     assert.equal(assess(nodes).delivery("sample/C1"), undefined, "without evidence there is no delivery result");
-    const green = assess(nodes, { evidence: [{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "other/T9", result: "failed" }] });
+    const green = assess(nodes, { evidence: E([{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "other/T9", result: "failed" }]) });
     assert.equal(green.delivery("sample/C1").satisfied, true, "every required Case passed; a Case not required is not counted");
     assert.deepEqual(green.delivery("sample/C1").unmet, []);
     for (const word of ["failed", "unknown", "inapplicable", "skip", "todo", "blocked", "GREEN", "pass"]) {
-      const r = assess(nodes, { evidence: [{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: word }] });
+      const r = assess(nodes, { evidence: E([{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: word }]) });
       assert.equal(r.delivery("sample/C1").satisfied, false, `${word} is not passed`);
       assert.deepEqual(r.delivery("sample/C1").unmet, [{ case: "sample/T2", result: word }], `${word} passes through as Testing said it`);
     }
-    const notRun = assess(nodes, { evidence: [{ case: "sample/T2", result: "passed" }] });
+    const notRun = assess(nodes, { evidence: E([{ case: "sample/T2", result: "passed" }]) });
     assert.deepEqual(notRun.delivery("sample/C1").unmet, [{ case: "sample/T1", result: "absent" }], "a Case with no result given is unmet as absent");
-    const conflicting = assess(nodes, { evidence: [{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "sample/T2", result: "failed" }] });
+    const conflicting = assess(nodes, { evidence: E([{ case: "sample/T1", result: "passed" }, { case: "sample/T2", result: "passed" }, { case: "sample/T2", result: "failed" }]) });
     assert.equal(conflicting.delivery("sample/C1").satisfied, false, "a Case is met only when every entry for it is passed");
     for (const requires of [undefined, []]) {
       const none = change("sample/C2", [], requires ? { requires } : {});
-      const r = assess([...definitions, none], { evidence: [] });
+      const r = assess([...definitions, none], { evidence: { by: SELECTOR, evaluations: [] } });
       assert.ok(naming(r.findings, "sample/C2", "no-tests").length > 0, "no required Cases is a finding");
       assert.equal(r.delivery("sample/C2").satisfied, false, "and never satisfied: no zero-test GREEN");
       assert.equal(r.delivery("sample/C2").delivered, false);
     }
     for (const entry of ["", 7]) {
       const bad = change("sample/C3", [], { requires: ["sample/T1", entry] });
-      const b = assess([...definitions, bad], { evidence: [{ case: "sample/T1", result: "passed" }, { case: entry, result: "passed" }] });
+      const b = assess([...definitions, bad], { evidence: E([{ case: "sample/T1", result: "passed" }, { case: entry, result: "passed" }]) });
       assert.ok(naming(b.findings, "sample/C3", "malformed-test").length > 0, `${JSON.stringify(entry)} is not a Case identity`);
       assert.equal(b.delivery("sample/C3").satisfied, false, "and the Change is not satisfied");
     }
     const repeated = change("sample/C4", [], { requires: ["sample/T1", "sample/T1"] });
-    const rr = assess([...definitions, repeated], { evidence: [{ case: "sample/T1", result: "passed" }] });
+    const rr = assess([...definitions, repeated], { evidence: E([{ case: "sample/T1", result: "passed" }]) });
     assert.ok(naming(rr.findings, "sample/C4", "sample/T1", "malformed-test").length > 0, "a repeated entry is a finding");
     assert.equal(rr.delivery("sample/C4").satisfied, false);
   });
 
   it("change/T22 [change/I2, change/I10, change/F17, change/A10]: a satisfied Change is delivered only when every Change it succeeds is delivered, and no Case about main is implied", async () => {
     const { assess, definitions, change } = await fixture();
-    const PASSED = (...cases) => cases.map((c) => ({ case: c, result: "passed" }));
+    const PASSED = (...cases) => ({ by: SELECTOR, evaluations: [evaluation(Object.fromEntries(cases.map((c) => [c, "passed"])))] });
     const a = change("sample/C1", [], { requires: ["sample/T1"] });
     const b = change("sample/C2", [a], { requires: ["sample/T2"] });
     const c = change("sample/C3", [b], { requires: ["sample/T3"] });
@@ -303,7 +318,8 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     assert.deepEqual(all.delivery("sample/C3").awaiting, []);
     const held = assess(nodes, { evidence: PASSED("sample/T2", "sample/T3") });
     assert.equal(held.delivery("sample/C1").delivered, false, "a Change whose own Test is unmet is not delivered");
-    assert.deepEqual(held.delivery("sample/C2"), { satisfied: true, delivered: false, unmet: [], awaiting: ["sample/C1"] }, "own Tests satisfied is not delivered while a predecessor is not");
+    const { satisfied, delivered, unmet, awaiting } = held.delivery("sample/C2");
+    assert.deepEqual({ satisfied, delivered, unmet, awaiting }, { satisfied: true, delivered: false, unmet: [], awaiting: ["sample/C1"] }, "own Tests satisfied is not delivered while a predecessor is not");
     assert.deepEqual(held.delivery("sample/C3").awaiting, ["sample/C2"], "and delivery waits down the chain");
     assert.equal(held.delivery("sample/C3").satisfied, true);
     assert.equal(held.delivery("sample/C3").delivered, false);
@@ -337,7 +353,7 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     try {
       writeFileSync(join(dir, "sample-C1.md"), bytes);
       process.chdir(dir);
-      const r = assess(definitions, { evidence: [{ case: "sample/T1", result: "passed" }] });
+      const r = assess(definitions, { evidence: E([{ case: "sample/T1", result: "passed" }]) });
       assert.equal(r.has("sample/C1"), false, "presence on disk is not registration: a Change not given is absent");
       assert.deepEqual(r.exchange().changes, [], "and is not in the exchange");
       assert.deepEqual(r.findings, [], "nor does it raise a finding");
@@ -347,7 +363,7 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     }
     const pred = change("sample/C2", [], { requires: ["sample/T2"] });
     const given = assess([...definitions, present, pred, change("sample/C3", [pred], { requires: ["sample/T3"] }, "# sample/C3\n", [])], {
-      evidence: ["sample/T1", "sample/T2", "sample/T3"].map((c) => ({ case: c, result: "passed" })),
+      evidence: E(["sample/T1", "sample/T2", "sample/T3"].map((c) => ({ case: c, result: "passed" }))),
     });
     const claims = /regist|admi|verif|kaal-?verified/i;
     const walk = (v, path) => {
@@ -362,5 +378,66 @@ describe("Change Nodes, succession and delivery (change/C1)", () => {
     walk(given.findings, "findings");
     for (const id of ["sample/C1", "sample/C2", "sample/C3"]) walk(given.delivery(id), `delivery(${id})`);
     assert.equal(given.delivery("sample/C3").delivered, true, "delivered is Change's verdict on the given evidence, and that is all it says");
+  });
+
+  it("change/T30 [change/F16, change/F27, change/A10]: raw Run observations and evaluations with findings never count as GREEN, a clean evaluation counts for its Cases even when another Case is unknown, and an allowed Case stays unmet", async () => {
+    const { assess, definitions, change } = await fixture();
+    const nodes = [...definitions, change("sample/C1", [], { requires: ["sample/T1"] })];
+    const verdict = (evaluations) => assess(nodes, { evidence: { by: SELECTOR, evaluations } }).delivery("sample/C1");
+    const raw = { run: "run", of: "plan", cases: { "sample/T1": "passed" }, suites: {}, plans: {}, data: {}, findings: [] };
+    assert.deepEqual(verdict([raw]), { satisfied: false, delivered: false, unmet: [{ case: "sample/T1", result: "unevaluated" }], awaiting: [], by: SELECTOR, basis: [] }, "raw observations of a Run are never a verdict");
+    const withFindings = { ...evaluation({ "sample/T1": "passed" }), result: "passed", findings: ["run run: provenance does not identify sample/T1"] };
+    assert.deepEqual(verdict([withFindings]).unmet, [{ case: "sample/T1", result: "unevaluated" }], "an evaluation with findings does not count, even if it says passed");
+    const { findings, ...noFindings } = evaluation({ "sample/T1": "passed" });
+    assert.equal(findings.length, 0);
+    assert.equal(verdict([noFindings]).satisfied, false, "an evaluation that states no findings does not count");
+    assert.equal(verdict([{ case: "sample/T1", result: "passed" }]).satisfied, false, "nor does a bare Case Result");
+    assert.equal(verdict([withFindings, evaluation({ "sample/T1": "passed" })]).satisfied, true, "a clean evaluation counts beside one that does not");
+    const partial = evaluation({ "sample/T1": "passed", "sample/T9": "unknown" });
+    assert.equal(partial.result, "unknown");
+    assert.equal(verdict([partial]).satisfied, true, "another Case's unknown is not a finding, and does not discount this one");
+    const allowed = { ...evaluation({ "sample/T1": "failed" }), result: "passed", allowed: [{ case: "sample/T1", cite: "sample/C2" }] };
+    assert.deepEqual(verdict([allowed]).unmet, [{ case: "sample/T1", result: "failed" }], "an allowed Case stays failed, and unmet");
+  });
+
+  it("change/T31 [change/F16, change/F28, change/A10]: evidence without a selector counts nothing, and each delivery result cites its selector and the runs it counted", async () => {
+    const { assess, definitions, change } = await fixture();
+    const nodes = [...definitions, change("sample/C1", [], { requires: ["sample/T1", "sample/T2"] })];
+    const one = evaluation({ "sample/T1": "passed" }, [], { plan: "plan-a", run: "run-a2" });
+    const two = evaluation({ "sample/T2": "passed" }, [], { plan: "plan-b", run: "run-b7" });
+    const cited = assess(nodes, { evidence: { by: SELECTOR, evaluations: [two, one] } }).delivery("sample/C1");
+    assert.equal(cited.satisfied, true);
+    assert.equal(cited.by, SELECTOR, "the result names who selected its evidence");
+    assert.deepEqual(cited.basis, ["run-a2", "run-b7"], "and the runs it counted, sorted");
+    for (const evidence of [{ evaluations: [one, two] }, { by: "", evaluations: [one, two] }, { by: 7, evaluations: [one, two] }, [one, two], { by: SELECTOR, evaluations: one }]) {
+      const r = assess(nodes, { evidence }).delivery("sample/C1");
+      assert.equal(r.satisfied, false, `${JSON.stringify(Object.keys(evidence))}: unselected evidence counts nothing`);
+      assert.deepEqual(r.unmet.map((u) => u.result), ["unevaluated", "unevaluated"]);
+      assert.deepEqual(r.basis, [], "and is the basis of nothing");
+    }
+    const withFindings = evaluation({ "sample/T1": "passed", "sample/T2": "passed" }, ["run run-x: provenance does not identify sample/T1"]);
+    const notCounted = assess(nodes, { evidence: { by: SELECTOR, evaluations: [withFindings, two] } }).delivery("sample/C1");
+    assert.deepEqual(notCounted.basis, ["run-b7"], "an evaluation that does not count is no part of the basis");
+  });
+
+  it("change/T32 [change/F16, change/F28]: two evaluations of one Plan are a conflict Change never resolves, an older clean passed never stands beside a newer unknown or failed, and no passed combines with another result into GREEN", async () => {
+    const { assess, definitions, change } = await fixture();
+    const nodes = [...definitions, change("sample/C1", [], { requires: ["sample/T1"] })];
+    const verdict = (...evaluations) => assess(nodes, { evidence: { by: SELECTOR, evaluations } }).delivery("sample/C1");
+    const older = evaluation({ "sample/T1": "passed" }, [], { plan: "plan-a", run: "run-1" });
+    for (const word of ["unknown", "failed", "passed"]) {
+      const newer = evaluation({ "sample/T1": word }, [], { plan: "plan-a", run: "run-2" });
+      for (const order of [[older, newer], [newer, older]]) {
+        const r = verdict(...order);
+        assert.equal(r.satisfied, false, `two Runs of one Plan, ${word} and passed, are never resolved by Change`);
+        assert.deepEqual(r.unmet, [{ case: "sample/T1", result: "conflicting" }], "the Case is unmet as conflicting");
+        assert.deepEqual(r.basis, [], "and neither Run is its basis");
+      }
+    }
+    const stale = evaluation({ "sample/T1": "passed" }, ["run run-0: sample/T1 ran version 1, the model declares 2"], { plan: "plan-a", run: "run-0" });
+    assert.deepEqual(verdict(stale, evaluation({ "sample/T1": "passed" }, [], { plan: "plan-a", run: "run-3" })).unmet, [{ case: "sample/T1", result: "conflicting" }], "even a stale evaluation beside a clean one of the same Plan is a conflict the selection must resolve");
+    assert.equal(verdict(older).satisfied, true, "the selected current evaluation alone counts");
+    const otherPlan = evaluation({ "sample/T1": "unknown" }, [], { plan: "plan-b", run: "run-9" });
+    assert.deepEqual(verdict(older, otherPlan).unmet, [{ case: "sample/T1", result: "unknown" }], "a passed in one Plan never combines with an unknown in another into GREEN");
   });
 });
