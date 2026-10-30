@@ -428,9 +428,9 @@ guard/T120–guard/T122 are planned in `guard/C115` and are Guard's, each define
 
 guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-guard/test/acceptance/architecture.test.mjs`, delivered with the package.
 
-| Test | Checks | Written in | Intended evidence against `0.0.4` |
-| --- | --- | --- | --- |
-| guard/T123: the delivered README states that hook activation is per clone and needs `init --hook` in each clone, and that the installation record is a tracked file Guard does not protect; it no longer says that only Guard writes the record | guard/F29, guard/F30 | `guard/C116` | RED: the README says "Only Guard writes the record and the state" and only hints at per-clone activation |
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| Delivered with the package, so defined in its `docs/testing.md`: guard/T123 checks that the delivered README states that hook activation is per clone and needs `init --hook` in each clone, and that the installation record is a tracked file Guard does not protect; it no longer says that only Guard writes the record | guard/F29, guard/F30 | `guard/C116` | RED: the README says "Only Guard writes the record and the state" and only hints at per-clone activation | GREEN |
 
 ## Each release declares its upgrade paths (`guard/C113`)
 
