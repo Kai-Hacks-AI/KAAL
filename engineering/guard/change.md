@@ -491,7 +491,7 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Authorization.** Approving this PLAN authorizes `guard/C121`'s DO only: no version bump, promotion or publication.
 - **DO (`guard/C121`).** guard/T125 was committed first and is GREEN against `0.0.4`, because the behaviour already holds. It is RED when `lib/config.mjs` stops reserving `0` and `3`, checked by hand, so it is not vacuous. guard/F2's "Named outcomes" bullet now names `"4"` to `"255"` and says why `"0"` to `"3"` are refused. `lib/` and the README are unchanged. The manifest was regenerated. This DO authorizes no version bump, promotion or publication.
 
-**Defects found before a release, defined by the product (`guard/C132`, PLAN).** The Owner chose option A on #645 (`engineering/C8`) and approved it on #646 (`guard/C131`, review 5711485981). Guard defines the Defects its delivered cases test, and its cases trace out to them. Engineering's register then cites them and no longer authors a Defect → Test Case trace or a permanent Status. This PLAN is the Guard half, and it lands before the `engineering/C8` DO.
+**Defects found before a release, defined by the product (`guard/C132`, PLAN, revised).** The Owner chose option A on #645 (`engineering/C8`) and approved it on #646 (`guard/C131`, review 5711485981). Guard defines the Defects its delivered cases test, and its cases trace out to them. Engineering's register then cites them and no longer authors a Defect → Test Case trace or a permanent Status. This PLAN is the Guard half, and it lands before the `engineering/C8` DO.
 - **Which Defects.** These ten were found by the publisher's release reviews before any published version shipped them:
   - guard/D6–guard/D14 were found in the `0.0.2` candidate. Each was established when guard/T84–guard/T92 were recorded RED in `guard/C63` (#433), and corrected before `0.0.2` was published.
   - guard/D18 was found in the `0.0.3` candidate. It was established when guard/T100 was recorded RED on the uncorrected runner in `guard/C92` (#505), and corrected there.
@@ -505,6 +505,26 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
 - **Case titles.** guard/T84–guard/T92 cite guard/D6–guard/D14 in order, and guard/T100 cites guard/D18. Each keeps the Requirements it verifies.
 - **No duplicate definition.** Engineering's ten rows for these Defects become the citing form, `| guard/Dn (product) | …`, as `guard/C123` did for the first six. guard/T111 then still finds each Defect defined exactly once. Removing Engineering's authored Traces-to and Status columns is `engineering/C8`'s DO, not this one.
 - **Widening guard/T127.** It reads both tables. Its negative fixtures add a Defect in "found before a release" whose observation claims a RED in a published version, and a Defect defined in both tables. Each must be refused. guard/T107 and the manifest generator already read Defect rows from `docs/limitations.md`. The manifest and the trace are regenerated.
+- **Observations, tied to their runs (the Owner's review 5717449664).** Each entry in "Observed in Test Runs" names four things, as `guard/C123`'s table does:
+  - its result, RED or GREEN;
+  - the candidate: the version, `packed` or `registry`, and the commit where the publisher recorded one;
+  - the environment: the OS and Node version, where the publisher recorded them, and nothing claimed where it did not;
+  - the Test Run that observed it: the Change and its pull request, or the CI run.
+  
+  An entry is written only from a run that happened. guard/D6–guard/D14 come from `guard/C63` (#433), RED, and from `guard/C64`–`guard/C68`, GREEN. guard/D18 comes from `guard/C92` (#505). A later GREEN is added beside the RED and never replaces it. There is no Status column, and nothing reads a Defect as closed. A Defect stays durable, and its RED stays the evidence that established it.
+- **Tested by, derived.** "Tested by" is generated from the case titles by `verify-manifest.mjs`, between markers, as the product trace already is. No one writes it by hand.
+- **More negative fixtures for guard/T127.**
+  - an observation that names no candidate or no Test Run;
+  - a Defect in "found before a release" with GREEN entries only, which no RED ever established;
+  - a "Tested by" that differs from the one derived from the titles.
+  
+  Each is refused, naming the Defect.
+- **Reconciled with `engineering/C8` (#645) before the DO.** The identifiers line up as follows:
+  - The package defines and ships guard/D1–guard/D3, guard/D5, guard/D6–guard/D14, guard/D16, guard/D17 and guard/D18, in `docs/limitations.md` and the manifest's trace.
+  - #645's register cites each of those as `| guard/Dn (product) | …` and defines none of them. It keeps only guard/D4 (retracted, guard/T44).
+  - guard/D15 is tested by guard/T93, the External delivery's workflow, and is never shipped. Under `guard/C129` (#631), guard/T93 moves to External's own Test Plan, so guard/D15 moves with it. Until then it stays in Engineering's register.
+  
+  The DO PR shows a trial merge with #645's head on which both are GREEN: guard/T111, every Defect defined exactly once, and #645's duplicate-authority case. If #645 has changed by then, the DO follows its head and says what changed.
 - **Interaction with `guard/C130`.** guard/T91 tests guard/D13: an `outcomes` key with a leading zero. `guard/C130` replaces `outcomes` with `held`, where a status is a number and has no leading zero. guard/D13 stays a durable, historical prohibition with its observations. In `guard/C130`'s DO, guard/T91 either asserts the same prohibition against `held`, or is retired there with its evidence kept. That DO says which. This PLAN does not decide it.
 - **Test Cases.** No new identifier. guard/T127 is widened, and is RED first for the new section. guard/T111 and guard/T107 stay GREEN.
 - **Place in the path to `0.0.5`.** Step 5c: this DO, then the `engineering/C8` DO, then guard/T130 GREEN on the exact candidate SHA (`guard/C131`). All of it comes before `guard/C125`.
