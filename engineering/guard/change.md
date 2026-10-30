@@ -365,8 +365,8 @@ A generic Test Plan object is a later Testing improvement, outside this Change.
 | n2 "report to the package's maintainers" names no destination | accepted for `0.0.4`, deferred | `guard/C111` |
 | n3 guard/T114 absent on Windows rather than visibly not applicable (a publisher case; the package is unaffected) | accepted for `0.0.4`, deferred | `guard/C111` |
 | N6 package size, about 3.3× `0.0.3`'s, `test/verify.json` about 107 kB | carried limitation, accepted for `0.0.4`, deferred | `guard/C111` |
-| N7 no `--version` or `--help` | carried limitation, accepted for `0.0.4`, deferred | `guard/C111` |
-| M1–M3 from the `0.0.3` review, the templates unchanged | carried, accepted for `0.0.4`, deferred | `guard/C111` |
+| N7 no `--version` or `--help` | carried limitation, accepted for `0.0.4`, deferred | `guard/C111` → `guard/C115` |
+| M1–M3 from the `0.0.3` review, the templates unchanged | carried, accepted for `0.0.4`, deferred | `guard/C111`: M1 → `guard/C114`, M2 and M3 → `guard/C116` |
 | Branching audit red on f0d1eb9 from two `claude/*` branches reused after their pull requests merged | disclosed repository hygiene, not a Guard finding; the branches stay until the Owner separately authorizes deleting them | outside Guard |
 
 None of the deferred items is a blocker. None of them reopens `0.0.4` or calls for another promotion without a new blocking finding.
@@ -560,6 +560,13 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   - **Generated.** guard/T107 and the manifest generator read Defect rows as product identifiers, and the manifest and the trace were regenerated.
   - This DO authorizes no version bump, promotion or publication.
 
+**Two limits, stated (`guard/C116`, PLAN).** This covers M2 and M3 from the `0.0.3` review, as documentation only. Enforcing either would be a design Change of its own, and none is proposed.
+- **M2.** Hook activation is per clone, because `core.hooksPath` is local Git configuration. The README states this beside `init --hook`: a fresh clone runs no hook until someone runs `npx kaal-guard init --hook` in it, and the committed hook file alone activates nothing.
+- **M3.** The installation record is a tracked file anyone can edit. Guard decides ownership by the record and SHA-256 alone. The README replaces "Only Guard writes the record and the state" with what holds: Guard writes them, Guard does not protect them, and a hand-edited record can make Guard treat a file as its own or as yours. Review changes to `.kaal/state/guard/installation.json` like any other change.
+- **Test Case.** guard/T123 is a product case in `test/acceptance/architecture.test.mjs`, beside guard/T107. It reads the delivered README, so it is RED first against `0.0.4`.
+- **Authorization.** Approving this PLAN authorizes `guard/C116`'s DO only: no version bump, promotion or publication.
+- **DO (`guard/C116`).** guard/T123 was committed first and was RED against the `0.0.4` README ("the README does not say that hook activation is per clone"). The README now says, after the conditions for `init --hook`, that hook activation is per clone: `core.hooksPath` is local Git configuration, so a fresh clone needs `npx kaal-guard init --hook`, and the committed hook file alone activates nothing. "Only Guard writes the record and the state" is replaced: Guard writes them but does not protect them, a hand-edited record can make Guard treat a file as its own or as yours, and changes to `.kaal/state/guard/installation.json` are reviewed like any other change. guard/T123 is GREEN. No enforcement is added and no Git behaviour changes. The Skill's guidance that only Guard's commands change Guard's files is an instruction to agents, not a claim of protection, and stays as is: changing it would change a catalogued asset. The stale backlog wording for N7 and M1–M3 now names the Changes that took them. This DO authorizes no version bump, promotion or publication.
+
 **`Guard/Check` in Core's value kinds (`guard/C130`, PLAN).** The Owner decided on #609 (comment 6504548445) that Guard owns this correction. Guard defines and validates `command` and `outcomes` within Core's existing value kinds (`core/F1` in `kaal-core`'s frontmatter plan). A Core Change is raised only if Guard shows those kinds are insufficient. The evidence is §4 of Engineering's representation research on #609.
 - **The finding.** `core/F1` has no free-text kind and allows a mapping only as a `ref`, and `core/F8` says a Capability's own validator is never looser than `core/F1`–`core/F6`. Guard's validator (`lib/config.mjs`) accepts `command` as any string that parses into words, and `outcomes` as a map from exit status to `held`. So the `Guard/Check` Type has no `core/F1` schema. guard/F1 also says "Its publisher checks that conformance with Core's validator before each release", and no such check exists.
 - **The schema, member by member.**
@@ -589,9 +596,9 @@ The proven findings become four bounded Changes for `0.0.5`, each with its own P
   The KAAL migration of the three declarations lands in the same DO, with Engineering's review.
 - **Authorization.** Approving this PLAN authorizes `guard/C130`'s DO only: no version bump, promotion or publication.
 
-**Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
+**Not in scope of `guard/C107` and `guard/C108`.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review were tracked separately. `guard/C111` has since triaged them: M1 into `guard/C114`, N7 into `guard/C115`, M2 and M3 into `guard/C116`, and N6 into `guard/C117`.
 
-**How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
+**How it fits the promotion (`guard/C107`).** One sync and one promotion still carry `0.0.4`.
 1. `guard/C107`, this PLAN, then `guard/C108`, both into `kaal/guard-verify`.
 2. #544 stays open as the one sync. After `guard/C108` lands, its branch takes `kaal/guard-verify` (and main, if main has moved) by merge, so it is still the sync made immediately before the promotion.
 3. PROMOTION `kaal/guard-verify` → main.
@@ -699,7 +706,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C114` | — | Guard | `0.0.5`: the managed workflow checks out with `persist-credentials: false` (M1); guard/N15, guard/T119 | `guard/C111` | DO |
 | `guard/C115` | — | Guard | `0.0.5`: consumer output and command surface: grouped allocation output, a destination for reports, `--version` and `--help` (n1, n2, N7); guard/F41, guard/T120–guard/T122 | `guard/C111` | DO |
 | `guard/C117` | — | Guard | `0.0.5`: package size measured, then reduced where it need not ship as it does (N6) | `guard/C111` | DO: measured; the Owner chose None |
-| `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3); guard/T123 | `guard/C111` | PLAN |
+| `guard/C116` | — | Guard | `0.0.5`: the README states that hook activation is per clone and that the installation record is not protected (M2, M3); guard/T123 | `guard/C111` | DO |
 | `guard/C118` | — | Guard | guard/T114 reported not applicable on Windows instead of absent (n3) | `guard/C111` | not created |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
