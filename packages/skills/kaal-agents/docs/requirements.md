@@ -67,16 +67,20 @@ Each Requirement names, in brackets, the Intents it serves. The Intents are in [
   - handle what is unresolved through PREACH, consulting a person when no authority covers it.
 
   The Skill takes its form from the Engineer Skill.
-- **agents/F6** [agents/I4]: The package carries `docs/` with Intent, Requirements, Architecture, Operations, Limitations and Testing.
+- **agents/F6** [agents/I4]: The package carries `docs/` with `intent.md`, `requirements.md`, `architecture.md`, `operations.md`, `limitations.md` and `testing.md`, and the README links each of them. `docs/operations.md` is the authoritative Operations document. This is Agents' realization of KAAL's generic package documentation (packaging/F8).
   - Every identifier a delivered case cites is defined there.
   - No document cites a path of the publisher's repository or a Change as its authority.
-- **agents/F7** [agents/I4]: `test/verify.mjs` verifies the installed package. It runs directly with `node` from the consumer's project, and is the command an installation's `npm test` will run (see [Limitations](limitations.md) for this version).
-  - It checks the installed files against the shipped manifest, `test/verify.json`, and runs every delivered consumer case.
-  - It ends in exactly one result: verified (exit 0), failed (exit 1) or cannot verify (exit 2).
-  - A changed or missing shipped file is failed, and so is a failing case.
-  - A manifest with no cases is cannot verify.
+- **agents/F7** [agents/I4]: `test/verify.mjs` is Agents' Embedded verification: it verifies the installed package from the installed copy alone. It runs directly with `node` from the consumer's project, and is the command an installation's `npm test` will run (packaging/F9; see [Limitations](limitations.md) for this version).
+  - It checks the installed files against the shipped manifest, `test/verify.json`, which lists every other shipped file with its SHA-256 and every delivered consumer case by name (packaging/F11).
+  - It runs exactly the declared cases, in a scratch directory it removes afterwards, and checks that the consumer's project, the installed copy included, is unchanged by the run (packaging/N7).
+  - It checks coverage: each identifier the documents define is covered by delivered cases that passed in this run, allocated to the publisher, or named as verified by no Test Case, as the manifest declares (packaging/F13). It names those this run did not verify.
+  - It ends in exactly one result: verified (exit 0), failed (exit 1) or cannot verify (exit 2), Testing's unknown.
+    - **failed:** a declared case failed, or the consumer changed during the run.
+    - **cannot verify:** a prerequisite is missing; the manifest is absent or cannot be read; it declares no cases; an installed file differs from the manifest, is missing or is not in it; a declared case was skipped, marked todo or did not run; a case ran that the manifest does not declare; or a defined identifier has no declared coverage.
+    - **verified:** none of these.
+  - Its last line is the summary: `kaal-agents-verification ` followed by JSON with `result`; when not verified, `cause`, `evidence` and `next { kind, step }`; `package { name, version, location }`; `platform`; `node`; `digest`, the SHA-256 of one line `<path>\0<sha256>\n` per installed file other than the manifest, in path order; `cases`, each `{ name, outcome }` with outcome `pass`, `fail`, `skipped`, `todo` or `not run`; and `coverage`.
 
-  It realizes Testing's consumer-verification semantics in Agents' own code.
+  It realizes Testing's consumer-verification semantics (testing/F11–testing/F17) in Agents' own code, and depends on no Testing or Packaging package (packaging/N8).
 - **agents/F8** [agents/I4]: The publisher's own tests are outside the package's `files`, because they need the KAAL checkout. `test/consumer/`, `test/verify.mjs` and `test/verify.json` ship.
 - **agents/F9** [agents/I5]: The package keeps delivering `capability/Agents.md`, `NEW.md` and `PREACH.md`. Admission still requires only Core's KAAL Capability.
 

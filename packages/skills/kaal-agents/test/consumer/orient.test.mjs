@@ -137,7 +137,7 @@ describe("orient", () => {
 });
 
 describe("orient when Git fails", () => {
-  it("agents/T19 [agents/F1, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written", () => {
+  it("agents/T19 [agents/F1, agents/A2, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written", () => {
     const dir = repository();
     git(dir, "commit", "-q", "--allow-empty", "-m", "fixture");
     const head = git(dir, "rev-parse", "HEAD");
@@ -151,7 +151,7 @@ describe("orient when Git fails", () => {
     assert.equal(readFileSync(join(dir, ".git", "index"), "utf8"), "not an index");
   });
 
-  it("agents/T20 [agents/F1, agents/N3]: a branch with no commit yet reports HEAD as absent, with nothing unresolved; a HEAD Git cannot read is unresolved", () => {
+  it("agents/T20 [agents/F1, agents/A2, agents/N3]: a branch with no commit yet reports HEAD as absent, with nothing unresolved; a HEAD Git cannot read is unresolved", () => {
     const dir = repository();
     const unborn = orient(dir);
     assert.equal(unborn.status, 0, output(unborn));
@@ -166,7 +166,7 @@ describe("orient when Git fails", () => {
     assert.ok(r.report.unresolved.some((u) => u.what === "repository" && /HEAD cannot be read/.test(u.reason)));
   });
 
-  it("agents/T21 [agents/F1, agents/N3]: no upstream is absent, with nothing unresolved; an upstream whose ahead and behind cannot be counted is unresolved, naming it", () => {
+  it("agents/T21 [agents/F1, agents/A2, agents/N3]: no upstream is absent, with nothing unresolved; an upstream whose ahead and behind cannot be counted is unresolved, naming it", () => {
     const dir = repository();
     git(dir, "commit", "-q", "--allow-empty", "-m", "fixture");
     assert.deepEqual(orient(dir).report.unresolved, []);

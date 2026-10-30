@@ -48,11 +48,13 @@ Run the consumer verifier directly, from the project you installed the package i
 node node_modules/kaal-agents/test/verify.mjs
 ```
 
-This runs `test/verify.mjs` against the installed copy (agents/F7). It checks the shipped files against `test/verify.json`, runs every delivered case, and ends in exactly one result:
+This runs `test/verify.mjs` against the installed copy (agents/F7). It checks the shipped files against `test/verify.json`, runs every declared case in a scratch directory it removes, checks the coverage the manifest declares and that your project is unchanged, and ends in exactly one result:
 
-- **verified (0):** every shipped file matches the manifest, and every declared case ran and passed.
-- **failed (1):** a shipped file differs, is missing or is not in the manifest, or a case failed. Each cause is named. Reinstall the package, then run the command again.
-- **cannot verify (2):** a prerequisite is missing, the manifest cannot be read, it declares no cases, or a declared case did not run. Each cause is named. Fix the cause, then run the command again.
+- **verified (0):** every shipped file matches the manifest, every declared case ran and passed, every defined identifier has its coverage, and your project is unchanged. The run still names the identifiers it did not verify itself, because the publisher verifies them or no Test Case does ([Testing](testing.md)).
+- **failed (1):** a declared case failed, or your project changed during the run. Each cause is named.
+- **cannot verify (2):** a prerequisite is missing; the manifest is absent, cannot be read or declares no cases; an installed file differs from the manifest, is missing or is not in it; a declared case was skipped, marked todo or did not run; a case ran that the manifest does not declare; or a defined identifier has no declared coverage. Each cause is named. When the installed files differ, reinstall the package, then run the command again.
+
+Its last line is the summary, `kaal-agents-verification ` followed by JSON, for a program to read: the result, its cause, evidence and next step, the package's name, version and location, the platform and Node version, the digest of the installed files, every declared case with its outcome, and the coverage ([Requirements](requirements.md), agents/F7).
 
 The verification needs no network and no KAAL source checkout.
 

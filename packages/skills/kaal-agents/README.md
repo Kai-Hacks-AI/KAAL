@@ -25,13 +25,22 @@ This package establishes the capability only. It registers no Agent, keeps no se
 npx kaal register capability agents node_modules/kaal-agents/capability    # Core decides
 ```
 
+## Documentation
+
+- [Intent](docs/intent.md): why Agents exists.
+- [Requirements](docs/requirements.md): what it promises.
+- [Architecture](docs/architecture.md): where each promise is realized.
+- [Operations](docs/operations.md): how to install, run and verify it. It is the authoritative Operations document.
+- [Limitations](docs/limitations.md): what it does not establish.
+- [Testing](docs/testing.md): the cases your installation runs, and what they cover.
+
 ## Verify the installation
 
 ```sh
 node node_modules/kaal-agents/test/verify.mjs
 ```
 
-It ends in verified, failed or cannot verify. In this version the package's own `npm test` is still the publisher's suite, so `npm explore kaal-agents -- npm test` does not work in an installation yet. See `docs/operations.md` and `docs/limitations.md`.
+It ends in verified, failed or cannot verify, with a summary line a program can read. In this version the package's own `npm test` is still the publisher's suite, so `npm explore kaal-agents -- npm test` does not work in an installation yet. See [Operations](docs/operations.md) and [Limitations](docs/limitations.md).
 
 ## License
 

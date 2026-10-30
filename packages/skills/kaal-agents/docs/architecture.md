@@ -36,7 +36,8 @@ Each element names, in brackets, the Requirements it answers. The Requirements a
 
   `lib/orient.mjs` has no code path that sets authority to anything but `unresolved`. Settling meaning and authority is the Agent's and the person's work, as PREACH says.
 - **agents/A5** [agents/F7, agents/N1]: `test/verify.mjs` follows Guard's consumer verification without importing it, and imports nothing from `lib/`, so a broken runtime cannot mask itself.
-  - `test/verify.json` lists the delivered cases by name, and the SHA-256 of every other shipped file.
+  - `test/verify.json` lists the delivered cases by name, the coverage of every identifier the documents define, and the SHA-256 of every other shipped file.
+  - It gives the cases a scratch directory through `TMPDIR`, `TMP` and `TEMP`, and removes it afterwards. It compares the consumer's project before and after the run, leaving out `.git/` and every `node_modules/` other than the installed copy.
   - Agents writes nothing into a consumer's repository, so there is no installation contract. The Skill is read from the installed package.
 - **agents/A6** [agents/F5]: The Skill is guidance an Agent loads when asked. Readiness does not depend on any host loading it, as `Agents.md` already says.
 - **agents/A7** [agents/I4]: The published name. The package is `kaal-agents` until the Owner gives it another. Every case reads the name from `package.json`, so a new name changes one field.
