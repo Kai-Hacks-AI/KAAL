@@ -215,6 +215,12 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       continue;
     }
     const targets = files().filter((f) => s.files.some((p) => matches(p, f)));
+    // An empty list would make `node --test` find every test in the repository: a suite with no file fails.
+    if (!targets.length) {
+      passed = false;
+      console.log(`suite: ${s.owner} ${s.name}: failed: its files match nothing`);
+      continue;
+    }
     const r = spawnSync(process.execPath, ["--test", ...targets], { cwd: ROOT, stdio: "inherit" });
     const ok = r.status === 0;
     passed &&= ok;
