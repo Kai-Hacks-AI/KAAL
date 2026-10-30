@@ -2,9 +2,10 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **graph/A5** [graph/F5–graph/F7]: The delivered layout adds `docs/`, `test/consumer/`, `test/verify.mjs` and `test/verify.json` to `files`, beside `payload` and `skills`.
-  - `scripts.test` is `node test/verify.mjs`.
-  - `scripts.test:publisher` runs today's test files. Engineering's Workspaces lane runs `test:publisher` where it is declared, which is Engineering's own Change on #622.
+- **graph/A5** [graph/F5–graph/F7]: The delivered layout adds `docs/`, `test/embedded/`, `test/verify.mjs` and `test/verify.json` to `files`, beside `payload` and `skills`.
+  - `scripts.test` is `node test/verify.mjs`: the installed entry, and it builds nothing.
+  - `scripts.test:publisher` runs `test/publisher/`, then the same `node test/verify.mjs`. The embedded cases therefore run in the repository too, through the one copy that ships, never a second time. Engineering's Workspaces lane runs `test:publisher` where it is declared (engineering/C6, #625), and its Acceptance lane runs `test/acceptance/`.
+  - `graph/C5` moves graph/C2's planned tests, graph/T1–graph/T7, unchanged from `test/plan/cycles.test.mjs` to `test/embedded/cycles.test.mjs`. They stay the authoritative Test Cases of graph/F1–graph/F4 and graph/N1–graph/N3, now delivered.
 - **graph/A6** [graph/F6]: `test/verify.mjs` follows the shape of Core's `core/A33` and Guard's `guard/A18`.
   - It imports nothing from `skills/`, so a broken runtime cannot mask itself.
   - It clears `NODE_TEST_CONTEXT`.

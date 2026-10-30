@@ -27,6 +27,73 @@ const clean = () => {
   return env;
 };
 
+/** Today's cases that verify shipped behaviour: Embedded Tests, delivered once in test/embedded/ (graph/F7). */
+const EMBEDDED = [
+  "gives a Node the SHA-256 of its exact bytes as its id, changing with any byte",
+  "reads a root, the Node that declares no type, only through identifyRoot",
+  "reads the Form strictly",
+  "reads reserved fields as written, whatever YAML would type them",
+  "returns capability-owned frontmatter uninterpreted, typed by YAML 1.2 and frozen",
+  "returns an identity frozen throughout, sequences and type included",
+  "reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes",
+  "says which bytes claim to be a Node, and which names and ids are valid",
+  "refuses an Edge reference whose name no Node can have",
+  "reads the frontmatter of any file in Form, a Node or not, and never the body",
+  "refuses what the Form refuses, with a FormError",
+  "is offered alone as kaal-graph/form, which imports no host module",
+  "are grouped by type, one Edge per target, sorted",
+  "are none without an edges key",
+  "are refused, never ignored: ${label}",
+  "writes exact canonical bytes that read back as the Node given",
+  "gives the same bytes and id whatever order groups, targets and keys are given in",
+  "builds Nodes a Graph relates, checks and traverses",
+  "takes a body as given, or none",
+  "constructs only ordinary Nodes: a Node with no type is refused, never written as a root",
+  "refuses what would not be a Node in Form with well-formed Edges",
+  "navigates out and in, with no backlink in the target",
+  "is the same whatever order Nodes are added in",
+  "finds Nodes and Edges by exactly their type, whatever order Nodes are added in",
+  "reads a numeric-looking id only when quoted",
+  "reports unresolved and misnamed references",
+  "looks a Node up by name and by reference, the name checked",
+  "answers every query with records the caller cannot use to change the graph",
+  "holds only Nodes that cannot change, so its indexes always agree with them",
+  "refuses a Node that could still change, adding nothing",
+  "answers queries with Edges as declared, which check() verifies",
+  "keeps an old Edge on the old meaning when the defining Node is revised",
+  "gives a Node a new identity when its Edge changes, and leaves the target unchanged",
+  "traverses breadth-first, once per Node, in either direction and by type",
+  "builds and traverses a long chain of Edges",
+  "delivers KNIFE in Form, typed by a KAAL Definition",
+  "checks and navigates Nodes on disk",
+  "reverse offers no way to write, and every attempt fails without changing it",
+  "reverse reads like a Map: size, get, has, keys, values, entries, forEach and iteration agree",
+  "cycles cannot be changed, at either level",
+  "graph/T1 [graph/F1, graph/F4]: an acyclic structure has no cycles; a self-edge is a cycle of one",
+  "graph/T2 [graph/F1, graph/I1]: A1 → D1 → T2 → A1 is reported sorted; disjoint cycles apart and in order; cycles sharing a member are one component",
+  "graph/T3 [graph/F2, graph/F4]: reach yields each identity once, terminates on a cycle, includes start, and reaches a successor that is not a key",
+  "graph/T4 [graph/F3, graph/F4]: reverse derives sorted predecessors, including for a successor that is not a key",
+  "graph/T5 [graph/N1]: the same structure in any key and successor order gives the same cycles, reach and reverse",
+  "graph/T6 [graph/N2, graph/A2]: a 100 000-member chain and ring terminate without recursion exhausting the stack, and the ring is one cycle",
+  "graph/T7 [graph/N3, graph/F4]: the input is unchanged, the results are frozen, and a plain object works like a Map",
+];
+
+/** Today's cases that verify Graph's repository, release or integration with Core: Engineering-side, never shipped (graph/F7). */
+const ENGINEERING = [
+  "has an Agent Skill that conforms",
+  "names Graph's Skill Node by its kind and exact name and id, and claims Graph's tree",
+  "depends at runtime on kaal-hosting and its pinned YAML parser, and not on kaal-core",
+  "has a Skill Node, and KNIFE beside it, admitted by Core alone",
+  "reads Core's genesis Node, the one Node that declares no type, as a root, and refuses every typed Node as one",
+];
+
+/** Every `it` title in the .test.mjs files of a directory under test/, or none when it does not exist. */
+const titles = (dir) => {
+  const d = join(PACKAGE, "test", dir);
+  if (!existsSync(d)) return [];
+  return readdirSync(d).filter((f) => f.endsWith(".test.mjs")).flatMap((f) => [...readFileSync(join(d, f), "utf8").matchAll(/^\s*it\(\s*[`"](.+?)[`"],/gm)].map((m) => m[1]));
+};
+
 function walk(base) {
   const out = [];
   const go = (d) => {
@@ -52,22 +119,24 @@ describe("Graph 0.0.1 consumer contract", () => {
       const target = slash(join("docs", link)).replace(/^docs\/\.\.\//, "");
       assert.ok([...shipped].some((f) => target === f || target.startsWith(`${f}/`)) || target === "README.md", `docs link ${link}, which does not ship`);
     }
-    const consumer = join(PACKAGE, "test", "consumer");
-    const cases = readdirSync(consumer).filter((f) => f.endsWith(".test.mjs"));
-    assert.ok(cases.length > 0, "test/consumer/ has no cases");
-    const cited = new Set(cases.flatMap((f) => readFileSync(join(consumer, f), "utf8").match(/graph\/[IFNAT]\d+/g) ?? []));
+    const embedded = join(PACKAGE, "test", "embedded");
+    const cases = readdirSync(embedded).filter((f) => f.endsWith(".test.mjs"));
+    assert.ok(cases.length > 0, "test/embedded/ has no cases");
+    const cited = new Set(cases.flatMap((f) => readFileSync(join(embedded, f), "utf8").match(/graph\/[IFNAT]\d+/g) ?? []));
     for (const id of cited) assert.match(docs, new RegExp(`\\*\\*${id}\\b`), `${id} is not defined in docs/`);
   });
 
-  it("graph/T9 [graph/F6, graph/F7, graph/A5]: npm test is node test/verify.mjs and builds nothing; test:publisher names today's test files", () => {
+  it("graph/T9 [graph/F6, graph/F7, graph/A5]: npm test is node test/verify.mjs and builds nothing; test:publisher runs the Engineering-side tests and the same verify, and never runs an embedded case a second time", () => {
     const { scripts } = pkg();
     assert.equal(scripts.test, "node test/verify.mjs");
     assert.equal(scripts.pretest, undefined);
-    for (const f of ["test/graph.test.mjs", "test/ownership.test.mjs", "test/structure.test.mjs", "test/plan/cycles.test.mjs"]) assert.ok(scripts["test:publisher"]?.includes(f), `test:publisher does not run ${f}`);
+    const publisher = scripts["test:publisher"] ?? "";
+    for (const f of ["test/publisher/", "node test/verify.mjs"]) assert.ok(publisher.includes(f), `test:publisher does not run ${f}`);
+    assert.doesNotMatch(publisher, /test\/embedded\//, "test:publisher runs an embedded case outside verify");
   });
 
-  it("graph/T10 [graph/F7, graph/A5]: files ships docs, payload, skills, test/consumer, test/verify.mjs and test/verify.json, and not plan or test/plan", () => {
-    assert.deepEqual([...pkg().files].sort(), ["docs", "payload", "skills", "test/consumer", "test/verify.json", "test/verify.mjs"]);
+  it("graph/T10 [graph/F7, graph/A5]: files ships docs, payload, skills, test/embedded, test/verify.mjs and test/verify.json, and not plan, test/plan or test/publisher", () => {
+    assert.deepEqual([...pkg().files].sort(), ["docs", "payload", "skills", "test/embedded", "test/verify.json", "test/verify.mjs"]);
   });
 
   it("graph/T11 [graph/F8]: the name is @kaihacksai/kaal-graph and every KAAL runtime dependency is @kaihacksai/kaal-*", () => {
@@ -136,5 +205,21 @@ describe("Graph 0.0.1 consumer contract", () => {
         assert.ok(spec === "yaml" || spec.startsWith("node:") || local.includes(spec), `${file} imports ${spec}`);
       }
     }
+  });
+
+  it("graph/T15 [graph/F7]: every case today's tests hold is placed exactly once: each one that verifies shipped behaviour is an embedded case, each Engineering-side one stays out of the package, and no test file is left unplaced", () => {
+    const embedded = titles("embedded");
+    const engineering = [...titles("publisher"), ...titles("acceptance")];
+    for (const t of EMBEDDED) {
+      assert.equal(embedded.filter((e) => e === t).length, 1, `embedded case missing or duplicated: ${t}`);
+      assert.ok(!engineering.includes(t), `embedded case also Engineering-side: ${t}`);
+    }
+    for (const t of ENGINEERING) {
+      assert.equal(engineering.filter((e) => e === t).length, 1, `Engineering-side case missing or duplicated: ${t}`);
+      assert.ok(!embedded.includes(t), `Engineering-side case shipped: ${t}`);
+    }
+    const unplaced = readdirSync(join(PACKAGE, "test")).filter((f) => f.endsWith(".test.mjs"));
+    assert.deepEqual(unplaced, [], "test files outside embedded/, publisher/, acceptance/ and plan/");
+    assert.ok(!existsSync(join(PACKAGE, "test", "plan", "cycles.test.mjs")), "graph/T1–graph/T7 still run from test/plan/ as well as test/embedded/");
   });
 });
