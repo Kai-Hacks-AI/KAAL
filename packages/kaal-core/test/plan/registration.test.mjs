@@ -72,10 +72,6 @@ const retrace = (id, ...traces) => reg("acme-product", "acme", {}, ACME.map((i) 
 /** Whether a kind reference names the kind `name` defined in `scope`. */
 const is = (ref, scope, name) => ref.scope === scope && ref.kind === name;
 
-/** KINDS with the given kinds declared `acyclic` by their owners (core/F51). */
-const declaring = (...acyclic) =>
-  KINDS.map((r) => ({ ...r, kinds: Object.fromEntries(Object.entries(r.kinds).map(([k, v]) => [k, acyclic.some((a) => is(a, r.scope, k)) ? { ...v, acyclic: true } : v])) }));
-
 /** KINDS with one owner's rule for one of its kinds replaced. */
 const ruling = (ref, traces) => KINDS.map((r) => (r.scope === ref.scope ? { ...r, kinds: { ...r.kinds, [ref.kind]: { traces } } } : r));
 
@@ -147,7 +143,7 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.ok(naming(assemble([...ruling(F, [A]), pair(I)]).findings, "REQ-001", "WHY-1", "rule").length > 0, "F → I is refused once F's owner drops it");
   });
 
-  it("core/T54 [core/F51, core/F52, core/F53]: an empty rule permits nothing, an open rule permits any registered kind, a self-trace is a cycle of one judged by its kind owner's declaration, and rules hold across scopes", async () => {
+  it("core/T54 [core/F51, core/F52, core/F53]: an empty rule permits nothing, an open rule permits any registered kind, a self-trace is a cycle of one, observed and never a finding (revised by core/C32), and rules hold across scopes", async () => {
     const assemble = await assembler();
     const c = assemble([...KINDS, reg("acme-product", "acme", {}, [inst("CHG-1", C, "WHY-1"), inst("WHY-1", I)])]);
     assert.ok(naming(c.findings, "CHG-1", "WHY-1", "rule").length > 0, "an empty rule permits no trace");
@@ -156,14 +152,11 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.deepEqual(open.findings, [], "an open rule permits a trace to any registered kind");
     const dangling = assemble([...KINDS, reg("acme-product", "acme", {}, [inst("case 3", T, "nothing-here")])]);
     assert.ok(naming(dangling.findings, "case 3", "nothing-here").length > 0, "an open rule does not resolve a missing target");
-    // X's rule permits X, so only the cycle contract can judge x-1 → x-1.
-    const selfTrace = (decl) => reg("kaal-x", "x", { X: { traces: ["X"], ...decl } }, [inst("x-1", "X", "x-1")]);
-    const permitted = assemble([...KINDS, selfTrace({})]);
+    // X's rule permits X, so x-1 → x-1 is permitted: a cycle of one, which Core never judges.
+    const selfTrace = reg("kaal-x", "x", { X: { traces: ["X"] } }, [inst("x-1", "X", "x-1")]);
+    const permitted = assemble([...KINDS, selfTrace]);
     assert.ok(naming(permitted.cycles, "x-1").length > 0, "a self-trace is observed as a cycle of one");
-    assert.deepEqual(permitted.findings, [], "with no acyclic declaration it is no finding");
-    const prohibited = assemble([...KINDS, selfTrace({ acyclic: true })]);
-    assert.ok(naming(prohibited.cycles, "x-1").length > 0, "it is still observed");
-    assert.ok(naming(prohibited.findings, "x-1", "X", "kaal-x", "acyclic").length > 0, "declared acyclic, it is a finding naming the kind and its owner");
+    assert.deepEqual(permitted.findings, [], "a cycle is never Core's finding");
     const across = assemble([...KINDS, SAMPLE, reg("probe", "probe", {}, [inst("p1", T, at("acme", "REQ-001")), inst("p2", F, at("acme", "bb/store"))])]);
     assert.equal(naming(across.findings, "p1").length, 0, "T → F across scopes is permitted");
     assert.ok(naming(across.findings, "p2", "bb/store", "rule").length > 0, "F → A is not, whatever the scopes");
@@ -189,31 +182,24 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.ok(naming(reverse.findings, "WHY-1", "tracedBy").length > 0, "an incoming trace is never stated");
   });
 
-  it("core/T57 [core/F53, core/N14, core/A27]: traces are followed recursively and terminate on a cycle, every cycle is observed, and only a cycle through a kind declared acyclic is a finding naming that kind and its owner", async () => {
+  it("core/T57 [core/F53, core/N14, core/A27]: traces are followed recursively and terminate on a cycle, every cycle is observed, and no cycle is a finding (revised by core/C32)", async () => {
     const assemble = await assembler();
     const r = assemble([...KINDS, SAMPLE]);
     const reached = ids(r.reach("acme", "src/store.ts"));
     for (const id of ["case 1", "bb/store", "REQ-001", "WHY-1", "CHG-1"]) assert.ok(reached.includes(id), `src/store.ts reaches ${id}`);
     assert.deepEqual(r.cycles, [], "an acyclic graph has no observed cycle");
 
-    // Permitted: no owner of T or Code declared acyclic.
     const permitted = assemble([...KINDS, CYCLIC]);
     const around = ids(permitted.reach("acme", "case 1"));
     assert.equal(new Set(around).size, around.length, "reach terminates on the cycle and yields each instance once");
     for (const id of ["src/store.ts", "bb/store", "defect:1", "REQ-001", "WHY-1", "CHG-1"]) assert.ok(around.includes(id), `case 1 reaches ${id} through the cycle`);
     assert.ok(naming(permitted.cycles, "case 1", "src/store.ts").length > 0, "case 1 → src/store.ts → case 1 is observed, naming its instances");
-    assert.deepEqual(permitted.findings, [], "an undeclared cycle is no finding");
-    assert.deepEqual(assemble([...declaring(I), CYCLIC]).findings, [], "a declaration on a kind off the cycle does not judge it");
-
-    // Prohibited: Code's owner declares Code acyclic.
-    const prohibited = assemble([...declaring(Code), CYCLIC]);
-    assert.ok(naming(prohibited.cycles, "case 1", "src/store.ts").length > 0, "the cycle is still observed");
-    assert.ok(naming(prohibited.findings, "case 1", "src/store.ts", "kaal-engineering", "acyclic").length > 0, "it is a finding naming its instances, the declared kind's owner and the declaration");
+    assert.deepEqual(permitted.findings, [], "a cycle is never Core's finding");
 
     // Deterministic: the same registrations in any order give the same cycles and findings.
     const pick = (x) => JSON.parse(JSON.stringify({ cycles: x.cycles, findings: x.findings }));
-    const all = [...declaring(Code), CYCLIC];
-    assert.deepEqual(pick(assemble([...all].reverse())), pick(prohibited), "order does not change the observed cycles or the findings");
+    const all = [...KINDS, CYCLIC];
+    assert.deepEqual(pick(assemble([...all].reverse())), pick(permitted), "order does not change the observed cycles or the findings");
   });
 
   it("core/T58 [core/I16, core/F55, core/F56]: an instance that states no trace is reported untraced, not failed and not inferred", async () => {
@@ -233,7 +219,7 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.deepEqual([none.scopes, none.kinds, none.instances, none.findings, none.untraced].map((x) => x.length), [0, 0, 0, 0, 0]);
   });
 
-  it("core/T67 [core/F51, core/F53, core/F54]: a hierarchy is a kind whose owner's rule permits its own kind; children state their parent, parents list no children, `acyclic` is the owner's choice, and a cross-tree trace is an ordinary outgoing trace; Core requires no tree", async () => {
+  it("core/T67 [core/F51, core/F53, core/F54]: a hierarchy is a kind whose owner's rule permits its own kind; children state their parent, parents list no children, a looped tree is no finding (revised by core/C32), and a cross-tree trace is an ordinary outgoing trace; Core requires no tree", async () => {
     const assemble = await assembler();
     const tree = reg("acme-product", "acme", {}, [
       inst("WHY-1", I),
@@ -250,9 +236,9 @@ describe("Capability registration and one-way traceability (core/C24)", () => {
     assert.deepEqual(r.incoming("acme", "REQ-001").map((t) => t.source.id).sort(), ["REQ-001.1", "REQ-001.2"], "a parent's children are derived");
     assert.ok(ids(r.reach("acme", "case 1")).includes("WHY-1"), "a case reaches up the tree it traces into");
     const loop = reg("acme-product", "acme", {}, [...tree.instances.filter((i) => i.id !== "REQ-001"), inst("REQ-001", F, "WHY-1", "REQ-001.1.1")]);
-    assert.deepEqual(assemble([...nested, loop]).findings, [], "without a declaration, a loop in F is observed, not refused");
-    const strict = nested.map((x) => (x.scope === "requirements" ? { ...x, kinds: { ...x.kinds, F: { ...x.kinds.F, acyclic: true } } } : x));
-    assert.ok(naming(assemble([...strict, loop]).findings, "REQ-001", "kaal-requirements", "acyclic").length > 0, "declared acyclic by its owner, it is a finding");
+    const looped = assemble([...nested, loop]);
+    assert.ok(naming(looped.cycles, "REQ-001", "REQ-001.1.1").length > 0, "a loop in F is observed");
+    assert.deepEqual(looped.findings, [], "and never refused: acyclicity is the owner's own constraint");
   });
 
   it("core/T72 [core/I21, core/F66, core/A26]: a term that several owners define is discoverable as one unaligned report naming each scoped kind, its owner, its definition and the rules among them; the kinds stay distinct, identical definitions included, and the report is no finding", async () => {

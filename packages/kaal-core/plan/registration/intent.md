@@ -34,7 +34,7 @@ The Owner's alignment on #600 (2026-10-29) applies PREACH to this PLAN. PREACH, 
 
 So three things stay apart:
 
-- **the kind definition**, registered by the kind's owner in its own scope: its name, its outgoing rule, and any `acyclic` declaration;
+- **the kind definition**, registered by the kind's owner in its own scope: its name and its outgoing rule;
 - **the content instance**, registered by whoever holds the content, a Capability or a consuming repository: its identity, its kind, and its outgoing traces;
 - **the generic assembly identity**, which Core forms to tell instances apart: the scope the holder claims, and the identity within that scope, both read as opaque text.
 

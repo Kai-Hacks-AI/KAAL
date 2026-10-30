@@ -41,21 +41,21 @@ Each Requirement names, in brackets, the Intents it serves.
 - **core/F51** [core/I16]: A kind's outgoing rule is its owner's alone.
   - **Who registers it.** A rule is registered only by the kind's owner, with the kind's definition. The owner defines the trace concept for its kind, and each instance's holder owns the assertions it makes under that rule. A target never defines what may trace to it, and a cross-capability target does not make the semantics jointly owned.
   - **Its forms.** A rule is either a list of kind references (`core/F50`) its instances may trace to, which may be empty, or `any`, which permits a trace to an instance of any registered kind. Testing, for example, may register its kind open rather than enumerate other Capabilities' kinds.
-  - **Hierarchies.** A rule may name its own kind. That is how a Capability organizes its content as a tree: a child states its parent, a parent's children are derived (`core/F54`), and `acyclic` is the owner's choice. Core requires no tree.
+  - **Hierarchies.** A rule may name its own kind. That is how a Capability organizes its content as a tree: a child states its parent, and a parent's children are derived (`core/F54`). Core requires no tree, and whether a tree must stay acyclic is the owner's own constraint (revised by `core/C32`).
   - **Validated as registered.** A listed kind that no registration defines is a finding naming the rule's owner and that kind.
-  - **Cycles.** The kind's owner may declare its kind `acyclic`: no instance of that kind may lie on a cycle of trace instances. Without a declaration, cycles through the kind are permitted. Core adds no default and no universal prohibition.
+  - **Cycles (revised by `core/C32`).** Core has no acyclicity requirement and holds no cycle declaration. A kind's owner may require acyclicity under its own semantics and acceptance policy, and is accountable for its evidence. Graph's optional cycle detection can supply that evidence (`core/F80`).
   - **No rule is built in.** Core holds no trace matrix of its own, adds no rule and no reverse rule, and treats no kind name specially. What is permitted is exactly what the registered rules permit.
 - **core/F52** [core/I16, core/I17]: Each trace instance goes out from its source instance to a target assembly identity. It is permitted only when two things hold:
   - its target resolves to an instance in a claimed, uncollided scope;
   - the target's kind is permitted by the source kind's rule.
 
-  A trace to itself is not refused here: it is a cycle of one, judged by `core/F53` like any other cycle.
+  A trace to itself is not refused here. It is a cycle of one, which Core never judges (`core/F53`).
 
   Otherwise it is a finding naming the source, the target and the reason: unresolved, unclaimed scope, unknown kind, or not permitted by the rule. The rule applies whichever scopes the two instances are in.
-- **core/F53** [core/I17]: The assembled graph is validated as a whole.
-  - **Following traces.** From any instance, Core follows its traces recursively.
+- **core/F53** [core/I17]: The assembled graph is analysed as a whole when Graph is present (revised by `core/C32`, `core/F80`).
+  - **Following traces.** From any instance, Graph's `reach` follows its traces recursively.
   - **Cycles are observed.** Every cycle of trace instances, a self-trace included, is reported as a structural observation naming its instances.
-  - **Cycles are judged by their owners' declarations.** A cycle is a finding only when an instance on it is of a kind whose owner declared it `acyclic` (`core/F51`). The finding names that kind and its owner. Core never decides on its own that a cycle is invalid.
+  - **Cycles are never Core's finding.** Core judges no cycle and claims no consumer's cycle constraint as verified. Without Graph, the observations are unavailable, and nothing is refused for that.
   - **Safety is not semantics.** Following traces and detecting cycles are deterministic and terminate on every graph, cyclic or not, whatever is permitted. Reaching yields each instance once, and Core never enumerates paths.
   - **Rules may cycle.** Kinds may form a cycle in their rules.
 - **core/F54** [core/I16]: Reverse views are derived:
@@ -81,7 +81,7 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional: reporting
 
-- **core/F56** [core/I17, core/I18, core/I21]: The result reports five things: the claims, every finding, the observed cycles, the untraced instances and, since `core/C30`, the shared terms.
+- **core/F56** [core/I17, core/I18, core/I21]: The result reports five things: the claims, every finding, the observed cycles (unavailable without Graph, since `core/C32`), the untraced instances and, since `core/C30`, the shared terms.
   - Each finding says that it is Core's global verdict.
   - A Capability's local verdict, on its kinds' meaning or its identities' form, is never reported as Core's, and Core's verdict never says that an instance's content is right.
-  - `kaal verify` lists the result beside the Nodes and artifacts. It fails on a collision and on a finding of `core/F50`–`core/F54`. It never fails because an instance is untraced, nor because of a cycle no owner declared prohibited, nor because of a shared term.
+  - `kaal verify` lists the result beside the Nodes and artifacts. It fails on a collision and on a finding of `core/F50`–`core/F52` or `core/F54`. It never fails because an instance is untraced, nor because of a cycle, nor because Graph is absent, nor because of a shared term (revised by `core/C32`).
