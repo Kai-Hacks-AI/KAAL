@@ -27,7 +27,7 @@ Engineering adds no boundary rule of its own, and decides no finding.
   - the rule, and the **boundary owner**, which is the Suite's provider;
   - the target Capability, which owns the correction.
 
-  A finding is for review, not an automatic failure, when the provider's Suite says so. Its resolution, validated with who judged, what and where, or visibly unresolved, follows Testing's terms and never counts as passing.
+  A cell's Case result is the provider's own: for Hosting's suite, `failed` exactly when the line's `failures` is non-empty, and `passed` otherwise. Findings and violations are static evidence for judgment, never mapped to a failure or a pass. An acknowledged finding is still reported and is not excused. Engineering checks the line's `sources` against the cell: a cell that applies to test code with no test-scope source read, or to production code with none of that scope, is a finding. A finding's resolution, validated with who judged, what and where, or visibly unresolved, follows Testing's terms and never counts as passing.
 - **engineering/N8. Deterministic.** The same matrix, Suites and sources always give the same findings, in the same order.
 - **engineering/N9. Unsupported exclusions.** An exclusion without a reason, or without evidence, is a finding, and its cell is treated as applying. Hosting is the expected exclusion from its own host-coupling Suite, by hosting/C13's rule that Hosting realizes host differences. That exclusion too is written in the matrix, citing that rule, and is not implied.
 
@@ -40,7 +40,7 @@ Core (`packages/kaal-core/test/boundary.test.ts`), Testing (`packages/skills/kaa
 | Prerequisite | Owner | Kind | State |
 | --- | --- | --- | --- |
 | Plan, Suite, Case, Run and inapplicability semantics | Testing | Technical: the DO evaluates the Plan with `kaal-testing`'s model. Order prerequisite | Planned in testing/C14, DO in testing/C15 (#630) |
-| Hosting's Boundary Test Suite for host and OS coupling, with its positive and negative fixtures, a T114-like OS-specific skip among them | Hosting | Technical: the first column of the matrix. Order prerequisite | Planned in hosting/C13 (#650): `boundarySuite({ name, root, builtins, test })` in `packages/extensions/kaal-hosting/conformance/boundary.mjs`, publisher-only, and run per cell as `node packages/extensions/kaal-hosting/conformance/boundary.mjs --name <capability> --root <dir> [--builtin <module>]…`, which exits non-zero only when the inspection cannot complete. Each run writes one stated structured result, the `kaal-hosting-boundary` line, which the DO reads from the run's own output, never from a TAP rendering. Engineering writes nothing in Hosting's tree |
+| Hosting's Boundary Test Suite for host and OS coupling, with its positive and negative fixtures, a T114-like OS-specific skip among them | Hosting | Technical: the first column of the matrix. Order prerequisite | Planned in hosting/C13 (#650): `boundarySuite({ name, root, builtins, test })` in `packages/extensions/kaal-hosting/conformance/boundary.mjs`, publisher-only, and run per cell as `node packages/extensions/kaal-hosting/conformance/boundary.mjs --name <capability> --root <dir> [--builtin <module>]…`, which exits non-zero only when the inspection cannot complete. Each run writes one stated structured result, the `kaal-hosting-boundary` line with its `failures`, `summary` and `sources` (93d6ca2), which the DO reads from the run's own output, never from a TAP rendering. Engineering writes nothing in Hosting's tree |
 | How a provider declares its Suite so Engineering can find it | Each provider, first Hosting | Semantic reference | Hosting's is the repository path above. The matrix names each provider's Suite by its path, so a provider not named there is a finding |
 | Per-platform execution | Engineering's lanes, in CI | Delivery: running cells on three platforms is a `.github/` Change of its own | Not in this Change |
 
@@ -64,6 +64,7 @@ These go in `engineering/boundaries/boundaries.test.mjs`, on fixture Capabilitie
 | engineering/T23 | An exclusion without a reason, and one without evidence, are each a finding, and the cell runs as applying | One that accepts any exclusion |
 | engineering/T24 | A justified exclusion declares its Cases inapplicable before the run, and an outcome observed for them anyway is still reported | One that drops the excluded cell's outcomes |
 | engineering/T25 | Each finding names file, line, rule, boundary owner and target Capability, and appears under that target only. A cell over test sources finds a fixture OS-specific skip | One that inspects production sources only, or reports one merged list |
+| engineering/T27 | A cell's result follows the line's `failures` only: findings with empty `failures` pass the Case and stay reported, an acknowledged dilution stays a finding, and a cell whose `sources` show no test-scope file is a finding | One that fails on any finding, or drops acknowledged findings |
 | engineering/T26 | The same input gives the same findings in the same order | One that orders findings by arrival |
 
 The numbers follow engineering/T16–T20, which engineering/C9 (#648) plans.
