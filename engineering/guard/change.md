@@ -481,6 +481,35 @@ None of the deferred items is a blocker. None of them reopens `0.0.4` or calls f
 - **Test Cases.** guard/T134 is planned here and written in the DO. The five External cases keep their identifiers.
 - **Authorization.** Approving this PLAN authorizes `guard/C129`'s DO only: no version bump, synchronization, promotion or publication.
 
+**Suites declared, scheduled, executed and passed (`guard/C129`, PLAN, revision 3).** The Owner's review of the DO on #663 (comment 6535391650) keeps the three Test Plans and the detection of suites no lane runs. It asks for three changes. Hosting owns cross-platform conformance, so Guard keeps no platform inventory of its own. A workflow command that reaches a suite does not prove that its cases ran. And the known lane gaps close before the DO is integrated. This revision replaces the parts of the revised PLAN above that let Guard choose hosts and that read execution from workflow text. The rest stands.
+- **No hosts in Guard's suite declarations.**
+  - Each Suites table gives the owner, the location, the command and the suite's prerequisites, for example KAAL's workspace installed and built, registry access, or a fresh target. It has no hosts column and no reasons for leaving a host out. Every suite is expected on every supported host.
+  - `engineering/guard/suites.mjs` keeps no platform inventory. It runs every declared suite wherever it is invoked.
+  - A suite whose prerequisite the lane did not provide is `not run` on that host, naming what is missing. That is a CI limitation: it is never not applicable and never GREEN.
+  - Whether a case genuinely cannot apply on a host is Hosting's decision, through its applicability rules and review guide (`guard/C118`, revision 3, #671). Guard never excludes a suite from a host.
+- **Four states, never inferred from one another.**
+  - **Declared:** the case is in its owner's Test Plan.
+  - **Scheduled:** a lane invokes the suite that holds it. guard/T134 checks this statically, and the DO labels its result as scheduling evidence only.
+  - **Executed** and its **outcome:** read from a run record, never from the workflow.
+  - **The run record.** On each host, `suites.mjs` writes one. It names the candidate SHA, the host and each suite. For every declared case it gives one outcome: passed, failed, not applicable (citing Hosting's rule), or not run (with the reason). The outcomes come from the test runner's own machine-readable report, matched against the Test Plans. A declared case with no execution in that report is `not run`.
+  - **Who uses the record.** The lane keeps the record as evidence, which is Engineering's part. The release gate (`guard/C126`, `guard/C125`) judges the three hosts' records through Testing's cross-platform parity (`testing/C31`, #668), never through workflow text.
+- **A new case for the record, guard/T137.** Given the Test Plans and a run record, it refuses:
+  - a declared case with no outcome;
+  - a suite counted as passed while one of its cases is not run;
+  - not applicable without a Hosting rule;
+  - a not-run outcome without a reason;
+  - a case that is in the record but in no Test Plan.
+
+  Each refusal has a negative fixture. guard/T134 stays as the static check, and its fixtures are unchanged except the host ones, which go with the hosts column.
+- **The lane gap closes before integration.**
+  - Engineering's lane change (#665) gives each suite its prerequisites on every host: `npm ci` and the workspace build in the macOS and Windows Guard jobs as well as Linux, and registry access for the consumer suite. It also keeps each host's run record.
+  - Where a host still cannot meet a prerequisite, its record says `not run` and the gate stays non-GREEN. Hosting can then challenge whether that is genuine.
+  - The DO's evidence is the three hosts' run records on its head together with #665. They show every declared case as executed, or as explicitly not applicable or not run. They are posted on #663.
+- **Dependencies.** Engineering (#665) for the lanes and the stored records. Hosting (#671's dependency) for not applicable. Testing (`testing/C31`, #668) for the cross-platform judgment at the release gate. guard/T134 is not weakened to turn GREEN.
+- **Place in `0.0.5`.** Unchanged: after `guard/C113`, before `guard/C125`.
+- **Test Cases.** guard/T134 is kept. guard/T137 is planned here and written in the DO.
+- **Authorization.** Approving this revision authorizes reworking the `guard/C129` DO (#663) to it, and nothing more: no version bump, synchronization, promotion or publication.
+
 **An outside read of the product documents, triaged (`guard/C119`, PLAN).** The Owner shared an outside read of Guard's product documents at f0d1eb9 (Perplexity, project chat, 2026-10-28). It covers Intent, Requirements, Architecture and the defect history in Limitations, with findings I-1–I-3, R-1–R-5, A-1–A-4 and D-1–D-3. The Owner's rule: a finding counts only if it is proven against the documents. Being true does not make it a correction. Each finding was checked against `packages/kaal-guard/docs/` and `lib/` on `kaal/guard-release`, and against the `0.0.5` Changes already open (`guard/C113`–`guard/C118`). This PLAN changes no product file.
 
 | Finding | Verdict | Evidence |
@@ -915,7 +944,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C118` | — | Guard | guard/T114 on every host: a portable fixture assessed with Hosting; its Windows inapplicability declared in the Test Plan and reviewed, never decided in the case; portable guard/T131; guard/T132 refuses undeclared platform branches (n3, the Owner on #570 and #577) | `guard/C111` | PLAN |
 | `guard/C119` | — | Guard | After the outside read of f0d1eb9: findings I-1–D-3 triaged, proven ones into bounded Changes | `guard/C111` | PLAN |
 | `guard/C121` | — | Guard | `0.0.5`: guard/F2 reserves exit statuses 0–3 from `outcomes`, as the code does | `guard/C119` | DO |
-| `guard/C129` | — | Guard | Tests placed by the realization they verify: Engineering, Embedded and External, each with its own Test Plan and owner; External's Test Plan split out; suites declared and orchestrated by Engineering's lane; guard/T134 refuses misplacement and a false GREEN from omitted suites (the Owner on #631) | `guard/C124` | PLAN |
+| `guard/C129` | — | Guard | Tests placed by the realization they verify: Engineering, Embedded and External, each with its own Test Plan and owner; External's Test Plan split out; suites declared and orchestrated by Engineering's lane; guard/T134 refuses misplacement and a false GREEN from omitted suites; no hosts in Guard's declarations, per-host run records and guard/T137 prove execution (the Owner on #631 and #663) | `guard/C124`, Engineering #665, Testing #668, Hosting via #671 | PLAN, revision 3 |
 | `guard/C120` | — | Guard | `0.0.5`: Intent and Requirements claim no more than they hold (guard/I9, guard/F9, guard/F7) | `guard/C119` | DO |
 | `guard/C122` | — | Guard | `0.0.5`: Architecture places every `lib/` module and serves every Requirement; loops named consistently | `guard/C119` | DO |
 | `guard/C130` | — | Guard | `0.0.5`: `Guard/Check` stated in Core's value kinds: `command` as a `parameter`, `held` as a list of `number` in place of `outcomes`, and the promised conformance check (the Owner on #609) | `guard/C124` | PLAN |
