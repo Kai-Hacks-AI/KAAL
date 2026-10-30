@@ -45,6 +45,7 @@ const FACTS_BY = {
   "no-case": { ...FACTS, cases: [], target: undefined },
   "not-applicable": { ...FACTS, applicability: { [FACTS.target]: SCOPE } },
   "complement-absent": { ...FACTS, applicability: { [FACTS.target]: COMPLEMENT }, complements: { "@acme/graph": "absent" } },
+  "complement-present": { ...FACTS, applicability: { [FACTS.target]: { absent: ["@acme/graph"], reason: "acme/T2 checks what Acme reports without Graph" } }, complements: { "@acme/graph": "present" } },
 };
 const factsFor = (id) => FACTS_BY[id] ?? FACTS;
 /** What the contract expects in each scenario, owned by these tests rather than read from the implementation. */
@@ -63,6 +64,7 @@ const EXPECTED = {
   "case-todo": { result: "unknown", cases: "pass", target: "todo" },
   "not-applicable": { result: "verified", cases: "pass", target: "not applicable" },
   "complement-absent": { result: "verified", cases: "pass", target: "not applicable" },
+  "complement-present": { result: "verified", cases: "pass", target: "not applicable" },
   "dependency-missing": { result: "unknown", cases: "any" },
   "inapplicable-unsupported": { result: "unknown", cases: "pass", target: "not run" },
   "case-failing": { result: "failed", cases: "pass", target: "fail" },
@@ -284,7 +286,7 @@ describe("The shared observable result contract for consumer verifiers (testing/
     }
   });
 
-  it("testing/T62 [testing/F47]: a case that needs an optional complement is not applicable only where the harness established that complement absent and optional; a missing required dependency never makes a case inapplicable, and never verifies", async () => {
+  it("testing/T62 [testing/F47]: a case that needs an optional complement, present or absent, is not applicable only where the harness established that complement's opposite state and that it is optional; a missing required dependency never makes a case inapplicable, and never verifies", async () => {
     const { observe, judge } = await contract();
     const id = "complement-absent";
     const verdict = (facts, change = () => {}, scenario = id, exit = EXIT.verified) => {
@@ -315,5 +317,22 @@ describe("The shared observable result contract for consumer verifiers (testing/
     assert.equal(judge("dependency-missing", observe(run({ ...claimed, result: VERIFIER.words.verified, cause: undefined, evidence: undefined, next: undefined }, EXIT.verified), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, verified");
     assert.equal(judge("dependency-missing", observe(run(claimed, EXIT.unknown), VERIFIER), missing).conforms, false, "a missing required dependency claimed as an absent complement, even under unknown");
     assert.equal(judge("dependency-missing", observe(run(conforming({ id: "dependency-missing" }), EXIT.unknown), VERIFIER), FACTS).conforms, true, "a missing required dependency reported unknown conforms");
+    const without = factsFor("complement-present");
+    const onlyWithout = (facts, change = () => {}) => {
+      const summary = conforming({ id: "complement-present" });
+      if (Object.hasOwn(facts.applicability, FACTS.target)) summary.cases[1].applicability = structuredClone(facts.applicability[FACTS.target]);
+      change(summary.cases[1]);
+      return judge("complement-present", observe(run(summary, EXIT.verified), VERIFIER), facts).conforms;
+    };
+    assert.equal(onlyWithout(without), true, "a case for Graph's absence, with the complement established present");
+    for (const [why, facts] of Object.entries({
+      "the complement absent": { ...without, complements: { "@acme/graph": "absent" } },
+      "nothing about the complement": { ...without, complements: {} },
+      "the complement's presence only inherited": { ...without, complements: Object.create({ "@acme/graph": "present" }) },
+      "the complement a required dependency": { ...without, dependencies: ["@acme/core", "@acme/graph"] },
+      "no complement named": { ...without, applicability: { [FACTS.target]: { ...without.applicability[FACTS.target], absent: [] } } },
+    })) assert.equal(onlyWithout(facts), false, `a case for the complement's absence, with ${why}`);
+    assert.equal(onlyWithout(without, (c) => (c.applicability.absent = ["@acme/other"])), false, "the verifier names another complement");
+    assert.equal(onlyWithout(without, (c) => ((c.applicability.requires = c.applicability.absent), delete c.applicability.absent)), false, "the verifier inverts which state of the complement the case needs");
   });
 });

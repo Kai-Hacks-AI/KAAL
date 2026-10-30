@@ -5,7 +5,7 @@ Each element names, in brackets, the Requirements it answers.
 - **testing/A18** [testing/F43–testing/F50, testing/N9]: `kaal-testing/verifiers` is one module, `lib/verifiers.mjs`, importing nothing, that exports:
   - `SCENARIOS`, the frozen list of `{ id, change, result, cases, target? }`. `cases` is `pass` where every declared case is reported, `none` where none is declared, and `any` where the scenario constrains no case. `target` is the outcome of the case the scenario targets.
   - `observe({ exit, stdout }, { prefix, words })`, which gives `{ observation, findings }`. `observation` is null when the run shows none.
-  - `judge(scenario, observed, facts)`, which gives `{ scenario, conforms, differences }`. `facts` is `{ package: { name, version, location }, platform, node, digest, cases, target, applicability }`, as the harness established them. `applicability` maps a case's name to the `{ platforms?, requires?, reason }` the harness read from the installed manifest and checked itself. It is empty where no case is declared not applicable. `dependencies` names the package's required runtime dependencies. `complements` maps each optional complement the harness checked to `present` or `absent` in the consumer.
+  - `judge(scenario, observed, facts)`, which gives `{ scenario, conforms, differences }`. `facts` is `{ package: { name, version, location }, platform, node, digest, cases, target, applicability }`, as the harness established them. `applicability` maps a case's name to the `{ platforms?, requires?, absent?, reason }` the harness read from the installed manifest and checked itself. It is empty where no case is declared not applicable. `dependencies` names the package's required runtime dependencies. `complements` maps each optional complement the harness checked to `present` or `absent` in the consumer.
 
   It adds a row to testing/A8's export inventory, with consumer verification "no". It serves the publisher and Engineering, who check a verifier. No consumer's verification uses it, and no product depends on it.
 
@@ -28,7 +28,7 @@ What each verifier would need to adopt the contract. Each product changes in its
 | Guard | `cannot verify` (guard/F33) | none for F50; its summary shape still differs (cases as counts, digest under `files`) |
 | Hosting | `cannot verify` (hosting/F21) | none for F50; `hosting/C12` adopts the contract |
 | Core | a missing file is `cannot verify` (core/F70) | none for F50; its verifier has no manifest, so it cannot yet declare cases (testing/F43, F47) |
-| Change | `unknown` (change/F22, #636 planned) | none for F50; its Graph-present or Graph-absent cases use `requires` (testing/F47) |
+| Change | `unknown` (change/F22, #636 planned) | none for F50; its `when: graph` cases use `requires`, and its `when: no-graph` cases use `absent` (testing/F47), in Change's own Change |
 | Graph | `failed` (graph/F6, graph/T12, #627 planned) | graph/F6 and graph/T12 change a tampered installation to unknown |
 
 ## Change graph

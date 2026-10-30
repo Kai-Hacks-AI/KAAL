@@ -5,7 +5,7 @@ Each Requirement names, in brackets, the Intents it serves.
 ## Functional
 
 - **testing/F43** [testing/I14]: **The scenarios.** The contract names each scenario: its identity, the one change a publisher's harness makes to a fresh consumer holding the packed candidate, and the result every conforming verifier then shows. There are at least these scenarios:
-  - **verified:** a clean run; a declared case the manifest declares not applicable, with a platform scope that excludes the platform and a reason, as testing/F47 requires; a declared case that requires an optional complement the consumer has not installed, with a reason (testing/F47);
+  - **verified:** a clean run; a declared case the manifest declares not applicable, with a platform scope that excludes the platform and a reason, as testing/F47 requires; a declared case that requires an optional complement the consumer has not installed, with a reason; a declared case that applies only without an optional complement the consumer has installed, with a reason (testing/F47);
   - **failed:** a declared case that fails; the consumer's content changed during the run;
   - **unknown:** no case at all, with a manifest that declares none; the manifest absent; the manifest malformed; a declared case the package does not deliver; an installed file changed, removed or added; a declared case skipped; a declared case marked todo; a declared case whose inapplicability is unsupported, because the manifest gives no platform scope that excludes the platform, or no reason; a required runtime dependency absent from the consumer; a delivered, declared case the package's runner silently leaves out on the platform; a declared case the runner replaces there with a stand-in under another identity (testing/F48).
 
@@ -25,9 +25,12 @@ Each Requirement names, in brackets, the Intents it serves.
   - unknown or failed on a clean run or on a declared inapplicable case;
   - unknown or verified on a failing case or a changed consumer.
 
-- **testing/F47** [testing/I14]: **Applicability is established, never asserted.** A case is not applicable only where the harness itself established, from the installed manifest, an explicit applicability for it, `{ platforms?, requires?, reason }`, with a nonempty reason, that excludes this run in one of two ways:
+- **testing/F47** [testing/I14]: **Applicability is established, never asserted.** A case is not applicable only where the harness itself established, from the installed manifest, an explicit applicability for it, `{ platforms?, requires?, absent?, reason }`, with a nonempty reason, that excludes this run in one of three ways:
   - **platform:** `platforms` is a nonempty list of the platforms where the case applies, and it excludes the platform the run was on;
-  - **optional complement:** `requires` is a nonempty list of the optional complements the case needs. The harness established at least one of them absent from the consumer, and none of them is a required dependency of the package.
+  - **optional complement needed:** `requires` is a nonempty list of the optional complements the case needs. The harness established at least one of them absent from the consumer.
+  - **optional complement excluded:** `absent` is a nonempty list of the optional complements whose absence the case asserts, such as Change's cases for Graph being absent. The harness established at least one of them present in the consumer.
+
+  No complement named in `requires` or `absent` is a required dependency of the package.
 
   A missing **required** dependency is not inapplicability. It is a broken installation, so the run is unknown and no case becomes not applicable through it. This follows the Owner's composition rule: a capability stands alone, and an optional complement is used through its own contract. A verifier that reports a case as not applicable conforms only when it shows that same applicability and reason. Otherwise the report is a disagreement, whatever result the verifier claims. So an ordinary skip, a todo, or a verifier's own unsupported claim of inapplicability never becomes verified. A not applicable case stays visible as `not applicable` and is never counted or reported as passed. Applicability here is the package's declared platform and complement scope. Whether a consumer's Change needs that case is Change's question, not package verification's.
 
