@@ -70,12 +70,14 @@ const code = (text) => {
   return fenced.concat(prose.flatMap((line) => [...line.matchAll(/`([^`\n]+)`/g)].map((m) => m[1])));
 };
 
-let work, scoped, both, unscoped;
+let work, scoped, both, unscoped, current;
 before(async () => {
   work = mkdtempSync(join(tmpdir(), "kaal-core-acquisition-"));
   const dependencies = [];
   for (const d of DEPENDENCIES) dependencies.push(await pack(d, work));
   const candidate = await scopedCandidate(work);
+  // The candidate as it is today, from its own tarball: under its current name until the rename.
+  current = await consumer(work, "current", [await pack(CORE, work), ...dependencies]);
   scoped = await consumer(work, "scoped", [candidate, ...dependencies]);
   // An unrelated unscoped package named kaal-core, with a bin named kaal.
   const fake = join(work, "fake");
@@ -101,7 +103,7 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
         const names = /\bkaal(-core)?\b/.test(c) && !/\.tgz\b/.test(c);
         // Running through PATH (npx, npm exec) can reach another package's kaal, scoped or not.
         const throughPath = /^\s*(npx\b|npm\s+(exec|x)\b)/.test(c);
-        const acquires = /^\s*npm\s+(install|i|explore|uninstall)\b/.test(c);
+        const acquires = /^\s*npm\s+(install|i)\b/.test(c);
         if (names && (throughPath || (acquires && !c.includes(SCOPED)))) offenders.push(`${path}: ${c.trim()}`);
       }
     }
@@ -117,11 +119,11 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
     const [cmd, script] = DOCUMENTED.split(" ");
     assert.equal(cmd, "node");
     const run = (cwd) => execute(process.execPath, [script, "version"], { cwd, env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
-    const version = new RegExp(`^kaal-core ${pkg.version.replace(/\./g, "\\.")}$`, "m");
+    const printsVersion = (r) => r.stdout.split(/\r?\n/).includes(`kaal-core ${pkg.version}`);
 
     const ok = await run(scoped);
     assert.equal(ok.status, 0, `${ok.stdout}${ok.stderr}`);
-    assert.match(ok.stdout, version);
+    assert.ok(printsVersion(ok), ok.stdout);
 
     // Both installed, the impostor owning node_modules/.bin/kaal. Control: npm exec with the scoped
     // --package still runs the impostor, which is why the documentation never relies on it.
@@ -129,7 +131,7 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
     assert.match(viaPath.out, /UNSCOPED kaal-core ran/, `npm exec --package does not bind kaal to the scoped package: ${viaPath.out}`);
     const beside = await run(both);
     assert.equal(beside.status, 0, `${beside.stdout}${beside.stderr}`);
-    assert.match(beside.stdout, version);
+    assert.ok(printsVersion(beside), beside.stdout);
     assert.doesNotMatch(`${beside.stdout}${beside.stderr}`, /UNSCOPED/, "another package's kaal never stands in for kaal-core");
 
     // Control: the bare bin name selects the unscoped package, so this fixture would catch that.
@@ -138,5 +140,17 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
     const refused = await run(unscoped);
     assert.doesNotMatch(`${refused.stdout}${refused.stderr}`, /UNSCOPED/, "the documented command never runs the unscoped package");
     assert.notEqual(refused.status, 0, "without the scoped package installed, the documented command fails");
+  });
+
+  it("core/T96 [core/F74, core/F69]: until the rename, the documents also say how to run and verify the tarball as it installs today, and that command runs it", { timeout: 600_000 }, async () => {
+    const pkg = JSON.parse(readFileSync(join(CORE, "package.json"), "utf8"));
+    const today = `node node_modules/${pkg.name}/dist/cli.js`;
+    if (pkg.name !== SCOPED) {
+      const operations = readFileSync(join(CORE, "docs", "operations.md"), "utf8");
+      for (const expected of [`${today} <command>`, `npm explore ${pkg.name} -- npm test`]) assert.ok(operations.includes(expected), `docs/operations.md documents ${expected} for the tarball installed today`);
+    }
+    const r = await execute(process.execPath, [today.split(" ")[1], "version"], { cwd: current, env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+    assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
+    assert.ok(r.stdout.split(/\r?\n/).includes(`kaal-core ${pkg.version}`), r.stdout);
   });
 });

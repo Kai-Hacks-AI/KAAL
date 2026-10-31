@@ -32,7 +32,7 @@ node node_modules/@kaihacksai/kaal-core/dist/cli.js upgrade # bring ./.kaal to t
 node node_modules/@kaihacksai/kaal-core/dist/cli.js remove  # remove Core's installation, keeping what is not Core's
 ```
 
-Until 0.0.1 is published under that name, install kaal-core only from packed tarballs, never by name: in a KAAL checkout, `npm ci && npm run build -w kaal-core`, then `npm pack` kaal-core and its KAAL runtime dependencies, and `npm install` those tarballs in your repository ([Operations](docs/operations.md)).
+Until 0.0.1 is published under that name, install kaal-core only from packed tarballs, never by name: in a KAAL checkout, `npm ci && npm run build -w kaal-core`, then `npm pack` kaal-core and its KAAL runtime dependencies, and `npm install` those tarballs in your repository. Such an installation sits in `node_modules/kaal-core`, under its current name, so run it as `node node_modules/kaal-core/dist/cli.js <command>` and verify it with `npm explore kaal-core -- npm test` until the rename ([Operations](docs/operations.md)).
 
 Installing the package writes nothing into your repository. `kaal init` does, and only when you run it.
 

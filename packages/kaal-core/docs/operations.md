@@ -28,6 +28,15 @@ kaal-core 0.0.1 is not yet published, and its package is still named `kaal-core`
 npm install ./kaal-core-0.0.1.tgz <the dependency tarballs>
 ```
 
+A tarball installed this way sits in `node_modules/kaal-core`, under its current name, so until the rename run and verify it there:
+
+```sh
+node node_modules/kaal-core/dist/cli.js <command>
+npm explore kaal-core -- npm test
+```
+
+Once kaal-core is published as `@kaihacksai/kaal-core`, use the scoped commands below and not these.
+
 Installing the package writes nothing into your repository. Only `kaal init`, `kaal register`, `kaal upgrade` and `kaal remove` write, and only when you run them.
 
 ## Use
