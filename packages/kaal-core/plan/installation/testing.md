@@ -13,8 +13,8 @@ The planned outer tests live in `packages/kaal-core/test/plan/installation.test.
 | core/T16: a provider the placement table does not know is `unknown`, and no path is planned for it | core/F17 | Requirements |
 | core/T17: upgrade rewrites unmodified files, keeps and reports modified ones, and prunes only what Core deployed | core/F18, core/F22 | Requirements |
 | core/T18: no plan writes an instruction file. A pointer names the canonical path and is never circular | core/F20 | Requirements |
-| core/T19: `renderSkill` copies `## Description` verbatim into `description`, keeps the body, and refuses a source without it | core/F21 | Requirements |
-| core/T20: the same inputs give the same plan and the same rendered bytes | core/N4 | Requirements |
+| core/T19: moved to `plan/skill/testing.md` and amended by `core/C22` | core/F21 | Requirements |
+| core/T20 (amended by `core/C22`): the same inputs give the same plan | core/N4 | Requirements |
 | core/T21: `kaal-core/installation` and `kaal-core/agent` import no host module | core/N4, core/A5, core/A6 | Architecture |
 | core/T22: Core claims only what it deployed. A consumer's own file at a supplier location, outside Core's record, is kept and reported, and is never written over or pruned | core/N6, core/F18 | Requirements |
 

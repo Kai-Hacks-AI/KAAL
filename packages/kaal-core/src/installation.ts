@@ -8,7 +8,7 @@ import type { Finding } from "./frontmatter.js";
 export type { Finding } from "./frontmatter.js";
 
 /** The `Installation Contract` Definition in `payload/core/`, by its exact bytes. Core's tests hold the two together. */
-const FORMAT = Object.freeze({ name: "Installation Contract", id: "16a1fe8eda96dd6618688126ba5a37b68ef66abd61e3e1e70cd6d2d280760c93" });
+const FORMAT = Object.freeze({ name: "Installation Contract", id: "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b" });
 
 /** A reference to the format an installation contract conforms to: its `format` member (core/F9). */
 export function installationFormat(): { readonly name: string; readonly id: string } {
@@ -16,7 +16,7 @@ export function installationFormat(): { readonly name: string; readonly id: stri
 }
 
 const MEMBERS = ["format", "capability", "version", "assets", "catalogue", "record", "runtime", "provides"];
-const ASSET_MEMBERS = new Set(["name", "source", "target", "kind", "executable"]);
+const ASSET_MEMBERS = new Set(["name", "source", "target", "kind", "executable", "surface"]);
 const VERSION = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 /** A Skill's name, as Core registers one: lowercase letters, digits and single hyphens. */
@@ -59,6 +59,7 @@ export function checkContract(contract: unknown): Finding[] {
         if (has(asset, "source") && !isPath(asset.source)) find(`${at}.source`, "path");
         if (has(asset, "kind") && asset.kind !== "file" && asset.kind !== "directory") find(`${at}.kind`, "kind");
         if (has(asset, "executable") && (typeof asset.executable !== "boolean" || asset.kind !== "file")) find(`${at}.executable`, "executable");
+        if (has(asset, "surface") && !isName(asset.surface)) find(`${at}.surface`, "name");
         if (has(asset, "target")) {
           if (!isPath(asset.target)) find(`${at}.target`, "path");
           else if (files.has(asset.target) || directories.includes(asset.target)) find(`${at}.target`, "duplicate");
@@ -99,4 +100,74 @@ export function checkContract(contract: unknown): Finding[] {
       });
   }
   return findings;
+}
+
+/** One file a record holds: the SHA-256 it was written with, and the Capability version that wrote or last confirmed it (core/F33). */
+export interface RecordEntry {
+  readonly sha256: string;
+  readonly version: string;
+}
+
+/** An installation record: `assets` by repository-relative path, and any members of the Capability's own (core/F33). */
+export interface InstallationRecord {
+  readonly assets: { readonly [path: string]: RecordEntry };
+  readonly [member: string]: unknown;
+}
+
+/** The findings for one installation record, empty when it conforms (core/F33, core/F38). Each finding names its member. */
+export function checkRecord(record: unknown): Finding[] {
+  if (!isObject(record)) return [{ key: null, rule: "record" }];
+  if (!has(record, "assets")) return [{ key: "assets", rule: "missing" }];
+  if (!isObject(record.assets)) return [{ key: "assets", rule: "assets" }];
+  const findings: Finding[] = [];
+  for (const [path, entry] of Object.entries(record.assets)) {
+    const at = `assets.${path}`;
+    if (!isPath(path)) findings.push({ key: at, rule: "path" });
+    if (!isObject(entry)) {
+      findings.push({ key: at, rule: "entry" });
+      continue;
+    }
+    for (const key of Object.keys(entry)) if (key !== "sha256" && key !== "version") findings.push({ key: `${at}.${key}`, rule: "unknown member" });
+    if (!(typeof entry.sha256 === "string" && SHA256.test(entry.sha256))) findings.push({ key: `${at}.sha256`, rule: "sha256" });
+    if (!(typeof entry.version === "string" && VERSION.test(entry.version))) findings.push({ key: `${at}.version`, rule: "version" });
+  }
+  return findings;
+}
+
+/** Whether `path` is a file of an asset Core may register: a file asset's target, or a file under a directory asset's, never a surface-gated one (core/F37). */
+function isAssetFile(contract: { assets: readonly unknown[] }, path: string): boolean {
+  return contract.assets.some(
+    (a) => isObject(a) && !has(a, "surface") && typeof a.target === "string" && (a.kind === "directory" ? path.startsWith(`${a.target}/`) : path === a.target),
+  );
+}
+
+export interface Registration {
+  /** A conforming installation contract. */
+  readonly contract: unknown;
+  /** The contract's record as it is now, or `undefined` when there is none. */
+  readonly record: InstallationRecord | undefined;
+  /** The SHA-256 Core wrote, by repository-relative path. */
+  readonly written: { readonly [path: string]: string };
+}
+
+/**
+ * The contract's record once Core has registered what it wrote (core/F34, core/F35). Only a path
+ * Core wrote that is a file of one of the contract's assets is registered, with the contract's
+ * `version`. Every other entry and member is kept as it was, in its order, and Core adds no member
+ * of its own.
+ * A missing record is created. Pure: the input record is not changed (core/N10).
+ */
+export function register({ contract, record, written }: Registration): InstallationRecord {
+  const conforming = checkContract(contract);
+  if (conforming.length > 0) throw new TypeError(`the contract does not conform: ${conforming.map((f) => `${f.key}: ${f.rule}`).join("; ")}`);
+  if (record !== undefined) {
+    const findings = checkRecord(record);
+    if (findings.length > 0) throw new TypeError(`the record does not conform: ${findings.map((f) => `${f.key}: ${f.rule}`).join("; ")}`);
+  }
+  const c = contract as { version: string; assets: unknown[] };
+  const assets: Record<string, RecordEntry> = { ...(record?.assets ?? {}) };
+  for (const path of Object.keys(written).sort()) {
+    if (isAssetFile(c, path)) assets[path] = { sha256: written[path], version: c.version };
+  }
+  return record === undefined ? { assets } : { ...record, assets };
 }

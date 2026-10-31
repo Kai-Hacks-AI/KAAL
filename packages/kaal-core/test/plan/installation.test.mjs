@@ -6,7 +6,6 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { readFrontmatter } from "kaal-graph/form";
 
 /** A kaal-core subpath, or the reason the tests are blocked before any behavioural assertion. */
 async function subpath(name) {
@@ -109,8 +108,8 @@ describe("Agent Realization (core/C3)", () => {
   });
 
   it("core/T17 [core/F18, core/F22]: upgrade rewrites unmodified files, keeps and reports modified ones, and prunes only what Core deployed", async () => {
-    const { realize, renderSkill } = await subpath("agent");
-    const old = renderSkill(Buffer.from(SOURCE.toString("utf8").replace("rerun it", "run it")));
+    const { realize } = await subpath("agent");
+    const old = Buffer.from(SOURCE.toString("utf8").replace("rerun it", "run it"));
     const p = (f) => `${CANON}${f}`;
     const record = { [p("SKILL.md")]: sha(old), [p("references/a.md")]: sha("A\n"), [p("references/old.md")]: sha("O\n"), [p("references/edited.md")]: sha("E\n") };
     const present = { ...record, [p("references/a.md")]: sha("changed\n"), [p("references/edited.md")]: sha("edited\n"), [p("references/mine.md")]: sha("M\n"), [p("references/b.md")]: sha("theirs\n") };
@@ -137,20 +136,10 @@ describe("Agent Realization (core/C3)", () => {
     }
   });
 
-  it("core/T19 [core/F21]: renderSkill copies ## Description verbatim into description, keeps the body, and refuses a source without it", async () => {
-    const { renderSkill } = await subpath("agent");
-    const rendered = Buffer.from(renderSkill(SOURCE));
-    assert.deepEqual(readFrontmatter(rendered), { name: "sample", description: "Resolve a failing Sample verdict: read the check, rerun it, fix the cause." });
-    const body = (b) => b.toString("utf8").slice(b.toString("utf8").indexOf("\n---\n", 3) + 5);
-    assert.equal(body(rendered), body(SOURCE));
-    assert.throws(() => renderSkill(Buffer.from("---\nname: sample\n---\n\n# sample\n\nNo description section.\n")), /Description/);
-  });
-
-  it("core/T20 [core/N4]: the same inputs give the same plan and the same rendered bytes", async () => {
-    const { realize, renderSkill } = await subpath("agent");
+  it("core/T20 [core/N4]: the same inputs give the same plan", async () => {
+    const { realize } = await subpath("agent");
     const input = () => ({ skills: [SKILL], providers: ["claude-code", "codex"], record: {}, present: {} });
     assert.deepEqual(realize(input()), realize(input()));
-    assert.deepEqual(Buffer.from(renderSkill(SOURCE)), Buffer.from(renderSkill(Buffer.from(SOURCE))));
   });
 });
 
