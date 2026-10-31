@@ -13,7 +13,7 @@ Each element names, in brackets, the Requirements it answers.
 | Order | Change | Depends on |
 | --- | --- | --- |
 | 1 | foundation/C13 PLAN, this Change | the Owner's ask (2026-10-31) |
-| 2 | foundation/C14 DO: `lib/boundary.mjs`, the two commands, documents, skill, `AGENTS.md`, the manifest regenerated, delivered cases T43–T44, and T37–T42 GREEN and moved to `test/publisher/` | 1 |
+| 2 | foundation/C14 DO: `lib/boundary.mjs`, the two commands, documents, skill, `AGENTS.md`, the manifest regenerated, delivered cases T43–T44, and T37–T42 and T45 GREEN and moved to `test/publisher/` | 1 |
 | 3 | promotion `kaal/foundation` → `main` | 2, the coordinator's turn |
 | 4 | publication of `@kaihacksai/kaal-foundation` 0.0.2 | 3, the Owner |
 

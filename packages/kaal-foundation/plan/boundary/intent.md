@@ -10,7 +10,7 @@ So Foundation's boundary check stays at Intent level. It checks a consumer only 
   - Is the Foundation it resolves a verified Foundation (foundation/I1)?
   - Are the SHA-256 digests it states the digests Foundation computes for the same bytes (foundation/I2)?
 
-  The answer is `verified`, `failed` or `cannot verify`. Foundation never judges how the consumer gets its digests.
+  The answer is `verified`, `failed` or `cannot verify`. Foundation never judges how the consumer gets its digests. A `verified` answer covers only the observations that ran, and it never certifies the consumer itself (foundation/F23).
 
 **How a boundary case is derived (the Owner's question, 2026-10-31).** A boundary case is one of Foundation's own outer cases, Intent or Requirements, with the consumer as its subject. Architecture has no counterpart, because a consumer cannot break Foundation's placement. Its expectation is not simply the opposite of the provider's case. Each Foundation obligation takes one of three forms at the boundary:
 - **mirror**: the same expectation, held by the consumer. Foundation's digest is FIPS SHA-256, so the consumer's stated digest is Foundation's digest.

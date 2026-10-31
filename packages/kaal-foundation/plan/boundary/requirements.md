@@ -16,8 +16,30 @@ Each Requirement names, in brackets, the Intents it serves.
   3. runs the resolved copy's own `bin/kaal-foundation.mjs verify` (foundation/F12), under the running Node, and takes the result from that copy's last line. The resolved copy decides its own verification, not the copy that runs the boundary.
   4. if lists are given, runs foundation/F22 on them, with the consumer's directory as the current directory.
 
-  The result is `verified` (0) only if the resolved copy is `verified` and every list is `verified`. Otherwise it is `failed` (1) if any part is `failed`, and `cannot verify` (2) if not. The last line is `kaal-foundation-boundary {json}`. The JSON holds `result`, `exit`, `consumer` (its `name` and `version` as declared), `resolved` (the resolved copy's `version` and the directory it was resolved to, relative to the consumer), `verification` (the resolved copy's result), `check` (foundation/F22's JSON, or `null`) and `causes`.
-- **foundation/F24** [foundation/I9, foundation/I7]: **Documented for agents.** The installed `docs/operations.md`, the skill (foundation/F15) and the repository's `AGENTS.md` Foundation section (foundation/F16) name both commands. They tell a consumer to produce its own list from the digests it already states, in the form of foundation/F22, at the time it states them. Each command is invoked by the scoped package's own bin path (foundation/F18).
+  `boundary` reports its two observations separately, and only the ones it made:
+  - `resolution` (foundation/I1) is the resolved copy's own result from step 3;
+  - `digests` (foundation/I2) is foundation/F22's result over the supplied lists, or `not checked` when no list is supplied.
+
+  `scope` names the observations that ran: `["resolution"]` without a list, and `["resolution", "digests"]` with one. The overall `result` covers `scope` only:
+  - `verified` (0) when every observation in scope is `verified`;
+  - `failed` (1) when any of them is `failed`;
+  - `cannot verify` (2) otherwise.
+
+  So `boundary <consumer>` with no list never reports, implies or counts digest agreement. Its human summary line says `digest agreement: not checked`. The last line is `kaal-foundation-boundary {json}`. The JSON holds:
+  - `result`, `exit` and `scope`;
+  - `observations`, with `resolution` and `digests`;
+  - `consumer`, its `name` and `version` as declared;
+  - `resolved`, the resolved copy's `version` and the directory it was resolved to, relative to the consumer;
+  - `check`, foundation/F22's JSON, or `null`;
+  - `causes`.
+
+  **What `verified` means, and what it does not.** `boundary` checks two things only: that the Foundation copy the consumer resolves verifies, and that the digests the consumer supplied are Foundation's. It does not establish:
+  - that the consumer conforms to anything;
+  - that the consumer uses Foundation correctly, or at all, in its code;
+  - that the supplied lists cover every digest the consumer computes or states.
+
+  The same holds for `check`: it vouches only for the lines it read. The human summary line of both commands says this, and so do `docs/limitations.md` and the skill.
+- **foundation/F24** [foundation/I9, foundation/I7]: **Documented for agents.** The installed `docs/operations.md`, the skill (foundation/F15) and the repository's `AGENTS.md` Foundation section (foundation/F16) name both commands and state the limits of `verified` in foundation/F23. They tell a consumer to produce its own list from the digests it already states, in the form of foundation/F22, at the time it states them. Each command is invoked by the scoped package's own bin path (foundation/F18).
 
 ## Non-functional
 

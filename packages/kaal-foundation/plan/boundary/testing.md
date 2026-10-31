@@ -26,12 +26,13 @@ So the boundary is not "the same cases with opposite results". Two Intents are m
 | --- | --- | --- | --- |
 | foundation/T37 | Intent | foundation/I9, foundation/F22: a list that `kaal-foundation sha256` printed for two files is `verified`, exit 0, `checked` 2. Changing one file afterwards gives `failed`, exit 1, with cause `differs` for that file only | Today's command, which has no `check` |
 | foundation/T38 | Requirements | foundation/F22: each of these is `cannot verify`, exit 2, with its cause: an empty list, a line with no two-space separator, a digest in uppercase or of 63 digits, and a missing file. If a list also holds a differing line, the result is `failed`. The last line of standard output parses as `kaal-foundation-check {json}` | A check that skips lines it cannot read and reports `verified` |
-| foundation/T39 | Intent | foundation/I9, foundation/F23: a fixture consumer that declares the dependency and holds a verifying copy is `verified`. The JSON names the consumer's name and version and the resolved copy's version, and `verification` is `verified` | Today's command, which has no `boundary` |
+| foundation/T39 | Intent | foundation/I9, foundation/F23: a fixture consumer that declares the dependency and holds a verifying copy, run with no list, is `verified` with `scope` `["resolution"]`, `observations.resolution` `verified` and `observations.digests` `not checked`. The JSON names the consumer's name and version and the resolved copy's version, and `verification` is `verified` | Today's command, which has no `boundary` |
 | foundation/T40 | Requirements | foundation/F23: each of these gives its result. A consumer without the dependency gives `cannot verify` with cause `not a consumer`. A declared but missing copy gives `cannot verify` with cause `unresolved`. A resolved copy with a changed document gives the resolved copy's own `cannot verify`. A resolved copy whose library answers wrongly, with its manifest rewritten to match, gives `failed`. A verifying copy with a differing list gives `failed` | A boundary that verifies the copy it runs from instead of the copy the consumer resolves |
 | foundation/T41 | Architecture | foundation/N13: a fixture consumer whose main module, `postinstall` and `test` scripts each write a marker file, and whose source holds its own `createHash("sha256")`, is still `verified` with an agreeing list. No marker exists afterwards | A boundary that imports the consumer, runs its scripts, or judges its source |
 | foundation/T42 | Requirements | foundation/F24, foundation/N14: the installed `docs/operations.md`, the skill and `AGENTS.md` name `check` and `boundary` by the scoped bin's path, and never as `npx`. `lib/boundary.mjs` imports only `node:` modules and `./sha256.mjs`. `lib/sha256.mjs` and `lib/sha256.d.ts` keep their `main` digests, and the package declares no dependency | Today's documents, which name neither command |
+| foundation/T45 | Intent | foundation/I9, foundation/F23: the two observations stay distinct. For one verifying consumer: with no list, `digests` is `not checked`, `check` is `null`, `scope` excludes `digests`, and the summary says `digest agreement: not checked` and never `digests verified`. With an agreeing list, `scope` holds both and `digests` is `verified`. With a differing list, `resolution` stays `verified`, `digests` is `failed`, and the result is `failed`. With a wrong resolved library and an agreeing list, `resolution` is `failed`, `digests` stays `verified`, and the result is `failed`. Every summary line states that the result does not certify the consumer | A boundary that reports `digests: verified`, or one combined flag, when no list ran; or that lets one observation's result overwrite the other's |
 
-T37 and T39 are Intent-level. They assert only outcomes a consumer sees, and they survive any solution the DO picks. T38, T40 and T42 pin the Requirements. T41 is the boundary's Architecture: it keeps the boundary at the outer loop.
+T37, T39 and T45 are Intent-level. They assert only outcomes a consumer sees, and they survive any solution the DO picks. T38, T40 and T42 pin the Requirements. T41 is the boundary's Architecture: it keeps the boundary at the outer loop.
 
 ## Delivered cases
 
@@ -52,8 +53,8 @@ Under this design, the same measurement is expected to give two results. `bounda
 
 ## RED evidence
 
-On `kaal/foundation`, all six planned cases are RED, because `kaal-foundation check` and `kaal-foundation boundary` exit 2 with `unknown command`:
-- T37, T39 and T41 fail on their first behavioural assertion.
+On `kaal/foundation`, all seven planned cases are RED, because `kaal-foundation check` and `kaal-foundation boundary` exit 2 with `unknown command`:
+- T37, T39, T41 and T45 fail on their first behavioural assertion.
 - T38 and T40 fail on the result line.
 - T42 fails because the documents name neither command.
 

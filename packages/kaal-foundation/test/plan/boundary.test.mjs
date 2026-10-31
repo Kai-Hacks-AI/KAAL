@@ -93,12 +93,14 @@ test("foundation/T38 [foundation/F22]: an empty list, a malformed line, a bad di
   assert.deepEqual([mixed.status, last(mixed.stdout, "kaal-foundation-check")?.result], [1, "failed"]);
 });
 
-test("foundation/T39 [foundation/I9, foundation/F23]: a consumer that declares Foundation and resolves a verifying copy is verified, and the JSON names consumer, resolved version and verification", () => {
+test("foundation/T39 [foundation/I9, foundation/F23]: a consumer that declares Foundation and resolves a verifying copy, with no list, is verified in scope resolution only, digests not checked, and the JSON names consumer and resolved version", () => {
   const { d } = consumer();
   const r = foundation(["boundary", d], fresh());
   const j = last(r.stdout, "kaal-foundation-boundary");
   assert.ok(j, `no kaal-foundation-boundary line: ${r.stdout}${r.stderr}`);
-  assert.deepEqual([r.status, j.result, j.exit, j.verification], [0, "verified", 0, "verified"]);
+  assert.deepEqual([r.status, j.result, j.exit], [0, "verified", 0]);
+  assert.deepEqual(j.scope, ["resolution"]);
+  assert.deepEqual(j.observations, { resolution: "verified", digests: "not checked" });
   assert.deepEqual(j.consumer, { name: "fixture-consumer", version: "1.2.3" });
   assert.equal(j.resolved.version, pkg.version);
   assert.equal(j.check, null);
@@ -119,7 +121,7 @@ test("foundation/T40 [foundation/F23]: not a consumer, unresolved, a changed res
   const changed = consumer();
   writeFileSync(join(changed.copy, "README.md"), "changed\n");
   const c = run(changed.d);
-  assert.deepEqual([c.status, c.j?.result, c.j?.verification], [2, "cannot verify", "cannot verify"], c.out);
+  assert.deepEqual([c.status, c.j?.result, c.j?.observations?.resolution], [2, "cannot verify", "cannot verify"], c.out);
 
   const wrong = consumer();
   const lib = join(wrong.copy, "lib", "sha256.mjs");
@@ -129,12 +131,12 @@ test("foundation/T40 [foundation/F23]: not a consumer, unresolved, a changed res
   m.files["lib/sha256.mjs"] = hash(readFileSync(lib));
   writeFileSync(manifest, JSON.stringify(m, null, 2) + "\n");
   const w = run(wrong.d);
-  assert.deepEqual([w.status, w.j?.result, w.j?.verification], [1, "failed", "failed"], w.out);
+  assert.deepEqual([w.status, w.j?.result, w.j?.observations?.resolution], [1, "failed", "failed"], w.out);
 
   const listed = consumer();
   writeFileSync(join(listed.d, "list"), `${hash(Buffer.from("not alpha"))}  a.txt\n`);
   const l = run(listed.d, "list");
-  assert.deepEqual([l.status, l.j?.result, l.j?.verification, l.j?.check?.result], [1, "failed", "verified", "failed"], l.out);
+  assert.deepEqual([l.status, l.j?.result, l.j?.observations?.resolution, l.j?.observations?.digests, l.j?.check?.result], [1, "failed", "verified", "failed", "failed"], l.out);
 });
 
 test("foundation/T41 [foundation/N13]: the boundary never imports, runs or judges the consumer: marker-writing main, postinstall and test scripts, and a consumer's own createHash, leave it verified and write no marker", () => {
@@ -144,7 +146,7 @@ test("foundation/T41 [foundation/N13]: the boundary never imports, runs or judge
   writeFileSync(join(d, "list"), listFor(d, ["a.txt", "b.bin", "index.cjs"]));
   const r = foundation(["boundary", d, "list"], fresh());
   const j = last(r.stdout, "kaal-foundation-boundary");
-  assert.deepEqual([r.status, j?.result, j?.check?.result], [0, "verified", "verified"], r.stdout + r.stderr);
+  assert.deepEqual([r.status, j?.result, j?.observations?.digests, j?.check?.result], [0, "verified", "verified", "verified"], r.stdout + r.stderr);
   for (const name of ["main", "postinstall", "test"]) assert.equal(existsSync(join(scratch, `marker-${name}`)), false, `the boundary ran the consumer's ${name}`);
 });
 
@@ -163,4 +165,39 @@ test("foundation/T42 [foundation/F24, foundation/N14]: documents, skill and AGEN
   assert.equal(hash(readFileSync(join(PACKAGE, "lib", "sha256.mjs"))), MAIN_SHA256_MJS);
   assert.equal(hash(readFileSync(join(PACKAGE, "lib", "sha256.d.ts"))), MAIN_SHA256_DTS);
   assert.equal(pkg.dependencies, undefined);
+});
+
+test("foundation/T45 [foundation/I9, foundation/F23]: resolution and digests are reported separately; no list means digests not checked, never verified; neither observation overwrites the other; no summary certifies the consumer", () => {
+  const outside = fresh();
+  const run = (d, ...lists) => { const r = foundation(["boundary", d, ...lists], outside); return { status: r.status, j: last(r.stdout, "kaal-foundation-boundary"), stdout: r.stdout, out: r.stdout + r.stderr }; };
+  const summary = (stdout) => stdout.split(/\r?\n/).filter((l) => l.trim() && !l.startsWith("kaal-foundation-")).join("\n");
+  const certifies = /does not (certify|establish)[^\n]*consumer/i;
+
+  const { d } = consumer();
+  const bare = run(d);
+  assert.ok(bare.j, bare.out);
+  assert.deepEqual([bare.status, bare.j.result, bare.j.scope, bare.j.observations, bare.j.check], [0, "verified", ["resolution"], { resolution: "verified", digests: "not checked" }, null]);
+  assert.match(summary(bare.stdout), /digest agreement: not checked/);
+  assert.doesNotMatch(summary(bare.stdout), /digests?( agreement)?:? verified/i);
+  assert.match(summary(bare.stdout), certifies);
+
+  writeFileSync(join(d, "agree"), listFor(d, ["a.txt", "b.bin"]));
+  const agreed = run(d, "agree");
+  assert.deepEqual([agreed.status, agreed.j?.result, agreed.j?.scope, agreed.j?.observations], [0, "verified", ["resolution", "digests"], { resolution: "verified", digests: "verified" }], agreed.out);
+  assert.match(summary(agreed.stdout), certifies);
+
+  writeFileSync(join(d, "differ"), `${hash(Buffer.from("not alpha"))}  a.txt\n`);
+  const differs = run(d, "differ");
+  assert.deepEqual([differs.status, differs.j?.result, differs.j?.observations], [1, "failed", { resolution: "verified", digests: "failed" }], differs.out);
+
+  const wrong = consumer();
+  const lib = join(wrong.copy, "lib", "sha256.mjs");
+  writeFileSync(lib, 'export function sha256(b) { if (!(b instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
+  const manifest = join(wrong.copy, "test", "verify.json");
+  const m = JSON.parse(readFileSync(manifest, "utf8"));
+  m.files["lib/sha256.mjs"] = hash(readFileSync(lib));
+  writeFileSync(manifest, JSON.stringify(m, null, 2) + "\n");
+  writeFileSync(join(wrong.d, "agree"), listFor(wrong.d, ["a.txt"]));
+  const broken = run(wrong.d, "agree");
+  assert.deepEqual([broken.status, broken.j?.result, broken.j?.observations], [1, "failed", { resolution: "failed", digests: "verified" }], broken.out);
 });
