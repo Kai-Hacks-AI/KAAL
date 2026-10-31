@@ -4,6 +4,8 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 
 `core/C29` turns them GREEN. These tests are the publisher's: they do not ship, and they check what does ship.
 
+**Revised by `core/C39`.** The delivered cases move from `test/acceptance/` and `test/unit/` to `test/embed/`, one file per loop, `intent`, `requirements`, `architecture` and `code` (`core/A33`). core/T75, core/T76 and core/T91 read and build `test/embed/` and assert what they did before. Nothing else changes.
+
 | Test | Checks | Loop |
 | --- | --- | --- |
 | core/T74: the package ships Intent, Requirements, Architecture, limitations, operations and testing documents. The README links each, no delivered document links a file that does not ship or a repository plan, and the limitations name what 0.0.1 leaves out | core/F69, core/N19, core/A33 | Requirements |

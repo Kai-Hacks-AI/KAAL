@@ -2,9 +2,9 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **core/A33** [core/F69, core/F70, core/F85, core/N19] (revised by `core/C36`): Delivered layout. `package.json` `files` adds `docs`, `test/acceptance`, `test/unit`, `test/verify.mjs` and the manifest `test/verify.json`, beside `dist`, `payload` and `installation.kaal.json`.
-  - `test/acceptance/` holds one file for each outer loop: `intent`, `requirements` and `architecture`.
-  - `test/unit/` holds the Code tests that need no build.
+- **core/A33** [core/F69, core/F70, core/F85, core/N19] (revised by `core/C36` and `core/C39`): Delivered layout. `package.json` `files` adds `docs`, `test/embed`, `test/run.mjs`, `test/verify.mjs` and the manifest `test/verify.json`, beside `dist`, `payload` and `installation.kaal.json`.
+  - `test/embed/` holds kaal-core's own shipped cases, one file for each loop: `intent`, `requirements`, `architecture` and `code`. The Code cases need no build.
+  - The location says the cases' purpose and owner, not their kind (`testing/C43`, the Owner's review on #702): kaal-core's own `npm test` runs them against the installed copy, and Engineering's lane never discovers them. Each case's loop is its trace in the model, through the `core/…` subjects its name brackets, not its directory.
   - The delivered tests are plain `node:test` files that import kaal-core by its package name, so they exercise whichever copy is installed.
 - **core/A34** [core/F70, core/F75]: Named suites and one runner.
   - `test:consumer` is the consumer verification, `node test/verify.mjs`. It checks the installation against `test/verify.json`, runs the delivered loops, compares the cases that ran with the declared cases (`core/A43`), and prints and exits with the result (`verified` 0, `failed` 1, `cannot verify` 2). It builds nothing. (Revised by `core/C36`: it no longer decides on counts.)
