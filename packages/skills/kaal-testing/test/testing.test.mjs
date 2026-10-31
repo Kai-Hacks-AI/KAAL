@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { bootstrap, catalog, foundation, readContribution, register } from "kaal-core";
 import { identify } from "kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
-import { execute, read, readFile } from "kaal-hosting";
+import { execute, read, readFile } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = fileURLToPath(new URL("../", import.meta.url));
 const PAYLOAD = join(PACKAGE, "payload");

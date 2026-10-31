@@ -12,7 +12,7 @@
 // One that is neither is reported as refused.
 // Exits 0 on success, 1 when check reports findings, 2 on misuse, unreadable input or
 // a Node not found.
-import { read } from "kaal-hosting";
+import { read } from "@kaihacksai/kaal-hosting";
 import { Graph } from "./edges.mjs";
 import { claimsForm, FormError, identify, identifyRoot } from "./node.mjs";
 

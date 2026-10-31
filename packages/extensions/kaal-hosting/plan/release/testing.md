@@ -1,6 +1,6 @@
 # Release Readiness: Testing
 
-The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/release.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. Run them with `npm run test:plan -w kaal-hosting`. `hosting/C11` turns hosting/T21–T24 GREEN and `hosting/C12` turns hosting/T25–T31 GREEN. Each moves its tests into Hosting's publisher suite (`test:publisher` from `hosting/C12` on), so they run in the Linux, Windows and macOS Hosting lanes. hosting/T25–T31 pack the candidate and run the consumer's own command in a fresh consumer, so each Hosting lane verifies the release candidate on its host.
+The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/release.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. Until `hosting/C12` they ran with `npm run test:plan`; from `hosting/C12` on, `test:publisher` runs them and `test:plan` is gone, since in source every `test:<name>` script is a suite of `npm test` (hosting/F20). `hosting/C11` turns hosting/T21–T24 GREEN and `hosting/C12` turns hosting/T25–T31 GREEN. Each moves its tests into Hosting's publisher suite (`test:publisher` from `hosting/C12` on), so they run in the Linux, Windows and macOS Hosting lanes. hosting/T25–T31 pack the candidate and run the consumer's own command in a fresh consumer, so each Hosting lane verifies the release candidate on its host.
 
 | Test | Checks | Loop |
 | --- | --- | --- |
@@ -102,3 +102,32 @@ On `kaal/hosting` before the rename, the old matcher found 115 references and th
 | runs the suites in declaration order, not name order | hosting/T53 |
 | is `verified` with no suite declared | hosting/T53 |
 | takes any directory that is not an installation for the source workspace | hosting/T54 |
+
+## hosting/C23: shipped cases live in test/embed/
+
+`hosting/C23` is a PLAN correction to hosting/F17, hosting/F19, hosting/A9 and hosting/A15, with three planned tests narrowed to the new path. On #702 (comment 6543551316) the Owner ruled that `test/acceptance/` is ambiguous. A capability's own shipped cases, run against the installed package by its own `npm test`, live in `test/embed/`. Engineering's lane scenarios, which `install()` the packed tarballs, live in `test/engineer/`. There is no `test/external/` convention. Testing plans this as `testing/C43` (#702).
+
+The C12 DO (#700) met the conflict: KAAL's Acceptance lane took Hosting's shipped `test/acceptance/` files for its own scenarios and failed them with "installed no packed package".
+
+- **What changes.** hosting/F17 and hosting/F19 ship `test/embed/` in place of `test/acceptance/` and `test/unit/`. hosting/A9 places every shipped case there: one file per outer loop, the Code loop's files beside them, and the harness. hosting/A15 replaces the two planned `files` rows with one, `test/embed`, still planned for `hosting/C12`.
+- **Tests narrowed.** These change their path only, and what they assert stays the same:
+  - hosting/T31's `firstCase` picks the first outer case under `test/embed/`.
+  - hosting/T30 plants its skip in the first outer case file under `test/embed/`.
+  - hosting/T30's nonexistent declared case is named under `test/embed/`.
+- **Unchanged.** hosting/T25–T29, hosting/T41 (it reads A15), and every other planned test.
+
+**RED evidence.** At `hosting/C23`, hosting/T25–T31 stay RED as before, blocked before behavioural assertion: the package ships no `test/verify.mjs`. `hosting/C12` turns them GREEN with its cases in `test/embed/`.
+
+## hosting/C12: the complete product, delivered
+
+`hosting/C12` is the DO. It edits no planned assertion. hosting/T25–T31 and hosting/T53–T54 are GREEN with hosting/T21–T24 and hosting/T48, run by `test:publisher` from `test/plan/release.test.mjs` (pattern `^hosting/T(2[1-9]|3[01]|48|5[34]) `), with `test/plan/interface.test.mjs` (hosting/T41) beside them.
+
+- **What moved.** The TypeScript tests (`test/hosting.test.ts`, `test/conformance.test.ts`) became the shipped Code loop, `test/embed/{hosting,conformance}.test.mjs`, with types stripped and nothing else changed but two things: they reach the package by its name instead of a path into `dist/`, and the permission case establishes by trying whether the host denies the permission, instead of skipping on Windows or as root. hosting/T1–T20 moved from `test/plan/{reconciliation,cleanup,kinds,expectations}.test.mjs` into `test/embed/requirements.test.mjs`, each file's helpers scoped inside its own suite, with their assertions byte for byte as planned and the Change names dropped from the suite titles. `tsconfig.test.json` and `dist-test/` are gone.
+- **New delivered cases.** hosting/T55–T59 and T67 (Intent), hosting/T60–T66 (Architecture) and hosting/T68–T69 (Requirements, the conformance suite). The first Architecture case, hosting/T60, is written so that hosting/T31's planted failure and todo land on it.
+- **New identifiers.** The README's guarantees had none, so `docs/` defines hosting/I12, hosting/F45–hosting/F55 and hosting/A21 for them, cited by the Code loop's suite titles. hosting/I11, hosting/F42–F44 and hosting/A20 stay reserved for `hosting/C20`.
+- **Left out of `docs/`.** hosting/F16, hosting/F26, hosting/A7, hosting/A8 and hosting/A11 are about how Hosting is renamed, tested and checked by its publisher, not about the product, so they stay here and `docs/` leaves a gap for them, as Guard's do.
+- **The manifest.** `test/verify.json` is generated by `test/publisher/manifest.mjs` in `prepack`, from a run of the delivered cases and the tables in `docs/testing.md`, and is not committed (`.gitignore`), so a packed candidate always carries a manifest that matches it. The generator refuses to write while a case fails or an identifier is accounted for twice or not at all. A case covers what its name cites; the verifier derives that again from the names at run time and refuses a manifest that claims otherwise.
+- **Applicability.** No case is declared not applicable. The Code loop's socket case, which skipped itself on Windows, now establishes `kaal-hosting/special-entries` by trying, through Hosting's own `specialEntries`, and checks a FIFO and a socket where the host holds them and the fact's reason and evidence where it does not. A platform declaration would also have broken hosting/T31 on Windows, which expects every case but the one it plants as not applicable to pass.
+
+**GREEN evidence.** With Node 24.22.2 on Linux: `npm test` in source runs `test:publisher` (129 and 14 cases, all pass) and ends `verified`, place `source`. A candidate packed and installed into a fresh consumer verifies with `npm explore @kaihacksai/kaal-hosting -- npm test`: 106 delivered cases in four loops, 84 identifiers (63 covered, 18 allocated, 3 unverified). With Node 22 the same run is `cannot verify`, naming the Node version, as hosting/F21 requires.
+

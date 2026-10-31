@@ -22,7 +22,7 @@
 // renderer), with the commit and any GitHub Actions run it came from. Nothing
 // else here writes a file.
 import { join, resolve } from "node:path";
-import { execute, initialize, read } from "kaal-hosting";
+import { execute, initialize, read } from "@kaihacksai/kaal-hosting";
 import { markdown, report } from "kaal-testing/report";
 import { commit, run } from "../lanes/evidence.mjs";
 import { fromCaptures } from "./captures.mjs";
