@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
-import { judge, observe, SCENARIOS } from "kaal-testing/verifiers";
+import { judge, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
 
 const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", failed: "failed", unknown: "cannot verify" } };
 const FACTS = {
@@ -91,6 +91,24 @@ describe("verifiers", () => {
     assert.ok(Object.isFrozen(SCENARIOS) && SCENARIOS.every(Object.isFrozen));
     assert.equal(new Set(SCENARIOS.map((s) => s.id)).size, SCENARIOS.length);
     for (const s of SCENARIOS) assert.ok(["verified", "failed", "unknown"].includes(s.result) && ["pass", "none", "any"].includes(s.cases), s.id);
+  });
+
+  it("gives parity findings, never a throw, for runs, platforms or options that are not given", () => {
+    for (const [runs, options] of [[undefined, undefined], [[], { supported: ["linux"] }], [[null], { supported: ["linux"] }], ["x", { supported: ["linux"] }], [[{ facts: FACTS }], { supported: "linux" }], [[{ facts: FACTS }], { supported: ["linux"], osBoundary: "yes" }], [[{ facts: FACTS }], { supported: ["linux"], challenged: [1] }]]) {
+      const p = parity(runs, options);
+      assert.equal(p.result, "unknown", JSON.stringify([runs, options]));
+      assert.ok(p.findings.length > 0);
+    }
+  });
+
+  it("holds one candidate to one run per supported platform, the same package, digest and declared cases", () => {
+    const at = (platform, extra = {}) => ({ observed: observe({ exit: 0, stdout: line({ ...CLEAN, platform }) }, VERIFIER), facts: { ...FACTS, platform, ...extra } });
+    assert.deepEqual(parity([at("linux"), at("win32")], { supported: ["linux", "win32"] }).findings, []);
+    assert.equal(parity([at("linux"), at("linux")], { supported: ["linux", "win32"] }).result, "unknown", "a platform run twice and another not at all");
+    assert.equal(parity([at("linux"), at("darwin")], { supported: ["linux"] }).result, "unknown", "a run on an unsupported platform");
+    assert.equal(parity([at("linux"), at("win32", { digest: "e".repeat(64) })], { supported: ["linux", "win32"] }).result, "unknown", "another candidate's bytes");
+    assert.equal(parity([at("linux"), at("win32", { package: { ...FACTS.package, version: "9.9.9" } })], { supported: ["linux", "win32"] }).result, "unknown", "another version");
+    assert.equal(parity([at("linux"), at("win32")], { supported: ["linux", "win32"], challenged: ["acme/T1"] }).result, "unknown", "a challenged case is not evidence");
   });
 
   it("imports nothing (testing/N9)", async () => {
