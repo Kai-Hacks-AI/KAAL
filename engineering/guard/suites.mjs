@@ -232,6 +232,12 @@ export function expected(root, suite, targets) {
   return targets.flatMap((f) => cases(root, f).filter((id) => own.has(id)).map((id) => ({ case: id, file: f, id })));
 }
 
+/** Minutes one suite's run may take before it is stopped (GUARD_SUITE_MINUTES, default 40). */
+const LIMIT = Number(process.env.GUARD_SUITE_MINUTES) || 40;
+
+/** A case the runner never reported, when the run was stopped, is not run for that reason. */
+const late = (o, cut) => (cut && o.outcome === "not run" && o.reason === "the runner reported no execution of this case" ? { outcome: "not run", reason: cut } : o);
+
 /** The environment for a suite's run: a run inside another test run still reports to its own reporters. */
 function runner() {
   const env = { ...process.env };
@@ -262,15 +268,18 @@ export function execute(root = ROOT, { suites = declared(root), all = files(root
     const declaredCases = expected(root, s, targets);
     const missing = s.prerequisites.filter((p) => !PREREQUISITES[p]?.provided(root));
     let lines = [];
+    let cut = "";
     // The runner reports real paths; a root under a symbolic link (macOS's /var is /private/var) must match them.
     const real = realpathSync(root);
     // An empty list would make `node --test` find every test in the repository: such a suite is not run.
     const why = missing.length ? `the lane did not provide ${missing.map((p) => PREREQUISITES[p]?.what ?? p).join(" and ")}` : targets.length ? "" : "its files match nothing";
     if (!why) {
-      const r = spawnSync(process.execPath, ["--test", "--test-reporter=spec", "--test-reporter-destination=stderr", `--test-reporter=${pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), "reporter.mjs")).href}`, "--test-reporter-destination=stdout", ...targets], { cwd: root, env: runner(), encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 256 * 1024 * 1024 });
+      const r = spawnSync(process.execPath, ["--test", "--test-reporter=spec", "--test-reporter-destination=stderr", `--test-reporter=${pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), "reporter.mjs")).href}`, "--test-reporter-destination=stdout", ...targets], { cwd: root, env: runner(), encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 256 * 1024 * 1024, timeout: LIMIT * 60_000, killSignal: "SIGKILL" });
+      // A runner that never ends must not hold the lane: what it reported stands, the rest is not run.
+      if (r.error?.code === "ETIMEDOUT") cut = `the runner did not end within ${LIMIT} minutes and was stopped`;
       lines = (r.stdout ?? "").split("\n").filter(Boolean).map((l) => JSON.parse(l)).map((l) => ({ ...l, file: relative(real, realpathSync(l.file)).split("\\").join("/") }));
     }
-    const results = declaredCases.map((c) => ({ case: c.case, owner: s.owner, suite: s.name, file: c.file, ...(why ? { outcome: "not run", reason: why } : outcome(c, lines)) }));
+    const results = declaredCases.map((c) => ({ case: c.case, owner: s.owner, suite: s.name, file: c.file, ...(why ? { outcome: "not run", reason: why } : late(outcome(c, lines), cut)) }));
     const status = why ? "not run" : results.some((c) => c.outcome === "failed") ? "failed" : results.some((c) => c.outcome === "not run") ? "not run" : "passed";
     record.suites.push({ owner: s.owner, name: s.name, files: targets, prerequisites: s.prerequisites, status, ...(why ? { reason: why } : {}) });
     record.cases.push(...results);
