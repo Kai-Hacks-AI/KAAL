@@ -9,14 +9,14 @@ This is `testing/C33`, a PLAN Change. It ships no code. `testing/C34` turns its 
 - Graph: graph/F5, which states no allocation.
 - Change: change/F20, which states no allocation.
 
-The local definitions differ on one point. Guard makes an identifier covered only by not-applicable cases `cannot verify`, unless the identifier itself is declared not applicable. Hosting says only that such a case "does not keep the run from verified". Testing proposed this PLAN on #610, and Packaging's sequence (#658, step 3) places it beside `testing/C29`.
+**What exists.** Testing's model (testing/F24–testing/F25, `kaal-testing/model`) already states which Cases test which targets: each Case's `tests`, stated once on the Case, with the other direction derived by `tested`. Packaging C7 adopted that model instead of a coverage registry. `kaal-testing/verifiers` (testing/A18, `testing/C30`) gives the shared observable result contract, with case outcomes and established applicability (testing/F47), but no coverage.
 
-**What exists.** `kaal-testing/verifiers` (testing/A18, `testing/C30`) gives the shared observable result contract: the scenarios, `observe`, and `judge`. It covers case outcomes and applicability (testing/F47), but no coverage.
+**One source of truth.** Kai's review of the first revision: a manifest `coverage` mapping would be a second source of truth beside the model. So coverage is derived from the model's Case traces and one run's case outcomes. The two things a trace cannot say, an allocation to the publisher's Engineering Test Plan and a reason that no Test Case verifies a target, are recorded in the same model as target entries, which never restate a trace.
 
-- **testing/I15**: Every identifier a package ships is accounted for in one state, from what the harness established. An identifier is in exactly one of these states:
-  - covered by a declared case that ran and passed;
+- **testing/I15**: Every identifier a package ships is accounted for in one state, derived from Testing's model and what the harness established. An identifier is in exactly one of these states:
+  - covered by a declared case, tracing it in the model, that ran and passed;
   - allocated to the publisher's Engineering Test Plan, with what the publisher runs;
   - stated verified by no Test Case, with the reason;
-  - not applicable here, by the same established applicability as its cases.
+  - not applicable here, because every case tracing it is, by the applicability the harness established.
 
-  Otherwise it is uncovered or not verified here, and the run is unknown. Allocated, unverified and not applicable never count as covered. A verified run lists each of them, so verified never conceals one. Testing owns these meanings. Each package keeps its own trace, and the harness establishes which identifiers the package ships.
+  Otherwise it is uncovered, and the run is unknown. Evidence of coverage is not a verified run. Allocated, unverified and not applicable never count as covered. A verified run lists each of them, so verified never conceals one. Testing owns these meanings. Each package keeps its own model, and the harness establishes which identifiers the package ships.
