@@ -1,0 +1,15 @@
+{
+  "engineering": ["test:acceptance", "test:engineering"],
+  "covered": {
+    "test:hosting": "embedding kaal-hosting test",
+    "test:hosting:evidence": "embedding kaal-hosting test, with evidence captured",
+    "test:workspaces": "embedding test of every workspace but kaal-hosting",
+    "test:workspaces:evidence": "embedding test of every workspace but kaal-hosting, with evidence captured",
+    "test:kaal": "test:workspaces and test:acceptance",
+    "test:github": "test:engineering",
+    "test:boundary": "embedding kaal-core test:boundary"
+  },
+  "external": {
+    "suites": []
+  }
+}
