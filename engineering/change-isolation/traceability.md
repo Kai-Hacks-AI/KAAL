@@ -14,7 +14,7 @@ The current rules stay the defaults:
 
 ## How it is computed
 
-1. **What is being changed.** A Change states the elements it changes: an Intent, a functional or nonfunctional Requirement, or an Architecture element, each by its owner's identity, such as `hosting/F31`. It also states its **selected scope**: the capabilities it will change. Both are outgoing statements in the Change Node, beside `delivers` and `requires`. Their shape is the Change capability's to define (prerequisite P1). Engineering reads them and defines neither.
+1. **What is being changed.** A Change states the elements it changes: an Intent, a functional or nonfunctional Requirement, or an Architecture element, each by its owner's identity, such as `hosting/F31`. It also states its **selected scope**: the capabilities it will change. Both are outgoing statements in the Change Node, beside `delivers` and `requires`; Change's PLAN (change/C9, #744) names the first `alters`. Their shape is the Change capability's to define (prerequisite P1). Engineering reads them and defines neither.
 2. **Reverse traces.** From each changed element, Engineering follows incoming traces through Graph's `traverse(id, { direction: "in" })`:
    - Requirements and Architecture that cite it;
    - the Test Cases that test those;
@@ -23,7 +23,7 @@ The current rules stay the defaults:
 
    Each trace is its owner's relationship, with its owner's meaning (prerequisite P2). Graph supplies only the traversal. Engineering adds no relationship and no meaning.
 3. **Impact.** The capabilities owning any reached element are the computed impact.
-4. **Structured locations.** Each capability's isolation unit is the folder its ownership claim attributes to it. The claims exist today for Core, Graph and Testing (`ownership.kaal.json`), and #609 moves them to Markdown (prerequisite P3).
+4. **Structured locations.** Each capability's isolation unit is the folder its ownership claim attributes to it. The claims exist today for Core, Graph and Testing as JSON `ownership.kaal.json`, the format #609 retained (prerequisite P3).
 5. **The judgment.** It is `check.mjs`, read from the target as today. A Change that touches Core, or more than one capability's location, is judged against what its Change Node on the target states, never what the candidate states:
 
 | Finding | Verdict |
@@ -57,7 +57,8 @@ A Change selecting several capabilities is then judged at their granularity. Wha
 
 - **engineering/F25. Impact by reverse traceability.** Engineering computes a Change's impact from its stated changed elements by following incoming traces transitively through Graph, and attributes each reached element to its owner. It keeps no list of relationships or locations of its own.
 - **engineering/F26. Selection is the authority.** Only the scope a Change selects in its Change Node, as the target holds it, admits paths beyond one capability. A selected capability must be within the computed impact. A touched path must lie in a selected capability's location.
-- **engineering/F27. Missing traces are findings.** An unattributed path, an unknown element and an unresolved trace are each reported unresolved, naming what is missing. None is admitted.
+- **engineering/F27. Missing traces are findings.** An unattributed path, an unknown element and an unresolved trace are each reported unresolved, naming what is missing. None is admitted. A capability with an ownership claim whose traces are not yet Graph Edges on the target is reported as an impact-assessment gap, named. A missing Node or Edge is never taken as proof of no impact (Kai, #740 approval).
+- **engineering/F36. Admission fails closed.** When a Change Node is on the target, admission requires its `alters` and `scope` statements. A statement that is absent, withheld whole by Change, malformed or empty fails closed, and so does an `alters` none of whose elements is on the target. Nothing else on the Node, its delivery included, stands in for those statements (Kai, #744 approval). The Case hop uses Testing's `impact(derived, target)` (testing/F88, #745): its `findings` and `untraced` Case files are reported, and a result other than `established` fails closed.
 - **engineering/N13. Defaults unchanged.** Without a stated scope, "Core travels alone" applies. `.github` travels alone without exception. No pull request number, and no list of paths, is consulted as authority.
 - **engineering/N14. Pure and read from the target.** The judgment reads only the target's Nodes and claims and the candidate's path list. Same input, same verdict. The candidate is never executed, as `change-isolation.sh` guarantees today.
 
@@ -74,8 +75,12 @@ These go in `engineering/change-isolation/check.test.mjs`. Each case uses fixtur
 | engineering/T51 | A reachable but unselected capability's path fails | false GREEN | One that treats impact as authorization |
 | engineering/T52 | An unattributed path, an unknown changed element and an unresolved trace are each unresolved, named, never GREEN | false GREEN | One that skips what it cannot attribute |
 | engineering/T53 | A scope stated only in the candidate's Change Node authorizes nothing | false GREEN | One that reads the candidate's Nodes |
-| engineering/T54 | With no stated scope, Core beside another capability fails "Core travels alone"; Core alone passes | both | One that drops the default |
+| engineering/T54 | With no Change Node on the target, Core beside another capability fails "Core travels alone"; Core alone passes | both | One that drops the default |
 | engineering/T55 | A `.github` path beside a selected scope fails | false GREEN | One that lets a scope cover `.github` |
+| engineering/T74 | A capability whose traces are not converted is an impact-assessment gap, named, never GREEN, even when no trace reaches it; with no conversion state, every claimed capability is a gap | false GREEN | One that reads an empty traversal as no impact (observed RED against 15fdd27) |
+| engineering/T75 | A Change Node whose `alters` or `scope` is absent, withheld, malformed or empty, or whose altered elements are none on the target, fails closed, even for Core alone | false GREEN | One that falls back to the defaults (observed RED against 15fdd27) |
+| engineering/T76 | A delivered Change Node without `scope` still fails closed | false GREEN | One that reads delivery as admission (observed RED against 15fdd27) |
+| engineering/T82 | An incomplete Case inventory yields no isolation pass: Testing's `impact` answering unknown fails closed, and its findings and untraced Case files are named (testing/F88, testing/T103, #745) | false GREEN | One that reads an empty Case answer as no impacted Case (observed RED against 1346fdf) |
 | engineering/T56 | Hosting/C11 replay: the six-capability impact is computed from fixture traces mirroring `kaal/hosting`. #657's 62 paths pass under that selection. Adding a Foundation path fails, and so does dropping Graph from the selection | acceptance | — |
 
 ## Prerequisites, each its owner's
@@ -87,7 +92,7 @@ These go in `engineering/change-isolation/check.test.mjs`. Each case uses fixtur
   - Packaging: a realization's dependency on another package's identity (packaging/F7).
 
   The bracket citations and manifests carry these today, but as text, not Edges.
-- **P3. Ownership claims** for every capability's location, Hosting, Engineer Skill, Foundation and Engineering included, in the format #609 settles. The claims also settle who owns the root files every workspace shares.
+- **P3. Ownership claims** for every capability's location, Hosting, Engineer Skill, Foundation and Engineering included, as JSON `ownership.kaal.json`, the format #609 retained. Root `package.json` and `package-lock.json` are Engineering's, through a narrowly scoped root claim of its own Change (Kai, #743 approval); capabilities still start their own dependency changes.
 - **P4. Graph** supplies `traverse` with `direction: "in"` on `main`. It needs nothing new.
 
 ## Scope

@@ -201,3 +201,184 @@ describe("the CLI", () => {
     }
   });
 });
+
+// engineering/C11 DO (draft): isolation by reverse traceability, on fixture targets until P1–P3 land.
+describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)", async () => {
+  const { judge } = await import("./traceability.mjs");
+  const { readFileSync } = await import("node:fs");
+
+  /** A fixture target: elements with their owner and the elements that trace to them. */
+  const target = ({ elements, changes = {}, claims, broken = [], converted = Object.keys(claims) }) => ({
+    changes,
+    claims,
+    converted,
+    elements: Object.fromEntries(Object.entries(elements).map(([id, e]) => [id, { owner: e.owner }])),
+    traverse(id) {
+      if (broken.includes(id)) return null;
+      const seen = new Set();
+      const queue = [...(elements[id]?.in ?? [])];
+      while (queue.length) {
+        const n = queue.shift();
+        if (seen.has(n)) continue;
+        seen.add(n);
+        queue.push(...(elements[n]?.in ?? []));
+      }
+      return [...seen];
+    },
+  });
+
+  // Hosting's identity; Core realizes against it; Core's Case tests Core. Graph is not reached.
+  const base = {
+    elements: {
+      "hosting/F1": { owner: "Hosting", in: ["core/A1"] },
+      "core/A1": { owner: "Core", in: ["core/T1"] },
+      "core/T1": { owner: "Core" },
+      "graph/F1": { owner: "Graph" },
+    },
+    claims: { Hosting: ["packages/extensions/kaal-hosting/"], Core: ["packages/kaal-core/"], Graph: ["packages/skills/kaal-graph/"] },
+  };
+  const paths = ["packages/extensions/kaal-hosting/src/a.ts", "packages/kaal-core/src/b.ts"];
+  const run = (t, p = paths, change = "hosting/C1") => judge({ target: t, change, paths: p });
+  const scoped = (scope, extra = {}) => target({ ...base, ...extra, changes: { "hosting/C1": { alters: ["hosting/F1"], scope } } });
+
+  it("engineering/T47: paths all in selected, impacted capabilities pass, whatever their names or count", () => {
+    assert.deepEqual(run(scoped(["Hosting", "Core"])), { verdict: "pass", findings: [] });
+    const many = Array.from({ length: 40 }, (_, i) => `packages/kaal-core/src/renamed-${i}.ts`);
+    assert.equal(run(scoped(["Hosting", "Core"]), [...paths, ...many]).verdict, "pass");
+  });
+
+  it("engineering/T48: a new dependent capability joins the impact, and selecting it passes with no edit to Engineering", () => {
+    const t = scoped(["Hosting", "Core", "Graph"], {
+      elements: { ...base.elements, "hosting/F1": { owner: "Hosting", in: ["core/A1", "graph/A1"] }, "graph/A1": { owner: "Graph" } },
+    });
+    assert.equal(run(t, [...paths, "packages/skills/kaal-graph/x.mjs"]).verdict, "pass");
+  });
+
+  it("engineering/T49: a path outside every selected location fails, named", () => {
+    const r = run(scoped(["Hosting"]), ["packages/extensions/kaal-hosting/a.ts", "packages/skills/kaal-graph/x.mjs"]);
+    assert.equal(r.verdict, "fail");
+    assert.deepEqual(r.findings, ["outside the selected scope: packages/skills/kaal-graph/x.mjs belongs to Graph"]);
+  });
+
+  it("engineering/T50: a selected capability no trace reaches fails, named", () => {
+    const r = run(scoped(["Hosting", "Core", "Graph"]));
+    assert.equal(r.verdict, "fail");
+    assert.deepEqual(r.findings, ["selected without a trace: Graph is not in the computed impact"]);
+  });
+
+  it("engineering/T51: a reachable but unselected capability's path fails", () => {
+    const r = run(scoped(["Hosting"]));
+    assert.equal(r.verdict, "fail");
+    assert.deepEqual(r.findings, ["outside the selected scope: packages/kaal-core/src/b.ts belongs to Core"]);
+  });
+
+  it("engineering/T52: an unattributed path, an unknown element and an unresolved trace are each unresolved, named, never GREEN", () => {
+    let r = run(scoped(["Hosting", "Core"]), [...paths, "docs/x.md"]);
+    assert.deepEqual(r, { verdict: "unresolved", findings: ["unattributed path: docs/x.md lies in no ownership claim"] });
+    r = run(target({ ...base, changes: { "hosting/C1": { alters: ["hosting/F1", "hosting/F9"], scope: ["Hosting", "Core"] } } }));
+    assert.deepEqual(r, { verdict: "unresolved", findings: ["unknown changed element: hosting/F9"] });
+    r = run(target({ ...base, broken: ["hosting/F1"], changes: { "hosting/C1": { alters: ["hosting/F1"], scope: ["Hosting"] } } }), [paths[0]]);
+    assert.deepEqual(r, { verdict: "unresolved", findings: ["unresolved trace: from hosting/F1"] });
+  });
+
+  it("engineering/T74: a capability whose traces are not converted is an impact-assessment gap, named, never GREEN, even when nothing traced reaches it", () => {
+    // Graph's traces are not Edges yet: traverse finds nothing in Graph, which must not read as "no impact" (#740).
+    let r = run(scoped(["Hosting", "Core"], { converted: ["Hosting", "Core"] }));
+    assert.deepEqual(r, { verdict: "unresolved", findings: ["impact-assessment gap: Graph's traces are not converted, so impact through them is unknown"] });
+    // No conversion state on the target at all: every claimed capability is a gap.
+    r = run(scoped(["Hosting", "Core"], { converted: null }));
+    assert.equal(r.verdict, "unresolved");
+    assert.equal(r.findings.length, 3);
+    // A failure still outranks the gap, and the gap is still named.
+    r = run(scoped(["Hosting"], { converted: ["Hosting", "Core"] }));
+    assert.equal(r.verdict, "fail");
+    assert.ok(r.findings.includes("impact-assessment gap: Graph's traces are not converted, so impact through them is unknown"), r.findings.join("\n"));
+  });
+
+  it("engineering/T82: an incomplete Case inventory yields no isolation pass: unknown fails closed, its findings and untraced files are named", () => {
+    const hop = (answer) => ({ ...scoped(["Hosting", "Core"]), cases: () => answer });
+    let r = run(hop({ result: "unknown", cases: [], findings: ["core/test/a.test.mjs could not be read"], untraced: ["core/test/b.test.mjs"] }));
+    assert.equal(r.verdict, "fail");
+    assert.deepEqual(r.findings, [
+      "fails closed: the Case impact of hosting/C1 is unknown, so impact cannot be established",
+      "impact-assessment gap: Case inventory: core/test/a.test.mjs could not be read",
+      "impact-assessment gap: untraced Case file: core/test/b.test.mjs",
+    ]);
+    // Established with an untraced file is still never GREEN; established and complete passes, its Cases joining the impact.
+    assert.equal(run(hop({ result: "established", cases: ["core/T1"], findings: [], untraced: ["x.test.mjs"] })).verdict, "unresolved");
+    assert.deepEqual(run(hop({ result: "established", cases: ["core/T1"], findings: [], untraced: [] })), { verdict: "pass", findings: [] });
+  });
+
+  it("engineering/T53: a scope stated only in the candidate's Change Node authorizes nothing", () => {
+    const candidate = { changes: { "hosting/C1": { alters: ["hosting/F1"], scope: ["Hosting", "Core"] } } };
+    const r = judge({ target: target(base), candidate, change: "hosting/C1", paths });
+    assert.equal(r.verdict, "fail");
+    assert.deepEqual(r.findings, ["core travels alone: packages/extensions/kaal-hosting/src/a.ts is not Core or its supporting files"]);
+  });
+
+  it("engineering/T54: with no Change Node on the target, Core beside another capability fails Core travels alone; Core alone passes", () => {
+    assert.equal(run(target(base)).verdict, "fail");
+    assert.equal(run(target(base), ["packages/kaal-core/src/b.ts", "package-lock.json"]).verdict, "pass");
+    assert.equal(run(target(base), paths, undefined).verdict, "fail");
+  });
+
+  it("engineering/T75: a Change Node whose alters or scope is absent, withheld, malformed or establishes no impact fails closed, even for Core alone", () => {
+    const core = ["packages/kaal-core/src/b.ts"];
+    const node = (n) => target({ ...base, changes: { "hosting/C1": n } });
+    for (const [n, finding] of [
+      [{ alters: ["hosting/F1"] }, "fails closed: hosting/C1 states no `scope` on the target"],
+      [{ scope: ["Core"] }, "fails closed: hosting/C1 states no `alters` on the target"],
+      [{}, "fails closed: hosting/C1 states no `alters` on the target"],
+      [{ alters: "hosting/F1", scope: ["Core"] }, "fails closed: hosting/C1's `alters` is malformed or empty, so impact cannot be established"],
+      [{ alters: [], scope: ["Core"] }, "fails closed: hosting/C1's `alters` is malformed or empty, so impact cannot be established"],
+      [{ alters: ["hosting/F1"], scope: [""] }, "fails closed: hosting/C1's `scope` is malformed or empty, so impact cannot be established"],
+      [{ alters: ["hosting/F9"], scope: ["Core"] }, "fails closed: none of hosting/C1's altered elements is on the target, so impact cannot be established"],
+    ]) {
+      const r = run(node(n), core);
+      assert.equal(r.verdict, "fail", JSON.stringify(n));
+      assert.ok(r.findings.includes(finding), `${JSON.stringify(n)}: ${r.findings.join("; ")}`);
+    }
+  });
+
+  it("engineering/T76: a Change's delivery never stands in for its statements: a delivered Change Node without scope still fails closed", () => {
+    const delivered = { alters: ["hosting/F1"], status: "delivered", delivered: true, merged: "abc1234" };
+    const r = run(target({ ...base, changes: { "hosting/C1": delivered } }), ["packages/kaal-core/src/b.ts"]);
+    assert.deepEqual(r, { verdict: "fail", findings: ["fails closed: hosting/C1 states no `scope` on the target"] });
+  });
+
+  it("engineering/T55: a .github path beside a selected scope fails", () => {
+    const r = run(scoped(["Hosting", "Core"], { claims: { ...base.claims, Hosting: [...base.claims.Hosting, ".github/"] } }), [...paths, ".github/workflows/ci.yml"]);
+    assert.equal(r.verdict, "fail");
+    assert.ok(r.findings.every((f) => f.startsWith(".github travels alone: ")), r.findings.join("\n"));
+  });
+
+  it("engineering/T56: hosting/C11 replay: six-capability impact, #657 passes; a Foundation path fails; dropping Graph fails", () => {
+    const { paths: c11 } = JSON.parse(readFileSync(new URL("./fixtures/hosting-c11.json", import.meta.url), "utf8"));
+    const six = ["Hosting", "Core", "Engineer Skill", "Graph", "Testing", "Engineering"];
+    const dependents = { Core: "core", "Engineer Skill": "engineer-skill", Graph: "graph", Testing: "testing", Engineering: "engineering" };
+    const elements = { "hosting/F31": { owner: "Hosting", in: Object.values(dependents).map((d) => `${d}/realization`) }, "foundation/F1": { owner: "Foundation" } };
+    for (const [owner, d] of Object.entries(dependents)) {
+      elements[`${d}/realization`] = { owner, in: [`${d}/T1`] };
+      elements[`${d}/T1`] = { owner };
+    }
+    const claims = {
+      Hosting: ["packages/extensions/kaal-hosting/"],
+      Core: ["packages/kaal-core/", ".kaal/AGENTS.md", ".kaal/KAAL-KERNEL.md", ".kaal/core/"],
+      "Engineer Skill": ["packages/skills/kaal-engineer-skill/"],
+      Graph: ["packages/skills/kaal-graph/"],
+      Testing: ["packages/skills/kaal-testing/"],
+      // Who owns the shared root files is P3's to settle; this fixture gives them to Engineering.
+      Engineering: ["engineering/", "package.json", "package-lock.json"],
+      Foundation: ["packages/kaal-foundation/"],
+    };
+    const t = (scope) => target({ elements, claims, changes: { "hosting/C11": { alters: ["hosting/F31"], scope } } });
+    assert.equal(c11.length, 62);
+    assert.deepEqual(judge({ target: t(six), change: "hosting/C11", paths: c11 }), { verdict: "pass", findings: [] });
+    const withFoundation = judge({ target: t(six), change: "hosting/C11", paths: [...c11, "packages/kaal-foundation/src/a.ts"] });
+    assert.deepEqual(withFoundation, { verdict: "fail", findings: ["outside the selected scope: packages/kaal-foundation/src/a.ts belongs to Foundation"] });
+    assert.deepEqual(judge({ target: t([...six, "Foundation"]), change: "hosting/C11", paths: c11 }).findings, ["selected without a trace: Foundation is not in the computed impact"]);
+    const noGraph = judge({ target: t(six.filter((c) => c !== "Graph")), change: "hosting/C11", paths: c11 });
+    assert.equal(noGraph.verdict, "fail");
+    assert.ok(noGraph.findings.length > 0 && noGraph.findings.every((f) => / belongs to Graph$/.test(f)), noGraph.findings.join("\n"));
+  });
+});
