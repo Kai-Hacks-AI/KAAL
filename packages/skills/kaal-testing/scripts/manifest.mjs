@@ -2,6 +2,7 @@
 // SHA-256; the delivered cases, each named by its title; the same cases as Testing's own model, each tracing to the Testing
 // identifiers its title names in brackets; no applicability; and the supported platforms. Generated, never
 // edited by hand. It runs in the source workspace only and does not ship. Commands run through Hosting.
+// `--check` verifies the committed manifest instead of writing it.
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -36,4 +37,27 @@ const ids = cases.map((c) => c.id);
 if (new Set(ids).size !== ids.length) throw new Error("two delivered cases share a title: each case is named by its title alone");
 const hashes = Object.fromEntries(shipped.map((p) => [p, sha256(readFileSync(join(PACKAGE, p)))]));
 const manifest = { hashes, cases: cases.map((c) => c.id), model: { cases }, applicability: {}, platforms: ["darwin", "linux", "win32"] };
-writeFileSync(join(PACKAGE, MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`);
+const text = `${JSON.stringify(manifest, null, 2)}\n`;
+// `--check [path]` writes nothing: it compares what this step would write with the committed manifest (or `path`)
+// and fails on any difference, so a stale manifest is caught, never silently regenerated.
+const at = process.argv.indexOf("--check");
+if (at < 0) writeFileSync(join(PACKAGE, MANIFEST), text);
+else {
+  const against = process.argv[at + 1] ? resolve(process.argv[at + 1]) : join(PACKAGE, MANIFEST);
+  let committed = null;
+  try {
+    committed = readFileSync(against, "utf8");
+  } catch (e) {
+    console.error(`kaal-testing manifest: stale: ${against} cannot be read (${e.code ?? e.message}); run npm run manifest`);
+    process.exit(1);
+  }
+  if (committed !== text) {
+    let old = {};
+    try { old = JSON.parse(committed); } catch { /* reported as a whole-file difference */ }
+    const was = old?.hashes ?? {};
+    const changed = [...new Set([...Object.keys(was), ...Object.keys(hashes)])].filter((p) => was[p] !== hashes[p]).sort();
+    console.error(`kaal-testing manifest: stale: ${against} differs from what npm run manifest writes${changed.length ? `: ${changed.join(", ")}` : ""}`);
+    process.exit(1);
+  }
+  console.log("kaal-testing manifest: current");
+}
