@@ -1,5 +1,7 @@
 // foundation/C3 planned outer tests: publication readiness to Guard's consumer bar, revised by
-// foundation/C6 to run npm with no platform decision. Immutable to DO and CHECK; foundation/C4 turns
+// foundation/C6 to run npm with no platform decision, and renamed by foundation/C8 as
+// plan/capability/testing.md states (test/embed/, test:embedded, test:all, test/publisher/, and the
+// manifest digest rewritten for each mutation). Immutable to DO and CHECK; foundation/C4 turns
 // them GREEN. Each title names the contracts it checks
 // (plan/publication/*.md). They read the package as it is packed and installed.
 import assert from "node:assert/strict";
@@ -7,6 +9,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, posix } from "node:path";
+import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -63,7 +66,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
   });
 
   it("foundation/T10 [foundation/F5, foundation/F8, foundation/A5, foundation/I4, foundation/I6]: packed and installed into a clean directory, the installed files are exactly the documented ones, the subpath hashes abc, and the installed npm test is verified; a wrong digest, a wrong FIPS answer, an accepted string, a broken module, a failing test, an empty test file and missing tests are never verified", { timeout: 600_000 }, () => {
-    assert.equal(manifest().scripts?.test, "node test/run.mjs", "blocked before release acceptance: npm test is not the runner");
+    assert.equal(manifest().scripts?.["test:all"], "node test/run.mjs", "blocked before release acceptance: test:all is not the runner");
     const work = mkdtempSync(join(tmpdir(), "kaal-foundation-release-"));
     try {
       const pack = run("npm", ["pack", "--json", "--pack-destination", work], PACKAGE);
@@ -86,12 +89,23 @@ describe("Foundation publication readiness (foundation/C3)", () => {
       assert.match(last(ok), /\bverified\b/, ok.out);
       assert.doesNotMatch(ok.out, /test:publisher/, "the installed npm test never starts the publisher suite");
 
+      // Each mutation rewrites the manifest digest of the file it changes, so the verification judges
+      // behaviour, not tampering (foundation/C8); tampering is foundation/T17's.
+      const manifestFile = join(installed, "test", "verify.json");
+      const originalManifest = readFileSync(manifestFile);
+      const resync = (...paths) => {
+        const v = JSON.parse(readFileSync(manifestFile, "utf8"));
+        for (const p of paths) v.files[p] = createHash("sha256").update(readFileSync(join(installed, p))).digest("hex");
+        writeFileSync(manifestFile, JSON.stringify(v, null, 2) + "\n");
+      };
       const lib = join(installed, "lib", "sha256.mjs");
       const original = readFileSync(lib);
       const swap = (source, expect, why) => {
         writeFileSync(lib, source);
+        resync("lib/sha256.mjs");
         const r = verify();
         writeFileSync(lib, original);
+        writeFileSync(manifestFile, originalManifest);
         assert.equal(r.status, expect, `${why}: ${r.out}`);
         assert.doesNotMatch(last(r), /^\W*verified\b/, `${why} is never verified`);
       };
@@ -104,24 +118,34 @@ describe("Foundation publication readiness (foundation/C3)", () => {
         renameSync(join(installed, "lib", "real.mjs"), lib);
       }
       writeFileSync(lib, "throw new Error('corrupted');\n");
+      resync("lib/sha256.mjs");
       const broken = verify();
       writeFileSync(lib, original);
+      writeFileSync(manifestFile, originalManifest);
       assert.notEqual(broken.status, 0, `a module that cannot be imported does not pass: ${broken.out}`);
       assert.doesNotMatch(last(broken), /^\W*verified\b/);
 
-      const delivered = readdirSync(join(installed, "test", "consumer")).filter((f) => f.endsWith(".test.mjs")).map((f) => join(installed, "test", "consumer", f));
-      assert.ok(delivered.length > 0, "at least one delivered test file ships");
+      const names = readdirSync(join(installed, "test", "embed")).filter((f) => f.endsWith(".test.mjs")).sort();
+      assert.ok(names.length > 0, "at least one delivered test file ships");
+      const delivered = names.map((f) => join(installed, "test", "embed", f));
       const kept = delivered.map((path) => [path, readFileSync(path)]);
-      writeFileSync(delivered[0], 'import { it } from "node:test";\nit("fails on purpose", () => { throw new Error("deliberate"); });\n');
+      // A failing delivered case: one expected digest inside a declared case changes (foundation/C8).
+      const known = kept.findIndex(([, bytes]) => bytes.toString("utf8").includes(ABC));
+      assert.ok(known >= 0, "a delivered case checks the abc digest");
+      writeFileSync(delivered[known], kept[known][1].toString("utf8").replace(ABC, "0".repeat(64)));
+      resync(`test/embed/${names[known]}`);
       const failing = verify();
+      writeFileSync(manifestFile, originalManifest);
       for (const [path] of kept) writeFileSync(path, 'import "node:test";\n');
+      resync(...names.map((f) => `test/embed/${f}`));
       const empty = verify();
+      writeFileSync(manifestFile, originalManifest);
       for (const [path, bytes] of kept) writeFileSync(path, bytes);
       assert.equal(failing.status, 1, `a failing delivered test gives failed: ${failing.out}`);
       assert.match(last(failing), /\bfailed\b/);
       assert.equal(empty.status, 2, `delivered files that declare no test give cannot verify: ${empty.out}`);
       assert.match(last(empty), /cannot verify/);
-      rmSync(join(installed, "test", "consumer"), { recursive: true, force: true });
+      rmSync(join(installed, "test", "embed"), { recursive: true, force: true });
       const none = verify();
       assert.equal(none.status, 2, `missing delivered tests give cannot verify: ${none.out}`);
       assert.match(last(none), /cannot verify/);
@@ -155,59 +179,60 @@ describe("Foundation publication readiness (foundation/C3)", () => {
     for (const [what, pattern] of [["text must be encoded as UTF-8 first", /UTF-8/], ["only SHA-256 is held", /SHA-256/], ["it is slower than the native hash", /slower|native/i], ["ownership is provisional", /provisional/i]])
       assert.match(limitations, pattern, `docs/limitations.md says ${what}`);
     const testing = readFileSync(join(PACKAGE, "docs", "testing.md"), "utf8");
-    for (const f of shipped.filter((f) => f.startsWith("test/consumer/") && f.endsWith(".test.mjs"))) assert.ok(testing.includes(f), `docs/testing.md names ${f}`);
-    assert.ok(testing.includes("test/plan/"), "docs/testing.md names the publisher's tests");
+    for (const f of shipped.filter((f) => f.startsWith("test/embed/") && f.endsWith(".test.mjs"))) assert.ok(testing.includes(f), `docs/testing.md names ${f}`);
+    assert.ok(testing.includes("test/publisher/"), "docs/testing.md names the publisher's tests");
     assert.match(testing, /not (delivered|shipped)|do(es)? not ship/i, "and says they are not delivered");
   });
 
   it("foundation/T13 [foundation/F9, foundation/A6]: the scripts name the consumer and publisher suites and the runner, and files ships the delivered layout and no publisher test", () => {
     const { scripts = {}, files = [] } = manifest();
-    assert.equal(scripts.test, "node test/run.mjs", "npm test is the runner");
-    assert.equal(scripts["test:consumer"], "node test/verify.mjs", "test:consumer runs the delivered verification");
-    assert.ok(/test\/plan\//.test(scripts["test:publisher"] ?? ""), "test:publisher runs the publisher's tests");
-    for (const f of ["lib", "docs", "test/consumer", "test/verify.mjs", "test/run.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
-    assert.ok(!files.some((f) => f === "test" || f.startsWith("test/plan") || f.startsWith("plan")), "files ships no plan and no publisher test");
+    assert.equal(scripts["test:all"], "node test/run.mjs", "test:all is the runner");
+    assert.equal(scripts.test, "npm run test:all", "npm test runs the runner as a declared suite");
+    assert.equal(scripts["test:embedded"], "node test/verify.mjs", "test:embedded runs the delivered verification");
+    assert.ok(/test\/publisher\//.test(scripts["test:publisher"] ?? ""), "test:publisher runs the publisher's tests");
+    for (const f of ["lib", "docs", "test/embed", "test/verify.mjs", "test/run.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
+    assert.ok(!files.some((f) => f === "test" || f.startsWith("test/publisher") || f.startsWith("plan")), "files ships no plan and no publisher test");
   });
 
-  it("foundation/T14 [foundation/F9, foundation/A6]: the shipped runner tells source from installed explicitly: in source it runs every declared test:<name> suite once and never test itself; installed under node_modules it runs only test:consumer; damaged, ambiguous, empty or incomplete layouts are cannot verify and run nothing; a failing suite fails it", { timeout: 300_000 }, () => {
+  it("foundation/T14 [foundation/F9, foundation/A6]: the shipped runner tells source from installed explicitly: in source it runs every declared test:<name> suite once and never test:all itself; installed under node_modules it runs only test:embedded; damaged, ambiguous, empty or incomplete layouts are cannot verify and run nothing; a failing suite fails it", { timeout: 300_000 }, () => {
     const runner = join(PACKAGE, "test", "run.mjs");
     assert.ok(existsSync(runner), "blocked before behavioural assertion: test/run.mjs does not exist");
     const work = mkdtempSync(join(tmpdir(), "kaal-foundation-runner-"));
     try {
       let n = 0;
       const say = (word, code = 0) => `node -e "console.log(['ran', '${word}'].join(' '));process.exit(${code})"`;
-      const fixture = (scripts, { installed = false, markers = installed ? [] : ["plan", "test/plan"] } = {}) => {
+      const fixture = (scripts, { installed = false, markers = installed ? [] : ["plan", "test/publisher"] } = {}) => {
         const dir = installed ? join(work, `app-${++n}`, "node_modules", "fixture") : join(work, `src-${++n}`);
         mkdirSync(join(dir, "test"), { recursive: true });
         writeFileSync(join(dir, "test", "run.mjs"), readFileSync(runner));
         for (const m of markers) mkdirSync(join(dir, m), { recursive: true });
-        writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "0.0.0", private: true, type: "module", scripts: { test: "node test/run.mjs", ...scripts } }));
+        writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "0.0.0", private: true, type: "module", scripts: { test: "npm run test:all", "test:all": "node test/run.mjs", ...scripts } }));
         return run("npm", ["test"], dir);
       };
       const ran = (r) => [...r.out.matchAll(/^ran (\w+)$/gm)].map((m) => m[1]);
-      const all = { "test:consumer": say("consumer"), "test:publisher": say("publisher"), "test:extra": say("extra") };
+      const all = { "test:embedded": say("embedded"), "test:publisher": say("publisher"), "test:extra": say("extra") };
 
       const source = fixture(all);
       assert.equal(source.status, 0, source.out);
-      assert.deepEqual(ran(source), ["consumer", "publisher", "extra"], `in source every declared suite runs once, in order, and npm test never invokes itself: ${source.out}`);
+      assert.deepEqual(ran(source), ["embedded", "publisher", "extra"], `in source every declared suite runs once, in order, and npm test never invokes itself: ${source.out}`);
       const installed = fixture(all, { installed: true });
       assert.equal(installed.status, 0, installed.out);
-      assert.deepEqual(ran(installed), ["consumer"], "installed, only test:consumer runs");
-      const cannot = fixture({ ...all, "test:consumer": say("consumer", 2) }, { installed: true });
-      assert.equal(cannot.status, 2, `installed, the runner exits with the consumer's result: ${cannot.out}`);
+      assert.deepEqual(ran(installed), ["embedded"], "installed, only test:embedded runs");
+      const cannot = fixture({ ...all, "test:embedded": say("embedded", 2) }, { installed: true });
+      assert.equal(cannot.status, 2, `installed, the runner exits with the embedded verification's result: ${cannot.out}`);
       const failing = fixture({ ...all, "test:publisher": say("publisher", 1) });
       assert.notEqual(failing.status, 0, "a failing suite fails the source npm test");
-      assert.deepEqual(ran(failing), ["consumer", "publisher", "extra"], "a failing suite does not hide the suites after it");
+      assert.deepEqual(ran(failing), ["embedded", "publisher", "extra"], "a failing suite does not hide the suites after it");
 
       const refused = {
-        "a damaged source checkout, missing test/plan/": fixture(all, { markers: ["plan"] }),
-        "a damaged source checkout, missing plan/": fixture(all, { markers: ["test/plan"] }),
+        "a damaged source checkout, missing test/publisher/": fixture(all, { markers: ["plan"] }),
+        "a damaged source checkout, missing plan/": fixture(all, { markers: ["test/publisher"] }),
         "a damaged source checkout, missing both markers": fixture(all, { markers: [] }),
-        "an installed package carrying a source marker": fixture(all, { installed: true, markers: ["test/plan"] }),
+        "an installed package carrying a source marker": fixture(all, { installed: true, markers: ["test/publisher"] }),
         "no declared suite": fixture({}),
-        "no test:publisher in source": fixture({ "test:consumer": say("consumer") }),
-        "no test:consumer in source": fixture({ "test:publisher": say("publisher") }),
-        "no test:consumer installed": fixture({ "test:publisher": say("publisher") }, { installed: true }),
+        "no test:publisher in source": fixture({ "test:embedded": say("embedded") }),
+        "no test:embedded in source": fixture({ "test:publisher": say("publisher") }),
+        "no test:embedded installed": fixture({ "test:publisher": say("publisher") }, { installed: true }),
       };
       for (const [layout, r] of Object.entries(refused)) {
         assert.equal(r.status, 2, `${layout} is cannot verify: ${r.out}`);

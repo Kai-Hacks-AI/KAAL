@@ -16,6 +16,18 @@ sha256(new TextEncoder().encode("abc")); // "ba7816bf…15ad"
 
 `sha256(bytes)` takes a `Uint8Array` (a `Buffer` is one) and returns its FIPS 180-4 SHA-256 as 64 lowercase hexadecimal digits. It refuses anything else with a `TypeError`, so a caller that has text encodes it as UTF-8 first. The module imports nothing and touches no host global.
 
+## Command and skill
+
+```sh
+npm install @kaihacksai/kaal-foundation
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256 <file>…   # "<digest>  <file>"; no file or - reads standard input
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation verify           # verify this installed copy
+```
+
+Name the scoped package explicitly, as above. Never run `npx kaal-foundation`: `kaal-foundation` is only the bin's name, and where this package is not installed npx may fetch an unrelated unscoped package.
+
+An agent's guide ships as [the skill](skills/kaal-foundation/SKILL.md): when to use Foundation's SHA-256, how to hash text, how to read a verification, and where a new shared concern belongs.
+
 ## Install, verify, read
 
 ```sh
@@ -23,7 +35,7 @@ npm install @kaihacksai/kaal-foundation
 npm explore @kaihacksai/kaal-foundation -- npm test
 ```
 
-`npm test` in the installed package verifies the installed copy and ends in `verified`, `failed` or `cannot verify`.
+`npm test` in the installed package checks the installed files against the shipped manifest (`test/verify.json`) and runs the shipped cases. It ends in `verified`, `failed` or `cannot verify`, on the line `kaal-foundation-verification {json}`.
 
 - [Intent](docs/intent.md): why Foundation exists.
 - [Requirements](docs/requirements.md): what `sha256` guarantees.
