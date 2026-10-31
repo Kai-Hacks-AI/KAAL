@@ -142,7 +142,7 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
     assert.notEqual(refused.status, 0, "without the scoped package installed, the documented command fails");
   });
 
-  it("core/T96 [core/F74, core/F69]: until the rename, the documents also say how to run and verify the tarball as it installs today, and that command runs it", { timeout: 600_000 }, async () => {
+  it("core/T96 [core/F74, core/F69]: until the rename, the documents also say how to run and verify the unmodified tarball as it installs today, and both commands work on it", { timeout: 600_000 }, async () => {
     const pkg = JSON.parse(readFileSync(join(CORE, "package.json"), "utf8"));
     const today = `node node_modules/${pkg.name}/dist/cli.js`;
     if (pkg.name !== SCOPED) {
@@ -152,5 +152,10 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
     const r = await execute(process.execPath, [today.split(" ")[1], "version"], { cwd: current, env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
     assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
     assert.ok(r.stdout.split(/\r?\n/).includes(`kaal-core ${pkg.version}`), r.stdout);
+
+    // And its documented verification ends in verified, from the unmodified tarball's own directory.
+    const verified = await npm(["explore", pkg.name, "--", "npm", "test"], current);
+    assert.equal(verified.status, 0, verified.out);
+    assert.ok(verified.stdout.trim().split(/\r?\n/).at(-1).startsWith(`kaal-core: verified: ${pkg.name}@${pkg.version}:`), verified.out);
   });
 });
