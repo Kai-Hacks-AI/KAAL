@@ -120,6 +120,40 @@ describe("verifiers", () => {
     assert.deepEqual(absent.cases, [{ name: "acme/T1", outcomes: { linux: "pass", win32: "not run" } }], "a supported platform with no run shows each case not run there");
   });
 
+  it("never makes a case not applicable by a host fact the harness did not establish not holding, whatever shape it has (testing/F68–testing/F70)", () => {
+    const FACT = "kaal-hosting/special-entries";
+    const EVIDENCE = "https://nodejs.org/api/net.html";
+    const declared = { host: [FACT], reason: "r", evidence: EVIDENCE };
+    const facts = (hostFacts, a = declared) => ({ ...FACTS, cases: ["acme/T1", "acme/T2"], target: "acme/T2", applicability: { "acme/T2": a }, hostFacts });
+    const shown = (a = declared) => ({ ...CLEAN, cases: [{ name: "acme/T1", outcome: "pass" }, { name: "acme/T2", outcome: "not applicable", applicability: a }] });
+    const conforms = (f, a) => judge("not-applicable", observe({ exit: 0, stdout: line(shown(a)) }, VERIFIER), f).conforms;
+    assert.equal(conforms(facts({ [FACT]: { holds: false } })), true, "established not holding");
+    for (const hostFacts of [undefined, null, [], "absent", 0, { [FACT]: null }, { [FACT]: [] }, { [FACT]: "absent" }, { [FACT]: { holds: "false" } }, { [FACT]: { holds: 0 } }, { [FACT]: { holds: null } }, { [FACT]: { holds: true } }, { [FACT]: { error: "the fixture could not be set up" } }, { [FACT]: { holds: undefined, error: "the fixture could not be set up" } }, { other: { holds: false } }, JSON.parse('{"__proto__":{"holds":false}}')]) {
+      assert.equal(conforms(facts(hostFacts)), false, JSON.stringify(hostFacts));
+    }
+    const proto = Object.create({ [FACT]: { holds: false } });
+    assert.equal(conforms(facts(proto)), false, "an inherited fact is not established");
+    for (const a of [{ ...declared, evidence: "http://nodejs.org/api/net.html" }, { ...declared, evidence: "https://" }, { ...declared, evidence: "https://a b" }, { ...declared, evidence: undefined }, { ...declared, host: [] }, { ...declared, host: [""] }, { ...declared, host: FACT }, { ...declared, reason: "" }]) {
+      assert.equal(conforms(facts({ [FACT]: { holds: false } }, a), a), false, JSON.stringify(a));
+    }
+  });
+
+  it("lets parity count a case not applicable by a host fact on a package that is not the operating-system boundary, and still finds one exercised nowhere", () => {
+    const FACT = "kaal-hosting/special-entries";
+    const declared = { host: [FACT], reason: "r", evidence: "https://nodejs.org/api/net.html" };
+    const run = (platform, holds) => ({
+      observed: observe({ exit: 0, stdout: line({ ...CLEAN, platform, cases: [{ name: "acme/T1", ...(holds ? { outcome: "pass" } : { outcome: "not applicable", applicability: declared }) }] }) }, VERIFIER),
+      facts: { ...FACTS, platform, applicability: { "acme/T1": declared }, hostFacts: { [FACT]: { holds } } },
+    });
+    const some = parity([run("linux", true), run("darwin", true), run("win32", false)], { supported: ["linux", "darwin", "win32"] });
+    assert.deepEqual(some.findings, []);
+    assert.equal(some.result, "verified");
+    assert.equal(some.cases[0].outcomes.win32, "not applicable");
+    const none = parity([run("linux", false), run("darwin", false), run("win32", false)], { supported: ["linux", "darwin", "win32"] });
+    assert.equal(none.result, "unknown");
+    assert.ok(none.findings.some((f) => /exercised on none/.test(f)));
+  });
+
   it("imports nothing (testing/N9)", async () => {
     const source = await readFile(new URL("../lib/verifiers.mjs", import.meta.url), "utf8");
     assert.doesNotMatch(source, /^\s*import\b|\bimport\s*\(|\brequire\s*\(/m);
