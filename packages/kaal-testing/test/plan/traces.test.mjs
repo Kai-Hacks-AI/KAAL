@@ -14,7 +14,7 @@ async function traces() {
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./traces (${e.code ?? e.message})`);
   }
-  for (const f of ["derive", "edges", "incoming"]) if (typeof m[f] !== "function") assert.fail(`blocked before behavioural assertion: kaal-testing/traces exports no ${f}`);
+  for (const f of ["derive", "edges", "incoming", "impact"]) if (typeof m[f] !== "function") assert.fail(`blocked before behavioural assertion: kaal-testing/traces exports no ${f}`);
   if (!Array.isArray(m.LOCATIONS)) assert.fail("blocked before behavioural assertion: kaal-testing/traces exports no LOCATIONS");
   return { ...m, check: model.check, tested: model.tested };
 }
@@ -119,6 +119,16 @@ describe("Case tests → derived from the Case's own declaration (testing/C48)",
     const { derive } = await traces();
     const quoted = file("test/plan/quoted.test.mjs", 'const fixture = `  it(${title}, () => {});`;', "assert.match(s, /npm test(\\s|$)/);", "// each test (T1) is named here", 'it("acme/T5 [acme/F5]: the only case", () => {});');
     assert.deepEqual(derive([quoted]), { model: { cases: [{ id: "acme/T5", tests: ["acme/F5"] }] }, untraced: [], findings: [] }, "a call inside a string, a regular expression or a comment is not a case");
+    const spanning = file("test/plan/spanning.test.mjs",
+      "const fixture = `",
+      'it("works installed", () => {});',
+      "  it(`${name}`, () => {});",
+      "`;",
+      "/* it(\"in a comment [acme/F9]\", () => {});",
+      'it("still in the comment", () => {}); */',
+      'const tick = /`/;',
+      'it("acme/T6 [acme/F6]: after a template, a comment and a regular expression", () => {});');
+    assert.deepEqual(derive([spanning]), { model: { cases: [{ id: "acme/T6", tests: ["acme/F6"] }] }, untraced: [], findings: [] }, "a call on its own line inside a template or a comment that spans lines is not a case either");
     const trap = file("test/plan/trap.test.mjs", "globalThis.__kaalTraced = true;", 'it("acme/T4 [acme/F4]: x", () => { globalThis.__kaalTraced = true; });');
     const d = derive([trap]);
     assert.equal(globalThis.__kaalTraced, undefined, "the case file is never run");
@@ -129,5 +139,37 @@ describe("Case tests → derived from the Case's own declaration (testing/C48)",
     const noisy = [file("test/plan/z.test.mjs", 'it("acme/T1 [F1]: x", () => {});', "it(t, () => {});"), file("test/plan/a.test.mjs", 'it("acme/T2 [acme/F2, acme/F2]: y", () => {});')];
     assert.deepEqual(derive([...noisy].reverse()).findings, derive(noisy).findings, "findings come in the same order too");
     assert.deepEqual(files, before, "the files given are not changed");
+  });
+
+  it("testing/T103 [testing/F88, testing/F86]: an incomplete Case inventory never establishes impact: where any Case is untraced, unreadable or a finding, a target with no Case found is unknown, never shown untested, so no isolation check can pass on it", async () => {
+    const { derive, impact, incoming } = await traces();
+    const complete = derive([PLAN, ENGINEER]);
+    assert.deepEqual(impact(complete, "acme/F1"), { result: "established", cases: ["acme/T1", "acme/T3"], findings: [], untraced: [] }, "a complete inventory establishes the Cases that test a target");
+    assert.deepEqual(impact(complete, "acme/F404"), { result: "established", cases: [], findings: [], untraced: [] }, "and only a complete one establishes that none does");
+    const incomplete = [
+      ["an untraced Case", [PLAN, ENGINEER, file("test/embed/u.test.mjs", 'it("checks the thing, naming no target", () => {});')], { untraced: ["test/embed/u.test.mjs > checks the thing, naming no target"] }],
+      ["an unreadable case file", [PLAN, ENGINEER, { path: "test/engineer/locked.test.mjs", text: null }], { finding: "test/engineer/locked.test.mjs" }],
+      ["a title that cannot be read statically", [PLAN, ENGINEER, file("test/plan/dyn.test.mjs", "it(title, () => {});")], { finding: "test/plan/dyn.test.mjs" }],
+      ["a malformed target", [PLAN, ENGINEER, file("test/plan/bad.test.mjs", 'it("acme/T7 [acme/F404 and more]: x", () => {});')], { finding: "test/plan/bad.test.mjs" }],
+      ["a Case declared twice", [PLAN, ENGINEER, file("test/embed/dup.test.mjs", 'it("acme/T9 [acme/F404]: again", () => {});')], { finding: "acme/T9" }],
+    ];
+    for (const [why, files, expected] of incomplete) {
+      const d = derive(files);
+      assert.deepEqual(incoming(d.model, "acme/F404"), [], `${why}: the model alone finds no Case that tests the target`);
+      const i = impact(d, "acme/F404");
+      assert.equal(i.result, "unknown", `${why}: so whether any Case tests it is not established`);
+      assert.deepEqual(i.cases, [], `${why}: and the Cases found are only those found, a lower bound`);
+      if (expected.untraced) assert.deepEqual(i.untraced, expected.untraced, `${why}: the untraced inventory is given to the caller to report`);
+      if (expected.finding) assert.ok(i.findings.some((x) => x.includes(expected.finding)), `${why}: the finding is given to the caller to report, naming ${expected.finding}`);
+      const found = impact(d, "acme/F1");
+      assert.equal(found.result, "unknown", `${why}: an incomplete inventory establishes no target's Cases, even one it finds Cases for`);
+      assert.ok(found.cases.includes("acme/T1"), `${why}: the Cases it did find are still given`);
+    }
+    for (const bad of [undefined, null, {}, { model: { cases: [] } }, { model: { cases: [] }, findings: [] }, complete.model]) {
+      assert.equal(impact(bad, "acme/F1").result, "unknown", `an inventory derive did not give is never complete: ${JSON.stringify(bad)}`);
+    }
+    const broken = { model: { cases: [{ id: "acme/T1", tests: ["acme/F1"] }, { id: "acme/T1", tests: ["acme/F2"] }] }, untraced: [], findings: [] };
+    assert.equal(impact(broken, "acme/F3").result, "unknown", "a model with a finding establishes nothing");
+    assert.equal(impact(complete, undefined).result, "unknown", "nor does a target that is not one");
   });
 });
