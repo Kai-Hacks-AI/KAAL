@@ -1,25 +1,25 @@
 # kaal-testing: Operations
 
-How to install, use, verify and remove kaal-testing. What it promises is in the [Requirements](requirements.md), and what it does not is in the [Limitations](limitations.md).
+How to install, use, verify and remove `@kaihacksai/kaal-testing`, the published kaal-testing package. What it promises is in the [Requirements](requirements.md), and what it does not is in the [Limitations](limitations.md).
 
 ## Install
 
-kaal-testing needs Node 24 or later, on Linux, macOS or Windows (testing/F65).
+`@kaihacksai/kaal-testing` needs Node 24 or later, on Linux, macOS or Windows (testing/F65).
 
 ```
-npm install kaal-testing
+npm install @kaihacksai/kaal-testing
 ```
 
-It brings its runtime dependencies, `c8` and `kaal-hosting`, at exact versions (testing/F59). It runs no install script.
+It brings its runtime dependencies, `c8` and `@kaihacksai/kaal-hosting`, at exact versions (testing/F59). It runs no install script.
 
 ## Use
 
 Import the export for the contract you need. Each is described in the [Architecture](architecture.md)'s export inventory (testing/A8).
 
-- `kaal-testing/model`: declare a product's Strategies, Plans, Suites and Cases as plain data; `check` them; derive `tested` and `data`; read one Run's `results`; `evaluate` a Plan Run; and read the `current` evidenced quality from the Runs you retained (testing/F24–testing/F33, testing/F40–testing/F42).
-- `kaal-testing/verifiers`: the shared observable result contract for a consumer verifier, with its `SCENARIOS`, `observe`, `judge` and `parity` (testing/F43–testing/F50, testing/F56–testing/F58).
-- `kaal-testing/boundary`: `interpret` a realization's verdict on a concern owner's PLAN boundary, with its trust authority's attestation (testing/F18–testing/F23).
-- `kaal-testing/acceptance`, `kaal-testing/contracts`, `kaal-testing/coverage`, `kaal-testing/inventory`, `kaal-testing/attribution` and `kaal-testing/report`: a publisher's acceptance runs, contract evidence, execution coverage, line inventory, file attribution and the reconciled report.
+- `@kaihacksai/kaal-testing/model`: declare a product's Strategies, Plans, Suites and Cases as plain data; `check` them; derive `tested` and `data`; read one Run's `results`; `evaluate` a Plan Run; and read the `current` evidenced quality from the Runs you retained (testing/F24–testing/F33, testing/F40–testing/F42).
+- `@kaihacksai/kaal-testing/verifiers`: the shared observable result contract for a consumer verifier, with its `SCENARIOS`, `observe`, `judge` and `parity` (testing/F43–testing/F50, testing/F56–testing/F58).
+- `@kaihacksai/kaal-testing/boundary`: `interpret` a realization's verdict on a concern owner's PLAN boundary, with its trust authority's attestation (testing/F18–testing/F23).
+- `@kaihacksai/kaal-testing/acceptance`, `@kaihacksai/kaal-testing/contracts`, `@kaihacksai/kaal-testing/coverage`, `@kaihacksai/kaal-testing/inventory`, `@kaihacksai/kaal-testing/attribution` and `@kaihacksai/kaal-testing/report`: a publisher's acceptance runs, contract evidence, execution coverage, line inventory, file attribution and the reconciled report.
 
 The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evaluate Test Cases with these, and the Nodes in `capability/` and `payload/` carry what Testing means to KAAL.
 
@@ -28,7 +28,7 @@ The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evalu
 Verify the installed copy from the consumer that installed it:
 
 ```
-npm explore kaal-testing -- npm test
+npm explore @kaihacksai/kaal-testing -- npm test
 ```
 
 In an installation, `npm test` runs the delivered verification only (testing/F62). It prints one summary line starting `kaal-testing-verification `, with a JSON summary, and ends in exactly one result (testing/F63):
@@ -44,10 +44,10 @@ The run writes only to the operating system's temporary directory and leaves the
 ## Remove
 
 ```
-npm uninstall kaal-testing
+npm uninstall @kaihacksai/kaal-testing
 ```
 
-kaal-testing writes nothing outside its own installation and the temporary directory, so nothing else remains.
+`@kaihacksai/kaal-testing` writes nothing outside its own installation and the temporary directory, so nothing else remains.
 
 ## Shipped files
 

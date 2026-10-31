@@ -4,13 +4,13 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 
 ## RED Evidence and Feature-Accepted Regressions
 
-- **testing/A7** [testing/F1, testing/N4]: `kaal-testing/observe` exports `observe({ files, cwd })`. The runner start, the reporter and the reading of its lines live in one module that both `observe` and `accept` use.
+- **testing/A7** [testing/F1, testing/N4]: `@kaihacksai/kaal-testing/observe` exports `observe({ files, cwd })`. The runner start, the reporter and the reading of its lines live in one module that both `observe` and `accept` use.
   - **How it runs.** The runner runs through Hosting, as `accept`'s does. The reporter is `testing/A5`'s.
   - **The run object.** The returned run is remembered through `lib/observed.mjs`, as `accept`'s is. The snapshot adds each given file's state: `absent`, `complete` or `incomplete`, with its SHA-256 where it exists. Nothing else in Testing reads runner output.
   - **Completion evidence.** Testing's reporter also passes on, as lines of their own, each file's `test:summary` and each failed suite with its failure type. A file is `complete` only with its own summary and no suite or file failure other than `subtestsFailed`. The per-test lines `testing/F7` defines are unchanged.
   - **Not a second interpreter.** C8's `accept` keeps its contract and its tests, testing/T9–testing/T13, unchanged.
 
-- **testing/A1** [testing/F2–testing/F6, testing/F10, testing/N1, testing/N2]: `kaal-testing/red` exports `outcomes`, `classify`, `report` and `evaluate`.
+- **testing/A1** [testing/F2–testing/F6, testing/F10, testing/N1, testing/N2]: `@kaihacksai/kaal-testing/red` exports `outcomes`, `classify`, `report` and `evaluate`.
   - **Imports.** It imports only Testing's own `lib/observed.mjs`, to recall a run's snapshot, and no host module.
   - **Results.**
     - `outcomes(run)` returns `outcome(id)`, `marker(id)`, `file(id)`, `identities()`, `unidentified()` and `findings()`.
@@ -43,7 +43,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 ## Contract Evidence from Observed Runs
 
 - **testing/A5** [testing/F7, testing/F8]: `accept` runs the scenarios with a test reporter of Testing's own, a module in `lib/` that uses `node:test`'s reporter interface. The reporter turns each `test:pass` and `test:fail` event (and `skip` and `todo`) into one line in the run directory, with the event's file, nesting and name. From those lines `accept` rebuilds each test's full suite path, which is the path the mappings already use. It hashes each scenario file when the run starts.
-  - **The run object.** `acceptance.mjs` keeps a module-private `WeakMap` from each run object it returned to a private snapshot of what it observed: the per-test outcomes, the records, the findings and the manifest. Only `kaal-testing/contracts` reads the map, through a function it does not export. `classify` reads only the snapshot and never the fields of the object it is given. So a run counts only when it is the very object `accept` produced in this process, and changing that object's fields afterwards changes nothing. A copy or a deserialized run is just data that names a result, the same kind of claim the README already refuses.
+  - **The run object.** `acceptance.mjs` keeps a module-private `WeakMap` from each run object it returned to a private snapshot of what it observed: the per-test outcomes, the records, the findings and the manifest. Only `@kaihacksai/kaal-testing/contracts` reads the map, through a function it does not export. `classify` reads only the snapshot and never the fields of the object it is given. So a run counts only when it is the very object `accept` produced in this process, and changing that object's fields afterwards changes nothing. A copy or a deserialized run is just data that names a result, the same kind of claim the README already refuses.
   - **Hosting.** Commands, reads and paths stay Hosting's.
   - **Limitation: observed evidence is not durable.** It exists only in the process that ran `accept`. Another process, a later CI job, a stored artifact or another machine cannot reuse it. To classify again, run again. Durable or cross-process evidence would need a provenance mechanism of its own (Options B and C below). That is left to a later Change, if the Owner asks for one.
 
@@ -88,7 +88,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 
 ## PLAN Boundary Integrity
 
-- **testing/A10** [testing/N6, testing/F18–testing/F23]: **`kaal-testing/boundary`.** It exports two things:
+- **testing/A10** [testing/N6, testing/F18–testing/F23]: **`@kaihacksai/kaal-testing/boundary`.** It exports two things:
   - `problems(declaration)`, which says why a declaration does not read;
   - `interpret(declaration, verdict, attestation)`, which returns `{ class, findings, unknowns }`.
 
@@ -98,7 +98,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 
 ## Testing Model
 
-- **testing/A12** [testing/N7, testing/N8, testing/F24–testing/F33]: `kaal-testing/model` is one module, `lib/model.mjs`, exporting:
+- **testing/A12** [testing/N7, testing/N8, testing/F24–testing/F33]: `@kaihacksai/kaal-testing/model` is one module, `lib/model.mjs`, exporting:
   - `check(model)`, the findings;
   - `tested(model)`, the derived view from subject to the live Cases that test it;
   - `data(model)`, the derived view from each Test Data item to its owner and the contexts that reuse it;
@@ -118,7 +118,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 
 ## Consumer Verifier Conformance
 
-- **testing/A18** [testing/F43–testing/F50, testing/N9]: `kaal-testing/verifiers` is one module, `lib/verifiers.mjs`, importing nothing, that exports:
+- **testing/A18** [testing/F43–testing/F50, testing/N9]: `@kaihacksai/kaal-testing/verifiers` is one module, `lib/verifiers.mjs`, importing nothing, that exports:
   - `SCENARIOS`, the frozen list of `{ id, change, result, cases, target? }`. `cases` is `pass` where every declared case is reported, `none` where none is declared, and `any` where the scenario constrains no case. `target` is the outcome of the case the scenario targets.
   - `observe({ exit, stdout }, { prefix, words })`, which gives `{ observation, findings }`. `observation` is null when the run shows none.
   - `judge(scenario, observed, facts)`, which gives `{ scenario, conforms, differences }`. `facts` is `{ package: { name, version, location }, platform, node, digest, cases, target, applicability }`, as the harness established them. `applicability` maps a case's name to the `{ platforms?, requires?, absent?, reason }` the harness read from the installed manifest and checked itself. It is empty where no case is declared not applicable. `dependencies` names the package's required runtime dependencies. `complements` maps each optional complement the harness checked to `present` or `absent` in the consumer.
@@ -135,7 +135,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 
 ## Cross-Platform Inventory Parity
 
-- **testing/A20** [testing/F56–testing/F58, testing/F67, testing/N11]: `kaal-testing/verifiers` (testing/A18) gains `parity(runs, { supported, osBoundary, challenged })`, still importing nothing. It gives `{ result, cases, findings }`:
+- **testing/A20** [testing/F56–testing/F58, testing/F67, testing/N11]: `@kaihacksai/kaal-testing/verifiers` (testing/A18) gains `parity(runs, { supported, osBoundary, challenged })`, still importing nothing. It gives `{ result, cases, findings }`:
   - `runs` is one `{ observed, facts }` per platform. `observed` is what `observe` gave. `facts` is testing/A18's, as the harness established it on that platform.
   - `cases` holds one `{ name, outcomes }` per declared case. `outcomes` maps each platform to the case's outcome there.
   - `osBoundary` defaults to `false`: the package is not the operating-system boundary unless the harness established that it is (testing/F67).

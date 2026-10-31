@@ -63,8 +63,8 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
 ## Contract Evidence from Observed Runs
 
 - **testing/N3** [testing/I4]: Testing's judgment depends on nothing it judges:
-  - **Runtime dependencies:** kaal-testing's runtime dependencies stay `c8` and `kaal-hosting`.
-  - **Imports:** nothing it delivers imports `kaal-core`, `kaal-graph` or any other capability's package.
+  - **Runtime dependencies:** kaal-testing's runtime dependencies stay `c8` and `@kaihacksai/kaal-hosting`.
+  - **Imports:** nothing it delivers imports `@kaihacksai/kaal-core`, `@kaihacksai/kaal-graph` or any other capability's package.
   - **Inputs:** a mapping, a tree's bytes and a run are data.
 
   Testing may consume Core's types and admission in its own tests. That dependency runs from Testing to Core, never back (`core/N11`).
@@ -123,7 +123,7 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
 - **testing/N6** [testing/I9]: `interpret` is pure and realization-neutral.
   - **Inputs.** It takes a declaration and a verdict as data.
   - **No other imports.** It reads no host, runs no command, and imports neither Sealing nor any Git library.
-  - **Dependencies.** kaal-testing's runtime dependencies stay `c8` and `kaal-hosting`.
+  - **Dependencies.** kaal-testing's runtime dependencies stay `c8` and `@kaihacksai/kaal-hosting`.
 
 - **testing/F18** [testing/I8]: **A Boundary Declaration** is written by one concern owner (Intent, Requirements or Architecture, at any nesting) for one PLAN Change. It holds:
   - the concern and its owner;
@@ -287,7 +287,7 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
 
   The `not-applicable` scenario covers a host fact as well as a platform scope. No scenario is added, so testing/F43's set and testing/T54 are unchanged.
 
-- **testing/N14** [testing/I18]: `kaal-testing/verifiers` still reads no host, runs nothing and imports nothing (testing/N9). Host facts reach it only as data the harness established through Hosting. Testing never tries a FIFO, a socket or any other host capability itself.
+- **testing/N14** [testing/I18]: `@kaihacksai/kaal-testing/verifiers` still reads no host, runs nothing and imports nothing (testing/N9). Host facts reach it only as data the harness established through Hosting. Testing never tries a FIFO, a socket or any other host capability itself.
 
 ## Cross-Platform Inventory Parity
 
@@ -362,11 +362,11 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
   - Its `exports` are unchanged.
   - No reference to it by its old name remains. Each module specifier, dependency entry, workspace selector and `package-lock.json` entry becomes the new name in the same Change, as hosting/F16 states for Hosting. There is no alias.
   - **Why Hosting is a runtime dependency.** Installed behaviour needs it, not the publisher's tooling. Three shipped exports execute commands and read or write the host, and Testing may not know the operating system, so they do that only through Hosting:
-    - `kaal-testing/acceptance` installs packed tarballs into fresh hosts, runs the scenarios and keeps the ledger (`execute`, `initialize`, `kind`, `read`, `readFile`, `update`);
-    - `kaal-testing/coverage` runs a workspace's tests under `c8` and reads the summary (`execute`, `kind`, `readFile`), which is also why `c8` is a runtime dependency;
-    - `kaal-testing/contracts` imports `kaal-testing/acceptance`.
+    - `@kaihacksai/kaal-testing/acceptance` installs packed tarballs into fresh hosts, runs the scenarios and keeps the ledger (`execute`, `initialize`, `kind`, `read`, `readFile`, `update`);
+    - `@kaihacksai/kaal-testing/coverage` runs a workspace's tests under `c8` and reads the summary (`execute`, `kind`, `readFile`), which is also why `c8` is a runtime dependency;
+    - `@kaihacksai/kaal-testing/contracts` imports `@kaihacksai/kaal-testing/acceptance`.
 
-    Every other export, `kaal-testing/model` and `kaal-testing/verifiers` among them, imports nothing. A consumer that imports only those still installs Hosting, because npm has no per-export dependency.
+    Every other export, `@kaihacksai/kaal-testing/model` and `@kaihacksai/kaal-testing/verifiers` among them, imports nothing. A consumer that imports only those still installs Hosting, because npm has no per-export dependency.
   - **So Hosting's 0.0.1 publication is a prerequisite of Testing's.**
 
 - **testing/F60** [testing/I17] (packaging/F8): **Shipped documents.**
@@ -408,7 +408,7 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
   - The package declares portability: it supports Linux, macOS and Windows on Node 24 or later. `engines` and the manifest's `platforms` state this.
   - Testing authorizes no OS-specific exemption. No delivered case is scoped by platform. Applicability could name only optional complements (`requires`, `absent`), and Testing 0.0.1 has none, so no delivered case is inapplicable anywhere. Every delivered case runs, with the same identity and assertions, on every supported platform.
   - No shipped file branches on the operating system. Every command, read and write the shipped library makes goes through Hosting.
-  - Hosting owns OS-specific behaviour, in solutions and in tests. Its cross-capability boundary suite and review guides (`kaal-hosting/boundary`) challenge this package's implementation, test selection, assertions and applicability. Their result on the candidate is release evidence, and Testing does not restate their rule.
+  - Hosting owns OS-specific behaviour, in solutions and in tests. Its cross-capability boundary suite and review guides (`@kaihacksai/kaal-hosting/boundary`) challenge this package's implementation, test selection, assertions and applicability. Their result on the candidate is release evidence, and Testing does not restate their rule.
 
 - **testing/F66** [testing/I17] (packaging/F13): **Traceability, derived.**
   - Each delivered case is a Case in Testing's own model (testing/F25), and its `tests` names the Testing identifiers it verifies. The manifest's `model` is that model, and `check` (testing/F24, testing/F25) finds nothing in it.

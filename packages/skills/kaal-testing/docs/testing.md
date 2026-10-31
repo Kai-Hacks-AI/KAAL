@@ -24,7 +24,7 @@ Each planned test is established before implementation and is immutable afterwar
 | testing/T7: evaluation follows the gate's policy; acceptance subtracts single identities; findings always block, a candidate file that did not run to the end among them; a malformed policy fails closed | testing/F10 | Requirements |
 | testing/T8: the report lists every RED by identity, class and file; an accepted RED carries its Change and is counted RED, never GREEN | testing/F6 | Requirements |
 | testing/T14: the same observed runs, FAR outcome and policy give the same results | testing/N1 | Requirements |
-| testing/T15: `kaal-testing/red` reads runs only through Testing's own observation, and imports no host module | testing/N4 | Architecture |
+| testing/T15: `@kaihacksai/kaal-testing/red` reads runs only through Testing's own observation, and imports no host module | testing/N4 | Architecture |
 
 ### Contract Evidence from Observed Runs
 
@@ -75,7 +75,7 @@ Each planned test is established before implementation and is immutable afterwar
 | testing/T37: a Run's provenance identifies the definitions and versions it executed and its effective Test Data; a Case Result counts only for the definition it identifies | testing/F31 | Requirements |
 | testing/T38: Test Data is defined at Plan, Suite or Case level and owned by its defining context; reuse leaves ownership where it is; its content is opaque and may be external | testing/F32 | Requirements |
 | testing/T39: a retired Case stays declared as provenance and is no longer executable; Testing keeps no Run | testing/F33 | Requirements |
-| testing/T35: `kaal-testing/model` is one module that imports nothing and names no other Capability's kind | testing/A12 | Architecture |
+| testing/T35: `@kaihacksai/kaal-testing/model` is one module that imports nothing and names no other Capability's kind | testing/A12 | Architecture |
 
 | Test | Checks | Loop |
 | --- | --- | --- |
