@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import fs from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
 import { createServer } from "node:net";
@@ -466,17 +466,19 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.deepEqual(left(tmp), [], "a failing run left entries in its temporary directory");
   });
 
-  // Windows' file system has neither Unix sockets nor FIFOs, so this case is registered on Linux and macOS only.
-  (WINDOWS ? () => {} : it)("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
+  // Registered on every host. Hosting owns whether a host can hold a FIFO or a socket (guard/C118, revision 3):
+  // until its special-entry fixture is consumed here, a host that makes none blocks the case, never passes it.
+  it("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
     const c = consumer();
     const passes = `${MINI} > guard/T0 passes`;
     const replaces = `${MINI} > guard/T0 replaces the FIFO when asked`;
     reduce(c, `import { it } from "node:test";\nimport { rmSync, writeFileSync } from "node:fs";\nit("guard/T0 passes", () => {});\nit("guard/T0 replaces the FIFO when asked", () => {\n  const fifo = process.env.GUARD_T114_FIFO;\n  if (fifo) {\n    rmSync(fifo);\n    writeFileSync(fifo, "a regular file now\\n");\n  }\n});\n`, [passes, replaces]);
     const sock = join(c.dir, "t114.sock");
     const fifo = join(c.dir, "t114.fifo");
-    must(exec(c.dir, "mkfifo", [fifo], clean()), "mkfifo");
+    const made = exec(c.dir, "mkfifo", [fifo], clean());
+    assert.equal(made.status, 0, `blocked before behavioural assertion: this host made no FIFO (${made.output.trim()}); Hosting's special-entry fixture decides whether it can hold one`);
     const server = createServer();
-    await new Promise((done, fail) => server.once("error", fail).listen(sock, done));
+    await new Promise((done, fail) => server.once("error", fail).listen(sock, done)).catch((e) => assert.fail(`blocked before behavioural assertion: this host made no socket in the tree (${e.code}); Hosting's special-entry fixture decides whether it can hold one`));
     const LIMIT = 5 * 60 * 1000;
     try {
       const r = c.verify({}, LIMIT);
@@ -501,6 +503,37 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
       assert.ok(u.consumer.changed.includes("t114.fifo"), `the summary does not name t114.fifo changed: ${JSON.stringify(u.consumer.changed)}`);
     } finally {
       server.close();
+    }
+  });
+
+  it("guard/T131 [guard/F33, guard/F35]: a consumer holding a cycle of symbolic links is verified, exit 0, within the case's time limit, following neither link; replacing one link of the cycle with a regular file between snapshots is failed, naming it; a directory replaced by a regular file, a regular file replaced by a directory, and an empty directory replaced by a symbolic link are each failed, naming the path", async (t) => {
+    const c = consumer();
+    const asked = `${MINI} > guard/T0 changes an entry's kind when asked`;
+    reduce(c, `import { it } from "node:test";\nimport { mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";\nit("guard/T0 changes an entry's kind when asked", () => {\n  const to = process.env.GUARD_T131_TO, at = process.env.GUARD_T131_AT;\n  if (!at) return;\n  rmSync(at, { recursive: true, force: true });\n  if (to === "file") writeFileSync(at, "a regular file now\\n");\n  else if (to === "link") symlinkSync("t131.file", at, "file");\n  else mkdirSync(at);\n});\n`, [asked]);
+    try {
+      symlinkSync("t131.b", join(c.dir, "t131.a"), "file");
+      symlinkSync("t131.a", join(c.dir, "t131.b"), "file");
+    } catch (e) {
+      assert.fail(`blocked before behavioural assertion: this host refuses to make a symbolic link (${e.code}), so the cycle cannot be set up`);
+    }
+    mkdirSync(join(c.dir, "t131.dir"));
+    writeFileSync(join(c.dir, "t131.dir", "inside.txt"), "inside\n");
+    writeFileSync(join(c.dir, "t131.file"), "a regular file\n");
+    mkdirSync(join(c.dir, "t131.empty"));
+    const LIMIT = 5 * 60 * 1000;
+    const r = c.verify({}, LIMIT);
+    assert.notEqual(r.status, null, `the run did not complete within ${LIMIT / 1000} s:\n${r.output.slice(-4000)}`);
+    const s = observed(t, "a consumer holding a cycle of symbolic links", r);
+    assert.equal(s.result, "verified", `a cycle of links gave ${s.result}:\n${r.output.slice(-4000)}`);
+    assert.equal(r.status, 0);
+    assert.deepEqual(s.consumer.changed, [], "the summary names a changed path");
+    for (const [at, to, what] of [["t131.a", "file", "a link of the cycle replaced with a regular file"], ["t131.dir", "file", "a directory replaced with a regular file"], ["t131.file", "dir", "a regular file replaced with a directory"], ["t131.empty", "link", "an empty directory replaced with a symbolic link"]]) {
+      const v = c.verify({ GUARD_T131_AT: join(c.dir, at), GUARD_T131_TO: to }, LIMIT);
+      assert.notEqual(v.status, null, `${what}: the run did not complete within ${LIMIT / 1000} s`);
+      const u = observed(t, what, v);
+      assert.equal(u.result, "failed", `${what} gave ${u.result}:\n${v.output.slice(-4000)}`);
+      assert.equal(v.status, 1);
+      assert.ok(u.consumer.changed.includes(at), `${what}: the summary does not name ${at} changed: ${JSON.stringify(u.consumer.changed)}`);
     }
   });
 

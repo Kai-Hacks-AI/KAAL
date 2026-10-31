@@ -234,7 +234,7 @@ guard/T113–guard/T117 are planned in `guard/C107`. They verify the verifier, t
 | Test | Checks | Written in | Intended evidence against `afa9ca3` |
 | --- | --- | --- | --- |
 | guard/T113: two runs of the documented command, one passing and one with a planted failing case, each with the child's temporary directory set to a fresh empty directory, leave that directory empty | guard/F35 | `guard/C108` | RED: about 150 directories remain after one run |
-| guard/T114: a consumer holding a Unix socket and a FIFO is `verified`, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is `failed`, naming it. Registered on Linux and macOS, where the file system has both kinds | guard/F33, guard/F35 | `guard/C108` | RED: the socket gives `cannot verify` advising reinstall, and the FIFO hangs until the limit |
+| guard/T114: a consumer holding a Unix socket and a FIFO is `verified`, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is `failed`, naming it. Registered on every host. Its FIFO and socket come from Hosting's special-entry fixture once it is consumed (`guard/C118`, revision 3); until then, a host that makes no FIFO ends it RED as blocked, never not applicable and never passed | guard/F33, guard/F35 | `guard/C108` | RED: the socket gives `cannot verify` advising reinstall, and the FIFO hangs until the limit |
 | guard/T115: a delivered case that appends to a consumer file gives `failed`, exit 1, naming the path, with the next step to check concurrent activity and no advice to restore paths | guard/F33, guard/F35 | `guard/C108` | RED: the next step says to restore the paths from version control |
 | guard/T116: the packed candidate holds only the package's declared `files`, and no path from `engineering/`, no Engineering Test Plan and no release evidence | guard/F37, guard/A19 | `guard/C108` | GREEN on `afa9ca3`, where the review found none by hand; RED, naming the path, on a candidate with a planted `engineering/` file |
 | guard/T117: `snapshot()`, with its file-system reads patched so a listed file is removed before it is read, completes and records the file as absent | guard/F35 | `guard/C108` | RED: `snapshot()` throws `ENOENT`, which ends a run as "could not complete" |
@@ -431,6 +431,14 @@ guard/T123 is planned in `guard/C116`. It is a product case in `packages/kaal-gu
 | Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
 | --- | --- | --- | --- | --- |
 | Delivered with the package, so defined in its `docs/testing.md`: guard/T123 checks that the delivered README states that hook activation is per clone and needs `init --hook` in each clone, and that the installation record is a tracked file Guard does not protect; it no longer says that only Guard writes the record | guard/F29, guard/F30 | `guard/C116` | RED: the README says "Only Guard writes the record and the state" and only hints at per-clone activation | GREEN |
+
+## Snapshot cases (`guard/C118`)
+
+guard/T114 and guard/T131 are Guard's behavioural cases for the snapshot's invariant: an entry it must not read is never read, and a change of kind between snapshots is failed, naming it. Both are registered on every host with the same title and body. Under `guard/C118`, revision 3 (#671), Hosting owns their portability: guard/T114's FIFO and socket come from Hosting's special-entry fixture, and whether a host can hold them is Hosting's applicability rule, never a Guard declaration. Until that fixture is consumed here, guard/T114 is RED as blocked before its behavioural assertion on a host that makes no FIFO, naming the missing fixture, and is never counted as passed. guard/T132 and Guard's own platform tables are retired; Hosting's portability audit covers that ground for every capability.
+
+| Test | Checks | Written in | Evidence against `0.0.4` | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T131: a consumer holding a cycle of symbolic links is verified, exit 0, within the case's time limit, following neither link; replacing one link of the cycle with a regular file between snapshots is failed, naming it; a directory replaced by a regular file, a regular file replaced by a directory, and an empty directory replaced by a symbolic link are each failed, naming the path. A host that refuses to make a symbolic link ends the case RED as blocked, never not applicable or GREEN | guard/F33, guard/F35 | `guard/C118` | GREEN-expected: the snapshot reads with `lstat` and records kinds; a copy that follows links, and a copy that ignores kind, each turn it RED | |
 
 ## Each release declares its upgrade paths (`guard/C113`)
 
