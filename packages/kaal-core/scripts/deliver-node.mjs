@@ -4,7 +4,7 @@
 // node.mjs's declarations are Graph's node.d.ts. While Graph's source holds none, they are selected from
 // Graph's edges.d.ts: only its statements that declare what node.mjs exports when it runs, and the types
 // those use, each kept as Graph wrote it (core/C38).
-import { createHash } from "node:crypto";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
@@ -79,6 +79,6 @@ for (const file of DELIVERED) {
   const from = `${SCRIPTS}/${selected ? "edges.d.ts" : file}`;
   const bytes = selected ? await select(join(graph, from), join(graph, SCRIPTS, "node.mjs")) : readFileSync(join(graph, from));
   writeFileSync(join(out, file), bytes);
-  files[file] = { from, ...(selected ? { selected: true } : {}), sha256: createHash("sha256").update(bytes).digest("hex") };
+  files[file] = { from, ...(selected ? { selected: true } : {}), sha256: sha256(bytes) };
 }
 writeFileSync(join(out, "provenance.json"), `${JSON.stringify({ name, version, files }, null, 2)}\n`);
