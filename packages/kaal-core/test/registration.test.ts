@@ -160,4 +160,14 @@ describe("kaal-core registration in verify (core/C26)", () => {
     assert.deepEqual(a.findings, [], "a cycle is never a finding");
     assert.deepEqual(a.outgoing("acme", "a"), [{ source: { scope: "acme", id: "a" }, target: { scope: "acme", id: "b" } }]);
   });
+
+  it("keeps opaque text apart whatever it holds: a scope and identity that concatenate alike stay two instances", () => {
+    const r = assemble([
+      { holder: "kaal-x", scope: "x", kinds: { X: { traces: "any" as const } } },
+      { holder: "h1", scope: "a", instances: [{ id: "b\u0000c", kind: { scope: "x", kind: "X" }, traces: [] }] },
+      { holder: "h2", scope: "a\u0000b", instances: [{ id: "c", kind: { scope: "x", kind: "X" }, traces: ["c"] }] },
+    ]);
+    assert.deepEqual(r.findings, [], "no identity is stated twice");
+    assert.deepEqual(r.outgoing("a", "b\u0000c"), [], "nor does one take another's traces");
+  });
 });

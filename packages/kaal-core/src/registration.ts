@@ -147,7 +147,8 @@ const canonical = (v: unknown): string =>
 const byCanonical = <T>(xs: T[]): T[] => xs.map((x) => [canonical(x), x] as const).sort(([a], [b]) => cmp(a, b)).map(([, x]) => x);
 /** Ordered by scope, then kind, then owner. */
 const byScope = <T extends Candidate>(xs: T[]): T[] => [...xs].sort((a, b) => cmp(a.scope, b.scope) || cmp(a.kind, b.kind) || cmp(a.owner, b.owner));
-const key = (scope: string, name: string) => `${scope}\u0000${name}`;
+/** An unambiguous key for a (scope, name) pair: opaque text may hold any character (core/F48). */
+const key = (scope: string, name: string) => JSON.stringify([scope, name]);
 const qualify = (ref: KindRef, own: string): QualifiedKind => (typeof ref === "string" ? { scope: own, kind: ref } : { scope: ref.scope, kind: ref.kind });
 const locate = (t: Target, own: string): AssemblyId => (typeof t === "string" ? { scope: own, id: t } : { scope: t.scope, id: t.id });
 const finding = (rule: string, details: Record<string, unknown>): Finding => ({ verdict: "core", rule, ...details });
