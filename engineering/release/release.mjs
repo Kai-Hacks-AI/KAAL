@@ -54,26 +54,64 @@ export function readiness({ manifest, directory, registry }) {
   return { findings: f, path: own === null ? "first" : "trusted" };
 }
 
+/** The installed verification's result vocabulary and its exit statuses (testing/C29). */
+const VERIFY_EXIT = { verified: 0, failed: 1, "cannot verify": 2 };
+
 /**
- * F32: the installed verification's result, read from its output. The last non-empty line must be
- * the package's one `<short>-verification {json}` line. Anything else is unknown, never verified.
+ * F32: the installed verification's result, read from its whole summary record and never from an
+ * exit status or a `result` field alone. `stdout` is what the installed `npm test` printed, `status`
+ * its process exit status, and `declared` the case names the tested candidate's own
+ * `test/verify.json` declares. The last non-empty line must be the package's one
+ * `<short>-verification {json}` line, and its record must be well formed: `result`, an `exit` that
+ * agrees with both the result and the process, `cases` of `{ name, outcome }` and `causes`.
+ * `verified` additionally needs every declared case run exactly once and passed, no undeclared case,
+ * nothing skipped or todo, and no cause. A failed case is failed; anything else short of that is
+ * unknown. A false GREEN never verifies.
  */
-export function verification(stdout, name) {
+export function verification(stdout, name, { status, declared } = {}) {
   const short = name.split("/").pop();
-  const prefix = `${short}-verification `;
-  const lines = stdout.split(/\r?\n/).filter((l) => l.trim() !== "");
-  const ours = lines.filter((l) => l.startsWith(prefix));
-  if (ours.length !== 1) return { result: "unknown", cause: `expected one ${prefix.trim()} line, found ${ours.length}` };
-  if (lines.at(-1) !== ours[0]) return { result: "unknown", cause: `the ${prefix.trim()} line is not the last line` };
-  let line;
+  const tag = `${short}-verification`;
+  const unknown = (cause) => ({ result: "unknown", cause });
+  const lines = String(stdout).split(/\r?\n/).filter((l) => l.trim() !== "");
+  const ours = lines.filter((l) => l.startsWith(`${tag} `));
+  if (ours.length !== 1) return unknown(`expected one ${tag} line, found ${ours.length}`);
+  if (lines.at(-1) !== ours[0]) return unknown(`the ${tag} line is not the last line`);
+  let r;
   try {
-    line = JSON.parse(ours[0].slice(prefix.length));
+    r = JSON.parse(ours[0].slice(tag.length + 1));
   } catch {
-    return { result: "unknown", cause: `the ${prefix.trim()} line is not JSON` };
+    return unknown(`the ${tag} line is not JSON`);
   }
-  if (line.result === "verified") return { result: "verified" };
-  if (line.result === "failed") return { result: "failed", cause: `${short} reported failed` };
-  return { result: "unknown", cause: `${short} reported ${JSON.stringify(line.result)}` };
+  if (r === null || typeof r !== "object" || Array.isArray(r)) return unknown(`the ${tag} record is not an object`);
+  if (!(r.result in VERIFY_EXIT)) return unknown(`the ${tag} result ${JSON.stringify(r.result)} is not verified, failed or cannot verify`);
+  if (r.exit !== VERIFY_EXIT[r.result]) return unknown(`the ${tag} exit ${JSON.stringify(r.exit)} does not agree with its result ${r.result}`);
+  if (!Number.isInteger(status)) return unknown("the installed npm test's exit status is unknown");
+  if (status !== r.exit) return unknown(`npm test exited ${status}, but the ${tag} record says ${r.exit}`);
+  if (!Array.isArray(r.causes) || !r.causes.every((c) => typeof c === "string")) return unknown(`the ${tag} causes are not a list of strings`);
+  if (!Array.isArray(r.cases) || !r.cases.every((c) => c && typeof c.name === "string" && c.name !== "" && typeof c.outcome === "string"))
+    return unknown(`the ${tag} cases are not a list of { name, outcome }`);
+  if (r.result === "cannot verify") return unknown(`${short} reported cannot verify${r.causes.length ? `: ${r.causes[0]}` : ""}`);
+  const failedCases = r.cases.filter((c) => c.outcome === "fail").map((c) => c.name);
+  if (r.result === "failed") return { result: "failed", cause: `${short} reported failed${failedCases.length ? `: ${failedCases.join(", ")}` : ""}` };
+  // r.result === "verified": every claim is checked against the candidate's declaration.
+  if (failedCases.length) return { result: "failed", cause: `${short} reported verified with failed cases: ${failedCases.join(", ")}` };
+  if (!Array.isArray(declared) || declared.length === 0 || !declared.every((n) => typeof n === "string" && n !== ""))
+    return unknown("the tested candidate declares no cases in test/verify.json");
+  const problems = [];
+  if (r.causes.length) problems.push(`causes reported with verified: ${r.causes.join("; ")}`);
+  const seen = new Map();
+  for (const c of r.cases) seen.set(c.name, (seen.get(c.name) ?? 0) + 1);
+  const known = new Set(declared);
+  const missing = declared.filter((n) => !seen.has(n));
+  const undeclared = [...seen.keys()].filter((n) => !known.has(n));
+  const twice = [...seen].filter(([, n]) => n > 1).map(([n, k]) => `${n} (${k} times)`);
+  const notPassed = r.cases.filter((c) => c.outcome !== "pass").map((c) => `${c.name} (${c.outcome})`);
+  if (missing.length) problems.push(`declared cases missing: ${missing.join(", ")}`);
+  if (undeclared.length) problems.push(`undeclared cases: ${undeclared.join(", ")}`);
+  if (twice.length) problems.push(`cases more than once: ${twice.join(", ")}`);
+  if (notPassed.length) problems.push(`cases not passed: ${notPassed.join(", ")}`);
+  if (problems.length) return unknown(`${short} reported verified, but ${problems.join("; ")}`);
+  return { result: "verified", cases: r.cases.length };
 }
 
 /** The weakest of several results: failed, then unknown, then verified. */

@@ -29,7 +29,9 @@ const good = (over = {}) => ({
   ...over,
 });
 
-const VERIFY = `console.log("kaal-demo verification: this copy");\nconsole.log('kaal-demo-verification ' + JSON.stringify({ result: "verified", exit: 0, cases: [{ name: "x", outcome: "verified" }], causes: [] }));\n`;
+const CASES = ["demo/T1", "demo/T2"];
+/** The demo's installed verification: prints a summary record for `cases`, as given by DEMO_RESULT, and exits with its `exit`. */
+const VERIFY = `const r = JSON.parse(process.env.DEMO_RESULT ?? JSON.stringify({ result: "verified", exit: 0, cases: ${JSON.stringify(CASES.map((name) => ({ name, outcome: "pass" })))}, causes: [] }));\nconsole.log("kaal-demo verification: this copy");\nconsole.log("kaal-demo-verification " + JSON.stringify(r));\nprocess.exit(r.exit);\n`;
 
 /** A scratch repository with one workspace, the demo package. */
 function repo(dir, manifest) {
@@ -37,6 +39,7 @@ function repo(dir, manifest) {
   writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "scratch", private: true, workspaces: ["packages/kaal-demo"] }));
   writeFileSync(join(dir, "packages", "kaal-demo", "package.json"), JSON.stringify(manifest));
   writeFileSync(join(dir, "packages", "kaal-demo", "test", "verify.mjs"), VERIFY);
+  writeFileSync(join(dir, "packages", "kaal-demo", "test", "verify.json"), JSON.stringify({ files: {}, cases: CASES }));
   const r = spawn(["install", "--offline"], dir);
   assert.equal(r.status, 0, r.stderr);
   return dir;
@@ -182,23 +185,76 @@ describe("engineering/T65 [engineering/F31, F33]: one pack; Publish publishes th
   });
 });
 
-describe("engineering/T66 [engineering/F32]: the installed verification's line decides, never the exit status alone", () => {
-  const line = (r) => `kaal-demo-verification ${JSON.stringify({ result: r })}`;
-  it("verified, failed and unknown", () => {
-    assert.equal(verification(`x\n${line("verified")}\n`, NAME).result, "verified");
-    assert.equal(verification(line("failed"), NAME).result, "failed");
-    assert.equal(verification(line("cannot verify"), NAME).result, "unknown");
+describe("engineering/T66 [engineering/F32]: the installed verification's whole record decides, never an exit status or a result field alone", () => {
+  const pass = (name) => ({ name, outcome: "pass" });
+  const rec = (over = {}) => ({ result: "verified", exit: 0, cases: CASES.map(pass), causes: [], ...over });
+  const out = (r) => `kaal-demo verification: this copy\nkaal-demo-verification ${JSON.stringify(r)}\n`;
+  const judge = (r, o = {}) => verification(o.text ?? out(r), NAME, { status: "status" in o ? o.status : r.exit, declared: "declared" in o ? o.declared : CASES });
+  it("a complete, consistent verified record against the declared cases is verified", () => assert.equal(judge(rec()).result, "verified"));
+  it("failed is failed, and cannot verify is unknown", () => {
+    assert.equal(judge(rec({ result: "failed", exit: 1, cases: [pass("demo/T1"), { name: "demo/T2", outcome: "fail" }], causes: ["demo/T2 failed"] })).result, "failed");
+    assert.equal(judge(rec({ result: "cannot verify", exit: 2, causes: ["x"] })).result, "unknown");
   });
-  it("no line, two lines, a line that is not last, another package's line, or no JSON is unknown", () => {
-    for (const out of ["all good\n", `${line("verified")}\n${line("verified")}`, `${line("verified")}\nmore`, `kaal-other-verification {"result":"verified"}`, "kaal-demo-verification verified"])
-      assert.equal(verification(out, NAME).result, "unknown", out);
+  it("mismatched exit: the record's exit disagrees with its result, or the process exit disagrees with the record", () => {
+    assert.equal(judge(rec({ exit: 1 }), { status: 1 }).result, "unknown");
+    assert.equal(judge(rec(), { status: 1 }).result, "unknown");
+    assert.equal(judge(rec({ result: "failed", exit: 1 }), { status: 0 }).result, "unknown");
+    assert.equal(judge(rec(), { status: undefined }).result, "unknown");
   });
-  it("checks that cannot run yet are recorded as not run, and never as verified", async () => {
+  it("verified with a missing, duplicate, undeclared, skipped, todo or failed case never verifies", () => {
+    const cases = {
+      missing: [pass("demo/T1")],
+      duplicate: [...CASES.map(pass), pass("demo/T1")],
+      undeclared: [...CASES.map(pass), pass("demo/T9")],
+      skipped: [pass("demo/T1"), { name: "demo/T2", outcome: "skip" }],
+      todo: [pass("demo/T1"), { name: "demo/T2", outcome: "todo" }],
+      none: [],
+    };
+    for (const [what, c] of Object.entries(cases)) assert.equal(judge(rec({ cases: c })).result, "unknown", what);
+    assert.equal(judge(rec({ cases: [pass("demo/T1"), { name: "demo/T2", outcome: "fail" }] })).result, "failed");
+  });
+  it("verified with causes, or with no declaration to check it against, never verifies", () => {
+    assert.equal(judge(rec({ causes: ["something"] })).result, "unknown");
+    for (const declared of [undefined, [], [""], "demo/T1"]) assert.equal(judge(rec(), { declared }).result, "unknown", JSON.stringify(declared));
+  });
+  it("malformed summaries are unknown", () => {
+    const malformed = [
+      "all good\n",
+      `${out(rec())}${out(rec())}`,
+      `${out(rec())}more\n`,
+      `kaal-other-verification ${JSON.stringify(rec())}\n`,
+      "kaal-demo-verification verified\n",
+      "kaal-demo-verification null\n",
+      "kaal-demo-verification [1]\n",
+      out({ ...rec(), result: "passed" }),
+      out({ ...rec(), cases: undefined }),
+      out({ ...rec(), cases: [{ outcome: "pass" }] }),
+      out({ ...rec(), cases: [{ name: "demo/T1" }] }),
+      out({ ...rec(), causes: undefined }),
+      out({ ...rec(), causes: [1] }),
+      out({ ...rec(), exit: "0" }),
+    ];
+    for (const text of malformed) assert.equal(judge(rec(), { text }).result, "unknown", text);
+  });
+  it("end to end: the record is read from the installed candidate, and checks that cannot run yet are not run, never verified", { timeout: 180_000 }, async () => {
     const root = repo(scratch("t66"), good());
     const r = await packStep({ name: NAME, root, out: join(root, "out"), commit: "c", run: "1", npm: registry({ known: { [NAME]: [] } }) });
+    assert.equal(r.record.checks.installed.result, "verified");
     assert.equal(r.record.checks.packaging.result, "not run");
     assert.equal(r.record.checks.conformance.result, "not run");
-    assert.equal(r.record.checks.installed.result, "verified");
+  });
+  it("end to end: a false GREEN from the installed candidate (verified, a case skipped) disqualifies the tarball", { timeout: 180_000 }, async () => {
+    const root = repo(scratch("t66b"), good());
+    process.env.DEMO_RESULT = JSON.stringify(rec({ cases: [pass("demo/T1"), { name: "demo/T2", outcome: "skip" }] }));
+    try {
+      const r = await packStep({ name: NAME, root, out: join(root, "out"), commit: "c", run: "1", npm: registry({ known: { [NAME]: [] } }) });
+      assert.equal(r.result, "unknown");
+      assert.equal(r.record.checks.installed.result, "unknown");
+      const bound = bind(r.record, { id: "1", digest: r.record.sha256 }).record;
+      assert.equal(publishable(bound, { sha256: bound.sha256, run: "1", commit: "c" }).result, "failed");
+    } finally {
+      delete process.env.DEMO_RESULT;
+    }
   });
 });
 
