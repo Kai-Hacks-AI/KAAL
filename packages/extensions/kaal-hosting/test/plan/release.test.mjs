@@ -38,12 +38,26 @@ function files(dir, base) {
     .map((p) => `${base}/${p.split("\\").join("/")}`);
 }
 
-/** Each reference to `name` in `text`, by the kinds hosting/F16 names. */
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Each reference to `name` in `text`, by the kinds hosting/F16 names, decided
+ * by syntax and never by what the package exports today (hosting/C19):
+ * - the name itself as a quoted string, such as a dependency entry;
+ * - the name and any subpath where a module is referenced: `import`,
+ *   `export … from`, `import()`, `require()`, `require.resolve()`,
+ *   `import.meta.resolve()` or `declare module`, whether or not the subpath
+ *   still resolves;
+ * - a workspace selector.
+ * A string that only begins with the name, outside that syntax, such as the
+ * host fact `kaal-hosting/special-entries` or a review rule, is not one.
+ */
 function references(text, name) {
-  const quoted = name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-  const specifier = new RegExp(`(["'\`])${quoted}(/[\\w./-]+)?\\1`, "g");
+  const quoted = escape(name);
+  const exact = new RegExp(`(["'\`])${quoted}\\1`, "g");
+  const module = new RegExp(`(?:\\bimport\\.meta\\.resolve|\\brequire\\.resolve|\\brequire|\\bimport|\\bfrom|\\bdeclare\\s+module)\\s*\\(?\\s*(["'\`])${quoted}/[^"'\`\\s]+\\1`, "g");
   const selector = new RegExp(`(?:-w|--workspace)[ =]${quoted}(?![\\w/-])`, "g");
-  return [...text.matchAll(specifier), ...text.matchAll(selector)].map((m) => m[0]);
+  return [...text.matchAll(exact), ...text.matchAll(module), ...text.matchAll(selector)].map((m) => m[0]);
 }
 
 describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
@@ -77,6 +91,40 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     }
     assert.deepEqual(found, []);
     assert.ok(renamed > 0, `no reference names ${NAME}`);
+  });
+
+  it("hosting/T48 [hosting/F16]: a reference is found by its syntax, so a stale import of a subpath that no longer resolves is found, and a host fact or review rule that only begins with the name is not", () => {
+    const stale = {
+      "a side-effect import": `import "${OLD}/legacy";`,
+      "an import across lines": `import {\n  a,\n} from\n  "${OLD}/legacy";`,
+      "a type-only import": `import type { A } from '${OLD}/legacy/deep.js';`,
+      "a re-export": `export * from "${OLD}/legacy";`,
+      "a dynamic import": `const m = await import(\n  "${OLD}/legacy");`,
+      "a dynamic import of a template": `await import(\`${OLD}/\${entry}\`);`,
+      "a require": `const m = require('${OLD}/legacy');`,
+      "a TypeScript import-require": `import m = require("${OLD}/legacy");`,
+      "a require.resolve": `require.resolve("${OLD}/legacy");`,
+      "an import.meta.resolve": `import.meta.resolve("${OLD}/legacy");`,
+      "an ambient module": `declare module "${OLD}/legacy" {}`,
+      "the name alone": `import { execute } from "${OLD}";`,
+      "a dependency entry": `{ "dependencies": { "${OLD}": "0.0.1" } }`,
+      "the name compared as a specifier": `return specifier === "${OLD}";`,
+      "a workspace selector": `"test": "npm test -w ${OLD}"`,
+      "a long workspace selector": `run: npm test --workspace=${OLD}`,
+    };
+    for (const [label, text] of Object.entries(stale)) assert.equal(references(text, OLD).length, 1, label);
+    const unrelated = {
+      "a host fact": `{ host: ["${OLD}/special-entries"], reason: "x" }`,
+      "a host fact in a template": `const fact = \`${OLD}/special-entries\`;`,
+      "a review rule": `rule: "${OLD}/host-applicability"`,
+      "a review id": `id: \`${OLD}/\${rule}@\${file}\``,
+      "an unknown fact": `{ host: ["${OLD}/windows"] }`,
+      "a longer name": `"bin": { "${OLD}-boundary": "bin/x.mjs" }`,
+      "the scoped name": `import "@kaihacksai/${OLD}/conformance";`,
+      "a fact compared after from": `const from = "${OLD}/special-entries";`,
+      "a selector of a longer name": `npm test -w ${OLD}-extra`,
+    };
+    for (const [label, text] of Object.entries(unrelated)) assert.deepEqual(references(text, OLD), [], label);
   });
 
   it("hosting/T23 [hosting/F16]: the lockfile links node_modules/@kaihacksai/kaal-hosting to the workspace and has no entry for the old package", () => {
