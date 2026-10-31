@@ -34,6 +34,13 @@ export const EMBEDDED: readonly string[];
  */
 export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string }): Promise<Conformance>;
 
+/**
+ * packaging/F12, decided against a package manifest: the runtime (`engines.node`) is declared, and no
+ * `os` or `cpu` restriction appears unless `osBoundary` (Hosting's, hosting/F36, by default) names the
+ * package. Without a boundary declaration a restriction is unknown.
+ */
+export function platforms(pkg: Record<string, unknown>, options?: { osBoundary?: (name: string) => boolean }): Finding;
+
 /** packaging/F14, decided against a package's source workspace at `dir` (absolute). */
 export function conformSource(dir: string, options?: { env?: Record<string, string | undefined> }): Promise<Finding>;
 

@@ -127,7 +127,6 @@ function conforming(change = {}) {
     type: "module",
     scripts: { test: "node test/verify.mjs" },
     engines: { node: ">=24" },
-    os: ["linux", "darwin", "win32"],
     ...change.pkg,
   };
   for (const [key, value] of Object.entries(change.pkg ?? {})) if (value === undefined) delete pkg[key];
@@ -283,9 +282,23 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
   });
 
   it("packaging/T20 F12: the runtime and platforms are declared", async () => {
-    expect((await conform(conforming())).by, "packaging/F12", "verified", /node >=24 on linux, darwin, win32/);
+    // No false RED: a portable package, which declares its runtime and correctly omits os and cpu, conforms.
+    expect((await conform(conforming())).by, "packaging/F12", "verified", /node >=24, with no os or cpu restriction/);
     expect((await conform(conforming({ pkg: { engines: undefined } }))).by, "packaging/F12", "failed", /no runtime/);
-    expect((await conform(conforming({ pkg: { os: undefined } }))).by, "packaging/F12", "unknown", /no platforms/);
+    const { platforms } = await suite();
+    // No false GREEN: an os or cpu restriction outside Hosting's OS boundary never earns a positive result.
+    const boundary = (name) => name === "@kaihacksai/kaal-hosting";
+    const pkg = { name: "fixture", engines: { node: ">=24" } };
+    const by = (f) => ({ [f.requirement]: f });
+    expect(by(platforms({ ...pkg, os: ["linux"] }, { osBoundary: boundary })), "packaging/F12", "failed", /only Hosting's OS boundary may/);
+    expect(by(platforms({ ...pkg, cpu: ["x64"] }, { osBoundary: boundary })), "packaging/F12", "failed", /cpu \["x64"\]/);
+    expect(by(platforms({ ...pkg, os: [] }, { osBoundary: boundary })), "packaging/F12", "failed", /os \[\]/);
+    expect(by(platforms({ ...pkg, os: ["linux"], osBoundary: true }, { osBoundary: boundary })), "packaging/F12", "failed", /fixture is not it/);
+    expect(by(platforms({ ...pkg, name: "@kaihacksai/kaal-hosting", os: ["linux"] }, { osBoundary: boundary })), "packaging/F12", "verified", /Hosting's OS boundary/);
+    expect(by(platforms({ ...pkg, os: ["linux"] }, { osBoundary: undefined })), "packaging/F12", "unknown", /declares no OS boundary/);
+    // Installed: the same restriction, decided by the installed Hosting, is never verified.
+    const restricted = (await conform(conforming({ pkg: { os: ["linux"] } }))).by["packaging/F12"];
+    assert.notEqual(restricted.result, "verified", restricted.cause);
   });
 
   it("packaging/T21 F13: a shipped Requirement with neither a case nor an allocation is reported unresolved", async () => {

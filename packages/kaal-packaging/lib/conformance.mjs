@@ -12,6 +12,7 @@
 // (packaging/A1, packaging/N3).
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { execute, initialize, kind, read, readFile } from "kaal-hosting";
+import * as hosting from "kaal-hosting/conformance";
 import builtins from "./builtins.json" with { type: "json" };
 
 /** The documents a KAAL package ships (packaging/F8, the Owner's D2 on #658). */
@@ -195,11 +196,21 @@ function manifest(files, verify, run) {
   return problems.length ? finding("packaging/F11", "unknown", problems.join("; ")) : finding("packaging/F11", "verified", `${Object.keys(listed).length} files match the manifest, and each of the ${verify.cases.length} declared cases ran exactly once`);
 }
 
-/** packaging/F12: the runtime and the platforms are declared. Their meaning is Hosting's. */
-function platforms(pkg) {
+/**
+ * packaging/F12, decided against a manifest: the runtime is declared, and the package is not limited
+ * by operating system or processor unless Hosting declares it the OS boundary. Packaging holds no OS
+ * policy of its own: whether a package is the boundary is Hosting's `osBoundary` (hosting/F36), and
+ * a restriction outside it is an architectural violation (hosting/F39). Where the installed Hosting
+ * declares no boundary yet, a restriction cannot be decided and is unknown, never verified.
+ */
+export function platforms(pkg, { osBoundary = typeof hosting.osBoundary === "function" ? hosting.osBoundary : undefined } = {}) {
   if (typeof pkg.engines?.node !== "string" || pkg.engines.node.trim() === "") return finding("packaging/F12", "failed", "the package declares no runtime (engines.node)");
-  if (!Array.isArray(pkg.os) || pkg.os.length === 0) return finding("packaging/F12", "unknown", `the runtime is declared (node ${pkg.engines.node}), but no platforms are (os)`);
-  return finding("packaging/F12", "verified", `node ${pkg.engines.node} on ${pkg.os.join(", ")}`);
+  const limits = ["os", "cpu"].filter((k) => pkg[k] !== undefined);
+  if (limits.length === 0) return finding("packaging/F12", "verified", `node ${pkg.engines.node}, with no os or cpu restriction: which hosts it runs on is Hosting's (hosting/F39)`);
+  const fields = limits.map((k) => `${k} ${JSON.stringify(pkg[k])}`).join(" and ");
+  if (osBoundary === undefined) return finding("packaging/F12", "unknown", `it restricts ${fields}, and the installed Hosting declares no OS boundary (hosting/F36) to decide whether it may`);
+  if (osBoundary(String(pkg.name)) === true) return finding("packaging/F12", "verified", `node ${pkg.engines.node}; ${pkg.name} is Hosting's OS boundary (hosting/F36), so its ${fields} is Hosting's to decide`);
+  return finding("packaging/F12", "failed", `it restricts ${fields}, but only Hosting's OS boundary may (hosting/F39); ${pkg.name} is not it (hosting/F36)`);
 }
 
 /** packaging/F13: every shipped identifier is covered, allocated, or declared unverified with a reason. */
