@@ -121,7 +121,10 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
     assert.equal(failing["guard/T2"].outcome, "failed", "a failing case is not 'failed'");
     const absent = outcomes({ "engineering/guard/acceptance/b.test.mjs": `${IT}function never() {\n  it("guard/T2 [guard/F1]: two", () => {});\n}\n` });
     assert.equal(absent["guard/T2"].outcome, "not run", "a declared case the runner never reported is not 'not run'");
-    const unprovided = outcomes({ "engineering/guard/testing.md": base()["engineering/guard/testing.md"].replace("| none |", "| workspace |") });
+    const crash = repo({ ...base(), "engineering/guard/acceptance/b.test.mjs": `${IT}it("guard/T2 [guard/F1]: two", () => {});\nsetTimeout(() => { throw new Error("crash after the cases"); }, 10);\n` });
+    const crashed = execute(crash, { candidate: "c0ffee", host: "host-a" }).suites.find((x) => x.name === "Engineering acceptance");
+    assert.equal(crashed.status, "failed", "a file that fails outside every declared case leaves its suite passed");
+        const unprovided = outcomes({ "engineering/guard/testing.md": base()["engineering/guard/testing.md"].replace("| none |", "| workspace |") });
     assert.equal(unprovided["guard/T2"].outcome, "not run", "a suite whose prerequisite is missing is not 'not run'");
     assert.match(unprovided["guard/T2"].reason, /did not provide KAAL's workspace/, "the missing prerequisite is not named");
 
@@ -150,7 +153,8 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
       "a host given twice": [[record("host-a"), record("host-a"), record("host-b")], hosts, /2 run records for host-a/],
       "a record for an unsupported host": [[record("host-a"), record("host-b"), record("host-c")], hosts, /a record for host-c, which is not a supported host/],
       "a case declared on some hosts only": [[record("host-a"), { ...record("host-b"), cases: record("host-b").cases.filter((c) => c.case !== "guard/T2") }], hosts, /guard\/T2: declared on some hosts but not on host-b/],
-      "a failed case": [[record("host-a"), T2(record("host-b"), { outcome: "failed", reason: "no" })], hosts, /guard\/T2: failed on host-b/],
+      "a suite that failed outside its cases": [[record("host-a"), { ...record("host-b"), suites: record("host-b").suites.map((x) => (x.name === "Engineering acceptance" ? { ...x, status: "failed", reason: "the runner exited 1 outside any declared case's outcome" } : x)) }], hosts, /suite Engineering acceptance: failed on host-b/],
+            "a failed case": [[record("host-a"), T2(record("host-b"), { outcome: "failed", reason: "no" })], hosts, /guard\/T2: failed on host-b/],
       "a case not run": [[record("host-a"), T2(record("host-b"), { outcome: "not run", reason: "the lane did not provide it" })], hosts, /guard\/T2: not run on host-b/],
       "a case not applicable everywhere": [[T2(record("host-a"), { outcome: "not applicable", reason: RULE }), T2(record("host-b"), { outcome: "not applicable", reason: RULE })], hosts, /guard\/T2: not applicable on every host, so exercised nowhere/],
     };
