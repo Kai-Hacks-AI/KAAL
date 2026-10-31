@@ -9,7 +9,7 @@ The DO writes these cases in `packages/kaal-packaging/test/plan/package.test.mjs
 | packaging/T17 | F9, N9: the installed `npm test` executes the Embedded verification against the installed copy, without the checkout, and runs no Engineering test | A test that imports from this repository by relative path. A `test` script that runs the publisher suite |
 | packaging/T18 | F10: the entrypoint's line conforms to Testing's verifier contract | A line that says `verified` with a case failed. A line with no cause |
 | packaging/T19 | F11: an installed file that differs from the manifest, and a declared case that is not run, are each reported, never verified | A changed shipped file. A manifest that declares three cases, of which two run |
-| packaging/T20 | F12: the runtime and platforms are declared | A package with no `engines` |
+| packaging/T20 | F12: the runtime is declared, and no `os` or `cpu` restriction appears outside Hosting's OS boundary | A package with no `engines`. A non-Hosting package restricting `os`, `cpu`, or an empty `os`, and one claiming `osBoundary` itself. The same restriction where Hosting declares no boundary is unknown. A portable package without `os` verifies, and Hosting's own package may restrict |
 | packaging/T21 | F13: a shipped Requirement with neither a case nor an allocation is reported unresolved | A Requirement no case cites |
 | packaging/T22 | N7: the consumer's project is byte-identical after verification | A verifier that writes a cache file beside the consumer's `package.json` |
 | packaging/T23 | N8: the installed verification runs with only the package's declared runtime dependencies | A verifier that imports `kaal-testing` without declaring it |
@@ -59,7 +59,13 @@ Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_
 | F11 accepts counts in place of identities | T18, T19, T24 |
 | F11 counts a case reported `not run` as run | T19 |
 | F11 reports a changed file as failed, not unknown | T19 |
-| F12 accepts undeclared platforms | T20 |
+| F12 accepts undeclared platforms (the original rule, withdrawn by packaging/C6) | T20 |
+| F12 requires `os`, penalizing a portable package | T20 |
+| F12 verifies an `os` restriction outside Hosting's boundary | T20 |
+| F12 verifies a `cpu` restriction outside Hosting's boundary | T20 |
+| F12 verifies a restriction when Hosting declares no boundary | T20 |
+| F12 trusts a package's own `osBoundary` field | T20 |
+| F12 ignores an empty `os` or `cpu` declaration | T20 |
 | F13 verifies an untraced identifier | T21 |
 | N7 ignores a changed consumer | T22 |
 | N8 trusts any import | T23 |
@@ -81,3 +87,10 @@ The first run left two survivors in F9: T17's checkout fixture failed at run tim
 **Revised to the Owner's review on #660 (5718600645).**
 - **F11 by identity.** Counts, even equal ones, do not show which declared cases ran. The suite reads testing/C29's per-case list (`cases`, one `{ name, outcome }` per reported execution, #639) and reconciles it with the manifest by name. A declared case missing, reported twice, or reported `skipped`, `todo` or `not run`, and a reported case the manifest does not declare, are each unknown. A run that reports counts only is unknown, never verified. T19's fixtures run three cases, as many as are declared, with one twice or a stand-in in place of one.
 - **N9 by behaviour.** A count never certifies behaviour. In a scratch working directory, never in the consumer, the suite installs a copy of the package with every shipped module outside `test/` broken, and the manifest's digests rewritten to match. Then it runs the copy's `npm test`. A verification that still reports `verified` decides from presence and is failed. One that no longer does depends on the modules' behaviour, and the finding says that this is all it shows. Whether its assertions are adequate stays with its owner. T24's fixture ships every document, while its module contradicts `docs/requirements.md`, and its verifier checks only that the document exists. A second fixture checks only the manifest's digests. Both are failed.
+
+**Lesson, packaging/C6 (testing/F74).**
+- **The case:** packaging/T20.
+- **Its kind:** a false RED.
+- **The target:** packaging/F12, read against Hosting's portability contract (hosting/F36, hosting/F39).
+- **What it froze:** a manifest `os` list as the evidence of declared platforms. That penalized a portable package for correctly omitting `os`, and rewarded a restriction that only Hosting's OS boundary may make.
+- **The correction:** F12 now requires the runtime alone, and decides any `os` or `cpu` restriction through Hosting's `osBoundary`. T20 is a new version that pairs a portable positive with a negative for each unauthorized restriction (the Owner's review on #686).

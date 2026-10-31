@@ -36,6 +36,7 @@ The Owner chose **baseline first** (#658): the generic contract, Testing's seman
 
 1. **packaging/C4 PLAN** (this Change). D1 and D2 are decided.
 2. **packaging/C5 DO, the conformance suite.** It covers `kaal-packaging/conformance` with packaging/T15–T26 and their fixtures, RED first. It touches only `packages/kaal-packaging/`, depends on nothing beyond Hosting and Foundation, and changes no product. It is bounded to the Requirements above.
+   - **packaging/C6, a bounded correction of step 2** (the Owner's review on #686). packaging/F12 decides platforms through Hosting's OS boundary (hosting/F36, hosting/F39), not through a manifest `os`. It covers T20's new version, and touches only `packages/kaal-packaging/`.
 3. **Testing**, in parallel with step 2: testing/C29 (#639) for the verifier contract, and the coverage PLAN Testing proposed on #610, on the Owner's go. Until they land, the suite reports what depends on them as unknown, never GREEN.
 4. **Engineering's dual conformance**, engineering/C5's release-readiness DO (#610, engineering/F17–F19). It runs step 2's suite and each product's own suite on one packed-and-installed candidate. It waits for step 2 and for the C5 PLAN's approval.
 5. **Each product's alignment**, by its owner, in the runtime-dependency order the Owner set: Foundation, Hosting, Graph, Core. Each closes the gaps `reconciliation.md` lists for it. Hosting and Change also move Operations into `docs/operations.md`, and Guard does the same in a later release of its own. Packaging edits no product.
