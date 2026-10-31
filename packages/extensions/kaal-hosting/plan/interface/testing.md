@@ -25,3 +25,15 @@ hosting/C10's hosting/T21 and hosting/T24, as they stand at #657's head (38960b7
 | points `./conformance` at an absent file | T21 and T24's file list GREEN: a false GREEN (only T24's consumer script, which happens to import `./conformance`, would notice) | RED: not shipped, does not load, differs from the declaration |
 
 hosting/T41 is GREEN on the candidate today, before and after the rename (applied on top of #657's head), and each of its seven negative cases is RED as stated in the table. The strict reading of the declaration was checked against weaker variants of `contract()`: one that reads any status other than `delivered` as planned (the rule before the Owner's review on #664, comment 6541423832), one that accepts a duplicate row, and one that skips an unknown kind. Each turns the status case RED. With this correction, hosting/T21–T24 remain GREEN at #657's head.
+
+## Lesson learned: BRITTLE
+
+On #664 (comment 6541453440) the Owner made this Change the originating example for BRITTLE, **B**e **R**ight **I**mproving **T**esting **T**argets **L**earned **E**xperience. Testing owns the term and the general concern. This records only Hosting's observed lesson:
+
+- **What happened.** hosting/T21 and hosting/T24 froze an incidental detail, the exact `exports` and `files` lists, instead of challenging their target, hosting/F15's "interface unchanged".
+- **False RED.** That made T21 reject a legitimate architectural extension, the `./boundary` entry that hosting/A13 authorizes.
+- **False GREEN.** T21 and T24's file list stayed GREEN on a real contract violation, an export pointing at an absent file.
+- **A third gap, found in review.** A misspelled status in the contract itself would have made a required entry optional.
+- **What corrected it.** The target is now an authority outside the candidate, hosting/A15, read strictly. hosting/T41 has discriminating negatives for each failure: an undeclared entry, a removed delivered entry, an absent or unloadable target, and a malformed status. It also has one positive for the authorized extension.
+
+The lesson traces to hosting/F35 and hosting/A15. How such lessons improve Test Case design in general is Testing's PLAN to establish.
