@@ -11,7 +11,6 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { gunzipSync } from "node:zlib";
 import { execute } from "../../dist/index.js";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -20,10 +19,6 @@ const SELF = "packages/extensions/kaal-hosting/test/plan/release.test.mjs";
 const NAME = "@kaihacksai/kaal-hosting";
 // Spelled in parts so this file never names the old package itself.
 const OLD = ["kaal", "hosting"].join("-");
-
-// What hosting/F18 and hosting/F19 add to the package, once hosting/C12 lands.
-const SHIPPED_BY_C12 = ["docs", "test/acceptance", "test/unit", "test/verify.mjs", "test/verify.json"];
-const shippedByC12 = (p) => p === "package/test/verify.mjs" || p === "package/test/verify.json" || ["package/docs/", "package/test/acceptance/", "package/test/unit/"].some((d) => p.startsWith(d));
 
 const pkg = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
 // A consumer's command runs outside this test run, so it inherits none of node:test's own context.
@@ -36,21 +31,6 @@ async function run(cmd, args, cwd) {
   return r.stdout;
 }
 
-/** The names of the files in a .tgz, read from its bytes. */
-function tarEntries(path) {
-  const tar = gunzipSync(readFileSync(path));
-  const names = [];
-  for (let at = 0; at + 512 <= tar.length; ) {
-    const header = tar.subarray(at, at + 512);
-    if (header.every((b) => b === 0)) break;
-    const field = (start, length) => header.subarray(start, start + length).toString("utf8").replace(/\0[\s\S]*$/, "");
-    const prefix = field(345, 155);
-    if (["0", ""].includes(field(156, 1))) names.push(prefix ? `${prefix}/${field(0, 100)}` : field(0, 100));
-    at += 512 + Math.ceil(parseInt(field(124, 12).trim() || "0", 8) / 512) * 512;
-  }
-  return names;
-}
-
 /** Every file under `dir`, `/`-separated and relative to `base`. */
 function files(dir, base) {
   return readdirSync(dir, { recursive: true, encoding: "utf8" })
@@ -58,25 +38,36 @@ function files(dir, base) {
     .map((p) => `${base}/${p.split("\\").join("/")}`);
 }
 
-/** Each reference to `name` in `text`, by the kinds hosting/F16 names. */
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Each reference to `name` in `text`, by the kinds hosting/F16 names, decided
+ * by syntax and never by what the package exports today (hosting/C19):
+ * - the name itself as a quoted string, such as a dependency entry;
+ * - the name and any subpath where a module is referenced: `import`,
+ *   `export … from`, `import()`, `require()`, `require.resolve()`,
+ *   `import.meta.resolve()` or `declare module`, whether or not the subpath
+ *   still resolves;
+ * - a workspace selector.
+ * A string that only begins with the name, outside that syntax, such as the
+ * host fact `kaal-hosting/special-entries` or a review rule, is not one.
+ */
 function references(text, name) {
-  const quoted = name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-  const specifier = new RegExp(`(["'\`])${quoted}(/[\\w./-]+)?\\1`, "g");
+  const quoted = escape(name);
+  const exact = new RegExp(`(["'\`])${quoted}\\1`, "g");
+  const module = new RegExp(`(?:\\bimport\\.meta\\.resolve|\\brequire\\.resolve|\\brequire|\\bimport|\\bfrom|\\bdeclare\\s+module)\\s*\\(?\\s*(["'\`])${quoted}/[^"'\`\\s]+\\1`, "g");
   const selector = new RegExp(`(?:-w|--workspace)[ =]${quoted}(?![\\w/-])`, "g");
-  return [...text.matchAll(specifier), ...text.matchAll(selector)].map((m) => m[0]);
+  return [...text.matchAll(exact), ...text.matchAll(module), ...text.matchAll(selector)].map((m) => m[0]);
 }
 
 describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
-  it("hosting/T21 [hosting/F15]: the package is @kaihacksai/kaal-hosting 0.0.1, public, with its repository directory, its interface unchanged, and a README that names it and how to install it", () => {
+  it("hosting/T21 [hosting/F15]: the package is @kaihacksai/kaal-hosting 0.0.1, public, with its repository directory, engines, license and runtime dependencies, and a README that names it and how to install it", () => {
     const p = pkg();
     assert.equal(p.name, NAME);
     assert.equal(p.version, "0.0.1");
     assert.deepEqual(p.publishConfig, { access: "public" });
     assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/extensions/kaal-hosting" });
-    assert.deepEqual(Object.keys(p.exports), [".", "./conformance", "./package.json"]);
-    // hosting/C12 adds what hosting/F18 and hosting/F19 ship, and nothing else.
-    assert.deepEqual(p.files.slice(0, 3), ["dist", "!dist/.tsbuildinfo", "payload"]);
-    for (const extra of p.files.slice(3)) assert.ok(SHIPPED_BY_C12.includes(extra), `files lists ${extra}`);
+    // Its exports, commands and files are the declared interface's, which hosting/T41 checks (hosting/C15).
     assert.deepEqual(p.engines, { node: ">=24" });
     assert.equal(p.license, "MIT");
     assert.deepEqual(Object.keys(p.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile"]);
@@ -100,6 +91,40 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     }
     assert.deepEqual(found, []);
     assert.ok(renamed > 0, `no reference names ${NAME}`);
+  });
+
+  it("hosting/T48 [hosting/F16]: a reference is found by its syntax, so a stale import of a subpath that no longer resolves is found, and a host fact or review rule that only begins with the name is not", () => {
+    const stale = {
+      "a side-effect import": `import "${OLD}/legacy";`,
+      "an import across lines": `import {\n  a,\n} from\n  "${OLD}/legacy";`,
+      "a type-only import": `import type { A } from '${OLD}/legacy/deep.js';`,
+      "a re-export": `export * from "${OLD}/legacy";`,
+      "a dynamic import": `const m = await import(\n  "${OLD}/legacy");`,
+      "a dynamic import of a template": `await import(\`${OLD}/\${entry}\`);`,
+      "a require": `const m = require('${OLD}/legacy');`,
+      "a TypeScript import-require": `import m = require("${OLD}/legacy");`,
+      "a require.resolve": `require.resolve("${OLD}/legacy");`,
+      "an import.meta.resolve": `import.meta.resolve("${OLD}/legacy");`,
+      "an ambient module": `declare module "${OLD}/legacy" {}`,
+      "the name alone": `import { execute } from "${OLD}";`,
+      "a dependency entry": `{ "dependencies": { "${OLD}": "0.0.1" } }`,
+      "the name compared as a specifier": `return specifier === "${OLD}";`,
+      "a workspace selector": `"test": "npm test -w ${OLD}"`,
+      "a long workspace selector": `run: npm test --workspace=${OLD}`,
+    };
+    for (const [label, text] of Object.entries(stale)) assert.equal(references(text, OLD).length, 1, label);
+    const unrelated = {
+      "a host fact": `{ host: ["${OLD}/special-entries"], reason: "x" }`,
+      "a host fact in a template": `const fact = \`${OLD}/special-entries\`;`,
+      "a review rule": `rule: "${OLD}/host-applicability"`,
+      "a review id": `id: \`${OLD}/\${rule}@\${file}\``,
+      "an unknown fact": `{ host: ["${OLD}/windows"] }`,
+      "a longer name": `"bin": { "${OLD}-boundary": "bin/x.mjs" }`,
+      "the scoped name": `import "@kaihacksai/${OLD}/conformance";`,
+      "a fact compared after from": `const from = "${OLD}/special-entries";`,
+      "a selector of a longer name": `npm test -w ${OLD}-extra`,
+    };
+    for (const [label, text] of Object.entries(unrelated)) assert.deepEqual(references(text, OLD), [], label);
   });
 
   it("hosting/T23 [hosting/F16]: the lockfile links node_modules/@kaihacksai/kaal-hosting to the workspace and has no entry for the old package", () => {
@@ -128,13 +153,7 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
       await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball], consumer);
     });
 
-    it("holds exactly package.json, README.md, LICENSE, dist without .tsbuildinfo, and payload, besides what hosting/C12 ships", () => {
-      const expected = ["package/package.json", "package/README.md", "package/LICENSE", ...files(join(PACKAGE, "dist"), "package/dist"), ...files(join(PACKAGE, "payload"), "package/payload")]
-        .filter((p) => !p.endsWith(".tsbuildinfo"))
-        .sort();
-      assert.deepEqual(tarEntries(tarball).filter((p) => !shippedByC12(p)).sort(), expected);
-    });
-
+    // What the tarball may hold is the declared interface's, which hosting/T41 checks (hosting/C15).
     it("installs as node_modules/@kaihacksai/kaal-hosting, and the consumer uses it by that name alone", async () => {
       const installed = join(consumer, "node_modules", ...NAME.split("/"));
       assert.ok(existsSync(join(installed, "package.json")), `${NAME} is not installed in the consumer`);
