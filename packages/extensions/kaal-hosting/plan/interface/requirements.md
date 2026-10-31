@@ -4,7 +4,7 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional
 
-- **hosting/F35** [hosting/I9]: **The declared interface.** hosting/A15 declares every entry of Hosting's package interface: each `exports` subpath and its target, each `bin` command and its target, and each `files` entry. Each entry is `delivered` or `planned`, naming the Change that delivers it. The candidate conforms when, judged against that declaration alone:
+- **hosting/F35** [hosting/I9]: **The declared interface.** hosting/A15 declares every entry of Hosting's package interface: each `exports` subpath and its target, each `bin` command and its target, and each `files` entry. Each entry's status is exactly `delivered` or `planned hosting/C<number>`, naming the Change that delivers it. The declaration is read strictly: a row with an unknown kind, an empty entry, a duplicate, or any other status (missing, misspelled, or malformed) fails the Test Case, and is never read as planned. The candidate conforms when, judged against that declaration alone:
   - every `exports` subpath, `bin` command and `files` entry it has is declared;
   - every `delivered` entry is present;
   - a `planned` entry may be present, and once present it is held to the same rules as a delivered one;

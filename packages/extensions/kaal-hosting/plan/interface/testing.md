@@ -4,7 +4,7 @@ The planned outer test lives in `packages/extensions/kaal-hosting/test/plan/inte
 
 | Test | Checks | Loop |
 | --- | --- | --- |
-| hosting/T41: Hosting's packed candidate exposes exactly the interface hosting/A15 declares, read from the Architecture and not from the candidate. An undeclared export, or an undeclared `files` entry and what it ships, is RED. A delivered export removed is RED. An export pointing at an absent target is RED: it does not ship, does not load, and differs from the declaration. A declared target that ships but cannot load is RED. The authorized `./boundary` extension is GREEN with no edit to the Test Case | hosting/F35, hosting/A15 | Requirements |
+| hosting/T41: Hosting's packed candidate exposes exactly the interface hosting/A15 declares, read from the Architecture and not from the candidate. An undeclared export, or an undeclared `files` entry and what it ships, is RED. A delivered export removed is RED. An export pointing at an absent target is RED: it does not ship, does not load, and differs from the declaration. A declared target that ships but cannot load is RED. A status that is missing, misspelled (`deliverd`), differently cased or malformed (`planned`, `planned hosting/C`, `planned C14`), a duplicate row or an unknown kind is RED in the declaration itself, never read as planned; a well-formed `planned hosting/C<number>` is accepted and makes its entry optional. The authorized `./boundary` extension is GREEN with no edit to the Test Case | hosting/F35, hosting/A15 | Requirements |
 
 ## The correction to hosting/C10's planned tests
 
@@ -24,4 +24,4 @@ hosting/C10's hosting/T21 and hosting/T24, as they stand at #657's head (38960b7
 | adds the authorized `./boundary` export, with its target | T21 RED: a false RED | GREEN |
 | points `./conformance` at an absent file | T21 and T24's file list GREEN: a false GREEN (only T24's consumer script, which happens to import `./conformance`, would notice) | RED: not shipped, does not load, differs from the declaration |
 
-hosting/T41 is GREEN on the candidate today, before and after the rename (applied on top of #657's head), and each of its six negative cases is RED as stated in the table. With this correction, hosting/T21–T24 remain GREEN at #657's head.
+hosting/T41 is GREEN on the candidate today, before and after the rename (applied on top of #657's head), and each of its seven negative cases is RED as stated in the table. The strict reading of the declaration was checked against weaker variants of `contract()`: one that reads any status other than `delivered` as planned (the rule before the Owner's review on #664, comment 6541423832), one that accepts a duplicate row, and one that skips an unknown kind. Each turns the status case RED. With this correction, hosting/T21–T24 remain GREEN at #657's head.

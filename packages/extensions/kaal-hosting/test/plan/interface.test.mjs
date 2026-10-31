@@ -25,17 +25,27 @@ async function run(cmd, args, cwd) {
   return r.stdout;
 }
 
-/** hosting/A15's table: { export, bin, files } maps of entry → { target, status }. */
-function contract() {
-  const text = readFileSync(CONTRACT, "utf8");
+/**
+ * hosting/A15's table: { export, bin, files } maps of entry → { target, delivered }.
+ * Every row is validated strictly: an unknown kind, an empty entry, a duplicate
+ * or a status that is neither `delivered` nor `planned hosting/C<number>` fails,
+ * so a misspelled status can never make a required entry optional.
+ */
+function contract(text = readFileSync(CONTRACT, "utf8")) {
   const start = text.indexOf("<!-- kaal-hosting:interface -->");
   const end = text.indexOf("<!-- /kaal-hosting:interface -->");
   assert.ok(start >= 0 && end > start, "hosting/A15 declares no interface");
   const declared = { export: new Map(), bin: new Map(), files: new Map() };
   for (const line of text.slice(start, end).split(/\r?\n/)) {
+    if (!line.trim().startsWith("|")) continue;
     const cells = line.split("|").slice(1, -1).map((c) => c.trim().replace(/^`|`$/g, ""));
-    if (cells.length !== 4 || !(cells[0] in declared)) continue;
+    if (cells[0] === "Kind" || cells.every((c) => /^-+$/.test(c))) continue;
+    assert.equal(cells.length, 4, `hosting/A15 has a malformed row: ${line}`);
     const [kind, entry, target, status] = cells;
+    assert.ok(kind in declared, `hosting/A15 declares an unknown kind: ${line}`);
+    assert.ok(entry, `hosting/A15 declares an empty entry: ${line}`);
+    assert.ok(!declared[kind].has(entry), `hosting/A15 declares ${kind} ${entry} twice`);
+    assert.match(status, /^(delivered|planned hosting\/C\d+)$/, `hosting/A15 gives ${kind} ${entry} the status "${status}", neither delivered nor planned hosting/C<number>`);
     declared[kind].set(entry, { target, delivered: status === "delivered" });
   }
   assert.ok(declared.export.size > 0 && declared.files.size > 0, "hosting/A15 declares no exports or files");
@@ -156,6 +166,22 @@ describe("hosting/T41 [hosting/F35, hosting/A15]: the packed package exposes exa
     const dir = candidate(() => {});
     writeFileSync(join(dir, "dist", "conformance.js"), "export const broken = ;\n");
     assert.deepEqual(await violations(declared, dir), ["export ./conformance does not load"]);
+  });
+
+  it("a misspelled, missing or malformed status is RED, never read as planned (no false GREEN in the contract itself)", async () => {
+    const text = readFileSync(CONTRACT, "utf8");
+    const row = "| export | `./conformance` | `./dist/conformance.js` | delivered |";
+    assert.ok(text.includes(row), "the fixture row is not in hosting/A15");
+    const status = (value) => text.replace(row, row.replace("| delivered |", `| ${value} |`));
+    for (const value of ["deliverd", "Delivered", "", "planned", "planned hosting/C", "planned C14", "planned hosting/C14 later"]) {
+      assert.throws(() => contract(status(value)), /status/, `the status "${value}" was accepted`);
+    }
+    // A well-formed planned status is accepted, and makes the entry optional: the rule discriminates, it does not refuse everything.
+    const planned = contract(status("planned hosting/C99"));
+    assert.equal(planned.export.get("./conformance").delivered, false);
+    assert.deepEqual(await violations(planned, candidate((p) => delete p.exports["./conformance"])), []);
+    assert.throws(() => contract(text.replace(row, `${row}\n${row}`)), /twice/);
+    assert.throws(() => contract(text.replace(row, row.replace("| export |", "| exprot |"))), /unknown kind/);
   });
 
   it("an extension the Architecture authorizes, ./boundary, is GREEN with no edit to this Test Case (no false RED)", async () => {
