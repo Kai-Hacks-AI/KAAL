@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { bootstrap, catalog, evaluate, foundation, readContribution, register, verify } from "kaal-core";
-import { Graph, identify } from "kaal-graph";
+import { Graph, createNode, identify } from "kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
 import { read } from "kaal-hosting";
 
@@ -103,5 +103,47 @@ describe("the Intent form", () => {
     const after = await withIntent();
     assert.equal(after.nodes.some((n) => n.id === intent.id), true);
     assert.deepEqual(after.rejected, []);
+  });
+});
+
+// intent/C2: Intent elements as Nodes (plan/traces, intent/F1–F6).
+describe("an Intent element of a capability", () => {
+  const reference = readFileSync(join(SKILL, "references", "intent.md"), "utf8");
+  const definition = identify(readFileSync(join(PACKAGE, "payload", "Intent-Definition.md")));
+  const element = fences(reference)[2] ?? "";
+  const rule = new RegExp(reference.match(/The name matches `(\^[^`]+\$)`/)?.[1] ?? "$^");
+
+  it("intent/T1: is identified by Graph, named <capability>/I<n> and typed by the Intent Definition", () => {
+    const node = identify(Buffer.from(element));
+    assert.match(node.name, rule);
+    assert.deepEqual(node.type, { name: definition.name, id: definition.id });
+    assert.deepEqual(Object.keys(node.frontmatter), ["name", "type"]);
+  });
+
+  it("intent/T2: the identification rule accepts <capability>/I<n> and refuses every other name", () => {
+    for (const name of ["graph/I7", "agents/I1", "kaal-core/I12"]) assert.match(name, rule, name);
+    for (const name of ["graph/F4", "I7", "graph/I0", "graph/I07", "Graph/I7", "graph/I7 extra", "graph/i7"]) assert.doesNotMatch(name, rule, name);
+  });
+
+  it("intent/T3: a Requirement's Serves Edge is traversed into the Intent, and an edit to the Intent shows as drift", () => {
+    const serves = createNode({ name: "Serves", type: foundation().definition, body: "# Serves\n\nA fixture relationship.\n" }).node;
+    const intent = identify(Buffer.from(element));
+    const requirement = createNode({
+      name: "graph/F4",
+      type: { name: "Requirement", id: "0".repeat(64) },
+      edges: [{ type: { name: serves.name, id: serves.id }, targets: [{ name: intent.name, id: intent.id }] }],
+    }).node;
+    const graph = new Graph([definition, serves, intent, requirement]);
+    assert.deepEqual([...graph.traverse(intent.id, { direction: "in" })].map((s) => s.id).filter((id) => id !== intent.id), [requirement.id]);
+    assert.deepEqual(graph.out(intent.id), []);
+    const edited = identify(Buffer.from(element.replace(/\n$/, " Edited.\n")));
+    const drifted = new Graph([definition, serves, edited, requirement]);
+    assert.notDeepEqual(drifted.check().filter((p) => p.includes(intent.name)), []);
+  });
+
+  it("intent/T4: Intent's ownership claim covers exactly its package and names the Intent Skill Node", () => {
+    const claim = JSON.parse(readFileSync(join(PACKAGE, "ownership.kaal.json"), "utf8"));
+    const skill = identify(readFileSync(join(PACKAGE, "payload", "Intent.md")));
+    assert.deepEqual(claim, { owner: { kind: "capability", name: "Intent", id: skill.id }, paths: ["packages/skills/kaal-intent/"] });
   });
 });

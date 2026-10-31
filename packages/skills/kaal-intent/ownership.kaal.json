@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Intent", "id": "1dbae8ed97b3cba67ed2b89d34f60509b5cb3541561065b21ae6ad187e4ac35b" },
+  "paths": ["packages/skills/kaal-intent/"]
+}
