@@ -67,6 +67,7 @@ describe("kaal-testing", () => {
       "package.json",
       "payload/Testing.md",
       "skills/kaal-testing/SKILL.md",
+      "skills/kaal-testing/references/brittle.md",
       "skills/kaal-testing/references/findings.md",
     ]);
   });
