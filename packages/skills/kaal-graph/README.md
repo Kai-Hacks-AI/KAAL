@@ -7,7 +7,7 @@ payload/Graph.md                         the Skill Node, typed by Core's KAAL Sk
 skills/kaal-graph/                       the Agent Skill: SKILL.md, references/edges.md,
                                          scripts/edges.mjs (the API, typed by edges.d.ts),
                                          scripts/form.mjs (reading frontmatter), scripts/node.mjs
-                                         (Form and identity) and scripts/graph.mjs
+                                         (Form and identity, typed by node.d.ts) and scripts/graph.mjs
 ```
 
 ## Edges
