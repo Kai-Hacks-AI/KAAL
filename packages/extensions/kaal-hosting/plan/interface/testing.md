@@ -37,3 +37,11 @@ On #664 (comment 6541453440) the Owner made this Change the originating example 
 - **What corrected it.** The target is now an authority outside the candidate, hosting/A15, read strictly. hosting/T41 has discriminating negatives for each failure: an undeclared entry, a removed delivered entry, an absent or unloadable target, and a malformed status. It also has one positive for the authorized extension.
 
 The lesson traces to hosting/F35 and hosting/A15. How such lessons improve Test Case design in general is Testing's PLAN to establish.
+
+## hosting/C18: the candidate copies what the package ships
+
+`hosting/C18` is a PLAN correction to hosting/T41's fixture only. `candidate()` copied a hand-kept list (`package.json`, `README.md`, `LICENSE`, `dist`, `payload`). Once `hosting/C14` delivered `bin` and `skills` and marked them `delivered` in hosting/A15, every negative case turned RED for the wrong reason: the copy lacked the delivered command, so each case reported "bin kaal-hosting-boundary is not linked" besides its own violation. That is a false RED of the same BRITTLE kind as above: the fixture froze an incidental list instead of following its target. Now `candidate()` copies the manifest, README, LICENSE and each non-negated `files` entry of the package itself.
+
+The same Change showed one assertion of the same kind. "A declared target that ships but cannot load" breaks `dist/conformance.js` and expected exactly one violation. But `kaal-hosting/boundary` imports `conformance.js`, so it correctly fails to load too. The case now expects a "does not load" violation for every declared export whose module reaches the broken file through its relative imports, `./conformance` among them, and nothing else. That is still discriminating: a check that loads nothing finds no violation, and one that reports every export finds `.` too, which does not reach the file.
+
+Evidence: on `kaal/hosting` today, hosting/T41 is 8/8 GREEN before and after. With `hosting/C14` applied and its entries marked `delivered`, hosting/T41 is 1/8 before this correction (each negative case RED with the extra `bin` violations, and the unloadable-target case also with `./boundary`) and 8/8 after. The general concern is Testing's (testing/C41, #681).
