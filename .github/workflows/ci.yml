@@ -10,6 +10,8 @@
 # out, with every declared case's outcome, and uploads it, even when a case failed. Guard (gate) reads
 # the three records and judges them as a release would (suites.mjs --gate), for the same candidate.
 # Each Guard job has a timeout, so a hang ends as a failure with its log rather than holding the run.
+# The suites step runs in bash on every host, so the record's exit status (2 for a case not run)
+# reaches the job unchanged; pwsh would turn a native exit 2 into 1.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -90,7 +92,8 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run build
-      - run: node engineering/guard/suites.mjs --record "${{ runner.temp }}/guard-run-record-${{ runner.os }}.json"
+      - shell: bash
+        run: node engineering/guard/suites.mjs --record "${{ runner.temp }}/guard-run-record-${{ runner.os }}.json"
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -117,7 +120,8 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run build
-      - run: node engineering/guard/suites.mjs --record "${{ runner.temp }}/guard-run-record-${{ runner.os }}.json"
+      - shell: bash
+        run: node engineering/guard/suites.mjs --record "${{ runner.temp }}/guard-run-record-${{ runner.os }}.json"
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
