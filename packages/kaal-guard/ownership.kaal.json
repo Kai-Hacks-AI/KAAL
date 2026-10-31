@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Guard", "id": "958ffd4392d068a8a8418ebca84e95d674b3700b79b6055eace910c28c6a4ee9" },
+  "paths": ["packages/kaal-guard/"]
+}

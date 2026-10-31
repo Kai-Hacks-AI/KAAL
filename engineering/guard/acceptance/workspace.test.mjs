@@ -73,3 +73,27 @@ describe("guard/F25 and guard/A16 [guard/I6, guard/I7] the Skill, judged with KA
     assert.ok(!existsSync(join(t.dir, "node_modules")), "the delivery installed packages");
   });
 });
+
+// guard/T138 (guard/C137): Guard's two ownership claims, in the format #609 settled, for change isolation's
+// P3. It reads kaal-graph and kaal-testing, so it sits with the cases that need KAAL's workspace.
+describe("guard/C137 [guard/A20] Guard's ownership claims", () => {
+  it("guard/T138 [guard/A20, guard/N6]: Guard's two ownership claims each read through Testing's reader, name capability Guard by the exact id of engineering/guard/Guard.md, and claim exactly their own tree; the packed package carries no claim", async () => {
+    const { identify } = await import("kaal-graph");
+    const { CLAIM_FILE, readClaim } = await import("kaal-testing/attribution");
+    const node = identify(readFileSync(join(REPO, "engineering", "guard", "Guard.md")));
+    assert.equal(node.type.name, "KAAL Capability", "Guard.md is not Guard's Capability Node");
+    for (const tree of ["packages/kaal-guard/", "engineering/guard/"]) {
+      const path = `${tree}${CLAIM_FILE}`;
+      assert.ok(existsSync(join(REPO, path)), `blocked before behavioural assertion: there is no claim at ${path}`);
+      const { claim, finding } = readClaim(path, readFileSync(join(REPO, path)));
+      assert.equal(finding, undefined, `${path} does not read: ${JSON.stringify(finding)}`);
+      assert.deepEqual(claim.owner, { kind: "capability", name: node.name, id: node.id }, `${path} does not name Guard's Capability Node exactly`);
+      assert.deepEqual(claim.paths, [tree], `${path} claims more or less than its own tree`);
+    }
+    const { spawnSync } = await import("node:child_process");
+    const packed = spawnSync("npm pack --dry-run --json --ignore-scripts", { cwd: join(REPO, "packages", "kaal-guard"), shell: true, encoding: "utf8" });
+    assert.equal(packed.status, 0, `npm pack --dry-run failed: ${packed.stderr}`);
+    const listed = JSON.parse(packed.stdout)[0].files.map((f) => f.path);
+    assert.ok(!listed.includes(CLAIM_FILE), "the packed package carries Guard's ownership claim, a KAAL element");
+  });
+});
