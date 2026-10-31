@@ -41,7 +41,7 @@ Each Requirement names, in brackets, the Intents it serves. Where another capabi
   - `test:all` is `node test/run.mjs`, the shipped runner;
   - `test` is `npm run test:all`, so packaging/F14 can tell from outside which declared suite `npm test` runs.
 
-  Installed, the runner runs `test:embedded` alone and exits with its result, so its last line is the verification line. In source, it runs `test:embedded`, then `test:publisher`, and ends on one bare result line: `verified`, `failed` or `cannot verify`. The source markers are `plan/` and `test/publisher/`, and neither ships. The runner's refusals are unchanged.
+  Installed, the runner runs `test:embedded` alone and exits with its result, so its last line is the verification line. In source, it runs every declared `test:<name>` suite once, in declared order, except `test:all`, which is itself. Today those are `test:embedded` and then `test:publisher`. It ends on one bare result line: `failed` if any suite failed, `cannot verify` if any could not verify, and `verified` otherwise. The source markers are `plan/` and `test/publisher/`, and neither ships. The runner's refusals are unchanged.
 
 ## Nonfunctional
 

@@ -40,7 +40,7 @@ What each test asserts is unchanged. Only the names change:
 - The source marker `test/plan/` becomes `test/publisher/`.
 - The source runner's last line becomes a bare result.
 
-Each of T10's mutations rewrites the manifest digest of the file it changes. The verifier then judges behaviour, not tampering. Tampering is T17's.
+Each of T10's mutations rewrites the manifest digest of the file it changes. The verifier then judges behaviour, not tampering. Tampering is T17's. T10's failing delivered test changes one expected digest inside a delivered case, rather than replacing the file with an undeclared test. An undeclared case is `cannot verify` (F12), not `failed`. T14's source fixture runs every declared suite but `test:all`.
 
 The C5 verifier test (`test/publisher/verifier.test.mjs`) changes the same way.
 
