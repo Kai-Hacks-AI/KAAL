@@ -1,0 +1,174 @@
+# Release (engineering/C14, the adapter of engineering/C12's Release engine, engineering/release/README.md):
+# releases any KAAL package to npm. All judgment is the engine's (engineering/release/run.mjs); this file
+# supplies facts and acts on exit statuses: 0 verified, 1 failed, 2 cannot judge.
+#
+# Only the Owner starts it, by hand, on the default branch.
+#   step: pack      Readiness, source tests, ONE pack, installed verification, the release record. The
+#                   tested tarball is kept as the run artifact with its exact bytes, and is the only
+#                   artifact any later step uses. With `publish` and a package npm already knows,
+#                   Publish then waits for the `npm` environment's approval, downloads that artifact and
+#                   publishes those bytes through Trusted Publishing (no repack, no token), and Accept
+#                   checks the registry. A package npm does not know yet is a first publication: the
+#                   summary gives the Owner's download, verify and publish steps (F34), and nothing here
+#                   publishes it.
+#   step: registry  Accept only (F35): the Pack run `run`'s record and the registry's bytes, a fresh
+#                   registry install and provenance. Publishes nothing; mandatory after a first publication.
+#
+# Owner prerequisites, outside this file: the `npm` environment with the Owner as required reviewer,
+# restricted to the default branch (it exists, from Guard Release); for each package, after its first
+# publication, its trusted publisher set to Kai-Hacks-AI/KAAL, workflow release.yml, environment npm.
+#
+# Linux only: the commit's CI already ran the package's suites on Linux, Windows and macOS (N17).
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: The package's npm name, e.g. @kaihacksai/kaal-foundation
+        type: string
+        required: true
+      step:
+        description: pack (and publish, if asked), or registry (accept a published version)
+        type: choice
+        options: [pack, registry]
+        default: pack
+      publish:
+        description: With pack, publish through Trusted Publishing after the npm environment's approval
+        type: boolean
+        default: false
+      run:
+        description: With registry, the id of the Pack run whose release record to accept
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  # One npm for the pack and the registry download, so SHA-256s compare like with like (N16), and at or
+  # above Trusted Publishing's 11.5.1. The same version the Owner uses for a first publication (F34).
+  NPM_VERSION: 11.21.0
+
+jobs:
+  pack:
+    name: Pack
+    if: inputs.step == 'pack' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    outputs:
+      path: ${{ steps.pack.outputs.path }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm install --global "npm@$NPM_VERSION"
+      - run: npm ci --ignore-scripts
+      - run: npm run build -w kaal-hosting
+      - id: pack
+        name: Pack (engine)
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          out="$RUNNER_TEMP/release"
+          set +e
+          node engineering/release/run.mjs pack --package "$PACKAGE" --out "$out" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+          status=$?
+          set -e
+          [ -f "$out/report/summary.md" ] && cat "$out/report/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          [ "$status" -eq 0 ] || exit "$status"
+          echo "path=$(node -p 'require(process.argv[1]).path' "$out/record/release.json")" >> "$GITHUB_OUTPUT"
+          echo "tarball=$out/artifact/$(node -p 'require(process.argv[1]).tarball' "$out/record/release.json")" >> "$GITHUB_OUTPUT"
+      # The tested tarball's exact bytes, unzipped: the one release artifact (F31).
+      - id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: ${{ steps.pack.outputs.tarball }}
+          archive: false
+          if-no-files-found: error
+      - name: Bind the artifact to the record
+        env:
+          ID: ${{ steps.upload.outputs.artifact-id }}
+          DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          node engineering/release/run.mjs bind --record "$RUNNER_TEMP/release/record/release.json" --id "$ID" --digest "$DIGEST" --out "$RUNNER_TEMP/release/bound"
+          echo "Artifact (the exact bytes): $URL" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: ${{ runner.temp }}/release/bound/release.json
+          archive: false
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    needs: pack
+    if: inputs.publish && needs.pack.outputs.path == 'trusted'
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install --global "npm@$NPM_VERSION"
+      - run: npm ci --ignore-scripts
+      - run: npm run build -w kaal-hosting
+      # Pack's artifacts from this run: the tested tarball and its bound record. Nothing is packed here.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: ${{ runner.temp }}/download
+          merge-multiple: true
+      - name: Publish the tested tarball (engine)
+        run: |
+          d="$RUNNER_TEMP/download"
+          node engineering/release/run.mjs publish --record "$d/release.json" --tarball "$d/$(node -p 'require(process.argv[1]).tarball' "$d/release.json")" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+
+  accept:
+    name: Accept
+    needs: [pack, publish]
+    if: always() && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && (needs.publish.result == 'success' || inputs.step == 'registry')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm install --global "npm@$NPM_VERSION"
+      - run: npm ci --ignore-scripts
+      - run: npm run build -w kaal-hosting
+      # The release record of the Pack run being accepted: this run after Publish, or the run the Owner names.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release.json
+          path: ${{ runner.temp }}/record
+          run-id: ${{ inputs.step == 'registry' && inputs.run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Accept from the registry (engine)
+        env:
+          RUN: ${{ inputs.step == 'registry' && inputs.run || github.run_id }}
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          rec="$RUNNER_TEMP/record/release.json"
+          [ "$(node -p 'require(process.argv[1]).package' "$rec")" = "$PACKAGE" ] || {
+            echo "::error title=Release: cannot judge::run $RUN released $(node -p 'require(process.argv[1]).package' "$rec"), not $PACKAGE"; exit 2; }
+          set +e
+          node engineering/release/run.mjs accept --record "$rec" --run "$RUN" --out "$RUNNER_TEMP/accept"
+          status=$?
+          set -e
+          [ -f "$RUNNER_TEMP/accept/report/summary.md" ] && cat "$RUNNER_TEMP/accept/report/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
