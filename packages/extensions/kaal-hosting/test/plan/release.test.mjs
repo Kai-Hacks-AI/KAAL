@@ -38,12 +38,26 @@ function files(dir, base) {
     .map((p) => `${base}/${p.split("\\").join("/")}`);
 }
 
-/** Each reference to `name` in `text`, by the kinds hosting/F16 names. */
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Each reference to `name` in `text`, by the kinds hosting/F16 names, decided
+ * by syntax and never by what the package exports today (hosting/C19):
+ * - the name itself as a quoted string, such as a dependency entry;
+ * - the name and any subpath where a module is referenced: `import`,
+ *   `export … from`, `import()`, `require()`, `require.resolve()`,
+ *   `import.meta.resolve()` or `declare module`, whether or not the subpath
+ *   still resolves;
+ * - a workspace selector.
+ * A string that only begins with the name, outside that syntax, such as the
+ * host fact `kaal-hosting/special-entries` or a review rule, is not one.
+ */
 function references(text, name) {
-  const quoted = name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-  const specifier = new RegExp(`(["'\`])${quoted}(/[\\w./-]+)?\\1`, "g");
+  const quoted = escape(name);
+  const exact = new RegExp(`(["'\`])${quoted}\\1`, "g");
+  const module = new RegExp(`(?:\\bimport\\.meta\\.resolve|\\brequire\\.resolve|\\brequire|\\bimport|\\bfrom|\\bdeclare\\s+module)\\s*\\(?\\s*(["'\`])${quoted}/[^"'\`\\s]+\\1`, "g");
   const selector = new RegExp(`(?:-w|--workspace)[ =]${quoted}(?![\\w/-])`, "g");
-  return [...text.matchAll(specifier), ...text.matchAll(selector)].map((m) => m[0]);
+  return [...text.matchAll(exact), ...text.matchAll(module), ...text.matchAll(selector)].map((m) => m[0]);
 }
 
 describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
@@ -77,6 +91,40 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     }
     assert.deepEqual(found, []);
     assert.ok(renamed > 0, `no reference names ${NAME}`);
+  });
+
+  it("hosting/T48 [hosting/F16]: a reference is found by its syntax, so a stale import of a subpath that no longer resolves is found, and a host fact or review rule that only begins with the name is not", () => {
+    const stale = {
+      "a side-effect import": `import "${OLD}/legacy";`,
+      "an import across lines": `import {\n  a,\n} from\n  "${OLD}/legacy";`,
+      "a type-only import": `import type { A } from '${OLD}/legacy/deep.js';`,
+      "a re-export": `export * from "${OLD}/legacy";`,
+      "a dynamic import": `const m = await import(\n  "${OLD}/legacy");`,
+      "a dynamic import of a template": `await import(\`${OLD}/\${entry}\`);`,
+      "a require": `const m = require('${OLD}/legacy');`,
+      "a TypeScript import-require": `import m = require("${OLD}/legacy");`,
+      "a require.resolve": `require.resolve("${OLD}/legacy");`,
+      "an import.meta.resolve": `import.meta.resolve("${OLD}/legacy");`,
+      "an ambient module": `declare module "${OLD}/legacy" {}`,
+      "the name alone": `import { execute } from "${OLD}";`,
+      "a dependency entry": `{ "dependencies": { "${OLD}": "0.0.1" } }`,
+      "the name compared as a specifier": `return specifier === "${OLD}";`,
+      "a workspace selector": `"test": "npm test -w ${OLD}"`,
+      "a long workspace selector": `run: npm test --workspace=${OLD}`,
+    };
+    for (const [label, text] of Object.entries(stale)) assert.equal(references(text, OLD).length, 1, label);
+    const unrelated = {
+      "a host fact": `{ host: ["${OLD}/special-entries"], reason: "x" }`,
+      "a host fact in a template": `const fact = \`${OLD}/special-entries\`;`,
+      "a review rule": `rule: "${OLD}/host-applicability"`,
+      "a review id": `id: \`${OLD}/\${rule}@\${file}\``,
+      "an unknown fact": `{ host: ["${OLD}/windows"] }`,
+      "a longer name": `"bin": { "${OLD}-boundary": "bin/x.mjs" }`,
+      "the scoped name": `import "@kaihacksai/${OLD}/conformance";`,
+      "a fact compared after from": `const from = "${OLD}/special-entries";`,
+      "a selector of a longer name": `npm test -w ${OLD}-extra`,
+    };
+    for (const [label, text] of Object.entries(unrelated)) assert.deepEqual(references(text, OLD), [], label);
   });
 
   it("hosting/T23 [hosting/F16]: the lockfile links node_modules/@kaihacksai/kaal-hosting to the workspace and has no entry for the old package", () => {
@@ -166,10 +214,10 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     return c;
   }
 
-  /** The first shipped acceptance case written with it(), its file, and its name in the manifest. */
+  /** The first shipped outer case (Intent, Requirements or Architecture) written with it(), its file, and its name in the manifest. */
   function firstCase(manifest, installed) {
-    const name = manifest.cases.find((n) => /^test\/acceptance\/[^>]*\.test\.mjs > /.test(n));
-    assert.ok(name, "the manifest declares no acceptance case");
+    const name = manifest.cases.find((n) => /^test\/embed\/(intent|requirements|architecture)\.test\.mjs > /.test(n));
+    assert.ok(name, "the manifest declares no outer case");
     const file = name.split(" > ")[0];
     assert.match(readFileSync(join(installed, file), "utf8"), /\bit\(/, `${file} has no case written with it()`);
     return { name, file };
@@ -280,7 +328,7 @@ describe("hosting/C10: the installed package is a complete product its consumer 
   it("hosting/T30 [hosting/F21, hosting/F23, hosting/F25]: a manifest that declares no case, declares a case that does not exist, leaves an identifier docs/ defines undeclared, or a delivered case skipped outside its declared applicability is cannot verify, exit 2, never verified", async () => {
     const edits = [
       (m) => ({ ...m, cases: [] }),
-      (m) => ({ ...m, cases: [...m.cases, "test/acceptance/intent.test.mjs > no such case"] }),
+      (m) => ({ ...m, cases: [...m.cases, "test/embed/intent.test.mjs > no such case"] }),
       // The manifest is not among the files it hashes, so only the coverage check can catch this one.
       (m) => ({ ...m, coverage: Object.fromEntries(Object.entries(m.coverage).slice(1)) }),
     ];
@@ -298,8 +346,8 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     const { dir, installed } = await consumer();
     const at = join(installed, "test", "verify.json");
     const manifest = JSON.parse(readFileSync(at, "utf8"));
-    const skipped = Object.keys(manifest.hashes ?? {}).find((p) => /^test\/acceptance\/.*\.test\.mjs$/.test(p) && /\bit\(/.test(readFileSync(join(installed, p), "utf8")));
-    assert.ok(skipped, "the manifest hashes no acceptance case written with it()");
+    const skipped = Object.keys(manifest.hashes ?? {}).find((p) => /^test\/embed\/(intent|requirements|architecture)\.test\.mjs$/.test(p) && /\bit\(/.test(readFileSync(join(installed, p), "utf8")));
+    assert.ok(skipped, "the manifest hashes no outer case written with it()");
     const source = readFileSync(join(installed, skipped), "utf8").replace(/\bit\(/, "it.skip(");
     writeFileSync(join(installed, skipped), source);
     manifest.hashes[skipped] = createHash("sha256").update(Buffer.from(source)).digest("hex");
@@ -353,5 +401,77 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     assert.equal(d.summary?.result, "verified", d.output);
     assert.equal(d.summary.cases.find((c) => c.name === inapplicable)?.outcome, "not applicable");
     assert.ok(d.summary.cases.filter((c) => c.name !== inapplicable).every((c) => c.outcome === "pass"));
+  });
+});
+
+// hosting/C22 planned outer tests: one test entry, two places (hosting/F20, the Owner's
+// convention on #625). hosting/C12 turns them GREEN. Each runs the package's own
+// verification entry, test/verify.mjs, copied into a fixture workspace or directory in
+// the operating system's temporary directory, so no run invokes Hosting's own suites.
+describe("hosting/C22: npm test is comprehensive in source and consumer-only once installed", () => {
+  const PREFIX = "kaal-hosting-verification ";
+  const ENTRY = join(PACKAGE, "test", "verify.mjs");
+
+  /**
+   * A fixture: `root/package.json` declaring `workspaces` (or none), and the package at
+   * `root/<at>` with Hosting's verification entry and `scripts`. Each suite script appends its
+   * name to `ran.log` in the package, so the test sees which suites ran and how often.
+   */
+  function fixture({ scripts, workspaces = ["pkg"], at = "pkg" }) {
+    assert.ok(existsSync(ENTRY), "the package ships no test/verify.mjs");
+    const root = mkdtempSync(join(tmpdir(), "kaal-hosting-places-"));
+    writeFileSync(join(root, "package.json"), JSON.stringify({ name: "fixture-root", private: true, ...(workspaces ? { workspaces } : {}) }));
+    const dir = join(root, ...at.split("/"));
+    mkdirSync(join(dir, "test"), { recursive: true });
+    writeFileSync(join(dir, "test", "verify.mjs"), readFileSync(ENTRY));
+    const suite = (name, status = 0) => `node -e "require('fs').appendFileSync('ran.log','${name}\\n');process.exit(${status})"`;
+    const declared = Object.fromEntries(Object.entries(scripts).map(([name, status]) => [`test:${name}`, suite(name, status)]));
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "@fixture/pkg", version: "0.0.1", type: "module", scripts: { test: "node test/verify.mjs", ...declared } }));
+    return dir;
+  }
+
+  async function test(dir) {
+    const r = await execute("npm", ["test"], { cwd: dir, env });
+    const line = r.stdout.split(/\r?\n/).filter((l) => l.startsWith(PREFIX)).at(-1);
+    const ran = existsSync(join(dir, "ran.log")) ? readFileSync(join(dir, "ran.log"), "utf8").split(/\r?\n/).filter(Boolean) : [];
+    return { status: r.status, output: r.stdout + r.stderr, summary: line === undefined ? undefined : JSON.parse(line.slice(PREFIX.length)), ran };
+  }
+
+  it("hosting/T53 [hosting/F20]: in the source workspace, npm test runs every declared test:<name> suite once, in name order and never itself, and is verified only when each passed, failed naming a failing suite, and cannot verify with none declared", async () => {
+    const clean = await test(fixture({ scripts: { publisher: 0, alpha: 0 } }));
+    assert.equal(clean.status, 0, clean.output);
+    assert.deepEqual(clean.ran, ["alpha", "publisher"]);
+    assert.equal(clean.summary?.result, "verified", clean.output);
+    assert.equal(clean.summary.place, "source");
+    assert.equal(clean.summary.cause, undefined);
+    assert.deepEqual(clean.summary.suites, [{ name: "test:alpha", outcome: "pass" }, { name: "test:publisher", outcome: "pass" }]);
+
+    const failing = await test(fixture({ scripts: { publisher: 0, alpha: 1 } }));
+    assert.equal(failing.status, 1, failing.output);
+    assert.deepEqual(failing.ran, ["alpha", "publisher"], "a failing suite stopped the others, or a suite ran twice");
+    assert.equal(failing.summary?.result, "failed", failing.output);
+    assert.deepEqual(failing.summary.suites, [{ name: "test:alpha", outcome: "fail" }, { name: "test:publisher", outcome: "pass" }]);
+    assert.match(failing.summary.cause ?? "", /test:alpha/);
+
+    const none = await test(fixture({ scripts: {} }));
+    assert.equal(none.status, 2, none.output);
+    assert.equal(none.summary?.result, "cannot verify", none.output);
+    assert.ok(none.summary.cause, "no cause");
+  });
+
+  it("hosting/T54 [hosting/F20]: the place is detected explicitly: a copy in a directory that no enclosing workspaces lists, or with no enclosing workspaces at all, is cannot verify naming the directory, runs no suite, and is never taken for an installation", async () => {
+    const places = {
+      "not listed by the enclosing workspaces": fixture({ scripts: { publisher: 0 }, workspaces: ["other"] }),
+      "no enclosing workspaces": fixture({ scripts: { publisher: 0 }, workspaces: null }),
+      "a node_modules directory that is not the copy's parent": fixture({ scripts: { publisher: 0 }, workspaces: ["other"], at: "node_modules/x/pkg" }),
+    };
+    for (const [label, dir] of Object.entries(places)) {
+      const r = await test(dir);
+      assert.equal(r.status, 2, `${label}\n${r.output}`);
+      assert.equal(r.summary?.result, "cannot verify", `${label}\n${r.output}`);
+      assert.ok((r.summary.cause ?? "").includes(realpathSync(dir)), `${label}: the cause does not name ${dir}`);
+      assert.deepEqual(r.ran, [], `${label}: a suite ran`);
+      assert.notEqual(r.summary.place, "installation", label);
+    }
   });
 });

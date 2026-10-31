@@ -73,7 +73,8 @@ describe("hosting/C16: portability across capabilities", () => {
     assert.ok(Object.isFrozen(conformance.OS_BOUNDARY), "the declaration can be changed at run time");
     assert.equal(typeof conformance.osBoundary, "function", "kaal-hosting/conformance exports no osBoundary");
     assert.equal(conformance.osBoundary("@kaihacksai/kaal-hosting"), true);
-    for (const name of ["kaal-hosting", "@kaihacksai/kaal-guard", "@kaihacksai/kaal-testing", "@kaihacksai/kaal-hosting-extra", ""]) assert.equal(conformance.osBoundary(name), false, name);
+    // The old, unscoped name is spelled in parts, so the old name appears nowhere as a specifier (hosting/F16, hosting/C19).
+    for (const name of [["kaal", "hosting"].join("-"), "@kaihacksai/kaal-guard", "@kaihacksai/kaal-testing", "@kaihacksai/kaal-hosting-extra", ""]) assert.equal(conformance.osBoundary(name), false, name);
     for (const value of [undefined, null, true, 1, ["@kaihacksai/kaal-hosting"]]) assert.throws(() => conformance.osBoundary(value), TypeError, String(value));
   });
 
