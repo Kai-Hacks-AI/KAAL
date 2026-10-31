@@ -2,7 +2,7 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **hosting/A15** [hosting/F35]: Hosting's package interface is the table below, between the `kaal-hosting:interface` markers. It is the one authoritative declaration, and hosting/T41 reads it from this file. An entry is added only by an approved Architecture: hosting/A1–hosting/A11 for the delivered and `hosting/C12` entries, and hosting/A13 (#650) for the `hosting/C14` entries. `Target` is the default condition of an export or the path of a command; an export may also name `types`, which must then ship as well.
+- **hosting/A15** [hosting/F35]: Hosting's package interface is the table below, between the `kaal-hosting:interface` markers. It is the one authoritative declaration, and hosting/T41 reads it from this file. An entry is added only by an approved Architecture: hosting/A1–hosting/A11 for the delivered and `hosting/C12` entries, hosting/A13 (#650) for the `hosting/C14` entries, and hosting/A17 (#674) for `./fixtures`, delivered by `hosting/C17`. `Target` is the default condition of an export or the path of a command; an export may also name `types`, which must then ship as well.
 
 <!-- kaal-hosting:interface -->
 | Kind | Entry | Target | Status |
@@ -11,6 +11,7 @@ Each element names, in brackets, the Requirements it answers.
 | export | `./conformance` | `./dist/conformance.js` | delivered |
 | export | `./package.json` | `./package.json` | delivered |
 | export | `./boundary` | `./dist/boundary.js` | delivered |
+| export | `./fixtures` | `./dist/fixtures.js` | delivered |
 | bin | `kaal-hosting-boundary` | `bin/kaal-hosting-boundary.mjs` | delivered |
 | files | `dist` |  | delivered |
 | files | `!dist/.tsbuildinfo` |  | delivered |
