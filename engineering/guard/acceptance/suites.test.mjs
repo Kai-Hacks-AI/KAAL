@@ -75,6 +75,9 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
     assert.deepEqual(audit(repo(base())), [], "the base fixture has a finding");
     const noRunner = FIXTURE.ci.replace("node engineering/guard/suites.mjs", "node --test packages/kaal-guard/test/unit/a.test.mjs");
     const omits = noRunner.replace("engineering/guard/acceptance/*.test.mjs", "engineering/guard/acceptance/a.test.mjs");
+    // Only the runner schedules b.test.mjs here, in a step whose run key follows another key.
+    const shellFirst = omits.replace("jobs:\n", "jobs:\n  records:\n    runs-on: ubuntu-latest\n    steps:\n      - shell: bash\n        run: node engineering/guard/suites.mjs --record r.json\n");
+    assert.deepEqual(audit(repo({ ...base(), ".github/workflows/ci.yml": shellFirst })), [], "a step whose run key follows another key schedules nothing");
     const faults = {
       "a test file no suite holds": [{ "engineering/guard/external/orphan.test.mjs": 'it("guard/T3 x", () => {});\n' }, /orphan\.test\.mjs: no declared suite holds/],
       "a package test file its manifest does not ship": [{ "packages/kaal-guard/test/unit/extra.test.mjs": "\n" }, /extra\.test\.mjs: no declared suite holds/],

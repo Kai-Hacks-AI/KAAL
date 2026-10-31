@@ -130,7 +130,8 @@ export function lanes(root = ROOT) {
       const job = /^  ([A-Za-z0-9_-]+):/.exec(block)[1];
       const listed = /check:\s*\[([^\]]*)\]/.exec(block)?.[1].split(",") ?? [...block.matchAll(/\{\s*check:\s*([^,}\s]+)/g)].map((m) => m[1]);
       const checks = listed.map((c) => c.trim().replace(/^["']|["']$/g, ""));
-      const runs = [...block.matchAll(/^\s*- run:\s*(.+)$/gm)].map((m) => m[1].trim());
+      // A step's run key may follow other keys (`- shell: bash` then `run:`).
+      const runs = [...block.matchAll(/^\s*(?:- )?run:\s*(.+)$/gm)].map((m) => m[1].trim());
       const commands = runs.flatMap((r) => (r.includes("${{ matrix.check }}") ? checks.map((c) => r.replace("${{ matrix.check }}", c)) : [r])).flatMap((r) => expand(root, r));
       out.push({ lane: `${f} ${job}`, commands });
     }
