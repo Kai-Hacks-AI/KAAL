@@ -115,6 +115,9 @@ describe("verifiers", () => {
     const silent = parity([at("linux"), { observed: { observation: null, findings: ["no summary line"] }, facts: { ...FACTS, platform: "win32" } }], { supported: ["linux", "win32"] });
     assert.equal(silent.result, "unknown");
     assert.deepEqual(silent.cases, [{ name: "acme/T1", outcomes: { linux: "pass", win32: "not run" } }], "a platform with no observation shows each case not run there");
+    const absent = parity([at("linux")], { supported: ["linux", "win32"] });
+    assert.equal(absent.result, "unknown");
+    assert.deepEqual(absent.cases, [{ name: "acme/T1", outcomes: { linux: "pass", win32: "not run" } }], "a supported platform with no run shows each case not run there");
   });
 
   it("imports nothing (testing/N9)", async () => {

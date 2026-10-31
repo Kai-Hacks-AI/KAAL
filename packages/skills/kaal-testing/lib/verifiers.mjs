@@ -171,7 +171,8 @@ export function parity(runs, { supported, osBoundary = false, challenged = [] } 
     if (!nonempty(f.digest) || f.digest !== first.digest) findings.push(`on ${f.platform} the digest differs`);
   }
   if (declared.length === 0 || !declared.every(nonempty)) findings.push("no case is declared");
-  const cases = declared.map((name) => ({ name, outcomes: {} }));
+  const expected = names(supported) ? supported : [];
+  const cases = declared.map((name) => ({ name, outcomes: Object.fromEntries(expected.map((p) => [p, "not run"])) }));
   const results = [];
   for (const r of list) {
     const p = r.facts.platform;
