@@ -1,0 +1,26 @@
+{
+  "name": "kaal-process",
+  "version": "0.0.1",
+  "description": "KAAL Process: the shared Process metamodel through which capabilities describe their own repeatable ways of working.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "capability"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/process.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}

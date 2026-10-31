@@ -9,6 +9,7 @@
     "packages/kaal-foundation",
     "packages/skills/kaal-engineer-skill",
     "packages/skills/kaal-graph",
+    "packages/skills/kaal-process",
     "packages/skills/kaal-testing"
   ],
   "scripts": {

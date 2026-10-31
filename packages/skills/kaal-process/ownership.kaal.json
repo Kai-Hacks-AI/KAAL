@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Process", "id": "a87a0549939ca29ec153d899c4a5fb84b2fdc59cb432e7463a609ba5302c8b43" },
+  "paths": ["packages/skills/kaal-process/"]
+}
