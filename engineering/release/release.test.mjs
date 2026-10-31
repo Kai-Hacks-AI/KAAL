@@ -275,6 +275,11 @@ describe("engineering/T67 [engineering/F34]: a name the registry does not know i
     for (const v of ["67", r.record.tarball, r.record.sha256, NAME, "--access public", "trust github", "disallow tokens"]) assert.ok(steps.includes(v), v);
     assert.doesNotMatch(steps, /npm(@[\d.]+)? pack/);
     assert.match(steps, /publish \.\/kaihacksai-kaal-demo-0\.0\.1\.tgz/);
+    // gh run download refuses an unzipped (archive: false) artifact ("would result in path traversal",
+    // observed on run 41219302162), so the download goes through the artifact API, which serves the file.
+    assert.doesNotMatch(steps, /gh run download \d/);
+    assert.ok(steps.includes(`gh api repos/Kai-Hacks-AI/KAAL/actions/runs/67/artifacts --jq '.artifacts[] | select(.name == "${r.record.tarball}") | .id'`));
+    assert.ok(steps.includes(`/zip" > ${r.record.tarball}`));
   });
   it("Publish refuses a first publication before any npm command", async () => {
     const rec = bind(r.record, { id: "1", digest: r.record.sha256 }).record;
