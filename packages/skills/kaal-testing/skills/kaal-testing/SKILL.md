@@ -51,6 +51,17 @@ A Test Case normally traces to one subject, according to its loop and purpose. F
 
 The list is guidance, not a restriction: a subject's kind and meaning belong to its own Capability or product, and Testing never prescribes them. Additional traces require justification. Name the target in the test's title, such as `core/T37 [core/F37]`, and in the PLAN's testing table. Inform Next Generation is the feedback of evidence into the next PLAN, not another trace target.
 
+## Designing a case: BRITTLE
+
+**Be Right Improving Testing Targets Learned Experience.** A Case is Right when its verdict follows its target and nothing else. It must not reject a change the target permits (a false RED), nor accept a real violation (a false GREEN). Before you write the Case, and again when one surprises you:
+
+1. **Take each expectation from the target's authority, outside the candidate.** That is the Requirement, Architecture or contract the Case traces to. Never take it from a snapshot of the candidate's current shape, such as its present list of exports or files.
+2. **Assert exactly what the target fixes.** Use equality where the target states exactness. Use containment or a property where it states a minimum, a closed set with an extension point, or a rule.
+3. **Read each closed vocabulary strictly.** A status, kind or result word that is unknown or misspelled is a finding, never a default and never optional.
+4. **Discriminate.** Pair the positive with a negative for each way the target can be violated, and with a positive for each extension the target authorizes. A negative that the unchanged candidate would also fail discriminates nothing.
+
+When a Case turns out brittle, correct it with a new version, or a new Case, on the same target, and record the lesson as [the reference](references/brittle.md) says. A violation the brittle Case let escape is a Defect of the subject. Keep it apart from the lesson about the Case.
+
 ## Declaring and evaluating a model
 
 To declare a product's tests as data, use `kaal-testing/model`. Declare only the levels you use: `strategies`, `plans`, `suites` and `cases`, each with the identities you already have. A Case's `tests` names the subjects it traces to. Run `check(model)` and report every finding. Hand each Run in as `{ id, of, provenance, outcomes, data, runs }`, identifying every definition it executed. Read `results(model, run)` for one Run's raw observations, and `evaluate(model, run, { allowances })` for a Plan Run's verdict, citing each allowance. Never report a `passed` from `results` as GREEN while it has findings: only `evaluate`'s `result` is a verdict, and it is unknown whenever there is a finding. An allowed Case stays failed and an unknown is never allowed. A result stands for that Run only. For the current quality over the Runs you retained, pass them oldest first to `current(model, runs, of, { allowances })` and report its `result`, its `run` and every inapplicable Run's differences; never fall back to an older GREEN. Keep Runs where the holding context decides; Testing keeps none.

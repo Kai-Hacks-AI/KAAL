@@ -18,13 +18,14 @@
   },
   "files": [
     "capability",
+    "docs",
     "lib",
     "payload",
     "skills"
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/observed.test.mjs test/plan/evidence.test.mjs test/plan/consumer.test.mjs test/plan/boundary.test.mjs test/interpret.test.mjs test/plan/model.test.mjs test/plan/current.test.mjs test/model.test.mjs test/plan/verifiers.test.mjs test/plan/parity.test.mjs test/plan/host.test.mjs test/verifiers.test.mjs"
+    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/observed.test.mjs test/plan/evidence.test.mjs test/plan/consumer.test.mjs test/plan/boundary.test.mjs test/interpret.test.mjs test/plan/model.test.mjs test/plan/current.test.mjs test/model.test.mjs test/plan/verifiers.test.mjs test/plan/parity.test.mjs test/verifiers.test.mjs test/plan/brittle.test.mjs test/plan/locations.test.mjs test/plan/host.test.mjs"
   },
   "engines": {
     "node": ">=24"

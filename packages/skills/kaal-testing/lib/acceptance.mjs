@@ -17,8 +17,10 @@ import { basename, join, relative, sep } from "node:path";
 import { execute, initialize, kind, read, readFile, update } from "kaal-hosting";
 import { remember } from "./observed.mjs";
 
-/** Where a capability keeps its acceptance scenarios, under its workspace. */
-export const SCENARIOS = join("test", "acceptance");
+/** Where Engineering's lane scenarios live, under each workspace (testing/F76). */
+export const SCENARIOS = join("test", "engineer");
+/** Where they lived before, still read until every owner has moved its scenarios (testing/F77). */
+const LEGACY = join("test", "acceptance");
 
 const RUN = "KAAL_ACCEPTANCE_RUN";
 const REPORTER = new URL("./reporter.mjs", import.meta.url).href;
@@ -46,10 +48,12 @@ export async function integrity(bytes) {
 export async function discover(workspaces) {
   const found = [];
   for (const { name, location } of workspaces) {
-    const dir = join(location, SCENARIOS);
-    if ((await kind(dir)) !== "directory") continue;
-    for (const file of Object.keys(await read(dir))) {
-      if (!file.includes("/") && file.endsWith(".test.mjs")) found.push({ workspace: name, path: join(dir, file) });
+    for (const sub of [SCENARIOS, LEGACY]) {
+      const dir = join(location, sub);
+      if ((await kind(dir)) !== "directory") continue;
+      for (const file of Object.keys(await read(dir))) {
+        if (!file.includes("/") && file.endsWith(".test.mjs")) found.push({ workspace: name, path: join(dir, file) });
+      }
     }
   }
   return found.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));

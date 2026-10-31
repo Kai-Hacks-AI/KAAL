@@ -23,7 +23,7 @@ Each Requirement names, in brackets, the Intents it serves, and the packaging/ R
   - `docs/operations.md` covers installation, use, verification and removal, and lists the shipped files under `## Shipped files`.
   - The README keeps the overview and links each document.
 - **testing/F61** [testing/I17] (packaging/F9, packaging/N9): **Delivered cases.**
-  - The package ships its consumer Test Cases as plain `node:test` JavaScript that needs only Node 24: the outer acceptance loops in `test/acceptance/` and the inner Code loop in `test/unit/`.
+  - The package ships its consumer Test Cases as plain `node:test` JavaScript that needs only Node 24: the outer acceptance loops and the inner Code loop, all in `test/embed/` (amended by testing/C43; a location, not a kind: each case's loop is its trace in the model).
   - They reach the package only by its name, so they exercise the installed copy. They read no repository checkout, and they write only to the operating system's temporary directory.
   - Each case decides its Requirement from behaviour or bytes, never from a file's presence.
   - Cases that verify the publisher's process stay the publisher's, as the planned tests in `test/plan/` and the Engineering tests do. They are allocated in `docs/testing.md` (testing/F66).
