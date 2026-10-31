@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
-import { Graph } from "kaal-graph";
+import { Admitted } from "./admitted.js";
 import { readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
@@ -68,7 +68,7 @@ async function main(argv: string[]): Promise<number> {
     case "resolve": {
       const [name, id] = rest;
       if (!name) break;
-      const admitted = new Graph((await loadEngine(engine)).nodes);
+      const admitted = new Admitted((await loadEngine(engine)).nodes);
       const found = (id ? [{ name, id }] : admitted.named(name)).flatMap((ref) => admitted.resolve(ref) ?? []);
       if (found.length === 0) throw new KaalError(id ? `no admitted Node is ${name} (${id})` : `no admitted Node is named ${name}`);
       for (const n of found) console.log(`${n.id}\t${n.name}\t${n.type ? `${n.type.name} ${n.type.id}` : "-"}\t${n.paths.join(",")}`);

@@ -1,8 +1,8 @@
 // Deterministic frontmatter (core/C5, core/C6): the generic schema format and validator
 // for KAAL's collaborative Markdown artifacts. Each Capability owns its Types and their
 // schemas and supplies them as a mapping; Core decides only whether an artifact's
-// frontmatter conforms. Reading the YAML is Graph's (kaal-graph/form). Pure: no host access.
-import { FormError, isId, isName, readFrontmatter } from "kaal-graph/form";
+// frontmatter conforms. Reading the YAML is Graph's (its form.mjs, delivered inside kaal-core). Pure: no host access.
+import { FormError, isId, isName, readFrontmatter } from "#node/form";
 
 /** The value kinds a key may have (core/F1). There is no free-text kind. */
 export type ValueKind = "id" | "name" | "enum" | "ref" | "path" | "boolean" | "number" | "parameter" | "record" | "map" | "either";
