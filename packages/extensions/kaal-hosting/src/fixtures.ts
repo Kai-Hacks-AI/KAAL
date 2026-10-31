@@ -45,32 +45,71 @@ const EVIDENCE = {
   lacks: "https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723",
 };
 
+/** The entry at `path`, or undefined where there is none or it cannot be looked at. */
+const look = (path: string) => {
+  try {
+    return lstatSync(path, { throwIfNoEntry: false });
+  } catch {
+    return undefined;
+  }
+};
+
+/** Remove `path` where it exists; a path that cannot hold an entry holds nothing to remove. */
+const remove = (path: string) => {
+  try {
+    rmSync(path, { force: true });
+  } catch {
+    // ENOTDIR and the like: nothing was made there.
+  }
+};
+
 const closing = (server: Server) => (): Promise<void> => new Promise((done) => server.close(() => done()));
 
-/** Try to make a FIFO and a listening socket in `dir`; undo whatever was made when either cannot be. */
-async function attempt(dir: string): Promise<SpecialEntries | undefined> {
+/**
+ * Try to make a FIFO and a listening socket in `dir`, undoing whatever was made
+ * when either cannot be. Returns the fixture, or the reason it could not be made.
+ */
+async function attempt(dir: string): Promise<SpecialEntries | { failed: string }> {
   const fifo = join(dir, "fifo");
   const socket = join(dir, "socket");
-  const made = await execute("mkfifo", [fifo], { cwd: dir }).then(
-    (r) => r.status === 0,
-    () => false,
+  const made = await execute("mkfifo", [fifo], { cwd: tmpdir() }).then(
+    (r) => (r.status === 0 ? undefined : `mkfifo exited ${r.status}: ${r.stderr.trim()}`),
+    (e: unknown) => `mkfifo could not run: ${e instanceof Error ? e.message : String(e)}`,
   );
-  if (!made || !lstatSync(fifo, { throwIfNoEntry: false })?.isFIFO()) {
-    rmSync(fifo, { force: true });
-    return undefined;
+  if (made !== undefined || !look(fifo)?.isFIFO()) {
+    remove(fifo);
+    return { failed: made ?? `${fifo} is not a FIFO` };
   }
   const server = createServer();
-  const listening = await new Promise<boolean>((done) => {
-    server.once("error", () => done(false));
-    server.listen(socket, () => done(true));
+  const listening = await new Promise<string | undefined>((done) => {
+    server.once("error", (e) => done(e.message));
+    server.listen(socket, () => done(undefined));
   });
-  if (!listening || !lstatSync(socket, { throwIfNoEntry: false })?.isSocket()) {
-    if (listening) await closing(server)();
-    rmSync(fifo, { force: true });
-    rmSync(socket, { force: true });
-    return undefined;
+  if (listening !== undefined || !look(socket)?.isSocket()) {
+    if (listening === undefined) await closing(server)();
+    remove(fifo);
+    remove(socket);
+    return { failed: listening ?? `${socket} is not a socket` };
   }
   return { holds: true, fifo, socket, close: closing(server) };
+}
+
+/**
+ * The host fact holds, but the fixture could not be made in the directory asked
+ * for: a setup failure, so the case cannot be verified. It is thrown, never
+ * returned as `holds: false`, so it can never stand for a host that lacks the
+ * fact or justify treating a case as not applicable (hosting/F38).
+ */
+export class SetupFailure extends Error {
+  readonly outcome = "unknown";
+  constructor(
+    readonly fact: Fact,
+    readonly dir: string,
+    readonly reason: string,
+  ) {
+    super(`${fact} holds on this host, but its fixture could not be made in ${dir}: ${reason}`);
+    this.name = "SetupFailure";
+  }
 }
 
 let established: Promise<Record<Fact, Established>> | undefined;
@@ -84,9 +123,9 @@ export function facts(): Promise<Record<Fact, Established>> {
     const dir = mkdtempSync(join(tmpdir(), "kaal-hosting-fact-"));
     try {
       const made = await attempt(dir);
-      await made?.close();
+      if ("holds" in made) await made.close();
       return {
-        "kaal-hosting/special-entries": made
+        "kaal-hosting/special-entries": "holds" in made
           ? { holds: true, reason: "a FIFO and a Unix-domain socket can be placed in a directory tree", evidence: EVIDENCE.holds }
           : { holds: false, reason: "no FIFO or Unix-domain socket can be placed in a directory tree on this host", evidence: EVIDENCE.lacks },
       };
@@ -98,16 +137,19 @@ export function facts(): Promise<Record<Fact, Established>> {
 }
 
 /**
- * Where `kaal-hosting/special-entries` holds, a FIFO at `dir/fifo` and a
- * listening Unix-domain socket at `dir/socket`. Where it does not, nothing is
- * made, and the fact, reason and evidence are returned. Never throws because
- * a host lacks the fact.
+ * The special-entry fixture, with three distinct outcomes (hosting/F38):
+ * - the fact holds and the fixture is made: a FIFO at `dir/fifo` and a
+ *   listening Unix-domain socket at `dir/socket`, for the case to run with
+ *   its full assertions;
+ * - the fact does not hold on this host: nothing is made, and the fact,
+ *   reason and evidence are returned, for a declared host applicability;
+ * - the fact holds but the fixture cannot be made in `dir`: a `SetupFailure`
+ *   is thrown, so the case fails as unverifiable and is never not applicable.
  */
 export async function specialEntries(dir: string): Promise<SpecialEntries | Unavailable> {
   const fact = (await facts())["kaal-hosting/special-entries"];
-  if (fact.holds) {
-    const made = await attempt(dir);
-    if (made) return made;
-  }
-  return { holds: false, fact: "kaal-hosting/special-entries", reason: fact.reason, evidence: fact.evidence };
+  if (!fact.holds) return { holds: false, fact: "kaal-hosting/special-entries", reason: fact.reason, evidence: fact.evidence };
+  const made = await attempt(dir);
+  if ("failed" in made) throw new SetupFailure("kaal-hosting/special-entries", dir, made.failed);
+  return made;
 }

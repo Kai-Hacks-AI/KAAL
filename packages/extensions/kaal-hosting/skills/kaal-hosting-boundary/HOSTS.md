@@ -14,7 +14,7 @@ Hosting is KAAL's one operating-system boundary (`OS_BOUNDARY` in `kaal-hosting/
 | `kaal-hosting/special-entries` | win32 | no | https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723 |
 <!-- /kaal-hosting:hosts -->
 
-- **`kaal-hosting/special-entries`**: a FIFO and a listening Unix-domain socket can be placed in a directory tree. Use `specialEntries(dir)`: where the fact holds, it returns `{ holds: true, fifo, socket, close }`, and where it does not, it makes nothing and returns `{ holds: false, fact, reason, evidence }`. On Windows, Node can make neither inside a tree. A cycle of symbolic links is a portable `kind()` `"other"` entry and needs no fact.
+- **`kaal-hosting/special-entries`**: a FIFO and a listening Unix-domain socket can be placed in a directory tree. Use `specialEntries(dir)`: where the fact holds, it returns `{ holds: true, fifo, socket, close }`, and where it does not, it makes nothing and returns `{ holds: false, fact, reason, evidence }`. Where the fact holds but the fixture cannot be made in `dir`, it throws a `SetupFailure` (`outcome: "unknown"`): that is a setup failure, the case fails, and it is never a reason for the case to be not applicable. On Windows, Node can make neither inside a tree. A cycle of symbolic links is a portable `kind()` `"other"` entry and needs no fact.
 
 ## Applicability rules
 
