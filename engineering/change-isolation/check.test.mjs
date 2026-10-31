@@ -208,9 +208,10 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
   const { readFileSync } = await import("node:fs");
 
   /** A fixture target: elements with their owner and the elements that trace to them. */
-  const target = ({ elements, changes = {}, claims, broken = [] }) => ({
+  const target = ({ elements, changes = {}, claims, broken = [], converted = Object.keys(claims) }) => ({
     changes,
     claims,
+    converted,
     elements: Object.fromEntries(Object.entries(elements).map(([id, e]) => [id, { owner: e.owner }])),
     traverse(id) {
       if (broken.includes(id)) return null;
@@ -280,6 +281,20 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
     assert.deepEqual(r, { verdict: "unresolved", findings: ["unresolved trace: from hosting/F1"] });
   });
 
+  it("engineering/T74: a capability whose traces are not converted is an impact-assessment gap, named, never GREEN, even when nothing traced reaches it", () => {
+    // Graph's traces are not Edges yet: traverse finds nothing in Graph, which must not read as "no impact" (#740).
+    let r = run(scoped(["Hosting", "Core"], { converted: ["Hosting", "Core"] }));
+    assert.deepEqual(r, { verdict: "unresolved", findings: ["impact-assessment gap: Graph's traces are not converted, so impact through them is unknown"] });
+    // No conversion state on the target at all: every claimed capability is a gap.
+    r = run(scoped(["Hosting", "Core"], { converted: null }));
+    assert.equal(r.verdict, "unresolved");
+    assert.equal(r.findings.length, 3);
+    // A failure still outranks the gap, and the gap is still named.
+    r = run(scoped(["Hosting"], { converted: ["Hosting", "Core"] }));
+    assert.equal(r.verdict, "fail");
+    assert.ok(r.findings.includes("impact-assessment gap: Graph's traces are not converted, so impact through them is unknown"), r.findings.join("\n"));
+  });
+
   it("engineering/T53: a scope stated only in the candidate's Change Node authorizes nothing", () => {
     const candidate = { changes: { "hosting/C1": { alters: ["hosting/F1"], scope: ["Hosting", "Core"] } } };
     const r = judge({ target: target(base), candidate, change: "hosting/C1", paths });
@@ -287,11 +302,34 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
     assert.deepEqual(r.findings, ["core travels alone: packages/extensions/kaal-hosting/src/a.ts is not Core or its supporting files"]);
   });
 
-  it("engineering/T54: with no stated scope, Core beside another capability fails Core travels alone; Core alone passes", () => {
-    const t = target({ ...base, changes: { "hosting/C1": { alters: ["hosting/F1"] } } });
-    assert.equal(run(t).verdict, "fail");
-    assert.equal(run(t, ["packages/kaal-core/src/b.ts", "package-lock.json"]).verdict, "pass");
+  it("engineering/T54: with no Change Node on the target, Core beside another capability fails Core travels alone; Core alone passes", () => {
+    assert.equal(run(target(base)).verdict, "fail");
+    assert.equal(run(target(base), ["packages/kaal-core/src/b.ts", "package-lock.json"]).verdict, "pass");
     assert.equal(run(target(base), paths, undefined).verdict, "fail");
+  });
+
+  it("engineering/T75: a Change Node whose alters or scope is absent, withheld, malformed or establishes no impact fails closed, even for Core alone", () => {
+    const core = ["packages/kaal-core/src/b.ts"];
+    const node = (n) => target({ ...base, changes: { "hosting/C1": n } });
+    for (const [n, finding] of [
+      [{ alters: ["hosting/F1"] }, "fails closed: hosting/C1 states no `scope` on the target"],
+      [{ scope: ["Core"] }, "fails closed: hosting/C1 states no `alters` on the target"],
+      [{}, "fails closed: hosting/C1 states no `alters` on the target"],
+      [{ alters: "hosting/F1", scope: ["Core"] }, "fails closed: hosting/C1's `alters` is malformed or empty, so impact cannot be established"],
+      [{ alters: [], scope: ["Core"] }, "fails closed: hosting/C1's `alters` is malformed or empty, so impact cannot be established"],
+      [{ alters: ["hosting/F1"], scope: [""] }, "fails closed: hosting/C1's `scope` is malformed or empty, so impact cannot be established"],
+      [{ alters: ["hosting/F9"], scope: ["Core"] }, "fails closed: none of hosting/C1's altered elements is on the target, so impact cannot be established"],
+    ]) {
+      const r = run(node(n), core);
+      assert.equal(r.verdict, "fail", JSON.stringify(n));
+      assert.ok(r.findings.includes(finding), `${JSON.stringify(n)}: ${r.findings.join("; ")}`);
+    }
+  });
+
+  it("engineering/T76: a Change's delivery never stands in for its statements: a delivered Change Node without scope still fails closed", () => {
+    const delivered = { alters: ["hosting/F1"], status: "delivered", delivered: true, merged: "abc1234" };
+    const r = run(target({ ...base, changes: { "hosting/C1": delivered } }), ["packages/kaal-core/src/b.ts"]);
+    assert.deepEqual(r, { verdict: "fail", findings: ["fails closed: hosting/C1 states no `scope` on the target"] });
   });
 
   it("engineering/T55: a .github path beside a selected scope fails", () => {

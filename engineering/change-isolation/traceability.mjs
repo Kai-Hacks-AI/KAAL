@@ -20,6 +20,9 @@ const GITHUB = /^\.github\//;
  * @property {Record<string, {owner: string}>} elements every element by its owner's identity, such as hosting/F31
  * @property {(id: string) => string[] | null} traverse incoming traces from an element, transitively, or null when it does not resolve (Graph's traverse with direction "in", over P2's Edges)
  * @property {Record<string, string[]>} claims each capability's locations, folder prefixes or root files (P3)
+ * @property {string[]} [converted] the capabilities whose traces are Graph Edges on the target (P2). Any capability
+ *   with a claim that is not listed, or every one when the list is absent, is an impact-assessment gap: a trace it
+ *   has not converted cannot be traversed, so no impact found there is proof of none (Kai, #740)
  */
 
 /** The capability whose claim covers a path: the longest matching location wins. */
@@ -51,22 +54,37 @@ export function judge({ target, change, paths }) {
   }
 
   const node = change === undefined ? undefined : target.changes[change];
-  const scope = node?.scope ?? [];
-  if (scope.length === 0) {
-    // No Change Node on the target, or one stating no scope: the defaults apply (N13).
+  if (node === undefined) {
+    // No Change Node on the target: the defaults apply (N13).
     for (const v of check(paths)) if (!v.startsWith(".github travels alone")) fails.push(v);
     return verdict(fails, unresolved);
   }
 
+  // A Change Node is on the target: admission fails closed unless its statements establish impact
+  // (Kai, #744). A statement that is absent, withheld whole by Change or malformed admits nothing,
+  // and nothing else on the Node (its delivery included) stands in for it.
+  const statements = { alters: node.alters, scope: node.scope };
+  const closed = [];
+  for (const [key, value] of Object.entries(statements)) {
+    if (value === undefined) closed.push(`fails closed: ${change} states no \`${key}\` on the target`);
+    else if (!Array.isArray(value) || value.length === 0 || !value.every((v) => typeof v === "string" && v.length > 0)) {
+      closed.push(`fails closed: ${change}'s \`${key}\` is malformed or empty, so impact cannot be established`);
+    }
+  }
+  if (closed.length) return verdict([...fails, ...closed], unresolved);
+  const scope = node.scope;
+
   // Impact: the owners of every changed element and of everything that traces to it (F25).
   const impact = new Set();
-  for (const id of node.alters ?? []) {
+  let established = 0;
+  for (const id of node.alters) {
     const element = target.elements[id];
     if (element === undefined) {
       unresolved.push(`unknown changed element: ${id}`);
       continue;
     }
     impact.add(element.owner);
+    established++;
     const reached = target.traverse(id);
     if (reached === null) {
       unresolved.push(`unresolved trace: from ${id}`);
@@ -77,6 +95,15 @@ export function judge({ target, change, paths }) {
       if (e === undefined) unresolved.push(`unresolved trace: ${r}, reached from ${id}`);
       else impact.add(e.owner);
     }
+  }
+
+  if (established === 0) fails.push(`fails closed: none of ${change}'s altered elements is on the target, so impact cannot be established`);
+
+  // Unconverted traces: a missing Edge or Node is never proof of no impact (#740). Each capability
+  // whose traces are not yet Graph Edges is reported, named, so the impact is never taken as complete.
+  const converted = new Set(target.converted ?? []);
+  for (const c of Object.keys(target.claims)) {
+    if (!converted.has(c)) unresolved.push(`impact-assessment gap: ${c}'s traces are not converted, so impact through them is unknown`);
   }
 
   // Selection is the authority, and must lie within the impact (F26).
