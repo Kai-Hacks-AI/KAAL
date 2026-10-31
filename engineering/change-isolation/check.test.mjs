@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "./check.mjs";
+import { check, facts, HOSTING_C11 } from "./check.mjs";
 
 const CLI = join(dirname(fileURLToPath(import.meta.url)), "check.mjs");
 
@@ -105,6 +105,77 @@ describe("ordinary changes", () => {
 describe("aggregate changes", () => {
   it("do not bypass isolation: Core bundled with unrelated files does not conform", () => {
     assert.notDeepEqual(check([".gitattributes", "AGENTS.md", "README.md", "packages/kaal-core/src/cli.ts"]), []);
+  });
+});
+
+describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A)", () => {
+  const core = ["packages/kaal-core/package.json", "packages/kaal-core/src/hosting.ts", "package.json", "package-lock.json"];
+  // hosting/C11's unspent rename: the target still names Hosting kaal-hosting, the candidate renames it.
+  const old = ["kaal", "hosting"].join("-"); // the old, unscoped name, never a quoted reference (hosting/T22)
+  const c11 = { target: old, candidate: "@kaihacksai/kaal-hosting" };
+  const fault = (paths, f = c11) => check(paths, f).map((v) => v.split(": ")[1]);
+  const all = [...core, ...HOSTING_C11];
+
+  it("engineering/T57: hosting/C11's unspent rename with its exact path set and Core passes, in any order", () => {
+    assert.equal(HOSTING_C11.length, 44);
+    assert.ok(Object.isFrozen(HOSTING_C11));
+    assert.deepEqual(check(all, c11), []);
+    assert.deepEqual(check([...HOSTING_C11].reverse().concat(core), c11), []);
+  });
+
+  it("engineering/T58: a superset fails, naming each extra path and only those", () => {
+    const extra = ["packages/kaal-sealing/src/seal.ts", "README.md"];
+    assert.deepEqual(fault([...all, ...extra]), extra.map((p) => `${p} is extra to hosting/C11's allowed set`));
+    // The path the correction removed is now extra too: the set narrowed, it did not widen.
+    const removed = "packages/extensions/kaal-hosting/.gitattributes";
+    assert.ok(!HOSTING_C11.includes(removed));
+    assert.deepEqual(fault([...all, removed]), [`${removed} is extra to hosting/C11's allowed set`]);
+  });
+
+  it("engineering/T59: a subset or a swap fails, naming each missing and extra path", () => {
+    const missing = [HOSTING_C11[0], HOSTING_C11[43]];
+    const part = HOSTING_C11.filter((p) => !missing.includes(p));
+    assert.deepEqual(fault([...core, ...part]), missing.map((p) => `${p} is missing from hosting/C11's allowed set`));
+    assert.equal(check([...core, HOSTING_C11[3]], c11).length, 43, "a single path of the set does not carry the allowance");
+    const swapped = [...HOSTING_C11.slice(1), "packages/skills/kaal-graph/README.md"];
+    assert.deepEqual(fault([...core, ...swapped]), [
+      "packages/skills/kaal-graph/README.md is extra to hosting/C11's allowed set",
+      `${HOSTING_C11[0]} is missing from hosting/C11's allowed set`,
+    ]);
+  });
+
+  it("engineering/T60: a .github path beside the exact set fails .github travels alone", () => {
+    const v = check([...all, ".github/workflows/ci.yml"], c11);
+    assert.ok(v.includes("core travels alone: .github/workflows/ci.yml is extra to hosting/C11's allowed set"), v.join("\n"));
+    assert.equal(v.filter((x) => x.startsWith(".github travels alone: ")).length, all.length, v.join("\n"));
+  });
+
+  it("engineering/T61: Core beside paths outside the set fails rule 1 as before, whatever the facts", () => {
+    for (const f of [c11, {}]) {
+      assert.deepEqual(fault([...core, "packages/skills/kaal-graph/README.md", "engineering/lanes/README.md"], f), [
+        "packages/skills/kaal-graph/README.md is not Core or its supporting files",
+        "engineering/lanes/README.md is not Core or its supporting files",
+      ]);
+    }
+  });
+
+  it("engineering/T71: an unrelated Change carrying hosting/C11's exact paths, without its rename, gets no allowance", () => {
+    for (const f of [{ target: old, candidate: old }, { target: old, candidate: "@kaihacksai/kaal-hosting-x" }, { target: old }]) {
+      assert.deepEqual(fault(all, f), HOSTING_C11.map((p) => `${p} is not Core or its supporting files`), JSON.stringify(f));
+    }
+  });
+
+  it("engineering/T72: once hosting/C11 has landed on the target, its exact paths cannot reuse the allowance", () => {
+    const spent = { target: "@kaihacksai/kaal-hosting", candidate: "@kaihacksai/kaal-hosting" };
+    assert.deepEqual(fault(all, spent), HOSTING_C11.map((p) => `${p} is not Core or its supporting files`));
+  });
+
+  it("engineering/T73: without the runner's target and candidate commits, the allowance does not apply", () => {
+    assert.deepEqual(facts({}), { target: undefined, candidate: undefined });
+    assert.deepEqual(facts({ GUARD_BASE: "HEAD; rm -rf /", GUARD_HEAD: "not-a-commit" }), { target: undefined, candidate: undefined });
+    assert.equal(check(all).length, HOSTING_C11.length, "check without facts applies rule 1");
+    const cli = spawnSync(process.execPath, [CLI], { input: all.join("\n"), encoding: "utf8", env: { PATH: process.env.PATH } });
+    assert.equal(cli.status, 1, cli.stderr);
   });
 });
 

@@ -101,7 +101,8 @@ const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
 
 /**
  * Runs the case files and accounts for each leaf test by name. Cases named in `exclude` are not run.
- * `onCase` sees each outcome as it arrives. A file that fails outside any test fails under its own name.
+ * `onCase` sees each outcome as it arrives. Suite and file failures are retained even when all leaf
+ * tests passed, so a failing hook or an error outside a test cannot disappear from verification.
  */
 export async function execute(caseFiles, exclude = [], onCase = () => {}) {
   const env = { ...process.env };
@@ -121,7 +122,7 @@ export async function execute(caseFiles, exclude = [], onCase = () => {}) {
     if (e.type !== "test:pass" && e.type !== "test:fail") continue;
     const whole = d.nesting === 0 && d.file && resolve(d.name) === resolve(d.file);
     if (whole && e.type === "test:pass") continue;
-    if (!whole && d.details?.type !== "test") continue;
+    if (!whole && d.details?.type !== "test" && e.type !== "test:fail") continue;
     const name = whole ? key(d.file, []) : key(d.file, [...(stacks.get(d.file) ?? []).slice(0, d.nesting), d.name]);
     const skipped = d.skip !== undefined && d.skip !== false;
     const todo = d.todo !== undefined && d.todo !== false;
@@ -316,8 +317,10 @@ export async function installation(log, pkg) {
     log(`running ${declared.length} delivered cases from ${named.length} files against the installed copy${exclude.length ? `, ${exclude.length} not applicable on ${platform}` : ""}`);
     const results = named.length ? await execute(named.map((f) => join(PACKAGE, f)), exclude, (o) => log(`${o.outcome}: ${o.name}${o.message ? `: ${o.message}` : ""}`)) : [];
     for (const o of results) {
-      if (!outcome.has(o.name)) undeclared.push(o.name);
-      else outcome.set(o.name, o.outcome === "skipped" && notHere(o.name) ? "not applicable" : o.outcome);
+      if (!outcome.has(o.name)) {
+        if (o.outcome === "fail") add(failures, `the delivered test run failed: ${o.name}: ${o.message}`, "report this to the package's maintainers, with your platform and Node version");
+        else undeclared.push(o.name);
+      } else outcome.set(o.name, o.outcome === "skipped" && notHere(o.name) ? "not applicable" : o.outcome);
     }
     for (const name of exclude) if (outcome.get(name) === "not run") outcome.set(name, "not applicable");
     changes = [...changed(before, snapshot(consumer.root, keep)), ...changed(own, snapshot(PACKAGE)).map((p) => slash(relative(consumer.root, join(PACKAGE, p))))].sort();
