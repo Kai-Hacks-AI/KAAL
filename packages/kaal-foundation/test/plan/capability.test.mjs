@@ -229,7 +229,8 @@ test("foundation/T20 [foundation/F17]: the source Test Plan is declared; in sour
   assert.equal(failing.status, 1, failing.out);
   assert.deepEqual(ran(failing), ["embedded", "publisher"], "a failing suite does not hide the next");
   assert.equal(last(failing), "failed");
-  const passthrough = `${LINE}{"result":"verified","exit":0,"cases":[],"causes":[]}`;
+  // No double quote in the fixture's line: npm runs a script through its shell, and the line sits inside one.
+  const passthrough = `${LINE}{}`;
   const inst = fixture({ "test:embedded": say("embedded", 0, passthrough), "test:publisher": say("publisher") }, true);
   assert.equal(inst.status, 0, inst.out);
   assert.doesNotMatch(inst.out, /^ran publisher$/m, "installed, the publisher suite never runs");
