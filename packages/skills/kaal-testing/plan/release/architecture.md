@@ -6,7 +6,7 @@ Each element names, in brackets, the Requirements it answers.
   - `package.json`, `README.md`, `LICENSE`;
   - `capability/`, `lib/`, `payload/`, `skills/`;
   - `docs/`;
-  - `test/acceptance/`, `test/unit/`, `test/verify.mjs` and `test/verify.json`.
+  - `test/embed/`, `test/verify.mjs` and `test/verify.json` (amended by testing/C43).
 
   Nothing else ships: no `plan/`, no `test/plan/`, no publisher test, and neither `evidence.kaal.json` nor `ownership.kaal.json`. `test/verify.mjs` runs the delivered cases with Node's test runner against the installed copy. It reads the manifest, compares hashes, compares the consumer before and after, and prints the summary line.
 
