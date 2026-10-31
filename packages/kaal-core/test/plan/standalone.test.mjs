@@ -1,13 +1,14 @@
 // core/C32 planned outer tests: Core standalone, with Graph's Node support delivered inside it. Immutable to DO and CHECK;
 // core/C33 turns them GREEN. Each title names the contracts it checks (plan/standalone/*.md).
+// Revised by core/C37: commands run through kaal-hosting, KAAL's only OS boundary (core/F88).
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { execute } from "kaal-hosting";
 
 const CORE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const KAAL = resolve(CORE, "..", "..");
@@ -18,10 +19,14 @@ const DELIVERED = ["form.d.ts", "form.mjs", "node.d.ts", "node.mjs"];
 const SPECIFIER = /\b(from|import)\s*["'](@kaihacksai\/)?kaal-graph(\/[^"']*)?["']|\b(import|require)\s*\(\s*["'](@kaihacksai\/)?kaal-graph/;
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
-/** Runs a command, returning its status and output; never throws. */
-const run = (cmd, args, cwd) => {
-  const r = spawnSync(cmd, args, { cwd, encoding: "utf8", shell: process.platform === "win32", env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" } });
-  return { status: r.status, stdout: r.stdout ?? "", out: `${r.stdout ?? ""}${r.stderr ?? ""}` };
+/** Runs a command through Hosting, returning its status and output; never throws. A command that cannot start has no status. */
+const run = async (cmd, args, cwd) => {
+  try {
+    const r = await execute(cmd, args, { cwd, env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" } });
+    return { status: r.status, stdout: r.stdout, out: `${r.stdout}${r.stderr}` };
+  } catch (e) {
+    return { status: null, stdout: "", out: String(e?.message ?? e) };
+  }
 };
 
 /** The workspace directory of each package by name. */
@@ -60,24 +65,24 @@ const files = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => 
  * Packs kaal-core and its runtime workspace dependencies, none of them Graph, installs them into
  * a clean directory that holds no Graph package, and runs check in it.
  */
-const withoutGraph = (check) => {
+const withoutGraph = async (check) => {
   const deps = runtime();
   for (const name of deps.keys()) assert.doesNotMatch(name, GRAPH, `kaal-core depends on ${name} at runtime, so it cannot install without Graph`);
   const work = mkdtempSync(join(tmpdir(), "kaal-core-standalone-"));
   try {
     const tarballs = [];
     for (const dir of [CORE, ...deps.values()]) {
-      const r = run("npm", ["pack", "--json", "--pack-destination", work], dir);
+      const r = await run("npm", ["pack", "--json", "--pack-destination", work], dir);
       assert.equal(r.status, 0, r.out);
       tarballs.push(join(work, JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].filename));
     }
     const app = join(work, "consumer");
     mkdirSync(app);
     writeFileSync(join(app, "package.json"), JSON.stringify({ name: "consumer", version: "1.0.0", private: true, type: "module" }));
-    const install = run("npm", ["install", ...tarballs], app);
+    const install = await run("npm", ["install", ...tarballs], app);
     assert.equal(install.status, 0, install.out);
     for (const graph of [["kaal-graph"], ["@kaihacksai", "kaal-graph"]]) assert.ok(!existsSync(join(app, "node_modules", ...graph)), `the installation holds no ${graph.join("/")}`);
-    check(app);
+    await check(app);
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
@@ -100,9 +105,9 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     assert.deepEqual(importing, [], "these files import Graph's package");
   });
 
-  it("core/T83 [core/F78, core/I24]: packed with its runtime dependencies, none of them Graph, and installed into a clean directory with no Graph package, kaal-core imports and admits its own payload", { timeout: 600_000 }, () => {
-    withoutGraph((app) => {
-      const use = run(process.execPath, ["--input-type=module", "-e", `import { evaluate, payload } from "${pkg().name}"; const e = evaluate(payload()); console.log(JSON.stringify({ nodes: e.nodes.length, rejected: (e.rejections ?? e.rejected ?? []).length }));`], app);
+  it("core/T83 [core/F78, core/I24]: packed with its runtime dependencies, none of them Graph, and installed into a clean directory with no Graph package, kaal-core imports and admits its own payload", { timeout: 600_000 }, async () => {
+    await withoutGraph(async (app) => {
+      const use = await run(process.execPath, ["--input-type=module", "-e", `import { evaluate, payload } from "${pkg().name}"; const e = evaluate(payload()); console.log(JSON.stringify({ nodes: e.nodes.length, rejected: (e.rejections ?? e.rejected ?? []).length }));`], app);
       assert.equal(use.status, 0, use.out);
       const { nodes, rejected } = JSON.parse(use.stdout.trim().split(/\r?\n/).pop());
       assert.ok(nodes > 0, "Core's payload Nodes are admitted");
@@ -110,8 +115,8 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     });
   });
 
-  it("core/T86 [core/F80, core/A39, core/N20]: installed with no Graph, registration admits traces that form a cycle with no finding for it, and reports cycles, reach and incoming as unavailable, not empty", { timeout: 600_000 }, () => {
-    withoutGraph((app) => {
+  it("core/T86 [core/F80, core/A39, core/N20]: installed with no Graph, registration admits traces that form a cycle with no finding for it, and reports cycles, reach and incoming as unavailable, not empty", { timeout: 600_000 }, async () => {
+    await withoutGraph(async (app) => {
       const script = `
         import { assemble } from "${pkg().name}/registration";
         const r = assemble([
@@ -122,7 +127,7 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
           ] },
         ]);
         console.log(JSON.stringify({ instances: r.instances.length, findings: r.findings, cycles: r.cycles, reach: r.reach("acme", "a"), incoming: r.incoming("acme", "a") }));`;
-      const use = run(process.execPath, ["--input-type=module", "-e", script], app);
+      const use = await run(process.execPath, ["--input-type=module", "-e", script], app);
       assert.equal(use.status, 0, use.out);
       const r = JSON.parse(use.stdout.trim().split(/\r?\n/).pop());
       assert.equal(r.instances, 2, "both instances are admitted");
@@ -133,13 +138,13 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     });
   });
 
-  it("core/T84 [core/F79, core/A38]: no shipped file of kaal-core names Graph's package as a module, and the provenance manifest lists exactly the delivered Node support, each copy matching its SHA-256", { timeout: 600_000 }, () => {
+  it("core/T84 [core/F79, core/A38]: no shipped file of kaal-core names Graph's package as a module, and the provenance manifest lists exactly the delivered Node support, each copy matching its SHA-256", { timeout: 600_000 }, async () => {
     const work = mkdtempSync(join(tmpdir(), "kaal-core-delivered-"));
     try {
-      const r = run("npm", ["pack", "--json", "--pack-destination", work], CORE);
+      const r = await run("npm", ["pack", "--json", "--pack-destination", work], CORE);
       assert.equal(r.status, 0, r.out);
       const tarball = JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].filename;
-      const x = run("tar", ["-xzf", tarball], work);
+      const x = await run("tar", ["-xzf", tarball], work);
       assert.equal(x.status, 0, x.out);
       const shipped = join(work, "package");
       const naming = files(shipped)
@@ -158,8 +163,8 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     }
   });
 
-  it("core/T85 [core/F79, core/A38]: after the build, each delivered copy is byte-identical to the Graph source its manifest names, at the Graph version kaal-core pins", { timeout: 600_000 }, () => {
-    const b = run("npm", ["run", "build"], CORE);
+  it("core/T85 [core/F79, core/A38]: after the build, each delivered copy is byte-identical to the Graph source its manifest names, at the Graph version kaal-core pins", { timeout: 600_000 }, async () => {
+    const b = await run("npm", ["run", "build"], CORE);
     assert.equal(b.status, 0, b.out);
     const manifest = join(CORE, "dist", "node", "provenance.json");
     assert.ok(existsSync(manifest), "the build writes dist/node/provenance.json");

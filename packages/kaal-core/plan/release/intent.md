@@ -4,6 +4,8 @@ This is `core/C28`, a PLAN Change. It ships no code and no document a consumer i
 
 The Owner decided the scope of kaal-core 0.0.1 on #600 (2026-10-29): **Option B**. Registration and capability composition are part of 0.0.1, not deferred to a later version. The order is the aligned `core/C30` PLAN (#600), then a bounded `core/C26` Registration DO (from #518), then explicit Core consumer readiness and release acceptance. This PLAN records that scope as Core's release dependency map, plans consumer readiness and release acceptance, and names what Core needs from other owners.
 
+On #675 (2026-10-31) the Owner set that **Hosting is KAAL's only OS boundary, test implementations included**: Core's shipped runner and verifier, and Core's planned tests, make no operating-system decision of their own, and Hosting's conformance challenges them. `core/C37` records this in `core/F88` and `core/A44`.
+
 On #622 (2026-10-29) the Owner aligned two release dependencies. Core, Graph, Hosting and Foundation publish under the `@kaihacksai/kaal-*` namespace, consistent with Guard. Foundation becomes a separately installable, published package. Each owning capability plans its own rename or publication readiness and verifies its own packed consumer experience. Core renames only kaal-core.
 
 The Owner also set the bar for what a consumer receives, and named `@kaihacksai/kaal-guard` as the standard: Core's published package must match or exceed Guard's **documents and tests actually delivered inside the installed package**. A fresh consumer, with no KAAL repository and no prior KAAL knowledge, must be able to:
