@@ -126,6 +126,10 @@ describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A
   it("engineering/T58: a superset fails, naming each extra path and only those", () => {
     const extra = ["packages/kaal-sealing/src/seal.ts", "README.md"];
     assert.deepEqual(fault([...all, ...extra]), extra.map((p) => `${p} is extra to hosting/C11's allowed set`));
+    // The path the correction removed is now extra too: the set narrowed, it did not widen.
+    const removed = "packages/extensions/kaal-hosting/.gitattributes";
+    assert.ok(!HOSTING_C11.includes(removed));
+    assert.deepEqual(fault([...all, removed]), [`${removed} is extra to hosting/C11's allowed set`]);
   });
 
   it("engineering/T59: a subset or a swap fails, naming each missing and extra path", () => {
