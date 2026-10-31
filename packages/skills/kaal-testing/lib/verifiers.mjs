@@ -176,7 +176,11 @@ export function parity(runs, { supported, osBoundary = false, challenged = [] } 
   for (const r of list) {
     const p = r.facts.platform;
     const o = r.observed?.observation;
-    if (!o) { findings.push(`on ${p} there is no observation`); continue; }
+    if (!o) {
+      findings.push(`on ${p} there is no observation`);
+      for (const c of cases) c.outcomes[p] = "not run";
+      continue;
+    }
     results.push(o.result);
     const reported = Array.isArray(o.cases) ? o.cases.filter((c) => plain(c) && nonempty(c.name)) : [];
     for (const c of cases) {
@@ -199,6 +203,7 @@ export function parity(runs, { supported, osBoundary = false, challenged = [] } 
     if (outs.length > 0 && outs.every((x) => x === "not applicable")) findings.push(`case ${c.name} is not applicable on every platform, so it is exercised on none`);
     if (Array.isArray(challenged) && challenged.includes(c.name)) findings.push(`case ${c.name} has an unresolved challenge finding`);
   }
+  if (Array.isArray(challenged)) for (const name of new Set(challenged)) if (!declared.includes(name)) findings.push(`${JSON.stringify(name)} has an unresolved challenge finding, and the manifest declares no such case`);
   const failed = results.includes("failed");
   const verified = findings.length === 0 && results.length === list.length && results.every((x) => x === "verified") && cases.every((c) => Object.values(c.outcomes).every((x) => x === "pass" || x === "not applicable"));
   return { result: failed ? "failed" : verified ? "verified" : "unknown", cases, findings };

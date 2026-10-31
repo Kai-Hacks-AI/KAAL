@@ -109,6 +109,12 @@ describe("verifiers", () => {
     assert.equal(parity([at("linux"), at("win32", { digest: "e".repeat(64) })], { supported: ["linux", "win32"] }).result, "unknown", "another candidate's bytes");
     assert.equal(parity([at("linux"), at("win32", { package: { ...FACTS.package, version: "9.9.9" } })], { supported: ["linux", "win32"] }).result, "unknown", "another version");
     assert.equal(parity([at("linux"), at("win32")], { supported: ["linux", "win32"], challenged: ["acme/T1"] }).result, "unknown", "a challenged case is not evidence");
+    const outside = parity([at("linux"), at("win32")], { supported: ["linux", "win32"], challenged: ["acme/T9"] });
+    assert.equal(outside.result, "unknown", "a challenge on a case the manifest does not declare is never discarded");
+    assert.ok(outside.findings.some((f) => f.includes("acme/T9")));
+    const silent = parity([at("linux"), { observed: { observation: null, findings: ["no summary line"] }, facts: { ...FACTS, platform: "win32" } }], { supported: ["linux", "win32"] });
+    assert.equal(silent.result, "unknown");
+    assert.deepEqual(silent.cases, [{ name: "acme/T1", outcomes: { linux: "pass", win32: "not run" } }], "a platform with no observation shows each case not run there");
   });
 
   it("imports nothing (testing/N9)", async () => {
