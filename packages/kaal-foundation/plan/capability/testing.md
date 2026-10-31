@@ -50,3 +50,9 @@ Run against today's package, through npm (`npm_execpath` set):
 - **Behavioural.** T15 fails because no manifest ships. T16 fails because the last line is the bare `verified`. T18 fails because no `bin` is declared. T19 fails because `AGENTS.md` names no Foundation section. T20 fails because `test` is the runner itself.
 - **Blocked.** T17 fails before its behavioural assertion, because without a manifest a changed document cannot be told apart.
 - **GREEN today, as guards.** T21 and T22 pass, and they must stay GREEN through the DO.
+
+## Amendment by the Owner's review of foundation/C8 (#712)
+
+| Test | Checks | The fixture it must fail, naming the cause |
+| --- | --- | --- |
+| foundation/T32 | F18: every documented invocation in the installed README, `docs/`, skill and the repository's `AGENTS.md` names `--package=@kaihacksai/kaal-foundation`. Run offline, the documented command prints the scoped bin's digest where the scoped package is installed. Where only an unrelated unscoped `kaal-foundation` is installed, it fails and never runs it, while the bare bin name does run it (the control) | Documentation that recommends `npx kaal-foundation` |

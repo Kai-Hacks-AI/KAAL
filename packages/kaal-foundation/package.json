@@ -4,6 +4,9 @@
   "description": "KAAL Foundation: the shared, dependency-free primitives every KAAL Capability may build on.",
   "license": "MIT",
   "type": "module",
+  "bin": {
+    "kaal-foundation": "bin/kaal-foundation.mjs"
+  },
   "exports": {
     "./sha256": {
       "types": "./lib/sha256.d.ts",
@@ -12,16 +15,21 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "bin",
     "lib",
     "docs",
-    "test/consumer",
+    "skills",
+    "test/embed",
     "test/verify.mjs",
+    "test/verify.json",
     "test/run.mjs"
   ],
   "scripts": {
-    "test": "node test/run.mjs",
-    "test:consumer": "node test/verify.mjs",
-    "test:publisher": "node --test test/plan/sha256.test.mjs test/plan/publication.test.mjs test/publisher/verifier.test.mjs"
+    "test": "npm run test:all",
+    "test:all": "node test/run.mjs",
+    "test:embedded": "node test/verify.mjs",
+    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs",
+    "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"
