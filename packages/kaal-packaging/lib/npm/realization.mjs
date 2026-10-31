@@ -107,8 +107,15 @@ export async function describe(artifact, work, limits, script) {
 /** A registry tarball: an http(s) URL to a `.tgz`, as npm records a package it fetched from a registry. */
 const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\.tgz$/;
 
+/** `p` without the separators it ends with. A loop, not a regular expression, so its time stays linear in `p`. */
+function trimmed(p) {
+  let end = p.length;
+  while (end > 0 && (p[end - 1] === "/" || p[end - 1] === "\\")) end--;
+  return p.slice(0, end);
+}
+
 /** `path` under `dir`, whatever separators `dir` ends with. */
-const under = (dir, path) => `${dir.replace(/[\\/]+$/, "")}/${path}`;
+const under = (dir, path) => `${trimmed(dir)}/${path}`;
 
 /** The consumer's install record: npm's hidden lockfile, else the project's lockfile; null when neither is readable. */
 async function installRecord(root) {
@@ -127,7 +134,7 @@ async function installRecord(root) {
 
 /** The install record's key for the package at `dir` inside `root`, such as `node_modules/kaal-x`; null when it is not inside. */
 function keyOf(dir, root) {
-  const slashed = (p) => p.split("\\").join("/").replace(/\/+$/, "");
+  const slashed = (p) => trimmed(p).split("\\").join("/");
   const d = slashed(dir);
   const r = slashed(root);
   return d.startsWith(`${r}/`) ? d.slice(r.length + 1) : null;
