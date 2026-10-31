@@ -14,6 +14,7 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 | core/T80: the shipped runner, `test/run.mjs`, on fixture packages. In a source layout, it runs every declared `test:<name>` suite once, never `test` itself, and a failing suite fails it without hiding later suites. Installed under `node_modules`, it runs only `test:consumer` and exits with its result. A damaged source (a marker missing), an ambiguous layout (an installed package with a source marker), an empty inventory, and a missing `test:consumer` or `test:publisher` each give `cannot verify` with exit 2 and run no suite | core/F75, core/A34 | Architecture |
 | core/T79: kaal-core is `@kaihacksai/kaal-core`, and every workspace package it depends on at runtime is named under `@kaihacksai/kaal-` | core/F74 | Requirements |
 | core/T91 (added by `core/C36`): the shipped `test/verify.mjs`, on fixture packages whose manifest matches their files. It gives `verified` with exit 0 only when exactly the declared cases ran and passed. Each of the following gives `cannot verify` with exit 2: a declared case that never ran, was skipped or was marked todo; an undeclared case that ran; a file changed after the manifest was made, a file added to an installation, or one the manifest lists that is missing; no manifest; an empty inventory. In a source workspace, files that do not ship, such as `src/` and `test/plan/`, are not added files, but a changed shipped file is still `cannot verify`. A declared case that fails with the files intact gives `failed` with exit 1. A nested `node_modules` is ignored. Each run emits exactly one execution record. The record names the candidate by name, version and manifest SHA-256, and gives each required case's outcome: passed, failed, skipped or not run, so a skipped case is never recorded as passed. An inconsistent candidate runs no case. Each result line names the candidate and the declared and executed counts, and names its cause. A case that writes to its working directory leaves the fixture as it was | core/F70, core/F85, core/F87, core/N23, core/A43 | Architecture |
+| core/T93 (added by `core/C37`): Hosting's conformance inspection of the shipped `test/run.mjs` and `test/verify.mjs` finds no violation and leaves nothing for validation. Their imports outside the expectation are exactly `kaal-hosting` and `@kaihacksai/kaal-foundation/sha256`. `node:fs` and `node:os` are allowed in the verifier alone, for its scratch directory. Neither script reads `process.platform`, `os.platform()` or `os.type()`, and neither passes a `shell` option | core/F88, core/A44 | Architecture |
 | core/T92 (added by `core/C36`): kaal-core declares Node.js 24 or later. `docs/operations.md` names Linux, macOS and Windows under "Supported platforms". Once built, `test/verify.json` lists exactly the other files `npm pack` ships, each at its SHA-256, and declares at least one case, each in a shipped file and naming the `core/…` Intents, Requirements, Architecture elements or Defects it tests | core/F85, core/F86, core/A43 | Requirements |
 
 **Why the tests discriminate.** I checked them with a throwaway reference, which was not committed. It had the six documents, one delivered test for each loop, a `test/verify.mjs`, the runner `test/run.mjs`, the three scripts, and Foundation made public. With it, T74, T75, T76, T78 and T80 turned GREEN. T79 was checked by renaming the reference's packages under `@kaihacksai/`; the reference did not commit those renames, which belong to their owners. T77 stays RED until `core/C26`. Each weaker reference below was caught. The last five came from Codex's review, and T76 was revised to catch each:
@@ -52,6 +53,9 @@ The planned outer tests live in `packages/kaal-core/test/plan/release.test.mjs`.
 | runs the cases in the package directory, so a case's output changes the installation | core/T91 |
 | treats a source workspace's unshipped files as added, so a healthy checkout never verifies (Codex, #673) | core/T91 |
 | ignores added files everywhere, so an installation with an extra file still verifies | core/T91 |
+| runs npm through a shell chosen by platform (added by `core/C37`) | core/T93 |
+| spawns a process, reads files or hashes through Node directly instead of Hosting and Foundation | core/T93 |
+| reaches the host directly outside the verifier's scratch directory, such as the runner importing `node:fs` | core/T93 |
 | emits no execution record, so a run leaves no evidence (Owner, #673) | core/T91 |
 | records a skipped case as passed | core/T91 |
 | identifies the candidate by something other than its manifest's SHA-256 | core/T91 |
@@ -66,7 +70,19 @@ The following are validated by review:
 
 **`core/C36`'s reference.** I checked T91 against a throwaway `test/verify.mjs` that implements `core/A43`, which was not committed. T91 turned GREEN with it, and each of the fourteen `core/C36` rows above, applied to that reference, turned it RED. T92 is checked by review of its assertions. It has no reference, because the build that writes the manifest is `core/C29`'s.
 
+**`core/C37`'s revision and reference.** `core/C37` revises the planned tests in three places, each to keep the operating-system decision with Hosting (`core/F88`):
+- the helper that runs a command, here and in `standalone.test.mjs`, runs it through kaal-hosting's `execute` instead of choosing a shell by platform;
+- core/T80's and core/T91's fixture packages are made under the workspace's `node_modules`, so the shipped scripts resolve kaal-hosting and Foundation there as they would in an installation. What each test asserts is unchanged;
+- core/T93 is added.
+
+I checked them against the runner and verifier of #675, before and after a throwaway rework onto Hosting that was not committed. With #675's scripts, T80 and T91 stay GREEN and T93 is RED, naming `node:child_process`, `node:crypto` and the `shell` option. With the rework, all three are GREEN.
+
+`core/T93` does not cover `lifecycle.test.mjs`'s executable-mark check, which still decides by platform. Hosting's `kaal-hosting/fixtures` establishes such host facts by trying (hosting/C17), and it is on `kaal/hosting`. A later Core Change moves that check onto it once it reaches `kaal/core` through `main`.
+
 ## RED evidence
+
+**`core/T93`** is blocked before behavioural assertion on `kaal/core`, because no `test/run.mjs` or `test/verify.mjs` ships until `core/C29` part 1 (#675). Against #675's current scripts it is behavioural RED, as above.
+
 
 On `kaal/core`, all nine tests are RED. They run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/release.test.mjs`, outside Core's `npm test` until `core/C29`.
 - **Missing deliverables:** T74, T75, T76, T80 and T92 fail on their first assertion, because no `docs/`, no consumer suite, no runner and no manifest exist. That is planning evidence.
