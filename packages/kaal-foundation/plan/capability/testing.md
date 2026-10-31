@@ -63,3 +63,9 @@ Run against today's package, through npm (`npm_execpath` set):
 | --- | --- | --- |
 | foundation/T33 | F14, N10: installed, `kaal-foundation verify` on a library with a stray line, and on one that throws on import, exits 2 and ends on `kaal-foundation-verification` with `cannot verify` naming `lib/sha256.mjs` | Today's bin, which imports the library at load and crashes with exit 1 |
 | foundation/T34 | F19: `publishConfig` is `{ access: "public" }`, and `repository` names the KAAL repository and this package's directory | Today's `package.json`, which has neither |
+
+## Amendment foundation/C10
+
+| Test | Checks | The fixture it must fail, naming the cause |
+| --- | --- | --- |
+| foundation/T32, revised | F18 as corrected: every documented invocation is `node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs`, the path of `package.json` `bin.kaal-foundation`, and none runs `kaal-foundation` through `npx` or `npm exec`, except prose that warns against it. Run offline, the documented command prints the scoped bin's digest where the scoped package is installed, and also where an unrelated unscoped `kaal-foundation`, installed afterwards, owns `.bin/kaal-foundation`; there, `npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation` runs the impostor (the control). Where only the unscoped package is installed, the documented command fails and never runs it, while the bare bin name does run it (the control) | Documentation that recommends `npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation`, which the side-by-side fixture shows running the impostor |

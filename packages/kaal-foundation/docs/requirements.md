@@ -16,7 +16,7 @@
   - `kaal-foundation verify` runs the verification of foundation/F12 and exits with its status. It loads no library code itself, so a changed or broken library gives `cannot verify`, never a crash.
 
   An unreadable file, an unknown command or option, or no command at all prints the cause and a usage line on standard error, and exits 2. The command decides nothing the library does not. Its digests are `sha256`'s.
-- **foundation/F18** Every documented way to run the command names the scoped package explicitly: `npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation …`, after `npm install @kaihacksai/kaal-foundation`. The documents never recommend `npx kaal-foundation`, which may select an unrelated unscoped package. Where the scoped package is not installed, the documented command fails and never runs another package.
+- **foundation/F18** Every documented way to run the command runs the scoped package's own bin by its path: `node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs …`, after `npm install @kaihacksai/kaal-foundation` (amended by foundation/C10). The documents never recommend `npx kaal-foundation` or `npm exec … kaal-foundation`, which run whichever installed package owns `node_modules/.bin/kaal-foundation` and may select an unrelated unscoped package. Where the scoped package is not installed, the documented command fails and never runs another package.
 
 ## The skill
 
