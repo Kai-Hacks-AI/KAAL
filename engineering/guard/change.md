@@ -21,7 +21,7 @@ Each Change depends on the Changes above it and lands only after them. A Change 
 | **guard/C3b** KAAL CI checks | guard/I4 | KAAL's `guard.json` lists its `ci` checks, and each Guard-run job's logic moves, unchanged, into a KAAL-owned check: the test lanes as their npm scripts, Change Isolation, Promotion Source, Branching and the Branching audit as scripts in `engineering/github/`. The branching checkers are `trusted`, taken from the revision KAAL supplies as `base`: the default branch's tip, as today. | guard/T33 is GREEN; each moved check gives the job's verdicts on today's scenarios, run through Guard. |
 | **guard/C3b2** Checks run from the default branch | guard/I4 | Change Isolation reads its checker from the target commit through Git, as the other branching checks already read theirs, so every pull-request check can run from a checkout of the default branch. | Change Isolation gives the job's verdicts on today's scenarios when run from a default-branch checkout. |
 | **guard/C3c** KAAL CI integration | guard/I4 | KAAL's existing jobs call `kaal-guard run --check`; names, matrices and triggers are unchanged; the `Guard` job is added and runs Guard's own tests. The `pull_request_target` jobs check out the default branch, where GitHub always takes their workflow from. It travels alone. | Every pre-migration check identity still reports, through Guard (guard/T34): the `push` and `pull_request` jobs and the Branching audit on `kaal/guard`; the `pull_request_target` jobs once they are on the default branch. |
-| **guard/C4a** Verify | guard/I2, guard/I4 | `kaal-guard verify` in `lib/github.mjs`: per `ci` check, whether a workflow job declares it in Guard's declared form ([Run](run.md#verify)), by name or through `- { check: <name> }` matrix lines (guard/F10). Declared integration only; it infers nothing from scripts or other YAML. | Guard's inner tests show a declared, a matrix-declared and an undeclared `ci` check, every form outside the contract declaring nothing, and a pass claiming declared integration only. On KAAL's tree, `verify` names the two jobs whose invocation sits in a script, Change Isolation and the Branching audit; guard/C4c moves each to a step of its own. |
+| **guard/C4a** Verify | guard/I2, guard/I4 | `kaal-guard verify` in `lib/github.mjs`: per `ci` check, whether a workflow job declares it in Guard's declared form ([Run](../../packages/kaal-guard/docs/requirements.md)), by name or through `- { check: <name> }` matrix lines (guard/F10). Declared integration only; it infers nothing from scripts or other YAML. | Guard's inner tests show a declared, a matrix-declared and an undeclared `ci` check, every form outside the contract declaring nothing, and a pass claiming declared integration only. On KAAL's tree, `verify` names the two jobs whose invocation sits in a script, Change Isolation and the Branching audit; guard/C4c moves each to a step of its own. |
 | **guard/C4b** Lifecycle | guard/I5 | `init`, `upgrade` and `remove` in `lib/lifecycle.mjs`, `managed` in `guard.json`, and the adapter templates `templates/pre-push` and `templates/guard.yml` (guard/F8). | The outer tests of `init`, `upgrade`, `remove` and `verify` are GREEN, guard/T24 among them. |
 | **guard/C4c** KAAL runs verify | guard/I5 | KAAL's `Guard` job also runs `kaal-guard verify`, and the Change Isolation and Branching audit jobs invoke Guard in a step of its own, in the declared form, with their facts computed in the step before. Names, triggers and matrices are unchanged. It travels alone. | `verify` passes on KAAL's tree, and guard/T35 is GREEN. |
 | **guard/C4d** Embed docs | guard/I3, guard/I5 | The consumer docs shipped in the package. | The packed package alone passes its outer tests on Linux, macOS and Windows, ready to publish as `kaal-guard@0.0.1`. |
@@ -62,7 +62,7 @@ This PLAN Change also amends guard/F14, guard/F17 and guard/F18, so K3c and K3d 
   - **Mixed versions.** A kept, consumer-modified asset keeps its earlier writer while the others move forward.
   - **Older `guard.json`.** An asset with no writer reads as `0.0.1`.
   - **Rollback.** `0.0.1` keeps the unknown `writers` entry but does not update it, and `remove` under `0.0.1` leaves it behind. The next newer `upgrade` re-records each asset. That is the stated limit.
-  - **guard/T39.** guard/T39 holds as written: after `upgrade`, every unmodified asset records the installed version, and the report names `0.0.1` and that version.
+  - guard/T39 holds as written: after `upgrade`, every unmodified asset records the installed version, and the report names `0.0.1` and that version.
 
 The evidence stays bounded:
 - Each Test Case runs against a `packed` candidate, directly and on Linux, as in K2b. Consumer evidence on macOS and Windows needs K4 or a run by hand.
@@ -118,7 +118,7 @@ The PLAN conflicted with that in two places, and `guard/C25`'s DO had followed i
 - guard/F17 had the workflow Guard installs carry a job for each `ci` check no other workflow declares, installed by a bare `init`. `guard/C25` realized it as `kaal-guard list --undeclared` feeding a dynamic matrix that `verify` read as coverage.
 - guard/F13 had `upgrade` install any asset the repository lacks, the workflow included.
 
-`guard/C35` restates guard/F8, guard/F10, guard/F13 and guard/F17 and the declared forms in [Run](run.md#verify): Guard's workflow is one fixed, catalogued content the consumer opts into with `init --ci`, never installed beside a workflow that already declares a check, and never by `upgrade`; without the opt-in, missing coverage is reported with the step to add. `guard/C36` corrects the planned tests ([Testing](testing.md#planned-outer-tests)). `guard/C25` then drops `list --undeclared` and the dynamic matrix, and keeps its GREEN configuration work.
+`guard/C35` restates guard/F8, guard/F10, guard/F13 and guard/F17 and the declared forms in [Run](../../packages/kaal-guard/docs/requirements.md): Guard's workflow is one fixed, catalogued content the consumer opts into with `init --ci`, never installed beside a workflow that already declares a check, and never by `upgrade`; without the opt-in, missing coverage is reported with the step to add. `guard/C36` corrects the planned tests ([Testing](testing.md#planned-outer-tests)). `guard/C25` then drops `list --undeclared` and the dynamic matrix, and keeps its GREEN configuration work.
 
 **Initialization, registration and activation (Owner, #355, 6386981735).** Initialization prepares Guard, registration declares what it may execute, and activation decides where it executes; the consumer owns every activation. `guard/C35` adds guard/F30: `init` prepares the configuration and the installation record and activates nothing; `init --hook` and `init --ci` activate one surface each, and neither implies the other; `run --hook`, `run --ci` and `run --check <name>` execute; `remove --hook` and `remove --ci` undo one activation each, and `remove` both and the record, never touching a declaration or a Test Case. The registration word is `hook`, not `local`, because it names the surface that executes, while `run --check` and `run --ci` run on a developer's machine too; `local` is refused, naming `hook`. `upgrade` installs a new asset only for an activated surface. guard/F1, guard/F4, guard/F8, guard/F13, guard/F17 and guard/F29 follow, `guard/C36` carries the planned tests (guard/T76–guard/T78), and `guard/C25` realizes it.
 
@@ -171,7 +171,7 @@ The Owner set this boundary in Slack (#kaal, 2026-10-24); this section is its du
 
 A review of the published `0.0.2` on 2026-10-26 found five gaps; `guard/C76` plans their correction. The Owner chose that Guard detects and refuses a candidate that changes a trusted check's declaration (guard/D16, `guard/C79`), and that the README states the boundary that remains. guard/D17, the package's `npm test` running the retired suite, is corrected by `guard/C86` (see below). The lane's planned removal (`guard/C32`–`guard/C34`) follows. The three documentation gaps go to `guard/C80`. `guard/C26` (Issue #340) remains the `0.0.3` hardening candidate and is decided on its own.
 
-**guard/D17's correction moves out of the boundary (`guard/C84`).** A boundary Change travels alone, so it cannot also remove guard/T98 from `red.json`, and the lane fails a registered Test Case that passes. `guard/C31` would turn guard/T98 GREEN the moment the planned suite sits at the top level, which the package's `test` script already runs. So guard/D17 is corrected by `guard/C86` instead, outside the boundary: the package's `test` script runs the planned suite in `plan/`, and `red.json` drops guard/T98 in the same Change. It follows `guard/C79`, since guard/T98 runs the whole suite. `guard/C31` then promotes the planned suite and touches only the boundary, `guard/C87` points the `test` script at the top level, and `guard/C33` deletes `plan/` after both.
+**The correction of guard/D17 moves out of the boundary (`guard/C84`).** A boundary Change travels alone, so it cannot also remove guard/T98 from `red.json`, and the lane fails a registered Test Case that passes. `guard/C31` would turn guard/T98 GREEN the moment the planned suite sits at the top level, which the package's `test` script already runs. So guard/D17 is corrected by `guard/C86` instead, outside the boundary: the package's `test` script runs the planned suite in `plan/`, and `red.json` drops guard/T98 in the same Change. It follows `guard/C79`, since guard/T98 runs the whole suite. `guard/C31` then promotes the planned suite and touches only the boundary, `guard/C87` points the `test` script at the top level, and `guard/C33` deletes `plan/` after both.
 
 **Scope of the `0.0.3` path (the Owner on #454, review 5653361664).** `guard/C31`–`guard/C34`, the planned suite's promotion and the transitional lane's removal, are on the `0.0.3` path. `guard/C26` (Issue #340) is a separately authorized hardening candidate: `guard/C79` takes none of its responsibilities, and neither `guard/C81` nor `guard/C83` depends on it. `guard/C18` stays proposed and unauthorized and gates nothing. Guard owns its behaviour and its Test Cases; Testing owns what `packed` and `registry` evidence mean, Sealing owns cryptographic integrity and Change Isolation owns authorization, and Guard implements none of them.
 
@@ -200,7 +200,7 @@ The mixed pair shows that `0.0.3` meets the precondition for guard/T65, guard/T6
 
 **The pre-release review of `0.0.3` (`guard/C91`, the Owner's choice on 2026-10-26).** A review of main at 311e3d4, as an adopter, held the Release on one blocker and found three should-fix gaps. The Owner chose to correct all four before Guard Release, each in its own Change into kaal/guard, with the version still `0.0.3` and no template changed, so the catalogue's hashes stay as they are.
 
-- **guard/D18 (`guard/C92`).** With `run --ci` or `run --hook`, the runner adds a check the base trusts back to the run only when the candidate deleted its declaration. A candidate that keeps the declaration but changes `runs` to drop the surface being run takes the check out of the run: it is never compared with the base, and the run passes. guard/T94–guard/T96 change `trusted`, `command` and `outcomes` and delete the declaration, but none changes `runs`. guard/T100 proves it, both for `ci` and for `hook`.
+- guard/D18 (`guard/C92`). With `run --ci` or `run --hook`, the runner adds a check the base trusts back to the run only when the candidate deleted its declaration. A candidate that keeps the declaration but changes `runs` to drop the surface being run takes the check out of the run: it is never compared with the base, and the run passes. guard/T94–guard/T96 change `trusted`, `command` and `outcomes` and delete the declaration, but none changes `runs`. guard/T100 proves it, both for `ci` and for `hook`.
 - **`guard/C93`.** Plain `init` still says Guard's workflow "runs every ci check in one job"; it has two, `Guard` and `Guard checks`, as `guard/C88` corrected in the workflow's comment.
 - **`guard/C94`.** `verify` reads a step as Guard's declared form when the `run:` line only begins with the invocation, so `npx --no kaal-guard run --check unit --github || true` declares `unit` while the step can never fail. The invocation's end is anchored, as the `verify` form already is.
 - **`guard/C95`.** Plain `init` says nothing about a registered surface file the repository no longer has, such as `.githooks/pre-push` while `core.hooksPath` still points at it, though the README says it is reinstalled and reported. Plain `init` lists it under still to do, naming the `init` that reinstalls it, and the README says the reinstall needs the surface's flag.
@@ -208,6 +208,153 @@ The mixed pair shows that `0.0.3` meets the precondition for guard/T65, guard/T6
 The lane and its `red.json` are gone (#501), so a Test Case written RED in the boundary would land as a red check, and none is marked `todo` or `skip`. guard/T100 is therefore an inner Code test, written in `guard/C92` beside the correction, and its RED run on the uncorrected runner is recorded in that Change's pull request. The same holds for the Code tests of `guard/C93`–`guard/C95`. Whether guard/T100 moves into the boundary later is the Owner's call.
 
 **Publication and release acceptance of `0.0.3` (`guard/C83`).** Guard Release published `@kaihacksai/kaal-guard@0.0.3` on 2026-10-26 (run 40395111724, from main at bf57539, #509, the `npm` environment approved by the Owner), with provenance. Evidence (b) and (c) are recorded in [Testing](testing.md#release-acceptance-of-003-guardc83): between the published `0.0.2` and the published `0.0.3`, both installed from the registry, guard/T65, guard/T67 and guard/T68 are GREEN, and guard/T66 is not exercised for that pair, as the Owner decided on #483. `0.0.3` is accepted.
+
+### Consumer verification (`0.0.4`)
+
+The Owner directed on 2026-10-27 that Guard `0.0.4` becomes verifiable by any npm consumer, and that KAAL Testing states the reusable semantics (guard/I8). The proposal was aligned with Core, which owns kaal-testing, in #kaal (canvas F0CCGQ35B29). This PLAN carries it into Guard's documents.
+
+**Option A, the Owner's decision.**
+- **What ships.** The package ships its outer acceptance cases and a small entry, run through npm's own `npm explore <package> -- npm test`.
+- **Why not B or C.** A `kaal-guard test` command (B) adds a surface for no gain the consumer needs. A harness delivered by KAAL Testing (C) would make Guard depend on another KAAL element (guard/N6), and kaal-testing is not published.
+- **Reuse.** The 71 outer acceptance cases are reused unchanged.
+- **Why the entry.** It is what a bare `npm test` cannot be: fail-closed, three-valued and self-checking (guard/F33–guard/F35).
+
+**The Owner's decisions (#kaal, 2026-10-27).** The three options of the joint proposal are settled:
+1. **Invocation: option A.** The consumer runs npm's own `npm explore @kaihacksai/kaal-guard -- npm test`. A package-owned command alias may be evaluated later and is not part of this decision.
+2. **Scope: acceptance cases only.** Guard ships its product-owned consumer acceptance cases, not its engineering or unit tests.
+3. **`cannot verify` exits 2.** The three results stay distinct: `verified` (0), `failed` (1) and `cannot verify` (2). A run in which no case executed is never `verified`.
+
+The decisions authorize no implementation, version bump, release or publication. Guard's cases stay separate from Testing's reusable semantics, and the acceptance scenario stays an unrelated consumer, the installed distribution and a non-destructive run. This PLAN is the bounded authorization request: its approval authorizes `guard/C98` only, and the bump, the release and publication each still need their own.
+
+**Order.**
+1. testing/C9 PLAN, Core's Definition-only Change, lands first, because guard/N13 cites its identifiers.
+2. `guard/C97`, this PLAN. Documents only.
+3. `guard/C98` writes guard/T101–guard/T106 with their RED evidence, then the entry, the manifest, the `files` change and the README section.
+4. `guard/C99` sets the version to `0.0.4`, with its release notes.
+5. The promotion follows.
+6. Guard Release publishes `0.0.4` (`guard/C100`), with the Owner's approval of the `npm` environment.
+7. `guard/C101` records release acceptance.
+
+**What release acceptance of `0.0.4` (`guard/C101`) requires:**
+- guard/T101–guard/T106 GREEN against the `packed` candidate on Linux, macOS and Windows;
+- after publication, guard/T101–guard/T103 and guard/T105 GREEN against `@kaihacksai/kaal-guard@0.0.4` installed from the registry, on Linux, with the registry's integrity recorded beside the lockfile's;
+- guard/T65, guard/T67 and guard/T68 GREEN between the published `0.0.3` and `0.0.4`.
+
+**Limitations the README states:**
+- The verification shows that the delivered cases pass on the consumer's machine, within their coverage. It does not show this repository's integration, its own checks, or complete correctness.
+- The manifest detects a changed installed copy, but it is not npm provenance.
+- Registry evidence is from Linux alone.
+
+### The complete product (`0.0.4`)
+
+On #536 (2026-10-27) the Owner set two principles. First, each package carries its complete, canonical consumer-facing specification and its Test Cases, owned by responsibility, not loop depth. Second, Engineering and Product are separated cleanly, with one authority for a shared concern. The Owner approved `guard/C98` as bounded and left the rest to this PLAN and its DO review. `guard/C102` applies the principles: guard/I9, guard/F37–guard/F40, guard/N14, guard/A19, guard/A20 and the planned guard/T107–guard/T112.
+
+**Where each asset goes.** The layout proposed on #536 is the basis:
+- **Product, delivered** (`packages/kaal-guard/`):
+  - the product Intent, Requirements, Architecture, Testing and Limitations in `docs/`;
+  - Operations in the README and the Skill;
+  - `bin/`, `lib/`, `templates/` and `contract.json`;
+  - the outer cases in `test/acceptance/`;
+  - the inner Code tests in `test/unit/`;
+  - the verification entry and its manifest.
+- **Engineering, not delivered** (`engineering/guard/`): as guard/A20 lists.
+- **Split documents.** `intent.md`, `requirements.md`, `architecture.md` and `testing.md` each split by identifier. Engineering keeps only its own identifiers and cites the product's.
+- **The Defect register.** Its consumer statement goes to `docs/limitations.md`. Its RED traces stay Engineering evidence.
+
+**Order.** It replaces steps 4 to 7 of [Consumer verification](#consumer-verification-004):
+1. `guard/C102`, this PLAN. Documents only.
+2. `guard/C103` moves the product contract into the package and adds the authority check:
+   - guard/F37, guard/N14, guard/A19's documents and guard/A20;
+   - guard/T107 and guard/T111, written RED first.
+
+   External's derived templates and guard/T112 moved to `guard/C105`, as [Testing](testing.md#the-complete-product-004) records. `guard/C103` enforces guard/N14's Definitions. It does not meet Derived assets.
+
+   Every identifier keeps its text and its number, and no accepted test is weakened.
+3. `guard/C104` ships the inner loop and makes the verdict judge loops, coverage and applicability:
+   - guard/F38–guard/F40;
+   - guard/T108–guard/T110, written RED first;
+   - `test/unit/`, the manifest's new members and the entry;
+   - the coverage choice for each identifier no case cites today.
+
+   It depends on `guard/C103`, because coverage needs the product identifiers in the package.
+4. `guard/C99` sets the version to `0.0.4`, with its release notes.
+5. The promotion follows, with its sync immediately before it.
+6. `guard/C100` publishes, with the Owner's approval of the `npm` environment.
+7. `guard/C101` records release acceptance. To what [Consumer verification](#consumer-verification-004) requires, it adds guard/T107–guard/T111 GREEN against the `packed` candidate on Linux, macOS and Windows. guard/T112 is not part of it: it comes with `guard/C105`.
+
+All of it collects in `kaal/guard-verify` as one Guard `0.0.4` increment. This PLAN authorizes `guard/C103` and `guard/C104` only. The bump, the promotion, the release and publication each still need their own approval.
+
+**`guard/C105`: External's derived templates, after `0.0.4`.** guard/N14 requires External's templates to be derived from the package's assets. `guard/C105` meets that requirement and does not weaken it.
+- **Scope.** There are three pairs, each a template in `engineering/guard/external/templates/` and the product asset it derives from:
+  - the hook, `pre-push`, with its `guard.sh`, from the package's `templates/pre-push`;
+  - the workflow, `guard.yml`, from the package's `templates/guard.yml`;
+  - the Skill, `skills/kaal-guard/SKILL.md`, from the package's `skills/kaal-guard/SKILL.md`.
+
+  For each pair, the External tooling declares one transformation that produces the template from the product asset. The transformation carries what External does differently, the `guard.sh` runner and one CI job per check, as declared, reviewable steps rather than a copy kept by hand. `GUARD.md` has no product counterpart, so it is External's own asset and outside guard/N14's Derived assets.
+- **The Test Case, written RED first.** guard/T112: for each pair, applying the declared transformation to the current product asset gives the template byte for byte. guard/T112 fails, naming the template, when a template has no declared transformation or differs from what the transformation gives. Its RED run is recorded in `guard/C105`'s pull request before the transformation lands. It runs in the `Engineering` job.
+- **Accepted when** all of these hold:
+  - guard/T112 is GREEN;
+  - External's delivery cases, guard/T3, guard/T56, guard/T83 and guard/T93, stay GREEN with unchanged assertions;
+  - guard/N14 records Derived assets as enforced.
+
+  If a template cannot be produced from its product asset by a declared transformation, `guard/C105` does not narrow guard/N14 or its test. Instead it returns to the Owner as a PLAN that proposes how to amend guard/N14.
+- **Approval.** `guard/C105` is not part of the `0.0.4` increment and is not authorized by this PLAN. It is raised as its own Change, under its own approval.
+
+### Consumer-experience corrections (`0.0.4`, `guard/C107`)
+
+On #544 (2026-10-28), the Owner's pre-release review of the packed `0.0.4` candidate from `afa9ca3` found no functional blocker. It did find three consumer-experience defects that must be corrected before publication, plus four documentation corrections. `guard/C107` is the PLAN for them, and `guard/C108` carries them out. Both collect in `kaal/guard-verify` into the same `0.0.4` increment, so `0.0.4` stays unpublished and gets no new version. The approved Changes `guard/C98`, `guard/C103`, `guard/C104` and `guard/C99` are not reopened. `guard/C108` is its own Change.
+
+**What `guard/C108` changes.** Each correction comes with its Test Case, written RED first. Its RED run against `afa9ca3` is recorded in `guard/C108`'s pull request before the fix lands.
+
+- **S1, temporary directories.** One verification run leaves about 150 directories (147 MB) in the operating system's temporary directory.
+  - Every test-owned `mkdtemp` root is removed by the hook of the test or file that made it (`t.after` or `after`), so it is removed on failure too. That covers the delivered cases (`test/unit/`, `test/acceptance/`, `harness.mjs`) and Engineering's acceptance files (`package.test.mjs`, `delivery.mjs`).
+  - guard/T113 runs the documented command twice against the packed candidate, with the child's temporary directory set to a fresh, empty directory: once passing and once with a planted failing case. After each run the directory is empty again.
+  - Engineering's own acceptance files are not delivered, so no Test Case covers them. Their cleanup is shown in the pull request: one run of the `Guard` command under an empty temporary directory, listed before and after.
+- **S2, sockets and FIFOs.** `snapshot()` reads every entry that is not a directory or link as a file. A Unix socket, such as Git's fsmonitor daemon's `.git/fsmonitor--daemon.ipc`, gives `cannot verify` with the wrong advice to reinstall. A FIFO hangs the run.
+  - `snapshot()` hashes regular files only. Every other entry is recorded by its kind (`socket`, `fifo`, `char`, `block`, `other`) and never opened, so a change of kind still counts as a change.
+  - The "verification itself could not complete" cause names the error and asks for this output to be reported. It no longer advises reinstalling. guard/F33 lists this cause.
+  - guard/F35 states how such entries are compared.
+  - guard/T114 runs on a consumer that holds a Unix socket and a FIFO. The run completes within its time limit, gives `verified`, exit 0, and does not name either entry. Replacing the FIFO with a regular file between snapshots gives `failed`, naming it.
+  - Windows' file system has neither kind. So guard/T114 is registered on Linux and macOS only, and its evidence is recorded for those two hosts.
+- **S3, a change during the run.** The verdict stays `failed`, exit 1, naming the changed paths. Its semantics are not changed here.
+  - The next step changes from "restore those paths from version control" to: check whether you, an editor or a tool such as Git changed these paths during the run; if nothing did, report this output to the package's maintainers.
+  - The README and guard/F35 say the project should stay idle during the run.
+  - guard/T115 plants a delivered case that appends to a consumer file. The result is `failed`, exit 1, naming that path and the new next step, and no output line advises restoring anything.
+- **S4, Git's background maintenance** (found by this PLAN's own CI, #545). Git 2.56 on the macOS runner runs automatic maintenance in the background after the fixture's commits. It creates and removes `.git/objects/maintenance.lock` while the files are being read, so guard/T101, guard/T102 and guard/T105 fail with `ENOENT` in Engineering's own snapshot. The product's `snapshot()` has the same race: a file that is listed and then gone before it is read ends the run as "could not complete", and a consumer whose Git maintains itself during a run gets `failed`.
+  - `snapshot()` (the product's and Engineering's) records an entry that disappears between listing and reading as absent at that moment, and does not fail. A path that differs between the two snapshots is still named, under S3's next step, which already names Git.
+  - The consumer fixture sets `maintenance.auto false` and `gc.auto 0`, so the cases do not race with Git. That is `guard/C110` (#546). It goes ahead of this PLAN because macOS CI is red without it.
+  - guard/T117 calls the exported `snapshot()` with the file-system reads it uses passed in. A file is listed and then removed before it is read. The case checks that `snapshot()` completes and records the file as absent. Against `afa9ca3` it is RED, because `snapshot()` throws `ENOENT`.
+- **N1–N4, documentation.**
+  - N1: a run takes a few minutes, and on Windows up to about 11 (guard/T101 took 668 s in CI).
+  - N2: under `npm explore`, npm may print its own lines after the summary line, so the summary is the last line the verifier prints, not the last line of output.
+  - N3: the lockfile integrity is read from npm's hidden `node_modules/.package-lock.json`, not from the project's lockfile.
+  - N4: the release notes say plainly that `upgrade` rewrites the version fields of the installation record even when no managed asset's bytes change.
+- **The release notes for `0.0.4`** gain the S1–S3 corrections.
+
+**The Product and Engineering Test Plans (the Owner, #545).** The package ships one consumer-facing Product Verification Test Plan: its `docs/testing.md`, its loops (Intent, Requirements, Architecture and Code), its delivered cases and the manifest `test/verify.json` derived from them. The publisher's Engineering and Release Acceptance Test Plan is `engineering/guard/testing.md` and its cases under `engineering/guard/`. It reuses the product's Test Cases by identifier, adds publisher-only cases, and is never shipped. `guard/C107` and `guard/C108` keep that line:
+- guard/T113–guard/T117 are Engineering cases, in `engineering/guard/acceptance/package.test.mjs`, and do not ship.
+- What `guard/C108` changes in the tarball is product behaviour (`test/verify.mjs`, the delivered cases' cleanup) and product documentation. The tarball gains no publisher plan, machinery or evidence.
+- guard/T107 checks that no shipped document cites an Engineering path or a Change as its authority, and guard/T102 that the manifest names exactly what is installed. No case yet checks that the tarball holds no publisher material: the review checked it by hand. So `guard/C108` adds guard/T116: the packed candidate holds only the package's declared `files`, and no path from `engineering/`, no Engineering Test Plan and no release evidence.
+
+`guard/C108` also corrects the product's wording of the 17 items it calls exemptions. They are not exemptions from Testing. They are obligations allocated to the publisher's Engineering Test Plan, and a consumer run does not verify them:
+- In `docs/testing.md`, the section becomes "Allocated to the publisher's Engineering Test Plan", and its column "Verified instead" becomes "Allocated to". Each row says what the publisher runs, without claiming that it passed.
+- The output line becomes `not verified by this run, allocated to the publisher: <id>: <where>`. The summary line's `exempted` becomes `allocated`, and the manifest's `exemptions` becomes `allocated`. The README, guard/F38, guard/A19 and guard/A20 follow.
+- guard/F20 (Guidance) has no Test Case in either plan. It is the publisher's review of the Skill and the README. So it is reported as `unverified: no Test Case verifies it; the publisher reviews it with each release`, never as an allocation that passed. It still does not change the result, as today.
+- The allocation rows say "before each release", which is true only as far as a release's evidence shows it. Until `guard/C109` gates it, they say "in the publisher's release evidence", and `guard/C100` supplies that evidence for `0.0.4`.
+- guard/T108's assertions change in wording only: "allocated" instead of "exempted", and "not verified by this run" stays. Its semantics do not change: the item is visible, never counted as covered, and the run stays `verified`. guard/T108 also gains guard/F20's `unverified` line.
+
+A generic Test Plan object is a later Testing improvement, outside this Change.
+
+**N5, release assurance.** The 17 exemptions rest on the publisher's evidence. `guard/C100` therefore shows, in its pull request and before you approve the `npm` environment, the check runs of the exact SHA Guard Release packs: `Engineering`, and `Guard` on Linux, macOS and Windows. That is evidence for one release. It is not an enforced gate. A durable gate is investigated separately as `guard/C109`, after `0.0.4`.
+
+**Not in scope.** N6 (package size), N7 (`--version`) and M1–M3 from the `0.0.3` review stay tracked separately.
+
+**How it fits the promotion.** One sync and one promotion still carry `0.0.4`.
+1. `guard/C107`, this PLAN, then `guard/C108`, both into `kaal/guard-verify`.
+2. #544 stays open as the one sync. After `guard/C108` lands, its branch takes `kaal/guard-verify` (and main, if main has moved) by merge, so it is still the sync made immediately before the promotion.
+3. PROMOTION `kaal/guard-verify` → main.
+
+This PLAN authorizes `guard/C108` only. It authorizes no promotion, release or publication.
 
 ### First release and later upgrades
 
@@ -293,7 +440,21 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C94` | — | Guard | `verify` reads a `run:` line as Guard's declared form only when the invocation is the whole line, so a trailing `|| true`, `;` or `&` declares nothing | `guard/C91` | #507, merged; promoted in #509 |
 | `guard/C95` | — | Guard | Plain `init` lists a registered surface file the repository no longer has under still to do, naming the `init` that reinstalls it | `guard/C91` | #508, merged; promoted in #509 |
 | `guard/C83` | — | Guard | Release acceptance of `0.0.3`: guard/T65, guard/T67 and guard/T68 GREEN with `registry` evidence between the published `0.0.2` and `0.0.3`, and guard/T66 recorded as not exercised for that pair (the Owner on #483). Recorded after publication; `0.0.3` is accepted only then | `guard/C81` (the publication of `0.0.3`), `guard/C82` | #510 |
-| `guard/C96` | — | Guard | The README's `Guard/Check` limitation states what KAAL Core now does with typed artifacts since `core/C10`: Core reports a declaration registered only when a `Guard/Check` Type Definition owned by Guard is admitted, Guard installs none, so declarations are unregistered and `kaal verify` passes on them. Docs only; the published `0.0.3` README is unchanged until the next release | `guard/C83` | not created |
+| `guard/C96` | — | Guard | The README's `Guard/Check` limitation states what KAAL Core now does with typed artifacts since `core/C10`: Core reports a declaration registered only when a `Guard/Check` Type Definition owned by Guard is admitted, Guard installs none, so declarations are unregistered and `kaal verify` passes on them. Docs only; the published `0.0.3` README is unchanged until the next release | `guard/C83` | #515, merged; promoted in #522 |
+| `guard/C97` | — | Guard | PLAN for consumer verification in `0.0.4`: guard/I8, guard/F31–guard/F36, guard/N13, guard/A18 and the planned guard/T101–guard/T106. Documents only; the Owner's three decisions recorded | testing/C9 | #529 |
+| `guard/C98` | — | Guard | guard/T101–guard/T106 written with their RED evidence recorded, then the verification entry, its manifest, the package's `files` and `test` script, and the README section. guard/T98 runs the package's own tests by their files, because `npm test` becomes the consumer's verification | `guard/C97` | #536, merged |
+| `guard/C102` | — | Guard | PLAN for the complete product in `0.0.4`: guard/I9, guard/F37–guard/F40, guard/N14, guard/A19, guard/A20 and the planned guard/T107–guard/T112, applying the Owner's principles on #536. Documents only | `guard/C98` | #537 |
+| `guard/C103` | — | Guard | The product contract moves into the package's `docs/`, and Engineering keeps only its own identifiers. guard/T107 and guard/T111 are written with their RED evidence, and the manifest generator writes the product's trace | `guard/C102` | #538 |
+| `guard/C106` | — | Guard | The `Guard` jobs and Guard Release also run `packages/kaal-guard/test/unit/*.test.mjs`. `.github` travels alone, so it lands before `guard/C104` moves the inner tests; until then the pattern matches nothing | `guard/C103` | #539 |
+| `guard/C104` | — | Guard | The inner loop ships in `test/unit/`, and the verdict judges loops, coverage and applicability. guard/T108–guard/T110 are written with their RED evidence, and each identifier no case cited is named in a case title or exempted, as [Testing](testing.md#the-complete-product-004) lists | `guard/C106` | #540 |
+| `guard/C105` | — | Guard | External's hook, workflow and Skill templates derived from the package's under guard/N14 by declared transformations, with guard/T112 written RED first; scope and acceptance [above](#the-complete-product-004). Not part of the `0.0.4` increment, and not authorized by `guard/C102` | `guard/C103` | not created |
+| `guard/C99` | — | Guard | Version `0.0.4` and its release notes | `guard/C104` | #541 |
+| `guard/C100` | — | Guard | Publication of `0.0.4` through Guard Release, with the Owner's approval of the `npm` environment and, before it, the exact release SHA's check runs on Linux, macOS and Windows (`guard/C107`) | `guard/C99`, `guard/C108`, the promotion | not created |
+| `guard/C101` | — | Guard | Release acceptance of `0.0.4`, as [Consumer verification](#consumer-verification-004) states | `guard/C100` | not created |
+| `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
+| `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
+| `guard/C109` | — | Guard | Investigation of a durable release gate: Guard Release packs only a SHA whose required checks passed on Linux, macOS and Windows. After `0.0.4` | — | not created |
+| `guard/C110` | — | Guard | The Engineering consumer fixture turns Git's automatic maintenance off (`maintenance.auto false`, `gc.auto 0`). Git 2.56 on the macOS runner otherwise races guard/T101, guard/T102 and guard/T105's snapshots. Fixture only; the product's race is S4 in `guard/C108` | `guard/C99` | #546 |
 | `guard/C18` | K4 | Guard | A non-required job running guard/A12 on three OSes. Proposed, not authorized | — | not created |
 | `guard/C19` | K5 | Guard | Publication of `0.0.2`, only with the Owner's authorization, with release notes documenting the breaking changes, the fresh `0.0.2` setup and the accepted limitation of the [release boundary](#002-release-boundary) | `guard/C10`, `guard/C25` for `guard/C9` and `guard/C11`, `guard/C15`–`guard/C17`, `guard/C51`, `guard/C64`–`guard/C70`, `guard/C74`, the conformance evidence | not created |
 | `guard/C20` | K6 | Guard | Release acceptance of `0.0.2`: guard/T36, guard/T40, guard/T42, guard/T43 and guard/T64 with `registry` evidence for the published `0.0.2`. guard/T65–guard/T68 do not gate it (restated in `guard/C30`) | `guard/C19`, `guard/C37` | #482; evidence in [Testing](testing.md) |

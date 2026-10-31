@@ -1,11 +1,22 @@
 // Inner Code tests of the configuration: the frontmatter subset, the Guard/Check schema, discovery and the
 // refusals that name the file, the member and the rule. They evolve with the code, test first.
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { describe, it } from "node:test";
-import { CONFIG, check, configDir, frontmatter, legacy, nearest, readDeclarations, Refusal } from "../lib/config.mjs";
+import { after, describe, it } from "node:test";
+import { CONFIG, check, configDir, frontmatter, legacy, nearest, readDeclarations, Refusal } from "../../lib/config.mjs";
+
+/** Every temporary root this file makes, removed when the file ends, whether its tests pass or fail. */
+const roots = [];
+const scratch = (prefix) => {
+  const root = mkdtempSync(join(tmpdir(), prefix));
+  roots.push(root);
+  return root;
+};
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+});
 
 /** The refusal `fn` throws, or a failed assertion. */
 function refusal(fn) {
@@ -99,7 +110,7 @@ describe("Guard/Check", () => {
 });
 
 describe("discovery", () => {
-  const tree = () => mkdtempSync(join(tmpdir(), "kaal-guard-config-"));
+  const tree = () => scratch("kaal-guard-config-");
   const write = (dir, path, text) => (mkdirSync(join(dir, path, ".."), { recursive: true }), writeFileSync(join(dir, path), text));
   const decl = "---\ntype: Guard/Check\ncommand: x\nruns: [ci]\n---\n";
 
