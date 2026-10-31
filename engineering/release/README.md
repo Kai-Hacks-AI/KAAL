@@ -89,15 +89,15 @@ These go in `engineering/release/release.test.mjs` and run in `npm run test:engi
 
 | Test | Checks | Deliberately wrong engine that makes it RED |
 | --- | --- | --- |
-| engineering/T58 | F29: a fixture missing each of the scoped name, `publishConfig.access: public`, `repository.directory`, `license`, `engines.node` and `files`, and one marked `private`, each gives the named finding, and nothing is packed | One that checks only `private` and the version |
-| engineering/T59 | F29: `name@version` on the fixture registry is refused. A runtime dependency at a version the registry lacks is refused and named, and once that version exists the release proceeds | One that checks only the package's own version |
-| engineering/T60 | F28: an unknown package, and a name given as a path, are refused. No list of releasable packages exists outside the manifests | One that accepts any directory |
-| engineering/T61 | F31, F33: the SHA-256 shown is the tarball's. A repack whose SHA-256 differs is cannot judge (exit 2), and publish is never reached | One that publishes the second pack unchecked |
-| engineering/T62 | F32: an installed verification line `verified` passes, `failed` fails, and no line, two lines or another package's line is `unknown`. A check that cannot run is shown as not run and never verified | One that trusts `npm test`'s exit status alone |
-| engineering/T63 | F34: a name absent from the registry is a first publication. The Owner's steps carry the run's SHA-256, file name and package, Publish is refused before approval, and no `npm publish` is run | One that attempts the OIDC publish of a new name |
-| engineering/T64 | F35: a registry tarball whose SHA-256 differs from the one released fails, and one whose sha512 differs from `dist.integrity` fails. Equal bytes and a verified installation are `verified` | One that compares only versions |
-| engineering/T65 | F35: missing provenance fails a version published by F33, and is reported as none, first publication, for F34 | One that ignores provenance, or fails every first publication |
-| engineering/T66 | N15: no engine path runs `npm publish` except F33's, and the engine reads no token variable | One that falls back to `NPM_TOKEN` |
+| engineering/T62 | F29: a fixture missing each of the scoped name, `publishConfig.access: public`, `repository.directory`, `license`, `engines.node` and `files`, and one marked `private`, each gives the named finding, and nothing is packed | One that checks only `private` and the version |
+| engineering/T63 | F29: `name@version` on the fixture registry is refused. A runtime dependency at a version the registry lacks is refused and named, and once that version exists the release proceeds | One that checks only the package's own version |
+| engineering/T64 | F28: an unknown package, and a name given as a path, are refused. No list of releasable packages exists outside the manifests | One that accepts any directory |
+| engineering/T65 | F31, F33: the SHA-256 shown is the tarball's. A repack whose SHA-256 differs is cannot judge (exit 2), and publish is never reached | One that publishes the second pack unchecked |
+| engineering/T66 | F32: an installed verification line `verified` passes, `failed` fails, and no line, two lines or another package's line is `unknown`. A check that cannot run is shown as not run and never verified | One that trusts `npm test`'s exit status alone |
+| engineering/T67 | F34: a name absent from the registry is a first publication. The Owner's steps carry the run's SHA-256, file name and package, Publish is refused before approval, and no `npm publish` is run | One that attempts the OIDC publish of a new name |
+| engineering/T68 | F35: a registry tarball whose SHA-256 differs from the one released fails, and one whose sha512 differs from `dist.integrity` fails. Equal bytes and a verified installation are `verified` | One that compares only versions |
+| engineering/T69 | F35: missing provenance fails a version published by F33, and is reported as none, first publication, for F34 | One that ignores provenance, or fails every first publication |
+| engineering/T70 | N15: no engine path runs `npm publish` except F33's, and the engine reads no token variable | One that falls back to `NPM_TOKEN` |
 
 ## What Foundation needs before its `0.0.1`
 
@@ -106,7 +106,7 @@ Run against `main` at 8a5836b, F29 already finds two gaps in `packages/kaal-foun
 ## Order
 
 1. **engineering/C12**, this PLAN, into `kaal/engineering`.
-2. **engineering/C13 DO**: `engineering/release/` with T58–T66 written RED first, then GREEN, into `kaal/engineering`. It reuses `engineering/delivery/pack.mjs`, and engineering/C7's runner once that lands.
+2. **engineering/C13 DO**: `engineering/release/` with T62–T70 written RED first, then GREEN, into `kaal/engineering`. It reuses `engineering/delivery/pack.mjs`, and engineering/C7's runner once that lands.
 3. **engineering/C14 DO**: `.github/workflows/release.yml`, alone, through its own collector cut from `main`. It only runs once it is on `main`, as every `workflow_dispatch` workflow does.
 4. **Foundation's manifest Change** (repository, publishConfig), in Foundation's collector.
 5. The promotions of 2 to 4, in the queue the Owner keeps.
