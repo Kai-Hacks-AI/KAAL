@@ -54,12 +54,20 @@
     "dist",
     "!dist/.tsbuildinfo",
     "payload",
-    "installation.kaal.json"
+    "installation.kaal.json",
+    "docs",
+    "test/acceptance",
+    "test/unit",
+    "test/run.mjs",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
-    "build": "node scripts/deliver-node.mjs && tsc -b tsconfig.json",
-    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js dist-test/frontmatter.test.js dist-test/installation.test.js dist-test/admission.test.js dist-test/realization.test.js dist-test/lifecycle.test.js dist-test/registration.test.js test/plan/frontmatter.test.mjs test/plan/installation.test.mjs test/plan/admission.test.mjs test/plan/record.test.mjs test/plan/love.test.mjs test/plan/lifecycle.test.mjs test/plan/skill.test.mjs test/plan/structured.test.mjs test/plan/conformance.test.mjs && node --test --test-name-pattern=\"core/T(5[0-3]|5[589]|7[23])\" test/plan/registration.test.mjs && node --test --test-name-pattern=\"core/T(8[1-6]|9[45])\" test/plan/standalone.test.mjs",
+    "build": "node scripts/deliver-node.mjs && tsc -b tsconfig.json && node scripts/manifest.mjs",
+    "test": "node test/run.mjs",
+    "test:publisher": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/core.test.js dist-test/boundary.test.js dist-test/frontmatter.test.js dist-test/installation.test.js dist-test/admission.test.js dist-test/realization.test.js dist-test/lifecycle.test.js dist-test/registration.test.js test/plan/frontmatter.test.mjs test/plan/installation.test.mjs test/plan/admission.test.mjs test/plan/record.test.mjs test/plan/love.test.mjs test/plan/lifecycle.test.mjs test/plan/skill.test.mjs test/plan/structured.test.mjs test/plan/conformance.test.mjs && node --test --test-name-pattern=\"core/T(5[0-3]|5[589]|7[23])\" test/plan/registration.test.mjs && node --test --test-name-pattern=\"core/T(8[1-6]|9[45])\" test/plan/standalone.test.mjs",
     "test:boundary": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/boundary.test.js",
+    "test:consumer": "node test/verify.mjs",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build",
     "bench": "npm run build && node bench/admission.mjs"
   },

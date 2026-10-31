@@ -57,6 +57,12 @@ const EXPECTED_TARBALL = [
   "package/dist/register.js",
   "package/dist/registration.d.ts",
   "package/dist/registration.js",
+  "package/docs/architecture.md",
+  "package/docs/intent.md",
+  "package/docs/limitations.md",
+  "package/docs/operations.md",
+  "package/docs/requirements.md",
+  "package/docs/testing.md",
   "package/installation.kaal.json",
   "package/package.json",
   "package/payload/AGENTS.md",
@@ -71,6 +77,13 @@ const EXPECTED_TARBALL = [
   "package/payload/core/KAAL-Skill.md",
   "package/payload/core/LOVE.md",
   "package/payload/core/Node.md",
+  "package/test/acceptance/architecture.test.mjs",
+  "package/test/acceptance/intent.test.mjs",
+  "package/test/acceptance/requirements.test.mjs",
+  "package/test/run.mjs",
+  "package/test/unit/core.test.mjs",
+  "package/test/verify.json",
+  "package/test/verify.mjs",
 ];
 
 // Commands run through Hosting, which owns how the host realizes them.

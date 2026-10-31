@@ -8,6 +8,17 @@ Core depends on no Git host and no agent provider. Its KAAL runtime dependencies
 
 kaal-core is not released. Its version is 0.0.1, and that version is not published on npm or anywhere else. Its interfaces and the bytes of its foundational Nodes can still change without an upgrade path. Core's releases are separate from those of other KAAL packages: `@kaihacksai/kaal-guard` is published on its own and does not depend on kaal-core, so a Guard release says nothing about Core's.
 
+## Documents
+
+The package ships its own documents in `docs/`:
+
+- [Intent](docs/intent.md): why kaal-core exists and what it must achieve.
+- [Requirements](docs/requirements.md): what it must do, one line for each `core/…` Requirement.
+- [Architecture](docs/architecture.md): its modules, entry points, payload and dependencies.
+- [Limitations](docs/limitations.md): what 0.0.1 does not do, and what its tests cannot show.
+- [Operations](docs/operations.md): supported platforms, installation, use, verification and removal.
+- [Testing](docs/testing.md): the delivered tests, the publisher's tests, and coverage.
+
 ## Install and bootstrap
 
 Until a release, kaal-core is installed from a checkout of this repository:
@@ -186,7 +197,7 @@ installationConformance(contract);
 - the untraced instances, and the terms several owners define, reported unaligned;
 - `outgoing(scope, id)`.
 
-Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations is `capability/Registration.md`, beside the Core Capability Node.
+Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations, `Core/Registration`, sits beside the Core Capability Node in the KAAL repository; it does not ship in this package.
 
 ```js
 import { assemble } from "kaal-core/registration";
