@@ -1,4 +1,8 @@
-# kaal-hosting
+# @kaihacksai/kaal-hosting
+
+```
+npm install @kaihacksai/kaal-hosting
+```
 
 KAAL Hosting is the host-facing KAAL Extension: it enables KAAL to operate within its host environment. This first version provides the filesystem operations KAAL needs and the running of installed commands, with the same guarantees on Linux, Windows and macOS. Anything above Hosting states the operation it needs; how the host realizes it is Hosting's concern. Hosting knows paths, bytes and commands only; what the files mean is KAAL Core's concern.
 
@@ -28,7 +32,7 @@ The API is asynchronous: both guarantees above depend on it.
 
 ## Boundary conformance
 
-`kaal-hosting/conformance` lets a capability gather evidence about whether its own code stays inside the Hosting boundary it declares. It is a separate entry point: importing `kaal-hosting` does not load it.
+`@kaihacksai/kaal-hosting/conformance` lets a capability gather evidence about whether its own code stays inside the Hosting boundary it declares. It is a separate entry point: importing `@kaihacksai/kaal-hosting` does not load it.
 
 `inspect(files, { builtins })` reads the JavaScript modules among `files` (as `read` returns them, for example from the directory a package ships). It checks them against the Node builtins that the consumer declares its code may import directly. Hosting knows only what a host module is. Which host modules are acceptable, and what a capability's boundary is, are the consumer's to declare. The same input always gives the same report.
 

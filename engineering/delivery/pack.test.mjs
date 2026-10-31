@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { initialize } from "kaal-hosting";
+import { initialize } from "@kaihacksai/kaal-hosting";
 import { deliver } from "./pack.mjs";
 
 const TESTING = import.meta.resolve("kaal-testing/acceptance");
