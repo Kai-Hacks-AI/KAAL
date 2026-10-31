@@ -10,8 +10,8 @@ Each element names, in brackets, the Requirements it answers.
 | export | `.` | `./dist/index.js` | delivered |
 | export | `./conformance` | `./dist/conformance.js` | delivered |
 | export | `./package.json` | `./package.json` | delivered |
-| export | `./boundary` | `./dist/boundary.js` | planned hosting/C14 |
-| bin | `kaal-hosting-boundary` | `bin/kaal-hosting-boundary.mjs` | planned hosting/C14 |
+| export | `./boundary` | `./dist/boundary.js` | delivered |
+| bin | `kaal-hosting-boundary` | `bin/kaal-hosting-boundary.mjs` | delivered |
 | files | `dist` |  | delivered |
 | files | `!dist/.tsbuildinfo` |  | delivered |
 | files | `payload` |  | delivered |
@@ -20,8 +20,8 @@ Each element names, in brackets, the Requirements it answers.
 | files | `test/unit` |  | planned hosting/C12 |
 | files | `test/verify.mjs` |  | planned hosting/C12 |
 | files | `test/verify.json` |  | planned hosting/C12 |
-| files | `bin` |  | planned hosting/C14 |
-| files | `skills` |  | planned hosting/C14 |
+| files | `bin` |  | delivered |
+| files | `skills` |  | delivered |
 <!-- /kaal-hosting:interface -->
 
 ## Change graph
