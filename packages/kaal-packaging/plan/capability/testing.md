@@ -26,3 +26,25 @@ The DO writes these cases first and observes each one RED by a behavioural asser
 | packaging/N12 | T29 |
 
 T15's existing F7 cases move to the registry form, with no false RED: a dependency installed from a registry tarball with integrity still verifies.
+
+## RED evidence (packaging/C9)
+
+The cases are in `test/embed/` (T29, T30, T32, T34, T35) and `test/publisher/capability.test.mjs` (T27, T28, T31, T33), run with `npm test -w kaal-packaging` on Node 24.22.1 with npm 11.19.1. Each wrong implementation below was one edit to the GREEN tree, and every case was RED on a behavioural assertion against at least one:
+
+| Wrong implementation | RED |
+| --- | --- |
+| today's package, with no `docs/` shipped (manifest regenerated, so only the contract decides) | T27: `packaging/F8: docs/intent.md is not shipped; …` |
+| the first DO tree itself: a regular expression in `package.test.mjs` read `from "file:…"`, which Packaging's own import scan took for an undeclared import | T27: `packaging/N8: undeclared imports`. Dogfooding found it; the case now quotes with `.` |
+| `test` is not a declared suite's command | T28 |
+| `conform` exits 0 on `unknown` | T29 |
+| `conform` prints `verified` on a failed finding | T29 |
+| the skill names no `kaal-packaging conform` | T30 |
+| the skill restates `unknown` | T30: `it defines "unknown" itself instead of citing Testing` |
+| `AGENTS.md` without a Packaging section | T31 |
+| F7 on version syntax alone, as before packaging/F19 | T15, T32 |
+| a test passing `shell` by platform | T33 |
+| the npm realization ignoring a given `npm` | T34 |
+
+**Two departures from the PLAN, for the Owner.**
+- **T27 and packaging/F7.** The PLAN expected every finding `verified` apart from F13. Under packaging/F19, a dependency installed from a local tarball fails F7, and `kaal-hosting` and `@kaihacksai/kaal-foundation` are not on a registry yet. So T27 holds F7 `failed`, naming exactly those two and nothing else, and every other finding `verified`. It passes Testing's model functions as a caller would, so F13 is decided and `verified`. Once Hosting and Foundation publish, T27 tightens to all `verified`.
+- **packaging/T35.** The case packaging/C5 titled `packaging/A7` now has a case identity, packaging/T35 [packaging/A7], so the verifier can name it in the per-case `cases` and the manifest can declare it.

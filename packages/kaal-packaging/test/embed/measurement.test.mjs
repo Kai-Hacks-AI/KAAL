@@ -1,21 +1,26 @@
-// packaging/C1 planned tests, as packaging/C3 amended them (plan/measurement/testing.md), written
-// at the start of packaging/C2. Each title names the contracts it checks. They use
-// kaal-packaging's public interface only.
+// Packaging's Embedded cases for package size measurement (docs/testing.md): packaging/C1's planned
+// tests as packaging/C3 amended them, and packaging/T34 (packaging/C8). Each title names, in
+// brackets, the identifiers it tests. They use kaal-packaging's public interface only, and run
+// against the copy they ship in, installed or in its source workspace.
 //
-// packaging/T9, T10 and T13 run against a stand-in npm on a PATH the test controls, so they do not
-// depend on how npm behaves. packaging/T1, T7, T11, T12 and T14 run the npm the lane installed.
+// packaging/T9, T10, T13 and T34 run against a stand-in npm, a Node script given to `measure` as
+// its `npm` (packaging/A13), so they do not depend on how npm behaves. packaging/T1, T7, T11, T12
+// and T14 run the npm the lane installed. Every process they start goes through Hosting's
+// `execute`, which owns how a command starts on a host (packaging/N11).
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
+import { execute } from "kaal-hosting";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRATCH = mkdtempSync(join(tmpdir(), "kaal-packaging-test-"));
+// The scratch space is removed when the file's cases end (packaging/N7).
+after(() => rmSync(SCRATCH, { recursive: true, force: true }));
 let made = 0;
 
 /** kaal-packaging's entry point, or the reason a test is blocked before any behavioural assertion. */
@@ -104,20 +109,22 @@ async function measured(bytes) {
   return measure(save(bytes), { work: fresh("work") });
 }
 
-/** What the installed npm reports for the artifact at `path`, run directly, or its error. */
-function npmReport(path) {
+/** What the installed npm reports for the artifact at `path`, run directly through Hosting. */
+async function npmReport(path) {
   const work = fresh("work");
   const args = ["pack", "--dry-run", "--json", "--ignore-scripts", "--offline", "--cache", join(work, "cache"), "--logs-max=0", "--no-update-notifier", "--userconfig", join(work, "npmrc"), "--", path];
-  return JSON.parse(execFileSync("npm", args, { cwd: work, encoding: "utf8", shell: process.platform === "win32" }))[0];
+  const r = await execute("npm", args, { cwd: work });
+  assert.equal(r.status, 0, r.stderr);
+  return JSON.parse(r.stdout)[0];
 }
 
-/** A stand-in npm in its own directory: it prints FAKE_NPM_VERSION for --version, and otherwise
- *  appends a byte to the artifact when FAKE_NPM_TOUCH is set, writes FAKE_NPM_REPORT, and exits
- *  FAKE_NPM_STATUS. Its directory holds both a POSIX launcher and a Windows .cmd one. */
+/** A stand-in npm: a Node script that prints FAKE_NPM_VERSION for --version, and otherwise appends
+ *  a byte to the artifact when FAKE_NPM_TOUCH is set, writes FAKE_NPM_REPORT, and exits
+ *  FAKE_NPM_STATUS. It is given to `measure` as its `npm` (packaging/A13); no launcher is written. */
 function standIn() {
-  const dir = fresh("stand-in");
+  const path = join(fresh("stand-in"), "fake-npm.mjs");
   writeFileSync(
-    join(dir, "fake-npm.mjs"),
+    path,
     `import { appendFileSync, readFileSync } from "node:fs";
 const args = process.argv.slice(2);
 if (args[0] === "--version") { process.stdout.write(process.env.FAKE_NPM_VERSION + "\\n"); process.exit(0); }
@@ -126,10 +133,7 @@ process.stdout.write(readFileSync(process.env.FAKE_NPM_REPORT, "utf8"));
 process.exit(Number(process.env.FAKE_NPM_STATUS ?? 0));
 `,
   );
-  writeFileSync(join(dir, "npm"), `#!/bin/sh\nexec "${process.execPath}" "\${0%/*}/fake-npm.mjs" "$@"\n`);
-  chmodSync(join(dir, "npm"), 0o755);
-  writeFileSync(join(dir, "npm.cmd"), `@"${process.execPath}" "%~dp0fake-npm.mjs" %*\r\n`);
-  return dir;
+  return path;
 }
 
 /** Run `fn` with the environment changed by `env`, restoring it after. */
@@ -168,8 +172,8 @@ async function standInMeasure(bytes, output, { version = "11.21.1", status = 0, 
   const { measure } = await packaging();
   const reportFile = join(fresh("report"), "report.json");
   writeFileSync(reportFile, typeof output === "string" ? output : JSON.stringify([output]));
-  const env = { PATH: standIn(), FAKE_NPM_VERSION: version, FAKE_NPM_REPORT: reportFile, FAKE_NPM_STATUS: String(status), FAKE_NPM_TOUCH: touch ? "1" : "" };
-  return withEnv(env, () => measure(path ?? save(bytes), { work: fresh("work"), limits }));
+  const env = { FAKE_NPM_VERSION: version, FAKE_NPM_REPORT: reportFile, FAKE_NPM_STATUS: String(status), FAKE_NPM_TOUCH: touch ? "1" : "" };
+  return withEnv(env, () => measure(path ?? save(bytes), { work: fresh("work"), limits, npm: standIn() }));
 }
 
 /** A refusal: an Error, not a TypeError or RangeError escaping from inside, whose message matches. */
@@ -223,7 +227,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     assert.deepEqual(back, m);
     assert.equal(back.package.sha256, createHash("sha256").update(artifact).digest("hex"));
     assert.deepEqual([back.package.name, back.package.version], ["@kaal/fixture", "1.0.0"]);
-    const printed = execFileSync("npm", ["--version"], { encoding: "utf8", shell: process.platform === "win32" }).trim();
+    const printed = (await execute("npm", ["--version"], { cwd: fresh("work") })).stdout.trim();
     assert.deepEqual(back.tool, { name: "npm", version: printed });
     assert.throws(() => read(JSON.stringify({ ...m, verdict: "ok" })), /not a Packaging measurement record/);
     const { tool: _tool, ...untooled } = m;
@@ -244,7 +248,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     assert.match(render(compare(a, b, ["lib/"])), /\+4300/);
   });
 
-  it("packaging/T6 [packaging/N3, packaging/A1, packaging/A6]: the package imports only kaal-hosting (and its conformance, for hosting/F36's OS boundary) and kaal-foundation, never Testing (packaging/F13 takes Testing's model functions from its caller), no node: module, and parses no archive or compression format", () => {
+  it("packaging/T6 [packaging/N3, packaging/A1, packaging/A6]: the package imports only kaal-hosting (and its conformance, for hosting/F36's OS boundary) and kaal-foundation, never Testing (packaging/F13 takes Testing's model functions from its caller), no node: module, reads nothing of the process but the running Node's location (packaging/A13), and parses no archive or compression format", () => {
     const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
     for (const dep of Object.keys(pkg.dependencies ?? {})) assert.ok(["kaal-hosting", "@kaihacksai/kaal-foundation"].includes(dep), dep);
     const lib = join(PACKAGE, "lib");
@@ -256,7 +260,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
       for (const s of specifiers) {
         assert.ok(s.startsWith("./") || s.startsWith("../") || s === "kaal-hosting" || s === "kaal-hosting/conformance" || s.startsWith("@kaihacksai/kaal-foundation/"), `${file} imports ${s}`);
       }
-      assert.doesNotMatch(source, /\brequire\s*\(|\bprocess\.|\bglobalThis\b/, file);
+      assert.doesNotMatch(source, /\brequire\s*\(|\bprocess\.(?!execPath\b)|\bglobalThis\b/, file);
       assert.doesNotMatch(source, /\binflate|gunzip|\bzlib\b|crc-?32|ustar|DecompressionStream|512\s*\*|subarray\(/i, `${file} parses an archive or compression format`);
     }
   });
@@ -282,7 +286,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     const { attribute, measure } = await packaging();
     // The tarball `npm pack @kaihacksai/kaal-guard@0.0.4` fetched from the registry, whose shasum
     // for it is 1cdfe8045dc520aa78443d21e042d1b6ca05655d.
-    const fixture = join(PACKAGE, "test", "fixtures", "kaal-guard-0.0.4.tgz");
+    const fixture = join(PACKAGE, "test", "embed", "fixtures", "kaal-guard-0.0.4.tgz");
     assert.equal(createHash("sha1").update(readFileSync(fixture)).digest("hex"), "1cdfe8045dc520aa78443d21e042d1b6ca05655d");
     const m = await measure(fixture, { work: fresh("work") });
     assert.deepEqual([m.package.name, m.package.version], ["@kaihacksai/kaal-guard", "0.0.4"]);
@@ -350,14 +354,14 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     ];
     for (const [inTar, reported] of cases) {
       const path = save(raw([pkg, [inTar, "evil"]]));
-      assert.ok(npmReport(path).files.some((f) => f.path === reported), `npm reports ${inTar} as ${reported}`);
+      assert.ok((await npmReport(path)).files.some((f) => f.path === reported), `npm reports ${inTar} as ${reported}`);
       await assert.rejects(measure(path, { work: fresh("work") }), refusal(/unsafe path/), inTar);
     }
     const directory = save(gzipSync(Buffer.concat([entry("package/", Buffer.alloc(0), "5"), entry(pkg[0], Buffer.from(pkg[1])), Buffer.alloc(1024)])));
-    assert.ok(npmReport(directory).files.some((f) => f.path === ""), "npm reports the directory entry package/ as an empty path");
+    assert.ok((await npmReport(directory)).files.some((f) => f.path === ""), "npm reports the directory entry package/ as an empty path");
     await assert.rejects(measure(directory, { work: fresh("work") }), refusal(/unsafe path: ""/));
     const path = save(raw([pkg, ["package/a.txt", "one"], ["package/a.txt", "two!"]]));
-    assert.equal(npmReport(path).files.filter((f) => f.path === "a.txt").length, 2, "npm reports a.txt twice");
+    assert.equal((await npmReport(path)).files.filter((f) => f.path === "a.txt").length, 2, "npm reports a.txt twice");
     await assert.rejects(measure(path, { work: fresh("work") }), refusal(/reported a\.txt twice/));
   });
 
@@ -386,7 +390,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     await assert.rejects(standInMeasure(bytes, ok, { version: "eleven" }), refusal(/"eleven", which is not a semantic version/));
   });
 
-  it("packaging/T14 [packaging/A6]: after measure, nothing has been written outside the working directory, and a working directory whose configuration and scripts invite a real pack changes nothing", () => {
+  it("packaging/T14 [packaging/A6]: after measure, nothing has been written outside the working directory, and a working directory whose configuration and scripts invite a real pack changes nothing", async () => {
     const home = fresh("home");
     const work = fresh("work");
     writeFileSync(join(work, ".npmrc"), "dry-run=false\nignore-scripts=false\njson=false\n");
@@ -398,9 +402,35 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     const script = `const { measure } = await import(${JSON.stringify(entry)}); const m = await measure(${JSON.stringify(artifact)}, { work: ${JSON.stringify(work)} }); console.log(m.files.length);`;
     const env = { ...process.env, HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: join(home, ".config"), XDG_CACHE_HOME: join(home, ".cache"), APPDATA: join(home, "AppData"), LOCALAPPDATA: join(home, "LocalAppData") };
     for (const k of Object.keys(env)) if (/^npm_config_/i.test(k)) delete env[k];
-    assert.equal(execFileSync(process.execPath, ["--input-type=module", "-e", script], { env, encoding: "utf8" }).trim(), String(Object.keys(BASE).length));
+    const r = await execute(process.execPath, ["--input-type=module", "-e", script], { cwd: fresh("cwd"), env });
+    assert.equal(r.stdout.trim(), String(Object.keys(BASE).length), r.stderr);
     assert.deepEqual(readdirSync(home), [], "nothing was written to the home directory");
     assert.deepEqual(readdirSync(artifactDir), ["artifact.tgz"], "nothing was written beside the artifact");
     assert.deepEqual(readdirSync(work).sort(), [".npmrc", "cache", "package.json"], "no pack, no prepack, only npm's cache in the working directory");
+  });
+
+  it("packaging/T34 [packaging/N11, packaging/A13]: measure and conform run a given npm script through Hosting, and a stand-in reaches them only that way", async () => {
+    const { measure } = await packaging();
+    const { conform } = await import("kaal-packaging/conformance");
+    const bytes = tarball(BASE);
+    const reportFile = join(fresh("report"), "report.json");
+    writeFileSync(reportFile, JSON.stringify([report(bytes, { "package.json": 10 })]));
+    const env = { FAKE_NPM_VERSION: "11.99.0", FAKE_NPM_REPORT: reportFile, FAKE_NPM_STATUS: "0", FAKE_NPM_TOUCH: "" };
+    const script = standIn();
+    // Given as npm, the stand-in answers: its version is recorded.
+    assert.equal((await withEnv(env, () => measure(save(bytes), { work: fresh("work"), npm: script }))).tool.version, "11.99.0");
+    // Without it, the installed npm describes the same artifact: the stand-in is reached only as given.
+    const installed = await withEnv(env, () => measure(save(bytes), { work: fresh("work") }));
+    assert.notEqual(installed.tool.version, "11.99.0");
+    assert.equal(installed.unpacked, total(BASE));
+    // A relative or non-string npm is refused before anything runs.
+    await assert.rejects(measure(save(bytes), { work: fresh("work"), npm: "fake-npm.mjs" }), /absolute location of a Node script/);
+    // conform runs the package's npm test through the same given script.
+    const dir = fresh("installed");
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "kaal-stand-in", version: "1.0.0", scripts: { test: "node nothing.mjs" }, engines: { node: ">=24" } }));
+    const testScript = join(fresh("stand-in"), "npm-test.mjs");
+    writeFileSync(testScript, `if (process.argv[2] === "test") { console.log("kaal-stand-in-verification " + JSON.stringify({ result: "failed", exit: 1, cases: [], causes: ["the stand-in npm ran"] })); process.exit(1); }\n`);
+    const r = await conform(dir, { consumer: fresh("consumer"), npm: testScript });
+    assert.deepEqual(r.reported, { result: "failed", exit: 1, causes: ["the stand-in npm ran"] });
   });
 });
