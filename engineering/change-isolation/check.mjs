@@ -8,7 +8,10 @@
 // A declared migration is the one exception to rule 1, for a Change that cannot be split because
 // Core and the files beyond it must move together. It names its Change, the Owner's decision, and
 // the exact set of other paths it carries. A change is judged under it only when its paths beyond
-// Core and CORE_SUPPORT are exactly that set: one path more or one fewer, and rule 1 applies.
+// Core and CORE_SUPPORT are exactly that set: one path more or one fewer, and rule 1 applies. A
+// malformed entry, one that lists a path twice, names a Core, supporting or .github path, or is not
+// a normal repository-relative path, never applies. The exception is temporary: a governed
+// Engineering Change removes the entry once its Change has landed.
 //
 // Usage: check.mjs < paths
 // Reads the change's repository-relative paths from stdin, NUL- or newline-separated. The caller
@@ -29,7 +32,7 @@ const CORE_SUPPORT = [
   /^engineering\/acceptance\/embed\.test\.mjs$/, // Core's own acceptance evidence
 ];
 
-/** Declared migrations. Each entry is removed once its Change has merged. */
+/** Declared migrations. Each entry is temporary: a governed Engineering Change removes it once its Change has landed. */
 export const MIGRATIONS = [
   {
     // hosting/C11 (#657) renames kaal-hosting to @kaihacksai/kaal-hosting. Core imports Hosting,
@@ -89,13 +92,25 @@ export const MIGRATIONS = [
 const GITHUB = /^\.github\//;
 
 const any = (patterns, path) => patterns.some((p) => p.test(path));
+const normal = (p) => typeof p === "string" && p.split("/").every((s) => s !== "" && s !== "." && s !== "..");
 
-/** @param {string[]} paths repository-relative changed paths @returns {string[]} violations */
-export function check(paths) {
+/** Whether a migration entry is well formed. One that is not never applies. */
+export function wellFormed(m) {
+  if (!m || typeof m.change !== "string" || m.change === "" || typeof m.decision !== "string" || m.decision === "") return false;
+  if (!Array.isArray(m.paths) || m.paths.length === 0 || new Set(m.paths).size !== m.paths.length) return false;
+  return m.paths.every((p) => normal(p) && !any(CORE, p) && !any(CORE_SUPPORT, p) && !GITHUB.test(p));
+}
+
+/**
+ * @param {string[]} paths repository-relative changed paths
+ * @param {object[]} [migrations] the declared migrations; tests pass their own
+ * @returns {string[]} violations
+ */
+export function check(paths, migrations = MIGRATIONS) {
   const violations = [];
   if (paths.some((p) => any(CORE, p))) {
     const beyond = [...new Set(paths.filter((p) => !any(CORE, p) && !any(CORE_SUPPORT, p)))].sort();
-    const declared = MIGRATIONS.some((m) => [...m.paths].sort().join("\0") === beyond.join("\0"));
+    const declared = migrations.some((m) => wellFormed(m) && [...m.paths].sort().join("\0") === beyond.join("\0"));
     for (const p of declared ? [] : paths) {
       if (!any(CORE, p) && !any(CORE_SUPPORT, p)) violations.push(`core travels alone: ${p} is not Core or its supporting files`);
     }

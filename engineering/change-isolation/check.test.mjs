@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { MIGRATIONS, check } from "./check.mjs";
+import { MIGRATIONS, check, wellFormed } from "./check.mjs";
 
 const CLI = join(dirname(fileURLToPath(import.meta.url)), "check.mjs");
 
@@ -111,9 +111,11 @@ describe("aggregate changes", () => {
 describe("declared migrations", () => {
   const [c11] = MIGRATIONS;
   const core = ["packages/kaal-core/package.json", "packages/kaal-core/src/hosting.ts", "package.json", "package-lock.json"];
+  const only = (m) => (paths) => check(paths, [m]);
 
   it("pass a change that carries exactly a declared migration's paths with Core", () => {
     assert.equal(c11.change, "hosting/C11");
+    assert.equal(c11.decision, "#657");
     passes([...core, ...c11.paths]);
     passes([...c11.paths].reverse().concat(core));
   });
@@ -122,22 +124,44 @@ describe("declared migrations", () => {
     fails([...core, ...c11.paths, "packages/kaal-sealing/src/seal.ts"], ...c11.paths, "packages/kaal-sealing/src/seal.ts");
   });
 
-  it("do not pass a part of a migration, so no later Change can reuse it", () => {
+  it("do not pass one path fewer, or a part, so no later Change can reuse it", () => {
     const part = c11.paths.slice(1);
     fails([...core, ...part], ...part);
     fails([...core, c11.paths[0]], c11.paths[0]);
+  });
+
+  it("do not pass one path swapped for another", () => {
+    const swapped = [...c11.paths.slice(1), "packages/skills/kaal-graph/README.md"];
+    fails([...core, ...swapped], ...swapped);
   });
 
   it("leave .github travels alone in force", () => {
     assert.ok(check([...core, ...c11.paths, ".github/workflows/x.yml"]).some((v) => v.startsWith(".github travels alone")));
   });
 
-  it("never name a Core or supporting path, and never list a path twice", () => {
-    for (const m of MIGRATIONS) {
-      assert.deepEqual(check(m.paths), [], `${m.change} names no Core path, so alone it is an ordinary change`);
-      assert.deepEqual(check(m.paths), [], );
-      for (const p of m.paths) assert.ok(!p.startsWith("packages/kaal-core/") && !p.startsWith(".kaal/") && !p.startsWith(".github/"), p);
+  it("never apply a malformed or duplicated entry", () => {
+    const paths = ["engineering/a.mjs", "packages/skills/kaal-graph/package.json"];
+    const change = [...core, ...paths];
+    assert.deepEqual(only({ change: "x/C1", decision: "#1", paths })(change), [], "the well-formed control passes");
+    for (const [why, m] of [
+      ["a path listed twice", { change: "x/C1", decision: "#1", paths: [...paths, paths[0]] }],
+      ["no change named", { decision: "#1", paths }],
+      ["no decision named", { change: "x/C1", paths }],
+      ["no paths", { change: "x/C1", decision: "#1", paths: [] }],
+      ["paths not a list", { change: "x/C1", decision: "#1", paths: paths.join("\n") }],
+      ["a path that is not a string", { change: "x/C1", decision: "#1", paths: [...paths, 7] }],
+      ["a path that is not repository-relative", { change: "x/C1", decision: "#1", paths: [...paths, "engineering/../x.mjs"] }],
+      ["a Core path", { change: "x/C1", decision: "#1", paths: [...paths, "packages/kaal-core/README.md"] }],
+      ["a supporting path", { change: "x/C1", decision: "#1", paths: [...paths, "package.json"] }],
+      ["a .github path", { change: "x/C1", decision: "#1", paths: [...paths, ".github/workflows/ci.yml"] }],
+    ]) {
+      assert.equal(wellFormed(m), false, why);
+      assert.notDeepEqual(only(m)([...change, ...(Array.isArray(m.paths) ? m.paths.filter((p) => typeof p === "string") : [])]), [], why);
     }
+  });
+
+  it("declare only well-formed entries", () => {
+    for (const m of MIGRATIONS) assert.ok(wellFormed(m), m.change);
   });
 });
 
