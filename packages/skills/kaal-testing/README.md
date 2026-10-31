@@ -5,6 +5,7 @@ KAAL Testing: how a capability's tests are designed and executed, and how their 
 ```
 capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
+docs/                                  the shipped documents: Intent, Requirements, Architecture, Testing, Limitations, Operations
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
@@ -16,6 +17,17 @@ lib/observed.mjs                       what accept() observed, kept private to t
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 evidence.kaal.json                     Testing's own contract evidence mapping (repository data, not delivered)
 ```
+
+## Documents
+
+These documents are authoritative and ship with the package:
+
+- [Intent](docs/intent.md): why Testing exists and what it promises.
+- [Requirements](docs/requirements.md): the functional and nonfunctional requirements.
+- [Architecture](docs/architecture.md): the decisions that realize them, and the export inventory.
+- [Testing](docs/testing.md): the Test Plan, its delivered and publisher's cases.
+- [Limitations](docs/limitations.md): what a result does not show.
+- [Operations](docs/operations.md): installation, use, verification and removal, and the shipped files.
 
 The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
 
@@ -49,9 +61,9 @@ Which workspaces exist, building them and which files they deliver are packaging
 
 ## Acceptance runs
 
-`kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/acceptance/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
+`kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/engineer/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
 
-- **Discovery:** `discover(workspaces)` finds the scenarios by that convention.
+- **Discovery:** `discover(workspaces)` finds the scenarios by that convention. Test locations say a case's purpose and owner. They are locations, not Testing kinds: Case, Suite, Plan and Run are unchanged. `test/embed/` holds a capability's own cases, shipped with it and run by its own `npm test` against the installed package. `test/engineer/` holds Engineering's lane scenarios, which `install()` the packed tarballs. There is no `test/external/` convention. Until every owner has moved its scenarios, `discover` also reads the earlier `test/acceptance/`.
 - **Running:** `accept({ manifest, scenarios, run, cwd })` runs them in parallel. `run` is a missing or empty directory, which Testing initializes with the manifest, a ledger and the hosts. An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.
 - **Outcome:** the result keeps the runner's own exit status apart from `passed`. `passed` is false whenever there is a verified failure, even if the runner exited 0. Unknowns stay in the findings and do not decide `passed`; a gate that wants them to fail says so itself.
 - **Installing:** in a scenario, `install(names)` installs the manifest's tarballs into a fresh host of its own under the run, and records what it consumed. A tarball that no longer holds the bytes packed for it is refused. A scenario never builds or packs.
