@@ -16,7 +16,7 @@
 // and 2 if any was not run. With `--gate <candidate> --hosts <h,...> <record>...` it judges a release's
 // records instead (gate()).
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -262,11 +262,13 @@ export function execute(root = ROOT, { suites = declared(root), all = files(root
     const declaredCases = expected(root, s, targets);
     const missing = s.prerequisites.filter((p) => !PREREQUISITES[p]?.provided(root));
     let lines = [];
+    // The runner reports real paths; a root under a symbolic link (macOS's /var is /private/var) must match them.
+    const real = realpathSync(root);
     // An empty list would make `node --test` find every test in the repository: such a suite is not run.
     const why = missing.length ? `the lane did not provide ${missing.map((p) => PREREQUISITES[p]?.what ?? p).join(" and ")}` : targets.length ? "" : "its files match nothing";
     if (!why) {
       const r = spawnSync(process.execPath, ["--test", "--test-reporter=spec", "--test-reporter-destination=stderr", `--test-reporter=${pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), "reporter.mjs")).href}`, "--test-reporter-destination=stdout", ...targets], { cwd: root, env: runner(), encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 256 * 1024 * 1024 });
-      lines = (r.stdout ?? "").split("\n").filter(Boolean).map((l) => JSON.parse(l)).map((l) => ({ ...l, file: relative(root, l.file).split("\\").join("/") }));
+      lines = (r.stdout ?? "").split("\n").filter(Boolean).map((l) => JSON.parse(l)).map((l) => ({ ...l, file: relative(real, realpathSync(l.file)).split("\\").join("/") }));
     }
     const results = declaredCases.map((c) => ({ case: c.case, owner: s.owner, suite: s.name, file: c.file, ...(why ? { outcome: "not run", reason: why } : outcome(c, lines)) }));
     const status = why ? "not run" : results.some((c) => c.outcome === "failed") ? "failed" : results.some((c) => c.outcome === "not run") ? "not run" : "passed";
