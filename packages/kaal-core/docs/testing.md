@@ -10,10 +10,10 @@ These four files ship in the package. They are plain `node:test` files that impo
 
 | File | Loop | What it checks |
 | --- | --- | --- |
-| `test/acceptance/intent.test.mjs` | Intent | Bootstraps an Engine and verifies it, and leaves an existing Engine unchanged. Admits registrations end to end: assembles them one way, reports what it cannot judge, and needs no Graph. |
-| `test/acceptance/requirements.test.mjs` | Requirements | Payload admission: every payload Node is admitted and none rejected, with the foundational ids kept. Frontmatter validation against a supplied schema, unaffected by the body. Installation Contract conformance: the shipped contract conforms and Core's conformance cases hold on it. Registration findings: unknown kinds with their candidates, unresolved targets, and traces the rule does not permit. |
-| `test/acceptance/architecture.test.mjs` | Architecture | Each declared entry point loads and offers what it exports. No Graph is needed at run time. The delivered Node support carries its provenance. |
-| `test/unit/core.test.mjs` | Code | Unit checks of exported functions: the Registration Type and its schema, assembly that is empty for no input and independent of order, and an absent complement reported as unavailable. |
+| `test/embed/intent.test.mjs` | Intent | Bootstraps an Engine and verifies it, and leaves an existing Engine unchanged. Admits registrations end to end: assembles them one way, reports what it cannot judge, and needs no Graph. |
+| `test/embed/requirements.test.mjs` | Requirements | Payload admission: every payload Node is admitted and none rejected, with the foundational ids kept. Frontmatter validation against a supplied schema, unaffected by the body. Installation Contract conformance: the shipped contract conforms and Core's conformance cases hold on it. Registration findings: unknown kinds with their candidates, unresolved targets, and traces the rule does not permit. |
+| `test/embed/architecture.test.mjs` | Architecture | Each declared entry point loads and offers what it exports. No Graph is needed at run time. The delivered Node support carries its provenance. |
+| `test/embed/code.test.mjs` | Code | Unit checks of exported functions: the Registration Type and its schema, assembly that is empty for no input and independent of order, and an absent complement reported as unavailable. |
 
 ## The verifier, the manifest and the runner
 

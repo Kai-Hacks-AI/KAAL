@@ -56,8 +56,7 @@
     "payload",
     "installation.kaal.json",
     "docs",
-    "test/acceptance",
-    "test/unit",
+    "test/embed",
     "test/run.mjs",
     "test/verify.mjs",
     "test/verify.json"

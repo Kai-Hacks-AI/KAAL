@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const CORE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = "test/verify.json";
-const LOOPS = /^test\/(acceptance|unit)\/[^/]+\.test\.mjs$/;
+const LOOPS = /^test\/embed\/[^/]+\.test\.mjs$/;
 
 const pack = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: CORE });
 if (pack.status !== 0) throw new Error(`npm pack --dry-run failed:\n${pack.stdout}${pack.stderr}`);
