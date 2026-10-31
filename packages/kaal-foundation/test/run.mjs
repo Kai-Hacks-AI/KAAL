@@ -24,7 +24,12 @@ if (!declared.length) refuse("no test:<name> suite is declared");
 if (!declared.includes("test:consumer")) refuse("test:consumer is not declared");
 if (!installed && !declared.includes("test:publisher")) refuse("test:publisher is not declared");
 
-const suite = (name) => spawnSync("npm", ["run", name], { cwd: root, stdio: "inherit", shell: process.platform === "win32" }).status ?? 1;
+// Each suite runs through the package manager's own CLI script under this Node, which npm names in
+// npm_execpath for every script it runs. No shell is chosen and no platform is consulted: Hosting is
+// KAAL's only OS boundary (#668), and Foundation depends on nothing (foundation/N6).
+const cli = process.env.npm_execpath;
+if (!cli || !/\.[cm]?js$/.test(cli)) refuse("run through npm test: npm_execpath names no package manager script to run the suites with");
+const suite = (name) => spawnSync(process.execPath, [cli, "run", name], { cwd: root, stdio: "inherit" }).status ?? 1;
 if (installed) process.exit(suite("test:consumer"));
 let failed = false;
 for (const name of declared) if (suite(name) !== 0) failed = true;
