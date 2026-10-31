@@ -82,6 +82,7 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
         { ".github/workflows/ci.yml": noRunner, "engineering/guard/testing.md": base()["engineering/guard/testing.md"].replace("`engineering/guard/acceptance/*.test.mjs`", "`engineering/guard/acceptance/*.test.mjs`, `engineering/guard/acceptance/consumer/*.test.mjs`"), "engineering/guard/acceptance/consumer/d.test.mjs": 'it("guard/T2 [guard/F1]: two", () => {});\n' },
         /consumer\/d\.test\.mjs: suite Engineering acceptance is scheduled by no lane/,
       ],
+      "a lane that only gates the records": [{ ".github/workflows/ci.yml": omits.replace("jobs:\n", "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps:\n      - run: node engineering/guard/suites.mjs --gate abc --hosts linux records/*.json\n") }, /b\.test\.mjs: suite Engineering acceptance is scheduled by no lane/],
       "a lane that names files and omits one": [{ ".github/workflows/ci.yml": omits }, /b\.test\.mjs: suite Engineering acceptance is scheduled by no lane/],
       "a case in another owner's suite": [{ "engineering/guard/acceptance/b.test.mjs": 'it("guard/T3 [guard/I6]: three", () => {});\n' }, /guard\/T3 is in Engineering's suite Engineering acceptance, but External defines it/],
       "a case two Test Plans define": [{ "engineering/guard/testing.md": `| guard/T3: three |\n${base()["engineering/guard/testing.md"]}` }, /guard\/T3 is defined in more than one Test Plan/],
