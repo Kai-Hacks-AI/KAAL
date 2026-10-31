@@ -150,12 +150,21 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
   - `skills/kaal-testing/SKILL.md` gains a section, `## Designing a case: BRITTLE`, beside TEST A FINDING. It gives testing/F73's four checks as steps and points to the reference.
   - `skills/kaal-testing/references/brittle.md` gives the lesson record of testing/F74, how a correction is versioned and traced, false GREEN as a Defect, and the ownership of testing/F75. It names no other capability's identifiers and cites no Change or pull request.
 
+## Test Locations by Purpose and Owner
+
+- **testing/A24** [testing/F76, testing/F77, testing/N16]: In `lib/acceptance.mjs`:
+  - `SCENARIOS` is `test/engineer`;
+  - a private `LEGACY`, `test/acceptance`, is read beside it until the migration completes;
+  - `discover` reads both directories per workspace and sorts all of them by path.
+
+  `test/embed/` is never named in the module. Nothing reads `package.json`.
+
 ## Testing 0.0.1 Release Readiness
 
 - **testing/A21** [testing/F59–testing/F66, testing/N12, testing/N13]: **The packed package.** The tarball holds exactly:
   - `package.json`, `README.md`, `LICENSE`;
   - `capability/`, `lib/`, `payload/`, `skills/`;
   - `docs/`;
-  - `test/acceptance/`, `test/unit/`, `test/verify.mjs` and `test/verify.json`.
+  - `test/embed/`, `test/verify.mjs` and `test/verify.json`.
 
   Nothing else ships: no PLAN document, no planned test, no publisher test, and neither `evidence.kaal.json` nor `ownership.kaal.json`. `test/verify.mjs` runs the delivered cases with Node's test runner against the installed copy. It reads the manifest, compares hashes, compares the consumer before and after, and prints the summary line.
