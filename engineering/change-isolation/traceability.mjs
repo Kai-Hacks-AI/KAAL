@@ -16,7 +16,7 @@ const GITHUB = /^\.github\//;
 /**
  * The target, as the judgment reads it.
  * @typedef {object} Target
- * @property {Record<string, {changes?: string[], scope?: string[]}>} changes Change Nodes by id (P1)
+ * @property {Record<string, {alters?: string[], scope?: string[]}>} changes Change Nodes by id: `alters`, the elements a Change alters (change/C9, #744), and its selected scope (P1)
  * @property {Record<string, {owner: string}>} elements every element by its owner's identity, such as hosting/F31
  * @property {(id: string) => string[] | null} traverse incoming traces from an element, transitively, or null when it does not resolve (Graph's traverse with direction "in", over P2's Edges)
  * @property {Record<string, string[]>} claims each capability's locations, folder prefixes or root files (P3)
@@ -60,7 +60,7 @@ export function judge({ target, change, paths }) {
 
   // Impact: the owners of every changed element and of everything that traces to it (F25).
   const impact = new Set();
-  for (const id of node.changes ?? []) {
+  for (const id of node.alters ?? []) {
     const element = target.elements[id];
     if (element === undefined) {
       unresolved.push(`unknown changed element: ${id}`);

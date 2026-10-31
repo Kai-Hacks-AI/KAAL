@@ -238,7 +238,7 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
   };
   const paths = ["packages/extensions/kaal-hosting/src/a.ts", "packages/kaal-core/src/b.ts"];
   const run = (t, p = paths, change = "hosting/C1") => judge({ target: t, change, paths: p });
-  const scoped = (scope, extra = {}) => target({ ...base, ...extra, changes: { "hosting/C1": { changes: ["hosting/F1"], scope } } });
+  const scoped = (scope, extra = {}) => target({ ...base, ...extra, changes: { "hosting/C1": { alters: ["hosting/F1"], scope } } });
 
   it("engineering/T47: paths all in selected, impacted capabilities pass, whatever their names or count", () => {
     assert.deepEqual(run(scoped(["Hosting", "Core"])), { verdict: "pass", findings: [] });
@@ -274,21 +274,21 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
   it("engineering/T52: an unattributed path, an unknown element and an unresolved trace are each unresolved, named, never GREEN", () => {
     let r = run(scoped(["Hosting", "Core"]), [...paths, "docs/x.md"]);
     assert.deepEqual(r, { verdict: "unresolved", findings: ["unattributed path: docs/x.md lies in no ownership claim"] });
-    r = run(target({ ...base, changes: { "hosting/C1": { changes: ["hosting/F1", "hosting/F9"], scope: ["Hosting", "Core"] } } }));
+    r = run(target({ ...base, changes: { "hosting/C1": { alters: ["hosting/F1", "hosting/F9"], scope: ["Hosting", "Core"] } } }));
     assert.deepEqual(r, { verdict: "unresolved", findings: ["unknown changed element: hosting/F9"] });
-    r = run(target({ ...base, broken: ["hosting/F1"], changes: { "hosting/C1": { changes: ["hosting/F1"], scope: ["Hosting"] } } }), [paths[0]]);
+    r = run(target({ ...base, broken: ["hosting/F1"], changes: { "hosting/C1": { alters: ["hosting/F1"], scope: ["Hosting"] } } }), [paths[0]]);
     assert.deepEqual(r, { verdict: "unresolved", findings: ["unresolved trace: from hosting/F1"] });
   });
 
   it("engineering/T53: a scope stated only in the candidate's Change Node authorizes nothing", () => {
-    const candidate = { changes: { "hosting/C1": { changes: ["hosting/F1"], scope: ["Hosting", "Core"] } } };
+    const candidate = { changes: { "hosting/C1": { alters: ["hosting/F1"], scope: ["Hosting", "Core"] } } };
     const r = judge({ target: target(base), candidate, change: "hosting/C1", paths });
     assert.equal(r.verdict, "fail");
     assert.deepEqual(r.findings, ["core travels alone: packages/extensions/kaal-hosting/src/a.ts is not Core or its supporting files"]);
   });
 
   it("engineering/T54: with no stated scope, Core beside another capability fails Core travels alone; Core alone passes", () => {
-    const t = target({ ...base, changes: { "hosting/C1": { changes: ["hosting/F1"] } } });
+    const t = target({ ...base, changes: { "hosting/C1": { alters: ["hosting/F1"] } } });
     assert.equal(run(t).verdict, "fail");
     assert.equal(run(t, ["packages/kaal-core/src/b.ts", "package-lock.json"]).verdict, "pass");
     assert.equal(run(target(base), paths, undefined).verdict, "fail");
@@ -319,7 +319,7 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
       Engineering: ["engineering/", "package.json", "package-lock.json"],
       Foundation: ["packages/kaal-foundation/"],
     };
-    const t = (scope) => target({ elements, claims, changes: { "hosting/C11": { changes: ["hosting/F31"], scope } } });
+    const t = (scope) => target({ elements, claims, changes: { "hosting/C11": { alters: ["hosting/F31"], scope } } });
     assert.equal(c11.length, 62);
     assert.deepEqual(judge({ target: t(six), change: "hosting/C11", paths: c11 }), { verdict: "pass", findings: [] });
     const withFoundation = judge({ target: t(six), change: "hosting/C11", paths: [...c11, "packages/kaal-foundation/src/a.ts"] });

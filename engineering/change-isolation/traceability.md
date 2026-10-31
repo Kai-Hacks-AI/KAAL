@@ -14,7 +14,7 @@ The current rules stay the defaults:
 
 ## How it is computed
 
-1. **What is being changed.** A Change states the elements it changes: an Intent, a functional or nonfunctional Requirement, or an Architecture element, each by its owner's identity, such as `hosting/F31`. It also states its **selected scope**: the capabilities it will change. Both are outgoing statements in the Change Node, beside `delivers` and `requires`. Their shape is the Change capability's to define (prerequisite P1). Engineering reads them and defines neither.
+1. **What is being changed.** A Change states the elements it changes: an Intent, a functional or nonfunctional Requirement, or an Architecture element, each by its owner's identity, such as `hosting/F31`. It also states its **selected scope**: the capabilities it will change. Both are outgoing statements in the Change Node, beside `delivers` and `requires`; Change's PLAN (change/C9, #744) names the first `alters`. Their shape is the Change capability's to define (prerequisite P1). Engineering reads them and defines neither.
 2. **Reverse traces.** From each changed element, Engineering follows incoming traces through Graph's `traverse(id, { direction: "in" })`:
    - Requirements and Architecture that cite it;
    - the Test Cases that test those;
