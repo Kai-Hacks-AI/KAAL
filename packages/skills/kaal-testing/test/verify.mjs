@@ -93,12 +93,39 @@ function snapshot(root) {
   return out;
 }
 
-/** Whether `name` resolves from this copy by Node's node_modules lookup, without loading it. */
-function resolvable(name) {
+/**
+ * Why `name` is not installed whole where Node would resolve it from this copy, or null when it is: its
+ * package.json parses, and every runtime file it declares (each `exports` target other than a type declaration,
+ * its `main` and each `bin`) is a regular file. Nothing is loaded.
+ */
+function incomplete(name) {
+  let at = null;
   for (let d = PACKAGE; ; d = dirname(d)) {
-    if (existsSync(join(d, "node_modules", ...name.split("/"), "package.json"))) return true;
-    if (dirname(d) === d) return false;
+    const here = join(d, "node_modules", ...name.split("/"));
+    if (existsSync(join(here, "package.json"))) { at = here; break; }
+    if (dirname(d) === d) return `${name} does not resolve from the installed copy`;
   }
+  let meta;
+  try {
+    meta = JSON.parse(readFileSync(join(at, "package.json"), "utf8"));
+  } catch {
+    return `${name}'s package.json cannot be read`;
+  }
+  const targets = [];
+  const leaves = (x) => {
+    if (typeof x === "string") targets.push(x);
+    else if (plain(x)) for (const v of Object.values(x)) leaves(v);
+    else if (Array.isArray(x)) x.forEach(leaves);
+  };
+  leaves(meta.exports);
+  if (typeof meta.main === "string") targets.push(meta.main);
+  if (typeof meta.bin === "string") targets.push(meta.bin);
+  else if (plain(meta.bin)) leaves(meta.bin);
+  if (meta.exports === undefined && meta.main === undefined) targets.push("index.js");
+  const absent = targets.filter((t) => !t.includes("*") && !/\.d\.[cm]?ts$/.test(t)).filter((t) => {
+    try { return !lstatSync(join(at, t)).isFile(); } catch { return true; }
+  });
+  return absent.length ? `${name} is installed without ${[...new Set(absent)].join(", ")}` : null;
 }
 
 let pkg = {};
@@ -148,14 +175,22 @@ for (const p of Object.keys(manifest.hashes).sort()) {
 }
 if (installed) for (const p of present) if (!Object.hasOwn(manifest.hashes, p)) differs.push(`${p} is not in the manifest`);
 if (differs.length) unknown("the installed files are not the package as shipped", differs, "reinstall the package from the registry or its packed tarball, then run the verification again", "precise");
-const missing = Object.keys(pkg.dependencies ?? {}).filter((d) => !resolvable(d));
-if (missing.length) unknown("a required runtime dependency is absent", missing.map((d) => `${d} does not resolve from the installed copy`), `install ${missing.join(" and ")} into the consumer, then run the verification again`, "precise");
+const gaps = Object.keys(pkg.dependencies ?? {}).map((d) => [d, incomplete(d)]).filter(([, why]) => why);
+if (gaps.length) unknown("a required runtime dependency is absent", gaps.map(([, why]) => why), `install ${gaps.map(([d]) => d).join(" and ")} into the consumer, then run the verification again`, "precise");
 if (declared.length === 0) unknown("the manifest declares no case", [`${MANIFEST} lists no delivered case`], "analyze", "exploratory");
 if (!plain(manifest.applicability) || Object.keys(manifest.applicability).length > 0) unknown("the manifest declares a case not applicable, and Testing 0.0.1 has none", [`${MANIFEST} applicability: ${JSON.stringify(manifest.applicability)}`], "analyze", "exploratory");
 
 // The consumer before the run.
 const consumer = installed ? consumerOf(PACKAGE) : null;
-const before = consumer ? snapshot(consumer) : null;
+/** The consumer's snapshot, or unknown naming what could not be read: its integrity cannot then be established. */
+const inspect = (root) => {
+  try {
+    return snapshot(root);
+  } catch (e) {
+    unknown("the consumer cannot be inspected, so whether the run left it unchanged cannot be established", [`${e.path ?? root}: ${e.code ?? e.message}`], "make the consumer readable to this user, then run the verification again", "precise");
+  }
+};
+const before = consumer ? inspect(consumer) : null;
 
 // Run every delivered file against this copy and account for each leaf test by its title, a case's name.
 const caseFiles = Object.keys(manifest.hashes).filter((p) => /^test\/embed\/[^/]+\.test\.mjs$/.test(p));
@@ -189,7 +224,7 @@ for (const c of summary.cases) c.outcome = outcomes.get(c.name) === "repeated" ?
 
 // The consumer after the run: a change breaks the run's own promise to leave it as it was (testing/F15).
 if (consumer) {
-  const after = snapshot(consumer);
+  const after = inspect(consumer);
   const changed = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter((p) => before[p] !== after[p]).sort();
   if (changed.length) end("failed", { cause: "the consumer's content changed during the verification", evidence: changed.map((p) => `${p} changed`), next: { kind: "diagnostic", step: "inspect what changed in the consumer" } });
 }
