@@ -20,11 +20,11 @@ sha256(new TextEncoder().encode("abc")); // "ba7816bf…15ad"
 
 ```sh
 npm install @kaihacksai/kaal-foundation
-npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256 <file>…   # "<digest>  <file>"; no file or - reads standard input
-npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation verify           # verify this installed copy
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs sha256 <file>…   # "<digest>  <file>"; no file or - reads standard input
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs verify           # verify this installed copy
 ```
 
-Name the scoped package explicitly, as above. Never run `npx kaal-foundation`: `kaal-foundation` is only the bin's name, and where this package is not installed npx may fetch an unrelated unscoped package.
+Run the scoped package's own bin by its path, as above. Never run `npx kaal-foundation` or `npm exec … kaal-foundation`: `kaal-foundation` is only the bin's name, so they run whichever installed package owns `node_modules/.bin/kaal-foundation`, and where this package is not installed npx may fetch an unrelated unscoped package.
 
 An agent's guide ships as [the skill](skills/kaal-foundation/SKILL.md): when to use Foundation's SHA-256, how to hash text, how to read a verification, and where a new shared concern belongs.
 
