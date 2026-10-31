@@ -1,6 +1,6 @@
 # Change Isolation: authorized migrations
 
-> PLAN (engineering/C11, revised): nothing below exists yet. The Owner reviewed this on #683 (comment 6542656994) and found the first DO's exact-path `MIGRATIONS` entry brittle: it froze one pull request's incidental file inventory instead of guarding the invariant. That DO is withdrawn from this Change, and `check.mjs` is back as the target holds it. This PLAN defines what makes a migration legitimate, and how the checker verifies it without a file list or a pull request's identity.
+> PLAN (engineering/C11): nothing below exists yet. The Owner reviewed this on #683 (comment 6542656994) and found the first DO's exact-path `MIGRATIONS` entry brittle: it froze one pull request's incidental file inventory instead of guarding the invariant. That DO is withdrawn from this Change, and `check.mjs` is back as the target holds it. This PLAN defines what makes a migration legitimate, and how the checker verifies it without a file list or a pull request's identity.
 
 ## The invariant
 
