@@ -57,6 +57,8 @@ function registry({ known = {}, tarballs = {}, dist = {} } = {}) {
   const calls = [];
   const fn = async (args, cwd, env) => {
     calls.push(args);
+    // As a real spawn does, a command in a directory that does not exist cannot start.
+    if (!existsSync(cwd)) throw Object.assign(new Error(`spawn npm ENOENT (cwd ${cwd})`), { code: "ENOENT" });
     const [cmd, what] = args;
     if (cmd === "view") {
       const [name, version] = what.startsWith("@") ? ["@" + what.slice(1).split("@")[0], what.slice(1).split("@")[1]] : what.split("@");
