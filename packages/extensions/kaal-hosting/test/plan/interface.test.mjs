@@ -171,7 +171,15 @@ describe("hosting/T41 [hosting/F35, hosting/A15]: the packed package exposes exa
   it("a declared export whose target ships but cannot load is RED", async () => {
     const dir = candidate(() => {});
     writeFileSync(join(dir, "dist", "conformance.js"), "export const broken = ;\n");
-    assert.deepEqual(await violations(declared, dir), ["export ./conformance does not load"]);
+    // Every export whose module imports the broken file, directly or not, fails to load, and nothing else does.
+    const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+    const imports = (file) => [...readFileSync(join(dir, file), "utf8").matchAll(/from\s+["']\.\/([\w.-]+\.js)["']/g)].map((m) => `dist/${m[1]}`);
+    const reaches = (file, seen = new Set()) => file === "dist/conformance.js" || (!seen.has(file) && (seen.add(file), imports(file).some((i) => reaches(i, seen))));
+    const broken = Object.entries(pkg.exports)
+      .filter(([entry, value]) => declared.export.has(entry) && typeof value !== "string" && reaches(value.default.replace(/^\.\//, "")))
+      .map(([entry]) => `export ${entry} does not load`);
+    assert.ok(broken.includes("export ./conformance does not load"));
+    assert.deepEqual(await violations(declared, dir), broken.sort());
   });
 
   it("a misspelled, missing or malformed status is RED, never read as planned (no false GREEN in the contract itself)", async () => {
