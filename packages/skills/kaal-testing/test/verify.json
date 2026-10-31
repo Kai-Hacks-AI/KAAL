@@ -28,8 +28,8 @@
     "test/embed/boundary.test.mjs": "d5a93abb9395fc02507f664bf45523081858f784b9636c753290ca0d2cb9a868",
     "test/embed/model.test.mjs": "7a371f840517807008f049ac88a1b41d311355ec5808bc4e75c41bcc3a2b5653",
     "test/embed/verifiers.test.mjs": "a64dffd2801e0b851ec29da565f59cfd4587f811d9ae2b2839efb814e256ac6d",
-    "test/run.mjs": "ee22a4e80f45c755fb78f2e3b42aadc70f451080e904541be3534627ed01655e",
-    "test/verify.mjs": "7dcd6ebfe7463f2775f8bcfc155470b49142f691c07ee801bf3e8d2bf63c71f2"
+    "test/run.mjs": "fb34fa5662a5fdd46f98e742adb4d1a2103bd088aa8c6f2eddf062d25c417129",
+    "test/verify.mjs": "c148c1b7ece292c0092bc58d1dbdb59705274c0b501b570e89ccbe51b7fcb601"
   },
   "cases": [
     "reads an untouched boundary as unchanged within the declaration, never as met [testing/F22, testing/F23]",

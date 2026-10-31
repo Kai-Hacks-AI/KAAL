@@ -47,14 +47,13 @@ function consumerOf(location) {
   return at < 1 ? null : parts.slice(0, at).join(sep) || sep;
 }
 
-/** The consumer's content, node_modules excepted: each path with its bytes' SHA-256, a link's target or a directory. */
+/** The consumer's whole content, installed packages included: each path with its bytes' SHA-256, a link's target or a directory. */
 function snapshot(root) {
   const out = {};
   const walk = (d) => {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, e.name);
       const rel = slash(relative(root, p));
-      if (e.isDirectory() && e.name === "node_modules") continue;
       const s = lstatSync(p);
       if (s.isSymbolicLink()) out[rel] = `link:${readlinkSync(p)}`;
       else if (s.isDirectory()) { out[rel] = "dir"; walk(p); }
