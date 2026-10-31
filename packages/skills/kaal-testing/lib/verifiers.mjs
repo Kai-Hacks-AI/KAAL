@@ -141,3 +141,71 @@ export function judge(scenarioId, observed, facts) {
   }
   return { scenario: s.id, conforms: differences.length === 0, differences };
 }
+
+/**
+ * Whether one candidate's runs on its supported platforms show the same declared cases, each visible on every
+ * platform, and what they establish together (testing/F56–testing/F58). `runs` holds one `{ observed, facts }`
+ * per platform, as `observe` gave and the harness established. `supported` is the package's declared platforms.
+ * `osBoundary` is true only for the capability that owns the operating-system boundary, Hosting, as the harness
+ * established it; no other package may scope a case by platform (testing/F67). `challenged` names the cases on
+ * which a challenge left an unresolved finding: Hosting's cross-capability suite or Engineering's enforcement.
+ */
+export function parity(runs, { supported, osBoundary = false, challenged = [] } = {}) {
+  const findings = [];
+  const list = Array.isArray(runs) ? runs.filter((r) => plain(r) && plain(r.facts)) : [];
+  if (!Array.isArray(runs) || list.length !== runs.length || list.length === 0) findings.push("runs is not a list of { observed, facts }");
+  if (!names(supported) || new Set(supported).size !== supported.length) findings.push("the harness established no supported platforms");
+  if (typeof osBoundary !== "boolean") findings.push("the harness established no answer to whether the package is the operating-system boundary");
+  if (!Array.isArray(challenged) || !challenged.every(nonempty)) findings.push("challenged is not a list of case names");
+  const platforms = list.map((r) => r.facts.platform);
+  if (names(supported)) {
+    for (const p of supported) if (platforms.filter((x) => x === p).length !== 1) findings.push(`the supported platform ${p} has ${platforms.filter((x) => x === p).length} runs, not one`);
+    for (const p of platforms) if (!supported.includes(p)) findings.push(`a run is on ${JSON.stringify(p)}, which the package does not support`);
+  }
+  const first = list[0]?.facts;
+  const declared = Array.isArray(first?.cases) ? first.cases : [];
+  for (const r of list) {
+    const f = r.facts;
+    if (!Array.isArray(f.cases) || !setEq(f.cases, declared) || f.cases.length !== declared.length) findings.push(`on ${f.platform} the declared cases differ`);
+    for (const k of ["name", "version"]) if (f.package?.[k] !== first.package?.[k]) findings.push(`on ${f.platform} the package ${k} differs`);
+    if (!nonempty(f.digest) || f.digest !== first.digest) findings.push(`on ${f.platform} the digest differs`);
+  }
+  if (declared.length === 0 || !declared.every(nonempty)) findings.push("no case is declared");
+  const expected = names(supported) ? supported : [];
+  const cases = declared.map((name) => ({ name, outcomes: Object.fromEntries(expected.map((p) => [p, "not run"])) }));
+  const results = [];
+  for (const r of list) {
+    const p = r.facts.platform;
+    const o = r.observed?.observation;
+    if (!o) {
+      findings.push(`on ${p} there is no observation`);
+      for (const c of cases) c.outcomes[p] = "not run";
+      continue;
+    }
+    results.push(o.result);
+    const reported = Array.isArray(o.cases) ? o.cases.filter((c) => plain(c) && nonempty(c.name)) : [];
+    for (const c of cases) {
+      const seen = reported.filter((x) => x.name === c.name);
+      if (seen.length !== 1) { findings.push(`on ${p} declared case ${c.name} is reported ${seen.length} times, not once`); c.outcomes[p] = "not run"; continue; }
+      const outcome = seen[0].outcome;
+      const a = outcome === "not applicable" ? established(r.facts, c.name) : null;
+      if (outcome === "not applicable" && !same(seen[0].applicability, a)) {
+        findings.push(`on ${p} case ${c.name} is not applicable without the applicability the harness established`);
+        c.outcomes[p] = "not run";
+      } else if (a && a.platforms !== undefined && osBoundary !== true) {
+        findings.push(`on ${p} case ${c.name} is scoped by platform, and only the operating-system boundary may scope a case by platform`);
+        c.outcomes[p] = "not run";
+      } else c.outcomes[p] = OUTCOMES.includes(outcome) ? outcome : "not run";
+    }
+    for (const x of reported) if (!declared.includes(x.name)) findings.push(`on ${p} case ${x.name} is reported, and the manifest declares no such case`);
+  }
+  for (const c of cases) {
+    const outs = Object.values(c.outcomes);
+    if (outs.length > 0 && outs.every((x) => x === "not applicable")) findings.push(`case ${c.name} is not applicable on every platform, so it is exercised on none`);
+    if (Array.isArray(challenged) && challenged.includes(c.name)) findings.push(`case ${c.name} has an unresolved challenge finding`);
+  }
+  if (Array.isArray(challenged)) for (const name of new Set(challenged)) if (!declared.includes(name)) findings.push(`${JSON.stringify(name)} has an unresolved challenge finding, and the manifest declares no such case`);
+  const failed = results.includes("failed");
+  const verified = findings.length === 0 && results.length === list.length && results.every((x) => x === "verified") && cases.every((c) => Object.values(c.outcomes).every((x) => x === "pass" || x === "not applicable"));
+  return { result: failed ? "failed" : verified ? "verified" : "unknown", cases, findings };
+}
