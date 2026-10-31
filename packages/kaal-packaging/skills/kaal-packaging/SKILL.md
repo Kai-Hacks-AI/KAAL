@@ -10,9 +10,11 @@ What a KAAL package is and must keep is stated by Packaging's shipped documents:
 
 ## Bare: the commands, with no Skill
 
+Run the commands by their path: `node packages/kaal-packaging/bin/kaal-packaging.mjs` in the KAAL repository, `node node_modules/kaal-packaging/bin/kaal-packaging.mjs` in a project that installed the tarball. Never run a bare `npx kaal-packaging`: the package is private, and its unscoped name is not Packaging's on any registry, so a lookup could fetch and run an unrelated package.
+
 ```
-kaal-packaging measure <artifact> [--work <dir>] [--format json|text]
-kaal-packaging conform <installed-dir> [--consumer <dir>] [--work <dir>] [--json]
+node <package>/bin/kaal-packaging.mjs measure <artifact> [--work <dir>] [--format json|text]
+node <package>/bin/kaal-packaging.mjs conform <installed-dir> [--consumer <dir>] [--work <dir>] [--testing <module>] [--json]
 ```
 
 Each prints what the library returns and exits 0, 1 or 2. `conform` ends on one line, `kaal-packaging-conformance {json}`, whose `causes` list every finding that is not verified. `docs/operations.md` states every option.
@@ -20,7 +22,7 @@ Each prints what the library returns and exits 0, 1 or 2. `conform` ends on one 
 ## Measure an artifact
 
 1. Pack the package once, as the lane that releases it packs it. Measure that tarball, never the source directory (packaging/I1).
-2. Run `kaal-packaging measure <tarball>`. Keep the JSON record if you will compare later. Where it is kept is yours to choose (packaging/F4).
+2. Run `node <package>/bin/kaal-packaging.mjs measure <tarball>`. Keep the JSON record if you will compare later. Where it is kept is yours to choose (packaging/F4).
 3. To see where the bytes are, call `attribute` from `kaal-packaging` with the path prefixes you care about, such as `docs/` or `test/`. To see growth, `compare` two records.
 4. Report sizes and deltas only. Whether a size is acceptable belongs to the product that owns the package, and whether a size gates anything belongs to Engineering (packaging/I3).
 
@@ -29,12 +31,13 @@ Measure only artifacts whose producer you trust (packaging/N5). If `measure` ref
 ## Conform a candidate
 
 1. Pack the candidate and every runtime dependency it needs, and install them into a fresh consumer project, as a consumer would install them. Never run it against a source checkout.
-2. Run `kaal-packaging conform <consumer>/node_modules/<name>`. It runs the package's installed `npm test` once, and once more on a deliberately broken copy in a scratch directory.
-3. Read each finding by its requirement:
+2. Provide Testing's model functions, `check` and `tested`, in a module file such as `testing.mjs` that re-exports them from Testing. Packaging does not depend on Testing, so you hand them in.
+3. Run `node <package>/bin/kaal-packaging.mjs conform <consumer>/node_modules/<name> --testing testing.mjs`. It runs the package's installed `npm test` once, and once more on a deliberately broken copy in a scratch directory. Without `--testing`, a package that ships a Testing model is `unknown` for packaging/F13, and the command prints a note: that run is not a complete conformance judgement. Say so when you report it. Never present it as complete.
+4. Read each finding by its requirement:
 
 | Finding | What it asks of you |
 | --- | --- |
-| packaging/F7 | Pin every runtime dependency to one exact version, and install it from a registry. A dependency installed from a local tarball, a path or Git fails until it is published (packaging/F19). |
+| packaging/F7 | Pin every runtime dependency to one exact version, and install it from a registry. A dependency installed from a local tarball, a path or Git fails until it is published (packaging/F19). Report such a failure as dependency-blocked, an interim result, never as acceptance. |
 | packaging/F8 | Ship the six documents under `docs/`, each non-empty, and link `docs/operations.md` from the README. |
 | packaging/F9, packaging/F10 | The installed `npm test` must run the shipped Embedded cases against the installed copy, and end on one result line whose result matches its exit and its cases. |
 | packaging/F11 | Ship `test/verify.json` with every delivered file's SHA-256 and the declared cases, and have the run name each declared case exactly once. |
@@ -44,7 +47,7 @@ Measure only artifacts whose producer you trust (packaging/N5). If `measure` ref
 | packaging/N8 | Import only Node's modules, the package itself and its declared dependencies. |
 | packaging/N9 | The verification must depend on the modules' behaviour. One that still passes with every module broken decides from presence. |
 
-4. The overall result and each finding's result are Testing's (testing/F13). Report an `unknown` as unknown, with its cause. Never round it to verified, and never call a failed finding a pass because the package's own `npm test` passed: that is its specific contract, reported beside the generic one, not instead of it.
+5. The overall result and each finding's result are Testing's (testing/F13). Report an `unknown` as unknown, with its cause. Never round it to verified, and never call a failed finding a pass because the package's own `npm test` passed: that is its specific contract, reported beside the generic one, not instead of it.
 
 ## Whose question is it
 

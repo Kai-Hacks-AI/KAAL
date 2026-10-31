@@ -1,6 +1,8 @@
 # kaal-packaging
 
-KAAL Packaging: how KAAL's deliverables become packages and what those packages are. It measures a package artifact's delivered size, and decides the generic KAAL Package contract against an installed package. It holds itself to that contract (packaging/F15). It is private and not published.
+KAAL Packaging: how KAAL's deliverables become packages and what those packages are. It measures a package artifact's delivered size, and decides the generic KAAL Package contract against an installed package. It is private and not published.
+
+**Its own contract (packaging/F15).** Packaging is decided by its own conformance suite. Today that result is interim: every finding verifies except packaging/F7, which is failed because `kaal-hosting` and `@kaihacksai/kaal-foundation` are installed from local tarballs, not from a registry. Packaging does not pass its full generic contract until the exact packed-and-installed candidate verifies packaging/F7 with both dependencies resolved from their registries.
 
 - [Intent](docs/intent.md), [Requirements](docs/requirements.md), [Architecture](docs/architecture.md), [Testing](docs/testing.md), [Limitations](docs/limitations.md)
 - [Operations](docs/operations.md): install, commands, exit statuses, files, and how to verify an installed copy
@@ -23,12 +25,14 @@ plan/                        the PLANs (not delivered)
 
 ## Commands
 
+Run them by their path: in this repository `node packages/kaal-packaging/bin/kaal-packaging.mjs`, in a project that installed the tarball `node node_modules/kaal-packaging/bin/kaal-packaging.mjs`. Never use a registry lookup such as a bare `npx kaal-packaging`: the package is private, and its unscoped name is not Packaging's on any registry.
+
 ```
-kaal-packaging measure <artifact> [--work <dir>] [--format json|text]
-kaal-packaging conform <installed-dir> [--consumer <dir>] [--work <dir>] [--json]
+node <package>/bin/kaal-packaging.mjs measure <artifact> [--work <dir>] [--format json|text]
+node <package>/bin/kaal-packaging.mjs conform <installed-dir> [--consumer <dir>] [--work <dir>] [--testing <module>] [--json]
 ```
 
-They call the functions below and exit 0 (measured, or verified), 1 (failed) or 2 (unknown, refused or could not run). `conform` ends on one line, `kaal-packaging-conformance {json}`. [Operations](docs/operations.md) states every option.
+They call the functions below and exit 0 (measured, or verified), 1 (failed) or 2 (unknown, refused or could not run). `conform` ends on one line, `kaal-packaging-conformance {json}`. It judges packaging/F13 for a package that ships a Testing model only when `--testing` names a module file exporting Testing's model functions, `check` and `tested`. Without that, it prints a note that the run is not a complete conformance judgement. [Operations](docs/operations.md) states every option.
 
 ## Interface
 

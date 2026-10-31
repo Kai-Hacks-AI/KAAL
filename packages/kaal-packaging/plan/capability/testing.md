@@ -46,5 +46,17 @@ The cases are in `test/embed/` (T29, T30, T32, T34, T35) and `test/publisher/cap
 | the npm realization ignoring a given `npm` | T34 |
 
 **Two departures from the PLAN, for the Owner.**
-- **T27 and packaging/F7.** The PLAN expected every finding `verified` apart from F13. Under packaging/F19, a dependency installed from a local tarball fails F7, and `kaal-hosting` and `@kaihacksai/kaal-foundation` are not on a registry yet. So T27 holds F7 `failed`, naming exactly those two and nothing else, and every other finding `verified`. It passes Testing's model functions as a caller would, so F13 is decided and `verified`. Once Hosting and Foundation publish, T27 tightens to all `verified`.
+- **T27 and packaging/F7.** The PLAN expected every finding `verified` apart from F13. Under packaging/F19, a dependency installed from a local tarball fails F7, and `kaal-hosting` and `@kaihacksai/kaal-foundation` are not on a registry yet. So T27 holds F7 `failed`, naming exactly those two and nothing else, and every other finding `verified`. It passes Testing's model functions as a caller would, so F13 is decided and `verified`. This is an interim, dependency-blocked result, not final acceptance: Packaging passes its full generic contract only when the exact packed-and-installed candidate verifies F7 with both dependencies from their registries. F7 is not weakened for it (the Owner's review on #713).
 - **packaging/T35.** The case packaging/C5 titled `packaging/A7` now has a case identity, packaging/T35 [packaging/A7], so the verifier can name it in the per-case `cases` and the manifest can declare it.
+
+## Revised to the Owner's review on #713 (6544415998)
+
+- **F7 dogfooding.** T27, the README, `docs/limitations.md` and `docs/testing.md` call Packaging's own result interim and dependency-blocked, and state the condition for final acceptance. None says Packaging passes its full generic contract.
+- **The command and F13.** `conform` takes `--testing <module>`, a module file the caller provides that exports Testing's model functions. Packaging still takes no dependency on Testing. Without them, a package that ships a model is `unknown` for F13, and the command prints a note that the run is not a complete conformance judgement. The skill, Operations and `AGENTS.md` give the route to a complete run. T29 now covers both paths.
+- **Acquisition.** No document shows `npx kaal-packaging`. The commands run by path, `node packages/kaal-packaging/bin/kaal-packaging.mjs` in the repository and `node node_modules/kaal-packaging/bin/kaal-packaging.mjs` once installed. The unscoped name `kaal-packaging` is unclaimed on npm (`npm view` gives 404), so a lookup could reach someone else's package. packaging/T36 holds the documents to the path form. It also shows that, beside an unrelated package exposing a `kaal-packaging` bin, the documented path never runs it while the bare name does, and that the repository invocation runs with every registry unreachable.
+
+| Wrong implementation | RED |
+| --- | --- |
+| `AGENTS.md` shows `npx kaal-packaging measure` | T36 |
+| `conform` ignores `--testing` | T29 |
+| `conform` prints no note when F13 was not judged | T29 |

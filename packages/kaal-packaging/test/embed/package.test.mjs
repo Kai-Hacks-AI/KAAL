@@ -507,7 +507,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     expect((await conform(conforming())).by, "packaging/F7", "verified", /^kaal-fixture@1\.0\.0$/);
   });
 
-  it("packaging/T29 [packaging/F16, packaging/N12]: kaal-packaging measure and conform print what the functions return, end on one result line, and exit 0, 1 or 2 by the result", async () => {
+  it("packaging/T29 [packaging/F16, packaging/N12, packaging/F13]: kaal-packaging measure and conform print what the functions return, end on one result line, exit 0, 1 or 2 by the result, and judge packaging/F13 only with Testing's model functions given through --testing", async () => {
     const bin = join(PACKAGE, "bin", "kaal-packaging.mjs");
     const run = (...args) => execute(process.execPath, [bin, ...args], { cwd: fresh("cwd"), env: ENV });
     const { measure, read, report } = await import("kaal-packaging");
@@ -527,15 +527,15 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     assert.match(refused.stderr, /format is zip/);
 
     // conform: one line per finding, then one result line in Testing's form, and the exit by the result.
-    const decided = async (files) => {
+    const decided = async (files, { testing } = {}) => {
       const { dir, consumer } = await install(files);
-      const cli = await run("conform", dir, "--consumer", consumer);
-      const fn = await decide(dir, { consumer, env: ENV, work: fresh("probe") });
+      const cli = await run("conform", dir, "--consumer", consumer, ...(testing ? ["--testing", testing.module] : []));
+      const fn = await decide(dir, { consumer, env: ENV, work: fresh("probe"), testing: testing?.functions });
       const parsed = resultLine(cli.stdout);
       assert.equal(parsed.error, undefined, cli.stdout + cli.stderr);
       assert.equal(parsed.result, fn.result, cli.stdout);
       assert.equal(cli.status, { verified: 0, failed: 1, unknown: 2 }[fn.result], cli.stdout + cli.stderr);
-      const lines = cli.stdout.trim().split(/\r?\n/).slice(0, -1);
+      const lines = cli.stdout.trim().split(/\r?\n/).slice(0, -1).filter((l) => !l.startsWith("note: "));
       assert.deepEqual(lines.map((l) => l.split(": ").slice(0, 2).join(": ")), fn.findings.map((f) => `${f.result}: ${f.requirement}`));
       return { parsed, fn, cli };
     };
@@ -548,13 +548,26 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     assert.ok(failed.parsed.causes.some((c) => /packaging\/F12 failed/.test(c)), failed.cli.stdout);
     const unknown = await decided(conforming({ manifest: null, files: plain.files }));
     assert.equal(unknown.parsed.result, "unknown");
+    // A package that ships a Testing model: without Testing's model functions the command does not
+    // judge packaging/F13, and says its run is not a complete judgement; given them through
+    // --testing, a module file the caller provides, it judges F13 as the library does.
+    const unjudged = await decided(conforming());
+    assert.equal(unjudged.parsed.result, "unknown");
+    assert.match(unjudged.cli.stdout, /^note: packaging\/F13 was not judged: no Testing model functions were given\..*not a complete conformance judgement\.$/m);
+    const shim = join(fresh("testing"), "testing.mjs");
+    writeFileSync(shim, `export const check = ${STAND_IN.check.toString().replace(/^check/, "function")};\nexport const tested = ${STAND_IN.tested.toString().replace(/^tested/, "function")};\n`);
+    const judged = await decided(conforming(), { testing: { module: shim, functions: STAND_IN } });
+    assert.equal(judged.parsed.result, "verified", judged.cli.stdout);
+    assert.doesNotMatch(judged.cli.stdout, /^note: /m);
+    const noFunctions = join(fresh("testing"), "empty.mjs");
+    writeFileSync(noFunctions, "export const check = 1;\n");
     // --json prints the function's report itself.
     const { dir, consumer } = await install(conforming(plain));
     const asJson = await run("conform", dir, "--consumer", consumer, "--json");
     const body = asJson.stdout.trim().split(/\r?\n/).slice(0, -1).join("\n");
     assert.deepEqual(JSON.parse(body).findings.map((f) => f.result), ok.fn.findings.map((f) => f.result));
     // Misuse is refused, cannot run: 2.
-    for (const args of [[], ["nope"], ["conform"], ["conform", dir, "--frobnicate"], ["measure", fixture, "--format", "xml"]]) {
+    for (const args of [[], ["nope"], ["conform"], ["conform", dir, "--frobnicate"], ["measure", fixture, "--format", "xml"], ["conform", dir, "--testing", noFunctions], ["conform", dir, "--testing", join(fresh("missing"), "none.mjs")]]) {
       const r = await run(...args);
       assert.equal(r.status, 2, `${args.join(" ")}: ${r.stdout}${r.stderr}`);
       assert.match(r.stderr, /usage:/);
@@ -568,7 +581,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     assert.ok(front, "the skill opens with frontmatter");
     assert.match(front[1], /^name: kaal-packaging$/m);
     assert.match(front[1], /^description: \S.{40,}$/m);
-    for (const command of ["kaal-packaging measure", "kaal-packaging conform"]) assert.ok(skill.includes(command), `the skill names ${command}`);
+    for (const command of ["bin/kaal-packaging.mjs measure", "bin/kaal-packaging.mjs conform", "--testing"]) assert.ok(skill.includes(command), `the skill names ${command}`);
     const docs = join(PACKAGE, "docs");
     const own = {};
     for (const path of walk(docs)) if (path.endsWith(".md")) own[path] = readFileSync(join(docs, path), "utf8");

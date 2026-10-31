@@ -58,9 +58,10 @@ These run in the source workspace only, in `test/publisher/capability.test.mjs`,
 
 | Case | Tests | Checks |
 | --- | --- | --- |
-| packaging/T27 | packaging/F15, packaging/I7 | `kaal-packaging`, packed and installed into a fresh consumer with Hosting and Foundation, is decided by its own `conform`. Every finding is `verified`, except packaging/F7 while Hosting and Foundation are installed from local tarballs rather than a registry (packaging/F19). `test/verify.json` is the one `test/publisher/manifest.mjs` writes |
+| packaging/T27 | packaging/F15, packaging/I7 | `kaal-packaging`, packed and installed into a fresh consumer with Hosting and Foundation, is decided by its own `conform`. The result is interim and dependency-blocked: every finding is `verified` except packaging/F7, which is `failed` and names only Hosting and Foundation, installed from local tarballs (packaging/F19). Final acceptance needs packaging/F7 `verified` on the exact candidate with both from their registries, which T27 does not claim. `test/verify.json` is the one `test/publisher/manifest.mjs` writes |
 | packaging/T28 | packaging/F15, packaging/F14 | the source `npm test` follows the declared plan, verified by `conformSource`, and the installed `npm test` runs `test:embedded` only |
 | packaging/T31 | packaging/F18 | the repository's agent instructions name Packaging, its skill and both commands |
+| packaging/T36 | packaging/F16, packaging/F18 | the README, Operations, the skill and `AGENTS.md` show the commands only by path, never through a registry lookup. In a project where an unrelated package provides a bin named `kaal-packaging`, the documented path never runs it, while the bare bin name does (the control). The documented repository invocation runs with every registry unreachable |
 | packaging/T33 | packaging/N11 | no file of the package names the running platform, a launcher for one, or a shell chosen by platform |
 
 ## Running

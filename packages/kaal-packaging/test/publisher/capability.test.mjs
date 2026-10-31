@@ -77,7 +77,7 @@ const walk = (dir, base = dir) =>
   });
 
 describe("packaging/C8 Packaging as a capability, from its source workspace", () => {
-  it("packaging/T27 [packaging/F15, packaging/I7]: kaal-packaging, packed and installed with Hosting and Foundation, passes its own conform on every Requirement it can decide", async () => {
+  it("packaging/T27 [packaging/F15, packaging/I7]: kaal-packaging, packed and installed with Hosting and Foundation, is decided by its own conform; the result is interim, every finding verified but packaging/F7, which is failed, dependency-blocked on exactly Hosting and Foundation, and is not final acceptance", async () => {
     assert.equal(readFileSync(join(ROOT, "test", "verify.json"), "utf8"), await manifest(), "test/verify.json is stale: run node test/publisher/manifest.mjs");
     const { report } = await installPackaging();
     const by = Object.fromEntries(report.findings.map((f) => [f.requirement, f]));
@@ -85,8 +85,9 @@ describe("packaging/C8 Packaging as a capability, from its source workspace", ()
       if (f.requirement === "packaging/F7") continue;
       assert.equal(f.result, "verified", `${f.requirement}: ${f.cause}`);
     }
-    // Out of its hands until Hosting and Foundation install from a registry (packaging/F19): installed
-    // from local tarballs, F7 fails and names exactly them, and nothing else.
+    // Interim, not final acceptance: until Hosting and Foundation install from a registry
+    // (packaging/F19), F7 fails, naming exactly them and nothing else. F7 is not relaxed for it;
+    // final acceptance is F7 verified on the exact candidate with both from their registries.
     const f7 = by["packaging/F7"];
     assert.equal(f7.result, "failed", f7.cause);
     const named = f7.cause.split("; ");
@@ -122,7 +123,7 @@ describe("packaging/C8 Packaging as a capability, from its source workspace", ()
   it("packaging/T31 [packaging/F18]: the repository's agent instructions name Packaging, its skill and both commands", () => {
     const agents = readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8");
     assert.match(agents, /^## Packaging$/m);
-    for (const needle of ["packages/kaal-packaging/skills/kaal-packaging/SKILL.md", "kaal-packaging measure", "kaal-packaging conform"]) assert.ok(agents.includes(needle), `AGENTS.md names ${needle}`);
+    for (const needle of ["packages/kaal-packaging/skills/kaal-packaging/SKILL.md", "node packages/kaal-packaging/bin/kaal-packaging.mjs measure", "node packages/kaal-packaging/bin/kaal-packaging.mjs conform", "--testing"]) assert.ok(agents.includes(needle), `AGENTS.md names ${needle}`);
   });
 
   it("packaging/T33 [packaging/N11]: no file of the package names the running platform, a launcher for one, or a shell chosen by platform", () => {
@@ -136,5 +137,45 @@ describe("packaging/C8 Packaging as a capability, from its source workspace", ()
       for (const pattern of forbidden) if (pattern.test(text)) found.push(`${path} names ${pattern.source}`);
     }
     assert.deepEqual(found, []);
+  });
+
+  it("packaging/T36 [packaging/F16, packaging/F18]: the README, Operations, the skill and AGENTS.md name the commands only by path, never through a registry lookup, and the documented path never runs another package's same-named bin", async () => {
+    const documents = {
+      "AGENTS.md": readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8"),
+      "README.md": readFileSync(join(ROOT, "README.md"), "utf8"),
+      "docs/operations.md": readFileSync(join(ROOT, "docs", "operations.md"), "utf8"),
+      "skills/kaal-packaging/SKILL.md": readFileSync(join(ROOT, "skills", "kaal-packaging", "SKILL.md"), "utf8"),
+    };
+    for (const [path, text] of Object.entries(documents)) {
+      // Every command shown runs the bin by its path.
+      const shown = [...text.matchAll(/(?:^|`|\n)\s*((?:node|npx|npm exec)\b[^`\n]*kaal-packaging[^`\n]*)/g)].map((m) => m[1].trim());
+      assert.ok(shown.length > 0, `${path} shows a command`);
+      for (const command of shown) {
+        if (/^(npx|npm exec)\b/.test(command)) continue; // judged below: only named as what never to run
+        assert.match(command, /^node (?:packages\/kaal-packaging|node_modules\/kaal-packaging|<package>)\/bin\/kaal-packaging\.mjs(?:\s|$)/, `${path}: ${command}`);
+      }
+      // A registry lookup appears only as what never to run.
+      for (const line of text.split(/\r?\n/).filter((l) => /\b(npx|npm exec)\b[^\n]*kaal-packaging/.test(l))) assert.match(line, /\bnever\b/i, `${path}: ${line}`);
+    }
+    // In a project where another package provides a bin named kaal-packaging, the documented path
+    // does not run it; the bare bin name does (the control), which is why it is never documented.
+    const consumer = fresh("acquisition");
+    writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "consumer", version: "1.0.0", private: true }) + "\n");
+    const impostor = fresh("impostor");
+    writeFileSync(join(impostor, "package.json"), JSON.stringify({ name: "unrelated-tool", version: "1.0.0", bin: { "kaal-packaging": "bin.mjs" } }) + "\n");
+    writeFileSync(join(impostor, "bin.mjs"), '#!/usr/bin/env node\nconsole.log("IMPOSTOR RAN");\n');
+    const tgz = JSON.parse(await npm(["pack", "--json", "--ignore-scripts", "--pack-destination", impostor], impostor))[0].filename;
+    await npm(["install", join(impostor, tgz), "--ignore-scripts", "--no-audit", "--no-fund", "--offline"], consumer);
+    const documented = await execute(process.execPath, [join("node_modules", "kaal-packaging", "bin", "kaal-packaging.mjs"), "measure", join(consumer, "none.tgz")], { cwd: consumer });
+    assert.notEqual(documented.status, 0);
+    assert.doesNotMatch(documented.stdout + documented.stderr, /IMPOSTOR RAN/);
+    const bare = await execute("npm", ["exec", "--no", "--offline", "--", "kaal-packaging"], { cwd: consumer });
+    assert.match(bare.stdout, /IMPOSTOR RAN/, "the control: the bare bin name reaches the unrelated package");
+    // The documented repository invocation runs Packaging itself, with every registry unreachable.
+    const fixture = join(ROOT, "test", "embed", "fixtures", "kaal-guard-0.0.4.tgz");
+    const env = { ...process.env, npm_config_registry: "http://127.0.0.1:9/", npm_config_offline: "true" };
+    const repo = await execute(process.execPath, [join("packages", "kaal-packaging", "bin", "kaal-packaging.mjs"), "measure", fixture, "--format", "text"], { cwd: REPOSITORY, env });
+    assert.equal(repo.status, 0, repo.stderr);
+    assert.match(repo.stdout, /@kaihacksai\/kaal-guard/);
   });
 });
