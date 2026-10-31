@@ -1,12 +1,18 @@
 # kaal-packaging
 
-KAAL Packaging: how KAAL's deliverables become packages and what those packages are. It measures a package artifact's delivered size, and decides the generic KAAL Package contract against an installed package. It is private and not published.
+KAAL Packaging: how KAAL's deliverables become packages and what those packages are. It measures a package artifact's delivered size, and decides the generic KAAL Package contract against an installed package. It is private and not published, and it holds itself to the contract it enforces (packaging/F15). How to run it is in [Operations](docs/operations.md).
 
 ```
+bin/kaal-packaging.mjs       the commands, measure and conform (packaging/F16)
 capability/Packaging.md      the Capability Node, typed by Core's KAAL Capability
+docs/                        Intent, Requirements, Architecture, Testing, Limitations and Operations
 lib/packaging.mjs            measure, attribute, compare, write, read and report: ecosystem-neutral
 lib/conformance.mjs          the KAAL Package contract's conformance suite (kaal-packaging/conformance)
 lib/npm/                     the npm realization: asks npm to describe an npm package artifact
+skills/kaal-packaging/       the skill an agent uses Packaging through (packaging/F17)
+test/embed/                  the Embedded Test Cases, run installed by test/verify.mjs
+test/verify.json             the shipped manifest: digests, cases and their Testing model (build output)
+test/publisher/              the publisher's planned tests and the build script (not delivered)
 ownership.kaal.json          Packaging's ownership claim (repository data, not delivered)
 plan/                        the PLANs (not delivered)
 ```

@@ -241,24 +241,12 @@ function expect(by, requirement, result, cause) {
 }
 
 describe("packaging/C5 the KAAL Package conformance suite", () => {
-  it("packaging/T15 F7, F19: name, exact version and exact dependencies, each recorded by the consumer's install as resolved from a registry", async () => {
+  it("packaging/T15 F7: name, exact version and exact registry dependencies", async () => {
     const pinned = conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } });
     const deps = { "kaal-dep": "1.2.3" };
     const registry = { version: "1.2.3", resolved: "https://registry.example/kaal-dep/-/kaal-dep-1.2.3.tgz", integrity: `sha512-${"A".repeat(86)}==` };
     const good = await conform(pinned, { deps, record: { "node_modules/kaal-dep": registry } });
     expect(good.by, "packaging/F7", "verified", /records each of its 1 runtime dependencies as resolved from a registry with integrity\. That is recorded resolution, not independently verified provenance/);
-    expect((await conform(pinned, { deps, lockfile: { "node_modules/kaal-dep": registry } })).by, "packaging/F7", "verified", /not independently verified provenance/);
-    const nested = { "node_modules/kaal-dep": { ...registry, resolved: "file:../elsewhere" }, "node_modules/kaal-fixture/node_modules/kaal-dep": registry };
-    expect((await conform(pinned, { deps, record: nested })).by, "packaging/F7", "verified", /resolved from a registry/);
-
-    // A pinned version the install does not record cannot show where it came from (packaging/F19).
-    expect((await conform(pinned, { deps })).by, "packaging/F7", "unknown", /records no resolution for kaal-dep/);
-    // Recorded, but not from a registry, or without integrity: failed.
-    const recorded = (entry) => conform(pinned, { deps, record: { "node_modules/kaal-dep": entry } });
-    expect((await recorded({ ...registry, resolved: "file:../kaal-dep-1.2.3" })).by, "packaging/F7", "failed", /kaal-dep resolved from "file:\.\.\/kaal-dep-1\.2\.3", not a registry/);
-    expect((await recorded({ resolved: "../kaal-dep", link: true })).by, "packaging/F7", "failed", /not a registry/);
-    expect((await recorded({ ...registry, resolved: "git+https://example.invalid/kaal-dep.git#abc" })).by, "packaging/F7", "failed", /not a registry/);
-    expect((await recorded({ ...registry, integrity: undefined })).by, "packaging/F7", "failed", /no recorded integrity/);
 
     const dep = fresh("file-dep");
     writeAll(dep, { "package.json": JSON.stringify({ name: "kaal-dep", version: "1.2.3" }) });
@@ -268,6 +256,23 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     const range = await conform(conforming({ pkg: { dependencies: { "kaal-dep": "^1.0.0" } } }), { deps: { "kaal-dep": "1.2.3" } });
     expect(range.by, "packaging/F7", "failed", /kaal-dep is "\^1\.0\.0"/);
     assert.equal(range.report.result, "failed");
+  });
+
+  it("packaging/T32 F19: F7 verifies a dependency the install records as resolved from a registry with integrity, fails a file:, link or git resolution or a missing integrity, and is unknown when nothing is recorded", async () => {
+    const pinned = conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } });
+    const deps = { "kaal-dep": "1.2.3" };
+    const registry = { version: "1.2.3", resolved: "https://registry.example/kaal-dep/-/kaal-dep-1.2.3.tgz", integrity: `sha512-${"A".repeat(86)}==` };
+    expect((await conform(pinned, { deps, lockfile: { "node_modules/kaal-dep": registry } })).by, "packaging/F7", "verified", /not independently verified provenance/);
+    const nested = { "node_modules/kaal-dep": { ...registry, resolved: "file:../elsewhere" }, "node_modules/kaal-fixture/node_modules/kaal-dep": registry };
+    expect((await conform(pinned, { deps, record: nested })).by, "packaging/F7", "verified", /resolved from a registry/);
+
+    // A pinned version placed by path, which F7 verified before F19: the install records no resolution.
+    expect((await conform(pinned, { deps })).by, "packaging/F7", "unknown", /records no resolution for kaal-dep/);
+    const recorded = (entry) => conform(pinned, { deps, record: { "node_modules/kaal-dep": entry } });
+    expect((await recorded({ ...registry, resolved: "file:../kaal-dep-1.2.3" })).by, "packaging/F7", "failed", /kaal-dep resolved from "file:\.\.\/kaal-dep-1\.2\.3", not a registry/);
+    expect((await recorded({ resolved: "../kaal-dep", link: true })).by, "packaging/F7", "failed", /"a link", not a registry/);
+    expect((await recorded({ ...registry, resolved: "git+https://example.invalid/kaal-dep.git#abc" })).by, "packaging/F7", "failed", /not a registry/);
+    expect((await recorded({ ...registry, integrity: undefined })).by, "packaging/F7", "failed", /no recorded integrity/);
   });
 
   it("packaging/T16 F8: the shipped documents are present and non-empty, and the README links docs/operations.md", async () => {

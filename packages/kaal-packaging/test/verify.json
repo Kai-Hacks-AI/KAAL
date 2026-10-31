@@ -1,0 +1,74 @@
+{
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "3d8a6bf1de6224eb478979afc0174a9697213ec59ecab7f249dde1dc77058300",
+    "bin/kaal-packaging.mjs": "63f05ec55c793ca1d137697e7faf8ed79efb5ad3358cff718b08cfbfc9ea7419",
+    "capability/Packaging.md": "7bb7f9eeba38848847af8043265c4f07ffcc07bb1a0a0c6e635431c740309eae",
+    "docs/architecture.md": "d4164c43cb9839e6ee307571b96eb28a686b8dc2c82bbcc10a4300c70c231cff",
+    "docs/intent.md": "ffe81bda125d7d8ff20b1d646e3ce3b89426b131203708e4a81029a05a519969",
+    "docs/limitations.md": "b2baddf82e62c2582c92e918404c7eb2e1573c973992ae9b576e9bce941e7d2a",
+    "docs/operations.md": "e0fcc871637f78187e1b962e70ca8f0713fe923b08754d06661c31ee4b0dfd8c",
+    "docs/requirements.md": "8b93a8ff01874100a7999608c6a11f352e2ebfd772996141f3e1446edf979937",
+    "docs/testing.md": "1a6814999a53c3c90644eaee290b7ceba853e4c9b2628323147269f9704974c5",
+    "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
+    "lib/conformance.d.ts": "5d0904bd0348e8d9a87b252157e243809a71f346d4037f73c5f8d4f4317ad13f",
+    "lib/conformance.mjs": "2bf82fd78afccbb869cfd4e92b559b89bc77bac25fd2c4415db2aa7bf65994ac",
+    "lib/npm/realization.mjs": "e79cd50bf0013104d5ec6a5ef64303763caabffe3ea02c7186f7581ab32a1536",
+    "lib/packaging.d.ts": "3c3df698bc79c3304b1c650f12577f4edf0d46d6a0ffb4ad45bfa44c0edf6f17",
+    "lib/packaging.mjs": "6a20ad3fed5a2116bdefb1c058a2fe64b84cc413bf93389689c55c974c7db3a1",
+    "package.json": "ef4467a237e4963fa677df674502b15a843996219b4bcd862b7b4052d5dd94c4",
+    "skills/kaal-packaging/SKILL.md": "eeeb747c678df0642a812a517ffeeef692d6722b87f2f054f51471062211547a",
+    "test/embed/cases.mjs": "53d7e2571627dd78f77511b5f98f5aa7c2df13d42cbcacf0733b14d0113c7600",
+    "test/source.mjs": "ddfc5ae70283e5cba7dc3ed2c990051b9f4ca29ac4fbba191f43e3e9b52395ce",
+    "test/verify.mjs": "8b36b3cfa114e61c49a0ac23fdfa6aaba309600226ff532d16dc0d05b5c19531"
+  },
+  "cases": [
+    "packaging/T2",
+    "packaging/T3",
+    "packaging/T4",
+    "packaging/T5",
+    "packaging/T18",
+    "packaging/T20"
+  ],
+  "model": {
+    "cases": [
+      {
+        "id": "packaging/T2",
+        "tests": [
+          "packaging/F2"
+        ]
+      },
+      {
+        "id": "packaging/T3",
+        "tests": [
+          "packaging/F3"
+        ]
+      },
+      {
+        "id": "packaging/T4",
+        "tests": [
+          "packaging/F4"
+        ]
+      },
+      {
+        "id": "packaging/T5",
+        "tests": [
+          "packaging/F5",
+          "packaging/N2"
+        ]
+      },
+      {
+        "id": "packaging/T18",
+        "tests": [
+          "packaging/F10"
+        ]
+      },
+      {
+        "id": "packaging/T20",
+        "tests": [
+          "packaging/F12"
+        ]
+      }
+    ]
+  }
+}

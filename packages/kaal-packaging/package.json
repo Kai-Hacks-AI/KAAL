@@ -5,6 +5,9 @@
   "description": "KAAL Packaging: how KAAL's deliverables become packages. It measures a package artifact's delivered size, and decides the generic KAAL Package contract against an installed package.",
   "license": "MIT",
   "type": "module",
+  "bin": {
+    "kaal-packaging": "bin/kaal-packaging.mjs"
+  },
   "exports": {
     ".": {
       "types": "./lib/packaging.d.ts",
@@ -17,11 +20,21 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "bin",
     "capability",
-    "lib"
+    "docs",
+    "lib",
+    "skills",
+    "test/embed",
+    "test/source.mjs",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
-    "test": "node --test test/plan/measurement.test.mjs test/plan/package.test.mjs"
+    "test": "npm run test:publisher && npm run test:embedded",
+    "test:embedded": "node test/verify.mjs",
+    "test:publisher": "node test/source.mjs",
+    "build:verify": "node test/publisher/build.mjs"
   },
   "engines": {
     "node": ">=24"
