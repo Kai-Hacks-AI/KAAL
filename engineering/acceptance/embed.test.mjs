@@ -55,6 +55,8 @@ const EXPECTED_TARBALL = [
   "package/dist/records.js",
   "package/dist/register.d.ts",
   "package/dist/register.js",
+  "package/dist/registration.d.ts",
+  "package/dist/registration.js",
   "package/installation.kaal.json",
   "package/package.json",
   "package/payload/AGENTS.md",
