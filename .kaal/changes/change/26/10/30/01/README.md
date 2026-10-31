@@ -22,8 +22,10 @@ The Owner's alignment on #530 named Succeeds, Delivers and the delivery criterio
 ## Verified by
 
 - All eighteen planned tests in `test/plan/delivery.test.mjs` are GREEN, and now run in `npm test`.
-- `test/delivery.test.mjs` adds seven Code tests: the shipped Definitions are the ones the runtime names; the Capability Node provides them; the basis cites a counted evaluation that does not pass; a Change with malformed Edges is not walked; delivery along a chain of 20,000 Changes is decided without recursion, with an unmet first Change propagating to the end; without Graph there is `cannot-assess` and nothing else; and a missing dependency of Graph propagates.
-- `npm test -w kaal-change` passes 93 of 93. `npm run test:engineering`, `npm run test:acceptance` and `npm test -w kaal-testing` pass.
+- `test/delivery.test.mjs` adds eight Code tests: the shipped Definitions are the ones the runtime names; the Capability Node provides them; the basis cites a counted evaluation that does not pass; a Change with malformed Edges is not walked; delivery along a chain of 20,000 Changes is decided without recursion, with an unmet first Change propagating to the end; without Graph there is `cannot-assess` and nothing else; and a missing dependency of Graph propagates.
+- **Held succession** (the Owner's comment 6548694764). A Code test, "never lets a held Succeeds Edge contribute to delivery", gives every held kind a target whose id names a given Node, so following an Edge by id alone, as `traverse()` does, would reach it. The kinds are a misnamed pin (unresolved), a pin named for one Change and pinned to another (stale), a target that is not a Change, and a target that is a duplicate Change. Each holder is satisfied and not delivered, awaits the held name, and has an empty transitive view, though the Changes the ids name are delivered. A resolved successor of a held Change is not delivered, and its transitive view stops there. A stale pin named for its own successor and pinned to a delivered Change neither closes a cycle nor delivers either Change.
+  - **Discriminating.** The test fails against four mutants: resolving a held target by id, resolving it by name, ignoring held Edges in delivery, and following a target that is not a Change. change/T6, change/T17 and change/T21 already hold that a stale Edge is not listed, is never a cycle, and holds its successor.
+- `npm test -w kaal-change` passes 94 of 94. `npm run test:engineering`, `npm run test:acceptance` and `npm test -w kaal-testing` pass.
 
 ## What did not change
 

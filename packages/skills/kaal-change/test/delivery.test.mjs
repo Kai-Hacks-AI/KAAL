@@ -101,6 +101,54 @@ describe("kaal-change/delivery (change/C8)", () => {
     assert.deepEqual(reversed.exchange(), blocked.exchange(), "the order of the Nodes never matters");
   });
 
+  it("never lets a held Succeeds Edge contribute to delivery, though its id resolves: not directly, transitively, or by closing a cycle", () => {
+    const definitions = ["Change-Definition.md", "Succeeds.md"].map((f) => identify(readFileSync(join(PACKAGE, "capability", f))));
+    const [, succeedsDefinition] = definitions;
+    const change = (name, targets = []) => identify(createNode({
+      name, type: CHANGE, ...(targets.length ? { edges: [{ type: SUCCEEDS, targets }] } : {}), frontmatter: { requires: [`${name}-case`] }, body: `# ${name}\n`,
+    }).bytes);
+    const pin = (node, name = node.name) => ({ name, id: node.id });
+
+    // Every target below carries the id of a Node that is given, so following an Edge by its id alone, as traverse() does, would reach it.
+    const a = change("sample/C1");
+    const unresolved = change("sample/C2", [pin(a, "sample/C99")]); // a misnamed pin: no Node is named sample/C99
+    const other = change("sample/C3");
+    const stale = change("sample/C4", [pin(other, "sample/C1")]); // named for sample/C1, pinned to sample/C3's id
+    const notChange = change("sample/C5", [pin(succeedsDefinition)]); // resolves, but to a Definition
+    const twinA = identify(createNode({ name: "sample/C6", type: CHANGE, frontmatter: { requires: ["sample/C6-case"] }, body: "# sample/C6, one\n" }).bytes);
+    const twinB = identify(createNode({ name: "sample/C6", type: CHANGE, frontmatter: { requires: ["sample/C6-case"] }, body: "# sample/C6, two\n" }).bytes);
+    const toDuplicate = change("sample/C7", [pin(twinA)]); // resolves, but to a duplicate, which is not walked
+    const transitive = change("sample/C8", [pin(unresolved)]); // a resolved Edge to a Change that is held
+    // Named for its own successor, so by name it closes a cycle; pinned to sample/C1's id, so by id it reaches a delivered Change.
+    const looping = change("sample/C10", [pin(a, "sample/C11")]);
+    const successor = change("sample/C11", [pin(looping)]);
+
+    const nodes = [...definitions, a, unresolved, other, stale, notChange, twinA, twinB, toDuplicate, transitive, looping, successor];
+    const names = nodes.filter((n) => /^sample\/C/.test(n.name)).map((n) => n.name);
+    const evidence = { by: "selector", evaluations: [{ run: "run-a", plan: "plan-a", result: "passed", findings: [], cases: Object.fromEntries(names.map((n) => [`${n}-case`, "passed"])) }] };
+    const r = assess(nodes, { evidence });
+
+    for (const [name, holding] of [["sample/C2", "sample/C99"], ["sample/C4", "sample/C1"], ["sample/C5", succeedsDefinition.name], ["sample/C7", "sample/C6"]]) {
+      const d = r.delivery(name);
+      assert.equal(d.satisfied, true, `${name} satisfies its own Case`);
+      assert.equal(d.delivered, false, `${name} is not delivered through its held Edge`);
+      assert.deepEqual(d.awaiting, [holding], `${name} awaits the held target by the name it states`);
+      assert.deepEqual(r.succeeds(name, { transitive: true }), [], `${name}'s held Edge is not walked`);
+    }
+    assert.equal(r.delivery("sample/C1").delivered, true, "the Change the misnamed pin's id names is delivered, and that does not carry over");
+    assert.equal(r.delivery("sample/C3").delivered, true, "so is the Change the stale pin's id names");
+
+    const t = r.delivery("sample/C8");
+    assert.deepEqual([t.satisfied, t.delivered, t.awaiting], [true, false, ["sample/C2"]], "a held predecessor holds its successors transitively");
+    assert.deepEqual(r.succeeds("sample/C8", { transitive: true }), ["sample/C2"], "and the transitive view stops at the held Edge");
+
+    assert.equal(r.findings.some((f) => f.kind === "cycle"), false, "following it by name would close a cycle, and it does not");
+    assert.ok(r.findings.some((f) => f.kind === "stale" && f.change === "sample/C10" && f.target === "sample/C11"), "it is a stale pin");
+    for (const name of ["sample/C10", "sample/C11"]) assert.equal(r.delivery(name).delivered, false, `following it by id would deliver ${name}, and it does not`);
+    assert.deepEqual(r.delivery("sample/C10").awaiting, ["sample/C11"], "sample/C10 awaits the target it names");
+    assert.deepEqual(r.delivery("sample/C11").awaiting, ["sample/C10"], "and sample/C11 awaits sample/C10");
+  });
+
   it("without Graph, gives cannot-assess and no verdict, view or exchange", () => {
     const r = isolated();
     assert.equal(r.status, 0, r.err);
