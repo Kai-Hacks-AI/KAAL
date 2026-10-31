@@ -27,8 +27,8 @@ async function npm(args, cwd) {
   return r.stdout;
 }
 
-/** Testing's model functions as a caller hands them in (testing/F24–F25), held to their interface as far as Packaging's model reaches. */
-const TESTING = {
+/** A stand-in for Testing's model functions (testing/F24–F25), held to their interface as far as Packaging's model reaches. */
+const STAND_IN = {
   check(model) {
     if (model === null || typeof model !== "object" || !Array.isArray(model.cases)) return ["a model holds a list of cases"];
     const seen = new Set();
@@ -46,6 +46,10 @@ const TESTING = {
     return out;
   },
 };
+
+/** Testing's real model functions where `kaal-testing/model` resolves here; the stand-in, and so an interim result, otherwise. */
+const REAL = await import("kaal-testing/model").then((m) => (typeof m.check === "function" && typeof m.tested === "function" ? m : null), () => null);
+const TESTING = REAL ?? STAND_IN;
 
 /** Packaging, Hosting and Foundation, each packed from its workspace, installed into one fresh consumer. Made once. */
 let installed;

@@ -76,7 +76,7 @@ async function identity(pkg, dir, root) {
   }
   if (problems.length) return finding("packaging/F7", "failed", [...problems, ...unknowns].join("; "));
   if (unknowns.length) return finding("packaging/F7", "unknown", unknowns.join("; "));
-  return finding("packaging/F7", "verified", `${pkg.name}@${pkg.version}${deps.length ? `, with ${deps.map((d) => `${d.name}@${d.spec}`).join(", ")} resolved from a registry` : ""}`);
+  return finding("packaging/F7", "verified", `${pkg.name}@${pkg.version}${deps.length ? `, with ${deps.map((d) => `${d.name}@${d.spec}`).join(", ")} recorded by the install as resolved from a registry. That is recorded resolution, not independently verified provenance (testing/F14)` : ""}`);
 }
 
 /** packaging/F8: every shipped document is present and non-empty, and the README links Operations. */

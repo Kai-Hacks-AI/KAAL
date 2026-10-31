@@ -242,7 +242,7 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
   it("packaging/T15 [packaging/F7]: name, exact version and exact registry dependencies", async () => {
     // No false RED (packaging/F19): a dependency the install shows fetched from a registry, with integrity, verifies.
     const good = await conform(conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } }), { deps: { "kaal-dep": "1.2.3" }, lock: { "node_modules/kaal-dep": fromRegistry("kaal-dep", "1.2.3") } });
-    expect(good.by, "packaging/F7", "verified", /kaal-dep@1\.2\.3 resolved from a registry/);
+    expect(good.by, "packaging/F7", "verified", /kaal-dep@1\.2\.3 recorded by the install as resolved from a registry\. That is recorded resolution, not independently verified provenance \(testing\/F14\)/);
 
     const dep = fresh("file-dep");
     writeAll(dep, { "package.json": JSON.stringify({ name: "kaal-dep", version: "1.2.3" }) });

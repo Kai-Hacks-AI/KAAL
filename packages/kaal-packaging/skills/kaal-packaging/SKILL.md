@@ -37,7 +37,7 @@ Measure only artifacts whose producer you trust (packaging/N5). If `measure` ref
 
 | Finding | What it asks of you |
 | --- | --- |
-| packaging/F7 | Pin every runtime dependency to one exact version, and install it from a registry. A dependency installed from a local tarball, a path or Git fails until it is published (packaging/F19). Report such a failure as dependency-blocked, an interim result, never as acceptance. |
+| packaging/F7 | Pin every runtime dependency to one exact version, and install it from a registry. A dependency installed from a local tarball, a path or Git fails until it is published (packaging/F19). Report such a failure as dependency-blocked, an interim result, never as acceptance. A `verified` F7 is recorded resolution, not independently verified provenance (testing/F14). |
 | packaging/F8 | Ship the six documents under `docs/`, each non-empty, and link `docs/operations.md` from the README. |
 | packaging/F9, packaging/F10 | The installed `npm test` must run the shipped Embedded cases against the installed copy, and end on one result line whose result matches its exit and its cases. |
 | packaging/F11 | Ship `test/verify.json` with every delivered file's SHA-256 and the declared cases, and have the run name each declared case exactly once. |
