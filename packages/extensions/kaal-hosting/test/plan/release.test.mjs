@@ -11,7 +11,6 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { gunzipSync } from "node:zlib";
 import { execute } from "../../dist/index.js";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -20,10 +19,6 @@ const SELF = "packages/extensions/kaal-hosting/test/plan/release.test.mjs";
 const NAME = "@kaihacksai/kaal-hosting";
 // Spelled in parts so this file never names the old package itself.
 const OLD = ["kaal", "hosting"].join("-");
-
-// What hosting/F18 and hosting/F19 add to the package, once hosting/C12 lands.
-const SHIPPED_BY_C12 = ["docs", "test/acceptance", "test/unit", "test/verify.mjs", "test/verify.json"];
-const shippedByC12 = (p) => p === "package/test/verify.mjs" || p === "package/test/verify.json" || ["package/docs/", "package/test/acceptance/", "package/test/unit/"].some((d) => p.startsWith(d));
 
 const pkg = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
 // A consumer's command runs outside this test run, so it inherits none of node:test's own context.
@@ -34,21 +29,6 @@ async function run(cmd, args, cwd) {
   const r = await execute(cmd, args, { cwd, env });
   assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stderr}`);
   return r.stdout;
-}
-
-/** The names of the files in a .tgz, read from its bytes. */
-function tarEntries(path) {
-  const tar = gunzipSync(readFileSync(path));
-  const names = [];
-  for (let at = 0; at + 512 <= tar.length; ) {
-    const header = tar.subarray(at, at + 512);
-    if (header.every((b) => b === 0)) break;
-    const field = (start, length) => header.subarray(start, start + length).toString("utf8").replace(/\0[\s\S]*$/, "");
-    const prefix = field(345, 155);
-    if (["0", ""].includes(field(156, 1))) names.push(prefix ? `${prefix}/${field(0, 100)}` : field(0, 100));
-    at += 512 + Math.ceil(parseInt(field(124, 12).trim() || "0", 8) / 512) * 512;
-  }
-  return names;
 }
 
 /** Every file under `dir`, `/`-separated and relative to `base`. */
@@ -67,16 +47,13 @@ function references(text, name) {
 }
 
 describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
-  it("hosting/T21 [hosting/F15]: the package is @kaihacksai/kaal-hosting 0.0.1, public, with its repository directory, its interface unchanged, and a README that names it and how to install it", () => {
+  it("hosting/T21 [hosting/F15]: the package is @kaihacksai/kaal-hosting 0.0.1, public, with its repository directory, engines, license and runtime dependencies, and a README that names it and how to install it", () => {
     const p = pkg();
     assert.equal(p.name, NAME);
     assert.equal(p.version, "0.0.1");
     assert.deepEqual(p.publishConfig, { access: "public" });
     assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/extensions/kaal-hosting" });
-    assert.deepEqual(Object.keys(p.exports), [".", "./conformance", "./package.json"]);
-    // hosting/C12 adds what hosting/F18 and hosting/F19 ship, and nothing else.
-    assert.deepEqual(p.files.slice(0, 3), ["dist", "!dist/.tsbuildinfo", "payload"]);
-    for (const extra of p.files.slice(3)) assert.ok(SHIPPED_BY_C12.includes(extra), `files lists ${extra}`);
+    // Its exports, commands and files are the declared interface's, which hosting/T41 checks (hosting/C15).
     assert.deepEqual(p.engines, { node: ">=24" });
     assert.equal(p.license, "MIT");
     assert.deepEqual(Object.keys(p.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile"]);
@@ -128,13 +105,7 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
       await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball], consumer);
     });
 
-    it("holds exactly package.json, README.md, LICENSE, dist without .tsbuildinfo, and payload, besides what hosting/C12 ships", () => {
-      const expected = ["package/package.json", "package/README.md", "package/LICENSE", ...files(join(PACKAGE, "dist"), "package/dist"), ...files(join(PACKAGE, "payload"), "package/payload")]
-        .filter((p) => !p.endsWith(".tsbuildinfo"))
-        .sort();
-      assert.deepEqual(tarEntries(tarball).filter((p) => !shippedByC12(p)).sort(), expected);
-    });
-
+    // What the tarball may hold is the declared interface's, which hosting/T41 checks (hosting/C15).
     it("installs as node_modules/@kaihacksai/kaal-hosting, and the consumer uses it by that name alone", async () => {
       const installed = join(consumer, "node_modules", ...NAME.split("/"));
       assert.ok(existsSync(join(installed, "package.json")), `${NAME} is not installed in the consumer`);
