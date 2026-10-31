@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "description": "KAAL Foundation: the shared, dependency-free primitives every KAAL Capability may build on.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
+    "directory": "packages/kaal-foundation"
+  },
   "type": "module",
   "bin": {
     "kaal-foundation": "bin/kaal-foundation.mjs"
@@ -28,10 +33,13 @@
     "test": "npm run test:all",
     "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
-    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs",
+    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs test/publisher/release.test.mjs",
     "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

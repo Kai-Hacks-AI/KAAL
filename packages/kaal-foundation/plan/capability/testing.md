@@ -56,3 +56,10 @@ Run against today's package, through npm (`npm_execpath` set):
 | Test | Checks | The fixture it must fail, naming the cause |
 | --- | --- | --- |
 | foundation/T32 | F18: every documented invocation in the installed README, `docs/`, skill and the repository's `AGENTS.md` names `--package=@kaihacksai/kaal-foundation`. Run offline, the documented command prints the scoped bin's digest where the scoped package is installed. Where only an unrelated unscoped `kaal-foundation` is installed, it fails and never runs it, while the bare bin name does run it (the control) | Documentation that recommends `npx kaal-foundation` |
+
+## Amendment foundation/C9
+
+| Test | Checks | The fixture it must fail, naming the cause |
+| --- | --- | --- |
+| foundation/T33 | F14, N10: installed, `kaal-foundation verify` on a library with a stray line, and on one that throws on import, exits 2 and ends on `kaal-foundation-verification` with `cannot verify` naming `lib/sha256.mjs` | Today's bin, which imports the library at load and crashes with exit 1 |
+| foundation/T34 | F19: `publishConfig` is `{ access: "public" }`, and `repository` names the KAAL repository and this package's directory | Today's `package.json`, which has neither |

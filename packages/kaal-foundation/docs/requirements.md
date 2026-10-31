@@ -13,7 +13,7 @@
 
 - **foundation/F14** The package installs one command, `kaal-foundation`:
   - `kaal-foundation sha256 [<file>…]` prints `<digest>  <file>` for each file, as `sha256sum` does. With no file, or with `-`, it hashes standard input.
-  - `kaal-foundation verify` runs the verification of foundation/F12 and exits with its status.
+  - `kaal-foundation verify` runs the verification of foundation/F12 and exits with its status. It loads no library code itself, so a changed or broken library gives `cannot verify`, never a crash.
 
   An unreadable file, an unknown command or option, or no command at all prints the cause and a usage line on standard error, and exits 2. The command decides nothing the library does not. Its digests are `sha256`'s.
 - **foundation/F18** Every documented way to run the command names the scoped package explicitly: `npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation …`, after `npm install @kaihacksai/kaal-foundation`. The documents never recommend `npx kaal-foundation`, which may select an unrelated unscoped package. Where the scoped package is not installed, the documented command fails and never runs another package.
