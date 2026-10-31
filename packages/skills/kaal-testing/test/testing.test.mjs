@@ -56,7 +56,7 @@ describe("kaal-testing", () => {
     for (const c of ["npm install @kaihacksai/kaal-testing", "npm explore @kaihacksai/kaal-testing -- npm test", "npm uninstall @kaihacksai/kaal-testing", "`@kaihacksai/kaal-testing/model`"]) assert.ok(ops.includes(c), `Operations gives ${c}`);
   });
 
-  it("packs its Nodes, its documents, its library, the Agent Skill and nothing else beyond its metadata", async () => {
+  it("packs its Nodes, its documents, its library, the Agent Skill, its delivered cases and their verifier and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
     assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
@@ -85,6 +85,12 @@ describe("kaal-testing", () => {
       "skills/kaal-testing/SKILL.md",
       "skills/kaal-testing/references/brittle.md",
       "skills/kaal-testing/references/findings.md",
+      "test/embed/boundary.test.mjs",
+      "test/embed/model.test.mjs",
+      "test/embed/verifiers.test.mjs",
+      "test/run.mjs",
+      "test/verify.json",
+      "test/verify.mjs",
     ]);
   });
 });

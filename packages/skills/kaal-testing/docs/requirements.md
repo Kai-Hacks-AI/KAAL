@@ -412,6 +412,10 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
   - The installed verification, `test/verify.mjs`, ends in exactly one of Testing's results: `verified`, `failed` or `unknown` (testing/F13). The exit statuses are 0, 1 and 2 (testing/A9).
   - It prints one summary line starting `kaal-testing-verification `, holding the JSON summary of testing/F44.
   - It decides failed and unknown as testing/F50 states, and diagnoses as testing/F49 states.
+  - What the runner establishes about a delivered file, once the installation is shown intact, decides one result:
+    - **failed:** a declared case fails; a delivered file fails as a whole, because it does not import, throws while it loads or its process ends non-zero; or a test the manifest does not declare runs and fails. Each is a violation by the package as shipped (testing/F50), and its evidence names the case or the file.
+    - **unknown:** a declared case is skipped or todo, a todo that fails included; a declared case does not run, or its title is reported twice; or a test the manifest does not declare runs without failing, skipped and todo included. Nothing failed, and not every declared case was proven.
+    - **verified** only when every declared case ran once and passed and nothing else ran. A failure is never hidden by anything unknown beside it.
   - It conforms to every scenario of testing/F43 and testing/F50 in Engineering's harness.
 
 - **testing/F64** [testing/I17] (packaging/F11): **Shipped manifest.** `test/verify.json` holds:

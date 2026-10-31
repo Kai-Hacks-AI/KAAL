@@ -1,0 +1,150 @@
+{
+  "hashes": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "0a6ff4fdbe56532cbd72bb3eb2db4a135caa37409367b4c8144e75ca07320957",
+    "capability/Testing.md": "be4d4a38073318e46d1d9c7351a44fab69aeb2044780ac53af2c11c2d1a9a185",
+    "docs/architecture.md": "d75e48a39ca568f7f4d113e288f3b792c34e435db1e4ca7c7a788422800e022a",
+    "docs/intent.md": "81a84171802a4ed72d0f23fc087e58f9d93efec5f8f418fb85fd84aa338c6fc3",
+    "docs/limitations.md": "f0b1434f22c8c032374fc3986a152366c4caa40a785efd03b2414d91d1155eb4",
+    "docs/operations.md": "facd9b48016f49b33fd014c90378d7e97c089458ad749c80f9a56e015c67109c",
+    "docs/requirements.md": "942864e6db5c25cf05bc17bb5e553b92d609b2b432cd971fab62a00e9cf205c7",
+    "docs/testing.md": "f5048abf44f7dad6906ccdbf495f7d9b7b046e046e0c95e3213d52955c875af5",
+    "lib/acceptance.mjs": "aa2a5802c99c2d64d845b86ba957ef8395b923d768ddde8d22c215966b36b658",
+    "lib/attribution.mjs": "16ade54a6ec60055d4656f0ffa0c676515e6b32cd6ba3a7a811776d7b9f23d95",
+    "lib/boundary.mjs": "e9b1f76d2e4c9fd8906a1db23f93f097a1fc9bf0f8a31b0cdd4e04caea7beff6",
+    "lib/contracts.mjs": "3bcbfb30a8ab584bca3c878c21e311b6c63b9ed89721bf0d736e46742a4d0079",
+    "lib/coverage.mjs": "62019496c99cf6348007d18b04fa7d29f102a0d11da61d29fd2d45b793428d19",
+    "lib/inventory.mjs": "d644597786867e354c5fd954c2e8c71ba0477b4a39eb108624130f8ccf283b9f",
+    "lib/model.mjs": "e350cc9837b80bbd09056729862274983de1fae24db6c88165328fb8357657f8",
+    "lib/observed.mjs": "6a4ee1c92efa69bbf37af2b4ffb206cdd8419e20f3d276fa21a45d27675e5d89",
+    "lib/report.mjs": "1e442b1d01560701b4bba1f787b0a6c5096a44d668e6f62e0dc3996720b18f73",
+    "lib/reporter.mjs": "c26b158ae336569e438be7ed7a51730928ac2c3285c5fa755052a44becac2705",
+    "lib/verifiers.mjs": "f70155c48b81f3500b642ed06e65088834948bcc6d6997da6aad616ebe063921",
+    "package.json": "919219c15942fa7ec439656c9efb9fe90e5751a62642b90bca32acd254137e4e",
+    "payload/Testing.md": "89e300cafdc01612b94112c7b6adbc7b4c97d31a8207473ec1327c8c1f7572be",
+    "skills/kaal-testing/SKILL.md": "24c7a32aa1ba73d8ee0f74ca2d2d5a538d9c3eed27203a398c202d4e3525cab9",
+    "skills/kaal-testing/references/brittle.md": "7796054c700e2684d3a6ff8029a3fc0a9bb2045f67723c793847a0cebfeb9be3",
+    "skills/kaal-testing/references/findings.md": "4f83bd5761cd3149a483a8d7b16402668daafec417be252aae14e9703ceff42b",
+    "test/embed/boundary.test.mjs": "d5a93abb9395fc02507f664bf45523081858f784b9636c753290ca0d2cb9a868",
+    "test/embed/model.test.mjs": "7a371f840517807008f049ac88a1b41d311355ec5808bc4e75c41bcc3a2b5653",
+    "test/embed/verifiers.test.mjs": "a64dffd2801e0b851ec29da565f59cfd4587f811d9ae2b2839efb814e256ac6d",
+    "test/run.mjs": "8f6585b4faa0cd92cbe0f3fefdc3cf8069e657ee83597ff711e84f506267413f",
+    "test/verify.mjs": "2a3d1cac3beb4d18523cc1db9193b495af5c2eda2d3f579b57f8bebe375442e9"
+  },
+  "cases": [
+    "reads an untouched boundary as unchanged within the declaration, never as met [testing/F22, testing/F23]",
+    "reads a changed planned test as a verified failure [testing/F18, testing/F21]",
+    "reads a verdict without its trust authority's attestation as unknown, never unchanged [testing/F19, testing/F20]",
+    "checks a model as given and finds what is malformed [testing/F24, testing/F25]",
+    "derives which Cases test each target from the Cases' own traces [testing/F25]",
+    "gives each Case's result in one Run as observed, and a Case that did not run is unknown [testing/F26]",
+    "evaluates a Plan Run: failed when a Case failed, passed only when every Case passed [testing/F27, testing/F28]",
+    "reads current evidenced quality from the latest applicable Run, never an older one [testing/F40, testing/F41]",
+    "names each scenario once, with the result every conforming verifier must show [testing/F43]",
+    "observes exactly one summary line, read through the verifier's own words [testing/F44]",
+    "conforms a clean run only when every observable matches what the harness established [testing/F45, testing/F46]",
+    "holds one candidate's runs on every supported platform to the same declared cases [testing/F56, testing/F57]"
+  ],
+  "model": {
+    "cases": [
+      {
+        "id": "reads an untouched boundary as unchanged within the declaration, never as met [testing/F22, testing/F23]",
+        "version": "d5a93abb9395",
+        "tests": [
+          "testing/F22",
+          "testing/F23"
+        ]
+      },
+      {
+        "id": "reads a changed planned test as a verified failure [testing/F18, testing/F21]",
+        "version": "d5a93abb9395",
+        "tests": [
+          "testing/F18",
+          "testing/F21"
+        ]
+      },
+      {
+        "id": "reads a verdict without its trust authority's attestation as unknown, never unchanged [testing/F19, testing/F20]",
+        "version": "d5a93abb9395",
+        "tests": [
+          "testing/F19",
+          "testing/F20"
+        ]
+      },
+      {
+        "id": "checks a model as given and finds what is malformed [testing/F24, testing/F25]",
+        "version": "7a371f840517",
+        "tests": [
+          "testing/F24",
+          "testing/F25"
+        ]
+      },
+      {
+        "id": "derives which Cases test each target from the Cases' own traces [testing/F25]",
+        "version": "7a371f840517",
+        "tests": [
+          "testing/F25"
+        ]
+      },
+      {
+        "id": "gives each Case's result in one Run as observed, and a Case that did not run is unknown [testing/F26]",
+        "version": "7a371f840517",
+        "tests": [
+          "testing/F26"
+        ]
+      },
+      {
+        "id": "evaluates a Plan Run: failed when a Case failed, passed only when every Case passed [testing/F27, testing/F28]",
+        "version": "7a371f840517",
+        "tests": [
+          "testing/F27",
+          "testing/F28"
+        ]
+      },
+      {
+        "id": "reads current evidenced quality from the latest applicable Run, never an older one [testing/F40, testing/F41]",
+        "version": "7a371f840517",
+        "tests": [
+          "testing/F40",
+          "testing/F41"
+        ]
+      },
+      {
+        "id": "names each scenario once, with the result every conforming verifier must show [testing/F43]",
+        "version": "a64dffd2801e",
+        "tests": [
+          "testing/F43"
+        ]
+      },
+      {
+        "id": "observes exactly one summary line, read through the verifier's own words [testing/F44]",
+        "version": "a64dffd2801e",
+        "tests": [
+          "testing/F44"
+        ]
+      },
+      {
+        "id": "conforms a clean run only when every observable matches what the harness established [testing/F45, testing/F46]",
+        "version": "a64dffd2801e",
+        "tests": [
+          "testing/F45",
+          "testing/F46"
+        ]
+      },
+      {
+        "id": "holds one candidate's runs on every supported platform to the same declared cases [testing/F56, testing/F57]",
+        "version": "a64dffd2801e",
+        "tests": [
+          "testing/F56",
+          "testing/F57"
+        ]
+      }
+    ]
+  },
+  "applicability": {},
+  "platforms": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
+}
