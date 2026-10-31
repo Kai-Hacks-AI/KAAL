@@ -14,7 +14,7 @@ The current rules stay the defaults:
 
 ## How it is computed
 
-1. **What is being changed.** A Change states the elements it changes: an Intent, a functional or nonfunctional Requirement, or an Architecture element, each by its owner's identity, such as `hosting/F31`. It also states its **selected scope**: the capabilities it will change. Both are outgoing statements in the Change Node, beside `delivers` and `requires`. Their shape is the Change capability's to define (prerequisite P1). Engineering reads them and defines neither.
+1. **What is being changed.** A Change states the elements it changes: an Intent, a functional or nonfunctional Requirement, or an Architecture element, each by its owner's identity, such as `hosting/F31`. It also states its **selected scope**: the capabilities it will change. Both are outgoing statements in the Change Node, beside `delivers` and `requires`; Change's PLAN (change/C9, #744) names the first `alters`. Their shape is the Change capability's to define (prerequisite P1). Engineering reads them and defines neither.
 2. **Reverse traces.** From each changed element, Engineering follows incoming traces through Graph's `traverse(id, { direction: "in" })`:
    - Requirements and Architecture that cite it;
    - the Test Cases that test those;
@@ -93,3 +93,18 @@ These go in `engineering/change-isolation/check.test.mjs`. Each case uses fixtur
 ## Scope
 
 This is a PLAN: Markdown only. Its DO, in `check.mjs`, `check.test.mjs` and `change-isolation.sh`, starts once P1–P3 are available on the target. Until then, "Core travels alone" stays as it is, and #657 stays held. The Owner decides whether #657 waits for this DO or takes another path. This authorizes no merge of #657, no red-CI bypass, and no synchronization, promotion or publication.
+
+## Amendment: an interim migration allowance for hosting/C11
+
+> PLAN amendment (engineering/C11, interim). It asks the Owner to approve one interim mechanism before it is implemented, as the Owner's review of #707 (comment 6544538942) requires. Nothing below exists on this branch. #707 implemented it before this approval, and it stays unmerged until this amendment is decided.
+
+**Why.** The Owner's re-review of #657 (comment 6543757589) asked Engineering for "the narrowly scoped, temporary allowance for hosting/C11's exact affected path set, with extra/missing/subset paths refused and `.github travels alone` preserved", to be removed by a separate Engineering Change after #657 lands. The design above withdraws exact-path allowances as the isolation mechanism, and its DO waits on P1–P3, which other owners hold. Without an interim allowance, #657 stays held until P1–P3 land.
+
+**What is asked.** The Owner chooses one:
+
+- **A. One interim allowance, lapsing with its use.** `check.mjs` admits exactly one Change, hosting/C11, when its candidate's path set equals the set recorded for it. A superset, a subset or any other set fails, naming the extra and missing paths. `.github` still travels alone. "Core travels alone" applies to every other Change, unchanged. The allowance cites this amendment as its authority. A separate Engineering Change removes it once #657 has landed, and no other Change may use the mechanism. It is a migration exception, not a model of isolation: the invariant above stays the target, and engineering/F25–F27 and N13–N14 are not met by it.
+- **B. No interim mechanism.** #657 waits for the engineering/C11 DO, which waits on P1 (Change), P2 (trace owners) and P3 (ownership claims).
+
+Engineering recommends **A**, because #657 unblocks Graph and Core, and P1–P3 belong to four other owners. Its DO is #707, rebased onto this amendment once it is approved: the cases engineering/T57 (the exact set passes), T58 (a superset fails, naming the extra paths), T59 (a subset fails, naming the missing paths), T60 (a `.github` path beside the set fails) and T61 (any other Change gets no allowance). Each is observed RED first against an implementation that admits any path set for hosting/C11.
+
+**Scope.** Markdown only. Approving A authorizes only #707 as its DO, and B authorizes nothing. Neither authorizes a merge of #657, a red-CI bypass, or a synchronization, promotion or publication.
