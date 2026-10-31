@@ -1,4 +1,4 @@
-import { Graph } from "kaal-graph";
+import { Admitted } from "./admitted.js";
 import { HostingError, initialize, kind, read } from "kaal-hosting";
 import { evaluate, type Engine, type EvaluateOptions } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
@@ -55,7 +55,7 @@ export function check(files: Files, options: EvaluateOptions = {}): Verification
   const f = foundation();
   if (!Object.values(files).some((bytes) => sha256(bytes) === f.kernel)) problems.push(`the Kernel (${f.kernel}) is not present`);
   const engine = evaluate(files, options);
-  const admitted = new Graph(engine.nodes);
+  const admitted = new Admitted(engine.nodes);
   for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.extension]) {
     if (!admitted.resolve(ref)) problems.push(`foundational Node ${ref.name} (${ref.id}) is not admitted`);
   }
