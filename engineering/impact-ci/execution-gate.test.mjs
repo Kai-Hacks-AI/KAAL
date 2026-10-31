@@ -26,6 +26,12 @@ for (const [name, m, j] of [
   ['empty selection', { ...base, selected: [] }, []],
   ['unverified promotion matrix', { ...base, mode: 'full-assurance' }, jobs],
 ]) test(name + ' cannot pass', () => strictEqual(judge(m, j).verdict === 'passed', false));
-test('verified full assurance passes only with its selected jobs', () => {
-  strictEqual(judge({ ...base, mode: 'full-assurance', fullMatrixVerified: true }).verdict, 'passed');
+test('self-attested full assurance cannot pass even when flag is true', () => {
+  strictEqual(judge({ ...base, mode: 'full-assurance', fullMatrixVerified: true }).verdict, 'failed');
+});
+test('an omitted impacted Guard Windows job is invisible to execution-only evidence', () => {
+  // This intentionally demonstrates the boundary: independent C11 selection
+  // completeness must reject this manifest before invoking the execution checker.
+  const incomplete = { ...base, excluded: [] };
+  strictEqual(judge(incomplete, jobs).verdict, 'passed');
 });
