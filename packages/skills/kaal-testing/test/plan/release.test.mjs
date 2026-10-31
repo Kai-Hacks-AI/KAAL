@@ -72,7 +72,7 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     assert.deepEqual(Object.keys(manifest.hashes).sort(), shipped, "the manifest hashes exactly the other shipped files");
     for (const p of shipped) assert.equal(manifest.hashes[p], sha256(readFileSync(join(PACKAGE, p))), `${p}'s hash`);
     assert.ok(Array.isArray(manifest.cases) && manifest.cases.length > 0 && new Set(manifest.cases).size === manifest.cases.length, "the delivered cases are named, once each");
-    const delivered = shipped.filter((p) => /^test\/(acceptance|unit)\/.+\.test\.mjs$/.test(p)).map((p) => text(join(PACKAGE, p))).join("\n");
+    const delivered = shipped.filter((p) => /^test\/embed\/.+\.test\.mjs$/.test(p)).map((p) => text(join(PACKAGE, p))).join("\n");
     for (const c of manifest.cases) assert.ok(delivered.includes(c), `${c} is a delivered case`);
     assert.deepEqual([...manifest.platforms].sort(), ["darwin", "linux", "win32"], "Linux, macOS and Windows are supported");
     assert.equal(json(join(PACKAGE, "package.json")).engines?.node, ">=24");
@@ -141,7 +141,7 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     for (const spec of specifiers) assert.match(spec, /^node:/, `the verification imports ${spec}`);
     assert.equal((entry.match(/\bimport\s*\(/g) ?? []).length, (entry.match(/\bimport\s*\(\s*["'`][^"'`]+["'`]\s*\)/g) ?? []).length, "every dynamic import names a literal built-in");
     assert.doesNotMatch(entry, /\brequire\s*\(|\bcreateRequire\b|\bimport\.meta\.resolve\b/, "the verification loads no module another way");
-    for (const p of files(join(PACKAGE, "test")).filter((x) => /^(acceptance|unit)\//.test(x))) {
+    for (const p of files(join(PACKAGE, "test")).filter((x) => /^embed\//.test(x))) {
       const body = text(join(PACKAGE, "test", p));
       assert.doesNotMatch(body, /\.\.\/\.\.\/\.\.|\bplan\/|packages\/|engineering\//, `test/${p} reads only the installed package`);
     }
