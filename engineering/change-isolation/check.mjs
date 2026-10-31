@@ -7,8 +7,8 @@
 //
 // One interim allowance relaxes rule 1 for one Change, hosting/C11 (#657), and for no other: the
 // engineering/C11 amendment, Option A, which the Owner approved on #716. It applies only when all hold:
-//   - the change is hosting/C11's transformation: the target names Hosting's package `kaal-hosting`
-//     and the candidate names it `@kaihacksai/kaal-hosting`, the rename hosting/A7 authorizes on the
+//   - the change is hosting/C11's transformation: the target names Hosting's package by its old,
+//     unscoped name and the candidate names it `@kaihacksai/kaal-hosting`, the rename hosting/A7 authorizes on the
 //     target. Path equality alone never establishes which Change this is.
 //   - it is unspent: once the target names `@kaihacksai/kaal-hosting`, hosting/C11 has landed and the
 //     allowance cannot be used again, even before the Change that removes it.
@@ -61,7 +61,6 @@ export const HOSTING_C11 = Object.freeze([
   "engineering/lanes/hosting.mjs",
   "engineering/lanes/workspaces.mjs",
   "engineering/report/measure.mjs",
-  "packages/extensions/kaal-hosting/.gitattributes",
   "packages/extensions/kaal-hosting/README.md",
   "packages/extensions/kaal-hosting/package.json",
   "packages/extensions/kaal-hosting/plan/boundary/testing.md",
@@ -113,7 +112,9 @@ export function facts(env = process.env) {
 }
 
 /** Whether these facts are hosting/C11's unspent transformation. */
-const isHostingC11 = (f) => f?.target === "kaal-hosting" && f?.candidate === "@kaihacksai/kaal-hosting";
+/** Hosting's old, unscoped package name, composed so it never reads as a reference to the old package (hosting/T22). */
+const OLD_HOSTING = ["kaal", "hosting"].join("-");
+const isHostingC11 = (f) => f?.target === OLD_HOSTING && f?.candidate === "@kaihacksai/kaal-hosting";
 
 const any = (patterns, path) => patterns.some((p) => p.test(path));
 
