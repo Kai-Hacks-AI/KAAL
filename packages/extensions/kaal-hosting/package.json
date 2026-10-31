@@ -40,15 +40,14 @@
     "bin",
     "skills",
     "docs",
-    "test/acceptance",
-    "test/unit",
+    "test/embed",
     "test/verify.mjs",
     "test/verify.json"
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",
     "test": "node test/verify.mjs",
-    "test:publisher": "npm run build && node --test test/unit/conformance.test.mjs test/unit/hosting.test.mjs test/acceptance/architecture.test.mjs test/acceptance/intent.test.mjs test/acceptance/requirements.test.mjs test/plan/boundary.test.mjs test/plan/portability.test.mjs test/plan/interface.test.mjs && node --test --test-name-pattern=\"^hosting/T(2[1-9]|3[01]|48|5[34]) \" test/plan/release.test.mjs",
+    "test:publisher": "npm run build && node --test test/embed/conformance.test.mjs test/embed/hosting.test.mjs test/embed/architecture.test.mjs test/embed/intent.test.mjs test/embed/requirements.test.mjs test/plan/boundary.test.mjs test/plan/portability.test.mjs test/plan/interface.test.mjs && node --test --test-name-pattern=\"^hosting/T(2[1-9]|3[01]|48|5[34]) \" test/plan/release.test.mjs",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build && node test/publisher/manifest.mjs"
   },
   "engines": {

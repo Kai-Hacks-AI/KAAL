@@ -6,10 +6,10 @@ This is Hosting's Product Verification Test Plan: the one that ships, and that y
 
 | Loop | Checks | Where | Runs in your installation |
 | --- | --- | --- | --- |
-| Intent | the outcomes hold for a consumer of Hosting | `test/acceptance/intent.test.mjs` | yes |
-| Requirements | each obligation holds | `test/acceptance/requirements.test.mjs` | yes |
-| Architecture | each element keeps its placement, boundaries and dependencies | `test/acceptance/architecture.test.mjs` | yes |
-| Code | the implementation behaves as designed | `test/unit/*.test.mjs` | yes |
+| Intent | the outcomes hold for a consumer of Hosting | `test/embed/intent.test.mjs` | yes |
+| Requirements | each obligation holds | `test/embed/requirements.test.mjs` | yes |
+| Architecture | each element keeps its placement, boundaries and dependencies | `test/embed/architecture.test.mjs` | yes |
+| Code | the implementation behaves as designed | every other `test/embed/*.test.mjs` | yes |
 
 The three outer loops are the acceptance boundary. A case there reaches the package only by its name, `@kaihacksai/kaal-hosting`, so in your installation it exercises the installed copy, and it works only in directories of its own in the operating system's temporary directory. The Code loop tests each operation from the inside. Some cases make the host fail on purpose, through the same `graceful-fs` the package uses, so that a rollback and its report can be checked on your host.
 

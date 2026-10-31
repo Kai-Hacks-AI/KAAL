@@ -103,11 +103,26 @@ On `kaal/hosting` before the rename, the old matcher found 115 references and th
 | is `verified` with no suite declared | hosting/T53 |
 | takes any directory that is not an installation for the source workspace | hosting/T54 |
 
+## hosting/C23: shipped cases live in test/embed/
+
+`hosting/C23` is a PLAN correction to hosting/F17, hosting/F19, hosting/A9 and hosting/A15, with three planned tests narrowed to the new path. On #702 (comment 6543551316) the Owner ruled that `test/acceptance/` is ambiguous. A capability's own shipped cases, run against the installed package by its own `npm test`, live in `test/embed/`. Engineering's lane scenarios, which `install()` the packed tarballs, live in `test/engineer/`. There is no `test/external/` convention. Testing plans this as `testing/C43` (#702).
+
+The C12 DO (#700) met the conflict: KAAL's Acceptance lane took Hosting's shipped `test/acceptance/` files for its own scenarios and failed them with "installed no packed package".
+
+- **What changes.** hosting/F17 and hosting/F19 ship `test/embed/` in place of `test/acceptance/` and `test/unit/`. hosting/A9 places every shipped case there: one file per outer loop, the Code loop's files beside them, and the harness. hosting/A15 replaces the two planned `files` rows with one, `test/embed`, still planned for `hosting/C12`.
+- **Tests narrowed.** These change their path only, and what they assert stays the same:
+  - hosting/T31's `firstCase` picks the first outer case under `test/embed/`.
+  - hosting/T30 plants its skip in the first outer case file under `test/embed/`.
+  - hosting/T30's nonexistent declared case is named under `test/embed/`.
+- **Unchanged.** hosting/T25–T29, hosting/T41 (it reads A15), and every other planned test.
+
+**RED evidence.** At `hosting/C23`, hosting/T25–T31 stay RED as before, blocked before behavioural assertion: the package ships no `test/verify.mjs`. `hosting/C12` turns them GREEN with its cases in `test/embed/`.
+
 ## hosting/C12: the complete product, delivered
 
 `hosting/C12` is the DO. It edits no planned assertion. hosting/T25–T31 and hosting/T53–T54 are GREEN with hosting/T21–T24 and hosting/T48, run by `test:publisher` from `test/plan/release.test.mjs` (pattern `^hosting/T(2[1-9]|3[01]|48|5[34]) `), with `test/plan/interface.test.mjs` (hosting/T41) beside them.
 
-- **What moved.** The TypeScript tests (`test/hosting.test.ts`, `test/conformance.test.ts`) became the shipped Code loop, `test/unit/*.test.mjs`, with types stripped and nothing else changed but two things: they reach the package by its name instead of a path into `dist/`, and the permission case establishes by trying whether the host denies the permission, instead of skipping on Windows or as root. hosting/T1–T20 moved from `test/plan/{reconciliation,cleanup,kinds,expectations}.test.mjs` into `test/acceptance/requirements.test.mjs`, each file's helpers scoped inside its own suite, with their assertions byte for byte as planned and the Change names dropped from the suite titles. `tsconfig.test.json` and `dist-test/` are gone.
+- **What moved.** The TypeScript tests (`test/hosting.test.ts`, `test/conformance.test.ts`) became the shipped Code loop, `test/embed/{hosting,conformance}.test.mjs`, with types stripped and nothing else changed but two things: they reach the package by its name instead of a path into `dist/`, and the permission case establishes by trying whether the host denies the permission, instead of skipping on Windows or as root. hosting/T1–T20 moved from `test/plan/{reconciliation,cleanup,kinds,expectations}.test.mjs` into `test/embed/requirements.test.mjs`, each file's helpers scoped inside its own suite, with their assertions byte for byte as planned and the Change names dropped from the suite titles. `tsconfig.test.json` and `dist-test/` are gone.
 - **New delivered cases.** hosting/T55–T59 and T67 (Intent), hosting/T60–T66 (Architecture) and hosting/T68–T69 (Requirements, the conformance suite). The first Architecture case, hosting/T60, is written so that hosting/T31's planted failure and todo land on it.
 - **New identifiers.** The README's guarantees had none, so `docs/` defines hosting/I12, hosting/F45–hosting/F55 and hosting/A21 for them, cited by the Code loop's suite titles. hosting/I11, hosting/F42–F44 and hosting/A20 stay reserved for `hosting/C20`.
 - **Left out of `docs/`.** hosting/F16, hosting/F26, hosting/A7, hosting/A8 and hosting/A11 are about how Hosting is renamed, tested and checked by its publisher, not about the product, so they stay here and `docs/` leaves a gap for them, as Guard's do.

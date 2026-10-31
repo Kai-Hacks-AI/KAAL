@@ -18,7 +18,7 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 ## The package and its verification
 
 - **hosting/A9** [hosting/F18, hosting/F19, hosting/F20, hosting/N4]: Product and publisher stay apart inside the package directory.
-  - **What ships.** `docs/` is the authoritative product contract. `test/acceptance/` holds one file per outer loop (`intent`, `requirements`, `architecture`) and a harness that resolves the package under test by name; `test/unit/` holds the Code loop. `test/verify.mjs` is the entry and `test/verify.json` the manifest the publisher generates, when it packs the package, from the cases' titles and the tables in [Testing](testing.md).
+  - **What ships.** `docs/` is the authoritative product contract. `test/embed/` holds every shipped case: one file per outer loop (`intent`, `requirements`, `architecture`), the Code loop in every other case file, and a harness that resolves the package under test by name. `test/verify.mjs` is the entry and `test/verify.json` the manifest the publisher generates, when it packs the package, from the cases' titles and the tables in [Testing](testing.md).
   - **What does not ship.** The TypeScript source, the publisher's change records and the publisher's own tests (the tests of the verification itself and of the conformance suite) stay outside the shipped paths.
   - **Scripts.** `test` runs `node test/verify.mjs` in both places (hosting/F20). `test:publisher` builds the package and runs the publisher's own tests and the delivered cases from the source tree. In source, `npm test` runs it through the verification entry, so anything that runs Hosting's `npm test` in its directory runs it all.
   - **Lanes.** The publisher packs the candidate and runs the consumer verification in a fresh consumer on Linux, Windows and macOS, so a release candidate is verified on all three hosts before it is published.
@@ -41,8 +41,7 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 | files | `!dist/.tsbuildinfo` |  | delivered |
 | files | `payload` |  | delivered |
 | files | `docs` |  | delivered |
-| files | `test/acceptance` |  | delivered |
-| files | `test/unit` |  | delivered |
+| files | `test/embed` |  | delivered |
 | files | `test/verify.mjs` |  | delivered |
 | files | `test/verify.json` |  | delivered |
 | files | `bin` |  | delivered |

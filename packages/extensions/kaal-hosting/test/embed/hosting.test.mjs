@@ -315,7 +315,7 @@ describe("within [hosting/F48]", () => {
   });
 });
 
-// The outer tests of reconcile are in test/acceptance/requirements.test.mjs.
+// The outer tests of reconcile are in test/embed/requirements.test.mjs.
 // These are its Code tests.
 describe("reconcile", () => {
   it("refuses a path that is both a file and a directory of one reconciliation", async () => {

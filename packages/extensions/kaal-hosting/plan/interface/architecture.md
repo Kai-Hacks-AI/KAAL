@@ -17,8 +17,7 @@ Each element names, in brackets, the Requirements it answers.
 | files | `!dist/.tsbuildinfo` |  | delivered |
 | files | `payload` |  | delivered |
 | files | `docs` |  | delivered |
-| files | `test/acceptance` |  | delivered |
-| files | `test/unit` |  | delivered |
+| files | `test/embed` |  | delivered |
 | files | `test/verify.mjs` |  | delivered |
 | files | `test/verify.json` |  | delivered |
 | files | `bin` |  | delivered |

@@ -54,7 +54,7 @@ for (const [state, rows] of [["allocated", table("allocated")], ["unverified", t
   }
 }
 
-const caseFiles = ["acceptance", "unit"].flatMap((d) => files(join(PACKAGE, "test", d)).filter((f) => f.endsWith(".test.mjs")).map((f) => `test/${d}/${f}`));
+const caseFiles = files(join(PACKAGE, "test", "embed")).filter((f) => f.endsWith(".test.mjs")).map((f) => `test/embed/${f}`);
 for (const f of caseFiles) if (!loopOf(f)) fail(`${f} belongs to no loop`);
 const outcomes = await execute(caseFiles.map((f) => join(PACKAGE, f)));
 const bad = outcomes.filter((o) => o.outcome !== "pass" && !(o.outcome === "skipped" && applicability[o.name]?.includes(process.platform)));

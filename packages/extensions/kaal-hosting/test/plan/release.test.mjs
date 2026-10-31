@@ -214,10 +214,10 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     return c;
   }
 
-  /** The first shipped acceptance case written with it(), its file, and its name in the manifest. */
+  /** The first shipped outer case (Intent, Requirements or Architecture) written with it(), its file, and its name in the manifest. */
   function firstCase(manifest, installed) {
-    const name = manifest.cases.find((n) => /^test\/acceptance\/[^>]*\.test\.mjs > /.test(n));
-    assert.ok(name, "the manifest declares no acceptance case");
+    const name = manifest.cases.find((n) => /^test\/embed\/(intent|requirements|architecture)\.test\.mjs > /.test(n));
+    assert.ok(name, "the manifest declares no outer case");
     const file = name.split(" > ")[0];
     assert.match(readFileSync(join(installed, file), "utf8"), /\bit\(/, `${file} has no case written with it()`);
     return { name, file };
@@ -328,7 +328,7 @@ describe("hosting/C10: the installed package is a complete product its consumer 
   it("hosting/T30 [hosting/F21, hosting/F23, hosting/F25]: a manifest that declares no case, declares a case that does not exist, leaves an identifier docs/ defines undeclared, or a delivered case skipped outside its declared applicability is cannot verify, exit 2, never verified", async () => {
     const edits = [
       (m) => ({ ...m, cases: [] }),
-      (m) => ({ ...m, cases: [...m.cases, "test/acceptance/intent.test.mjs > no such case"] }),
+      (m) => ({ ...m, cases: [...m.cases, "test/embed/intent.test.mjs > no such case"] }),
       // The manifest is not among the files it hashes, so only the coverage check can catch this one.
       (m) => ({ ...m, coverage: Object.fromEntries(Object.entries(m.coverage).slice(1)) }),
     ];
@@ -346,8 +346,8 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     const { dir, installed } = await consumer();
     const at = join(installed, "test", "verify.json");
     const manifest = JSON.parse(readFileSync(at, "utf8"));
-    const skipped = Object.keys(manifest.hashes ?? {}).find((p) => /^test\/acceptance\/.*\.test\.mjs$/.test(p) && /\bit\(/.test(readFileSync(join(installed, p), "utf8")));
-    assert.ok(skipped, "the manifest hashes no acceptance case written with it()");
+    const skipped = Object.keys(manifest.hashes ?? {}).find((p) => /^test\/embed\/(intent|requirements|architecture)\.test\.mjs$/.test(p) && /\bit\(/.test(readFileSync(join(installed, p), "utf8")));
+    assert.ok(skipped, "the manifest hashes no outer case written with it()");
     const source = readFileSync(join(installed, skipped), "utf8").replace(/\bit\(/, "it.skip(");
     writeFileSync(join(installed, skipped), source);
     manifest.hashes[skipped] = createHash("sha256").update(Buffer.from(source)).digest("hex");

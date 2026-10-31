@@ -4,7 +4,8 @@
 // In an installation, `npm explore @kaihacksai/kaal-hosting -- npm test` verifies the installed copy
 // on the consumer's host (hosting/F21–hosting/F25). It checks the prerequisites and the installed files
 // against the shipped manifest (test/verify.json), runs every delivered case against the installed copy
-// (the outer acceptance loops in test/acceptance/ and the inner Code loop in test/unit/), compares the
+// (all in test/embed/: the outer loops intent, requirements and architecture, one file each, and the
+// inner Code loop in every other case file there), compares the
 // consumer before and after, judges each identifier docs/ defines, and ends in exactly one result:
 // verified (exit 0), failed (1) or cannot verify (2).
 //
@@ -67,11 +68,11 @@ export const digest = (map) => sha256(Object.keys(map).sort().map((f) => `${f}\0
 /** A case's name: its file in the package, then each enclosing suite, then the test, joined by " > ". */
 export const key = (file, path) => [slash(relative(PACKAGE, file)), ...path].join(" > ");
 
-/** The loop of a case file: its name in test/acceptance/, or code for test/unit/. */
+/** The loop of a case file in test/embed/: its name for an outer loop, code for any other case file there. */
 export function loopOf(file) {
-  if (file.startsWith("test/unit/")) return "code";
-  const m = /^test\/acceptance\/([^/]+)\.test\.mjs$/.exec(file);
-  return m && LOOPS.includes(m[1]) ? m[1] : undefined;
+  const m = /^test\/embed\/([^/]+)\.test\.mjs$/.exec(file);
+  if (!m) return undefined;
+  return LOOPS.includes(m[1]) ? m[1] : "code";
 }
 
 /** "hosting/F21–hosting/F25" names five identifiers; anything else names itself. */
@@ -239,15 +240,13 @@ export function source(log, pkg) {
   return finish(log, failed.length ? "failed" : "verified", causes, { place: "source", ...base(pkg), suites: ran });
 }
 
-/** The case files on disk in the loops' directories. */
+/** The case files on disk in test/embed/. */
 const onDisk = () =>
-  ["acceptance", "unit"].flatMap((d) =>
-    existsSync(join(PACKAGE, "test", d))
-      ? files(join(PACKAGE, "test", d))
-          .filter((f) => f.endsWith(".test.mjs"))
-          .map((f) => `test/${d}/${f}`)
-      : [],
-  );
+  existsSync(join(PACKAGE, "test", "embed"))
+    ? files(join(PACKAGE, "test", "embed"))
+        .filter((f) => f.endsWith(".test.mjs"))
+        .map((f) => `test/embed/${f}`)
+    : [];
 
 /** The consumer: the directory holding the outermost node_modules this copy is in. */
 function consumerOf(dir) {
