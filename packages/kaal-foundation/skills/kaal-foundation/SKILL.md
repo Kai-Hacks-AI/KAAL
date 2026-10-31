@@ -29,17 +29,22 @@ sha256(new TextEncoder().encode(text));
 
 ## Check a digest from a shell
 
+Install the scoped package first, then run its own bin by naming the package explicitly. Never run `npx kaal-foundation`: `kaal-foundation` is only the bin's name, and where the scoped package is not installed npx may fetch an unrelated unscoped package of that name (foundation/F18).
+
 ```sh
-npx kaal-foundation sha256 <file>…         # "<digest>  <file>", one per line
-printf %s "$text" | npx kaal-foundation sha256   # standard input; "-" does the same
+npm install @kaihacksai/kaal-foundation
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256 <file>…   # "<digest>  <file>", one per line
+printf %s "$text" | npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256   # standard input; "-" does the same
 ```
+
+`--no` means npm never downloads anything here: without the scoped package installed, the command fails instead of guessing.
 
 Exit status 0 means every file was hashed. Exit 2 means a file could not be read, or a command or option is unknown. The cause and a usage line are on standard error (foundation/F14). The digests are the library's, byte for byte.
 
 ## Verify an installation
 
 ```sh
-npx kaal-foundation verify
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation verify
 ```
 
 This checks the installed files against the shipped manifest, then runs the shipped cases (foundation/F12). Read the last line, `kaal-foundation-verification {json}`:

@@ -16,12 +16,14 @@ import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 sha256(new TextEncoder().encode("abc"));
 ```
 
-From a shell, in a project that has it installed:
+From a shell, in a project that has it installed, name the scoped package explicitly ([Requirements](requirements.md), foundation/F18):
 
 ```sh
-npx kaal-foundation sha256 README.md
-echo -n abc | npx kaal-foundation sha256
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256 README.md
+printf abc | npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256
 ```
+
+`--no` means npm downloads nothing: where the scoped package is not installed, the command fails rather than selecting another package. Never run `npx kaal-foundation`, which may fetch an unrelated unscoped package named `kaal-foundation`.
 
 An agent's guide is the shipped skill, `skills/kaal-foundation/SKILL.md`.
 
@@ -29,7 +31,7 @@ An agent's guide is the shipped skill, `skills/kaal-foundation/SKILL.md`.
 
 ```sh
 npm explore @kaihacksai/kaal-foundation -- npm test
-npx kaal-foundation verify
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation verify
 ```
 
 Both check the installed copy against its manifest and run the shipped cases. They end in `verified`, `failed` or `cannot verify`, and the last line is `kaal-foundation-verification {json}` ([Testing](testing.md)). `npm test` refuses, as `cannot verify`, a layout it cannot tell apart from a source checkout.

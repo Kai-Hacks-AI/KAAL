@@ -19,9 +19,12 @@ sha256(new TextEncoder().encode("abc")); // "ba7816bf…15ad"
 ## Command and skill
 
 ```sh
-npx kaal-foundation sha256 <file>…   # "<digest>  <file>"; no file or - reads standard input
-npx kaal-foundation verify           # verify this installed copy
+npm install @kaihacksai/kaal-foundation
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256 <file>…   # "<digest>  <file>"; no file or - reads standard input
+npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation verify           # verify this installed copy
 ```
+
+Name the scoped package explicitly, as above. Never run `npx kaal-foundation`: `kaal-foundation` is only the bin's name, and where this package is not installed npx may fetch an unrelated unscoped package.
 
 An agent's guide ships as [the skill](skills/kaal-foundation/SKILL.md): when to use Foundation's SHA-256, how to hash text, how to read a verification, and where a new shared concern belongs.
 

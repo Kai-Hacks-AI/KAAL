@@ -56,3 +56,7 @@ Each Requirement names, in brackets, the Intents it serves. Where another capabi
 - The version, which stays `0.0.1`.
 - Packaging's suite and Engineering's lane that runs it.
 - Any rule that every identifier must be tested. That waits on the Owner's decision on Testing #667.
+
+## Amendment by the Owner's review of foundation/C8 (#712, comment 6544398985)
+
+- **foundation/F18** [foundation/I7]: **Safe acquisition.** `kaal-foundation` is only the bin's name; the published package is `@kaihacksai/kaal-foundation`. Every consumer-facing example (README, `docs/`, the skill, and the repository's `AGENTS.md`) runs the command as `npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation …` after `npm install @kaihacksai/kaal-foundation`, and none recommends `npx kaal-foundation`. Where the scoped package is not installed, the documented command fails and never runs another package.
