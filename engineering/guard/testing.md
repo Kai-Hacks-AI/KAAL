@@ -53,20 +53,21 @@ No Test Case is retracted, and no RED evidence is dropped.
 
 ## Suites (`guard/C129`)
 
-Guard's tests are placed by the realization they verify. The Embedded Tests are the package's: its manifest, `packages/kaal-guard/test/verify.json`, lists every case it ships, and its `npm test` runs exactly those. The Engineering Tests are declared here, and the External Tests in [External's own Test Plan](external/testing.md). `engineering/guard/suites.mjs` reads these tables, runs the suites declared for its host, and gives guard/T134 what it audits: every Guard test file is in exactly one suite, and every declared suite runs in some lane on every host it declares.
+Guard's tests are placed by the realization they verify. The Embedded Tests are the package's: its manifest, `packages/kaal-guard/test/verify.json`, lists every case it ships, and its `npm test` runs exactly those. The Engineering Tests are declared here, and the External Tests in [External's own Test Plan](external/testing.md). A suite names its prerequisites and never a host: every suite is expected on every supported host, and whether a case cannot apply on a host is Hosting's rule (`guard/C118`, revision 3). `engineering/guard/suites.mjs` reads these tables and keeps four states apart (`guard/C129`, revision 3). Declared: the case is in its owner's Test Plan. Scheduled: some lane runs its suite, which guard/T134 checks from the workflows, as scheduling evidence only. Executed, and its outcome: run on a host, `suites.mjs` writes a run record from the test runner's own report, one per candidate and host, giving every declared case passed, failed, not applicable (citing a Hosting rule) or not run (with the reason). A suite whose prerequisite the lane did not provide is not run, never GREEN. guard/T137 checks a record, and the release gate (`suites.mjs --gate`) rejects records for another candidate, a host given twice or missing, or any case not passed or not applicable.
 
 <!-- suites -->
-| Suite | Owner | Files | Hosts | Why a host is left out |
-| --- | --- | --- | --- | --- |
-| Engineering acceptance | Engineering | `engineering/guard/acceptance/authority.test.mjs`, `engineering/guard/acceptance/kaal.test.mjs`, `engineering/guard/acceptance/package.test.mjs`, `engineering/guard/acceptance/suites.test.mjs` | linux, darwin, win32 | |
-| Engineering workspace | Engineering | `engineering/guard/acceptance/workspace.test.mjs` | linux | it needs KAAL's workspace installed and built (`npm ci`, `npm run build`), which only the Linux lane does (guard/C47) |
-| Engineering consumer | Engineering | `engineering/guard/acceptance/consumer/consumer.test.mjs` | linux | it installs published versions from the registry into disposable clones of KAAL; one host runs the transitions, and the hosts' differences are the Embedded suite's |
-| Engineering harness | Engineering | `engineering/guard/consumer/harness.test.mjs` | linux | it is the code test of the consumer suite's harness, run where that suite runs |
+| Suite | Owner | Files | Prerequisites |
+| --- | --- | --- | --- |
+| Engineering acceptance | Engineering | `engineering/guard/acceptance/authority.test.mjs`, `engineering/guard/acceptance/kaal.test.mjs`, `engineering/guard/acceptance/package.test.mjs`, `engineering/guard/acceptance/suites.test.mjs` | none |
+| Engineering workspace | Engineering | `engineering/guard/acceptance/workspace.test.mjs` | workspace |
+| Engineering consumer | Engineering | `engineering/guard/acceptance/consumer/consumer.test.mjs` | registry |
+| Engineering harness | Engineering | `engineering/guard/consumer/harness.test.mjs` | none |
 <!-- end of suites -->
 
 | Test | Checks | Written in | Evidence against the base | Evidence after the DO |
 | --- | --- | --- | --- | --- |
-| guard/T134: every Guard test file is in exactly one suite its owner's Test Plan declares; every case is defined in that owner's Test Plan; every declared suite runs in some lane on every host it declares; and the package's `npm test` runs only the package | guard/N14, guard/A20 | `guard/C129` | RED: `consumer/consumer.test.mjs` runs in no lane; `authority.test.mjs`, `suites.test.mjs` and `external/deliver.test.mjs` run on Linux only; guard/T83, External's, sits in Engineering's `workspace.test.mjs` | the last is corrected in this DO; the lane gaps stay RED until every Guard lane runs `engineering/guard/suites.mjs` |
+| guard/T134: every Guard test file is in exactly one suite its owner's Test Plan declares; every case is defined in that owner's Test Plan; every declared suite is scheduled by some lane; and the package's `npm test` runs only the package. Scheduling evidence only: what executed is the run record's | guard/N14, guard/A20 | `guard/C129` | RED: `consumer/consumer.test.mjs` runs in no lane; guard/T83, External's, sits in Engineering's `workspace.test.mjs` | the last is corrected in this DO; the first stays RED until every Guard lane runs `engineering/guard/suites.mjs` (Engineering, #665) |
+| guard/T137: a run record gives every declared case exactly one outcome; a suite counted passed holds no case that did not pass or apply; not applicable cites a Hosting rule; not run says why; the record names no undeclared case. The release gate rejects a record for another candidate, a supported host with no record or two, a record for an unsupported host, a case declared on some hosts only, any case not passed or not applicable, and a case not applicable on every host | guard/N14, guard/A20 | `guard/C129`, revision 3 | RED: there is no run record and no gate | GREEN with a negative fixture for each refusal; each lane's own record is validated as it is written |
 
 ## RED evidence
 

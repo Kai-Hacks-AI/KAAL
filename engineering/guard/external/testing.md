@@ -18,11 +18,11 @@ External is a KAAL-loaded agent that uses KAAL's knowledge to serve another repo
 ## Suites
 
 <!-- suites -->
-| Suite | Owner | Files | Hosts | Why a host is left out |
-| --- | --- | --- | --- | --- |
-| External acceptance | External | `engineering/guard/acceptance/external.test.mjs` | linux, darwin, win32 | |
-| External with Core | External | `engineering/guard/acceptance/external-workspace.test.mjs` | linux | it needs Core's realization built in KAAL's workspace (`npm ci`, `npm run build`), which only the Linux lane does (guard/C47) |
-| External delivery tooling | External | `engineering/guard/external/deliver.test.mjs` | linux, darwin, win32 | |
+| Suite | Owner | Files | Prerequisites |
+| --- | --- | --- | --- |
+| External acceptance | External | `engineering/guard/acceptance/external.test.mjs` | none |
+| External with Core | External | `engineering/guard/acceptance/external-workspace.test.mjs` | workspace |
+| External delivery tooling | External | `engineering/guard/external/deliver.test.mjs` | none |
 <!-- end of suites -->
 
 `external.test.mjs` and `external-workspace.test.mjs` move here, beside their tooling, once every lane runs the suites through `engineering/guard/suites.mjs`, so the move cannot leave it unrun.
