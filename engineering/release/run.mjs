@@ -119,11 +119,14 @@ export async function acceptStep({ record: rec, run: runId, out, npm: run = npm,
     await initialize(join(out, "report"), { "summary.md": Buffer.from(text.join("\n")), "acceptance.json": json(a.record) });
     return a;
   };
-  const view = await run(["view", spec, "dist", "--json"], out);
+  // Every npm command runs in a directory that exists: spawning in a missing cwd fails as ENOENT.
+  const work = join(out, "work");
+  await initialize(work, {});
+  const view = await run(["view", spec, "dist", "--json"], work);
   if (view.status !== 0) return write({ result: "unknown", findings: [`npm view ${spec} failed`], record: rec });
   const dist = parse(view.stdout);
   await initialize(join(out, "registry"), {});
-  const p = await run(["pack", spec, "--json", "--pack-destination", join(out, "registry")], out);
+  const p = await run(["pack", spec, "--json", "--pack-destination", join(out, "registry")], work);
   if (p.status !== 0) return write({ result: "unknown", findings: [`npm pack ${spec} failed`], record: rec });
   const bytes = await readFile(join(out, "registry", parse(p.stdout)[0].filename));
   const installed = await consume(rec.package, spec, join(out, "consumer"), run);
