@@ -832,6 +832,31 @@ This revision replaces the first version. The DO changes shipped test files and 
 - **Test Cases.** guard/T98, guard/T101, guard/T105, guard/T106, guard/T109 and guard/T113 keep their identifiers and claims. guard/T98's evidence of a passing package suite moves to the run record. No new case is planned, except the acceptance comparison of a copied and a fresh consumer, if the copy is adopted.
 - **Authorization.** Approving this PLAN authorizes `guard/C136`'s DO only: no version bump, synchronization, promotion or publication.
 
+**Guard's ownership claims for change isolation (`guard/C137`, PLAN).** Engineering's change-isolation redesign (`engineering/C11`, `engineering/change-isolation/traceability.md`, the Owner's option B on #716) isolates a Change by the folder each capability's ownership claim attributes to it. Its prerequisite P3 asks every owner for a claim of its location, in the format #609 settled. Guard has none today, so every Guard path would be reported as unresolved.
+- **The format, as #609 settled it.** `ownership.kaal.json` is a machine-oriented record of ownership decided elsewhere. It holds `{ "owner": { "kind", "name", "id" }, "paths": [...] }`, and Testing's reader (`kaal-testing/attribution`) admits a claim only within the tree that holds it. The `id` is the exact id of Guard's Capability Node, `engineering/guard/Guard.md`, as Graph's `identify()` gives it. Core, Graph and Testing claim their own trees in the same way.
+- **Guard's locations: two trees, two claims.** Guard is realized in two places, and each claim covers only its own tree:
+  - `packages/kaal-guard/ownership.kaal.json` claims `packages/kaal-guard/`, which is the package, its docs and its Embedded Tests;
+  - `engineering/guard/ownership.kaal.json` claims `engineering/guard/`, which holds the Capability Node, the Change records, the Engineering and External Test Plans, their tests and External's tooling.
+
+  Both name the same owner: capability Guard, by the Node's id.
+- **The package stays free of KAAL.** The package's `files` list does not include `ownership.kaal.json`, so the packed artifact carries no KAAL element (guard/A8, guard/N6). guard/T30 and the packed-file-list check stay as they are. The DO confirms this on the packed list.
+- **What Guard does not claim.** Under the reader's rule, a claim cannot reach outside its own tree. So Guard claims none of these:
+  - the root files every workspace shares (`package.json`, `package-lock.json`);
+  - `.github/`, where Guard's workflows (`guard-release.yml`, `guard-acceptance-boundary.yml`) live and which travels alone;
+  - KAAL's own declarations in `.kaal/config/guard/`.
+
+  Those are the owners P3 names for the root and the repository. Guard asks only that Engineering's claim for `engineering/` leaves `engineering/guard/` out, so that no path has two claimants (an architectural concern for the reader).
+- **Keeping the id current.** The id follows the Node's bytes. Any Change to `Guard.md` therefore updates both claims in the same Change, as Graph did on #173.
+- **A new Engineering-side case, guard/T138.** It is in `engineering/guard/acceptance/ownership.test.mjs`, in the Engineering workspace suite, because it reads `kaal-graph` and `kaal-testing`. It checks four things:
+  - each claim reads through `readClaim`;
+  - each names `{ kind: "capability", name: "Guard", id }` with the id `identify()` gives for `Guard.md`;
+  - each claims exactly its own tree;
+  - `npm pack --dry-run` of the package lists no `ownership.kaal.json`.
+
+  It is RED first against a claim whose id is one byte off. An absent claim is not RED evidence (#285).
+- **Place.** It does not hold `0.0.5`, because it changes nothing a consumer receives. It lands on `kaal/guard-release` when the Owner approves, independently of the release path.
+- **Authorization.** Approving this PLAN authorizes `guard/C137`'s DO only: the two claim files, guard/T138, the Test Plan row and this record. It authorizes no version bump, synchronization, promotion or publication.
+
 **A release prerequisite: Engineering's Defect register (`guard/C131`, PLAN).** On #638 (comment 6509672482) the Owner decided that `0.0.5` is not promoted or published until Engineering's legacy Defect register follows the product's model. That means Test Case → Defect traces, a derived "Tested by", RED and GREEN observed per version and Test Run, no permanent status, and the product's Defects cited, never redefined. Engineering owns the register and the Change that corrects it: `engineering/C8`, PLAN on #645, with its DO to follow. This PLAN adds that prerequisite to the path in `guard/C124`, with a gate.
 - **In the sequence.** The `engineering/C8` DO lands on `kaal/guard-release` before `guard/C125`, the bump. A PLAN alone does not satisfy the prerequisite.
 - **The gate in `guard/C126`.** Before the candidate is accepted, the publisher checks on the exact SHA that the correction actually landed:
@@ -994,6 +1019,7 @@ A Change's durable identity is `<capability>/C<number>`, numbered by its owning 
 | `guard/C131` | — | Guard | Release prerequisite for `0.0.5`: Engineering's Defect register corrected (`engineering/C8`, #645), gated by guard/T130 (the Owner on #638) | `guard/C124` | PLAN |
 | `guard/C135` | — | Guard | Three Windows differences in delivered cases, raised by guard/T132: guard/T81's checker mode, guard/T72's hook bit and the `link` helper of guard/T84 and guard/T89, each at equal strength on every host, with Hosting's host facts and Testing's applicability, not applicable kept apart from untested; guard/T136 | `guard/C118` | PLAN |
 | `guard/C136` | — | Guard | Guard's slow CI cases, measured and made faster: guard/T98 stops re-running the Embedded suite, one full delivered-suite run instead of two, guard/T109's negative case on a reduced suite, a copied consumer only where it behaves as a fresh install (the Owner on #697 and #709) | `guard/C129` | PLAN |
+| `guard/C137` | — | Guard | Ownership claims for Guard's two trees, `packages/kaal-guard/` and `engineering/guard/`, in #609's format, for change isolation's P3 (`engineering/C11`, the Owner's option B on #716); guard/T138 | `guard/C129` | PLAN |
 | `guard/C107` | — | Guard | PLAN for the `0.0.4` consumer-experience corrections from the Owner's pre-release review on #544: S1 temporary directories, S2 sockets and FIFOs, S3 the next step after a change during the run, N1–N4 documentation, N5's release evidence, and the product's wording of its allocations to the publisher's Engineering Test Plan; guard/T113–guard/T117 planned, and S4, Git's background maintenance, found by this PLAN's CI. Documents only | `guard/C99` | not created |
 | `guard/C134` | — | Guard | An earlier opportunity, named in CI: a failing `hook` and `ci` check gets a conditional reminder of the local hook, never a claim that it was missing; guard/F43, guard/T135 (the Owner on #577) | `guard/C124` | PLAN |
 | `guard/C108` | — | Guard | The corrections `guard/C107` plans, with guard/T113–guard/T117 written with their RED evidence, in the unpublished `0.0.4` | `guard/C107` | not created |
