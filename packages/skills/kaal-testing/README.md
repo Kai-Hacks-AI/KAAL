@@ -5,6 +5,7 @@ KAAL Testing: how a capability's tests are designed and executed, and how their 
 ```
 capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
+docs/                                  the shipped documents: Intent, Requirements, Architecture, Testing, Limitations, Operations
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
@@ -16,6 +17,17 @@ lib/observed.mjs                       what accept() observed, kept private to t
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 evidence.kaal.json                     Testing's own contract evidence mapping (repository data, not delivered)
 ```
+
+## Documents
+
+These documents are authoritative and ship with the package:
+
+- [Intent](docs/intent.md): why Testing exists and what it promises.
+- [Requirements](docs/requirements.md): the functional and nonfunctional requirements.
+- [Architecture](docs/architecture.md): the decisions that realize them, and the export inventory.
+- [Testing](docs/testing.md): the Test Plan, its delivered and publisher's cases.
+- [Limitations](docs/limitations.md): what a result does not show.
+- [Operations](docs/operations.md): installation, use, verification and removal, and the shipped files.
 
 The Node carries what Testing means to KAAL. The Agent Skill tells an Agent how to do the work and points to the Node. It assumes no host and names no particular system.
 

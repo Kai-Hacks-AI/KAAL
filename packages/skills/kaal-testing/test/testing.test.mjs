@@ -46,13 +46,19 @@ describe("kaal-testing", () => {
     assert.deepEqual([found.capabilities.map((r) => r.name), found.skills.map((r) => r.name)], [["Testing"], ["Testing"]]);
   });
 
-  it("packs its Nodes, its library, the Agent Skill and nothing else beyond its metadata", async () => {
+  it("packs its Nodes, its documents, its library, the Agent Skill and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
     assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
       "capability/Testing.md",
+      "docs/architecture.md",
+      "docs/intent.md",
+      "docs/limitations.md",
+      "docs/operations.md",
+      "docs/requirements.md",
+      "docs/testing.md",
       "lib/acceptance.mjs",
       "lib/attribution.mjs",
       "lib/boundary.mjs",
