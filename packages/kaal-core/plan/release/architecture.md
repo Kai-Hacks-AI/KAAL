@@ -18,6 +18,7 @@ Each element names, in brackets, the Requirements it answers.
     - Verification of the packed artifact is engineering/C7 (#641).
     - Release readiness is engineering/C5 (engineering/F17–F19, #610). It runs Packaging's conformance suite (packaging/A7) beside kaal-core's own verification on one packed-and-installed candidate.
     - Under packaging/A11, kaal-core's comprehensive source `npm test` is a legitimate declared Test Plan (packaging/F14).
+  - (Revised by `core/C37`.) The runner runs each suite through kaal-hosting's `execute`, which names the command and lets Hosting realize it on the host. It passes on what the suite wrote. It finds the source markers with Hosting's `kind` and reads `package.json` with Hosting's `readFile`. Node resolves the entry module's links, so the runner's own location is the package directory's real path, with no further host call.
 - **core/A43** [core/F70, core/F85, core/F87, core/N23] (added by `core/C36`): The manifest and the verifier.
   - **The manifest's form.** `test/verify.json` holds:
     - `files`, mapping each delivered path to its SHA-256. The paths are POSIX paths relative to the package directory. Neither the manifest itself nor a `node_modules` directory nested in the package is listed, since npm may place dependencies there in a consumer's installation;
@@ -28,7 +29,13 @@ Each element names, in brackets, the Requirements it answers.
     - a declared case that failed is `failed`;
     - otherwise every required case executed successfully, and the result is `verified`.
   - **The execution record** (`core/F87`) is one line, `kaal-core-execution: ` followed by JSON: `{ "candidate": { "name", "version", "manifest" }, "cases": [{ "file", "name", "outcome" }] }`. `manifest` is the SHA-256 of `test/verify.json`, and `outcome` is one of `passed`, `failed`, `skipped`, `todo` or `not run`. When consistency fails, the record names the candidate and marks every case `not run`.
+  - **Host operations** (revised by `core/C37`). The verifier reads files with Hosting's `readFile`, reads an installation whole with Hosting's `read`, hashes with Foundation's `sha256`, and runs each delivered loop with Hosting's `execute`. It runs each delivered loop file on its own, so an outcome is known by its file and full name. A run that cannot start or is ended by a signal is `cannot verify`, and so is a non-zero exit that reports no failing case. A failing point outside the declared cases, such as a suite's hook, is `failed`. The scratch directory is the one exception (`core/F88`).
   - **The result line** is `kaal-core: <result>: <name>@<version>: <declared> declared, <executed> executed[: <cause>]`, and it is the last line of standard output.
+- **core/A44** [core/F88] (added by `core/C37`): **Hosting challenges the shipped scripts.**
+  - kaal-core's shipped `test/run.mjs` and `test/verify.mjs` import only `kaal-hosting`, `@kaihacksai/kaal-foundation/sha256`, `node:path` and `node:url`. The verifier also imports `node:fs` and `node:os`, for the scratch directory alone. Both packages are kaal-core runtime dependencies, so the scripts resolve in an installation.
+  - core/T93 runs Hosting's conformance inspection, `kaal-hosting/conformance`'s `inspect`, over the two shipped scripts with that expectation. It asserts no violation and no finding left for validation. It also checks that neither script reads the platform.
+  - Hosting's platform-coupling suite, hosting/C14 and hosting/C17, is on `kaal/hosting`. When it reaches `kaal/core` through `main`, a later Core Change runs it over the shipped scripts in place of core/T93's own platform text check.
+  - The planned tests' fixtures for the runner and the verifier (core/T80, core/T91) are made where Node resolves kaal-hosting and Foundation as an installation would: under the workspace's `node_modules`, not in an isolated temporary directory.
 - **core/A35** [core/F72, core/F73]: Release acceptance packs and installs:
   - `npm pack` packs kaal-core and each runtime dependency;
   - the tarballs install with `npm install` into a directory under the operating system's temporary directory;
@@ -60,6 +67,7 @@ Each element names, in brackets, the Requirements it answers.
 | 1 | `core/C30` PLAN (#600): scoped kinds, hierarchies, shared terms, candidates | Core | `core/C24` | open, awaiting review |
 | 2 | `core/C28` PLAN, this Change | Core | the Owner's 0.0.1 decision on #600 | this PR |
 | 2a | `core/C36` PLAN: alignment with the KAAL Package contract (`core/F85`, `core/F86`, `core/N23`, `core/A43`), added by `core/C36` | Core | 2, packaging/C4 (#658) | this revision |
+| 2b | `core/C37` PLAN: no operating-system decision outside Hosting (`core/F88`, `core/A44`), added by `core/C37` | Core | 2a | this revision |
 | 3 | `graph/C3` DO on `main`: reach, reverse and cycles | Graph | — | merged into `kaal/graph` (#593), promotion in flight |
 | 4 | sync `main` → `kaal/core`, carrying `graph/C3` | Core | 3 | after Graph's promotion, in the promotion queue |
 | 5 | `core/C26` DO: Registration Type, `kaal-core/registration`, `verify`, core/T50–T59, T67, T72, T73 GREEN | Core | 1, 4, `core/C11`, `core/C27` (both merged) | — |
