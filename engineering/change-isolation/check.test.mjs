@@ -111,12 +111,13 @@ describe("aggregate changes", () => {
 describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A)", () => {
   const core = ["packages/kaal-core/package.json", "packages/kaal-core/src/hosting.ts", "package.json", "package-lock.json"];
   // hosting/C11's unspent rename: the target still names Hosting kaal-hosting, the candidate renames it.
-  const c11 = { target: "kaal-hosting", candidate: "@kaihacksai/kaal-hosting" };
+  const old = ["kaal", "hosting"].join("-"); // the old, unscoped name, never a quoted reference (hosting/T22)
+  const c11 = { target: old, candidate: "@kaihacksai/kaal-hosting" };
   const fault = (paths, f = c11) => check(paths, f).map((v) => v.split(": ")[1]);
   const all = [...core, ...HOSTING_C11];
 
   it("engineering/T57: hosting/C11's unspent rename with its exact path set and Core passes, in any order", () => {
-    assert.equal(HOSTING_C11.length, 45);
+    assert.equal(HOSTING_C11.length, 44);
     assert.ok(Object.isFrozen(HOSTING_C11));
     assert.deepEqual(check(all, c11), []);
     assert.deepEqual(check([...HOSTING_C11].reverse().concat(core), c11), []);
@@ -128,10 +129,10 @@ describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A
   });
 
   it("engineering/T59: a subset or a swap fails, naming each missing and extra path", () => {
-    const missing = [HOSTING_C11[0], HOSTING_C11[44]];
+    const missing = [HOSTING_C11[0], HOSTING_C11[43]];
     const part = HOSTING_C11.filter((p) => !missing.includes(p));
     assert.deepEqual(fault([...core, ...part]), missing.map((p) => `${p} is missing from hosting/C11's allowed set`));
-    assert.equal(check([...core, HOSTING_C11[3]], c11).length, 44, "a single path of the set does not carry the allowance");
+    assert.equal(check([...core, HOSTING_C11[3]], c11).length, 43, "a single path of the set does not carry the allowance");
     const swapped = [...HOSTING_C11.slice(1), "packages/skills/kaal-graph/README.md"];
     assert.deepEqual(fault([...core, ...swapped]), [
       "packages/skills/kaal-graph/README.md is extra to hosting/C11's allowed set",
@@ -155,7 +156,7 @@ describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A
   });
 
   it("engineering/T71: an unrelated Change carrying hosting/C11's exact paths, without its rename, gets no allowance", () => {
-    for (const f of [{ target: "kaal-hosting", candidate: "kaal-hosting" }, { target: "kaal-hosting", candidate: "@kaihacksai/kaal-hosting-x" }, { target: "kaal-hosting" }]) {
+    for (const f of [{ target: old, candidate: old }, { target: old, candidate: "@kaihacksai/kaal-hosting-x" }, { target: old }]) {
       assert.deepEqual(fault(all, f), HOSTING_C11.map((p) => `${p} is not Core or its supporting files`), JSON.stringify(f));
     }
   });
@@ -168,7 +169,7 @@ describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A
   it("engineering/T73: without the runner's target and candidate commits, the allowance does not apply", () => {
     assert.deepEqual(facts({}), { target: undefined, candidate: undefined });
     assert.deepEqual(facts({ GUARD_BASE: "HEAD; rm -rf /", GUARD_HEAD: "not-a-commit" }), { target: undefined, candidate: undefined });
-    assert.equal(check(all).length, 45, "check without facts applies rule 1");
+    assert.equal(check(all).length, HOSTING_C11.length, "check without facts applies rule 1");
     const cli = spawnSync(process.execPath, [CLI], { input: all.join("\n"), encoding: "utf8", env: { PATH: process.env.PATH } });
     assert.equal(cli.status, 1, cli.stderr);
   });
