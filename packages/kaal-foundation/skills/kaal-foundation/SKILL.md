@@ -29,22 +29,22 @@ sha256(new TextEncoder().encode(text));
 
 ## Check a digest from a shell
 
-Install the scoped package first, then run its own bin by naming the package explicitly. Never run `npx kaal-foundation`: `kaal-foundation` is only the bin's name, and where the scoped package is not installed npx may fetch an unrelated unscoped package of that name (foundation/F18).
+The bin `kaal-foundation` has two commands, `kaal-foundation sha256` and `kaal-foundation verify`. Install the scoped package first, then run its own bin by its path, from the directory where it is installed. Never run `npx kaal-foundation` or `npm exec … kaal-foundation`: `kaal-foundation` is only the bin's name, so they run whichever installed package owns `node_modules/.bin/kaal-foundation`, and where the scoped package is not installed npx may fetch an unrelated unscoped package of that name (foundation/F18).
 
 ```sh
 npm install @kaihacksai/kaal-foundation
-npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256 <file>…   # "<digest>  <file>", one per line
-printf %s "$text" | npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation sha256   # standard input; "-" does the same
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs sha256 <file>…   # "<digest>  <file>", one per line
+printf %s "$text" | node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs sha256   # standard input; "-" does the same
 ```
 
-`--no` means npm never downloads anything here: without the scoped package installed, the command fails instead of guessing.
+Nothing is downloaded and nothing on `PATH` is consulted: without the scoped package installed, the command fails instead of guessing.
 
 Exit status 0 means every file was hashed. Exit 2 means a file could not be read, or a command or option is unknown. The cause and a usage line are on standard error (foundation/F14). The digests are the library's, byte for byte.
 
 ## Verify an installation
 
 ```sh
-npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation verify
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs verify
 ```
 
 This checks the installed files against the shipped manifest, then runs the shipped cases (foundation/F12). Read the last line, `kaal-foundation-verification {json}`:

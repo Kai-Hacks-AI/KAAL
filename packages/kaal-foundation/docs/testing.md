@@ -25,6 +25,6 @@ The publisher's tests under `test/publisher/` are not delivered and never run in
 - hash every Node KAAL ships;
 - check the packed and installed package;
 - challenge the verification with changed, missing and undeclared files and cases;
-- check that every documented way to run the command names the scoped package and cannot select an unscoped `kaal-foundation` (foundation/F18);
+- check that every documented way to run the command runs the scoped package's own bin by its path, and that another package's `kaal-foundation` can never stand in for it (foundation/F18);
 - check that the package publishes publicly, names its repository, and that `verify` never crashes on a changed library;
 - check that the manifest is current: `test/publisher/manifest.mjs --check` is part of `test:publisher`.
