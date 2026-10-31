@@ -120,10 +120,10 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     assert.equal(scripts["test:consumer"], "node test/verify.mjs", "test:consumer runs the delivered verification");
     assert.ok(scripts["test:publisher"], "the publisher's tests are a suite of their own");
     assert.equal(scripts.test, "node test/run.mjs", "npm test is the runner");
-    for (const f of ["docs", "test/acceptance", "test/unit", "test/verify.mjs", "test/run.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
+    for (const f of ["docs", "test/embed", "test/verify.mjs", "test/run.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
     const shipped = (await packed(CORE)).filter((f) => f.startsWith("test/"));
-    for (const loop of LOOPS) assert.ok(shipped.includes(`test/acceptance/${loop}.test.mjs`), `the ${loop} loop ships`);
-    assert.ok(shipped.some((f) => f.startsWith("test/unit/") && f.endsWith(".test.mjs")), "the Code loop ships");
+    for (const loop of LOOPS) assert.ok(shipped.includes(`test/embed/${loop}.test.mjs`), `the ${loop} loop ships`);
+    assert.ok(shipped.includes("test/embed/code.test.mjs"), "the Code loop ships");
     assert.ok(!shipped.some((f) => f.startsWith("test/plan/")), "the planned outer tests are the publisher's and do not ship");
     const testing = doc("testing");
     for (const f of shipped.filter((f) => f.endsWith(".test.mjs"))) assert.ok(testing.includes(f), `docs/testing.md names ${f}`);
@@ -166,7 +166,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       assert.match(bad.out, /\bfailed\b|\bcannot verify\b/);
       assert.doesNotMatch(last(bad), /^\W*verified\b/, bad.out);
       writeFileSync(index, original);
-      const loops = [...LOOPS.map((l) => [l, [join(installed, "test", "acceptance", `${l}.test.mjs`)]]), ["code", readdirSync(join(installed, "test", "unit")).filter((f) => f.endsWith(".test.mjs")).map((f) => join(installed, "test", "unit", f))]];
+      const loops = [...LOOPS, "code"].map((l) => [l, [join(installed, "test", "embed", `${l}.test.mjs`)]]);
       for (const [loop, paths] of loops) {
         const kept = paths.map((path) => [path, readFileSync(path)]);
         for (const [path] of kept) writeFileSync(path, 'import "node:test";\n');
@@ -179,8 +179,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
         assert.equal(failing.status, 2, `a changed ${loop} test file no longer matches the manifest: ${failing.out}`);
         assert.match(last(failing), /cannot verify/, `a changed ${loop} test file is never verified: ${failing.out}`);
       }
-      rmSync(join(installed, "test", "acceptance"), { recursive: true, force: true });
-      rmSync(join(installed, "test", "unit"), { recursive: true, force: true });
+      rmSync(join(installed, "test", "embed"), { recursive: true, force: true });
       const none = await verify();
       assert.equal(none.status, 2, none.out);
       assert.match(none.out, /cannot verify/, "zero delivered tests is never verified");
@@ -248,17 +247,17 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
     assert.ok(existsSync(verifier), "blocked before behavioural assertion: no shipped test/verify.mjs");
     const sha = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
     const PASSING = {
-      "test/acceptance/intent.test.mjs": 'import { describe, it } from "node:test";\ndescribe("S", () => { it("a", () => {}); });\n',
-      "test/acceptance/requirements.test.mjs": 'import { it } from "node:test";\nit("b", () => {});\n',
-      "test/acceptance/architecture.test.mjs": 'import { it } from "node:test";\nit("c", () => {});\n',
+      "test/embed/intent.test.mjs": 'import { describe, it } from "node:test";\ndescribe("S", () => { it("a", () => {}); });\n',
+      "test/embed/requirements.test.mjs": 'import { it } from "node:test";\nit("b", () => {});\n',
+      "test/embed/architecture.test.mjs": 'import { it } from "node:test";\nit("c", () => {});\n',
       // A case that writes to its working directory, as a consumer's test may: the verifier must run it in a scratch directory (core/N23).
-      "test/unit/code.test.mjs": 'import { writeFileSync } from "node:fs";\nimport { it } from "node:test";\nit("d", () => { writeFileSync("written-by-a-case.txt", "x"); });\n',
+      "test/embed/code.test.mjs": 'import { writeFileSync } from "node:fs";\nimport { it } from "node:test";\nit("d", () => { writeFileSync("written-by-a-case.txt", "x"); });\n',
     };
     const DECLARED = [
-      { file: "test/acceptance/intent.test.mjs", name: "S > a", tests: ["core/I1"] },
-      { file: "test/acceptance/requirements.test.mjs", name: "b", tests: ["core/F1"] },
-      { file: "test/acceptance/architecture.test.mjs", name: "c", tests: ["core/A1"] },
-      { file: "test/unit/code.test.mjs", name: "d", tests: ["core/F1"] },
+      { file: "test/embed/intent.test.mjs", name: "S > a", tests: ["core/I1"] },
+      { file: "test/embed/requirements.test.mjs", name: "b", tests: ["core/F1"] },
+      { file: "test/embed/architecture.test.mjs", name: "c", tests: ["core/A1"] },
+      { file: "test/embed/code.test.mjs", name: "d", tests: ["core/F1"] },
     ];
     const work = fixtures("verifier-");
     try {
@@ -307,22 +306,22 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       assert.deepEqual(outcomes(ok), { "S > a": "passed", b: "passed", c: "passed", d: "passed" }, "every required case executed successfully");
       assert.deepEqual(Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))])), before, "verification leaves the package as it was (core/N23)");
 
-      await expect(fixture({ cases: [...DECLARED, { file: "test/unit/code.test.mjs", name: "e" }] }), 2, "cannot verify", "a declared case that never ran", "e");
-      const skipped = await expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit.skip("d", () => {});\n' } }), 2, "cannot verify", "a declared case that was skipped", "d");
+      await expect(fixture({ cases: [...DECLARED, { file: "test/embed/code.test.mjs", name: "e" }] }), 2, "cannot verify", "a declared case that never ran", "e");
+      const skipped = await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit.skip("d", () => {});\n' } }), 2, "cannot verify", "a declared case that was skipped", "d");
       assert.equal(outcomes(skipped).d, "skipped", `the record shows the case as skipped, not passed: ${skipped.out}`);
-      await expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit.todo("d", () => {});\n' } }), 2, "cannot verify", "a declared case marked todo", "d");
-      await expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit("d", () => {});\nit("extra", () => {});\n' } }), 2, "cannot verify", "an undeclared case that ran", "extra");
-      const failing = await expect(fixture({ files: { ...PASSING, "test/unit/code.test.mjs": 'import { it } from "node:test";\nit("d", () => { throw new Error("deliberate"); });\n' } }), 1, "failed", "a declared case that failed, with the files intact", "d");
+      await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit.todo("d", () => {});\n' } }), 2, "cannot verify", "a declared case marked todo", "d");
+      await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit("d", () => {});\nit("extra", () => {});\n' } }), 2, "cannot verify", "an undeclared case that ran", "extra");
+      const failing = await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit("d", () => { throw new Error("deliberate"); });\n' } }), 1, "failed", "a declared case that failed, with the files intact", "d");
       assert.equal(outcomes(failing).d, "failed", `the record shows the failed execution: ${failing.out}`);
-      const changed = await expect(fixture({ after: (dir) => writeFileSync(join(dir, "test", "unit", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "a file changed after the manifest was made", "test/unit/code.test.mjs");
+      const changed = await expect(fixture({ after: (dir) => writeFileSync(join(dir, "test", "embed", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "a file changed after the manifest was made", "test/embed/code.test.mjs");
       assert.ok(Object.values(outcomes(changed)).every((o) => o === "not run"), `an inconsistent candidate runs no case, so its record evidences nothing about it: ${changed.out}`);
       await expect(fixture({ after: (dir) => writeFileSync(join(dir, "added.mjs"), "export {};\n") }), 2, "cannot verify", "a file the manifest does not list", "added.mjs");
-      await expect(fixture({ after: (dir) => rmSync(join(dir, "test", "acceptance", "architecture.test.mjs")) }), 2, "cannot verify", "a file the manifest lists is missing", "test/acceptance/architecture.test.mjs");
+      await expect(fixture({ after: (dir) => rmSync(join(dir, "test", "embed", "architecture.test.mjs")) }), 2, "cannot verify", "a file the manifest lists is missing", "test/embed/architecture.test.mjs");
       const nested = fixture({ after: (dir) => { mkdirSync(join(dir, "node_modules", "dep"), { recursive: true }); writeFileSync(join(dir, "node_modules", "dep", "index.js"), ""); } });
       await expect(nested, 0, "verified", "a nested node_modules is the consumer's, not the package's");
       const checkout = fixture({ source: true, after: (dir) => { for (const marker of ["src", "test/plan"]) { mkdirSync(join(dir, marker), { recursive: true }); writeFileSync(join(dir, marker, "unshipped.mjs"), "export {};\n"); } } });
       await expect(checkout, 0, "verified", "a source workspace holds files that do not ship, and they are not added files");
-      await expect(fixture({ source: true, after: (dir) => writeFileSync(join(dir, "test", "unit", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "in source too, a shipped file changed after the manifest was made", "test/unit/code.test.mjs");
+      await expect(fixture({ source: true, after: (dir) => writeFileSync(join(dir, "test", "embed", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "in source too, a shipped file changed after the manifest was made", "test/embed/code.test.mjs");
       const bare = await verify(fixture({ manifest: false }));
       assert.equal(bare.status, 2, `no manifest: ${bare.out}`);
       assert.match(bare.last, /cannot verify/, `no manifest is never verified: ${bare.out}`);
