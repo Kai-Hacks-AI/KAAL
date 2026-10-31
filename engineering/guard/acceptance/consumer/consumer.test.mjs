@@ -26,7 +26,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { admits, declaredPaths } from "./paths.mjs";
+import { admits, declaredPaths, order } from "./paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KAAL = resolve(HERE, "..", "..", "..", "..");
@@ -124,6 +124,22 @@ function shipped(h, older, newer) {
 function applies(t, condition, reason) {
   if (!condition) t.skip(`not applicable: ${reason}`);
   return condition;
+}
+
+/**
+ * The release pair guard/T118 runs without GUARD_CANDIDATES (guard/C139), in GUARD_CANDIDATES' form:
+ * `registry:<older>,packed`, where older is the newest source the package in this tree declares under
+ * guard/F42 that is earlier than its own version. A package that declares none, or none earlier, is a
+ * finding, never a reason not to run the case.
+ */
+function declared() {
+  const pkg = join(KAAL, "packages", "kaal-guard");
+  const version = json(readFileSync(join(pkg, "package.json"), "utf8")).version;
+  const paths = declaredPaths(readFileSync(join(pkg, "docs", "requirements.md"), "utf8"));
+  assert.equal(paths.kind, "declared", `the package in this tree declares no upgrade paths under guard/F42: ${paths.finding ?? paths.kind}`);
+  const earlier = paths.sources.filter((v) => order(v) < order(version)).sort((a, b) => order(b) - order(a));
+  assert.ok(earlier.length > 0, `the package in this tree, ${version}, declares no upgrade path from an earlier version: ${paths.sources.join(", ")}`);
+  return `registry:${earlier[0]},packed`;
 }
 
 describe("guard/I5 a consumer moves between published versions safely", () => {
@@ -339,7 +355,12 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
 
   it("guard/T118 [guard/I5, guard/F11, guard/F12, guard/F14, guard/F31]: an installation of the older candidate, integrated and holding a consumer's file and a modified managed asset, moves to the newer one by a dependency change and upgrade, changing only what the two ship differently, and the newer candidate's verification gives verified", async (t) => {
     const h = await a12();
-    const { older, newer } = two(h);
+    // The pair is the one GUARD_CANDIDATES names, or else the release pair the tree's own package declares
+    // (guard/C139): the package as packed, from the newest earlier version its guard/F42 declaration lists.
+    const pair_ = process.env.GUARD_CANDIDATES ?? declared();
+    t.diagnostic(`pair: ${pair_} (${process.env.GUARD_CANDIDATES ? "GUARD_CANDIDATES" : "declared by the package's docs/requirements.md under guard/F42"})`);
+    const { older, newer } = h.candidates(pair_);
+    assert.notEqual(older.version, newer.version, "the two candidates carry the same version");
     announce(t, newer);
     t.diagnostic(`from: ${older.spec} (${older.source})`);
     // The harness's own variants change a package after its manifest was made, so their verification cannot pass by design.

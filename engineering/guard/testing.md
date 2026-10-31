@@ -311,6 +311,8 @@ A pair that does not meet the condition is reported `not applicable` with the re
 
 Without `GUARD_CANDIDATES`, the harness's `packed` variants give guard/T36–guard/T68 GREEN, guard/T66 included, and guard/T118 not applicable.
 
+From `guard/C139`, guard/T118 does not wait for `GUARD_CANDIDATES`. Without it, guard/T118 runs the release pair the package in the tree declares: `registry:<older>,packed`, where older is the newest source its guard/F42 declaration lists that is earlier than its own version. The other cases keep the `packed` variants, so one run of `consumer.test.mjs` with no variable executes every case: on Linux at `kaal/guard-release`, guard/T65–guard/T68 GREEN on the variants and guard/T118 GREEN from `registry` `0.0.3` to `packed` `0.0.4`. A package that declares no earlier source fails guard/T118 and never skips it. With `GUARD_CANDIDATES` set, every case takes that pair, as before.
+
 ## The managed workflow keeps no credential (`guard/C114`)
 
 guard/T119 is planned in `guard/C114`. It checks a product obligation, guard/N15, so it is a product acceptance case in `packages/kaal-guard/test/acceptance/requirements.test.mjs` and is delivered with the package.
