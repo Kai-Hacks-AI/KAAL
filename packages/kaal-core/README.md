@@ -21,17 +21,18 @@ The package ships its own documents in `docs/`:
 
 ## Install and bootstrap
 
-Until a release, kaal-core is installed from a checkout of this repository:
+kaal-core publishes under the scoped name `@kaihacksai/kaal-core` (core/F74). Always name the scoped package, and run its `kaal` command through npm with `--no`, so npm never fetches an unrelated unscoped `kaal-core` or `kaal`. Never run `npm install kaal-core` or `npx kaal`.
 
 ```sh
-npm ci && npm run build -w kaal-core              # in the KAAL checkout
-npm install <path-to-KAAL>/packages/kaal-core     # in your repository
-npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
-npx kaal verify    # checks the Kernel and the six foundational Nodes by identity
-npx kaal version   # the kaal-core that runs, and the version that installed ./.kaal
-npx kaal upgrade   # bring ./.kaal to this kaal-core
-npx kaal remove    # remove Core's installation, keeping what is not Core's
+npm install @kaihacksai/kaal-core
+npm exec --no --package=@kaihacksai/kaal-core -- kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
+npm exec --no --package=@kaihacksai/kaal-core -- kaal verify    # checks the Kernel and the six foundational Nodes by identity
+npm exec --no --package=@kaihacksai/kaal-core -- kaal version   # the kaal-core that runs, and the version that installed ./.kaal
+npm exec --no --package=@kaihacksai/kaal-core -- kaal upgrade   # bring ./.kaal to this kaal-core
+npm exec --no --package=@kaihacksai/kaal-core -- kaal remove    # remove Core's installation, keeping what is not Core's
 ```
+
+Until 0.0.1 is published under that name, install kaal-core only from packed tarballs, never by name: in a KAAL checkout, `npm ci && npm run build -w kaal-core`, then `npm pack` kaal-core and its KAAL runtime dependencies, and `npm install` those tarballs in your repository ([Operations](docs/operations.md)).
 
 Installing the package writes nothing into your repository. `kaal init` does, and only when you run it.
 

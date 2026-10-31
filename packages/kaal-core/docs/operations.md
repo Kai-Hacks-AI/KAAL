@@ -14,23 +14,31 @@ kaal-core supports Linux, macOS and Windows, which are the hosts KAAL's Hosting 
 
 ## Install
 
+kaal-core publishes under the scoped name `@kaihacksai/kaal-core` (core/F74). Always name the scoped package:
+
 ```sh
-npm install kaal-core
+npm install @kaihacksai/kaal-core
 ```
 
-kaal-core 0.0.1 is not yet published. Until it is, install it from a packed tarball together with the tarballs of its KAAL runtime dependencies:
+Never run `npm install kaal-core`, `npx kaal` or `npx kaal-core`. Those unscoped names may fetch an unrelated package from the registry.
+
+kaal-core 0.0.1 is not yet published, and its package is still named `kaal-core` until the rename to the scoped name lands. Until then, install it only from packed tarballs, together with the tarballs of its KAAL runtime dependencies, so nothing is fetched by name:
 
 ```sh
 npm install ./kaal-core-0.0.1.tgz <the dependency tarballs>
 ```
 
-The release plan publishes kaal-core under the scoped name `@kaihacksai/kaal-core` (core/F74). The commands in this document use `kaal-core` until that rename lands. After it, substitute the scoped name.
-
 Installing the package writes nothing into your repository. Only `kaal init`, `kaal register`, `kaal upgrade` and `kaal remove` write, and only when you run them.
 
 ## Use
 
-The package installs the `kaal` command. Run it with `npx kaal <command>` from your repository root.
+The package installs the `kaal` command. Run it from your repository root through npm, naming the scoped package:
+
+```sh
+npm exec --no --package=@kaihacksai/kaal-core -- kaal <command>
+```
+
+`--no` means npm downloads nothing: where the scoped package is not installed, the command fails rather than selecting another package. The command tables below name the `kaal` subcommand alone.
 
 | Command | What it does |
 | --- | --- |
@@ -54,7 +62,7 @@ When Core refuses something, it prints `kaal: <reason>`, exits 1 and writes noth
 kaal-core ships its own verification. Run it in the installed package's directory:
 
 ```sh
-npm explore kaal-core -- npm test
+npm explore @kaihacksai/kaal-core -- npm test
 ```
 
 It needs only Node and the package's runtime dependencies: no repository, no build tool and no network. It writes only in a scratch directory under the operating system's temporary directory, which it removes, and leaves your project, its dependencies and its configuration as they were (core/N23).
@@ -77,11 +85,11 @@ These meanings are those of KAAL's Testing capability (testing/C9). kaal-core ap
 
 ## Upgrade
 
-Install the newer kaal-core with npm, then run `npx kaal upgrade`. It writes absent files, replaces files it recorded that you did not change, keeps and reports every other file, and removes recorded files the new version no longer delivers if they are unmodified. Upgrading an Engine that is already current writes nothing.
+Install the newer `@kaihacksai/kaal-core` with npm, then run `npm exec --no --package=@kaihacksai/kaal-core -- kaal upgrade`. It writes absent files, replaces files it recorded that you did not change, keeps and reports every other file, and removes recorded files the new version no longer delivers if they are unmodified. Upgrading an Engine that is already current writes nothing.
 
 ## Remove
 
-1. Run `npx kaal remove` from the repository root. It removes every unmodified file Core's record holds, including the agent deployments Core made, then the record, then the directories that empties. It keeps and reports everything else: files you changed, registered contributions, typed artifacts, and other Capabilities' records and files.
-2. Run `npm uninstall kaal-core`.
+1. Run `npm exec --no --package=@kaihacksai/kaal-core -- kaal remove` from the repository root. It removes every unmodified file Core's record holds, including the agent deployments Core made, then the record, then the directories that empties. It keeps and reports everything else: files you changed, registered contributions, typed artifacts, and other Capabilities' records and files.
+2. Run `npm uninstall @kaihacksai/kaal-core`.
 
 Files `kaal remove` keeps are yours to keep or delete. An Engine created with `--engine` has no record, so `kaal remove` refuses it. It is plain files, and you may delete the directory yourself.

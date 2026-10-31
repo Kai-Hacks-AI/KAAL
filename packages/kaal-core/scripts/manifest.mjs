@@ -1,14 +1,20 @@
-// kaal-core's build step for the shipped manifest (core/F85, core/A43): writes test/verify.json, which
-// lists every other file the package ships with its SHA-256, and declares every Embedded Test Case of
-// the delivered loops by its file, its full name and the core/ subjects its name brackets. Generated,
-// never edited by hand. Commands run through Hosting, and hashing is Foundation's (core/F88).
+// kaal-core's shipped manifest (core/F85, core/A43): test/verify.json lists every other file the
+// package ships with its SHA-256, and declares every Embedded Test Case of the delivered loops by its
+// file, its full name and the core/ subjects its name brackets. It is committed, generated and never
+// edited by hand: `npm run manifest` writes it after a build, and the build never does (the Owner's
+// review of core/C29, #704). With --check it writes nothing and fails when the committed manifest is
+// not exactly what it would write, so a stale manifest is caught, never silently repaired; the
+// publisher's tests run it. --root <dir> names another package directory, for fixtures.
+// Commands run through Hosting, and hashing is Foundation's (core/F88).
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "kaal-hosting";
 import { writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const CORE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const at = process.argv.indexOf("--root");
+const CORE = at > 0 ? resolve(process.argv[at + 1]) : resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const CHECK = process.argv.includes("--check");
 const MANIFEST = "test/verify.json";
 const LOOPS = /^test\/embed\/[^/]+\.test\.mjs$/;
 
@@ -38,4 +44,15 @@ const cases = [];
 for (const file of shipped.filter((f) => LOOPS.test(f))) cases.push(...declared(file, (await readFile(join(CORE, file))).toString("utf8")));
 if (!cases.length) throw new Error("the delivered loops declare no case");
 
-writeFileSync(join(CORE, MANIFEST), `${JSON.stringify({ files, cases }, null, 2)}\n`);
+const text = `${JSON.stringify({ files, cases }, null, 2)}\n`;
+if (CHECK) {
+  const committed = (await kind(join(CORE, MANIFEST))) === "file" ? (await readFile(join(CORE, MANIFEST))).toString("utf8") : null;
+  if (committed !== text) {
+    console.error(`${MANIFEST} is ${committed === null ? "missing" : "stale"}: build, then run npm run manifest -w kaal-core, and commit it`);
+    process.exit(1);
+  }
+  console.log(`${MANIFEST} is current`);
+} else {
+  writeFileSync(join(CORE, MANIFEST), text);
+  console.log(`wrote ${MANIFEST}`);
+}

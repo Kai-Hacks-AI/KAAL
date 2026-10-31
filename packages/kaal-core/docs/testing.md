@@ -17,7 +17,7 @@ These four files ship in the package. They are plain `node:test` files that impo
 
 ## The verifier, the manifest and the runner
 
-- **`test/verify.json`** is the shipped manifest (core/F85). Its `files` member lists every other file the package ships, each with its SHA-256. Its `cases` member declares each required test case by its delivered file, its full name and the `core/…` identifiers it tests. The build writes it from the packed file list. It is never edited by hand.
+- **`test/verify.json`** is the shipped manifest (core/F85). Its `files` member lists every other file the package ships, each with its SHA-256. Its `cases` member declares each required test case by its delivered file, its full name and the `core/…` identifiers it tests. It is generated from the packed file list and committed, never edited by hand: the publisher regenerates it explicitly after a shipped file changes, the build never writes it, and the publisher's tests fail on a stale one (core/T97).
 - **`test/verify.mjs`** is the consumer verification, `npm run test:consumer` (core/F70, core/F87). It:
   1. hashes the package's files, outside any nested `node_modules`, and compares them with the manifest. A missing or changed file, or in an installation an added one, gives `cannot verify`, naming the first path that differs. No case runs then;
   2. runs each delivered test file on its own, in a scratch directory it removes afterwards;
@@ -35,6 +35,7 @@ The publisher's Engineering tests are not delivered. They do not ship in the pac
 
 - **the planned outer tests** in `test/plan/`, one file for each area of Core. Each test title starts with a `core/T…` id and names the Requirements it checks in brackets. They are written before the code and are immutable to the code that turns them GREEN;
 - **the build-time Code tests**, compiled from the TypeScript files in `test/` (such as `test/core.test.ts`) and run after a build;
+- **the release checks** added by the Owner's review: `test/manifest.test.mjs` (core/T97), which requires the committed manifest to be current, and `test/acquisition.test.mjs` (core/T96), which shows that every documented install or run names `@kaihacksai/kaal-core` and that the documented command never runs an unrelated unscoped `kaal-core`;
 - **the bench**, which measures admission.
 
 In the source workspace, `npm test` runs these with the consumer verification. They include release acceptance, which packs kaal-core with its runtime dependencies, installs the tarballs into a clean directory and checks that the installed `npm test` ends in `verified`, and that damage never does.
