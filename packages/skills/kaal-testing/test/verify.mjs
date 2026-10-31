@@ -201,6 +201,16 @@ const env = { ...process.env };
 const stacks = new Map();
 const outcomes = new Map();
 const extra = [];
+// Failures the runner established outside a declared case: a delivered file that failed as a whole (it did not
+// import, threw while it loaded or its process ended non-zero) and an undeclared test that ran and failed. Each is a
+// violation by the intact package as shipped, so it is failed (testing/F50), never a gap in the evidence.
+const established = [];
+/** The runner's reason for a failure, on one line. */
+const reason = (d) => {
+  const err = d.details?.error;
+  const why = err?.cause?.message ?? err?.cause ?? err?.message ?? "the runner reports it failed";
+  return String(why).split("\n").map((l) => l.trim()).filter(Boolean)[0] ?? "the runner reports it failed";
+};
 for await (const e of run({ files: caseFiles.filter((f) => !absentFiles.includes(f)).map((f) => join(PACKAGE, f)), concurrency: true, env })) {
   const d = e.data ?? {};
   if (e.type === "test:start") {
@@ -217,7 +227,9 @@ for await (const e of run({ files: caseFiles.filter((f) => !absentFiles.includes
   const file = slash(relative(PACKAGE, d.file ?? ""));
   const name = whole ? file : d.name;
   const status = d.skip !== undefined && d.skip !== false ? "skipped" : d.todo !== undefined && d.todo !== false ? "todo" : e.type === "test:pass" ? "passed" : "failed";
-  if (declared.includes(name)) outcomes.set(name, outcomes.has(name) ? "repeated" : OUTCOME[status]);
+  if (whole) established.push(`${file} failed as a whole: ${reason(d)}`);
+  else if (declared.includes(name)) outcomes.set(name, outcomes.has(name) ? "repeated" : OUTCOME[status]);
+  else if (status === "failed") established.push(`${name} ran, is not declared, and failed`);
   else extra.push(`${name} ran and is not declared`);
 }
 for (const c of summary.cases) c.outcome = outcomes.get(c.name) === "repeated" ? "not run" : (outcomes.get(c.name) ?? "not run");
@@ -229,7 +241,7 @@ if (consumer) {
   if (changed.length) end("failed", { cause: "the consumer's content changed during the verification", evidence: changed.map((p) => `${p} changed`), next: { kind: "diagnostic", step: "inspect what changed in the consumer" } });
 }
 const failing = summary.cases.filter((c) => c.outcome === "fail");
-if (failing.length) end("failed", { cause: "a declared case failed against the installed package", evidence: failing.map((c) => `${c.name} failed`), next: { kind: "diagnostic", step: "inspect the failing case's output with node --test" } });
+if (failing.length || established.length) end("failed", { cause: "a delivered case failed against the installed package", evidence: [...failing.map((c) => `${c.name} failed`), ...established], next: { kind: "diagnostic", step: "inspect the failing case's output with node --test" } });
 const notRun = summary.cases.filter((c) => c.outcome !== "pass");
 if (notRun.length || extra.length || absentFiles.length) unknown("not every declared case ran and passed", [...absentFiles.map((f) => `${f} is not delivered`), ...notRun.map((c) => `${c.name} is ${c.outcome}`), ...extra], "analyze", "exploratory");
 end("verified");
