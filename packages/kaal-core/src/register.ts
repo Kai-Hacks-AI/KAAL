@@ -1,4 +1,4 @@
-import { Graph } from "kaal-graph";
+import { Admitted } from "./admitted.js";
 import { kind as pathKind, read, update } from "kaal-hosting";
 import { check } from "./bootstrap.js";
 import { evaluate } from "./engine.js";
@@ -150,7 +150,7 @@ export interface Catalog {
  * or layout is consulted.
  */
 export async function catalog(dir: string): Promise<Catalog> {
-  const admitted = new Graph(evaluate(await read(dir)).nodes);
+  const admitted = new Admitted(evaluate(await read(dir)).nodes);
   const refs = (kind: Kind): Ref[] => admitted.typed(anchor(kind)).sort(compareRefs);
   return { capabilities: refs("capability"), agents: refs("agent"), skills: refs("skill"), extensions: refs("extension") };
 }
