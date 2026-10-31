@@ -78,6 +78,11 @@ Each Requirement names, in brackets, the Intents it serves.
     - a record speaks only for the candidate it names;
     - a different candidate starts with no evidence, so earlier runs never carry over to it. That covers another version, another manifest, or another packed artifact;
     - a later record for the same candidate supersedes an earlier one. A later run that fails or misses a required case invalidates an earlier `verified`.
+- **core/F88** [core/I22, core/I23] (added by `core/C37`): **No operating-system decision outside Hosting**, as the Owner set on #675: Hosting is KAAL's only OS boundary, test implementations included.
+  - The shipped runner and verifier run npm and Node, read files and find what is at a path only through kaal-hosting. SHA-256 is Foundation's. Neither branches on the platform.
+  - Core's planned tests that run commands do so through kaal-hosting too, with no platform branch.
+  - **The one gap.** Hosting offers no scratch working directory today. Until it does, the verifier makes its scratch directory (`core/N23`) with Node's portable temporary-directory call and removes it, with no platform decision. Whether Hosting offers a scratch abstraction is Hosting's to decide. If it does, a later Core Change adopts it.
+  - A GREEN Core suite is not portability evidence on its own. Hosting's conformance challenges the shipped scripts (`core/A44`).
 - **core/F86** [core/I22] (added by `core/C36`): **Declared runtime and platforms**, which realizes packaging/F12.
   - The package declares Node.js 24 or later as its runtime.
   - `docs/operations.md` names the platforms kaal-core supports: Linux, macOS and Windows, which are the hosts Hosting supports.

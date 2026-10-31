@@ -25,6 +25,17 @@ Today kaal-core depends on `kaal-graph` at runtime, for three things:
 - **The `Graph` class, as a lookup by name and id.** Core uses `named`, `node` and `resolve`. It never walks an Edge.
 - **Planned: `graph/C2`'s `reach`, `reverse` and `cycles`.** `core/C26` uses them for registration's reach, incoming views and cycles (`core/A27`).
 
+## The route without Graph's `node.d.ts` (`core/C38`)
+
+`core/C32` planned four copies of Graph's files. The fourth, `node.d.ts`, is Graph's split of `node.mjs`'s declarations out of `edges.d.ts` (#651), and it exists only on `kaal/graph`. On #675 (2026-10-31) the Owner ruled that Graph-owned `node.d.ts` must not be copied into `kaal/core` to bypass lineage and promotion discipline (#670, #621). Either Core shows a bounded route that avoids a hard Graph dependency, for separate review, or Graph → `main` → Core stands.
+
+`core/C38` is that route. It is bounded to what Graph has already delivered to Core's base through `main`:
+- Graph's own declarations for `node.mjs` are in its `edges.d.ts` there. Core's build selects from that file only the statements that declare what `node.mjs` exports when it runs, and the types those use. Each statement is kept as Graph wrote it. An import or re-export keeps only the names it needs;
+- when Graph's `node.d.ts` reaches `kaal/core` through `main`, the same build delivers it instead, with no Core Change;
+- nothing of Graph's travels outside `main`, and Core authors no declaration of Graph's API.
+
+On #689 the Owner asked for proof that the shipped TypeScript declarations can be consumed on their own and describe the embedded modules accurately. The proof must come from a real compiler, run in a clean, packed-and-installed consumer with no Graph. That is core/T95. It is why the route selects from `edges.d.ts` rather than delivering it whole: the whole file also declares Graph's `Graph` class and Edge API, which the embedded modules do not provide.
+
 ## The Intent
 
 - **core/I24.** kaal-core installs and works without Graph.
