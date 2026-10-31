@@ -1,5 +1,6 @@
-// foundation/C3 planned outer tests: publication readiness to Guard's consumer bar. Immutable to DO
-// and CHECK; foundation/C4 turns them GREEN. Each title names the contracts it checks
+// foundation/C3 planned outer tests: publication readiness to Guard's consumer bar, revised by
+// foundation/C6 to run npm with no platform decision. Immutable to DO and CHECK; foundation/C4 turns
+// them GREEN. Each title names the contracts it checks
 // (plan/publication/*.md). They read the package as it is packed and installed.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -15,9 +16,17 @@ const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "u
 const DOCS = ["intent", "requirements", "architecture", "limitations", "operations", "testing"];
 const ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
-/** Runs a command, returning its status and output; never throws. */
+/**
+ * Runs a command, returning its status and output; never throws. npm runs as its own CLI script under
+ * this Node, named by npm_execpath, which npm sets for the suite that runs these tests; any other
+ * command is an executable path. No shell is chosen and no platform is consulted (foundation/C6, #668).
+ * Run outside npm, there is no npm to run, and the result says so.
+ */
 const run = (cmd, args, cwd) => {
-  const r = spawnSync(cmd, args, { cwd, encoding: "utf8", shell: process.platform === "win32", env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" } });
+  const env = { ...process.env, npm_config_audit: "false", npm_config_fund: "false" };
+  const cli = process.env.npm_execpath;
+  if (cmd === "npm" && (!cli || !/\.[cm]?js$/.test(cli))) return { status: null, stdout: "", out: "npm_execpath names no npm CLI script: run these tests through npm" };
+  const r = cmd === "npm" ? spawnSync(process.execPath, [cli, ...args], { cwd, encoding: "utf8", env }) : spawnSync(cmd, args, { cwd, encoding: "utf8", env });
   return { status: r.status, stdout: r.stdout ?? "", out: `${r.stdout ?? ""}${r.stderr ?? ""}` };
 };
 const last = (r) => r.stdout.trim().split(/\r?\n/).pop() ?? "";

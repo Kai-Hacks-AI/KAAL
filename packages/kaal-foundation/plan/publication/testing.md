@@ -2,6 +2,8 @@
 
 The planned outer tests live in `packages/kaal-foundation/test/plan/publication.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `foundation/C4` turns them GREEN, and they join `test:publisher`. These tests are the publisher's: they do not ship, and they check what does ship.
 
+`foundation/C6` revised how they run npm: as npm's own CLI script, named by `npm_execpath`, under the Node that runs them, with no shell chosen by platform (#668, testing/F67). Run outside npm, they have no npm to run and fail rather than guess. What each test asserts is unchanged.
+
 | Test | Checks | Loop |
 | --- | --- | --- |
 | foundation/T9: the package is not private, keeps its name and version, and declares no dependencies | foundation/F4, foundation/N2, foundation/N6 | Requirements |

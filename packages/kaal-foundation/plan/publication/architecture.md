@@ -26,5 +26,9 @@ This Change is row 8 of kaal-core's release dependency map (`core/C28`, merged i
 | 2 | `foundation/C4` DO: not private, documents, delivered tests, verifier, runner, foundation/T9–T14 GREEN | Foundation | 1 |
 | 3 | promotion `kaal/foundation` → `main` | Foundation | 2, the Owner's go |
 | 4 | publication of `@kaihacksai/kaal-foundation` 0.0.1 | the Owner | 3 |
+| 2a | `foundation/C5` DO (#698): the shipped runner runs suites through `npm_execpath` with no platform decision, and the verifier holds Foundation's approved interface (foundation/F5) and gives `cannot verify` when it cannot be exercised (foundation/F8) | Foundation | 2 |
+| 2b | `foundation/C6` PLAN, revising foundation/T9–T14's command runner the same way | Foundation | 2a |
 
 kaal-core's release waits on row 4 (`core/F73`).
+
+**The runner convention has two copies** (`foundation/C6`). Foundation's `test/run.mjs` and kaal-core's (core/A34) implement one convention: the source and installed markers, the suites each layout runs, and the refusals. Foundation cannot import Core, so it keeps its own copy for now. Testing owns what the results mean (testing/C9). Who owns the convention itself, Testing for its semantics or Engineering for its orchestration, is routed to the Owner and not decided here. Until then, neither copy may decide by platform.
