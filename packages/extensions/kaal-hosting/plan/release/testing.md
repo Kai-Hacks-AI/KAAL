@@ -47,3 +47,28 @@ Neither reference was committed.
 | crashes, instead of cannot verify, on an absent manifest | hosting/T31 |
 
 The checks also showed that a command started from inside a `node:test` run inherits `NODE_TEST_CONTEXT`, which makes a nested `run()` skip every file. The planned tests clear it, so the consumer's command runs as it would for a consumer.
+
+## hosting/C19: a specifier is what resolves
+
+`hosting/C19` is a PLAN correction to hosting/T22's matcher and to one value in hosting/T42. It was found while checking #657 (`hosting/C11`) against `kaal/hosting` after `hosting/C14` and `hosting/C17` landed. Testing names this kind of defect BRITTLE (testing/C41, #681).
+
+**False RED.** T22 counted any quoted `kaal-hosting/<anything>` as a module specifier. `hosting/C16` named host facts and review rules in Hosting's own namespace: `kaal-hosting/special-entries` (hosting/F37) and `kaal-hosting/host-applicability` (hosting/F40). These identifiers resolve to no module. With #657 applied on today's `kaal/hosting`, T22 failed on 18 of them in `src/boundary-core.ts`, `src/fixtures.ts` and `test/plan/portability.test.mjs`. One of them is the unknown fact `kaal-hosting/windows` that T44 uses. It would fail the same way on every capability that declares a host fact (testing/C39, guard's T114). T42 also listed the old, unscoped name as a literal, to show it is not the boundary.
+
+**Correction.**
+- A specifier is now the name alone, or the name and a subpath that the package's `exports` declares, because only those resolve. A workspace selector is unchanged.
+- T42 keeps the old name as a value it tests, but spells it in parts, as `release.test.mjs` does.
+- No other assertion changes.
+
+**Evidence (Node 24, Linux).** These were checked on a throwaway merge of #657 into this correction, which was not committed.
+
+| Check | T22 |
+| --- | --- |
+| before the correction | RED, 18 identifiers and T42's literal |
+| after the correction | GREEN |
+| a stale `import "kaal-hosting/conformance"` | RED |
+| a stale `import "kaal-hosting"` | RED |
+| a stale `import("kaal-hosting/fixtures")` | RED |
+| a stale `-w kaal-hosting` | RED |
+| a weaker matcher that ignores subpaths, with a stale `"kaal-hosting/conformance"` | GREEN, so it is caught as weaker |
+
+Across the repository, the corrected matcher still finds a reference in each of the 56 files of #657's set that the old matcher found. It finds none elsewhere. hosting/T21, T23 and T24 are GREEN on the same merge. #657's file set does not change.

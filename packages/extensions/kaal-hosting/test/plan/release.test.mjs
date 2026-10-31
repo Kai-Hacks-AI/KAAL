@@ -38,10 +38,19 @@ function files(dir, base) {
     .map((p) => `${base}/${p.split("\\").join("/")}`);
 }
 
-/** Each reference to `name` in `text`, by the kinds hosting/F16 names. */
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Each reference to `name` in `text`, by the kinds hosting/F16 names. A
+ * specifier is the name alone or the name and a subpath the package exports:
+ * only those resolve. A namespaced identifier such as a host fact
+ * (`kaal-hosting/special-entries`) or a review rule is not a specifier
+ * (hosting/C19).
+ */
 function references(text, name) {
-  const quoted = name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-  const specifier = new RegExp(`(["'\`])${quoted}(/[\\w./-]+)?\\1`, "g");
+  const quoted = escape(name);
+  const subpaths = Object.keys(pkg().exports ?? {}).filter((key) => key !== ".").map((key) => escape(key.slice(1)));
+  const specifier = new RegExp(`(["'\`])${quoted}(?:${subpaths.length ? subpaths.join("|") : "(?!)"})?\\1`, "g");
   const selector = new RegExp(`(?:-w|--workspace)[ =]${quoted}(?![\\w/-])`, "g");
   return [...text.matchAll(specifier), ...text.matchAll(selector)].map((m) => m[0]);
 }
