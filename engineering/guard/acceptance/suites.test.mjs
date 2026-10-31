@@ -66,7 +66,9 @@ function record(host, candidate = "c0ffee") {
   };
 }
 
+// A reason that cites a Hosting fact by name. A test's own words never establish it (the Owner on #663).
 const RULE = "not applicable: the host fact kaal-hosting/special-entries does not hold here";
+const NA = /not applicable without Hosting's established applicability evidence/;
 const T2 = (r, change) => ({ ...r, cases: r.cases.map((c) => (c.case === "guard/T2" ? { ...c, ...change } : c)) });
 
 describe("guard/I8 [guard/N14] Guard's tests placed by the realization they verify", () => {
@@ -106,7 +108,7 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
     assert.deepEqual(found, [], "Guard's tests are misplaced, or a declared suite is scheduled by no lane");
   });
 
-  it("guard/T137 [guard/N14, guard/A20]: a run record gives every declared case exactly one outcome from the runner's own report, never counts a suite passed over a case that did not pass or apply, cites a Hosting rule for not applicable and a reason for not run, and names no undeclared case; the release gate rejects stale or mismatched candidate and host evidence and any case not passed or not applicable", (t) => {
+  it("guard/T137 [guard/N14, guard/A20]: a run record gives every declared case exactly one outcome from the runner's own report, never counts a suite passed over a case that did not pass or apply, never takes not applicable from a test's own skip reason, gives a reason for not run, and names no undeclared case; the release gate rejects stale or mismatched candidate and host evidence and any case not passed", (t) => {
     // The producer: a real run of the base fixture, read from the runner's report.
     const root = repo(base());
     const ran = execute(root, { candidate: "c0ffee", host: "host-a" });
@@ -117,9 +119,10 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
       return Object.fromEntries(execute(r, { candidate: "c0ffee", host: "host-a" }).cases.map((c) => [c.case, c]));
     };
     const skipped = outcomes({ "engineering/guard/acceptance/b.test.mjs": `${IT}it("guard/T2 [guard/F1]: two", { skip: "this host has no FIFO" }, () => {});\n` });
-    assert.equal(skipped["guard/T2"].outcome, "not run", "a skip with no Hosting rule is not 'not run'");
+    assert.equal(skipped["guard/T2"].outcome, "not run", "a skip is not 'not run'");
     const ruled = outcomes({ "engineering/guard/acceptance/b.test.mjs": `${IT}it("guard/T2 [guard/F1]: two", { skip: ${JSON.stringify(RULE)} }, () => {});\n` });
-    assert.equal(ruled["guard/T2"].outcome, "not applicable", "a skip citing a Hosting rule is not 'not applicable'");
+    assert.equal(ruled["guard/T2"].outcome, "not run", "a skip whose own reason cites a Hosting fact became not applicable");
+    assert.match(ruled["guard/T2"].reason, /a skip never establishes not applicable/, "the reason does not say why the skip is not run");
     const failing = outcomes({ "engineering/guard/acceptance/b.test.mjs": `${IT}it("guard/T2 [guard/F1]: two", () => { throw new Error("no"); });\n` });
     assert.equal(failing["guard/T2"].outcome, "failed", "a failing case is not 'failed'");
     const absent = outcomes({ "engineering/guard/acceptance/b.test.mjs": `${IT}function never() {\n  it("guard/T2 [guard/F1]: two", () => {});\n}\n` });
@@ -137,7 +140,11 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
       "a declared case with no outcome": [{ ...record("host-a"), cases: record("host-a").cases.filter((c) => c.case !== "guard/T2") }, /guard\/T2: declared in suite Engineering acceptance, and the record gives it no outcome/],
       "a case with two outcomes": [{ ...record("host-a"), cases: [...record("host-a").cases, record("host-a").cases[1]] }, /guard\/T2: the record gives it 2 outcomes/],
       "a suite counted passed over a case not run": [T2(record("host-a"), { outcome: "not run", reason: "skipped" }), /suite Engineering acceptance: counted passed while guard\/T2 is not run/],
-      "not applicable without a Hosting rule": [T2(record("host-a"), { outcome: "not applicable", reason: "this host has no FIFO" }), /guard\/T2: not applicable without a Hosting rule/],
+      "not applicable with no rule": [T2(record("host-a"), { outcome: "not applicable", reason: "this host has no FIFO" }), NA],
+      "not applicable with a fabricated rule": [T2(record("host-a"), { outcome: "not applicable", reason: "not applicable: kaal-hosting/made-up-fact" }), NA],
+      "not applicable citing a real fact in the test's own words": [T2(record("host-a"), { outcome: "not applicable", reason: RULE }), NA],
+      "not applicable with evidence for another host": [T2(record("host-a"), { outcome: "not applicable", reason: RULE, applicability: { fact: "kaal-hosting/special-entries", holds: false, host: "host-b", candidate: "c0ffee" } }), NA],
+      "not applicable with stale evidence": [T2(record("host-a"), { outcome: "not applicable", reason: RULE, applicability: { fact: "kaal-hosting/special-entries", holds: false, host: "host-a", candidate: "0ld" } }), NA],
       "not run without a reason": [T2(record("host-a"), { outcome: "not run" }), /guard\/T2: not run without a reason/],
       "an undeclared case": [{ ...record("host-a"), cases: [...record("host-a").cases, { case: "guard/T9", suite: "Engineering acceptance", outcome: "passed" }] }, /guard\/T9: in the record under suite Engineering acceptance, which declares no such case/],
     };
@@ -149,7 +156,7 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
     // The release gate, over one record per supported host, all for the candidate.
     const hosts = ["host-a", "host-b"];
     assert.deepEqual(gate([record("host-a"), record("host-b")], { candidate: "c0ffee", hosts }, root), [], "the clean records do not pass the gate");
-    assert.deepEqual(gate([record("host-a"), T2(record("host-b"), { outcome: "not applicable", reason: RULE })], { candidate: "c0ffee", hosts }, root), [], "a case not applicable by a Hosting rule on one host does not pass the gate");
+
     const refused = {
       "a stale record": [[record("host-a"), record("host-b", "0ld")], hosts, /the host-b record is for 0ld, not the candidate c0ffee: stale or mismatched/],
       "a supported host with no record": [[record("host-a")], hosts, /no run record for host-b/],
@@ -159,6 +166,7 @@ describe("guard/I8 [guard/N14] Guard's tests placed by the realization they veri
       "a suite that failed outside its cases": [[record("host-a"), { ...record("host-b"), suites: record("host-b").suites.map((x) => (x.name === "Engineering acceptance" ? { ...x, status: "failed", reason: "the runner exited 1 outside any declared case's outcome" } : x)) }], hosts, /suite Engineering acceptance: failed on host-b/],
             "a failed case": [[record("host-a"), T2(record("host-b"), { outcome: "failed", reason: "no" })], hosts, /guard\/T2: failed on host-b/],
       "a case not run": [[record("host-a"), T2(record("host-b"), { outcome: "not run", reason: "the lane did not provide it" })], hosts, /guard\/T2: not run on host-b/],
+      "a case claimed not applicable on one host": [[record("host-a"), T2(record("host-b"), { outcome: "not applicable", reason: RULE })], hosts, NA],
       "a case not applicable everywhere": [[T2(record("host-a"), { outcome: "not applicable", reason: RULE }), T2(record("host-b"), { outcome: "not applicable", reason: RULE })], hosts, /guard\/T2: not applicable on every host, so exercised nowhere/],
     };
     for (const [what, [records, supported, expected]] of Object.entries(refused)) {
