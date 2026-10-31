@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
@@ -12,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
 import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within } from "@kaihacksai/kaal-hosting";
+import { facts, specialEntries } from "@kaihacksai/kaal-hosting/fixtures";
 
 const run = promisify(execFile);
 /** The package under test, reached by its name as a consumer reaches it. */
@@ -193,16 +193,21 @@ describe("kind [hosting/F47]", () => {
     assert.equal(await kind(join(dir, "a")), "other");
   });
 
-  it("reports a socket as other", async (t) => {
-    // Windows holds no socket in a directory; its pipes live in their own namespace.
-    if (process.platform === "win32") return t.skip("no socket can be placed in a directory on Windows");
-    const path = join(tmp(), "s");
-    const server = createServer();
-    await new Promise((done) => server.listen(path, done));
+  it("reports a FIFO and a socket as other, wherever the host can hold them in a tree", async () => {
+    // Whether the host can hold them is established by trying, as kaal-hosting/special-entries;
+    // where it cannot, the fixture makes nothing and says why, with the same evidence as facts().
+    const fact = (await facts())["kaal-hosting/special-entries"];
+    const made = await specialEntries(tmp());
+    assert.equal(made.holds, fact.holds);
+    if (!made.holds) {
+      assert.deepEqual([made.reason, made.evidence], [fact.reason, fact.evidence]);
+      return;
+    }
     try {
-      assert.equal(await kind(path), "other");
+      assert.equal(await kind(made.fifo), "other");
+      assert.equal(await kind(made.socket), "other");
     } finally {
-      await new Promise((done) => server.close(done));
+      await made.close();
     }
   });
 

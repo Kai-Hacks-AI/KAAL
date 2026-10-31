@@ -29,12 +29,11 @@ In Hosting's source workspace, the same `npm test` runs every suite the package 
 
 ## Applicability
 
-A case that cannot apply on some host is declared here, with the platforms where it does not apply and why. There it is not run and is reported as `not applicable`, and it does not keep the run from `verified`. A case skipped anywhere else is `cannot verify` (hosting/F25). Hosting is the operating-system boundary, so it is the one package that may declare a case by platform.
+A case that cannot apply on some host is declared here, with the platforms where it does not apply and why. There it is not run and is reported as `not applicable`, and it does not keep the run from `verified`. A case skipped anywhere else is `cannot verify` (hosting/F25). No case is declared today: where a case needs something only some hosts have, such as a FIFO or a socket in a directory tree, it establishes by trying whether this host has it, through Hosting's own host facts, and checks what the host does either way.
 
 <!-- kaal-hosting:applicability -->
 | Case | Not on | Why |
 | --- | --- | --- |
-| `test/unit/hosting.test.mjs > kind [hosting/F47] > reports a socket as other` | win32 | Windows holds no Unix-domain socket in a directory tree: its pipes live in a namespace of their own, so there is no socket for `kind` to find. |
 <!-- /kaal-hosting:applicability -->
 
 ## Allocated to the publisher
