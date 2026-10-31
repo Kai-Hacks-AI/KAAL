@@ -17,6 +17,14 @@ import { foundation, payload, type Files } from "./payload.js";
  * refused and nothing is written. Returns the paths written.
  */
 export async function bootstrap(dir: string): Promise<string[]> {
+  return bootstrapWith(dir, {});
+}
+
+/**
+ * `bootstrap`, publishing `extra` beside the payload in the same `initialize`, so the Engine and
+ * those files appear together or not at all (core/C19). Internal: no entry point exports it.
+ */
+export async function bootstrapWith(dir: string, extra: Files): Promise<string[]> {
   const what = await kind(dir);
   if (what === "file" || what === "other") throw new KaalError(`${dir} exists and is not a valid Engine; nothing was written:\n  ${dir} is not a directory`);
   if (what === "directory") {
@@ -28,7 +36,7 @@ export async function bootstrap(dir: string): Promise<string[]> {
     }
   }
   try {
-    return await initialize(dir, payload());
+    return await initialize(dir, { ...payload(), ...extra });
   } catch (e) {
     if (e instanceof HostingError && e.code === "NOT_EMPTY") throw new KaalError(`${dir} exists and is not a valid Engine; nothing was written:\n  ${e.message}`);
     throw e;

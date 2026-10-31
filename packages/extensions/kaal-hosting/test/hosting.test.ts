@@ -311,6 +311,26 @@ describe("reconcile", () => {
     assert.equal(await snapshot(dir), before);
   });
 
+  it("refuses a kind change whose write does not expect \"absent\", before looking at the host", async () => {
+    const sha = (text: string) => createHash("sha256").update(text).digest("hex");
+    const { dir } = alone();
+    writeFileSync(join(dir, "tool"), "a tool");
+    mkdirSync(join(dir, "lib"));
+    writeFileSync(join(dir, "lib", "a.md"), "a");
+    writeFileSync(join(dir, "old"), "old");
+    const before = await snapshot(dir);
+    const cases = [
+      // File to directory, with a write under the removed file that expects bytes.
+      { write: [{ path: "tool/run", expect: sha("run"), bytes: Buffer.from("run") }], remove: [{ path: "tool", expect: sha("a tool") }] },
+      // Directory to file, with the write expecting bytes where the directory is.
+      { write: [{ path: "lib", expect: sha("lib"), bytes: Buffer.from("lib") }], remove: [{ path: "lib/a.md", expect: sha("a") }] },
+      // Directory to file, where the write's expectation holds but a file is no directory.
+      { write: [{ path: "old", expect: sha("old"), bytes: Buffer.from("new") }], remove: [{ path: "old/a.md", expect: sha("a") }] },
+    ];
+    for (const reconciliation of cases) await assert.rejects(reconcile(dir, reconciliation), code("INVALID_PATH"), JSON.stringify(reconciliation));
+    assert.equal(await snapshot(dir), before);
+  });
+
   it("refuses with a HostingError that carries every failed precondition", async () => {
     const { dir } = alone();
     await assert.rejects(reconcile(dir, { write: [], remove: [{ path: "x.md", expect: "0".repeat(64) }] }), (e) => {
