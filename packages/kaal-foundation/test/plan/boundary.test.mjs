@@ -1,5 +1,5 @@
-// foundation/C11 planned publisher cases: the consumer boundary (plan/boundary/*.md). Immutable to DO
-// and CHECK; foundation/C12 moves this file unchanged to test/publisher/ and turns it GREEN. Each title
+// foundation/C13 planned publisher cases: the consumer boundary (plan/boundary/*.md). Immutable to DO
+// and CHECK; foundation/C14 moves this file unchanged to test/publisher/ and turns it GREEN. Each title
 // names the contracts it checks. Fixtures live in a temporary directory; a fixture consumer's Foundation
 // is a copy of this package's shipped files, so no npm and no network is needed. No platform is
 // consulted and no shell is chosen (foundation/N7).
@@ -56,7 +56,7 @@ const consumer = ({ depends = true, install = depends, extra = {} } = {}) => {
 };
 const listFor = (dir, files) => files.map((f) => `${hash(readFileSync(join(dir, f)))}  ${f}`).join("\n") + "\n";
 
-test("foundation/T35 [foundation/I8, foundation/F20]: a list that kaal-foundation sha256 printed is verified, and a file changed afterwards is failed with cause differs for that file only", () => {
+test("foundation/T37 [foundation/I9, foundation/F22]: a list that kaal-foundation sha256 printed is verified, and a file changed afterwards is failed with cause differs for that file only", () => {
   const { d } = consumer({ depends: false });
   const printed = foundation(["sha256", "a.txt", "b.bin"], d);
   assert.equal(printed.status, 0, printed.stderr);
@@ -72,7 +72,7 @@ test("foundation/T35 [foundation/I8, foundation/F20]: a list that kaal-foundatio
   assert.deepEqual(badJson.causes, [{ file: "a.txt", cause: "differs" }]);
 });
 
-test("foundation/T36 [foundation/F20]: an empty list, a malformed line, a bad digest and a missing file are cannot verify; a differing line outranks them; the last line parses", () => {
+test("foundation/T38 [foundation/F22]: an empty list, a malformed line, a bad digest and a missing file are cannot verify; a differing line outranks them; the last line parses", () => {
   const { d } = consumer({ depends: false });
   const good = `${hash(readFileSync(join(d, "a.txt")))}  a.txt`;
   const cases = [
@@ -93,7 +93,7 @@ test("foundation/T36 [foundation/F20]: an empty list, a malformed line, a bad di
   assert.deepEqual([mixed.status, last(mixed.stdout, "kaal-foundation-check")?.result], [1, "failed"]);
 });
 
-test("foundation/T37 [foundation/I8, foundation/F21]: a consumer that declares Foundation and resolves a verifying copy is verified, and the JSON names consumer, resolved version and verification", () => {
+test("foundation/T39 [foundation/I9, foundation/F23]: a consumer that declares Foundation and resolves a verifying copy is verified, and the JSON names consumer, resolved version and verification", () => {
   const { d } = consumer();
   const r = foundation(["boundary", d], fresh());
   const j = last(r.stdout, "kaal-foundation-boundary");
@@ -104,7 +104,7 @@ test("foundation/T37 [foundation/I8, foundation/F21]: a consumer that declares F
   assert.equal(j.check, null);
 });
 
-test("foundation/T38 [foundation/F21]: not a consumer, unresolved, a changed resolved copy, a wrong resolved library and a differing list each give their result", () => {
+test("foundation/T40 [foundation/F23]: not a consumer, unresolved, a changed resolved copy, a wrong resolved library and a differing list each give their result", () => {
   const outside = fresh();
   const run = (d, ...lists) => { const r = foundation(["boundary", d, ...lists], outside); return { status: r.status, j: last(r.stdout, "kaal-foundation-boundary"), out: r.stdout + r.stderr }; };
 
@@ -137,7 +137,7 @@ test("foundation/T38 [foundation/F21]: not a consumer, unresolved, a changed res
   assert.deepEqual([l.status, l.j?.result, l.j?.verification, l.j?.check?.result], [1, "failed", "verified", "failed"], l.out);
 });
 
-test("foundation/T39 [foundation/N11]: the boundary never imports, runs or judges the consumer: marker-writing main, postinstall and test scripts, and a consumer's own createHash, leave it verified and write no marker", () => {
+test("foundation/T41 [foundation/N13]: the boundary never imports, runs or judges the consumer: marker-writing main, postinstall and test scripts, and a consumer's own createHash, leave it verified and write no marker", () => {
   const marker = (name) => `require("node:fs").writeFileSync(${JSON.stringify(join(scratch, `marker-${name}`))}, "ran")`;
   const { d } = consumer({ extra: { main: "index.cjs", scripts: { postinstall: `node -e '${marker("postinstall")}'`, test: `node -e '${marker("test")}'` } } });
   writeFileSync(join(d, "index.cjs"), `${marker("main")};\nconst { createHash } = require("node:crypto");\nmodule.exports = (b) => createHash("sha256").update(b).digest("hex");\n`);
@@ -148,7 +148,7 @@ test("foundation/T39 [foundation/N11]: the boundary never imports, runs or judge
   for (const name of ["main", "postinstall", "test"]) assert.equal(existsSync(join(scratch, `marker-${name}`)), false, `the boundary ran the consumer's ${name}`);
 });
 
-test("foundation/T40 [foundation/F22, foundation/N12]: documents, skill and AGENTS.md name check and boundary by the scoped bin; lib/boundary.mjs imports only node: and ./sha256.mjs; lib/sha256 unchanged; no dependency", () => {
+test("foundation/T42 [foundation/F24, foundation/N14]: documents, skill and AGENTS.md name check and boundary by the scoped bin; lib/boundary.mjs imports only node: and ./sha256.mjs; lib/sha256 unchanged; no dependency", () => {
   const scoped = /node node_modules\/@kaihacksai\/kaal-foundation\/bin\/kaal-foundation\.mjs (check|boundary)\b/g;
   const agents = readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8");
   const section = agents.slice(agents.indexOf("## Foundation"), agents.indexOf("\n## ", agents.indexOf("## Foundation") + 1) >>> 0 || undefined);

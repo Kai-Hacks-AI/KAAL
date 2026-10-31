@@ -1,12 +1,12 @@
 # Consumer boundary: Intent
 
-foundation/C11 is this PLAN. It ships no code. foundation/C12, its DO, turns the planned cases GREEN. It authorizes no synchronization, promotion, version change or npm publication: those stay with the Owner.
+foundation/C13 is this PLAN. It ships no code. foundation/C14, its DO, turns the planned cases GREEN. It authorizes no synchronization, promotion, version change or npm publication: those stay with the Owner.
 
 On 2026-10-31 the Owner asked two things. Does Foundation ship boundary tests, and can they run against Guard? The answer was no, because every case Foundation ships tests only Foundation itself. The Owner then asked for a design: "It should be testing without knowing details of what it tests, so arguably it can only do the outer loop."
 
 So Foundation's boundary check stays at Intent level. It checks a consumer only against Foundation's own outcomes, foundation/I1 (one SHA-256 for KAAL) and foundation/I2 (adopting it changes no digest). It sees only what any npm package exposes and what the consumer itself states. A consumer's source, layout, language and tests are inner loops. They belong to the consumer's own Requirements and Architecture tests, never to Foundation.
 
-- **foundation/I8.** **A consumer can show it holds Foundation's outcomes, and Foundation needs no knowledge of the consumer to check that.** Any package, KAAL or not, can ask Foundation two questions:
+- **foundation/I9.** **A consumer can show it holds Foundation's outcomes, and Foundation needs no knowledge of the consumer to check that.** Any package, KAAL or not, can ask Foundation two questions:
   - Is the Foundation it resolves a verified Foundation (foundation/I1)?
   - Are the SHA-256 digests it states the digests Foundation computes for the same bytes (foundation/I2)?
 
