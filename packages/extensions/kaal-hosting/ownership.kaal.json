@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "extension", "name": "Hosting", "id": "96747de07abc0d714a78483afe5dafbc603422ca49a1174c4c763ecd948e3111" },
+  "paths": ["packages/extensions/kaal-hosting/"]
+}
