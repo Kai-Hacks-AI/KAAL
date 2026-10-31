@@ -125,6 +125,15 @@ Each planned test is established before implementation and is immutable afterwar
 | testing/T86: the reference gives the lesson record, a correction that traces to the same target as a new version or Case, a false GREEN as a Defect that a later GREEN never erases, and Testing as verification with Review as validation; it cites no Change, pull request or other capability's identifier | testing/F74, testing/F75 | Requirements |
 | testing/T87: through the model, a corrected Case version leaves the brittle version's Run no longer current, and a Case that tests a Defect is traced to it | testing/F74, testing/N15 | Architecture |
 
+### Test Locations by Purpose and Owner
+
+| Test | Checks | Loop |
+| --- | --- | --- |
+| testing/T88: lane scenarios are discovered in `test/engineer/`, never in `test/embed/` or `test/external/`, as `{ workspace, path }` sorted by path | testing/F76, testing/N16 | Requirements |
+| testing/T89: the location alone decides; `package.json` `files` never does | testing/F76 | Requirements |
+| testing/T90: during the migration, `test/acceptance/` is still read beside `test/engineer/` | testing/F77 | Requirements |
+| testing/T91: the README states the locations, the `install()` obligation, no `test/external/`, and that they are not kinds | testing/F78 | Requirements |
+
 ### Testing 0.0.1 Release Readiness
 
 | Test | Checks | Loop |

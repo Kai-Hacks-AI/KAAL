@@ -354,6 +354,25 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
 
 - **testing/N15** [testing/I19]: BRITTLE adds no runtime code, no model kind and no registry. Testing keeps no registry of tests, findings or lessons. A lesson lives in the owning capability's PLAN, and its correction lives in that capability's model and tests.
 
+## Test Locations by Purpose and Owner
+
+- **testing/F76** [testing/I20]: **The locations.**
+  - **`test/embed/`** holds a capability's own cases. They ship with its package, and its own `npm test` runs them against the installed copy. `discover` never reads them.
+  - **`test/engineer/`** holds Engineering's lane scenarios for that workspace's package. Each one `install()`s the run's packed tarballs. `discover(workspaces)` gives every `*.test.mjs` directly in it.
+  - **No other location.** There is no `test/external/` convention, and `discover` reads no other location except testing/F77's.
+
+  The location alone decides. Neither `package.json` `files` nor any other declaration changes what `discover` gives.
+
+- **testing/F77** [testing/I20]: **A bounded migration.** Until the migration completes, `discover` also reads `test/acceptance/` as the lane's, beside `test/engineer/`. So no lane scenario is lost before its owner moves it. The migration completes once no workspace keeps `test/acceptance/`, and then `discover` stops reading it.
+
+- **testing/F78** [testing/I20]: The README's acceptance section states the locations:
+  - `test/embed/` holds a capability's own cases, run by its own `npm test`;
+  - `test/engineer/` holds Engineering's lane scenarios, which `install()`;
+  - there is no `test/external/`;
+  - locations are not Testing kinds.
+
+- **testing/N16** [testing/I20]: `discover`'s signature and result shape are unchanged: `[{ workspace, path }]`, sorted by path. It still reads through Hosting only and writes nothing. No Testing kind, model field or trace is added.
+
 ## Testing 0.0.1 Release Readiness
 
 - **testing/F59** [testing/I17] (packaging/F7): **Identity.**
@@ -377,7 +396,7 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
   - The README keeps the overview and links each document.
 
 - **testing/F61** [testing/I17] (packaging/F9, packaging/N9): **Delivered cases.**
-  - The package ships its consumer Test Cases as plain `node:test` JavaScript that needs only Node 24: the outer acceptance loops in `test/acceptance/` and the inner Code loop in `test/unit/`.
+  - The package ships its consumer Test Cases as plain `node:test` JavaScript that needs only Node 24: the outer acceptance loops and the inner Code loop, all in `test/embed/`. That is a location, not a kind: each case's loop is its trace in the model.
   - They reach the package only by its name, so they exercise the installed copy. They read no repository checkout, and they write only to the operating system's temporary directory.
   - Each case decides its Requirement from behaviour or bytes, never from a file's presence.
   - Cases that verify the publisher's process stay the publisher's, as the planned tests and the Engineering tests do. They are allocated in `docs/testing.md` (testing/F66).

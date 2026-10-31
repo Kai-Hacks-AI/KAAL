@@ -69,6 +69,10 @@ Testing defines how a capability's tests are designed and executed, and how thei
 
 - **testing/I19**: A Test Case is Right when its verdict follows its target and nothing else. Testing names the two ways a case goes wrong, false RED and false GREEN, gives the design checks that prevent them, and makes each lesson improve the next Case through the same traces and versions Testing already has.
 
+## Test Locations by Purpose and Owner
+
+- **testing/I20**: A test's location says its purpose and its owner, mechanically. A capability's own shipped cases are its own and are never lane scenarios. Engineering's scenarios are Engineering's lane. KAAL sets no convention for another repository's tests. No location is a Testing kind, and no case's role is read from what a package happens to pack.
+
 ## Testing 0.0.1 Release Readiness
 
 - **testing/I17**: kaal-testing 0.0.1 is a KAAL Package to Packaging's contract and to Guard's bar. It is published under its scoped name with exact registry dependencies. An installed copy carries its own product contract and its delivered cases. Its own verifier verifies that copy, in Testing's words, conforming to the contract Testing sets for every other verifier. Testing holds itself to its own semantics first.
