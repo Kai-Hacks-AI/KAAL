@@ -8,19 +8,31 @@ Core depends on no Git host and no agent provider. Its KAAL runtime dependencies
 
 kaal-core is not released. Its version is 0.0.1, and that version is not published on npm or anywhere else. Its interfaces and the bytes of its foundational Nodes can still change without an upgrade path. Core's releases are separate from those of other KAAL packages: `@kaihacksai/kaal-guard` is published on its own and does not depend on kaal-core, so a Guard release says nothing about Core's.
 
+## Documents
+
+The package ships its own documents in `docs/`:
+
+- [Intent](docs/intent.md): why kaal-core exists and what it must achieve.
+- [Requirements](docs/requirements.md): what it must do, one line for each `core/…` Requirement.
+- [Architecture](docs/architecture.md): its modules, entry points, payload and dependencies.
+- [Limitations](docs/limitations.md): what 0.0.1 does not do, and what its tests cannot show.
+- [Operations](docs/operations.md): supported platforms, installation, use, verification and removal.
+- [Testing](docs/testing.md): the delivered tests, the publisher's tests, and coverage.
+
 ## Install and bootstrap
 
-Until a release, kaal-core is installed from a checkout of this repository:
+kaal-core publishes under the scoped name `@kaihacksai/kaal-core` (core/F74). Always name the scoped package, and run its command by its path inside the scoped package, so no other package's `kaal` can stand in for it. Never run `npm install kaal-core` or `npx kaal`.
 
 ```sh
-npm ci && npm run build -w kaal-core              # in the KAAL checkout
-npm install <path-to-KAAL>/packages/kaal-core     # in your repository
-npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
-npx kaal verify    # checks the Kernel and the six foundational Nodes by identity
-npx kaal version   # the kaal-core that runs, and the version that installed ./.kaal
-npx kaal upgrade   # bring ./.kaal to this kaal-core
-npx kaal remove    # remove Core's installation, keeping what is not Core's
+npm install @kaihacksai/kaal-core
+node node_modules/@kaihacksai/kaal-core/dist/cli.js init    # materializes ./.kaal/ from the package payload (or: --engine <dir>)
+node node_modules/@kaihacksai/kaal-core/dist/cli.js verify  # checks the Kernel and the six foundational Nodes by identity
+node node_modules/@kaihacksai/kaal-core/dist/cli.js version # the kaal-core that runs, and the version that installed ./.kaal
+node node_modules/@kaihacksai/kaal-core/dist/cli.js upgrade # bring ./.kaal to this kaal-core
+node node_modules/@kaihacksai/kaal-core/dist/cli.js remove  # remove Core's installation, keeping what is not Core's
 ```
+
+Until 0.0.1 is published under that name, install kaal-core only from packed tarballs, never by name: in a KAAL checkout, `npm ci && npm run build -w kaal-core`, then `npm pack` kaal-core and its KAAL runtime dependencies, and `npm install` those tarballs in your repository. Such an installation sits in `node_modules/kaal-core`, under its current name, so run it as `node node_modules/kaal-core/dist/cli.js <command>` and verify it with `npm explore kaal-core -- npm test` until the rename ([Operations](docs/operations.md)).
 
 Installing the package writes nothing into your repository. `kaal init` does, and only when you run it.
 
@@ -186,7 +198,7 @@ installationConformance(contract);
 - the untraced instances, and the terms several owners define, reported unaligned;
 - `outgoing(scope, id)`.
 
-Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations is `capability/Registration.md`, beside the Core Capability Node.
+Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations, `Core/Registration`, sits beside the Core Capability Node in the KAAL repository; it does not ship in this package.
 
 ```js
 import { assemble } from "kaal-core/registration";
