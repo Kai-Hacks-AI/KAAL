@@ -55,6 +55,15 @@ async function main(argv: string[]): Promise<number> {
       for (const p of v.problems) console.error(p);
       if (v.ok) console.log(`ok: ${v.engine.nodes.length} Nodes admitted`);
       for (const a of v.engine.artifacts) console.log(`${a.path}\t${a.type}\t${a.state}${a.findings.length ? `\t${a.findings.map((f) => f.rule).join("; ")}` : ""}`);
+      if (v.registrations) {
+        // The assembled registrations beside the Nodes and artifacts (core/F56): reports, never failures.
+        const r = v.registrations.assembly;
+        for (const c of r.scopes) console.log(`scope\t${c.scope}\t${c.holder}`);
+        console.log(`registration\t${r.kinds.length} kinds, ${r.instances.length} instances, ${r.findings.length} findings`);
+        for (const u of r.untraced) console.log(`untraced\t${u.scope}\t${u.id}`);
+        for (const t of r.terms) console.log(`term\t${t.term}\tunaligned\t${t.kinds.map((k) => `${k.scope} (${k.owner})`).join(", ")}`);
+        console.log(r.cycles === null ? "cycles\tunavailable: Graph's analysis is not present" : `cycles\t${r.cycles.length}`);
+      }
       return v.ok ? 0 : 1;
     }
     case "list": {

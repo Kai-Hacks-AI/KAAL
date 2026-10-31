@@ -178,6 +178,26 @@ installationConformance(contract);
 // [{ id: "core/T10", holds: true, failures: [] }, { id: "core/T11", ... }, { id: "core/T12", ... }, { id: "core/T13", ... }]
 ```
 
+### Registration
+
+`kaal-core/registration` assembles registrations: each holder's statement of the scope it claims, the kinds it defines there with their outgoing rules, and the instances it holds with their outgoing traces. A registration is a typed artifact of Core's Type `Core/Registration` (`REGISTRATION_TYPE`), and `verify` always validates it against `REGISTRATION_SCHEMA`. `assemble(registrations)` is pure. It reads scopes, identities and kind names as opaque text, and returns:
+- the scope claims, the kinds qualified by their owner's scope, and the instances;
+- the findings, which are Core's global verdict: scope collisions, identities stated twice, unknown kinds with their candidates, rules naming an unknown kind, unresolved or unclaimed targets, traces the source kind's rule does not permit, and stated incoming traces;
+- the untraced instances, and the terms several owners define, reported unaligned;
+- `outgoing(scope, id)`.
+
+Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations is `capability/Registration.md`, beside the Core Capability Node.
+
+```js
+import { assemble } from "kaal-core/registration";
+
+const r = assemble([
+  { holder: "kaal-requirements", scope: "requirements", kinds: { F: { traces: [] } } },
+  { holder: "acme-product", scope: "acme", instances: [{ id: "REQ-001", kind: { scope: "requirements", kind: "F" }, traces: [] }] },
+]);
+// r.findings: [], r.untraced: [{ scope: "acme", id: "REQ-001" }], r.cycles: null
+```
+
 ### Agent Realization
 
 `kaal-core/agent` plans how Core makes each Skill reachable by the agents of the providers a repository declares in `.kaal/config/core/agents.json` (`declaration`). Every Skill is deployed to `.agents/skills/<name>/`; a provider that discovers Skills only at a location of its own (Claude Code, `.claude/skills/<name>/`) gets a copy of the same canonical source. Every Skill file is deployed with the bytes the Capability ships, everywhere: Core states no Skill format and reads no `SKILL.md`, which is Engineer Skill's. Core claims only what its own record holds: a file someone changed, and anything at a target Core did not deploy, is kept and reported, and only unmodified files Core deployed are pruned. Core never writes an instruction file such as `AGENTS.md` or `CLAUDE.md`, and governs no location but its own deployments.
