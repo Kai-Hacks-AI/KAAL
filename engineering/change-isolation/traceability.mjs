@@ -20,6 +20,10 @@ const GITHUB = /^\.github\//;
  * @property {Record<string, {owner: string}>} elements every element by its owner's identity, such as hosting/F31
  * @property {(id: string) => string[] | null} traverse incoming traces from an element, transitively, or null when it does not resolve (Graph's traverse with direction "in", over P2's Edges)
  * @property {Record<string, string[]>} claims each capability's locations, folder prefixes or root files (P3)
+ * @property {(alters: string[]) => {result: "established" | "unknown", cases: string[], findings: string[], untraced: string[]}} [cases]
+ *   the Case hop, Testing's impact(derived, target) over a derived Case inventory (testing/F88, #745): the Cases
+ *   that test the altered elements. Its findings and untraced Case files are reported; unknown fails closed. The
+ *   runner derives it from every .test.mjs in a Case location, passing a file it cannot read as { path, text: null }
  * @property {string[]} [converted] the capabilities whose traces are Graph Edges on the target (P2). Any capability
  *   with a claim that is not listed, or every one when the list is absent, is an impact-assessment gap: a trace it
  *   has not converted cannot be traversed, so no impact found there is proof of none (Kai, #740)
@@ -93,6 +97,19 @@ export function judge({ target, change, paths }) {
     for (const r of reached) {
       const e = target.elements[r];
       if (e === undefined) unresolved.push(`unresolved trace: ${r}, reached from ${id}`);
+      else impact.add(e.owner);
+    }
+  }
+
+  // The Case hop (testing/F88): an empty answer is never "no impacted Case"; unknown fails closed.
+  if (target.cases !== undefined) {
+    const hop = target.cases([...node.alters]);
+    for (const f of hop.findings ?? []) unresolved.push(`impact-assessment gap: Case inventory: ${f}`);
+    for (const u of hop.untraced ?? []) unresolved.push(`impact-assessment gap: untraced Case file: ${u}`);
+    if (hop.result !== "established") fails.push(`fails closed: the Case impact of ${change} is ${hop.result ?? "not stated"}, so impact cannot be established`);
+    for (const c of hop.cases ?? []) {
+      const e = target.elements[c];
+      if (e === undefined) unresolved.push(`unresolved trace: Case ${c}, reached from ${change}`);
       else impact.add(e.owner);
     }
   }

@@ -295,6 +295,20 @@ describe("isolation by reverse traceability (engineering/F25–F27, N13–N14)",
     assert.ok(r.findings.includes("impact-assessment gap: Graph's traces are not converted, so impact through them is unknown"), r.findings.join("\n"));
   });
 
+  it("engineering/T82: an incomplete Case inventory yields no isolation pass: unknown fails closed, its findings and untraced files are named", () => {
+    const hop = (answer) => ({ ...scoped(["Hosting", "Core"]), cases: () => answer });
+    let r = run(hop({ result: "unknown", cases: [], findings: ["core/test/a.test.mjs could not be read"], untraced: ["core/test/b.test.mjs"] }));
+    assert.equal(r.verdict, "fail");
+    assert.deepEqual(r.findings, [
+      "fails closed: the Case impact of hosting/C1 is unknown, so impact cannot be established",
+      "impact-assessment gap: Case inventory: core/test/a.test.mjs could not be read",
+      "impact-assessment gap: untraced Case file: core/test/b.test.mjs",
+    ]);
+    // Established with an untraced file is still never GREEN; established and complete passes, its Cases joining the impact.
+    assert.equal(run(hop({ result: "established", cases: ["core/T1"], findings: [], untraced: ["x.test.mjs"] })).verdict, "unresolved");
+    assert.deepEqual(run(hop({ result: "established", cases: ["core/T1"], findings: [], untraced: [] })), { verdict: "pass", findings: [] });
+  });
+
   it("engineering/T53: a scope stated only in the candidate's Change Node authorizes nothing", () => {
     const candidate = { changes: { "hosting/C1": { alters: ["hosting/F1"], scope: ["Hosting", "Core"] } } };
     const r = judge({ target: target(base), candidate, change: "hosting/C1", paths });
