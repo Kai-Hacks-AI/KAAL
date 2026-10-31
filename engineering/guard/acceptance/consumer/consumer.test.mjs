@@ -25,7 +25,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { admits, declaredPaths } from "./paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -43,7 +43,7 @@ const RELEASE = "@kaihacksai/kaal-guard@0.0.2";
 /** The A12 harness, or a blocked RED naming what is missing. */
 async function a12() {
   assert.ok(existsSync(HARNESS), "blocked before behavioural assertion: there is no A12 harness (engineering/guard/consumer/harness.mjs)");
-  return import(HARNESS);
+  return import(pathToFileURL(HARNESS).href);
 }
 
 /** The candidate, reported with its source so no evidence is read as more than it is (N9). */

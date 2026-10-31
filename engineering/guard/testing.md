@@ -1,7 +1,7 @@
 # Guard: Testing, Engineering's part
 
 Guard's product Testing is authoritative in the package: [`packages/kaal-guard/docs/testing.md`](../../packages/kaal-guard/docs/testing.md). It holds the loops, the trace of every delivered case and what is verified elsewhere. The delivered cases define themselves by their titles, and their trace is written from those titles. This page holds only Engineering's part:
-- the plan and evidence of the Test Cases that only make sense in KAAL, in `engineering/guard/acceptance/`: KAAL's integration (guard/A11), External delivery (guard/A10, guard/A16), consumer acceptance against the registry (guard/A12), the verification's own Test Cases and the authority check (guard/A20);
+- the plan and evidence of the Test Cases that only make sense in KAAL, in `engineering/guard/acceptance/`: KAAL's integration (guard/A11), consumer acceptance against the registry (guard/A12), the verification's own Test Cases and the authority check (guard/A20);
 - the RED and GREEN record of every Test Case, delivered or not;
 - the Defect register.
 
@@ -13,7 +13,6 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 
 | Test | Checks | Loop | Where |
 | --- | --- | --- | --- |
-| guard/T3: an External delivery works in a fresh repository and leaves nothing from KAAL in it | guard/I6, guard/N5, guard/F8, guard/A10 | Intent | Engineering |
 | guard/T5: KAAL's pre-push hook runs its local checks through Guard | guard/I4 | Intent | Engineering |
 | guard/T32: every KAAL check identity and OS matrix entry on `main` before migration is still present | guard/N7 | Requirements | Engineering |
 | guard/T33–guard/T35: KAAL's `guard.json`, its Guard-run jobs and its `Guard` job | guard/A11 | Architecture | Engineering |
@@ -36,9 +35,6 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 
 | guard/T46: `kaal-engineer-skill` finds no standard or KAAL violation in the Embed Skill or the External variant. It needs KAAL's workspace installed and built, so it runs only in the Guard lane on the host that installs it, and turns GREEN only with `guard/C14` and `guard/C17` (restated in `guard/C46`) | guard/F19, guard/A13, guard/A16 | Architecture | Engineering |
 | guard/T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location. Retired in `guard/C30`: `0.0.2` offers no upgrade from `0.0.1` (`guard/C23`); a fresh `0.0.2` setup gains the Skill (guard/T50), and a later version's new asset is installed by `upgrade` (guard/T66) | guard/I5, guard/F13, guard/F23, guard/A12 | Requirements | Engineering |
-| guard/T56: an External delivery writes the Skill variant at the canonical location; it names neither KAAL nor npm; its hook's reminder names the canonical path; a target's existing Skill and instruction files are untouched. Core at delivery moved to guard/T83 in `guard/C46` | guard/I6, guard/F25, guard/F26, guard/A16 | Requirements | Engineering |
-| guard/T83: where Core's realization is available at delivery, an External delivery also writes the further deployments Core computes for the passed declaration, lists Core's pointers in `GUARD.md`, and leaves no Core or Hosting element in the target. Added in `guard/C46` | guard/I6, guard/F25, guard/A16 | Requirements | Engineering |
-| guard/T93: the workflow an External delivery writes pins `actions/checkout`, and `actions/setup-node` where it sets up Node, by commit SHA, and has no `${{` expression in any `run:` line. Added in `guard/C71` | guard/F5, guard/N5 | Requirements | Engineering |
 | guard/T98: the package's own test files, run from `packages/kaal-guard`, pass on Node 24, and no file of the retired `0.0.1` suite runs. Added in `guard/C76`. Revised in `guard/C98`, because `npm test` became the consumer's verification (guard/F32) | guard/N6 | Requirements | Engineering |
 
 **Cross-Capability conformance.** Guard's instance is checked by Core's outer conformance Test Cases for the Installation Contract (`core/T1`…, defined in `core/C3`), executed by KAAL Engineering against `contract.json`, and, once Core realizes contracts, by realizing it through Core and then running Guard's standalone `upgrade` and `remove` on the result. Guard records its own evidence for them and does not copy their definitions. guard/T58 stays Guard's own: it checks that the instance and the lifecycle agree.
@@ -54,6 +50,24 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 - guard/T36 and guard/T42 keep `run --local`: they run the published `0.0.1`, and `guard/C37` revises their setup.
 - guard/T16, guard/T24, guard/T43 and guard/T64 hold unchanged: none of them needs a workflow from a bare `init`.
 No Test Case is retracted, and no RED evidence is dropped.
+
+## Suites (`guard/C129`)
+
+Guard's tests are placed by the realization they verify. The Embedded Tests are the package's: its manifest, `packages/kaal-guard/test/verify.json`, lists every case it ships, and its `npm test` runs exactly those. The Engineering Tests are declared here, and the External Tests in [External's own Test Plan](external/testing.md). A suite names its prerequisites and never a host: every suite is expected on every supported host, and whether a case cannot apply on a host is Hosting's rule (`guard/C118`, revision 3). `engineering/guard/suites.mjs` reads these tables and keeps four states apart (`guard/C129`, revision 3). Declared: the case is in its owner's Test Plan. Scheduled: some lane runs its suite, which guard/T134 checks from the workflows, as scheduling evidence only. Executed, and its outcome: run on a host, `suites.mjs` writes a run record from the test runner's own report, one per candidate and host, giving every declared case passed, failed, or not run (with the reason). Not applicable is never taken from a test's own skip reason: it needs Hosting's established fact and Testing's judgment for that host and candidate, which no record can carry yet, so a record claiming it is invalid. A suite whose prerequisite the lane did not provide is not run, never GREEN. guard/T137 checks a record, and the release gate (`suites.mjs --gate`) rejects records for another candidate, a host given twice or missing, or any case not passed or not applicable.
+
+<!-- suites -->
+| Suite | Owner | Files | Prerequisites |
+| --- | --- | --- | --- |
+| Engineering acceptance | Engineering | `engineering/guard/acceptance/authority.test.mjs`, `engineering/guard/acceptance/kaal.test.mjs`, `engineering/guard/acceptance/package.test.mjs`, `engineering/guard/acceptance/suites.test.mjs` | none |
+| Engineering workspace | Engineering | `engineering/guard/acceptance/workspace.test.mjs` | workspace |
+| Engineering consumer | Engineering | `engineering/guard/acceptance/consumer/consumer.test.mjs` | registry |
+| Engineering harness | Engineering | `engineering/guard/consumer/harness.test.mjs` | none |
+<!-- end of suites -->
+
+| Test | Checks | Written in | Evidence against the base | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T134: every Guard test file is in exactly one suite its owner's Test Plan declares; every case is defined in that owner's Test Plan; every declared suite is scheduled by some lane; and the package's `npm test` runs only the package. Scheduling evidence only: what executed is the run record's | guard/N14, guard/A20 | `guard/C129` | RED: `consumer/consumer.test.mjs` runs in no lane; guard/T83, External's, sits in Engineering's `workspace.test.mjs` | the last is corrected in this DO; the first stays RED until every Guard lane runs `engineering/guard/suites.mjs` (Engineering, #665) |
+| guard/T137: a run record gives every declared case exactly one outcome; a suite counted passed holds no case that did not pass; a skip is not run, whatever its reason cites, and a record claiming not applicable is invalid until Hosting's established evidence can be bound to it; not run says why; the record names no undeclared case. The release gate rejects a record for another candidate, a supported host with no record or two, a record for an unsupported host, a case declared on some hosts only, and any case or suite not passed | guard/N14, guard/A20 | `guard/C129`, revision 3 | RED: there is no run record and no gate | GREEN with a negative fixture for each refusal; each lane's own record is validated as it is written |
 
 ## RED evidence
 
@@ -166,7 +180,6 @@ guard/T107 is defined by its title, and the product's trace in `packages/kaal-gu
 | guard/T109: `npm test` runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is `cannot verify`, naming the loop | guard/F39 | `guard/C104` | RED: the inner loop does not ship |
 | guard/T110: a case that declares the current platform not applicable is reported as not applicable, named and not run, and the run can still be `verified`; the same case skipped without that declaration is `cannot verify`; an identifier only such a case covers is named as not verified here unless the contract declares it not applicable | guard/F40 | `guard/C104` | RED: no applicability is declared |
 | guard/T111: in KAAL, every Guard identifier is defined exactly once, every product identifier only in `packages/kaal-guard/docs/`, and every identifier a delivered case cites is defined | guard/N14, guard/A20 | `guard/C103` | RED: the product identifiers are defined in `engineering/guard/` |
-| guard/T112: External's hook, workflow and Skill templates equal the package's under their declared transformation | guard/N14, guard/A16 | `guard/C105` | RED: no transformation is declared, and the templates differ |
 
 **RED-first.** As for guard/T101–guard/T106 (`guard/C91`), each test is written in the DO Change named in the table. Its RED run is recorded in that Change's pull request before the change that turns it GREEN. None is marked `todo` or `skip`.
 
