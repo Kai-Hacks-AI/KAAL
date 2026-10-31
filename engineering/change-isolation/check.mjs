@@ -6,11 +6,18 @@
 //   2. .github travels alone. A change touching .github/ contains nothing outside it.
 //
 // One interim allowance relaxes rule 1 for one Change, hosting/C11 (#657), and for no other: the
-// engineering/C11 amendment, Option A, which the Owner approved on #716. A change touching Core passes
-// rule 1 when its paths beyond Core and CORE_SUPPORT are exactly HOSTING_C11's recorded set. A change
-// that carries part of that set but not exactly it fails, naming each extra and each missing path.
-// Rule 2 is unchanged, so .github still travels alone. It is a migration exception, not a model of
-// isolation, and a separate governed Engineering Change removes it once #657 has landed.
+// engineering/C11 amendment, Option A, which the Owner approved on #716. It applies only when all hold:
+//   - the change is hosting/C11's transformation: the target names Hosting's package `kaal-hosting`
+//     and the candidate names it `@kaihacksai/kaal-hosting`, the rename hosting/A7 authorizes on the
+//     target. Path equality alone never establishes which Change this is.
+//   - it is unspent: once the target names `@kaihacksai/kaal-hosting`, hosting/C11 has landed and the
+//     allowance cannot be used again, even before the Change that removes it.
+//   - its paths beyond Core and CORE_SUPPORT are exactly HOSTING_C11's recorded set.
+// The two names are read as Git data from the target and candidate commits the runner already supplies
+// (GUARD_BASE, GUARD_HEAD); the candidate is never checked out or run. Without them the allowance
+// does not apply. A change carrying part of the set fails, naming each extra and missing path. Rule 2
+// is unchanged, so .github still travels alone. It is a migration exception, not a model of isolation,
+// and a separate governed Engineering Change removes it once #657 has landed.
 //
 // Usage: check.mjs < paths
 // Reads the change's repository-relative paths from stdin, NUL- or newline-separated. The caller
@@ -18,6 +25,7 @@
 // Exits 0 when the change conforms, 1 with one line per offending path, 2 when it cannot judge.
 //
 // Limitation: the rules are path-level. An allowed supporting file passes whatever it contains.
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -86,15 +94,40 @@ export const HOSTING_C11 = Object.freeze([
 
 const GITHUB = /^\.github\//;
 
+const HOSTING_MANIFEST = "packages/extensions/kaal-hosting/package.json";
+
+/** Hosting's package name as a commit holds it, read as Git data, or undefined when it cannot be read. */
+function hostingName(commit) {
+  if (!/^[0-9a-f]{7,64}$/.test(commit ?? "")) return undefined;
+  try {
+    const manifest = execFileSync("git", ["show", `${commit}:${HOSTING_MANIFEST}`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return JSON.parse(manifest).name;
+  } catch {
+    return undefined;
+  }
+}
+
+/** The facts the hosting/C11 allowance is judged on: Hosting's name on the target and on the candidate. */
+export function facts(env = process.env) {
+  return { target: hostingName(env.GUARD_BASE), candidate: hostingName(env.GUARD_HEAD) };
+}
+
+/** Whether these facts are hosting/C11's unspent transformation. */
+const isHostingC11 = (f) => f?.target === "kaal-hosting" && f?.candidate === "@kaihacksai/kaal-hosting";
+
 const any = (patterns, path) => patterns.some((p) => p.test(path));
 
-/** @param {string[]} paths repository-relative changed paths @returns {string[]} violations */
-export function check(paths) {
+/**
+ * @param {string[]} paths repository-relative changed paths
+ * @param {{target?: string, candidate?: string}} [hosting] Hosting's name on the target and the candidate
+ * @returns {string[]} violations
+ */
+export function check(paths, hosting = { target: undefined, candidate: undefined }) {
   const violations = [];
   if (paths.some((p) => any(CORE, p))) {
     const beyond = [...new Set(paths.filter((p) => !any(CORE, p) && !any(CORE_SUPPORT, p)))];
-    if (beyond.some((p) => HOSTING_C11.includes(p))) {
-      // A change carrying hosting/C11's paths is judged against its recorded set, and only that set.
+    if (isHostingC11(hosting) && beyond.some((p) => HOSTING_C11.includes(p))) {
+      // hosting/C11's unspent rename is judged against its recorded set, and only that set.
       for (const p of beyond) if (!HOSTING_C11.includes(p)) violations.push(`core travels alone: ${p} is extra to hosting/C11's allowed set`);
       for (const p of HOSTING_C11) if (!beyond.includes(p)) violations.push(`core travels alone: ${p} is missing from hosting/C11's allowed set`);
     } else {
@@ -119,7 +152,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const paths = input.split(input.includes("\0") ? "\0" : "\n").filter(Boolean);
   const unnormal = paths.find((p) => p.split("/").some((s) => s === "" || s === "." || s === ".."));
   if (unnormal !== undefined) refuse(`not a repository-relative path: ${unnormal}`);
-  const violations = check(paths);
+  const violations = check(paths, facts());
   for (const v of violations) console.error(v);
   if (violations.length) process.exit(1);
   console.log(`ok: ${paths.length} changed paths conform`);
