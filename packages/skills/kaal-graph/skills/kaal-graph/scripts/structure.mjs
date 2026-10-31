@@ -1,5 +1,5 @@
 // kaal-graph: reach, reverse and cycles over a directed structure of opaque string
-// identities, given as successors: a Map, or a plain object, from each identity to the
+// identities, given as successors: a Map, any read-only Map, or a plain object, from each identity to the
 // identities it points to. A successor that is not a key is an identity with no
 // successors; resolving it is the caller's. Nothing here reads a Node or gives a
 // relationship a meaning, and nothing imports another module.
@@ -14,7 +14,7 @@ const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** The structure with every identity a key, keys and successor lists sorted and without repeats. */
 function normalize(successors) {
-  const entries = successors instanceof Map ? [...successors] : Object.entries(successors);
+  const entries = typeof successors?.[Symbol.iterator] === "function" && typeof successors.entries === "function" ? [...successors.entries()] : Object.entries(successors);
   const adjacency = new Map();
   for (const [id, next] of entries) adjacency.set(id, [...new Set(next)].sort(compare));
   for (const next of [...adjacency.values()]) for (const id of next) if (!adjacency.has(id)) adjacency.set(id, []);
