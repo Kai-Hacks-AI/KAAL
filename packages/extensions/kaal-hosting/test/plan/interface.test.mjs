@@ -117,10 +117,16 @@ async function violations(declared, dir) {
   return found.sort();
 }
 
-/** A copy of the built package whose package.json `change` rewrites, with `extra` files added. */
+/**
+ * A copy of the built package whose package.json `change` rewrites, with `extra` files added.
+ * It copies what the package itself ships (its manifest, README, LICENSE and each `files`
+ * entry), never a hand-kept list, so a delivered entry is never missing from the copy.
+ */
 function candidate(change, extra = {}) {
   const dir = mkdtempSync(join(tmpdir(), "kaal-hosting-interface-candidate-"));
-  for (const part of ["package.json", "README.md", "LICENSE", "dist", "payload"]) cpSync(join(PACKAGE, part), join(dir, part), { recursive: true });
+  const { files = [] } = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
+  const parts = ["package.json", "README.md", "LICENSE", ...files.filter((f) => !f.startsWith("!"))];
+  for (const part of parts) if (existsSync(join(PACKAGE, part))) cpSync(join(PACKAGE, part), join(dir, part), { recursive: true });
   const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
   change(pkg);
   writeFileSync(join(dir, "package.json"), JSON.stringify(pkg, null, 2));
