@@ -12,9 +12,13 @@ on:
   pull_request:
     paths: [.github/workflows/release-trial.yml]
 
+# A called workflow may request no more than its caller grants. release.yml's Publish job declares
+# id-token: write, so the caller must allow it, although Publish never runs here (it requires
+# workflow_dispatch on the default branch, and the npm environment).
 permissions:
   contents: read
   actions: read
+  id-token: write
 
 jobs:
   dry-run:
