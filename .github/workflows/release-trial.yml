@@ -1,0 +1,38 @@
+# TRIAL ONLY (do not merge): exercises release.yml (engineering/C14) from a pull request, as the Owner's
+# review 6545121413 on #723 asks. Publish cannot run here: it requires workflow_dispatch on the default
+# branch and the npm environment.
+#   dry-run      step pack, no publish: Pack, bind, the two named artifacts.
+#   registry     step registry, run = this run: Pack and Publish skipped, Accept runs and reads the
+#                record of the Pack above by run id. Foundation is not on npm, so Accept ends unknown
+#                (exit 2) at the registry, after the identity check.
+#   wrong        step registry with another package's name: Accept refuses the record's identity.
+name: Release trial
+
+on:
+  pull_request:
+    paths: [.github/workflows/release-trial.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  dry-run:
+    uses: ./.github/workflows/release.yml
+    with:
+      package: "@kaihacksai/kaal-foundation"
+      step: pack
+  registry:
+    needs: dry-run
+    uses: ./.github/workflows/release.yml
+    with:
+      package: "@kaihacksai/kaal-foundation"
+      step: registry
+      run: ${{ github.run_id }}
+  wrong:
+    needs: dry-run
+    uses: ./.github/workflows/release.yml
+    with:
+      package: "@kaihacksai/kaal-guard"
+      step: registry
+      run: ${{ github.run_id }}
