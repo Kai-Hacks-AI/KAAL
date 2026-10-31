@@ -8,7 +8,7 @@ Each element names, in brackets, the Requirements it answers.
 - **core/A6** [core/F16–core/F22, core/N4, core/N6]: Agent Realization is a `KAAL Definition`, `Agent Realization`, beside `KAAL Agent` in `payload/core/`. Its mechanism is offered as `kaal-core/agent`, which provides:
   - `declaration`, the repository-relative path of the provider declaration, `.kaal/config/core/agents.json`;
   - `realize({ skills, providers, record, present })`, a pure plan from the Skills to install (name and canonical source files), the declared providers, Core's record, and the SHA-256 of what is present at each target. It returns `{ write, keep, prune, pointers, unknown, record }`;
-  - `renderSkill(bytes)`, a supplier `SKILL.md` rendered from a canonical source.
+  - `renderSkill(bytes)`, a supplier `SKILL.md` rendered from a canonical source, retired by `core/C22` (`core/A24`).
   
   The placement table is a constant in `kaal-core/agent`, and Core's only one (`core/N6`). It governs Core's own deployments and nothing else. For each provider it records the location Core deploys to, and whether that provider is reached by a deployment or by a pointer. Provider entries come only from suppliers' documentation, as `guard/N10` records it.
 - **core/A7** [core/N4, core/F18]: Core plans and Hosting realizes. `core/C4` reads `.kaal/config/core/agents.json` and the present files through Hosting, applies the plan through Hosting, and keeps Core's record at `.kaal/state/core/installation.json`.
