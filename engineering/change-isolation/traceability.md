@@ -23,7 +23,7 @@ The current rules stay the defaults:
 
    Each trace is its owner's relationship, with its owner's meaning (prerequisite P2). Graph supplies only the traversal. Engineering adds no relationship and no meaning.
 3. **Impact.** The capabilities owning any reached element are the computed impact.
-4. **Structured locations.** Each capability's isolation unit is the folder its ownership claim attributes to it. The claims exist today for Core, Graph and Testing (`ownership.kaal.json`), and #609 moves them to Markdown (prerequisite P3).
+4. **Structured locations.** Each capability's isolation unit is the folder its ownership claim attributes to it. The claims exist today for Core, Graph and Testing as JSON `ownership.kaal.json`, the format #609 retained (prerequisite P3).
 5. **The judgment.** It is `check.mjs`, read from the target as today. A Change that touches Core, or more than one capability's location, is judged against what its Change Node on the target states, never what the candidate states:
 
 | Finding | Verdict |
@@ -91,7 +91,7 @@ These go in `engineering/change-isolation/check.test.mjs`. Each case uses fixtur
   - Packaging: a realization's dependency on another package's identity (packaging/F7).
 
   The bracket citations and manifests carry these today, but as text, not Edges.
-- **P3. Ownership claims** for every capability's location, Hosting, Engineer Skill, Foundation and Engineering included, in the format #609 settles. The claims also settle who owns the root files every workspace shares.
+- **P3. Ownership claims** for every capability's location, Hosting, Engineer Skill, Foundation and Engineering included, as JSON `ownership.kaal.json`, the format #609 retained. Root `package.json` and `package-lock.json` are Engineering's, through a narrowly scoped root claim of its own Change (Kai, #743 approval); capabilities still start their own dependency changes.
 - **P4. Graph** supplies `traverse` with `direction: "in"` on `main`. It needs nothing new.
 
 ## Scope
