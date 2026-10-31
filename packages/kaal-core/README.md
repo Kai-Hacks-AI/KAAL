@@ -21,15 +21,15 @@ The package ships its own documents in `docs/`:
 
 ## Install and bootstrap
 
-kaal-core publishes under the scoped name `@kaihacksai/kaal-core` (core/F74). Always name the scoped package, and run its `kaal` command through npm with `--no`, so npm never fetches an unrelated unscoped `kaal-core` or `kaal`. Never run `npm install kaal-core` or `npx kaal`.
+kaal-core publishes under the scoped name `@kaihacksai/kaal-core` (core/F74). Always name the scoped package, and run its command by its path inside the scoped package, so no other package's `kaal` can stand in for it. Never run `npm install kaal-core` or `npx kaal`.
 
 ```sh
 npm install @kaihacksai/kaal-core
-npm exec --no --package=@kaihacksai/kaal-core -- kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
-npm exec --no --package=@kaihacksai/kaal-core -- kaal verify    # checks the Kernel and the six foundational Nodes by identity
-npm exec --no --package=@kaihacksai/kaal-core -- kaal version   # the kaal-core that runs, and the version that installed ./.kaal
-npm exec --no --package=@kaihacksai/kaal-core -- kaal upgrade   # bring ./.kaal to this kaal-core
-npm exec --no --package=@kaihacksai/kaal-core -- kaal remove    # remove Core's installation, keeping what is not Core's
+node node_modules/@kaihacksai/kaal-core/dist/cli.js init    # materializes ./.kaal/ from the package payload (or: --engine <dir>)
+node node_modules/@kaihacksai/kaal-core/dist/cli.js verify  # checks the Kernel and the six foundational Nodes by identity
+node node_modules/@kaihacksai/kaal-core/dist/cli.js version # the kaal-core that runs, and the version that installed ./.kaal
+node node_modules/@kaihacksai/kaal-core/dist/cli.js upgrade # bring ./.kaal to this kaal-core
+node node_modules/@kaihacksai/kaal-core/dist/cli.js remove  # remove Core's installation, keeping what is not Core's
 ```
 
 Until 0.0.1 is published under that name, install kaal-core only from packed tarballs, never by name: in a KAAL checkout, `npm ci && npm run build -w kaal-core`, then `npm pack` kaal-core and its KAAL runtime dependencies, and `npm install` those tarballs in your repository ([Operations](docs/operations.md)).

@@ -32,13 +32,13 @@ Installing the package writes nothing into your repository. Only `kaal init`, `k
 
 ## Use
 
-The package installs the `kaal` command. Run it from your repository root through npm, naming the scoped package:
+The package's command is its bin, `dist/cli.js`, which npm also links as `kaal`. Run it from the directory where you installed the package by its path inside the scoped package:
 
 ```sh
-npm exec --no --package=@kaihacksai/kaal-core -- kaal <command>
+node node_modules/@kaihacksai/kaal-core/dist/cli.js <command>
 ```
 
-`--no` means npm downloads nothing: where the scoped package is not installed, the command fails rather than selecting another package. The command tables below name the `kaal` subcommand alone.
+Nothing on `PATH` can stand in for it: where the scoped package is not installed, the command fails, and another package's `kaal` is never run. Never rely on `npx kaal`, `npm exec -- kaal` or `npm exec --package=@kaihacksai/kaal-core -- kaal`: each runs whichever installed package owns `node_modules/.bin/kaal`, which need not be kaal-core, and `npx` may fetch an unrelated package. The table below names each subcommand as `kaal <command>`.
 
 | Command | What it does |
 | --- | --- |
@@ -85,11 +85,11 @@ These meanings are those of KAAL's Testing capability (testing/C9). kaal-core ap
 
 ## Upgrade
 
-Install the newer `@kaihacksai/kaal-core` with npm, then run `npm exec --no --package=@kaihacksai/kaal-core -- kaal upgrade`. It writes absent files, replaces files it recorded that you did not change, keeps and reports every other file, and removes recorded files the new version no longer delivers if they are unmodified. Upgrading an Engine that is already current writes nothing.
+Install the newer `@kaihacksai/kaal-core` with npm, then run `node node_modules/@kaihacksai/kaal-core/dist/cli.js upgrade`. It writes absent files, replaces files it recorded that you did not change, keeps and reports every other file, and removes recorded files the new version no longer delivers if they are unmodified. Upgrading an Engine that is already current writes nothing.
 
 ## Remove
 
-1. Run `npm exec --no --package=@kaihacksai/kaal-core -- kaal remove` from the repository root. It removes every unmodified file Core's record holds, including the agent deployments Core made, then the record, then the directories that empties. It keeps and reports everything else: files you changed, registered contributions, typed artifacts, and other Capabilities' records and files.
+1. Run `node node_modules/@kaihacksai/kaal-core/dist/cli.js remove` from the repository root. It removes every unmodified file Core's record holds, including the agent deployments Core made, then the record, then the directories that empties. It keeps and reports everything else: files you changed, registered contributions, typed artifacts, and other Capabilities' records and files.
 2. Run `npm uninstall @kaihacksai/kaal-core`.
 
 Files `kaal remove` keeps are yours to keep or delete. An Engine created with `--engine` has no record, so `kaal remove` refuses it. It is plain files, and you may delete the directory yourself.

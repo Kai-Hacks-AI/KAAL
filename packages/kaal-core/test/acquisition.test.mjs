@@ -1,8 +1,13 @@
 // core/T96, added by the Owner's review of core/C29 (#704): safe acquisition. Every documented way to
 // install or run kaal-core names the scoped package `@kaihacksai/kaal-core` (core/F74), and the
-// documented command, `npm exec --no --package=@kaihacksai/kaal-core -- kaal`, runs the scoped
-// package's `kaal` where it is installed and fails, never running another package, where only an
+// documented command runs the scoped package's own bin where it is installed, also beside another
+// package's `kaal`, and fails, never running another package, where only an
 // unrelated unscoped `kaal-core` with a `kaal` bin is installed.
+//
+// Revised after Codex's review on #704: `npm exec --package=<scoped> -- kaal` runs whichever installed
+// package owns node_modules/.bin/kaal, so the documented command is the scoped package's own bin by
+// its path, `node node_modules/@kaihacksai/kaal-core/dist/cli.js`, and a fixture installs both packages
+// side by side.
 //
 // The rename to the scoped name is pending (core/T79). Until it lands, the positive case installs the
 // packed candidate as a copy whose package.json names it `@kaihacksai/kaal-core`, which is what the
@@ -21,7 +26,7 @@ import { execute } from "kaal-hosting";
 const CORE = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPOSITORY = join(CORE, "..", "..");
 const SCOPED = "@kaihacksai/kaal-core";
-const DOCUMENTED = `npm exec --no --package=${SCOPED} -- kaal`;
+const DOCUMENTED = `node node_modules/${SCOPED}/dist/cli.js`;
 const DEPENDENCIES = [join(REPOSITORY, "packages", "kaal-foundation"), join(REPOSITORY, "packages", "extensions", "kaal-hosting")];
 
 const npm = async (args, cwd) => {
@@ -65,50 +70,73 @@ const code = (text) => {
   return fenced.concat(prose.flatMap((line) => [...line.matchAll(/`([^`\n]+)`/g)].map((m) => m[1])));
 };
 
-let work, scoped, unscoped;
+let work, scoped, both, unscoped;
 before(async () => {
   work = mkdtempSync(join(tmpdir(), "kaal-core-acquisition-"));
   const dependencies = [];
   for (const d of DEPENDENCIES) dependencies.push(await pack(d, work));
-  scoped = await consumer(work, "scoped", [await scopedCandidate(work), ...dependencies]);
+  const candidate = await scopedCandidate(work);
+  scoped = await consumer(work, "scoped", [candidate, ...dependencies]);
   // An unrelated unscoped package named kaal-core, with a bin named kaal.
   const fake = join(work, "fake");
   mkdirSync(fake);
   writeFileSync(join(fake, "package.json"), JSON.stringify({ name: "kaal-core", version: "9.9.9", bin: { kaal: "bin.mjs" } }));
   writeFileSync(join(fake, "bin.mjs"), '#!/usr/bin/env node\nconsole.log("UNSCOPED kaal-core ran");\n');
-  unscoped = await consumer(work, "unscoped", [await pack(fake, work)]);
+  const impostor = await pack(fake, work);
+  unscoped = await consumer(work, "unscoped", [impostor]);
+  // Both, with the impostor installed last, so it owns node_modules/.bin/kaal.
+  both = await consumer(work, "both", [candidate, ...dependencies]);
+  const last = await npm(["install", "--no-package-lock", impostor], both);
+  assert.equal(last.status, 0, last.out);
 });
 after(() => rmSync(work, { recursive: true, force: true }));
 
 describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", () => {
-  it("core/T96 [core/F74, core/F69]: every documented install or run of kaal-core names the scoped package; an unscoped name appears only in prose that warns against it", () => {
+  it("core/T96 [core/F74, core/F69]: every documented install of kaal-core names the scoped package, none runs kaal through npx or npm exec, and such a command appears only in prose that warns against it", () => {
     const docs = ["README.md", ...readdirSync(join(CORE, "docs")).map((f) => `docs/${f}`)];
     const offenders = [];
     for (const path of docs) {
       const text = readFileSync(join(CORE, path), "utf8");
       for (const c of code(text)) {
-        const acquires = /^\s*(npx\b|npm\s+(install|i|exec|x|explore|uninstall)\b)/.test(c);
         const names = /\bkaal(-core)?\b/.test(c) && !/\.tgz\b/.test(c);
-        if (acquires && names && !c.includes(SCOPED)) offenders.push(`${path}: ${c.trim()}`);
+        // Running through PATH (npx, npm exec) can reach another package's kaal, scoped or not.
+        const throughPath = /^\s*(npx\b|npm\s+(exec|x)\b)/.test(c);
+        const acquires = /^\s*npm\s+(install|i|explore|uninstall)\b/.test(c);
+        if (names && (throughPath || (acquires && !c.includes(SCOPED)))) offenders.push(`${path}: ${c.trim()}`);
       }
     }
     assert.deepEqual(offenders, [], "every documented acquisition names the scoped package");
     const operations = readFileSync(join(CORE, "docs", "operations.md"), "utf8");
-    for (const expected of [`npm install ${SCOPED}`, DOCUMENTED, `npm explore ${SCOPED} -- npm test`, `npm uninstall ${SCOPED}`]) assert.ok(operations.includes(expected), `docs/operations.md documents ${expected}`);
+    for (const expected of [`npm install ${SCOPED}`, `${DOCUMENTED} <command>`, `npm explore ${SCOPED} -- npm test`, `npm uninstall ${SCOPED}`]) assert.ok(operations.includes(expected), `docs/operations.md documents ${expected}`);
     assert.ok(readFileSync(join(CORE, "README.md"), "utf8").includes(DOCUMENTED), `README.md documents ${DOCUMENTED}`);
   });
 
-  it("core/T96 [core/F74]: the documented command runs the scoped package's kaal where it is installed, and fails without running anything else where only an unscoped kaal-core is installed", { timeout: 600_000 }, async () => {
-    const args = (...rest) => [...DOCUMENTED.split(" ").slice(1), ...rest];
-    const ok = await npm(args("version"), scoped);
-    assert.equal(ok.status, 0, ok.out);
-    assert.match(ok.stdout, /^kaal-core \d+\.\d+\.\d+/m, ok.out);
+  it("core/T96 [core/F74]: the documented command runs the scoped package's own bin where it is installed, also beside another package's kaal, and fails without running anything else where only an unscoped kaal-core is installed", { timeout: 600_000 }, async () => {
+    const pkg = JSON.parse(readFileSync(join(CORE, "package.json"), "utf8"));
+    assert.equal(pkg.bin?.kaal, "dist/cli.js", "the documented path is the package's own bin");
+    const [cmd, script] = DOCUMENTED.split(" ");
+    assert.equal(cmd, "node");
+    const run = (cwd) => execute(process.execPath, [script, "version"], { cwd, env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+    const version = new RegExp(`^kaal-core ${pkg.version.replace(/\./g, "\\.")}$`, "m");
+
+    const ok = await run(scoped);
+    assert.equal(ok.status, 0, `${ok.stdout}${ok.stderr}`);
+    assert.match(ok.stdout, version);
+
+    // Both installed, the impostor owning node_modules/.bin/kaal. Control: npm exec with the scoped
+    // --package still runs the impostor, which is why the documentation never relies on it.
+    const viaPath = await npm(["exec", "--no", `--package=${SCOPED}`, "--", "kaal", "version"], both);
+    assert.match(viaPath.out, /UNSCOPED kaal-core ran/, `npm exec --package does not bind kaal to the scoped package: ${viaPath.out}`);
+    const beside = await run(both);
+    assert.equal(beside.status, 0, `${beside.stdout}${beside.stderr}`);
+    assert.match(beside.stdout, version);
+    assert.doesNotMatch(`${beside.stdout}${beside.stderr}`, /UNSCOPED/, "another package's kaal never stands in for kaal-core");
 
     // Control: the bare bin name selects the unscoped package, so this fixture would catch that.
     const bare = await npm(["exec", "--no", "--", "kaal", "version"], unscoped);
     assert.match(bare.out, /UNSCOPED kaal-core ran/, `the fixture's unscoped bin is reachable by its bare name: ${bare.out}`);
-    const refused = await npm(args("version"), unscoped);
-    assert.doesNotMatch(refused.out, /UNSCOPED/, "the documented command never runs the unscoped package");
-    assert.notEqual(refused.status, 0, `without the scoped package installed, the documented command fails: ${refused.out}`);
+    const refused = await run(unscoped);
+    assert.doesNotMatch(`${refused.stdout}${refused.stderr}`, /UNSCOPED/, "the documented command never runs the unscoped package");
+    assert.notEqual(refused.status, 0, "without the scoped package installed, the documented command fails");
   });
 });

@@ -1,7 +1,7 @@
 {
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "f7cabc10afcea32d0dc76c86d57f8b6239dbcf82797abfb85fa18884ac4f2a74",
+    "README.md": "4f7179540acff93b793f6c94484c17ee9d6e741c84c40dde6d73d64d08ab992e",
     "dist/admitted.d.ts": "52ea0be2c29db7fa0cba81d22ab754621d8aa6d6e6350851493dc11ffe6752e3",
     "dist/admitted.js": "7c08d1fd903b40e4945083975f2fd2210573778068c6467eb23ee4f5eb4a5697",
     "dist/agent.d.ts": "edce5bc81865c424780e2f91b38c478771efbc6b4140a93b997c37401a6de6bc",
@@ -42,7 +42,7 @@
     "docs/architecture.md": "f322d8f8a70f9b67a6ccde96007f50426b25fc4da3bf696545466a212a84050e",
     "docs/intent.md": "4b19703bb515fb3ba9215d2940e28a91499a4b33bba1540f86df3490d51a79df",
     "docs/limitations.md": "72935cde7ba6dd54e4253b05132c172460612bc08b04ea32d4ac549be389aa90",
-    "docs/operations.md": "ab3af6d01695ba52dd65f9e59762126d1b8aa7c604a5f7a20c467ed8f32e8e31",
+    "docs/operations.md": "8e9d9f2e212dae47e74a35b49433a38d7ae745dc60bfa5392885ce78b527edf8",
     "docs/requirements.md": "d9e0c505bd12ded00a0dd60a18f17e31d4e7dae9fdae9ec297650487430a5d0a",
     "docs/testing.md": "c1ebce597357ee3a55b51dd244206c215621b84b353ed597782e619e19e06bfa",
     "installation.kaal.json": "e9a1cafdd0aa43182f52bf478261afbb3eedfdea4ab6e8e65c3c7b221eb28927",
