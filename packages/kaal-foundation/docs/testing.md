@@ -25,4 +25,4 @@ The publisher's tests under `test/publisher/` are not delivered and never run in
 - hash every Node KAAL ships;
 - check the packed and installed package;
 - challenge the verification with changed, missing and undeclared files and cases;
-- check that the manifest is current.
+- check that the manifest is current: `test/publisher/manifest.mjs --check` is part of `test:publisher`.
