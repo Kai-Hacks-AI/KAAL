@@ -102,7 +102,8 @@ jobs:
   guard-hosts:
     name: Guard (${{ matrix.host }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    # Windows runs the declared suites for about an hour until guard/C136 shortens them.
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
