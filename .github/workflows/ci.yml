@@ -9,6 +9,7 @@
 # and runs every declared suite. Each writes a run record for this host and the candidate it checked
 # out, with every declared case's outcome, and uploads it, even when a case failed. Guard (gate) reads
 # the three records and judges them as a release would (suites.mjs --gate), for the same candidate.
+# Each Guard job has a timeout, so a hang ends as a failure with its log rather than holding the run.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -81,6 +82,7 @@ jobs:
   guard:
     name: Guard
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -100,6 +102,7 @@ jobs:
   guard-hosts:
     name: Guard (${{ matrix.host }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -126,6 +129,7 @@ jobs:
     needs: [guard, guard-hosts]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
