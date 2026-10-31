@@ -13,7 +13,6 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { after, describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { applicability, audit, PLAN } from "./platforms.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "../../..");
@@ -467,17 +466,19 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.deepEqual(left(tmp), [], "a failing run left entries in its temporary directory");
   });
 
-  // Registered on every host; where the Engineering Test Plan declares it not applicable, it ends before its body (guard/C118).
-  it("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", applicability("guard/T114"), async (t) => {
+  // Registered on every host. Hosting owns whether a host can hold a FIFO or a socket (guard/C118, revision 3):
+  // until its special-entry fixture is consumed here, a host that makes none blocks the case, never passes it.
+  it("guard/T114 [guard/F33, guard/F35]: a consumer holding a Unix socket and a FIFO is verified, exit 0, within the case's time limit, naming neither; replacing the FIFO with a regular file between snapshots is failed, naming it", async (t) => {
     const c = consumer();
     const passes = `${MINI} > guard/T0 passes`;
     const replaces = `${MINI} > guard/T0 replaces the FIFO when asked`;
     reduce(c, `import { it } from "node:test";\nimport { rmSync, writeFileSync } from "node:fs";\nit("guard/T0 passes", () => {});\nit("guard/T0 replaces the FIFO when asked", () => {\n  const fifo = process.env.GUARD_T114_FIFO;\n  if (fifo) {\n    rmSync(fifo);\n    writeFileSync(fifo, "a regular file now\\n");\n  }\n});\n`, [passes, replaces]);
     const sock = join(c.dir, "t114.sock");
     const fifo = join(c.dir, "t114.fifo");
-    must(exec(c.dir, "mkfifo", [fifo], clean()), "mkfifo");
+    const made = exec(c.dir, "mkfifo", [fifo], clean());
+    assert.equal(made.status, 0, `blocked before behavioural assertion: this host made no FIFO (${made.output.trim()}); Hosting's special-entry fixture decides whether it can hold one`);
     const server = createServer();
-    await new Promise((done, fail) => server.once("error", fail).listen(sock, done));
+    await new Promise((done, fail) => server.once("error", fail).listen(sock, done)).catch((e) => assert.fail(`blocked before behavioural assertion: this host made no socket in the tree (${e.code}); Hosting's special-entry fixture decides whether it can hold one`));
     const LIMIT = 5 * 60 * 1000;
     try {
       const r = c.verify({}, LIMIT);
@@ -631,49 +632,6 @@ describe("guard/I8 what a consumer reads in the verification", { timeout: 30 * 6
       assert.ok(!next.includes("a fallback"), `the next step names the fallback, not the declared URL: ${next}`);
       assert.ok(!r.output.includes("the package's maintainers"), "the output still asks for a report to the package's maintainers");
     }
-  });
-});
-
-describe("guard/F40 platforms in Guard's tests", () => {
-  it("guard/T132 [guard/F40]: every Guard test file registers each case on every platform; no case skips, marks todo or returns by platform; a skip by platform matches the package's declared row; every declared exception names its platforms, a reason, linked evidence and a linked Review judgment; every other platform reference is listed or raised as a Change; and no listed row is stale", () => {
-    const ROOT = join(HERE, "..", "..", "..");
-    const roots = ["packages/kaal-guard/test", "engineering/guard/acceptance"];
-    const files = {};
-    for (const root of roots) {
-      for (const f of readdirSync(join(ROOT, root), { recursive: true })) {
-        const path = `${root}/${String(f).split("\\").join("/")}`;
-        // The verifier is product code, and the helper names the platforms it reads.
-        if (!path.endsWith(".mjs") || path.endsWith("/test/verify.mjs") || path.endsWith("/platforms.mjs") || path.includes("/fixtures/")) continue;
-        files[path] = readFileSync(join(ROOT, path), "utf8");
-      }
-    }
-    const engineering = readFileSync(PLAN, "utf8");
-    const delivered = readFileSync(join(ROOT, "packages", "kaal-guard", "docs", "testing.md"), "utf8");
-    assert.deepEqual(audit({ files, engineering, delivered }), [], "Guard's tests branch on the platform where no Test Plan says why");
-
-    // Negative fixtures, kept apart so this file names no platform itself: each must be refused.
-    const fixtures = JSON.parse(readFileSync(join(HERE, "fixtures", "platforms.json"), "utf8"));
-    for (const [name, fixture] of Object.entries(fixtures.sources)) {
-      const found = audit({ files: { ...files, "fixture.mjs": `it("guard/T0 [guard/F3] runs everywhere", () => {});\n${fixture}` }, engineering, delivered });
-      assert.ok(found.some((f) => f.startsWith("fixture.mjs:")), `${name} is not refused: ${JSON.stringify(found)}`);
-    }
-    const row = engineering.split(/\r?\n/).find((l) => l.startsWith("| guard/T114 |"));
-    const cells = row.split(" | ");
-    const edits = {
-      ...Object.fromEntries(Object.entries(fixtures.plan).map(([name, [from, to]]) => [name, row.replace(from, to)])),
-      "no reason": cells.map((c, i) => (i === 2 ? "" : c)).join(" | "),
-      "no linked evidence": cells.map((c, i) => (i === 3 ? "Hosting said so" : c)).join(" | "),
-      "no linked Review judgment": row.replace(/\| [^|]+ \|$/, "| approved in chat |"),
-    };
-    for (const [name, edited] of Object.entries(edits)) {
-      assert.notEqual(edited, row, `the fixture for ${name} did not change the row`);
-      const found = audit({ files, engineering: engineering.replace(row, edited), delivered });
-      assert.ok(found.some((f) => f.startsWith("guard/T114:")), `a declaration with ${name} is not refused`);
-    }
-    const stale = audit({ files: { ...files, "packages/kaal-guard/test/acceptance/harness.mjs": "" }, engineering, delivered });
-    assert.ok(stale.some((f) => f.includes("matches no line")), "a stale listed difference is not refused");
-    const unnamed = engineering.replace(/(\| guard\/C135: )/, "| ");
-    assert.ok(audit({ files, engineering: unnamed, delivered }).some((f) => f.includes("names no Change")), "a raised difference with no Change is not refused");
   });
 });
 
