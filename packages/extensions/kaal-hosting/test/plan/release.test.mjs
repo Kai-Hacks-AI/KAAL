@@ -403,3 +403,75 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     assert.ok(d.summary.cases.filter((c) => c.name !== inapplicable).every((c) => c.outcome === "pass"));
   });
 });
+
+// hosting/C22 planned outer tests: one test entry, two places (hosting/F20, the Owner's
+// convention on #625). hosting/C12 turns them GREEN. Each runs the package's own
+// verification entry, test/verify.mjs, copied into a fixture workspace or directory in
+// the operating system's temporary directory, so no run invokes Hosting's own suites.
+describe("hosting/C22: npm test is comprehensive in source and consumer-only once installed", () => {
+  const PREFIX = "kaal-hosting-verification ";
+  const ENTRY = join(PACKAGE, "test", "verify.mjs");
+
+  /**
+   * A fixture: `root/package.json` declaring `workspaces` (or none), and the package at
+   * `root/<at>` with Hosting's verification entry and `scripts`. Each suite script appends its
+   * name to `ran.log` in the package, so the test sees which suites ran and how often.
+   */
+  function fixture({ scripts, workspaces = ["pkg"], at = "pkg" }) {
+    assert.ok(existsSync(ENTRY), "the package ships no test/verify.mjs");
+    const root = mkdtempSync(join(tmpdir(), "kaal-hosting-places-"));
+    writeFileSync(join(root, "package.json"), JSON.stringify({ name: "fixture-root", private: true, ...(workspaces ? { workspaces } : {}) }));
+    const dir = join(root, ...at.split("/"));
+    mkdirSync(join(dir, "test"), { recursive: true });
+    writeFileSync(join(dir, "test", "verify.mjs"), readFileSync(ENTRY));
+    const suite = (name, status = 0) => `node -e "require('fs').appendFileSync('ran.log','${name}\\n');process.exit(${status})"`;
+    const declared = Object.fromEntries(Object.entries(scripts).map(([name, status]) => [`test:${name}`, suite(name, status)]));
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "@fixture/pkg", version: "0.0.1", type: "module", scripts: { test: "node test/verify.mjs", ...declared } }));
+    return dir;
+  }
+
+  async function test(dir) {
+    const r = await execute("npm", ["test"], { cwd: dir, env });
+    const line = r.stdout.split(/\r?\n/).filter((l) => l.startsWith(PREFIX)).at(-1);
+    const ran = existsSync(join(dir, "ran.log")) ? readFileSync(join(dir, "ran.log"), "utf8").split(/\r?\n/).filter(Boolean) : [];
+    return { status: r.status, output: r.stdout + r.stderr, summary: line === undefined ? undefined : JSON.parse(line.slice(PREFIX.length)), ran };
+  }
+
+  it("hosting/T53 [hosting/F20]: in the source workspace, npm test runs every declared test:<name> suite once, in name order and never itself, and is verified only when each passed, failed naming a failing suite, and cannot verify with none declared", async () => {
+    const clean = await test(fixture({ scripts: { publisher: 0, alpha: 0 } }));
+    assert.equal(clean.status, 0, clean.output);
+    assert.deepEqual(clean.ran, ["alpha", "publisher"]);
+    assert.equal(clean.summary?.result, "verified", clean.output);
+    assert.equal(clean.summary.place, "source");
+    assert.equal(clean.summary.cause, undefined);
+    assert.deepEqual(clean.summary.suites, [{ name: "test:alpha", outcome: "pass" }, { name: "test:publisher", outcome: "pass" }]);
+
+    const failing = await test(fixture({ scripts: { publisher: 0, alpha: 1 } }));
+    assert.equal(failing.status, 1, failing.output);
+    assert.deepEqual(failing.ran, ["alpha", "publisher"], "a failing suite stopped the others, or a suite ran twice");
+    assert.equal(failing.summary?.result, "failed", failing.output);
+    assert.deepEqual(failing.summary.suites, [{ name: "test:alpha", outcome: "fail" }, { name: "test:publisher", outcome: "pass" }]);
+    assert.match(failing.summary.cause ?? "", /test:alpha/);
+
+    const none = await test(fixture({ scripts: {} }));
+    assert.equal(none.status, 2, none.output);
+    assert.equal(none.summary?.result, "cannot verify", none.output);
+    assert.ok(none.summary.cause, "no cause");
+  });
+
+  it("hosting/T54 [hosting/F20]: the place is detected explicitly: a copy in a directory that no enclosing workspaces lists, or with no enclosing workspaces at all, is cannot verify naming the directory, runs no suite, and is never taken for an installation", async () => {
+    const places = {
+      "not listed by the enclosing workspaces": fixture({ scripts: { publisher: 0 }, workspaces: ["other"] }),
+      "no enclosing workspaces": fixture({ scripts: { publisher: 0 }, workspaces: null }),
+      "a node_modules directory that is not the copy's parent": fixture({ scripts: { publisher: 0 }, workspaces: ["other"], at: "node_modules/x/pkg" }),
+    };
+    for (const [label, dir] of Object.entries(places)) {
+      const r = await test(dir);
+      assert.equal(r.status, 2, `${label}\n${r.output}`);
+      assert.equal(r.summary?.result, "cannot verify", `${label}\n${r.output}`);
+      assert.ok((r.summary.cause ?? "").includes(realpathSync(dir)), `${label}: the cause does not name ${dir}`);
+      assert.deepEqual(r.ran, [], `${label}: a suite ran`);
+      assert.notEqual(r.summary.place, "installation", label);
+    }
+  });
+});

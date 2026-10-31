@@ -6,6 +6,8 @@ The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/rele
 | --- | --- | --- |
 | hosting/T21: the package is `@kaihacksai/kaal-hosting` 0.0.1, public, with its repository directory, engines, license and runtime dependencies unchanged; the README names it and how to install it. Its exports and files are hosting/T41's, by `hosting/C15` | hosting/F15 | Requirements |
 | hosting/T22: no module specifier, dependency entry or workspace selector in the repository names `kaal-hosting`, and each names `@kaihacksai/kaal-hosting` instead | hosting/F16 | Requirements |
+| hosting/T53: in the source workspace, `npm test` runs every declared `test:<name>` suite once, in name order and never itself. It is `verified` only when each passed, `failed` naming a failing suite (the others still run), and `cannot verify` with none declared (`hosting/C22`) | hosting/F20 | Requirements |
+| hosting/T54: the place is detected explicitly. A copy in a directory that no enclosing `workspaces` lists, or with no enclosing `workspaces`, is `cannot verify` naming the directory. It runs no suite and is never taken for an installation (`hosting/C22`) | hosting/F20 | Requirements |
 | hosting/T48: a reference is found by its syntax: a stale import of a subpath that no longer resolves, in each module form, is found, as are the name alone, a dependency entry and a workspace selector; a host fact, a review rule, a longer name or the scoped name is not (`hosting/C19`) | hosting/F16 | Requirements |
 | hosting/T23: the lockfile links `node_modules/@kaihacksai/kaal-hosting` to the workspace and has no entry for `kaal-hosting` | hosting/F16 | Requirements |
 | hosting/T24: the packed tarball (whose contents are hosting/T41's, by `hosting/C15`) installs alone into a fresh consumer outside the repository as `node_modules/@kaihacksai/kaal-hosting`, and a consumer script runs `within`, `reconcile` and `execute` through `@kaihacksai/kaal-hosting` and reads `EXCLUSIONS` from `@kaihacksai/kaal-hosting/conformance` | hosting/I5, hosting/F17 | Intent |
@@ -84,3 +86,19 @@ The checks also showed that a command started from inside a `node:test` run inhe
 | no `require` | a require |
 
 On `kaal/hosting` before the rename, the old matcher found 115 references and the corrected one finds 97. The 18 it no longer finds are exactly the identifiers above, and every other reference is still found. #657's file set does not change.
+
+## hosting/C22: one test entry, two places
+
+`hosting/C22` is a PLAN correction to hosting/F20 and hosting/A9, with two new planned tests. hosting/A9 had the root `test:hosting` lane and `engineering/lanes/hosting.mjs` switch to `test:publisher`. That conflicts with engineering/C6 (#655, merged), which records the Owner's convention on #625 (comment 6504401799): Engineering's lanes and Testing's coverage run each package's own `npm test` in its directory, and npm ships the same `scripts.test` it reads in source. Engineering raised the conflict when `hosting/C12` was being prepared. So Hosting's `npm test` is now comprehensive in the source workspace and consumer-only once installed, as foundation/F9 and core/F75 have it. The place is detected explicitly. Nothing in Engineering or Testing changes. hosting/T26–T31 are unchanged.
+
+**RED evidence.** At `hosting/C22`, hosting/T53 and T54 are RED, blocked before behavioural assertion: the package ships no `test/verify.mjs` yet. `hosting/C12` delivers it.
+
+**Checked against a throwaway reference.** A reference source mode for `test/verify.mjs`, written for this PLAN and not committed, turns both GREEN on Node 24 (Linux). Each weaker variant of it is caught:
+
+| Weaker reference | Caught by |
+| --- | --- |
+| reports `verified` although a suite failed | hosting/T53 |
+| stops at the first failing suite | hosting/T53 |
+| runs the suites in declaration order, not name order | hosting/T53 |
+| is `verified` with no suite declared | hosting/T53 |
+| takes any directory that is not an installation for the source workspace | hosting/T54 |
