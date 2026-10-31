@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const PRODUCT = join(ROOT, "packages/kaal-guard");
 const ENGINEERING = join(ROOT, "engineering/guard");
+// External's Test Plan is its own (guard/C129), and its definitions are Engineering-side, never the product's.
+const EXTERNAL = join(ENGINEERING, "external");
 
 const ID = /guard\/[IFNATD]\d+/;
 
@@ -207,14 +209,14 @@ describe("guard/N14 [guard/I9] one authority", () => {
       ]);
     });
 
-    const found = audit({ product: documents(join(PRODUCT, "docs")), engineering: documents(ENGINEERING), cited: cited() });
+    const found = audit({ product: documents(join(PRODUCT, "docs")), engineering: [...documents(ENGINEERING), ...documents(EXTERNAL)], cited: cited() });
     assert.ok(cited().size > 0, "no delivered case cites an identifier");
     assert.deepEqual(found.refused, [], "lines shaped like a definition that are not canonical");
     assert.deepEqual(found.twice, [], "identifiers defined more than once");
     assert.deepEqual(found.retained, [], "identifiers delivered cases cite are defined in engineering/guard/, not in the package");
     assert.deepEqual(found.undefined, [], "identifiers delivered cases cite are not defined in packages/kaal-guard/docs/");
     // A publisher case's title may cite a Defect (guard/C123); the Defect it cites is defined too.
-    const definedIds = new Set([...documents(join(PRODUCT, "docs")).map((d) => scan(d, true)), ...documents(ENGINEERING).map((d) => scan(d, false))].flatMap((s) => s.defined.map((d) => d.id)));
+    const definedIds = new Set([...documents(join(PRODUCT, "docs")).map((d) => scan(d, true)), ...[...documents(ENGINEERING), ...documents(EXTERNAL)].map((d) => scan(d, false))].flatMap((s) => s.defined.map((d) => d.id)));
     const publisher = [];
     const walk = (dir) => {
       for (const e of readdirSync(dir, { withFileTypes: true })) {
