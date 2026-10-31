@@ -11,4 +11,4 @@ The planned outer tests will live in `packages/skills/kaal-requirements/test/pla
 | requirements/T19: the Definition `Requirement` and the Capability Node state the identification rule and `Serves` | requirements/F12, requirements/F16 | Requirements |
 | requirements/T20: nothing the package ships imports a module, and it has no dependencies | requirements/N5 | Architecture |
 
-The fixture Intent Node stands in for Intent's Definition until Intent's PLAN names it. requirements/T16 and T17 then use Intent's real Definition, through a PLAN amendment that names it. The Test Cases do not judge whether a trace is right, and they do not test Engineering's isolation judgment, which is `engineering/C11`'s.
+The fixture Intent Node is typed by Intent's Definition `Intent` as `kaal/intent` holds it, so `requirements/C11` and `C12` follow a SYNC that brings it, or `kaal/intent`'s promotion. The Test Cases do not judge whether a trace is right, and they do not test Engineering's isolation judgment, which is `engineering/C11`'s.
