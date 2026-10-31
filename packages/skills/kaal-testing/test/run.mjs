@@ -4,8 +4,8 @@
 // nothing and prints one `kaal-testing-suite <script>` line per suite it would run. When the place cannot be
 // told, the result is unknown (exit 2). Until it knows it is in the source workspace it loads only Node's
 // built-ins, so a missing or broken runtime dependency of an installed copy never keeps the installed
-// verification from diagnosing it (testing/F50, testing/F63). In the source workspace every command goes through
-// Hosting.
+// verification from diagnosing it (testing/F50, testing/F63). In the source workspace it first builds Hosting,
+// then every command goes through Hosting.
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,6 +39,12 @@ if (process.argv.includes("--list")) {
 // with its own result.
 if (installed) await import("./verify.mjs");
 else {
+  // Hosting ships built: in a fresh source checkout it must be built before it can run anything, so this one
+  // bootstrap step runs before Hosting is loaded, and every command after it goes through Hosting.
+  const { spawnSync } = await import("node:child_process");
+  const npm = process.env.npm_execpath ? [process.execPath, [process.env.npm_execpath]] : ["npm", []];
+  const built = spawnSync(npm[0], [...npm[1], "run", "--silent", "build", "-w", "kaal-core", "-w", "kaal-hosting"], { cwd: ROOT, stdio: "inherit", shell: !process.env.npm_execpath });
+  if (built.status !== 0) unknown("the source workspace's Hosting cannot be built");
   const { execute } = await import("kaal-hosting");
   let failed = 0;
   for (const s of suites) {

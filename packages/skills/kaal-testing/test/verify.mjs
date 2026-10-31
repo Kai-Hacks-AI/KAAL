@@ -34,6 +34,34 @@ function files(base) {
   return out.sort();
 }
 
+/** The SHA-256 of the regular file at `p` in this copy, or null when it is not one or cannot be read. */
+function hashOf(p) {
+  try {
+    return lstatSync(join(PACKAGE, p)).isFile() ? sha256(readFileSync(join(PACKAGE, p))) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** How a parsed manifest departs from the shape `npm run manifest` writes: [] when it has exactly that shape. */
+function shapeOf(m) {
+  const out = [];
+  const KEYS = ["hashes", "cases", "model", "applicability", "platforms"];
+  const names = (x) => Array.isArray(x) && x.every((c) => typeof c === "string" && c !== "");
+  if (!plain(m)) return ["it is not an object"];
+  for (const k of Object.keys(m)) if (!KEYS.includes(k)) out.push(`${k} is not a manifest key`);
+  for (const k of KEYS) if (!Object.hasOwn(m, k)) out.push(`${k} is missing`);
+  if (!plain(m.hashes) || !Object.entries(m.hashes).every(([p, h]) => p !== "" && typeof h === "string" && /^[0-9a-f]{64}$/.test(h))) out.push("hashes is not a map of path to SHA-256");
+  if (!names(m.cases)) out.push("cases is not a list of case names");
+  else if (new Set(m.cases).size !== m.cases.length) out.push("a case is declared twice");
+  const model = plain(m.model) && Array.isArray(m.model.cases) ? m.model.cases : null;
+  if (!model || !model.every((c) => plain(c) && typeof c.id === "string" && names(c.tests))) out.push("model is not a list of cases with their traces");
+  else if (names(m.cases) && (model.length !== m.cases.length || !model.every((c) => m.cases.includes(c.id)))) out.push("the model's cases are not the declared cases");
+  if (!plain(m.applicability)) out.push("applicability is not an object");
+  if (!names(m.platforms) || m.platforms.length === 0) out.push("platforms is not a list of platforms");
+  return out;
+}
+
 /** Whether this copy sits directly in a node_modules directory: an installation, not the source workspace. */
 const installed = (() => {
   const parent = dirname(PACKAGE);
@@ -98,15 +126,25 @@ try {
   const absent = e?.code === "ENOENT";
   unknown(absent ? "the shipped manifest is absent" : "the shipped manifest does not parse", [`${MANIFEST}: ${absent ? "no such file" : e.message}`], "reinstall the package from the registry or its packed tarball, then run the verification again", "precise");
 }
-if (!plain(manifest) || !plain(manifest.hashes) || !Array.isArray(manifest.cases)) unknown("the shipped manifest does not parse", [`${MANIFEST} holds no hashes and cases`], "reinstall the package from the registry or its packed tarball, then run the verification again", "precise");
-const declared = manifest.cases.filter((c) => typeof c === "string" && c !== "");
+// A manifest that parses is still read only when it has exactly the shape the publisher wrote: nothing in it is
+// normalized away, so a malformed entry can never shrink what must be verified.
+const malformed = shapeOf(manifest);
+if (malformed.length) unknown("the shipped manifest is malformed", malformed.map((m) => `${MANIFEST}: ${m}`), "reinstall the package from the registry or its packed tarball, then run the verification again", "precise");
+const declared = manifest.cases;
 summary.cases = declared.map((name) => ({ name, outcome: "not run" }));
-const present = installed ? files(PACKAGE).filter((p) => p !== MANIFEST) : Object.keys(manifest.hashes).filter((p) => existsSync(join(PACKAGE, p))).sort();
-summary.digest = sha256(present.map((p) => `${p}\0${sha256(readFileSync(join(PACKAGE, p)))}\n`).join(""));
+let present;
+try {
+  present = installed ? files(PACKAGE).filter((p) => p !== MANIFEST) : Object.keys(manifest.hashes).filter((p) => existsSync(join(PACKAGE, p))).sort();
+} catch (e) {
+  unknown("the installed copy cannot be read", [`${e.code ?? "error"}: ${e.message}`], "reinstall the package from the registry or its packed tarball, then run the verification again", "precise");
+}
+summary.digest = sha256(present.map((p) => `${p}\0${hashOf(p) ?? "unreadable"}\n`).join(""));
 const differs = [];
 for (const p of Object.keys(manifest.hashes).sort()) {
-  if (!existsSync(join(PACKAGE, p))) differs.push(`${p} is missing`);
-  else if (sha256(readFileSync(join(PACKAGE, p))) !== manifest.hashes[p]) differs.push(`${p} does not match the manifest`);
+  const h = hashOf(p);
+  if (!existsSync(join(PACKAGE, p)) && h === null) differs.push(`${p} is missing`);
+  else if (h === null) differs.push(`${p} is not a readable file`);
+  else if (h !== manifest.hashes[p]) differs.push(`${p} does not match the manifest`);
 }
 if (installed) for (const p of present) if (!Object.hasOwn(manifest.hashes, p)) differs.push(`${p} is not in the manifest`);
 if (differs.length) unknown("the installed files are not the package as shipped", differs, "reinstall the package from the registry or its packed tarball, then run the verification again", "precise");
