@@ -114,6 +114,41 @@ describe("hosting/C16: portability across capabilities", () => {
     }
   });
 
+  it("hosting/T47 [hosting/F38]: where the host fact holds but the fixture cannot be made in the directory asked for, specialEntries fails as a setup failure, never as holds: false, and a case using it fails rather than skipping or passing", async () => {
+    const facts = await entry(FIXTURES, "facts");
+    const specialEntries = await entry(FIXTURES, "specialEntries");
+    const { SetupFailure } = await import(pathToFileURL(FIXTURES).href);
+    const fact = (await facts())["kaal-hosting/special-entries"];
+    const root = mkdtempSync(join(tmpdir(), "kaal-special-unsuitable-"));
+    const file = join(root, "file");
+    writeFileSync(file, "x");
+    for (const dir of [join(root, "missing", "dir"), file]) {
+      if (fact.holds) {
+        assert.equal(typeof SetupFailure, "function", "kaal-hosting/fixtures exports no SetupFailure");
+        await assert.rejects(specialEntries(dir), (e) => {
+          assert.ok(e instanceof SetupFailure, `not a SetupFailure: ${e}`);
+          assert.deepEqual([e.outcome, e.fact, e.dir, "holds" in e], ["unknown", "kaal-hosting/special-entries", dir, false]);
+          assert.ok(e.reason.length > 0, "the setup failure gives no reason");
+          return true;
+        }, `${dir}: a failed fixture was not a setup failure`);
+      } else {
+        // A host that lacks the fact still says so, whatever the directory.
+        assert.deepEqual(await specialEntries(dir), { holds: false, fact: "kaal-hosting/special-entries", reason: fact.reason, evidence: fact.evidence });
+      }
+    }
+    assert.deepEqual(readdirSync(root), ["file"], "a failed fixture left entries behind");
+    if (!fact.holds) return;
+    // A case that uses the fixture in an unsuitable directory is a failure: never skipped, never GREEN.
+    const script = join(mkdtempSync(join(tmpdir(), "kaal-special-driver-")), "driver.test.mjs");
+    writeFileSync(script, `import { it } from "node:test";\nimport { specialEntries } from ${JSON.stringify(pathToFileURL(FIXTURES).href)};\nit("uses special entries", async () => { await specialEntries(${JSON.stringify(file)}); });\n`);
+    const run = await execute(process.execPath, ["--test", "--test-reporter=tap", script], { cwd: tmpdir(), env });
+    assert.notEqual(run.status, 0, "a setup failure passed");
+    assert.match(run.stdout, /^# fail 1$/m);
+    assert.match(run.stdout, /^# pass 0$/m);
+    assert.match(run.stdout, /^# skipped 0$/m);
+    assert.match(run.stdout, /SetupFailure/);
+  });
+
   it("hosting/T44 [hosting/F39, hosting/F40]: the audit refuses applicability scoped by platform outside the boundary, refuses a host exception without a known fact, a reason, evidence or a registered case, or one that is stale, puts every host exception to review, and leaves complements alone", async () => {
     const portability = await entry(SUITE, "portability");
     const tests = { "test/guard.test.mjs": portable + 'it("guard/T7 links", () => {});\n' };

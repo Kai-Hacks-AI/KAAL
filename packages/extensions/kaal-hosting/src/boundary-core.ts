@@ -1,7 +1,8 @@
 // The platform coupling conformance result (hosting/F33, hosting/A14), with no
 // test harness, so the command runs it without node:test (hosting/A13).
 import { kind, read } from "./index.js";
-import { couplings, inspect } from "./conformance.js";
+import { couplings, inspect, osBoundary } from "./conformance.js";
+import { FACTS } from "./fixtures.js";
 import type { CouplingReport, Finding, FindingKind, Source } from "./couplings.js";
 import type { Outside, Skipped, Validation, Violation } from "./conformance.js";
 
@@ -116,5 +117,137 @@ export async function boundary({ name, root, builtins = [], test }: BoundaryOpti
     skipped: found.skipped,
     coverage: found.coverage,
     exclusions: found.exclusions,
+  };
+}
+
+/** A case's declared applicability, as testing/F47 and hosting/F39 shape it. */
+export interface Applicability {
+  platforms?: string[];
+  requires?: string[];
+  absent?: string[];
+  /** Host facts the case needs (hosting/F37). */
+  host?: string[];
+  reason?: string;
+  /** An https link. */
+  evidence?: string;
+  /** A link to Review's judgment: evidence only, never closing the request. */
+  review?: string;
+}
+
+export interface PortabilityOptions extends BoundaryOptions {
+  /** The capability's declarations, keyed by case name, as the runner read them. */
+  applicability?: Record<string, Applicability>;
+}
+
+/** A problem with a declared applicability (hosting/F40). */
+export interface ApplicabilityFinding {
+  /** The case, or `package.json` for the manifest. */
+  case: string;
+  rule: "platform-applicability" | "unknown-host-fact" | "unreasoned" | "unevidenced" | "stale";
+  problem: string;
+}
+
+/** A host exception put to Review: it carries no outcome. */
+export interface HostReviewRequest {
+  id: string;
+  rule: "kaal-hosting/host-applicability";
+  owner: "Hosting";
+  case: string;
+  declaration: Applicability;
+  question: string;
+}
+
+export interface PortabilityCase {
+  name: string;
+  outcome: "pass" | "fail" | "not run" | "not applicable";
+}
+
+export interface PortabilityResult extends Omit<BoundaryResult, "cases" | "reviews"> {
+  osBoundary: boolean;
+  cases: PortabilityCase[];
+  applicability: ApplicabilityFinding[];
+  reviews: (ReviewRequest | HostReviewRequest)[];
+  /** The case names Testing must not count as evidence. */
+  challenged: string[];
+}
+
+/** The deterministic cases the audit adds to hosting/F33's. */
+export const PORTABILITY_CASES = Object.freeze(["applicability is not scoped by platform", "host exceptions are well-formed"]);
+
+/** Facts that hold on every host in skills/kaal-hosting-boundary/HOSTS.md: an exception needing only these is stale. */
+const EVERYWHERE: readonly string[] = [];
+const LINK = /^https:\/\/\S+$/;
+const HOST_QUESTION = "Is this case genuinely inapplicable where the fact does not hold, with its assertions intact where it does, and does the evidence show it?";
+
+/** The literal titles of the tests registered in `code`, with where each call starts. */
+function titles(code: string): { index: number; title: string }[] {
+  return [...code.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/g)].map((m) => ({ index: m.index!, title: m[2] }));
+}
+
+/** The title of the test a finding at `line` decides or sits in: one registered on that line, else the nearest before it. */
+function enclosing(code: string, line: number): string | undefined {
+  const lines = code.split("\n");
+  const start = lines.slice(0, line - 1).reduce((n, l) => n + l.length + 1, 0);
+  const end = start + (lines[line - 1]?.length ?? 0);
+  const all = titles(code);
+  return (all.find((t) => t.index >= start && t.index <= end) ?? all.filter((t) => t.index < start).at(-1))?.title;
+}
+
+/**
+ * The portability audit (hosting/F40): hosting/F33's result, unchanged, with
+ * the capability's applicability declarations checked against hosting/F39's
+ * rules, each host exception put to review, and the challenged cases named.
+ */
+export async function portability({ applicability = {}, ...options }: PortabilityOptions): Promise<PortabilityResult> {
+  const base = await boundary(options);
+  const complete = base.failures.length === 0;
+  const files = complete ? await read(options.root) : {};
+  let manifest: { name?: unknown; os?: unknown; cpu?: unknown } = {};
+  try {
+    if (files["package.json"]) manifest = JSON.parse(files["package.json"].toString("utf8"));
+  } catch {
+    // An unreadable manifest names no package, so it is not the boundary.
+  }
+  const os = typeof manifest.name === "string" && osBoundary(manifest.name);
+  const tests = base.sources.filter((s) => s.scope === "test").map((s) => [s.file, files[s.file].toString("utf8")] as const);
+  const registered = new Set(tests.flatMap(([, text]) => titles(text).map((t) => t.title)));
+  const found: ApplicabilityFinding[] = [];
+  const requests: HostReviewRequest[] = [];
+  if (!os && (manifest.os !== undefined || manifest.cpu !== undefined)) found.push({ case: "package.json", rule: "platform-applicability", problem: "the manifest limits the package by os or cpu outside the operating-system boundary" });
+  for (const [name, declaration] of Object.entries(applicability)) {
+    if (!os && Array.isArray(declaration.platforms) && declaration.platforms.length) found.push({ case: name, rule: "platform-applicability", problem: "applicability scoped by platform outside the operating-system boundary" });
+    if (!Array.isArray(declaration.host) || !declaration.host.length) continue;
+    const unknown = declaration.host.filter((h) => !(FACTS as readonly string[]).includes(h));
+    if (unknown.length) found.push({ case: name, rule: "unknown-host-fact", problem: `names facts Hosting does not establish: ${unknown.join(", ")}` });
+    if (!declaration.reason) found.push({ case: name, rule: "unreasoned", problem: "declared with no reason" });
+    if (!LINK.test(declaration.evidence ?? "")) found.push({ case: name, rule: "unevidenced", problem: "declared with no https evidence" });
+    const isRegistered = registered.has(name) || [...registered].some((t) => name.endsWith(` > ${t}`));
+    if (!isRegistered) found.push({ case: name, rule: "stale", problem: "no test source registers a case of that title" });
+    else if (declaration.host.every((h) => EVERYWHERE.includes(h))) found.push({ case: name, rule: "stale", problem: "every fact it names holds on every host" });
+    requests.push({ id: `kaal-hosting/host-applicability@${name}`, rule: "kaal-hosting/host-applicability", owner: "Hosting", case: name, declaration, question: HOST_QUESTION });
+  }
+  const scoped = found.some((f) => f.rule === "platform-applicability");
+  const malformed = found.some((f) => f.rule !== "platform-applicability");
+  const cases: PortabilityCase[] = [
+    ...base.cases,
+    { name: PORTABILITY_CASES[0], outcome: !complete ? "not run" : os ? "not applicable" : scoped ? "fail" : "pass" },
+    { name: PORTABILITY_CASES[1], outcome: !complete ? "not run" : malformed ? "fail" : "pass" },
+  ];
+  const challenged = new Set(found.filter((f) => f.case !== "package.json").map((f) => f.case));
+  for (const f of base.findings) {
+    if (f.kind !== "registration" && f.kind !== "dilution") continue;
+    const title = enclosing(tests.find(([file]) => file === f.file)?.[1] ?? "", f.line);
+    if (title !== undefined) challenged.add(title);
+  }
+  const reviews = [...base.reviews, ...requests];
+  return {
+    ...base,
+    result: !complete ? "unknown" : cases.some((c) => c.outcome === "fail") ? "failed" : "verified",
+    review: reviews.length ? "requested" : "none",
+    osBoundary: os,
+    cases,
+    applicability: found,
+    reviews,
+    challenged: [...challenged].sort(),
   };
 }

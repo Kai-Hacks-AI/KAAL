@@ -63,6 +63,19 @@ The suite runs it for one capability, which never depends on Hosting to be inspe
 
 Each writes one `kaal-hosting-boundary {…}` line. Three deterministic cases (`inspection completes`, `host modules are declared`, `production code leaves the host to Hosting`) give `result` as `verified`, `failed` or `unknown`. Every other finding is a review request with a stable `id`, for Review to judge. The command exits 0, 1, 2, or 3 (verified with a review requested). `skills/kaal-hosting-boundary/SKILL.md` tells a reviewer what each case and kind asks.
 
+## Portability across capabilities
+
+Hosting is KAAL's one operating-system boundary. `OS_BOUNDARY` and `osBoundary(name)`, from `kaal-hosting/conformance`, say which package that is, and a package's own claim never makes it one. When a case in another capability genuinely needs something only some hosts have, it names a host fact instead of a platform: `{ host: ["kaal-hosting/special-entries"], reason, evidence }`.
+
+`kaal-hosting/fixtures` provides `facts()`, which establishes each fact on the running host by trying it. It also provides `specialEntries(dir)`, which makes a FIFO and a listening Unix-domain socket where that fact holds and nothing where it does not.
+
+`portability(options)`, `portabilitySuite(options)` and the command's `--applicability <file>` audit a capability's declarations with two more deterministic cases:
+
+- `applicability is not scoped by platform` checks that no `platforms` declaration, and no manifest `os` or `cpu`, appears outside the boundary.
+- `host exceptions are well-formed` checks for a known fact, a reason, `https` evidence and a registered case.
+
+Every host exception is put to review. `challenged` names the cases a platform decision selects or weakens. `skills/kaal-hosting-boundary/HOSTS.md` gives each fact per host with evidence, and the review guide.
+
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.

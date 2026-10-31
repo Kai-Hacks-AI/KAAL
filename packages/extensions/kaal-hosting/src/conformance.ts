@@ -166,3 +166,12 @@ export async function inspect(files: Files, expected: Expectation): Promise<Repo
 
 export { COUPLING_COVERAGE, COUPLING_EXCLUSIONS, couplings } from "./couplings.js";
 export type { CouplingOptions, CouplingReport, Finding, FindingKind, Rule, Scope, Source } from "./couplings.js";
+
+/** The package names that are KAAL's operating-system boundary (hosting/F36). Changed only by a Hosting PLAN Change. */
+export const OS_BOUNDARY: readonly string[] = Object.freeze(["@kaihacksai/kaal-hosting"]);
+
+/** Whether the package named `name` is the operating-system boundary. A package's own claim never makes it one. */
+export function osBoundary(name: string): boolean {
+  if (typeof name !== "string") throw new TypeError("a package name is a string");
+  return OS_BOUNDARY.includes(name);
+}

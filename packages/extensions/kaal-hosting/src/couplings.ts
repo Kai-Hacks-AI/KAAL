@@ -145,9 +145,10 @@ const rest = (code: string, from: number): string => code.slice(from, code.index
 function classify(code: string, at: number, parens: [number, number][], braces: [number, number][]): FindingKind {
   // In a skip, todo or only option.
   if (/(skip|todo|only)\s*:\s*[^,}]*$/.test(code.slice(Math.max(0, at - 80), at))) return "registration";
-  // In a conditional expression that chooses between test registrations.
+  // In a conditional expression that picks a test registration on either side,
+  // such as `(WINDOWS ? () => {} : it)(…)` (hosting/F40).
   const start = Math.max(code.lastIndexOf(";", at), code.lastIndexOf("\n", at)) + 1;
-  if (/\?\s*(it|test|describe|suite)\b[^:]*:\s*(it|test|describe|suite)\b/.test(rest(code, start))) return "registration";
+  if (/\?\s*(it|test|describe|suite)\b[^:]*:|\?[^:]*:\s*(it|test|describe|suite)\b/.test(rest(code, start))) return "registration";
   // In an if condition: what its branches do.
   for (const [open, close] of parens) {
     if (!(open < at && at < close && /\bif\s*$/.test(code.slice(Math.max(0, open - 6), open)))) continue;
