@@ -16,12 +16,25 @@
     },
     "./package.json": "./package.json"
   },
+  "bin": {
+    "kaal-packaging": "bin/kaal-packaging.mjs"
+  },
   "files": [
+    "bin",
     "capability",
-    "lib"
+    "docs",
+    "lib",
+    "skills",
+    "test/embed",
+    "test/run.mjs",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
-    "test": "node --test test/plan/measurement.test.mjs test/plan/package.test.mjs"
+    "test": "npm run test:all",
+    "test:all": "node test/run.mjs",
+    "test:embedded": "node test/verify.mjs",
+    "test:publisher": "node --test test/publisher/capability.test.mjs"
   },
   "engines": {
     "node": ">=24"

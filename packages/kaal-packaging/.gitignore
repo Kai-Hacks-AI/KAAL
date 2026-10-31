@@ -1,2 +1,2 @@
 # The published Guard 0.0.4 tarball is a pinned test fixture (packaging/T7); the root ignores *.tgz.
-!test/fixtures/*.tgz
+!test/embed/fixtures/*.tgz

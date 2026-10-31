@@ -1,3 +1,4 @@
-# Node identity is the SHA-256 of exact bytes, and the Guard fixture is a published artifact.
-capability/** -text
-test/fixtures/** binary
+# Every shipped file is catalogued by SHA-256 in test/verify.json (packaging/F11), and Node identity is
+# the SHA-256 of exact bytes: Git must never rewrite the package's bytes on any host.
+* -text
+test/embed/fixtures/** binary

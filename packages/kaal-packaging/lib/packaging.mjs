@@ -58,17 +58,19 @@ function check(d, bytes, limits) {
 /**
  * packaging/F1: the artifact's description. `artifact` is the absolute location of a package
  * artifact of known provenance (packaging/N5), and `work` a directory for the ecosystem's tool,
- * where its cache and configuration stay. `limits` narrows or widens LIMITS.
+ * where its cache and configuration stay. `limits` narrows or widens LIMITS. `npm`, when given, is
+ * the absolute location of a Node script that behaves as npm (packaging/A13).
  */
-export async function measure(artifact, { work, limits = {} } = {}) {
+export async function measure(artifact, { work, limits = {}, npm: script } = {}) {
   if (typeof artifact !== "string" || !absolute(artifact)) throw new TypeError("measure takes the absolute location of a package artifact");
   if (typeof work !== "string" || !absolute(work)) throw new TypeError("measure takes an absolute working directory for the ecosystem's tool");
+  if (script !== undefined && (typeof script !== "string" || !absolute(script))) throw new TypeError("measure takes npm as the absolute location of a Node script that behaves as npm");
   const bounded = limitsOf(limits);
   const realization = REALIZATIONS.find((r) => r.reads(artifact));
   if (!realization) throw new Error(`no realization reads this artifact: its format is ${formatOf(artifact)}`);
   const bytes = await readFile(artifact);
   const before = sha256(bytes);
-  const d = await realization.describe(artifact, work, bounded);
+  const d = await realization.describe(artifact, work, bounded, script);
   if (sha256(await readFile(artifact)) !== before) throw new Error(`the artifact changed while ${d.tool.name} described it`);
   check(d, bytes, bounded);
   return {

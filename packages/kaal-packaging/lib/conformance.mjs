@@ -14,6 +14,7 @@ import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { execute, initialize, kind, read, readFile } from "kaal-hosting";
 import * as hosting from "kaal-hosting/conformance";
 import builtins from "./builtins.json" with { type: "json" };
+import { command, resolution } from "./npm/realization.mjs";
 
 /** The documents a KAAL package ships (packaging/F8, the Owner's D2 on #658). */
 export const DOCUMENTS = ["intent", "requirements", "architecture", "testing", "limitations", "operations"].map((d) => `docs/${d}.md`);
@@ -49,17 +50,33 @@ async function delivered(dir) {
   return files;
 }
 
-/** packaging/F7: one name, one exact version, and exact registry dependencies. */
-function identity(pkg) {
+/**
+ * packaging/F7, with packaging/F19: one name, one exact version, and every runtime dependency at an
+ * exact version that the consumer's install shows resolved from a registry. Reading the install
+ * record is the ecosystem realization's; it is read, never fetched, so the result does not depend
+ * on a registry being reachable (packaging/A14).
+ */
+async function identity(pkg, dir, root) {
   const problems = [];
+  const unknowns = [];
   if (typeof pkg.name !== "string" || pkg.name === "") problems.push("it states no name");
   if (typeof pkg.version !== "string" || !EXACT.test(pkg.version)) problems.push(`its version ${JSON.stringify(pkg.version)} is not one exact version`);
+  const deps = [];
   for (const field of ["dependencies", "optionalDependencies", "peerDependencies"]) {
     for (const [name, spec] of Object.entries(pkg[field] ?? {})) {
       if (typeof spec !== "string" || !EXACT.test(spec)) problems.push(`${field} ${name} is ${JSON.stringify(spec)}, not one exact registry version`);
+      else deps.push({ field, name, spec });
     }
   }
-  return problems.length ? finding("packaging/F7", "failed", problems.join("; ")) : finding("packaging/F7", "verified", `${pkg.name}@${pkg.version}`);
+  for (const { field, name, spec } of deps) {
+    const r = await resolution(root, dir, name, spec);
+    if (r.result === "failed") problems.push(r.cause);
+    // An optional or peer dependency the install did not record may simply be absent.
+    else if (r.result === "unknown" && !(r.absent && field !== "dependencies")) unknowns.push(r.cause);
+  }
+  if (problems.length) return finding("packaging/F7", "failed", [...problems, ...unknowns].join("; "));
+  if (unknowns.length) return finding("packaging/F7", "unknown", unknowns.join("; "));
+  return finding("packaging/F7", "verified", `${pkg.name}@${pkg.version}${deps.length ? `, with ${deps.map((d) => `${d.name}@${d.spec}`).join(", ")} recorded by the install as resolved from a registry. That is recorded resolution, not independently verified provenance (testing/F14)` : ""}`);
 }
 
 /** packaging/F8: every shipped document is present and non-empty, and the README links Operations. */
@@ -337,7 +354,7 @@ const BROKEN = 'throw new Error("kaal-packaging N9 probe: this module was broken
  * no longer does depends on the modules' behaviour; whether its assertions are adequate stays its
  * owner's, and the finding says so.
  */
-async function probe(pkg, files, root, { work, env }) {
+async function probe(pkg, files, root, { work, env, npm }) {
   if (work === undefined) return finding("packaging/N9", "unknown", "no working directory was given for the behaviour probe, so behaviour was not checked");
   const modules = Object.keys(files).filter((p) => /\.(mjs|cjs|js)$/.test(p) && !p.startsWith("test/"));
   if (modules.length === 0) return finding("packaging/N9", "unknown", "the package ships no module outside test/ to break, so behaviour cannot be told from presence here");
@@ -365,7 +382,7 @@ async function probe(pkg, files, root, { work, env }) {
   let r;
   try {
     await initialize(work, tree);
-    r = await execute("npm", ["test", "--silent"], { cwd: join(work, `node_modules/${pkg.name}`), env });
+    r = await npmTest(join(work, `node_modules/${pkg.name}`), { env, npm });
   } catch (e) {
     return finding("packaging/N9", "unknown", `the behaviour probe could not run: ${e.message}`);
   }
@@ -380,6 +397,12 @@ async function probe(pkg, files, root, { work, env }) {
   );
 }
 
+/** The package's `npm test` in `cwd`, by `npm` or the npm script the caller gave (packaging/A13). */
+function npmTest(cwd, { env, npm }) {
+  const [file, prefix] = command(npm);
+  return execute(file, [...prefix, "test", "--silent"], { cwd, env });
+}
+
 /** The overall result: failed when any finding failed, unknown when any is unknown, else verified. */
 const overall = (findings) => (findings.some((f) => f.result === "failed") ? "failed" : findings.some((f) => f.result === "unknown") ? "unknown" : "verified");
 
@@ -390,9 +413,10 @@ const overall = (findings) => (findings.some((f) => f.result === "failed") ? "fa
  * behaviour probe in `work` (absolute; a missing or empty directory the caller owns and removes).
  * It returns each finding, the overall result, and what the package's own verification reported,
  * which is the package's specific contract and not Packaging's to judge. `testing` is Testing's
- * model functions for packaging/F13, which the caller hands in when it has them.
+ * model functions for packaging/F13, which the caller hands in when it has them. `npm`, when given, is
+ * the absolute location of a Node script that behaves as npm (packaging/A13).
  */
-export async function conform(dir, { consumer, env, work, testing } = {}) {
+export async function conform(dir, { consumer, env, work, testing, npm } = {}) {
   if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);
   const root = consumer ?? projectOf(dir);
   const pkg = await manifestOf(dir);
@@ -409,16 +433,16 @@ export async function conform(dir, { consumer, env, work, testing } = {}) {
   let run = {};
   if (pkg.scripts?.test !== undefined) {
     try {
-      run = await execute("npm", ["test", "--silent"], { cwd: dir, env });
+      run = await npmTest(dir, { env, npm });
     } catch (e) {
       run = { error: e.message };
     }
   }
   const checked = verification(pkg, files, run);
-  const n9 = checked.findings.find((f) => f.requirement === "packaging/N9") ?? (await probe(pkg, files, root, { work, env }));
+  const n9 = checked.findings.find((f) => f.requirement === "packaging/N9") ?? (await probe(pkg, files, root, { work, env, npm }));
   const after = await snapshot(root);
   const findings = [
-    identity(pkg),
+    await identity(pkg, dir, root),
     documents(files),
     ...checked.findings.filter((f) => f.requirement !== "packaging/N9"),
     manifest(files, verify, checked.run),
@@ -461,7 +485,7 @@ function followed(script, suites) {
  * declared suites and reports a result. An `npm test` that does not say which suites it runs
  * cannot be decided from outside, and is unknown.
  */
-export async function conformSource(dir, { env } = {}) {
+export async function conformSource(dir, { env, npm } = {}) {
   const pkg = await manifestOf(dir);
   const scripts = pkg.scripts ?? {};
   const suites = Object.fromEntries(Object.entries(scripts).filter(([name]) => name.startsWith("test:")));
@@ -475,7 +499,7 @@ export async function conformSource(dir, { env } = {}) {
   if (missing.length) return finding("packaging/F14", "failed", `npm test runs ${missing.join(", ")}, which the Test Plan does not declare`);
   let run;
   try {
-    run = await execute("npm", ["test", "--silent"], { cwd: dir, env });
+    run = await npmTest(dir, { env, npm });
   } catch (e) {
     return finding("packaging/F14", "unknown", `npm test could not be run: ${e.message}`);
   }

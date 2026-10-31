@@ -1,5 +1,8 @@
-// packaging/C4 planned tests (plan/package/testing.md), written at the start of packaging/C5. Each
-// title names the Requirements it checks. They use kaal-packaging's public interface only.
+// Packaging's Embedded cases for the KAAL Package contract (docs/testing.md): packaging/C4's planned
+// tests, and packaging/T29, T30, T32 and T35 (packaging/C8). Each title names, in brackets, the
+// identifiers it tests. They use kaal-packaging's public interface only, and run against the copy
+// they ship in, installed or in its source workspace. Every process they start goes through
+// Hosting's `execute` (packaging/N11).
 //
 // Every case builds a fixture package, packs it with the npm the lane installed, and installs the
 // tarball offline into a fresh consumer project, as a consumer would. A dependency the fixture
@@ -7,16 +10,18 @@
 // the conformance suite against a conforming package and against fixtures that break one
 // Requirement, and checks that the suite names that Requirement and its cause.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
+import { execute } from "kaal-hosting";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRATCH = mkdtempSync(join(tmpdir(), "kaal-packaging-conformance-"));
+// The scratch space is removed when the file's cases end (packaging/N7).
+after(() => rmSync(SCRATCH, { recursive: true, force: true }));
 const WORK = join(SCRATCH, "npm");
 mkdirSync(WORK, { recursive: true });
 writeFileSync(join(WORK, "npmrc"), "");
@@ -49,8 +54,11 @@ function fresh(name) {
   return dir;
 }
 
-function npm(args, cwd) {
-  return execFileSync("npm", args, { cwd, env: ENV, encoding: "utf8", shell: process.platform === "win32" });
+/** npm with `args` in `cwd`, run through Hosting; its standard output, or a failed assertion naming what it printed. */
+async function npm(args, cwd) {
+  const r = await execute("npm", args, { cwd, env: ENV });
+  assert.equal(r.status, 0, `npm ${args.join(" ")} exited ${r.status}: ${r.stderr}`);
+  return r.stdout;
 }
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -161,20 +169,30 @@ function conforming(change = {}) {
  * the consumer first, and `around` is written into the consumer's project, as a checkout would
  * hold it. Returns the installed package's directory and the consumer's.
  */
-function install(files, { deps = {}, tamper = {}, around = {} } = {}) {
+async function install(files, { deps = {}, tamper = {}, around = {}, lock } = {}) {
   const source = fresh("source");
   writeAll(source, files);
   const out = fresh("packed");
-  const tgz = JSON.parse(npm(["pack", "--json", "--ignore-scripts", "--pack-destination", out], source))[0].filename;
+  const tgz = JSON.parse(await npm(["pack", "--json", "--ignore-scripts", "--pack-destination", out], source))[0].filename;
   const consumer = fresh("consumer");
   writeAll(consumer, { "package.json": JSON.stringify({ name: "consumer", version: "1.0.0", private: true }) + "\n" });
   writeAll(consumer, around);
   for (const [dep, version] of Object.entries(deps)) writeAll(join(consumer, "node_modules", dep), { "package.json": JSON.stringify({ name: dep, version }) });
-  npm(["install", join(out, tgz), "--ignore-scripts", "--no-save", "--no-package-lock"], consumer);
-  const dir = join(consumer, "node_modules", JSON.parse(files["package.json"]).name);
+  await npm(["install", join(out, tgz), "--ignore-scripts", "--no-save", "--no-package-lock"], consumer);
+  const name = JSON.parse(files["package.json"]).name;
+  const dir = join(consumer, "node_modules", name);
   writeAll(dir, tamper);
+  if (lock === null) rmSync(join(consumer, "node_modules", ".package-lock.json"), { force: true });
+  else if (lock !== undefined) writeAll(consumer, { "node_modules/.package-lock.json": JSON.stringify({ name: "consumer", lockfileVersion: 3, requires: true, packages: { "": { name: "consumer" }, [`node_modules/${name}`]: { version: "1.0.0" }, ...lock } }, null, 2) });
   return { dir, consumer };
 }
+
+/** An install record entry for `name@version` fetched from the npm registry, as npm writes one. */
+const fromRegistry = (name, version) => ({
+  version,
+  resolved: `https://registry.npmjs.org/${name}/-/${name.split("/").at(-1)}-${version}.tgz`,
+  integrity: `sha512-${Buffer.from(`${name}@${version}`).toString("base64")}`,
+});
 
 /**
  * A stand-in for Testing's model functions (testing/F24–F25), used only while the installed Testing
@@ -201,14 +219,13 @@ const STAND_IN = {
   },
 };
 
-/** Testing's model functions as installed, or the stand-in while Testing does not export them yet. */
-const INSTALLED = await import("kaal-testing/model").then((m) => (typeof m.check === "function" && typeof m.tested === "function" ? m : null), () => null);
-const TESTING = INSTALLED ?? STAND_IN;
+/** Testing's model functions, as the caller of conform hands them in. Packaging takes no dependency on Testing (packaging/N8), so its Embedded cases use the stand-in. */
+const TESTING = STAND_IN;
 
 /** The suite's findings for an installed package, by Requirement. */
 async function conform(files, options) {
   const { conform } = await suite();
-  const { dir, consumer } = install(files, options);
+  const { dir, consumer } = await install(files, options);
   const testing = options && "testing" in options ? options.testing : TESTING;
   const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe"), testing });
   return { report, by: Object.fromEntries(report.findings.map((f) => [f.requirement, f])), dir, consumer };
@@ -222,9 +239,10 @@ function expect(by, requirement, result, cause) {
 }
 
 describe("packaging/C5 the KAAL Package conformance suite", () => {
-  it("packaging/T15 F7: name, exact version and exact registry dependencies", async () => {
-    const good = await conform(conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } }), { deps: { "kaal-dep": "1.2.3" } });
-    expect(good.by, "packaging/F7", "verified");
+  it("packaging/T15 [packaging/F7]: name, exact version and exact registry dependencies", async () => {
+    // No false RED (packaging/F19): a dependency the install shows fetched from a registry, with integrity, verifies.
+    const good = await conform(conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } }), { deps: { "kaal-dep": "1.2.3" }, lock: { "node_modules/kaal-dep": fromRegistry("kaal-dep", "1.2.3") } });
+    expect(good.by, "packaging/F7", "verified", /kaal-dep@1\.2\.3 recorded by the install as resolved from a registry\. That is recorded resolution, not independently verified provenance \(testing\/F14\)/);
 
     const dep = fresh("file-dep");
     writeAll(dep, { "package.json": JSON.stringify({ name: "kaal-dep", version: "1.2.3" }) });
@@ -236,7 +254,7 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     assert.equal(range.report.result, "failed");
   });
 
-  it("packaging/T16 F8: the shipped documents are present and non-empty, and the README links docs/operations.md", async () => {
+  it("packaging/T16 [packaging/F8]: the shipped documents are present and non-empty, and the README links docs/operations.md", async () => {
     expect((await conform(conforming())).by, "packaging/F8", "verified");
     expect((await conform(conforming({ files: { "docs/limitations.md": undefined } }))).by, "packaging/F8", "failed", /docs\/limitations\.md is not shipped/);
     expect((await conform(conforming({ files: { "docs/requirements.md": "\n" } }))).by, "packaging/F8", "failed", /docs\/requirements\.md is empty/);
@@ -247,14 +265,15 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     assert.match(f.cause, /README\.md does not link docs\/operations\.md/);
   });
 
-  it("packaging/T17 F9, N9: the installed npm test executes the Embedded verification against the installed copy", async () => {
+  it("packaging/T17 [packaging/F9, packaging/N9]: the installed npm test executes the Embedded verification against the installed copy", async () => {
     const good = await conform(conforming());
     expect(good.by, "packaging/F9", "verified", /installed copy/);
     expect(good.by, "packaging/N9", "verified", /depends on their behaviour/);
 
     // Installed inside a checkout, a relative import of the checkout resolves and the run succeeds.
     // It still does not run against the installed copy alone.
-    const checkout = `import { add as fromCheckout } from "../../../packages/kaal-fixture/lib/add.mjs";\nfromCheckout(1, 1);\n${verifier("kaal-fixture", 3)}`;
+    // The import is assembled, so that this file's own text names no path outside its package (packaging/F9 on Packaging itself).
+    const checkout = `import { add as fromCheckout } from ${JSON.stringify(`${"../".repeat(3)}packages/kaal-fixture/lib/add.mjs`)};\nfromCheckout(1, 1);\n${verifier("kaal-fixture", 3)}`;
     const around = { "packages/kaal-fixture/lib/add.mjs": "export const add = (a, b) => a + b;\n" };
     const reach = await conform(conforming({ files: { "test/verify.mjs": checkout } }), { around });
     expect(reach.by, "packaging/F10", "verified");
@@ -264,7 +283,7 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     expect((await conform(publisher)).by, "packaging/F9", "failed", /reported no result/);
   });
 
-  it("packaging/T18 F10: the entrypoint's line carries a result consistent with its exit and cases", async () => {
+  it("packaging/T18 [packaging/F10]: the entrypoint's line carries a result consistent with its exit and cases", async () => {
     expect((await conform(conforming())).by, "packaging/F10", "verified", /verified, exit 0/);
 
     const lying = `console.log(${JSON.stringify(summary("kaal-fixture", { exit: 0, executed: 3, passed: 2, failed: 1 }))});\n`;
@@ -279,7 +298,7 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     expect((await conform(conforming({ files: { "test/verify.mjs": exit } }))).by, "packaging/F10", "failed", /reported verified but exited 1/);
   });
 
-  it("packaging/T19 F11: a changed installed file, and a declared case missing, run twice or replaced, are reported, never verified", async () => {
+  it("packaging/T19 [packaging/F11]: a changed installed file, and a declared case missing, run twice or replaced, are reported, never verified", async () => {
     expect((await conform(conforming())).by, "packaging/F11", "verified", /each of the 3 declared cases ran exactly once/);
 
     const tampered = await conform(conforming(), { tamper: { "lib/add.mjs": "export const add = (a, b) => a - b;\n" } });
@@ -308,7 +327,7 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     expect((await conform(conforming({ manifest: null }))).by, "packaging/F11", "unknown", /no manifest/);
   });
 
-  it("packaging/T20 F12: the runtime and platforms are declared", async () => {
+  it("packaging/T20 [packaging/F12]: the runtime and platforms are declared", async () => {
     // No false RED: a portable package, which declares its runtime and correctly omits os and cpu, conforms.
     expect((await conform(conforming())).by, "packaging/F12", "verified", /node >=24, with no os or cpu restriction/);
     expect((await conform(conforming({ pkg: { engines: undefined } }))).by, "packaging/F12", "failed", /no runtime/);
@@ -328,7 +347,7 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     assert.notEqual(restricted.result, "verified", restricted.cause);
   });
 
-  it("packaging/T21 F13: the traces a package ships are Testing's model, Case tests Target, and they resolve", async () => {
+  it("packaging/T21 [packaging/F13]: the traces a package ships are Testing's model, Case tests Target, and they resolve", async () => {
     // No false RED or unknown: a package whose traces are a sound model of its delivered cases conforms.
     expect((await conform(conforming())).by, "packaging/F13", "verified", /3 delivered cases are its model's Cases, and they test 1 of the 1 identifiers/);
     // A package such as Foundation, which defines no identifier and ships neither a model nor a coverage registry, conforms.
@@ -370,11 +389,12 @@ const docs = (requirements) => ({ "docs/requirements.md": new TextEncoder().enco
 const foundation = traceability(docs("# Requirements\\n\\nIt hashes bytes.\\n"), null);
 const model = traceability(docs("- **fixture/F1**: It adds.\\n"), { cases: ["fixture/T1"], model: { cases: [{ id: "fixture/T1", tests: ["fixture/F1"] }] } });
 console.log(JSON.stringify([foundation.result, model.result]));`;
-    const out = execFileSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: PACKAGE, encoding: "utf8" }).trim().split(/\r?\n/).at(-1);
+    const ran = await execute(process.execPath, ["--input-type=module", "-e", probe], { cwd: PACKAGE });
+    const out = ran.stdout.trim().split(/\r?\n/).at(-1);
     assert.deepEqual(JSON.parse(out), ["verified", "unknown"]);
   });
 
-  it("packaging/T22 N7: the consumer's project is byte-identical after verification", async () => {
+  it("packaging/T22 [packaging/N7]: the consumer's project is byte-identical after verification", async () => {
     const good = await conform(conforming());
     expect(good.by, "packaging/N7", "verified");
     const cache = `import { writeFileSync } from "node:fs";\nwriteFileSync(new URL("../../../.fixture-cache", import.meta.url), "x");\n${verifier("kaal-fixture", 3)}`;
@@ -383,15 +403,16 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     assert.ok(existsSync(join(r.consumer, ".fixture-cache")));
   });
 
-  it("packaging/T23 N8: the installed verification needs only its declared runtime dependencies", async () => {
+  it("packaging/T23 [packaging/N8]: the installed verification needs only its declared runtime dependencies", async () => {
     expect((await conform(conforming())).by, "packaging/N8", "verified");
-    const testing = `import "kaal-testing/verify";\n${verifier("kaal-fixture", 3)}`;
+    // Assembled, so that this file's own text imports nothing undeclared (packaging/N8 on Packaging itself).
+    const testing = `import ${JSON.stringify("kaal-testing/verify")};\n${verifier("kaal-fixture", 3)}`;
     const r = await conform(conforming({ files: { "test/verify.mjs": testing } }));
     expect(r.by, "packaging/N8", "failed", /test\/verify\.mjs imports kaal-testing/);
     assert.equal(r.report.result, "failed");
   });
 
-  it("packaging/T24 N9: a verification that passes on presence, whatever the package does, is detected; a count never certifies behaviour", async () => {
+  it("packaging/T24 [packaging/N9]: a verification that passes on presence, whatever the package does, is detected; a count never certifies behaviour", async () => {
     // Its documents are all shipped and docs/requirements.md says fixture/F1: "It adds". Its
     // module subtracts, and its verifier checks only that the document exists.
     const subtracts = { "lib/add.mjs": "export const add = (a, b) => a - b;\n" };
@@ -415,7 +436,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     expect((await conform(conforming(), { work: null })).by, "packaging/N9", "unknown", /no working directory/);
   });
 
-  it("packaging/T25 N10: every cited ID exists in its owner's plan, and no Testing term is restated", async () => {
+  it("packaging/T25 [packaging/N10]: every cited ID exists in its owner's plan, and no Testing term is restated", async () => {
     const { references } = await suite();
     const testing = { "testing/requirements.md": "- **testing/F13**: Results.\n- **testing/F14**: Evidence.\n" };
     expect({ x: references("- **packaging/F10**: It reports Testing's result (testing/F13–F14).\n", testing) }, "x", "verified");
@@ -423,18 +444,18 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     expect({ x: references("- **packaging/F10**: `unknown` means the run could not decide.\n", testing) }, "x", "failed", /defines "unknown" itself/);
     expect({ x: references("- **packaging/F12**: Its meaning is hosting/F26's.\n", testing) }, "x", "unknown", /hosting\/F26/);
 
-    // Packaging's own Requirements, against Packaging's own plan: every Packaging ID they cite
-    // exists. Other owners' IDs exist on those owners' branches, which a caller passes as `plans`
-    // (engineering/C5); here they are unresolved, never verified.
-    const plan = join(PACKAGE, "plan");
+    // Packaging's own shipped Requirements, against its own shipped documents: every Packaging ID
+    // they cite exists. Other owners' IDs exist on those owners' branches, which a caller passes as
+    // `plans` (engineering/C5); here they are unresolved, never verified.
+    const docs = join(PACKAGE, "docs");
     const own = {};
-    for (const path of walk(plan)) if (path.endsWith(".md")) own[path] = readFileSync(join(plan, path), "utf8");
-    const result = references(own["package/requirements.md"], own);
+    for (const path of walk(docs)) if (path.endsWith(".md")) own[path] = readFileSync(join(docs, path), "utf8");
+    const result = references(own["requirements.md"], own);
     assert.equal(result.result, "unknown", result.cause);
     assert.doesNotMatch(result.cause, /packaging\//);
   });
 
-  it("packaging/T26 F14: the source workspace declares its Test Plan, with the Embedded verification, and npm test follows it", async () => {
+  it("packaging/T26 [packaging/F14]: the source workspace declares its Test Plan, with the Embedded verification, and npm test follows it", async () => {
     const { conformSource } = await suite();
     const source = (scripts) => {
       const dir = fresh("workspace");
@@ -450,7 +471,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     expect({ x: await source({ test: "node test/verify.mjs" }) }, "x", "failed", /declares no Test Plan/);
   });
 
-  it("packaging/A7: a conforming package is verified as a whole, and the package's own result is reported beside it", async () => {
+  it("packaging/T35 [packaging/A7]: a conforming package is verified as a whole, and the package's own result is reported beside it", async () => {
     const { report } = await conform(conforming());
     assert.equal(report.result, "verified", JSON.stringify(report.findings.filter((f) => f.result !== "verified")));
     assert.deepEqual(report.package.name, "kaal-fixture");
@@ -459,5 +480,115 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
       report.findings.map((f) => f.requirement),
       ["packaging/F7", "packaging/F8", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/F12", "packaging/F13", "packaging/N7", "packaging/N8", "packaging/N9"],
     );
+  });
+
+  it("packaging/T32 [packaging/F19, packaging/F7, packaging/A14]: F7 verifies a dependency the install shows resolved from a registry with integrity, fails a file:, link or other resolution, and is unknown where the install records nothing", async () => {
+    const pinned = conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } });
+    const deps = { "kaal-dep": "1.2.3" };
+    const f7 = async (lock) => (await conform(pinned, { deps, lock }))["by"]["packaging/F7"];
+    const check = (f, result, cause) => {
+      assert.equal(f.result, result, f.cause);
+      assert.match(f.cause, cause);
+    };
+    check(await f7({ "node_modules/kaal-dep": fromRegistry("kaal-dep", "1.2.3") }), "verified", /resolved from a registry/);
+    // Placed by path, which F7 verified on syntax alone before packaging/F19: npm records it with no resolution.
+    check(await f7(undefined), "unknown", /records kaal-dep with no resolved location/);
+    check(await f7(null), "unknown", /no install record/);
+    check(await f7({}), "unknown", /records no resolution for kaal-dep/);
+    check(await f7({ "node_modules/kaal-dep": { version: "1.2.3", resolved: "file:../kaal-dep-1.2.3.tgz", integrity: "sha512-x" } }), "failed", /kaal-dep resolved from .file:\.\.\/kaal-dep-1\.2\.3\.tgz., not from a registry/); // quotes as `.`, so the text is not read as an import
+    check(await f7({ "node_modules/kaal-dep": { resolved: "../kaal-dep", link: true } }), "failed", /kaal-dep is linked to "\.\.\/kaal-dep", not installed from a registry/);
+    check(await f7({ "node_modules/kaal-dep": { version: "1.2.3", resolved: "git+ssh://git@example.com/kaal-dep.git#abc" } }), "failed", /not from a registry/);
+    check(await f7({ "node_modules/kaal-dep": { ...fromRegistry("kaal-dep", "1.2.3"), integrity: undefined } }), "unknown", /no integrity recorded/);
+    check(await f7({ "node_modules/kaal-dep": fromRegistry("kaal-dep", "1.2.4") }), "failed", /installed at "1\.2\.4", not 1\.2\.3/);
+    // Resolved as Node resolves: a nested copy is the one the package loads.
+    const nested = { "node_modules/kaal-dep": fromRegistry("kaal-dep", "1.2.3"), "node_modules/kaal-fixture/node_modules/kaal-dep": { version: "1.2.3", resolved: "file:../elsewhere", integrity: "sha512-x" } };
+    check(await f7(nested), "failed", /elsewhere/);
+    // A package with no runtime dependency needs no install record.
+    expect((await conform(conforming())).by, "packaging/F7", "verified", /^kaal-fixture@1\.0\.0$/);
+  });
+
+  it("packaging/T29 [packaging/F16, packaging/N12, packaging/F13]: kaal-packaging measure and conform print what the functions return, end on one result line, exit 0, 1 or 2 by the result, and judge packaging/F13 only with Testing's model functions given through --testing", async () => {
+    const bin = join(PACKAGE, "bin", "kaal-packaging.mjs");
+    const run = (...args) => execute(process.execPath, [bin, ...args], { cwd: fresh("cwd"), env: ENV });
+    const { measure, read, report } = await import("kaal-packaging");
+    const { conform: decide, resultLine } = await suite();
+
+    // measure: the record of packaging/F4, or the text report, exactly as the functions give them.
+    const fixture = join(PACKAGE, "test", "embed", "fixtures", "kaal-guard-0.0.4.tgz");
+    const m = await measure(fixture, { work: fresh("work") });
+    const json = await run("measure", fixture);
+    assert.equal(json.status, 0, json.stderr);
+    assert.deepEqual(read(json.stdout.trim()), m);
+    const text = await run("measure", fixture, "--format", "text", "--work", fresh("work"));
+    assert.equal(text.status, 0, text.stderr);
+    assert.equal(text.stdout.trim(), report(m, { format: "text" }).trim());
+    const refused = await run("measure", join(fresh("missing"), "a.zip"));
+    assert.equal(refused.status, 2);
+    assert.match(refused.stderr, /format is zip/);
+
+    // conform: one line per finding, then one result line in Testing's form, and the exit by the result.
+    const decided = async (files, { testing } = {}) => {
+      const { dir, consumer } = await install(files);
+      const cli = await run("conform", dir, "--consumer", consumer, ...(testing ? ["--testing", testing.module] : []));
+      const fn = await decide(dir, { consumer, env: ENV, work: fresh("probe"), testing: testing?.functions });
+      const parsed = resultLine(cli.stdout);
+      assert.equal(parsed.error, undefined, cli.stdout + cli.stderr);
+      assert.equal(parsed.result, fn.result, cli.stdout);
+      assert.equal(cli.status, { verified: 0, failed: 1, unknown: 2 }[fn.result], cli.stdout + cli.stderr);
+      const lines = cli.stdout.trim().split(/\r?\n/).slice(0, -1).filter((l) => !l.startsWith("note: "));
+      assert.deepEqual(lines.map((l) => l.split(": ").slice(0, 2).join(": ")), fn.findings.map((f) => `${f.result}: ${f.requirement}`));
+      return { parsed, fn, cli };
+    };
+    // Foundation's form, with no identifier and no model, so nothing waits on Testing's model functions.
+    const plain = { manifest: { model: undefined }, files: { "docs/requirements.md": "# Requirements\n\nIt adds.\n" } };
+    const ok = await decided(conforming(plain));
+    assert.equal(ok.parsed.result, "verified", ok.cli.stdout);
+    const failed = await decided(conforming({ ...plain, pkg: { engines: undefined } }));
+    assert.equal(failed.parsed.result, "failed");
+    assert.ok(failed.parsed.causes.some((c) => /packaging\/F12 failed/.test(c)), failed.cli.stdout);
+    const unknown = await decided(conforming({ manifest: null, files: plain.files }));
+    assert.equal(unknown.parsed.result, "unknown");
+    // A package that ships a Testing model: without Testing's model functions the command does not
+    // judge packaging/F13, and says its run is not a complete judgement; given them through
+    // --testing, a module file the caller provides, it judges F13 as the library does.
+    const unjudged = await decided(conforming());
+    assert.equal(unjudged.parsed.result, "unknown");
+    assert.match(unjudged.cli.stdout, /^note: packaging\/F13 was not judged: no Testing model functions were given\..*not a complete conformance judgement\.$/m);
+    const shim = join(fresh("testing"), "testing.mjs");
+    writeFileSync(shim, `export const check = ${STAND_IN.check.toString().replace(/^check/, "function")};\nexport const tested = ${STAND_IN.tested.toString().replace(/^tested/, "function")};\n`);
+    const judged = await decided(conforming(), { testing: { module: shim, functions: STAND_IN } });
+    assert.equal(judged.parsed.result, "verified", judged.cli.stdout);
+    assert.doesNotMatch(judged.cli.stdout, /^note: /m);
+    const noFunctions = join(fresh("testing"), "empty.mjs");
+    writeFileSync(noFunctions, "export const check = 1;\n");
+    // --json prints the function's report itself.
+    const { dir, consumer } = await install(conforming(plain));
+    const asJson = await run("conform", dir, "--consumer", consumer, "--json");
+    const body = asJson.stdout.trim().split(/\r?\n/).slice(0, -1).join("\n");
+    assert.deepEqual(JSON.parse(body).findings.map((f) => f.result), ok.fn.findings.map((f) => f.result));
+    // Misuse is refused, cannot run: 2.
+    for (const args of [[], ["nope"], ["conform"], ["conform", dir, "--frobnicate"], ["measure", fixture, "--format", "xml"], ["conform", dir, "--testing", noFunctions], ["conform", dir, "--testing", join(fresh("missing"), "none.mjs")]]) {
+      const r = await run(...args);
+      assert.equal(r.status, 2, `${args.join(" ")}: ${r.stdout}${r.stderr}`);
+      assert.match(r.stderr, /usage:/);
+    }
+  });
+
+  it("packaging/T30 [packaging/F17]: the shipped skill is in the shared skill format, names both commands, and cites only Packaging IDs that exist and other owners' IDs as references, restating no Testing term", async () => {
+    const { references } = await suite();
+    const skill = readFileSync(join(PACKAGE, "skills", "kaal-packaging", "SKILL.md"), "utf8");
+    const front = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/.exec(skill);
+    assert.ok(front, "the skill opens with frontmatter");
+    assert.match(front[1], /^name: kaal-packaging$/m);
+    assert.match(front[1], /^description: \S.{40,}$/m);
+    for (const command of ["bin/kaal-packaging.mjs measure", "bin/kaal-packaging.mjs conform", "--testing"]) assert.ok(skill.includes(command), `the skill names ${command}`);
+    const docs = join(PACKAGE, "docs");
+    const own = {};
+    for (const path of walk(docs)) if (path.endsWith(".md")) own[path] = readFileSync(join(docs, path), "utf8");
+    const r = references(skill, own);
+    assert.notEqual(r.result, "failed", r.cause);
+    if (r.result === "unknown") assert.doesNotMatch(r.cause, /packaging\//, "every Packaging ID the skill cites exists");
+    // No false GREEN: a skill that restates a Testing term is refused.
+    assert.equal(references(`${skill}\n\`unknown\` means the suite could not decide.\n`, own).result, "failed");
   });
 });
