@@ -10,3 +10,9 @@ The cases go in `packages/skills/kaal-intent/test/intent.test.mjs` with `intent/
 | intent/T4 | `ownership.kaal.json` claims exactly `packages/skills/kaal-intent/` and names `Intent` by the id of `payload/Intent.md` | No claim |
 
 intent/T3 uses a fixture `Serves`, never Requirements' own Definition, so Intent's tests do not depend on Requirements' package.
+
+## Evidence at `intent/C2`
+
+RED, before the DO's changes, with the cases added: intent/T1 and T3 fail with a `FormError` because the reference has no Node form, intent/T2 fails on `graph/I7` because the reference states no identification rule, and intent/T4 fails because there is no claim. All four are missing parts of what is planned. None is a behavioural RED of something implemented differently.
+
+GREEN, after: `npm test -w kaal-intent` passes 14/14. The Definition's id is now `f86d4e30…60ae`, and `references/intent.md` is re-pinned to it.
