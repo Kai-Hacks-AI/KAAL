@@ -16,13 +16,23 @@ import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 sha256(new TextEncoder().encode("abc"));
 ```
 
+From a shell, in a project that has it installed:
+
+```sh
+npx kaal-foundation sha256 README.md
+echo -n abc | npx kaal-foundation sha256
+```
+
+An agent's guide is the shipped skill, `skills/kaal-foundation/SKILL.md`.
+
 ## Verify
 
 ```sh
 npm explore @kaihacksai/kaal-foundation -- npm test
+npx kaal-foundation verify
 ```
 
-In an installed package, `npm test` runs only the shipped consumer tests and ends in `verified`, `failed` or `cannot verify` ([Testing](testing.md)). It refuses, as `cannot verify`, a layout it cannot tell apart from a source checkout.
+Both check the installed copy against its manifest and run the shipped cases. They end in `verified`, `failed` or `cannot verify`, and the last line is `kaal-foundation-verification {json}` ([Testing](testing.md)). `npm test` refuses, as `cannot verify`, a layout it cannot tell apart from a source checkout.
 
 ## Remove
 
@@ -37,6 +47,7 @@ Foundation keeps no state outside its package directory.
 ```text
 LICENSE
 README.md
+bin/kaal-foundation.mjs
 docs/architecture.md
 docs/intent.md
 docs/limitations.md
@@ -46,7 +57,11 @@ docs/testing.md
 lib/sha256.d.ts
 lib/sha256.mjs
 package.json
-test/consumer/sha256.test.mjs
+skills/kaal-foundation/SKILL.md
+test/embed/architecture.test.mjs
+test/embed/commands.test.mjs
+test/embed/requirements.test.mjs
 test/run.mjs
+test/verify.json
 test/verify.mjs
 ```
