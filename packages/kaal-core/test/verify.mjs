@@ -4,21 +4,24 @@
 // establishes the candidate. It then runs the delivered loops and reports Testing's result for this
 // candidate: verified only when every required case executed successfully. One execution record
 // precedes the result line, which is the last line of standard output.
-import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from "node:fs";
+// Every host operation goes through kaal-hosting, KAAL's only OS boundary, except the scratch working
+// directory, which Hosting does not offer: it is made and removed with Node's portable calls, never
+// by a platform decision. SHA-256 is Foundation's.
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
+import { execute, read, readFile } from "kaal-hosting";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// Node resolves the entry module's links, so this is the package directory's real path.
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = "test/verify.json";
 const RESULTS = { verified: 0, failed: 1, "cannot verify": 2 };
 
-const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 let pkg = {};
 try {
-  pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+  pkg = JSON.parse((await readFile(join(ROOT, "package.json"))).toString("utf8"));
 } catch {
   // An unreadable package.json is reported by the consistency check below.
 }
@@ -40,25 +43,23 @@ const end = (result, cause) => {
 
 /** True when the package directory's real path sits directly in a node_modules directory (core/A34). */
 const installed = (() => {
-  const parent = dirname(realpathSync(ROOT));
+  const parent = dirname(ROOT);
   return basename(parent) === "node_modules" || (basename(parent).startsWith("@") && basename(dirname(parent)) === "node_modules");
 })();
 
-/** Every file of the package outside a nested node_modules, as sorted POSIX paths. */
-const files = (dir = ROOT, out = []) => {
-  for (const e of readdirSync(dir, { withFileTypes: true })) {
-    if (e.name === "node_modules") continue;
-    const path = join(dir, e.name);
-    if (e.isDirectory()) files(path, out);
-    else out.push(path.slice(ROOT.length + 1).replaceAll("\\", "/"));
+/** The bytes of a listed file, or undefined when it is missing. */
+const bytesOf = async (path) => {
+  try {
+    return await readFile(join(ROOT, path));
+  } catch {
+    return undefined;
   }
-  return out.sort();
 };
 
 // The candidate and its consistency with the manifest.
 let manifest;
 try {
-  const bytes = readFileSync(join(ROOT, MANIFEST));
+  const bytes = await readFile(join(ROOT, MANIFEST));
   manifest = JSON.parse(bytes.toString("utf8"));
   candidate.manifest = sha256(bytes);
 } catch {
@@ -66,12 +67,21 @@ try {
 }
 cases = Array.isArray(manifest.cases) ? manifest.cases : [];
 const listed = manifest.files && typeof manifest.files === "object" ? manifest.files : {};
-const present = files().filter((path) => path !== MANIFEST);
 for (const path of Object.keys(listed).sort()) {
-  if (!present.includes(path)) end("cannot verify", `${path} is missing`);
-  if (sha256(readFileSync(join(ROOT, path))) !== listed[path]) end("cannot verify", `${path} does not match the manifest`);
+  const bytes = await bytesOf(path);
+  if (bytes === undefined) end("cannot verify", `${path} is missing`);
+  if (sha256(bytes) !== listed[path]) end("cannot verify", `${path} does not match the manifest`);
 }
-if (installed) for (const path of present) if (!(path in listed)) end("cannot verify", `${path} is not in the manifest`);
+if (installed) {
+  // Only an installation is read whole: a source workspace holds files that do not ship.
+  let present;
+  try {
+    present = Object.keys(await read(ROOT)).filter((path) => path !== MANIFEST && !path.split("/").includes("node_modules")).sort();
+  } catch (e) {
+    end("cannot verify", `the installed package cannot be read: ${e instanceof Error ? e.message : e}`);
+  }
+  for (const path of present) if (!(path in listed)) end("cannot verify", `${path} is not in the manifest`);
+}
 if (cases.length === 0) end("cannot verify", "no case is declared");
 
 // Run each delivered loop on its own in a scratch directory, so every outcome is known by its file
@@ -85,8 +95,13 @@ let incomplete;
 let broken;
 try {
   for (const file of [...new Set(cases.map((c) => c.file))]) {
-    const run = spawnSync(process.execPath, ["--test", "--test-reporter=tap", join(ROOT, file)], { cwd: scratch, env, encoding: "utf8" });
-    if (run.error || run.signal) incomplete ??= `the test run of ${file} did not complete`;
+    let run;
+    try {
+      run = await execute(process.execPath, ["--test", "--test-reporter=tap", join(ROOT, file)], { cwd: scratch, env });
+    } catch {
+      incomplete ??= `the test run of ${file} did not complete`;
+      continue;
+    }
     let failedHere = false;
     const lines = (run.stdout ?? "").split(/\r?\n/);
     const stack = [];
@@ -116,7 +131,7 @@ try {
       const earlier = ran.get(key(file, name));
       if (!earlier || rank[outcome] > rank[earlier]) ran.set(key(file, name), outcome);
     }
-    if (!run.error && !run.signal && run.status !== 0 && !failedHere) incomplete ??= `the test run of ${file} exited ${run.status} without reporting a failing test`;
+    if (run.status !== 0 && !failedHere) incomplete ??= `the test run of ${file} exited ${run.status} without reporting a failing test`;
     if (failedHere) broken ??= file;
   }
 } finally {
