@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const CORE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const KAAL = resolve(CORE, "..", "..");
@@ -173,11 +173,38 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
     assert.equal(m.version, version, "the manifest's Graph version is the workspace's");
     assert.equal(pkg().devDependencies?.[name], version, "kaal-core's devDependencies pins that Graph version");
     assert.deepEqual(Object.keys(m.files ?? {}).sort(), DELIVERED, "the manifest lists exactly the delivered Node support");
+    // Revised by core/C38: while Graph's source holds no node.d.ts, node.mjs's declarations are Graph's edges.d.ts.
+    const split = existsSync(join(dir, "skills", "kaal-graph", "scripts", "node.d.ts"));
     for (const [file, { from, sha256 }] of Object.entries(m.files)) {
-      assert.equal(from, `skills/kaal-graph/scripts/${file}`, `${file} comes from Graph's file of the same name`);
+      const source = file === "node.d.ts" && !split ? "edges.d.ts" : file;
+      assert.equal(from, `skills/kaal-graph/scripts/${source}`, `${file} comes from Graph's ${source}`);
       const copy = readFileSync(join(CORE, "dist", "node", file));
       assert.deepEqual(copy, readFileSync(join(dir, from)), `${file} is byte-identical to ${name}/${from}`);
       assert.equal(digest(copy), sha256, `${file} matches its manifest digest`);
+    }
+  });
+
+  // Added by core/C38: only what the delivered modules export at run time reaches Core's code (core/F79, core/A38).
+  it("core/T94 [core/F79, core/A38]: every name kaal-core's src/ imports from #node/form or #node/node is exported by the delivered form.mjs or node.mjs when they run, and neither subpath is among the package's exports", async () => {
+    const m = pkg();
+    const subpaths = { "#node/form": "form.mjs", "#node/node": "node.mjs" };
+    for (const subpath of Object.keys(subpaths)) assert.ok(m.imports?.[subpath], `blocked before behavioural assertion: kaal-core declares no ${subpath} import`);
+    for (const key of Object.keys(m.exports ?? {})) assert.ok(!key.includes("#node") && !key.startsWith("./node/"), `${key} exposes the delivered Node support to consumers`);
+    const used = { "#node/form": new Set(), "#node/node": new Set() };
+    for (const f of files(join(CORE, "src")).filter((f) => /\.(ts|mts)$/.test(f))) {
+      for (const [, only, clause, subpath] of readFileSync(f, "utf8").matchAll(/(?:import|export)\s*(type\s*)?\{([^}]*)\}\s*from\s*["'](#node\/(?:form|node))["']/g)) {
+        if (only) continue;
+        for (const part of clause.split(",").map((p) => p.trim()).filter(Boolean)) {
+          if (part.startsWith("type ")) continue;
+          used[subpath].add(part.split(/\s+as\s+/)[0].trim());
+        }
+      }
+    }
+    for (const [subpath, file] of Object.entries(subpaths)) {
+      const path = join(CORE, "dist", "node", file);
+      assert.ok(existsSync(path), `the build delivers dist/node/${file}`);
+      const delivered = await import(pathToFileURL(path).href);
+      for (const name of used[subpath]) assert.ok(name in delivered, `kaal-core imports ${name} from ${subpath}, which the delivered ${file} does not export when it runs`);
     }
   });
 });

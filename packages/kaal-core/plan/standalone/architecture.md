@@ -29,6 +29,10 @@ Each element names, in brackets, the Requirements it answers.
   - **The build** copies the four files byte for byte from the workspace's `kaal-graph` into `dist/node/`, before TypeScript compiles against them. It then writes `dist/node/provenance.json`, holding Graph's package name and version and, for each file, `{ "from": <path in kaal-graph>, "sha256": <digest> }`. Nothing under `dist/node/` is committed.
   - **Synchronization** is a rebuild. A Graph Change to Form or identity reaches Core when kaal-core is next built. If kaal-core's `devDependencies` pins a different Graph version from the one the copies came from, the source tests fail (`core/T85`). Two authoritative copies cannot arise: the only edited copy is Graph's.
   - **A consumer** verifies the shipped copies against the manifest (`core/T84`). That check becomes part of kaal-core's installed `npm test` in `core/C29`.
+  - **The declarations of `node.mjs`** (revised by `core/C38`). The build writes `dist/node/node.d.ts` from Graph's `node.d.ts` when `skills/kaal-graph/scripts/` holds one. Otherwise it writes it from Graph's `edges.d.ts`, byte for byte, and records `from` as `skills/kaal-graph/scripts/edges.d.ts`. `edges.d.ts` declares `node.mjs`'s exports itself, and its only import is `./form.js`, which is delivered.
+    - Core reaches the copies only through its own subpath imports, `#node/form` and `#node/node`. Those are not among the package's `exports`, so a consumer never sees the wider declarations.
+    - core/T94 checks that every name Core imports from them is one the delivered modules export when they run. A declaration-only name, such as Graph's `Graph` class, can never reach Core's code.
+    - When `main` brings Graph's `node.d.ts` to `kaal/core`, the next build delivers that file, and core/T85 then requires it. No Core Change is needed, and nothing of Graph's has to travel outside `main`.
 - **core/A39** [core/F80, core/N20]: **Registration.**
   - **Admission.** `assemble` returns the claims, the findings of `core/F50`–`core/F52`, `core/F54`'s refusals and `core/F55`, the untraced instances and the shared terms, with or without Graph.
   - **Analysis, with Graph present.** Core hands Graph the resolved traces as successors keyed by assembly identity (`core/A27`). It reports Graph's `reach`, `incoming` and `cycles` as they come, and judges none of them.
@@ -42,7 +46,8 @@ Each element names, in brackets, the Requirements it answers.
 | --- | --- | --- | --- |
 | 1 | `core/C32` PLAN, this Change | Core | — |
 | 2 | `node.d.ts`: declarations for `node.mjs` in a file of their own, re-exported by `edges.d.ts` | Graph | — |
-| 3 | `core/C33` DO: the build copy, the manifest, Core's imports and index; core/T81–T85 GREEN | Core | 1, 2 |
+| 2a | `core/C38` PLAN: the route without Graph's `node.d.ts`, delivering the declarations of `node.mjs` as Graph ships them on Core's base | Core | 1, the Owner's ruling on #675 |
+| 3 | `core/C33` DO: the build copy, the manifest, Core's imports and index; core/T81–T85 and T94 GREEN | Core | 1, 2a (revised by `core/C38`: no longer row 2) |
 | 4 | `core/C26` DO: registration with core/F80's split, with core/T86 GREEN; Graph's analysis used when present | Core | 3; `graph/C3` only for the Graph-present path |
 
 ## Release and clean-installation consequences
