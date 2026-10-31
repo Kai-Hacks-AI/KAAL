@@ -6,22 +6,24 @@ import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within, type Files } from "@kaihacksai/kaal-hosting";
+import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within } from "@kaihacksai/kaal-hosting";
 
 const run = promisify(execFile);
-const here = fileURLToPath(new URL(".", import.meta.url));
+/** The package under test, reached by its name as a consumer reaches it. */
+const hosting = import.meta.resolve("@kaihacksai/kaal-hosting");
+const installed = dirname(fileURLToPath(import.meta.resolve("@kaihacksai/kaal-hosting/package.json")));
 
-function tmp(): string {
+function tmp() {
   return mkdtempSync(join(tmpdir(), "kaal-hosting-"));
 }
 
 /** A directory in a parent of its own, so whatever Hosting leaves beside it shows. */
-function alone(): { parent: string; dir: string } {
+function alone() {
   const parent = tmp();
   const dir = join(parent, "d");
   mkdirSync(dir);
@@ -29,9 +31,9 @@ function alone(): { parent: string; dir: string } {
 }
 
 /** Make the host refuse every rename while `fn` runs. */
-async function renamesFail<T>(fn: () => Promise<T>): Promise<T> {
+async function renamesFail(fn) {
   const original = gfs.rename;
-  gfs.rename = ((_from: string, _to: string, cb: (e: Error) => void) => cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" }))) as typeof gfs.rename;
+  gfs.rename = ((_from, _to, cb) => cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" })));
   try {
     return await fn();
   } finally {
@@ -39,20 +41,20 @@ async function renamesFail<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-function files(entries: Record<string, string>): Files {
+function files(entries) {
   return Object.fromEntries(Object.entries(entries).map(([p, s]) => [p, Buffer.from(s)]));
 }
 
-function code(c: HostingError["code"]): (e: unknown) => boolean {
+function code(c) {
   return (e) => e instanceof HostingError && e.code === c;
 }
 
-async function snapshot(dir: string): Promise<string> {
+async function snapshot(dir) {
   const all = await read(dir);
   return JSON.stringify(Object.keys(all).sort().map((p) => [p, all[p].toString("base64")]));
 }
 
-describe("read", () => {
+describe("read [hosting/F45, hosting/F54]", () => {
   it("reads every file by relative path, and a missing directory as empty", async () => {
     const dir = tmp();
     mkdirSync(join(dir, "a", "b"), { recursive: true });
@@ -91,7 +93,7 @@ describe("read", () => {
   });
 });
 
-describe("readFile", () => {
+describe("readFile [hosting/F46]", () => {
   it("reads a file's exact bytes: empty, every byte value, and a non-ASCII NFC name", async () => {
     const dir = tmp();
     const every = Buffer.from(Array.from({ length: 256 }, (_, i) => i));
@@ -154,7 +156,7 @@ describe("readFile", () => {
   });
 });
 
-describe("kind", () => {
+describe("kind [hosting/F47]", () => {
   it("tells a directory from a file", async () => {
     const dir = tmp();
     writeFileSync(join(dir, "file.md"), "f");
@@ -196,7 +198,7 @@ describe("kind", () => {
     if (process.platform === "win32") return t.skip("no socket can be placed in a directory on Windows");
     const path = join(tmp(), "s");
     const server = createServer();
-    await new Promise<void>((done) => server.listen(path, done));
+    await new Promise((done) => server.listen(path, done));
     try {
       assert.equal(await kind(path), "other");
     } finally {
@@ -206,32 +208,40 @@ describe("kind", () => {
 
   it("throws a failure to look, never taking it for an answer", async () => {
     const original = gfs.stat;
-    gfs.stat = ((_path: string, cb: (e: Error) => void) => cb(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }))) as typeof gfs.stat;
+    gfs.stat = ((_path, cb) => cb(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" })));
     try {
-      await assert.rejects(kind(tmp()), (e) => (e as NodeJS.ErrnoException).code === "EACCES");
+      await assert.rejects(kind(tmp()), (e) => e.code === "EACCES");
     } finally {
       gfs.stat = original;
     }
   });
 
-  it("throws a permission the host denies", async (t) => {
-    // Windows ignores these modes, and a privileged user passes them.
-    if (process.platform === "win32" || process.getuid?.() === 0) return t.skip("the host does not deny this permission here");
+  it("throws a permission the host denies, and answers where the host grants it", async () => {
+    // Whether the host denies it is established by trying: some hosts ignore these modes, and a
+    // privileged user passes them. Either way, kind never takes a denial for an answer.
     const dir = tmp();
     mkdirSync(join(dir, "closed"));
     writeFileSync(join(dir, "closed", "x.md"), "x");
     chmodSync(join(dir, "closed"), 0o000);
     try {
-      await assert.rejects(kind(join(dir, "closed", "x.md")), (e) => (e as NodeJS.ErrnoException).code === "EACCES");
+      let denied;
+      try {
+        readdirSync(join(dir, "closed"));
+        denied = false;
+      } catch (e) {
+        denied = e.code === "EACCES" || e.code === "EPERM";
+      }
+      if (denied) await assert.rejects(kind(join(dir, "closed", "x.md")), (e) => e.code === "EACCES" || e.code === "EPERM");
+      else assert.equal(await kind(join(dir, "closed", "x.md")), "file");
     } finally {
       chmodSync(join(dir, "closed"), 0o700);
     }
   });
 });
 
-describe("within", () => {
+describe("within [hosting/F48]", () => {
   /** A root and a sibling whose name starts with the root's, in a parent of their own. */
-  function tree(): { parent: string; root: string; sibling: string } {
+  function tree() {
     const parent = tmp();
     const root = join(parent, "repo");
     const sibling = join(parent, "repo2");
@@ -290,29 +300,29 @@ describe("within", () => {
   it("throws a failure to resolve, never taking it for an answer", async () => {
     const { root } = tree();
     const original = gfs.realpath.native;
-    gfs.realpath.native = ((_path: string, cb: (e: Error) => void) =>
-      cb(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }))) as typeof gfs.realpath.native;
+    gfs.realpath.native = ((_path, cb) =>
+      cb(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" })));
     try {
-      await assert.rejects(within(root, root), (e) => (e as NodeJS.ErrnoException).code === "EACCES");
+      await assert.rejects(within(root, root), (e) => e.code === "EACCES");
     } finally {
       gfs.realpath.native = original;
     }
   });
 });
 
-// The outer tests of reconcile are hosting/C1's, in test/plan/reconciliation.test.mjs.
+// The outer tests of reconcile are in test/acceptance/requirements.test.mjs.
 // These are its Code tests.
 describe("reconcile", () => {
   it("refuses a path that is both a file and a directory of one reconciliation", async () => {
     const { dir } = alone();
     const before = await snapshot(dir);
-    const write = (path: string) => ({ path, expect: "absent", bytes: Buffer.from("x") });
+    const write = (path) => ({ path, expect: "absent", bytes: Buffer.from("x") });
     await assert.rejects(reconcile(dir, { write: [write("a"), write("a/b.md")], remove: [] }), code("INVALID_PATH"));
     assert.equal(await snapshot(dir), before);
   });
 
   it("refuses a kind change whose write does not expect \"absent\", before looking at the host", async () => {
-    const sha = (text: string) => createHash("sha256").update(text).digest("hex");
+    const sha = (text) => createHash("sha256").update(text).digest("hex");
     const { dir } = alone();
     writeFileSync(join(dir, "tool"), "a tool");
     mkdirSync(join(dir, "lib"));
@@ -345,11 +355,11 @@ describe("reconcile", () => {
     writeFileSync(join(dir, "a.md"), "a");
     const before = await snapshot(dir);
     const original = gfs.readFile;
-    gfs.readFile = ((path: string, ...rest: unknown[]) => {
-      const cb = rest.at(-1) as (e: Error | null, b?: Buffer) => void;
+    gfs.readFile = ((path, ...rest) => {
+      const cb = rest.at(-1);
       if (String(path).includes(".staging-")) return cb(null, Buffer.from("not what was written"));
-      return (original as (...a: unknown[]) => void)(path, ...rest);
-    }) as typeof gfs.readFile;
+      return (original)(path, ...rest);
+    });
     try {
       await assert.rejects(reconcile(dir, { write: [{ path: "a.md", expect: createHash("sha256").update("a").digest("hex"), bytes: Buffer.from("b") }], remove: [] }), code("UNFAITHFUL"));
     } finally {
@@ -364,15 +374,15 @@ describe("reconcile", () => {
     writeFileSync(join(dir, "precious.md"), "precious");
     const original = gfs.rename;
     let calls = 0;
-    gfs.rename = ((from: string, to: string, cb: (e: Error | null) => void) =>
-      ++calls === 1 ? original(from, to, cb) : cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" }))) as typeof gfs.rename;
+    gfs.rename = ((from, to, cb) =>
+      ++calls === 1 ? original(from, to, cb) : cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" })));
     try {
       await assert.rejects(
         reconcile(dir, {
           write: [{ path: "new.md", expect: "absent", bytes: Buffer.from("new") }],
           remove: [{ path: "precious.md", expect: createHash("sha256").update("precious").digest("hex") }],
         }),
-        (e: unknown) => e instanceof HostingError && e.code === "UNRESTORED" && (e.cause as { code?: string }).code === "EPERM",
+        (e) => e instanceof HostingError && e.code === "UNRESTORED" && (e.cause).code === "EPERM",
       );
     } finally {
       gfs.rename = original;
@@ -384,7 +394,7 @@ describe("reconcile", () => {
   });
 });
 
-describe("update", () => {
+describe("update [hosting/F49]", () => {
   it("publishes a change as a new directory, all at once, leaving nothing else inside or beside", async () => {
     const { parent, dir } = alone();
     const change = { prefix: "skills/greeting", files: files({ "Greeting.md": "g", "docs/.staging-v1.md": "d" }) };
@@ -408,7 +418,7 @@ describe("update", () => {
     const dir = tmp();
     writeFileSync(join(dir, "a.md"), "a");
     const before = await snapshot(dir);
-    let seen: Files | undefined;
+    let seen;
     assert.equal(await update(dir, (current) => ((seen = current), undefined)), undefined);
     assert.deepEqual(seen, files({ "a.md": "a" }));
     assert.equal(await snapshot(dir), before);
@@ -446,8 +456,8 @@ describe("update", () => {
   });
 });
 
-describe("faithful publication on every host", () => {
-  const collisions: [string, Record<string, string>][] = [
+describe("faithful publication on every host [hosting/F53]", () => {
+  const collisions = [
     ["names differing only in case", { "A.md": "1", "a.md": "2" }],
     ["directories differing only in case", { "Docs/x.md": "1", "docs/y.md": "2" }],
     ["NFC and NFD spellings of one name", { "café.md": "1", "café.md": "2" }],
@@ -486,7 +496,7 @@ describe("faithful publication on every host", () => {
   }
 });
 
-describe("initialize", () => {
+describe("initialize [hosting/F50]", () => {
   const payload = files({ "KERNEL.md": "k", "core/Node.md": "n" });
 
   it("creates a missing directory whole", async () => {
@@ -529,13 +539,12 @@ describe("initialize", () => {
   });
 });
 
-describe("one writer at a time, across processes", () => {
+describe("one writer at a time, across processes [hosting/F49, hosting/A21]", () => {
   it("serializes concurrent updates, whatever path names the directory: each plan sees every earlier change", async () => {
     const dir = tmp();
     const link = join(tmp(), "link");
     symlinkSync(dir, link, "junction");
-    const hosting = pathToFileURL(join(here, "..", "dist", "index.js")).href;
-    const script = (at: string) => `
+    const script = (at) => `
       import { update } from ${JSON.stringify(hosting)};
       const change = await update(${JSON.stringify(at)}, async (current) => {
         const n = Object.keys(current).length;
@@ -552,7 +561,7 @@ describe("one writer at a time, across processes", () => {
   });
 });
 
-describe("execute", () => {
+describe("execute [hosting/F51]", () => {
   it("runs a command found on the PATH, however the host realizes it", async () => {
     const r = await execute("npm", ["--version"], { cwd: tmp() });
     assert.equal(r.status, 0, r.stderr);
@@ -583,12 +592,12 @@ describe("execute", () => {
   });
 });
 
-describe("Hosting's Extension Node", () => {
+describe("Hosting's Extension Node [hosting/F52]", () => {
   it("is carried as Hosting.md, typed by KAAL Extension", async () => {
     const c = await contribution();
     assert.deepEqual(Object.keys(c), ["Hosting.md"]);
     const text = c["Hosting.md"].toString("utf8");
     assert.match(text, /^---\nname: Hosting\ntype:\n  name: KAAL Extension\n  id: [0-9a-f]{64}\n---\n/);
-    assert.equal(text, readFileSync(join(here, "..", "payload", "Hosting.md"), "utf8"));
+    assert.equal(text, readFileSync(join(installed, "payload", "Hosting.md"), "utf8"));
   });
 });

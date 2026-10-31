@@ -5,16 +5,15 @@ import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { describe, it } from "node:test";
 import { promisify } from "node:util";
-import type { Files } from "@kaihacksai/kaal-hosting";
 import { COVERAGE, EXCLUSIONS, inspect } from "@kaihacksai/kaal-hosting/conformance";
 
 const run = promisify(execFile);
 
-function files(entries: Record<string, string>): Files {
+function files(entries) {
   return Object.fromEntries(Object.entries(entries).map(([p, s]) => [p, Buffer.from(s)]));
 }
 
-describe("inspect", () => {
+describe("inspect [hosting/F55]", () => {
   it("states in every report what it covers and what it excludes, and never a verdict", async () => {
     const report = await inspect(files({}), { builtins: [] });
     assert.deepEqual(Object.keys(report).sort(), ["coverage", "exclusions", "inspected", "outside", "skipped", "validation", "violations"]);
@@ -127,7 +126,7 @@ describe("inspect", () => {
     await assert.rejects(inspect(files({}), { builtins: ["yaml"] }), TypeError);
   });
 
-  it("is loaded only by its own entry point: importing kaal-hosting loads no parser", async () => {
+  it("is loaded only by its own entry point: importing the main entry loads no parser", async () => {
     const probe = [
       'import { registerHooks } from "node:module";',
       "const seen = [];",
@@ -136,7 +135,7 @@ describe("inspect", () => {
       "process.stdout.write(JSON.stringify(seen));",
     ].join("\n");
     const { stdout } = await run(process.execPath, ["--input-type=module", "-e", probe], { cwd: new URL(".", import.meta.url) });
-    const seen: string[] = JSON.parse(stdout);
+    const seen = JSON.parse(stdout);
     assert.ok(seen.includes("@kaihacksai/kaal-hosting"));
     assert.ok(!seen.some((s) => s.includes("es-module-lexer") || s.includes("conformance")), seen.join(", "));
   });

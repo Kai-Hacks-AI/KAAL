@@ -16,11 +16,11 @@ Each element names, in brackets, the Requirements it answers.
 | files | `dist` |  | delivered |
 | files | `!dist/.tsbuildinfo` |  | delivered |
 | files | `payload` |  | delivered |
-| files | `docs` |  | planned hosting/C12 |
-| files | `test/acceptance` |  | planned hosting/C12 |
-| files | `test/unit` |  | planned hosting/C12 |
-| files | `test/verify.mjs` |  | planned hosting/C12 |
-| files | `test/verify.json` |  | planned hosting/C12 |
+| files | `docs` |  | delivered |
+| files | `test/acceptance` |  | delivered |
+| files | `test/unit` |  | delivered |
+| files | `test/verify.mjs` |  | delivered |
+| files | `test/verify.json` |  | delivered |
 | files | `bin` |  | delivered |
 | files | `skills` |  | delivered |
 <!-- /kaal-hosting:interface -->
