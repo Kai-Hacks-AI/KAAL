@@ -38,13 +38,17 @@
     "!dist/.tsbuildinfo",
     "payload",
     "bin",
-    "skills"
+    "skills",
+    "docs",
+    "test/embed",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/hosting.test.js dist-test/conformance.test.js test/plan/reconciliation.test.mjs test/plan/cleanup.test.mjs test/plan/kinds.test.mjs test/plan/expectations.test.mjs test/plan/boundary.test.mjs test/plan/portability.test.mjs && node --test --test-name-pattern=\"^hosting/T2[1-4] \" test/plan/release.test.mjs",
-    "test:plan": "npm run build && node --test test/plan/release.test.mjs",
-    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build"
+    "test": "node test/verify.mjs",
+    "test:publisher": "npm run build && node --test test/embed/conformance.test.mjs test/embed/hosting.test.mjs test/embed/architecture.test.mjs test/embed/intent.test.mjs test/embed/requirements.test.mjs test/plan/boundary.test.mjs test/plan/portability.test.mjs test/plan/interface.test.mjs test/publisher/verify.test.mjs && node --test --test-name-pattern=\"^hosting/T(2[1-9]|3[01]|48|5[34]) \" test/plan/release.test.mjs",
+    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build && node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"
