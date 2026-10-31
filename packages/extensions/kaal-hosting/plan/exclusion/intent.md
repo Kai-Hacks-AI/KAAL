@@ -1,0 +1,7 @@
+# Excluded Directories: Intent
+
+This is `hosting/C20`, a PLAN Change. It adds explicit directory exclusions to Hosting's `read`. `hosting/C21` delivers them and turns the planned tests GREEN. It authorizes no DO, sync, promotion or publication: those stay with the Owner.
+
+On #675 (comment 6543065611, 2026-10-31) the Owner asked for this as a bounded Hosting follow-up. Core's installed verifier reads the installed package with `read(ROOT)` and only then drops every path under `node_modules`. But `read` refuses a link to a directory anywhere below the root with `INVALID_PATH`. So a linked dependency directory inside the installed package, which a package manager may place in the copy's own `node_modules`, turns Core's verification into `cannot verify`. That is never a false `verified`, but it is brittle evidence that reads as unknown. A consumer filtering after the read cannot fix this, because the read has already failed. The traversal must not enter what the caller excludes. Core consumes Hosting's contract and does not implement the traversal itself.
+
+- **hosting/I11.** A caller can read a tree without entering directories it names as outside its interest, such as `node_modules`. Nothing inside an excluded directory is read, followed or refused, and everything outside it is read exactly as before, under the same refusals. A wrong exclusion is refused before anything is read, so it can never silently hide part of a tree.
