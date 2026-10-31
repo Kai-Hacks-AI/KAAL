@@ -269,6 +269,7 @@ export function execute(root = ROOT, { suites = declared(root), all = files(root
     const missing = s.prerequisites.filter((p) => !PREREQUISITES[p]?.provided(root));
     let lines = [];
     let cut = "";
+    let broke = "";
     // The runner reports real paths; a root under a symbolic link (macOS's /var is /private/var) must match them.
     const real = realpathSync(root);
     // An empty list would make `node --test` find every test in the repository: such a suite is not run.
@@ -277,11 +278,15 @@ export function execute(root = ROOT, { suites = declared(root), all = files(root
       const r = spawnSync(process.execPath, ["--test", "--test-reporter=spec", "--test-reporter-destination=stderr", `--test-reporter=${pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), "reporter.mjs")).href}`, "--test-reporter-destination=stdout", ...targets], { cwd: root, env: runner(), encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 256 * 1024 * 1024, timeout: LIMIT * 60_000, killSignal: "SIGKILL" });
       // A runner that never ends must not hold the lane: what it reported stands, the rest is not run.
       if (r.error?.code === "ETIMEDOUT") cut = `the runner did not end within ${LIMIT} minutes and was stopped`;
+      // A file can fail outside any declared case (a crash, an undeclared test): the suite is not passed then.
+      else if (r.status !== 0) broke = `the runner exited ${r.status ?? r.signal} outside any declared case's outcome`;
       lines = (r.stdout ?? "").split("\n").filter(Boolean).map((l) => JSON.parse(l)).map((l) => ({ ...l, file: relative(real, realpathSync(l.file)).split("\\").join("/") }));
     }
     const results = declaredCases.map((c) => ({ case: c.case, owner: s.owner, suite: s.name, file: c.file, ...(why ? { outcome: "not run", reason: why } : late(outcome(c, lines), cut)) }));
-    const status = why ? "not run" : results.some((c) => c.outcome === "failed") ? "failed" : results.some((c) => c.outcome === "not run") ? "not run" : "passed";
-    record.suites.push({ owner: s.owner, name: s.name, files: targets, prerequisites: s.prerequisites, status, ...(why ? { reason: why } : {}) });
+    const failed = results.some((c) => c.outcome === "failed");
+    const status = why ? "not run" : failed || broke ? "failed" : cut || results.some((c) => c.outcome === "not run") ? "not run" : "passed";
+    const reason = why || (!failed && (broke || cut)) || "";
+    record.suites.push({ owner: s.owner, name: s.name, files: targets, prerequisites: s.prerequisites, status, ...(reason ? { reason } : {}) });
     record.cases.push(...results);
   }
   return record;
@@ -329,6 +334,7 @@ export function gate(records, { candidate, hosts }, root = ROOT) {
     if (!hosts.includes(r.host)) findings.push(`a record for ${r.host}, which is not a supported host of this release`);
     if (r.candidate !== candidate) findings.push(`the ${r.host} record is for ${r.candidate}, not the candidate ${candidate}: stale or mismatched`);
     for (const f of validate(r, root)) findings.push(`${r.host}: ${f}`);
+    for (const x of r.suites ?? []) if (x.status !== "passed") findings.push(`suite ${x.name}: ${x.status} on ${r.host}${x.reason ? `: ${x.reason}` : ""}`);
   }
   for (const h of hosts) {
     const n = records.filter((r) => r.host === h).length;
@@ -370,5 +376,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   console.log(`cases: ${record.cases.length} declared, ${count("passed")} passed, ${count("failed")} failed, ${count("not applicable")} not applicable, ${count("not run")} not run`);
   for (const c of record.cases.filter((c) => !["passed", "not applicable"].includes(c.outcome))) console.log(`case: ${c.case} (${c.suite}): ${c.outcome}: ${c.reason}`);
   console.log(`record: ${path} (candidate ${record.candidate}, host ${record.host})`);
-  process.exit(count("failed") ? 1 : count("not run") || invalid.length ? 2 : 0);
+  const broken = record.suites.some((s) => s.status === "failed");
+  process.exit(count("failed") || broken ? 1 : count("not run") || record.suites.some((s) => s.status === "not run") || invalid.length ? 2 : 0);
 }
