@@ -20,7 +20,7 @@
     "skills"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "pretest": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting",
     "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs"
   },
   "engines": {
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "c8": "12.0.0",
-    "kaal-hosting": "0.0.1"
+    "@kaihacksai/kaal-hosting": "0.0.1"
   },
   "devDependencies": {
     "kaal-core": "0.0.1",

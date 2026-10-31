@@ -1,6 +1,6 @@
 # Platform Coupling Conformance: Testing
 
-The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/boundary.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. Run them with `npm run build -w kaal-hosting && node --test packages/extensions/kaal-hosting/test/plan/boundary.test.mjs`. `hosting/C14` turns them GREEN and moves them into Hosting's `npm test`, so they run in the Linux, Windows and macOS Hosting lanes. Their fixtures are the suite's positive and negative cases (hosting/N5).
+The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/boundary.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. Run them with `npm run build -w @kaihacksai/kaal-hosting && node --test packages/extensions/kaal-hosting/test/plan/boundary.test.mjs`. `hosting/C14` turns them GREEN and moves them into Hosting's `npm test`, so they run in the Linux, Windows and macOS Hosting lanes. Their fixtures are the suite's positive and negative cases (hosting/N5).
 
 | Test | Checks | Loop |
 | --- | --- | --- |
