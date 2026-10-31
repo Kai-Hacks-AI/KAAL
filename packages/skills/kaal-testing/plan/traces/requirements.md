@@ -23,8 +23,14 @@ Each Requirement names, in brackets, the Intents it serves.
   - a target named twice;
   - a Case identity declared in two places, naming both files. Neither declaration is traced.
 
-  A file that is not `{ path, text }`, or files that are not a list, is a finding. A call inside a string, a regular expression or a comment is not a Case.
+  A file that is not `{ path, text }`, or files that are not a list, is a finding. A case file whose text the caller could not read is given as `{ path, text: null }`: it is a finding naming the file, since its Cases are not known. A call inside a string, a template, a regular expression or a comment is not a Case, even where the string, template or comment spans lines.
 - **testing/F87** [testing/I22]: **Traversable both ways.** `edges(model)` gives `{ edges, findings }`, with one `{ from, type: "tests", to }` per Case and target, ordered by Case, then target. A retired Case traces nothing. A model with a finding (testing/F25) gives its findings and no edge. `incoming(model, target)` gives the Cases that test `target`, as `tested` does, and `[]` for a target no Case tests. These are the `out` and `in` directions Engineering's traversal follows across this hop.
+
+- **testing/F88** [testing/I22]: **Complete, or not established.** `incoming` reads the model it is given. Its `[]` shows only that no Case in that model tests the target. It is never proof that no Case does. Only `impact(derived, target)` answers whether the Cases that test a target are established, from `derive`'s whole result. It gives `{ result, cases, findings, untraced }`:
+  - **`established`** only when the inventory is complete: `derive` found nothing, no Case is untraced, the model has no finding (testing/F25) and the target is a string. Then `cases` are exactly the Cases that test the target, and `[]` establishes that none does.
+  - **`unknown`** otherwise. This includes any untraced Case, any file that could not be read, any title, target or Case `derive` could not trace, and an input `derive` did not give. `cases` are then the Cases found, a lower bound and never a proof of absence. `findings` and `untraced` are given in full, so the caller can report them.
+
+  A consumer's decision follows `result`. Engineering's isolation (engineering/C11) reports the findings and the untraced inventory with the derived Cases. Where the result is `unknown`, the impact cannot be established, so the check fails closed and never passes. Testing gives the result. Whether a check passes is the consumer's.
 
 ## Nonfunctional
 
