@@ -141,7 +141,8 @@ export function lanes(root = ROOT) {
 /** Whether a lane's `commands` run `file`: named or matched by `node --test`, or by this module's runner. */
 export function runs(commands, file, suite) {
   return commands.some((c) => {
-    if (/engineering\/guard\/suites\.mjs/.test(c)) return suite !== undefined;
+    // The runner schedules every suite; its gate only judges records and runs none.
+    if (/engineering\/guard\/suites\.mjs/.test(c)) return suite !== undefined && !/\s--gate\b/.test(c);
     if (!/\bnode\b.*--test\b/.test(c)) return false;
     return c.split(/\s+/).some((token) => matches(token.replace(/^["']|["']$/g, ""), file));
   });
