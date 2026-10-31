@@ -9,6 +9,7 @@ import { hashes, LOOPS, PREFIX } from "../verify.mjs";
 
 const env = { ...process.env };
 delete env.NODE_TEST_CONTEXT;
+const NAME = "@kaihacksai/kaal-hosting";
 
 function temporary(t) {
   const root = mkdtempSync(join(tmpdir(), "hosting-verifier-"));
@@ -18,13 +19,13 @@ function temporary(t) {
 
 function fixture(t) {
   const root = temporary(t);
-  const pkg = join(root, "node_modules", "@kaihacksai", "kaal-hosting");
+  const pkg = join(root, "node_modules", ...NAME.split("/"));
   mkdirSync(join(pkg, "test", "embed"), { recursive: true });
   mkdirSync(join(pkg, "test", "publisher"));
   mkdirSync(join(pkg, "docs"));
   writeFileSync(join(root, "package.json"), "{}\n");
   writeFileSync(join(pkg, "package.json"), JSON.stringify({
-    name: "@kaihacksai/kaal-hosting", version: "0.0.1", type: "module",
+    name: NAME, version: "0.0.1", type: "module",
     files: ["docs", "test/embed", "test/verify.mjs", "test/verify.json"],
   }));
   copyFileSync(new URL("../verify.mjs", import.meta.url), join(pkg, "test", "verify.mjs"));
