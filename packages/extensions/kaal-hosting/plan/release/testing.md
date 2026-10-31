@@ -102,3 +102,19 @@ On `kaal/hosting` before the rename, the old matcher found 115 references and th
 | runs the suites in declaration order, not name order | hosting/T53 |
 | is `verified` with no suite declared | hosting/T53 |
 | takes any directory that is not an installation for the source workspace | hosting/T54 |
+
+## hosting/C23: shipped cases live in test/embed/
+
+`hosting/C23` is a PLAN correction to hosting/F17, hosting/F19, hosting/A9 and hosting/A15, with three planned tests narrowed to the new path. On #702 (comment 6543551316) the Owner ruled that `test/acceptance/` is ambiguous. A capability's own shipped cases, run against the installed package by its own `npm test`, live in `test/embed/`. Engineering's lane scenarios, which `install()` the packed tarballs, live in `test/engineer/`. There is no `test/external/` convention. Testing plans this as `testing/C43` (#702).
+
+The C12 DO (#700) met the conflict: KAAL's Acceptance lane took Hosting's shipped `test/acceptance/` files for its own scenarios and failed them with "installed no packed package".
+
+- **What changes.** hosting/F17 and hosting/F19 ship `test/embed/` in place of `test/acceptance/` and `test/unit/`. hosting/A9 places every shipped case there: one file per outer loop, the Code loop's files beside them, and the harness. hosting/A15 replaces the two planned `files` rows with one, `test/embed`, still planned for `hosting/C12`.
+- **Tests narrowed.** These change their path only, and what they assert stays the same:
+  - hosting/T31's `firstCase` picks the first outer case under `test/embed/`.
+  - hosting/T30 plants its skip in the first outer case file under `test/embed/`.
+  - hosting/T30's nonexistent declared case is named under `test/embed/`.
+- **Unchanged.** hosting/T25–T29, hosting/T41 (it reads A15), and every other planned test.
+
+**RED evidence.** At `hosting/C23`, hosting/T25–T31 stay RED as before, blocked before behavioural assertion: the package ships no `test/verify.mjs`. `hosting/C12` turns them GREEN with its cases in `test/embed/`.
+
