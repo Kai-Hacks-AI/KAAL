@@ -29,18 +29,21 @@ function below(a, b) {
 
 const cut = (s) => (s.length > 200 ? `${s.slice(0, 200)}…` : s);
 
-/** Run npm with `args` in `work`, refusing when it cannot be started. */
-async function npm(args, work) {
+/** npm as the host names it: run by name through Hosting, which resolves it (packaging/A13). */
+export const NPM = Object.freeze({ command: "npm", args: Object.freeze([]) });
+
+/** Run npm with `args` in `work`, refusing when it cannot be started. `tool` is the npm to run: a command and the arguments that come before npm's own. */
+async function npm(args, work, tool = NPM) {
   try {
-    return await execute("npm", args, { cwd: work });
+    return await execute(tool.command, [...tool.args, ...args], { cwd: work });
   } catch (e) {
     throw new Error(`npm could not be run: ${cut(e.message)}`);
   }
 }
 
 /** The npm version that will describe the artifact, exactly as `npm --version` printed it. */
-async function version(work) {
-  const r = await npm(["--version"], work);
+async function version(work, tool) {
+  const r = await npm(["--version"], work, tool);
   const printed = r.stdout.trim();
   if (r.status !== 0) throw new Error(`npm --version exited ${r.status}`);
   if (!SEMVER.test(printed)) throw new Error(`npm --version printed ${JSON.stringify(cut(printed))}, which is not a semantic version`);
@@ -67,11 +70,12 @@ const KEYS = ["entryCount", "files", "name", "size", "unpackedSize", "version"];
  * `work`, within `limits`: the tool, the package's name and version, the packed size npm read,
  * its entry count and unpacked size, and every file's path and size, as npm stated them.
  */
-export async function describe(artifact, work, limits) {
-  const tool = { name: "npm", version: await version(work) };
+export async function describe(artifact, work, limits, given = NPM) {
+  const tool = { name: "npm", version: await version(work, given) };
   const r = await npm(
     ["pack", "--dry-run", "--json", "--ignore-scripts", "--offline", "--cache", `${work}/cache`, "--logs-max=0", "--no-update-notifier", "--userconfig", `${work}/npmrc`, "--", artifact],
     work,
+    given,
   );
   if (r.stdout.length > limits.output) throw new Error(`npm ${tool.version} wrote more than the output limit of ${limits.output} characters`);
   if (r.status !== 0) throw new Error(`npm ${tool.version} could not describe the artifact: it exited ${r.status}, ${failure(r.stdout)}`);

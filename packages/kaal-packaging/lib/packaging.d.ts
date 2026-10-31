@@ -55,7 +55,15 @@ export interface Limits {
   output: number;
 }
 export const LIMITS: Readonly<Limits>;
-export function measure(artifact: string, options: { work: string; limits?: Partial<Limits> }): Promise<Measurement>;
+export function measure(
+  artifact: string,
+  options: {
+    work: string;
+    limits?: Partial<Limits>;
+    /** The path of a Node script that behaves as npm (packaging/A13); without it, the host's npm runs by name. */
+    npm?: string;
+  },
+): Promise<Measurement>;
 export function attribute(measurement: Measurement, groups: string[]): Attribution;
 export function compare(before: Measurement, after: Measurement, groups?: string[]): Comparison;
 export function write(measurement: Measurement): string;

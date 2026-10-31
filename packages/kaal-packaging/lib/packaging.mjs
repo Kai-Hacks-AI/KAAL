@@ -56,11 +56,22 @@ function check(d, bytes, limits) {
 }
 
 /**
+ * The npm a caller gives (packaging/A13): the path of a Node script that behaves as npm, run by
+ * Node. Without one, the host's npm runs. Both are named, and Hosting resolves them: Packaging
+ * reads no process state of its own (packaging/A6).
+ */
+function toolOf(script) {
+  if (script === undefined) return undefined;
+  if (typeof script !== "string" || script === "") throw new TypeError("npm is the path of a Node script that behaves as npm");
+  return { command: "node", args: [script] };
+}
+
+/**
  * packaging/F1: the artifact's description. `artifact` is the absolute location of a package
  * artifact of known provenance (packaging/N5), and `work` a directory for the ecosystem's tool,
  * where its cache and configuration stay. `limits` narrows or widens LIMITS.
  */
-export async function measure(artifact, { work, limits = {} } = {}) {
+export async function measure(artifact, { work, limits = {}, npm: tool } = {}) {
   if (typeof artifact !== "string" || !absolute(artifact)) throw new TypeError("measure takes the absolute location of a package artifact");
   if (typeof work !== "string" || !absolute(work)) throw new TypeError("measure takes an absolute working directory for the ecosystem's tool");
   const bounded = limitsOf(limits);
@@ -68,7 +79,7 @@ export async function measure(artifact, { work, limits = {} } = {}) {
   if (!realization) throw new Error(`no realization reads this artifact: its format is ${formatOf(artifact)}`);
   const bytes = await readFile(artifact);
   const before = sha256(bytes);
-  const d = await realization.describe(artifact, work, bounded);
+  const d = await realization.describe(artifact, work, bounded, toolOf(tool));
   if (sha256(await readFile(artifact)) !== before) throw new Error(`the artifact changed while ${d.tool.name} described it`);
   check(d, bytes, bounded);
   return {

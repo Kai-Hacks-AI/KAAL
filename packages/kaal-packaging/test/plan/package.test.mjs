@@ -5,15 +5,16 @@
 // tarball offline into a fresh consumer project, as a consumer would. A dependency the fixture
 // declares is placed in the consumer beforehand, so the install needs no registry. Each case runs
 // the conformance suite against a conforming package and against fixtures that break one
-// Requirement, and checks that the suite names that Requirement and its cause.
+// Requirement, and checks that the suite names that Requirement and its cause. npm is handed to the
+// suite as a command (packaging/A13), so no case here knows the operating system (packaging/N11).
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
+import { execute } from "kaal-hosting";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRATCH = mkdtempSync(join(tmpdir(), "kaal-packaging-conformance-"));
@@ -49,8 +50,14 @@ function fresh(name) {
   return dir;
 }
 
-function npm(args, cwd) {
-  return execFileSync("npm", args, { cwd, env: ENV, encoding: "utf8", shell: process.platform === "win32" });
+/** The npm the lane installed: npm's own script when npm started this run, given to the suite (packaging/A13); else none, and npm runs by name. */
+const NPM = process.env.npm_execpath || undefined;
+
+/** npm, run through Hosting as NPM names it: its stdout, or a failure naming its status. */
+async function npm(args, cwd) {
+  const r = await execute(NPM ? process.execPath : "npm", NPM ? [NPM, ...args] : args, { cwd, env: ENV });
+  if (r.status !== 0) throw new Error(`npm ${args[0]} exited ${r.status}: ${r.stderr}`);
+  return r.stdout;
 }
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -159,20 +166,32 @@ function conforming(change = {}) {
 /**
  * `files` packed with npm and installed offline into a fresh consumer project; `deps` are placed in
  * the consumer first, and `around` is written into the consumer's project, as a checkout would
- * hold it. Returns the installed package's directory and the consumer's.
+ * hold it. `record` adds entries to the consumer's install record (node_modules/.package-lock.json),
+ * as an install from a registry would have written them; `lockfile` writes them to the consumer's
+ * package-lock.json instead. Returns the installed package's directory and the consumer's.
  */
-function install(files, { deps = {}, tamper = {}, around = {} } = {}) {
+async function install(files, { deps = {}, tamper = {}, around = {}, record, lockfile } = {}) {
   const source = fresh("source");
   writeAll(source, files);
   const out = fresh("packed");
-  const tgz = JSON.parse(npm(["pack", "--json", "--ignore-scripts", "--pack-destination", out], source))[0].filename;
+  const tgz = JSON.parse(await npm(["pack", "--json", "--ignore-scripts", "--pack-destination", out], source))[0].filename;
   const consumer = fresh("consumer");
   writeAll(consumer, { "package.json": JSON.stringify({ name: "consumer", version: "1.0.0", private: true }) + "\n" });
   writeAll(consumer, around);
   for (const [dep, version] of Object.entries(deps)) writeAll(join(consumer, "node_modules", dep), { "package.json": JSON.stringify({ name: dep, version }) });
-  npm(["install", join(out, tgz), "--ignore-scripts", "--no-save", "--no-package-lock"], consumer);
+  await npm(["install", join(out, tgz), "--ignore-scripts", "--no-save", "--no-package-lock"], consumer);
   const dir = join(consumer, "node_modules", JSON.parse(files["package.json"]).name);
   writeAll(dir, tamper);
+  const hidden = join(consumer, "node_modules", ".package-lock.json");
+  if (record) {
+    const prior = existsSync(hidden) ? JSON.parse(readFileSync(hidden, "utf8")) : { name: "consumer", lockfileVersion: 3, packages: {} };
+    writeFileSync(hidden, JSON.stringify({ ...prior, packages: { ...prior.packages, ...record } }));
+  }
+  if (lockfile) {
+    // A consumer whose install left no hidden record, only its project lockfile.
+    rmSync(hidden, { force: true });
+    writeAll(consumer, { "package-lock.json": JSON.stringify({ name: "consumer", lockfileVersion: 3, packages: lockfile }) });
+  }
   return { dir, consumer };
 }
 
@@ -208,9 +227,9 @@ const TESTING = INSTALLED ?? STAND_IN;
 /** The suite's findings for an installed package, by Requirement. */
 async function conform(files, options) {
   const { conform } = await suite();
-  const { dir, consumer } = install(files, options);
+  const { dir, consumer } = await install(files, options);
   const testing = options && "testing" in options ? options.testing : TESTING;
-  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe"), testing });
+  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe"), testing, npm: NPM });
   return { report, by: Object.fromEntries(report.findings.map((f) => [f.requirement, f])), dir, consumer };
 }
 
@@ -222,9 +241,24 @@ function expect(by, requirement, result, cause) {
 }
 
 describe("packaging/C5 the KAAL Package conformance suite", () => {
-  it("packaging/T15 F7: name, exact version and exact registry dependencies", async () => {
-    const good = await conform(conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } }), { deps: { "kaal-dep": "1.2.3" } });
-    expect(good.by, "packaging/F7", "verified");
+  it("packaging/T15 F7, F19: name, exact version and exact dependencies, each recorded by the consumer's install as resolved from a registry", async () => {
+    const pinned = conforming({ pkg: { dependencies: { "kaal-dep": "1.2.3" } } });
+    const deps = { "kaal-dep": "1.2.3" };
+    const registry = { version: "1.2.3", resolved: "https://registry.example/kaal-dep/-/kaal-dep-1.2.3.tgz", integrity: `sha512-${"A".repeat(86)}==` };
+    const good = await conform(pinned, { deps, record: { "node_modules/kaal-dep": registry } });
+    expect(good.by, "packaging/F7", "verified", /records each of its 1 runtime dependencies as resolved from a registry with integrity\. That is recorded resolution, not independently verified provenance/);
+    expect((await conform(pinned, { deps, lockfile: { "node_modules/kaal-dep": registry } })).by, "packaging/F7", "verified", /not independently verified provenance/);
+    const nested = { "node_modules/kaal-dep": { ...registry, resolved: "file:../elsewhere" }, "node_modules/kaal-fixture/node_modules/kaal-dep": registry };
+    expect((await conform(pinned, { deps, record: nested })).by, "packaging/F7", "verified", /resolved from a registry/);
+
+    // A pinned version the install does not record cannot show where it came from (packaging/F19).
+    expect((await conform(pinned, { deps })).by, "packaging/F7", "unknown", /records no resolution for kaal-dep/);
+    // Recorded, but not from a registry, or without integrity: failed.
+    const recorded = (entry) => conform(pinned, { deps, record: { "node_modules/kaal-dep": entry } });
+    expect((await recorded({ ...registry, resolved: "file:../kaal-dep-1.2.3" })).by, "packaging/F7", "failed", /kaal-dep resolved from "file:\.\.\/kaal-dep-1\.2\.3", not a registry/);
+    expect((await recorded({ resolved: "../kaal-dep", link: true })).by, "packaging/F7", "failed", /not a registry/);
+    expect((await recorded({ ...registry, resolved: "git+https://example.invalid/kaal-dep.git#abc" })).by, "packaging/F7", "failed", /not a registry/);
+    expect((await recorded({ ...registry, integrity: undefined })).by, "packaging/F7", "failed", /no recorded integrity/);
 
     const dep = fresh("file-dep");
     writeAll(dep, { "package.json": JSON.stringify({ name: "kaal-dep", version: "1.2.3" }) });
@@ -370,7 +404,9 @@ const docs = (requirements) => ({ "docs/requirements.md": new TextEncoder().enco
 const foundation = traceability(docs("# Requirements\\n\\nIt hashes bytes.\\n"), null);
 const model = traceability(docs("- **fixture/F1**: It adds.\\n"), { cases: ["fixture/T1"], model: { cases: [{ id: "fixture/T1", tests: ["fixture/F1"] }] } });
 console.log(JSON.stringify([foundation.result, model.result]));`;
-    const out = execFileSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: PACKAGE, encoding: "utf8" }).trim().split(/\r?\n/).at(-1);
+    const child = await execute(process.execPath, ["--input-type=module", "-e", probe], { cwd: PACKAGE });
+    assert.equal(child.status, 0, child.stderr);
+    const out = child.stdout.trim().split(/\r?\n/).at(-1);
     assert.deepEqual(JSON.parse(out), ["verified", "unknown"]);
   });
 
@@ -439,7 +475,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     const source = (scripts) => {
       const dir = fresh("workspace");
       writeAll(dir, conforming({ pkg: { scripts } }));
-      return conformSource(dir, { env: ENV });
+      return conformSource(dir, { env: ENV, npm: NPM });
     };
     const plan = { "test:consumer": "node test/verify.mjs", "test:publisher": "node -e \"\"" };
     expect({ x: await source({ ...plan, test: "npm run test:publisher && npm run test:consumer" }) }, "x", "verified", /test:publisher, test:consumer/);

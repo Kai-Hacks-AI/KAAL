@@ -1,3 +1,4 @@
+
 /** Testing's results (testing/F13). Packaging defines none of its own (packaging/N10). */
 export type Result = "verified" | "failed" | "unknown";
 
@@ -32,7 +33,7 @@ export const EMBEDDED: readonly string[];
  * behaviour probe in `work`, a missing or empty directory the caller owns and removes. Without
  * `work`, packaging/N9 is unknown.
  */
-export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string; testing?: TestingModel }): Promise<Conformance>;
+export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string; testing?: TestingModel; /** The path of a Node script that behaves as npm (packaging/A13); without it, the host's npm runs by name. */ npm?: string }): Promise<Conformance>;
 
 /** The part of Testing's model interface (kaal-testing/model, testing/F24–F25) that packaging/F13 reads traces through. */
 export interface TestingModel {
@@ -60,7 +61,7 @@ export function traceability(files: Record<string, Uint8Array>, verify: Record<s
 export function platforms(pkg: Record<string, unknown>, options?: { osBoundary?: (name: string) => boolean }): Finding;
 
 /** packaging/F14, decided against a package's source workspace at `dir` (absolute). */
-export function conformSource(dir: string, options?: { env?: Record<string, string | undefined> }): Promise<Finding>;
+export function conformSource(dir: string, options?: { env?: Record<string, string | undefined>; /** The path of a Node script that behaves as npm (packaging/A13); without it, the host's npm runs by name. */ npm?: string }): Promise<Finding>;
 
 /**
  * packaging/N10, decided for the Requirements text `requirements`. `plans` maps each cited owner's
