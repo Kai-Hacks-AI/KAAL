@@ -23,7 +23,7 @@ In your installation, one command runs every delivered case against the installe
 npm explore @kaihacksai/kaal-hosting -- npm test
 ```
 
-Its last line starts with `kaal-hosting-verification ` and carries the result as JSON. It names the installed package, its location, your platform and Node version, the digest of the installed files and every case with its outcome, and maps every identifier defined here to `covered`, `allocated` or `unverified`. It lists each allocated and unverified identifier as not verified by this run.
+Its last line starts with `kaal-hosting-verification ` and carries the result as JSON. It names the installed package, its location, your platform and Node version, the digest of the installed files and every case with its outcome, lists under `traces` the cases that cite each identifier, and maps every identifier defined here to `covered`, `allocated` or `unverified`. A trace is declared, not evidence: an identifier is `covered` only when a case that cites it passed in this run, and `not applicable` when every case that cites it is declared not applicable here. It lists each allocated and unverified identifier as not verified by this run.
 
 In Hosting's source workspace, the same `npm test` runs every suite the package declares as a `test:<name>` script, the publisher's included.
 

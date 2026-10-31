@@ -338,8 +338,12 @@ export async function installation(log, pkg) {
     for (const loop of manifest ? LOOPS : []) if (!cases.some((c) => c.loop === loop && c.outcome === "pass")) add(causes, `the ${loop} loop ran no passing case`, "report this to the package's maintainers");
   }
 
-  // Coverage (hosting/F23): a case covers what its name cites; the manifest states the rest.
+  // Coverage (hosting/F23). The manifest and the case titles only declare: a title's citations are
+  // traces from a case to its targets, and the manifest names the state each identifier is declared in.
+  // Neither is evidence. An identifier is covered only when a case that cites it passed in this run;
+  // allocated and unverified identifiers stay apart, never verified by this run.
   const coverage = {};
+  const traces = {};
   if (manifest) {
     const ids = defined();
     if (ids.length === 0) add(causes, "the installed docs/ define no identifier", "reinstall the package and run the command again");
@@ -352,9 +356,14 @@ export async function installation(log, pkg) {
         add(causes, `${id}, which docs/ defines, is neither covered, allocated nor declared unverified in the manifest`, "report this to the package's maintainers");
         continue;
       }
+      if (covering.length) traces[id] = covering.map((c) => c.name);
       if ("covered" in entry) {
         if (covering.length === 0) add(causes, `${id} is declared covered, but no delivered case cites it`, "report this to the package's maintainers");
-        else coverage[id] = "covered";
+        else if (covering.some((c) => c.outcome === "pass")) coverage[id] = "covered";
+        else if (covering.every((c) => c.outcome === "not applicable")) {
+          coverage[id] = "not applicable";
+          log(`${id}: every case that cites it does not apply on ${platform}; not verified by this run`);
+        } else if (ran && !covering.some((c) => c.outcome === "fail")) add(causes, `${id} is declared covered, but no case that cites it passed in this run`, "report this to the package's maintainers");
       } else if ("allocated" in entry || "unverified" in entry) {
         const state = "allocated" in entry ? "allocated" : "unverified";
         if (covering.length) add(causes, `${id} is declared ${state}, but delivered cases cite it`, "report this to the package's maintainers");
@@ -379,6 +388,7 @@ export async function installation(log, pkg) {
     consumer: consumer.root ?? null,
     changed: changes,
     cases,
+    traces,
     coverage,
   });
 }
