@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@kaihacksai/kaal-foundation": "0.0.1",
-    "kaal-hosting": "0.0.1",
-    "kaal-testing": "0.0.1"
+    "kaal-hosting": "0.0.1"
   }
 }

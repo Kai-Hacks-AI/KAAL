@@ -213,15 +213,6 @@ export function platforms(pkg, { osBoundary = typeof hosting.osBoundary === "fun
   return finding("packaging/F12", "failed", `it restricts ${fields}, but only Hosting's OS boundary may (hosting/F39); ${pkg.name} is not it (hosting/F36)`);
 }
 
-/**
- * Testing's model functions (testing/F24, testing/F25), when the installed Testing provides them.
- * Packaging reads traces only through them and keeps no model semantics of its own.
- */
-const TESTING = await import("kaal-testing/model").then(
-  (m) => (typeof m.check === "function" && typeof m.tested === "function" ? m : undefined),
-  () => undefined,
-);
-
 /** The fields of the coverage registry rejected in Testing #667: declarations, never evidence (testing/F66). */
 const REGISTRY = ["identifiers", "coverage", "allocated", "unverified"];
 
@@ -232,8 +223,12 @@ const REGISTRY = ["identifiers", "coverage", "allocated", "unverified"];
  * target is an identifier the shipped documents define. Which targets are evidenced is Testing's to
  * derive from these traces and the latest applicable Run (testing/F40). Packaging declares no
  * coverage, reads no coverage registry, and applies no rule that every identifier be tested.
+ *
+ * Testing's model functions (`check` and `tested`, testing/F24–F25) are handed in as `testing`, by
+ * a caller that has them, such as Engineering's harness. Packaging neither depends on Testing nor
+ * reimplements its model: without them, a shipped model is unknown, never verified.
  */
-export function traceability(files, verify, { testing = TESTING } = {}) {
+export function traceability(files, verify, { testing } = {}) {
   const ids = new Set();
   for (const [path, bytes] of Object.entries(files)) if (/^docs\/[^/]+\.md$/.test(path)) for (const id of defined(new TextDecoder().decode(bytes))) ids.add(id);
   const registry = REGISTRY.filter((k) => verify?.[k] !== undefined);
@@ -243,7 +238,7 @@ export function traceability(files, verify, { testing = TESTING } = {}) {
     if (ids.size === 0) return finding("packaging/F13", "verified", `it ships no Testing model, and its documents define no identifier a Case could test: there is no trace to resolve${ignored}`);
     return finding("packaging/F13", "unknown", `its documents define ${ids.size} identifiers, and it ships no Testing model (test/verify.json \`model\`, testing/F64) from which the Cases that test them are derived${ignored}`);
   }
-  if (testing == null) return finding("packaging/F13", "unknown", `it ships a Testing model, and the installed Testing provides no model functions (kaal-testing/model, testing/F25) to read it with${ignored}`);
+  if (testing == null) return finding("packaging/F13", "unknown", `it ships a Testing model, and no Testing model functions (check and tested, testing/F25) were given to read it with${ignored}`);
   const problems = testing.check(model).map((p) => `Testing's check: ${p}`);
   const traces = problems.length ? {} : testing.tested(model);
   const dangling = Object.keys(traces).filter((target) => !ids.has(target));
@@ -395,7 +390,7 @@ const overall = (findings) => (findings.some((f) => f.result === "failed") ? "fa
  * behaviour probe in `work` (absolute; a missing or empty directory the caller owns and removes).
  * It returns each finding, the overall result, and what the package's own verification reported,
  * which is the package's specific contract and not Packaging's to judge. `testing` is Testing's
- * model functions for packaging/F13; by default, the installed Testing's.
+ * model functions for packaging/F13, which the caller hands in when it has them.
  */
 export async function conform(dir, { consumer, env, work, testing } = {}) {
   if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);

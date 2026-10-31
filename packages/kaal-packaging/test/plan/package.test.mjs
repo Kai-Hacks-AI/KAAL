@@ -342,7 +342,8 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     assert.equal(bare.result, "unknown", bare.cause);
     // Decided from the shipped files and manifest.
     const { traceability } = await suite();
-    const decide = (change, testing = TESTING) => {
+    const decide = (change, ...given) => {
+      const testing = given.length ? given[0] : TESTING;
       const files = Object.fromEntries(Object.entries(conforming(change)).filter(([, b]) => b !== undefined).map(([p, b]) => [p, Buffer.from(b)]));
       const verify = files["test/verify.json"] ? JSON.parse(files["test/verify.json"].toString("utf8")) : null;
       return { x: traceability(files, verify, { testing }) };
@@ -358,7 +359,19 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     expect(decide({ manifest: { model: model(["fixture/T1", "fixture/F1"], ["fixture/T2"]) } }), "x", "failed", /delivered cases are not Cases of its model: fixture\/T3/);
     expect(decide({ manifest: { model: model(["fixture/T1", "fixture/F1"], ["fixture/T1"], ["fixture/T2"], ["fixture/T3"]) } }), "x", "failed", /Testing's check: .*duplicate/);
     expect(decide({ manifest: { cases: undefined } }), "x", "failed", /declares no delivered cases/);
-    expect(decide({}, null), "x", "unknown", /installed Testing provides no model functions/);
+    expect(decide({}, null), "x", "unknown", /no Testing model functions .* were given/);
+    expect(decide({}, undefined), "x", "unknown", /no Testing model functions .* were given/);
+    // Packaging does not need Testing installed: with every kaal-testing resolution refused, the suite loads,
+    // Foundation's form verifies, and a shipped model is unknown, never verified.
+    const probe = `import { registerHooks } from "node:module";
+registerHooks({ resolve(specifier, context, next) { if (specifier === "kaal-testing" || specifier.startsWith("kaal-testing/")) throw new Error("kaal-testing is not installed"); return next(specifier, context); } });
+const { traceability } = await import("kaal-packaging/conformance");
+const docs = (requirements) => ({ "docs/requirements.md": new TextEncoder().encode(requirements) });
+const foundation = traceability(docs("# Requirements\\n\\nIt hashes bytes.\\n"), null);
+const model = traceability(docs("- **fixture/F1**: It adds.\\n"), { cases: ["fixture/T1"], model: { cases: [{ id: "fixture/T1", tests: ["fixture/F1"] }] } });
+console.log(JSON.stringify([foundation.result, model.result]));`;
+    const out = execFileSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: PACKAGE, encoding: "utf8" }).trim().split(/\r?\n/).at(-1);
+    assert.deepEqual(JSON.parse(out), ["verified", "unknown"]);
   });
 
   it("packaging/T22 N7: the consumer's project is byte-identical after verification", async () => {

@@ -76,6 +76,7 @@ Before `kaal-packaging/conformance` existed, every case failed as blocked (`ERR_
 | F13 verifies a model without Testing's model functions | T21 |
 | F13 applies a coverage rule, holding an untested identifier unknown | T21 |
 | F13 verifies a manifest with no delivered cases | T21 |
+| F13 loads Testing itself by default, a dependency Packaging does not take | T6 |
 | N7 ignores a changed consumer | T22 |
 | N8 trusts any import | T23 |
 | N9 accepts `verified` with no case run | T24 |
@@ -109,4 +110,4 @@ The first run left two survivors in F9: T17's checkout fixture failed at run tim
 - **Its kind:** a false RED (an unknown), and a route to a false GREEN.
 - **The target:** packaging/F13, read against Testing's model (testing/F25, testing/F40, testing/F66) and the Owner's coverage ruling on Testing #667.
 - **What it froze:** a second coverage registry, `identifiers`, `coverage`, `allocated` and `unverified` in `test/verify.json`, as the evidence of traceability. That held a valid package such as Foundation unknown for correctly omitting the registry, and let a declaration stand in for traces that might not exist.
-- **The correction:** F13 now reads the shipped `model` through Testing's own `check` and `tested`, and holds it against the delivered cases and the shipped documents. Evidence stays Testing's derivation. T21 is a new version that pairs Foundation's form and a sound model as positives with a negative for each absent or inconsistent trace (the Owner's review on #686). Until Testing's `kaal-testing/model` reaches the installed Testing, the suite's own cases use a stand-in that holds to its interface, and the installed default is unknown, never verified.
+- **The correction:** F13 now reads the shipped `model` through Testing's own `check` and `tested`, and holds it against the delivered cases and the shipped documents. Evidence stays Testing's derivation. T21 is a new version that pairs Foundation's form and a sound model as positives with a negative for each absent or inconsistent trace (the Owner's review on #686). Packaging takes no dependency on Testing (the Owner's review on #703): the caller hands in Testing's model functions, and without them a shipped model is unknown, never verified. T21 shows the suite loading and deciding with every `kaal-testing` resolution refused. Until `kaal-testing/model` reaches main, T21's own cases use a stand-in that holds to its interface.

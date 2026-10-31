@@ -46,8 +46,9 @@ export interface TestingModel {
  * packaging/F13, decided against an installed package's files (path to bytes) and its shipped
  * manifest: the shipped `model` is sound by Testing's `check`, its Cases are exactly the delivered
  * cases, and every target it tests is defined in the shipped documents. A coverage registry is not
- * read. Without a model where the documents define identifiers, or without Testing's model
- * functions, the result is unknown.
+ * read. `testing` is Testing's model functions, handed in by a caller that has them: Packaging
+ * does not depend on Testing. Without a model where the documents define identifiers, or without
+ * `testing` where a model ships, the result is unknown.
  */
 export function traceability(files: Record<string, Uint8Array>, verify: Record<string, unknown> | null, options?: { testing?: TestingModel }): Finding;
 
