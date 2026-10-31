@@ -60,3 +60,8 @@ Each Requirement names, in brackets, the Intents it serves. Where another capabi
 ## Amendment by the Owner's review of foundation/C8 (#712, comment 6544398985)
 
 - **foundation/F18** [foundation/I7]: **Safe acquisition.** `kaal-foundation` is only the bin's name; the published package is `@kaihacksai/kaal-foundation`. Every consumer-facing example (README, `docs/`, the skill, and the repository's `AGENTS.md`) runs the command as `npm exec --no --package=@kaihacksai/kaal-foundation -- kaal-foundation …` after `npm install @kaihacksai/kaal-foundation`, and none recommends `npx kaal-foundation`. Where the scoped package is not installed, the documented command fails and never runs another package.
+
+## Amendment foundation/C9: what npm publication needs (review of #717, issuecomment-6544821400)
+
+- **foundation/F14, corrected.** `kaal-foundation verify` loads no library code itself. Where the installed library is changed or cannot load, it reports the verification's own result, `cannot verify` with exit 2, and never crashes. The library loads lazily, in `sha256` only.
+- **foundation/F19** [foundation/I5]: **Publishable as is.** `package.json` declares `publishConfig.access: "public"`, because a scoped package's first publish is otherwise restricted. It also declares `repository` (`git+https://github.com/Kai-Hacks-AI/KAAL.git`, directory `packages/kaal-foundation`), because a publish with provenance checks it against the source repository. Publication itself, and the release workflow, stay outside Foundation: the Owner's and the release engine's.
