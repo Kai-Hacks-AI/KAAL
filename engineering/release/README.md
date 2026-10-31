@@ -1,6 +1,6 @@
 # Engineering's Release engine
 
-> PLAN (engineering/C12): nothing below exists yet. The Owner asked, on 2026-10-31 after #717 merged, for "a similar engine than kaal-guard for promotion" to npm, and for "a special download approach" for `0.0.1`. This PLAN generalizes Guard Release (`.github/workflows/guard-release.yml`, Guard's R1 on #321/#323, and its later corrections) into one release engine that any KAAL package uses, with Foundation as its first package. Approving it authorizes only the DOs named under [Order](#order), each in its own Change. It authorizes no synchronization, promotion or publication, and creates no npm credential.
+> PLAN engineering/C12 (#719, approved by the Owner in review 5723409257), realized by the engineering/C13 DO in `release.mjs` (the decisions, pure), `run.mjs` (the steps, through Hosting and npm) and `release.test.mjs` (engineering/T62–T70). The workflow, `.github/workflows/release.yml`, is engineering/C14. The Owner asked, on 2026-10-31 after #717 merged, for "a similar engine than kaal-guard for promotion" to npm, and for "a special download approach" for `0.0.1`. This generalizes Guard Release (`.github/workflows/guard-release.yml`, Guard's R1 on #321/#323, and its later corrections) into one release engine that any KAAL package uses, with Foundation as its first package. It authorizes no synchronization, promotion or publication, and creates no npm credential.
 
 ## What Guard Release already proves, and what it cannot do
 
@@ -72,7 +72,9 @@ The engine owns no package's semantics and adds no assertion to a package's own 
 
 `engineering/release/release.mjs` holds the engine, and `.github/workflows/release.yml` is the adapter. The workflow takes the inputs `package` (a string, validated by the engine and not by a choice list that would repeat the workspaces), `publish` (a boolean) and, for `registry`, `run`, the Pack run whose release record and artifact it accepts. It runs `node engineering/release/release.mjs <step> …` in each job and acts on the exit status: 0 verified, 1 failed, 2 cannot judge. Each job keeps Guard Release's settings: actions pinned by SHA, `persist-credentials: false`, `contents: read`, and `id-token: write` only in Publish.
 
-The registry is reached only through `npm`, never through hand-made HTTP. The engine's registry reads (`view`, `pack <spec>`) are one small seam that its tests replace with a fixture registry, so no test needs the network.
+The registry is reached through `npm` (`view`, `pack <spec>`, `install <spec>`, `publish`), one seam that the tests replace with a fixture registry, so no test needs the network. One read has no npm command: F35's attestation bundle. `run.mjs`'s `attest` fetches it from the URL npm's own `dist.attestations` gives, and refuses any URL outside `https://registry.npmjs.org/-/npm/v1/attestations/`. It is a second seam, also replaced in the tests.
+
+**The steps, as `run.mjs` names them.** `pack` (F28–F32, writes `record/release.json`, `report/summary.md` and the tarball under `artifact/`), `bind` (F31: the uploaded artifact's id and digest into the record), `publish` (F33) and `accept` (F35). Each prints `kaal-release <step>: <result>` and exits 0, 1 or 2.
 
 Trusted publishers are set per package on npm, and each names the workflow file. Every package therefore names `release.yml`, so one environment, one approval rule and one adapter serve them all.
 
@@ -81,11 +83,11 @@ Trusted publishers are set per package on npm, and each names the workflow file.
 1. **Where the logic lives.** **Option A (recommended):** a Node engine under `engineering/release/` and a thin workflow. It is testable under `npm run test:engineering`, and follows Guard's narrow-adapter rule ("supply facts, act on the exit code"). Option B: all logic in a reusable workflow's YAML, as Guard Release has it. Nothing tests it before a real run.
 2. **The `0.0.1` path.** Settled by the Owner on #719: F34, where the Owner publishes the downloaded tested artifact with 2FA and nothing is repacked locally. Guard's bootstrap A, a local repack, is not used. A temporary token in the `npm` environment is not an option either: it is a credential, and N15 forbids it.
 3. **Packaging's gate before Packaging is on `main`.** **Option A (recommended):** `conform` is required as soon as `kaal-packaging` is on `main`, and until then it is shown as **not run** beside the other results. Foundation, which has no dependencies, can then release first. Option B: no release until `conform` runs. Foundation then waits for Packaging's promotion (#686), while Packaging's own F7 waits for Foundation on npm.
-4. **Guard Release.** **Option A (recommended):** it stays as it is. Moving `@kaihacksai/kaal-guard`'s trusted publisher to `release.yml` is a later Guard Change, made at Guard's next release, the Owner's call. Option B: migrate now, which changes Guard's npm setting while `0.0.5` is in flight.
+4. **Guard Release.** Settled (the Owner asked on 2026-10-31 whether the engine replaces it; answered on #719): yes, after Guard `0.0.5`. `0.0.5` ships through today's `guard-release.yml`, unchanged, because it is in flight and the engine is not yet on `main`. After `0.0.5` is on npm, a Guard-owned `.github` Change retires `guard-release.yml`, the Owner repoints `@kaihacksai/kaal-guard`'s trusted publisher to `release.yml` by hand, and `0.0.6` is the first Guard version through the engine. Meanwhile F35 can already accept `0.0.5` from the registry, since it publishes nothing.
 
 ## Test Cases
 
-These go in `engineering/release/release.test.mjs` and run in `npm run test:engineering`. They use fixture packages in a scratch directory and a fixture registry behind the engine's registry seam, with no network and no publish. Each is first observed RED against a deliberately wrong engine. A RED that shows only a missing module counts as blocked, not as evidence.
+These are in `engineering/release/release.test.mjs` and run in `npm run test:engineering`. They use fixture packages in a scratch directory and a fixture registry behind the engine's npm seam, with no network and no publish. Each was observed RED against the deliberately wrong engine in its row, recorded in engineering/C13's pull request.
 
 | Test | Checks | Deliberately wrong engine that makes it RED |
 | --- | --- | --- |
