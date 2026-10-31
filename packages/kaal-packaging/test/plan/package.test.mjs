@@ -145,10 +145,7 @@ function conforming(change = {}) {
   files["package.json"] = JSON.stringify(pkg, null, 2) + "\n";
   const manifest = {
     cases: ["fixture/T1", "fixture/T2", "fixture/T3"],
-    identifiers: ["fixture/F1"],
-    coverage: { "fixture/F1": { embedded: ["fixture/T1"] } },
-    allocated: {},
-    unverified: {},
+    model: { cases: [{ id: "fixture/T1", tests: ["fixture/F1"] }, { id: "fixture/T2", tests: ["fixture/F1"] }, { id: "fixture/T3", tests: ["fixture/F1"] }] },
     ...change.manifest,
   };
   if (change.manifest !== null) {
@@ -179,11 +176,41 @@ function install(files, { deps = {}, tamper = {}, around = {} } = {}) {
   return { dir, consumer };
 }
 
+/**
+ * A stand-in for Testing's model functions (testing/F24–F25), used only while the installed Testing
+ * does not yet export kaal-testing/model. It holds to that interface's contract as far as these
+ * fixtures reach: a sound model of uniquely named Cases, each `tests` a list of nonempty strings,
+ * and the reverse traversal of Case —tests→ Target.
+ */
+const STAND_IN = {
+  check(model) {
+    if (model === null || typeof model !== "object" || Array.isArray(model)) return ["a model is an object"];
+    if (model.cases !== undefined && !Array.isArray(model.cases)) return ["cases must be a list"];
+    const seen = new Set(), problems = [];
+    for (const c of model.cases ?? []) {
+      if (seen.has(c.id)) problems.push(`${c.id}: duplicate identity`);
+      seen.add(c.id);
+      if (c.tests !== undefined && !(Array.isArray(c.tests) && c.tests.every((t) => typeof t === "string" && t !== ""))) problems.push(`${c.id}: tests must be nonempty strings`);
+    }
+    return problems;
+  },
+  tested(model) {
+    const out = {};
+    for (const c of model.cases ?? []) if (!c.retired) for (const t of c.tests ?? []) (out[t] ??= []).push(c.id);
+    return out;
+  },
+};
+
+/** Testing's model functions as installed, or the stand-in while Testing does not export them yet. */
+const INSTALLED = await import("kaal-testing/model").then((m) => (typeof m.check === "function" && typeof m.tested === "function" ? m : null), () => null);
+const TESTING = INSTALLED ?? STAND_IN;
+
 /** The suite's findings for an installed package, by Requirement. */
 async function conform(files, options) {
   const { conform } = await suite();
   const { dir, consumer } = install(files, options);
-  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe") });
+  const testing = options && "testing" in options ? options.testing : TESTING;
+  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe"), testing });
   return { report, by: Object.fromEntries(report.findings.map((f) => [f.requirement, f])), dir, consumer };
 }
 
@@ -301,12 +328,37 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     assert.notEqual(restricted.result, "verified", restricted.cause);
   });
 
-  it("packaging/T21 F13: a shipped Requirement with neither a case nor an allocation is reported unresolved", async () => {
-    expect((await conform(conforming())).by, "packaging/F13", "verified");
-    const untraced = conforming({ manifest: { identifiers: ["fixture/F1", "fixture/F2"] } });
-    expect((await conform(untraced)).by, "packaging/F13", "unknown", /fixture\/F2/);
-    const allocated = conforming({ manifest: { identifiers: ["fixture/F1", "fixture/F2"], allocated: { "fixture/F2": "engineering/T1" } } });
-    expect((await conform(allocated)).by, "packaging/F13", "verified");
+  it("packaging/T21 F13: the traces a package ships are Testing's model, Case tests Target, and they resolve", async () => {
+    // No false RED or unknown: a package whose traces are a sound model of its delivered cases conforms.
+    expect((await conform(conforming())).by, "packaging/F13", "verified", /3 delivered cases are its model's Cases, and they test 1 of the 1 identifiers/);
+    // A package such as Foundation, which defines no identifier and ships neither a model nor a coverage registry, conforms.
+    const foundation = conforming({ manifest: null, files: { "docs/requirements.md": "# Requirements\n\nIt hashes bytes with SHA-256, as FIPS 180-4 states.\n" } });
+    expect((await conform(foundation)).by, "packaging/F13", "verified", /no trace to resolve/);
+    // No false GREEN: identifiers defined with no model to derive their Cases from are unknown, whatever a registry declares.
+    const registry = { model: undefined, identifiers: ["fixture/F1"], coverage: { "fixture/F1": { embedded: ["fixture/T1"] } }, allocated: {}, unverified: {} };
+    expect((await conform(conforming({ manifest: registry }))).by, "packaging/F13", "unknown", /ships no Testing model.*coverage declaration, not evidence/);
+    // Installed: without Testing's model functions, a shipped model is never verified.
+    const bare = (await conform(conforming(), { testing: null })).by["packaging/F13"];
+    assert.equal(bare.result, "unknown", bare.cause);
+    // Decided from the shipped files and manifest.
+    const { traceability } = await suite();
+    const decide = (change, testing = TESTING) => {
+      const files = Object.fromEntries(Object.entries(conforming(change)).filter(([, b]) => b !== undefined).map(([p, b]) => [p, Buffer.from(b)]));
+      const verify = files["test/verify.json"] ? JSON.parse(files["test/verify.json"].toString("utf8")) : null;
+      return { x: traceability(files, verify, { testing }) };
+    };
+    const model = (...cases) => ({ cases: cases.map(([id, ...tests]) => ({ id, tests })) });
+    const two = { "docs/requirements.md": "# Requirements\n\n- **fixture/F1**: It adds.\n- **fixture/F2**: It adds zero.\n" };
+    // No coverage rule is Packaging's (it waits on the Owner's decision on Testing #667): an identifier no Case tests is reported, not judged.
+    expect(decide({ files: two }), "x", "verified", /test 1 of the 2 identifiers/);
+    expect(decide({ manifest: { identifiers: ["fixture/F1"], allocated: { "fixture/F2": "elsewhere" } } }), "x", "verified", /identifiers, allocated are a coverage declaration, not evidence, and were not read/);
+    expect(decide({ manifest: { model: undefined } }), "x", "unknown", /define 1 identifiers, and it ships no Testing model/);
+    expect(decide({ manifest: { model: model(["fixture/T1", "fixture/F9"], ["fixture/T2"], ["fixture/T3"]) } }), "x", "failed", /do not define: fixture\/F9 \(by fixture\/T1\)/);
+    expect(decide({ manifest: { model: model(["fixture/T1", "fixture/F1"], ["fixture/T2"], ["fixture/T3"], ["fixture/T4", "fixture/F1"]) } }), "x", "failed", /model's Cases are not delivered: fixture\/T4/);
+    expect(decide({ manifest: { model: model(["fixture/T1", "fixture/F1"], ["fixture/T2"]) } }), "x", "failed", /delivered cases are not Cases of its model: fixture\/T3/);
+    expect(decide({ manifest: { model: model(["fixture/T1", "fixture/F1"], ["fixture/T1"], ["fixture/T2"], ["fixture/T3"]) } }), "x", "failed", /Testing's check: .*duplicate/);
+    expect(decide({ manifest: { cases: undefined } }), "x", "failed", /declares no delivered cases/);
+    expect(decide({}, null), "x", "unknown", /installed Testing provides no model functions/);
   });
 
   it("packaging/T22 N7: the consumer's project is byte-identical after verification", async () => {

@@ -32,7 +32,24 @@ export const EMBEDDED: readonly string[];
  * behaviour probe in `work`, a missing or empty directory the caller owns and removes. Without
  * `work`, packaging/N9 is unknown.
  */
-export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string }): Promise<Conformance>;
+export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string; testing?: TestingModel }): Promise<Conformance>;
+
+/** The part of Testing's model interface (kaal-testing/model, testing/F24–F25) that packaging/F13 reads traces through. */
+export interface TestingModel {
+  /** Every problem Testing finds in a model; none when it is sound. */
+  check(model: unknown): string[];
+  /** Each target, with the Cases that test it, derived from Case —tests→ Target. */
+  tested(model: unknown): Record<string, string[]>;
+}
+
+/**
+ * packaging/F13, decided against an installed package's files (path to bytes) and its shipped
+ * manifest: the shipped `model` is sound by Testing's `check`, its Cases are exactly the delivered
+ * cases, and every target it tests is defined in the shipped documents. A coverage registry is not
+ * read. Without a model where the documents define identifiers, or without Testing's model
+ * functions, the result is unknown.
+ */
+export function traceability(files: Record<string, Uint8Array>, verify: Record<string, unknown> | null, options?: { testing?: TestingModel }): Finding;
 
 /**
  * packaging/F12, decided against a package manifest: the runtime (`engines.node`) is declared, and no

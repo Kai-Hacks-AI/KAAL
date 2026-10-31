@@ -244,9 +244,9 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     assert.match(render(compare(a, b, ["lib/"])), /\+4300/);
   });
 
-  it("packaging/T6 [packaging/N3, packaging/A1, packaging/A6]: the package imports only kaal-hosting (and its conformance, for hosting/F36's OS boundary) and kaal-foundation, no node: module, and parses no archive or compression format", () => {
+  it("packaging/T6 [packaging/N3, packaging/A1, packaging/A6]: the package imports only kaal-hosting (and its conformance, for hosting/F36's OS boundary), kaal-foundation and Testing's model (for packaging/F13's traces, testing/F25), no node: module, and parses no archive or compression format", () => {
     const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-    for (const dep of Object.keys(pkg.dependencies ?? {})) assert.ok(["kaal-hosting", "@kaihacksai/kaal-foundation"].includes(dep), dep);
+    for (const dep of Object.keys(pkg.dependencies ?? {})) assert.ok(["kaal-hosting", "@kaihacksai/kaal-foundation", "kaal-testing"].includes(dep), dep);
     const lib = join(PACKAGE, "lib");
     const files = readdirSync(lib, { recursive: true }).filter((f) => f.endsWith(".mjs"));
     assert.ok(files.length > 0);
@@ -254,7 +254,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
       const source = readFileSync(join(lib, file), "utf8");
       const specifiers = [...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g)].map((m) => m[1]);
       for (const s of specifiers) {
-        assert.ok(s.startsWith("./") || s.startsWith("../") || s === "kaal-hosting" || s === "kaal-hosting/conformance" || s.startsWith("@kaihacksai/kaal-foundation/"), `${file} imports ${s}`);
+        assert.ok(s.startsWith("./") || s.startsWith("../") || s === "kaal-hosting" || s === "kaal-hosting/conformance" || s === "kaal-testing/model" || s.startsWith("@kaihacksai/kaal-foundation/"), `${file} imports ${s}`);
       }
       assert.doesNotMatch(source, /\brequire\s*\(|\bprocess\.|\bglobalThis\b/, file);
       assert.doesNotMatch(source, /\binflate|gunzip|\bzlib\b|crc-?32|ustar|DecompressionStream|512\s*\*|subarray\(/i, `${file} parses an archive or compression format`);

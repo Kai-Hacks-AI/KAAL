@@ -213,19 +213,57 @@ export function platforms(pkg, { osBoundary = typeof hosting.osBoundary === "fun
   return finding("packaging/F12", "failed", `it restricts ${fields}, but only Hosting's OS boundary may (hosting/F39); ${pkg.name} is not it (hosting/F36)`);
 }
 
-/** packaging/F13: every shipped identifier is covered, allocated, or declared unverified with a reason. */
-function coverage(verify) {
-  if (!verify || !Array.isArray(verify.identifiers)) return finding("packaging/F13", "unknown", "the package ships no coverage trace (test/verify.json identifiers)");
-  const covered = verify.coverage ?? {};
-  const allocated = verify.allocated ?? {};
-  const unverified = verify.unverified ?? {};
-  const untraced = verify.identifiers.filter((id) => {
-    const cases = Object.values(covered[id] ?? {}).flat();
-    return cases.length === 0 && typeof allocated[id] !== "string" && !(typeof unverified[id] === "string" && unverified[id].trim() !== "");
-  });
-  return untraced.length
-    ? finding("packaging/F13", "unknown", `${untraced.length} identifiers have neither a case nor an allocation: ${untraced.join(", ")}`)
-    : finding("packaging/F13", "verified", `${verify.identifiers.length} identifiers traced`);
+/**
+ * Testing's model functions (testing/F24, testing/F25), when the installed Testing provides them.
+ * Packaging reads traces only through them and keeps no model semantics of its own.
+ */
+const TESTING = await import("kaal-testing/model").then(
+  (m) => (typeof m.check === "function" && typeof m.tested === "function" ? m : undefined),
+  () => undefined,
+);
+
+/** The fields of the coverage registry rejected in Testing #667: declarations, never evidence (testing/F66). */
+const REGISTRY = ["identifiers", "coverage", "allocated", "unverified"];
+
+/**
+ * packaging/F13, decided against the shipped files and manifest: the traces a package ships are
+ * Testing's model, Case —tests→ Target (testing/F25, testing/F66), and they resolve. Testing's
+ * `check` finds nothing in the shipped `model`; its Cases are exactly the delivered cases; and every
+ * target is an identifier the shipped documents define. Which targets are evidenced is Testing's to
+ * derive from these traces and the latest applicable Run (testing/F40). Packaging declares no
+ * coverage, reads no coverage registry, and applies no rule that every identifier be tested.
+ */
+export function traceability(files, verify, { testing = TESTING } = {}) {
+  const ids = new Set();
+  for (const [path, bytes] of Object.entries(files)) if (/^docs\/[^/]+\.md$/.test(path)) for (const id of defined(new TextDecoder().decode(bytes))) ids.add(id);
+  const registry = REGISTRY.filter((k) => verify?.[k] !== undefined);
+  const ignored = registry.length ? `; its ${registry.join(", ")} are a coverage declaration, not evidence, and were not read (testing/F66)` : "";
+  const model = verify?.model;
+  if (model === undefined) {
+    if (ids.size === 0) return finding("packaging/F13", "verified", `it ships no Testing model, and its documents define no identifier a Case could test: there is no trace to resolve${ignored}`);
+    return finding("packaging/F13", "unknown", `its documents define ${ids.size} identifiers, and it ships no Testing model (test/verify.json \`model\`, testing/F64) from which the Cases that test them are derived${ignored}`);
+  }
+  if (testing == null) return finding("packaging/F13", "unknown", `it ships a Testing model, and the installed Testing provides no model functions (kaal-testing/model, testing/F25) to read it with${ignored}`);
+  const problems = testing.check(model).map((p) => `Testing's check: ${p}`);
+  const traces = problems.length ? {} : testing.tested(model);
+  const dangling = Object.keys(traces).filter((target) => !ids.has(target));
+  if (dangling.length) problems.push(`Cases test identifiers its documents do not define: ${dangling.map((t) => `${t} (by ${traces[t].join(", ")})`).join("; ")}`);
+  const live = new Set((Array.isArray(model?.cases) ? model.cases : []).filter((c) => c?.retired !== true && typeof c?.id === "string").map((c) => c.id));
+  if (!Array.isArray(verify.cases)) problems.push("the manifest declares no delivered cases to hold its model's Cases against");
+  else {
+    const delivered = new Set(verify.cases);
+    const undelivered = [...live].filter((id) => !delivered.has(id)).sort();
+    const unmodelled = [...delivered].filter((id) => !live.has(id)).sort();
+    if (undelivered.length) problems.push(`the model's Cases are not delivered: ${undelivered.join(", ")}`);
+    if (unmodelled.length) problems.push(`delivered cases are not Cases of its model: ${unmodelled.join(", ")}`);
+  }
+  if (problems.length) return finding("packaging/F13", "failed", problems.join("; ") + ignored);
+  const targets = Object.keys(traces).length;
+  return finding(
+    "packaging/F13",
+    "verified",
+    `its ${live.size} delivered cases are its model's Cases, and they test ${targets} of the ${ids.size} identifiers its documents define; which are evidenced is Testing's to derive from these traces and the latest applicable Run (testing/F40)${ignored}`,
+  );
 }
 
 /** The consumer's project, byte for byte, or why it cannot be read. */
@@ -356,9 +394,10 @@ const overall = (findings) => (findings.some((f) => f.result === "failed") ? "fa
  * node_modules). It runs the package's installed `npm test` there once, and once more for the
  * behaviour probe in `work` (absolute; a missing or empty directory the caller owns and removes).
  * It returns each finding, the overall result, and what the package's own verification reported,
- * which is the package's specific contract and not Packaging's to judge.
+ * which is the package's specific contract and not Packaging's to judge. `testing` is Testing's
+ * model functions for packaging/F13; by default, the installed Testing's.
  */
-export async function conform(dir, { consumer, env, work } = {}) {
+export async function conform(dir, { consumer, env, work, testing } = {}) {
   if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);
   const root = consumer ?? projectOf(dir);
   const pkg = await manifestOf(dir);
@@ -389,7 +428,7 @@ export async function conform(dir, { consumer, env, work } = {}) {
     ...checked.findings.filter((f) => f.requirement !== "packaging/N9"),
     manifest(files, verify, checked.run),
     platforms(pkg),
-    coverage(verify),
+    traceability(files, verify, { testing }),
     intact(before, after),
     selfContained(pkg, files),
     n9,
