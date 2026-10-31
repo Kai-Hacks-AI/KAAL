@@ -19,8 +19,10 @@ export function judgeExecution(manifest, observations) {
       selected.length === 0) errors.push('invalid or contradictory selection');
   if (manifest.mode !== 'capability-pr' && manifest.mode !== 'full-assurance')
     errors.push('unknown execution mode');
-  if (manifest.mode === 'full-assurance' && manifest.fullMatrixVerified !== true)
-    errors.push('full matrix not verified');
+  // Full assurance cannot be established by a caller-controlled boolean.
+  // A separately governed complete matrix must be validated before this mode is supported.
+  if (manifest.mode === 'full-assurance')
+    errors.push('full assurance requires independent matrix validation');
   const seen = new Set();
   for (const observation of observations) {
     const k = key(observation);
