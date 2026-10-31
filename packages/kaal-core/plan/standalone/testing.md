@@ -2,6 +2,8 @@
 
 The planned outer tests live in `packages/kaal-core/test/plan/standalone.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `core/C33` turns them GREEN.
 
+`core/C37` revised how they run a command: through kaal-hosting's `execute`, with no shell chosen by platform (`core/F88`). What each test asserts is unchanged.
+
 | Test | Checks | Loop |
 | --- | --- | --- |
 | core/T81: kaal-core's `package.json` declares no runtime dependency on Graph's package; a peer dependency is allowed only when marked optional, and a `devDependency` only for the build | core/F76 | Requirements |
