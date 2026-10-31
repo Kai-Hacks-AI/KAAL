@@ -1,2 +1,4 @@
 # The README ships as written: Git keeps its bytes on every host, whatever core.autocrlf says.
 README.md -text
+# Shipped review instructions keep their exact bytes on every host (hosting/T40 reads them).
+skills/** -text
