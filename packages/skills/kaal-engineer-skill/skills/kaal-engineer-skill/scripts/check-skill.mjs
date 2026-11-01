@@ -11,7 +11,7 @@
 // violation, 2 on misuse or when Hosting refuses to read the directory.
 // Warnings go to stderr and do not fail. Repairs nothing. Needs Node.js 24
 // or later and this package's dependencies.
-import { read } from "kaal-hosting";
+import { read } from "@kaihacksai/kaal-hosting";
 import { basename, resolve } from "node:path";
 import { checkSkill } from "./validate.mjs";
 

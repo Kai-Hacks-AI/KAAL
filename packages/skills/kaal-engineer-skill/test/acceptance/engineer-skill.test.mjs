@@ -14,7 +14,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
@@ -50,7 +50,7 @@ let engine;
 
 before(async () => {
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["@kaihacksai/kaal-foundation", "kaal-core", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
+  host = await install(["@kaihacksai/kaal-foundation", "kaal-core", "@kaihacksai/kaal-graph", "@kaihacksai/kaal-hosting", "kaal-engineer-skill"]);
   installed = join(host, "node_modules", "kaal-engineer-skill");
   kaal = join(host, "node_modules", ".bin", "kaal");
   checker = join(host, "node_modules", ".bin", "kaal-engineer-skill");
@@ -119,8 +119,8 @@ describe("the shipped Agent Skill", () => {
 
   it("reads through the installed kaal-hosting", () => {
     const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
-    assert.deepEqual(pkg.dependencies, { commonmark: "0.31.2", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
-    assert.ok(existsSync(join(host, "node_modules", "kaal-hosting", "dist", "index.js")));
+    assert.deepEqual(pkg.dependencies, { commonmark: "0.31.2", "@kaihacksai/kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    assert.ok(existsSync(join(host, "node_modules", "@kaihacksai/kaal-hosting", "dist", "index.js")));
   });
 
   it("names no host skills location", () => {

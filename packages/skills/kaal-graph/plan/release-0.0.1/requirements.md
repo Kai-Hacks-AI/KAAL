@@ -13,7 +13,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - runs every embedded case (`test/embedded/`) against the installed copy;
   - ends in exactly one result: verified (exit 0), failed (exit 1) or unknown, printed as "cannot verify" (exit 2).
 
-  A changed or missing shipped file is failed. Fewer cases run than declared, or none, is unknown, never verified. This realizes testing/F13 in Graph's own code, cites it, and depends on no Testing package.
+  A changed, missing or added installed file is unknown: the bytes under test are no longer the shipped artifact (amended at `graph/C5`, following testing/F50). Failed is kept for a case that fails and for a consumer the run changed. Fewer cases run than declared, or none, is unknown, never verified. This realizes testing/F13 in Graph's own code, cites it, and depends on no Testing package.
 - **graph/F7** [graph/I4]: Every case is placed by what it verifies, not by what it needs today.
   - **Embedded Tests** verify shipped Graph behaviour. They ship in `test/embedded/` and run in the installed `npm test`. They import only `node:` built-ins, the package itself by name, and its runtime dependencies. A case that reaches the checkout today is adapted to the installed artifact: the CLI case runs the installed `bin`, and paths come from the package's own location.
   - **Engineering Tests** verify Graph's repository, packaging, release or integration with other KAAL packages. They stay in the repository, in `test/publisher/` and `test/acceptance/`, and never ship. Neither do `plan/` or `test/plan/`.

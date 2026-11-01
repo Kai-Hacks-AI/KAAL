@@ -3,7 +3,7 @@
 // contracts it checks (plan/cycles/*.md). They use kaal-graph's public interface only.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import * as graph from "kaal-graph";
+import * as graph from "@kaihacksai/kaal-graph";
 
 /** An export of kaal-graph, or the reason the tests are blocked before any behavioural assertion. */
 function exported(name) {

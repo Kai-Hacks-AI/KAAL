@@ -22,7 +22,7 @@ import {
   type Ref,
 } from "kaal-core";
 import * as core from "kaal-core";
-import { Graph, identify, sha256 } from "kaal-graph";
+import { Graph, identify, sha256 } from "@kaihacksai/kaal-graph";
 
 /**
  * The foundational identities, pinned. Changing a foundational document's

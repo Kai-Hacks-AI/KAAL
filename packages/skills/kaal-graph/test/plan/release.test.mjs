@@ -28,7 +28,9 @@ const clean = () => {
 };
 
 /** Today's cases that verify shipped behaviour: Embedded Tests, delivered once in test/embedded/ (graph/F7). */
+// C9 carry-forward: T16 joins the authoritative embedded inventory; A7 scopes module references.
 const EMBEDDED = [
+  "graph/T16 [graph/F4, graph/I7, graph/F1, graph/F2, graph/F3]: the relation reverse returns, and a caller's own read-only Map, compose with reach, cycles and reverse with every edge kept; a plain object still works",
   "gives a Node the SHA-256 of its exact bytes as its id, changing with any byte",
   "reads a root, the Node that declares no type, only through identifyRoot",
   "reads the Form strictly",
@@ -40,7 +42,7 @@ const EMBEDDED = [
   "refuses an Edge reference whose name no Node can have",
   "reads the frontmatter of any file in Form, a Node or not, and never the body",
   "refuses what the Form refuses, with a FormError",
-  "is offered alone as kaal-graph/form, which imports no host module",
+  "is offered alone as @kaihacksai/kaal-graph/form, which imports no host module",
   "are grouped by type, one Edge per target, sorted",
   "are none without an edges key",
   "are refused, never ignored: ${label}",
@@ -146,7 +148,7 @@ describe("Graph 0.0.1 consumer contract", () => {
     assert.ok(Object.keys(p.dependencies ?? {}).includes("@kaihacksai/kaal-hosting"));
   });
 
-  it("graph/T12 [graph/F6]: in a copy of the package, verify is verified (0); a changed shipped file is failed (1), naming it; an empty case inventory is unknown (2)", () => {
+  it("graph/T12 [graph/F6]: in a copy of the package, verify is verified (0); a changed shipped file is unknown (2), naming it; an empty case inventory is unknown (2)", () => {
     blocked(VERIFY, "test/verify.mjs");
     const copy = () => {
       const dir = join(tmp(), "package");
@@ -160,7 +162,7 @@ describe("Graph 0.0.1 consumer contract", () => {
     const changed = copy();
     appendFileSync(join(changed, "skills", "kaal-graph", "scripts", "structure.mjs"), "\n");
     const c = verify(changed);
-    assert.equal(c.status, 1, output(c));
+    assert.equal(c.status, 2, output(c));
     assert.match(output(c), /skills\/kaal-graph\/scripts\/structure\.mjs/);
     const empty = copy();
     const manifest = JSON.parse(readFileSync(join(empty, "test", "verify.json"), "utf8"));
@@ -220,6 +222,7 @@ describe("Graph 0.0.1 consumer contract", () => {
     }
     const unplaced = readdirSync(join(PACKAGE, "test")).filter((f) => f.endsWith(".test.mjs"));
     assert.deepEqual(unplaced, [], "test files outside embedded/, publisher/, acceptance/ and plan/");
+    assert.ok(!existsSync(join(PACKAGE, "test", "plan", "composition.test.mjs")), "graph/T16 still runs from test/plan/ as well as test/embedded/");
     assert.ok(!existsSync(join(PACKAGE, "test", "plan", "cycles.test.mjs")), "graph/T1–graph/T7 still run from test/plan/ as well as test/embedded/");
   });
 });

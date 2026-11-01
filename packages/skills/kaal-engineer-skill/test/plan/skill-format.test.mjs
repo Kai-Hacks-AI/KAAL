@@ -7,7 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import * as engineerSkill from "kaal-engineer-skill";
-import { read } from "kaal-hosting";
+import { read } from "@kaihacksai/kaal-hosting";
 
 const { checkSkill } = engineerSkill;
 // Looked up per call, so each test reports its own RED while the export is missing.
