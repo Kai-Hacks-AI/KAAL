@@ -402,6 +402,16 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     assert.equal(d.summary.cases.find((c) => c.name === inapplicable)?.outcome, "not applicable");
     assert.ok(d.summary.cases.filter((c) => c.name !== inapplicable).every((c) => c.outcome === "pass"));
   });
+
+  it("hosting/T75 [hosting/F62, hosting/A25]: the packed installation inventories the usage Skill and its actual examples, and declares all three delivered usage Cases", async () => {
+    const { installed } = await consumer();
+    const manifest = JSON.parse(readFileSync(join(installed, "test/verify.json"), "utf8"));
+    for (const path of ["skills/kaal-hosting/SKILL.md", "skills/kaal-hosting/references/operations.md", "test/embed/usage-harness.mjs"]) {
+      assert.ok(existsSync(join(installed, path)), `packed resource missing: ${path}`);
+      assert.equal(manifest.hashes[path], createHash("sha256").update(readFileSync(join(installed, path))).digest("hex"));
+    }
+    for (const id of [72, 73, 74]) assert.equal(manifest.cases.filter((name) => name.includes(`hosting/T${id} `)).length, 1, `one declared T${id}`);
+  });
 });
 
 // hosting/C22 planned outer tests: one test entry, two places (hosting/F20, the Owner's

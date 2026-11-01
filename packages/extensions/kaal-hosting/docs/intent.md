@@ -45,3 +45,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 - Hosting knows paths, bytes and commands. What a file means, and which files a plan writes, keeps or prunes, are its caller's (KAAL Core's).
 - Hosting depends on no other KAAL package. Other capabilities depend on it; a capability inspected by its conformance suite never does.
 - Hosting defines what its conformance suite finds, tests and asks. Review decides each judgment, Testing decides how a result is counted, and each capability corrects its own code.
+
+## Agent-facing use
+
+- **hosting/I14.** A consumer, human or agent, can discover and use the installed Hosting product to read, initialize, update and reconcile files, execute installed commands, and interpret verification and boundary findings without a KAAL checkout. The agent-facing Skill guides use of the same public contracts as the Bare API. It neither reimplements host operations nor grants authority to change the consumer's files.
