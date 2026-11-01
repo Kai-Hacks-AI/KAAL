@@ -10,6 +10,42 @@ import { describe, it } from "node:test";
 import gfs from "graceful-fs";
 import { reconcile } from "@kaihacksai/kaal-hosting";
 
+import { sha as usageSha, tree as usageTree } from "./harness.mjs";
+import { usageExample } from "./usage-harness.mjs";
+
+it("hosting/T73 [hosting/F58, hosting/F59, hosting/F62, hosting/A24]: the shipped reconciliation example applies a valid guard, preserves unexpected bytes on stale and refuses an escaping path without fallback writes", async () => {
+  const root = usageTree({ "main.md": "old", "keep.md": "keep" });
+  const input = { root, path: "main.md", expect: usageSha("old"), text: "next" };
+  const applied = await usageExample("reconcile", input);
+  assert.equal(applied.status, 0, applied.stderr);
+  assert.deepEqual(applied.value, { outcomes: [{ path: "main.md", outcome: "written" }], pruned: [] });
+  const stale = await usageExample("reconcile", { ...input, text: "overwrite" });
+  assert.equal(stale.status, 1);
+  assert.equal(stale.error?.code, "STALE");
+  assert.ok(stale.error.findings.some((f) => f.path === "main.md" && f.found === usageSha("next")));
+  assert.equal(readFileSync(join(root, "main.md"), "utf8"), "next");
+  const refused = await usageExample("reconcile", { ...input, path: "../escape", expect: "absent" });
+  assert.equal(refused.status, 1);
+  assert.equal(refused.error?.code, "INVALID_PATH");
+  assert.equal(readFileSync(join(root, "keep.md"), "utf8"), "keep");
+  assert.equal(readFileSync(join(root, "main.md"), "utf8"), "next");
+});
+
+it("hosting/T74 [hosting/F58, hosting/F62, hosting/A24]: the shipped command example preserves argument boundaries, working directory, stdout, stderr and nonzero exit, and distinguishes failure to start", async () => {
+  const root = usageTree();
+  const args = ["a b", "$HOME; echo altered", "\"quoted\""];
+  const script = "process.stdout.write(JSON.stringify({args:process.argv.slice(1),cwd:process.cwd()}));process.stderr.write('diagnostic');process.exitCode=7";
+  const result = await usageExample("execute", { cwd: root, command: process.execPath, args: ["-e", script, "--", ...args] });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.value.status, 7);
+  assert.deepEqual(JSON.parse(result.value.stdout), { args, cwd: realpathSync(root) });
+  assert.equal(result.value.stderr, "diagnostic");
+  const absent = await usageExample("execute", { cwd: root, command: join(root, "does-not-exist"), args: [] });
+  assert.equal(absent.status, 1);
+  assert.equal(absent.error?.code, "ENOENT");
+  assert.equal(absent.value, undefined);
+});
+
 describe("Guarded File Reconciliation", () => {
   /** Hosting's reconcile, or the reason the tests are blocked before any behavioural assertion. */
   async function hosting() {

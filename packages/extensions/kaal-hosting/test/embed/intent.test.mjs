@@ -5,6 +5,19 @@ import { existsSync, lstatSync, readFileSync, statSync, writeFileSync } from "no
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { manifest, NAME, node, PACKAGE, sha, tmp, tree } from "./harness.mjs";
+import { usageExample } from "./usage-harness.mjs";
+
+describe("Hosting usage", () => {
+  it("hosting/T72 [hosting/I14, hosting/F58, hosting/F61, hosting/F62, hosting/A24]: the shipped initialization/readback example operates through installed Hosting and preserves unrelated consumer content", async () => {
+    const parent = tree({ "keep.md": "keep" });
+    const root = join(parent, "created");
+    const result = await usageExample("initialize-read", { root, text: "hello\n" });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(result.value, { created: ["welcome.md"], text: "hello\n", paths: ["welcome.md"], kind: "directory", within: true });
+    assert.equal(readFileSync(join(parent, "keep.md"), "utf8"), "keep");
+    assert.equal(readFileSync(join(root, "welcome.md"), "utf8"), "hello\n");
+  });
+});
 
 describe("Intent", () => {
   it("hosting/T55 [hosting/I1, hosting/I2, hosting/I3]: a consumer brings files of its own repository to a planned state, stating only paths, bytes and intent, and a plan made from a stale reading changes nothing", async () => {
