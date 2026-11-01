@@ -12,7 +12,7 @@
 //
 // Run as a script, it runs every declared suite on this host and writes the run record (`--record
 // <path>`). A suite whose prerequisite the lane did not provide is not run, naming what is missing. It
-// exits 0 only if every declared case passed or is not applicable by a Hosting rule, 1 if any failed,
+// exits 0 only if every declared case passed, 1 if any failed,
 // and 2 if any was not run. With `--gate <candidate> --hosts <h,...> <record>...` it judges a release's
 // records instead (gate()).
 import { spawnSync } from "node:child_process";
@@ -130,7 +130,8 @@ export function lanes(root = ROOT) {
       const job = /^  ([A-Za-z0-9_-]+):/.exec(block)[1];
       const listed = /check:\s*\[([^\]]*)\]/.exec(block)?.[1].split(",") ?? [...block.matchAll(/\{\s*check:\s*([^,}\s]+)/g)].map((m) => m[1]);
       const checks = listed.map((c) => c.trim().replace(/^["']|["']$/g, ""));
-      const runs = [...block.matchAll(/^\s*- run:\s*(.+)$/gm)].map((m) => m[1].trim());
+      // A step's run key may follow other keys (`- shell: bash` then `run:`).
+      const runs = [...block.matchAll(/^\s*(?:- )?run:\s*(.+)$/gm)].map((m) => m[1].trim());
       const commands = runs.flatMap((r) => (r.includes("${{ matrix.check }}") ? checks.map((c) => r.replace("${{ matrix.check }}", c)) : [r])).flatMap((r) => expand(root, r));
       out.push({ lane: `${f} ${job}`, commands });
     }
@@ -216,8 +217,13 @@ export const PREREQUISITES = {
   registry: { what: "the npm registry reachable", provided: (root) => spawnSync("npm view @kaihacksai/kaal-guard version --silent", { cwd: root, shell: true, encoding: "utf8", timeout: 60_000 }).status === 0 },
 };
 
-/** A not-applicable outcome must cite the Hosting rule it rests on (hosting/F39). */
-const HOSTING_RULE = /\bnot applicable\b.*\bkaal-hosting\/[a-z0-9-]+/i;
+/**
+ * Not applicable is never established here. A test's own skip reason, whatever it cites, is not a Hosting
+ * fact: whether a case cannot apply on a host is Hosting's established fact and Testing's judgment, bound
+ * to that host and candidate. No such binding is consumable on this target yet, so a record that claims
+ * not applicable is invalid, and every skip is not run.
+ */
+const NO_BINDING = "not applicable without Hosting's established applicability evidence for this host and candidate, which no record can carry on this target yet";
 
 /**
  * The cases a suite declares: for the Embedded suite each title its manifest ships; for the others each
@@ -252,8 +258,7 @@ function outcome(declaredCase, lines) {
   if (hit.some((l) => l.ended === "fail")) return { outcome: "failed", reason: hit.find((l) => l.ended === "fail").note };
   if (hit.every((l) => l.ended === "pass")) return { outcome: "passed" };
   const other = hit.find((l) => l.ended !== "pass");
-  if (other.ended === "skip" && HOSTING_RULE.test(other.note)) return { outcome: "not applicable", reason: other.note };
-  return { outcome: "not run", reason: `${other.ended === "todo" ? "marked todo" : "skipped"}${other.note ? `: ${other.note}` : ""}, with no Hosting rule` };
+  return { outcome: "not run", reason: `${other.ended === "todo" ? "marked todo" : "skipped"}${other.note ? `: ${other.note}` : ""}; a skip never establishes not applicable` };
 }
 
 /**
@@ -294,8 +299,8 @@ export function execute(root = ROOT, { suites = declared(root), all = files(root
 
 /**
  * Every finding against a run record (guard/T137). An empty list means each declared case has exactly one
- * outcome, a suite counted passed holds no case that did not pass or apply, not applicable cites a Hosting
- * rule, not run says why, and the record names no case its Test Plans do not declare.
+ * outcome, a suite counted passed holds no case that did not pass, no case claims not applicable (NO_BINDING),
+ * not run says why, and the record names no case its Test Plans do not declare.
  */
 export function validate(record, root = ROOT, suites = declared(root)) {
   const findings = [];
@@ -310,7 +315,7 @@ export function validate(record, root = ROOT, suites = declared(root)) {
   for (const g of new Set(got)) if (!want.includes(g)) findings.push(`${g.split("|")[1]}: in the record under suite ${g.split("|")[0]}, which declares no such case`);
   for (const c of record.cases ?? []) {
     if (!["passed", "failed", "not applicable", "not run"].includes(c.outcome)) findings.push(`${c.case}: unknown outcome ${c.outcome}`);
-    if (c.outcome === "not applicable" && !HOSTING_RULE.test(c.reason ?? "")) findings.push(`${c.case}: not applicable without a Hosting rule`);
+    if (c.outcome === "not applicable") findings.push(`${c.case}: ${NO_BINDING}`);
     if (c.outcome === "not run" && !c.reason) findings.push(`${c.case}: not run without a reason`);
   }
   for (const s of record.suites ?? []) {
@@ -324,8 +329,8 @@ export function validate(record, root = ROOT, suites = declared(root)) {
 
 /**
  * Every finding against a release's run records (guard/C126, guard/C125): exactly one record per supported
- * host, each for `candidate`, each valid, with the same declared cases everywhere, every case passed or
- * not applicable by a Hosting rule, and none not applicable on every host. `hosts` is the release's list
+ * host, each for `candidate`, each valid, with the same declared cases everywhere, and every case and suite
+ * passed. `hosts` is the release's list
  * of supported hosts, given by the caller. The cross-host comparison follows Testing's parity (testing/C31).
  */
 export function gate(records, { candidate, hosts }, root = ROOT) {
