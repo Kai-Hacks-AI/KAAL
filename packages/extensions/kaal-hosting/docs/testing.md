@@ -49,6 +49,7 @@ Some promises cannot be checked by a run in your installation: they concern how 
 | hosting/F20 | hosting/T53–hosting/T54: the verification entry copied into a fixture workspace and into directories that are neither an installation nor a workspace |
 | hosting/F28, hosting/F34, hosting/N5, hosting/A14 | hosting/T32–hosting/T40: the conformance suite against positive and negative fixtures, its command's exit codes, and its review instructions |
 | hosting/N6, hosting/A18 | hosting/T42–hosting/T46: the host facts and the special-entry fixture in fault cases, the portability audit against Guard's negative sources, and its command |
+| hosting/F57, hosting/F60, hosting/N8, hosting/A23, hosting/A25 | hosting/T71 and hosting/T75: packaged and relocated Skill checks and inventory. hosting/T76–hosting/T78: existing recovery/result fixtures plus separately recorded guidance and agent validation; structural checks alone do not establish agent behavior. |
 <!-- /kaal-hosting:allocated -->
 
 ## Verified by no Test Case

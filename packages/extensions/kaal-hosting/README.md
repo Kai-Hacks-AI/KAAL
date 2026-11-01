@@ -21,6 +21,10 @@ It needs Node 24 or later.
 | `kaal-hosting-boundary` | the suite as a command: `kaal-hosting-boundary --name <name> --root <dir> [--builtin <module>]… [--applicability <file>]` |
 | `skills/kaal-hosting-boundary/` | the review instructions for what the suite puts to judgment, and the per-host guide, `HOSTS.md` |
 
+## Agent guidance
+
+The package ships `skills/kaal-hosting/`: a general Agent Skill for selecting operations, preserving failures and recovery evidence, and interpreting installed verification. Its references carry executable examples exercised by the delivered Cases. It accompanies Hosting as an Extension; Core continues to consume the existing API. The separate `kaal-hosting-boundary` Skill handles boundary review.
+
 ## The product contract
 
 What Hosting promises, and its limits, are in the package's `docs/`:
