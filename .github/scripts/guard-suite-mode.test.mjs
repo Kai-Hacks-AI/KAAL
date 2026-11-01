@@ -58,8 +58,11 @@ test("CLI emits a mode only after establishing it, and unknown evidence exits 2"
   rmSync(output); const bad = run("invalid"); assert.equal(bad.status, 2); assert.match(bad.stderr, /cannot judge/); assert.equal(existsSync(output), false);
 });
 
-test("workflow skips a pre-admission record gate, but still judges records after producer failure", () => {
-  const workflow = readFileSync(new URL("../workflows/ci.yml", import.meta.url), "utf8");
+for (const eol of ["LF", "CRLF"]) {
+test(`workflow (${eol}) skips a pre-admission record gate, but still judges records after producer failure`, () => {
+  const source = readFileSync(new URL("../workflows/ci.yml", import.meta.url), "utf8");
+  const input = source.replace(/\r?\n/g, eol === "LF" ? "\n" : "\r\n");
+  const workflow = input.replace(/\r\n/g, "\n");
   const guard = workflow.slice(workflow.indexOf("\n  guard:\n"), workflow.indexOf("\n  guard-hosts:\n"));
   assert.match(guard, /^    outputs:\n      mode: \$\{\{ steps\.guard-mode\.outputs\.mode \}\}$/m);
   assert.match(guard, /- run: node \.github\/scripts\/guard-suite-mode\.mjs\n        id: guard-mode/);
@@ -82,3 +85,4 @@ test("workflow skips a pre-admission record gate, but still judges records after
   assert.doesNotMatch(gate, /^        if:/m, "an eligible gate conditionally omits its record checks");
   assert.doesNotMatch(gate, /process\.exit\(2\)/, "pre-admission gate deliberately fails");
 });
+}
