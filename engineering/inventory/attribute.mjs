@@ -16,7 +16,7 @@
 // Nothing here writes a file.
 import { join } from "node:path";
 import { evaluate, foundation } from "kaal-core";
-import { Graph } from "kaal-graph";
+import { Graph } from "@kaihacksai/kaal-graph";
 import { execute, readFile } from "@kaihacksai/kaal-hosting";
 import { attribute, isClaimFile, KINDS } from "kaal-testing/attribution";
 import { inventory } from "kaal-testing/inventory";

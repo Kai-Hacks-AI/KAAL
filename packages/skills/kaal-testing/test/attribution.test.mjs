@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation } from "kaal-core";
-import { identify } from "kaal-graph";
+import { identify } from "@kaihacksai/kaal-graph";
 import { readFile } from "@kaihacksai/kaal-hosting";
 import { attribute, CLAIM_FILE, isClaimFile, KINDS, readClaim, scopeOf } from "kaal-testing/attribution";
 import { inventory } from "kaal-testing/inventory";

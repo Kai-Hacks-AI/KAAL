@@ -1,4 +1,4 @@
-import { Graph } from "kaal-graph";
+import { Graph } from "@kaihacksai/kaal-graph";
 import { HostingError, initialize, kind, read } from "@kaihacksai/kaal-hosting";
 import { evaluate, type Engine, type EvaluateOptions } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";

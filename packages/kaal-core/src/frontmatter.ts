@@ -2,7 +2,7 @@
 // for KAAL's collaborative Markdown artifacts. Each Capability owns its Types and their
 // schemas and supplies them as a mapping; Core decides only whether an artifact's
 // frontmatter conforms. Reading the YAML is Graph's (kaal-graph/form). Pure: no host access.
-import { FormError, isId, isName, readFrontmatter } from "kaal-graph/form";
+import { FormError, isId, isName, readFrontmatter } from "@kaihacksai/kaal-graph/form";
 
 /** The value kinds a key may have (core/F1). There is no free-text kind. */
 export type ValueKind = "id" | "name" | "enum" | "ref" | "path" | "boolean" | "number" | "parameter";

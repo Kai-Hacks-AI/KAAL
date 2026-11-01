@@ -46,7 +46,7 @@ describe("Core's Hosting boundary", () => {
     assert.ok(Object.keys(files).length >= 7);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["@kaihacksai/kaal-hosting", "kaal-graph", "kaal-graph/form"]);
+    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["@kaihacksai/kaal-graph", "@kaihacksai/kaal-graph/form", "@kaihacksai/kaal-hosting"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);
@@ -85,6 +85,6 @@ describe("Core's Hosting boundary", () => {
 
   it("depends at runtime on kaal-graph and kaal-hosting alone", () => {
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "kaal-graph": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1" });
+    assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-graph": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1" });
   });
 });

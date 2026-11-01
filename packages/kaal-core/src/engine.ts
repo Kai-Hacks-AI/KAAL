@@ -1,5 +1,5 @@
-import { Graph } from "kaal-graph";
-import { FormError, readFrontmatter } from "kaal-graph/form";
+import { Graph } from "@kaihacksai/kaal-graph";
+import { FormError, readFrontmatter } from "@kaihacksai/kaal-graph/form";
 import { read } from "@kaihacksai/kaal-hosting";
 import { isTypeName, validate, type Finding, type Types } from "./frontmatter.js";
 import { claimsForm, compareRefs, readNode, type Identity } from "./node.js";

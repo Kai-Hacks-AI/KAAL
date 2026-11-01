@@ -2,7 +2,7 @@
 // graph/N3 promises, checked where a frozen Map would not hold it.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { cycles, reverse } from "kaal-graph";
+import { cycles, reverse } from "@kaihacksai/kaal-graph";
 
 describe("graph/N3: results cannot be changed", () => {
   it("reverse offers no way to write, and every attempt fails without changing it", () => {

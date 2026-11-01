@@ -116,7 +116,7 @@ let kaal;
 before(async () => {
   tarball = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"))["kaal-core"].tarball;
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-graph", "@kaihacksai/kaal-hosting"]);
+  host = await install(["kaal-core", "@kaihacksai/kaal-graph", "@kaihacksai/kaal-hosting"]);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -136,8 +136,8 @@ describe("package", () => {
 
   it("depends at runtime on kaal-graph and kaal-hosting, neither of which depends on kaal-core", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "kaal-graph": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1" });
-    for (const dependency of ["kaal-graph", "@kaihacksai/kaal-hosting"]) {
+    assert.deepEqual(core.dependencies, { "@kaihacksai/kaal-graph": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1" });
+    for (const dependency of ["@kaihacksai/kaal-graph", "@kaihacksai/kaal-hosting"]) {
       const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));
       for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `${dependency} ${field}`);
     }

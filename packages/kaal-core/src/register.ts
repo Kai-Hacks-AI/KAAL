@@ -1,4 +1,4 @@
-import { Graph } from "kaal-graph";
+import { Graph } from "@kaihacksai/kaal-graph";
 import { kind as pathKind, read, update } from "@kaihacksai/kaal-hosting";
 import { check } from "./bootstrap.js";
 import { evaluate } from "./engine.js";

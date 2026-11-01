@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { bootstrap, catalog, foundation, readContribution, register } from "kaal-core";
-import { identify } from "kaal-graph";
+import { identify } from "@kaihacksai/kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read, readFile } from "@kaihacksai/kaal-hosting";
 

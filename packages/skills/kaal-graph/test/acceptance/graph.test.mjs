@@ -30,8 +30,8 @@ let kaal;
 
 before(async () => {
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["@kaihacksai/kaal-foundation", "kaal-core", "@kaihacksai/kaal-hosting", "kaal-graph"]);
-  installed = join(host, "node_modules", "kaal-graph");
+  host = await install(["@kaihacksai/kaal-foundation", "kaal-core", "@kaihacksai/kaal-hosting", "@kaihacksai/kaal-graph"]);
+  installed = join(host, "node_modules", "@kaihacksai", "kaal-graph");
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -69,7 +69,7 @@ describe("identity", () => {
     const script = `
       import { readFileSync } from "node:fs";
       import * as core from "kaal-core";
-      import * as graph from "kaal-graph";
+      import * as graph from "@kaihacksai/kaal-graph";
       const genesis = readFileSync(new URL("./payload/core/Node.md", import.meta.resolve("kaal-core/package.json")));
       const root = graph.identifyRoot(genesis);
       const typed = JSON.parse(process.argv[1]).map((p) => readFileSync(p)).filter((b) => { try { return graph.identify(b).type; } catch { return false; } });

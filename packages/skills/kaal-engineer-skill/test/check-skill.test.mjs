@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation } from "kaal-core";
-import { identify } from "kaal-graph";
+import { identify } from "@kaihacksai/kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
 import { execute, read } from "@kaihacksai/kaal-hosting";
 

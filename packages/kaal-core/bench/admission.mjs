@@ -1,7 +1,7 @@
 // Reports how long admission takes for chains of types whose deepest Node
 // sorts first. A report, not a test: nothing here gates CI.
 //   npm run bench -w kaal-core
-import { sha256 } from "kaal-graph";
+import { sha256 } from "@kaihacksai/kaal-graph";
 import { evaluate, foundation, payload } from "../dist/index.js";
 
 const node = (name, type) => `---\nname: ${name}\ntype:\n  name: ${type.name}\n  id: ${type.id}\n---\n`;
