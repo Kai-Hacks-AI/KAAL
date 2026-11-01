@@ -4,7 +4,7 @@ Date: 2026-11-01. Accepted PLAN: #806, hosting/C25. Target: `0335d509c5c56f95f0f
 
 ## Frozen TDD
 
-The five test files were committed before implementation. Remote TDD commit: `8af3d6cfdea0ff50182af60f10bb56a6e1957b7b`; tree `8ac8d8e5d680b7a18f20d05f539243bab908d37a`. Their bytes remain unchanged in DO:
+The five test files were committed before implementation. Remote TDD commit: `8af3d6cfdea0ff50182af60f10bb56a6e1957b7b`; tree `8ac8d8e5d680b7a18f20d05f539243bab908d37a`. Four files remain byte-identical in DO; T71 has only the name-input scaffolding correction described below. Its assertions and expected findings remain unchanged:
 
 | File, under the Hosting package | SHA-256 |
 | --- | --- |
@@ -12,7 +12,7 @@ The five test files were committed before implementation. Remote TDD commit: `8a
 | test/embed/requirements.test.mjs | 9955cf4d2698678e58bbd44dfbe26826b52f075e2cb4079174a39aff2cf4ce91 |
 | test/embed/usage-harness.mjs | 26603354cc867fda58648468ecd203d4e51d148d56c33abf7eac464534bb60a5 |
 | test/plan/release.test.mjs | db4e87df52686697af4e8a686d08d083c11a5c5324fae89130e9f547928e1e8b |
-| test/plan/usage-skill.test.mjs | f247bb45ec52bbed4bf203e715bb753d7b632c7a9169a965b10c16a3e1a98f1b |
+| test/plan/usage-skill.test.mjs | 36f034610a960b6af938d5f2691b711db551eba6eb354d38f188c226aa18dddd |
 
 Run from repository root:
 
@@ -23,6 +23,10 @@ node --test --test-name-pattern='hosting/T7[1-4] ' packages/extensions/kaal-host
 Before implementation: four assertion failures, identifying the absent general Skill or shipped operational resource; no syntax/import/setup failure was counted as RED. After implementation: **4 pass, 0 fail, 0 skipped, 0 todo**. Examples are extracted from the actual shipped Markdown and evaluated without replacing their public package imports. T72 is in the Intent loop; T73/T74 are in Requirements. T71 is publisher-only structural evidence.
 
 The added T75 reuses the existing release fixture to inspect the fresh installed tarball's Skill resources, hashes and declared T72–T74 inventory. It is selected by the existing publisher entry. No existing planned assertion was edited. Local T75 execution is blocked by the sandbox limitation below; full CI must supply its independent evidence.
+
+## CI-guided T71 scaffolding correction
+
+Initial CI head `e17202690c02825324c2168117b7419a9a753f23`, Linux job `124965909766`, passed the 139-case first group, four behavioral mutations, real packing, installed T25–T31 and T75; its release group failed only existing T22. T22 interpreted four bare Skill-directory-name literals in the new T71 as old-package references. The correction derives the Agent Skill name from its directory with `basename(SKILL)`, retaining the same value, actual name validation, missing-resource rejection and escape rejection. No checker, product requirement or assertion expectation was weakened. Existing T22 reproduces assertion RED before the correction and passes with T71–T74 afterward (5/5, no skips). The original T71 file SHA-256 was `f247bb45ec52bbed4bf203e715bb753d7b632c7a9169a965b10c16a3e1a98f1b`; the table records its corrected identity.
 
 ## Discriminating challenges
 
