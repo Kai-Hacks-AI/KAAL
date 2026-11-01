@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "kaal-graph": "0.0.1",
-    "kaal-hosting": "0.0.1"
+    "@kaihacksai/kaal-hosting": "0.0.1"
   },
   "devDependencies": {
     "@types/graceful-fs": "^4.1.9",

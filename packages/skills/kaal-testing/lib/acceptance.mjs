@@ -11,7 +11,7 @@
 // installation) and hosts/ (one fresh directory per installation). A scenario
 // learns the run from KAAL_ACCEPTANCE_RUN, which accept() sets.
 import { basename, join } from "node:path";
-import { execute, initialize, kind, read, readFile, update } from "kaal-hosting";
+import { execute, initialize, kind, read, readFile, update } from "@kaihacksai/kaal-hosting";
 
 /** Where a capability keeps its acceptance scenarios, under its workspace. */
 export const SCENARIOS = join("test", "acceptance");

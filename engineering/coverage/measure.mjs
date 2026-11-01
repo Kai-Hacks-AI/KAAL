@@ -26,7 +26,7 @@
 // files each delivers); Testing (kaal-testing/coverage) runs the tests and
 // measures the evidence.
 import { join } from "node:path";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { cover } from "kaal-testing/coverage";
 
 const ROOT = process.cwd();
