@@ -1,0 +1,32 @@
+{
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "30073f2bc9d7986fad021c43e92ec655aed5402c45b47c055f63c46f6f3a9b83",
+    "capability/Change-Definition.md": "40892558bd6bffc1f1db8f16aa1cb90707b7bf82cdc28f54e0f664a32acc1a64",
+    "capability/Change-Isolation.md": "082dd7e26a04079c86a0a4934cb8cd3e83382757563cebbf0a49ef0aba3503f1",
+    "capability/Change.md": "4ef2969694be2ed71670e2085e165a707a80b0a8a791f55894841b38efc27a2f",
+    "docs/architecture.md": "ba80436a5b6ae74a47e94ba71bce866a375cd900b304b765848227ea4c5d7db2",
+    "docs/intent.md": "903336b1bffb144e88a01132e4e030d5dd35b405545e799e2917bb140ca4b66b",
+    "docs/limitations.md": "3b67d7739ca2befe36593c881f25dcb5af7fbc78ef4669f983894c7bf6386a93",
+    "docs/operations.md": "6b413b50af469dcccdf6b2b9b690f86b8f7c2ac011c01414374d5c2b80be5fbb",
+    "docs/requirements.md": "5de839cd1a00852e07017b254248440696afa3a11c36a8660924a10014a0a055",
+    "docs/testing.md": "4955daf9999e32a408ac7c05aa2f35c1e5f57692de94e62904dfc70c97c3dd94",
+    "lib/isolation.d.ts": "bfe2ae91a8a493d24b84269776afc4b29bbcd464cc2db200eb7ecb164093f97f",
+    "lib/isolation.mjs": "887ad3048cddd8fad382a378e65e18269f1eaeab29dc47547ea604f8152034c8",
+    "package.json": "a4015dcac3e95b981a2091cc8812f3802a477f72990ea660e65ad1aec2ff3ddc",
+    "test/embed/isolation.test.mjs": "c7e80029a1bff12a026c4b2abdb45c90d5d33d700dd2e779878138cc697fa1b6",
+    "test/fixtures/model.mjs": "9cd02474fbe71457f798f16961ed7637d81902fc12bb7e6fd95ece5c65647e59",
+    "test/observe.mjs": "d6a2194480f2dcdb79157a9c52a56d6eb08330fca612ab62e83188af77e065a1",
+    "test/verify.mjs": "beec18c06764856dd70f6017ad8db6a78972b3afd34e26c967e19ffc900c6911"
+  },
+  "cases": [
+    "change/T41",
+    "change/T42",
+    "change/T43",
+    "change/T44",
+    "change/T45",
+    "change/T46",
+    "change/T47",
+    "change/T49"
+  ]
+}
