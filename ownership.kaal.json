@@ -1,0 +1,11 @@
+{
+  "owner": {
+    "kind": "capability",
+    "name": "Engineering",
+    "id": "97e8c201f081f876f84697142d0ab07dcc8e4c102e6bdb6572d97a8de9c71e83"
+  },
+  "paths": [
+    "package.json",
+    "package-lock.json"
+  ]
+}
