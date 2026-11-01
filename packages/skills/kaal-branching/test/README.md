@@ -1,5 +1,7 @@
 # Configuration slice: evidence and limits
 
+This file records the accepted #814 configuration slice. Later classification and inspection evidence is scoped in classification.md; it does not retroactively broaden these results.
+
 PLAN authority: #797 and #801, including review 5729889977 permitting bounded TDD/DO. Owning collector: kaal/branching-0.0.1. Source/dependency inspection baseline: 1f79213a038f935e47382e69275cd8873de389b8.
 
 The approved 38 Case identities are unchanged. This Change exercises only the configuration-related portions below; it does not mark the whole capability accepted.

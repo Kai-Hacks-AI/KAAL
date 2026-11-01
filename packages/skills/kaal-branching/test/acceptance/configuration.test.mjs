@@ -9,7 +9,7 @@ import { embed, external } from "../fixtures/configuration.mjs";
 
 let validate;
 before(async () => {
-  const host = await install(["kaal-branching"], { offline: true });
+  const host = await install(["@kaihacksai/kaal-foundation", "kaal-hosting", "kaal-branching"]);
   await update(host, () => ({prefix:"consumer", files:{"public.mjs":Buffer.from('export {validateConfiguration} from "kaal-branching";\n')}}));
   ({validateConfiguration:validate} = await import(pathToFileURL(join(host,"consumer","public.mjs")).href));
 });

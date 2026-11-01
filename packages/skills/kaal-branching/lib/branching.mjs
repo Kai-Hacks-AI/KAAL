@@ -242,3 +242,134 @@ export function validateConfiguration(text) {
 }
 
 
+
+// Resolve configured branch roles; the remainder is the explicit complement.
+function roleFor(configuration, name) {
+  ref(name,"$.observation.ref");
+  return configuration.roles.find(r=>r.selector.exact===name ||
+    (r.selector.prefix!==undefined && name.startsWith(r.selector.prefix))) ??
+    configuration.roles.find(r=>r.selector.remainder===true) ?? null;
+}
+function sha(value,at) {
+  if(typeof value!=="string" || !(/^[0-9a-f]{40}$/.test(value)||/^[0-9a-f]{64}$/.test(value)))
+    reject("evidence",at,"Expected a complete Git object ID.");
+}
+function graphOf(observation) {
+  if(!Array.isArray(observation.commits)||observation.commits.length===0)
+    reject("evidence","$.observation.commits","Commit ancestry was not supplied.");
+  const graph=new Map();
+  for(const [i,node]of observation.commits.entries()) {
+    const at="$.observation.commits["+i+"]";
+    fields(node,["sha","parents"],at);sha(node.sha,at+".sha");
+    if(node.sha.length!==observation.head.tip.length) reject("evidence",at+".sha","One repository observation cannot mix Git object ID formats.");
+    if(!Array.isArray(node.parents)) reject("evidence",at+".parents","Parent list is absent.");
+    if(graph.has(node.sha)) reject("evidence",at+".sha","Commit ID was supplied more than once.");
+    const seen=new Set();
+    for(const parent of node.parents) {
+      sha(parent,at+".parents");
+      if(parent.length!==node.sha.length || seen.has(parent)) reject("evidence",at+".parents","Parent identities are inconsistent or repeated.");
+      seen.add(parent);
+    }
+    graph.set(node.sha,node.parents);
+  }
+  const children=new Map([...graph.keys()].map(id=>[id,[]]));
+  const remaining=new Map();
+  for(const [id,parents]of graph) {
+    remaining.set(id,parents.length);
+    for(const parent of parents) {
+      if(!graph.has(parent)) reject("evidence","$.observation.commits","A referenced parent is missing.");
+      children.get(parent).push(id);
+    }
+  }
+  const ready=[...remaining].filter(([,n])=>n===0).map(([id])=>id);
+  for(let i=0;i<ready.length;i++) for(const child of children.get(ready[i])) {
+    const count=remaining.get(child)-1;remaining.set(child,count);
+    if(count===0) ready.push(child);
+  }
+  if(ready.length!==graph.size) reject("evidence","$.observation.commits","Commit graph contains a cycle.");
+  return graph;
+}
+function ancestors(graph,start) {
+  if(!graph.has(start)) reject("evidence","$.observation","An observed tip has no commit evidence.");
+  const seen=new Set(), pending=[start];
+  while(pending.length) {
+    const id=pending.pop();if(seen.has(id))continue;
+    seen.add(id);pending.push(...graph.get(id));
+  }
+  return seen;
+}
+const classifiedFailure=(kind,code,message,path="$")=>({kind,scope:"classification",findings:[{code,path,message}]});
+
+/**
+ * Classify a proposal from complete, caller-supplied commit-parent observations.
+ * The result names a configured transaction and method, not its acceptance:
+ * tree preservation, source authority, live freshness/reviews/checks remain pending.
+ */
+export function classify(configurationText,observationText) {
+  const validated=validateConfiguration(configurationText);
+  if(validated.kind!=="pass") return {...validated,scope:"classification"};
+  const c=validated.configuration;
+  if(typeof observationText!=="string") return classifiedFailure("cannot-judge","evidence","Observation must be explicit JSON text.");
+  let o;
+  try {o=JSON.parse(observationText);} catch {return classifiedFailure("cannot-judge","evidence","Observation is not valid JSON.");}
+  try {
+    auditJSON(observationText);
+    fields(o,["schema","repository","head","base","promoted","commits"],"$.observation");
+    choice(o.schema,["kaal-branching-observation/1"],"$.observation.schema");
+    fields(o.repository,["host","id"],"$.observation.repository");
+    fields(o.head,["repositoryId","ref","tip"],"$.observation.head");
+    fields(o.base,["ref","tip"],"$.observation.base");
+    for(const side of ["head","base"]) {ref(o[side].ref,"$.observation."+side+".ref");sha(o[side].tip,"$.observation."+side+".tip");}
+    if(o.repository.host!==c.repository.host || o.repository.id!==c.repository.id)
+      return classifiedFailure("fail","target","Observation identifies a different governed repository.");
+    if(o.head.repositoryId!==o.repository.id)
+      return classifiedFailure("fail","source","Supported transactions require the configured same-repository source.");
+    const source=roleFor(c,o.head.ref), target=roleFor(c,o.base.ref);
+    if(!source||!target) return classifiedFailure("fail","prohibited","A branch has no configured role.");
+    const graph=graphOf(o), headAncestors=ancestors(graph,o.head.tip), baseAncestors=ancestors(graph,o.base.tip);
+    const promoted=new Map();
+    if(!Array.isArray(o.promoted)) reject("evidence","$.observation.promoted","Promoted observations are absent.");
+    for(const [i,p]of o.promoted.entries()) {
+      const at="$.observation.promoted["+i+"]";fields(p,["role","ref","tip"],at);
+      const role=c.roles.find(r=>r.id===p.role);
+      if(!role||role.category!=="promoted"||role.selector.exact!==p.ref||promoted.has(p.role))
+        reject("evidence",at,"Promoted role binding is unknown, conflicting or repeated.");
+      sha(p.tip,at+".tip");ancestors(graph,p.tip);
+      if((p.ref===o.base.ref&&p.tip!==o.base.tip)||(p.ref===o.head.ref&&p.tip!==o.head.tip))
+        reject("evidence",at,"One branch is observed at inconsistent tips.");
+      promoted.set(p.role,p);
+    }
+    if(c.roles.filter(r=>r.category==="promoted").some(r=>!promoted.has(r.id)))
+      reject("evidence","$.observation.promoted","A configured promoted role has no observation.");
+    let kind,incorporates;
+    if(source.category==="collector"&&target.category==="promoted") kind="promote";
+    else if(source.category==="working"&&target.category==="collector") {
+      const upstream=promoted.get(target.establishFrom);
+      const upstreamAncestors=ancestors(graph,upstream.tip);
+      const parents=graph.get(o.head.tip);
+      const syncCandidate=parents.length===2 && upstreamAncestors.has(parents[1]) && !baseAncestors.has(parents[1]);
+      const carriesPromoted=[...headAncestors].some(id=>upstreamAncestors.has(id)&&!baseAncestors.has(id));
+      if(syncCandidate) {
+        if(!ancestors(graph,parents[0]).has(o.base.tip))
+          return classifiedFailure("fail","synchronization-base","Synchronization does not build on the collector tip.");
+        const firstParent=new Set();let current=upstream.tip;
+        while(current!==undefined) {firstParent.add(current);current=graph.get(current)[0];}
+        if(!firstParent.has(parents[1]))
+          return classifiedFailure("fail","synchronization-source","Synchronization source is not an admitted first-parent promoted state.");
+        kind="synchronize";incorporates=parents[1];
+      } else if(carriesPromoted) return classifiedFailure("fail","mixed-history","Unincorporated promoted history is neither an ordinary Change nor a head synchronization.");
+      else kind="engineer";
+    } else return classifiedFailure("fail","prohibited","Role categories do not support a transaction.");
+    const transaction=c.transactions.find(t=>t.kind===kind&&t.from===source.id&&t.to===target.id&&t.repositoryRelation==="same");
+    if(!transaction) return classifiedFailure("fail","prohibited","The consumer does not permit this transaction.");
+    return {
+      kind:"pass",scope:"classification",transaction:{...transaction,obligations:[...transaction.obligations]},
+      binding:{repository:{...o.repository},head:{...o.head},base:{...o.base},...(incorporates?{incorporates}:{})},
+      pendingObligations:[...transaction.obligations],findings:[]
+    };
+  } catch(e) {
+    if(e instanceof ConfigurationError) return {kind:"cannot-judge",scope:"classification",findings:[e.finding]};
+    throw e;
+  }
+}
+
