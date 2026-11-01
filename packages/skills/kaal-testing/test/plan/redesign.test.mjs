@@ -93,7 +93,7 @@ describe("Learning which Cases to redesign, and holding the redesign to RED → 
     assert.equal(candidates(history, { window: 2, recur: 2 }).result, "challenged", "or a shorter window");
   });
 
-  it("testing/T112 [testing/F95]: a redesign is a new version, judged afresh, and its time is shown against the earlier version's on later runs", async () => {
+  it("testing/T112 [testing/F93, testing/F95]: a file hash starts a fresh window for every Case in the file, and later timing comparisons do not establish a refactoring", async () => {
     const { candidates } = await redesign();
     const slow = [run("linux", SLOW), run("linux", SLOW), run("linux", SLOW)];
     assert.equal(candidates(slow).result, "challenged");
@@ -107,6 +107,23 @@ describe("Learning which Cases to redesign, and holding the redesign to RED → 
     const notFaster = candidates([...slow, run("linux", SLOW, 100, V2), run("linux", SLOW, 100, V2), run("linux", SLOW, 100, V2)]);
     assert.equal(notFaster.refactors[0].shown, "not faster");
     assert.deepEqual(notFaster.candidates.map((x) => [x.case, x.version]), [["acme/T9", V2]], "a new version that is still slow is a candidate again, as itself");
+
+    // T9 and T10 share a file. Only T9 was edited; the file digest changes for both.
+    const sharedFile = (version, t9) => {
+      const r = run("linux", t9, SLOW, version);
+      return { ...r, cases: r.cases.map((c) => c.name === "acme/T10" ? { ...c, sha256: version } : c) };
+    };
+    const oldFile = Array.from({ length: 3 }, () => sharedFile(V1, SLOW));
+    assert.deepEqual(candidates(oldFile).candidates.map((c) => c.case), ["acme/T10", "acme/T9"]);
+    const newFile = Array.from({ length: 3 }, () => sharedFile(V2, QUICK));
+    const reset = candidates([...oldFile, ...newFile.slice(0, 2)]);
+    assert.deepEqual(reset.candidates, [], "even untouched T10 starts afresh: its earlier signals do not carry over");
+    const later = candidates([...oldFile, ...newFile]);
+    assert.deepEqual(later.candidates.map((c) => [c.case, c.version, c.seen, c.of]), [["acme/T10", V2, 3, 3]], "untouched T10 can become a candidate again after enough new-file runs");
+    assert.deepEqual([...later.refactors].sort((a, b) => a.case.localeCompare(b.case)), [
+      { case: "acme/T10", platform: "linux", from: V1, to: V2, beforeMs: SLOW, afterMs: SLOW, runs: 3, shown: "not faster" },
+      { case: "acme/T9", platform: "linux", from: V1, to: V2, beforeMs: SLOW, afterMs: QUICK, runs: 3, shown: "faster" },
+    ], "both rows are timing comparisons only, with no claim that either Case was refactored or its behaviour kept");
   });
 
   it("testing/T113 [testing/F96]: a redesign is a refactoring only when the Case keeps its targets and its discriminating RED and GREEN verdicts", async () => {
@@ -137,7 +154,7 @@ describe("Learning which Cases to redesign, and holding the redesign to RED → 
     ]) assert.equal(refactored(b, a).result, "unknown", why);
   });
 
-  it("testing/T114 [testing/F97, testing/F83]: a redesign candidate and a refactoring check are evidence for the case owner, never a run's result", async () => {
+  it("testing/T114 [testing/F95, testing/F96, testing/F97, testing/F83]: timing and preservation are separate evidence for the case owner, never a run's result", async () => {
     const { candidates, refactored } = await redesign();
     const history = [run("linux", SLOW), run("linux", SLOW), run("linux", SLOW)];
     const given = structuredClone(history);
@@ -149,6 +166,21 @@ describe("Learning which Cases to redesign, and holding the redesign to RED → 
     const before = { id: "acme/T9", version: V1, tests: ["acme/F1"], verdicts: { candidate: "pass", mutant: "fail" } };
     const r = refactored(before, { ...before, version: V2 });
     assert.ok(["kept", "changed", "unknown"].includes(r.result), "a refactoring is kept or changed, never a result of a run");
+
+    const fasterHistory = [...history, ...Array.from({ length: 3 }, () => run("linux", QUICK, 100, V2))];
+    const timing = candidates(fasterHistory).refactors.find((x) => x.case === before.id && x.from === before.version && x.to === V2 && x.platform === "linux");
+    assert.equal(timing.shown, "faster");
+    const after = { ...before, version: V2 };
+    for (const [why, b, a, expected] of [
+      ["a formerly RED mutant now goes GREEN", before, { ...after, verdicts: { candidate: "pass", mutant: "pass" } }, "changed"],
+      ["a target was dropped", { ...before, tests: ["acme/F1", "acme/F2"] }, after, "changed"],
+      ["there is no earlier discriminating RED", { ...before, verdicts: { candidate: "pass" } }, after, "unknown"],
+    ]) {
+      assert.deepEqual([timing.shown, refactored(b, a).result], ["faster", expected], `${why}: speed establishes no preserved behaviour`);
+    }
+    const slowerTiming = candidates([...history, ...Array.from({ length: 3 }, () => run("linux", SLOW, 100, V2))]).refactors.find((x) => x.case === before.id && x.from === V1 && x.to === V2);
+    assert.deepEqual([slowerTiming.shown, refactored(before, after).result], ["not faster", "kept"], "preserved behaviour does not establish a speed improvement");
+    assert.deepEqual(candidates(fasterHistory).refactors.find((x) => x.case === before.id), timing, "a behavioural check does not alter the timing evidence");
   });
 
   it("testing/T115 [testing/N20]: learning is pure and deterministic: the same history gives the same candidates in the same order, and a verdict's order does not matter", async () => {
