@@ -1,0 +1,42 @@
+# Branching: Requirements
+
+All requirements below are proposed for 0.0.1. Trace IDs remain stable after PLAN acceptance. Testing.md identifies discriminating Cases; Architecture.md defines the proposed interfaces.
+
+## Functional
+
+| ID | Contract |
+| --- | --- |
+| branching/F1 | Read versioned configuration from a named governed repository and trusted policy revision. Reject absence, duplicate JSON keys, unknown fields, unsupported versions, invalid types, malformed refs and incomplete mandatory fields. |
+| branching/F2 | Resolve valid refs to one configured role. Reject overlapping role selectors and multiple remainder roles. Classify transaction kind from repository/Git facts before selecting exactly one allowed role/kind transaction. No matching transaction means prohibited; multiple matches mean invalid configuration. |
+| branching/F3 | Select the configured integration method only after valid transaction classification. 0.0.1 supports squash for Engineer/Promote and merge commit for Synchronize; configurations requesting other semantics fail as unsupported. Names and permitted role pairs remain configurable. |
+| branching/F4 | Establish a collector at the exact observed promoted tip, without replacing an existing ref or concealing unpromoted work. Audit creation against history at creation time, including recorded timestamp ambiguity. |
+| branching/F5 | Engineer from the intended collector, with an explicit bounded Change and proposed head. Do not silently import promoted history or classify a substantive Change as synchronization. Preserve accepted delegation to Change's trusted claim contract where configured. |
+| branching/F6 | Synchronize by a verified merge incorporating a strictly newer admitted promoted state, preserving collector work. Allow valid intermediate steps. Distinguish own conflict resolutions from exact adopted entries, including mode and deletion; unrelated differences fail. A marker or PR title is never proof. |
+| branching/F7 | Promote only from an allowed repository/role pair with the promoted tip in its ancestry and a prospective merge tree equal to the validated head tree. An outdated head or a different resulting tree fails. |
+| branching/F8 | Require auto-merge when the active consumer policy says so; require its exact transaction method. Disabled, mismatched or unclassifiable auto-merge fails. Arming is not integration; verify the resulting host state independently. |
+| branching/F9 | Audit actual landing attribution, topology, freshness and lifecycle. Report squash versus one-commit-rebase ambiguity explicitly. Detect unaccounted landings, dropped history, working-branch reuse, incomplete history and stale evidence. Never imply topology establishes an exact API method. |
+| branching/F10 | Audit fully promoted collectors and merged working branches as due for deletion; honor only a valid hold from the trusted authority with linked evidence. Held is a distinct non-pass state. No branch deletion is automatic in 0.0.1. |
+| branching/F11 | Expose Inspect, Prepare, Execute and Verify as distinct stages. Inspect/Prepare do not change target branches, PRs or governance. Local preparation can create an explicitly named plan artifact; creating a Git ref or commit belongs to Execute. |
+| branching/F12 | Bind each plan and result to host, repository ID, policy revision/digest, product revision, source and target identities/SHAs, PR identity where applicable and relevant observation versions. Re-read authoritative facts before mutation; reject drift, changed target, unexpected identities and expired observations. |
+| branching/F13 | Execute only an explicitly authorized stage, operation and target. Do not infer credentials or permissions from the controller. Treat authorization as necessary but insufficient: host protections and required review/CI still apply. |
+| branching/F14 | Read all required pages and object/history data; fail closed on missing pages, permission refusal, malformed responses, unavailable Git objects, conflicts requiring human choice or ambiguous API outcomes. Reconcile a timeout before retrying a mutation. |
+| branching/F15 | Supply separate Package, Configuration and Boundary results with applicability, findings and evidence references. A package pass cannot establish active configuration or live enforcement. |
+| branching/F16 | Provide the same contracts in Embed and External, with explicit mode, declared adapter capabilities and a supported-operation matrix. External must work without a target clone; a missing remote fact cannot be replaced by local controller state. |
+| branching/F17 | Ship a valid Agent Skill with self-contained internal references and scripts, package public exports, explicit dependencies and Node 24 compatibility. Run consumer acceptance from freshly installed tarballs using only public interfaces. |
+| branching/F18 | Preserve the existing required Branching status-check identity, event coverage and at least its accepted verdicts throughout cutover. Candidate content cannot choose the checker, policy, holds, dependencies or evidence authority that judges its own acceptance. |
+| branching/F19 | Compare configured governance with effective host enforcement, including exact required check producer, strict freshness, review requirements, allowed methods and bypass actors. Missing administrative visibility is cannot-judge, never verified enforcement. A restrictive host setting may further block an otherwise valid transaction. |
+| branching/F20 | Give actionable findings and inspect/prepare repair guidance without silently changing policy, weakening checks, overriding conflicts or bypassing review. After a failed mutation report known effects, unknown effects and the required reconciliation. |
+| branching/F21 | Represent promotion ordering as a consumer governance choice. KAAL's documented FIFO/Owner override rule remains an explicit preflight/manual obligation until its separately declared automated Cases exist; this release must not claim the absent promotionOrder implementation is already enforced. |
+
+## Nonfunctional
+
+| ID | Contract |
+| --- | --- |
+| branching/N1 | One policy implementation; no rule copies in Agent prose, Skill, scripts, GitHub workflows or compatibility shims. Deterministic judgments over the same validated policy and fact envelope produce the same verdict regardless of mode. |
+| branching/N2 | Pure semantics import no filesystem, process, Git or GitHub mechanics. Hosting operations are behind declared interfaces; argument arrays and exact refs prevent shell/ref injection. No executable consumer configuration or candidate-supplied plugin. |
+| branching/N3 | Read-only stages work with minimum read permissions; mutation scopes are explicit and operation-specific. Logs and artifacts exclude credentials. Untrusted candidate objects are data and are never installed, checked out or executed by privileged enforcement. |
+| branching/N4 | Preserve accepted assertions and provenance, separately recording any approved observable difference. Require meaningful independent RED/GREEN and mutation discrimination, not merely coverage or tests that mirror implementation. |
+| branching/N5 | Support installed package execution on Linux, macOS and Windows. Local Git and adapter prerequisites are declared and capability-tested. Unsupported host/mode features fail explicitly. |
+| branching/N6 | Use explicit outcomes: pass, fail, cannot-judge, not-applicable, held and unsupported; pending operational work is not pass. Report uncertainty and time bounds, including host check-registration races. |
+| branching/N7 | Retain exact source revision/blob identities, package manifest and tarball identity, policy digest, invocation and observation references. Foundation owns KAAL digests. Integrity evidence is limited to recorded bytes and provenance; do not claim tamperproof execution or host containment. |
+| branching/N8 | No forced branch replacement, unrelated collector promotion, hidden default policy, unapproved npm publication or DO before PLAN review. A supported policy remains bounded; arbitrary user programs are out of scope. |
