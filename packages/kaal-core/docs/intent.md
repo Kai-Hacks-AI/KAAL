@@ -62,6 +62,10 @@ Every statement in these documents carries a stable identifier. `core/I…` is a
 - **core/I22.** kaal-core 0.0.1 releases Core with registration, and a consumer receives documents that explain the package and tests that verify the installed copy.
 - **core/I23.** A release is accepted from the packed artifact in a clean installation, where a consumer observes it, not from the source repository.
 
+## Core guidance
+
+- **core/I26.** A consumer and its agent can discover Core's own procedure and deliberately use its public interface without a KAAL checkout. The delivered Core Skill guides the behavior available in this candidate and names the initialization work not yet delivered.
+
 ## What kaal-core does not decide
 
 - What a kind, a Type or a shared term means. Each belongs to its owner.

@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "name": "kaal-hosting",
+      "version": "0.0.1",
+      "sha256": "4b66b40696e2f86cca94c2fcd9dc3f959588d3c7d057eebcea62a0b7d04dc6ef",
+      "files": 8
+    },
+    {
+      "name": "@kaihacksai/kaal-foundation",
+      "version": "0.0.1",
+      "sha256": "36be7a4d6e176a00ccf9d50e127261b481c4feb2661a0da35933fb2b2ed35ed0",
+      "files": 19
+    },
+    {
+      "name": "kaal-core",
+      "version": "0.0.1",
+      "sha256": "0cced018328a196abb6a2e669a96cfda054e3838e9320f5d3990ce8377bf06bd",
+      "files": 68
+    }
+  ],
+  "checks": [
+    "installed npm test: 12/12 verified",
+    "installed public API admits shipped Skill Node",
+    "documented bootstrap and external inspection via installed CLI",
+    "Engineer Skill checker: installed and relocated Skill accepted",
+    "changed installed Skill: cannot verify",
+    "invalid Skill Node with refreshed digest: failed by delivered behavior test",
+    "restored copy: 12/12 verified"
+  ],
+  "limitations": [
+    "local tarball dependency transport, not registry resolution",
+    "Linux evidence only; no agent-use or Owner-validation claim"
+  ]
+}
