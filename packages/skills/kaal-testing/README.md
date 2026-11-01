@@ -171,3 +171,13 @@ const platforms = skew(platformRuns); // [{ platform, cases }], same Cases on ea
 `profile` challenges concentration in the slowest share and outliers against the run's own median. `skew` compares each Case with its median duration on the other platforms. `DEFAULTS` is frozen: `{ share: 0.8, budget: 0.8, outlier: 10, floor: 1000, factor: 4, minimum: 5 }`. Each option can be overridden; malformed inputs or options give `unknown` with findings and no challenges.
 
 Both return `{ result, challenges, findings }`, with `result` `challenged`, `unchallenged` or `unknown`. They never decide a run's verdict. The Case/suite owner investigates concentration; the named Case owner investigates an outlier or platform skew. A timing difference establishes no cause. Hosting is consulted for demonstrated host-specific causes and owns confirmed operating-system-boundary defects.
+
+## Learning which Cases to redesign
+
+`@kaihacksai/kaal-testing/redesign` exports `candidates(history, options?)`, `refactored(before, after)` and frozen `DEFAULTS` `{ window: 5, recur: 3 }`.
+
+The caller holds the history, oldest first: `{ platform, cases: [{ name, sha256, ms }] }` per run. A Case becomes a candidate after timing signals in three of its last five profiled runs of its current file version on that platform. Timing options are forwarded to `profile`. Unprofiled runs are listed and excluded. Editing one Case or shared fixture changes the whole-file hash and resets every Case's window, including untouched Cases.
+
+`candidates` returns `{ result, candidates, refactors, unprofiled, findings }`. Despite its name, `refactors` contains only file-version timing comparisons (`pending`, `faster`, `not faster`); it never claims a Case was refactored. A comparison needs profiled samples for both versions.
+
+`refactored` reads two `{ id, version, tests, verdicts }` records. Targets must stay the same, and every earlier subject must keep its RED (`fail`) or GREEN (`pass`) verdict; the earlier evidence must show both. Its result is `kept`, `changed` or `unknown`, independent of timing. The caller associates both pieces of evidence by Case id and exact version pair, keeping the timing platform. A faster Case can have weakened discrimination; an unchanged behaviour can be no faster. Missing preservation evidence remains not assessed. Testing stores nothing, reads no clock and changes no run verdict.

@@ -19,6 +19,7 @@ Each element names, in brackets, the Requirements it answers.
     | `./inventory` | non-blank text lines of the listed files | Testing | no |
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | `testing/C15` | no |
     | `./package.json` | the package manifest | Testing | no |
+    | `./redesign` | recurring timing signals and independent Case-preservation evidence | `testing/C53` | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
     | `./timing` | given-duration concentration, outlier and platform-skew evidence | testing/C47 | no |
     | `./verifiers` | the shared observable result contract for consumer verifiers: its scenarios, `observe` and `judge` | `testing/C30` | no |

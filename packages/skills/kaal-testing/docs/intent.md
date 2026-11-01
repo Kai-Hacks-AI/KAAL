@@ -85,3 +85,7 @@ Testing defines how a capability's tests are designed and executed, and how thei
   - a case taking many times as long on one platform as on the others.
 
   A challenge is evidence that names who investigates it: the case/suite owner for concentration, and the named Case owner for outliers and platform skew. A platform difference establishes no cause. Hosting is consulted for demonstrated host-specific causes and owns confirmed operating-system-boundary defects. It never decides a run's result. Testing still reads no clock.
+
+## Redesigning Slow Cases
+
+- **testing/I24**: Testing learns from a history of runs which Cases to redesign for their time. A Case that is among the slowest of its run, again and again, in the recent runs of its current version on a platform, is a redesign candidate on that Case. A redesign is held to RED → GREEN → REFACTOR: it is a new version of the same Case with the same targets, and it gives the same verdict on every subject the earlier version was judged on. Its time is then compared with the earlier version's on later runs. The caller keeps the history. Testing reads it, keeps nothing, reads no clock and never changes a run's result.

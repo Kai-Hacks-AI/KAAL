@@ -65,3 +65,7 @@ npm uninstall @kaihacksai/kaal-testing
 ## Timing observations
 
 Pass recorded `{ name, ms }` Cases to `profile` from `@kaihacksai/kaal-testing/timing`. Pass one `{ platform, cases }` run per platform to `skew`; the caller establishes that they concern the same candidate. Retain the raw observations outside Testing. Report each finding and challenge alongside the run verdict without changing it. A skew starts with the Case owner, not a presumed host defect.
+
+## Redesign evidence
+
+Give `candidates(history, options?)` from `@kaihacksai/kaal-testing/redesign` the caller-held runs, oldest first, each `{ platform, cases: [{ name, sha256, ms }] }`. Retain its `unprofiled` findings. Compare behaviour independently with `refactored(before, after)`, each `{ id, version, tests, verdicts }`; verdicts map the same subjects to `pass` or `fail`. Associate a timing row and behavioural check only by Case id and the exact `from`/`to` versions, retaining the timing platform. Without a matching check, preservation is not assessed. Neither signal changes the run verdict.
