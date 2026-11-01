@@ -1,0 +1,56 @@
+{
+  "name": "@kaihacksai/kaal-change",
+  "version": "0.0.1",
+  "description": "Change practice skill and model-scoped semantic isolation.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
+    "directory": "packages/skills/kaal-change"
+  },
+  "exports": {
+    "./isolation": {
+      "types": "./lib/isolation.d.ts",
+      "default": "./lib/isolation.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "payload",
+    "skills",
+    "capability",
+    "lib",
+    "docs",
+    "test/embed",
+    "test/fixtures",
+    "test/verify.mjs",
+    "test/verify.json",
+    "test/observe.mjs"
+  ],
+  "scripts": {
+    "test": "npm run test:embedded",
+    "test:embedded": "node test/verify.mjs",
+    "test:publisher": "node --test test/publisher/*.test.mjs",
+    "manifest": "node test/publisher/manifest.mjs",
+    "prepack": "node test/publisher/manifest.mjs",
+    "mutations": "node test/publisher/mutations.mjs",
+    "test:package-only": "node test/publisher/package-only.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@kaihacksai/kaal-foundation": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  },
+  "devDependencies": {
+    "kaal-testing": "0.0.1",
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
