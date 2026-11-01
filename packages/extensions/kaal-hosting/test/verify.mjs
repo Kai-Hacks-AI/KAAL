@@ -283,6 +283,8 @@ export async function installation(log, pkg) {
   }
 
   const declared = manifest ? [...manifest.cases].sort() : [];
+  const duplicate = declared.find((name, i) => i > 0 && declared[i - 1] === name);
+  if (duplicate !== undefined) add(causes, `the manifest declares a duplicate case identity: ${duplicate}`, "report this to the package's maintainers");
   const applicability = manifest?.applicability ?? {};
   const notHere = (name) => Array.isArray(applicability[name]) && applicability[name].includes(platform);
   const outcome = new Map(declared.map((name) => [name, "not run"]));
@@ -316,11 +318,15 @@ export async function installation(log, pkg) {
     const exclude = declared.filter(notHere);
     log(`running ${declared.length} delivered cases from ${named.length} files against the installed copy${exclude.length ? `, ${exclude.length} not applicable on ${platform}` : ""}`);
     const results = named.length ? await execute(named.map((f) => join(PACKAGE, f)), exclude, (o) => log(`${o.outcome}: ${o.name}${o.message ? `: ${o.message}` : ""}`)) : [];
+    const seen = new Set();
     for (const o of results) {
+      // Every observed failure survives name accounting, including repeated names.
+      if (o.outcome === "fail") add(failures, `the delivered test run failed: ${o.name}: ${o.message}`, "report this to the package's maintainers, with your platform and Node version");
+      if (seen.has(o.name)) add(causes, `a case executed more than once with the same identity: ${o.name}`, "report this to the package's maintainers");
+      seen.add(o.name);
       if (!outcome.has(o.name)) {
-        if (o.outcome === "fail") add(failures, `the delivered test run failed: ${o.name}: ${o.message}`, "report this to the package's maintainers, with your platform and Node version");
-        else undeclared.push(o.name);
-      } else outcome.set(o.name, o.outcome === "skipped" && notHere(o.name) ? "not applicable" : o.outcome);
+        if (o.outcome !== "fail") undeclared.push(o.name);
+      } else if (outcome.get(o.name) !== "fail") outcome.set(o.name, o.outcome === "skipped" && notHere(o.name) ? "not applicable" : o.outcome);
     }
     for (const name of exclude) if (outcome.get(name) === "not run") outcome.set(name, "not applicable");
     changes = [...changed(before, snapshot(consumer.root, keep)), ...changed(own, snapshot(PACKAGE)).map((p) => slash(relative(consumer.root, join(PACKAGE, p))))].sort();
