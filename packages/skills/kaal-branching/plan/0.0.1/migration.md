@@ -32,6 +32,8 @@ The authoritative reusable source becomes Branching. Prefer direct ESM lib/branc
 
 ## Consumer/dependency inventory
 
+The repository paths and enforcement cutover below are KAAL's own Embed integration. They are not External target prerequisites. In External, only the controller installs the Branching package/Skill/scripts and manages the authorized target-policy interface; target repository configuration and native host facts are acquired through explicit authorized interfaces without installing KAAL there.
+
 | Consumer or dependency | Migration obligation |
 | --- | --- |
 | .kaal/config/guard/Branching.md; engineering/github/branching.sh; .github/workflows/lineage-synchronization.yml | Preserve exact required job name Branching, producer identity and opened/synchronize/reopened/edited/auto-merge events. Trusted entry point delegates to installed product. |
@@ -66,9 +68,9 @@ These are observations, not a perpetual policy snapshot. Re-read complete effect
 
 Proposed collector: `kaal/branching-0.0.1`, created at then-current trusted main. PLAN working branch: `engineering/branching-0.0.1-plan`, from that collector. PLAN contains only this directory. Creation of an empty collector for PLAN does not authorize package DO.
 
-1. Independently review this PLAN through a working-branch → collector PR, squash. No TDD/DO before accepted PLAN.
+1. PLAN #797 merged at 671016bea5f6f84260eee43438bff7e63207fb13, with Owner clarification in review 5728978939. Reconcile External's controller/target boundary across these documents before TDD/DO; this follow-up is documentation only. Later TDD/DO Changes remain subject to independent review and their delivery authorization.
 2. Write immutable architecture/acceptance tests and independent RED controls as focused Changes into the collector.
-3. Deliver one policy engine, configuration parser, Skill/scripts and installed-package acceptance in small TDD Changes. Preserve the source/test ledger.
+3. Deliver one policy engine, configuration parser, Skill/scripts and installed-package acceptance in small TDD Changes. For External, install/run them in the controlling environment, obtain approved target-bound policy through its authorized interface, and prove that the target requires no KAAL installation. Preserve the source/test ledger.
 4. Deliver Hosting prerequisites separately under Hosting's ownership and governed collector; synchronize accepted prerequisites from main into this collector by merge commit. Do not smuggle Hosting work into Branching.
 5. Add candidate KAAL configuration plus compatibility delegation and trust-loading support. Every production entry point still uses trusted main until promotion.
 6. Migrate Guard bindings, hooks, root metadata, documentation and claim/resolution consumers. Compatibility paths contain delegation only. Remove old operational scripts after all callers move into the Skill; leave hooks/workflows as thin invocation plumbing.
@@ -95,10 +97,14 @@ Do not merge #784 or cherry-pick its aggregate state. Auto-merge's replacement r
 
 No closing action is included in this PLAN Change; the exact disposition is submitted for review alongside the route.
 
+## External application boundary
+
+Owner review 5728978939 is authoritative for mode scope: External uses KAAL's knowledge and product contracts against a separately managed target and does not implement KAAL in that target. Do not migrate this repository's .kaal, AGENTS.md, package, scripts, Guard bindings or KAAL workflows into an External target as a prerequisite. Bind the external declaration's source/approval/revision to the target's actual host/repository ID, inspect native protections independently and reject missing authorized evidence. Existing branch/PR operations remain subject to those native protections.
+
 ## Release boundary and stopping conditions
 
 0.0.1 candidate requires every declared supported Case, exact package/configuration/boundary findings, source/test preservation, installed execution on supported OSes, real hosted evidence, effective-rule verification and independent acceptance review.
 
-Unresolved Hosting explicit-method execution, remote merge evidence, trusted module loading, claim applicability or governed Skill installation is a release dependency. Resolve it through the owner or return a scope adjustment to PLAN review. Do not silently downgrade a promised supported operation or label an unrun Case passing.
+Unresolved Hosting explicit-method execution, remote merge evidence, trusted module loading, claim applicability, governed Embed Skill installation or authorized External policy-provider binding is a release dependency. Resolve it through the owner or return a scope adjustment to PLAN review. Do not silently downgrade a promised supported operation or label an unrun Case passing.
 
 Release approval is separate from capability PLAN acceptance, collector integration and promotion. No npm publication, production probe mutation or unrelated collector disposition is authorized merely by accepting the design.

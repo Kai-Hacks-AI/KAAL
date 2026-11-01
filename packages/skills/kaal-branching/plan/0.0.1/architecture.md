@@ -8,9 +8,9 @@ Agent instructions route to the installed Skill. The Skill explains operations a
 
 Proposed Agent instruction, adapted to the consumer's actual installation:
 
-> Use the installed kaal-branching Skill for branch establishment, Change integration, synchronization, promotion and audit. Resolve the governed repository and trusted .kaal configuration first. Follow its scripts and report unsupported or unverifiable operations.
+> Use the installed kaal-branching Skill for branch establishment, Change integration, synchronization, promotion and audit. Resolve the governed repository, mode and trusted target-policy source first. Follow its scripts and report unsupported or unverifiable operations.
 
-This instruction contains no merge-method policy. Installation writes or proposes it through the consuming repository's governed Change process.
+This instruction contains no merge-method policy. Embed installation writes or proposes it through the consuming repository's governed Change process. In External, Agent instructions, Skill, package and scripts remain in the controlling environment; no installation or instruction update is required in the target repository.
 
 ## A2 — Package contract
 
@@ -31,7 +31,7 @@ The proposed npm identity is unscoped `kaal-branching`, matching Engineer Skill,
 
 ## A3 — Configuration format and authority
 
-Propose strict JSON, schema `kaal-branching/1`, at `.kaal/config/branching.json`. A schema reference is documentation, never remote executable content. Reject duplicate keys before materializing a map, unknown fields, nonfinite numbers, unsupported schema/features and missing required properties. No imports, environment interpolation, executable hooks, arbitrary regex or policy defaults.
+Propose strict JSON, schema `kaal-branching/1`. Embed stores it at `.kaal/config/branching.json`. External obtains the same schema's target-bound declaration through an explicitly authorized controller-side policy interface, with no required file or KAAL installation in the target. A schema reference is documentation, never remote executable content. Reject duplicate keys before materializing a map, unknown fields, nonfinite numbers, unsupported schema/features and missing required properties. No imports, environment interpolation, executable hooks, arbitrary regex or policy defaults.
 
 The schema defines these required sections:
 
@@ -52,7 +52,7 @@ Transaction selection uses kind plus role pair and repository relationship. Sync
 
 ### KAAL consumer declaration
 
-The following is a schema design example, not an activated configuration:
+The following is a KAAL Embed schema design example, not an activated configuration or an External target prerequisite:
 
 ```json
 {
@@ -99,13 +99,19 @@ KAAL currently accepts valid stepwise synchronization; the schema represents tha
 
 ### Trust bootstrap and policy changes
 
-The authority context is supplied outside candidate content: target host/repository ID, protected governance ref and its observed commit, allowed product revision/dependency lock and caller authority. For KAAL the governance ref is main. The installed consumer's protected CI/controller configuration establishes that context; .kaal does not authenticate itself.
+The authority context is supplied outside candidate content: governed host/repository ID, mode, approved policy-source identity and immutable revision/digest, allowed product revision/dependency lock and caller authority. Policy-source identity and governed repository identity are separate fields; a controller cannot silently substitute one for the other.
 
-Fetch active configuration, holds, product and dependency authority from that exact trusted commit. Re-read its ref before Execute. Candidate configuration is assessed as proposed data under the active policy, and cannot govern its own review, CI, permissions or integration. Activation happens only after a separately governed integration to the trusted ref and subsequent read at the new trusted revision. No command flag can substitute the candidate's config for active policy.
+In Embed, protected consumer CI/controller configuration establishes the governance ref; for KAAL it is main. Fetch active configuration, holds, product and dependency authority from that exact trusted commit. Re-read its ref before Execute. A .kaal file does not authenticate itself.
 
-An initial consumer with no trusted configuration cannot execute governed transactions. Bootstrap requires an independently reviewed initial policy/install Change using the existing host protections or an explicit authorized installation process. Never infer trust from a file being present. The already accepted legacy checker remains KAAL's authority until the package/configuration cutover is promoted.
+In External, the consumer authorizes a controller-side target-policy provider. That interface returns the common configuration schema plus an authority envelope: target host/repository ID, provider/source identity, immutable policy version, digest, recorded approval/authorization reference, and validity/observation bounds. Its source may be an approved controller configuration or another explicitly authorized external service. Reject an absent, unapproved, changed, expired or wrong-target declaration. Do not require a governance file, KAAL package, Skill, script, hold file or CI check within the target. Product/dependency authority belongs to the controlling installation; native target refs, protections, reviews and checks are obtained independently through target host interfaces.
 
-Policy or product advancement makes prior operational plans stale. Check producers must include authority revision in their evidence; enforcement must rerun on relevant policy changes or conservatively block until current evidence exists.
+Candidate policy is assessed as proposed data under the active policy and cannot govern its own review, CI, permissions or integration. Embed activates a policy only after governed integration to its trusted ref. External activates it only through the authorized provider's independent policy-approval process. Both require a new trusted revision read and invalidate prior plans. A command flag or candidate payload cannot replace active policy authority.
+
+An initial consumer/controller with no authorized target policy cannot execute governed transactions. Embed bootstrap uses an independently reviewed installation/policy Change under existing host protections. External bootstrap approves the target-policy declaration and operation authority in the controlling environment without writing KAAL files to the target. Absence of target .kaal files is expected in External, not a missing-policy failure.
+
+Holds and optional Change-provider applicability follow the selected trusted policy source. KAAL's Embed example reads holds.json from trusted main; External obtains target-specific holds/authority evidence and admitted provider declarations through its approved controller interfaces. It must not probe for or install these providers in the target. When a policy requires a provider or fact that the authorized interface cannot supply, fail explicitly.
+
+The accepted legacy checker remains KAAL's Embed authority until its package/configuration cutover is promoted. Policy or product advancement makes prior operational plans stale. Existing enforcement must rerun on relevant authority changes or conservatively block until current evidence exists. An External assessment reports observed native target enforcement separately from its controller's policy decision; it never claims to install a persistent target gate.
 
 ## A4 — Public operation and evidence interfaces
 
@@ -113,7 +119,7 @@ Propose pure exports `validateConfiguration`, `classify`, `assess` and `audit`. 
 
 Inspect obtains facts and judgments. Prepare returns a serializable proposal with preconditions and required evidence. Execute takes that proposal plus explicit authorization, rechecks it and makes only its declared mutation. Verify independently reads the target's actual state; it cannot reuse an API acceptance response as its observation. Inspect and Audit are read-only; audit's execute phase is unsupported.
 
-A fact envelope records target host/repository ID, refs and SHAs, trusted policy revision/digest, product identity, PR/head/base, provider identity, timestamp, run/check attempt and producer where relevant, pagination completeness, exact objects and unavailable facts. A proposal also records mutation kind, expected before/after, required checks/reviews, evidence expiry and operation identifier.
+A fact envelope records mode, controlling installation identity, target host/repository ID, refs and SHAs, authorized policy-source identity and revision/digest, product identity, PR/head/base, provider identity, timestamp, run/check attempt and producer where relevant, pagination completeness, exact objects and unavailable facts. A proposal also records mutation kind, expected before/after, required checks/reviews, evidence expiry and operation identifier.
 
 Possible operation states include prepared, submitted, pending, verified and failed/unknown. Verdicts remain pass/fail/cannot-judge/not-applicable/held/unsupported; submission is never pass. Legacy exit codes 0/1/2/3/4 retain pass/fail/cannot-judge/not-applicable/held; unsupported uses 5. A required gate maps only a complete applicable pass to success. A verified held state does not make a pending promotion pass.
 
@@ -129,13 +135,15 @@ The currently available GitHub auto-merge wrapper infers its method and returns 
 
 | Operation | Embed 0.0.1 | External 0.0.1 |
 | --- | --- | --- |
-| Inspect/configuration/boundary | Local Git plus authorized host facts | Authorized target APIs, complete remote objects/history and effective rules |
-| Establish | Exact-SHA local/remote ref creation, no replacement | Authorized create-ref at observed trusted SHA; re-read target ref |
+| Inspect/configuration/boundary | Trusted target .kaal configuration, local Git plus authorized host facts | Approved target-bound controller policy interface plus authorized target APIs, complete remote objects/history and native effective rules; no target KAAL files/checks |
+| Establish | Exact-SHA local/remote ref creation, no replacement | Authorized create-ref at observed promoted target SHA under approved target-bound policy; re-read target ref |
 | Engineer | Create explicit working ref and PR for caller-supplied Change; do not generate application code | Create ref/PR for an existing target commit; no assumption of local files |
 | Synchronize | Create merge commit via local Git; conflicts require explicit caller-provided resolutions and review | Inspect/Prepare/Verify supplied synchronization supported; Execute creating merge/resolutions unsupported |
-| Promote | Prepare/open promotion PR, arm exact-method auto-merge after authorization, verify eventual result | Same contract through authorized target APIs; controller state is irrelevant |
+| Promote | Prepare/open promotion PR, arm exact-method auto-merge after authorization, verify eventual result | Same semantics through authorized target APIs under approved target-bound policy and native protection; no KAAL target CI required |
 | Audit | Read host activity, topology and branch lifecycle | Same, from authorized target interfaces; missing objects/history fail closed |
 | Repair | Inspect and prepare repair; use an already supported transaction for explicit Execute | Same supported transactions only; no destructive repair or remote conflict synthesis |
+
+External runs the installed product and acceptance harness in the controlling environment. The target may have only native Git/GitHub protections, reviews and its own checks. KAAL's Embed-required Branching identity is not a universal External requirement; if a target-bound policy explicitly requires a missing check, report the unmet obligation rather than installing a check or bypassing it. Inspect/Prepare/Audit must not install or implement KAAL in the target, and Execute may mutate only the explicitly authorized ordinary repository transaction.
 
 External may use a host-backed Git computation service only with explicit provenance, object completeness and target binding. A permissive mock Boolean such as containsTip=true is not remote Git evidence. No target clone, process cwd, controller origin or implicit credential is required by the External interface. If a host cannot provide the exact merge-tree computation, the relevant verification is cannot-judge and execution is blocked; 0.0.1 support must be demonstrated on the declared GitHub adapter, not advertised from doubles alone.
 

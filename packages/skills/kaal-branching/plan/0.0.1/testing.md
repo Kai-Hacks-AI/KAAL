@@ -8,8 +8,8 @@ Testing owns semantics and findings. Use installed `kaal-testing/acceptance` wit
 
 | Contract | Subject and public result | Cannot establish |
 | --- | --- | --- |
-| Package | Exact delivered tarball, manifest, dependencies, public exports, Skill/scripts, declared Cases and fresh installation; byte/provenance findings | A consumer has valid trusted configuration, permissions or effective host protections |
-| Configuration | Configuration bytes bound to target repository and trusted revision; schema, roles, transactions and consistent supported obligations | The actual repository currently follows policy or an integration occurred |
+| Package | Exact delivered tarball, manifest, dependencies, public exports, Skill/scripts, declared Cases and fresh installation in the consuming environment (controller for External); byte/provenance findings | A consumer has valid trusted configuration, permissions or effective host protections |
+| Configuration | Configuration bytes bound to target repository and authorized source/revision; Embed reads protected target .kaal, External uses the approved controller policy interface; schema, roles, transactions and consistent supported obligations | The actual repository currently follows policy or an integration occurred |
 | Boundary | Named target/ref/PR/revision, complete observed Git/host facts, active policy/product, effective governance and actual operation result | Unknown facts, future events, unobserved race windows, exact merge API method from shape alone |
 
 Run and report these separately. Configuration verification supports candidate-policy validation as proposed data, distinctly from active-policy authority. Boundary verification may contain passing and failing obligations; it never collapses a missing applicable fact into a pass.
@@ -25,14 +25,14 @@ Declare pure-engine dependencies (none of fs/process/network), script dependenci
 | branching/T3 | Inject undecidable dynamic access; it is recorded for validation, an unjudged item fails and cannot count as a pass | N1,N2 |
 | branching/T4 | Inject a second method/role rule into a shim or workflow; mechanical inspection where possible plus independently recorded validation detects competing authority | N1,F18 |
 | branching/T5 | Installed Skill conforms through Engineer Skill; removing/replacing an internal script or adding an escaping reference fails the appropriate package check | F17 |
-| branching/T6 | Equivalent validated evidence via Embed and External yields identical decisions; a controller's wrong origin/config cannot influence External | F12,F16,N1 |
+| branching/T6 | Equivalent authorized target policy/facts via Embed and External yield identical decisions. External requires no target .kaal/package/Skill/scripts/KAAL CI; a controller's unrelated origin/config or wrong-target policy cannot substitute | F12,F16,N1 |
 | branching/T7 | Privileged gate ignores malicious candidate checker/config/dependencies/holds; isolated data-only candidate read succeeds while any candidate execution is detected and fails | F18,N3 |
 
 Architecture Case evidence names coverage and exclusions. A prose review of duplicated semantics is validation, not an executable proof.
 
 ## Capability acceptance loop — Package
 
-All package acceptance uses a fresh tarball install outside the source tree. The caller packs once; scenarios install only manifest entries. No relative import from a workspace, symlink escape or mock package replacing the candidate. Run supported local acceptance on Linux, Windows and macOS.
+All package acceptance uses a fresh tarball install outside the source tree. External installs the product and runs the harness in the controlling environment, never in the governed target. The caller packs once; scenarios install only manifest entries. No relative import from a workspace, symlink escape or mock package replacing the candidate. Run supported local acceptance on Linux, Windows and macOS.
 
 | Case | Realistic scenario and required observation | Traces |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ All package acceptance uses a fresh tarball install outside the source tree. The
 
 ## Capability acceptance loop — Configuration
 
-Use the public installed validator with configuration fixtures under two genuinely different naming schemes: KAAL main/kaal/* and a consumer release/train/*/task-* scheme. The second consumer has no kaal prefix.
+Use the public installed validator with configuration fixtures under two genuinely different naming schemes: KAAL main/kaal/* and a consumer release/train/*/task-* scheme. The second consumer has no kaal prefix. Supply Embed policy through the protected .kaal source and External policy through an explicitly authorized controller provider. Verify target identity, policy-source identity, version/digest, approval reference and validity without a target configuration file.
 
 | Case | Required observation | Traces |
 | --- | --- | --- |
@@ -51,13 +51,13 @@ Use the public installed validator with configuration fixtures under two genuine
 | branching/T13 | Missing file/version/field, duplicate JSON key, unknown property or unsupported feature is rejected explicitly without defaults | F1,N8 |
 | branching/T14 | Overlapping prefixes, exact-in-prefix, multiple remainders, invalid refs and duplicate transactions are rejected; valid remainder is an unambiguous complement | F2 |
 | branching/T15 | Missing role references, forbidden transaction, rebase synchronization, inconsistent freshness/lifecycle and missing required provider are invalid/unsupported | F2,F3,F19 |
-| branching/T16 | Candidate weakens auto-merge/review/checks or replaces holds; active trusted revision still judges it. Proposed-policy validation never activates it | F1,F8,F18 |
-| branching/T17 | Bootstrap has no trust anchor: inspect explains absence; Execute is refused. Following independently approved activation, a new trusted revision is read and old plans fail as stale | F12,F18 |
+| branching/T16 | Candidate weakens auto-merge/review/checks or replaces holds; active authorized policy still judges it. Embed uses protected policy revision; External rejects an unapproved or wrong-target controller policy. Proposed-policy validation never activates it | F1,F8,F18 |
+| branching/T17 | Bootstrap has no authorized target-policy source: Inspect explains absence and Execute is refused. Embed activates through protected integration; External activates an independently approved controller declaration without target writes. No target .kaal is expected in External. New authority revision invalidates prior plans | F12,F18 |
 | branching/T18 | Config requests stronger/different governance than observable host enforcement; missing administrative visibility or incomplete rules fails Boundary rather than claiming Configuration proves enforcement | F15,F19 |
 
 ## Capability acceptance loop — Boundary and operations
 
-Fixtures with real local Git establish precise ancestry, parent order, trees, modes, deletions, dropped work, repeated promotions and conflict resolutions. Hosted scenarios use dedicated disposable target repositories with independently configured protections, not the KAAL production collectors. External scenarios run with no target checkout and a controller configured for an unrelated repository.
+Fixtures with real local Git establish precise ancestry, parent order, trees, modes, deletions, dropped work, repeated promotions and conflict resolutions. Hosted scenarios use dedicated disposable target repositories with independently configured protections, not the KAAL production collectors. External scenarios run with no target checkout and a controller configured for an unrelated repository. The disposable target has no .kaal, KAAL package/dependency, Agent Skill, scripts or KAAL workflow/check. Its native review/protection/checks remain effective. Capture target trees, dependency/workflow inventory and actual mutations before/after; fail any attempted KAAL installation or setup write. Ordinary authorized branch/PR operations are the only allowed target mutations.
 
 | Case | Required observation | Traces |
 | --- | --- | --- |
@@ -74,12 +74,12 @@ Fixtures with real local Git establish precise ancestry, parent order, trees, mo
 | branching/T29 | Landing audit requires unique PR attribution and actual topology; direct/unattributed landing fails; one-commit shape reports exact-method ambiguity | F9 |
 | branching/T30 | Completed promotion makes collector deletion due; trusted evidenced hold gives held, forged hold fails; merged working ref reuse fails; new creation under same name has a new lifecycle | F4,F9,F10 |
 | branching/T31 | Embed end-to-end Establish→Engineer→Synchronize→Promote→Audit through installed scripts uses real Git and a protected disposable GitHub target | F4-F16 |
-| branching/T32 | External without clone establishes a target ref, engineers an existing target head, prepares/arms promotion and audits/independently verifies landing; complete remote DAG/tree evidence binds target; controller facts cannot substitute | F4,F5,F7-F16 |
-| branching/T33 | External verifies a supplied valid/invalid synchronization using target objects. External synchronization-commit Execute reports unsupported and leaves target unchanged | F6,F14,F16 |
+| branching/T32 | From the controller's installed package, External against a target with no KAAL files/CI obtains approved target-bound policy, establishes a ref, engineers an existing target head, prepares/arms promotion and independently audits landing under native protections. Complete remote DAG/tree evidence binds target; unapproved/wrong-target/expired policy fails; controller repository facts cannot substitute; attempted target KAAL installation fails | F4,F5,F7-F16 |
+| branching/T33 | External verifies a supplied valid/invalid synchronization using authorized target objects and approved controller policy, requiring no target helper/config. External synchronization-commit Execute reports unsupported and leaves target unchanged | F6,F14,F16 |
 | branching/T34 | Repair guidance names detected state, required new transaction and unresolved evidence; no implicit reset, deletion, force push or policy change | F10,F20,N8 |
-| branching/T35 | Existing Branching job identity/producer stays required throughout trusted migration; missing package/config causes non-green, never fallback success; malicious candidate cannot select its checker | F18,N1 |
+| branching/T35 | KAAL Embed's existing Branching job identity/producer stays required throughout trusted migration; missing package/config causes non-green, never fallback success; malicious candidate cannot select its checker. External assessment requires no new KAAL check in the target and reports observed native enforcement separately | F18,N1 |
 | branching/T36 | Required jobs/review still pending: operation can be submitted/armed, never verified landed. Host denies integration until all obligations pass; failed/stale/missing evidence does not satisfy them | F8,F15,F19 |
-| branching/T37 | Policy advances without candidate-head change; old authority-bound result cannot authorize new Execute and current gate evidence is required | F12,F18 |
+| branching/T37 | Protected Embed policy or approved External policy-provider revision advances without candidate-head change; old authority-bound result cannot authorize new Execute and current mode-appropriate evidence is required | F12,F18 |
 | branching/T38 | KAAL promotion queue is inspected including drafts and explicit Owner decisions; missing/manual evidence is reported as manual/unknown and is never described as automated FIFO enforcement | F21 |
 
 T25 repeats #792's controlled test on the migrated checker using an unapproved probe as an interlock. Record immediately observed states and the unobserved interval separately; the prior experiment did not prove registration-race closure. Do not use a bypass or actual production merge attempt to manufacture proof.
@@ -99,7 +99,8 @@ Add minimal discriminating implementation Cases for each approved obligation bef
 - change squash/merge selection, accept disabled auto-merge or skip readback;
 - allow role overlap/unknown config/default policy/candidate authority;
 - treat incomplete pagination, wrong SHA/producer or timeout as success;
-- trust controller facts in External;
+- trust unrelated controller facts or unapproved/wrong-target policy in External;
+- require or attempt a .kaal/package/Skill/script/KAAL CI installation in an External target;
 - call a host primitive from pure semantics;
 - collapse held, unsupported or pending to pass.
 
