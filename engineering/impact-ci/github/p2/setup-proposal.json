@@ -1,0 +1,127 @@
+{
+  "schema": "kaal.ci-gates-p2-proposal/v1",
+  "state": "PLAN_ONLY",
+  "installationAuthorized": false,
+  "deploymentAuthorized": false,
+  "publisherEnabled": false,
+  "repository": {
+    "fullName": "Kai-Hacks-AI/KAAL",
+    "id": 1415996637,
+    "installationSelection": "this repository only"
+  },
+  "sourcePins": {
+    "p1Commit": "ed0de65b688053dfc62617f216da214761ac0fcd",
+    "p1Tree": "42d97430d339448e6e669becb16cba126289a87f",
+    "mainAtCheck": "9a9e89699aed7969281dcd1017882fd0bc4e3edc",
+    "evaluator": "engineering/impact-ci/full-gate.mjs",
+    "mainPolicy": {
+      "path": "engineering/impact-ci/policies/main.json",
+      "id": "kaal-main",
+      "version": "1.0.0"
+    },
+    "lineagePolicy": {
+      "path": "engineering/impact-ci/policies/lineage.json",
+      "id": "kaal-lineage",
+      "version": "1.0.0"
+    }
+  },
+  "firstPilot": {
+    "producerWorkflowId": 384461082,
+    "producerPath": ".github/workflows/lineage-synchronization.yml",
+    "jobKey": "lineage-synchronization",
+    "checkName": "Branching",
+    "event": "pull_request_target",
+    "candidateCodeExecutionAllowed": false,
+    "aggregatePublicationAllowed": false,
+    "proposedAuthProfile": "trusted-native-policy-producer/v1",
+    "profileImplemented": false,
+    "p1ReusableProfileUnchanged": true
+  },
+  "appProposal": {
+    "registrationName": "KAAL Gate Evidence",
+    "public": false,
+    "homepage": "https://github.com/Kai-Hacks-AI/KAAL",
+    "initialPermissions": {
+      "metadata": "read",
+      "contents": "read",
+      "actions": "read",
+      "checks": "read",
+      "pull_requests": "read"
+    },
+    "initialEvents": [],
+    "webhooksActive": false,
+    "installationId": null,
+    "appId": null,
+    "receiptOrigin": null,
+    "credentialBroker": null,
+    "storageBackend": null,
+    "storageFailureModel": null,
+    "deploymentArtifactDigest": null,
+    "driverCommit": null,
+    "driverDigest": null,
+    "receiptSealingPublicKey": null,
+    "purpose": "Read-only acquisition pilot. Not a registrable App manifest or deployable configuration until Owner supplies/approves the missing operational fields."
+  },
+  "laterPublisher": {
+    "name": "dedicated App identity",
+    "checksWriteRequiresSeparateApproval": true,
+    "allowedChecks": [
+      "KAAL Main",
+      "KAAL Lineage"
+    ],
+    "requiredByRuleset": false,
+    "appId": null,
+    "separateWriterCredentialRequired": true
+  },
+  "receiptProposal": {
+    "profile": "durable-execution-fact/v1",
+    "implemented": false,
+    "oidcIssuer": "https://token.actions.githubusercontent.com",
+    "audienceKind": "server-issued execution-bound nonce, not candidate-selected aggregate generation",
+    "validateJwtAtIngress": true,
+    "atomicNonceAndJtiConsumption": true,
+    "sealedFactIncludes": [
+      "repositoryId",
+      "sourceRepositoryId",
+      "pr",
+      "event",
+      "target",
+      "headSha",
+      "baseSha",
+      "testedSha",
+      "testedTreeSha",
+      "workflowId",
+      "workflowPath",
+      "workflowSha",
+      "governanceSha",
+      "commandAndDependencyDigests",
+      "runId",
+      "attempt",
+      "jobId",
+      "checkRunId",
+      "verifiedAt",
+      "issuerKeyId",
+      "sourceProofDigest"
+    ],
+    "rawTokensInLogs": false,
+    "rawTokensInCheckSummaries": false,
+    "certificateBinding": "Trusted controller independently binds the persisted fact to the current full generation; ambiguity remains unresolved. Token expiry is not freshness authority for stored execution facts."
+  },
+  "productionBlocks": [
+    "Independent acceptance of native-producer trust profile and durable execution-fact semantics.",
+    "Production proof reader, isolated driver and durable atomic ingress/outbox/archive realization.",
+    "Exact approved infrastructure, storage failure model, App/installation identity, issuer keys, credential/sealing-key management and source pins.",
+    "Separate workflow-only P3 and exact new workflow source approvals.",
+    "Separate Owner-aligned live read-only experiment; full S1-S11 and publisher activation are later decisions.",
+    "Stale-GREEN registration/merge races, same-SHA reuse and uncertain writes remain enforcement blockers."
+  ],
+  "prohibitedPermissions": [
+    "actions:write",
+    "contents:write",
+    "pull_requests:write",
+    "administration:write",
+    "statuses:write",
+    "security_events:write"
+  ],
+  "activationDefault": "blocked"
+}
