@@ -1,0 +1,255 @@
+{
+  "schema": "kaal.collector-verification/v1",
+  "state": "UNWIRED_SOURCE_ONLY",
+  "date": "2026-11-01",
+  "authorization": {
+    "plan": 819,
+    "review": 5730383244,
+    "collector": "kaal/ci-gates",
+    "baseCommit": "3337e5138fb1e2021327cfd10d7ed7d3ba27dbf0",
+    "baseTree": "84c1e0ff2a2c93f0555d5bb3da6fe7f0c99494e9"
+  },
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "Linux",
+    "dependencySetup": "npm ci --offline --ignore-scripts"
+  },
+  "red": {
+    "command": "node --test --test-reporter=spec engineering/impact-ci/collectors.test.mjs",
+    "subject": "report/projection skeleton after declarative catalog setup",
+    "tests": 28,
+    "passed": 3,
+    "failed": 25,
+    "syntaxOrImportFailure": false,
+    "qualification": "One architecture assertion incorrectly expected relative imports in Hosting outside records; corrected to the documented inspection boundary. The missing report profile also caused an ordinary skeleton access failure; no module-load failure was counted as behavioral evidence."
+  },
+  "green": {
+    "command": "node --test --test-reporter=spec engineering/impact-ci/collectors.test.mjs",
+    "architecture": 3,
+    "sourceInterfaceAcceptance": 8,
+    "implementation": 18,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "todos": 0,
+    "qualification": "Final Hotfix source-name regression was added after GREEN; no strict test-first claim for that added Case."
+  },
+  "engineering": {
+    "command": "npx --no kaal-guard run --check Engineering --github",
+    "passed": 530,
+    "failed": 0,
+    "skipped": 0,
+    "todos": 0,
+    "exitStatus": 0
+  },
+  "mutations": [
+    {
+      "name": "evaluator replaced with passing verdict",
+      "module": "report.mjs",
+      "from": "judgeFullMatrix(authority, manifest, evidence, current, now)",
+      "to": "({verdict: 'passed', stage: 'mutated', errors: []})",
+      "test": "implementation.test.mjs",
+      "pattern": "failed leaf",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "child certified before full completion",
+      "module": "report.mjs",
+      "from": "const certified = evaluation.verdict === 'passed';",
+      "to": "const certified = true;",
+      "test": "acceptance.test.mjs",
+      "pattern": "delayed last Windows",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "stale context ignored",
+      "module": "report.mjs",
+      "from": "judgeFullMatrix(authority, manifest, evidence, current, now)",
+      "to": "judgeFullMatrix(authority, manifest, evidence, fullExpected(authority).context, now)",
+      "test": "implementation.test.mjs",
+      "pattern": "stale target",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "collector mislabeled as Main",
+      "module": "report.mjs",
+      "from": "profile: {...structuredClone(profile), event:",
+      "to": "profile: {...structuredClone(profile), gate: 'KAAL', event:",
+      "test": "acceptance.test.mjs",
+      "pattern": "SYNC from main",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "mixed tests reported as Product-only",
+      "module": "catalog.mjs",
+      "from": "dimension: 'mixed'",
+      "to": "dimension: 'product'",
+      "test": "acceptance.test.mjs",
+      "pattern": "Product and Engine coverage",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "Windows Guard family omitted",
+      "module": "catalog.mjs",
+      "from": "jobKeys: ['guard', 'guard-hosts']",
+      "to": "jobKeys: ['guard']",
+      "test": "acceptance.test.mjs",
+      "pattern": "pull_request into main",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "ambiguous collector owner accepted",
+      "module": "projection.mjs",
+      "from": "if (owners.length !== 1)",
+      "to": "if (false)",
+      "test": "implementation.test.mjs",
+      "pattern": "duplicate owner",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    },
+    {
+      "name": "refusal diagnostics erased",
+      "module": "report.mjs",
+      "from": "errors: [...evaluation.errors],",
+      "to": "errors: [],",
+      "test": "implementation.test.mjs",
+      "pattern": "truncated page",
+      "exitStatus": 1,
+      "discriminatedByAssertion": true
+    }
+  ],
+  "sourceIdentities": [
+    {
+      "path": "engineering/impact-ci/collectors/acceptance.test.mjs",
+      "gitBlob": "499463e443597eaabd5bd3df98f63c2eb284028a"
+    },
+    {
+      "path": "engineering/impact-ci/collectors/architecture.test.mjs",
+      "gitBlob": "30fc7c4ef6d984e81dc1656e28e2320dff195234"
+    },
+    {
+      "path": "engineering/impact-ci/collectors/catalog.mjs",
+      "gitBlob": "99267a4687f23796d4f0a8908aa1cec34d597097"
+    },
+    {
+      "path": "engineering/impact-ci/collectors/implementation.test.mjs",
+      "gitBlob": "5d17c648e63d413faf42db9ef5faf8b83a157016"
+    },
+    {
+      "path": "engineering/impact-ci/collectors/mutations.mjs",
+      "gitBlob": "66d7bb6a52e9e95452505179c72d7275fb0db3c3"
+    },
+    {
+      "path": "engineering/impact-ci/collectors/projection.mjs",
+      "gitBlob": "1dd66e41b63b79decefbc07adc89fbab60402fac"
+    },
+    {
+      "path": "engineering/impact-ci/collectors/report.mjs",
+      "gitBlob": "50426fd464a153901ca09a0bb44d3b4b54db79a8"
+    },
+    {
+      "path": "engineering/impact-ci/collectors.test.mjs",
+      "gitBlob": "388e6fa41495538edb3aa5e105d1f51e1ac5c80d"
+    }
+  ],
+  "inheritedTestsUnchanged": [
+    {
+      "path": "engineering/impact-ci/assurance-policy.test.mjs",
+      "gitBlob": "209f2beca4326f00d9a2944b6d93ee27a6ef61f0"
+    },
+    {
+      "path": "engineering/impact-ci/execution-gate.test.mjs",
+      "gitBlob": "806221a93b8605194288b0d78f7fe99fb04d63f4"
+    },
+    {
+      "path": "engineering/impact-ci/full-boundary.test.mjs",
+      "gitBlob": "dc013eee8733f64f87b9a2419826b01ad3b86bdc"
+    },
+    {
+      "path": "engineering/impact-ci/full-gate.test.mjs",
+      "gitBlob": "a31432ef058325f83d0a7052c11c6e51b2767d16"
+    },
+    {
+      "path": "engineering/impact-ci/git-input.test.mjs",
+      "gitBlob": "1d786f44828796bfb621b268d313372fa25d32e3"
+    },
+    {
+      "path": "engineering/impact-ci/github.test.mjs",
+      "gitBlob": "22333d58d2eff0fa62e20c24299302c9a76c3708"
+    },
+    {
+      "path": "engineering/impact-ci/github/acceptance.test.mjs",
+      "gitBlob": "7198829e58dc9fffe994655504987c0f75164b2f"
+    },
+    {
+      "path": "engineering/impact-ci/github/acquire.test.mjs",
+      "gitBlob": "c879d51c0a9b6aa863f472f965df18dea727697a"
+    },
+    {
+      "path": "engineering/impact-ci/github/architecture.test.mjs",
+      "gitBlob": "7ef008780cbd3e3b0d30e331a7c2b5a31d74c7e6"
+    },
+    {
+      "path": "engineering/impact-ci/github/auth.test.mjs",
+      "gitBlob": "b8f07e7668878f513b0170a149959e7b5355d05b"
+    },
+    {
+      "path": "engineering/impact-ci/github/controller.test.mjs",
+      "gitBlob": "5bb614812cf8a826f3ce83490a5f039e1c6b5a45"
+    },
+    {
+      "path": "engineering/impact-ci/replay.test.mjs",
+      "gitBlob": "a7fe54bcc1e3371b5e2ac3c8880cd4b2beb96a7a"
+    },
+    {
+      "path": "engineering/impact-ci/selection-gate.test.mjs",
+      "gitBlob": "c48d7f68d12cd6dde2e2c435c86da751fb34f736"
+    },
+    {
+      "path": "engineering/impact-ci/target-policy.test.mjs",
+      "gitBlob": "296f0881c56364a73743d8cb60996bf3e9b7181a"
+    }
+  ],
+  "architectureJudgment": {
+    "coverage": [
+      "collectors/catalog.mjs",
+      "collectors/projection.mjs",
+      "collectors/report.mjs"
+    ],
+    "decision": "No second execution/selection completeness judge within the reviewed source; grouping projection establishes reference consistency, not execution success. Report invokes #790 once.",
+    "validationItem": "Injected process.getBuiltinModule is surfaced and must not pass silently; the injected construct is not in delivered production code.",
+    "mechanicalExclusions": [
+      "relative-import resolution",
+      "transitive host access",
+      "arbitrary JavaScript semantics",
+      "responsibility duplication"
+    ],
+    "hostInspection": "permitted, prohibited and undecidable Cases pass within declared coverage"
+  },
+  "live": {
+    "publication": "not-published",
+    "assurance": "unestablished",
+    "requiredChecksChanged": false,
+    "workflowActivation": false,
+    "appInstalled": false,
+    "infrastructureDeployed": false,
+    "selectiveExecution": false,
+    "hotfixImplemented": false,
+    "promotion": false,
+    "unknowns": [
+      "authentic GitHub acquisition",
+      "source binding",
+      "same-SHA reuse",
+      "asynchronous invalidation and uncertain writes",
+      "real Windows/macOS runs",
+      "independent Product/Engine certification",
+      "actual merge-blocking shadow Cases"
+    ]
+  }
+}

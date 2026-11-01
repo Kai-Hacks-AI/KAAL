@@ -8,6 +8,10 @@ Hotfix activation remain separately governed. The App/receipt infrastructure
 sequence below and in #800/#807 is historical, not the next delivery requirement.
 Existing evaluator contracts, policy names and test inventories are unchanged.
 
+The [N1 capability collector report](collectors/README.md) implements the bounded
+source projection/reporting increment of #819. It delegates all assurance to
+#790 and publishes no GitHub checks. Mixed Product/Engine suites stay explicit.
+
 The source-only [P1 publication adapter](github/README.md) continues approved
 PLAN #800. It reuses this evaluator through an unwired authenticated acquisition
 and publisher protocol; it makes no live enforcement claim.
