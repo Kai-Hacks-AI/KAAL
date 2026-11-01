@@ -302,21 +302,31 @@ describe("pre-push template", () => {
   const BIN = resolve(dirname(fileURLToPath(import.meta.url)), "../../bin/kaal-guard.mjs");
   const TEMPLATE = resolve(dirname(fileURLToPath(import.meta.url)), "../../templates/pre-push");
 
-  it("supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks", { skip: process.platform === "win32" }, () => {
+  // Git runs the hook itself, with its own shell, so the case is the same on every host Git runs on.
+  it("supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks", () => {
     const dir = tree({ scope: { command: "node -e 0", runs: ["hook"], facts: ["changed"] } });
-    const g = (...args) => spawnSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd: dir, encoding: "utf8" });
+    const g = (...args) => spawnSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "-c", `core.hooksPath=${join(dir, ".git", "hooks")}`, ...args], { cwd: dir, encoding: "utf8" });
+    // A shell script, as npm installs one beside its Windows wrappers; Git's shell reads a path with forward slashes on every host.
+    const slash = (p) => p.split("\\").join("/");
     mkdirSync(join(dir, "node_modules", ".bin"), { recursive: true });
-    writeFileSync(join(dir, "node_modules", ".bin", "kaal-guard"), `#!/bin/sh\nexec "${process.execPath}" "${BIN}" "$@"\n`);
+    writeFileSync(join(dir, "node_modules", ".bin", "kaal-guard"), `#!/bin/sh\nexec "${slash(process.execPath)}" "${slash(BIN)}" "$@"\n`);
     chmodSync(join(dir, "node_modules", ".bin", "kaal-guard"), 0o755);
+    mkdirSync(join(dir, ".git", "hooks"), { recursive: true });
+    writeFileSync(join(dir, ".git", "hooks", "pre-push"), readFileSync(TEMPLATE));
+    chmodSync(join(dir, ".git", "hooks", "pre-push"), 0o755);
+    const remote = scratch("kaal-guard-lifecycle-remote-");
+    assert.equal(spawnSync("git", ["init", "-q", "--bare", remote]).status, 0, "git init --bare");
+    g("remote", "add", "origin", remote);
     g("commit", "-q", "--allow-empty", "-m", "head");
     const head = g("rev-parse", "HEAD").stdout.trim();
     g("checkout", "-q", "--orphan", "unrelated");
     g("commit", "-q", "--allow-empty", "-m", "unrelated base");
     g("update-ref", "refs/remotes/origin/main", "HEAD"); // a base with no merge base: Git cannot give the changed paths
-    const r = spawnSync("sh", [TEMPLATE, "origin"], { cwd: dir, encoding: "utf8", input: `refs/heads/x ${head} refs/heads/x ${"0".repeat(40)}\n` });
+    const r = g("push", "origin", `${head}:refs/heads/x`);
     assert.notEqual(r.status, 0, r.stderr);
     assert.match(r.stderr, /changed paths .* cannot be computed/);
     assert.match(r.stderr, /cannot judge: scope: the fact changed was not supplied/);
     assert.match(r.stderr, /CI decides/);
+    assert.equal(spawnSync("git", ["rev-parse", "--verify", "--quiet", "refs/heads/x"], { cwd: remote }).status, 1, "the hook did not block the push");
   });
 });
