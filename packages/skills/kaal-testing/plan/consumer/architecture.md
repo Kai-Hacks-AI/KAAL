@@ -20,6 +20,7 @@ Each element names, in brackets, the Requirements it answers.
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | `testing/C15` | no |
     | `./package.json` | the package manifest | Testing | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
+    | `./timing` | given-duration concentration, outlier and platform-skew evidence | testing/C47 | no |
     | `./verifiers` | the shared observable result contract for consumer verifiers: its scenarios, `observe` and `judge` | `testing/C30` | no |
 - **testing/A9** [testing/F12, testing/F13]: **npm, the first realization.** Testing records it here without making it the definition.
   - **The entry point.** `npm explore <package> -- npm test` runs the installed package's own `test` script. The product's script runs one small entry file of its own.

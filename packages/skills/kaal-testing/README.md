@@ -157,3 +157,17 @@ npx kaal register skill kaal-testing node_modules/kaal-testing/payload
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
+
+## Run timing
+
+`@kaihacksai/kaal-testing/timing` reads durations already recorded by a harness. It measures nothing and keeps no history.
+
+```js
+import { profile, skew } from "@kaihacksai/kaal-testing/timing";
+const evidence = profile({ cases: recordedCases }); // [{ name, ms }]
+const platforms = skew(platformRuns); // [{ platform, cases }], same Cases on each
+```
+
+`profile` challenges concentration in the slowest share and outliers against the run's own median. `skew` compares each Case with its median duration on the other platforms. `DEFAULTS` is frozen: `{ share: 0.8, budget: 0.8, outlier: 10, floor: 1000, factor: 4, minimum: 5 }`. Each option can be overridden; malformed inputs or options give `unknown` with findings and no challenges.
+
+Both return `{ result, challenges, findings }`, with `result` `challenged`, `unchallenged` or `unknown`. They never decide a run's verdict. The Case/suite owner investigates concentration; the named Case owner investigates an outlier or platform skew. A timing difference establishes no cause. Hosting is consulted for demonstrated host-specific causes and owns confirmed operating-system-boundary defects.
