@@ -294,7 +294,7 @@ guard/T118 is planned in `guard/C112`. It is producer-side evidence that a migra
 guard/T65, guard/T66 and guard/T68 keep their assertions and their recorded results. `guard/C112` turns their preconditions into declared applicability. It is judged before any behavioural step, from the two versions' packages installed side by side: their `contract.json` and the content each managed asset ships with.
 - guard/T65 and guard/T68 apply when the pair ships the workflow, the managed asset they watch move, with different content.
 - guard/T66 applies when the newer version adds an asset to the hook surface.
-- guard/T118 applies to released versions. The harness's own `packed` variants (`-candidate.N`) change a package after its manifest was made, so their verification cannot pass by design. guard/T118 is run with `GUARD_CANDIDATES` naming the pair.
+- guard/T118 checks the genuine release-candidate pair: with `GUARD_CANDIDATES` set, the explicitly named pair governs it and the other consumer Cases. Without the variable, T118 selects `registry:<newest earlier F42 source>,packed` from the actual package in the tree; the other Cases retain their constructed variants. The harness's `-candidate.N` variants cannot establish T118 verification, and a missing or invalid earlier-source declaration fails T118, never skips it.
 
 A pair that does not meet the condition is reported `not applicable` with the reason. That is neither GREEN nor RED, and an assertion that was not executed is never counted as passed. guard/T68 keeps "the workflow did not move forward" as its assertion; it is executed only for a pair the condition admits. The 0.0.2 → 0.0.3 GREEN results and guard/C89 stand as recorded.
 
@@ -309,7 +309,7 @@ A pair that does not meet the condition is reported `not applicable` with the re
 | guard/T68 | GREEN | not applicable: the two ship the same workflow |
 | guard/T36, guard/T40, guard/T42, guard/T43, guard/T64 | GREEN | GREEN |
 
-Without `GUARD_CANDIDATES`, the harness's `packed` variants give guard/T36–guard/T68 GREEN, guard/T66 included, and guard/T118 not applicable.
+With `GUARD_CANDIDATES` unset, guard/T36–guard/T68 retain the harness's `packed` variants, guard/T66 included. From `guard/C139`, T118 executes the genuine release-candidate pair the package in the tree declares: `registry:<older>,packed`, where older is the newest source its guard/F42 declaration lists that is earlier than its own version. The other cases keep the `packed` variants, so one run of `consumer.test.mjs` with no variable executes every case: on Linux at `kaal/guard-release`, guard/T65–guard/T68 GREEN on the variants and guard/T118 GREEN from `registry` `0.0.3` to `packed` `0.0.4`. A package that declares no earlier source fails guard/T118 and never skips it. With `GUARD_CANDIDATES` set, every case takes that pair, as before.
 
 ## The managed workflow keeps no credential (`guard/C114`)
 
