@@ -1,0 +1,229 @@
+{
+  "baseline": "1f79213a038f935e47382e69275cd8873de389b8",
+  "node": "v24.22.1",
+  "platform": "linux",
+  "hashAuthority": "@kaihacksai/kaal-foundation/sha256",
+  "source": "19bf4cba2319ff4750292114579662377ec79497b00cf66a156db355f75845ef",
+  "unchangedOuterTests": {
+    "test/acceptance/configuration.test.mjs": "c79d6f74791e1c26340e48258ab327eff467a298d7557fe68baf006bc04b8cb4",
+    "test/fixtures/configuration.mjs": "1aa60af350a113635c8e4fa96368f4de7248bb580f9537926eedbca082702ed2"
+  },
+  "runs": [
+    {
+      "name": "red",
+      "artifact": "b1bfb669f67322d854771a82a66b6ce2dc42ac89e32a636716d73d1d68c4a832",
+      "integrity": "sha512-N1qVzAnGLeKfKja+vlsbkikf32l/ECrSGDl6RrRgpStng2rG5j5ja2+OheeCzWXksF4Gq4G65f60UX5G82cw3g==",
+      "passed": false,
+      "runner": {
+        "status": 1,
+        "stdout": "✖ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (511.885592ms)\n✖ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (0.99485ms)\n✖ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (0.845532ms)\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (0.510197ms)\nℹ tests 4\nℹ suites 0\nℹ pass 0\nℹ fail 4\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 695.481544\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:25:1\n✖ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (511.885592ms)\n  AssertionError [ERR_ASSERTION]: [{\"code\":\"not-implemented\",\"path\":\"$\",\"message\":\"Configuration validation is not implemented.\"}]\n  \n  'fail' !== 'pass'\n  \n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:29:12)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'fail',\n    expected: 'pass',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n\ntest at test/acceptance/configuration.test.mjs:35:1\n✖ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (0.99485ms)\n  AssertionError [ERR_ASSERTION]: [{\"code\":\"not-implemented\",\"path\":\"$\",\"message\":\"Configuration validation is not implemented.\"}]\n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:22:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:36:49)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at test/acceptance/configuration.test.mjs:48:1\n✖ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (0.845532ms)\n  AssertionError [ERR_ASSERTION]: [{\"code\":\"not-implemented\",\"path\":\"$\",\"message\":\"Configuration validation is not implemented.\"}]\n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:22:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:49:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n\ntest at test/acceptance/configuration.test.mjs:59:1\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (0.510197ms)\n  AssertionError [ERR_ASSERTION]: [{\"code\":\"not-implemented\",\"path\":\"$\",\"message\":\"Configuration validation is not implemented.\"}]\n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:22:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:60:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      },
+      "findings": [
+        {
+          "kind": "verified failure",
+          "subject": "configuration.test.mjs",
+          "evidence": "the scenarios failed (node --test exited 1)"
+        },
+        {
+          "kind": "unknown",
+          "subject": "installation hosts",
+          "evidence": "whether the 1 hosts lie physically outside the repository is not verified: Hosting offers no portable containment contract yet"
+        },
+        {
+          "kind": "unknown",
+          "subject": "unrecorded installations",
+          "evidence": "an installation a scenario makes without install() is not recorded, so its absence is not proven"
+        }
+      ],
+      "moduleSource": "// Behavioral RED scaffold: a loadable public interface, deliberately no validator yet.\nexport function validateConfiguration() {\n  return { kind: \"fail\", findings: [{ code: \"not-implemented\", path: \"$\", message: \"Configuration validation is not implemented.\" }] };\n}\n\n",
+      "source": "0b9d4c0d6de6687df81c5fde4b85d849ea9679439d9530654ae947201f980543"
+    },
+    {
+      "name": "green",
+      "artifact": "a2ed79b41200eaa84d1bb432672310caf3a2c68c7d1bb85b5cd18e173658d11c",
+      "integrity": "sha512-0laPuCOQFs+vljSkiCHF+YxtvFlz+N6B33DKYQNCt/z2iuoKaKc2R+7lUXhjqsWTFOxgOX/oHbFgLVVtqieGvA==",
+      "passed": true,
+      "runner": {
+        "status": 0,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (863.613686ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (4.016017ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (9.003269ms)\n✔ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (3.062362ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1052.020181\n",
+        "stderr": ""
+      },
+      "findings": [
+        {
+          "kind": "unknown",
+          "subject": "installation hosts",
+          "evidence": "whether the 1 hosts lie physically outside the repository is not verified: Hosting offers no portable containment contract yet"
+        },
+        {
+          "kind": "unknown",
+          "subject": "unrecorded installations",
+          "evidence": "an installation a scenario makes without install() is not recorded, so its absence is not proven"
+        }
+      ]
+    },
+    {
+      "name": "final-green",
+      "artifact": "f72efd7b1637c4484c785d41170aabe8024979fdeb524273c8de303110cf8399",
+      "integrity": "sha512-fXWwl7Xo7L1yNcxXNal8BZuHhyZSoVaxIYYXlQGnVpRtA/UJq0xCo9nfktYkTbsCqonoZlHywjssLPn2w7v6VA==",
+      "passed": true,
+      "runner": {
+        "status": 0,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (551.587098ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (2.996094ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (6.60758ms)\n✔ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (3.16631ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 747.137591\n",
+        "stderr": ""
+      },
+      "findings": [
+        {
+          "kind": "unknown",
+          "subject": "installation hosts",
+          "evidence": "whether the 1 hosts lie physically outside the repository is not verified: Hosting offers no portable containment contract yet"
+        },
+        {
+          "kind": "unknown",
+          "subject": "unrecorded installations",
+          "evidence": "an installation a scenario makes without install() is not recorded, so its absence is not proven"
+        }
+      ]
+    },
+    {
+      "name": "final-content",
+      "artifact": "7e00a3d29ed5e067c181c6ba258d55acebffa59e4948ae5df7f4f357082b876d",
+      "integrity": "sha512-dVkbl9a2P9hBfWeXbkZDBJUtaJXUtcRndI1JpuAz5XncdyVKfA4h8s3pLIcBKIA1HKI1gpW8MoLfIEbDfuEcEw==",
+      "passed": true,
+      "runner": {
+        "status": 0,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (590.78877ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (4.651521ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (13.346157ms)\n✔ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (5.648315ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 889.428266\n",
+        "stderr": ""
+      },
+      "findings": [
+        {
+          "kind": "unknown",
+          "subject": "installation hosts",
+          "evidence": "whether the 1 hosts lie physically outside the repository is not verified: Hosting offers no portable containment contract yet"
+        },
+        {
+          "kind": "unknown",
+          "subject": "unrecorded installations",
+          "evidence": "an installation a scenario makes without install() is not recorded, so its absence is not proven"
+        }
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "name": "duplicate-keys",
+      "discriminated": true,
+      "source": "40e0ced93ef02dae3292aa95c661b48866870a851cd7c76cd7959c0f11c7a4ca",
+      "runnerStatus": 1,
+      "failedCases": [
+        "branching/T13"
+      ],
+      "operator": {
+        "replace": "    auditJSON(text);",
+        "with": "    // mutant: duplicate-key audit omitted"
+      },
+      "artifact": "fe40fbc2cfd4817481dca6b3c5324f79970f45c5748cade97e96d93cb544228b",
+      "runner": {
+        "status": 1,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (590.734882ms)\n✖ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (2.906945ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (2.728782ms)\n✔ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (3.240751ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 775.611517\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:35:1\n✖ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (2.906945ms)\n  AssertionError [ERR_ASSERTION]: {\"kind\":\"pass\",\"configuration\":{\"schema\":\"kaal-branching/1\",\"repository\":{\"host\":\"https://github.com\",\"id\":\"1415996637\",\"name\":\"Kai-Hacks-AI/KAAL\"},\"roles\":[{\"id\":\"release\",\"category\":\"promoted\",\"selector\":{\"exact\":\"main\"},\"lifecycle\":\"retain\"},{\"id\":\"integration\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/\"},\"establishFrom\":\"release\",\"lifecycle\":\"delete-after-complete-promotion\"},{\"id\":\"change\",\"category\":\"working\",\"selector\":{\"remainder\":true},\"lifecycle\":\"delete-after-integration\"}],\"transactions\":[{\"id\":\"engineer\",\"kind\":\"engineer\",\"from\":\"change\",\"to\":\"integration\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"on-target-tip\",\"no-unincorporated-promoted-history\",\"change-claim\",\"governed-integration\"]},{\"id\":\"synchronize\",\"kind\":\"synchronize\",\"from\":\"change\",\"to\":\"integration\",\"incorporates\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"merge\",\"obligations\":[\"on-target-tip\",\"strict-forward-progress\",\"preserve-outstanding-work\",\"explicit-resolutions\",\"governed-integration\"]},{\"id\":\"promote\",\"kind\":\"promote\",\"from\":\"integration\",\"to\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"contains-target-tip\",\"validated-head-tree\",\"promotion-order\",\"governed-integration\"]}],\"governance\":{\"pullRequest\":true,\"autoMerge\":\"required\",\"strictFreshness\":true,\"review\":{\"minimumApprovals\":1,\"independent\":true,\"dismissStale\":true,\"resolveThreads\":true},\"checks\":{\"authority\":\"effective-host-rules\",\"requireCompleteEnumeration\":true,\"requiredIdentity\":{\"name\":\"Branching\",\"integrationId\":15368}},\"claims\":{\"applicability\":\"when-provider-admitted\",\"provider\":\"kaal-change\",\"contract\":\"checkClaim\"},\"bypass\":\"forbidden\",\"promotionOrder\":{\"mode\":\"fifo-owner-override\",\"enforcement\":\"manual-preflight\",\"authority\":\"repository-admin\"},\"holds\":{\"authority\":\"repository-admin\",\"source\":\"trusted-revision\",\"path\":\"engineering/github/holds.json\",\"outcome\":\"held\"}},\"evidence\":{\"maxObservationAgeSeconds\":60,\"recheckBeforeMutation\":true,\"recheckAfterMutation\":true,\"requireCompletePagination\":true,\"requireRevisionBinding\":true}},\"findings\":[]}\n  \n  'pass' !== 'fail'\n  \n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:20:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:44:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'pass',\n    expected: 'fail',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "selector-overlap",
+      "discriminated": true,
+      "source": "7f2c1835e7ab05cdb3eed6feeba10e9facb94fe5ec9117b99ee986e8e5eb02f1",
+      "runnerStatus": 1,
+      "failedCases": [
+        "branching/T14"
+      ],
+      "operator": {
+        "replace": "    if(overlaps) reject(\"overlap\"",
+        "with": "    if(false && overlaps) reject(\"overlap\""
+      },
+      "artifact": "a00d95e67b5cc806769cb59be298cd07fdcef5b471d988577b8b154c66c1279e",
+      "runner": {
+        "status": 1,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (534.007789ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (1.860253ms)\n✖ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (6.195565ms)\n✔ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (6.17683ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 698.862086\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:48:1\n✖ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (6.195565ms)\n  AssertionError [ERR_ASSERTION]: {\"kind\":\"pass\",\"configuration\":{\"schema\":\"kaal-branching/1\",\"repository\":{\"host\":\"https://github.com\",\"id\":\"1415996637\",\"name\":\"Kai-Hacks-AI/KAAL\"},\"roles\":[{\"id\":\"release\",\"category\":\"promoted\",\"selector\":{\"exact\":\"main\"},\"lifecycle\":\"retain\"},{\"id\":\"integration\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/\"},\"establishFrom\":\"release\",\"lifecycle\":\"delete-after-complete-promotion\"},{\"id\":\"change\",\"category\":\"working\",\"selector\":{\"remainder\":true},\"lifecycle\":\"delete-after-integration\"},{\"id\":\"nested\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/deep/\"},\"establishFrom\":\"release\",\"lifecycle\":\"delete-after-complete-promotion\"}],\"transactions\":[{\"id\":\"engineer\",\"kind\":\"engineer\",\"from\":\"change\",\"to\":\"integration\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"on-target-tip\",\"no-unincorporated-promoted-history\",\"change-claim\",\"governed-integration\"]},{\"id\":\"synchronize\",\"kind\":\"synchronize\",\"from\":\"change\",\"to\":\"integration\",\"incorporates\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"merge\",\"obligations\":[\"on-target-tip\",\"strict-forward-progress\",\"preserve-outstanding-work\",\"explicit-resolutions\",\"governed-integration\"]},{\"id\":\"promote\",\"kind\":\"promote\",\"from\":\"integration\",\"to\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"contains-target-tip\",\"validated-head-tree\",\"promotion-order\",\"governed-integration\"]}],\"governance\":{\"pullRequest\":true,\"autoMerge\":\"required\",\"strictFreshness\":true,\"review\":{\"minimumApprovals\":1,\"independent\":true,\"dismissStale\":true,\"resolveThreads\":true},\"checks\":{\"authority\":\"effective-host-rules\",\"requireCompleteEnumeration\":true,\"requiredIdentity\":{\"name\":\"Branching\",\"integrationId\":15368}},\"claims\":{\"applicability\":\"when-provider-admitted\",\"provider\":\"kaal-change\",\"contract\":\"checkClaim\"},\"bypass\":\"forbidden\",\"promotionOrder\":{\"mode\":\"fifo-owner-override\",\"enforcement\":\"manual-preflight\",\"authority\":\"repository-admin\"},\"holds\":{\"authority\":\"repository-admin\",\"source\":\"trusted-revision\",\"path\":\"engineering/github/holds.json\",\"outcome\":\"held\"}},\"evidence\":{\"maxObservationAgeSeconds\":60,\"recheckBeforeMutation\":true,\"recheckAfterMutation\":true,\"requireCompletePagination\":true,\"requireRevisionBinding\":true}},\"findings\":[]}\n  \n  'pass' !== 'fail'\n  \n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:20:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:49:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'pass',\n    expected: 'fail',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "transaction-method",
+      "discriminated": true,
+      "source": "348f78cc6b1afb6fc354fa90523baab073606f8480982c7989028a34e9de4974",
+      "runnerStatus": 1,
+      "failedCases": [
+        "branching/T15"
+      ],
+      "operator": {
+        "replace": "choice(t.method,[spec.method],at+\".method\")",
+        "with": "choice(t.method,[\"squash\",\"merge\",\"rebase\"],at+\".method\")"
+      },
+      "artifact": "6c4ccf7bd7c5c50a9c3b79cc5c4f429170a3adb02e41781159b60fa12c5f3255",
+      "runner": {
+        "status": 1,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (927.462129ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (6.644363ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (14.527141ms)\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (6.464451ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1117.307533\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:59:1\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (6.464451ms)\n  AssertionError [ERR_ASSERTION]: {\"kind\":\"pass\",\"configuration\":{\"schema\":\"kaal-branching/1\",\"repository\":{\"host\":\"https://github.com\",\"id\":\"1415996637\",\"name\":\"Kai-Hacks-AI/KAAL\"},\"roles\":[{\"id\":\"release\",\"category\":\"promoted\",\"selector\":{\"exact\":\"main\"},\"lifecycle\":\"retain\"},{\"id\":\"integration\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/\"},\"establishFrom\":\"release\",\"lifecycle\":\"delete-after-complete-promotion\"},{\"id\":\"change\",\"category\":\"working\",\"selector\":{\"remainder\":true},\"lifecycle\":\"delete-after-integration\"}],\"transactions\":[{\"id\":\"engineer\",\"kind\":\"engineer\",\"from\":\"change\",\"to\":\"integration\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"on-target-tip\",\"no-unincorporated-promoted-history\",\"change-claim\",\"governed-integration\"]},{\"id\":\"synchronize\",\"kind\":\"synchronize\",\"from\":\"change\",\"to\":\"integration\",\"incorporates\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"rebase\",\"obligations\":[\"on-target-tip\",\"strict-forward-progress\",\"preserve-outstanding-work\",\"explicit-resolutions\",\"governed-integration\"]},{\"id\":\"promote\",\"kind\":\"promote\",\"from\":\"integration\",\"to\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"contains-target-tip\",\"validated-head-tree\",\"promotion-order\",\"governed-integration\"]}],\"governance\":{\"pullRequest\":true,\"autoMerge\":\"required\",\"strictFreshness\":true,\"review\":{\"minimumApprovals\":1,\"independent\":true,\"dismissStale\":true,\"resolveThreads\":true},\"checks\":{\"authority\":\"effective-host-rules\",\"requireCompleteEnumeration\":true,\"requiredIdentity\":{\"name\":\"Branching\",\"integrationId\":15368}},\"claims\":{\"applicability\":\"when-provider-admitted\",\"provider\":\"kaal-change\",\"contract\":\"checkClaim\"},\"bypass\":\"forbidden\",\"promotionOrder\":{\"mode\":\"fifo-owner-override\",\"enforcement\":\"manual-preflight\",\"authority\":\"repository-admin\"},\"holds\":{\"authority\":\"repository-admin\",\"source\":\"trusted-revision\",\"path\":\"engineering/github/holds.json\",\"outcome\":\"held\"}},\"evidence\":{\"maxObservationAgeSeconds\":60,\"recheckBeforeMutation\":true,\"recheckAfterMutation\":true,\"requireCompletePagination\":true,\"requireRevisionBinding\":true}},\"findings\":[]}\n  \n  'pass' !== 'fail'\n  \n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:20:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:62:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'pass',\n    expected: 'fail',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "unknown-fields",
+      "discriminated": true,
+      "source": "eeb051e5830597d1725abd990f591b2747d6c83814cac3ce315fe71b06343e2f",
+      "runnerStatus": 1,
+      "failedCases": [
+        "branching/T13"
+      ],
+      "operator": {
+        "replace": "if (!required.includes(key) && !optional.includes(key)) reject(\"unknown\"",
+        "with": "if (false && !required.includes(key) && !optional.includes(key)) reject(\"unknown\""
+      },
+      "artifact": "ca02389a9d7cbae52aef3391c470f06c648e24e45bffc9cce47dd718e1ae31e3",
+      "runner": {
+        "status": 1,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (550.323214ms)\n✖ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (2.638828ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (4.769055ms)\n✔ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (3.829763ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 764.127171\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:35:1\n✖ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (2.638828ms)\n  AssertionError [ERR_ASSERTION]: {\"kind\":\"pass\",\"configuration\":{\"schema\":\"kaal-branching/1\",\"repository\":{\"host\":\"https://github.com\",\"id\":\"1415996637\",\"name\":\"Kai-Hacks-AI/KAAL\"},\"roles\":[{\"id\":\"release\",\"category\":\"promoted\",\"selector\":{\"exact\":\"main\"},\"lifecycle\":\"retain\"},{\"id\":\"integration\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/\"},\"establishFrom\":\"release\",\"lifecycle\":\"delete-after-complete-promotion\"},{\"id\":\"change\",\"category\":\"working\",\"selector\":{\"remainder\":true},\"lifecycle\":\"delete-after-integration\"}],\"transactions\":[{\"id\":\"engineer\",\"kind\":\"engineer\",\"from\":\"change\",\"to\":\"integration\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"on-target-tip\",\"no-unincorporated-promoted-history\",\"change-claim\",\"governed-integration\"]},{\"id\":\"synchronize\",\"kind\":\"synchronize\",\"from\":\"change\",\"to\":\"integration\",\"incorporates\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"merge\",\"obligations\":[\"on-target-tip\",\"strict-forward-progress\",\"preserve-outstanding-work\",\"explicit-resolutions\",\"governed-integration\"]},{\"id\":\"promote\",\"kind\":\"promote\",\"from\":\"integration\",\"to\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"contains-target-tip\",\"validated-head-tree\",\"promotion-order\",\"governed-integration\"]}],\"governance\":{\"pullRequest\":true,\"autoMerge\":\"required\",\"strictFreshness\":true,\"review\":{\"minimumApprovals\":1,\"independent\":true,\"dismissStale\":true,\"resolveThreads\":true},\"checks\":{\"authority\":\"effective-host-rules\",\"requireCompleteEnumeration\":true,\"requiredIdentity\":{\"name\":\"Branching\",\"integrationId\":15368}},\"claims\":{\"applicability\":\"when-provider-admitted\",\"provider\":\"kaal-change\",\"contract\":\"checkClaim\"},\"bypass\":\"forbidden\",\"promotionOrder\":{\"mode\":\"fifo-owner-override\",\"enforcement\":\"manual-preflight\",\"authority\":\"repository-admin\"},\"holds\":{\"authority\":\"repository-admin\",\"source\":\"trusted-revision\",\"path\":\"engineering/github/holds.json\",\"outcome\":\"held\"}},\"evidence\":{\"maxObservationAgeSeconds\":60,\"recheckBeforeMutation\":true,\"recheckAfterMutation\":true,\"requireCompletePagination\":true,\"requireRevisionBinding\":true},\"experimental\":true},\"findings\":[]}\n  \n  'pass' !== 'fail'\n  \n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:20:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:40:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'pass',\n    expected: 'fail',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "required-obligation",
+      "discriminated": true,
+      "source": "8015f4a3f9e05565b957daa497fc3675e8ddc23a3feaca0f380859e0e8369720",
+      "runnerStatus": 1,
+      "failedCases": [
+        "branching/T15"
+      ],
+      "operator": {
+        "replace": "spec.obligations.some(v=>!t.obligations.includes(v))",
+        "with": "false"
+      },
+      "artifact": "4a472eda76f5ef3f21146d619e44145ff815390ae565060bd04a77b11931ec58",
+      "runner": {
+        "status": 1,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (472.493326ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (3.008442ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (4.835172ms)\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (2.161922ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 638.01426\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:59:1\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (2.161922ms)\n  AssertionError [ERR_ASSERTION]: {\"kind\":\"pass\",\"configuration\":{\"schema\":\"kaal-branching/1\",\"repository\":{\"host\":\"https://github.com\",\"id\":\"1415996637\",\"name\":\"Kai-Hacks-AI/KAAL\"},\"roles\":[{\"id\":\"release\",\"category\":\"promoted\",\"selector\":{\"exact\":\"main\"},\"lifecycle\":\"retain\"},{\"id\":\"integration\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/\"},\"establishFrom\":\"release\",\"lifecycle\":\"delete-after-complete-promotion\"},{\"id\":\"change\",\"category\":\"working\",\"selector\":{\"remainder\":true},\"lifecycle\":\"delete-after-integration\"}],\"transactions\":[{\"id\":\"engineer\",\"kind\":\"engineer\",\"from\":\"change\",\"to\":\"integration\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"no-unincorporated-promoted-history\",\"change-claim\",\"governed-integration\"]},{\"id\":\"synchronize\",\"kind\":\"synchronize\",\"from\":\"change\",\"to\":\"integration\",\"incorporates\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"merge\",\"obligations\":[\"on-target-tip\",\"strict-forward-progress\",\"preserve-outstanding-work\",\"explicit-resolutions\",\"governed-integration\"]},{\"id\":\"promote\",\"kind\":\"promote\",\"from\":\"integration\",\"to\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"contains-target-tip\",\"validated-head-tree\",\"promotion-order\",\"governed-integration\"]}],\"governance\":{\"pullRequest\":true,\"autoMerge\":\"required\",\"strictFreshness\":true,\"review\":{\"minimumApprovals\":1,\"independent\":true,\"dismissStale\":true,\"resolveThreads\":true},\"checks\":{\"authority\":\"effective-host-rules\",\"requireCompleteEnumeration\":true,\"requiredIdentity\":{\"name\":\"Branching\",\"integrationId\":15368}},\"claims\":{\"applicability\":\"when-provider-admitted\",\"provider\":\"kaal-change\",\"contract\":\"checkClaim\"},\"bypass\":\"forbidden\",\"promotionOrder\":{\"mode\":\"fifo-owner-override\",\"enforcement\":\"manual-preflight\",\"authority\":\"repository-admin\"},\"holds\":{\"authority\":\"repository-admin\",\"source\":\"trusted-revision\",\"path\":\"engineering/github/holds.json\",\"outcome\":\"held\"}},\"evidence\":{\"maxObservationAgeSeconds\":60,\"recheckBeforeMutation\":true,\"recheckAfterMutation\":true,\"requireCompletePagination\":true,\"requireRevisionBinding\":true}},\"findings\":[]}\n  \n  'pass' !== 'fail'\n  \n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:20:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:65:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'pass',\n    expected: 'fail',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "collector-lifecycle",
+      "discriminated": true,
+      "source": "71085b7c1be97785f3910250d60b74268176db2c1aa7803f3751371c6dc5261f",
+      "runnerStatus": 1,
+      "failedCases": [
+        "branching/T15"
+      ],
+      "operator": {
+        "replace": "if(r.lifecycle!==lifecycles[r.category]) reject(\"lifecycle\"",
+        "with": "if(false && r.lifecycle!==lifecycles[r.category]) reject(\"lifecycle\""
+      },
+      "artifact": "37d59cba05b6605273a9ab7235bf6859d5dadd7c27c3a58b5021454136079023",
+      "runner": {
+        "status": 1,
+        "stdout": "✔ branching/T12: accepts two consumer naming schemes, including controller policy without target KAAL files/checks (560.868323ms)\n✔ branching/T13: absent, incomplete, duplicate, unknown and unsupported configuration is refused (11.896355ms)\n✔ branching/T14: ambiguous roles, selectors, transactions and malformed refs are refused (19.745281ms)\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (6.492382ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 785.207163\n\n✖ failing tests:\n\ntest at test/acceptance/configuration.test.mjs:59:1\n✖ branching/T15: unsupported methods, broken role references and contradictory obligations fail closed (6.492382ms)\n  AssertionError [ERR_ASSERTION]: {\"kind\":\"pass\",\"configuration\":{\"schema\":\"kaal-branching/1\",\"repository\":{\"host\":\"https://github.com\",\"id\":\"1415996637\",\"name\":\"Kai-Hacks-AI/KAAL\"},\"roles\":[{\"id\":\"release\",\"category\":\"promoted\",\"selector\":{\"exact\":\"main\"},\"lifecycle\":\"retain\"},{\"id\":\"integration\",\"category\":\"collector\",\"selector\":{\"prefix\":\"kaal/\"},\"establishFrom\":\"release\",\"lifecycle\":\"retain\"},{\"id\":\"change\",\"category\":\"working\",\"selector\":{\"remainder\":true},\"lifecycle\":\"delete-after-integration\"}],\"transactions\":[{\"id\":\"engineer\",\"kind\":\"engineer\",\"from\":\"change\",\"to\":\"integration\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"on-target-tip\",\"no-unincorporated-promoted-history\",\"change-claim\",\"governed-integration\"]},{\"id\":\"synchronize\",\"kind\":\"synchronize\",\"from\":\"change\",\"to\":\"integration\",\"incorporates\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"merge\",\"obligations\":[\"on-target-tip\",\"strict-forward-progress\",\"preserve-outstanding-work\",\"explicit-resolutions\",\"governed-integration\"]},{\"id\":\"promote\",\"kind\":\"promote\",\"from\":\"integration\",\"to\":\"release\",\"repositoryRelation\":\"same\",\"method\":\"squash\",\"obligations\":[\"contains-target-tip\",\"validated-head-tree\",\"promotion-order\",\"governed-integration\"]}],\"governance\":{\"pullRequest\":true,\"autoMerge\":\"required\",\"strictFreshness\":true,\"review\":{\"minimumApprovals\":1,\"independent\":true,\"dismissStale\":true,\"resolveThreads\":true},\"checks\":{\"authority\":\"effective-host-rules\",\"requireCompleteEnumeration\":true,\"requiredIdentity\":{\"name\":\"Branching\",\"integrationId\":15368}},\"claims\":{\"applicability\":\"when-provider-admitted\",\"provider\":\"kaal-change\",\"contract\":\"checkClaim\"},\"bypass\":\"forbidden\",\"promotionOrder\":{\"mode\":\"fifo-owner-override\",\"enforcement\":\"manual-preflight\",\"authority\":\"repository-admin\"},\"holds\":{\"authority\":\"repository-admin\",\"source\":\"trusted-revision\",\"path\":\"engineering/github/holds.json\",\"outcome\":\"held\"}},\"evidence\":{\"maxObservationAgeSeconds\":60,\"recheckBeforeMutation\":true,\"recheckAfterMutation\":true,\"requireCompletePagination\":true,\"requireRevisionBinding\":true}},\"findings\":[]}\n  \n  'pass' !== 'fail'\n  \n      at refused (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:20:10)\n      at TestContext.<anonymous> (file:///workspace/scratch/4414b3b64488/config-work/packages/skills/kaal-branching/test/acceptance/configuration.test.mjs:67:3)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'pass',\n    expected: 'fail',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "npm": "11.9.0"
+}
