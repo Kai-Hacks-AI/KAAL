@@ -1,0 +1,49 @@
+{
+  "concern": "Guard C129 timing producer/event/loaded-file binding",
+  "owner": {
+    "kind": "capability",
+    "name": "Guard"
+  },
+  "paths": [
+    "engineering/guard/plan/timing-producer/"
+  ],
+  "subject": "engineering/guard/timing.mjs",
+  "externalDependencies": [
+    {
+      "name": "Node.js",
+      "contract": "24.x runner/assert APIs; actual producer capture requires supported-host evidence"
+    },
+    {
+      "name": "Engineering timing consumer",
+      "revision": "862b4508438e48013c22f412c3974cc7410c322e",
+      "path": "engineering/timing/contract-addendum.md"
+    },
+    {
+      "name": "C129 producer",
+      "revision": "c85e6b947a443047d5769230fac3fa7d13b7a35d",
+      "paths": [
+        "engineering/guard/reporter.mjs",
+        "engineering/guard/suites.mjs"
+      ],
+      "state": "unmerged owner dependency, not authority on this target"
+    },
+    {
+      "name": "Testing boundary",
+      "revision": "64d823409e033ef1ad779113d1af0ec4560dd08b",
+      "path": "packages/skills/kaal-testing/lib/boundary.mjs"
+    },
+    {
+      "name": "Hosting/Engineering load receipt",
+      "state": "proposed obligation; no authenticated live receipt mechanism established by this PLAN"
+    },
+    {
+      "name": "Foundation SHA-256",
+      "revision": "9a3276f4ac1f4f1d586fad79f6658e2fc6642d0e",
+      "path": "packages/kaal-foundation/plan/sha256/",
+      "interface": "@kaihacksai/kaal-foundation/sha256.sha256",
+      "use": "future owner-approved capture mechanism; synthetic binding fixtures compute no digests"
+    }
+  ],
+  "baselineSelection": "Actual Owner-approved immutable merge revision, selected and attested by the repository trust authority; no self-issued attestation.",
+  "readiness": "PLAN proposal only; no DO or activation authorized"
+}
