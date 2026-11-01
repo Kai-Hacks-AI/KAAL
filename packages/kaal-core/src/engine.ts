@@ -1,11 +1,11 @@
-import { Graph } from "kaal-graph";
-import { FormError, readFrontmatter } from "kaal-graph/form";
+import { Admitted } from "./admitted.js";
+import { FormError, readFrontmatter } from "#node/form";
 import { read } from "@kaihacksai/kaal-hosting";
 import { isTypeName, validate, type Finding, type Types } from "./frontmatter.js";
 import { claimsForm, compareRefs, readNode, type Identity } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
-/** An admitted Node, frozen as Graph holds it, with where the Engine's files happen to hold it (not part of the Node). */
+/** An admitted Node, frozen as identify() returns it, with where the Engine's files happen to hold it (not part of the Node). */
 export interface EngineNode extends Identity {
   readonly paths: readonly string[];
 }
@@ -31,9 +31,9 @@ export interface Artifact {
   findings: Finding[];
 }
 
-/** What admission found: the admitted Nodes, the rejected files and the typed artifacts. Looking Nodes up is Graph's: hold `nodes` in a Graph. */
+/** What admission found: the admitted Nodes, the rejected files and the typed artifacts. Graph, when present, can hold `nodes` for navigation and analysis. */
 export interface Engine {
-  /** The admitted Nodes, in name then id order, each frozen as Graph takes it. */
+  /** The admitted Nodes, in name then id order, each frozen as identify() returns it. */
   nodes: EngineNode[];
   rejected: Rejection[];
   /** The typed artifacts, in path order, each with its Type's state. */
@@ -52,10 +52,10 @@ export interface EvaluateOptions {
  * type resolves, by id with the name checked, to an admitted Node. Files that
  * do not claim to be Nodes (the Kernel, prose, data) are not part of the graph.
  *
- * Reading a Node and looking Nodes up are Graph's: the candidates are
- * identified and held, frozen, in one Graph, which finds the Nodes a type
- * reference names, exactly by id and name. Admission is Core's alone: the
- * Engine holds only admitted Nodes.
+ * Reading a Node is Graph's, through the copies delivered inside kaal-core.
+ * The candidates are identified and held, frozen, in Core's own index, which
+ * finds the Nodes a type reference names, exactly by id and name. Admission is
+ * Core's alone: the Engine holds only admitted Nodes.
  */
 export function evaluate(files: Files, options: EvaluateOptions = {}): Engine {
   const genesis = foundation().node;
@@ -80,7 +80,7 @@ export function evaluate(files: Files, options: EvaluateOptions = {}): Engine {
     if (seen) seen.paths.push(path);
     else found.set(identity.id, { identity, paths: [path] });
   }
-  const candidates = new Graph<EngineNode>([...found.values()].map(({ identity, paths }) => Object.freeze({ ...identity, paths: Object.freeze(paths) })));
+  const candidates = new Admitted<EngineNode>([...found.values()].map(({ identity, paths }) => Object.freeze({ ...identity, paths: Object.freeze(paths) })));
 
   // Admission walks the type graph outward from genesis: each Node is reached
   // through the Nodes it types, so every Node and type reference is visited once.
@@ -104,7 +104,7 @@ export function evaluate(files: Files, options: EvaluateOptions = {}): Engine {
   }
 
   const nodes = [...admitted.values()].sort(compareRefs);
-  const graph = new Graph(nodes);
+  const graph = new Admitted(nodes);
   return {
     nodes,
     rejected: rejected.sort((a, b) => (a.path < b.path ? -1 : 1)),
@@ -131,7 +131,7 @@ const isRef = (v: unknown): v is { name: string; id: string } =>
   typeof v === "object" && v !== null && !Array.isArray(v) && Object.keys(v).length === 2 && typeof (v as { name?: unknown }).name === "string" && typeof (v as { id?: unknown }).id === "string";
 
 /** A typed artifact's state, from the admitted Nodes, its frontmatter and the supplied Types alone (core/F31). */
-function stateOf(type: string, bytes: Uint8Array, graph: Graph<EngineNode>, types: Types | undefined): { state: TypeState; findings: Finding[] } {
+function stateOf(type: string, bytes: Uint8Array, graph: Admitted<EngineNode>, types: Types | undefined): { state: TypeState; findings: Finding[] } {
   if (types !== undefined) {
     const result = validate(bytes, types);
     if (result.verdict === "invalid") return { state: "invalid", findings: [...result.findings] };
@@ -154,7 +154,7 @@ function stateOf(type: string, bytes: Uint8Array, graph: Graph<EngineNode>, type
   return { state: "registered", findings: [] };
 }
 
-function reasonFor(n: Identity, candidates: Graph<EngineNode>, admitted: Map<string, EngineNode>): string {
+function reasonFor(n: Identity, candidates: Admitted<EngineNode>, admitted: Map<string, EngineNode>): string {
   if (!n.type) return `declares no type: only the genesis Node \`Node\` of this Core may`;
   const target = candidates.node(n.type.id);
   if (!target) return `type ${n.type.name} (${n.type.id}) resolves to no Node`;

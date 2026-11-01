@@ -1,0 +1,160 @@
+{
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "51597855d5d062a9c30235a0d613f5e17562d3cd5060cc5576d2ea55ad511c46",
+    "dist/admitted.d.ts": "52ea0be2c29db7fa0cba81d22ab754621d8aa6d6e6350851493dc11ffe6752e3",
+    "dist/admitted.js": "7c08d1fd903b40e4945083975f2fd2210573778068c6467eb23ee4f5eb4a5697",
+    "dist/agent.d.ts": "edce5bc81865c424780e2f91b38c478771efbc6b4140a93b997c37401a6de6bc",
+    "dist/agent.js": "1c167603db313aca5336f7b740edabaadebf561549912d7346d3f6edc04962af",
+    "dist/bootstrap.d.ts": "ebe88738b2c60677c129e7b9bdde097331c4b6c30b8b20df399b2e476f2426ae",
+    "dist/bootstrap.js": "466ebac2450c1961517c5a37a76335ac9fb3ee813aa3d38787c9f160ae582c39",
+    "dist/cli.d.ts": "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012",
+    "dist/cli.js": "4f5ed40d8bd726d6dd75051af30ee4c4b2911e07f89912ce32b8c6103d1079b7",
+    "dist/conformance.d.ts": "76fa97ba257cded80d2a8ff7eeda2a481953e0be13b96b4d098c8d4489600160",
+    "dist/conformance.js": "8290376a17f61acf108d073daa8c63e4e70b8bf07ff19f22c5fb59567195951c",
+    "dist/engine.d.ts": "589b5ac011e9d90bd983cc5f670b68339a63f7575c817dc9235b5246c913791d",
+    "dist/engine.js": "3d12a13752c64abf7edca4d958eec29cb2a7c4dc763dfc3aecda999d85d82b08",
+    "dist/frontmatter.d.ts": "2fe59ef5d76e44a5406a4cd80c6a3013e3f2984aec1e55b820bb5f4192873b49",
+    "dist/frontmatter.js": "4b3edba7291bd04e422941a1b1b44ee9898372d9bc4b163e7dc251cea8664002",
+    "dist/index.d.ts": "4f25007b488e64f3e1ed87ed957e1c916e7360c2e3ffb09d47b5f04a20f7eab2",
+    "dist/index.js": "6573b28c03431bab1c7828351a5d513598af63ac1667cd6e063504f5d73a3856",
+    "dist/installation.d.ts": "9e453f3666610dafa8f8fc3e83deb2275fde13771827ccdd8124c95030e872b8",
+    "dist/installation.js": "cd9f41605d3f108be7b4ea3eff1af37d46467502654d747ddfecbefcaea86558",
+    "dist/lifecycle.d.ts": "f964dd5e9540574054d96663c39184c9826e7e7e48bfcaec6c0f026c75063439",
+    "dist/lifecycle.js": "4299f81c3e3bb66d49440ca1edc2ee3a036bf456fd6e31d595135aace0409930",
+    "dist/node.d.ts": "b4a0c336f85929decb976918f7914704ce7973340becd7208269693cd136aac4",
+    "dist/node.js": "40c6a0e90d7f7db8a93329e3513a62575c3016e21942d673714f38afa771836d",
+    "dist/node/form.d.ts": "553e228faf8458ca9c838a84b80449d36335a0b1b4acfa444ab3367212843428",
+    "dist/node/form.mjs": "9fe10b6e05d0e98add28e26690dab1d4a397ec6b0a221d6b45f204cf3ac22884",
+    "dist/node/node.d.ts": "91099d0aaf45cf9bf023e4cde69bb5c4cc881e2829181890ce18bd34c8ab0e58",
+    "dist/node/node.mjs": "5139128c5d698dfd51250f8e67aa202e6b82198bffb3f2435c0619e6f572fe7b",
+    "dist/node/provenance.json": "8d3f10906c2211d30f15e6f845a7146f68b63930dcf727208909001af1da5de2",
+    "dist/payload.d.ts": "e56deb524f8421f72c59833e8ea11ce9f58c1647264f48d8aa5ee75403ff2b7a",
+    "dist/payload.js": "0ffd505b035b9a9c6dc3714d342bd4379b019c189f799b3440f62701927496c3",
+    "dist/realization.d.ts": "01f9ee81fb2711a88a08f3352e1c709105b6d3ea5c0275ff655c49688f1d7661",
+    "dist/realization.js": "f26ef1fc7e3fd7e058ddfa7148d386450fb06e83901a6a9dd29c2f4933bfffa4",
+    "dist/records.d.ts": "a8413073e21352f491e5a5447e53e63f0934b536bc7bc6ed5a50b04ed7095a97",
+    "dist/records.js": "6082383539deffe468e253c7247d0cd3a0ca17cd8e4aaed3b09ccf21175c57b9",
+    "dist/register.d.ts": "c0fdad3f918c44cf885a926485f4f8dc3ba3d21e701c5b8268a85e379e1074f9",
+    "dist/register.js": "6fb44144bf212725071e0a46be9994a35842107e6dae69d0257ac483adb6ad22",
+    "dist/registration.d.ts": "de8b0e2be5578306a7a3980b3761323a73b796c18d6990a5ff278843a62d0ad0",
+    "dist/registration.js": "cb922c8bccec92255d94719e8067fdcbc69f82048537af071881d0f882e273d8",
+    "docs/architecture.md": "6bda7ffa823884ded8ab892f314a2be5786960715bf6916cfddd15b6317de57e",
+    "docs/intent.md": "4b19703bb515fb3ba9215d2940e28a91499a4b33bba1540f86df3490d51a79df",
+    "docs/limitations.md": "72935cde7ba6dd54e4253b05132c172460612bc08b04ea32d4ac549be389aa90",
+    "docs/operations.md": "64c33bd40007fb3c84faefec85d89017aa808c98c10680fa76abad2e46d73560",
+    "docs/requirements.md": "d9e0c505bd12ded00a0dd60a18f17e31d4e7dae9fdae9ec297650487430a5d0a",
+    "docs/testing.md": "93c7ca82b96382981dc96bfa1c14965c2645d6b6334b9d75e45c493bcdb93341",
+    "installation.kaal.json": "e9a1cafdd0aa43182f52bf478261afbb3eedfdea4ab6e8e65c3c7b221eb28927",
+    "package.json": "c059298b0d74b7086aad58c4469714fb14e44a4c5ff2071e873c8bab2b1fe4cf",
+    "payload/AGENTS.md": "66cd64c78ccfc874023442db3fcfbace014aee9c5af3aeec93d9271317029d93",
+    "payload/KAAL-KERNEL.md": "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc",
+    "payload/core/Agent-Realization.md": "983ccaace5f9ff133eb3444e8a134e779029acae6fa0856410e9edb96b97a7d4",
+    "payload/core/CASE.md": "46541b3bc4543b9021126f9e1a3a37e4542872846fcd31711b5c7f4ce5e6acc9",
+    "payload/core/Installation-Contract.md": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b",
+    "payload/core/KAAL-Agent.md": "d632c1fb4c4201d65c7834d4af0463cd1bd3928dd0fb8cc0b503521a4d2cf447",
+    "payload/core/KAAL-Capability.md": "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e",
+    "payload/core/KAAL-Definition.md": "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2",
+    "payload/core/KAAL-Extension.md": "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94",
+    "payload/core/KAAL-Skill.md": "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
+    "payload/core/LOVE.md": "0fbf1235d33dc43f111a506587559068ccafa49fd831aa99852e5c22b80296c4",
+    "payload/core/Node.md": "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
+    "test/embed/architecture.test.mjs": "c5627cf93e791676671dc42566428d119460cae7037d39f3ae5eadbc522d1f0d",
+    "test/embed/code.test.mjs": "23f756b2c63a5cc00d7d0fe6e6564d75ad3459a8b0d85f4cc6fe54f6d98c748b",
+    "test/embed/intent.test.mjs": "b0265b9186783613be64b716f1babc3af154a2e563bb4d073f7b6a9a1ab0470a",
+    "test/embed/requirements.test.mjs": "e47bfd48533d33d4c350bb35d3f609d7d9d12b095170f10df6b7dcbf74b36b07",
+    "test/run.mjs": "8078c31196ff0ff81294c8464a3bb9dd3e7e9c1af8570c643f65f45cfa9cb1f0",
+    "test/verify.mjs": "03245fbdff1c52af6628f0f3cc61309a2f92eedf5617981e4265665aa54ba33c"
+  },
+  "cases": [
+    {
+      "file": "test/embed/architecture.test.mjs",
+      "name": "kaal-core Architecture loop > offers each entry point it declares, and each loads [core/F68, core/A19]",
+      "tests": [
+        "core/F68",
+        "core/A19"
+      ]
+    },
+    {
+      "file": "test/embed/architecture.test.mjs",
+      "name": "kaal-core Architecture loop > runs without Graph: no runtime dependency on it, and its Node support is delivered inside with provenance [core/F76, core/F77, core/F79]",
+      "tests": [
+        "core/F76",
+        "core/F77",
+        "core/F79"
+      ]
+    },
+    {
+      "file": "test/embed/code.test.mjs",
+      "name": "kaal-core Code loop > names the Registration Type, and its schema is a valid frontmatter schema [core/F47]",
+      "tests": [
+        "core/F47"
+      ]
+    },
+    {
+      "file": "test/embed/code.test.mjs",
+      "name": "kaal-core Code loop > assembles nothing to an empty result, and the same registrations in any order alike [core/N14, core/F56]",
+      "tests": [
+        "core/N14",
+        "core/F56"
+      ]
+    },
+    {
+      "file": "test/embed/code.test.mjs",
+      "name": "kaal-core Code loop > leaves an absent complement unavailable and admits a cycle with no finding [core/F80]",
+      "tests": [
+        "core/F80"
+      ]
+    },
+    {
+      "file": "test/embed/intent.test.mjs",
+      "name": "kaal-core Intent loop > bootstraps an Engine that verifies, and leaves an existing one unchanged [core/I9, core/I12]",
+      "tests": [
+        "core/I9",
+        "core/I12"
+      ]
+    },
+    {
+      "file": "test/embed/intent.test.mjs",
+      "name": "kaal-core Intent loop > assembles registrations one way, reports what it cannot judge, and needs no Graph [core/I16, core/I18, core/I24]",
+      "tests": [
+        "core/I16",
+        "core/I18",
+        "core/I24"
+      ]
+    },
+    {
+      "file": "test/embed/requirements.test.mjs",
+      "name": "kaal-core Requirements loop > admits every Node of the payload, rejects none, and keeps the foundational ids [core/F23, core/F32]",
+      "tests": [
+        "core/F23",
+        "core/F32"
+      ]
+    },
+    {
+      "file": "test/embed/requirements.test.mjs",
+      "name": "kaal-core Requirements loop > validates frontmatter against a supplied schema, and the body never changes the result [core/F1, core/F5]",
+      "tests": [
+        "core/F1",
+        "core/F5"
+      ]
+    },
+    {
+      "file": "test/embed/requirements.test.mjs",
+      "name": "kaal-core Requirements loop > ships an Installation Contract that conforms, and Core's conformance cases hold on it [core/F11, core/F19]",
+      "tests": [
+        "core/F11",
+        "core/F19"
+      ]
+    },
+    {
+      "file": "test/embed/requirements.test.mjs",
+      "name": "kaal-core Requirements loop > finds what a registration gets wrong: unknown kinds with candidates, unresolved targets, traces the rule does not permit [core/F50, core/F52, core/F55]",
+      "tests": [
+        "core/F50",
+        "core/F52",
+        "core/F55"
+      ]
+    }
+  ]
+}
