@@ -1,0 +1,47 @@
+{
+  "concern": "Engineering timing observation contracts and E01-E18",
+  "owner": {
+    "kind": "capability",
+    "name": "Engineering"
+  },
+  "subject": "engineering/timing/analyze.mjs",
+  "externalDependencies": [
+    {
+      "name": "Node.js",
+      "contract": "24.x node:test, node:assert/strict, node:fs; test-harness mechanics only"
+    },
+    {
+      "name": "Hosting conformance",
+      "interface": "kaal-hosting/conformance.inspect",
+      "sourceRevision": "3c5905a4a81445bf3bb41d3c3017d563f74a558b",
+      "path": "packages/extensions/kaal-hosting/",
+      "use": "E18 inspection, not candidate runtime"
+    },
+    {
+      "name": "Testing timing",
+      "sourceRevision": "64d823409e033ef1ad779113d1af0ec4560dd08b",
+      "path": "packages/skills/kaal-testing/plan/timing/",
+      "use": "public interface contract; explicit doubles in PLAN tests"
+    },
+    {
+      "name": "Testing redesign",
+      "sourceRevision": "64d823409e033ef1ad779113d1af0ec4560dd08b",
+      "path": "packages/skills/kaal-testing/plan/redesign/",
+      "use": "public interface contract; explicit doubles in PLAN tests"
+    },
+    {
+      "name": "Testing boundary declaration",
+      "sourceRevision": "64d823409e033ef1ad779113d1af0ec4560dd08b",
+      "path": "packages/skills/kaal-testing/lib/boundary.mjs",
+      "use": "declaration shape and future attested verdict interpretation; not a self-issued verdict"
+    }
+  ],
+  "baselineSelection": "The actual Owner-approved immutable merge revision must be selected and attested by the repository trust authority; this declaration is not an attestation.",
+  "readiness": "PLAN proposal; no DO or activation authorized",
+  "paths": [
+    "engineering/timing/plan.md",
+    "engineering/timing/contract-addendum.md",
+    "engineering/timing/acceptance-boundary.json",
+    "engineering/timing/test/plan/"
+  ]
+}
