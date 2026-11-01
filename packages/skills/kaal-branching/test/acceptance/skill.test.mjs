@@ -8,7 +8,7 @@ import { checkSkill } from "kaal-engineer-skill";
 import { embed, external, observation } from "../fixtures/transactions.mjs";
 let host,skill,entry,moved;
 before(async()=>{
-  host=await install(["@kaihacksai/kaal-foundation","kaal-hosting","kaal-branching"],{offline:true});
+  host=await install(["@kaihacksai/kaal-foundation","kaal-hosting","kaal-branching"]);
   const installed=join(host,"node_modules","kaal-branching");
   const pkg=JSON.parse((await readFile(join(installed,"package.json"))).toString("utf8"));
   entry=join(installed,pkg.bin["kaal-branching"]);

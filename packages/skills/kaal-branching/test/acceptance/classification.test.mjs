@@ -7,7 +7,7 @@ import { install } from "kaal-testing/acceptance";
 import { embed, external, observation, SHA } from "../fixtures/transactions.mjs";
 let host, classify;
 before(async()=>{
-  host=await install(["@kaihacksai/kaal-foundation","kaal-hosting","kaal-branching"],{offline:true});
+  host=await install(["@kaihacksai/kaal-foundation","kaal-hosting","kaal-branching"]);
   await update(host,()=>({prefix:"classification-consumer",files:{"public.mjs":Buffer.from('export {classify} from "kaal-branching";\n')}}));
   ({classify}=await import(pathToFileURL(join(host,"classification-consumer","public.mjs")).href));
 });
