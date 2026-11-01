@@ -9,7 +9,8 @@
     "packages/kaal-foundation",
     "packages/skills/kaal-engineer-skill",
     "packages/skills/kaal-graph",
-    "packages/skills/kaal-testing"
+    "packages/skills/kaal-testing",
+    "packages/skills/kaal-branching"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

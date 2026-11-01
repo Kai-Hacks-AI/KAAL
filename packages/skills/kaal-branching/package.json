@@ -1,0 +1,28 @@
+{
+  "name": "kaal-branching",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Branching candidate: strict consumer-configuration validation; operational Skill pending.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./lib/branching.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "node --test test/architecture/configuration.test.mjs test/implementation/configuration.test.mjs",
+    "test:architecture": "node --test test/architecture/configuration.test.mjs",
+    "test:implementation": "node --test test/implementation/configuration.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
+
