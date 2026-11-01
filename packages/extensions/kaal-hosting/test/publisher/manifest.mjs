@@ -60,6 +60,8 @@ const outcomes = await execute(caseFiles.map((f) => join(PACKAGE, f)));
 const bad = outcomes.filter((o) => o.outcome !== "pass" && !(o.outcome === "skipped" && applicability[o.name]?.includes(process.platform)));
 if (bad.length) fail(`every delivered case must pass before its inventory is written: ${bad.map((o) => `${o.outcome}: ${o.name}${o.message ? ` (${o.message})` : ""}`).join("; ")}`);
 const cases = outcomes.map((o) => o.name).sort();
+const duplicate = cases.find((name, i) => i > 0 && cases[i - 1] === name);
+if (duplicate !== undefined) fail(`duplicate delivered case identity: ${duplicate}`);
 for (const name of Object.keys(applicability)) if (!cases.includes(name)) fail(`a case declared not applicable is not a delivered case: ${name}`);
 
 const coverage = {};

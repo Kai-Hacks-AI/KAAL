@@ -579,7 +579,17 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
     if (writes.length === 0 && removals.length === 0) return { outcomes, pruned: [] };
 
     const staging = await mkdtemp(`${at}.staging-`);
-    const kept = await mkdtemp(`${at}.aside-`);
+    let kept: string;
+    try {
+      kept = await mkdtemp(`${at}.aside-`);
+    } catch (failure) {
+      // Allocation itself is part of the operation's footprint. No file has
+      // moved yet, but staging already exists and must be accounted for.
+      const leftovers: Leftover[] = [];
+      await rm(staging, { maxRetries: 3 }).catch((error: unknown) => leftovers.push({ path: staging, error }));
+      if (leftovers.length > 0 && typeof failure === "object" && failure !== null) Object.assign(failure, { leftovers });
+      throw failure;
+    }
     const undo: (() => Promise<unknown>)[] = [];
     const pruned: string[] = [];
     let restored = true;
