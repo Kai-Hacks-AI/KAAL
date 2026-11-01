@@ -23,8 +23,8 @@ Each element names, in brackets, the Requirements it answers.
   - **The manifest's form.** `test/verify.json` holds:
     - `files`, mapping each delivered path to its SHA-256. The paths are POSIX paths relative to the package directory. Neither the manifest itself nor a `node_modules` directory nested in the package is listed, since npm may place dependencies there in a consumer's installation;
     - `cases`, a list of `{ file, name, tests }`. `name` joins a case's suite names and its own title with ` > `. `tests` lists the `core/…` identifiers that the case's title cites, as the delivered tests already name what they check.
-  - **How the manifest is made.** The build writes it from the packed file list, before `npm pack`. It finds the cases by running the delivered loops once with Node's TAP reporter, and records each one that runs.
-  - **What the verifier does.** `test/verify.mjs` first checks consistency, which establishes the candidate and is not the meaning of `verified` (`core/F70`). It hashes the package's files, outside any nested `node_modules`, and compares them with `files`. A missing or changed file is `cannot verify`, and it names the first path that differs. An added file is `cannot verify` only in an installation, which the verifier tells apart by `core/A34`'s rule: the package directory's real path sits directly in a `node_modules` directory. A source workspace legitimately holds files that do not ship, such as `src/` and `test/plan/`. There, the verifier checks the shipped files the manifest lists and ignores the rest, and core/T92 keeps the manifest equal to what `npm pack` ships. The manifest is written by the build, which `test:publisher` runs before `test:consumer` in the source `npm test`. A source workspace that has not been built has no manifest, and that is `cannot verify`. Only when the files match does it run the delivered loops, with `--test-reporter=tap` and with `NODE_TEST_CONTEXT` cleared, in a scratch working directory under the operating system's temporary directory, which it removes. It reads each case's result from TAP and compares the cases that ran with `cases`:
+  - **How the manifest is made (CHECK reconciliation, core/C40).** The publisher explicitly runs `scripts/manifest.mjs` after a clean build, then commits `test/verify.json`. The generator reads the packed file list and literal delivered case declarations. The build and prepack never regenerate it; `test:publisher` runs `--check` and fails if it is missing or stale (core/T97). This records the implementation accepted in #734, not a new runtime change.
+  - **What the verifier does.** `test/verify.mjs` first checks consistency, which establishes the candidate and is not the meaning of `verified` (`core/F70`). It hashes the package's files, outside any nested `node_modules`, and compares them with `files`. A missing or changed file is `cannot verify`, and it names the first path that differs. An added file is `cannot verify` only in an installation, which the verifier tells apart by `core/A34`'s rule: the package directory's real path sits directly in a `node_modules` directory. A source workspace legitimately holds files that do not ship, such as `src/` and `test/plan/`. There, the verifier checks the shipped files the manifest lists and ignores the rest, and core/T92 keeps the manifest equal to what `npm pack` ships. The committed manifest is checked, never repaired by the build, before source consumer verification. A missing manifest is `cannot verify`; missing built files are also `cannot verify`. Only when the files match does it run the delivered loops, with `--test-reporter=tap` and with `NODE_TEST_CONTEXT` cleared, in a scratch working directory under the operating system's temporary directory, which it removes. It reads each case's result from TAP and compares the cases that ran with `cases`:
     - a declared case that is missing, skipped or todo is `cannot verify`, and so is an undeclared case that ran;
     - a declared case that failed is `failed`;
     - otherwise every required case executed successfully, and the result is `verified`.
@@ -44,9 +44,9 @@ Each element names, in brackets, the Requirements it answers.
   Core's planned test does this itself for 0.0.1. Engineering's consumer harness for Guard (`engineering/guard/consumer/`) may later host it.
 - **core/A36** [core/F73, core/F74]: Renames and publication readiness, each in its owner's Change:
   - Hosting renames `kaal-hosting` to `@kaihacksai/kaal-hosting`;
-  - Graph renames `kaal-graph` to `@kaihacksai/kaal-graph`;
-  - Foundation removes `private` from `@kaihacksai/kaal-foundation` and plans its own publication readiness;
-  - Core renames kaal-core to `@kaihacksai/kaal-core` in `core/C29`.
+  - Graph owns its own scoped rename, but since core/C32/C38 Graph is a build-only input and its publication/rename is not a Core runtime release prerequisite;
+  - Foundation is already scoped, publishable and independently registry-accepted at 0.0.1 (Release run 41226966787);
+  - Core still needs its scoped rename after the partial core/C29 delivery; C40 records the remaining route.
 
   Each owner verifies its own packed consumer experience. A rename cannot be split from the references to the old name without breaking the workspace. So a rename Change updates every import and dependency entry that names its package, in the same PR. It runs each affected package's own `npm test` before it asks for review, and asks each affected owner to review. It changes nothing else in their files. The renames go one at a time, Hosting first and Core last, because they touch the same importers.
 
@@ -57,36 +57,33 @@ Each element names, in brackets, the Requirements it answers.
 | Core | the delivered documents, the delivered tests, `test/verify.mjs`, the package layout, the scope of 0.0.1, and the planned release acceptance |
 | Testing | what verification, a result and coverage mean. `docs/testing.md` cites Testing and does not restate it |
 | Engineering | the Workspaces and Acceptance lanes, and any shared consumer harness |
-| Graph, Hosting, Foundation | the rename, publication readiness and packed consumer verification of their own package, which Core depends on |
+| Graph, Hosting, Foundation | their own package/contract changes and evidence; Graph is build-only for standalone Core, Hosting and Foundation are runtime dependencies |
 | the Owner | the version, synchronization, promotion and publication. The package scope is aligned: `@kaihacksai/kaal-*` (#622) |
 
-## Release dependency map
+## Release dependency map — CHECK reconciliation by core/C40
 
-| Order | Change | Owner | Depends on | State |
-| --- | --- | --- | --- | --- |
-| 1 | `core/C30` PLAN (#600): scoped kinds, hierarchies, shared terms, candidates | Core | `core/C24` | open, awaiting review |
-| 2 | `core/C28` PLAN, this Change | Core | the Owner's 0.0.1 decision on #600 | this PR |
-| 2a | `core/C36` PLAN: alignment with the KAAL Package contract (`core/F85`, `core/F86`, `core/N23`, `core/A43`), added by `core/C36` | Core | 2, packaging/C4 (#658) | this revision |
-| 2b | `core/C37` PLAN: no operating-system decision outside Hosting (`core/F88`, `core/A44`), added by `core/C37` | Core | 2a | this revision |
-| 3 | `graph/C3` DO on `main`: reach, reverse and cycles | Graph | — | merged into `kaal/graph` (#593), promotion in flight |
-| 4 | sync `main` → `kaal/core`, carrying `graph/C3` | Core | 3 | after Graph's promotion, in the promotion queue |
-| 5 | `core/C26` DO: Registration Type, `kaal-core/registration`, `verify`, core/T50–T59, T67, T72, T73 GREEN | Core | 1, 4, `core/C11`, `core/C27` (both merged) | — |
-| 6 | Hosting PLAN and DO: rename to `@kaihacksai/kaal-hosting` | Hosting | — | to be raised by Hosting |
-| 7 | Graph PLAN and DO: rename to `@kaihacksai/kaal-graph` | Graph | 6 | to be raised by Graph |
-| 8 | Foundation PLAN and DO: publishable, independently installable `@kaihacksai/kaal-foundation` | Foundation | — | to be raised by Foundation |
-| 9 | `engineering/C6`: the Consumer lane, which runs each installed package's `npm test` | Engineering | — | #625, open |
-| 10 | `core/C29` DO: rename to `@kaihacksai/kaal-core`, delivered documents and tests, `test/verify.mjs` and `test/verify.json`, core/T74–T80, T91 and T92 GREEN | Core | 2, 2a, 5, 7, 8, and release blocker 3 | — |
-| 11 | promotions of Hosting, Graph and Foundation, and of `kaal/core` → `main` | each owner | 6–10 | Owner's go |
-| 12 | publication of `@kaihacksai/kaal-hosting`, `@kaihacksai/kaal-graph` and `@kaihacksai/kaal-foundation` 0.0.1 | their owners | 11 | Owner's go |
-| 13 | publication of `@kaihacksai/kaal-core` 0.0.1 | Owner | 11, 12 | Owner's hand |
+The former C28 map was a planning snapshot. The table below replaces its obsolete active states against main `9a9e89699aed7969281dcd1017882fd0bc4e3edc`; it does not promote collector work or authorize any integration.
 
-`core/C29` writes the documents after `core/C26`, so they describe the registration that ships.
+| Delivery | Current state | Remaining dependency / owner |
+| --- | --- | --- |
+| C24/C30 registration PLAN, C27 structured frontmatter, C26 admission part 1 | On main through #734 | Graph-present views are unavailable in 0.0.1; no Graph release prerequisite |
+| C32/C33/C38 standalone Node support | On main through #734 | Locked build retains Graph-owned Form/identity provenance; no runtime Graph |
+| C28/C36/C37/C39 consumer contract and C29 partial DO | Documents, delivered loops, runner/verifier and committed manifest on main through #734 | Core's scoped name, complete release-suite enrollment, current independent conformance and final package acceptance remain |
+| Foundation 0.0.1 package | On main and independently registry-accepted, run 41226966787 | No private/publication blocker; owner-authored initialization declaration is a distinct new dependency |
+| Hosting scoped package and consumer verification | #657/#700 integrated in kaal/hosting at 58ef6f6 | Hosting's governed preparation, current-head assurance and focused promotion; publication separately |
+| Core compatibility for Hosting | Prepared in #786 | Its ordering/review state is independent of C40; Core takes the eventual promoted dependency through main SYNC |
+| Core BASS/initialization completion | Proposed C40 PLAN in ../initialization/ | Owner review; dependency-owner declaration contracts; TDD/DO; source/consumer configuration evidence |
+| Testing/Packaging verification alignment | Evolving owner contracts, not fully on main | Pin accepted model/report/conformance interfaces; use existing independent tools, never copy their semantics or merge collectors directly |
+| Core scoped rename and consumer references | Not delivered | Core owns its package; consuming owners prepare their references separately where Core isolation requires it; permitted root/lock/Core acceptance support remains focused |
+| Core package acceptance and promotion | Not yet established for the final candidate | Fresh installed tarball, independent integrity/behavior/three-host evidence, current main SYNC, required CI and independent Owner review |
+| Core publication | Separate future decision | Real runtime registry resolution and publication acceptance of the exact tested artifact; existing release engine |
 
-## Release blockers
+## Remaining release blockers
 
-Each of these blocks the release until the party named resolves it. None is resolved by convenience inside a Core Change, and `core/C29` does not work around any of them.
+1. **Scoped runtime delivery.** Core is still `kaal-core`; main still carries unscoped `kaal-hosting`. Existing core/T79 remains RED. Core and Hosting each own their changes. Graph's runtime publication is no longer a blocker. core/T78's private-dependency check is now GREEN; it is not proof of registry resolution.
+2. **Consumer completion.** The remaining C40 Skill/initialization and verification proposals require review and their own TDD/DO. Missing Foundation contribution delivery is owned by Foundation, not solved by an invented Core Node. See [the focused architecture](../initialization/architecture.md).
+3. **Independent package evidence.** Current Packaging expects Testing model/trace and report interfaces that Core does not yet deliver. Preserve unknown/failed findings until aligned. Source Workspaces GREEN and a matching self-manifest are insufficient for independent release acceptance.
+4. **Assurance enrollment.** Source `npm test` does not currently run all of `release.test.mjs`, and three-host Acceptance does not run Core's installed verifier. C40 proposes reusing these existing mechanisms, not a new lane/service.
+5. **Final candidate and governance.** Current-head integrity, installed behavior, configuration preservation, boundary and three-host evidence, focused SYNC/PROMOTION and independent review remain required. #786's hold is not lifted by this document. Publication is not authorized.
 
-1. **A private dependency.** kaal-core depends on `@kaihacksai/kaal-foundation` 0.0.1, which is marked `private`, so a consumer cannot install it. core/T78 is RED on this. The Owner decided on #622: Foundation becomes a separately installable, published package. Foundation's owner plans and verifies its own readiness (map row 8), and the version and publication stay the Owner's. The blocker holds until that lands.
-2. **Package scope and names.** kaal-core, `kaal-graph` and `kaal-hosting` are unscoped today. core/T79 is RED on this. The Owner decided on #622: all four use the `@kaihacksai/kaal-*` namespace, consistent with Guard. Each owner renames its own package (map rows 6, 7 and 10, `core/A36`), and Core never renames another capability's package. The blocker holds until every rename lands.
-3. **The result vocabulary.** `test/verify.mjs` reports `verified`, `failed` and `cannot verify`. Their definitions are cited from Testing (testing/C9). Core does not import Guard's semantic authority over them, even though Guard uses the same words (guard/F31–guard/F36). If Testing does not define them, that is Testing's decision to make.
-4. **The test entry.** Resolved by the Owner's convention on #625: source `npm test` stays comprehensive, and the installed `npm test` runs consumer verification only (`core/F75`, `core/A34`). Engineering's source lanes need no change, and `core/C29` does not wait on Engineering.
+The result vocabulary belongs to Testing. Source-versus-installed test entry is already resolved by core/F75/A34; its implementation stays comprehensive for declared suites. Historical RED evidence in testing.md describes the earlier PLAN baseline and is not a statement that the delivered documents or verifier are still absent.
