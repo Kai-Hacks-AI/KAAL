@@ -1,2 +1,13 @@
-# Skill Nodes and guidance are delivered and verified as exact bytes on every host.
-skills/kaal-core/** -text
+# The committed manifest verifies these delivered files as exact bytes on every host.
+LICENSE -text
+README.md -text
+package.json -text
+installation.kaal.json -text
+docs/** -text
+skills/** -text
+test/embed/** -text
+test/run.mjs -text
+test/verify.mjs -text
+test/verify.json -text
+# The CLI shebang must not acquire a CR before TypeScript emits it.
+src/cli.ts -text

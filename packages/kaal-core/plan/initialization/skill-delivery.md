@@ -4,7 +4,7 @@ Parent: accepted core/C40 PLAN, #813, collector `f4c47049c9c54d0c15b62e7f53bb204
 
 ## Delivered boundary
 
-Implement core/F89 and core/A45's own Skill delivery. `skills/kaal-core/` carries `SKILL.md` and `Core-Skill.md`. The Node names Core's existing KAAL Skill type, obtained from `foundation().skill`, rather than restating its definition. Its exact id is `d42e04ca482fd58c245274d6b74b39c7b0aeb1e2a906ff12e087d96231e8abfc`. Scoped Git attributes preserve the two delivered files' bytes on every host.
+Implement core/F89 and core/A45's own Skill delivery. `skills/kaal-core/` carries `SKILL.md` and `Core-Skill.md`. The Node names Core's existing KAAL Skill type, obtained from `foundation().skill`, rather than restating its definition. Its exact id is `d42e04ca482fd58c245274d6b74b39c7b0aeb1e2a906ff12e087d96231e8abfc`. Scoped Git attributes preserve Core's manifest-listed source files and the CLI shebang input, including the two Skill files, as exact bytes on every host.
 
 The package README and Operations point to the Skill. It guides current public API/CLI behavior, including explicit bootstrap, owner-declared contribution registration, external inspection, package-versus-Engine verification and escalation. It states that the current unscoped candidate is unpublished, bootstrap is not full mandatory-infrastructure initialization, unavailable Graph analysis is not empty/verified analysis, and presence/admission/use are distinct.
 
@@ -33,3 +33,21 @@ An initial overlapping source-build/pack attempt produced an invalid partial pac
 This is an independently useful Skill/package slice, not complete Core 0.0.1 release acceptance. It does not claim an agent actually used the Skill, that it was automatically registered/deployed, Owner validation, registry dependency resolution or a three-host result from a Linux run.
 
 Engine-entry navigation (F90/T99) and the mandatory registration flow remain separate. The newer Owner direction on #749 requires ordinary Hosting/Core bootstrap to continue against published Foundation 0.0.1, not await Foundation 0.0.2. A later initialization delivery must use an independently agreed owner-authored declaration channel rather than invent a Foundation Node or change that version requirement. Testing/Packaging normalization, scoped dependency integration, any assertion-preserving PLAN amendments, focused main promotion and publication retain their separate prerequisites and decisions.
+
+## First remote CI and the Windows byte-preservation finding
+
+At head `fbbd4027cf515a48c1c1c2a27be79923a3ca5680`, Workspaces, Engineering, all Hosting jobs, Linux/macOS Acceptance, Dependency Review, CodeQL and Change Isolation passed. Linux/macOS logs show the installed verifier's exact 12/12 candidate record. Windows Acceptance failed at the newly enrolled installed verifier. Its previous helper printed stderr alone and hid the verifier's stdout cause; the helper now preserves both on failure without changing the expected exit status.
+
+A separate checkout of the same candidate with `core.autocrlf=true`, built from the same lockfile, reproduces `cannot verify: LICENSE does not match the manifest`. It also shows mismatches in Core-owned delivered documents/scripts/metadata, the CLI's emitted shebang, and Graph's delivered Node support. Core's attributes now protect its own manifest inputs and the CLI source shebang. No hash was refreshed to accept transformed content.
+
+Restoring Core-owned inputs to their reviewed Git bytes and rebuilding leaves exactly these five mismatches in that CRLF checkout:
+
+- `dist/node/form.d.ts`
+- `dist/node/form.mjs`
+- `dist/node/node.d.ts` (selected from Graph's `edges.d.ts` on this baseline)
+- `dist/node/node.mjs`
+- `dist/node/provenance.json`
+
+Those copies are required to remain byte-identical to Graph's own build inputs (core/F79/A38). Core must not normalize, rewrite or regenerate the expected hashes to conceal the discrepancy. Graph owns byte preservation of its `form.mjs`, `form.d.ts`, `node.mjs`, `edges.d.ts` and, where supplied, `node.d.ts`. A focused owner correction must reach Core through the governed main/SYNC route; neither Graph's npm publication nor its unrelated release work is implied. The local checkout experiment isolates that dependency; the next native Windows run will report its concrete first mismatching path.
+
+This PR is therefore reviewable content with an explicitly unresolved Windows assurance dependency, not a merge-ready three-host release. Existing strict checks remain in place. Branching separately reports only the intentionally disabled auto-merge on the draft.
