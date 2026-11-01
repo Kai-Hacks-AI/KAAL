@@ -60,3 +60,7 @@ This table is a proposal to inventory and review, not approval to transfer even 
 3. Once those prerequisites are satisfied, establish the approved immutable Engineering acceptance boundary before DO. The three-host matched before/after experiment and full assurance remain activation prerequisites from #785.
 
 The current outcome is concrete CI evidence plus two unresolved owner/dependency decisions. It is not a completed adapter, an integration authorization or a performance improvement.
+
+## Concrete proposed dispositions
+
+[Owner decisions and acceptance proposal](c51-owner-decisions.md) makes these open points reviewable: preserve Core's current independent invocations and reject this candidate for sharing; consider a separately owned narrow Testing dependency with an explicit Foundation helper-version correction, declared development dependency and legacy acceptance placement; then review E-D01–E-D16 before the executable acceptance boundary. These are proposals, not accepted decisions or implementation authorization. The evidence, unknowns, draft status and integration hold above are unchanged.
