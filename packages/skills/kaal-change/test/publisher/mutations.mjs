@@ -30,6 +30,10 @@ const mutants = [
   ['missing Graph becomes isolated', 'T47', [["unknown('graph-unavailable', 'model', 'A Graph public view is required; no fallback traversal is used.');", "/* missing adapter ignored */"]]],
   ['host dependency in pure core', 'T48', [["import { sha256 }", "import { readFileSync } from 'node:fs';\nimport { sha256 }"]]],
 ];
+mutants.push(
+  ['skill example must not certify authority', 'T51', [["authority: { status: 'unestablished'", "authority: { status: 'established'"]]],
+  ['skill example must retain newly affected surroundings', 'T51', [["const impact = [...impactIds].map(id => byId.get(id));", "const impact = [...impactIds].map(id => byId.get(id)).filter(e => e.owner !== 'audit');"]]],
+);
 const results = [];
 let current = original;
 try {
@@ -42,7 +46,7 @@ try {
     const bytes = Buffer.from(altered);
     await reconcile(root, { write: [{ path, bytes, expect: sha256(current) }], remove: [] });
     current = bytes;
-    const file = target === 'T48' ? 'test/publisher/architecture.test.mjs' : 'test/embed/isolation.test.mjs';
+    const file = target === 'T48' ? 'test/publisher/architecture.test.mjs' : target === 'T51' ? 'test/embed/skill.test.mjs' : 'test/embed/isolation.test.mjs';
     const run = await execute(process.execPath, ['--test', '--test-name-pattern=change/' + target, file], { cwd: root });
     const killed = run.status !== 0 && (run.stdout + run.stderr).includes('AssertionError');
     results.push({ name, target, killed });

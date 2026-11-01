@@ -10,3 +10,8 @@
   importing unrelated Change features or claiming repository completeness.
 
 These concerns support iterative RED/GREEN/refactoring, not a waterfall.
+
+- **change/I22:** Give an agent a small reusable Change practice anchor, combining
+  useful manual isolation guidance with the delivered deterministic assessment,
+  without requiring the broader Change lifecycle or an authoritative repository
+  converter. A narrow 0.0.1 can state and verify that bounded promise.
