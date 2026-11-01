@@ -128,3 +128,13 @@ npx kaal register skill kaal-testing node_modules/kaal-testing/payload
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
+
+## Duplicate evidence and one execution per file
+
+`kaal-testing/duplicates` exports `duplicates(execution)` and `schedule(requests)`. These pure functions run nothing, keep no cache, choose no verdict and authenticate no observation.
+
+`duplicates({ runs })` reads observed Case rows `{ case, file, sha256, subject, platform, node, ms, by? }`, nested initiators included as `by`. Only the same Case, path, file bytes, subject digest, platform and Node in one execution can be a duplicate. Malformed evidence is `unknown`; otherwise the result is `challenged` or `unchallenged`. Challenges name the Case owner, re-runners and duration beyond its fastest one run. A challenge never changes an outcome.
+
+`schedule([{ by, files: [{ path, sha256 }], subject, platform, node }])` returns `{ runs, reads, findings }`. Each distinct file/bytes/subject/platform/Node runs once, and each requester reads that run by index. Invalid requests produce findings and no schedule; an invalid empty plan is not completed assurance. Every reader must retain the original failure or uncertainty.
+
+The caller establishes the execution boundary and all relevant conditions, acquires original observations and binds each read to them. Independently required jobs, attempts, hosts, fresh consumers and assurance contexts use separate calls even when their tuple matches. This API provides no cross-process private-observation transport or permission to reuse provenance. Engineering lane integration and measured CI improvement are separate work; no current CI saving is claimed by delivering the API.
