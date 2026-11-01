@@ -1,0 +1,369 @@
+{
+  "verdict": "unresolved",
+  "gate": "KAAL Lineage",
+  "at": "2026-11-01T12:00:00.000Z",
+  "completionReady": true,
+  "findings": [
+    "duplicate workflow runs: .github/workflows/change-isolation.yml",
+    "duplicate workflow runs: .github/workflows/ci.yml",
+    "duplicate workflow runs: .github/workflows/codeql.yml",
+    "duplicate workflow runs: .github/workflows/dependency-review.yml",
+    "duplicate workflow runs: .github/workflows/lineage-synchronization.yml",
+    "duplicate workflow runs: .github/workflows/promotion-source.yml",
+    "raw Actions capture lacks independently verified workflow/execution revision and current PR/target binding"
+  ],
+  "missing": [],
+  "incomplete": [],
+  "ledger": [
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283775,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Hosting (Linux)",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:59Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283903,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Hosting (Windows)",
+      "os": "Windows",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:21Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283801,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Hosting (macOS)",
+      "os": "macOS",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:02Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283738,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Acceptance",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:23:31Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283647,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Acceptance (Windows)",
+      "os": "Windows",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:53Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283795,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Acceptance (macOS)",
+      "os": "macOS",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:12Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283781,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Workspaces",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:23:06Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283712,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Engineering",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:13Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283754,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Guard",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:24:42Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283727,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Guard (Windows)",
+      "os": "Windows",
+      "state": "success",
+      "completedAt": "2026-11-01T10:46:51Z"
+    },
+    {
+      "runId": 41297155698,
+      "attempt": 1,
+      "jobId": 124820283745,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Guard (macOS)",
+      "os": "macOS",
+      "state": "success",
+      "completedAt": "2026-11-01T10:28:38Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286150,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Hosting (Linux)",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:59Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286188,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Hosting (Windows)",
+      "os": "Windows",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:15Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286160,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Hosting (macOS)",
+      "os": "macOS",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:59Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286128,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Acceptance",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:07Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286130,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Acceptance (Windows)",
+      "os": "Windows",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:52Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286225,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Acceptance (macOS)",
+      "os": "macOS",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:17Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286139,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Workspaces",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:23:08Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286192,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Engineering",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:04Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820285972,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Guard",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:26:29Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286244,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Guard (Windows)",
+      "os": "Windows",
+      "state": "success",
+      "completedAt": "2026-11-01T10:48:40Z"
+    },
+    {
+      "runId": 41297156559,
+      "attempt": 1,
+      "jobId": 124820286229,
+      "workflow": ".github/workflows/ci.yml",
+      "check": "Guard (macOS)",
+      "os": "macOS",
+      "state": "success",
+      "completedAt": "2026-11-01T10:30:00Z"
+    },
+    {
+      "runId": 41297155747,
+      "attempt": 1,
+      "jobId": 124820284550,
+      "workflow": ".github/workflows/change-isolation.yml",
+      "check": "Change Isolation",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:58Z"
+    },
+    {
+      "runId": 41297156481,
+      "attempt": 1,
+      "jobId": 124820286987,
+      "workflow": ".github/workflows/change-isolation.yml",
+      "check": "Change Isolation",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:02Z"
+    },
+    {
+      "runId": 41297160286,
+      "attempt": 1,
+      "jobId": 124820297410,
+      "workflow": ".github/workflows/lineage-synchronization.yml",
+      "check": "Branching",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:00Z"
+    },
+    {
+      "runId": 41297155757,
+      "attempt": 1,
+      "jobId": 124820284544,
+      "workflow": ".github/workflows/lineage-synchronization.yml",
+      "check": "Branching",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:56Z"
+    },
+    {
+      "runId": 41297156645,
+      "attempt": 1,
+      "jobId": 124820287767,
+      "workflow": ".github/workflows/lineage-synchronization.yml",
+      "check": "Branching",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:56Z"
+    },
+    {
+      "runId": 41297156627,
+      "attempt": 1,
+      "jobId": 124820287649,
+      "workflow": ".github/workflows/promotion-source.yml",
+      "check": "Promotion Source",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:58Z"
+    },
+    {
+      "runId": 41297155838,
+      "attempt": 1,
+      "jobId": 124820284834,
+      "workflow": ".github/workflows/promotion-source.yml",
+      "check": "Promotion Source",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:56Z"
+    },
+    {
+      "runId": 41297156634,
+      "attempt": 1,
+      "jobId": 124820286646,
+      "workflow": ".github/workflows/codeql.yml",
+      "check": "CodeQL (actions)",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:26Z"
+    },
+    {
+      "runId": 41297156634,
+      "attempt": 1,
+      "jobId": 124820286361,
+      "workflow": ".github/workflows/codeql.yml",
+      "check": "CodeQL (javascript-typescript)",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:31Z"
+    },
+    {
+      "runId": 41297155703,
+      "attempt": 1,
+      "jobId": 124820283711,
+      "workflow": ".github/workflows/codeql.yml",
+      "check": "CodeQL (actions)",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:25Z"
+    },
+    {
+      "runId": 41297155703,
+      "attempt": 1,
+      "jobId": 124820283624,
+      "workflow": ".github/workflows/codeql.yml",
+      "check": "CodeQL (javascript-typescript)",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:22:35Z"
+    },
+    {
+      "runId": 41297156629,
+      "attempt": 1,
+      "jobId": 124820286464,
+      "workflow": ".github/workflows/dependency-review.yml",
+      "check": "Dependency Review",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:53Z"
+    },
+    {
+      "runId": 41297155673,
+      "attempt": 1,
+      "jobId": 124820283466,
+      "workflow": ".github/workflows/dependency-review.yml",
+      "check": "Dependency Review",
+      "os": "Linux",
+      "state": "success",
+      "completedAt": "2026-11-01T10:21:51Z"
+    }
+  ]
+}

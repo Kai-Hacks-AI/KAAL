@@ -1,0 +1,864 @@
+{
+  "schema": "kaal.captured-actions/v1",
+  "subject": {"repositoryId":1415996637,"event":"pull_request","baseRef":"kaal/engineering","headSha":"172330b94a64355b853405de07c47589a982cd20","pr":773,"baseSha":"02a535ca8e021e17937ed18e1ce451ff8a57a53a"},
+  "captureNote": "Read-only GitHub API projection. Run/job pages fetched after merge; timeline replay masks future completion. No execution-revision or per-job source attestation is invented.",
+  "sourcePr": 773,
+  "headSha": "172330b94a64355b853405de07c47589a982cd20",
+  "mergedAt": "2026-11-01T10:23:18Z",
+  "captures": [
+    {
+      "run": {
+        "id": 41297160286,
+        "workflow_id": 384461082,
+        "path": ".github/workflows/lineage-synchronization.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928541389,
+        "created_at": "2026-11-01T10:21:48Z",
+        "updated_at": "2026-11-01T10:22:01Z",
+        "run_started_at": "2026-11-01T10:21:48Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297160286",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820297410,
+            "run_id": 41297160286,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820297410",
+            "name": "Branching",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:51Z",
+            "completed_at": "2026-11-01T10:22:00Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297155757,
+        "workflow_id": 384461082,
+        "path": ".github/workflows/lineage-synchronization.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928529945,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:57Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297155757",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820284544,
+            "run_id": 41297155757,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820284544",
+            "name": "Branching",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:21:56Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297156645,
+        "workflow_id": 384461082,
+        "path": ".github/workflows/lineage-synchronization.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928532231,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:57Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297156645",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820287767,
+            "run_id": 41297156645,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820287767",
+            "name": "Branching",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:21:56Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297156627,
+        "workflow_id": 384297776,
+        "path": ".github/workflows/promotion-source.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928532160,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:58Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297156627",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820287649,
+            "run_id": 41297156627,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820287649",
+            "name": "Promotion Source",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:21:58Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297155838,
+        "workflow_id": 384297776,
+        "path": ".github/workflows/promotion-source.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928530177,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:57Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297155838",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820284834,
+            "run_id": 41297155838,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820284834",
+            "name": "Promotion Source",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:21:56Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297156629,
+        "workflow_id": 387016191,
+        "path": ".github/workflows/dependency-review.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928532173,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:54Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297156629",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820286464,
+            "run_id": 41297156629,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286464",
+            "name": "Dependency Review",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:21:53Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297155698,
+        "workflow_id": 383088175,
+        "path": ".github/workflows/ci.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928529746,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:46:51Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297155698",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 11,
+        "jobs": [
+          {
+            "id": 124820283647,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283647",
+            "name": "Acceptance (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:53Z",
+            "labels": [
+              "windows-latest"
+            ]
+          },
+          {
+            "id": 124820283712,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283712",
+            "name": "Engineering",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:13Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820283727,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283727",
+            "name": "Guard (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:46:51Z",
+            "labels": [
+              "windows-latest"
+            ]
+          },
+          {
+            "id": 124820283738,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283738",
+            "name": "Acceptance",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:49Z",
+            "completed_at": "2026-11-01T10:23:31Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820283745,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283745",
+            "name": "Guard (macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:49Z",
+            "completed_at": "2026-11-01T10:28:38Z",
+            "labels": [
+              "macos-latest"
+            ]
+          },
+          {
+            "id": 124820283754,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283754",
+            "name": "Guard",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:24:42Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820283775,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283775",
+            "name": "Hosting (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:21:59Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820283781,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283781",
+            "name": "Workspaces",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:23:06Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820283795,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283795",
+            "name": "Acceptance (macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:12Z",
+            "labels": [
+              "macos-latest"
+            ]
+          },
+          {
+            "id": 124820283801,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283801",
+            "name": "Hosting (macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:02Z",
+            "labels": [
+              "macos-latest"
+            ]
+          },
+          {
+            "id": 124820283903,
+            "run_id": 41297155698,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283903",
+            "name": "Hosting (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:21Z",
+            "labels": [
+              "windows-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297155747,
+        "workflow_id": 384218565,
+        "path": ".github/workflows/change-isolation.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928529900,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:59Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297155747",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820284550,
+            "run_id": 41297155747,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820284550",
+            "name": "Change Isolation",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:21:58Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297156559,
+        "workflow_id": 383088175,
+        "path": ".github/workflows/ci.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928532009,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:48:41Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297156559",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 11,
+        "jobs": [
+          {
+            "id": 124820285972,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820285972",
+            "name": "Guard",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:26:29Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820286128,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286128",
+            "name": "Acceptance",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:22:07Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820286130,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286130",
+            "name": "Acceptance (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:22:52Z",
+            "labels": [
+              "windows-latest"
+            ]
+          },
+          {
+            "id": 124820286139,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286139",
+            "name": "Workspaces",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:23:08Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820286150,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286150",
+            "name": "Hosting (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:21:59Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820286160,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286160",
+            "name": "Hosting (macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:21:59Z",
+            "labels": [
+              "macos-latest"
+            ]
+          },
+          {
+            "id": 124820286188,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286188",
+            "name": "Hosting (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:22:15Z",
+            "labels": [
+              "windows-latest"
+            ]
+          },
+          {
+            "id": 124820286192,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286192",
+            "name": "Engineering",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:22:04Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820286225,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286225",
+            "name": "Acceptance (macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:22:00Z",
+            "completed_at": "2026-11-01T10:22:17Z",
+            "labels": [
+              "macos-latest"
+            ]
+          },
+          {
+            "id": 124820286229,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286229",
+            "name": "Guard (macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:30:00Z",
+            "labels": [
+              "macos-latest"
+            ]
+          },
+          {
+            "id": 124820286244,
+            "run_id": 41297156559,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286244",
+            "name": "Guard (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:48:40Z",
+            "labels": [
+              "windows-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297155673,
+        "workflow_id": 387016191,
+        "path": ".github/workflows/dependency-review.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928529660,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:21:52Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297155673",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820283466,
+            "run_id": 41297155673,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283466",
+            "name": "Dependency Review",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:21:51Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297156481,
+        "workflow_id": 384218565,
+        "path": ".github/workflows/change-isolation.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request_target",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928531821,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:22:02Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297156481",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 1,
+        "jobs": [
+          {
+            "id": 124820286987,
+            "run_id": 41297156481,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286987",
+            "name": "Change Isolation",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:49Z",
+            "completed_at": "2026-11-01T10:22:02Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297156634,
+        "workflow_id": 386954811,
+        "path": ".github/workflows/codeql.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928532180,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:22:32Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297156634",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 2,
+        "jobs": [
+          {
+            "id": 124820286361,
+            "run_id": 41297156634,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286361",
+            "name": "CodeQL (javascript-typescript)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:31Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820286646,
+            "run_id": 41297156634,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820286646",
+            "name": "CodeQL (actions)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:48Z",
+            "completed_at": "2026-11-01T10:22:26Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run": {
+        "id": 41297155703,
+        "workflow_id": 386954811,
+        "path": ".github/workflows/codeql.yml",
+        "head_sha": "172330b94a64355b853405de07c47589a982cd20",
+        "head_branch": "engineering/testing-timing-evidence-plan",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "check_suite_id": 111928529764,
+        "created_at": "2026-11-01T10:21:45Z",
+        "updated_at": "2026-11-01T10:22:35Z",
+        "run_started_at": "2026-11-01T10:21:45Z",
+        "html_url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41297155703",
+        "pull_requests": []
+      },
+      "repository_id": 1415996637,
+      "head_repository_id": 1415996637,
+      "jobs": {
+        "page": 1,
+        "per_page": 100,
+        "total_count": 2,
+        "jobs": [
+          {
+            "id": 124820283624,
+            "run_id": 41297155703,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283624",
+            "name": "CodeQL (javascript-typescript)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:35Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          },
+          {
+            "id": 124820283711,
+            "run_id": 41297155703,
+            "run_attempt": 1,
+            "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124820283711",
+            "name": "CodeQL (actions)",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-11-01T10:21:47Z",
+            "completed_at": "2026-11-01T10:22:25Z",
+            "labels": [
+              "ubuntu-latest"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
