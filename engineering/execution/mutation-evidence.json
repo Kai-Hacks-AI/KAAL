@@ -1,0 +1,96 @@
+{
+  "subject": "Engineering C51 adoption adapter",
+  "sha256": "3e15b54e084f96f8599da8b3f337e62d969d0f3341dc8fd96a58c41abd1b4826",
+  "runtime": "v24.22.1",
+  "baseline": {
+    "pass": 16,
+    "fail": 0
+  },
+  "independentRed": {
+    "failures": [
+      "E-D01",
+      "E-D02",
+      "E-D03",
+      "E-D04",
+      "E-D05",
+      "E-D06",
+      "E-D07",
+      "E-D08",
+      "E-D09",
+      "E-D10",
+      "E-D11",
+      "E-D12",
+      "E-D13",
+      "E-D14",
+      "E-D15",
+      "E-D16"
+    ],
+    "assertionFailures": 16
+  },
+  "results": [
+    {
+      "name": "extra execution",
+      "status": "killed",
+      "assertion": "E-D01",
+      "failures": [
+        "E-D01"
+      ]
+    },
+    {
+      "name": "erased failure",
+      "status": "killed",
+      "assertion": "E-D02",
+      "failures": [
+        "E-D02"
+      ]
+    },
+    {
+      "name": "lost reader",
+      "status": "killed",
+      "assertion": "E-D15",
+      "failures": [
+        "E-D15"
+      ]
+    },
+    {
+      "name": "omitted Case",
+      "status": "killed",
+      "assertion": "E-D10",
+      "failures": [
+        "E-D10"
+      ]
+    },
+    {
+      "name": "changed original entrypoint",
+      "status": "killed",
+      "assertion": "E-D08",
+      "failures": [
+        "E-D08"
+      ]
+    },
+    {
+      "name": "dropped domain partition",
+      "status": "killed",
+      "assertion": "E-D05",
+      "failures": [
+        "E-D05"
+      ]
+    },
+    {
+      "name": "cross-context cache",
+      "status": "killed",
+      "assertion": "E-D11",
+      "failures": [
+        "E-D11"
+      ]
+    },
+    {
+      "name": "activation bypass",
+      "status": "killed",
+      "assertion": "E-D16",
+      "failures": [
+        "E-D16"
+      ]
+    }
+  ]
+}
