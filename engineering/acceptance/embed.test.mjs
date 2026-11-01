@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { execute } from "kaal-hosting";
 import { install } from "kaal-testing/acceptance";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
@@ -77,6 +78,8 @@ const EXPECTED_TARBALL = [
   "package/payload/core/KAAL-Skill.md",
   "package/payload/core/LOVE.md",
   "package/payload/core/Node.md",
+  "package/skills/kaal-core/Core-Skill.md",
+  "package/skills/kaal-core/SKILL.md",
   "package/test/embed/architecture.test.mjs",
   "package/test/embed/code.test.mjs",
   "package/test/embed/intent.test.mjs",
@@ -143,6 +146,37 @@ before(async () => {
 });
 
 describe("package", () => {
+  it("delivers a Core Skill Node admitted through the installed public API", async () => {
+    const observed = await run(process.execPath, ["--input-type=module", "-e", `
+      import assert from 'node:assert/strict';
+      import { readFileSync } from 'node:fs';
+      import { evaluate, payload, foundation } from 'kaal-core';
+      const bytes = readFileSync('node_modules/kaal-core/skills/kaal-core/Core-Skill.md');
+      const result = evaluate({ ...payload(), 'Core-Skill.md': bytes });
+      assert.deepEqual(result.rejected, []);
+      assert.equal(result.nodes.find((n) => n.name === 'Core Skill').type.id, foundation().skill.id);
+      console.log('Core Skill admitted');
+    `], host);
+    assert.match(observed, /Core Skill admitted/);
+  });
+
+  it("runs the installed verifier and retains its exact candidate and observed cases on this host", async () => {
+    const installed = join(host, "node_modules", "kaal-core");
+    const manifestBytes = readFileSync(join(installed, "test", "verify.json"));
+    const manifest = JSON.parse(manifestBytes);
+    const output = await run("npm", ["test"], installed);
+    const lines = output.trim().split(/\r?\n/);
+    const records = lines.filter((line) => line.startsWith("kaal-core-execution: "));
+    assert.equal(records.length, 1, "one candidate-specific execution record");
+    const record = JSON.parse(records[0].slice("kaal-core-execution: ".length));
+    assert.deepEqual(record.candidate, { name: "kaal-core", version: "0.0.1", manifest: sha256(manifestBytes) });
+    assert.deepEqual(record.cases.map(({ file, name }) => ({ file, name })), manifest.cases.map(({ file, name }) => ({ file, name })));
+    assert.ok(record.cases.length > 0 && record.cases.every((c) => c.outcome === "passed"));
+    assert.match(lines.at(-1), /^kaal-core: verified:/);
+    console.log(records[0]);
+    console.log(lines.at(-1));
+  });
+
   it("is a tarball of exactly the intended contents", () => {
     const listed = tarEntries(tarball).sort();
     assert.deepEqual(listed, EXPECTED_TARBALL);

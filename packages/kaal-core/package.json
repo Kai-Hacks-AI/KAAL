@@ -59,7 +59,8 @@
     "test/embed",
     "test/run.mjs",
     "test/verify.mjs",
-    "test/verify.json"
+    "test/verify.json",
+    "skills"
   ],
   "scripts": {
     "build": "node scripts/deliver-node.mjs && tsc -b tsconfig.json",
@@ -69,7 +70,8 @@
     "test:boundary": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/boundary.test.js",
     "test:consumer": "node test/verify.mjs",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build",
-    "bench": "npm run build && node bench/admission.mjs"
+    "bench": "npm run build && node bench/admission.mjs",
+    "test:skill": "node --test --test-name-pattern=\"core/T98 \" test/plan/initialization.test.mjs"
   },
   "engines": {
     "node": ">=24"
