@@ -10,4 +10,9 @@ for (const [name, input, expected] of [
   ['unknown target', { event: 'pull_request', baseRef: 'feature/x' }, 'unresolved'],
   ['unknown event', { event: 'workflow_dispatch', baseRef: 'kaal/hosting' }, 'unresolved'],
   ['missing target', { event: 'pull_request' }, 'unresolved'],
+  ['missing context', undefined, 'unresolved'],
+  ['null context', null, 'unresolved'],
+  ['function supplied as context', () => {}, 'unresolved'],
+  ['array supplied as context', [], 'unresolved'],
 ]) test(name, () => strictEqual(assuranceForTarget(input), expected));
+
