@@ -159,3 +159,18 @@ Each planned test is established before implementation and is immutable afterwar
 The timing cases run in the source workspace test script. Engineering also challenges the implementation with `test/engineer/timing-mutations.mjs`; this is engineering evidence, not consumer verification.
 
 Implementation evidence: the six timing cases failed on behavioural assertions after the module boundary was made available, then passed. The source workspace suite passes 172 tests. All 26 engineering mutation challenges are killed, including inclusive thresholds, malformed durations/options, incorrect peer selection and assigning skew to Hosting from timing alone. This is evidence within those cases, not proof of a cause or of complete correctness.
+
+### Redesigning Slow Cases
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T110: a history is read only as given, oldest first, and is unknown, never unchallenged, when it cannot carry a judgement | testing/F93 | Requirements |
+| testing/T111: a Case among the slowest of its run, again and again in the recent runs of its current version on a platform, is a redesign candidate on that Case | testing/F94, testing/F80, testing/F81 | Requirements |
+| testing/T112: a file hash starts a fresh window for every Case in the file, and later timing comparisons do not establish a refactoring | testing/F93, testing/F95 | Requirements |
+| testing/T113: a redesign is a refactoring only when the Case keeps its targets and its discriminating RED and GREEN verdicts | testing/F96 | Requirements |
+| testing/T114: timing and preservation are separate evidence for the case owner, never a run's result | testing/F95, testing/F96, testing/F97, testing/F83 | Requirements |
+| testing/T115: learning is pure and deterministic: the same history gives the same candidates in the same order, and a verdict's order does not matter | testing/N20 | Requirements |
+
+The six Cases run with the workspace tests. Additional implementation checks cover an unprofiled latest version, ordinary string identities and malformed target arrays. A separate Engineering scenario installs the packed package fresh and exercises both public exports, including faster timing with lost discrimination. Mutation challenges live in `test/engineer/redesign-mutations.mjs`.
+
+Implementation evidence: all six redesign Cases failed on behavioural assertions with the module boundary available, then passed. The full source suite passes 181 tests, with none skipped. All 34 redesign mutation challenges are killed; T112 catches 10 and T114 catches 7, including lost RED discrimination, absent earlier RED evidence and timing-only claims of preservation. The separate packed-installation scenario passes its public-interface assertions. The acceptance harness still leaves physical host containment and absence of unrecorded installations unknown.
