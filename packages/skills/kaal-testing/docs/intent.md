@@ -76,3 +76,12 @@ Testing defines how a capability's tests are designed and executed, and how thei
 ## Testing 0.0.1 Release Readiness
 
 - **testing/I17**: kaal-testing 0.0.1 is a KAAL Package to Packaging's contract and to Guard's bar. It is published under its scoped name with exact registry dependencies. An installed copy carries its own product contract and its delivered cases. Its own verifier verifies that copy, in Testing's words, conforming to the contract Testing sets for every other verifier. Testing holds itself to its own semantics first.
+
+## Run Timing
+
+- **testing/I21**: Testing challenges how a run spends its time, so that structural issues in a suite are found with Testing's own capabilities rather than by reading CI timings by hand. It reads durations a harness recorded, and challenges three shapes:
+  - a few cases taking most of the run's time;
+  - a case taking many times the run's own median case;
+  - a case taking many times as long on one platform as on the others.
+
+  A challenge is evidence that names who investigates it: the case/suite owner for concentration, and the named Case owner for outliers and platform skew. A platform difference establishes no cause. Hosting is consulted for demonstrated host-specific causes and owns confirmed operating-system-boundary defects. It never decides a run's result. Testing still reads no clock.

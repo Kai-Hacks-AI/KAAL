@@ -144,3 +144,18 @@ Each planned test is established before implementation and is immutable afterwar
 | testing/T77: in the source workspace npm test runs every declared suite, the publisher's and the consumer's; nothing it needs runs in an installation | testing/F62 | Requirements |
 | testing/T78: packed and installed alone in a fresh consumer, npm test there verifies the installed copy and conforms to the shared verifier contract's clean scenario | testing/F59, testing/F61, testing/F63, testing/F64, testing/N12 | Architecture |
 | testing/T79: the installed verification imports only Node's built-ins, by any import form, so a broken library cannot mask itself; no delivered case reads this repository; and no shipped file branches on the operating system | testing/F65, testing/N12, testing/N13 | Architecture |
+
+### Run Timing
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T92: a profile reads only given durations, and is unknown, never unchallenged, when they cannot carry a judgement | testing/F79 | Requirements |
+| testing/T93: a run is challenged when its slowest cases take more than the budgeted share of the time, naming those cases and the shares | testing/F80 | Requirements |
+| testing/T94: a case is challenged as an outlier when it takes many times the run's median case and more than the floor; a uniformly slow run is not | testing/F81 | Requirements |
+| testing/T95: across platforms, a case is challenged where one platform takes many times its time on the others and more than the floor, naming the platform | testing/F82 | Requirements |
+| testing/T96: a challenge is evidence of a structural issue, never a failed or verified run, and platform skew goes to the Case owner without inferring a host cause | testing/F83, testing/F67 | Requirements |
+| testing/T97: profiling is pure and deterministic: the same durations give the same challenges in the same order, whatever order the cases came in | testing/N17 | Requirements |
+
+The timing cases run in the source workspace test script. Engineering also challenges the implementation with `test/engineer/timing-mutations.mjs`; this is engineering evidence, not consumer verification.
+
+Implementation evidence: the six timing cases failed on behavioural assertions after the module boundary was made available, then passed. The source workspace suite passes 172 tests. All 26 engineering mutation challenges are killed, including inclusive thresholds, malformed durations/options, incorrect peer selection and assigning skew to Hosting from timing alone. This is evidence within those cases, not proof of a cause or of complete correctness.
