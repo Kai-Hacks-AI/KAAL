@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { read } from "@kaihacksai/kaal-hosting";
+import { read } from "kaal-hosting";
 import { claimsForm, identify, identifyRoot, sha256, type Ref } from "./node.js";
 
 export type Files = Record<string, Buffer>;

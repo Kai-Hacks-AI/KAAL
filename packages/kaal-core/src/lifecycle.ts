@@ -5,7 +5,7 @@
 // nothing (core/N12). Every step acts on the Engine at `./.kaal` of `root` (core/F46).
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { kind, read, readFile, reconcile, type Expectation, type Reconciliation, type Removal, type Write } from "@kaihacksai/kaal-hosting";
+import { kind, read, readFile, reconcile, type Expectation, type Reconciliation, type Removal, type Write } from "kaal-hosting";
 import { bootstrapWith, check } from "./bootstrap.js";
 import { checkContract, register, type InstallationRecord, type RecordEntry } from "./installation.js";
 import { KaalError } from "./node.js";

@@ -134,6 +134,6 @@ describe("Cross-installer realization (core/C10)", () => {
     const input = () => ({ contract: contract(installationFormat()), record: record(), written: { [SKILL_MD]: sha("skill 0.0.2") } });
     assert.deepEqual(register(input()), register(input()));
     const source = readFileSync(new URL(import.meta.resolve("kaal-core/installation")), "utf8");
-    assert.ok(!/from\s+["'](node:|@kaihacksai\/kaal-hosting)/.test(source), "kaal-core/installation imports no host module");
+    assert.ok(!/from\s+["'](node:|kaal-hosting)/.test(source), "kaal-core/installation imports no host module");
   });
 });
