@@ -1,5 +1,9 @@
 # Stable full-matrix gates: offline Engineering increment
 
+The source-only [P1 publication adapter](github/README.md) continues approved
+PLAN #800. It reuses this evaluator through an unwired authenticated acquisition
+and publisher protocol; it makes no live enforcement claim.
+
 Implements the offline evaluator scope of [PLAN #776](https://github.com/Kai-Hacks-AI/KAAL/pull/776).
 `KAAL Main` covers main PRs and main pushes; `KAAL Lineage` covers PRs into
 single-segment `kaal/*` collectors. All applicable checks are required. C11,
