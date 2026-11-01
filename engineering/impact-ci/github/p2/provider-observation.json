@@ -1,0 +1,477 @@
+{
+  "schema": "kaal.p2-provider-observation/v1",
+  "observedOn": "2026-11-01",
+  "repository": "Kai-Hacks-AI/KAAL",
+  "repositoryId": 1415996637,
+  "method": "Read-only GitHub connector API capture; selected factual projection, not aggregate assurance.",
+  "subject": {
+    "pr": 803,
+    "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+    "target": "kaal/ci-gates",
+    "state": "closed",
+    "merged": true,
+    "mergedAt": "2026-11-01T19:00:12Z",
+    "squashCommit": "ed0de65b688053dfc62617f216da214761ac0fcd",
+    "mergeMethod": "squash",
+    "reviewId": 5729755035
+  },
+  "baseline": {
+    "collector": "ed0de65b688053dfc62617f216da214761ac0fcd",
+    "collectorTree": "42d97430d339448e6e669becb16cba126289a87f",
+    "main": "9a9e89699aed7969281dcd1017882fd0bc4e3edc",
+    "mainTree": "9fe357332aaa8017bb52df778b90928dcdecaf8c"
+  },
+  "endpoints": [
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/pulls/803",
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/pulls/803/reviews",
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/commits/c3158db63f133852e12e2735a1bb65661355abc4/check-runs?per_page=100&filter=all",
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/actions/runs/41336427897",
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/actions/runs/41336427897/attempts/1/jobs?per_page=100&page=1",
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/actions/runs/41339305929",
+    "https://api.github.com/repos/Kai-Hacks-AI/KAAL/actions/runs/41339305929/attempts/1/jobs?per_page=100&page=1"
+  ],
+  "ciRun": {
+    "id": 41336427897,
+    "workflowId": 383088175,
+    "path": ".github/workflows/ci.yml",
+    "event": "pull_request",
+    "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+    "attempt": 1,
+    "checkSuiteId": 112029888058,
+    "status": "completed",
+    "conclusion": "success",
+    "startedAt": "2026-11-01T18:24:07Z",
+    "updatedAt": "2026-11-01T18:35:50Z",
+    "workflowShaFieldPresent": false,
+    "completedAtFieldPresent": false
+  },
+  "ciJobs": {
+    "page": 1,
+    "per_page": 100,
+    "total_count": 11,
+    "jobs": [
+      {
+        "id": 124937122067,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Guard",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122067",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:26:03Z"
+      },
+      {
+        "id": 124937122189,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Guard (macOS)",
+        "labels": [
+          "macos-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122189",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:11Z",
+        "completed_at": "2026-11-01T18:27:38Z"
+      },
+      {
+        "id": 124937122197,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Hosting (macOS)",
+        "labels": [
+          "macos-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122197",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:27Z"
+      },
+      {
+        "id": 124937122203,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Hosting (Windows)",
+        "labels": [
+          "windows-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122203",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:44Z"
+      },
+      {
+        "id": 124937122210,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Acceptance (macOS)",
+        "labels": [
+          "macos-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122210",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:28Z"
+      },
+      {
+        "id": 124937122222,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Guard (Windows)",
+        "labels": [
+          "windows-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122222",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:35:50Z"
+      },
+      {
+        "id": 124937122226,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Acceptance",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122226",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:24:36Z"
+      },
+      {
+        "id": 124937122244,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Workspaces",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122244",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:25:29Z"
+      },
+      {
+        "id": 124937122256,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Acceptance (Windows)",
+        "labels": [
+          "windows-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122256",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:25:05Z"
+      },
+      {
+        "id": 124937122310,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Hosting (Linux)",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122310",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:21Z"
+      },
+      {
+        "id": 124937122316,
+        "run_id": 41336427897,
+        "run_attempt": 1,
+        "name": "Engineering",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124937122316",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:38Z"
+      }
+    ]
+  },
+  "checkRuns": {
+    "page": 1,
+    "per_page": 100,
+    "total_count": 19,
+    "check_runs": [
+      {
+        "id": 124945716194,
+        "name": "Branching",
+        "appId": 15368,
+        "checkSuiteId": 112037365644,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:58:16Z",
+        "completed_at": "2026-11-01T18:58:27Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41339305929/job/124945716194"
+      },
+      {
+        "id": 124937251579,
+        "name": "CodeQL",
+        "appId": 57789,
+        "checkSuiteId": 112029996411,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:37Z",
+        "completed_at": "2026-11-01T18:24:39Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/runs/124937251579"
+      },
+      {
+        "id": 124937123760,
+        "name": "Branching",
+        "appId": 15368,
+        "checkSuiteId": 112029888269,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "failure",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:24:19Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336428102/job/124937123760"
+      },
+      {
+        "id": 124937123613,
+        "name": "Change Isolation",
+        "appId": 15368,
+        "checkSuiteId": 112029888180,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:21Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427949/job/124937123613"
+      },
+      {
+        "id": 124937123429,
+        "name": "Promotion Source",
+        "appId": 15368,
+        "checkSuiteId": 112029888219,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:24:17Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427963/job/124937123429"
+      },
+      {
+        "id": 124937122477,
+        "name": "CodeQL (javascript-typescript)",
+        "appId": 15368,
+        "checkSuiteId": 112029888078,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:25:12Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427903/job/124937122477"
+      },
+      {
+        "id": 124937122316,
+        "name": "Engineering",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:38Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122316"
+      },
+      {
+        "id": 124937122310,
+        "name": "Hosting (Linux)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:21Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122310"
+      },
+      {
+        "id": 124937122296,
+        "name": "CodeQL (actions)",
+        "appId": 15368,
+        "checkSuiteId": 112029888078,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:24:46Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427903/job/124937122296"
+      },
+      {
+        "id": 124937122256,
+        "name": "Acceptance (Windows)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:25:05Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122256"
+      },
+      {
+        "id": 124937122244,
+        "name": "Workspaces",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:25:29Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122244"
+      },
+      {
+        "id": 124937122226,
+        "name": "Acceptance",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:24:36Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122226"
+      },
+      {
+        "id": 124937122222,
+        "name": "Guard (Windows)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:35:50Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122222"
+      },
+      {
+        "id": 124937122210,
+        "name": "Acceptance (macOS)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:28Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122210"
+      },
+      {
+        "id": 124937122203,
+        "name": "Hosting (Windows)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:44Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122203"
+      },
+      {
+        "id": 124937122197,
+        "name": "Hosting (macOS)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:09Z",
+        "completed_at": "2026-11-01T18:24:27Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122197"
+      },
+      {
+        "id": 124937122189,
+        "name": "Guard (macOS)",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:11Z",
+        "completed_at": "2026-11-01T18:27:38Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122189"
+      },
+      {
+        "id": 124937122121,
+        "name": "Dependency Review",
+        "appId": 15368,
+        "checkSuiteId": 112029888033,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:24:15Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427888/job/124937122121"
+      },
+      {
+        "id": 124937122067,
+        "name": "Guard",
+        "appId": 15368,
+        "checkSuiteId": 112029888058,
+        "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-01T18:24:10Z",
+        "completed_at": "2026-11-01T18:26:03Z",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41336427897/job/124937122067"
+      }
+    ]
+  },
+  "laterBranching": {
+    "runId": 41339305929,
+    "attempt": 1,
+    "workflowId": 384461082,
+    "event": "pull_request_target",
+    "path": ".github/workflows/lineage-synchronization.yml",
+    "headSha": "c3158db63f133852e12e2735a1bb65661355abc4",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 124945716194,
+        "run_id": 41339305929,
+        "run_attempt": 1,
+        "name": "Branching",
+        "check_run_url": "https://api.github.com/repos/Kai-Hacks-AI/KAAL/check-runs/124945716194",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "missingAuthority": [
+    "No authenticated producer receipt acquired.",
+    "No executed checker/command/dependency/checkout proof acquired.",
+    "Run API projection has no workflow_sha or completed_at; updated_at is not an exact completion proof.",
+    "Original pre-merge tested revision/tree and complete generation were not independently reconstructed. PR is now closed; it is not a current applicable PR context.",
+    "All matching Branching runs are retained, including earlier failure and later success. GitHub integration is not evidence of #790 full-generation completeness."
+  ],
+  "assurance": {
+    "verdict": "unresolved",
+    "liveShadowCasesPassed": 0,
+    "reason": "Historical integration observation only; no trusted aggregate publication or source/generation certificate."
+  }
+}
