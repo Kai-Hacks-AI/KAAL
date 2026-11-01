@@ -26,7 +26,7 @@ function id(x,at) {
   if(typeof x!=="string" || !/^[a-z][a-z0-9-]*$/.test(x)) reject("id",at,"Expected a lowercase identifier.");
 }
 function ref(x,at) {
-  if (typeof x!=="string" || x==="@" || x==="HEAD" || !x.length ||
+  if (typeof x!=="string" || x==="@" || x==="HEAD" || !x.length || x.startsWith("-") ||
       /[\x00-\x20\x7f~^:?*\[\\]/.test(x) || x.includes("..") || x.includes("@{") ||
       x.split("/").some(s=>!s || s.startsWith(".") || s.endsWith(".") || s.endsWith(".lock")))
     reject("ref",at,"Expected a valid, non-reserved Git branch name.");
@@ -40,7 +40,26 @@ function relativePath(x,at) {
 // JSON.parse checks grammar. This second lexical pass detects decoded duplicate keys
 // before a parsed object can be used as policy, and rejects nonfinite JSON numbers.
 function auditJSON(text) {
-  const tokens=text.match(/"(?:\\[\s\S]|[^"\\])*"|[{}\[\],:]|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null/g) ?? [];
+  // Scan each code unit once. An unanchored string-token regex can retry at
+  // every escaped quote; token boundaries must not depend on backtracking.
+  const tokens=[];
+  let cursor=0;
+  const whitespace=(c)=>c===" "||c==="\n"||c==="\r"||c==="\t";
+  const punctuation=(c)=>"{}[],:".includes(c);
+  while(cursor<text.length) {
+    if(whitespace(text[cursor])) {cursor++;continue;}
+    const start=cursor;
+    if(text[cursor]==='"') {
+      cursor++;
+      while(cursor<text.length) {
+        const c=text[cursor++];
+        if(c==="\\") cursor++;
+        else if(c==='"') break;
+      }
+    } else if(punctuation(text[cursor])) cursor++;
+    else while(cursor<text.length && !whitespace(text[cursor]) && !punctuation(text[cursor])) cursor++;
+    tokens.push(text.slice(start,cursor));
+  }
   let i=0;
   function value(at,depth) {
     if(depth>128) reject("depth",at,"Configuration nesting exceeds the supported bound.");
