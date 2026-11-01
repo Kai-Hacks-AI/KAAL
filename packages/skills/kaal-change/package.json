@@ -33,6 +33,7 @@
     "test": "npm run test:all",
     "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
+    "pretest:publisher": "npm run build -w kaal-core",
     "test:publisher": "node --test test/publisher/*.test.mjs",
     "manifest": "node test/publisher/manifest.mjs",
     "prepack": "node test/publisher/manifest.mjs",

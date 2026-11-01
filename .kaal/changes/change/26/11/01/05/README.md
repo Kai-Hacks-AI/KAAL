@@ -46,9 +46,18 @@ These were assertion failures, not missing modules counted as RED. T59 preserves
 the existing installed result behavior for exits 0, 1 and 2. The corrections make
 all four Cases pass, including ambiguous source/installed layout challenges.
 
+CI first exposed the workspace-order prerequisite that local prebuilt development
+providers had hidden: Workspaces runs Change before Core has built its dist/.
+Reproduce that failure after removing only Core's generated dist/, then add
+source pretest:publisher using Core's own build command. The complete Workspaces
+lane now passes from that cold state. Installed use never runs that development
+build. This is preparation of a declared dev dependency, not a change to Core.
+
 Final local verification, Node 24.22.1 and npm 11.9.0:
 
 - Source npm test: nine Embedded and ten publisher tests pass.
+- The complete Workspaces lane passes with Core initially unbuilt and Change
+  tested first; publisher preparation builds Core through its own command.
 - Full Guard Engineering: 241/241 pass, no skips or todos.
 - Full Guard Acceptance: 38/38 pass; seven packages packed once, seven scenarios,
   eight installations in eight hosts. Existing physical-containment and absence-
@@ -88,7 +97,7 @@ activated main release gate.
 
 package-evidence.json records the artifacts, hashes, actual conformance findings
 and negative observations. The Change tarball SHA-256 is
-881fe853b4915db488f53b0634d61838bdb7425fc6d92c8794d144f2a2b534fe.
+4ce0aff23475cc3cfccddcf12d2f97a22145bcad9bd788db399b7886c3dbe399.
 Local evidence is not a tested CI release artifact or publisher provenance.
 
 ## Remaining release dependency

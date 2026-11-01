@@ -62,6 +62,9 @@ re-packs nor invents artifact inputs. `mutations` remains an explicit challenge.
 Installed `npm test` runs only `test:embedded`, preserving the verification
 record as its last line. An ambiguous layout is refused rather than tested
 partially. Run through npm so its CLI is available to the Hosting-based runner.
+The source `pretest:publisher` runs Core's own build for its declared development
+dependency, so publisher checks do not depend on another workspace running first.
+Installed Embedded verification invokes no development build.
 
 Maintain authored Case-to-Target relationships in the source-only
 `test/publisher/model.json`, using Testing's model contract. `npm run manifest`
