@@ -16,3 +16,7 @@ These are the bounds of what kaal-testing shows. Each follows from the [Requirem
 Timing evidence uses only the durations supplied. It does not establish comparable environments, candidate identity, a root cause or a suitable redesign. A uniformly slow run may have neither concentration nor outliers. Thresholds are heuristics, and a platform difference alone does not establish a Hosting defect.
 
 Case versions use whole-file hashes. Editing a shared file resets every Case's timing window and may postpone a slow-case signal; it does not establish which Case changed. A current version without profiled samples never borrows an older version's candidacy, and comparisons require profiled samples on both sides. A `faster` timing row establishes no preserved behaviour; a `kept` behavioural check establishes no speed improvement. The caller must supply trustworthy subject identities, verdicts, chronology and retention; Testing does not authenticate or store them.
+
+## Duplicate planning is not execution
+
+Duplicate detection trusts only the supplied data as data; it authenticates no run and changes no verdict. A schedule contains no result. Its caller must retain every failure and unknown observation for all readers. Separate required executions must use separate calls: equal subject, file, platform and Node facts do not establish shared provenance. There is no cache, process transport or lane integration in this API.

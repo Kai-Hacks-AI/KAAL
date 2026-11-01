@@ -89,3 +89,7 @@ Testing defines how a capability's tests are designed and executed, and how thei
 ## Redesigning Slow Cases
 
 - **testing/I24**: Testing learns from a history of runs which Cases to redesign for their time. A Case that is among the slowest of its run, again and again, in the recent runs of its current version on a platform, is a redesign candidate on that Case. A redesign is held to RED → GREEN → REFACTOR: it is a new version of the same Case with the same targets, and it gives the same verdict on every subject the earlier version was judged on. Its time is then compared with the earlier version's on later runs. The caller keeps the history. Testing reads it, keeps nothing, reads no clock and never changes a run's result.
+
+## No Duplicate Runs
+
+- **testing/I23**: In one execution, each Case runs at most once against one subject under one set of conditions. Testing finds what an execution ran more than once, and names who re-ran it and the time it cost. It also plans an execution so that each distinct case file runs once and every requester reads that one run. A duplicate is evidence for the case owner. It never decides a result, and running a failed Case again is a duplicate, never a new result. Testing runs nothing to judge it.

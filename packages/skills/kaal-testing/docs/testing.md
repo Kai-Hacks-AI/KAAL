@@ -174,3 +174,18 @@ Implementation evidence: the six timing cases failed on behavioural assertions a
 The six Cases run with the workspace tests. Additional implementation checks cover an unprofiled latest version, ordinary string identities and malformed target arrays. A separate Engineering scenario installs the packed package fresh and exercises both public exports, including faster timing with lost discrimination. Mutation challenges live in `test/engineer/redesign-mutations.mjs`.
 
 Implementation evidence: all six redesign Cases failed on behavioural assertions with the module boundary available, then passed. The full source suite passes 181 tests, with none skipped. All 34 redesign mutation challenges are killed; T112 catches 10 and T114 catches 7, including lost RED discrimination, absent earlier RED evidence and timing-only claims of preservation. The separate packed-installation scenario passes its public-interface assertions. The acceptance harness still leaves physical host containment and absence of unrecorded installations unknown.
+
+### No Duplicate Runs
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T104: a run is the same run only for the same Case, the same file bytes, the same subject and the same conditions | testing/F89 | Requirements |
+| testing/T105: an execution that runs a Case more than once is challenged, naming the Case, how often it ran, who re-ran it and the time spent beyond one run | testing/F90 | Requirements |
+| testing/T106: an execution is planned so each distinct case file runs once, and every request reads that one run | testing/F91 | Requirements |
+| testing/T107: a duplicate is evidence for the case owner, never a result, and running a failed Case again in the same execution is a duplicate too | testing/F92 | Requirements |
+| testing/T108: finding and planning are pure and deterministic: the same runs or requests give the same result, whatever order they came in | testing/N19 | Requirements |
+| testing/T109: Testing's own npm test runs each of its files once: no case file is in two of its test scripts, nor twice in one | testing/F91, testing/F62 | Requirements |
+
+The six Cases run once in the source workspace suite. Their assertions and supporting file are unchanged from the approved PLAN. Additional implementation checks cover independent executions, failed/unknown observation sharing, all scheduled identity dimensions, malformed requests beside valid ones and deterministic floating-point summation. A separate acceptance scenario installs the caller-packed package and exercises both public exports.
+
+Implementation evidence: with both exports available but inert, T104–T108 fail on behavioural assertions. T109 is already GREEN for the duplicate-free script layout; injecting a duplicate script makes it RED. All 34 mutation challenges are killed by assertions. Two schedule-identity mutations (file path and Node) survive the six planned Cases alone and are killed by the additional implementation checks; the planned Cases were not edited. This shows discrimination within these tests, never complete correctness.

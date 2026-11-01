@@ -1,0 +1,277 @@
+{
+  "subject": "testing/C51",
+  "runtime": "v24.22.1",
+  "baseline": {
+    "tests": 8,
+    "pass": 8
+  },
+  "independentRed": {
+    "status": "killed",
+    "failures": [
+      "testing/T104",
+      "testing/T105",
+      "testing/T106",
+      "testing/T107",
+      "testing/T108"
+    ],
+    "note": "both exports callable; no missing-module or syntax failures"
+  },
+  "results": [
+    {
+      "name": "duplicate identity omits case",
+      "status": "killed",
+      "failures": [
+        "testing/T104",
+        "testing/T108"
+      ]
+    },
+    {
+      "name": "duplicate identity omits file",
+      "status": "killed",
+      "failures": [
+        "testing/T104"
+      ]
+    },
+    {
+      "name": "duplicate identity omits sha256",
+      "status": "killed",
+      "failures": [
+        "testing/T104"
+      ]
+    },
+    {
+      "name": "duplicate identity omits subject",
+      "status": "killed",
+      "failures": [
+        "testing/T104"
+      ]
+    },
+    {
+      "name": "duplicate identity omits platform",
+      "status": "killed",
+      "failures": [
+        "testing/T104"
+      ]
+    },
+    {
+      "name": "duplicate identity omits node",
+      "status": "killed",
+      "failures": [
+        "testing/T104"
+      ]
+    },
+    {
+      "name": "schedule identity omits file",
+      "status": "killed",
+      "failures": [],
+      "implementationFailures": [
+        "independent executions have separate schedules; failures and unknown observations are shared unchanged within one execution"
+      ]
+    },
+    {
+      "name": "schedule identity omits sha256",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ],
+      "implementationFailures": [
+        "independent executions have separate schedules; failures and unknown observations are shared unchanged within one execution"
+      ]
+    },
+    {
+      "name": "schedule identity omits subject",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ],
+      "implementationFailures": [
+        "independent executions have separate schedules; failures and unknown observations are shared unchanged within one execution"
+      ]
+    },
+    {
+      "name": "schedule identity omits platform",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ],
+      "implementationFailures": [
+        "independent executions have separate schedules; failures and unknown observations are shared unchanged within one execution"
+      ]
+    },
+    {
+      "name": "schedule identity omits node",
+      "status": "killed",
+      "failures": [],
+      "implementationFailures": [
+        "independent executions have separate schedules; failures and unknown observations are shared unchanged within one execution"
+      ]
+    },
+    {
+      "name": "single run challenged",
+      "status": "killed",
+      "failures": [
+        "testing/T104",
+        "testing/T105",
+        "testing/T108"
+      ]
+    },
+    {
+      "name": "fastest included in waste",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "slowest omitted instead of fastest",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "least waste first",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "Case tie reversed",
+      "status": "killed",
+      "failures": [
+        "testing/T108"
+      ]
+    },
+    {
+      "name": "wrong owner",
+      "status": "killed",
+      "failures": [
+        "testing/T107"
+      ]
+    },
+    {
+      "name": "challenge changes verdict",
+      "status": "killed",
+      "failures": [
+        "testing/T104",
+        "testing/T105",
+        "testing/T107"
+      ]
+    },
+    {
+      "name": "empty execution accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "negative duration accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "nonfinite duration accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "empty re-runner accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "bad subject accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T105",
+        "testing/T106"
+      ]
+    },
+    {
+      "name": "bad file hash accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "re-runners unordered",
+      "status": "killed",
+      "failures": [
+        "testing/T108"
+      ]
+    },
+    {
+      "name": "next omits re-runners",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "repeated request accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ]
+    },
+    {
+      "name": "empty file request accepted",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ]
+    },
+    {
+      "name": "repeated file read twice",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ]
+    },
+    {
+      "name": "for reversed",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ]
+    },
+    {
+      "name": "reads reversed",
+      "status": "killed",
+      "failures": [
+        "testing/T106"
+      ]
+    },
+    {
+      "name": "largest waste instead of sum",
+      "status": "killed",
+      "failures": [
+        "testing/T105"
+      ]
+    },
+    {
+      "name": "finding order reversed",
+      "status": "killed",
+      "failures": [
+        "testing/T106",
+        "testing/T108"
+      ]
+    },
+    {
+      "name": "duplicate script entry",
+      "status": "killed",
+      "failures": [
+        "testing/T109"
+      ]
+    }
+  ]
+}

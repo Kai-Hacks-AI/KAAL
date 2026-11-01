@@ -15,6 +15,7 @@ Each element names, in brackets, the Requirements it answers.
     | `./boundary` | PLAN boundary integrity: interpreting a realization's verdict on one concern owner's declaration | `testing/C12` | no |
     | `./attribution` | CASE-owned file attribution | Testing | no |
     | `./contracts` | contract evidence of a capability's mapping | Testing | no |
+    | `./duplicates` | duplicate-execution evidence and one-run-per-file planning | testing/C51 | no |
     | `./coverage` | execution and evidence of a capability's own tests | Testing | no |
     | `./inventory` | non-blank text lines of the listed files | Testing | no |
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | `testing/C15` | no |

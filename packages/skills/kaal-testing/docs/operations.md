@@ -69,3 +69,9 @@ Pass recorded `{ name, ms }` Cases to `profile` from `@kaihacksai/kaal-testing/t
 ## Redesign evidence
 
 Give `candidates(history, options?)` from `@kaihacksai/kaal-testing/redesign` the caller-held runs, oldest first, each `{ platform, cases: [{ name, sha256, ms }] }`. Retain its `unprofiled` findings. Compare behaviour independently with `refactored(before, after)`, each `{ id, version, tests, verdicts }`; verdicts map the same subjects to `pass` or `fail`. Associate a timing row and behavioural check only by Case id and the exact `from`/`to` versions, retaining the timing platform. Without a matching check, preservation is not assessed. Neither signal changes the run verdict.
+
+## Duplicate evidence and planning
+
+Import `duplicates` and `schedule` from `@kaihacksai/kaal-testing/duplicates`. Supply one execution's observed Cases to `duplicates({ runs })`, including nested runs and their initiating Case as `by`. Supply that execution's file requests to `schedule(requests)` before running. Execute each returned run once and bind every `reads[].run` index to its original observation. Failure and unknown stay failure and unknown for every reader. A finding means nothing is scheduled; never interpret an empty invalid schedule as completed assurance.
+
+Plan independently required executions separately. This API provides no evidence authentication or cross-process result reuse. Enabling it in CI requires the lane owner's integration and validation.
