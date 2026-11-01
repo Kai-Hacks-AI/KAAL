@@ -1,0 +1,17 @@
+{
+  "kind": "source-inspection-summary-not-a-live-history",
+  "run": "41226277799",
+  "attempt": 1,
+  "sourcePR": 714,
+  "revision": "b9debf0c175a7c12dcfdb5254251e358f58236de",
+  "candidate": "c67625f3ec7adc6f3534752005d7c7d53f0d8e6f",
+  "node": "v24.22.1",
+  "topKeys": ["candidate", "host", "node", "suites", "cases"],
+  "caseKeys": ["case", "file", "outcome", "owner", "reason", "suite"],
+  "hosts": [
+    {"host": "linux", "artifactId": 13051819335, "passed": 175, "notRun": 1},
+    {"host": "darwin", "artifactId": 13051024546, "passed": 175, "notRun": 1},
+    {"host": "win32", "artifactId": 13053062826, "passed": 174, "notRun": 2}
+  ],
+  "explanation": "Counts and shape were observed in the three downloaded artifacts while preparing #773. Positive acceptance inputs in fixtures.mjs are synthetic proposed-schema examples, not reconstructed timing observations."
+}
