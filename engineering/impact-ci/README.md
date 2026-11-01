@@ -1,5 +1,13 @@
 # Stable full-matrix gates: offline Engineering increment
 
+Current direction: [capability collectors and release-process gates](actions-native-plan.md).
+Owner redirected delivery toward Actions-native aggregation, distinct Product and
+Engine assurance, target-based KAAL / KAAL Capability profiles and a separate
+Hotfix Skill proposal. Full-matrix shadow comes first; selective execution and
+Hotfix activation remain separately governed. The App/receipt infrastructure
+sequence below and in #800/#807 is historical, not the next delivery requirement.
+Existing evaluator contracts, policy names and test inventories are unchanged.
+
 The source-only [P1 publication adapter](github/README.md) continues approved
 PLAN #800. It reuses this evaluator through an unwired authenticated acquisition
 and publisher protocol; it makes no live enforcement claim.
