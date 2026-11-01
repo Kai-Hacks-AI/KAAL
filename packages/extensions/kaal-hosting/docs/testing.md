@@ -23,7 +23,7 @@ In your installation, one command runs every delivered case against the installe
 npm explore @kaihacksai/kaal-hosting -- npm test
 ```
 
-Its last line starts with `kaal-hosting-verification ` and carries the result as JSON. It names the installed package, its location, your platform and Node version, the digest of the installed files and every case with its outcome, lists under `traces` the cases that cite each identifier, and maps every identifier defined here to `covered`, `allocated` or `unverified`. A trace is declared, not evidence: an identifier is `covered` only when a case that cites it passed in this run, and `not applicable` when every case that cites it is declared not applicable here. It lists each allocated and unverified identifier as not verified by this run.
+Its last line starts with `kaal-hosting-verification ` and carries the result as JSON, with the agreeing process `exit` and string-list `causes` (empty when verified). It names the installed package, its location, your platform and Node version, the digest of the installed files and every case with its outcome, lists under `traces` the cases that cite each identifier, and maps every identifier defined here to `covered`, `allocated` or `unverified`. A trace is declared, not evidence: an identifier is `covered` only when a case that cites it passed in this run, and `not applicable` when every case that cites it is declared not applicable here. It lists each allocated and unverified identifier as not verified by this run.
 
 In Hosting's source workspace, the same `npm test` runs every suite the package declares as a `test:<name>` script, the publisher's included.
 
@@ -44,8 +44,8 @@ Some promises cannot be checked by a run in your installation: they concern how 
 | Identifiers | What the publisher runs |
 | --- | --- |
 | hosting/N1 | every delivered case and every publisher test on Linux, Windows and macOS before a release |
-| hosting/F15, hosting/F17, hosting/A9 | hosting/T21, hosting/T24 and hosting/T41: the package manifest, and the candidate packed and installed alone into a fresh consumer |
-| hosting/F18, hosting/F19, hosting/F21, hosting/F22, hosting/F23, hosting/F24, hosting/F25 | hosting/T25–hosting/T31: the candidate packed, installed into fresh consumers and verified, unchanged and with one thing changed each time |
+| hosting/F15, hosting/F17, hosting/A9 | hosting/T21, hosting/T24, hosting/T41 and hosting/T83: the package manifest, and the candidate packed and installed alone into a fresh consumer |
+| hosting/F18, hosting/F19, hosting/F21, hosting/F22, hosting/F23, hosting/F24, hosting/F25 | hosting/T25–hosting/T31: the candidate packed, installed into fresh consumers and verified, unchanged and with one thing changed each time; hosting/T84–hosting/T87 also drive the real verifier through controlled passing, failing and unavailable consumer cases, including unexpected failure, and judge the records with the existing release contract |
 | hosting/F20 | hosting/T53–hosting/T54: the verification entry copied into a fixture workspace and into directories that are neither an installation nor a workspace |
 | hosting/F28, hosting/F34, hosting/N5, hosting/A14 | hosting/T32–hosting/T40: the conformance suite against positive and negative fixtures, its command's exit codes, and its review instructions |
 | hosting/N6, hosting/A18 | hosting/T42–hosting/T46: the host facts and the special-entry fixture in fault cases, the portability audit against Guard's negative sources, and its command |
