@@ -1,5 +1,9 @@
 # Engineering's root ownership claim
 
+> C16 DO implements the Node, root claim and callable governance checks below,
+> following the Owner's decisions on #750: Engineering is a Capability; option A
+> governs root `package.json`. This does not activate C11 or change workflows.
+
 > PLAN engineering/C16. The Owner ruled in the foundation/C11 approval (#743, review of 2026-10-31): "Engineering should own governance of root `package.json` and `package-lock.json` via a narrowly scoped root ownership claim, planned and implemented in a separate Engineering Change. This does not transfer responsibility for initiating capability dependency changes to Engineering." This is that Change's PLAN. It authorizes no synchronization, promotion or publication.
 
 ## Why a claim is needed
@@ -46,3 +50,89 @@ Who owns them was left open by engineering/C11's P3. #743 settles it: Engineerin
 ## Scope of the DO
 
 The DO touches `engineering/capability/Engineering.md`, the root `ownership.kaal.json`, `engineering/change-isolation/check.mjs`, `check.test.mjs`, and this README. It touches no capability's own files, and none of `.github/`.
+
+## Implemented boundary
+
+`checkRootOwnership({ inventory, claimFiles, owners })` uses Testing's
+`readClaim`/`attribute`. `owners` must be independently admitted by Core from the
+trusted target, and the inventories must be complete. It verifies the exact
+Engineering identity, the two paths and unique attribution. Invalid, stale or
+competing claims cannot be resolved by precedence.
+
+`checkRootChange({ paths, scope, targetRootManifest, targetLockfile, manifests,
+lockfile }, { scratch })` accepts byte snapshots, not a `derived: true` assertion.
+`manifests` maps candidate repository-relative package.json paths to bytes and
+must include the root, every literal workspace and every local directory
+dependency. Target root/lock bytes and selected scope must come independently
+from the immutable target and its approved Change; this module does not discover
+P1–P3 evidence or establish Git provenance on its own.
+
+The caller supplies an absolute missing/empty scratch directory outside its
+checkout and removes it afterwards. Hosting writes two separate reconstructions,
+each containing only candidate manifests and the **trusted base lock**. Neither
+receives the proposed lock, candidate code, .npmrc, node_modules or hooks. npm is
+run through Hosting with `--package-lock-only --ignore-scripts --offline`, audit
+and funding disabled, lockfile version 3 and empty explicit user/global configs.
+Inherited npm configuration and Node loader options are not forwarded.
+
+Both reconstructions must yield identical bytes, and those bytes must equal the
+proposed lock exactly. Foundation's SHA-256 records base, every manifest,
+candidate and derived lock digests alongside the observed Node/npm versions.
+Snapshots are copied before asynchronous work. A root manifest edit requires
+`engineering` in scope even if the path list omits it.
+
+**Why the stronger derivation matters.** Checking only that npm leaves the
+candidate lock unchanged is insufficient: npm preserved a forged `integrity`
+value in an existing registry dependency in the T81 experiment. Starting from
+the admitted base lock detects that change. This establishes reproducibility
+from the trusted base, not fresh verification of registry artifact integrity.
+
+Unsupported workspace patterns, absent local manifests, non-registry specs other
+than known local directory dependencies, overrides, bundled dependencies,
+unsupported lock versions, unavailable offline metadata or failed npm runs are
+`unresolved`, never permission to skip the rule. Derivation differences are
+`failed`, including when Engineering is selected. Conservative rejection can
+require a separately governed extension; no online fallback is performed.
+
+The existing path-only `check(paths)` and stdin CLI retain Core/.github defaults
+exactly as F39 requires until authoritative C11 is available. The new exports are
+unwired: a trusted C11 caller must compose ownership, scope and derivation checks.
+This DO does not claim that current CI already enforces these new root rules.
+
+## Verification evidence
+
+On Node 24.22.1/npm 11.9.0:
+
+| Case | Behavioural RED against | GREEN evidence |
+| --- | --- | --- |
+| T77 | Permissive ownership result accepting a third/broad path | Core admits Engineering; narrow claim passes and broad/extra/stale claims fail |
+| T78 | Permissive ownership result ignoring competing claims | Both files attributed, README unassigned; an out-of-scope competing claim is refused |
+| T79 | Blanket requirement for Engineering on every lock change | Actual npm-derived capability lock passes without Engineering |
+| T80 | Permissive root result | Root manifest changes fail without Engineering, including an omitted path claim; pass with Engineering and a derived lock |
+| T81 | Permissive root result trusting the proposed lock | Stale and changed-integrity locks fail against independent base-seeded derivation |
+
+The permissive mutation produces four assertion failures (T77, T78, T80, T81);
+the blanket restriction produces one (T79). These were rerun against the final
+fixtures; no missing-export or fixture failure is counted as behavioural RED.
+The wrong implementations are temporary and are not shipped.
+
+Reproduce by temporarily prepending an unconditional `passed` result to both
+exports and running the four corresponding T77/T78/T80/T81 tests; then prepend
+an unconditional `failed` result to `checkRootChange` and run T79. Restore the
+implementation before the GREEN run:
+
+```sh
+node --test engineering/change-isolation/check.test.mjs
+npm run test:engineering
+```
+
+The isolation suite includes unresolved-input/offline-failure and asynchronous
+byte-mutation challenges in addition to the five named Cases. T77 also checks
+the actual Node/claim files. Test evidence is publisher/repository work; no
+capability package or published artifact changes.
+
+Local GREEN: the complete isolation suite passes 22/22 and Engineering passes
+300/300, with zero skips/todos. Attribution of the staged repository through
+Core and Testing assigns exactly the two root files to Engineering, with no
+root conflict or root-claim finding. Remote current-head checks are recorded on
+the DO PR independently of these local results.
