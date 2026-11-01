@@ -1,5 +1,11 @@
 # P2 PLAN: durable producer authority before shadow publication
 
+Status, 2026-11-01: [Owner redirection](../../actions-native-plan.md) supersedes
+this next-increment recommendation. #810's implementation is held in draft,
+unarmed and unmerged. Preserve these historical contracts without advancing
+receipt/SQLite infrastructure as a dependency of Actions-native aggregation.
+No installation, workflow activation, pilot or ruleset change is authorized.
+
 Owner continuation, 2026-11-01. Collector: `kaal/ci-gates`. Continues #800 after
 independently approved #803. This Change contains a PLAN and read-only provider
 observations, not an implementation or activation. Approval of this document

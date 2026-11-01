@@ -1,5 +1,12 @@
 # PLAN: trusted stable-gate publication and live shadow
 
+Status, 2026-11-01: the Owner's [Actions-native direction](actions-native-plan.md)
+supersedes this infrastructure-first delivery sequence and proposed gate names.
+Retain this accepted PLAN as historical design/evidence. Its source-trust and
+freshness findings remain relevant; it no longer makes App/receipts/store setup
+a prerequisite to the next full-matrix aggregation increment. No activation or
+ruleset migration is authorized by the redirection.
+
 ## Decision and boundary
 
 Engineering will connect approved #790 to authenticated GitHub evidence and a
