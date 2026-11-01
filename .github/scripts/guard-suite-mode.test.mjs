@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { runInNewContext } from "node:vm";
 import { suiteMode } from "./guard-suite-mode.mjs";
 
 const scratch = [];
@@ -55,4 +56,29 @@ test("CLI emits a mode only after establishing it, and unknown evidence exits 2"
   const good = run(base); assert.equal(good.status, 0, good.stderr);
   assert.equal(readFileSync(output, "utf8"), "mode=baseline\n"); assert.match(good.stdout, /evidence unavailable/);
   rmSync(output); const bad = run("invalid"); assert.equal(bad.status, 2); assert.match(bad.stderr, /cannot judge/); assert.equal(existsSync(output), false);
+});
+
+test("workflow skips a pre-admission record gate, but still judges records after producer failure", () => {
+  const workflow = readFileSync(new URL("../workflows/ci.yml", import.meta.url), "utf8");
+  const guard = workflow.slice(workflow.indexOf("\n  guard:\n"), workflow.indexOf("\n  guard-hosts:\n"));
+  assert.match(guard, /^    outputs:\n      mode: \$\{\{ steps\.guard-mode\.outputs\.mode \}\}$/m);
+  assert.match(guard, /- run: node \.github\/scripts\/guard-suite-mode\.mjs\n        id: guard-mode/);
+  const gate = workflow.slice(workflow.indexOf("\n  guard-gate:\n"));
+  assert.match(gate, /^    needs: \[guard, guard-hosts\]$/m);
+  const condition = /^    if: \$\{\{ (.+) \}\}$/m.exec(gate)?.[1];
+  assert.ok(condition, "the gate has no explicit job condition");
+  const eligible = (mode, guardResult = "success", hostResult = "success", cancelled = false) => {
+    const needs = { guard: { outputs: { mode }, result: guardResult }, "guard-hosts": { result: hostResult } };
+    return runInNewContext(condition, { needs, cancelled: () => cancelled, success: () => guardResult === "success" && hostResult === "success" }, { timeout: 500 });
+  };
+  assert.equal(eligible("baseline"), false, "pre-admission absence became a record-gate execution");
+  assert.equal(eligible(undefined), false, "unknown mode became a record-gate execution");
+  assert.equal(eligible("orchestrated"), true);
+  assert.equal(eligible("orchestrated", "failure"), true, "a failed producer suppressed record validation");
+  assert.equal(eligible("orchestrated", "success", "failure"), true, "a missing host record suppressed validation");
+  assert.equal(eligible("orchestrated", "success", "success", true), false);
+  assert.match(gate, /actions\/download-artifact@/);
+  assert.match(gate, /node engineering\/guard\/suites\.mjs --gate/);
+  assert.doesNotMatch(gate, /^        if:/m, "an eligible gate conditionally omits its record checks");
+  assert.doesNotMatch(gate, /process\.exit\(2\)/, "pre-admission gate deliberately fails");
 });

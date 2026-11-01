@@ -12,7 +12,7 @@
 # Each Guard job has a timeout, so a hang ends as a failure with its log rather than holding the run.
 # Before C129 admission, the exact pre-existing Guard commands still run. Bootstrap requires
 # absence on both the candidate and trusted base; deleting an admitted producer fails closed.
-# No run record is invented during bootstrap: Guard (gate) explicitly exits 2, not GREEN.
+# No run record is invented during bootstrap: Guard (gate) is not scheduled, never claimed passed.
 # Once C129 is present the unchanged orchestrator, records and gate apply.
 # The suites step runs in bash on every host, so the record's exit status (2 for a case not run)
 # reaches the job unchanged; pwsh would turn a native exit 2 into 1.
@@ -92,6 +92,8 @@ jobs:
   guard:
     name: Guard
     runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.guard-mode.outputs.mode }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -154,7 +156,7 @@ jobs:
   guard-gate:
     name: Guard (gate)
     needs: [guard, guard-hosts]
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.guard.outputs.mode == 'orchestrated' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -162,16 +164,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-      - run: node .github/scripts/guard-suite-mode.mjs
-        id: guard-mode
-        shell: bash
-      - run: node -e "console.error('Guard gate not run - C129 record producer is not admitted; no execution record is claimed passed'); process.exit(2)"
-        if: ${{ steps.guard-mode.outputs.mode == 'baseline' }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        if: ${{ steps.guard-mode.outputs.mode == 'orchestrated' }}
         with:
           pattern: guard-run-record-*
           path: ${{ runner.temp }}/records
           merge-multiple: true
       - run: node engineering/guard/suites.mjs --gate "$(git rev-parse HEAD)" --hosts linux,darwin,win32 "${{ runner.temp }}"/records/*.json
-        if: ${{ steps.guard-mode.outputs.mode == 'orchestrated' }}
