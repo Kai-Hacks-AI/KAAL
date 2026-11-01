@@ -13,7 +13,7 @@
 // Exits non-zero when the files cannot be listed or read. Nothing here writes
 // a file.
 import { join } from "node:path";
-import { execute, readFile } from "kaal-hosting";
+import { execute, readFile } from "@kaihacksai/kaal-hosting";
 import { inventory } from "kaal-testing/inventory";
 
 const ROOT = process.cwd();
