@@ -12,6 +12,17 @@ import { assemble } from "kaal-core/registration";
 const contract = async () => JSON.parse((await readFile(fileURLToPath(new URL("../../installation.kaal.json", import.meta.url)))).toString("utf8"));
 
 describe("kaal-core Requirements loop", () => {
+  it("ships its own Core Skill Node admitted by the unchanged foundation [core/F89]", async () => {
+    const bytes = await readFile(fileURLToPath(new URL("../../skills/kaal-core/Core-Skill.md", import.meta.url)));
+    const engine = evaluate({ ...payload(), "Core-Skill.md": bytes });
+    assert.deepEqual(engine.rejected, []);
+    const node = engine.nodes.find((n) => n.name === "Core Skill");
+    assert.ok(node, "the delivered Skill Node is admitted");
+    assert.equal(node.type.id, foundation().skill.id);
+    const guidance = await readFile(fileURLToPath(new URL("../../skills/kaal-core/SKILL.md", import.meta.url)));
+    assert.ok(guidance.length > 0, "the guidance ships beside the Node");
+  });
+
   it("admits every Node of the payload, rejects none, and keeps the foundational ids [core/F23, core/F32]", () => {
     const e = evaluate(payload());
     assert.deepEqual(e.rejected, []);

@@ -11,7 +11,7 @@ These four files ship in the package. They are plain `node:test` files that impo
 | File | Loop | What it checks |
 | --- | --- | --- |
 | `test/embed/intent.test.mjs` | Intent | Bootstraps an Engine and verifies it, and leaves an existing Engine unchanged. Admits registrations end to end: assembles them one way, reports what it cannot judge, and needs no Graph. |
-| `test/embed/requirements.test.mjs` | Requirements | Payload admission: every payload Node is admitted and none rejected, with the foundational ids kept. Frontmatter validation against a supplied schema, unaffected by the body. Installation Contract conformance: the shipped contract conforms and Core's conformance cases hold on it. Registration findings: unknown kinds with their candidates, unresolved targets, and traces the rule does not permit. |
+| `test/embed/requirements.test.mjs` | Requirements | Payload admission: every payload Node is admitted and none rejected, with the foundational ids kept. Frontmatter validation against a supplied schema, unaffected by the body. Installation Contract conformance: the shipped contract conforms and Core's conformance cases hold on it. Registration findings: unknown kinds with their candidates, unresolved targets, and traces the rule does not permit. The shipped Core Skill Node is admitted by the unchanged payload and has the correct Skill type. |
 | `test/embed/architecture.test.mjs` | Architecture | Each declared entry point loads and offers what it exports. No Graph is needed at run time. The delivered Node support carries its provenance. |
 | `test/embed/code.test.mjs` | Code | Unit checks of exported functions: the Registration Type and its schema, assembly that is empty for no input and independent of order, and an absent complement reported as unavailable. |
 
@@ -44,7 +44,7 @@ In the source workspace, `npm test` runs these with the consumer verification. T
 
 For each `core/…` Requirement (see [Requirements](requirements.md)), this table says whether a delivered test checks it, a publisher test does, both do, or no test does. "Delivered" means a delivered test's title names the Requirement. "Publisher" lists the planned outer tests whose titles name it. The build-time Code tests and the bench are not counted. A test naming a Requirement is a claim that it checks it. Whether it checks it fully is a review judgment.
 
-Of 105 Requirements, 18 are checked by a delivered test, 97 by a publisher test, and 6 by no test. 16 are checked by both.
+Of 106 Requirements, 19 are checked by a delivered test, 98 by a publisher test, and 6 by no test. 17 are checked by both.
 
 The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill format and of Types, statements of responsibility), core/N1 and core/N3 (where frontmatter validation applies), core/N5 (a contract adds no runtime dependency) and core/N7 (the Node.js 24 prerequisite, which `package.json` declares and core/T92 checks under core/F86).
 
@@ -134,6 +134,7 @@ The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill 
 | core/F86 | publisher only | core/T92 |
 | core/F87 | publisher only | core/T91 |
 | core/F88 | publisher only | core/T93 |
+| core/F89 | delivered and publisher | core/T98 |
 | core/N1 | no test | none |
 | core/N2 | publisher only | core/T8 |
 | core/N3 | no test | none |
@@ -155,3 +156,7 @@ The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill 
 | core/N19 | publisher only | core/T74 |
 | core/N20 | publisher only | core/T86 |
 | core/N23 | publisher only | core/T91 |
+
+## Core Skill verification
+
+The declared source `test:skill` suite runs core/T98 from the initialization PLAN; the rest of that PLAN is not enrolled or claimed implemented. The delivered Requirements loop checks the shipped Node against Core's real admission API. The publisher independently runs Engineer Skill's checker against the delivered/relocated Agent Skill. Procedure quality and authority language remain review judgments, not evidence that an agent used the Skill.
