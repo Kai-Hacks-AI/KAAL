@@ -5,7 +5,9 @@ import { execute, readFile, reconcile } from 'kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 import { join } from 'node:path';
 test('change/T50 [change/F45, change/N11]: public packed consumer and tamper refusal', async () => {
-  const host = await install(['@kaihacksai/kaal-change', '@kaihacksai/kaal-foundation', 'kaal-graph', 'kaal-hosting'], { offline: true });
+  // Packed KAAL bytes are fixed by the run; Hosting/Graph also need registry dependencies.
+  // Prefer the cache through Testing's default without requiring a warm metadata cache.
+  const host = await install(['@kaihacksai/kaal-change', '@kaihacksai/kaal-foundation', 'kaal-graph', 'kaal-hosting']);
   const smoke = await execute(process.execPath, ['--input-type=module', '--eval',
     "import {isolate} from '@kaihacksai/kaal-change/isolation'; if(isolate({},{}).assessment!=='violated') process.exit(1);"], { cwd: host });
   assert.equal(smoke.status, 0, smoke.stderr);

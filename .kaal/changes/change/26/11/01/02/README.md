@@ -70,6 +70,22 @@ npm 11.9.0. Candidate and derived SHA-256 both equal
 `9ab7a4da6b45caf3dd03fb3742624791b6b39d0129bf749d17ff502f9bbf2a76`.
 That verifier is evidence for this integration, not a copied product dependency.
 
+### Clean-runner correction
+
+The initial #791 CI run exposed two preparation assumptions hidden by the local
+build/cache: Engineering imported Core before building it, and T50 forced offline
+installation despite Graph/Hosting's third-party registry dependencies. Engineering
+now builds Core explicitly; T50 uses Testing's cache-preferred installation default,
+while every KAAL package still comes from the run's checked tarball manifest.
+The runtime, shipped verification inventory and assertions are unchanged.
+
+Guard's prescribed commands now pass: `kaal-guard run --check Engineering` after
+removing Core's generated dist/ (231/231), and `kaal-guard run --check Acceptance`
+with a newly empty npm cache (33/33, four recorded fresh installations). The C16
+two-run lock derivation also passes against the updated exact root manifest;
+the candidate/derived lock digest is unchanged. Repository cross-platform CI
+remains independent of these local results.
+
 ## Validation and integration boundary
 
 Review the normalized owner projection format, boundary disposition, concern
