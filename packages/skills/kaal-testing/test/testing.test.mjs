@@ -57,6 +57,7 @@ describe("kaal-testing", () => {
       "lib/attribution.mjs",
       "lib/contracts.mjs",
       "lib/coverage.mjs",
+      "lib/duplicates.mjs",
       "lib/inventory.mjs",
       "lib/report.mjs",
       "package.json",
