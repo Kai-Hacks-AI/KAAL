@@ -11,7 +11,9 @@ scope without an impact trace under complete supplied evidence. Missing facts ar
 `unknown`. Inspect all findings and qualifications rather than mapping the first
 word to a repository GREEN.
 
-Install optional Graph and Hosting peers to run the delivered consumer checks:
+A normal package install resolves its required Foundation, Graph and Hosting
+dependencies. Run the delivered consumer checks without a separate provider
+installation step:
 
 ```sh
 npm explore @kaihacksai/kaal-change -- npm test
@@ -52,3 +54,17 @@ No install-to-target or workflow-writing command is delivered by Change.
 Version 0.0.1 covers only this skill anchor and supplied-model isolation. Obtain
 reviewed tarballs from the delivery process until registry publication is
 separately authorized; no publication is implied by the package version.
+
+## Production installation and release prerequisites
+
+Change declares exact Foundation, Graph and Hosting versions as required package
+runtime dependencies. The semantic module remains pure and imports only
+Foundation; package installation also supplies the providers for shipped Cases
+and examples. Verification performs no dependency installation or registry
+acquisition. Removing a provider is an incomplete installation, reported as
+cannot verify; no required Case is silently skipped or removed.
+
+Registry publication requires those exact dependency versions to be published
+first. Release readiness must refuse missing versions. Local artifact overrides
+can exercise npm's production dependency resolution before publication, but do
+not establish public registry availability or publication provenance.

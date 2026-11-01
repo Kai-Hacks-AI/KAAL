@@ -37,3 +37,26 @@ repository provenance and real outside integrations remain outside this evidence
 T51 and T52 begin assertion RED against executable/admitted scaffolds, then GREEN.
 Mechanical checks do not establish the correctness of an agent's reasoning;
 worked-use validation is reported separately from test execution.
+
+## Package-only installation
+
+| Case | Loop | Contract |
+| --- | --- | --- |
+| change/T55 | Architecture, publisher | The actual package declares all providers needed by shipped verification as exact production dependencies. |
+| change/T57 | Publisher integration | The existing Release readiness gate names missing required Graph/Hosting versions before packing; controlled registry observations do not claim publication. |
+| change/T56 | Publisher integration, explicit artifact probe | With fresh consumer/cache, request only the Change tarball; npm resolves declared dependencies through checked local-tarball overrides, then the existing Release judge validates all installed Cases and their statuses. |
+
+Run T56 from the source workspace after a caller has packed once:
+
+```sh
+npm run test:package-only -- <absolute packed-manifest.json> <absolute fresh consumer directory>
+```
+
+The probe neither builds nor packs. Its overrides supply artifact transport only;
+providers are not preinstalled or additional install arguments. The pre-fix
+package fails by assertion because installed verification cannot import its
+providers. Both T55 and this unchanged T56 probe must pass with the correction.
+T56 is an explicit publisher integration command, not an extra installation hidden
+inside Testing's acceptance ledger or a shipped consumer command. It does not
+claim a real registry release. Production publication still requires all exact
+dependency versions and the existing release gates.
