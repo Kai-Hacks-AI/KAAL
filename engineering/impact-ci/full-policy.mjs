@@ -51,10 +51,22 @@ export function establishFullMatrix(context, snapshot) {
   }
   const selectedPolicy = resolveAssurancePolicy(context, policies, workflowDefinitions);
   const workflows = selectedPolicy.workflows;
+  if (context.evidenceSchema !== undefined && context.evidenceSchema !== 'kaal.full-evidence/v2')
+    throw new TypeError('unknown authenticated evidence schema');
   if (!context.producers ||
       JSON.stringify(Object.keys(context.producers).sort()) !== JSON.stringify(workflows.map(w => w.path).sort()) ||
       Object.values(context.producers).some(p => p !== null && (!integer(p?.runId) || !integer(p?.attempt))))
     throw new TypeError('complete independently pinned producer generations required');
+  if (context.evidenceSchema === 'kaal.full-evidence/v2' && (!integer(context.headRepositoryId) ||
+      (context.event === 'push' && !/^[a-f0-9]{64}$/.test(context.pushIdentity))))
+    throw new TypeError('authenticated source repository/event identity required');
+  if (context.evidenceSchema === 'kaal.full-evidence/v2' && workflows.some(w => {
+    const p = context.producers[w.path];
+    return p !== null && (!['workflowSha', 'governanceSha', 'testedSha', 'testedTreeSha', 'providerRunSha', 'providerCheckSha'].every(k => sha(p[k])) ||
+      !integer(p.attestorCheckRunId) || typeof p.ref !== 'string' || !p.ref.startsWith('refs/') ||
+      p.testedSha === context.testedSha && p.testedTreeSha !== context.testedTreeSha ||
+      p.testedSha !== (w.event === 'pull_request_target' ? context.headSha : context.testedSha));
+  })) throw new TypeError('independent per-producer execution revisions required');
   const inventory = workflows.flatMap(w => w.jobs.map(({ check, os }) => ({ check, os })));
   const ctx = structuredClone(context);
   const policyDigest = digest({ policy: selectedPolicy.policyDigest, sources: anchors });

@@ -43,7 +43,8 @@ export function judgeFullMatrix(authority, manifest, evidence, current, now) {
     return out('failed', 'freshness', ['evaluation generation has expired']);
   const selection = judgeSelection(expected, manifest);
   if (selection.verdict !== 'passed') return out(selection.verdict, 'selection', selection.errors);
-  if (evidence?.schema !== 'kaal.full-evidence/v1' || evidence.contextDigest !== expected.contextDigest)
+  const v2 = expected.context.evidenceSchema === 'kaal.full-evidence/v2';
+  if (evidence?.schema !== (v2 ? 'kaal.full-evidence/v2' : 'kaal.full-evidence/v1') || evidence.contextDigest !== expected.contextDigest)
     return out('unresolved', 'provenance', ['independently captured evidence unavailable']);
   let records;
   try { records = completePages(evidence.runPages, 'runs'); } catch (e) {
@@ -70,19 +71,21 @@ export function judgeFullMatrix(authority, manifest, evidence, current, now) {
       errors.push(`producer generation changed: ${w.path}`);
     const policy = w.event === 'pull_request_target';
     const bindings = { repositoryId: ctx.repositoryId, pr: ctx.pr, headSha: ctx.headSha,
-      baseSha: ctx.baseSha, testedSha: policy ? ctx.headSha : ctx.testedSha,
-      workflowSha: policy ? ctx.governanceSha : ctx.testedSha, sourceDigest: w.sourceDigest,
+      baseSha: ctx.baseSha, testedSha: v2 ? pinned?.testedSha : policy ? ctx.headSha : ctx.testedSha,
+      workflowSha: v2 ? pinned?.workflowSha : policy ? ctx.governanceSha : ctx.testedSha, sourceDigest: w.sourceDigest,
       contextDigest: expected.contextDigest, event: w.event, appId: w.appId };
+    if (v2) { bindings.governanceSha = pinned?.governanceSha; bindings.testedTreeSha = pinned?.testedTreeSha; }
     for (const [key, value] of Object.entries(bindings))
       if (r[key] !== value) errors.push(`wrong producer ${key}: ${w.path}`);
     if (!positive(r.checkSuiteId) || !instant(r.startedAt) || r.startedAt < ctx.startedAt || r.startedAt > now)
       errors.push(`invalid producer identity/time: ${w.path}`);
     if (r.status !== 'completed') waits.push(`unfinished workflow: ${w.path}`);
     else if (r.conclusion !== 'success') errors.push(`workflow not passed: ${w.path}`);
-    if (r.status === 'completed' && (!instant(r.completedAt) || r.completedAt < r.startedAt))
+    const terminalAt = v2 ? r.terminalObservedAt : r.completedAt;
+    if (r.status === 'completed' && (!instant(terminalAt) || terminalAt < r.startedAt))
       errors.push(`missing producer completion: ${w.path}`);
-    if (r.completedAt > now) waits.push(`future workflow completion: ${w.path}`);
-    if (instant(r.completedAt)) successNotBefore = Math.max(successNotBefore, r.completedAt);
+    if (terminalAt > now) waits.push(`future workflow completion: ${w.path}`);
+    if (instant(terminalAt)) successNotBefore = Math.max(successNotBefore, terminalAt);
     let children;
     try { children = completePages(r.jobsPages, 'jobs'); } catch (e) {
       ambiguous.push(`${w.path}: ${e.message}`); continue;
@@ -102,7 +105,7 @@ export function judgeFullMatrix(authority, manifest, evidence, current, now) {
       else if (j.conclusion !== 'success') errors.push(`job not passed: ${j.check}`);
       if (j.status === 'completed' && (!instant(j.completedAt) || j.completedAt < j.startedAt))
         errors.push(`missing job completion: ${j.check}`);
-      if (j.status === 'completed' && r.status === 'completed' && j.completedAt > r.completedAt)
+      if (j.status === 'completed' && r.status === 'completed' && j.completedAt > terminalAt)
         errors.push(`job completes after its producer: ${j.check}`);
       if (j.completedAt > now) waits.push(`future job completion: ${j.check}`);
       if (instant(j.completedAt)) successNotBefore = Math.max(successNotBefore, j.completedAt);

@@ -1,0 +1,240 @@
+{
+  "schema": "kaal.unwired-publication-verification/v1",
+  "baseline": {
+    "plan": 800,
+    "commit": "fd0a612f15631a65a3e67d55671cbedcdd8a286b",
+    "tree": "5cd0a1bc1ae79bf32515981d7f2e1d1a8a6214f0",
+    "local": "Local baseline 152717d has the identical tree; remote commit ancestry is supplied explicitly when publishing."
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "provider": "synthetic fixture responses only"
+  },
+  "red": [
+    {
+      "case": "initial export-complete denial controller",
+      "command": "node --test engineering/impact-ci/github/controller.test.mjs",
+      "tests": 3,
+      "pass": 1,
+      "assertionFailures": 2
+    },
+    {
+      "case": "source drift and unsupported retarget must revoke old GREEN",
+      "tests": 2,
+      "pass": 0,
+      "assertionFailures": 2
+    },
+    {
+      "case": "terminal observation must use acquisition clock",
+      "tests": 1,
+      "pass": 0,
+      "assertionFailures": 1
+    },
+    {
+      "case": "PR-target producer needs its own head tree",
+      "tests": 1,
+      "pass": 0,
+      "assertionFailures": 1
+    }
+  ],
+  "tddLimit": "Auth/acquisition scaffolding preceded tests. Only the recorded controller/refinement REDs establish test-first behavior; no all-P1 strict TDD claim.",
+  "verification": {
+    "command": "npx --no kaal-guard run --check Engineering --github",
+    "tests": 501,
+    "pass": 501,
+    "fail": 0,
+    "skipped": 0
+  },
+  "focused": {
+    "command": "node --test engineering/impact-ci/github.test.mjs",
+    "tests": 103,
+    "pass": 103,
+    "fail": 0,
+    "skipped": 0,
+    "architecture": 3,
+    "acceptance": 10,
+    "implementation": 90,
+    "unfinishedInstancesExercised": 66
+  },
+  "regression": {
+    "existingGateTests": 170,
+    "allEightTestFilesRetainedByteForByte": [
+      "engineering/impact-ci/assurance-policy.test.mjs",
+      "engineering/impact-ci/execution-gate.test.mjs",
+      "engineering/impact-ci/full-boundary.test.mjs",
+      "engineering/impact-ci/full-gate.test.mjs",
+      "engineering/impact-ci/git-input.test.mjs",
+      "engineering/impact-ci/replay.test.mjs",
+      "engineering/impact-ci/selection-gate.test.mjs",
+      "engineering/impact-ci/target-policy.test.mjs"
+    ],
+    "originalContracts": [
+      "execution-gate.test.mjs",
+      "selection-gate.test.mjs",
+      "target-policy.test.mjs"
+    ]
+  },
+  "mutations": {
+    "command": "node engineering/impact-ci/github/mutations.mjs",
+    "schema": "kaal.gate-publication-mutations/v1",
+    "results": [
+      {
+        "name": "receipt signature removed",
+        "module": "auth.mjs",
+        "from": "if (!await subtle.verify('RSASSA-PKCS1-v1_5'",
+        "to": "if (false && !await subtle.verify('RSASSA-PKCS1-v1_5'",
+        "test": "auth.test.mjs",
+        "pattern": "modified signature",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "webhook signature removed",
+        "module": "auth.mjs",
+        "from": "if (!await subtle.verify('HMAC'",
+        "to": "if (false && !await subtle.verify('HMAC'",
+        "test": "auth.test.mjs",
+        "pattern": "webhook refuses tamper",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "receipt bindings removed",
+        "module": "auth.mjs",
+        "from": "if (!['string', 'number'].includes(typeof value) || !['string', 'number'].includes(typeof claims[key]) ||\n            String(claims[key]) !== String(value))",
+        "to": "if (false)",
+        "test": "auth.test.mjs",
+        "pattern": "incorrect run_attempt",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "workflow source check removed",
+        "module": "acquire.mjs",
+        "from": "if (sha256(bytes) !== w.sourceDigest)",
+        "to": "if (false)",
+        "test": "acquire.test.mjs",
+        "pattern": "source drift",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "same-App suite relationship removed",
+        "module": "acquire.mjs",
+        "from": "check.check_suite?.id !== raw.check_suite_id ||",
+        "to": "",
+        "test": "acquire.test.mjs",
+        "pattern": "same-App forged child",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "page count replaced by observed length",
+        "module": "acquire.mjs",
+        "from": "total_count: body.total_count,",
+        "to": "total_count: body[field].length,",
+        "test": "acquire.test.mjs",
+        "pattern": "truncated run page",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "completion verdict replaced by passed",
+        "module": "controller.mjs",
+        "from": "judgeFullMatrix(acquired.authority, fullManifest(acquired.authority), acquired.evidence, current, judgedAt)",
+        "to": "({ verdict: 'passed', errors: [] })",
+        "test": "controller.test.mjs",
+        "pattern": "one unfinished required job",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "same-SHA conflict ignored",
+        "module": "controller.mjs",
+        "from": "const collision = old && old.subject !== subject;",
+        "to": "const collision = false;",
+        "test": "controller.test.mjs",
+        "pattern": "same-SHA different PR",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "stale epoch accepted",
+        "module": "controller.mjs",
+        "from": "return s.epoch === epoch;",
+        "to": "return true;",
+        "test": "controller.test.mjs",
+        "pattern": "competing callback",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "establishment-error revocation removed",
+        "module": "controller.mjs",
+        "from": "if (trustedContext) {",
+        "to": "if (false) {",
+        "test": "controller.test.mjs",
+        "pattern": "source population",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      },
+      {
+        "name": "observation replaced by start time",
+        "module": "acquire.mjs",
+        "from": "const observedAt = clock.now();",
+        "to": "const observedAt = now;",
+        "test": "acquire.test.mjs",
+        "pattern": "terminal observations",
+        "exitStatus": 1,
+        "discriminatedByAssertion": true
+      }
+    ],
+    "refinement": "Initial webhook tampering was rejected by JSON/schema even with signature disabled; changed to valid JSON with pinned identities. Initial binding mutation disabled only one OR term; corrected to remove the whole binding predicate. Only final assertion discrimination is counted."
+  },
+  "sourceHashes": {
+    "engineering/impact-ci/github/README.md": "c35201436df05fcd06a563e8f614863790c4697e2df9ae759c520ebf88c73ab4",
+    "engineering/impact-ci/github/acceptance.test.mjs": "2321d4acd4f7679b5dbfb88e5dbca97a5d26cf954822f4bfcab061678d76bffd",
+    "engineering/impact-ci/github/acquire.mjs": "6961f62b89ef7c0e18fca06b7a2bf791108fbdc6d6ff27bb06601bf3f1e9ab14",
+    "engineering/impact-ci/github/acquire.test.mjs": "dd3afbfb5aad683646f2138bcdfe78ab35c61a56c96b274edb0ce6977650f333",
+    "engineering/impact-ci/github/architecture.test.mjs": "e291d88c768b8bc61bcbe84d9b439e1ca8debf58af71eaf703a8e40036daf353",
+    "engineering/impact-ci/github/auth.mjs": "468a2b85fb90ead8576f839f10dd771b2a32619ee89e5c7ce2d7f8513279719a",
+    "engineering/impact-ci/github/auth.test.mjs": "3e33772bcf1a44880e948ff4ea459f2ef37c93016b286818563275af128fb474",
+    "engineering/impact-ci/github/controller-fixtures.mjs": "0288da13e188be57b2f6e7c8960f4479990afe3b448e889520534bbffba9967e",
+    "engineering/impact-ci/github/controller.mjs": "94ba904000d24a935e481b8a8d5930396ad2928546688383bb8b9a2282c44aa4",
+    "engineering/impact-ci/github/controller.test.mjs": "de110ae5c93eb540d9eab14f15705a92cedc1a8edface1ceb82f1f266136997a",
+    "engineering/impact-ci/github/fixtures.mjs": "bcd9c4fca3ced393cff741350bb59c5a4396ae012405b2ea66dc37601000578d",
+    "engineering/impact-ci/github/mutations.mjs": "e3424e383a4e14b437c52d1a3f8784c1e0daa6503e622f38cc2637fc1994a05c",
+    "engineering/impact-ci/full-policy.mjs": "4232d1a7d3c7158d9c360cc9d002807c905907fad2205e63c69ee604c8e0859d",
+    "engineering/impact-ci/full-gate.mjs": "3bc0d77757d6cce92b23b98bf64bae7ce5c9cd4bab31be93a1ec0ff9bdfb3d9d",
+    "engineering/impact-ci/github.test.mjs": "c5fc1976ed3ca17f26662cfc0e843b881e593c6c9f206e9486c46fbdbf25e894",
+    "engineering/impact-ci/README.md": "77c04482a861ef9ef898f33fe452a6fdaf179989c2a0005962a69d6f6aa635c3"
+  },
+  "findings": {
+    "verifiedFailure": [],
+    "potentialDefect": [],
+    "architecturalConcern": [
+      "Async registration, commit-scoped checks and provider publication/merge atomicity remain migration blockers.",
+      "Applied but unacknowledged success can remain remotely GREEN; local uncertainty and blocked retries do not revoke it.",
+      "The journal is a protocol requiring a durable serializable store; its in-memory fake does not establish production durability."
+    ],
+    "unknown": [
+      "No actual GitHub App/installation/credentials/transport/issuer keys or receipt driver.",
+      "No production context loader, isolated execution-source proof, durable capture archive or safe outbox repair procedure.",
+      "No live shadow S1-S11, actual reset/coalescing/tested-commit/required-source/merge-blocking proof.",
+      "No real macOS/Windows execution in this local run; their required obligations are synthetic provider data.",
+      "Independent CodeQL finding enforcement and Owner review remain required; no aggregate substitutes for them."
+    ]
+  },
+  "unchanged": [
+    ".github/**",
+    ".kaal/**",
+    "package.json",
+    "package-lock.json",
+    "policies/main.json",
+    "policies/lineage.json",
+    "workflow-definitions.mjs",
+    "GitHub rulesets and branch protections"
+  ],
+  "limits": "No live assurance or race-free merge claim. Source-only P1; P2/P3/P4/P5 need their separate alignment. No selective CI, synchronization or promotion."
+}
