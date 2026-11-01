@@ -127,7 +127,8 @@ function variant(version, after = {}, adds = false) {
   return { dir, version, catalogue };
 }
 
-let two;
+/** The pairs built so far, by what named them: a GUARD_CANDIDATES value, or "" for the planned configuration. */
+const pairs = new Map();
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 /** One side of GUARD_CANDIDATES: registry:<version>, or (newer only) packed, the package in this tree as it stands. */
@@ -146,11 +147,13 @@ function named(value, side) {
  * GUARD_CANDIDATES, two `packed` candidates of the planned configuration: different versions whose
  * managed workflows differ in content, newer's catalogue holding older's content as well as its own,
  * and newer managing one hook-surface asset that older lacks. With GUARD_CANDIDATES=<older>,<newer>,
- * the pair it names, unchanged: registry:<A>,registry:<B>, or registry:<A>,packed.
+ * the pair it names, unchanged: registry:<A>,registry:<B>, or registry:<A>,packed. A case may name its own
+ * pair in the same form instead (guard/T118, guard/C139); each pair is built once.
  */
-export function candidates() {
-  if (!two) {
-    const pair = process.env.GUARD_CANDIDATES;
+export function candidates(pair = process.env.GUARD_CANDIDATES) {
+  const key = pair ?? "";
+  if (!pairs.has(key)) {
+    let two;
     if (pair) {
       const parts = pair.split(",").map((p) => p.trim());
       if (parts.length !== 2) throw new Error(`A12: GUARD_CANDIDATES must be registry:<A>,registry:<B> or registry:<A>,packed, not ${pair}`);
@@ -168,8 +171,9 @@ export function candidates() {
       const newer = variant(`${base}-candidate.2`, older.catalogue, true);
       two = Object.fromEntries(Object.entries({ older, newer }).map(([k, v]) => [k, { source: "packed", spec: pack(v.dir), version: v.version }]));
     }
+    pairs.set(key, two);
   }
-  return two;
+  return pairs.get(key);
 }
 
 /** What every disposable consumer can do. */
