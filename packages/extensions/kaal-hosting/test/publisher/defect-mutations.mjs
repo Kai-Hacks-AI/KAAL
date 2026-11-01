@@ -15,7 +15,7 @@ const challenges = [
   { name: "erase-observed-failure", file: "test/verify.mjs", test: "test/publisher/defects.test.mjs", pattern: "^hosting/T79 ",
     mutate: (s) => s.replace('if (o.outcome === "fail") add(failures,', 'if (false) add(failures,').replace('else if (outcome.get(o.name) !== "fail") outcome.set', 'else outcome.set') },
   { name: "delete-caller-fixture", file: "dist/fixtures.js", test: "test/publisher/defects.test.mjs", pattern: "^hosting/T80 controlled host:",
-    mutate: (s) => s.replace(/for \(const path of \[fifo, socket\]\)\s*if \(look\(path\)\)\s*return \{ failed: `\$\{path\} already exists` \};/, "").replace('if (made === undefined)\n            remove(fifo);', 'remove(fifo);') },
+    mutate: (s) => s.replace(/for \(const path of \[fifo, socket\]\)\s*if \(look\(path\)\)\s*return \{ failed: `\$\{path\} already exists` \};/, "").replace(/if \(made === undefined\)\s*remove\(fifo\);/, 'remove(fifo);') },
   { name: "lose-staging-cleanup", file: "dist/index.js", test: "test/embed/allocation.test.mjs", pattern: "^hosting/T81 ",
     before: "await rm(staging, { maxRetries: 3 }).catch", after: "await Promise.resolve().catch" },
   { name: "omit-controlled-cases", file: "dist/boundary-core.js", test: "test/publisher/defects.test.mjs", pattern: "^hosting/T82 ",
