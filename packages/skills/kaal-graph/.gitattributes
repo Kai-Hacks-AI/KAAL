@@ -1,0 +1,6 @@
+# Core copies these public Node/Form inputs byte-for-byte and pins their hashes.
+# Keep Graph's reviewed bytes through checkout, including on Windows.
+skills/kaal-graph/scripts/form.d.ts -text
+skills/kaal-graph/scripts/form.mjs -text
+skills/kaal-graph/scripts/node.mjs -text
+skills/kaal-graph/scripts/edges.d.ts -text
