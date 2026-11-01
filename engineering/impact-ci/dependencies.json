@@ -1,0 +1,50 @@
+{
+  "schema": "kaal.engineering-dependency-transfer/v1",
+  "owner": "Engineering",
+  "sourceRevision": "5f0f160afd8255061c21f02dc6351f154fa3d412",
+  "sourceChanges": [
+    760,
+    764
+  ],
+  "plan": 776,
+  "targetCollector": "kaal/ci-gates",
+  "mainBaseline": "be3a2d09a386967bd5a1cd4a850f389951bc0796",
+  "records": [
+    {
+      "path": "engineering/impact-ci/execution-gate.mjs",
+      "sourceBlob": "166f1ea4e97f3a13ae496f08611c65c80dd1c3e5",
+      "sourceDigest": "7ed31dfca46dce17f333e846ad96299d8b3b704ef175657ad69f41a35c97cabc",
+      "retainedUnchanged": false
+    },
+    {
+      "path": "engineering/impact-ci/execution-gate.test.mjs",
+      "sourceBlob": "806221a93b8605194288b0d78f7fe99fb04d63f4",
+      "sourceDigest": "2411f266ce03e3e2a14f8aebb1e08afa5eb1bb095b8c5dcd21201a6cd0e85db3",
+      "retainedUnchanged": true
+    },
+    {
+      "path": "engineering/impact-ci/selection-gate.mjs",
+      "sourceBlob": "02d485efddc5bdaa9148b3559f7238dbfd34496d",
+      "sourceDigest": "0680b04930b251200802d7ac02d5c406343645a7b9ac7359792c7b6116e2efe3",
+      "retainedUnchanged": false
+    },
+    {
+      "path": "engineering/impact-ci/selection-gate.test.mjs",
+      "sourceBlob": "c48d7f68d12cd6dde2e2c435c86da751fb34f736",
+      "sourceDigest": "2d9c7ad6a4979ea887f036d1976076c0b1df806717e111658f5265c99a9ff529",
+      "retainedUnchanged": true
+    },
+    {
+      "path": "engineering/impact-ci/target-policy.mjs",
+      "sourceBlob": "e87ef9130d943b50e13baa98c3cb1947e3c3e0b1",
+      "sourceDigest": "5aec0a70f311cadc3522c8899aed077d4628d2bdbdcb3406d1de7f7fca62439a",
+      "retainedUnchanged": true
+    },
+    {
+      "path": "engineering/impact-ci/target-policy.test.mjs",
+      "sourceBlob": "296f0881c56364a73743d8cb60996bf3e9b7181a",
+      "sourceDigest": "75aa4ac9e2607d071db9ddc95f582c4101c61ba65ba6ac0e196c619cef449c49",
+      "retainedUnchanged": true
+    }
+  ]
+}

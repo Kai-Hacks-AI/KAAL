@@ -1,0 +1,28 @@
+{
+  "schema": "kaal.full-matrix-anchors/v1",
+  "sourceRevision": "be3a2d09a386967bd5a1cd4a850f389951bc0796",
+  "repository": "Kai-Hacks-AI/KAAL",
+  "repositoryId": 1415996637,
+  "appId": 15368,
+  "sources": {
+    ".github/workflows/branching-audit.yml": "8b36ee6f5c517906753e6ee0dfd5f1b00c810dce6b1087e362d333532cd9acbe",
+    ".github/workflows/change-isolation.yml": "31f5a9572f14a6137cf52960ef03da2463e524ca36fb6b1af0ef12f8f42f425e",
+    ".github/workflows/ci.yml": "fb8fcb438f9caa3479f5fb6e0cdd47dd0ecd086bf5013565426f0f5adbe79976",
+    ".github/workflows/codeql.yml": "6a4014f18989f5a6c7847a82dba4d4efc3bc9bfffaff17ba7b5e51cf521f25ae",
+    ".github/workflows/dependency-review.yml": "a19c48fd9853d6d0da24e79299be81eb0ddb3fb3655259c24cb4cfe5581baac6",
+    ".github/workflows/guard-acceptance-boundary.yml": "e432d012f819b11764a3ec7abd30f9cc59d9676cc910585581c15c73d9add5ea",
+    ".github/workflows/guard-release.yml": "4901a7cc2e6bcf4a049aaa276d962f7ee3565304ba3d331efdee6ed334b242c1",
+    ".github/workflows/lineage-synchronization.yml": "75a4a3dea571c3bdad966073c5b26a78937e96cd63f33f3409f6b2a48a602586",
+    ".github/workflows/promotion-source.yml": "c531d1b138080fc7cccc9c3ad09e34430cdf01115b5309fa7e4c8b72b499cd95",
+    ".github/workflows/release.yml": "360c51c6ee5f0894ef891e13c4fee9a608034792a37c770c07f095dfa41eb8f1",
+    ".kaal/config/guard/Acceptance.md": "c0140688244bd28469f5f85826b27b8904209295e27bed6e61dcf1a52fd1d409",
+    ".kaal/config/guard/Branching-audit.md": "8400c6385c24aabf36566048883b2576a6a93ebb6cd1f42ac7802b01b8fa1bc4",
+    ".kaal/config/guard/Branching.md": "a8c32ee1d623c7ce63908b8872d358a175199470e909355616c9981fca49dcd5",
+    ".kaal/config/guard/Change-Isolation.md": "cdf097ce2aefe405d51b005ffbb3bb00fd8f6ace69d73363d495ed1ff6de4605",
+    ".kaal/config/guard/Engineering.md": "42e2e3c6dc8e65dc4c85109e07978965144b8f57ec7e364e30aa13c4af59ae19",
+    ".kaal/config/guard/Hosting.md": "4fb3d773be85a991007e6c43d5f120c60f9c1f593b99d474ff08081e02410233",
+    ".kaal/config/guard/Promotion-Source.md": "71274b0e38672a0a80c1b34f59b09877044f8b8972107283ff00ddbb3c0fac42",
+    ".kaal/config/guard/Workspaces.md": "c7b79894b71c134eaab7a9184c3e524c5f43f9fe1da00e2df32f2b5409e20465",
+    ".kaal/config/guard/push.md": "16fe4ecd80db84d795809da2d09eb86da12696645351548e1aa8bc0bf262c7fc"
+  }
+}

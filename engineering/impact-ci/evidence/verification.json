@@ -1,0 +1,195 @@
+{
+  "schema": "kaal.offline-gate-verification/v1",
+  "baseline": "be3a2d09a386967bd5a1cd4a850f389951bc0796",
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux"
+  },
+  "red": {
+    "command": "node --test engineering/impact-ci/full-gate.test.mjs",
+    "candidate": "export-complete, non-passing full-gate evaluator",
+    "tests": 55,
+    "pass": 10,
+    "assertionFailures": 45,
+    "limitation": "Initial RED establishes the missing full path; stage assertions alone are not independent failure-path discrimination."
+  },
+  "verification": {
+    "command": "npx --no kaal-guard run --check Engineering --github",
+    "tests": 398,
+    "pass": 398,
+    "fail": 0,
+    "skipped": 0
+  },
+  "gateRegression": {
+    "command": "node --test engineering/impact-ci/*.test.mjs",
+    "tests": 170,
+    "pass": 170,
+    "fail": 0,
+    "skipped": 0
+  },
+  "mutations": [
+    {
+      "mutation": "cross-workflow running producer ignored",
+      "module": "full-gate.mjs",
+      "replace": "if (r.status !== 'completed') waits.push(`unfinished workflow: ${w.path}`);\n    else if (r.conclusion !== 'success')",
+      "with": "if (r.status === 'completed' && r.conclusion !== 'success')",
+      "testPattern": "eleven completed CI jobs still wait",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "provider provenance comparison removed",
+      "module": "full-gate.mjs",
+      "replace": "if (r[key] !== value) errors.push",
+      "with": "if (false) errors.push",
+      "testPattern": "wrong required producer appId",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "API truncation accepted",
+      "module": "full-gate.mjs",
+      "replace": "export function completePages(pages, key) {",
+      "with": "export function completePages(pages, key) { return pages.flatMap(p => p[key]);",
+      "testPattern": "truncated and missing pages",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "Guard Windows policy obligation removed",
+      "module": "policies/main.json",
+      "replace": "            {\n              \"check\": \"Guard (Windows)\",\n              \"os\": \"Windows\"\n            },\n",
+      "with": "",
+      "testPattern": "complete pull_request",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1,
+      "replacementLimit": 1
+    },
+    {
+      "mutation": "generation freshness comparison removed",
+      "module": "full-gate.mjs",
+      "replace": "currentDigest !== expected.contextDigest",
+      "with": "false",
+      "testPattern": "current generation/head/base/PR/target",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "completion lower bound understated",
+      "module": "full-gate.mjs",
+      "replace": "{ ledger, observations, successNotBefore });",
+      "with": "{ ledger, observations, successNotBefore: ctx.startedAt });",
+      "testPattern": "last job completion time",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "pinned run attempt check removed",
+      "module": "full-gate.mjs",
+      "replace": "if (!pinned || pinned.runId !== r.runId || pinned.attempt !== r.attempt)",
+      "with": "if (false)",
+      "testPattern": "new attempt cannot re-use",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "expired success accepted",
+      "module": "full-gate.mjs",
+      "replace": "if (now >= expected.context.deadline)\n    return out('failed', 'freshness', ['evaluation generation has expired']);",
+      "with": "// mutation: generation expiry omitted",
+      "testPattern": "completed old success",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "Main and Lineage digests coupled to policy set",
+      "module": "assurance-policy.mjs",
+      "replace": "policyDigest: digest(policy),",
+      "with": "policyDigest: digest(policies),",
+      "testFile": "assurance-policy.test.mjs",
+      "testPattern": "versioning and extending",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    },
+    {
+      "mutation": "independent version omitted from policy identity",
+      "module": "assurance-policy.mjs",
+      "replace": "policyDigest: digest(policy),",
+      "with": "policyDigest: digest({ ...policy, version: 'ignored' }),",
+      "testFile": "assurance-policy.test.mjs",
+      "testPattern": "version-only",
+      "discriminatedByAssertion": true,
+      "exitStatus": 1
+    }
+  ],
+  "sourceDigests": {
+    "engineering/impact-ci/assurance-policy.mjs": "c68edc55231e998a085cac8601e86a92d0953a2153c83410f9d26e1d320c6083",
+    "engineering/impact-ci/assurance-policy.test.mjs": "1bf6ed133c59ec54cc56f044e18aea839ec3a0c57e1fc7269f8f0fa3e6a2f58a",
+    "engineering/impact-ci/dependencies.json": "212ecfc32a50424bd72044dca655f9e6e91d52b61b16dc59c4254d44d45afe76",
+    "engineering/impact-ci/execution-gate.mjs": "42857772395b1892cb3707d4633c39879defda8afc9514a18ab780230e8828fd",
+    "engineering/impact-ci/execution-gate.test.mjs": "2411f266ce03e3e2a14f8aebb1e08afa5eb1bb095b8c5dcd21201a6cd0e85db3",
+    "engineering/impact-ci/full-boundary.test.mjs": "c07b5f6d78e2341ef9685e0ac814fc4b80469434847db9a30d309513b62285c5",
+    "engineering/impact-ci/full-fixtures.mjs": "2f030580bd8add220285d1d20333961a3e3b7a7b7c0c506512da648607e1e0f3",
+    "engineering/impact-ci/full-gate.mjs": "819a38c5436b5ceefaa47e084feabab34e4980b68684bb0af5397019df332579",
+    "engineering/impact-ci/full-gate.test.mjs": "1fc00bd2aca2fb775a770e1828c4ed26c39eb031801b58f998967b6a7213fac6",
+    "engineering/impact-ci/full-matrix-anchors.json": "0146178da378e5bd8fbbc2a8799e4d30cc9979aaf1386cadd1cbba87e9ee2e05",
+    "engineering/impact-ci/full-policy.mjs": "80561f81137674d200970d0ff2ec371ebb58dbde2ceae6192043d87b407daf84",
+    "engineering/impact-ci/git-input.mjs": "961094501fa39ba19b058f376bdca323ff3fa4ea82b298af75a26755cbff7f8c",
+    "engineering/impact-ci/git-input.test.mjs": "0aa0c30c605927f36ec681f1b7b46223d1d828015e85585d0ec4f9d08af34c20",
+    "engineering/impact-ci/policy-identity.mjs": "e25d498c5c8fa1e5476a02ce8afef0bef80b63094813376c8a37489b5b3b928a",
+    "engineering/impact-ci/replay-cli.mjs": "b6b2e52748daf1f27ec2c64512d5a0b23aefb5280409884e9ca96ca5a7d753d6",
+    "engineering/impact-ci/replay.mjs": "8c78d31ccbe46217ff9d09d99a3219210b1fe2c702d0a41984ce54b2d9b8f8bd",
+    "engineering/impact-ci/replay.test.mjs": "41730e031fffd5521724e4016d191c4a65d6fa18cb22a77309da279ee302c960",
+    "engineering/impact-ci/selection-contract.mjs": "9d6430f6e2e36b0e348a5730517ec17ca4b93b96a0d1adfdb59ffe3b51ab34c8",
+    "engineering/impact-ci/selection-gate.mjs": "25d900aa1ca08ce3502ef8ae4ced4db03fed052130535bf7961893aa41fc032b",
+    "engineering/impact-ci/selection-gate.test.mjs": "2d9c7ad6a4979ea887f036d1976076c0b1df806717e111658f5265c99a9ff529",
+    "engineering/impact-ci/target-policy.mjs": "5aec0a70f311cadc3522c8899aed077d4628d2bdbdcb3406d1de7f7fca62439a",
+    "engineering/impact-ci/target-policy.test.mjs": "75aa4ac9e2607d071db9ddc95f582c4101c61ba65ba6ac0e196c619cef449c49",
+    "engineering/impact-ci/workflow-definitions.mjs": "6c9f5b64195bdf00c1a2fa203644f976c3eedc1318b013fc2068e8350b26b76b",
+    "package.json": "3cf0e1a2473b00e816f0e137c777085ea6c3c2b764586b3bda6994ec8eaa0e9e",
+    "engineering/impact-ci/policies/main.json": "92ba0afc9af501a1fc690649cef46350b376ea31721d3e877a6b594e928666de",
+    "engineering/impact-ci/policies/lineage.json": "88cd4720851225b13196e2856bc0c09db49000b9f9bc7af255cd312f9faa1cc1",
+    "engineering/impact-ci/fixtures/pr773-actions.json": "0df0c8d0ef0d37350caee1a330cda1ea2c719560ac058157f4d36e68c05e38f7"
+  },
+  "limits": [
+    "Linux local verification only; provider CI is independent.",
+    "Synthetic positive evidence proves the offline schema; it is not live provider assurance.",
+    "Historical replay remains unresolved on missing attribution/revision facts and duplicate runs.",
+    "No live publisher, source-bound required check or merge-race proof; no workflow or ruleset change."
+  ],
+  "whitespace": "Original #764 test/target-policy bytes retain inherited final blank lines; all other whitespace checked with core.whitespace=-blank-at-eof.",
+  "reviewCorrection": {
+    "comment": 6558250491,
+    "policies": [
+      {
+        "file": "policies/main.json",
+        "id": "kaal-main",
+        "version": "1.0.0"
+      },
+      {
+        "file": "policies/lineage.json",
+        "id": "kaal-lineage",
+        "version": "1.0.0"
+      }
+    ],
+    "red": {
+      "command": "node --test engineering/impact-ci/assurance-policy.test.mjs",
+      "against": "ecc8ba6e7bc3b45286f8fe7a9c88efeb8e59add8 shared policy model",
+      "tests": 5,
+      "assertionFailures": 5
+    },
+    "independence": "Both directions: version-only, inventory extension, applicability change; compare all unchanged profiles, inventories, digests and independent controls."
+  },
+  "shallowCorrection": {
+    "ciJob": 124853919395,
+    "cause": "git show %P and the test assumed full-history parent display; shallow checkout omitted the parents.",
+    "red": {
+      "tests": 5,
+      "pass": 4,
+      "fail": 1,
+      "failure": "valid depth-one tree/parent proof was refused"
+    },
+    "fix": "Read exact commit-object tree/parent headers; retain wrong-tree and wrong-parent rejection.",
+    "verified": "Depth-one clone regression; clone from detached shallow source with no local branch refs."
+  }
+}
