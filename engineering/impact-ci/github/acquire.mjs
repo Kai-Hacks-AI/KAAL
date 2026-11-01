@@ -8,9 +8,8 @@ import { digest } from '../policy-identity.mjs';
 const root = '/repos/Kai-Hacks-AI/KAAL';
 const validId = n => Number.isSafeInteger(n) && n > 0;
 const when = value => value === null ? null : Date.parse(value);
-export function createAcquirer({ transport, authenticator, receiptStore, proofReader, readCurrent, clock }) {
-  if (!transport?.request || !authenticator?.receipt || !receiptStore?.get || !proofReader?.read || !readCurrent || !clock?.now)
-    throw new TypeError('trusted acquisition ports required');
+export function createGithubReader({transport}) {
+  if(!transport?.request)throw new TypeError('trusted provider transport required');
   async function get(path) {
     if (!path.startsWith(root + '/') || path.includes('..') || path.includes('://')) throw new Error('unsafe API path');
     const response = await transport.request({ method: 'GET', path, redirect: 'error' });
@@ -27,6 +26,12 @@ export function createAcquirer({ transport, authenticator, receiptStore, proofRe
     }
     throw new Error('provider pagination unresolved');
   }
+  return Object.freeze({get,pages});
+}
+export function createAcquirer({ transport, authenticator, receiptStore, proofReader, readCurrent, clock }) {
+  if (!transport?.request || !authenticator?.receipt || !receiptStore?.get || !proofReader?.read || !readCurrent || !clock?.now)
+    throw new TypeError('trusted acquisition ports required');
+  const {get,pages}=createGithubReader({transport});
   return Object.freeze({ async acquire(input, snapshot, now) {
     try {
       const context = structuredClone(input);

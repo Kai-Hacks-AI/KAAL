@@ -1,0 +1,368 @@
+{
+  "schema": "kaal.p2-source-verification/v1",
+  "approvedPlan": {
+    "number": 807,
+    "review": 5729815295,
+    "commit": "84fccd9873f21dc4c02ff7a3e2021814c57e6968",
+    "tree": "4173d5a265c14d23304c55ed7db8e961395bb6be"
+  },
+  "localBaseline": "93371ea is source-tree-equivalent to merged #807. Published commit must use actual merged #807 parent.",
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "storage": "Node SQLite, local file, rollback journal DELETE, synchronous EXTRA"
+  },
+  "red": [
+    {
+      "case": "export-complete denial SQLite seam",
+      "tests": 2,
+      "pass": 0,
+      "assertionFailures": 2
+    },
+    {
+      "case": "native profile denial seam",
+      "tests": 12,
+      "pass": 11,
+      "behavioralDenialFailures": 1,
+      "syntaxOrImportFailures": 0
+    },
+    {
+      "case": "producer denial seam",
+      "tests": 2,
+      "pass": 0,
+      "assertionFailures": 2
+    },
+    {
+      "case": "retarget and return must not revive old facts",
+      "assertionFailures": 1
+    },
+    {
+      "case": "final async source validation must recheck current subject",
+      "assertionFailures": 1
+    },
+    {
+      "case": "source repository and missing command pins",
+      "assertionFailures": 2
+    },
+    {
+      "case": "invalid signer output must not consume nonce/JTI/fact",
+      "assertionFailures": 1
+    },
+    {
+      "case": "population sealing must recheck subject after async reads",
+      "assertionFailures": 1
+    }
+  ],
+  "tddLimit": "Provider/source adapter scaffolding preceded some tests. Only recorded RED runs establish test-first behavior. Initial invalid-sealer harness assignment hit a frozen object; that harness error was fixed and excluded from behavioral RED counts.",
+  "engineering": {
+    "command": "npx --no kaal-guard run --check Engineering --github",
+    "tests": 569,
+    "pass": 569,
+    "fail": 0,
+    "skipped": 0
+  },
+  "focused": {
+    "command": "node --test engineering/impact-ci/github-p2.test.mjs",
+    "tests": 68,
+    "pass": 68,
+    "fail": 0,
+    "skipped": 0,
+    "architecture": 3,
+    "acceptance": 1,
+    "implementation": 64
+  },
+  "inherited": {
+    "cases": 273,
+    "assertionFilesRetainedByteForByte": [
+      "engineering/impact-ci/assurance-policy.test.mjs",
+      "engineering/impact-ci/execution-gate.test.mjs",
+      "engineering/impact-ci/full-boundary.test.mjs",
+      "engineering/impact-ci/full-gate.test.mjs",
+      "engineering/impact-ci/git-input.test.mjs",
+      "engineering/impact-ci/github.test.mjs",
+      "engineering/impact-ci/github/acceptance.test.mjs",
+      "engineering/impact-ci/github/acquire.test.mjs",
+      "engineering/impact-ci/github/architecture.test.mjs",
+      "engineering/impact-ci/github/auth.test.mjs",
+      "engineering/impact-ci/github/controller.test.mjs",
+      "engineering/impact-ci/replay.test.mjs",
+      "engineering/impact-ci/selection-gate.test.mjs",
+      "engineering/impact-ci/target-policy.test.mjs"
+    ],
+    "soleCompletenessEvaluatorUnchanged": true,
+    "independentPolicyFilesUnchanged": true
+  },
+  "realEvidence": [
+    "Actual local SQLite across newly constructed stores and child processes.",
+    "Six independent store writers synchronized at their first read; compare-and-swap prevents lost updates.",
+    "Actual SIGKILL before BEGIN, after BEGIN, after UPDATE, after COMMIT; complete rollback or commit on reopening.",
+    "Atomic nonce/JTI/fact persists after lost local commit acknowledgement; safe idempotent fact ACK on restart.",
+    "Actual committed Git workflow/driver/checker/lockfile bytes and tested tree through existing Hosting/Git adapter.",
+    "Acceptance retains failed original job provenance with no check writes; provider/OIDC/runtime captures are synthetic."
+  ],
+  "mutations": [
+    {
+      "scope": "P1",
+      "schema": "kaal.gate-publication-mutations/v1",
+      "results": [
+        {
+          "name": "receipt signature removed",
+          "module": "auth.mjs",
+          "from": "if (!await subtle.verify('RSASSA-PKCS1-v1_5'",
+          "to": "if (false && !await subtle.verify('RSASSA-PKCS1-v1_5'",
+          "test": "auth.test.mjs",
+          "pattern": "modified signature",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "webhook signature removed",
+          "module": "auth.mjs",
+          "from": "if (!await subtle.verify('HMAC'",
+          "to": "if (false && !await subtle.verify('HMAC'",
+          "test": "auth.test.mjs",
+          "pattern": "webhook refuses tamper",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "receipt bindings removed",
+          "module": "auth.mjs",
+          "from": "if (!['string', 'number'].includes(typeof value) || !['string', 'number'].includes(typeof claims[key]) ||\n          String(claims[key]) !== String(value))",
+          "to": "if (false)",
+          "test": "auth.test.mjs",
+          "pattern": "incorrect run_attempt",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "workflow source check removed",
+          "module": "acquire.mjs",
+          "from": "if (sha256(bytes) !== w.sourceDigest)",
+          "to": "if (false)",
+          "test": "acquire.test.mjs",
+          "pattern": "source drift",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "same-App suite relationship removed",
+          "module": "acquire.mjs",
+          "from": "check.check_suite?.id !== raw.check_suite_id ||",
+          "to": "",
+          "test": "acquire.test.mjs",
+          "pattern": "same-App forged child",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "page count replaced by observed length",
+          "module": "acquire.mjs",
+          "from": "total_count: body.total_count,",
+          "to": "total_count: body[field].length,",
+          "test": "acquire.test.mjs",
+          "pattern": "truncated run page",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "completion verdict replaced by passed",
+          "module": "controller.mjs",
+          "from": "judgeFullMatrix(acquired.authority, fullManifest(acquired.authority), acquired.evidence, current, judgedAt)",
+          "to": "({ verdict: 'passed', errors: [] })",
+          "test": "controller.test.mjs",
+          "pattern": "one unfinished required job",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "same-SHA conflict ignored",
+          "module": "controller.mjs",
+          "from": "const collision = old && old.subject !== subject;",
+          "to": "const collision = false;",
+          "test": "controller.test.mjs",
+          "pattern": "same-SHA different PR",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "stale epoch accepted",
+          "module": "controller.mjs",
+          "from": "return s.epoch === epoch;",
+          "to": "return true;",
+          "test": "controller.test.mjs",
+          "pattern": "competing callback",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "establishment-error revocation removed",
+          "module": "controller.mjs",
+          "from": "if (trustedContext) {",
+          "to": "if (false) {",
+          "test": "controller.test.mjs",
+          "pattern": "source population",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "observation replaced by start time",
+          "module": "acquire.mjs",
+          "from": "const observedAt = clock.now();",
+          "to": "const observedAt = now;",
+          "test": "acquire.test.mjs",
+          "pattern": "terminal observations",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        }
+      ]
+    },
+    {
+      "scope": "P2",
+      "schema": "kaal.p2-mutation-discrimination/v1",
+      "results": [
+        {
+          "name": "fact seal ignored",
+          "module": "producer.mjs",
+          "from": "!await sealer.verify(record.fact,record.seal)",
+          "to": "false",
+          "test": "producer.test.mjs",
+          "pattern": "ingress/read refuses seal",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "subject change ignored",
+          "module": "producer.mjs",
+          "from": "if(digest(scope(current))!==c.scopeDigest)",
+          "to": "if(false)",
+          "test": "producer.test.mjs",
+          "pattern": "observed subject change permanently",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "native audience ignored",
+          "module": "../auth.mjs",
+          "from": "claims.aud !== `${audience}/native/${expected.nonce}/${expected.proofDigest}`",
+          "to": "false",
+          "test": "producer.test.mjs",
+          "pattern": "ingress/read refuses proof",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "JTI reuse allowed",
+          "module": "producer.mjs",
+          "from": "if(live.jtis[authentication.claims.jti])",
+          "to": "if(false)",
+          "test": "producer.test.mjs",
+          "pattern": "one issuer JTI",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "same-App suite join removed",
+          "module": "provider.mjs",
+          "from": "check.check_suite?.id!==r.check_suite_id||",
+          "to": "",
+          "test": "provider.test.mjs",
+          "pattern": "native provider refuses suite",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "source repository ignored",
+          "module": "source.mjs",
+          "from": "proof.headRepositoryId!==context.headRepositoryId||",
+          "to": "",
+          "test": "source.test.mjs",
+          "pattern": "source repository identity",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "working source drift ignored",
+          "module": "source.mjs",
+          "from": "||digest(proof.after)!==digest(pinned.files)",
+          "to": "",
+          "test": "source.test.mjs",
+          "pattern": "working bytes",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "final source/context revalidation removed",
+          "module": "producer.mjs",
+          "from": "await registration(await state(),fact.registrationId);",
+          "to": "",
+          "test": "producer.test.mjs",
+          "pattern": "subject changing during final",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "CAS expected revision ignored",
+          "module": "sqlite.mjs",
+          "from": "if ((row?.revision ?? 0) !== q.expected)",
+          "to": "if (false)",
+          "test": "storage.test.mjs",
+          "pattern": "concurrent independent stores",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        },
+        {
+          "name": "capacity check removed",
+          "module": "sqlite.mjs",
+          "from": "if (input.length > 24000)",
+          "to": "if (false)",
+          "test": "storage.test.mjs",
+          "pattern": "local pilot storage capacity",
+          "exitStatus": 1,
+          "discriminatedByAssertion": true
+        }
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "engineering/impact-ci/git-input.mjs": "be21b4e086a0cbbf48f547cbe9b8095bc7b983538a91f4a940169e5c4a9a38ab",
+    "engineering/impact-ci/github-p2.test.mjs": "f830e6b19ff60dfd6de9ce1a76015761b71420a191d9aaa1bbd2c2db3215f355",
+    "engineering/impact-ci/github/acquire.mjs": "0d5650d6d9fd38ba51956b43e9a6eca9640c32e732afc5b76bc2dc14451e4e29",
+    "engineering/impact-ci/github/auth.mjs": "ebf00d5c57f6369e917f94fef7bbc9c44ae6891c47c5fa65319384b507dc37c6",
+    "engineering/impact-ci/github/fixtures.mjs": "eaeae18df0cf341a167a178a97c3826040bfbd92bfabab3809642bb6efcccc0b",
+    "engineering/impact-ci/github/mutations.mjs": "5ab7e548cba3178c1920caf2fe4dd76a6689c92bc1977d5387c0a5763c3a3420",
+    "engineering/impact-ci/github/p2/acceptance.test.mjs": "de78001a6855ae9f15026427a3de7d56a937800776814714dda4ed4e87850cc6",
+    "engineering/impact-ci/github/p2/architecture.test.mjs": "42cdf3379171fa818db03277f7e0c2c3558d17af57a6b08ee0c1c49d97a92a69",
+    "engineering/impact-ci/github/p2/do.md": "8ba8cc678529d119809f1630e0e936a1bc41ff5d31c650d9518fed2802402ede",
+    "engineering/impact-ci/github/p2/mutations.mjs": "b2898605f850be1ddd1ace7a0c8c98768a34377f69a07c35ce47ae606fa755c6",
+    "engineering/impact-ci/github/p2/native.test.mjs": "e7bd34f201dfeef042a7948e8b4cd3bc911019c47c65f8f0aa1cd1fba118c7c3",
+    "engineering/impact-ci/github/p2/producer.mjs": "71a407d845883f3a38529650a3ad9e8ac9fc4178dcf7b14d2d33a668bdddf763",
+    "engineering/impact-ci/github/p2/producer.test.mjs": "8b8753a1e3f565d572f8cff2b5466969fc09b29e8c5f7abed14c46db188b54f1",
+    "engineering/impact-ci/github/p2/provider.mjs": "2bfcf771450f6fc528a2e02ce149d436e4b4e20b2562ee95dfd790d2ce50c71a",
+    "engineering/impact-ci/github/p2/provider.test.mjs": "b28734d9cf75b17eae2de7d61d6279b86ce15f1b684eba1254c4976a9cadb271",
+    "engineering/impact-ci/github/p2/seal.mjs": "7fde8b3df995a7052263ebab53e0601cfcb5ff0d0b15403d66f0c1fce5411954",
+    "engineering/impact-ci/github/p2/source-fixtures.mjs": "a19259ef3d9d1e6800a4e1fb6f306a60d2cb9061fc181d95b88c62c54fdb511d",
+    "engineering/impact-ci/github/p2/source.mjs": "c88faa05e8138ffdc56061fb291295079cb925b2452cd2f172af59c98306a647",
+    "engineering/impact-ci/github/p2/source.test.mjs": "697a11fe521f95f5a59e43fbc5e00575aeb5bcfb702783edd09cf11493c9cf92",
+    "engineering/impact-ci/github/p2/sqlite.mjs": "53e8ad815c2b3561ad97948c03b2aced5ce6ac52111fa6f1b91673396df2f5a6",
+    "engineering/impact-ci/github/p2/storage.test.mjs": "5878fb2e2147074c019ca33a18ca8018f6119bcec88f9d7d7350b246a407f2a0",
+    "engineering/impact-ci/github/p2/test-fixtures.mjs": "c44545abbdd9b62d7244e9979c3930b0ebf9be2c57e04e1726c56d5a6c0ecbe9"
+  },
+  "findings": {
+    "verifiedFailure": [],
+    "potentialDefect": [],
+    "architecturalConcern": [
+      "P1 registration/merge races, same-SHA reuse and unknown GitHub writes remain. Receipt recovery does not clear the publication outbox.",
+      "Physical runtime-source capture/isolation and complete loaded dependency closure are not established by Git or before/after declarations alone.",
+      "SQLite pilot is bounded single-host local storage; production failure model, ACLs, retention, backup/restore and key management are not accepted."
+    ],
+    "unknown": [
+      "No real GitHub OIDC receipt or read-only App deployed.",
+      "No live P3 capture driver, complete runtime trace or actual required-check-name instrumentation proof.",
+      "No power-loss/filesystem-flush, multi-host/network-filesystem or anti-rollback guarantee.",
+      "Only Linux local verification; Windows/macOS storage behavior unrun.",
+      "No P1 production acquisition bridge, aggregate publication or live #800 S1-S11 / #807 L1-L3 assurance."
+    ]
+  },
+  "boundary": "Source-only P2. No workflow, ruleset, required-check, package/lock, main promotion, synchronization, live pilot, App/credentials/deployment or npm publication change."
+}

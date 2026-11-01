@@ -8,7 +8,7 @@ const files = await read(source);
 const cases = [
   ['receipt signature removed','auth.mjs', "if (!await subtle.verify('RSASSA-PKCS1-v1_5'", "if (false && !await subtle.verify('RSASSA-PKCS1-v1_5'", 'auth.test.mjs','modified signature'],
   ['webhook signature removed','auth.mjs', "if (!await subtle.verify('HMAC'", "if (false && !await subtle.verify('HMAC'", 'auth.test.mjs','webhook refuses tamper'],
-  ['receipt bindings removed','auth.mjs', "if (!['string', 'number'].includes(typeof value) || !['string', 'number'].includes(typeof claims[key]) ||\n            String(claims[key]) !== String(value))", "if (false)", 'auth.test.mjs','incorrect run_attempt'],
+  ['receipt bindings removed','auth.mjs', "if (!['string', 'number'].includes(typeof value) || !['string', 'number'].includes(typeof claims[key]) ||\n          String(claims[key]) !== String(value))", "if (false)", 'auth.test.mjs','incorrect run_attempt'],
   ['workflow source check removed','acquire.mjs','if (sha256(bytes) !== w.sourceDigest)', 'if (false)', 'acquire.test.mjs','source drift'],
   ['same-App suite relationship removed','acquire.mjs','check.check_suite?.id !== raw.check_suite_id ||','', 'acquire.test.mjs','same-App forged child'],
   ['page count replaced by observed length','acquire.mjs','total_count: body.total_count,','total_count: body[field].length,', 'acquire.test.mjs','truncated run page'],
