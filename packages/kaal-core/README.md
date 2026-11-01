@@ -4,6 +4,10 @@ KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundationa
 
 Core depends on no Git host and no agent provider. Its KAAL runtime dependencies are `@kaihacksai/kaal-foundation`, for SHA-256, and `kaal-hosting`, and neither depends on Core. Core installs and works without `kaal-graph`. A Node's Form and identity are Graph's contract, and Core delivers Graph's own `form.mjs` and `node.mjs` inside the package, byte for byte, in `dist/node/`. `dist/node/provenance.json` names the Graph version they came from and each file's SHA-256. Graph's navigation and analysis are not part of Core; install `kaal-graph` beside Core for them. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
 
+## Core Skill
+
+The package delivers [Core's Agent Skill](skills/kaal-core/SKILL.md) and its [Skill Node](skills/kaal-core/Core-Skill.md). Use the Skill for Core discovery, inspection, explicit bootstrap, owner-declared contribution registration and calibrated verification. It describes the commands this candidate implements; the fuller mandatory-infrastructure initialization and Engine-entry navigation remain undelivered. Package presence is not Engine registration, admission or agent use.
+
 ## Release status
 
 kaal-core is not released. Its version is 0.0.1, and that version is not published on npm or anywhere else. Its interfaces and the bytes of its foundational Nodes can still change without an upgrade path. Core's releases are separate from those of other KAAL packages: `@kaihacksai/kaal-guard` is published on its own and does not depend on kaal-core, so a Guard release says nothing about Core's.

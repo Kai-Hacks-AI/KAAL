@@ -1,7 +1,7 @@
 {
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "7316c509e83e81d52525372ce1ea54d82892c011e21c72fd4eb37bdfd380df03",
+    "README.md": "fbe6c1ee0a4765dcad4204182db9492892b12abeb24c088872502ff9a3ff2c15",
     "dist/admitted.d.ts": "52ea0be2c29db7fa0cba81d22ab754621d8aa6d6e6350851493dc11ffe6752e3",
     "dist/admitted.js": "7c08d1fd903b40e4945083975f2fd2210573778068c6467eb23ee4f5eb4a5697",
     "dist/agent.d.ts": "edce5bc81865c424780e2f91b38c478771efbc6b4140a93b997c37401a6de6bc",
@@ -39,14 +39,14 @@
     "dist/register.js": "9c4b5d39664a67f37757e7a0bb72ba06b0ac3c13e79b52badbf4c453ed0c51ca",
     "dist/registration.d.ts": "de8b0e2be5578306a7a3980b3761323a73b796c18d6990a5ff278843a62d0ad0",
     "dist/registration.js": "cb922c8bccec92255d94719e8067fdcbc69f82048537af071881d0f882e273d8",
-    "docs/architecture.md": "f322d8f8a70f9b67a6ccde96007f50426b25fc4da3bf696545466a212a84050e",
-    "docs/intent.md": "4b19703bb515fb3ba9215d2940e28a91499a4b33bba1540f86df3490d51a79df",
-    "docs/limitations.md": "72935cde7ba6dd54e4253b05132c172460612bc08b04ea32d4ac549be389aa90",
-    "docs/operations.md": "79ba6b23ce3de160f0f0c3a089db03e9ff6aac840fc2be60e2a7baf2530448f0",
-    "docs/requirements.md": "d9e0c505bd12ded00a0dd60a18f17e31d4e7dae9fdae9ec297650487430a5d0a",
-    "docs/testing.md": "c1ebce597357ee3a55b51dd244206c215621b84b353ed597782e619e19e06bfa",
+    "docs/architecture.md": "978344cece331a21192f3b6046059490d19a91cf6fadd59ae6a462a5637a7bc8",
+    "docs/intent.md": "2e2ff3a9bedd2b4e38daf7adbe593e2f3dc3dbd98ca99486e8877e0c50980301",
+    "docs/limitations.md": "1bee4146d688db9c1852021c8bab33357243245373224f26f5de052ecdfbbb38",
+    "docs/operations.md": "fe829ac4bf6d09ba36cb9834c595f529ad2c7bdab6ec9afe909322fb40bf9beb",
+    "docs/requirements.md": "3c7e34d7204fbcb51a80f113844d7085c31aaf2aa4c106f17b9e02ee3bbf0c94",
+    "docs/testing.md": "6f55e58867b04776ccc5aa26aa2b175fab045a47b3fd22b6d49b74aa920f2c0f",
     "installation.kaal.json": "e9a1cafdd0aa43182f52bf478261afbb3eedfdea4ab6e8e65c3c7b221eb28927",
-    "package.json": "596cf2264b9728491cdecb9098ebaa60d40b22cc970f5dea4c31c2a754cecf1c",
+    "package.json": "78653e6408897ef1c149cb787b9c5b290dd890da50bce1b434a5c3b0754a5114",
     "payload/AGENTS.md": "66cd64c78ccfc874023442db3fcfbace014aee9c5af3aeec93d9271317029d93",
     "payload/KAAL-KERNEL.md": "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc",
     "payload/core/Agent-Realization.md": "983ccaace5f9ff133eb3444e8a134e779029acae6fa0856410e9edb96b97a7d4",
@@ -59,10 +59,12 @@
     "payload/core/KAAL-Skill.md": "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933",
     "payload/core/LOVE.md": "0fbf1235d33dc43f111a506587559068ccafa49fd831aa99852e5c22b80296c4",
     "payload/core/Node.md": "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663",
+    "skills/kaal-core/Core-Skill.md": "d42e04ca482fd58c245274d6b74b39c7b0aeb1e2a906ff12e087d96231e8abfc",
+    "skills/kaal-core/SKILL.md": "9aac6a93a25b7fed1aad8df32e617bb2d172d9256ae1e139c4656d82969c14be",
     "test/embed/architecture.test.mjs": "f7049a6f563d32253630708ef5649cf8f5549574d3f0de3c39647512f2382829",
     "test/embed/code.test.mjs": "23f756b2c63a5cc00d7d0fe6e6564d75ad3459a8b0d85f4cc6fe54f6d98c748b",
     "test/embed/intent.test.mjs": "b0265b9186783613be64b716f1babc3af154a2e563bb4d073f7b6a9a1ab0470a",
-    "test/embed/requirements.test.mjs": "202520884ea45fa4695235efa50487a68033237f09e00f4a8592507a79ef67a6",
+    "test/embed/requirements.test.mjs": "8131576d890e4005f59503699a9f7683e534fb1f01d4925ab278f520af740c90",
     "test/run.mjs": "db74692743ba08c5c787b6f53bde72ec3b12a7e24a94f2ab82f18a9c3686c4f4",
     "test/verify.mjs": "7dc455ef74eed518493b1f48ff299d0614faa374c160b9200bec26a75adbb991"
   },
@@ -121,6 +123,13 @@
         "core/I16",
         "core/I18",
         "core/I24"
+      ]
+    },
+    {
+      "file": "test/embed/requirements.test.mjs",
+      "name": "kaal-core Requirements loop > ships its own Core Skill Node admitted by the unchanged foundation [core/F89]",
+      "tests": [
+        "core/F89"
       ]
     },
     {
