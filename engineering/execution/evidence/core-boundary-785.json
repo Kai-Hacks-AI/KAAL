@@ -1,0 +1,64 @@
+{
+  "source": {
+    "pr": 785,
+    "head": "f27e6f3c80e19e48c44fb755c32fb3fd9f03bb5e",
+    "checkout": "d53797455aaaebdda557cc4cf3ef17fc9c663225",
+    "run": 41306366379,
+    "attempt": 1,
+    "job": 124847468831,
+    "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41306366379/job/124847468831",
+    "jobConclusion": "success",
+    "node": "v24.22.1",
+    "npm": "11.19.1",
+    "runnerImage": "ubuntu-24.04",
+    "runnerImageVersion": "20261025.353.1"
+  },
+  "kind": "selected transcript evidence; not an authoritative Case execution record",
+  "occurrences": [
+    {
+      "ordinal": 1,
+      "startLine": 258,
+      "excerpt": [
+        "2026-11-01T12:25:28.7522472Z ▶ Core's Hosting boundary",
+        "2026-11-01T12:25:28.7523635Z   ✔ permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its other imports are Graph's Node support delivered inside kaal-core, for Node mechanics and for reading frontmatter, and Foundation, for SHA-256 (23.56627ms)",
+        "2026-11-01T12:25:28.7524962Z   ✔ prohibited: a host builtin Core does not declare fails verification, with its location (8.464752ms)",
+        "2026-11-01T12:25:28.7525885Z   ✔ undecidable: host access the inspection cannot decide is reported for validation, never as a pass or a violation (8.057176ms)",
+        "2026-11-01T12:25:28.7526732Z   ✔ takes what a path is from Hosting's kind: no Core source reads it from a refusal or a host error code (0.840951ms)",
+        "2026-11-01T12:25:28.7527454Z   ✔ depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build (0.276131ms)",
+        "2026-11-01T12:25:28.7527948Z ✔ Core's Hosting boundary (42.460376ms)"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "startLine": 555,
+      "excerpt": [
+        "2026-11-01T12:25:28.7671200Z ▶ Core's Hosting boundary",
+        "2026-11-01T12:25:28.7671899Z   ✔ permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its other imports are Graph's Node support delivered inside kaal-core, for Node mechanics and for reading frontmatter, and Foundation, for SHA-256 (11.612874ms)",
+        "2026-11-01T12:25:28.7672608Z   ✔ prohibited: a host builtin Core does not declare fails verification, with its location (6.505019ms)",
+        "2026-11-01T12:25:28.7673071Z   ✔ undecidable: host access the inspection cannot decide is reported for validation, never as a pass or a violation (5.154865ms)",
+        "2026-11-01T12:25:28.7673538Z   ✔ takes what a path is from Hosting's kind: no Core source reads it from a refusal or a host error code (0.494509ms)",
+        "2026-11-01T12:25:28.7673983Z   ✔ depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build (0.179212ms)",
+        "2026-11-01T12:25:28.7674293Z ✔ Core's Hosting boundary (24.760011ms)",
+        "2026-11-01T12:25:28.7674443Z ℹ tests 5",
+        "2026-11-01T12:25:28.7674670Z ℹ suites 1",
+        "2026-11-01T12:25:28.7674782Z ℹ pass 5",
+        "2026-11-01T12:25:28.7674894Z ℹ fail 0",
+        "2026-11-01T12:25:28.7675009Z ℹ cancelled 0",
+        "2026-11-01T12:25:28.7675134Z ℹ skipped 0",
+        "2026-11-01T12:25:28.7675249Z ℹ todo 0",
+        "2026-11-01T12:25:28.7675376Z ℹ duration_ms 75.497137",
+        "2026-11-01T12:25:28.7680299Z kaal-core-execution: {\"candidate\":{\"name\":\"kaal-core\",\"version\":\"0.0.1\",\"manifest\":\"27b2afa6ada74edb5da98b5ce2c7df8e46f39f447ae1a8b17f776c8b90ba5252\"},\"cases\":[{\"file\":\"test/embed/architecture.test.mjs\",\"name\":\"kaal-core Architecture loop > offers each entry point it declares, and each loads [core/F68, core/A19]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/architecture.test.mjs\",\"name\":\"kaal-core Architecture loop > runs without Graph: no runtime dependency on it, and its Node support is delivered inside with provenance [core/F76, core/F77, core/F79]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/code.test.mjs\",\"name\":\"kaal-core Code loop > names the Registration Type, and its schema is a valid frontmatter schema [core/F47]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/code.test.mjs\",\"name\":\"kaal-core Code loop > assembles nothing to an empty result, and the same registrations in any order alike [core/N14, core/F56]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/code.test.mjs\",\"name\":\"kaal-core Code loop > leaves an absent complement unavailable and admits a cycle with no finding [core/F80]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/intent.test.mjs\",\"name\":\"kaal-core Intent loop > bootstraps an Engine that verifies, and leaves an existing one unchanged [core/I9, core/I12]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/intent.test.mjs\",\"name\":\"kaal-core Intent loop > assembles registrations one way, reports what it cannot judge, and needs no Graph [core/I16, core/I18, core/I24]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/requirements.test.mjs\",\"name\":\"kaal-core Requirements loop > admits every Node of the payload, rejects none, and keeps the foundational ids [core/F23, core/F32]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/requirements.test.mjs\",\"name\":\"kaal-core Requirements loop > validates frontmatter against a supplied schema, and the body never changes the result [core/F1, core/F5]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/requirements.test.mjs\",\"name\":\"kaal-core Requirements loop > ships an Installation Contract that conforms, and Core's conformance cases hold on it [core/F11, core/F19]\",\"outcome\":\"passed\"},{\"file\":\"test/embed/requirements.test.mjs\",\"name\":\"kaal-core Requirements loop > finds what a registration gets wrong: unknown kinds with candidates, unresolved targets, traces the rule does not permit [core/F50, core/F52, core/F55]\",\"outcome\":\"passed\"}]}",
+        "2026-11-01T12:25:28.7684244Z kaal-core: verified: kaal-core@0.0.1: 11 declared, 11 executed"
+      ]
+    }
+  ],
+  "qualification": {
+    "fileByteIdentity": "unknown: no loaded-byte receipt",
+    "subjectIdentity": "unknown: checkout identity is not a per-invocation tested artifact binding",
+    "independentExecutionObligation": "Core decision required",
+    "configurationEquivalence": "unknown: preambles/builds and source state not bound",
+    "testingDuplicatesInput": "not constructed from incomplete evidence",
+    "eligibleForSuppression": false
+  },
+  "measuredSavings": null
+}
