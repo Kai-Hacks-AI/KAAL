@@ -33,7 +33,7 @@ if (!object(manifest.files) || !Array.isArray(manifest.cases) || !manifest.cases
 const expected = Object.keys(manifest.files).sort();
 const observed = ['LICENSE', 'README.md', 'package.json', 'test/verify.mjs', 'test/observe.mjs'];
 try {
-  for (const directory of ['capability', 'lib', 'docs', 'test/embed', 'test/fixtures'])
+  for (const directory of ['capability', 'payload', 'skills', 'lib', 'docs', 'test/embed', 'test/fixtures'])
     for (const path of Object.keys(await host.read(join(root, directory))))
       observed.push(directory + '/' + path);
   if (JSON.stringify(observed.sort()) !== JSON.stringify(expected)) causes.push('delivered file inventory differs');

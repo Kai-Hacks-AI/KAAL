@@ -62,3 +62,19 @@ All obligations have `status: 'not-assessed'`. No result is a CI/release gate.
 Graph/owner access failures become unknown findings. Cycles are Graph's
 responsibility; input order does not change the assessment or mutate inputs.
 The public TypeScript declarations specify all transport fields.
+
+## Agent Skill anchor
+
+- **change/A22 [change/F46–change/F48, change/N12]:** Core admits the separate
+  Change Practice Node in `payload/`. The Agent Skill and all its relative
+  resources live under `skills/kaal-change/`. Guidance owns decisions; its example
+  invokes the existing public pure core using controlled Graph data. Existing
+  delivered Cases share that example data through a fixture re-export. No second
+  isolation engine, target loader or automatic trace converter is introduced.
+
+The host chooses discovery and placement. Skill resources may be relocated into
+an operator environment where the installed package and providers resolve. Embed
+registration uses Core's public commands. External operation reads its supplied
+context through authorized interfaces; the controlled example reads no target
+context and changes no target bytes. These are execution/packaging tests, not a
+claim that every agent will follow the written procedure correctly.

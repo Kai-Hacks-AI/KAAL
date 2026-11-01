@@ -1,6 +1,7 @@
 # Limitations
 
-This is the isolated Change prerelease, not the full lifecycle/delivery product.
+Version 0.0.1 delivers Change Practice and supplied-model isolation. The broader
+lifecycle/delivery programme remains outside this version.
 
 - Source completeness and provenance are unestablished. A self-consistent partial
   model cannot prove no omitted repository dependency exists.
@@ -24,3 +25,8 @@ This is the isolated Change prerelease, not the full lifecycle/delivery product.
 
 Engineering retains repository/CI admission. No selective CI, workflow, branch
 protection or release authorization follows from this package.
+
+- The rudimentary Agent Skill is guidance plus a controlled runnable example. It
+  does not acquire a real repository model, generate mocks, execute target tests,
+  or mechanically enforce that an agent follows the workflow. Installed resource,
+  relocation and admission checks are narrower than real-agent effectiveness.

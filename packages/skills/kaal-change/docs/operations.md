@@ -27,3 +27,28 @@ file/Case inventory from npm's actual pack list and an observed successful run.
 `prepack` does the same. `node test/publisher/manifest.mjs --check` checks without
 writing. Publisher/acceptance tests do not ship. No command publishes to npm,
 modifies CI or edits a consumer's application files.
+
+## Using the skill
+
+The 0.0.1 package contains `skills/kaal-change/SKILL.md`, its references and a
+controlled executable example. Configure discovery through the host's normal
+mechanism; copying the whole skill directory preserves its relative resources.
+Keep the installed package and its providers resolvable where the example runs.
+Follow the skill in conversation even when an executable model is unavailable.
+External use keeps that installation in the operator environment, outside the
+managed target; it never requires embedding KAAL into that target.
+
+For an existing Engine in Embed mode, register the Skill contribution with Core's
+public command, substituting the actual installed package and Engine locations:
+
+```sh
+kaal register skill change <installed-package>/payload --engine <engine>
+```
+
+The host chooses the Agent Skill discovery location separately. Registration
+admission alone does not install an agent's instructions or prove workflow use.
+No install-to-target or workflow-writing command is delivered by Change.
+
+Version 0.0.1 covers only this skill anchor and supplied-model isolation. Obtain
+reviewed tarballs from the delivery process until registry publication is
+separately authorized; no publication is implied by the package version.

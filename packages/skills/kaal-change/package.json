@@ -1,7 +1,7 @@
 {
   "name": "@kaihacksai/kaal-change",
-  "version": "0.0.1-isolation.0",
-  "description": "Change-owned semantic isolation, boundary contracts and testing obligations.",
+  "version": "0.0.1",
+  "description": "Change practice skill and model-scoped semantic isolation.",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -17,6 +17,8 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "payload",
+    "skills",
     "capability",
     "lib",
     "docs",
@@ -54,7 +56,8 @@
   },
   "devDependencies": {
     "kaal-testing": "0.0.1",
-    "kaal-core": "0.0.1"
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1"
   },
   "publishConfig": {
     "access": "public"
