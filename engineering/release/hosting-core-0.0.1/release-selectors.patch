@@ -1,0 +1,29 @@
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -92,7 +92,7 @@
+           node-version: 24
+       - run: npm install --global "npm@$NPM_VERSION"
+       - run: npm ci --ignore-scripts
+-      - run: npm run build -w kaal-hosting
++      - run: npm run build --workspace=packages/extensions/kaal-hosting
+       - id: pack
+         name: Pack (engine)
+         env:
+@@ -161,7 +161,7 @@
+           registry-url: https://registry.npmjs.org
+       - run: npm install --global "npm@$NPM_VERSION"
+       - run: npm ci --ignore-scripts
+-      - run: npm run build -w kaal-hosting
++      - run: npm run build --workspace=packages/extensions/kaal-hosting
+       # Pack's two artifacts from this run, by name, each into its own directory. Nothing is packed here.
+       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+         with:
+@@ -201,7 +201,7 @@
+           node-version: 24
+       - run: npm install --global "npm@$NPM_VERSION"
+       - run: npm ci --ignore-scripts
+-      - run: npm run build -w kaal-hosting
++      - run: npm run build --workspace=packages/extensions/kaal-hosting
+       - name: The run to accept is named
+         run: |
+           [[ "$RUN" =~ ^[0-9]+$ ]] || { echo "::error title=Release: cannot judge::no Pack run id to accept (input run)"; exit 2; }
