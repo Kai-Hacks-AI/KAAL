@@ -17,7 +17,7 @@ lifecycle/delivery programme remains outside this version.
 - Delivered charging/provider fixtures demonstrate discrimination in a controlled
   example. They establish no compatibility with actual external services.
 - Verification manifests are unsigned consistency inventories, not publication
-  provenance. Installed verification needs the optional Graph/Hosting providers.
+  provenance. Installed verification needs the declared required Graph/Hosting providers.
 - Architecture inspection reports its exclusions and undecidable constructs;
   clean mechanical findings do not establish semantic responsibility conformance.
 - Testing's acceptance ledger reports physical containment and absence of
@@ -30,3 +30,7 @@ protection or release authorization follows from this package.
   does not acquire a real repository model, generate mocks, execute target tests,
   or mechanically enforce that an agent follows the workflow. Installed resource,
   relocation and admission checks are narrower than real-agent effectiveness.
+
+- Exact Foundation, Graph and Hosting versions must be available before a public
+  registry-only install can succeed. Local-tarball installation evidence is not
+  registry acceptance or a substitute for the release readiness gate.

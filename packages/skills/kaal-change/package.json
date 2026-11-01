@@ -34,25 +34,16 @@
     "test:publisher": "node --test test/publisher/*.test.mjs",
     "manifest": "node test/publisher/manifest.mjs",
     "prepack": "node test/publisher/manifest.mjs",
-    "mutations": "node test/publisher/mutations.mjs"
+    "mutations": "node test/publisher/mutations.mjs",
+    "test:package-only": "node test/publisher/package-only.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "@kaihacksai/kaal-foundation": "0.0.1"
-  },
-  "peerDependencies": {
+    "@kaihacksai/kaal-foundation": "0.0.1",
     "kaal-graph": "0.0.1",
     "kaal-hosting": "0.0.1"
-  },
-  "peerDependenciesMeta": {
-    "kaal-graph": {
-      "optional": true
-    },
-    "kaal-hosting": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "kaal-testing": "0.0.1",

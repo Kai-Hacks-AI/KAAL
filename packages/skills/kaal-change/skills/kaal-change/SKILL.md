@@ -36,6 +36,6 @@ From the installed skill directory, run the contained example with Node 24 or la
 node scripts/example.mjs
 ```
 
-Keep `@kaihacksai/kaal-change` and its Graph/Hosting providers installed and resolvable from that directory. The example calls the public API and prints three labelled controlled-model results: a complete model, an omitted interface and a newly affected external dependent. It reads no target repository and executes no target tests. A successful process exit means the example ran, not that a target is isolated or approved.
+Install `@kaihacksai/kaal-change` in the operator environment and keep it resolvable from that directory. The package declares its Graph/Hosting verification providers as required production dependencies. The example calls the public API and prints three labelled controlled-model results: a complete model, an omitted interface and a newly affected external dependent. It reads no target repository and executes no target tests. A successful process exit means the example ran, not that a target is isolated or approved.
 
 Use `@kaihacksai/kaal-change/isolation` for an actual supplied model, as described in the input guide. No Git-diff converter, generic JSON adapter, mock generator, test runner or CI gate is supplied by this anchor.
