@@ -15,8 +15,10 @@ capability acceptance using Testing's `install()` and caller-packed tarballs in
 a fresh npm host. It uses public exports and installed verification, then proves
 tampered code refuses verification.
 
-`npm test` runs delivered verification. `npm run test:publisher` runs publisher
-architecture/negative checks. `npm run mutations` challenges implementation
+In source, `npm test` runs every declared source suite: `test:embedded` and
+`test:publisher`. Installed `npm test` runs delivered verification only.
+`npm run test:publisher` runs publisher architecture/negative checks separately.
+`npm run mutations` challenges implementation
 variants against the unchanged delivered Cases; it restores the original bytes.
 Acceptance is discovered by the repository's existing three-host lane.
 
@@ -60,3 +62,19 @@ T56 is an explicit publisher integration command, not an extra installation hidd
 inside Testing's acceptance ledger or a shipped consumer command. It does not
 claim a real registry release. Production publication still requires all exact
 dependency versions and the existing release gates.
+
+## Packaging corrections
+
+| Case | Loop | Contract |
+| --- | --- | --- |
+| change/T58 | Architecture, publisher | A failing publisher suite fails source `npm test`; a passing source run executes it once; ambiguous layouts refuse verification. |
+| change/T59 | Architecture, publisher | Installed `npm test` runs only Embedded and preserves its final structured record for exits 0, 1 and 2. |
+| change/T60 | Implementation, publisher | Null, array, empty-object, numeric, string and invalid-JSON inventories report cannot verify/2, a cause and no executed Cases. |
+| change/T61 | Architecture, publisher | Regenerated delivery preserves the explicit authored Case traces and the model's Cases equal the delivered inventory. |
+
+The delivered `model` uses Testing's Case `tests` relationships. The generator
+does not infer traces from annotations or claim all defined identifiers are
+tested. Packaging's F13 assessment requires Testing's public model functions;
+the installed verifier itself needs no Testing runtime dependency. Validation
+using capability collectors is benchmark evidence, not an active main gate or
+proof of registry installation. Keep the ordinary release prerequisites intact.

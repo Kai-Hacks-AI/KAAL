@@ -51,6 +51,28 @@ The host chooses the Agent Skill discovery location separately. Registration
 admission alone does not install an agent's instructions or prove workflow use.
 No install-to-target or workflow-writing command is delivered by Change.
 
+## Source Test Plan and model maintenance
+
+From the complete source checkout, `npm test` delegates to `test:all`, which runs
+`test:embedded` and `test:publisher`; future declared `test:*` suites also run.
+The aggregate `test:all` excludes itself. The other exception is
+`test:package-only`, an explicit integration probe requiring its two documented
+caller arguments. It uses already packed artifacts, so the source entry neither
+re-packs nor invents artifact inputs. `mutations` remains an explicit challenge.
+Installed `npm test` runs only `test:embedded`, preserving the verification
+record as its last line. An ambiguous layout is refused rather than tested
+partially. Run through npm so its CLI is available to the Hosting-based runner.
+The source `pretest:publisher` runs Core's own build for its declared development
+dependency, so publisher checks do not depend on another workspace running first.
+Installed Embedded verification invokes no development build.
+
+Maintain authored Case-to-Target relationships in the source-only
+`test/publisher/model.json`, using Testing's model contract. `npm run manifest`
+copies that model into `test/verify.json` and checks its Case membership against
+the observed delivered Cases. Model semantics and target resolution are checked
+externally through Testing and Packaging; a successful installed verification
+alone is not a claim that those external checks ran.
+
 Version 0.0.1 covers only this skill anchor and supplied-model isolation. Obtain
 reviewed tarballs from the delivery process until registry publication is
 separately authorized; no publication is implied by the package version.
