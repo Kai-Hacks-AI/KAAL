@@ -13,7 +13,13 @@ for (const path of paths) files[path] = sha256(await readFile(join(root, path)))
 const run = await observe([join(root, 'test/embed/isolation.test.mjs'), join(root, 'test/embed/skill.test.mjs')]);
 if (!run.cases.length || run.cases.some(c => c.outcome !== 'pass') || new Set(run.cases.map(c => c.name)).size !== run.cases.length)
   throw new Error('Cannot create a verification manifest from incomplete/failing Cases: ' + JSON.stringify(run));
-const bytes = Buffer.from(JSON.stringify({ files, cases: run.cases.map(c => c.name).sort() }, null, 2) + '\n');
+// Explicit authored Case —tests→ Target traces in Testing's model; never infer coverage
+// from annotations or add targets merely to make every identifier appear tested.
+const model = JSON.parse(await readFile(join(root, 'test/publisher/model.json')));
+const cases = run.cases.map(c => c.name).sort();
+if (JSON.stringify(model.cases.map(c => c.id).sort()) !== JSON.stringify(cases))
+  throw new Error('Authored Testing model Cases differ from the observed delivered Cases');
+const bytes = Buffer.from(JSON.stringify({ files, cases, model }, null, 2) + '\n');
 const path = 'test/verify.json', at = join(root, path);
 const old = await kind(at) === 'file' ? await readFile(at) : undefined;
 if (process.argv.includes('--check')) {

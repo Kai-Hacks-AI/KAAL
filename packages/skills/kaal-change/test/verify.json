@@ -5,15 +5,15 @@
     "capability/Change-Definition.md": "40892558bd6bffc1f1db8f16aa1cb90707b7bf82cdc28f54e0f664a32acc1a64",
     "capability/Change-Isolation.md": "082dd7e26a04079c86a0a4934cb8cd3e83382757563cebbf0a49ef0aba3503f1",
     "capability/Change.md": "2204f5ed5aa675fdbae1047afeb522f17d1c934c9d86f791165e308fd4d55a0b",
-    "docs/architecture.md": "89f6ca5760c9a6beb41a2a1cfed14558d26093d723e17e3f47d6818aa8a654b5",
-    "docs/intent.md": "efdd6f8fd077a5bb97d52c632cb04cf34103dbdeae31fd5d9f58d146f9eb92ca",
+    "docs/architecture.md": "228b09b6b773655a06f4875cac115420f4c4f577b43e99841f70d26cff5716fe",
+    "docs/intent.md": "88e91a11dff954a59e66964e17859219e85473434d4a48a0c60828bf8395a1fd",
     "docs/limitations.md": "e4d0ec85b1b9cea367d1ce4de7e2571da1e21fd8bd5410cf7608fd7feaaa95fb",
-    "docs/operations.md": "424a5e82d64a5d10004056843fc0b6f4dd96f9c29e167506078cd59d17ec2ea6",
-    "docs/requirements.md": "4daf48b764a5643688dc0de690f6d2b9986a20ccffaf3900b12568edb8409d99",
-    "docs/testing.md": "75ecd5d5ff33507cbab28674d594975c77c88c88bbcaeb5be2620a4df777d2f4",
+    "docs/operations.md": "15e223a01916cd97ca832ea26c106cb0406f8e13ee1a7c33173f3321a7aa7abe",
+    "docs/requirements.md": "65688e509f54b43a53a86cba94f567f053160846e2c927c619b11b8b7149207d",
+    "docs/testing.md": "724d2ff1b0413370fe0fa2fe707affbcb18f2461d96289a6a3d01201a70a6e3b",
     "lib/isolation.d.ts": "bfe2ae91a8a493d24b84269776afc4b29bbcd464cc2db200eb7ecb164093f97f",
     "lib/isolation.mjs": "887ad3048cddd8fad382a378e65e18269f1eaeab29dc47547ea604f8152034c8",
-    "package.json": "571f198460877772306ee6eff39e7c87c6b70a35fb41ba52808575e95f8a426e",
+    "package.json": "27112f4ec9bc61e1d51e674921d5e27f32bf18d35f4df898f5d7a7ef3ce5e215",
     "payload/Change-Practice.md": "2089584d0aee5dc9835273b0c17f019895775d055f31c16d373d45f722e91123",
     "skills/kaal-change/SKILL.md": "c5430ec03dbc46fd93b9fe95410e3985f3f9ed627f200980814c49e5a7ed6d48",
     "skills/kaal-change/references/isolation.md": "a088caf1f7ec5ead2ffd1a3057e93a1bece72a4462445770fd8866ac956293f0",
@@ -24,7 +24,8 @@
     "test/embed/skill.test.mjs": "e37bd774dc7db53d4c35e00a38da2c52ce50876d78016b70ec77933dcdb977ab",
     "test/fixtures/model.mjs": "54018177664af5609e7e5f88ebb9e71e5ebc085f65c0ad9707478e49871e0624",
     "test/observe.mjs": "d6a2194480f2dcdb79157a9c52a56d6eb08330fca612ab62e83188af77e065a1",
-    "test/verify.mjs": "040e77249d024c28b90ae4d93d5cd88cf8afc4e34e6c63736b42bc7d63528aaf"
+    "test/run.mjs": "4e28df97a4a62da0ea3eb9e78afe44f9128030636d07b43ebce8fa566cbb2867",
+    "test/verify.mjs": "42d742a60add393c24fdcfa900cbb44e7d8fa5c0cebc19c9eb5f02ca025b9982"
   },
   "cases": [
     "change/T41",
@@ -36,5 +37,67 @@
     "change/T47",
     "change/T49",
     "change/T51"
-  ]
+  ],
+  "model": {
+    "cases": [
+      {
+        "id": "change/T41",
+        "tests": [
+          "change/F38"
+        ]
+      },
+      {
+        "id": "change/T42",
+        "tests": [
+          "change/F39"
+        ]
+      },
+      {
+        "id": "change/T43",
+        "tests": [
+          "change/F39",
+          "change/F43"
+        ]
+      },
+      {
+        "id": "change/T44",
+        "tests": [
+          "change/F40"
+        ]
+      },
+      {
+        "id": "change/T45",
+        "tests": [
+          "change/F41"
+        ]
+      },
+      {
+        "id": "change/T46",
+        "tests": [
+          "change/F42"
+        ]
+      },
+      {
+        "id": "change/T47",
+        "tests": [
+          "change/F43",
+          "change/F44"
+        ]
+      },
+      {
+        "id": "change/T49",
+        "tests": [
+          "change/F44",
+          "change/N10"
+        ]
+      },
+      {
+        "id": "change/T51",
+        "tests": [
+          "change/F46",
+          "change/F47"
+        ]
+      }
+    ]
+  }
 }

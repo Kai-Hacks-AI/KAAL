@@ -18,3 +18,6 @@ These concerns support iterative RED/GREEN/refactoring, not a waterfall.
 
 - **change/I23:** Make the ordinary production package installation sufficient
   for its complete delivered verification, without hidden provider setup.
+
+- **change/I24:** Make the narrow package's source tests, delivered evidence and
+  verification failures usable by the existing Packaging and release contracts.

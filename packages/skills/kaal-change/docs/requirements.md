@@ -60,3 +60,18 @@
   required Case inventory to compensate for an unavailable provider. The pure
   isolation module still imports only Foundation and consumes a caller-supplied
   Graph view. Required package dependencies do not confer source authority.
+
+- **change/F50 [change/I24]:** Source `npm test`, through `test:all`, runs every
+  declared source suite, including Embedded and publisher checks. The explicitly
+  contextual `test:package-only` probe takes caller-packed artifacts separately.
+  Installed `npm test` runs only Embedded verification and preserves its final
+  record and exit status. Refuse ambiguous source/installed layouts.
+- **change/F51 [change/I24]:** Ship the explicit authored Case-to-Target traces
+  as Testing's `model` in `test/verify.json` (testing/F24–F25, testing/F64).
+  Its Cases equal the delivered Cases; targets are defined in shipped documents.
+  Preserve the authored traces when regenerating the inventory. Testing and
+  Packaging decide model conformance; Change defines no coverage registry or
+  rule that every identifier must be tested (packaging/F13, testing/F66).
+- **change/F52 [change/I24]:** Unreadable, invalid JSON or malformed verification
+  inventories, including JSON `null`, report `cannot verify`/2 with a cause and
+  the final structured verification record, before any Case is run.

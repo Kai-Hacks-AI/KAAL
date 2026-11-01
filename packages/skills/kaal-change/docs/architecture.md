@@ -87,3 +87,15 @@ claim that every agent will follow the written procedure correctly.
   resolves them during installation; the verifier only observes the installed
   files and Cases. This corrects installation metadata, not Graph mechanics or
   the evaluator's trust/execution qualifications.
+
+## Package test entry and traces
+
+- **change/A24 [change/F50–change/F52]:** A delivered Hosting-based runner
+  distinguishes source from installation by the module's resolved location and
+  source-only markers, following Foundation's established layout convention.
+  Source runs the named suites; installed use delegates only to Embedded, so its
+  result remains the final record. Missing Hosting is itself cannot verify.
+  The inventory generator copies explicit authored Testing-model data from the
+  publisher sources; it checks observed Case membership without deriving traces
+  from source annotations or implementing Testing's model semantics. External
+  conformance uses Testing's `check` and `tested`, supplied to Packaging.

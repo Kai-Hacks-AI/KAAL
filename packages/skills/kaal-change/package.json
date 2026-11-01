@@ -26,10 +26,12 @@
     "test/fixtures",
     "test/verify.mjs",
     "test/verify.json",
+    "test/run.mjs",
     "test/observe.mjs"
   ],
   "scripts": {
-    "test": "npm run test:embedded",
+    "test": "npm run test:all",
+    "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
     "test:publisher": "node --test test/publisher/*.test.mjs",
     "manifest": "node test/publisher/manifest.mjs",

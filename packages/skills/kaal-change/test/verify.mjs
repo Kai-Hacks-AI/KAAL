@@ -25,13 +25,13 @@ try {
   manifest = JSON.parse(bytes.toString('utf8'));
 } catch (e) { causes.push('verification inventory unavailable: ' + (e.code ?? e.message)); finish('cannot verify'); }
 const object = x => x !== null && typeof x === 'object' && !Array.isArray(x);
-if (!object(manifest.files) || !Array.isArray(manifest.cases) || !manifest.cases.length ||
+if (!object(manifest) || !object(manifest.files) || !Array.isArray(manifest.cases) || !manifest.cases.length ||
     !manifest.cases.every(c => typeof c === 'string' && c) ||
     new Set(manifest.cases).size !== manifest.cases.length) {
   causes.push('malformed verification inventory'); finish('cannot verify');
 }
 const expected = Object.keys(manifest.files).sort();
-const observed = ['LICENSE', 'README.md', 'package.json', 'test/verify.mjs', 'test/observe.mjs'];
+const observed = ['LICENSE', 'README.md', 'package.json', 'test/verify.mjs', 'test/run.mjs', 'test/observe.mjs'];
 try {
   for (const directory of ['capability', 'payload', 'skills', 'lib', 'docs', 'test/embed', 'test/fixtures'])
     for (const path of Object.keys(await host.read(join(root, directory))))

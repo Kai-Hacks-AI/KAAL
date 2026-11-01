@@ -1,0 +1,197 @@
+{
+  "scope": "controlled local artifact transport and unpromoted Packaging/Testing benchmark; not registry qualification",
+  "sourceBase": "01b5528848bb3b59c031bbfcc03f6a88ad7feff2",
+  "tools": {
+    "node": "v24.22.1",
+    "npm": "11.9.0",
+    "packaging": "1c743dbd496d652c8343d2a4c0cb8a9a4950b755",
+    "testing": "79524490a219b9f622052047d891f2bd30e631b6"
+  },
+  "artifacts": {
+    "@kaihacksai/kaal-change": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaihacksai-kaal-change-0.0.1.tgz",
+      "sha256": "881fe853b4915db488f53b0634d61838bdb7425fc6d92c8794d144f2a2b534fe",
+      "integrity": "sha512-mUpyA5Ingbb1APAVQqyHh16ldWEfB91TU2InW08nsoasgT1HZTLAdzTHS6N2l+LukUgySUm0SlAKyyDHymKJuQ=="
+    },
+    "@kaihacksai/kaal-foundation": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaihacksai-kaal-foundation-0.0.1.tgz",
+      "sha256": "36be7a4d6e176a00ccf9d50e127261b481c4feb2661a0da35933fb2b2ed35ed0",
+      "integrity": "sha512-33JVLAAXra5SxXq8w5A5Rg5ZaOSOKfPv2EnSg4MywL7nLpPXQcNrQUuKEsCQSn7s1cI6Hq/QC9+dT81cfrHyMQ=="
+    },
+    "kaal-core": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaal-core-0.0.1.tgz",
+      "sha256": "fcd2663d756e9afd963ee2c89005656f66c4029dcb57875e4c16167dbaca4a3a",
+      "integrity": "sha512-ru7F81IGDoiCIumfyTEsvYWgZnbfXLSMjj4McgXq+UQGQZKQRgkOU4V+WkYu37aRgGZSW8Ae7QgBZp9jVY6IdQ=="
+    },
+    "kaal-engineer-skill": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaal-engineer-skill-0.0.1.tgz",
+      "sha256": "7e94075eacddee0c6a7e650ac627a121988b5cfebc4cd71c74deaaab8e95113d",
+      "integrity": "sha512-6LE00R5jcOyNxXJ5S9kqfNhX41DUwHAwA9QFz2cAXu1NW6TPj/1HTZCi7JCATxbCdHCefccl1LgmEXjYpd8cew=="
+    },
+    "kaal-graph": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaal-graph-0.0.1.tgz",
+      "sha256": "56186c6df83bbeb57862aaca883f6194173cf37674e9f83f0f2dcf77f064f7f5",
+      "integrity": "sha512-PslcoAbQJRxDaLu1zGZdmUBXG9JN2VL47jUFhvbyEYcA7jHRmn+gZUM/tOAe7jvEPK6CST4Heh8g4ua+MJPrOQ=="
+    },
+    "kaal-hosting": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaal-hosting-0.0.1.tgz",
+      "sha256": "4b66b40696e2f86cca94c2fcd9dc3f959588d3c7d057eebcea62a0b7d04dc6ef",
+      "integrity": "sha512-qyT2lJuBZp85Zcrx3XyQHwSyGK8snRssDvRP4fof6HFurYtzIb2eJpn5K5GWR/LtkXHb5guAc1+edPTAgkyyog=="
+    },
+    "kaal-testing": {
+      "tarball": "/tmp/kaal-acceptance-1793569190466-6629/packages/kaal-testing-0.0.1.tgz",
+      "sha256": "572015c862988c56822e5d57a6244feeb16059ed625ffe298857d54345da4926",
+      "integrity": "sha512-Do1YRlcS9cJTeqwiLpfQxTZHjIDWtrHejjMuHQcuPLBDNJseIgZfSzt/zpO8h2l7j5aRu7e6dZNwwP6vudkQCw=="
+    }
+  },
+  "deliveredFilesEqualSource": 27,
+  "rootLockSha256": "eb11005865c3ba03aca8d8489857df352993a0c25afed18a0d2ba57d2ad6debd",
+  "installed": {
+    "package": {
+      "name": "@kaihacksai/kaal-change",
+      "version": "0.0.1",
+      "location": "/tmp/change-corrections-package-only-final/node_modules/@kaihacksai/kaal-change"
+    },
+    "result": "failed",
+    "findings": [
+      {
+        "requirement": "packaging/F7",
+        "result": "failed",
+        "cause": "@kaihacksai/kaal-foundation resolved from \"file:../kaal-acceptance-1793569190466-6629/packages/kaihacksai-kaal-foundation-0.0.1.tgz\", not from a registry; kaal-graph resolved from \"file:../kaal-acceptance-1793569190466-6629/packages/kaal-graph-0.0.1.tgz\", not from a registry; kaal-hosting resolved from \"file:../kaal-acceptance-1793569190466-6629/packages/kaal-hosting-0.0.1.tgz\", not from a registry"
+      },
+      {
+        "requirement": "packaging/F8",
+        "result": "verified",
+        "cause": "6 documents shipped; the README links docs/operations.md"
+      },
+      {
+        "requirement": "packaging/F9",
+        "result": "verified",
+        "cause": "the installed npm test ran against the installed copy and reported verified"
+      },
+      {
+        "requirement": "packaging/F10",
+        "result": "verified",
+        "cause": "verified, exit 0"
+      },
+      {
+        "requirement": "packaging/F11",
+        "result": "verified",
+        "cause": "26 files match the manifest, and each of the 9 declared cases ran exactly once"
+      },
+      {
+        "requirement": "packaging/F12",
+        "result": "verified",
+        "cause": "node >=24, with no os or cpu restriction: which hosts it runs on is Hosting's (hosting/F39)"
+      },
+      {
+        "requirement": "packaging/F13",
+        "result": "verified",
+        "cause": "its 9 delivered cases are its model's Cases, and they test 10 of the 45 identifiers its documents define; which are evidenced is Testing's to derive from these traces and the latest applicable Run (testing/F40)"
+      },
+      {
+        "requirement": "packaging/N7",
+        "result": "verified",
+        "cause": "the consumer is unchanged"
+      },
+      {
+        "requirement": "packaging/N8",
+        "result": "verified",
+        "cause": "every shipped module imports only Node's modules, the package and its declared dependencies"
+      },
+      {
+        "requirement": "packaging/N9",
+        "result": "verified",
+        "cause": "with its 3 shipped modules broken, its verification no longer reports verified (cannot verify): it depends on their behaviour. Whether its assertions are adequate is its owner's to show"
+      }
+    ],
+    "reported": {
+      "result": "verified",
+      "exit": 0,
+      "causes": []
+    }
+  },
+  "sourcePlan": {
+    "requirement": "packaging/F14",
+    "result": "verified",
+    "cause": "the source npm test runs test:all of the declared test:all, test:embedded, test:publisher, test:package-only, and reported verified"
+  },
+  "challenges": [
+    {
+      "challenge": "omitted Case",
+      "finding": {
+        "requirement": "packaging/F13",
+        "result": "failed",
+        "cause": "delivered cases are not Cases of its model: change/T51"
+      }
+    },
+    {
+      "challenge": "undefined Target",
+      "finding": {
+        "requirement": "packaging/F13",
+        "result": "failed",
+        "cause": "Cases test identifiers its documents do not define: change/F999 (by change/T41)"
+      }
+    }
+  ],
+  "negatives": [
+    {
+      "challenge": "null inventory",
+      "status": 2,
+      "record": {
+        "result": "cannot verify",
+        "exit": 2,
+        "cases": [],
+        "causes": [
+          "malformed verification inventory"
+        ],
+        "provenance": {
+          "package": "@kaihacksai/kaal-change",
+          "version": "0.0.1",
+          "location": "/tmp/change-corrections-benchmark-ChxqcK/null-inventory/node_modules/@kaihacksai/kaal-change/",
+          "manifestSha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+        }
+      }
+    },
+    {
+      "challenge": "missing Hosting",
+      "status": 2,
+      "record": {
+        "result": "cannot verify",
+        "exit": 2,
+        "cases": [],
+        "causes": [
+          "verification provider unavailable: ERR_MODULE_NOT_FOUND"
+        ]
+      }
+    }
+  ],
+  "assurance": {
+    "sourceEmbedded": 9,
+    "sourcePublisher": 10,
+    "engineering": 241,
+    "acceptance": 38,
+    "skipped": 0,
+    "todo": 0,
+    "acceptanceLimits": [
+      "physical host containment unknown",
+      "absence of unrecorded installations unknown"
+    ],
+    "packageOnly": {
+      "requested": [
+        "@kaihacksai/kaal-change"
+      ],
+      "initiallyEmptyCache": true,
+      "omitDev": true,
+      "verification": {
+        "result": "verified",
+        "cases": 9
+      }
+    },
+    "limits": [
+      "file overrides do not establish registry availability",
+      "Packaging and Testing collector benchmarks are not active main gates",
+      "no npm publication or release artifact provenance claimed"
+    ]
+  }
+}
