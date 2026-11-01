@@ -8,8 +8,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { read, type Files } from "kaal-hosting";
-import { EXCLUSIONS, inspect, type Expectation, type Validation } from "kaal-hosting/conformance";
+import { read, type Files } from "@kaihacksai/kaal-hosting";
+import { EXCLUSIONS, inspect, type Expectation, type Validation } from "@kaihacksai/kaal-hosting/conformance";
 
 /**
  * The host modules Core may import directly: the path and URL handling with
@@ -46,7 +46,7 @@ describe("Core's Hosting boundary", () => {
     assert.ok(Object.keys(files).length >= 7);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["kaal-graph", "kaal-graph/form", "kaal-hosting"]);
+    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["@kaihacksai/kaal-hosting", "kaal-graph", "kaal-graph/form"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);
@@ -85,6 +85,6 @@ describe("Core's Hosting boundary", () => {
 
   it("depends at runtime on kaal-graph and kaal-hosting alone", () => {
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "kaal-graph": "0.0.1", "kaal-hosting": "0.0.1" });
+    assert.deepEqual(pkg.dependencies, { "kaal-graph": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1" });
   });
 });
