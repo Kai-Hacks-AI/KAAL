@@ -181,3 +181,9 @@ The caller holds the history, oldest first: `{ platform, cases: [{ name, sha256,
 `candidates` returns `{ result, candidates, refactors, unprofiled, findings }`. Despite its name, `refactors` contains only file-version timing comparisons (`pending`, `faster`, `not faster`); it never claims a Case was refactored. A comparison needs profiled samples for both versions.
 
 `refactored` reads two `{ id, version, tests, verdicts }` records. Targets must stay the same, and every earlier subject must keep its RED (`fail`) or GREEN (`pass`) verdict; the earlier evidence must show both. Its result is `kept`, `changed` or `unknown`, independent of timing. The caller associates both pieces of evidence by Case id and exact version pair, keeping the timing platform. A faster Case can have weakened discrimination; an unchanged behaviour can be no faster. Missing preservation evidence remains not assessed. Testing stores nothing, reads no clock and changes no run verdict.
+
+## No duplicate runs
+
+`kaal-testing/duplicates` exports `duplicates(execution)` and `schedule(requests)`. The former challenges repeated Cases with the same file bytes, subject, platform and Node, naming their re-runners and time beyond one run. The latter plans one run per distinct file and conditions, with a read for every requester. Malformed evidence is unknown; malformed requests plan nothing. These are pure functions: they run nothing, choose no result and keep no history.
+
+The caller supplies one execution at a time, observes nested runs and binds readers to that execution's original observation, including failure or uncertainty. Independent required executions stay separate, even with identical subjects and conditions. A schedule is neither observed evidence nor permission to reuse a result across processes. Engineering must integrate the API before it can reduce lane execution time.

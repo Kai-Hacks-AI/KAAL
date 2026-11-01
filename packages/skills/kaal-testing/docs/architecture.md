@@ -69,6 +69,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
     | `./boundary` | PLAN boundary integrity: interpreting a realization's verdict on one concern owner's declaration | no |
     | `./attribution` | CASE-owned file attribution | no |
     | `./contracts` | contract evidence of a capability's mapping | no |
+    | `./duplicates` | duplicate-execution evidence and one-run-per-file planning | no |
     | `./coverage` | execution and evidence of a capability's own tests | no |
     | `./inventory` | non-blank text lines of the listed files | no |
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | no |
@@ -221,3 +222,11 @@ A Case's recorded version is a conservative proxy: the SHA-256 of the entire fil
 The caller associates the two pieces of evidence by `case` = `id`, `from` = `before.version` and `to` = `after.version`, keeping the timing platform. It presents `shown` and the behavioural check's `result` side by side, without merging them into a success verdict. If that Case and version pair has no behavioural check, preservation is not assessed. No matching check is inferred from another Case in the same file.
 
 For example, a new version can be `faster` while a formerly RED mutant turns GREEN: the timing is `faster`, the behavioural check is `changed`, and the redesign has not preserved its discrimination. A faster version with no earlier RED/GREEN evidence is `unknown` for preservation. Conversely, a `kept` check may accompany `not faster`. T112 and T114 discriminate these claims separately.
+
+## No Duplicate Runs
+
+- **testing/A27** [testing/F89–testing/F92, testing/N19]: `@kaihacksai/kaal-testing/duplicates` is one module, `lib/duplicates.mjs`, exported as `./duplicates`. It imports nothing and exports `duplicates(execution)` and `schedule(requests)`. It is independent of timing and redesign. Both APIs consume caller-supplied facts; neither runs, authenticates, retains or changes observations.
+
+Engineering owns the execution boundary, recording nested runs and wiring requests to their observations. One call plans one execution only. Separate required executions, including independent assurance contexts with the same subject and conditions, require separate calls; no cache or deduplication crosses them. Within an execution each reader receives that run's own failure or uncertainty unchanged. Sharing a run does not authorize reuse across processes or manufacture provenance.
+
+The identity includes exact file path, file bytes, subject digest, platform and Node; duplicate evidence also includes Case. Full identity breaks ordering ties so output is deterministic even when visible challenge fields match.
