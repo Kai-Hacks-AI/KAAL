@@ -92,7 +92,7 @@ const EXPECTED_TARBALL = [
 // Commands run through Hosting, which owns how the host realizes them.
 async function run(cmd, args, cwd) {
   const r = await execute(cmd, args, { cwd, env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" } });
-  assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stderr}`);
+  assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stdout}${r.stderr}`);
   return r.stdout;
 }
 
