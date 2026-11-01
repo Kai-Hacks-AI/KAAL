@@ -12,7 +12,7 @@ import { KaalError } from "./node.js";
 import { payload } from "./payload.js";
 import { record as RECORD } from "./realization.js";
 import { readRecord } from "./records.js";
-import { sha256 } from "./sha256.js";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 /** The Engine directory Core's contract installs into, relative to the repository root. */
 export const ENGINE = ".kaal";

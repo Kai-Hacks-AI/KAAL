@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
-import { Graph } from "kaal-graph";
+import { Admitted } from "./admitted.js";
 import { readFile } from "@kaihacksai/kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
@@ -55,6 +55,15 @@ async function main(argv: string[]): Promise<number> {
       for (const p of v.problems) console.error(p);
       if (v.ok) console.log(`ok: ${v.engine.nodes.length} Nodes admitted`);
       for (const a of v.engine.artifacts) console.log(`${a.path}\t${a.type}\t${a.state}${a.findings.length ? `\t${a.findings.map((f) => f.rule).join("; ")}` : ""}`);
+      if (v.registrations) {
+        // The assembled registrations beside the Nodes and artifacts (core/F56): reports, never failures.
+        const r = v.registrations.assembly;
+        for (const c of r.scopes) console.log(`scope\t${c.scope}\t${c.holder}`);
+        console.log(`registration\t${r.kinds.length} kinds, ${r.instances.length} instances, ${r.findings.length} findings`);
+        for (const u of r.untraced) console.log(`untraced\t${u.scope}\t${u.id}`);
+        for (const t of r.terms) console.log(`term\t${t.term}\tunaligned\t${t.kinds.map((k) => `${k.scope} (${k.owner})`).join(", ")}`);
+        console.log(r.cycles === null ? "cycles\tunavailable: Graph's analysis is not present" : `cycles\t${r.cycles.length}`);
+      }
       return v.ok ? 0 : 1;
     }
     case "list": {
@@ -68,7 +77,7 @@ async function main(argv: string[]): Promise<number> {
     case "resolve": {
       const [name, id] = rest;
       if (!name) break;
-      const admitted = new Graph((await loadEngine(engine)).nodes);
+      const admitted = new Admitted((await loadEngine(engine)).nodes);
       const found = (id ? [{ name, id }] : admitted.named(name)).flatMap((ref) => admitted.resolve(ref) ?? []);
       if (found.length === 0) throw new KaalError(id ? `no admitted Node is ${name} (${id})` : `no admitted Node is named ${name}`);
       for (const n of found) console.log(`${n.id}\t${n.name}\t${n.type ? `${n.type.name} ${n.type.id}` : "-"}\t${n.paths.join(",")}`);

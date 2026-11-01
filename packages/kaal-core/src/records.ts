@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { kind, readFile } from "@kaihacksai/kaal-hosting";
 import { checkRecord, type InstallationRecord } from "./installation.js";
 import { KaalError } from "./node.js";
-import { sha256 } from "./sha256.js";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 /** Findings as one line each. */
 export const describe = (findings: { key: string | null; rule: string }[]) => findings.map((f) => `${f.key ?? "(document)"}: ${f.rule}`).join("; ");
