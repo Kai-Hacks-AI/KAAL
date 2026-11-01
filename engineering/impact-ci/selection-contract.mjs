@@ -10,7 +10,7 @@ const result = (errors) => ({ verdict: errors.length ? 'failed' : 'passed',
 export function judgeSelection(expected, manifest) {
   const full = expected?.schema === FULL_SCHEMA;
   const fields = ['headSha', 'baseSha', 'policyDigest', 'event', 'baseRef',
-    ...(full ? ['matrixDigest', 'contextDigest'] : ['impactDigest'])];
+    ...(full ? ['matrixDigest', 'contextDigest', 'policyId', 'policyVersion', 'profileId'] : ['impactDigest'])];
   if (!expected || expected.authoritative !== true || expected.resolved !== true ||
       !fields.every((f) => valid(expected[f])) ||
       !['inventory', 'required', 'nonImpact'].every((f) => Array.isArray(expected[f])) ||

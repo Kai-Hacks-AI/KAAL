@@ -25,8 +25,13 @@ export async function authorityFromGit(root, context) {
   for (const key of ['headSha', 'governanceSha'])
     if ((await git(root, ['rev-parse', '--verify', `${context[key]}^{commit}`])).trim() !== context[key])
       throw new Error(`unknown ${key}`);
-  const proof = (await git(root, ['show', '-s', '--format=%T%n%P', context.testedSha])).trim().split('\n');
-  if (proof[0] !== context.testedTreeSha || JSON.stringify(proof[1]?.split(' ') ?? []) !== JSON.stringify(context.parents))
+  // Pretty-printed %P follows Git's shallow boundary and can hide real parents.
+  // The commit object's headers retain their exact IDs even without the objects.
+  const headers = (await git(root, ['cat-file', 'commit', context.testedSha])).split('\n\n')[0].split('\n');
+  const trees = headers.filter(line => line.startsWith('tree ')).map(line => line.slice(5));
+  const parents = headers.filter(line => line.startsWith('parent ')).map(line => line.slice(7));
+  if (trees.length !== 1 || trees[0] !== context.testedTreeSha || !sha(trees[0]) ||
+      parents.some(parent => !sha(parent)) || JSON.stringify(parents) !== JSON.stringify(context.parents))
     throw new Error('tested tree/parent proof differs from trusted context');
   return establishFullMatrix(context, await readTargetSnapshot(root, context.baseSha));
 }

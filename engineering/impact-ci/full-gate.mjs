@@ -33,6 +33,7 @@ export function judgeFullMatrix(authority, manifest, evidence, current, now) {
     return { verdict: 'unresolved', stage: 'authority', errors: [e.message] };
   }
   const out = (verdict, stage, errors, more = {}) => ({ verdict, stage, gate: expected.gate,
+    policy: expected.policy, policyDigest: expected.policyDigest,
     contextDigest: expected.contextDigest, errors: [...new Set(errors)].sort(), ...more });
   let currentDigest;
   try { currentDigest = digest(current); } catch { currentDigest = null; }

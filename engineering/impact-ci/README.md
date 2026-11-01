@@ -34,8 +34,31 @@ replace the execution judge with a passing function.
 context and exact target source bytes. `full-matrix-anchors.json` pins all ten
 workflow definitions and nine Guard declarations at the accepted main baseline.
 Unexpected, missing or modified source paths fail policy reconciliation. The
-expanded event matrix is coded independently of observed jobs: 17 required
-instances per ordinary PR, 18 for kaal/guard, 14 for main push. CodeQL's separate
+required inventories are independent of observed jobs. Two separately versioned
+policy documents own their own applicability and complete check/OS inventories:
+
+| Policy | Explicit profile | Target/event | Required instances |
+| --- | --- | --- | --- |
+| `policies/main.json`, `kaal-main` 1.0.0 | main-pr | PR into main | 17 |
+| `policies/main.json`, `kaal-main` 1.0.0 | main-push | Push to main | 14 |
+| `policies/lineage.json`, `kaal-lineage` 1.0.0 | lineage-pr | PR into a single-segment kaal/* collector other than kaal/guard | 17 |
+| `policies/lineage.json`, `kaal-lineage` 1.0.0 | lineage-guard-pr | PR into kaal/guard | 18 |
+
+Neither policy is constructed from the other. Guard's profile explicitly lists
+its full required population. `workflow-definitions.mjs` provides shared producer
+and job definitions; it decides no gate applicability or required membership.
+`assurance-policy.mjs` reconciles each selected policy's explicit references
+against that catalog, rejects unknown check/OS/event references and overlapping
+applicability, and never imports another gate's inventory as a default.
+
+Authority and manifests bind policy ID, version, profile and selected-policy
+digest. The digest includes the selected policy, not the policy set, so a
+version/inventory/applicability Change to Main does not implicitly change Lineage
+or vice versa. Tests exercise both directions and compare every untouched
+profile, its required inventory, digests and independent controls. Changes to
+shared definitions and source anchors still need their own reviewed governance.
+
+All presently reviewed obligations are preserved. CodeQL's separate
 finding-based code-scanning rule remains necessary even when analysis jobs pass.
 Release/manual/scheduled work remains independent of these event matrices.
 
@@ -59,6 +82,8 @@ Public call sequence:
    `establishFullMatrix(context, snapshot)` consumes independently read bytes.
    An opaque handle or a matching digest is not authentication of the input
    transport. Current provider facts must still come from a trusted observer.
+   Git parent/tree proof comes from commit-object headers, which preserve the
+   parents in a depth-one checkout; history-display output is not that proof.
 3. `fullManifest(authority)` gives the expected full schema. Compare a proposed
    manifest against this independently established authority; observations may
    never determine the expected population. Full mode uses `matrixDigest` and

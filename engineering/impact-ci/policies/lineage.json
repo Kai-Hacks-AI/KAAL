@@ -1,0 +1,257 @@
+{
+  "schema": "kaal.assurance-policy/v1",
+  "id": "kaal-lineage",
+  "version": "1.0.0",
+  "gate": "KAAL Lineage",
+  "owner": "Engineering",
+  "repository": "Kai-Hacks-AI/KAAL",
+  "independentControls": {
+    "codeScanning": {
+      "tool": "CodeQL",
+      "securityAlertsThreshold": "high_or_higher",
+      "alertsThreshold": "errors"
+    },
+    "ownerReview": "independent"
+  },
+  "profiles": [
+    {
+      "id": "lineage-pr",
+      "event": "pull_request",
+      "target": {
+        "singleSegmentPrefix": "kaal/",
+        "exclude": [
+          "kaal/guard"
+        ]
+      },
+      "required": [
+        {
+          "workflow": "ci.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "Hosting (Linux)",
+              "os": "Linux"
+            },
+            {
+              "check": "Hosting (Windows)",
+              "os": "Windows"
+            },
+            {
+              "check": "Hosting (macOS)",
+              "os": "macOS"
+            },
+            {
+              "check": "Acceptance",
+              "os": "Linux"
+            },
+            {
+              "check": "Acceptance (Windows)",
+              "os": "Windows"
+            },
+            {
+              "check": "Acceptance (macOS)",
+              "os": "macOS"
+            },
+            {
+              "check": "Workspaces",
+              "os": "Linux"
+            },
+            {
+              "check": "Engineering",
+              "os": "Linux"
+            },
+            {
+              "check": "Guard",
+              "os": "Linux"
+            },
+            {
+              "check": "Guard (Windows)",
+              "os": "Windows"
+            },
+            {
+              "check": "Guard (macOS)",
+              "os": "macOS"
+            }
+          ]
+        },
+        {
+          "workflow": "change-isolation.yml",
+          "event": "pull_request_target",
+          "checks": [
+            {
+              "check": "Change Isolation",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "lineage-synchronization.yml",
+          "event": "pull_request_target",
+          "checks": [
+            {
+              "check": "Branching",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "promotion-source.yml",
+          "event": "pull_request_target",
+          "checks": [
+            {
+              "check": "Promotion Source",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "codeql.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "CodeQL (actions)",
+              "os": "Linux"
+            },
+            {
+              "check": "CodeQL (javascript-typescript)",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "dependency-review.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "Dependency Review",
+              "os": "Linux"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lineage-guard-pr",
+      "event": "pull_request",
+      "target": {
+        "exact": "kaal/guard"
+      },
+      "required": [
+        {
+          "workflow": "ci.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "Hosting (Linux)",
+              "os": "Linux"
+            },
+            {
+              "check": "Hosting (Windows)",
+              "os": "Windows"
+            },
+            {
+              "check": "Hosting (macOS)",
+              "os": "macOS"
+            },
+            {
+              "check": "Acceptance",
+              "os": "Linux"
+            },
+            {
+              "check": "Acceptance (Windows)",
+              "os": "Windows"
+            },
+            {
+              "check": "Acceptance (macOS)",
+              "os": "macOS"
+            },
+            {
+              "check": "Workspaces",
+              "os": "Linux"
+            },
+            {
+              "check": "Engineering",
+              "os": "Linux"
+            },
+            {
+              "check": "Guard",
+              "os": "Linux"
+            },
+            {
+              "check": "Guard (Windows)",
+              "os": "Windows"
+            },
+            {
+              "check": "Guard (macOS)",
+              "os": "macOS"
+            }
+          ]
+        },
+        {
+          "workflow": "change-isolation.yml",
+          "event": "pull_request_target",
+          "checks": [
+            {
+              "check": "Change Isolation",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "lineage-synchronization.yml",
+          "event": "pull_request_target",
+          "checks": [
+            {
+              "check": "Branching",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "promotion-source.yml",
+          "event": "pull_request_target",
+          "checks": [
+            {
+              "check": "Promotion Source",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "codeql.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "CodeQL (actions)",
+              "os": "Linux"
+            },
+            {
+              "check": "CodeQL (javascript-typescript)",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "dependency-review.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "Dependency Review",
+              "os": "Linux"
+            }
+          ]
+        },
+        {
+          "workflow": "guard-acceptance-boundary.yml",
+          "event": "pull_request",
+          "checks": [
+            {
+              "check": "Guard Acceptance Boundary",
+              "os": "Linux"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

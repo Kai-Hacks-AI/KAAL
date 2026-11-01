@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'kaal-hosting';
 import { inspect } from 'kaal-hosting/conformance';
 import { fileURLToPath } from 'node:url';
-const modules = ['full-policy.mjs', 'full-gate.mjs', 'selection-contract.mjs', 'execution-gate.mjs', 'selection-gate.mjs', 'target-policy.mjs', 'replay.mjs'];
+const modules = ['full-policy.mjs', 'assurance-policy.mjs', 'policy-identity.mjs', 'workflow-definitions.mjs',
+  'full-gate.mjs', 'selection-contract.mjs', 'execution-gate.mjs', 'selection-gate.mjs', 'target-policy.mjs', 'replay.mjs'];
 async function sources() {
   return Object.fromEntries(await Promise.all(modules.map(async p => [p, await readFile(fileURLToPath(new URL(p, import.meta.url)))])));
 }
