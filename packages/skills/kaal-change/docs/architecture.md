@@ -78,3 +78,12 @@ registration uses Core's public commands. External operation reads its supplied
 context through authorized interfaces; the controlled example reads no target
 context and changes no target bytes. These are execution/packaging tests, not a
 claim that every agent will follow the written procedure correctly.
+
+## Production verification providers
+
+- **change/A23 [change/F49, change/N13]:** Keep the pure isolation API unchanged.
+  At the package boundary, declare the providers needed by shipped verification
+  as ordinary exact production dependencies, rather than optional peers. npm
+  resolves them during installation; the verifier only observes the installed
+  files and Cases. This corrects installation metadata, not Graph mechanics or
+  the evaluator's trust/execution qualifications.

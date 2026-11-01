@@ -15,3 +15,6 @@ These concerns support iterative RED/GREEN/refactoring, not a waterfall.
   useful manual isolation guidance with the delivered deterministic assessment,
   without requiring the broader Change lifecycle or an authoritative repository
   converter. A narrow 0.0.1 can state and verify that bounded promise.
+
+- **change/I23:** Make the ordinary production package installation sufficient
+  for its complete delivered verification, without hidden provider setup.

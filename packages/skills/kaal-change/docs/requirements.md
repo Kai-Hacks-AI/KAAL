@@ -50,3 +50,13 @@
   External use keeps KAAL in the operator environment and does not install it in
   or alter the target. No instruction or example upgrades source authority,
   unexecuted obligations, Owner approval or CI/release authorization.
+
+- **change/F49 [change/I23]:** Declare Foundation, Graph and Hosting at their
+  exact required production versions. A fresh consumer requesting only Change
+  must obtain verification providers through dependency resolution and run every
+  declared delivered Case. Independently checked local-tarball overrides may
+  qualify artifact transport; registry availability remains a separate gate.
+- **change/N13:** Verification installs no dependencies and never weakens its
+  required Case inventory to compensate for an unavailable provider. The pure
+  isolation module still imports only Foundation and consumes a caller-supplied
+  Graph view. Required package dependencies do not confer source authority.

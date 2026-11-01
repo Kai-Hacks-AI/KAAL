@@ -15,11 +15,13 @@ and multi-loop testing obligations. It executes no subject or tests. Even an
 `isolated` assessment covers only the supplied model: `authority.status` remains
 `unestablished` and `execution.status` remains `not-assessed`.
 
-The only runtime dependency is Foundation. Graph and Hosting are optional peers:
-a caller supplies Graph's public view; the shipped verification command needs
-both peers. Missing verification providers produce `cannot verify`, never a pass.
+The pure isolation module imports only Foundation and accepts the caller's Graph
+view. The package declares Foundation, Graph and Hosting as required production
+dependencies because its shipped verification and example need those providers.
+A normal package install acquires them; verification never installs anything or
+skips Cases when a provider is absent. Missing providers produce `cannot verify`.
 
-Verify an installed copy with its providers installed:
+Verify the normally installed package:
 
 ```sh
 npm explore @kaihacksai/kaal-change -- npm test
