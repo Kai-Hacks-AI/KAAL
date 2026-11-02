@@ -44,10 +44,16 @@ release record:
 3. **Expected result.** Every import resolves, no unscoped `kaal-testing` specifier resolves, the
    installed verifier (`test/verify.mjs`) reports `verified` for all declared Cases, and the tarball
    inventory equals the declared hashes in `test/verify.json`.
-4. **Who verifies.** The independent verifier is Engineering's harness, written and reviewed
-   outside Testing, using built-ins only and importing no Testing code. It reads the tarball bytes,
-   checks the inventory and runs the consumers. Testing supplies the tarball, the manifest and the
-   Cases; it does not run or judge the harness.
+4. **Who verifies.** Reuse first (Engineering's PLAN #859): packing once and the manifest come from
+   Engineering's acceptance lane, installation from packed bytes and the byte and source checks come
+   from Testing's `install` and `accept`, and each consumer keeps its own acquisition scenario.
+   Independent observation is required only where Testing would judge itself: the tarball digest
+   recomputed without Testing's `sha256`, real resolution of every export-map subpath in a clean
+   consumer, absence of the old name, and that the tested tarball is the retained release candidate.
+   Engineering adds those as one acceptance scenario in Testing's existing scenario format. Testing
+   supplies the tarball, the manifest and the Cases and does not judge that scenario. Every
+   installation in the scenario goes through `install()`; an installation made without it is reported
+   unknown by `accept` and does not count.
 5. **Negatives.** The harness must also show that the old name fails (not packed, not resolved) and
    that a tarball with one altered byte is rejected.
 6. **Unknown is not pass.** A consumer that cannot run on a platform is reported unknown, and the
