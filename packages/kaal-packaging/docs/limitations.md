@@ -15,3 +15,4 @@ What Packaging does not claim, and where a result depends on something outside i
 - **Imports are read from text.** packaging/F9 and packaging/N8 read import specifiers from the shipped modules' text, so an import built at run time is not seen.
 - **Behaviour, not adequacy.** packaging/N9's probe shows that a verification depends on the modules' behaviour. Whether its assertions are adequate stays its owner's.
 - **Private.** `kaal-packaging` is not published (packaging/A1). It is used from this repository's workspace or from a packed tarball.
+- **Boundary assurance is judged, not proven.** packaging/F25 asks an agent to judge completeness, Test Plan adequacy and evidential support. That judgment is reasoned and recorded and can be wrong. Scripts supply observations. A package's boundaries, contracts and test content stay its own, and nothing here decides another package's correctness or a release.
