@@ -215,7 +215,10 @@ function base(pkg) {
 
 function finish(log, result, causes, summary) {
   for (const { cause, next } of causes) log(`${result}: ${cause}; do: ${next}`);
-  const line = { result, ...(result === "verified" ? {} : { cause: causes.map((c) => c.cause).join("; ") }), ...summary };
+  const line = {
+    cases: [], ...summary, result, exit: EXIT[result], causes: causes.map((c) => c.cause),
+    ...(result === "verified" ? {} : { cause: causes.map((c) => c.cause).join("; ") }),
+  };
   log(`${PREFIX}${JSON.stringify(line)}`);
   return EXIT[result];
 }
@@ -416,9 +419,10 @@ if (process.argv[1] && pathToFileURL(realpathSync(process.argv[1])).href === imp
       process.exitCode = status;
     },
     (e) => {
-      console.log(`cannot verify: the verification itself could not complete: ${e?.message ?? e}; do: report this output to the package's maintainers`);
-      console.log(`${PREFIX}${JSON.stringify({ result: "cannot verify", cause: `the verification itself could not complete: ${e?.message ?? e}`, ...base(undefined) })}`);
-      process.exitCode = 2;
+      process.exitCode = finish(console.log, "cannot verify", [{
+        cause: `the verification itself could not complete: ${e?.message ?? e}`,
+        next: "report this output to the package's maintainers",
+      }], base(undefined));
     },
   );
 }

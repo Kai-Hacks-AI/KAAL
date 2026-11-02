@@ -47,17 +47,17 @@
   "scripts": {
     "build": "tsc -b tsconfig.json",
     "test": "node test/verify.mjs",
-    "test:publisher": "npm run build && node --test test/embed/conformance.test.mjs test/embed/hosting.test.mjs test/embed/architecture.test.mjs test/embed/intent.test.mjs test/embed/requirements.test.mjs test/plan/boundary.test.mjs test/plan/portability.test.mjs test/plan/interface.test.mjs test/plan/usage-skill.test.mjs test/publisher/verify.test.mjs && node test/publisher/usage-mutations.mjs && node --test --test-name-pattern=\"^hosting/T(2[1-9]|3[01]|48|5[34]|75) \" test/plan/release.test.mjs",
+    "test:publisher": "npm run build && node --test test/embed/conformance.test.mjs test/embed/hosting.test.mjs test/embed/architecture.test.mjs test/embed/intent.test.mjs test/embed/requirements.test.mjs test/plan/boundary.test.mjs test/plan/portability.test.mjs test/plan/interface.test.mjs test/plan/usage-skill.test.mjs test/publisher/verify.test.mjs test/publisher/release-record.test.mjs && node test/publisher/usage-mutations.mjs && node --test --test-name-pattern=\"^hosting/T(2[1-9]|3[01]|48|5[34]|75) \" test/plan/release.test.mjs",
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build && node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "cross-spawn": "^7.0.6",
-    "es-module-lexer": "^3.0.3",
-    "graceful-fs": "^4.2.11",
-    "proper-lockfile": "^4.1.2"
+    "cross-spawn": "7.0.6",
+    "es-module-lexer": "3.0.3",
+    "graceful-fs": "4.2.11",
+    "proper-lockfile": "4.1.2"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
