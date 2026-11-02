@@ -1,12 +1,14 @@
-# Intent ownership and the traceability chain: Intent
+# Intent ownership and traceability: Intent
 
-> PLAN (`intent/C3`). It ships no code, no Node and no test. It authorizes no synchronization, promotion, version change or npm publication, which remain the Owner's. It answers the CPO handover of 2 Nov 2026 and the Engineering portfolio assessment (#886, gap C2): Intent has had a collector and two Changes but no owning thread, and the chain Intent → Requirements → Architecture → Code → Tests → Evidence is not connected end to end.
+> PLAN (`intent/C3`). It ships no code, no Node and no test. It authorizes no synchronization, promotion, version change or npm publication, which remain the Owner's. It answers the CPO handover of 2 Nov 2026 and the Engineering portfolio assessment (#886, gap C2): Intent has had a collector and two Changes but no owning thread, and Intent's place in KAAL's traceability is not stated.
 
 - **intent/I3.** Intent has one owner and a stated scope. The owning thread keeps `kaal/intent`, `packages/skills/kaal-intent/` and its plan, and answers for what an Intent is. It does not take over what Requirements, Architecture, Testing, Graph or Engineering own.
-- **intent/I4.** The chain is a map before it is a mechanism. Each link between two disciplines names its owner, its state today and its blocker, so the CPO and the CTO can decide the order from evidence instead of from memory. No link is invented, and none is built by this Change.
-- **intent/I5.** Intent is the head of the chain and depends on nothing in it. An Intent exists without any Requirement, Change or conversation (`intent/F1`). Traceability points at an Intent, never from it.
+- **intent/I4.** Traceability is a map before it is a mechanism. It is not a linear pipeline from Intent to Evidence. Test Cases independently trace Intent, Requirements, Architecture and Defects. Today's GREEN reflects current knowledge: learning can add a Case that is RED, and implementation answers it with GREEN. Each relationship names its owner, its state today and its blocker, so the CPO and the CTO can decide the order from evidence. No relationship is invented, and none is built by this Change.
+- **intent/I5.** Intent depends on nothing else in KAAL's traceability. An Intent exists without any Requirement, Change or conversation (`intent/F1`). Traceability points at an Intent, never from it. Reverse views are derived, never stated.
 
 ## What exists today
+
+This table names the owners of the relationships. It does not claim a sequence.
 
 Evidence is the git tree of `origin/main` (`d8bdf9b`) and of `origin/kaal/intent`, `kaal/requirements`, `kaal/architecture` and `kaal/graph`, and the PR titles named. Nothing was run for this PLAN.
 
