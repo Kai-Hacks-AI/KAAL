@@ -44,6 +44,10 @@ Rule: a capability gets an npm package only if a non-KAAL repo can benefit for n
 2. Confirm internal-only (section 4).
 3. Authorize the SYNC of main into `kaal/product` (section 5).
 
-## 8. Verified by / Validated by
+## 8. Not covered
+
+The PLAN does not add objects, storage or a registry for Product Direction, does not change the Product or PLAN Definitions, and does not decide anything for the Owner. The Review capability is handled separately.
+
+## 9. Verified by / Validated by
 
 Markdown only; required checks on this PR. Independent review and Owner review of scope and decisions.
