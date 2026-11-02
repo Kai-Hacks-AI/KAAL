@@ -10,6 +10,7 @@ Inspected on 2026-11-02:
 - Existing release contract: `plan/release/{intent,requirements,architecture,testing}.md`, T74–T79.
 - Existing general Skill already teaches the three loops, immutable planned tests, RED → GREEN → REFACTOR, TEST A FINDING, BRITTLE, model evaluation/current, acceptance, coverage and calibrated findings.
 - C37's consolidated product documents already exist. C38 (#718) was unintegrated and seven collector commits behind. It is now refreshed at `d144a924225f3cbe80175826d69fddaae0d1b09f`, exactly 13 Testing paths, preserving all collector exports and source suite selections.
+- Explicit current release-suite run: T77/T79 pass; T74 fails scoped identity; T76/T78 are blocked before behavioural assertions by missing scoped self-resolution; T75 fails because docs/architecture.md cites `testing/C46`. T75 stops there, so later document checks are not claimed successful. Shipped architecture also claims `/observe` and `/red` exports absent from the actual manifest: a release-document coherence finding, not authority to implement unrelated features.
 - Actual manifest remains `kaal-testing@0.0.1`; it lacks scoped public/repository metadata, uses unscoped Hosting and has workspace-only source lifecycle at the collector baseline. C38 corrects source/installed dispatch without pretending to complete C36.
 - #822's composed-file execution PLAN is accepted, but its implementation is separate work. C33 coverage accounting, C48 trace derivation and other open features are not release prerequisites introduced here.
 
@@ -25,7 +26,7 @@ Fresh #718 CI run 41403743875 passes Workspaces, Engineering and existing Accept
 
 ### 2. Approach/Skill usability DO after this PLAN's review
 
-Reuse existing semantics. Limit product changes to the existing Skill, an internal Skill reference/example where useful, README and consolidated product operations/testing documents. Preserve both existing Testing Node identities unless independent review demonstrates a necessary semantic correction.
+Reuse existing semantics. Limit product changes to the existing Skill, an internal Skill reference/example where useful, README and consolidated product documents where required to correct actual delivery claims, including architecture, operations, testing and limitations. Preserve both existing Testing Node identities unless independent review demonstrates a necessary semantic correction.
 
 The Agent should be able to:
 1. Find the installed Testing capability and Skill meaning without requiring a repository checkout or an already initialized Engine. An Engine remains authoritative when present; installed package discovery and the shipped Node documents provide the standalone route. Every relative link inside the portable Agent Skill stays inside that Skill.
@@ -34,7 +35,7 @@ The Agent should be able to:
 4. Treat incoming/outgoing package boundaries as ordinary consumer-owned Plan content. Identify the relevant authority and contracts, public interface, expected success/refusal/failure and evidence. Testing supplies the method and interpretation; it stores or owns none of that consumer's content.
 5. Distinguish raw observations, model `passed`, installed verification `verified`, applicability and validation. A skip, stale or incomplete record never becomes passing assurance.
 6. Use the existing source/installed verification commands and shipped APIs. Explain current primary `test/engineer` discovery and supported legacy `test/acceptance` consistently with the existing implementation; introduce no new location requirement for consumers.
-7. Read an accurate delivered-file/export inventory, including C38's entrypoint/verifier/Cases and the already accepted timing/redesign/duplicates exports.
+7. Read an accurate delivered-file/export inventory, including C38's entrypoint/verifier/Cases and the already accepted timing/redesign/duplicates exports. Remove repository Change references as product authority under existing F60. Reconcile the architecture's `/observe` and `/red` claims against the actual manifest through reviewed release scope/limitations, preserving accepted semantic contracts; do not silently delete a promise or implement those additional features merely to make documentation look complete.
 
 BASS here uses existing capability meaning (Bare), Agent guidance, portable Skill and existing library/verification scripts. It requires no additional Agent Node, runner, boundary framework, storage service, CLI or schema. A successful independent Agent walkthrough and existing Skill conformance checker are appropriate evidence for guidance usability; text-presence tests are not evidence of that usability.
 
