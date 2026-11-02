@@ -38,6 +38,19 @@ describe("kaal-review", () => {
     assert.deepEqual(node.type, foundation().definition);
   });
 
+  it("is self-contained: the Agent Skill states its rules and needs no Engine, Node or other file", () => {
+    const skill = readFileSync(join(PACKAGE, "skills", "kaal-review", "SKILL.md"), "utf8");
+    assert.match(skill, /needs no KAAL Engine and no other file/);
+    assert.doesNotMatch(skill, /read them there|starting from the Engine/);
+    for (const rule of [
+      /Read the work itself and its evidence/,
+      /Say what you did not check/,
+      /A review grants no authority/,
+      /Do not weaken a check/,
+      /naming what a human should look at themselves/,
+    ]) assert.match(skill, rule);
+  });
+
   it("claims its own tree by Review's exact name and id", () => {
     const node = identify(readFileSync(join(PAYLOAD, "Review.md")));
     const { claim, finding } = readClaim(`packages/skills/kaal-review/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
