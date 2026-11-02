@@ -4,7 +4,7 @@
 // this file only where npm ci has installed the workspace, never counting it as passed elsewhere
 // (guard/C47). Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { CHECK_SKILL, deliver, REPO, run, SKILL, target } from "./delivery.mjs";
