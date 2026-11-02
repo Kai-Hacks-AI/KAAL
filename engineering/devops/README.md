@@ -6,11 +6,12 @@ Evidence date 2 Nov 2026. Inspected: main, kaal/engineering at `8b1e081`, the ka
 
 The repository never mentions DevOps. This document proposes how to read it.
 
-DevOps is a **Process**, like PDCA: a repeatable way of working in which KAAL Capabilities are delivered. It is not a Capability, so it has no thread, collector, package or version of its own. A Capability is delivered *into* it and *by* it.
+DevOps is a **Process**: a repeatable way of working that KAAL Capabilities are delivered into. It is an *instance* of the Process capability (`kaal-process`), the underlying framework for describing processes, and not a Capability of its own. It has no thread, collector, package or version.
 
-- **Owner of the description.** If described in KAAL, the description belongs where the delivery engine lives: Engineering (verification lanes, Change isolation, release engine). The metamodel (Process, Activity, Role, State, Transition, Entry and Exit conditions) belongs to the Process capability. Process keeps no registry, and describing a process as a Process makes nothing mandatory.
-- **Registry state** was read from registry.npmjs.org on the evidence date and goes stale; re-check before relying on it.
-- **Not a new count.** The "8" is eight stages of the loop. The capabilities serving them are many-to-many with stages.
+- **Framework and instance.** `kaal-process` owns the metamodel (Process, Activity, Role, State, Transition, Ordering, Entry and Exit conditions) and PDCA as its generic cycle. A given process is designed on that metamodel and uses other capabilities as bricks. DevOps would be one such process, PDCA another. Process keeps no registry, and describing a process makes nothing mandatory.
+- **Bricks.** Each DevOps Activity (a stage) is served by one or more existing capabilities, and a capability can serve several stages. Section 3 lists them. Changing which capability serves a stage changes the process description, not the capability.
+- **Owner of the description.** The framework belongs to the Process capability. The DevOps description, if recorded, belongs where the delivery engine lives: Engineering (verification lanes, Change isolation, release engine). Process does not own what a consumer describes with its concepts.
+- **Not a new count.** The "8" is eight stages of the loop, not eight capabilities.
 
 ## 2. How it relates to PDCA and GLUE
 
@@ -74,7 +75,7 @@ Ratings: **Strong** means on main with tests and CI; **Partial** means present b
 ## 5. Proposal only: describing DevOps as a Process
 
 If Kai wants it recorded in KAAL:
-1. After the Process capability reaches main (#560), Engineering describes DevOps as a Process: Activities are the eight stages; Roles are Owner, Worker, CI and Agent; States derive from observable facts (PR state, check results, registry state); Transitions are SYNC, promotion and publish, each needing explicit authorization (as today).
+1. After the Process capability reaches main (#560), Engineering describes DevOps as an instance of `kaal-process`, coordinated with the Process capability: Activities are the eight stages; Roles are Owner, Worker, CI and Agent; States derive from observable facts (PR state, check results, registry state); Transitions are SYNC, promotion and publish, each needing explicit authorization (as today).
 2. The description lives in Engineering's own documentation, like PDCA lives with Process. No new Capability, package or collector.
 3. Each Capability then states in its own docs which stage(s) it serves. Nothing is mandatory.
 4. Open Owner decisions: whether Operate needs an owner at all, and whether `kaal-coding` and `kaal-operations` should exist.
