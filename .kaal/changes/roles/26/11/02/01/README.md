@@ -123,10 +123,18 @@ and runs through the PR, which is already the shared, auditable record.
   positions and the decision needed. The Owner decides on the PR, and that
   decision is the record. Neither Advisor overrides the other.
 - **Longer term.** A designed exchange (who must read what, when a review is
-  due, what a hand-off carries) is a Process-level design to follow. It would
-  be a process design on the Process metamodel, with the Advisors as Roles of its
-  Activities. It is not designed here, and this section is replaced when it
-  lands. Raised with the Process thread.
+  due, what a hand-off carries) is a Process-level design to follow, and this
+  section is replaced when it lands. The Process thread answered that it fits as
+  a process design (a Definition on Process's metamodel), not as Serving, which
+  only says which Capability is accountable for an Activity. Its Activities would
+  be hand-off, review due and read-before, with the Advisors as Roles, entry and
+  exit conditions for when a review is due, and States read from facts (PR
+  reviews recorded, findings as PRs). It lives with the accountable owner, so not
+  in Process and not in Roles. Suggested owner for now: Engineering, since the
+  interim exchange runs through the promotion PR. Process and Roles need not know
+  each other; only the design refers to both, one way. It is not designed here.
+  Proposed timing: its own PLAN after #560 reaches `main` and the Process
+  amendment lands, if Kai wants it.
 
 ## 3. Where roles live
 
