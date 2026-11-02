@@ -4,6 +4,8 @@ What Hosting does not establish. The obligations they concern are in [Requiremen
 
 ## Operations
 
+- **Writer authority.** Reconciliation paths name changes inside the root. Hosting additionally creates its documented lock, staging and aside siblings beside the canonical root, and can retain recovery originals or report leftovers there. The caller must have authority for that complete footprint before requesting a write. A literal root-only authorization is insufficient. Hosting adds no runtime permission check and does not infer authority from filesystem access. This does not authorize an arbitrary sibling target or cleanup of recovery originals.
+
 - **Containment is by canonical path.** `within` compares canonical paths, not physical objects, so a bind mount, a hard link or another alias can reach the same object from outside `root`. It is a check, not a lock: a link changed between the check and a later read is not prevented (hosting/F48).
 - **One filesystem.** Hosting stages its writes beside the directory and renames them into place, so the directory and its parent must be on one filesystem (hosting/F49, hosting/A21).
 - **Readers take no lock.** `read`, `readFile` and `kind` take no lock, so a reader can see a directory while a writer changes it.
