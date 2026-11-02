@@ -25,6 +25,16 @@ The adapter (`engineering/github/change-isolation.sh`) reads the ledger from the
 branch's tip, as it already reads the checker. A ledger entry in the candidate is not read. A
 change that touches the ledger or the checker is never covered by an entry.
 
+## Absent path or missing evidence
+
+A path that is genuinely absent at a revision (an addition before, a deletion after) is `null` in
+the ledger. Git evidence that is missing, invalid or unavailable is not absence: an unresolvable
+or non-commit revision, a failing `git`, a directory where a file is expected, or output that is
+not exactly one file entry for the path all make the checker exit 2 (cannot judge). The checker
+resolves the commit first and then lists the exact path with `git ls-tree`; it does not read
+`git rev-parse rev:path` status, because its status for an unresolved `rev:path` (128) and for an
+absent path cannot be told apart safely.
+
 ## Spent by adoption
 
 After the target holds the post state, its blobs equal `post`, not `pre`, so the entry no
@@ -48,3 +58,12 @@ The ledger is exact by bytes, so it admits only what the owners reviewed. It doe
 judge whether those bytes are right: that is the independent derivation of the lock, the
 owners' review and the unchanged required CI. An entry is a commitment to review, not a
 substitute for it.
+
+## Where the rule must exist
+
+The rule is read from the target branch's tip. Landing it on `kaal/engineering` does not make it
+available to a change targeting `main`. For an atomic promotion to `main`, such as the Hosting
+transition, both this rule and that transition's separately reviewed ledger entry must already be
+on `main`, reached by its own governed, focused promotion. Until then a promotion to `main` is
+judged by the rules `main` holds. The Foundation 0.0.2 transition has the same dependency on
+whichever branch is its target.

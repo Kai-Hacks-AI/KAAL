@@ -261,6 +261,27 @@ export function check(paths, { ledger = [], facts } = {}) {
   return violations;
 }
 
+/**
+ * The Git blob id of `path` at `rev`, or null when the commit resolves and the path is genuinely
+ * absent from its tree. Anything else is missing or unavailable evidence and cannot be judged:
+ * an unresolvable or non-commit revision, a git failure, a path that is not a file at that
+ * revision, or output that is not exactly one entry for the path. `git rev-parse rev:path` is not
+ * used because its failure for an unresolved revision:path (status 128) and for an absent path
+ * cannot be told apart safely.
+ */
+export function gitBlob(rev, path, { cwd } = {}) {
+  const git = (...args) => spawnSync("git", args, { cwd, encoding: "utf8" });
+  const commit = git("rev-parse", "--verify", "-q", "--end-of-options", `${rev}^{commit}`);
+  if (commit.status !== 0 || !/^[0-9a-f]{40,64}$/.test(commit.stdout.trim())) throw new CannotJudge(`git cannot resolve ${rev} to a commit`);
+  const listed = git("ls-tree", "-z", "--full-tree", commit.stdout.trim(), "--", path);
+  if (listed.status !== 0) throw new CannotJudge(`git could not read ${path} at ${rev}`);
+  const entries = listed.stdout.split("\0").filter(Boolean);
+  if (entries.length === 0) return null;
+  const m = entries.length === 1 && /^(\d{6}) (\w+) ([0-9a-f]{40,64})\t(.*)$/s.exec(entries[0]);
+  if (!m || m[4] !== path || m[2] !== "blob") throw new CannotJudge(`${path} at ${rev} is not a single file entry`);
+  return m[3];
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const refuse = (message) => {
     console.error(message);
@@ -274,13 +295,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (args.length !== 5 || args[0] !== "--ledger" || args[2] !== "--git") refuse(usage);
     const [, file, , base, head] = args;
     try { ledger = readLedger(readFileSync(file, "utf8")); } catch (e) { refuse(e instanceof CannotJudge ? e.message : `ledger unreadable: ${e.code ?? e.message}`); }
-    const blob = (rev, path) => {
-      const r = spawnSync("git", ["rev-parse", "--verify", "-q", "--end-of-options", `${rev}:${path}`], { encoding: "utf8" });
-      if (r.status === 0) return r.stdout.trim();
-      if (r.status === 1) return null;
-      throw new CannotJudge(`git could not resolve ${rev}:${path}`);
-    };
-    facts = (path) => ({ base: blob(base, path), head: blob(head, path) });
+    facts = (path) => ({ base: gitBlob(base, path), head: gitBlob(head, path) });
   }
   const input = readFileSync(0, "utf8");
   const paths = input.split(input.includes("\0") ? "\0" : "\n").filter(Boolean);

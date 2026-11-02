@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync
 import { tmpdir } from "node:os";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check, checkRootOwnership, checkRootChange, readLedger, CannotJudge, LEDGER } from "./check.mjs";
+import { check, checkRootOwnership, checkRootChange, readLedger, CannotJudge, LEDGER, gitBlob } from "./check.mjs";
 
 const REPO = join(import.meta.dirname, '../..');
 const encode = (x) => Buffer.from(JSON.stringify(x, null, 2) + '\n');
@@ -462,5 +462,83 @@ describe("transition ledger", () => {
         assert.equal(spawnSync(process.execPath, [CLI, "--git", s.base, s.head], { input: "", encoding: "utf8" }).status, 2);
       } finally { rmSync(s.dir, { recursive: true, force: true }); rmSync(s.ledger, { force: true }); }
     });
+  });
+});
+
+// Git evidence: an absent path is null in the ledger; missing, invalid or unavailable evidence is
+// cannot-judge. These run against a real repository, since the difference is Git's own behavior.
+describe("transition ledger git evidence", () => {
+  const git = (cwd, ...args) => {
+    const r = spawnSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    return r.stdout.trim();
+  };
+  const repo = () => {
+    const dir = mkdtempSync(join(tmpdir(), "gitblob-"));
+    git(dir, "init", "-q", "-b", "main");
+    const write = (p, text) => { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), text); };
+    write("packages/kaal-core/old.txt", "old\n");
+    write("packages/kaal-core/keep.txt", "keep\n");
+    git(dir, "add", "-A"); git(dir, "commit", "-qm", "base");
+    const base = git(dir, "rev-parse", "HEAD");
+    git(dir, "checkout", "-qb", "candidate");
+    git(dir, "rm", "-q", "packages/kaal-core/old.txt");
+    write("packages/kaal-core/new.txt", "new\n");
+    git(dir, "add", "-A"); git(dir, "commit", "-qm", "candidate");
+    return { dir, base, head: git(dir, "rev-parse", "HEAD") };
+  };
+  const ledgerFile = (dir, paths, pre, post) => {
+    const file = join(dir, "..", `ledger-${Date.now()}-${Math.random()}.json`);
+    writeFileSync(file, JSON.stringify({ version: 1, transitions: [{ id: "t", paths, pre, post }] }));
+    return file;
+  };
+
+  it("returns null for an absent path and a blob id for a present one", () => {
+    const r = repo();
+    try {
+      assert.equal(gitBlob(r.base, "packages/kaal-core/new.txt", { cwd: r.dir }), null);
+      assert.equal(gitBlob(r.head, "packages/kaal-core/old.txt", { cwd: r.dir }), null);
+      assert.match(gitBlob(r.head, "packages/kaal-core/new.txt", { cwd: r.dir }), /^[0-9a-f]{40,64}$/);
+    } finally { rmSync(r.dir, { recursive: true, force: true }); }
+  });
+
+  it("cannot judge an unresolvable revision, a non-commit, a directory or a missing repository", () => {
+    const r = repo();
+    try {
+      for (const rev of ["0".repeat(40), "no-such-branch", "HEAD:packages"]) {
+        assert.throws(() => gitBlob(rev, "packages/kaal-core/keep.txt", { cwd: r.dir }), CannotJudge, rev);
+      }
+      assert.throws(() => gitBlob(r.base, "packages/kaal-core", { cwd: r.dir }), CannotJudge);
+      // A prefix of a file name is a different, absent path.
+      assert.equal(gitBlob(r.base, "packages/kaal-core/kee", { cwd: r.dir }), null);
+      assert.throws(() => gitBlob(r.base, "x", { cwd: join(r.dir, "does-not-exist") }), CannotJudge);
+    } finally { rmSync(r.dir, { recursive: true, force: true }); }
+  });
+
+  it("admits an addition and a deletion in one transition, with null on the absent side", () => {
+    const r = repo();
+    const paths = ["packages/kaal-core/new.txt", "packages/kaal-core/old.txt"];
+    const blob = (rev, p) => gitBlob(rev, p, { cwd: r.dir });
+    const file = ledgerFile(r.dir, paths,
+      { "packages/kaal-core/new.txt": blob(r.base, paths[0]), "packages/kaal-core/old.txt": blob(r.base, paths[1]) },
+      { "packages/kaal-core/new.txt": blob(r.head, paths[0]), "packages/kaal-core/old.txt": blob(r.head, paths[1]) });
+    try {
+      assert.equal(blob(r.base, paths[0]), null);
+      assert.equal(blob(r.head, paths[1]), null);
+      const ok = spawnSync(process.execPath, [CLI, "--ledger", file, "--git", r.base, r.head], { cwd: r.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+      assert.equal(ok.status, 0, ok.stderr);
+      // Unavailable evidence is not absence: an unresolvable head is exit 2, never a null match.
+      const bad = spawnSync(process.execPath, [CLI, "--ledger", file, "--git", r.base, "0".repeat(40)], { cwd: r.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+      assert.equal(bad.status, 2);
+      assert.match(bad.stderr, /cannot resolve/);
+      // A ledger that wrongly commits a present path as null is refused, not matched.
+      const wrong = ledgerFile(r.dir, paths,
+        { "packages/kaal-core/new.txt": null, "packages/kaal-core/old.txt": blob(r.base, paths[1]) },
+        { "packages/kaal-core/new.txt": null, "packages/kaal-core/old.txt": null });
+      const refused = spawnSync(process.execPath, [CLI, "--ledger", wrong, "--git", r.base, r.head], { cwd: r.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+      assert.equal(refused.status, 1);
+      assert.match(refused.stderr, /new\.txt in the change is/);
+      rmSync(wrong, { force: true });
+    } finally { rmSync(r.dir, { recursive: true, force: true }); rmSync(file, { force: true }); }
   });
 });
