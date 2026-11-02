@@ -1,6 +1,6 @@
 # Foundation 0.0.2 repository pin transition
 
-foundation/C17 PLAN. Step 3 of the 0.0.2 path (C15 PLAN, C16 DO #838).
+foundation/C17 PLAN (Foundation's part only). Step 3 of the 0.0.2 path (C15 PLAN, C16 DO #838).
 
 - **foundation/I11**: When Foundation's workspace version moves to 0.0.2, every
   workspace consumer pins exactly that version and the root lock is generated to
