@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | Intent element is addressable | Intent | Planned and delivered on the collector (`intent/C1`, `C2`): the form is a Node `<capability>/I<n>` | Collector not promoted; no capability yet states an Intent as a Node |
 | Requirement → Intent (`Serves`) | Requirements | Planned (`requirements/C10`, #741); no DO | Needs Intent's Node form; Graph pinning rule |
-| Architecture → Requirement | Architecture | Not planned beyond `architecture/C8`; Requirements states only that Requirement Nodes are addressable (`requirements/A4`) | Architecture has no owning thread yet |
+| Architecture → Requirement | Architecture | Planned as outgoing `Placement` from a decision to Requirement Nodes (PLAN #891, Architecture thread); Requirements states only that Requirement Nodes are addressable (`requirements/A4`) | #891 not merged; Kai's decision on holding Placement C9–C11 |
 | Code → Architecture | Engineering, per capability | Not planned. Ownership claims attribute paths to a capability, not to an Architecture element | Undecided who owns it; to be raised, not assumed |
 | Test Case → target | Testing | Planned (`testing/C48`, #745), deferred from Testing 0.0.1 | Testing 0.0.1 release |
 | Evidence → Test Execution | Testing, with Packaging for dependency traces | Partly delivered: executions and installed verification; dependency traces planned (#746) | Hosting-first publish order |
