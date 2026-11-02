@@ -30,6 +30,8 @@ DevOps is a **Process**: a repeatable way of working that KAAL Capabilities are 
 
 ## 3. Stage by stage: what serves it, how well, gaps
 
+The "Serves" lines are prose. If Process later adopts a Serving relation (the process design points at capabilities, never the reverse), they can be restated in that form.
+
 Ratings: **Strong** means on main with tests and CI; **Partial** means present but on a collector branch only, or a piece is missing; **Gap** means nothing serves it.
 
 ### Plan
@@ -75,7 +77,7 @@ Ratings: **Strong** means on main with tests and CI; **Partial** means present b
 ## 5. Proposal only: describing DevOps as a Process
 
 If Kai wants it recorded in KAAL:
-1. After the Process capability reaches main (#560), Engineering describes DevOps as an instance of `kaal-process`, coordinated with the Process capability: Activities are the eight stages; Roles are Owner, Worker, CI and Agent; States derive from observable facts (PR state, check results, registry state); Transitions are SYNC, promotion and publish, each needing explicit authorization (as today).
+1. After the Process capability reaches main (#560), Engineering describes DevOps as an instance of `kaal-process`, coordinated with the Process capability: Activities are the eight stages; Roles are Owner and Worker (a CASE Agent is an actor that may fulfil Worker, and CI is an authorized participant, neither is a Role); States derive from observable facts (PR state, check results, registry state); Transitions are SYNC, promotion and publish, each needing explicit authorization (as today).
 2. The description lives in Engineering's own documentation, like PDCA lives with Process. No new Capability, package or collector.
 3. Each Capability then states in its own docs which stage(s) it serves. Nothing is mandatory.
 4. Open Owner decisions: whether Operate needs an owner at all, and whether `kaal-coding` and `kaal-operations` should exist.
