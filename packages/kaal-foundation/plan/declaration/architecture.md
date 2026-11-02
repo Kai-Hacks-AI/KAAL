@@ -26,6 +26,8 @@
    delivered docs and tests; regenerate manifest explicitly. Apply only the
    independently accepted T9/T36 changes. Move planned cases unchanged into the
    declared publisher/embedded suites. Get independent current-head review.
+   A stacked draft may make the candidate reviewable before these prerequisites
+   integrate; its ancestry/cumulative diff is not independent integration proof.
 4. Foundation acceptance CHECK: preserve all current-head source, normal pack,
    installed verifier, negative, reproducibility and three-host evidence. Add a
    Foundation-owned scenario under test/acceptance/ for the existing Testing
@@ -68,3 +70,32 @@ or turn the separate boundary-testing work into a Foundation release blocker.
 Registry readiness, real dependency resolution, trusted publisher configuration
 and exact artifact/provenance acceptance are publication evidence, not proof
 supplied by a local tarball experiment.
+
+## Concrete repository compatibility dependency discovered at CHECK
+
+Current Core pins `@kaihacksai/kaal-foundation` exactly `0.0.1`, both in its
+package manifest and root lock entry. `engineering/acceptance/embed.test.mjs`
+asserts that exact dependency map and that Core has no nested node_modules.
+Testing's existing acceptance ledger also judges Foundation installations
+against the run's one Foundation candidate. A shared acceptance run cannot
+silently mix a new 0.0.2 workspace with a nested registry 0.0.1 and claim the
+single-candidate guarantee. Changing Foundation's package version alone is
+therefore not repository-integration ready.
+
+Before final integration/promotion, prepare a separate Core-owned compatibility
+Change for consuming Foundation 0.0.2, its committed package manifest and the
+relevant immutable dependency assertions under Core's reviewed PLAN. Existing
+bootstrap behavior and regression tests stay. This dependency adaptation does
+not require C40's mandatory initialization to be finished, or Core npm publication.
+The delivering owner initiates the root-lock reconciliation through Engineering's
+accepted dependency route; never hand-edit or manufacture a lock as evidence.
+
+Core travels alone under the current trusted-main isolation checker. A combined
+Foundation+Core promotion therefore needs Engineering's independently accepted
+admission route or another explicitly governed bounded delivery sequence before
+it can land; this PLAN grants no exception. Do not bundle Core edits into C16,
+quietly repin existing consumers, suppress the nested-copy assertion or weaken
+the acceptance ledger. Scoped Hosting migration work (#833/#834) is separately
+owned; its existence does not prove that this version transition is admitted.
+Root-lock and Core compatibility are repository-integration dependencies, not
+Foundation product-code dependencies or npm publication-order dependencies.

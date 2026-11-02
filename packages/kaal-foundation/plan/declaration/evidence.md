@@ -26,3 +26,9 @@ These observations establish the delivery gap. They do not establish 0.0.2
 acceptance, Core initialization integration, registry resolution or publication.
 The release workflow currently pins npm 11.21.0; local npm 11.9.0 evidence is not
 represented as the authoritative Release artifact.
+
+Root-lock inspection confirms packages/kaal-foundation version 0.0.1 and Core's
+exact 0.0.1 dependency. Main's existing Core Acceptance asserts that pin and no
+nested Core dependencies. This exposes the separate owning compatibility and
+trusted-main admission work described in architecture.md; neither is solved by
+Foundation's clean standalone tarball trial.
