@@ -1,0 +1,39 @@
+// foundation/C15 planned scenario. DO moves unchanged to test/acceptance/.
+// Existing Testing discovery and Engineering's pack-once ledger own execution.
+import assert from "node:assert/strict";
+import { join } from "node:path";
+import { test } from "node:test";
+import { install } from "kaal-testing/acceptance";
+import { execute, kind, readFile } from "kaal-hosting";
+import { sha256 } from "../../lib/sha256.mjs";
+
+test("foundation/T51 [foundation/F25, foundation/F26, foundation/F27, foundation/N15]: a ledger-recorded clean consumer resolves and verifies the exact Foundation declaration candidate", async () => {
+  const host = await install(["@kaihacksai/kaal-foundation"], { offline: true });
+  const installed = join(host, "node_modules", "@kaihacksai", "kaal-foundation");
+  const before = await readFile(join(host, "package.json"));
+  assert.equal(await kind(join(host, ".kaal")), "missing");
+  const source = `import {createRequire} from 'node:module'; import {readFileSync} from 'node:fs';
+    import {sha256} from '@kaihacksai/kaal-foundation/sha256';
+    const require=createRequire(process.cwd()+'/probe.mjs');
+    console.log(sha256(readFileSync(require.resolve('@kaihacksai/kaal-foundation/capability'))));`;
+  const resolved = await execute(process.execPath, ["--input-type=module", "-e", source], { cwd: host, env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+  assert.equal(resolved.status, 0, resolved.stderr);
+  assert.equal(resolved.stdout.trim(), "649fbafb81a8d976b65a4e8c0db7228a194ec515385820d489e4a74041dc27c5");
+  const r = await execute("npm", ["test"], { cwd: installed, env: { ...process.env, NODE_TEST_CONTEXT: undefined, npm_config_offline: "true" } });
+  assert.equal(r.status, 0, `${r.stdout}\n${r.stderr}`);
+  const line = r.stdout.trim().split(/\r?\n/).at(-1);
+  assert.ok(line.startsWith("kaal-foundation-verification "));
+  const report = JSON.parse(line.slice("kaal-foundation-verification ".length));
+  const manifestBytes = await readFile(join(installed, "test/verify.json"));
+  const manifest = JSON.parse(manifestBytes.toString("utf8"));
+  assert.equal(report.result, "verified");
+  assert.equal(report.exit, 0);
+  assert.deepEqual(report.causes, []);
+  assert.deepEqual(report.cases.map(c => c.name).sort(), [...manifest.cases].sort());
+  assert.ok(report.cases.every(c => c.outcome === "pass"));
+  assert.ok(report.cases.some(c => c.name === "foundation/T50"));
+  assert.deepEqual(await readFile(join(host, "package.json")), before);
+  assert.equal(await kind(join(host, ".kaal")), "missing");
+  // Retained by the existing lane's runner output; no second evidence store.
+  console.log(JSON.stringify({ package: "@kaihacksai/kaal-foundation", manifest: sha256(manifestBytes), report }));
+});
