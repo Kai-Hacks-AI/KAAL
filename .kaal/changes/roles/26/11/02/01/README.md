@@ -103,6 +103,31 @@ separate discussion and is not part of either role here.
 | May recommend | Priority and launch of an increment (Product's Prioritize and Launch), scope cuts, renames, release fitness of a package. |
 | May not decide | Engineering feasibility, architecture or order; test implementation; the Product Owner's priorities (the Owner's authority); any approval, SYNC, promotion or publish. |
 
+### Interim exchange between the Advisors
+
+Kai's direction: the exchange of information between CTO and CPO has to be
+aligned through the Roles and Process work over time. For now it stays simple
+and runs through the PR, which is already the shared, auditable record.
+
+- **Where each review is recorded.** Each Advisor records its review on the
+  promotion PR (kaal/X to main) as a PR review, stating its outcome and the
+  lens it applied. Each reads the other's review there. No side channel carries
+  a decision.
+- **How findings become PRs.** A finding that needs a change is raised as its
+  own PR, linked from the review that raised it. The finding's owner is the
+  capability concerned, and the reviewed PR is not edited silently. A finding
+  that touches the other Advisor's area is flagged on the PR for that Advisor,
+  not decided by the one who found it.
+- **How disagreements reach the Owner.** Both reviews stay on the PR. The
+  Advisor who sees the disagreement says so in one comment naming the two
+  positions and the decision needed. The Owner decides on the PR, and that
+  decision is the record. Neither Advisor overrides the other.
+- **Longer term.** A designed exchange (who must read what, when a review is
+  due, what a hand-off carries) is a Process-level design to follow. It would
+  be a process design on the Process metamodel, with the Advisors as Roles of its
+  Activities. It is not designed here, and this section is replaced when it
+  lands. Raised with the Process thread.
+
 ## 3. Where roles live
 
 | Option | Assessment |
