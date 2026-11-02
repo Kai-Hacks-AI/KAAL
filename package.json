@@ -10,7 +10,8 @@
     "packages/skills/kaal-engineer-skill",
     "packages/skills/kaal-graph",
     "packages/skills/kaal-testing",
-    "packages/skills/kaal-change"
+    "packages/skills/kaal-change",
+    "packages/skills/kaal-roles"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
