@@ -14,8 +14,10 @@ const setEq = (a, b) => (a === undefined && b === undefined) || (Array.isArray(a
  * The applicability the harness established for `name`, when it explicitly excludes this run, with a reason:
  * a platform scope that excludes the run's platform; optional complements the case requires, at least one of
  * which the harness established absent from the consumer; or optional complements the case needs absent, at
- * least one of which the harness established present. No complement named is a required dependency.
- * Otherwise null (testing/F47).
+ * least one of which the harness established present; or host facts, with https evidence, at least one of which
+ * the harness established not holding on this host through Hosting (testing/F68, testing/F69). A host fact that
+ * holds, is unknown, is inherited or was not established never makes a case not applicable, so the case runs
+ * (testing/F70). No complement named is a required dependency. Otherwise null (testing/F47).
  */
 function established(facts, name) {
   const a = Object.hasOwn(facts?.applicability ?? {}, name) ? facts.applicability[name] : null;
@@ -23,13 +25,16 @@ function established(facts, name) {
   if (a.platforms !== undefined && !names(a.platforms)) return null;
   const optional = (list) => names(list) && Array.isArray(facts.dependencies) && !list.some((c) => facts.dependencies.includes(c));
   if ((a.requires !== undefined && !optional(a.requires)) || (a.absent !== undefined && !optional(a.absent))) return null;
+  if (a.host !== undefined && !(names(a.host) && typeof a.evidence === "string" && /^https:\/\/\S+$/.test(a.evidence))) return null;
   const is = (c, state) => Object.hasOwn(facts.complements ?? {}, c) && facts.complements[c] === state;
   const offPlatform = a.platforms !== undefined && !a.platforms.includes(facts.platform);
   const missing = a.requires !== undefined && a.requires.some((c) => is(c, "absent"));
   const present = a.absent !== undefined && a.absent.some((c) => is(c, "present"));
-  return offPlatform || missing || present ? a : null;
+  const hosts = plain(facts.hostFacts) ? facts.hostFacts : {};
+  const lacking = a.host !== undefined && a.host.some((f) => Object.hasOwn(hosts, f) && plain(hosts[f]) && hosts[f].holds === false);
+  return offPlatform || missing || present || lacking ? a : null;
 }
-const same = (a, b) => plain(a) && plain(b) && a.reason === b.reason && setEq(a.platforms, b.platforms) && setEq(a.requires, b.requires) && setEq(a.absent, b.absent);
+const same = (a, b) => plain(a) && plain(b) && a.reason === b.reason && setEq(a.platforms, b.platforms) && setEq(a.requires, b.requires) && setEq(a.absent, b.absent) && setEq(a.host, b.host) && a.evidence === b.evidence;
 
 /** Each scenario: what the publisher's harness changes in a fresh consumer, and what every conforming verifier must then show. */
 export const SCENARIOS = Object.freeze([
@@ -45,7 +50,7 @@ export const SCENARIOS = Object.freeze([
   { id: "case-substituted", change: "on this platform, the package's runner reports a stand-in under another identity in place of a declared case", result: "unknown", cases: "pass", target: "not run" },
   { id: "case-skipped", change: "a declared case is marked skipped", result: "unknown", cases: "pass", target: "skipped" },
   { id: "case-todo", change: "a declared case is marked todo", result: "unknown", cases: "pass", target: "todo" },
-  { id: "not-applicable", change: "the manifest declares a case not applicable, with a platform scope that excludes this platform and a reason", result: "verified", cases: "pass", target: "not applicable" },
+  { id: "not-applicable", change: "the manifest declares a case not applicable, with a reason, by a platform scope that excludes this platform or by a host fact, with its evidence, that the harness established not holding on this host", result: "verified", cases: "pass", target: "not applicable" },
   { id: "complement-absent", change: "the manifest declares a case applicable only with an optional complement installed, with a reason, and the consumer has not installed it", result: "verified", cases: "pass", target: "not applicable" },
   { id: "complement-present", change: "the manifest declares a case applicable only without an optional complement, with a reason, and the consumer has installed it", result: "verified", cases: "pass", target: "not applicable" },
   { id: "dependency-missing", change: "a required runtime dependency of the package is absent from the consumer", result: "unknown", cases: "any" },
