@@ -9,6 +9,16 @@ Each Requirement names, in brackets, the Intents it serves (`intent.md`).
 - **review/F0b** [review/I0]: The record is **analysable**. `scripts/collect.mjs` reads the records of a repository (or a given set), validates each against the schema, and prints findings by severity, dimension, capability named in the subject paths, status and round; checks and claims that failed; lenses not found; and records that fail the schema. It decides nothing about any work.
 - **review/F0c** [review/I0, review/I3]: The schema is Review's. It is versioned. A change that breaks readers of an earlier version is a new schema version, and `collect` reads every version it knows and names those it does not.
 
+## Composition: 1 + 1 > 2
+
+- **review/F13** [review/I6, review/I1]: What a capability adds over a bare review is exactly what it passes in the request, and each addition is visible in the record:
+  - `lenses` add the questions only the capability can ask (its intents, requirements, limitations, its role's responsibilities), so findings appear that a generic review has no reason to look for;
+  - `checks` add deterministic observations the capability's scripts produce, so facts are observed, not guessed;
+  - `claims` add what the work must satisfy, so the self-check can say satisfied, failed or not shown instead of leaving it implied;
+  - `severity_floor` and `evidence_expected` add the capability's own bar for what matters and what proves it.
+  Review adds what the capability does not have to rebuild: the finding format, the severity scale, the dimension checklist, the self-check, re-review and the record. Neither side alone gives both.
+- **review/F14** [review/I6]: The composition is the same for every capability. No capability gets a special path, and a capability that passes nothing gets the generic review.
+
 ## The review request: parameters
 
 - **review/F1** [review/I1]: A review is invoked with a **request**. Every field is optional. A request with none is a generic review of the change in front of the Agent. The fields are:
