@@ -6,6 +6,8 @@ These are the bounds of what kaal-testing shows. Each follows from the [Requirem
 
 `package.json` and the [Operations export inventory](operations.md) identify the public interfaces this installation provides. The accepted Requirements and Architecture also describe standalone runner observation (`/observe`) and RED/FAR classification (`/red`). Those modules are not implemented or exported in 0.0.1. Their contracts and planned Cases remain recorded, but their behavior is unverified and cannot be inferred from other passing Cases. The consumer-verifier parser named `observe` in `/verifiers` has a different contract. This release neither implements those missing interfaces nor silently withdraws their accepted contracts; any completion or scope change needs its own reviewed Change.
 
+For 0.0.1, standalone `/observe` and `/red`, coverage accounting (`testing/C33`), trace derivation (`testing/C48`) and composed-Plan execution are deferred and not part of this release. Their accepted contracts remain recorded and their behavior is unverified here.
+
 ## Evidence limits
 
 - **A clean result shows only what its checks cover.** GREEN is bounded evidence, not proof of the outcome. A passed Case shows that its assertions held in its Run, and that it bears on its target remains an inference (testing/I5).
