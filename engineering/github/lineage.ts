@@ -12,7 +12,7 @@
 //                        merged state's content unchanged. It is fully current or a valid step. Anything
 //                        else proposed to a lineage is an ordinary Change, which must not carry the
 //                        default branch's history.
-//   autoMerge            Gate, before a pull request lands: auto-merge, when enabled, is set to the method
+//   autoMerge            Gate, before a pull request lands: auto-merge is enabled with the method
 //                        its flow names.
 //   landing              Audit, after a pull request has landed: it landed by that method. A landing cannot
 //                        be gated after the fact; this verdict reports it, with the repair.
@@ -256,7 +256,7 @@ export function autoMerge(f: AutoMergeFacts): Verdict {
     return { kind: "fail", message: `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right. See ${TELLING}` };
   }
   if (f.enabled === null) {
-    return { kind: "not-applicable", message: `Auto-merge is off. Whoever lands this pull request into ${f.baseRef} uses ${METHOD_NAME[f.expected]}.` };
+    return { kind: "fail", message: `Auto-merge is disabled for this pull request into ${f.baseRef}. Enable auto-merge with ${METHOD_NAME[f.expected]} before integration. See ${TELLING}` };
   }
   if (f.enabled === f.expected) return { kind: "pass", message: `Auto-merge lands this pull request into ${f.baseRef} by ${METHOD_NAME[f.expected]}, as its flow names.` };
   return {
