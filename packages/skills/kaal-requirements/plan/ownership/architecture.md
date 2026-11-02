@@ -15,7 +15,7 @@ This is the map of existing work, and the boundaries it follows. It states no de
 | `**<cap>/F<n>** [<cap>/I<n>]` bracket citations in 24 `requirements.md` files | Each consuming capability | On `main`, as prose | Moves to Nodes incrementally, in the Change that first states a Requirement as changed (`requirements/F15`). No bulk migration |
 | Change Isolation by reverse traceability (#739, draft; #880 ledger on `main`) | Engineering, Change | Draft on fixtures | Needs the `Serves` Edges above to compute real impact |
 | Test Case and dependency traces (#745, #746) | Testing, Packaging | PLAN, open | Their own owners |
-| Defect as a Requirement kind (`requirements/F23`, `F24`), superseding `requirements/F10` | Requirements | Decided by the Owner, 2 Nov. Identification and Definition text not yet planned | A following PLAN for Defect identification and the amendments to `F10`, `F12`, `F13`, `T11` |
+| Defects in the Requirements loop (`requirements/F23`); `requirements/F10` and `T11` stand (`F24`) | Requirements for the obligation; Defect concept and record undecided; Testing for RED evidence | Owner placed Defects in the loop on 2 Nov. Ownership of the Defect record not decided | Owner decision on the Defect concept and record, then a following PLAN |
 
 ## Boundaries
 
@@ -25,4 +25,4 @@ This is the map of existing work, and the boundaries it follows. It states no de
 
 ## The loops
 
-Intent, Requirements (functional, nonfunctional, Defect), Architecture and Code are loops, each answering the one above it in the Owner's concept. A loop is not a link in a chain. Test Cases trace to Intent, Requirements, Architecture and Defects independently, so a Case can be added when learning shows something new. It starts RED, and implementation answers it with GREEN. A GREEN result reflects current knowledge only. Requirements owns every kind in its own loop and states only `Serves`.
+Intent, Requirements (functional, nonfunctional, Defect), Architecture and Code are loops, each answering the one above it in the Owner's concept. A loop is not a link in a chain. Test Cases trace to Intent, Requirements, Architecture and Defects independently, so a Case can be added when learning shows something new. It starts RED, and implementation answers it with GREEN. A GREEN result reflects current knowledge only. Requirements states only `Serves`; who owns the Defect record is bounded in `requirements/F23`.
