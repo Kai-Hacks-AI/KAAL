@@ -2,6 +2,10 @@
 
 These are kaal-testing's architectural decisions, each identified as `testing/A<n>` and naming, in brackets, the [Requirements](requirements.md) it realizes.
 
+## Implemented interface and accepted design
+
+The export inventory in testing/A8 and `package.json` identifies the implemented public interfaces of this release. The accepted design below also includes testing/A7's standalone `observe` interface and testing/A1's `red` classification interface. Neither is exported or implemented by this package. Their contracts remain recorded; they are not callable delivery promises satisfied by 0.0.1, and this release does not implement or replace them. `verifiers.observe` reads a consumer-verification summary and is not a substitute for the standalone runner observer. See [Limitations](limitations.md) for the evidence consequence.
+
 ## RED Evidence and Feature-Accepted Regressions
 
 - **testing/A7** [testing/F1, testing/N4]: `@kaihacksai/kaal-testing/observe` exports `observe({ files, cwd })`. The runner start, the reporter and the reading of its lines live in one module that both `observe` and `accept` use.
@@ -168,7 +172,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
   - `package.json`, `README.md`, `LICENSE`;
   - `capability/`, `lib/`, `payload/`, `skills/`;
   - `docs/`;
-  - `test/embed/`, `test/verify.mjs` and `test/verify.json`.
+  - `test/embed/`, `test/run.mjs`, `test/verify.mjs` and `test/verify.json`.
 
   Nothing else ships: no PLAN document, no planned test, no publisher test, and neither `evidence.kaal.json` nor `ownership.kaal.json`. `test/verify.mjs` runs the delivered cases with Node's test runner against the installed copy. It reads the manifest, compares hashes, compares the consumer before and after, and prints the summary line.
 
@@ -194,7 +198,7 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
 
 ## Redesigning Slow Cases
 
-- **testing/A28** [testing/F93–testing/F97, testing/N20]: `@kaihacksai/kaal-testing/redesign` is one new module, `lib/redesign.mjs`, exported as `./redesign`. It imports `profile` and `DEFAULTS` from `@kaihacksai/kaal-testing/timing` (`testing/C46`) and nothing else. It exports:
+- **testing/A28** [testing/F93–testing/F97, testing/N20]: `@kaihacksai/kaal-testing/redesign` is one new module, `lib/redesign.mjs`, exported as `./redesign`. It imports `profile` and `DEFAULTS` from `@kaihacksai/kaal-testing/timing` (testing/A25) and nothing else. It exports:
   - `DEFAULTS`, frozen: `{ window: 5, recur: 3 }`;
   - `candidates(history, options?)`, which gives `{ result, candidates, refactors, unprofiled, findings }`;
   - `refactored(before, after)`, which gives `{ result, differences, findings }`.

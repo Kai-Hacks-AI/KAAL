@@ -23,6 +23,26 @@ Import the export for the contract you need. Each is described in the [Architect
 
 The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evaluate Test Cases with these, and the Nodes in `capability/` and `payload/` carry what Testing means to KAAL.
 
+## Public export inventory
+
+| Export | Implemented use |
+| --- | --- |
+| `./acceptance` | Discover/run publisher scenarios and install the caller's packed artifacts |
+| `./attribution` | Attribute listed files to declared owners |
+| `./boundary` | Interpret an attested verdict on a concern owner's PLAN boundary |
+| `./contracts` | Interpret evidence from the observed acceptance run |
+| `./coverage` | Measure executed delivered code in a workspace Run |
+| `./duplicates` | Find duplicate execution requests and plan their shared reads |
+| `./inventory` | Count non-blank text lines of supplied files |
+| `./model` | Check definitions, derive traces, evaluate Runs and read current evidence |
+| `./package.json` | Discover the installed package metadata and location |
+| `./redesign` | Read timing history and independent behavioral-preservation evidence |
+| `./report` | Reconcile the package and ownership evidence |
+| `./timing` | Profile supplied Case durations and cross-platform skew |
+| `./verifiers` | Read and judge consumer-verifier summaries and platform parity |
+
+The [Skill walkthrough](../skills/kaal-testing/references/approach.md) demonstrates the model without requiring an Engine. Standalone runner observation and RED/FAR classification are not public exports of this installation; see [Limitations](limitations.md). Do not infer their availability from their accepted design descriptions.
+
 ## Verify
 
 Verify the installed copy from the consumer that installed it:
@@ -61,6 +81,10 @@ npm uninstall @kaihacksai/kaal-testing
 | `payload/Testing.md` | the Skill Node, typed by Core's KAAL Skill |
 | `skills/kaal-testing/` | the Agent Skill, `SKILL.md`, and its references |
 | `lib/` | the library modules behind each export, the runner reporter and the observed-run store |
+| `test/embed/` | the declared consumer Cases, executed against the installed package |
+| `test/run.mjs` | explicit source/installed suite selection |
+| `test/verify.mjs` | the independent installed-copy verifier |
+| `test/verify.json` | shipped byte hashes, declared Cases, model and platform inventory |
 
 ## Timing observations
 

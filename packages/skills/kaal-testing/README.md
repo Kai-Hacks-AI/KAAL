@@ -7,7 +7,7 @@ capability/Testing.md                  the Capability Node, typed by Core's KAAL
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
 docs/                                  the shipped documents: Intent, Requirements, Architecture, Testing, Limitations, Operations
 skills/kaal-testing/                   the Agent Skill: SKILL.md
-skills/kaal-testing/references/        findings.md
+skills/kaal-testing/references/        approach.md, brittle.md, findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
 lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
@@ -17,6 +17,12 @@ lib/observed.mjs                       what accept() observed, kept private to t
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 evidence.kaal.json                     Testing's own contract evidence mapping (repository data, not delivered)
 ```
+
+## Start here
+
+The [Agent Skill](skills/kaal-testing/SKILL.md) teaches the existing testing loops, RED → GREEN → REFACTOR, BRITTLE and evidence interpretation. Its [worked approach](skills/kaal-testing/references/approach.md) covers standalone package discovery and an executable Plan/Suite/Case evaluation example. Consumer-owned package boundaries use that same approach and model.
+
+The [Operations](docs/operations.md) export inventory describes the implemented public API. The [delivery limitations](docs/limitations.md) distinguish accepted contracts from interfaces not delivered in 0.0.1. A planned Case in the Testing document is not a claim that it ran or passed.
 
 ## Documents
 

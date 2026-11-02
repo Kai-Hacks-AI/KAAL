@@ -1,6 +1,12 @@
 # kaal-testing: Limitations
 
-These are the bounds of what kaal-testing shows. Each follows from the [Requirements](requirements.md) and [Architecture](architecture.md), and none is a defect.
+These are the bounds of what kaal-testing shows. Each follows from the [Requirements](requirements.md) and [Architecture](architecture.md), and distinguish evidence limits from incomplete delivery.
+
+## Delivery status
+
+`package.json` and the [Operations export inventory](operations.md) identify the public interfaces this installation provides. The accepted Requirements and Architecture also describe standalone runner observation (`/observe`) and RED/FAR classification (`/red`). Those modules are not implemented or exported in 0.0.1. Their contracts and planned Cases remain recorded, but their behavior is unverified and cannot be inferred from other passing Cases. The consumer-verifier parser named `observe` in `/verifiers` has a different contract. This release neither implements those missing interfaces nor silently withdraws their accepted contracts; any completion or scope change needs its own reviewed Change.
+
+## Evidence limits
 
 - **A clean result shows only what its checks cover.** GREEN is bounded evidence, not proof of the outcome. A passed Case shows that its assertions held in its Run, and that it bears on its target remains an inference (testing/I5).
 - **Testing interprets evidence and never produces or authenticates it.** A boundary verdict counts only with its trust authority's attestation (testing/F19, testing/F20). Without it, the result is unknown.
