@@ -200,7 +200,7 @@ describe("package", () => {
 
   it("depends at runtime on kaal-foundation, kaal-hosting and yaml, not on kaal-graph, and no workspace dependency depends on kaal-core", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    assert.deepEqual(core.dependencies, { "@kaihacksai/kaal-foundation": "0.0.2", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
     for (const graph of ["kaal-graph", "@kaihacksai/kaal-graph"]) assert.ok(!existsSync(join(host, "node_modules", graph)), `the host holds no ${graph}`);
     for (const dependency of ["@kaihacksai/kaal-foundation", "kaal-hosting"]) {
       const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));

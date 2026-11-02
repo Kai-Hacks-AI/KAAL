@@ -78,7 +78,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@kaihacksai/kaal-foundation": "0.0.1",
+    "@kaihacksai/kaal-foundation": "0.0.2",
     "kaal-hosting": "0.0.1",
     "yaml": "2.9.1"
   },

@@ -88,7 +88,7 @@ describe("Core's Hosting boundary", () => {
 
   it("depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build", () => {
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-foundation": "0.0.2", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
     assert.equal(pkg.devDependencies["kaal-graph"], "0.0.1");
   });
 });
