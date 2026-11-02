@@ -12,9 +12,20 @@ invoker -- request --> review -- record --> published with the work (marker + JS
 
 The record holds the request actually used, so a capability's tuning is visible in every record and review practice can be analysed per capability without Review knowing the capabilities: the subject's paths and the lenses named in the record carry that information.
 
-## The BASS split inside Review
+## Ownership boundaries (REAL)
 
-Review is realized at each BASS level for what that level does best.
+| Owned by | What |
+|---|---|
+| Review | Scoped validation and Findings: checking against the given scope, the finding format, severity, evidence, the self-check and the record. |
+| The invoker | The scope, the request, and the disposition of each Finding. |
+| Neither | Approval, which is separate: who may approve, merge or decide is not set by having reviewed. |
+| Agents and Engineer Skill | BASS, the overarching agent-engineering principle. |
+
+This is a statement of responsibility within the existing Skill and record. It adds no package, framework or Node.
+
+## How Review uses BASS
+
+BASS is not Review's. Review applies it, as any capability may: it realizes each behaviour at the level that makes it as deterministic as it needs to be.
 
 | Level | What Review puts there |
 |---|---|

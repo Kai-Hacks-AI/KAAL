@@ -2,6 +2,13 @@
 
 Each Requirement names, in brackets, the Intents it serves (`intent.md`).
 
+## Responsibility: scoped validation and Findings (REAL)
+
+- **review/F15** [review/I00]: Review validates the work against the scope the invoker gives and returns **Findings**. The scope is the invoker's: Review reports the scope it was given and what lay outside it, and never widens, narrows or redefines it.
+- **review/F16** [review/I00]: The **disposition** of a Finding (fix, accept, defer, reject) is the invoker's. Review records, on re-review, whether a Finding was fixed, and never decides that a Finding should be accepted or ignored. A record may carry the invoker's dispositions in a field `dispositions`, which Review reads and does not write.
+- **review/F17** [review/I00, review/I3]: **Approval** is separate from Review. A record has no approval field, no merge field and no verdict that reads as one.
+- **review/F18** [review/I00]: Review refers to BASS and does not define it. The Skill and references link or name BASS and never restate its levels as Review's own.
+
 ## The review record
 
 - **review/F0** [review/I0]: Every review ends in one **record**, a JSON object with `schema: "kaal-review/1"`. It holds, in this order: `id`; `reviewer` (the actor and what made it independent); `time`; `subject` (repository, pull request or range, head and base commit); `request` (the parameters actually used, defaults filled in, so two records are comparable); `lenses` (each with its source and whether it was applied or not found); `checks` (command, exit status, output reference); `findings` (F4 fields); `claims` (each with satisfied, failed or not shown, and its evidence); `not_checked`; `human_to_observe`; `self_check` (F9); `round` and `prior` (the id of the record it follows).
