@@ -43,12 +43,12 @@
     "dist/register.js": "cb558900ad67383a627b29999c2e19349263de7d33a4c11eb3d2257225f6eef8",
     "dist/registration.d.ts": "de8b0e2be5578306a7a3980b3761323a73b796c18d6990a5ff278843a62d0ad0",
     "dist/registration.js": "cb922c8bccec92255d94719e8067fdcbc69f82048537af071881d0f882e273d8",
-    "docs/architecture.md": "978344cece331a21192f3b6046059490d19a91cf6fadd59ae6a462a5637a7bc8",
+    "docs/architecture.md": "1388d9dbbb744411f9132a4d9a5555859eed06315bce5148b9fc7352ccfb14e2",
     "docs/intent.md": "2e2ff3a9bedd2b4e38daf7adbe593e2f3dc3dbd98ca99486e8877e0c50980301",
-    "docs/limitations.md": "1bee4146d688db9c1852021c8bab33357243245373224f26f5de052ecdfbbb38",
-    "docs/operations.md": "fe829ac4bf6d09ba36cb9834c595f529ad2c7bdab6ec9afe909322fb40bf9beb",
+    "docs/limitations.md": "ed1b46a63ce579321b0735d8455e2d8a0f4d8d2675ac8897ec533a0867b38c3a",
+    "docs/operations.md": "a70bdf8db9ebeaefa1f1da1ad294bfa493fb3f2012dfdf177e8edfe689fcd17c",
     "docs/requirements.md": "3c7e34d7204fbcb51a80f113844d7085c31aaf2aa4c106f17b9e02ee3bbf0c94",
-    "docs/testing.md": "6f55e58867b04776ccc5aa26aa2b175fab045a47b3fd22b6d49b74aa920f2c0f",
+    "docs/testing.md": "a7179fcaa9948c544f3021fda723397b87fe5b1da4f4cdcd7215dac39af2533a",
     "installation.kaal.json": "e9a1cafdd0aa43182f52bf478261afbb3eedfdea4ab6e8e65c3c7b221eb28927",
     "package.json": "ad5113a9d975cc730facdf9956dd7debba0f8752c00ae433bf8a0014d720e353",
     "payload/AGENTS.md": "66cd64c78ccfc874023442db3fcfbace014aee9c5af3aeec93d9271317029d93",
@@ -70,7 +70,7 @@
     "test/embed/intent.test.mjs": "b0265b9186783613be64b716f1babc3af154a2e563bb4d073f7b6a9a1ab0470a",
     "test/embed/requirements.test.mjs": "8131576d890e4005f59503699a9f7683e534fb1f01d4925ab278f520af740c90",
     "test/run.mjs": "db74692743ba08c5c787b6f53bde72ec3b12a7e24a94f2ab82f18a9c3686c4f4",
-    "test/verify.mjs": "7dc455ef74eed518493b1f48ff299d0614faa374c160b9200bec26a75adbb991"
+    "test/verify.mjs": "13092c6f0ddc4e80dce13a254fd33bc16ac4f7eb59401265daf2986daa3d6bae"
   },
   "cases": [
     {

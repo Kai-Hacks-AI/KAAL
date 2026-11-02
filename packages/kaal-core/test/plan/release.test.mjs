@@ -242,7 +242,7 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
   });
 
   // Added by core/C36: the shipped verifier decides on the declared inventory, never on counts (core/F70, core/A43).
-  it("core/T91 [core/F70, core/F85, core/F87, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each run emits one execution record naming its candidate and each required case's outcome, each result names its candidate, evidence and cause, and the fixture is left as it was", { timeout: 300_000 }, async () => {
+  it("core/T91 [core/F70, core/F85, core/F87, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each run emits one final normalized report naming its candidate, every exact required case and its outcome, result, exit and causes, and the fixture is left as it was", { timeout: 300_000 }, async () => {
     const verifier = join(CORE, "test", "verify.mjs");
     assert.ok(existsSync(verifier), "blocked before behavioural assertion: no shipped test/verify.mjs");
     const sha = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -281,38 +281,51 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       const verify = async (dir) => {
         const r = await run(process.execPath, [join(dir, "test", "verify.mjs")], dir);
         const lines = r.stdout.trim().split(/\r?\n/);
-        const records = lines.filter((l) => l.startsWith("kaal-core-execution: "));
-        return { ...r, last: lines.pop() ?? "", record: records.length === 1 ? JSON.parse(records[0].slice("kaal-core-execution: ".length)) : undefined, records: records.length };
+        const prefix = "kaal-core-verification ";
+        const records = lines.filter((l) => l.startsWith(prefix));
+        const last = lines.at(-1) ?? "";
+        assert.equal(records.length, 1, `one normalized summary per execution: ${r.out}`);
+        assert.equal(records[0], last, `the normalized summary is the final line: ${r.out}`);
+        assert.equal(lines.filter((l) => l.startsWith("kaal-core-execution: ")).length, 0, "no separate competing execution record");
+        return { ...r, last, record: JSON.parse(last.slice(prefix.length)), records: records.length };
       };
-      /** The execution record's outcome for each case, by name (core/F87). */
+      /** The same normalized execution supplies every case's observed outcome. */
       const outcomes = (r) => Object.fromEntries((r.record?.cases ?? []).map((c) => [c.name, c.outcome]));
-      const expect = async (dir, status, word, why, cause) => {
+      const expect = async (dir, status, word, why, cause, declared = DECLARED) => {
         const r = await verify(dir);
         assert.equal(r.status, status, `${why}: ${r.out}`);
-        assert.match(r.last, new RegExp(`\\b${word}\\b`), `${why}: ${r.out}`);
-        assert.match(r.last, /fixture@1\.0\.0/, `the result line names the candidate: ${r.out}`);
-        assert.match(r.last, /\d+ declared, \d+ executed/, `the result line states its evidence: ${r.out}`);
-        assert.equal(r.records, 1, `each run emits exactly one execution record before its result (core/F87): ${r.out}`);
-        assert.deepEqual({ name: r.record.candidate?.name, version: r.record.candidate?.version }, { name: "fixture", version: "1.0.0" }, `the record names its candidate: ${r.out}`);
-        if (cause) assert.ok(r.last.includes(cause), `the result line names its cause, ${cause}: ${r.out}`);
+        assert.equal(r.record.result, word, `${why}: the normalized result`);
+        assert.equal(r.record.exit, status, `${why}: the report agrees with the process exit`);
+        assert.deepEqual({ name: r.record.candidate?.name, version: r.record.candidate?.version }, { name: "fixture", version: "1.0.0" }, `the report names its candidate: ${r.out}`);
+        assert.equal(r.record.candidate.manifest, sha(join(dir, "test", "verify.json")), "the report identifies this exact manifest");
+        assert.ok(Array.isArray(r.record.cases), "per-case evidence is present");
+        const identity = (cases) => cases.map(({ file, name }) => ({ file, name })).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+        assert.deepEqual(identity(r.record.cases), identity(declared), "exact declared case identities, with no omission, duplicate or substitute");
+        assert.ok(r.record.cases.every((c) => ["pass", "fail", "skipped", "todo", "not run"].includes(c.outcome)), "outcomes use the supported verifier vocabulary; these fixtures have no applicability exemption");
+        assert.ok(Array.isArray(r.record.causes) && r.record.causes.every((c) => typeof c === "string" && c.length > 0), "causes are explicit strings");
+        if (cause) assert.ok(r.record.causes.some((c) => c.includes(cause)), `the report names its cause, ${cause}: ${r.out}`);
+        if (status === 0) assert.deepEqual(r.record.causes, [], "a verified run has no cause");
         return r;
       };
 
       const good = fixture();
       const before = Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))]));
       const ok = await expect(good, 0, "verified", "an intact fixture whose declared cases all pass");
-      assert.match(ok.last, /4 declared, 4 executed/, ok.out);
+      assert.equal(ok.record.cases.length, 4, "four exact declared cases");
+      assert.equal(ok.record.cases.filter((c) => ["pass", "fail"].includes(c.outcome)).length, 4, "all four executed");
       assert.equal(ok.record.candidate.manifest, sha(join(good, "test", "verify.json")), "the record identifies the candidate by its manifest's SHA-256");
-      assert.deepEqual(outcomes(ok), { "S > a": "passed", b: "passed", c: "passed", d: "passed" }, "every required case executed successfully");
+      assert.deepEqual(outcomes(ok), { "S > a": "pass", b: "pass", c: "pass", d: "pass" }, "every required case executed successfully");
       assert.deepEqual(Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))])), before, "verification leaves the package as it was (core/N23)");
 
-      await expect(fixture({ cases: [...DECLARED, { file: "test/embed/code.test.mjs", name: "e" }] }), 2, "cannot verify", "a declared case that never ran", "e");
+      const withMissing = [...DECLARED, { file: "test/embed/code.test.mjs", name: "e" }];
+      const missing = await expect(fixture({ cases: withMissing }), 2, "cannot verify", "a declared case that never ran", "e", withMissing);
+      assert.equal(outcomes(missing).e, "not run", "a missing case is not evidence of execution");
       const skipped = await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit.skip("d", () => {});\n' } }), 2, "cannot verify", "a declared case that was skipped", "d");
       assert.equal(outcomes(skipped).d, "skipped", `the record shows the case as skipped, not passed: ${skipped.out}`);
       await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit.todo("d", () => {});\n' } }), 2, "cannot verify", "a declared case marked todo", "d");
       await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit("d", () => {});\nit("extra", () => {});\n' } }), 2, "cannot verify", "an undeclared case that ran", "extra");
       const failing = await expect(fixture({ files: { ...PASSING, "test/embed/code.test.mjs": 'import { it } from "node:test";\nit("d", () => { throw new Error("deliberate"); });\n' } }), 1, "failed", "a declared case that failed, with the files intact", "d");
-      assert.equal(outcomes(failing).d, "failed", `the record shows the failed execution: ${failing.out}`);
+      assert.equal(outcomes(failing).d, "fail", `the record shows the failed execution: ${failing.out}`);
       const changed = await expect(fixture({ after: (dir) => writeFileSync(join(dir, "test", "embed", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "a file changed after the manifest was made", "test/embed/code.test.mjs");
       assert.ok(Object.values(outcomes(changed)).every((o) => o === "not run"), `an inconsistent candidate runs no case, so its record evidences nothing about it: ${changed.out}`);
       await expect(fixture({ after: (dir) => writeFileSync(join(dir, "added.mjs"), "export {};\n") }), 2, "cannot verify", "a file the manifest does not list", "added.mjs");
@@ -324,8 +337,10 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       await expect(fixture({ source: true, after: (dir) => writeFileSync(join(dir, "test", "embed", "code.test.mjs"), 'import { it } from "node:test";\nit("d", () => {});\n// changed\n') }), 2, "cannot verify", "in source too, a shipped file changed after the manifest was made", "test/embed/code.test.mjs");
       const bare = await verify(fixture({ manifest: false }));
       assert.equal(bare.status, 2, `no manifest: ${bare.out}`);
-      assert.match(bare.last, /cannot verify/, `no manifest is never verified: ${bare.out}`);
-      await expect(fixture({ files: {}, cases: [] }), 2, "cannot verify", "an empty inventory");
+      assert.equal(bare.record.result, "cannot verify", `no manifest is never verified: ${bare.out}`);
+      assert.equal(bare.record.exit, 2, "the missing-manifest summary agrees with the exit");
+      assert.ok(Array.isArray(bare.record.causes) && bare.record.causes.length > 0, "the missing manifest is diagnosed");
+      await expect(fixture({ files: {}, cases: [] }), 2, "cannot verify", "an empty inventory", undefined, []);
     } finally {
       rmSync(work, { recursive: true, force: true });
     }

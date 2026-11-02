@@ -2,8 +2,10 @@
 // kaal-core's consumer verification (core/F70, core/F85, core/F87, core/N23, core/A43).
 // It first checks the package's files against the shipped manifest, test/verify.json, which only
 // establishes the candidate. It then runs the delivered loops and reports Testing's result for this
-// candidate: verified only when every required case executed successfully. One execution record
-// precedes the result line, which is the last line of standard output.
+// candidate: verified only when every required case executed successfully. Each run prints exactly one
+// normalized report, the last line of standard output: `kaal-core-verification ` and one JSON object with
+// the result, the process exit, the candidate (name, version, manifest SHA-256), every declared case's
+// exact file, name and outcome, and the causes. There is no second record or human-only result line.
 // Every host operation goes through kaal-hosting, KAAL's only OS boundary, except the scratch working
 // directory, which Hosting does not offer: it is made and removed with Node's portable calls, never
 // by a platform decision. SHA-256 is Foundation's.
@@ -30,14 +32,19 @@ let cases = [];
 let outcomes = new Map();
 const outcomeOf = (c) => outcomes.get(`${c.file}\u0000${c.name}`);
 
-/** Prints the execution record and the result line, then exits with the result's status. */
+/** The report's outcome words (the verifier vocabulary); a case that did not execute is "not run". */
+const OUTCOMES = { passed: "pass", failed: "fail", skipped: "skipped", todo: "todo" };
+
+/** Prints the one normalized report as the final line, then exits with the result's status. */
 const end = (result, cause) => {
-  const executed = cases.filter((c) => ["passed", "failed"].includes(outcomeOf(c))).length;
-  {
-    const record = { candidate, cases: cases.map((c) => ({ file: c.file, name: c.name, outcome: outcomeOf(c) ?? "not run" })) };
-    console.log(`kaal-core-execution: ${JSON.stringify(record)}`);
-  }
-  console.log(`kaal-core: ${result}: ${candidate.name}@${candidate.version}: ${cases.length} declared, ${executed} executed${cause ? `: ${cause}` : ""}`);
+  const report = {
+    result,
+    exit: RESULTS[result],
+    candidate,
+    cases: cases.map((c) => ({ file: c.file, name: c.name, outcome: OUTCOMES[outcomeOf(c)] ?? "not run" })),
+    causes: cause ? [cause] : [],
+  };
+  console.log(`kaal-core-verification ${JSON.stringify(report)}`);
   process.exit(RESULTS[result]);
 };
 

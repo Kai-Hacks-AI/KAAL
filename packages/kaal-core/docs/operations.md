@@ -84,9 +84,9 @@ The run does three things:
 
 1. It checks every installed file against the shipped manifest, `test/verify.json`.
 2. When they match, it runs the delivered tests against the installed copy.
-3. It prints one execution record, a line starting with `kaal-core-execution: `, then the result.
+3. It prints one normalized report, a line starting with `kaal-core-verification ` followed by a JSON object.
 
-The result is the last line of standard output, in the form `kaal-core: <result>: <name>@<version>: <declared> declared, <executed> executed`, followed by the cause when there is one. It is exactly one of these:
+The report is the last line of standard output and the only report line. Its JSON object has these members: `result`, `exit` (the process exit status), `candidate` (`name`, `version` and `manifest`, the SHA-256 of `test/verify.json`), `cases` (each declared case's exact `file` and `name` with its `outcome`: `pass`, `fail`, `skipped`, `todo` or `not run`) and `causes` (strings; empty when the result is `verified`). `result` is exactly one of these:
 
 | Result | Exit | Meaning |
 | --- | --- | --- |

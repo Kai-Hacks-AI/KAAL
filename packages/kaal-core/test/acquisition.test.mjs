@@ -22,6 +22,7 @@ import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 const CORE = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPOSITORY = join(CORE, "..", "..");
@@ -156,6 +157,19 @@ describe("kaal-core's safe acquisition (core/C29, the Owner's review on #704)", 
     // And its documented verification ends in verified, from the unmodified tarball's own directory.
     const verified = await npm(["explore", pkg.name, "--", "npm", "test"], current);
     assert.equal(verified.status, 0, verified.out);
-    assert.ok(verified.stdout.trim().split(/\r?\n/).at(-1).startsWith(`kaal-core: verified: ${pkg.name}@${pkg.version}:`), verified.out);
+    const lines = verified.stdout.trim().split(/\r?\n/);
+    const prefix = "kaal-core-verification ";
+    const reports = lines.filter((line) => line.startsWith(prefix));
+    assert.equal(reports.length, 1, "one normalized verification report from the unmodified installed tarball");
+    assert.equal(reports[0], lines.at(-1), "the normalized report is the final line");
+    const report = JSON.parse(reports[0].slice(prefix.length));
+    const manifestBytes = readFileSync(join(current, "node_modules", pkg.name, "test/verify.json"));
+    const manifest = JSON.parse(manifestBytes);
+    assert.equal(report.result, "verified", verified.out);
+    assert.equal(report.exit, verified.status, "the report agrees with the process exit");
+    assert.deepEqual(report.candidate, { name: pkg.name, version: pkg.version, manifest: sha256(manifestBytes) });
+    assert.deepEqual(report.cases.map(({ file, name }) => ({ file, name })), manifest.cases.map(({ file, name }) => ({ file, name })), "exact installed case identities");
+    assert.ok(report.cases.length > 0 && report.cases.every((c) => c.outcome === "pass"), "all installed required cases executed successfully");
+    assert.deepEqual(report.causes, [], "a verified run reports no cause");
   });
 });
