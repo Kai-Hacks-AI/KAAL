@@ -27,6 +27,8 @@ Its last line starts with `kaal-hosting-verification ` and carries the result as
 
 In Hosting's source workspace, the same `npm test` runs every suite the package declares as a `test:<name>` script, the publisher's included.
 
+Publisher cases hosting/T88–hosting/T89 additionally characterize escaping-path refusal, preservation of unrelated sibling bytes and the actual transient writer footprint through real filesystem calls. They do not prove caller authority. Independent review of the general Skill must separately challenge root-only tasks, adequate-footprint tasks and advice to erase recovery originals or treat staging as implicitly authorized; a mechanical pass is not that judgment.
+
 ## Applicability
 
 A case that cannot apply on some host is declared here, with the platforms where it does not apply and why. There it is not run and is reported as `not applicable`, and it does not keep the run from `verified`. A case skipped anywhere else is `cannot verify` (hosting/F25). No case is declared today: where a case needs something only some hosts have, such as a FIFO or a socket in a directory tree, it establishes by trying whether this host has it, through Hosting's own host facts, and checks what the host does either way.
@@ -43,6 +45,7 @@ Some promises cannot be checked by a run in your installation: they concern how 
 <!-- kaal-hosting:allocated -->
 | Identifiers | What the publisher runs |
 | --- | --- |
+| hosting/A2 | hosting/T89 observes real lock/staging/aside operations and their cleanup; existing delivered rollback/recovery cases retain the failure guarantees. |
 | hosting/N1 | every delivered case and every publisher test on Linux, Windows and macOS before a release |
 | hosting/F15, hosting/F17, hosting/A9 | hosting/T21, hosting/T24, hosting/T41 and hosting/T83: the package manifest, and the candidate packed and installed alone into a fresh consumer |
 | hosting/F18, hosting/F19, hosting/F21, hosting/F22, hosting/F23, hosting/F24, hosting/F25 | hosting/T25–hosting/T31: the candidate packed, installed into fresh consumers and verified, unchanged and with one thing changed each time; hosting/T84–hosting/T87 also drive the real verifier through controlled passing, failing and unavailable consumer cases, including unexpected failure, and judge the records with the existing release contract. hosting/T79 additionally challenges duplicate declared and executed case identities, inventory generation, and preservation of every observed failure; these adversaries stay publisher-only. |
@@ -57,7 +60,6 @@ Some promises cannot be checked by a run in your installation: they concern how 
 <!-- kaal-hosting:unverified -->
 | Identifiers | Why |
 | --- | --- |
-| hosting/A2 | a placement: `reconcile` reuses `update`'s lock, staging and file access. What it promises is checked as hosting/N2 and hosting/F6. |
 | hosting/A3 | a bound on cost: a reconciliation reads no more of the root than its own paths. No case measures what is read. |
 | hosting/A5 | a placement: what `executable` means on each host is decided only inside Hosting. Its effect is checked as hosting/F7; that no other capability decides it is the conformance suite's to find in that capability. |
 <!-- /kaal-hosting:unverified -->

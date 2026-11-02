@@ -18,6 +18,10 @@ Read the installed Hosting contract for exact inputs, errors and limits. These e
 
 `read(dir)` currently has no exclusion option. Filtering `node_modules` after a read cannot prevent a directory link there from being refused. Report the resulting limitation; do not promise linked-dependency verification or implement traversal in the consumer to conceal it.
 
+## Authority for writer machinery
+
+Before calling a writer, confirm authority for its canonical target and documented sibling machinery: `<canonical-root>.lock`, `<canonical-root>.staging-*` and `<canonical-root>.aside-*`. A task that authorizes writes strictly inside root must be held for missing footprint authority before any mutation. The library does not infer authority or enforce that instruction. Permission to use this machinery permits only the requested operation; unrelated siblings remain outside the change. Preserve `kept` originals and reported `leftovers` pending a separately authorized recovery or cleanup decision.
+
 ## Initialize and read back
 
 Choose a missing or empty, authorized scratch root. A sibling file is not part of the requested change. `text` is UTF-8 input; Hosting accepts exact `Buffer` bytes.
