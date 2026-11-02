@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
+import { after } from "node:test";
 import { fileURLToPath } from "node:url";
 
 /** The package under test: two directories up from here. */
@@ -65,13 +66,24 @@ export function exec(cwd, file, args, env = {}, input = "") {
   return { status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", output: `${r.stdout ?? ""}${r.stderr ?? ""}` };
 }
 
+/** Every temporary root a case of this file makes, removed when the file ends, whether its cases pass or fail. */
+const roots = [];
+export function scratch(prefix) {
+  const root = mkdtempSync(join(tmpdir(), prefix));
+  roots.push(root);
+  return root;
+}
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+});
+
 let tarball;
 
 /** The packed kaal-guard tarball. While there is no package, a scenario is blocked here, before any behavioural assertion. */
 export function packed() {
   if (tarball) return tarball;
   assert.ok(existsSync(join(PACKAGE, "package.json")), "blocked before behavioural assertion: there is no kaal-guard package to pack (packages/kaal-guard/package.json)");
-  const out = mkdtempSync(join(tmpdir(), "kaal-guard-pack-"));
+  const out = scratch("kaal-guard-pack-");
   const r = exec(PACKAGE, "npm", ["pack", "--pack-destination", out, "--silent"]);
   assert.equal(r.status, 0, `npm pack failed: ${r.output}`);
   tarball = join(out, r.stdout.trim().split(/\r?\n/).pop());
@@ -110,7 +122,7 @@ writeFileSync(process.argv[2], JSON.stringify({ cwd: process.cwd(), stdin, guard
  * development dependency.
  */
 export function consumer({ install = true } = {}) {
-  const root = mkdtempSync(join(tmpdir(), "kaal-guard-consumer-"));
+  const root = scratch("kaal-guard-consumer-");
   const home = join(root, "home");
   const remote = join(root, "remote.git");
   const dir = join(root, "repo");

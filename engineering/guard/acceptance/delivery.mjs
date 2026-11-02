@@ -1,9 +1,10 @@
 // Guard outer acceptance, Engineering part: the fresh target and the External delivery that
 // external.test.mjs and workspace.test.mjs share (guard/C48). Planned in PLAN; DO and CHECK do not change it.
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
+import { after } from "node:test";
 import { fileURLToPath } from "node:url";
 
 export const HERE = dirname(fileURLToPath(import.meta.url));
@@ -17,9 +18,16 @@ export function run(cwd, file, args, env) {
   return { status: r.status, output: `${r.stdout ?? ""}${r.stderr ?? ""}` };
 }
 
+/** Every target's root, removed when the test file that made it ends, whether its cases pass or fail (guard/C108). */
+const roots = [];
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+});
+
 /** A fresh target with a bare remote, its own checks, and a workflow of its own. */
 export function target() {
   const root = mkdtempSync(join(tmpdir(), "guard-external-"));
+  roots.push(root);
   const dir = join(root, "repo");
   const home = join(root, "home");
   mkdirSync(dir);

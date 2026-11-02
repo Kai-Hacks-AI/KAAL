@@ -1,2 +1,3 @@
-# The Skill is installed byte for byte and catalogued by SHA-256: Git must never rewrite its bytes on any host.
-skills/** -text
+# Every shipped file is catalogued by SHA-256 (the Skill in contract.json, every file in
+# test/verify.json): Git must never rewrite the package's bytes on any host.
+* -text
