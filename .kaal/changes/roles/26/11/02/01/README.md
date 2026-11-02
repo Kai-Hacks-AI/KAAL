@@ -6,6 +6,10 @@ Capability: Roles (proposed). Collector: kaal/roles (proposed, created from
 Kai's idea: a `kaal-roles` capability that, for the moment, scopes two advisor
 roles, a CTO Advisor and a CPO Advisor.
 
+**Status: interim baseline.** Kai expects this to change. Its purpose is a
+provisional, referenceable definition the CTO (the coordinator) and the CPO (the
+other session) can be pointed at now. Concise and usable beats final.
+
 This PLAN defines the two roles, says where they live, relates them to Process,
 Engineering and Product, and answers the npm question. Markdown only. No Node,
 Definition, claim, package, workflow or policy is created or changed. Nothing
