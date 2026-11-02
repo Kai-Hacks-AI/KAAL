@@ -1,37 +1,26 @@
-# Hosting SYNC step 3 preparation: the arriving execution-acceptance set, with the scoped Hosting name
+# Change Isolation transition ledger: inert rule, focused promotion to main
 
-Owner: Engineering. Target: kaal/hosting. Ordinary working Change; compatibility-only under
-the approval of PR #866 (coherent scoped Hosting 0.0.1 transition). Record numbering is
-provisional until integration.
+Owner: Engineering. Target: a focused collector for main (kaal/change-isolation-ledger).
+Ordinary working Change delivering step 2 of the Owner-approved admission route (PLAN #854,
+Route A; the rule was reviewed and approved as #862 on kaal/engineering, and Hosting's use
+of it was approved in #866).
 
-Main commit 9a9e896 (#804 execution acceptance) arrives at SYNC step 3 with 14 added paths.
-Four of them still name the bare `kaal-hosting`, which on this collector is
-`@kaihacksai/kaal-hosting`. A SYNC merge may not edit a cleanly arriving file, so this Change
-adds the arriving set first. The set is whole because the acceptance test and the
-orchestration depend on each other and cannot be green alone.
+Adds to engineering/change-isolation/check.mjs one narrow rule: a change whose complete path
+set and per-path Git blobs equal an entry in a ledger held by the target is not judged by
+Core-travels-alone. Adds an empty transitions.json, the adapter wiring in
+engineering/github/change-isolation.sh that reads the ledger from the target's tip, a README,
+and tests added to check.test.mjs.
 
-Ten files are byte-identical to 9a9e896, so the merge takes them without conflict. Four differ
-only in the Hosting name:
+The ledger holds no entry, so every change is judged exactly as before. The rules for .github
+and the existing cases are unchanged; existing tests are unchanged. Tests: 30 pass (15
+existing on main, 15 new). The adapter passes the new arguments only when the target holds
+the ledger. Git evidence: an absent path is null; a missing, invalid or unavailable revision,
+or a non-file entry, is cannot-judge (exit 2).
 
-| Path | Edit |
-| --- | --- |
-| engineering/acceptance/execution.test.mjs | 3 lines: import, install list, generated import |
-| engineering/execution/test/mutations.mjs | 1 line: import |
-| engineering/execution/qualification/README.md | 1 line: the Hosting row names the scoped package and notes the earlier bare name |
-| engineering/execution/qualification/inspection.json | 3 lines: Core's import and dependency labels and the existing-package name |
+Scope: only the ledger rule. Engineering-collector content not on main (the C16 root
+governance helpers and the other collector Changes) is not carried. The rule must exist on
+main for it to admit any promotion to main; this is that delivery.
 
-At the step 3 SYNC those four are add/add conflicts, each resolved as keep this version.
-Any other difference from 9a9e896 would be a silent edit. No assertion, inactive-adapter
-status or evidence is changed; inspection.json still parses.
-
-`.gitattributes` also changes in 9a9e896 (two lines: `engineering/execution/** -text`, so Git never
-rewrites the committed bytes the boundary and its evidence hash). This Change takes that same
-change, byte-identical to 9a9e896, so the arriving merge is clean for it. Without it the
-acceptance scenario fails on Windows, where checkout rewrites line endings (observed on this
-Change's first CI run: adoption-contract.md hashed differently on the Windows runner).
-
-Order: this Change lands after SYNC step 2, because the orchestration tests consume Testing's
-`kaal-testing/duplicates` export, which arrives with step 2.
-
-No synchronization, promotion or publication. Auto-merge is enabled; approval and required
-checks govern.
+No ledger entry, no workflow, package, manifest or lock change. No synchronization,
+publication or ledger entry is performed. Auto-merge is enabled; approval and required checks
+govern.
