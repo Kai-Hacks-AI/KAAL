@@ -187,7 +187,7 @@ function titles(code: string): { index: number; title: string }[] {
 /** Preserve offsets while hiding comments and quoted text from structural scans. */
 function structure(code: string): string {
   return code.replace(/\/\*[^]*?\*\/|\/\/[^\n]*|"(?:\\[^]|[^"\\])*"|'(?:\\[^]|[^'\\])*'|`(?:\\[^]|[^`\\])*`/g,
-    (text) => text.replace(/[^\n\r]/g, " "));
+    (text) => (text.startsWith("/") ? " " : "0") + text.slice(1).replace(/[^\n\r]/g, " "));
 }
 
 /** Literal cases containing a finding or registered by its controlling condition. */
@@ -203,19 +203,9 @@ function affected(code: string, line: number, column: number): string[] {
     while (/\s/.test(mask[from] ?? "") && from < mask.length) from++;
     return from;
   };
-  const statementEnd = (from: number): number => {
-    const start = space(from);
-    if (mask[start] === "{") return (pairs.get(start) ?? mask.length - 1) + 1;
-    for (let i = start; i < mask.length; i++) {
-      if (pairs.has(i)) i = pairs.get(i)!;
-      else if (mask[i] === ";") return i + 1;
-      else if (mask[i] === "}") return i;
-    }
-    return mask.length;
-  };
   const at = code.split("\n").slice(0, line - 1).reduce((n, text) => n + text.length + 1, 0) + column - 1;
   const calls: { start: number; end: number; title: string }[] = [];
-  for (const match of mask.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
+  for (const match of mask.matchAll(/\b(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
     const open = match.index! + match[0].lastIndexOf("(");
     const end = pairs.get(open);
     const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
@@ -224,6 +214,65 @@ function affected(code: string, line: number, column: number): string[] {
     const wrapper = [...pairs].find(([start, close]) => start < match.index! && close >= match.index! && close < open && mask.slice(close + 1, open).trim() === "");
     calls.push({ start: wrapper?.[0] ?? match.index!, end, title: title[2] });
   }
+  // Either alternative may select the registration function. The callee's
+  // enclosing parentheses, not the position of it/test in it, bound the call.
+  for (const [start, close] of pairs) {
+    if (mask[start] !== "(") continue;
+    const callee = mask.slice(start + 1, close);
+    if (!/(?:\?|:)\s*(?:it|test)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee)) continue;
+    const open = space(close + 1);
+    const end = pairs.get(open);
+    if (mask[open] !== "(" || end === undefined) continue;
+    const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
+    if (title) calls.push({ start, end, title: title[2] });
+  }
+  const statementEnd = (from: number): number => {
+    const start = space(from);
+    if (mask[start] === "{") return (pairs.get(start) ?? mask.length - 1) + 1;
+    const branch = /^if\s*\(/.exec(mask.slice(start));
+    if (branch) {
+      const close = pairs.get(start + branch[0].lastIndexOf("("));
+      if (close !== undefined) {
+        let end = statementEnd(close + 1);
+        const otherwise = space(end);
+        if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
+        return end;
+      }
+    }
+    // Delimiters are balanced above; scan only this statement's top level.
+    // Newlines end complete expressions unless the next token continues them.
+    // Literal placeholders in structure() retain terminal-token information.
+    let canEnd = false;
+    let restricted = false;
+    for (let i = start; i < mask.length;) {
+      const next = space(i);
+      if (mask[next] === ";") return next + 1;
+      if (mask[next] === "}") return next;
+      const newline = /[\r\n]/.test(mask.slice(i, next));
+      const continuation = /[.([?:,+\-*/%<>=&|^]/.test(mask[next] ?? "") && !/^(?:\+\+|--)/.test(mask.slice(next)) ||
+        /^(?:in|instanceof|as|satisfies)\b/.test(mask.slice(next)) || code[next] === "`";
+      if (newline && (restricted || (canEnd && !continuation))) return i;
+      if (next === mask.length) return next;
+      restricted = false;
+      if (pairs.has(next)) {
+        i = pairs.get(next)! + 1;
+        canEnd = true;
+      } else {
+        const word = /^[A-Za-z_$][\w$]*|^\d+(?:\.\d+)?/.exec(mask.slice(next));
+        if (word) {
+          i = next + word[0].length;
+          restricted = /^(?:return|break|continue|yield)$/.test(word[0]);
+          canEnd = !/^(?:await|void|typeof|delete|new|return|throw|yield|in|instanceof|as|satisfies)$/.test(word[0]);
+        } else if (/^(?:\+\+|--)/.test(mask.slice(next))) {
+          i = next + 2;
+        } else {
+          i = next + 1;
+          canEnd = false;
+        }
+      }
+    }
+    return mask.length;
+  };
   const result = new Set<string>();
   const containing = calls.filter((call) => call.start <= at && at <= call.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
   if (containing.length) result.add(containing[0].title);
