@@ -31,11 +31,12 @@ Never run a bare `npx kaal-packaging` or `npm exec kaal-packaging`. The package 
 
 ```
 node <package>/bin/kaal-packaging.mjs measure <artifact> [--work <dir>] [--format json|text]
-node <package>/bin/kaal-packaging.mjs conform <installed-dir> [--consumer <dir>] [--work <dir>] [--testing <module>] [--json]
+node <package>/bin/kaal-packaging.mjs conform <installed-dir> [--profile kaal|general] [--consumer <dir>] [--work <dir>] [--testing <module>] [--json]
 ```
 
 - `measure` prints the measurement record of packaging/F4 (`--format json`, the default) or the text report of packaging/F5. Without `--work` it uses a scratch directory it creates and removes.
 - `conform` prints one line per finding, `<result>: <requirement>: <cause>`, or with `--json` the whole report, and then one result line: `kaal-packaging-conformance {"result", "exit", "package", "causes"}`. `--consumer` defaults to the directory holding the package's first `node_modules`. Without `--work`, the behaviour probe of packaging/N9 runs in a scratch directory the command creates and removes.
+- `--profile kaal|general` (packaging/F26; default `kaal`). `kaal` is the generic KAAL Package contract. `general` judges only what a package outside KAAL can meet (packaging/F7, N7, N8), lists the requirements it did not judge with the reason (`not judged:` lines, `notJudged` in `--json`), and runs the package's test script only when the package ships `test/verify.json`. A package without it has declared no verification contract: that is absent optional evidence, not a defect. One with an unreadable `test/verify.json` is failed. The result line names the profile.
 - `--testing <module>` names a module file you provide that exports Testing's model functions as `check` and `tested` (testing/F24–F25). Packaging takes no dependency on Testing (packaging/N8), so the caller hands them in. Without them, a package that ships a Testing model is `unknown` for packaging/F13, and the command prints `note: packaging/F13 was not judged … This run is not a complete conformance judgement.` before its result line.
 
 ### A complete conformance run

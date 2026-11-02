@@ -28,6 +28,14 @@ const EXIT = { verified: 0, failed: 1, "cannot verify": 2, unknown: 2 };
 /** Node's own modules, which a self-contained verifier may import unprefixed without declaring them. */
 const BUILTINS = new Set(builtins);
 
+/** The profiles one judgment engine decides under (packaging/F26, packaging/A20). `kaal` is the generic KAAL Package contract and the default. */
+export const PROFILES = ["kaal", "general"];
+/** What the general profile never judges: contracts that bind only a KAAL package. */
+const KAAL_ONLY = ["packaging/F8", "packaging/F12", "packaging/F13"];
+/** What the general profile judges only when the package declares a verification contract, a shipped test/verify.json. */
+const DECLARED = ["packaging/F9", "packaging/F10", "packaging/F11", "packaging/N9"];
+const PROFILE_ORDER = ["packaging/F8", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/F12", "packaging/F13", "packaging/N9"];
+
 const finding = (requirement, result, cause) => ({ requirement, result, cause });
 
 /** `path` under `dir`, whatever separators `dir` ends with. */
@@ -416,46 +424,63 @@ const overall = (findings) => (findings.some((f) => f.result === "failed") ? "fa
  * model functions for packaging/F13, which the caller hands in when it has them. `npm`, when given, is
  * the absolute location of a Node script that behaves as npm (packaging/A13).
  */
-export async function conform(dir, { consumer, env, work, testing, npm } = {}) {
+export async function conform(dir, { consumer, env, work, testing, npm, profile = "kaal" } = {}) {
+  if (!PROFILES.includes(profile)) throw new Error(`profile ${JSON.stringify(profile)} is not one of ${PROFILES.join(", ")}`);
   if ((await kind(dir)) !== "directory") throw new Error(`${dir} is not an installed package directory`);
   const root = consumer ?? projectOf(dir);
   const pkg = await manifestOf(dir);
   const files = await delivered(dir);
   let verify = null;
+  let broken = null;
   if ("test/verify.json" in files) {
     try {
       verify = JSON.parse(files["test/verify.json"].toString("utf8"));
     } catch {
       verify = null;
     }
+    if (verify === null || typeof verify !== "object" || typeof verify.files !== "object" || verify.files === null) broken = "it is not a manifest of the files with their SHA-256";
   }
+  // packaging/F26: the general profile treats a verification contract the package never declared
+  // (no shipped manifest) as optional evidence that is absent, and one it declared but broke as a defect.
+  const general = profile === "general";
+  const absent = general && !("test/verify.json" in files);
   const before = await snapshot(root);
   let run = {};
-  if (pkg.scripts?.test !== undefined) {
+  if (!absent && pkg.scripts?.test !== undefined) {
     try {
       run = await npmTest(dir, { env, npm });
     } catch (e) {
       run = { error: e.message };
     }
   }
-  const checked = verification(pkg, files, run);
-  const n9 = checked.findings.find((f) => f.requirement === "packaging/N9") ?? (await probe(pkg, files, root, { work, env, npm }));
+  const checked = absent ? { run: null, findings: [] } : verification(pkg, files, run);
+  const n9 = absent ? null : checked.findings.find((f) => f.requirement === "packaging/N9") ?? (await probe(pkg, files, root, { work, env, npm }));
   const after = await snapshot(root);
-  const findings = [
+  let findings = [
     await identity(pkg, dir, root),
     documents(files),
     ...checked.findings.filter((f) => f.requirement !== "packaging/N9"),
-    manifest(files, verify, checked.run),
+    absent ? null : manifest(files, verify, checked.run),
     platforms(pkg),
     traceability(files, verify, { testing }),
     intact(before, after),
     selfContained(pkg, files),
     n9,
-  ];
+  ].filter(Boolean);
+  const notJudged = [];
+  if (general) {
+    if (broken !== null) findings = findings.map((f) => (f.requirement === "packaging/F11" ? finding("packaging/F11", "failed", `the package ships test/verify.json, but ${broken}`) : f));
+    const why = new Map(KAAL_ONLY.map((r) => [r, "a KAAL-only requirement"]));
+    if (absent) for (const r of DECLARED) why.set(r, "the package ships no test/verify.json, so no verification contract is declared: absent optional evidence, not a defect");
+    for (const r of [...PROFILE_ORDER]) if (why.has(r)) notJudged.push({ requirement: r, reason: why.get(r) });
+    findings = findings.filter((f) => !why.has(f.requirement));
+  }
   return {
+    profile,
     package: { name: pkg.name, version: pkg.version, location: dir },
     result: overall(findings),
     findings,
+    notJudged,
     reported: checked.run ? { result: checked.run.result, exit: checked.run.exit, causes: checked.run.causes } : null,
   };
 }
