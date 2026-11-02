@@ -17,10 +17,21 @@ Kai: Engineering already supports the delivery viewpoint. Product should support
 
 Product defines five concepts (wanted increment, backlog, roadmap, priority, decision preparation) but gives the Owner no stated way to see them: nothing says where the objects live, how a decision preparation is shaped, how a recorded choice reaches Change/Project, or how Product Direction relates to Intent and to Engineering's PROSE (Product to Engineering). The following are candidates for later DO work, each to be confirmed by Kai:
 
-1. **Owner view**: a defined, repeatable Owner-facing reading of Product Direction (what is wanted, order, open decisions).
+1. **Owner view**: a defined, repeatable Owner-facing reading of Product Direction. For each wanted increment the Owner sees: the product Intent it serves; the Requirements that define its success; its priority and place in the roadmap; the open and recorded decisions; and the verification status and evidence supporting readiness. Without the Intent, Requirements and evidence, Product would be only a backlog and decision tracker and would not support product fitness.
 2. **Decision preparation shape**: options, what choosing each means, the choice recorded as made; and the hand-over of a selected increment to Change/Project.
 3. **PROSE seam**: how a selected increment becomes Engineering input, without Product taking over delivery.
 4. **Process fit**: whether Product's PLAN (Prioritize, Launch, Adaption, Now) is offered as a process template on kaal-process (#852). Not a dependency. #851 places Product on the Plan side of the loop, not as one of the eight delivery capabilities.
+
+### Reuse, not a second model
+
+Product presents and interprets existing evidence for Owner decisions; it owns none of it:
+
+- Test Case traces across the loops (Intent, Requirements, Architecture, Defects) stay Testing's, and trace and reach semantics stay Graph's. Product reads them and does not define a second traceability model.
+- Product adds no verifier and no consumer content. It does not re-run or re-judge verification; it shows what Testing and Graph report and what that means for readiness.
+- Intent and Requirements remain Intent's and Requirements'; Product refers to them.
+- The Owner decides; Product prepares each decision. Engineering retains delivery responsibility.
+
+No new machinery is proposed. The Owner view is a reading of what already exists.
 
 ## 4. Package question
 
@@ -36,6 +47,7 @@ Rule: a capability gets an npm package only if a non-KAAL repo can benefit for n
 - Engineering: PROSE seam (item 3); to be raised with Engineering's thread once Kai confirms scope.
 - Change/Project: hand-over of a selected increment (item 2); no thread exists for Change or Project yet.
 - Process: item 4 only.
+- Intent, Requirements, Testing, Graph: Product reads their existing traces and evidence (item 1); no change is asked of them. To be confirmed with their threads once Kai confirms scope.
 - Review (separate capability, `kaal/review`): needs its own thread and SYNC; not covered here.
 
 ## 7. Decisions for Kai
