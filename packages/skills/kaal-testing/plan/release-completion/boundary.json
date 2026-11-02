@@ -1,0 +1,57 @@
+{
+  "owner": "Testing",
+  "baseline": "9f112e6524861fba502a941c84c6e585b8c35698",
+  "meaning": "Explicit existing authority and acceptance inventory. Subject implementation is not frozen by this list. Any identity-only changes to planned Cases require an independently reviewed amendment before DO.",
+  "immutableAcceptance": [
+    {
+      "path": "packages/skills/kaal-testing/plan/release/intent.md",
+      "gitBlob": "de759e1b08776cee143e5b84ba25aef851398230"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/release/requirements.md",
+      "gitBlob": "de225618145814e6fc5be5e84e312b156bed85a1"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/release/architecture.md",
+      "gitBlob": "9eacdea82ab662baf9179355a02657052ff4c032"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/release/testing.md",
+      "gitBlob": "671f0726ed013ca2a5cf605d754699a97e861dcc"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/release.test.mjs",
+      "gitBlob": "765338203c60c923e8d526f191e902d5be76bbde"
+    },
+    {
+      "path": "packages/skills/kaal-testing/capability/Testing.md",
+      "gitBlob": "466aea0f203af4fcc69da6902cf907d32c406cbf"
+    },
+    {
+      "path": "packages/skills/kaal-testing/payload/Testing.md",
+      "gitBlob": "dc63b39931abd3b11d53196c8cb2ea04e4476ddb"
+    }
+  ],
+  "existingPublicExports": [
+    "./acceptance",
+    "./attribution",
+    "./boundary",
+    "./contracts",
+    "./coverage",
+    "./inventory",
+    "./model",
+    "./package.json",
+    "./report",
+    "./verifiers",
+    "./timing",
+    "./redesign",
+    "./duplicates"
+  ],
+  "deferred": [
+    "C33 coverage accounting",
+    "C48 trace derivation",
+    "composed-file Plan execution implementation"
+  ],
+  "consumerContentOwner": "Each consumer",
+  "newRuntimeMechanisms": []
+}
