@@ -1,0 +1,3 @@
+{
+  "ci": "jobs:\n  lane:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        include:\n          - { check: Engineering }\n    steps:\n      - run: npx --no kaal-guard run --check ${{ matrix.check }} --github\n  guard:\n    runs-on: ubuntu-latest\n    steps:\n      - run: node --test packages/kaal-guard/test/unit/*.test.mjs engineering/guard/acceptance/*.test.mjs\n  guard-hosts:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        include:\n          - { host: Windows, os: windows-latest }\n          - { host: macOS, os: macos-latest }\n    steps:\n      - run: node engineering/guard/suites.mjs\n"
+}

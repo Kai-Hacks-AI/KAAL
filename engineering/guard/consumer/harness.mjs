@@ -216,6 +216,8 @@ function consumer(dir, extra = {}) {
   return c;
 }
 
+const IDENTITY = { GIT_AUTHOR_NAME: "A12", GIT_AUTHOR_EMAIL: "a12@example.invalid", GIT_COMMITTER_NAME: "A12", GIT_COMMITTER_EMAIL: "a12@example.invalid" };
+
 function identify(c) {
   for (const [k, v] of [["user.name", "A12"], ["user.email", "a12@example.invalid"], ["commit.gpgsign", "false"]]) c.git("config", k, v);
 }
@@ -229,7 +231,10 @@ export function kaalClone() {
   const remote = join(root, "remote.git");
   const dir = join(root, "kaal");
   must(exec(root, "git", ["init", "-q", "--bare", "-b", "main", remote]), "git init --bare");
-  must(exec(KAAL, "git", ["push", "-q", remote, "HEAD:refs/heads/main"]), "seeding the bare remote from KAAL's commit");
+  // KAAL's tree as one parentless commit: a shallow checkout, as CI makes, cannot push its own commit.
+  const head = must(exec(KAAL, "git", ["rev-parse", "HEAD"]), "reading KAAL's commit").output.trim();
+  const seed = must(exec(KAAL, "git", ["commit-tree", "--no-gpg-sign", "HEAD^{tree}", "-m", `KAAL at ${head}`], IDENTITY), "recording KAAL's tree").output.trim();
+  must(exec(KAAL, "git", ["push", "-q", remote, `${seed}:refs/heads/main`]), "seeding the bare remote from KAAL's commit");
   must(exec(root, "git", ["clone", "-q", remote, dir]), "git clone");
   const c = consumer(dir, {
     /** Runs the development Guard of the clone's own tree, packages/kaal-guard. */

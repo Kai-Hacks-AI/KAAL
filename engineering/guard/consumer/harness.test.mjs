@@ -5,20 +5,24 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HARNESS = join(dirname(fileURLToPath(import.meta.url)), "harness.mjs");
 
 /** Starts an execution that imports the harness, reports its Git configuration, and waits to be told to end. */
 function execution() {
   const child = spawn(process.execPath, ["--input-type=module", "-e", `
-    const h = await import(${JSON.stringify(HARNESS)});
+    const h = await import(${JSON.stringify(pathToFileURL(HARNESS).href)});
     const { existsSync } = await import("node:fs");
     console.log(JSON.stringify({ path: h.gitConfig(), exists: existsSync(h.gitConfig()) }));
     process.stdin.once("data", () => process.exit(0));
   `], { stdio: ["pipe", "pipe", "inherit"] });
-  const reported = new Promise((done) => child.stdout.once("data", (d) => done(JSON.parse(String(d)))));
   const ended = new Promise((done) => child.once("exit", done));
+  // An execution that ends before it reports fails the case instead of leaving it waiting.
+  const reported = new Promise((done, fail) => {
+    child.stdout.once("data", (d) => done(JSON.parse(String(d))));
+    ended.then((code) => fail(new Error(`the execution ended with ${code} before it reported its Git configuration`)));
+  });
   return { reported, end: () => (child.stdin.write("end\n"), ended) };
 }
 
