@@ -143,18 +143,47 @@ and runs through the PR, which is already the shared, auditable record.
 
 ## 3. Where roles live
 
+### Principle (long term)
+
+Each Capability defines and owns the Roles it needs to perform its
+responsibilities. Agents must be able to discover those Roles and understand
+what they can, should and may not perform: applicability, required competence,
+authority limits and escalation. Process defines the Role concept and keeps no
+central registry of every capability's Roles. Discoverability reuses KAAL's
+existing Capability and Skill mechanisms and creates no parallel registry. A
+Role's availability grants no authority.
+
+### Provisional home: incubation in `kaal-roles`
+
+To avoid blocking a useful baseline, the first two Advisor definitions are
+produced now in a small `kaal-roles` home. This is an incubation arrangement,
+not a precedent that future Roles are centrally owned.
+
+- **Eventual semantic owners.** Engineering for the CTO Advisor, Product for
+  the CPO Advisor. Until migration, `kaal-roles` holds the text and each owner is
+  consulted on its own definition.
+- **Provisional status is explicit.** Each definition states in its own text
+  that it is provisional and names its eventual owner.
+- **Owner-led migration later.** Engineering and Product each take their
+  definition into their own capability when they choose to, as their own Change.
+  `kaal-roles` is then removed or left empty. No premature redistribution and
+  no broader Roles framework is part of this PLAN or its DO.
+
 | Option | Assessment |
 |---|---|
-| A. Its own capability, `kaal-roles` | Roles are neither the metamodel nor a delivery route nor a product. They are named responsibilities that several processes can refer to. A separate small capability keeps Process pure and keeps Engineering and Product from each owning half of a pair. **Recommended.** |
-| B. Inside Process | Process owns meaning only (Role as a concept). Specific roles are an instance, like PDCA, but PDCA is generic and these are about KAAL's own governance. It would also make Process carry content it says it should not. |
-| C. Split: CTO in Engineering, CPO in Product | Each Advisor is then owned by the capability it supports, which blurs independence: the capability under review would own its reviewer. Rejected. |
+| A. Provisional `kaal-roles`, migrating to the owners | Gives the baseline now, keeps ownership honest, and removes itself later. **Recommended.** |
+| B. Permanent central `kaal-roles` | Contradicts the principle: a capability would not own the Roles it needs. Rejected as an end state. |
+| C. Inside Process | Process owns meaning only (Role as a concept) and would carry content it says it should not. Rejected. |
+| D. CTO in Engineering and CPO in Product now | Matches the end state, but forces both capabilities through collector work before a baseline exists. Deferred to the migration. |
 
 Proposed shape, mirroring `kaal-process` and `kaal-product`:
 
 - Collector `kaal/roles`, created from `main` (no collector exists yet).
 - Package `packages/skills/kaal-roles/` holding a Capability Node `Roles`, two
   Definitions (`CTO Advisor`, `CPO Advisor`), `README.md`, `ownership.kaal.json`
-  and one test. Definitions only, no runtime code.
+  and one test. Definitions only, no runtime code. Each definition states
+  applicability, required competence, authority limits and escalation, so an Agent
+  reading it can tell what the Role may and may not do.
 - A DO would be its own Change on `kaal/roles`, then SYNC and promotion with
   Kai's explicit authorization, like every other collector.
 
@@ -165,7 +194,7 @@ Dependencies point one way only.
 ```
 Process (kaal-process)     metamodel: Role, Activity, Serving ...
         ^ concepts used (prose, no declared dependency)
-Roles (kaal-roles)         CTO Advisor, CPO Advisor
+Roles (kaal-roles)         CTO Advisor, CPO Advisor (provisional; migrate to owners)
         ^ referred to
 Process designs            e.g. DevOps (Engineering): Review and Release name the Advisors
 ```
@@ -177,11 +206,12 @@ Process designs            e.g. DevOps (Engineering): Review and Release name th
   Process already has with capabilities.
 - **Engineering.** Supports the CTO Advisor by supplying the evidence the
   Advisor reads (checks, audits, lineage, release state). Engineering keeps
-  ownership of that evidence and of the delivery route. It does not own the role,
-  and the role does not own its evidence.
+  ownership of that evidence and of the delivery route, and is the eventual
+  semantic owner of the CTO Advisor definition.
 - **Product.** Supports the CPO Advisor the same way, with direction, backlog and
-  roadmap. The Product Owner (Kai) keeps authority, so the CPO Advisor never
-  speaks as the Product Owner.
+  roadmap, and is the eventual semantic owner of the CPO Advisor definition. The
+  Product Owner (Kai) keeps authority, so the CPO Advisor never speaks as the
+  Product Owner.
 - **Guard.** Not involved. No Guard check is proposed: an Advisor review is a
   recommendation, and nothing here would block a merge.
 
@@ -199,15 +229,18 @@ The rule: package only if a non-KAAL repo benefits for non-KAAL work. Applied:
 
 ## 6. Decisions for Kai
 
-1. **Own capability** (`kaal-roles`) rather than inside Process or split across
-   Engineering and Product. Recommended: own capability.
+1. **Provisional `kaal-roles` home** for the two definitions, with eventual
+   semantic ownership by Engineering (CTO) and Product (CPO) and an owner-led
+   migration later, rather than a permanent central Roles capability.
+   Recommended yes.
 2. **Advisory only**, as in section 2, with the Owner deciding on every
    disagreement. Recommended yes.
 3. **Create `kaal/roles` from `main`** as the collector. Recommended yes; this PLAN
    PR is its first change.
 4. **No npm package** now. Recommended yes.
-5. **Timing.** DO waits for your approval. It does not depend on #560 or #852,
-   because Roles declares no dependency on Process.
+5. **Timing.** The CPO asks that this PLAN lead directly to a DO producing the
+   provisional definitions. DO still waits for your explicit go. It does not
+   depend on #560 or #852, because Roles declares no dependency on Process.
 
 ## Scope and authorization
 
