@@ -1,4 +1,4 @@
-# Intent ownership: Requirements
+# Intent ownership and traceability: Requirements
 
 - **intent/F7. Ownership.** Intent owns: what an Intent is (`Intent`, `IDEA`, `I WON`), how an Intent element is identified (`intent/F2`), the Skill that tells an agent how to capture one, and the Intent plan documents. It claims `packages/skills/kaal-intent/` (`intent/F6`, delivered by `intent/C2`) and nothing else [intent/I3].
 - **intent/F8. What Intent does not own** [intent/I3]. Intent does not own the relationship from a Requirement to an Intent (`Serves`, Requirements'), any capability's own Intents (each consuming capability holds its instances, `intent/F3`), Requirements, Architecture, Tests or Evidence, the Graph Edge mechanism, or Change Isolation's impact computation.
