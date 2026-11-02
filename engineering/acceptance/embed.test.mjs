@@ -170,15 +170,19 @@ describe("package", () => {
     const manifest = JSON.parse(manifestBytes);
     const output = await run("npm", ["test"], installed);
     const lines = output.trim().split(/\r?\n/);
-    const records = lines.filter((line) => line.startsWith("kaal-core-execution: "));
-    assert.equal(records.length, 1, "one candidate-specific execution record");
-    const record = JSON.parse(records[0].slice("kaal-core-execution: ".length));
+    const prefix = "kaal-core-verification ";
+    const records = lines.filter((line) => line.startsWith(prefix));
+    assert.equal(records.length, 1, "one candidate-specific normalized report");
+    assert.equal(records[0], lines.at(-1), "the normalized report is the final line");
+    assert.equal(lines.filter((line) => line.startsWith("kaal-core-execution: ")).length, 0, "no competing execution record");
+    const record = JSON.parse(records[0].slice(prefix.length));
+    assert.equal(record.result, "verified");
+    assert.equal(record.exit, 0);
+    assert.deepEqual(record.causes, []);
     assert.deepEqual(record.candidate, { name: "kaal-core", version: "0.0.1", manifest: sha256(manifestBytes) });
     assert.deepEqual(record.cases.map(({ file, name }) => ({ file, name })), manifest.cases.map(({ file, name }) => ({ file, name })));
-    assert.ok(record.cases.length > 0 && record.cases.every((c) => c.outcome === "passed"));
-    assert.match(lines.at(-1), /^kaal-core: verified:/);
+    assert.ok(record.cases.length > 0 && record.cases.every((c) => c.outcome === "pass"));
     console.log(records[0]);
-    console.log(lines.at(-1));
   });
 
   it("is a tarball of exactly the intended contents", () => {

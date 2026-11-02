@@ -27,7 +27,7 @@ Registration ships in 0.0.1 (core/F68). These parts of it do not:
 ## What the tests cannot show
 
 - **A matching manifest is consistency, not provenance.** The verifier checks the installed files against `test/verify.json`, which ships in the same package. A match shows that the files agree with that manifest. It does not show that they are the bytes the publisher packed. Whoever changes both a file and the manifest is not detected. The packed artifact's identity is recorded by the publisher, outside the package.
-- **`verified` is evidence for the installed candidate only.** It speaks for the package name, version and manifest SHA-256 the execution record names, on the host where it ran. It says nothing about another version, another installation or another platform. A later run that fails supersedes it.
+- **`verified` is evidence for the installed candidate only.** It speaks for the package name, version and manifest SHA-256 the normalized report names, on the host where it ran. It says nothing about another version, another installation or another platform. A later run that fails supersedes it.
 - **`verified` is not `validated`.** `verified` means every required case executed successfully. Whether the package is fit for a purpose is a review judgment, never an automatic consequence of a passing run.
 - **The delivered tests are a sample.** They check representative behaviour of each loop on the installed copy. Most Requirements are checked only by the publisher's tests, which do not ship. [Testing](testing.md) states which Requirement is checked where, and which are checked by no test.
 - **One host per run.** A run on one platform is no evidence for another. Host compatibility is Hosting's to establish.

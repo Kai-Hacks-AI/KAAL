@@ -22,9 +22,9 @@ These four files ship in the package. They are plain `node:test` files that impo
   1. hashes the package's files, outside any nested `node_modules`, and compares them with the manifest. A missing or changed file, or in an installation an added one, gives `cannot verify`, naming the first path that differs. No case runs then;
   2. runs each delivered test file on its own, in a scratch directory it removes afterwards;
   3. compares the cases that ran with the declared cases. A declared case that failed gives `failed`. A declared case that did not run, was skipped or was todo, or an undeclared case that ran, gives `cannot verify`. Otherwise every required case executed successfully, and the result is `verified`;
-  4. prints one execution record, `kaal-core-execution: ` followed by JSON naming the candidate (name, version and the manifest's SHA-256) and each case's outcome (`passed`, `failed`, `skipped`, `todo` or `not run`), then the result line as the last line of standard output. The exit status is 0, 1 or 2.
+  4. prints one normalized report as the last line of standard output: `kaal-core-verification ` followed by JSON with the `result`, the process `exit`, the `candidate` (name, version and the manifest's SHA-256), every declared case by exact `file` and `name` with its `outcome` (`pass`, `fail`, `skipped`, `todo` or `not run`), and the `causes` (empty when verified). The exit status is 0, 1 or 2 and equals `exit`.
 
-  The record speaks only for the candidate it names. kaal-core stores no evidence in your environment: the record lives in your terminal or CI log.
+  The report speaks only for the candidate it names. kaal-core stores no evidence in your environment: the report lives in your terminal or CI log.
 - **`test/run.mjs`** is `npm test` (core/F75). In an installation, recognized when the package directory sits directly inside a `node_modules` directory, it runs `test:consumer` alone and exits with its result. In the source workspace it runs every declared `test:<name>` suite. If it cannot tell which place it is in, or a required suite is missing, it reports `cannot verify` with exit 2 and runs nothing.
 
 Both scripts reach the host only through `kaal-hosting` and hash only through Foundation (core/F88). How to run the verification is in [Operations](operations.md).
