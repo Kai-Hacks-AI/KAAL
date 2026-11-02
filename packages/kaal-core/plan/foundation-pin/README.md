@@ -1,6 +1,6 @@
 # Core/C47 PLAN: exact Foundation 0.0.2 pin
 
-Core's part of foundation/C17 (#848). The Owner decided there that each
+Core's part of foundation/C17 (#848); logical Change core/C47, numbering rejudged at integration. The Owner decided there that each
 capability owns its exact Foundation pin update, assertions, acceptance and
 Change number, while Engineering coordinates ordering, root-lock generation,
 trusted migration admission and any atomic or staged `main` delivery.
