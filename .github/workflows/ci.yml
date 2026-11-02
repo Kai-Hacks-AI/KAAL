@@ -10,10 +10,6 @@
 # out, with every declared case's outcome, and uploads it, even when a case failed. Guard (gate) reads
 # the three records and judges them as a release would (suites.mjs --gate), for the same candidate.
 # Each Guard job has a timeout, so a hang ends as a failure with its log rather than holding the run.
-# Before C129 admission, the exact pre-existing Guard commands still run. Bootstrap requires
-# absence on both the candidate and trusted base; deleting an admitted producer fails closed.
-# No run record is invented during bootstrap: Guard (gate) is not scheduled, never claimed passed.
-# Once C129 is present the unchanged orchestrator, records and gate apply.
 # The suites step runs in bash on every host, so the record's exit status (2 for a case not run)
 # reaches the job unchanged; pwsh would turn a native exit 2 into 1.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
@@ -29,10 +25,6 @@ on:
 
 permissions:
   contents: read
-
-# Trusted service base; never a candidate-authored permission to use baseline CI.
-env:
-  GUARD_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
 
 jobs:
   hosting:
@@ -92,8 +84,6 @@ jobs:
   guard:
     name: Guard
     runs-on: ubuntu-latest
-    outputs:
-      mode: ${{ steps.guard-mode.outputs.mode }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -102,16 +92,9 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run build
-      - run: node --test .github/scripts/guard-suite-mode.test.mjs
-      - run: node .github/scripts/guard-suite-mode.mjs
-        id: guard-mode
-        shell: bash
-      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/*.test.mjs
-        if: ${{ steps.guard-mode.outputs.mode == 'baseline' }}
       - run: node engineering/guard/suites.mjs --record "${{ runner.temp }}/guard-run-record-${{ runner.os }}.json"
         shell: bash
-        if: ${{ steps.guard-mode.outputs.mode == 'orchestrated' }}
-      - if: ${{ !cancelled() && steps.guard-mode.outputs.mode == 'orchestrated' }}
+      - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: guard-run-record-${{ runner.os }}
@@ -137,16 +120,9 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run build
-      - run: node --test .github/scripts/guard-suite-mode.test.mjs
-      - run: node .github/scripts/guard-suite-mode.mjs
-        id: guard-mode
-        shell: bash
-      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/external.test.mjs engineering/guard/acceptance/kaal.test.mjs engineering/guard/acceptance/package.test.mjs
-        if: ${{ steps.guard-mode.outputs.mode == 'baseline' }}
       - run: node engineering/guard/suites.mjs --record "${{ runner.temp }}/guard-run-record-${{ runner.os }}.json"
         shell: bash
-        if: ${{ steps.guard-mode.outputs.mode == 'orchestrated' }}
-      - if: ${{ !cancelled() && steps.guard-mode.outputs.mode == 'orchestrated' }}
+      - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: guard-run-record-${{ runner.os }}
@@ -156,7 +132,7 @@ jobs:
   guard-gate:
     name: Guard (gate)
     needs: [guard, guard-hosts]
-    if: ${{ !cancelled() && needs.guard.outputs.mode == 'orchestrated' }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
