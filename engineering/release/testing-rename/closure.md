@@ -51,12 +51,31 @@ Counts of `kaal-testing/<subpath>` occurrences outside Testing: acceptance 12, a
 
 ## E. Admission route and lock derivation
 
-Same shape as Foundation 0.0.2 (`engineering/release/foundation-0.0.2/admission-plan.md`, PR #854): a package identity change that spans owners cannot travel as one Change under current Change Isolation, because the Change and Graph manifests, the Engineering imports and the root lock belong to different owners. The route is therefore not decided by Testing, Engineering or this document. Open Owner decision, in #854: a single-use, target-held transition ledger versus staged compatibility. Engineering recommends the ledger. Until that is decided, Testing may only edit Testing-owned paths, as Testing already states.
+The Owner selected Route A in PLAN #854: a target-held, single-use ledger entry admits one
+atomic, bounded integration transaction under Change Isolation. The mechanism is delivered
+inert in #862. Engineering coordinates the transaction; each owner keeps its own Change and
+Change numbering, and this document introduces no shared product numbering.
 
-For either route the lock must come from C16's helper, derived twice from immutable target bytes and all candidate manifests, then checked by clean `npm ci` and a packed install of Change, Graph and Engineer Skill with the scoped Testing. A hand-edited or copied lock does not qualify.
+For this rename:
 
-A staged route is harder here than for Foundation: the old name cannot be kept as a second workspace (a duplicate package would be a new identity), and an alias is excluded. That makes the ledger route the only one this document can describe without a compatibility package. The Owner may disagree.
+- Testing gets its own, distinct, separately reviewed ledger entry. It is not the Foundation
+  0.0.2 entry and is not part of the Hosting entry. Reusing the mechanism does not reuse an entry.
+- The entry commits to the complete path set and the exact Git blob before and after of every
+  path in sections A and B that changes: Testing's manifest and files, Change's and Graph's
+  manifests and importing tests, Engineering's importers and selectors, and the root lock. The
+  owners of those paths prepare their candidates; Engineering assembles the entry.
+- Section D items are not in the entry unless their owner says so. The frozen inspection record
+  stays frozen unless the Owner directs otherwise, and Core's holder identifiers are Core's decision.
+- The old name cannot stay as a second workspace and an alias is excluded, so the transaction
+  must be atomic. That is why this transition needs an entry rather than staged compatibility.
+- Until the entry is merged into the target, Testing edits only Testing-owned paths, as Testing states.
+
+The lock is derived twice from immutable target bytes and all candidate manifests with C16's
+helper, then checked by clean `npm ci` and a packed install of Change, Graph and Engineer Skill
+with the scoped Testing. A hand-edited or copied lock does not qualify.
 
 ## F. Independent verifier harness for interoperability evidence (Testing step 4)
 
-Not started. Engineering has no such harness in the repository and has not been assigned one. It needs a stated contract first (what interoperability evidence means for the renamed package, who the independent verifier is, and which consumers install the packed scoped tarball). Engineering will plan it in a separate PLAN once Testing states those inputs.
+Planned in #859 against Testing's contract in #858. It reuses Testing's consumer-verification
+contract and Packaging's package conformance for the shared parts; the harness adds only the
+independent, built-ins-only check of the packed scoped tarball. Not yet implemented.
