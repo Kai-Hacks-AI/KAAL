@@ -31,15 +31,18 @@ test("foundation/T35 [foundation/F20, foundation/F21]: Foundation is a Capabilit
   assert.deepEqual(claim, { owner: { kind: "capability", name: "Foundation", id: sha256(bytes) }, paths: [LOCATION] });
 });
 
-test("foundation/T36 [foundation/N11, foundation/N12]: neither the Node nor the claim ships, and the claim reaches nothing outside packages/kaal-foundation/", () => {
+test("foundation/T36 [foundation/N11, foundation/N12]: the authoritative Node ships, the claim never ships, and the claim reaches nothing outside packages/kaal-foundation/", () => {
   const cli = process.env.npm_execpath;
   assert.ok(cli && /\.[cm]?js$/.test(cli), "npm_execpath names npm's CLI script: run these tests through npm");
   const r = spawnSync(process.execPath, [cli, "pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
   assert.equal(r.status, 0, r.stderr);
   const packed = JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].files.map((f) => f.path);
   const listed = Object.keys(JSON.parse(readFileSync(join(PACKAGE, "test", "verify.json"), "utf8")).files);
-  for (const path of [NODE, CLAIM]) {
-    assert.ok(!packed.some((p) => p === path || p.startsWith("capability/")), `${path} is not packed`);
+  // C15 explicitly amends N11/A11: Node delivery changes; claim exclusion and containment remain.
+  assert.deepEqual(packed.filter((p) => p.startsWith("capability/")), [NODE]);
+  assert.ok(listed.includes(NODE), "the delivered Node is in test/verify.json");
+  for (const path of [CLAIM]) {
+    assert.ok(!packed.some((p) => p === path), `${path} is not packed`);
     assert.ok(!listed.includes(path), `${path} is not in test/verify.json`);
   }
   const claim = JSON.parse(readFileSync(join(PACKAGE, CLAIM), "utf8"));

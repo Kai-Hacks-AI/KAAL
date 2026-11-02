@@ -7,4 +7,8 @@ Foundation holds the shared, pure and deterministic primitives that any KAAL pac
 - **foundation/I3** **Explicit, provisional ownership.** Each concern Foundation holds is named and reviewed. It is not a utilities bucket, and a concern moves on once its specialized home is known.
 - **foundation/I7** **It holds itself to its own bar.** An agent can use Foundation through a skill and a command, without writing JavaScript. Every installation checks itself: Foundation's own SHA-256 writes the manifest of what it ships, and the host's SHA-256 checks it.
 
+- **foundation/I10** **Its declaration is its own.** An installed Foundation
+  package supplies its authoritative Capability Node for explicitly requested
+  Core registration. Foundation owns the bytes; Core owns registration.
+
 See [Requirements](requirements.md) for what this guarantees.

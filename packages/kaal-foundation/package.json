@@ -1,6 +1,6 @@
 {
   "name": "@kaihacksai/kaal-foundation",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "KAAL Foundation: the shared, dependency-free primitives every KAAL Capability may build on.",
   "license": "MIT",
   "repository": {
@@ -17,7 +17,8 @@
       "types": "./lib/sha256.d.ts",
       "default": "./lib/sha256.mjs"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./capability": "./capability/Foundation.md"
   },
   "files": [
     "bin",
@@ -27,13 +28,14 @@
     "test/embed",
     "test/verify.mjs",
     "test/verify.json",
-    "test/run.mjs"
+    "test/run.mjs",
+    "capability/Foundation.md"
   ],
   "scripts": {
     "test": "npm run test:all",
     "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
-    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs test/publisher/release.test.mjs test/publisher/ownership.test.mjs",
+    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs test/publisher/release.test.mjs test/publisher/ownership.test.mjs test/publisher/declaration.test.mjs test/publisher/declaration-consumer.test.mjs",
     "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {

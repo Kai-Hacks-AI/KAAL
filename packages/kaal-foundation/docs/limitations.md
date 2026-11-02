@@ -1,5 +1,10 @@
 # Limitations
 
+The Capability export supplies owner declaration bytes, not an installed Engine
+contribution. Verification establishes this package's candidate, not Core
+admission, registration or use. No automatic Engine update/removal follows npm
+upgrade/uninstall; Core owns those explicit lifecycle operations.
+
 - **Bytes only.** `sha256` hashes bytes. A caller that has text encodes it as UTF-8 first, for example with `new TextEncoder().encode(text)`.
 - **SHA-256 only.** Foundation holds no other hash and no HMAC.
 - **Speed.** It is a pure implementation, slower than the host's native one. Prefer the host's hash where a host module is allowed and speed matters.
