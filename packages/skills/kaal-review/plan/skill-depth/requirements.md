@@ -24,7 +24,8 @@ Each Requirement names, in brackets, the Intents it serves (`intent.md`).
   - `claims` add what the work must satisfy, so the self-check can say satisfied, failed or not shown instead of leaving it implied;
   - `severity_floor` and `evidence_expected` add the capability's own bar for what matters and what proves it.
   Review adds what the capability does not have to rebuild: the finding format, the severity scale, the dimension checklist, the self-check, re-review and the record. Neither side alone gives both.
-- **review/F14** [review/I6]: The composition is the same for every capability. No capability gets a special path, and a capability that passes nothing gets the generic review.
+- **review/F14** [review/I6]: Every capability uses Review the same way, through the request. No capability gets a special path, and a capability that passes nothing gets the generic review. That composition improves the review is shown by a trial for the capability (review/T14), and is not assumed.
+- **review/F19** [review/I00]: Review adds **no gate**: no required check, no CI job, no approval and no merge condition. A record is evidence and Findings for the scope holder. Any gate on it is the scope holder's choice, made elsewhere.
 
 ## The review request: parameters
 
@@ -38,7 +39,7 @@ Each Requirement names, in brackets, the Intents it serves (`intent.md`).
   - `claims`: the statements the work must satisfy (for example requirement identifiers), which the self-check tests.
   - `independence`: what makes this review independent of the work's author.
   - `prior`: the findings of an earlier round, for re-review.
-- **review/F2** [review/I1, review/I4]: Review reads only what the request and the repository give it. It does not resolve a capability, a role or a document by name. Where a lens is wanted and none was given, Review may use the owner's shipped documents found through `ownership.kaal.json`, and it reports that it did.
+- **review/F2** [review/I1, review/I4]: Review reads only what the request and the repository give it. It does not resolve a capability, a role or a document by name. **Lenses are supplied by the invoker.** Where none is given, Review reviews generically and reports that no lens was applied. It does not look for one.
 - **review/F3** [review/I3]: A request cannot grant authority, lower an evidence rule below Review's own, or ask Review to approve, merge or decide. Such a field is refused and named.
 
 ## The report

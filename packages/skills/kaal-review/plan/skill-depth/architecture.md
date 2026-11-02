@@ -63,7 +63,7 @@ The last row finds more than any row above it, and Review learns nothing about t
 capability / role  --invokes with a request-->  kaal-review
 ```
 
-Review reads the request and the repository. It does not look a capability up. A capability tunes Review by what it passes: its lens, the checks it wants run, the claims it must satisfy, its severity floor. Where a capability has nothing to say, the defaults apply. The optional fallback of reading the owner's shipped documents through `ownership.kaal.json` (review/F2) is stated as a fallback and reported when used.
+Review reads the request and the repository. It does not look a capability up. A capability tunes Review by what it passes: its lens, the checks it wants run, the claims it must satisfy, its severity floor. Where a capability has nothing to say, the defaults apply. Lenses are supplied by the invoker (review/F2). Review looks none up, and reports when none was given.
 
 Roles (a separate capability) define Advisor roles. A role's definition is passed as a lens. Review does not resolve roles by name: general role discovery is Roles' future work.
 
