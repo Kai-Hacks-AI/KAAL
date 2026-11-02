@@ -67,9 +67,6 @@ These run in the source workspace only, in `test/publisher/capability.test.mjs`,
 | packaging/T54 | packaging/F10, packaging/F11 | each declared case runs exactly once: a missing, duplicate, undeclared, skipped or todo case cannot verify, and a declared failure on an intact copy is failed |
 | packaging/T51 | packaging/F25 | an agent using the shipped skill judges an adequate boundary account adequate, finds the material omission in an account whose headings, links and passing scripts look complete (an outgoing obligation whose refusals no Case exercises), and keeps unsupported evidence unresolved. A recorded independent trial, with its scenarios and expectations set before it ran |
 | packaging/T52 | packaging/F17 | the same trial run without an Engine, from the shipped skill alone: the agent chooses its inspections, interprets the script observations and records judgments, unknowns and Owner authorization separately, without proving completeness mechanically or taking another package's content |
-| packaging/T55 | packaging/F26, packaging/A20 | the `kaal` profile is the default and its findings and result are unchanged: a conforming package verifies, a package from outside KAAL still fails packaging/F8, and an unknown profile is refused |
-| packaging/T56 | packaging/F26, packaging/A20 | the `general` profile does not fail a package from outside KAAL for KAAL-only findings, names each requirement it did not judge and why, and does not run a test script the package never declared a verification contract for |
-| packaging/T57 | packaging/F26, packaging/A20 | a real defect still fails `general`: a file dependency fails packaging/F7, an unreadable declared manifest fails packaging/F11, a changed shipped file is unknown and not failed, and an absent manifest is neither |
 
 ## Running
 

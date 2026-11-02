@@ -10,15 +10,7 @@ export interface Finding {
   cause: string;
 }
 
-/** The profile a judgment is made under (packaging/F26). `kaal` is the default and the generic KAAL Package contract. */
-export type Profile = "kaal" | "general";
-export const PROFILES: readonly Profile[];
-
 export interface Conformance {
-  /** The profile judged. */
-  profile: Profile;
-  /** Requirements the profile does not judge, with why. They are never counted toward `result`. Empty for `kaal`. */
-  notJudged: { requirement: string; reason: string }[];
   package: { name: string; version: string; location: string };
   /** failed when any finding failed, unknown when any is unknown, else verified. */
   result: Result;
@@ -41,7 +33,7 @@ export const EMBEDDED: readonly string[];
  * `work`, packaging/N9 is unknown.
  */
 /** `npm`, when given, is the absolute location of a Node script that behaves as npm (packaging/A13). */
-export function conform(dir: string, options?: { profile?: Profile; consumer?: string; env?: Record<string, string | undefined>; work?: string; testing?: TestingModel; npm?: string }): Promise<Conformance>;
+export function conform(dir: string, options?: { consumer?: string; env?: Record<string, string | undefined>; work?: string; testing?: TestingModel; npm?: string }): Promise<Conformance>;
 
 /** The part of Testing's model interface (kaal-testing/model, testing/F24–F25) that packaging/F13 reads traces through. */
 export interface TestingModel {
