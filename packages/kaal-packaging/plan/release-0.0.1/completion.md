@@ -25,11 +25,11 @@ The collector diff from the merge base consists of Packaging plus root workspace
 
 Existing packaging/F7–F19 and N7–N12 remain authoritative: exact identity and dependency versions; recorded registry resolution distinguished from provenance; six shipped documents and linked Operations; declared source Test Plan; installed Embedded verification; exact file/Case manifest; Testing model traceability; declared runtime and Hosting-owned portability; intact consumer; behavior-based verification; practical Skill and thin commands.
 
-**packaging/F25 — package boundary assurance.** A package identifies every material incoming and outgoing boundary, the contract owner and contract identifiers it provides or consumes, and how its ordinary owned Test Plan exercises its obligations. Its plan names Cases and the fixtures, expectations, helpers, configuration and dependency inputs giving them meaning. Evidence names the candidate and conditions; unresolved evidence remains unknown under Testing. The package owns its product judgments and refuses to infer another package's correctness from its own result.
+**packaging/F25 — package boundary assurance.** A package identifies every material incoming and outgoing boundary, the contract owner and contract identifiers it provides or consumes, and how its ordinary owned Test Plan exercises its obligations. Its plan names Cases and the fixtures, expectations, helpers, configuration and dependency inputs giving them meaning. Evidence names the candidate and conditions; unresolved evidence remains unknown under Testing. An agent using Packaging's Skill assesses whether the material incoming/outgoing boundaries are complete, whether the ordinary package-owned Test Plans and Cases adequately exercise their obligations, and whether the supporting evidence warrants the assessment. It explains its reasoning, scope and uncertainty. This is legitimate conformance judgment, though not deterministic proof. Each package retains ownership of its boundaries, contracts, test content and product judgments; the agent's assessment does not transfer that content or authority to Packaging. The package refuses to infer another package's correctness from its own result. Owner integration and release authorization remain separate.
 
 Boundary direction means an interaction entering or leaving the package. A dependency can be incoming to one contract and outgoing to another; record the actual obligation rather than forcing all dependency fields into runtime obligations. Define permitted, prohibited and undecidable architectural interactions; exercise successful and refused public operations and demonstrate state preservation where promised. Test foreign contracts through their public interfaces only.
 
-F25 is delivered in the six existing documents and ordinary Testing models/Plans, not a new boundary schema, runner, Testing export or generic consumer suite. The existing F8/F13 findings continue to check documents and model structure. Semantic completeness and adequacy are explicitly recorded validation by the package owner, never silently elevated to automated conformance. Missing or unresolved validation prevents a claim of full release acceptance.
+F25 is delivered in the six existing documents, Packaging's existing Skill and ordinary Testing models/Plans, not a new boundary schema, runner, Testing export or generic consumer suite. The existing F8/F13 findings continue to check documents and model structure. Scripts establish reproducible observations; the agent using the Skill interprets them, inspects the material obligations and makes a recorded semantic conformance judgment. Neither structural presence nor passing scripts alone establishes boundary completeness or test adequacy. Semantic assessment is not reserved exclusively to a separate human owner, and an agent judgment is never presented as mechanically proven completeness. Report script observations, agent judgments, unresolved unknowns and Owner authorization distinctly. Missing or unresolved assessment prevents a claim of full release acceptance.
 
 ### Packaging's own boundaries
 
@@ -46,17 +46,21 @@ F25 is delivered in the six existing documents and ordinary Testing models/Plans
 
 ### BASS delivery
 
-Bare: README and Operations give safe scoped installation and executable path commands.
-Agent: root AGENTS.md points to the shipped Skill and states the ownership limits.
-Skill: guide boundary inventory, ordinary three-loop Plans, RED → GREEN → REFACTOR, BRITTLE review, evidence interpretation and escalation by reference to Testing. Include a small worked Packaging-owned boundary example and a route using shipped docs when no Engine is present.
-Script: retain measure, conform, the manifest generator, source dispatch and verifier; extend only repeatable checks demonstrated missing. Semantic product judgments remain guidance and recorded validation.
+BASS is Bare → Agent → Skill → Script. The Skill equips the agent to judge as well as execute; its supporting scripts are tools for that assessment.
+
+- **Bare:** README and Operations give safe scoped installation and executable path commands.
+- **Agent:** root AGENTS.md points to the shipped Skill and states the ownership limits.
+- **Skill:** guide the agent to select what to inspect, inventory incoming/outgoing boundaries, identify owners and contract obligations, invoke relevant checks, and judge the completeness of the boundary account, adequacy of ordinary package-owned Test Plans/Cases, supporting evidence and uncertainty. Reference Testing for the three loops, RED → GREEN → REFACTOR, BRITTLE and evidence interpretation. Include a worked Packaging-owned boundary assessment and a route using shipped docs when no Engine is present. The procedure distinguishes observed facts, reasoned judgments, unresolved unknowns and matters requiring Owner authorization.
+- **Script:** keep scripts supporting the Skill's agent procedure inside the Skill and make their use discoverable there. Reuse the existing measurement/conformance APIs, CLI, manifest generator, source dispatch and verifier for their capability and lifecycle roles; this PLAN authorizes no relocation of every executable into a Skill. Extend only repeatable checks demonstrated missing. Scripts establish reproducible observations; their results inform the agent's semantic conformance judgment and do not replace it.
+
+C13 requires a recorded independent agent trial that actually assesses semantic completeness, Test Plan/Case adequacy and evidential support, including an apparently complete account with a material omission and an unsupported claim. Document discovery and command invocation alone cannot satisfy the trial. The record separates what scripts observed, what the agent judged and why, remaining unknowns and the separate Owner decision. Each package still owns its boundaries, contracts, test content and product judgments.
 
 ## Demonstrated gaps and exact Changes
 
 | Proposed Change | Deliverable |
 | --- | --- |
 | C12 PLAN, this carrier | Approve F25, declare acceptance and the bounded amendments to existing planned identity/interim expectations. No runtime change. |
-| C13 DO — boundary and practical guidance | Update shipped Requirements/Architecture/Testing/Operations/limitations, README and existing Skill; name Packaging's boundaries and ordinary owned Plans. Update root agent references in their permitted isolated Change if needed. Regenerate the shipped manifest. |
+| C13 DO — boundary and practical guidance | Update shipped Requirements/Architecture/Testing/Operations/limitations, README and existing Skill; name Packaging's boundaries and ordinary owned Plans, and equip the agent to make the substantive F25 assessment. Deliver the T51/T52 independent semantic agent trial, recording observations, judgments, uncertainty and authorization separately. Update root agent references in their permitted isolated Change if needed. Regenerate the shipped manifest. |
 | C14 DO — installed verification and conformance interoperability | Extend the existing verifier, not a replacement runner: integrity/inventory preflight; exact Case accounting; dependency/startup unknown vs established failure; complete diagnostics and observed identity via accepted Hosting contracts. Add focused publisher regressions, consume Testing's actual pure contracts externally, and remove stale provisional-contract claims. Examine the existing result parser and N9 probe against discriminating cases; correct only established gaps. |
 | C15 DO — scoped delivery | Set name @kaihacksai/kaal-packaging, public metadata and exact scoped Hosting dependency after accepted compatibility. Preserve CLI and Skill identifiers. Migrate only actual self-imports, docs, consumers and workspace/lock references, each through its owner and Engineering's admitted route. No aliases or collector transplant. |
 | C16 CHECK / release acceptance | Run unchanged existing suites plus focused regressions, normal lifecycle pack, exact inventory, independent clean consumer, full self-conformance with real Testing functions, negatives and three-host acceptance; prepare fresh SYNC/promotion/publication evidence. Correct newly found defects through focused owned Changes. |
@@ -105,7 +109,7 @@ Diagnostic fixtures using unchanged test/verify.mjs report verified/0 for a chan
 
 ## Owner decisions remaining
 
-- Independent review of C12, including F25, validation versus automated coverage, and the explicit T27/T28/T36 amendments.
+- Independent review of C12, including F25's complementary script observations and Skill-equipped agent judgments, the substantive T51/T52 trial, and the explicit T27/T28/T36 amendments.
 - Integrate each reviewed Change and govern the compatibility/SYNC queue when exact candidates are ready.
 - Accept the exact release candidate and authorize its promotion and first publication separately.
 
