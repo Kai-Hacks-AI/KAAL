@@ -2,6 +2,10 @@
 
 This is kaal-testing's Test Plan: which Test Cases verify the [Intent](intent.md), [Requirements](requirements.md) and [Architecture](architecture.md), and where they run.
 
+## Reading this inventory
+
+The tables retain planned Cases and their targets; they are not run records or a statement that every row is implemented, selected or passing. In particular, the standalone observation and RED/FAR classification Cases have no delivered `/observe` or `/red` implementation in this release. Keep them unverified as described in [Limitations](limitations.md). Read actual selection from the source entry's `--list` and its declared suite commands, then cite the observed Run. The installed entry runs only its declared consumer Cases. Source and installed evidence answer different questions.
+
 ## Where the cases run
 
 - **Delivered cases.** The package ships its consumer cases, run by the installed verification (testing/F61, testing/F63). In an installation, `npm test` runs them and nothing else (testing/F62). Each is a Case in Testing's own model, shipped in `test/verify.json`, and its `tests` names the identifiers it verifies. Whether an identifier is evidenced is derived from those traces and the latest relevant Run (testing/F66, testing/F40), never declared beside them.
