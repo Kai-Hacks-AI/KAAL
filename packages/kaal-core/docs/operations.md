@@ -39,6 +39,10 @@ Once kaal-core is published as `@kaihacksai/kaal-core`, use the scoped commands 
 
 Installing the package writes nothing into your repository. Only `kaal init`, `kaal register`, `kaal upgrade` and `kaal remove` write, and only when you run them.
 
+## Core Skill
+
+The installed package carries `skills/kaal-core/SKILL.md` and `skills/kaal-core/Core-Skill.md`. Read that guidance for deliberate use of Core. Make it available through the host's authorized Skill discovery mechanism; installing the package alone does not deploy or activate it in an Engine or provider. Current bootstrap remains available with Foundation 0.0.1; full infrastructure contribution initialization is not yet implemented.
+
 ## Use
 
 The package's command is its bin, `dist/cli.js`, which npm also links as `kaal`. Run it from the directory where you installed the package by its path inside the scoped package:

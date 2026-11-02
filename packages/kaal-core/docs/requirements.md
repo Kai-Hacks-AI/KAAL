@@ -127,3 +127,7 @@ Each Requirement is summarized in one line, with the Intents it serves in bracke
 - **core/F86** [core/I22]: The package declares Node.js 24 or later and names Linux, macOS and Windows as supported platforms.
 - **core/F87** [core/I22, core/I23]: Each run emits one execution record naming the candidate and each required case's outcome. Core stores no evidence in the consumer's environment.
 - **core/F88** [core/I22, core/I23]: No operating-system decision is made outside Hosting, test implementations included.
+
+## Core Skill
+
+- **core/F89** [core/I26]: Core delivers `skills/kaal-core/SKILL.md` and its `Core-Skill.md` Node, named `Core Skill` and typed by `KAAL Skill`. The guidance covers discovery, inspection, explicit bootstrap, owner-declared registration, verification and escalation through Core's existing public API/CLI. It distinguishes current bootstrap from the not-yet-delivered mandatory infrastructure-registration flow. Core defines no new Skill format or other capability's behavior.

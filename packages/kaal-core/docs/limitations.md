@@ -13,6 +13,9 @@ Registration ships in 0.0.1 (core/F68). These parts of it do not:
 - **Acyclicity.** Core holds no acyclicity requirement and never judges a cycle. A capability that needs its relationships to be acyclic must produce that evidence itself.
 - **Navigation over Edges.** Looking Nodes up by Edge and walking a graph are Graph's. Install `kaal-graph` beside kaal-core and hold `engine.nodes` in a Graph for that.
 
+- **Core Skill availability is not Engine registration.** The package now carries Core's Agent Skill and Skill Node, but neither is automatically installed into an Engine or a provider discovery directory. Engine `AGENTS.md` navigation is not yet connected to the Skill.
+- **Full infrastructure initialization is not delivered.** `init` still bootstraps the foundational payload. It does not automatically register Core's own Capability/Skill, Foundation or Hosting. A successful bootstrap is not evidence of those contributions' registration or admission. Ordinary bootstrap continues to use published Foundation 0.0.1.
+
 ## Other boundaries
 
 - **No migration from earlier Engines.** 0.0.1 is the first version. An Engine bootstrapped from earlier, unreleased kaal-core bytes does not verify and is not adopted by `kaal upgrade`. Bootstrap a fresh Engine.

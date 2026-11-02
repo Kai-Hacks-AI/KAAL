@@ -76,3 +76,7 @@ A registration is a typed artifact of Core's Type `Core/Registration` (core/A25)
 ## Release acceptance
 
 The publisher packs kaal-core and its runtime dependencies, installs the tarballs into a clean temporary directory, and runs the installed `npm test` there (core/A35). Each KAAL package it depends on is renamed and made publishable by its own owner (core/A36).
+
+## Core Skill
+
+- **core/A45** [core/F89]: `skills/kaal-core/` delivers the Agent Skill and its Skill Node. The package README points to them. Core decides Node admission; Engineer Skill independently checks the Agent Skill's format and relative references. The Skill adds no script, runtime export, dependency, automatic Engine registration or activation. Engine-entry navigation and the fuller initialization are not yet delivered.
