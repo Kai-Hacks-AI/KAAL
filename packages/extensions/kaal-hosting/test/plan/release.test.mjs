@@ -82,6 +82,9 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     let renamed = 0;
     for (const path of tracked) {
       if (path === SELF || path.endsWith("package-lock.json")) continue;
+      // A dated record under .kaal/changes/ keeps what was observed then, including the old package's digests and registry
+      // answers, so it names the old package by design and is not a live reference.
+      if (path.startsWith(".kaal/changes/")) continue;
       if (!/\.(c?m?js|ts|json|ya?ml)$/.test(path)) continue;
       const at = join(REPO, path);
       if (!existsSync(at)) continue;
