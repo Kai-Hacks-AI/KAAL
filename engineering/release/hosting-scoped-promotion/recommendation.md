@@ -1,84 +1,92 @@
-# Hosting-only scoped promotion: is Route A needed?
+# Hosting scoped promotion: coherent migration through Route A
 
-Owner: Engineering. Answers the Owner's reassessment request on PR #862. Recommendation
-only; nothing here opens a promotion, SYNC or publish.
+Owner: Engineering. Revised after the Owner's reassessment request on PR #862, Hosting's
+reply on #866 and the CTO decision. Recommendation and plan only; nothing here opens a
+promotion, SYNC or publish.
 
-## Recommendation
+## Decision
 
-1. Route A is not needed for Hosting. The rename is not a Core-only change, and Route A
-   (a ledger entry admitting a fixed set of paths) is the wrong tool for it.
-2. The blocker is not the lockfile. It is that the unscoped name `kaal-hosting` is a
-   workspace link that six manifests and about 73 files rely on. A rename that leaves any
-   of them behind does not resolve.
-3. Smallest safe change: do not rename the workspace now. Promote Hosting under its current
-   name and make the scoped rename a later, single, coherent Change owned by Hosting that
-   touches the consumers' manifests and imports together. Route A is then used only for the
-   Foundation 0.0.2 pin transition, where the exact-blob ledger is the right tool.
-4. Keep the shared root lock. Package-local lockfiles solve a different problem and add more
-   than they remove (see below).
-5. Foundation 0.0.2 stays a distinct track. Nothing in this note changes its path.
+Hosting promotes as the coherent scoped migration defined in PLAN #833: collector Hosting
+(already scoped by hosting/C11, `@kaihacksai/kaal-hosting`), the consumers' pins and
+imports, and the lock, admitted through Route A. The first draft of this note proposed
+promoting under the unscoped name and renaming later. That is withdrawn:
 
-## What was measured
+- The collector is already the coherent scoped state (Hosting and four consumers pin
+  `@kaihacksai/kaal-hosting@0.0.1`; verified by `npm ci`, build, native acceptance on three
+  hosts and the C16 lock derivation). Promoting unscoped means reverse-renaming it first,
+  which is as multi-capability as the forward rename and contradicts the accepted contract
+  (hosting/I5, F15 to F17, A7 Option A).
+- "Publish scoped first, consumers move, Hosting renames last" is circular: Release packs
+  from main, so main must already carry the scoped Hosting.
+- A Hosting-only scoped promotion is the E1c case below, so the consumers move with it.
 
-Scratch worktree at main f30221f; Node 22, npm 11.19.1 (the CI major). Not authoritative for
-CI (Node 24), but the failures below are resolution failures, not engine failures.
+The earlier lockfile conclusion stands: keep the shared root lock; package-local lockfiles
+do not remove the sibling coupling. Foundation 0.0.2 remains a distinct track.
+
+## Evidence kept (why the consumers must move in the same promotion)
+
+Scratch worktree at main f30221f; Node 22, npm 11.19.1 (the CI major). Not authoritative
+for CI (Node 24), but these are resolution failures, not engine failures.
 
 | Experiment | Result |
 | --- | --- |
-| E1 rename Hosting only, update the existing lock | `up to date`; `npm ci --dry-run` passes. The lock gains `node_modules/@kaihacksai/kaal-hosting` and keeps `node_modules/kaal-hosting`. Both link to one directory whose `package.json` is now scoped. The lock is internally incoherent and passes only because nothing re-resolves. |
-| E1c same tree, lock regenerated from scratch | Fails: `404 GET registry.npmjs.org/kaal-hosting`. Five consumers still depend on `kaal-hosting`, which no workspace is called any more, so npm asks the registry. Any later lock regeneration, which C16 does twice, breaks. |
-| E2 alias `"kaal-hosting": "npm:@kaihacksai/kaal-hosting@0.0.1"` in consumers | Fails: 404. An npm alias is a registry spec and does not link the workspace. It works only after the scoped package is published. |
-| E3 blast radius of a coherent rename | Six manifests and 73 files reference `kaal-hosting` (manifests, imports, assertions, docs). |
+| E1 rename Hosting only, update the existing lock | `up to date`; `npm ci --dry-run` passes. The lock gains `node_modules/@kaihacksai/kaal-hosting` and keeps `node_modules/kaal-hosting`, both linked to one directory whose `package.json` is scoped. Incoherent; it passes only because nothing re-resolves. |
+| E1c same tree, lock regenerated from scratch | Fails: `404 GET registry.npmjs.org/kaal-hosting`. Five consumers still depend on `kaal-hosting`, which no workspace is called any more. Any regeneration, which C16 does twice, breaks. |
+| E2 alias `"kaal-hosting": "npm:@kaihacksai/kaal-hosting@0.0.1"` in consumers | Fails: 404. An alias is a registry spec and does not link the workspace. |
 
-E1 is the trap. A green `npm ci` on an incrementally updated lock does not show that the
-rename is safe; the stale link hides the break until the next regeneration.
+A green `npm ci` on an incrementally updated lock does not show a rename is safe.
 
-## Is the root lock unnecessary coupling?
+## Why the root lock stays
 
-The shared lock does couple every workspace to every change, which is why Core's pin needs
-the lock and why `Core travels alone` has a lock exception. But:
+- Packages depend on each other by workspace link, resolved only from the root. Without the
+  root lock each package would resolve siblings from a registry that holds only
+  kaal-foundation 0.0.1 and kaal-guard 0.0.1 to 0.0.4.
+- Published tarballs contain no lockfile, so consumers are unaffected either way. Local
+  locks would only weaken the single `npm ci` that proves all packages agree.
+- The coupling is the cost of exact-pinned siblings. Reduce simultaneous pin edits by
+  publishing in order (Foundation, then Hosting, then dependants), not by splitting the lock.
 
-- Package-local lockfiles do not remove the coupling here. The packages depend on each
-  other by workspace link, which npm resolves only from the root. Removing the root lock
-  makes each package resolve its siblings from the registry, which has none of them
-  (registry holds only kaal-foundation 0.0.1 and kaal-guard 0.0.1 to 0.0.4).
-- Reproducibility and provenance: the Release workflow packs once and publishes that
-  tarball. A published tarball never contains a lockfile, so consumers are unaffected by
-  either choice. Local locks would only change the repository's CI installs, and give up
-  one `npm ci` that proves all packages agree.
-- The coupling is legitimate for the lock and the pins; it is the cost of exact-pinned
-  siblings. The better fix is to reduce the number of simultaneous pin edits (publish
-  Foundation first, then consume), not to split the lock.
-- A split is a separate architectural Change and should not be bundled with a release.
+## Route A for the Hosting transition
 
-## Minimal blocker, restated
+Route A (PLAN #854) admits a complete, exact path set by blob ids held in the target's
+`transitions.json`. The Hosting transition is therefore a ledger entry, separate from the
+Foundation 0.0.2 entry. It cannot be written yet:
 
-For a Hosting-only promotion that keeps the name `kaal-hosting`: none beyond the existing
-SYNC and review gates. It touches only Hosting's own paths, so Change Isolation judges it
-as an ordinary one-capability Change, no ledger entry.
+1. The path set is the exact set of main-side paths that differ in the rename once the
+   remaining SYNC steps have absorbed incoming main changes. Hosting produces that list
+   from the actual diff after the SYNC; Engineering does not guess it. It spans Hosting's
+   package, the consumer manifests, imports and assertions, and the root lock, with
+   `.github`, the ledger and the checker excluded (Route A cannot admit them).
+2. The entry commits to pre and post blob ids per path (null for absent), so the entry is
+   spent by adoption and cannot be reused after a rebase.
+3. The root lock in the entry is the one derived twice with the C16 helper on the final
+   candidate tree.
+4. Sizing: the entry is large (about 80 to 110 paths). It is generated from the diff by a
+   script and checked, not hand-written. Prose and plan paths that merely mention the bare
+   name need not be in the entry if they are Hosting-owned and not Core.
+5. Standing gates are unchanged: full CI, protection, review, freshness and queue.
 
-For a scoped rename: the rename must be one Change with Hosting's manifest, five consumer
-manifests, the imports and the lock together. That crosses capabilities, so it needs the
-owners' agreement and, on main, either Route A or a sequence of single-capability steps.
-The sequence that avoids Route A: (a) publish `@kaihacksai/kaal-hosting`; (b) each consumer
-moves to it with its own Change; (c) Hosting renames last. Each step is one capability.
-This costs a registry round trip and so is slower, but needs no ledger.
+## Ledger-rule promotion plan (for CTO decision, not authorised)
 
-## Smallest safe migration versus Route A
+Route A needs the rule on the target branch of each promotion it admits, so the sequence is:
 
-| Option | Capabilities in one Change | Needs Route A | Needs registry first | Risk |
-| --- | --- | --- | --- | --- |
-| Promote Hosting unscoped now, rename later | 1 | No | No | Name changes later |
-| Rename in one Change | 7 | Yes (plus a ledger entry for about 80 paths) | No | Large exact-blob entry; lock must be derived twice |
-| Publish scoped first, consumers move, Hosting renames last | 1 each | No | Yes | Slowest; two names coexist |
+1. #862 reviewed and merged into kaal/engineering (ledger rule inert, empty ledger).
+2. A focused promotion of only the ledger rule (checker, adapter, README, empty ledger,
+   tests, record) to main. It is `.github`-free: the adapter lives under
+   `engineering/github/`; confirm that during the promotion check. Needs Kai's explicit
+   authorisation.
+3. After Hosting's remaining SYNC steps, Hosting supplies the exact path list; Engineering
+   generates the Hosting entry and lands it on main by an ordinary Change.
+4. Hosting promotes; the entry is spent. The Foundation 0.0.2 entry follows the same shape
+   once Core (#865), Change and Testing candidates exist.
 
-Recommended: row 1 for the promotion, row 3 if the scoped name is required before consumers
-publish. Row 2 is rejected for Hosting: an entry that commits about 80 paths and their blobs
-is brittle and is spent at the first rebase.
+Hosting's entry comes first because Hosting's registry version precedes Core, Testing,
+Graph, Change, Engineer Skill, Review and Product.
 
-## Open points for the Owner
+## Open points
 
-- Is the scoped Hosting name required before Hosting's first publish, or only before
-  Engineer Skill's? Only the second forces the rename.
-- If row 3, which capability publishes the scoped Hosting package: Hosting (its first
-  publish, Owner 2FA) or Release?
+- Does the Hosting entry also cover Graph and Engineer Skill consumer paths, or only the
+  four consumers Hosting named (Core, Graph, Engineer Skill, Testing)? Change's pin must be
+  checked; Change's manifest still names the bare name on main.
+- First publish of `@kaihacksai/kaal-hosting` is Hosting's, with the Owner's 2FA bootstrap,
+  then Trusted Publishing; Release packs from the promoted main.
