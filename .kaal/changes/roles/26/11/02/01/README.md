@@ -46,38 +46,62 @@ an actor (a person, a CASE Agent session) and is not itself an Agent. The
 definitions fix no identity: whichever actor currently fulfils the role is the
 Advisor.
 
+### Division of responsibility
+
+Baseline taken from the CPO review of 2 November 2026 (CPO session). Each
+Advisor owns the left or right column of its own row.
+
+| CPO Advisor | CTO Advisor |
+|---|---|
+| Product Intent | Engineering feasibility |
+| Requirements and product scope | Technical architecture |
+| Product validation through review | Technical design review |
+| Test adequacy against product meaning | Test implementation correctness |
+| Package roadmap and release fitness | Engineering integration and delivery |
+
+The CPO validates whether the package delivers the right product. The CTO
+validates whether it is built and landed soundly. Both consume the structural
+traces KAAL already keeps (Test Cases trace Intent, Requirements, Architecture
+and Defects through the multi-loop model) and their evidence. Neither rebuilds
+those traces by hand or duplicates CI reports. Third-party validation is a
+separate discussion and is not part of either role here.
+
 ### Common rules
 
 - An Advisor reviews and recommends. The Owner decides.
 - The review is a PR review on a promotion PR (kaal/X to main). A finding that
   needs a change becomes its own PR, never a silent edit to the reviewed PR.
 - An Advisor never approves for the Owner, merges, or authorizes SYNC,
-  promotion or publish. Those need the Owner's explicit go.
+  promotion or publish. Those need the Owner's explicit go. A CTO or CPO
+  approval is a formal review outcome, not an authorization.
 - An Advisor never weakens a test, a check or a Guard rule, and never advises
   doing so silently.
 - Independence: an actor does not advise on a PR it authored.
 - Disagreement between the Advisors is recorded on the PR as two reviews. Neither
   overrides the other. The Owner decides.
+- Ownership of a capability stays with it. An Advisor may accept a direction
+  (for example Hosting keeps product ownership across an atomic multi-capability
+  transaction) but never takes over a capability's ownership.
 
 ### CTO Advisor
 
 | | |
 |---|---|
-| Scope | Engineering and delivery: dependency order, review sequence and queue, release and change plan, architecture admission, feasibility, risk, test and CI integrity, application of the npm rule. |
-| Review lens | Does it work, and can it be landed safely? Dependencies satisfied, blast radius, reversibility, tests that actually prove the claim, release readiness, SYNC then promotion order. |
+| Scope | Engineering feasibility, technical architecture and design review, test implementation correctness, engineering integration and delivery: dependency order, review sequence and queue, release and change plan, architecture admission, risk, CI integrity. |
+| Review lens | Does it work, and can it be landed safely? Dependencies satisfied, blast radius, reversibility, tests that are correctly built and actually prove the claim, SYNC then promotion order. |
 | May decide | The review sequence and the queue; which findings are raised as PRs; when to recommend a hold. |
-| May recommend | Approve, hold or request changes on a promotion; admission of a capability; the order of publication. |
-| May not decide | Product priority or scope; whether something is published; any Owner approval; npm publication (an Owner 2FA act). |
+| May recommend | Approve, hold or request changes on a promotion on technical grounds; admission of a capability; the order of publication. |
+| May not decide | Product intent, requirements, scope or priority; package roadmap or release fitness; whether something is published; any Owner approval; npm publication (an Owner 2FA act). |
 
 ### CPO Advisor
 
 | | |
 |---|---|
-| Scope | Product and Owner viewpoint: purpose and intent, value to adopters, fit with Product's backlog and roadmap, scope creep, clarity of names and docs, usefulness beyond KAAL. |
-| Review lens | Should it exist, and does it do what the Owner meant? Does it serve the stated intent, avoid duplicating a capability, read clearly to someone new, and fit the roadmap. |
+| Scope | Product Intent, requirements and product scope, product validation through review, test adequacy against product meaning, package roadmap and release fitness (including the npm rule: does a non-KAAL repo benefit). |
+| Review lens | Is it the right product, and is it fit to release? Does it serve the stated intent, avoid duplicating a capability, read clearly to someone new, fit the roadmap, and do its tests cover what the product means. |
 | May decide | Which product-fit findings are raised as PRs; when to recommend a hold on product grounds. |
-| May recommend | Priority and launch of an increment (Product's Prioritize and Launch), scope cuts, renames. |
-| May not decide | Engineering feasibility or order; the Product Owner's priorities (the Owner's authority); any approval, SYNC, promotion or publish. |
+| May recommend | Priority and launch of an increment (Product's Prioritize and Launch), scope cuts, renames, release fitness of a package. |
+| May not decide | Engineering feasibility, architecture or order; test implementation; the Product Owner's priorities (the Owner's authority); any approval, SYNC, promotion or publish. |
 
 ## 3. Where roles live
 
