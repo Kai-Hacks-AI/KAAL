@@ -30,6 +30,9 @@ describe("packaging/C13 boundary assurance guidance and its independent trial", 
 
   it("packaging/T52 [packaging/F17]: the trial's three scenarios and expected distinctions exist, and the recorded trial names its inputs, independence, observations, judgments, unknowns and the Owner decision, and says it is not proof", () => {
     for (const f of ["scenario-1-adequate.md", "scenario-2-omission.md", "scenario-3-unsupported.md", "expected.md"]) assert.ok(existsSync(join(ROOT, ...TRIAL, f)), f);
+    for (const f of ["record-1-diagnostic.md", "record-2-agent-report.md", "neutral/account-A.md", "neutral/account-B.md", "neutral/account-C.md"]) assert.ok(existsSync(join(ROOT, ...TRIAL, ...f.split("/"))), f);
+    // The neutral accounts carry no outcome hint and are not named for their scenario.
+    for (const x of ["A", "B", "C"]) assert.doesNotMatch(readFileSync(join(ROOT, ...TRIAL, "neutral", `account-${x}.md`), "utf8"), /scenario|adequate|omission|unsupported|looks complete/i);
     const record = join(ROOT, ...TRIAL, "record.md");
     assert.ok(existsSync(record), "the trial is recorded in trial/record.md");
     const text = readFileSync(record, "utf8");

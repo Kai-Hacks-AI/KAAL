@@ -1,39 +1,42 @@
-# Trial record: packaging/T51 and packaging/T52
+# Trial record (primary): packaging/T51 and packaging/T52
+
+This is the second trial, run to correct the first (`record-1-diagnostic.md`, kept unchanged in substance as diagnostic evidence) after the CPO review of #881. The first trial's outcome hints were: scenario file names ("adequate", "omission", "unsupported"), and the T51 row in `docs/testing.md` that the agent encountered.
 
 ## Candidate and inputs
 
-- Skill under trial: `skills/kaal-packaging/SKILL.md` at commit `96d99b1` (the Skill section "Assess a package's boundaries"), with the shipped docs and README at that commit. The Skill was not changed after the trial began.
-- Supplied material: the three scenario files in this directory (`scenario-1-adequate.md`, `scenario-2-omission.md`, `scenario-3-unsupported.md`). Scenarios and `expected.md` were written and committed in `96d99b1` before the trial ran, and `expected.md` was not shown to the agent.
-- The package `acme-sizer` is hypothetical. No installed copy, `test/verify.json` or fixtures exist, so no script could be run on it.
-- Run: 2 November 2026, one fresh general-purpose agent, no Engine, instructed to follow the shipped Skill only.
+- Skill under trial: `skills/kaal-packaging/SKILL.md` at commit `0d2af15`, unchanged from the first trial. Requirements: the shipped `docs/requirements.md`, with README and the other shipped docs, except `docs/testing.md`, which was withheld because its T51/T52 rows describe the expected outcomes.
+- Supplied material: three neutral accounts `account-A.md`, `account-B.md`, `account-C.md` (copies in `neutral/`). They are the original scenarios with neutral identifiers, a different order (A is the unsupported-claim scenario, B the adequate one, C the omission) and the hint sentences removed. The reader is not told which, or that any is adequate or flawed beyond "any of the three may be".
+- `expected.md` was not accessible: the agent could read only a scratch directory (`/tmp/trial2/`) that held the shipped Skill, README, five shipped docs and the accounts. Expected classifications are in `expected.md`, committed in `96d99b1` before either trial.
+- The package `acme-sizer` is hypothetical; no installed copy, `test/verify.json` or fixtures exist, so no script could be run.
+- Run: 2 November 2026, one fresh general-purpose agent, no Engine.
 
 ## Independence
 
-The agent was a separate session that received none of this session's context and none of the guidance author's reasoning. It is the same model family as the author, and was not human or from another vendor. Limits: the scenario file names ("adequate", "omission", "unsupported") hint at the intended outcomes, and the agent saw the `docs/testing.md` row for packaging/T51 in a grep, which describes the three expected outcomes. The agent reported both leaks itself. A stronger trial would use neutral file names and withhold that row.
+A separate session with none of this session's context and none of the guidance author's reasoning. Same model family as the author, not a different provider; the CPO asked for no change of provider. The agent was also told to report any hints. It reported residual structural hints: the Skill's worked example and five-point claim match line up with accounts C and A, and account B's explicit "not run" statements read as the control. These cannot be removed without changing the Skill or the requirements, which the CPO asked to keep the same. It also stated it tried to judge each account on its merits, and it found weaknesses in B that the structure did not point to.
 
 ## Inspection choices and tool observations
 
-The agent read the Skill, `README.md`, `docs/requirements.md`, the three scenarios, and grep excerpts of three other docs. It ran no scripts on an acme-sizer copy and named the ones it would run on a real installed copy: `conform ... --testing ... --work ... --json` and `measure`, plus reading `test/verify.json`, `package.json`, the fixtures and the stand-in npm scripts. Script observations are therefore none in this trial; the judgments below rest on file inspection of the accounts.
+It read the Skill, README, `docs/requirements.md`, the three accounts and a grep of `docs/operations.md`. No script ran on an acme-sizer copy. It named the scripts it would run on a real copy (`conform` with `--testing` and `--work`, `measure`, `sha256sum`, direct reads of `test/verify.json` and the Case sources) and why. Script observations are therefore none in this trial. Full inspection list in `record-2-agent-report.md`.
 
 ## Agent judgments
 
-Compared with `expected.md` (set beforehand):
+The agent's reasoning is recorded in full in `record-2-agent-report.md`. In brief, with its stated reasons (compared with `expected.md` set beforehand):
 
-- **Scenario 1 (adequate): matches.** It judged the account adequate for the Linux, Node 24.22.1 claim, walked each obligation to a Case with a success and a refusal, noted macOS and Windows are not claimed, and listed weaknesses it could not resolve without fixtures (T5's listing diff may miss writes outside the working directory, T2 bundles three refusals) as owner test content, not failures.
-- **Scenario 2 (material omission): matches.** It found that B4's two refusal obligations (path outside the working directory, never overwrite) have no Case, that T7 covers only the success path, that a broken implementation would still verify, and that this is the security-relevant gap. It said the passing T1–T7 run does not evidence B4's refusals, and that `conform` would not detect it.
-- **Scenario 3 (unsupported claim): matches.** It named the CI run's different artifact (`1.2.1-rc`, different digest) and Node 22 on Linux, the truncated Windows log, and macOS running the source suite not the installed verification. It kept macOS and Windows unresolved, said CI #418 should not be cited for the candidate, and noted only the local Linux, Node 24 run supports a narrower claim.
-- It kept observations, judgments, unknowns and Owner decisions apart in every scenario, did not claim proof, and left each package's tests and Hosting's platform questions with their owners.
+- **Account A (unsupported claim): matches.** It judged the boundaries and Cases adequate and the claim not warranted. Reasons: the CI run built a different artifact (1.2.1-rc, digest `c8e4…0d17`) than the candidate (`9f2c…a41e`); Linux ran Node 22, not 24; the Windows log is truncated; macOS ran the source suite, not the installed verification; only the local Linux, Node 24.22.1 run matches candidate and runtime and supports a narrower claim. It rejected "CI passed on all three hosts" because the details contradict it.
+- **Account B (adequate): matches.** It inferred the claim (T1–T6 verify on the 1.2.0 candidate, fresh consumer, Linux, Node 24.22.1), checked identity across the account, the run and the release record, and found the evidence warrants exactly that and nothing about macOS or Windows. It raised softnesses without rejecting the account: T5 may pass trivially, the case list is shorthand, the test-time npm is not stated.
+- **Account C (omission): matches.** It found that B4's refusal obligations (path outside the working directory, never overwrite) and its state-preservation obligation have no Case, that T7 covers only success, that a broken implementation would still verify, and that the passing run does not evidence B4's refusals. It also raised, unprompted, a tension between B2 (never write outside the scratch directory) and B4 (writes to the working directory) and an unlisted incoming `--record` surface.
+- It kept observations, judgments, unknowns and Owner decisions apart, and left test content with acme-sizer and release authorization with the Owner.
 
 ## Unresolved unknowns
 
-- Whether another agent, or a human, would draw the same lines on borderline weaknesses; the agent itself noted two reviewers could differ on T2 and T5.
-- Whether the Skill works when an installed copy exists and `conform` is actually run; this trial had none.
-- The agent's candid feedback on the Skill, not yet acted on: it does not say how to proceed with only a written account and no installed copy; it does not say to state the claim being judged when the account gives none; it does not say how to treat a stand-in npm the Case's own author controls.
+- Whether a different reviewer would draw the same lines on borderline points (T5, shorthand case list).
+- Whether the Skill works with an installed copy and a real `conform` run; none existed.
+- Skill gaps the agent reported, not applied so the candidate stays the one trialled: no route for an account with no installed copy; no guidance for two conflicting obligations; no guidance for an explicitly self-narrowed claim. Earlier (trial 1): state the claim being judged when the account gives none; how to treat a stand-in npm the Case's author controls.
 
 ## Owner decision
 
-Independent review of whether this trial demonstrates the intended semantic distinctions, and whether to accept it for C13. Any strengthening (neutral names, withheld T51 row, an installed-copy scenario, a second reviewer) and the three Skill clarifications above are for a follow-up Change if the Owner wants them. This record grants no integration or release authorization.
+Independent review of whether this trial demonstrates the intended distinctions, and whether to accept it for C13. The Skill gaps above, an installed-copy scenario or a second reviewer are for a follow-up Change if wanted. This record grants no integration or release authorization.
 
 ## Limits
 
-This is a trial of the Skill's ability to support judgment within three small scenarios. It is not a deterministic proof of semantic completeness, and the agent's judgments are reasoned and can be wrong. It evaluates Packaging's Skill, not any real package.
+A trial of the Skill's ability to support judgment in three small scenarios, by an agent of the author's model family with residual structural hints it reported. It is not a deterministic proof of semantic completeness, and the judgments are reasoned and can be wrong. It evaluates Packaging's Skill, not any real package.
