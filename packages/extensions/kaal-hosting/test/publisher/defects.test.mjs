@@ -17,7 +17,7 @@ function temporary(t) {
   return root;
 }
 function installed(t, { duplicateDeclaration = false, duplicateExecution = false, firstFails = false } = {}) {
-  const root = temporary(t), pkg = join(root, "node_modules", "@kaihacksai", "kaal-hosting");
+  const root = temporary(t), pkg = join(root, "node_modules", ..."@kaihacksai/kaal-hosting".split("/"));
   mkdirSync(join(pkg, "test", "embed"), { recursive: true });
   mkdirSync(join(pkg, "docs"));
   writeFileSync(join(root, "package.json"), "{}");

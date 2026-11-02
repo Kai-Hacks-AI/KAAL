@@ -42,3 +42,29 @@ Required supported-host CI must establish fresh source, real prepack, packed inv
 The F5 sibling-authority wording is proposed in a separate semantic PLAN. Its review is not folded into this corrective DO. Current Packaging collector contract discrepancies (exact runtime versions, authoritative Operations document, Testing model and manifest/result interoperability) remain recorded; this Change does not waive them or bundle the separate shared boundary/BASS design. Foundation and Guard registry audit discoveries are not declared violations of an unfinished shared contract.
 
 Remaining owned compatibility preparations and governed merge-commit SYNCs, focused main-relative promotion scope/admission, independent final package/boundary/portability/Packaging acceptance, reproducible release artifact/provenance, registry-only acceptance and separate npm publication authorization remain necessary. Draft/unarmed review candidates do not authorize any of those actions.
+
+## Native CI and fixture namespace correction
+
+The unchanged candidate was exposed as draft #831 at `d11f355`. Its first complete
+three-host Hosting runs reached the release group and all failed existing T22,
+which found the fixture's separately quoted unscoped directory segment in
+`test/publisher/defects.test.mjs`. The failing jobs are 125019930744 (Linux),
+125019930690 (macOS), and 125019930772 (Windows), run 41363914550. Targeted
+regressions had passed but had not exercised this repository-wide namespace check.
+
+One scaffolding line now joins `node_modules` with the segments obtained by
+splitting the full scoped package identity. It constructs the identical path on
+every host. No test title, assertion, input case, injected failure, expected
+verdict or runtime source changes. The original frozen regression remains in
+commit `825f8f6`; this explicit post-freeze fixture-spelling correction has
+Foundation SHA-256
+`8dff9db33aad183b58495cb8e6f7a4460b9acb7d13a5cfe9da176db22fa78464`.
+The two delivered frozen files remain byte-identical to their recorded hashes.
+
+On Node 24.22.1/Linux after the correction: the nine regressions pass; all five
+designated mutants remain assertion-killed; unchanged identity/reference
+T21/T22/T23/T48 passes 4/4, with no skips/todos. Native special-entry support in
+this sandbox remains unavailable, explicitly reported by the test. These are
+targeted results; fresh full supported-host CI and normal packed-product
+acceptance must qualify the new head separately. The initial failed run is not
+relabeled green, and no local normal release artifact is claimed.
