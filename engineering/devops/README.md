@@ -1,6 +1,6 @@
 # DevOps as a Process KAAL serves
 
-Evidence date 2 Nov 2026. Inspected: main, kaal/engineering at `8b1e081`, the kaal/* collector branches, open PRs, and the npm registry. Ratings are the author's judgment, with the evidence named so a reviewer can disagree.
+Evidence date 2 Nov 2026. Inspected: main, kaal/engineering at `8b1e081`, the kaal/* collector branches, open PRs, and the npm registry. Statements of readiness are the author's reading, with the evidence named so a reviewer can disagree.
 
 ## 1. What DevOps is here
 
@@ -28,58 +28,47 @@ DevOps is a **Process**: a repeatable way of working that KAAL Capabilities are 
 
 - **GLUE** (Detect Defects, Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT) names the disciplines, which are *what* is done. DevOps names the *delivery route* the result takes. Operate and Monitor in DevOps correspond to GLUE's "Do IT" and "Detect Defects" and close the loop back to Intent.
 
-## 3. Stage by stage: what serves it, how well, gaps
+## 3. Prerequisites and status of this document
 
-The "Serves" lines are prose. If Process later adopts a Serving relation (the process design points at capabilities, never the reverse), they can be restated in that form.
+- **Conceptual preparation** (this document) may proceed now: the eight Activities, the serving Capabilities, gaps, the PDCA and GLUE relationships and dependencies.
+- **The authoritative DevOps process design is not created** until `kaal-process` has landed on main with its accepted metamodel (#560 and its follow-ups). Nothing here is that design.
+- **DevOps is not claimed realized or operational** until each Capability it needs is a usable, verified package under its intended consumption contract. Section 5 lists the readiness to establish per serving package.
+- **One-way ownership.** Engineering's DevOps design references the serving Capabilities. No Capability is required to document DevOps stages, and none is changed by this document.
 
-Ratings: **Strong** means on main with tests and CI; **Partial** means present but on a collector branch only, or a piece is missing; **Gap** means nothing serves it.
+## 4. Stage by stage
 
-### Plan
-- **Serves:** Change (PLAN records, C numbering, scope), Intent, Requirements, Architecture (RATS! alignment), Product (PLAN Definition), Process (PDCA), Project (map), Data (ORDER).
-- **Rating:** Partial. Change is on main (0.0.1, #662 open). The others are 0.0.1 packages on collector branches only, unpublished.
-- **Gap:** no execution of RATS! alignment as a check; Testing's RED-before-code step is a procedure, not a gate.
+Three questions are kept separate for every stage, because one rating would hide which of them is the gap:
+- **Concept**: does a Capability's defined meaning cover the stage's work?
+- **Implementation**: is that Capability implemented and verified (on main, with tests and CI), or only on a collector branch or in a PLAN?
+- **Distribution**: is it usable in the intended consumption contract, repository-local or published package? Which contract a Capability needs is for its owner to state. This document does not assume npm delivery for any of them.
 
-### Code
-- **Serves:** Engineer Skill (authoring guidance, #845), Hosting (all OS access, writer footprint, #835), Foundation (the one SHA-256), Core (Nodes, admission), Agents (kaal/agents).
-- **Rating:** Partial. **Gap:** GLUE's `kaal-coding` does not exist; code-level conventions live in Engineering docs (BACCHUS, scripts assessment #844) rather than a capability.
+Serving lines are prose. If Process later adopts a Serving relation (the process design points at capabilities, never the reverse), they can be restated in that form.
 
-### Build
-- **Serves:** Packaging (the generic KAAL Package contract, #686 promotion pending), Engineering (`engineering/delivery/pack.mjs`, Release workflow building Hosting by directory, #834), Foundation (digests), Core (manifest and delivery scripts).
-- **Rating:** Partial. **Gap:** trusted migration admission (#834 follow-up) is still unproved, so build identity depends on Engineering's route (#833). Packaging has no package (#850 recommends private).
+| Stage | Serving Capabilities | Concept | Implementation | Distribution |
+|---|---|---|---|---|
+| Plan | Change (PLAN records, scope), Intent, Requirements, Architecture (RATS!), Product, Process (PDCA), Project, Data | Covered | Change on main (#662 open); the others on collector branches only | Not assessed per package; Foundation 0.0.1 and Guard 0.0.1–0.0.4 are the only packages on the npm registry (checked 2 Nov) |
+| Code | Engineer Skill (#845), Hosting (#835), Foundation, Core, Agents | Partly covered: GLUE's `kaal-coding` does not exist; conventions sit in Engineering documents (BACCHUS, #844) | Hosting, Foundation, Core on main; Engineer Skill on main, with a PLAN open; Agents on a collector branch | Not assessed |
+| Build | Packaging (#686 pending), Engineering (`engineering/delivery/pack.mjs`, Release workflow, #834), Foundation (digests), Core (manifest and delivery scripts) | Covered | Packaging contract not on main; trusted migration admission (#834 follow-up) still unproved | Packaging has no package of its own (#850 recommends it stay private) |
+| Test | Testing (#693, #667), Guard (#663), Engineering (lanes, `KAAL Main`, `KAAL Lineage`, coverage), Graph | Covered; coverage meaning still being settled (#667, #745) | On main, with open items such as Windows applicability (#577) | Not assessed |
+| Release | Engineering (Release workflow, promotion, Lineage), Packaging, Sealing, Change (delivery, succession), Guard release lineage | Covered | Engineering and Guard on main; Packaging and Sealing not on main | Not assessed; a consumer-delivery decision is per package |
+| Deploy | Core (Installation Contract, `kaal register`, `kaal verify`), Hosting, Engineering (SYNC, promotion) | Covered for deployment into a consumer repository's Engine | On main | Not assessed. Rollout, rollback and environments are not covered by any Capability, and whether KAAL needs them is not decided here |
+| Monitor | Review, Learning, Controls, Graph (traces), Guard run records, Engineering (report, inventory, timing) | Covers monitoring of KAAL's own delivery; no Capability covers behaviour of delivered Capabilities in use | Mixed: Guard and Engineering on main; Review, Learning, Controls on collector branches | Not assessed |
+| Operate | None identified. Service (Agreement, composes, covers, underpins) is the nearest, on a collector branch | **Unresolved product-scope decision** (below) | n/a | n/a |
 
-### Test
-- **Serves:** Testing (lanes, verifiers, coverage and applicability, #693, #667), Guard (declared suites, fail-closed run records, #663), Engineering (lanes, `KAAL Main`/`KAAL Lineage` gates, coverage, mutation evidence), Graph (reach and cycle checks).
-- **Rating:** Strong on main. Open: coverage meaning (#667, #745), Windows applicability (#577).
+**Operate** is an open Owner decision, not proof of a missing Capability. Whether KAAL has an operating stage at all, what it means for a Capability that runs inside a consumer repository, and whether it needs an owner (GLUE names `kaal-operations`, which does not exist) are questions for the Owner. The DevOps design may declare the stage with no serving Capability, or leave it out, once that is decided.
 
-### Release
-- **Serves:** Engineering (Release workflow, promotion, Lineage), Packaging, Sealing (identity of files and directories), Change (delivery and succession), Guard release lineage.
-- **Rating:** Partial. **Evidence:** the registry shows `@kaihacksai/kaal-foundation` 0.0.1 (31 Oct, manual publish, no provenance) and `@kaihacksai/kaal-guard` 0.0.1 to 0.0.4 (0.0.2 onward via GitHub Actions Trusted Publishing with provenance). Hosting, Core, Graph, Change, Testing and Engineer Skill are not on the registry (404). Hosting registry publish is the blocker for most of them.
+## 5. Readiness to establish before realization
 
-### Deploy
-- **Serves:** Core (Installation Contract, `kaal register`, `kaal verify`), Hosting (installs and writes), Engineering (SYNC and promotion between branches).
-- **Rating:** Partial. KAAL deploys into a consumer repository's Engine, not into a runtime environment.
-- **Gap:** no rollout, rollback or environment concept. Whether KAAL needs one is a product question, not assumed here.
+For each serving package, its owning Capability states, and this document does not decide:
+1. whether it is verified and usable under its intended consumption contract (repository-local, or published package);
+2. if it needs published package delivery to reach its consumers, whether that has happened (today: Foundation 0.0.1, Guard 0.0.1–0.0.4 only);
+3. any open Change that blocks it (examples above).
 
-### Operate
-- **Serves:** nothing. Service (Agreement, composes, covers, underpins) is the nearest, and is a collector branch only. Hosting covers local execution, not operation.
-- **Rating:** Gap. GLUE names `kaal-operations`, which does not exist.
+The Capabilities named in section 4 are the candidates. Which of them DevOps actually requires is part of the design, which waits for `kaal-process`.
 
-### Monitor
-- **Serves:** Review (HOW ARE WE DOING feedback loop), Learning (BRAIN), Controls, Graph (traces), Guard run records, Engineering (report, inventory, timing).
-- **Rating:** Partial: it monitors the *delivery of KAAL* well, not the *behavior of delivered Capabilities in use*. **Gap:** no telemetry or defect-intake route from consumers back to Intent.
+## 6. Proposal only: describing DevOps as a Process
 
-## 4. Where it leaves KAAL
-
-- KAAL serves **Test** well, **Plan, Build, Release, Monitor, Deploy and Code** partly, and **Operate** not at all.
-- The largest structural gap is that most serving capabilities are on collector branches and unpublished, so DevOps for them stops at Release.
-- The shortest path to fewer gaps is delivery order (Engineering #834, Foundation 0.0.2, Hosting 0.0.1, then Graph, Core, Change, Testing, Guard, Packaging, Engineer Skill), not new capabilities.
-
-## 5. Proposal only: describing DevOps as a Process
-
-If Kai wants it recorded in KAAL:
-1. After the Process capability reaches main (#560), Engineering describes DevOps as an instance of `kaal-process`, coordinated with the Process capability: Activities are the eight stages; Roles are Owner and Worker (a CASE Agent is an actor that may fulfil Worker, and CI is an authorized participant, neither is a Role); States derive from observable facts (PR state, check results, registry state); Transitions are SYNC, promotion and publish, each needing explicit authorization (as today).
-2. The description lives in Engineering's own documentation, like PDCA lives with Process. No new Capability, package or collector.
-3. Each Capability then states in its own docs which stage(s) it serves. Nothing is mandatory.
-4. Open Owner decisions: whether Operate needs an owner at all, and whether `kaal-coding` and `kaal-operations` should exist.
-
-None of this is created by this PLAN.
+Not created by this PLAN:
+1. After `kaal-process` has landed with its accepted metamodel, Engineering describes DevOps as an instance of it, coordinated with the Process capability: Activities are the eight stages (Operate per the decision above); Roles are Owner and Worker (a CASE Agent is an actor that may fulfil Worker, and CI is an authorized participant, neither is a Role); States derive from observable facts (PR state, check results, registry state); Transitions are SYNC, promotion and publish, each needing explicit authorization (as today).
+2. The design lives in Engineering's own documentation, like PDCA lives with Process. It references the serving Capabilities. No Capability documents it.
+3. Realization is claimed only when section 5 holds for the packages the design requires.
