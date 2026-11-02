@@ -169,7 +169,7 @@ export function firstSteps(rec) {
   return [
     `First publication of ${rec.package}: npm cannot accept this workflow's identity for a name it does not know, so the Owner publishes the tested bytes by hand. Nothing below packs.`,
     "",
-    `1. Download the tested tarball: \`gh run download ${rec.run} --repo Kai-Hacks-AI/KAAL --name ${rec.tarball}\`, or from this run's page.`,
+    `1. Download the tested tarball through the artifact API (\`gh run download\` refuses an unzipped artifact): \`gh api "repos/Kai-Hacks-AI/KAAL/actions/artifacts/$(gh api repos/Kai-Hacks-AI/KAAL/actions/runs/${rec.run}/artifacts --jq '.artifacts[] | select(.name == "${rec.tarball}") | .id')/zip" > ${rec.tarball}\`, or from this run's page. The endpoint is named zip, but serves this artifact's file as uploaded.`,
     `2. Verify it: \`sha256sum ${rec.tarball}\` must print \`${rec.sha256}\`. Stop if it does not.`,
     `3. Publish those bytes, with 2FA: \`${npm} publish ./${rec.tarball} --access public\`. Never run npm publish in a package directory, which packs again.`,
     `4. Bind Trusted Publishing: \`${npm} trust github ${rec.package} --file release.yml --repo Kai-Hacks-AI/KAAL --env npm --allow-publish\`, or the same setting on npmjs.com.`,
