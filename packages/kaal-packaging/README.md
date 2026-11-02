@@ -6,6 +6,7 @@ KAAL Packaging: how KAAL's deliverables become packages and what those packages 
 
 - [Intent](docs/intent.md), [Requirements](docs/requirements.md), [Architecture](docs/architecture.md), [Testing](docs/testing.md), [Limitations](docs/limitations.md)
 - [Operations](docs/operations.md): install, commands, exit statuses, files, and how to verify an installed copy
+- General skill (packaging/F27): `skills/package-engineering`, the practices and judgment for any package, with no KAAL names
 - Boundary assurance (packaging/F25): the skill's procedure for judging a package's boundaries, Test Plan and evidence; see [Operations](docs/operations.md#assess-a-packages-boundaries)
 - The skill for agents: [skills/kaal-packaging/SKILL.md](skills/kaal-packaging/SKILL.md)
 

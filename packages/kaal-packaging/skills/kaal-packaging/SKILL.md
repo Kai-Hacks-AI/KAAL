@@ -8,6 +8,8 @@ license: MIT
 
 What a KAAL package is and must keep is stated by Packaging's shipped documents: `docs/requirements.md` beside this skill's package, packaging/F7–F14 and N7–N10 for the generic contract. This file tells you how to do the work. Packaging decides the generic contract and measures bytes. It decides nothing else: no size budget, no release, no gate.
 
+The general practice and the judgment procedure are in the `package-engineering` skill beside this one (packaging/F27). This file is the KAAL layer: the contract's requirements and the commands that decide them.
+
 ## Bare: the commands, with no Skill
 
 Run the commands by their path: `node packages/kaal-packaging/bin/kaal-packaging.mjs` in the KAAL repository, `node node_modules/kaal-packaging/bin/kaal-packaging.mjs` in a project that installed the tarball. Never run a bare `npx kaal-packaging`: the package is private, and its unscoped name is not Packaging's on any registry, so a lookup could fetch and run an unrelated package.

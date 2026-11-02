@@ -40,3 +40,26 @@ describe("packaging/C13 boundary assurance guidance and its independent trial", 
     assert.match(text, /not a (deterministic )?proof/i);
   });
 });
+
+describe("packaging/C18 the general package-engineering skill", () => {
+  it("packaging/T58 [packaging/F27, packaging/A21]: the general skill is in the shared skill format, names no KAAL identifier, owner or private path before its KAAL layer, covers each practice and judgment case, and the KAAL skill points to it", () => {
+    const skill = read("skills", "package-engineering", "SKILL.md");
+    const front = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/.exec(skill);
+    assert.ok(front, "the skill opens with frontmatter");
+    assert.match(front[1], /^name: package-engineering$/m);
+    assert.match(front[1], /^description: \S.{40,}$/m);
+    const [base, layer] = skill.split("## KAAL layer");
+    assert.ok(layer, "the skill ends in a KAAL layer section");
+    assert.doesNotMatch(layer.trim().split("\n").slice(1).join("\n"), /^## /m, "the KAAL layer is the last section");
+    // Nothing before the layer names KAAL, a KAAL identifier (owner/F7), a KAAL tool, or a private path.
+    for (const bad of [/kaal/i, /\b[a-z][a-z-]*\/[A-Z]+\d+\b/, /packages\//, /node_modules\//, /\/home\//, /Hosting|Testing's|Engineering's/]) assert.doesNotMatch(base, bad, String(bad));
+    for (const part of [
+      /artifact, never the source directory/, /fresh consumer/, /unchanged/, /exactly/, /registry/, /manifest/, /absent/, /unreadable/, /unknown, not as a pass/,
+      /once/, /presence/, /exact artifact, never a repack/, /verified, failed, unknown/,
+      /If the account gives none/, /narrows its own claim/, /no installed copy/, /two obligations conflict/, /controls shows only/, /headings, links, Cases and passing tools/,
+    ]) assert.match(base, part, String(part));
+    assert.match(read("skills", "kaal-packaging", "SKILL.md"), /`package-engineering` skill/);
+    assert.match(read("docs", "requirements.md"), /\*\*packaging\/F27\*\*/);
+    assert.match(read("docs", "architecture.md"), /\*\*packaging\/A21\*\*/);
+  });
+});
