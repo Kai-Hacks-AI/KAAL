@@ -15,10 +15,14 @@ This is the map of existing work, and the boundaries it follows. It states no de
 | `**<cap>/F<n>** [<cap>/I<n>]` bracket citations in 24 `requirements.md` files | Each consuming capability | On `main`, as prose | Moves to Nodes incrementally, in the Change that first states a Requirement as changed (`requirements/F15`). No bulk migration |
 | Change Isolation by reverse traceability (#739, draft; #880 ledger on `main`) | Engineering, Change | Draft on fixtures | Needs the `Serves` Edges above to compute real impact |
 | Test Case and dependency traces (#745, #746) | Testing, Packaging | PLAN, open | Their own owners |
-| Defect boundary, `requirements/F10` | Requirements and the Defect owner | Planned | No Defect owner exists |
+| Defect as a Requirement kind (`requirements/F23`, `F24`), superseding `requirements/F10` | Requirements | Decided by the Owner, 2 Nov. Identification and Definition text not yet planned | A following PLAN for Defect identification and the amendments to `F10`, `F12`, `F13`, `T11` |
 
 ## Boundaries
 
 - Requirements owns the `Requirement` Definition, its identification rule and `Serves`. Intent owns what an Intent is and how it is identified. Architecture owns placement. Graph owns traversal. Testing owns whether a Requirement holds. Change carries Requirements without defining them. Engineering consumes them.
 - Every trace is stated once, in the source's own Node, and the reverse is computed (`core/N15`). Requirements adds no reverse Edge.
 - The chain Intent → Requirement → Architecture → Code → Test → Evidence has one owner per link. No capability owns the chain as a whole, and this PLAN does not create one. End-to-end traceability is a Coordinate item (#886, C2), carried by Engineering.
+
+## The loops
+
+Intent ← Requirements (functional, nonfunctional, Defect) ← Architecture ← Code. Each loop answers the one above it, and the answering element holds the outgoing trace (`Serves` from a Requirement to an Intent, `Placement` from an Architecture decision to a Requirement). Testing judges the evidence of each loop. Requirements owns every kind in its own loop.
