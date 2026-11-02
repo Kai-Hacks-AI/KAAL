@@ -23,6 +23,26 @@ Import the export for the contract you need. Each is described in the [Architect
 
 The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evaluate Test Cases with these, and the Nodes in `capability/` and `payload/` carry what Testing means to KAAL.
 
+## Public export inventory
+
+| Export | Implemented use |
+| --- | --- |
+| `./acceptance` | Discover/run publisher scenarios and install the caller's packed artifacts |
+| `./attribution` | Attribute listed files to declared owners |
+| `./boundary` | Interpret an attested verdict on a concern owner's PLAN boundary |
+| `./contracts` | Interpret evidence from the observed acceptance run |
+| `./coverage` | Measure executed delivered code in a workspace Run |
+| `./duplicates` | Find duplicate execution requests and plan their shared reads |
+| `./inventory` | Count non-blank text lines of supplied files |
+| `./model` | Check definitions, derive traces, evaluate Runs and read current evidence |
+| `./package.json` | Discover the installed package metadata and location |
+| `./redesign` | Read timing history and independent behavioral-preservation evidence |
+| `./report` | Reconcile the package and ownership evidence |
+| `./timing` | Profile supplied Case durations and cross-platform skew |
+| `./verifiers` | Read and judge consumer-verifier summaries and platform parity |
+
+The [Skill walkthrough](../skills/kaal-testing/references/approach.md) demonstrates the model without requiring an Engine. Standalone runner observation and RED/FAR classification are not public exports of this installation; see [Limitations](limitations.md). Do not infer their availability from their accepted design descriptions.
+
 ## Verify
 
 Verify the installed copy from the consumer that installed it:
@@ -61,3 +81,21 @@ npm uninstall @kaihacksai/kaal-testing
 | `payload/Testing.md` | the Skill Node, typed by Core's KAAL Skill |
 | `skills/kaal-testing/` | the Agent Skill, `SKILL.md`, and its references |
 | `lib/` | the library modules behind each export, the runner reporter and the observed-run store |
+| `test/embed/` | the declared consumer Cases, executed against the installed package |
+| `test/run.mjs` | explicit source/installed suite selection |
+| `test/verify.mjs` | the independent installed-copy verifier |
+| `test/verify.json` | shipped byte hashes, declared Cases, model and platform inventory |
+
+## Timing observations
+
+Pass recorded `{ name, ms }` Cases to `profile` from `@kaihacksai/kaal-testing/timing`. Pass one `{ platform, cases }` run per platform to `skew`; the caller establishes that they concern the same candidate. Retain the raw observations outside Testing. Report each finding and challenge alongside the run verdict without changing it. A skew starts with the Case owner, not a presumed host defect.
+
+## Redesign evidence
+
+Give `candidates(history, options?)` from `@kaihacksai/kaal-testing/redesign` the caller-held runs, oldest first, each `{ platform, cases: [{ name, sha256, ms }] }`. Retain its `unprofiled` findings. Compare behaviour independently with `refactored(before, after)`, each `{ id, version, tests, verdicts }`; verdicts map the same subjects to `pass` or `fail`. Associate a timing row and behavioural check only by Case id and the exact `from`/`to` versions, retaining the timing platform. Without a matching check, preservation is not assessed. Neither signal changes the run verdict.
+
+## Duplicate evidence and planning
+
+Import `duplicates` and `schedule` from `@kaihacksai/kaal-testing/duplicates`. Supply one execution's observed Cases to `duplicates({ runs })`, including nested runs and their initiating Case as `by`. Supply that execution's file requests to `schedule(requests)` before running. Execute each returned run once and bind every `reads[].run` index to its original observation. Failure and unknown stay failure and unknown for every reader. A finding means nothing is scheduled; never interpret an empty invalid schedule as completed assurance.
+
+Plan independently required executions separately. This API provides no evidence authentication or cross-process result reuse. Enabling it in CI requires the lane owner's integration and validation.

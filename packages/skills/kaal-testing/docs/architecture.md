@@ -2,6 +2,10 @@
 
 These are kaal-testing's architectural decisions, each identified as `testing/A<n>` and naming, in brackets, the [Requirements](requirements.md) it realizes.
 
+## Implemented interface and accepted design
+
+The export inventory in testing/A8 and `package.json` identifies the implemented public interfaces of this release. The accepted design below also includes testing/A7's standalone `observe` interface and testing/A1's `red` classification interface. Neither is exported or implemented by this package. Their contracts remain recorded; they are not callable delivery promises satisfied by 0.0.1, and this release does not implement or replace them. `verifiers.observe` reads a consumer-verification summary and is not a substitute for the standalone runner observer. See [Limitations](limitations.md) for the evidence consequence.
+
 ## RED Evidence and Feature-Accepted Regressions
 
 - **testing/A7** [testing/F1, testing/N4]: `@kaihacksai/kaal-testing/observe` exports `observe({ files, cwd })`. The runner start, the reporter and the reading of its lines live in one module that both `observe` and `accept` use.
@@ -69,11 +73,14 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
     | `./boundary` | PLAN boundary integrity: interpreting a realization's verdict on one concern owner's declaration | no |
     | `./attribution` | CASE-owned file attribution | no |
     | `./contracts` | contract evidence of a capability's mapping | no |
+    | `./duplicates` | duplicate-execution evidence and one-run-per-file planning | no |
     | `./coverage` | execution and evidence of a capability's own tests | no |
     | `./inventory` | non-blank text lines of the listed files | no |
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | no |
     | `./package.json` | the package manifest | no |
+    | `./redesign` | recurring timing signals and independent Case-preservation evidence | no |
     | `./report` | the reconciled package and ownership report | no |
+    | `./timing` | given-duration concentration, outlier and platform-skew evidence | no |
     | `./verifiers` | the shared observable result contract for consumer verifiers: its scenarios, `observe` and `judge` | no |
 
 - **testing/A9** [testing/F12, testing/F13]: **npm, the first realization.** Testing records it here without making it the definition.
@@ -165,6 +172,65 @@ These are kaal-testing's architectural decisions, each identified as `testing/A<
   - `package.json`, `README.md`, `LICENSE`;
   - `capability/`, `lib/`, `payload/`, `skills/`;
   - `docs/`;
-  - `test/embed/`, `test/verify.mjs` and `test/verify.json`.
+  - `test/embed/`, `test/run.mjs`, `test/verify.mjs` and `test/verify.json`.
 
   Nothing else ships: no PLAN document, no planned test, no publisher test, and neither `evidence.kaal.json` nor `ownership.kaal.json`. `test/verify.mjs` runs the delivered cases with Node's test runner against the installed copy. It reads the manifest, compares hashes, compares the consumer before and after, and prints the summary line.
+
+## Run Timing
+
+- **testing/A25** [testing/F79–testing/F83, testing/N17]: `@kaihacksai/kaal-testing/timing` is one new module, `lib/timing.mjs`, exported as `./timing`. It exports:
+  - `DEFAULTS`, frozen: `{ share: 0.8, budget: 0.8, outlier: 10, floor: 1000, factor: 4, minimum: 5 }`;
+  - `profile(run, options?)`, which gives `{ result, challenges, findings }` for one run (testing/F79–testing/F81);
+  - `skew(runs, options?)`, which gives the same shape across one run per platform (testing/F82).
+
+  A challenge is `{ kind, owner, statement, next, … }`. Its `kind` is `concentration` (with `cases`, `caseShare`, `timeShare`), `outlier` (with `case`, `ms`, `median`) or `skew` (with `case`, `platform`, `ms`, `others`). Challenges are ordered by kind, then case, then platform. The export inventory row for `./timing` (testing/A8) covers the module.
+
+  Where the durations come from is the caller's. A publisher's harness or a lane reads them from Node's test runner (each test's `duration_ms`) or from its CI report. Engineering's lanes are the first caller: they profile each lane's run, and run `skew` over the same lane on Linux, macOS and Windows.
+
+## Ownership
+
+| Who | Owns |
+| --- | --- |
+| Testing | what concentration, outlier and skew mean, their defaults, and that a challenge is evidence, never a result |
+| Each case/suite owner | investigating concentration in its own suite, and each named Case's outlier or platform skew; timing alone establishes no cause |
+| Hosting | consulted for demonstrated host-specific causes; owning confirmed defects at the operating-system boundary (testing/F67), never presumed from skew alone |
+| Engineering | recording durations, calling `profile` and `skew` in its lanes, and reporting the challenges |
+
+## Redesigning Slow Cases
+
+- **testing/A28** [testing/F93–testing/F97, testing/N20]: `@kaihacksai/kaal-testing/redesign` is one new module, `lib/redesign.mjs`, exported as `./redesign`. It imports `profile` and `DEFAULTS` from `@kaihacksai/kaal-testing/timing` (testing/A25) and nothing else. It exports:
+  - `DEFAULTS`, frozen: `{ window: 5, recur: 3 }`;
+  - `candidates(history, options?)`, which gives `{ result, candidates, refactors, unprofiled, findings }`;
+  - `refactored(before, after)`, which gives `{ result, differences, findings }`.
+
+  The export inventory row for `./redesign` (testing/A8) covers it.
+
+## Where per-case times are kept
+
+Testing keeps no history (testing/N15). The durable per-case times are the caller's:
+
+| Who | Keeps or does |
+| --- | --- |
+| Engineering's run record (for example Guard's C129 record) | per run and platform, each Case's name, its file's `sha256` and its `ms` from Node's test runner (`duration_ms`), oldest first. Engineering calls `candidates` over that history on each lane run, and reports the candidates and file-version timing comparisons with the run |
+| The case owner | acting on a candidate. It redesigns the Case as a REFACTOR step: a Change whose PLAN records what was learned, as testing/F74 records a lesson. It shows `refactored(...)` is `kept`, from the earlier version's RED and GREEN verdicts and the new version's verdicts on the same subjects |
+| Testing | what a signal, a candidate, a timing comparison and a behavioural refactoring check mean, and their defaults. The case owner owns the Case's design and correction |
+
+So the loop runs like this. The history shows a candidate. The owner refactors the Case and keeps its RED and GREEN verdicts. Later runs judge the new version afresh and show whether it is faster.
+
+A Case's recorded version is a conservative proxy: the SHA-256 of the entire file's bytes. Editing one Case or a shared fixture resets the timing window for every Case in that file, including untouched Cases. This can postpone a recurring-slowness signal until enough later runs accumulate. A changed hash identifies different file bytes; it does not prove which Cases changed, or that any Case was refactored.
+
+## Presenting timing and preservation together
+
+`candidates(...).refactors` retains its planned field name, but every row is only a file-version timing comparison. Engineering labels it that way. Neither the row's existence nor `shown: "faster"` asserts preserved behaviour. The case owner supplies targets and RED/GREEN verdicts to `refactored(before, after)` independently.
+
+The caller associates the two pieces of evidence by `case` = `id`, `from` = `before.version` and `to` = `after.version`, keeping the timing platform. It presents `shown` and the behavioural check's `result` side by side, without merging them into a success verdict. If that Case and version pair has no behavioural check, preservation is not assessed. No matching check is inferred from another Case in the same file.
+
+For example, a new version can be `faster` while a formerly RED mutant turns GREEN: the timing is `faster`, the behavioural check is `changed`, and the redesign has not preserved its discrimination. A faster version with no earlier RED/GREEN evidence is `unknown` for preservation. Conversely, a `kept` check may accompany `not faster`. T112 and T114 discriminate these claims separately.
+
+## No Duplicate Runs
+
+- **testing/A27** [testing/F89–testing/F92, testing/N19]: `@kaihacksai/kaal-testing/duplicates` is one module, `lib/duplicates.mjs`, exported as `./duplicates`. It imports nothing and exports `duplicates(execution)` and `schedule(requests)`. It is independent of timing and redesign. Both APIs consume caller-supplied facts; neither runs, authenticates, retains or changes observations.
+
+Engineering owns the execution boundary, recording nested runs and wiring requests to their observations. One call plans one execution only. Separate required executions, including independent assurance contexts with the same subject and conditions, require separate calls; no cache or deduplication crosses them. Within an execution each reader receives that run's own failure or uncertainty unchanged. Sharing a run does not authorize reuse across processes or manufacture provenance.
+
+The identity includes exact file path, file bytes, subject digest, platform and Node; duplicate evidence also includes Case. Full identity breaks ordering ties so output is deterministic even when visible challenge fields match.

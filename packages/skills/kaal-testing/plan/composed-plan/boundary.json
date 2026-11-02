@@ -1,0 +1,68 @@
+{
+  "status": "proposed; independent Owner review required",
+  "owner": "Testing",
+  "topic": "Composed Plan file execution",
+  "sourceCollector": "79524490a219b9f622052047d891f2bd30e631b6",
+  "proposedPublicExport": "kaal-testing/plan",
+  "proposedSkillCommand": "skills/kaal-testing/scripts/run-plan.mjs",
+  "cases": [
+    "CP01",
+    "CP02",
+    "CP03",
+    "CP04",
+    "CP05",
+    "CP06",
+    "CP07",
+    "CP08",
+    "CP09",
+    "CP10",
+    "CP11",
+    "CP12"
+  ],
+  "files": [
+    {
+      "path": "packages/skills/kaal-testing/plan/composed-plan/README.md",
+      "sha256": "0a43b35ee97d2903a2b25d1a2c30437101def62b567701c6f6a414de9b16cda4"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/composed-plan/fixtures.mjs",
+      "sha256": "d9f4f2c43383d8868ab8f6e88d9c8428404b9caa554a31a439f9d0f3d3da0bf2"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/composed-plan/execution.cases.mjs",
+      "sha256": "6bec1f87a6823225192a98bde1288c38cc03b325af64c152a4b9903b148808f6"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/composed-plan/consumer.cases.mjs",
+      "sha256": "2b58e724c7157c37a611d9d175d877f1db3ab69b50a362117f2949d5184d8fe2"
+    }
+  ],
+  "authority": "byte inventory only; no self-issued acceptance, Seal or production receipt",
+  "testDesignEvidence": {
+    "runtime": "v24.22.1",
+    "discovered": 12,
+    "blocked": 12,
+    "green": 0,
+    "inertCoordinator": {
+      "assertionFailures": 9,
+      "cases": [
+        "CP01",
+        "CP02",
+        "CP03",
+        "CP04",
+        "CP05",
+        "CP06",
+        "CP07",
+        "CP08",
+        "CP09"
+      ],
+      "claim": "test design only, not implementation RED/GREEN or mutation evidence"
+    }
+  },
+  "exclusions": [
+    "No product implementation or CI adoption",
+    "Existing C50 Cases/assertions and source APIs unchanged",
+    "No second Strategy/Plan/Suite/Case model",
+    "Fresh installed three-host acceptance remains a DO requirement"
+  ]
+}

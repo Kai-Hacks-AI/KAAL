@@ -2,6 +2,10 @@
 
 This is kaal-testing's Test Plan: which Test Cases verify the [Intent](intent.md), [Requirements](requirements.md) and [Architecture](architecture.md), and where they run.
 
+## Reading this inventory
+
+The tables retain planned Cases and their targets; they are not run records or a statement that every row is implemented, selected or passing. In particular, the standalone observation and RED/FAR classification Cases have no delivered `/observe` or `/red` implementation in this release. Keep them unverified as described in [Limitations](limitations.md). Read actual selection from the source entry's `--list` and its declared suite commands, then cite the observed Run. The installed entry runs only its declared consumer Cases. Source and installed evidence answer different questions.
+
 ## Where the cases run
 
 - **Delivered cases.** The package ships its consumer cases, run by the installed verification (testing/F61, testing/F63). In an installation, `npm test` runs them and nothing else (testing/F62). Each is a Case in Testing's own model, shipped in `test/verify.json`, and its `tests` names the identifiers it verifies. Whether an identifier is evidenced is derived from those traces and the latest relevant Run (testing/F66, testing/F40), never declared beside them.
@@ -144,3 +148,48 @@ Each planned test is established before implementation and is immutable afterwar
 | testing/T77: in the source workspace npm test runs every declared suite, the publisher's and the consumer's; nothing it needs runs in an installation | testing/F62 | Requirements |
 | testing/T78: packed and installed alone in a fresh consumer, npm test there verifies the installed copy and conforms to the shared verifier contract's clean scenario | testing/F59, testing/F61, testing/F63, testing/F64, testing/N12 | Architecture |
 | testing/T79: the installed verification imports only Node's built-ins, by any import form, so a broken library cannot mask itself; no delivered case reads this repository; and no shipped file branches on the operating system | testing/F65, testing/N12, testing/N13 | Architecture |
+
+### Run Timing
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T92: a profile reads only given durations, and is unknown, never unchallenged, when they cannot carry a judgement | testing/F79 | Requirements |
+| testing/T93: a run is challenged when its slowest cases take more than the budgeted share of the time, naming those cases and the shares | testing/F80 | Requirements |
+| testing/T94: a case is challenged as an outlier when it takes many times the run's median case and more than the floor; a uniformly slow run is not | testing/F81 | Requirements |
+| testing/T95: across platforms, a case is challenged where one platform takes many times its time on the others and more than the floor, naming the platform | testing/F82 | Requirements |
+| testing/T96: a challenge is evidence of a structural issue, never a failed or verified run, and platform skew goes to the Case owner without inferring a host cause | testing/F83, testing/F67 | Requirements |
+| testing/T97: profiling is pure and deterministic: the same durations give the same challenges in the same order, whatever order the cases came in | testing/N17 | Requirements |
+
+The timing cases run in the source workspace test script. Engineering also challenges the implementation with `test/engineer/timing-mutations.mjs`; this is engineering evidence, not consumer verification.
+
+Implementation evidence: the six timing cases failed on behavioural assertions after the module boundary was made available, then passed. The source workspace suite passes 172 tests. All 26 engineering mutation challenges are killed, including inclusive thresholds, malformed durations/options, incorrect peer selection and assigning skew to Hosting from timing alone. This is evidence within those cases, not proof of a cause or of complete correctness.
+
+### Redesigning Slow Cases
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T110: a history is read only as given, oldest first, and is unknown, never unchallenged, when it cannot carry a judgement | testing/F93 | Requirements |
+| testing/T111: a Case among the slowest of its run, again and again in the recent runs of its current version on a platform, is a redesign candidate on that Case | testing/F94, testing/F80, testing/F81 | Requirements |
+| testing/T112: a file hash starts a fresh window for every Case in the file, and later timing comparisons do not establish a refactoring | testing/F93, testing/F95 | Requirements |
+| testing/T113: a redesign is a refactoring only when the Case keeps its targets and its discriminating RED and GREEN verdicts | testing/F96 | Requirements |
+| testing/T114: timing and preservation are separate evidence for the case owner, never a run's result | testing/F95, testing/F96, testing/F97, testing/F83 | Requirements |
+| testing/T115: learning is pure and deterministic: the same history gives the same candidates in the same order, and a verdict's order does not matter | testing/N20 | Requirements |
+
+The six Cases run with the workspace tests. Additional implementation checks cover an unprofiled latest version, ordinary string identities and malformed target arrays. A separate Engineering scenario installs the packed package fresh and exercises both public exports, including faster timing with lost discrimination. Mutation challenges live in `test/engineer/redesign-mutations.mjs`.
+
+Implementation evidence: all six redesign Cases failed on behavioural assertions with the module boundary available, then passed. The full source suite passes 181 tests, with none skipped. All 34 redesign mutation challenges are killed; T112 catches 10 and T114 catches 7, including lost RED discrimination, absent earlier RED evidence and timing-only claims of preservation. The separate packed-installation scenario passes its public-interface assertions. The acceptance harness still leaves physical host containment and absence of unrecorded installations unknown.
+
+### No Duplicate Runs
+
+| Case | Checks | Loop |
+| --- | --- | --- |
+| testing/T104: a run is the same run only for the same Case, the same file bytes, the same subject and the same conditions | testing/F89 | Requirements |
+| testing/T105: an execution that runs a Case more than once is challenged, naming the Case, how often it ran, who re-ran it and the time spent beyond one run | testing/F90 | Requirements |
+| testing/T106: an execution is planned so each distinct case file runs once, and every request reads that one run | testing/F91 | Requirements |
+| testing/T107: a duplicate is evidence for the case owner, never a result, and running a failed Case again in the same execution is a duplicate too | testing/F92 | Requirements |
+| testing/T108: finding and planning are pure and deterministic: the same runs or requests give the same result, whatever order they came in | testing/N19 | Requirements |
+| testing/T109: Testing's own npm test runs each of its files once: no case file is in two of its test scripts, nor twice in one | testing/F91, testing/F62 | Requirements |
+
+The six Cases run once in the source workspace suite. Their assertions and supporting file are unchanged from the approved PLAN. Additional implementation checks cover independent executions, failed/unknown observation sharing, all scheduled identity dimensions, malformed requests beside valid ones and deterministic floating-point summation. A separate acceptance scenario installs the caller-packed package and exercises both public exports.
+
+Implementation evidence: with both exports available but inert, T104–T108 fail on behavioural assertions. T109 is already GREEN for the duplicate-free script layout; injecting a duplicate script makes it RED. All 34 mutation challenges are killed by assertions. Two schedule-identity mutations (file path and Node) survive the six planned Cases alone and are killed by the additional implementation checks; the planned Cases were not edited. This shows discrimination within these tests, never complete correctness.

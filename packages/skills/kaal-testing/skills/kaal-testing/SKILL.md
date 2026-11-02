@@ -6,7 +6,11 @@ license: MIT
 
 # Testing a capability
 
-What Testing means is stated by the `Testing` Node in a KAAL Engine: read it there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work.
+What Testing means is stated by the `Testing` Node in a KAAL Engine: read it there, starting from the Engine's `AGENTS.md`. This file tells you how to do the work. For an installed package without an Engine, use the discovery steps and worked example in [references/approach.md](references/approach.md). Read the shipped Nodes for meaning; the example teaches existing APIs and grants no consumer authority.
+
+## Start a Test Plan
+
+Use [references/approach.md](references/approach.md) to move from a target to a Case, its loop, execution evidence and evaluation. It includes a runnable model example and the distinction between constructed example data and an observed Run. A package boundary is ordinary consumer-owned Test Plan content: its owner names the incoming/outgoing contracts, writes its Cases and retains its evidence.
 
 ## Before writing a test
 
@@ -68,7 +72,7 @@ To declare a product's tests as data, use `kaal-testing/model`. Declare only the
 
 ## Running acceptance
 
-Keep a capability's acceptance scenarios in its own workspace, under `test/acceptance/`. Run them with `accept` from `kaal-testing/acceptance`, against a manifest of tarballs packed once by the caller. In a scenario, get packages only through `install`, never by building or packing. Report each ledger finding with its kind. State host containment and unrecorded installations as unknown, never as passed.
+Engineering lane scenarios are discovered under a capability's own `test/engineer/`; discovery also reads the legacy `test/acceptance/` during migration. A capability's shipped cases remain under its own `test/embed/`. These existing locations describe their purpose; they introduce no new Testing kind. Run them with `accept` from `kaal-testing/acceptance`, against a manifest of tarballs packed once by the caller. In a scenario, get packages only through `install`, never by building or packing. Report each ledger finding with its kind. State host containment and unrecorded installations as unknown, never as passed.
 
 ## Measuring coverage
 

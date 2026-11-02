@@ -15,11 +15,14 @@ Each element names, in brackets, the Requirements it answers.
     | `./boundary` | PLAN boundary integrity: interpreting a realization's verdict on one concern owner's declaration | `testing/C12` | no |
     | `./attribution` | CASE-owned file attribution | Testing | no |
     | `./contracts` | contract evidence of a capability's mapping | Testing | no |
+    | `./duplicates` | duplicate-execution evidence and one-run-per-file planning | testing/C51 | no |
     | `./coverage` | execution and evidence of a capability's own tests | Testing | no |
     | `./inventory` | non-blank text lines of the listed files | Testing | no |
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | `testing/C15` | no |
     | `./package.json` | the package manifest | Testing | no |
+    | `./redesign` | recurring timing signals and independent Case-preservation evidence | `testing/C53` | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
+    | `./timing` | given-duration concentration, outlier and platform-skew evidence | testing/C47 | no |
     | `./verifiers` | the shared observable result contract for consumer verifiers: its scenarios, `observe` and `judge` | `testing/C30` | no |
 - **testing/A9** [testing/F12, testing/F13]: **npm, the first realization.** Testing records it here without making it the definition.
   - **The entry point.** `npm explore <package> -- npm test` runs the installed package's own `test` script. The product's script runs one small entry file of its own.

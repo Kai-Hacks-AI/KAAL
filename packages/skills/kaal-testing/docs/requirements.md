@@ -412,6 +412,10 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
   - The installed verification, `test/verify.mjs`, ends in exactly one of Testing's results: `verified`, `failed` or `unknown` (testing/F13). The exit statuses are 0, 1 and 2 (testing/A9).
   - It prints one summary line starting `kaal-testing-verification `, holding the JSON summary of testing/F44.
   - It decides failed and unknown as testing/F50 states, and diagnoses as testing/F49 states.
+  - What the runner establishes about a delivered file, once the installation is shown intact, decides one result:
+    - **failed:** a declared case fails; a delivered file fails as a whole, because it does not import, throws while it loads or its process ends non-zero; or a test the manifest does not declare runs and fails. Each is a violation by the package as shipped (testing/F50), and its evidence names the case or the file.
+    - **unknown:** a declared case is skipped or todo, a todo that fails included; a declared case does not run, or its title is reported twice; or a test the manifest does not declare runs without failing, skipped and todo included. Nothing failed, and not every declared case was proven.
+    - **verified** only when every declared case ran once and passed and nothing else ran. A failure is never hidden by anything unknown beside it.
   - It conforms to every scenario of testing/F43 and testing/F50 in Engineering's harness.
 
 - **testing/F64** [testing/I17] (packaging/F11): **Shipped manifest.** `test/verify.json` holds:
@@ -440,3 +444,117 @@ These are the functional (`testing/F<n>`) and nonfunctional (`testing/N<n>`) req
   - `test/verify.mjs` imports only Node's built-ins, never the package's own `lib/`, so a broken library cannot mask itself. The same holds for hosting/N4.
 
 - **testing/N13** [testing/I17] (packaging/N9): No delivered case reads this repository, its PLAN documents or another package's sources.
+
+## Run Timing
+
+## Functional
+
+- **testing/F79** [testing/I21]: **Durations are given, never measured.** A run's timing is `{ cases: [{ name, ms }] }`: each case's name and its duration in milliseconds, as the harness recorded it (for example from Node's test runner). Testing reads no clock. The profile is `unknown`, with a finding for each problem and no challenge, when:
+  - there is no run, or its cases are not a list;
+  - a case has no name, or is named twice;
+  - a duration is not a finite number of 0 or more;
+  - the run has fewer cases than the minimum, 5 by default;
+  - the run spent no time at all;
+  - an option is unknown or out of range.
+
+  Otherwise the profile is `challenged`, with each challenge, or `unchallenged`. The run given is not changed.
+- **testing/F80** [testing/I21]: **Concentration.** Sort the cases slowest first. The slowest share is the slowest `1 − share` of the cases, rounded down to whole cases, and at least one case. The run is challenged when that slowest share took more than `budget` of the run's total time. The defaults are `share` 0.8 and `budget` 0.8: 80% of the cases must take more than 20% of the time, and equivalently the slowest 20% may take at most 80%. Exactly the budget is within it. The challenge names the cases in that share, the share of the cases they are (`caseShare`), and the share of the time they took (`timeShare`). The caller may give its own `share` and `budget`.
+- **testing/F81** [testing/I21]: **Outliers.** A case is an outlier when it took more than `outlier` times the run's median case and more than `floor` milliseconds. The defaults are 10 and 1000. Exactly the multiple is within it. Each outlier challenge names the case, its `ms` and the `median`. A run whose cases are all slow alike has no outlier: it is judged against its own distribution. The caller may give its own `outlier` and `floor`.
+- **testing/F82** [testing/I21]: **Platform skew.** Given one run per platform for one candidate, `{ platform, cases }` each, a case is skewed on a platform when it took more than `factor` times the median of its durations on the other platforms, and more than `floor` milliseconds. The default `factor` is 4, and exactly the factor is within it. Each skew challenge names the case, the platform, its `ms` and the other platforms' median (`others`). The skew is `unknown`, with a finding for each problem, when:
+  - the runs are not a list;
+  - a run names no platform, or a platform is given twice;
+  - fewer than two platforms are given;
+  - any platform's durations do not read under testing/F79, named with that platform;
+  - the platforms' runs do not hold the same cases, naming each case and the platform it did not run on.
+- **testing/F83** [testing/I21]: **A challenge is evidence, never a result.** A profile or skew is `challenged`, `unchallenged` or `unknown`, never `failed`, `verified` or `passed`. Timing does not change any run's result, a verifier's summary or parity. Each challenge states in words what it found (`statement`) and the next step it asks for (`next`), and names its `owner`:
+  - `case owner` for concentration, outliers and platform skew. For concentration the owning suite and its Case owners investigate the distribution; for an outlier or skew the named Case owner investigates first.
+
+  Timing alone does not establish a cause. A skew is a platform difference, not proof of an operating-system defect. The Case owner consults Hosting when investigation demonstrates a host-specific cause; confirmed operating-system-boundary defects belong to Hosting (testing/F67). Testing never assigns such a defect from durations alone.
+
+## Nonfunctional
+
+- **testing/N17** [testing/I21]: Profiling is pure and deterministic. It reads no clock and no host, runs nothing, keeps nothing and imports nothing. The same durations give the same result, the same challenges in the same order and the same findings, whatever order the cases or the platforms' runs were given in.
+
+## Redesigning Slow Cases
+
+## Functional
+
+- **testing/F93** [testing/I24]: **A history, as kept.** `candidates(history, options?)` reads a list of runs, oldest first, as the caller kept them. Each run is `{ platform, cases: [{ name, sha256, ms }] }`. `sha256` is the digest of the entire file's bytes (testing/F89), a conservative proxy for the Case's version, and `ms` is its duration as the harness recorded it. Changing one Case or a shared fixture in that file changes the recorded version for every Case in the file, even those whose behaviour did not change. A hash change establishes neither that a particular Case was edited nor that it was refactored. The options are `window` (default 5) and `recur` (default 3), together with any of timing's options (testing/F79–testing/F81).
+  - The result is `unknown`, with a finding for each problem and no candidate, when:
+    - the history is not a list;
+    - a run is not an object, names no platform, or has cases that are not a list;
+    - a case has no name, is reported twice in a run, names no version, or has a duration that is not finite and 0 or more;
+    - an option is unknown;
+    - `window` or `recur` is not a whole number of 1 or more;
+    - `recur` exceeds `window`;
+    - a timing option does not read.
+  - An empty history shows no candidate.
+  - A run that timing cannot profile, such as one with too few cases, is listed in `unprofiled` with its findings and counts for nothing.
+- **testing/F94** [testing/I24]: **A redesign candidate.** Each profiled run is profiled as testing/F80 and testing/F81 state. In that run, a Case is **signalled** when it is in a concentration challenge's slowest share and took more than timing's `floor`, or when it is an outlier. A quick Case that only fills the slowest share is not signalled.
+  - For each platform, and each Case on it, the **recent runs** are the last `window` profiled runs on that platform that ran the Case's current version, its latest `sha256`.
+  - The Case is a candidate when it was signalled in at least `recur` of them. The candidate holds:
+    - `kind` `redesign`, `case`, `version`, `platform`;
+    - `seen` and `of`, the signalled count and the recent runs;
+    - `signals { concentration, outlier }`;
+    - `medianMs` over the recent runs;
+    - `statement`, `next` (redesign the Case, and record what was learned in the owning capability's PLAN), and `owner` `case owner`.
+  - Each platform is its own distribution. Candidates are ordered by `medianMs`, most first, then by Case and platform.
+  - The result is `challenged` with any candidate, otherwise `unchallenged`.
+- **testing/F95** [testing/I24]: **A file version is judged afresh, and its time is shown later.** A new file hash starts a fresh timing window for every Case in the file, including Cases untouched by the edit. The runs of its earlier versions never count towards its candidacy. For each Case and platform whose current version follows an earlier one, `refactors` gives `{ case, platform, from, to, beforeMs, afterMs, runs, shown }`. Despite the field name, these are file-version timing comparisons, not evidence that a Case was refactored:
+  - `beforeMs` is the median over the earlier version's last `window` runs;
+  - `afterMs` is the median over the current version's recent runs, and `runs` is their number;
+  - `shown` is `pending` until the new version has `recur` runs, then `faster` when `afterMs` is below `beforeMs`, else `not faster`.
+
+  `pending`, `faster` and `not faster` describe only the timing comparison. They establish neither preserved behaviour nor a successful refactoring. A changed hash alone establishes none of those claims. A new version that is still slow becomes a candidate again, as itself.
+- **testing/F96** [testing/I24]: **RED → GREEN → REFACTOR for a Case.** `refactored(before, after)` reads two versions of a Case. Each is `{ id, version, tests, verdicts }`, where `verdicts` maps each subject the version was judged on to `pass` or `fail`. The subjects are, for example, the candidate, the code before the change and each mutant.
+  - **`kept`** only when all of these hold: it is the same Case; its version changed; it tests the same targets, as a set; and on every subject the earlier version was judged on, the new version was judged too and gave the same verdict, RED where RED and GREEN where GREEN. It may also be judged on more subjects.
+  - **`changed`** otherwise, with each difference named: another Case, an unchanged version, a target dropped or added, a subject not judged, or a verdict flipped.
+  - **`unknown`** when either version does not read, or when the earlier version shows no discriminating RED and GREEN, because then there is no behaviour to keep.
+
+  A redesign that a candidate asks for is complete only when it is `kept`, and its time is then shown by testing/F95. A new hash alone is insufficient for `kept`: the targets and discriminating verdicts must be supplied and preserved. A faster version may be `changed` or `unknown`; a `kept` version may be `not faster`.
+- **testing/F97** [testing/I24]: **Evidence for the case owner, never a result.**
+  - `candidates` gives `challenged`, `unchallenged` or `unknown`. `refactored` gives `kept`, `changed` or `unknown`. Neither ever gives `failed`, `verified` or `passed`, and neither changes any run's result, any verifier's summary or parity (testing/F83).
+  - A candidate states no outcome, and its owner is `case owner`.
+  - Which Cases are candidates, and whether a redesign is a refactoring, are derived by Testing from the history and verdicts given, never declared.
+  - The caller reports testing/F95's timing comparison and testing/F96's behavioural check separately, associated by the same Case id and `from`/`to` versions, retaining the timing platform. It never infers `kept` from a timing comparison or a changed hash. Without the corresponding behavioural evidence it reports preservation as not assessed; it never substitutes a check for another Case or version pair.
+
+## Nonfunctional
+
+- **testing/N20** [testing/I24]: Learning is pure and deterministic. It reads only the history and verdicts given, runs nothing, reads no clock and no host, keeps nothing and changes no input. The same history gives the same candidates, refactors and findings, in the same order, whatever order each run's cases come in. The order of the runs is the caller's, oldest first, as testing/F40 states. `@kaihacksai/kaal-testing/redesign` imports only `@kaihacksai/kaal-testing/timing`.
+
+## No Duplicate Runs
+
+### Functional
+
+- **testing/F89** [testing/I23]: **The same run.** Two runs are the same run only when all of these are the same: the Case, its file path, its file's bytes (`sha256`), the subject's digest (`subject`, for example the candidate's `digest` of testing/F64), the platform and the Node version. Anything else, such as another candidate, edited file bytes, another platform or another Node, is other evidence and never a duplicate (testing/F15, testing/F56).
+- **testing/F90** [testing/I23]: **Finding duplicates.** `duplicates(execution)` reads `{ runs: [{ case, file, sha256, subject, platform, node, ms, by? }] }`. Each entry is one run of a Case the harness observed in the execution, nested runs included. `by` names the Case that ran it, where a Case ran other Cases, for example through a nested `node --test` or `npm test`. Testing reads no clock: `ms` is as the harness recorded it.
+  - The execution is **`unknown`**, with a finding for each problem and no challenge, when:
+    - its runs are not a list or are empty;
+    - an entry is not an object;
+    - an entry has no `case`, `file`, `platform` or `node`;
+    - `sha256` or `subject` is not a SHA-256;
+    - `ms` is not a finite number of 0 or more;
+    - `by` is present and is not a Case.
+  - Otherwise the execution is **`challenged`** when any run happened more than once, and **`unchallenged`** when none did.
+  - There is one challenge per repeated run, of kind `duplicate`. It holds:
+    - `case`, `file` and `platform`;
+    - `runs`, how often it ran;
+    - `wastedMs`, its total time minus its fastest run, since one run is needed;
+    - `by`, the Cases that re-ran it, in order, which is `[]` when it was re-run directly;
+    - `statement`, `next` and `owner`.
+  - Challenges are ordered by `wastedMs`, most first, then by Case, file and platform. The execution's `wastedMs` is their sum.
+- **testing/F91** [testing/I23]: **Planning one run per file.** `schedule(requests)` reads `[{ by, files: [{ path, sha256 }], subject, platform, node }]`. Each request is one suite, job or Case that asks for case files to run. It gives `{ runs, reads, findings }`:
+  - **`runs`:** one entry `{ file, sha256, subject, platform, node, for }` per distinct file under testing/F89, with `for` the requests that asked for it, in order. A file asked for twice by one request runs once.
+  - **`reads`:** one entry `{ by, file, run }` per request and file, where `run` is the index of the run it reads.
+  - A read is that one run's observation. Its result is the run's own: a failed or unknown run is read as failed or unknown by every request that reads it. It is never run again for a different result.
+  - A request that cannot be read is a finding, and nothing is planned. That covers requests that are not a list; a request that is not an object or has no `by`; two requests by the same `by`; a request with no file, or a file with no path or no SHA-256; a `subject` that is not a SHA-256; and a missing platform or Node.
+
+  Findings name what is wrong, never where it came in the list.
+- **testing/F92** [testing/I23]: **A duplicate is evidence, never a result.**
+  - `duplicates` gives `challenged`, `unchallenged` or `unknown`, never `failed`, `verified` or `passed`. It changes no run's result, no verifier's summary and no parity, as testing/F83 states for timing.
+  - Each challenge's `owner` is `case owner`. Its `statement` names the Case, how often it ran, the platform, who re-ran it and the time beyond one run. Its `next` asks the re-running Cases to read the execution's own run, or asks for the file to run once.
+  - A challenge states no outcome. Running a Case again after it failed, within one execution, is a duplicate like any other. Which result stands is the runs' own, never the duplicate's.
+
+### Nonfunctional
+
+- **testing/N19** [testing/I23]: Finding and planning are pure and deterministic. They read only the data given, run nothing, read no clock and no host, keep nothing and change no input. The same runs or requests give the same result, challenges, runs, reads and findings, in the same order, whatever order they come in. `@kaihacksai/kaal-testing/duplicates` imports nothing.

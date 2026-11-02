@@ -1,6 +1,12 @@
 # kaal-testing: Limitations
 
-These are the bounds of what kaal-testing shows. Each follows from the [Requirements](requirements.md) and [Architecture](architecture.md), and none is a defect.
+These are the bounds of what kaal-testing shows. Each follows from the [Requirements](requirements.md) and [Architecture](architecture.md), and distinguish evidence limits from incomplete delivery.
+
+## Delivery status
+
+`package.json` and the [Operations export inventory](operations.md) identify the public interfaces this installation provides. The accepted Requirements and Architecture also describe standalone runner observation (`/observe`) and RED/FAR classification (`/red`). Those modules are not implemented or exported in 0.0.1. Their contracts and planned Cases remain recorded, but their behavior is unverified and cannot be inferred from other passing Cases. The consumer-verifier parser named `observe` in `/verifiers` has a different contract. This release neither implements those missing interfaces nor silently withdraws their accepted contracts; any completion or scope change needs its own reviewed Change.
+
+## Evidence limits
 
 - **A clean result shows only what its checks cover.** GREEN is bounded evidence, not proof of the outcome. A passed Case shows that its assertions held in its Run, and that it bears on its target remains an inference (testing/I5).
 - **Testing interprets evidence and never produces or authenticates it.** A boundary verdict counts only with its trust authority's attestation (testing/F19, testing/F20). Without it, the result is unknown.
@@ -12,3 +18,11 @@ These are the bounds of what kaal-testing shows. Each follows from the [Requirem
 - **Operating-system-specific behaviour is out of scope.** It is Hosting's alone, in solutions and in tests. Testing authorizes no platform exemption, and a case scoped by platform outside Hosting is a violation (testing/F67).
 - **Conditional weakening is not observable in a run.** A case that keeps its identity but branches on the platform to weaker assertions cannot be seen in a verifier's result. Detecting it is the publisher's static enforcement and Hosting's challenge (testing/F48).
 - **Runtime dependency.** The library makes every command, read and write through Hosting, so it installs `@kaihacksai/kaal-hosting` with every installation (testing/F59). `@kaihacksai/kaal-testing/model` and `@kaihacksai/kaal-testing/verifiers` import nothing, but npm has no per-export dependency, so a consumer that uses only them still installs Hosting.
+
+Timing evidence uses only the durations supplied. It does not establish comparable environments, candidate identity, a root cause or a suitable redesign. A uniformly slow run may have neither concentration nor outliers. Thresholds are heuristics, and a platform difference alone does not establish a Hosting defect.
+
+Case versions use whole-file hashes. Editing a shared file resets every Case's timing window and may postpone a slow-case signal; it does not establish which Case changed. A current version without profiled samples never borrows an older version's candidacy, and comparisons require profiled samples on both sides. A `faster` timing row establishes no preserved behaviour; a `kept` behavioural check establishes no speed improvement. The caller must supply trustworthy subject identities, verdicts, chronology and retention; Testing does not authenticate or store them.
+
+## Duplicate planning is not execution
+
+Duplicate detection trusts only the supplied data as data; it authenticates no run and changes no verdict. A schedule contains no result. Its caller must retain every failure and unknown observation for all readers. Separate required executions must use separate calls: equal subject, file, platform and Node facts do not establish shared provenance. There is no cache, process transport or lane integration in this API.

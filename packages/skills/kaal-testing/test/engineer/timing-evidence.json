@@ -1,0 +1,110 @@
+{
+  "subject": "testing/C47",
+  "baseline": "6 passed",
+  "results": [
+    {
+      "name": "default share",
+      "status": "killed"
+    },
+    {
+      "name": "default budget",
+      "status": "killed"
+    },
+    {
+      "name": "default outlier",
+      "status": "killed"
+    },
+    {
+      "name": "default floor",
+      "status": "killed"
+    },
+    {
+      "name": "default factor",
+      "status": "killed"
+    },
+    {
+      "name": "default minimum",
+      "status": "killed"
+    },
+    {
+      "name": "unknown options accepted",
+      "status": "killed"
+    },
+    {
+      "name": "invalid options accepted",
+      "status": "killed"
+    },
+    {
+      "name": "duplicates accepted",
+      "status": "killed"
+    },
+    {
+      "name": "negative duration accepted",
+      "status": "killed"
+    },
+    {
+      "name": "minimum omitted",
+      "status": "killed"
+    },
+    {
+      "name": "zero time accepted",
+      "status": "killed"
+    },
+    {
+      "name": "slowest share rounded up",
+      "status": "killed"
+    },
+    {
+      "name": "floating point not guarded",
+      "status": "killed"
+    },
+    {
+      "name": "budget boundary inclusive",
+      "status": "killed"
+    },
+    {
+      "name": "outlier boundary inclusive",
+      "status": "killed"
+    },
+    {
+      "name": "outlier floor omitted",
+      "status": "killed"
+    },
+    {
+      "name": "skew boundary inclusive",
+      "status": "killed"
+    },
+    {
+      "name": "skew floor omitted",
+      "status": "killed"
+    },
+    {
+      "name": "skew routed to Hosting",
+      "status": "killed"
+    },
+    {
+      "name": "outlier routed to Hosting",
+      "status": "killed"
+    },
+    {
+      "name": "repeated platform accepted",
+      "status": "killed"
+    },
+    {
+      "name": "missing case accepted",
+      "status": "killed"
+    },
+    {
+      "name": "own platform counted as peer",
+      "status": "killed"
+    },
+    {
+      "name": "evidence changes verdict",
+      "status": "killed"
+    },
+    {
+      "name": "skew median replaced with max",
+      "status": "killed"
+    }
+  ]
+}

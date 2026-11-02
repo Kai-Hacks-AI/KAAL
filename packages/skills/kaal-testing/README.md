@@ -7,7 +7,7 @@ capability/Testing.md                  the Capability Node, typed by Core's KAAL
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
 docs/                                  the shipped documents: Intent, Requirements, Architecture, Testing, Limitations, Operations
 skills/kaal-testing/                   the Agent Skill: SKILL.md
-skills/kaal-testing/references/        findings.md
+skills/kaal-testing/references/        approach.md, brittle.md, findings.md
 lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
 lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
 lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
@@ -17,6 +17,12 @@ lib/observed.mjs                       what accept() observed, kept private to t
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
 evidence.kaal.json                     Testing's own contract evidence mapping (repository data, not delivered)
 ```
+
+## Start here
+
+The [Agent Skill](skills/kaal-testing/SKILL.md) teaches the existing testing loops, RED → GREEN → REFACTOR, BRITTLE and evidence interpretation. Its [worked approach](skills/kaal-testing/references/approach.md) covers standalone package discovery and an executable Plan/Suite/Case evaluation example. Consumer-owned package boundaries use that same approach and model.
+
+The [Operations](docs/operations.md) export inventory describes the implemented public API. The [delivery limitations](docs/limitations.md) distinguish accepted contracts from interfaces not delivered in 0.0.1. A planned Case in the Testing document is not a claim that it ran or passed.
 
 ## Documents
 
@@ -157,3 +163,33 @@ npx kaal register skill kaal-testing node_modules/kaal-testing/payload
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
+
+## Run timing
+
+`@kaihacksai/kaal-testing/timing` reads durations already recorded by a harness. It measures nothing and keeps no history.
+
+```js
+import { profile, skew } from "@kaihacksai/kaal-testing/timing";
+const evidence = profile({ cases: recordedCases }); // [{ name, ms }]
+const platforms = skew(platformRuns); // [{ platform, cases }], same Cases on each
+```
+
+`profile` challenges concentration in the slowest share and outliers against the run's own median. `skew` compares each Case with its median duration on the other platforms. `DEFAULTS` is frozen: `{ share: 0.8, budget: 0.8, outlier: 10, floor: 1000, factor: 4, minimum: 5 }`. Each option can be overridden; malformed inputs or options give `unknown` with findings and no challenges.
+
+Both return `{ result, challenges, findings }`, with `result` `challenged`, `unchallenged` or `unknown`. They never decide a run's verdict. The Case/suite owner investigates concentration; the named Case owner investigates an outlier or platform skew. A timing difference establishes no cause. Hosting is consulted for demonstrated host-specific causes and owns confirmed operating-system-boundary defects.
+
+## Learning which Cases to redesign
+
+`@kaihacksai/kaal-testing/redesign` exports `candidates(history, options?)`, `refactored(before, after)` and frozen `DEFAULTS` `{ window: 5, recur: 3 }`.
+
+The caller holds the history, oldest first: `{ platform, cases: [{ name, sha256, ms }] }` per run. A Case becomes a candidate after timing signals in three of its last five profiled runs of its current file version on that platform. Timing options are forwarded to `profile`. Unprofiled runs are listed and excluded. Editing one Case or shared fixture changes the whole-file hash and resets every Case's window, including untouched Cases.
+
+`candidates` returns `{ result, candidates, refactors, unprofiled, findings }`. Despite its name, `refactors` contains only file-version timing comparisons (`pending`, `faster`, `not faster`); it never claims a Case was refactored. A comparison needs profiled samples for both versions.
+
+`refactored` reads two `{ id, version, tests, verdicts }` records. Targets must stay the same, and every earlier subject must keep its RED (`fail`) or GREEN (`pass`) verdict; the earlier evidence must show both. Its result is `kept`, `changed` or `unknown`, independent of timing. The caller associates both pieces of evidence by Case id and exact version pair, keeping the timing platform. A faster Case can have weakened discrimination; an unchanged behaviour can be no faster. Missing preservation evidence remains not assessed. Testing stores nothing, reads no clock and changes no run verdict.
+
+## No duplicate runs
+
+`kaal-testing/duplicates` exports `duplicates(execution)` and `schedule(requests)`. The former challenges repeated Cases with the same file bytes, subject, platform and Node, naming their re-runners and time beyond one run. The latter plans one run per distinct file and conditions, with a read for every requester. Malformed evidence is unknown; malformed requests plan nothing. These are pure functions: they run nothing, choose no result and keep no history.
+
+The caller supplies one execution at a time, observes nested runs and binds readers to that execution's original observation, including failure or uncertainty. Independent required executions stay separate, even with identical subjects and conditions. A schedule is neither observed evidence nor permission to reuse a result across processes. Engineering must integrate the API before it can reduce lane execution time.

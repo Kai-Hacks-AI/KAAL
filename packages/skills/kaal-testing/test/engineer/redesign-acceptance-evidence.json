@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "findings": [
+    {
+      "kind": "unknown",
+      "subject": "installation hosts",
+      "evidence": "whether the 1 hosts lie physically outside the repository is not verified: Hosting offers no portable containment contract yet"
+    },
+    {
+      "kind": "unknown",
+      "subject": "unrecorded installations",
+      "evidence": "an installation a scenario makes without install() is not recorded, so its absence is not proven"
+    }
+  ],
+  "tests": [
+    {
+      "file": "packages/skills/kaal-testing/test/engineer/timing-redesign.test.mjs",
+      "sha256": "ab8ce346a8dae4e579d6ee08505569f22d721bf9812f343bf289065b1f03e0aa",
+      "test": [
+        "the installed timing and redesign exports keep faster timing separate from preserved discrimination"
+      ],
+      "outcome": "pass"
+    }
+  ],
+  "installations": 1,
+  "packed": [
+    "kaal-testing",
+    "kaal-hosting"
+  ]
+}

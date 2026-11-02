@@ -1,0 +1,258 @@
+{
+  "subject": "testing/C53",
+  "baseline": "6 passed",
+  "results": [
+    {
+      "name": "default window",
+      "status": "killed",
+      "killedBy": [
+        "T110"
+      ]
+    },
+    {
+      "name": "default recurrence",
+      "status": "killed",
+      "killedBy": [
+        "T110",
+        "T111",
+        "T112"
+      ]
+    },
+    {
+      "name": "share floor omitted",
+      "status": "killed",
+      "killedBy": [
+        "T111",
+        "T112",
+        "T115"
+      ]
+    },
+    {
+      "name": "recurrence lowered",
+      "status": "killed",
+      "killedBy": [
+        "T111",
+        "T112"
+      ]
+    },
+    {
+      "name": "recent window omitted",
+      "status": "killed",
+      "killedBy": [
+        "T111"
+      ]
+    },
+    {
+      "name": "current version filter omitted",
+      "status": "killed",
+      "killedBy": [
+        "T112"
+      ]
+    },
+    {
+      "name": "platform distributions merged",
+      "status": "killed",
+      "killedBy": [
+        "T111",
+        "T115"
+      ]
+    },
+    {
+      "name": "unprofiled run counted",
+      "status": "killed",
+      "killedBy": [
+        "T111"
+      ]
+    },
+    {
+      "name": "outliers alone counted",
+      "status": "killed",
+      "killedBy": [
+        "T111"
+      ]
+    },
+    {
+      "name": "concentration alone counted",
+      "status": "killed",
+      "killedBy": [
+        "T111"
+      ]
+    },
+    {
+      "name": "median order reversed",
+      "status": "killed",
+      "killedBy": [
+        "T115"
+      ]
+    },
+    {
+      "name": "candidate assigned to Hosting",
+      "status": "killed",
+      "killedBy": [
+        "T111",
+        "T114"
+      ]
+    },
+    {
+      "name": "candidate changes run verdict",
+      "status": "killed",
+      "killedBy": [
+        "T111",
+        "T112",
+        "T114"
+      ]
+    },
+    {
+      "name": "earlier window omitted",
+      "status": "killed",
+      "killedBy": [
+        "T112"
+      ]
+    },
+    {
+      "name": "pending reported too early",
+      "status": "killed",
+      "killedBy": [
+        "T112"
+      ]
+    },
+    {
+      "name": "speed comparison reversed",
+      "status": "killed",
+      "killedBy": [
+        "T112",
+        "T114"
+      ]
+    },
+    {
+      "name": "not-faster implies preservation",
+      "status": "killed",
+      "killedBy": [
+        "T112",
+        "T114"
+      ]
+    },
+    {
+      "name": "hash change claims refactoring",
+      "status": "killed",
+      "killedBy": [
+        "T112"
+      ]
+    },
+    {
+      "name": "duplicate history case accepted",
+      "status": "killed",
+      "killedBy": [
+        "T110"
+      ]
+    },
+    {
+      "name": "unversioned history accepted",
+      "status": "killed",
+      "killedBy": [
+        "T110"
+      ]
+    },
+    {
+      "name": "negative history duration accepted",
+      "status": "killed",
+      "killedBy": [
+        "T110"
+      ]
+    },
+    {
+      "name": "recurrence above window accepted",
+      "status": "killed",
+      "killedBy": [
+        "T110"
+      ]
+    },
+    {
+      "name": "unknown timing option accepted",
+      "status": "killed",
+      "killedBy": [
+        "T110"
+      ]
+    },
+    {
+      "name": "earlier RED not required",
+      "status": "killed",
+      "killedBy": [
+        "T113",
+        "T114"
+      ]
+    },
+    {
+      "name": "earlier GREEN not required",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "different Case kept",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "unchanged version kept",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "dropped target ignored",
+      "status": "killed",
+      "killedBy": [
+        "T113",
+        "T114"
+      ]
+    },
+    {
+      "name": "added target ignored",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "unjudged subject ignored",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "flipped verdict ignored",
+      "status": "killed",
+      "killedBy": [
+        "T113",
+        "T114"
+      ]
+    },
+    {
+      "name": "malformed verdict accepted",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "empty target list accepted",
+      "status": "killed",
+      "killedBy": [
+        "T113"
+      ]
+    },
+    {
+      "name": "differences unordered",
+      "status": "killed",
+      "killedBy": [
+        "T115"
+      ]
+    }
+  ]
+}
