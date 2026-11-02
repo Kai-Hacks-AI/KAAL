@@ -1,0 +1,266 @@
+{
+  "owner": "Testing",
+  "baselineCollector": "6beff52be6dad2fa32e5c39bb39da5c16bbbdb41",
+  "inspectedMain": "f30221f481c4682e81b092e6a772365f3d7a9f6d",
+  "purpose": "Review inventory for C36 planned-test identity admission. Occurrences are candidates for classification, not permission for global substitution.",
+  "substitutions": {
+    "moduleSpecifiers": {
+      "kaal-testing": "@kaihacksai/kaal-testing",
+      "kaal-hosting": "@kaihacksai/kaal-hosting"
+    },
+    "preserveExportSuffixes": true,
+    "changeVersions": false
+  },
+  "plannedFiles": [
+    {
+      "path": "packages/skills/kaal-testing/test/plan/boundary.test.mjs",
+      "gitBlob": "0db5dac641890a9c7b02f4e60a14728c28bca545",
+      "occurrences": [
+        {
+          "line": 22,
+          "text": "mod = await import(\"kaal-testing/boundary\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/brittle.test.mjs",
+      "gitBlob": "2c1d37ceb26d6815d32cc8ad35a15dfc50f63b3e",
+      "occurrences": [
+        {
+          "line": 9,
+          "text": "import { current, tested } from \"kaal-testing/model\";"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/composed-plan/consumer.cases.mjs",
+      "gitBlob": "af764748f6f236a243de1c42240a2cf0c2eb3935",
+      "occurrences": [
+        {
+          "line": 15,
+          "text": "try { m = await import(pathToFileURL(createRequire(join(root, \"package.json\")).resolve(\"kaal-testing/plan\")).href); }"
+        },
+        {
+          "line": 39,
+          "text": "const command = join(root, \"skills\", \"kaal-testing\", \"scripts\", \"run-plan.mjs\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/consumer.test.mjs",
+      "gitBlob": "4f4f41e1c6b3fbb3aabe5dcddde63fcb5bc73cff",
+      "occurrences": [
+        {
+          "line": 71,
+          "text": "assert.deepEqual(pkg.dependencies, { c8: \"12.0.0\", \"kaal-hosting\": \"0.0.1\" });"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/current.test.mjs",
+      "gitBlob": "348914b881816d581151babfc44694c691db224b",
+      "occurrences": [
+        {
+          "line": 12,
+          "text": "m = await import(\"kaal-testing/model\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/duplicates.test.mjs",
+      "gitBlob": "90e5012c9b55a812945309357bfe333075b63af3",
+      "occurrences": [
+        {
+          "line": 17,
+          "text": "m = await import(\"kaal-testing/duplicates\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/evidence.test.mjs",
+      "gitBlob": "0ac09d030b6b609cf29d48c2bdb32b9dd7edb7b5",
+      "occurrences": [
+        {
+          "line": 11,
+          "text": "import { execute } from \"kaal-hosting\";"
+        },
+        {
+          "line": 12,
+          "text": "import { accept, integrity, sha256 } from \"kaal-testing/acceptance\";"
+        },
+        {
+          "line": 13,
+          "text": "import { classify } from \"kaal-testing/contracts\";"
+        },
+        {
+          "line": 193,
+          "text": "assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), [\"c8\", \"kaal-hosting\"]);"
+        },
+        {
+          "line": 201,
+          "text": "if (name !== \"kaal-hosting\") imports.push(`lib/${file}: ${name}`);"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/host.test.mjs",
+      "gitBlob": "2779cd117602b1e610d41f00d1fa93435d1315e8",
+      "occurrences": [
+        {
+          "line": 8,
+          "text": "import { judge, observe, SCENARIOS } from \"kaal-testing/verifiers\";"
+        },
+        {
+          "line": 44,
+          "text": "const two = { ...DECLARED, host: [\"kaal-hosting/other\", FACT] };"
+        },
+        {
+          "line": 45,
+          "text": "assert.deepEqual(verdict(\"not-applicable\", summary(\"not applicable\", { ...two, host: [FACT, \"kaal-hosting/other\"] }), { ...FACTS, applicability: { \"acme/T2\": two } }).differences, [], \"one fact not holding is enough, whatever the others\");"
+        },
+        {
+          "line": 56,
+          "text": "\"another fact established\": { ...FACTS, hostFacts: { \"kaal-hosting/other\": ABSENT[FACT] } },"
+        },
+        {
+          "line": 73,
+          "text": "\"another host list\": { ...DECLARED, host: [\"kaal-hosting/other\"] },"
+        },
+        {
+          "line": 74,
+          "text": "\"an extra fact\": { ...DECLARED, host: [FACT, \"kaal-hosting/other\"] },"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/locations.test.mjs",
+      "gitBlob": "29a6a0da24e82c63962dd49181b75cc41c6349e0",
+      "occurrences": [
+        {
+          "line": 11,
+          "text": "import { discover } from \"kaal-testing/acceptance\";"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/model.test.mjs",
+      "gitBlob": "6e6f16bdea79643bce392b224533460f803ee47c",
+      "occurrences": [
+        {
+          "line": 13,
+          "text": "m = await import(\"kaal-testing/model\");"
+        },
+        {
+          "line": 297,
+          "text": "it(\"testing/T35 [testing/A12]: `kaal-testing/model` is one module that imports nothing and names no other capability's kind\", async () => {"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/parity.test.mjs",
+      "gitBlob": "9ab70235a49f05fb3d21ace9bc77aba38ee5cdbf",
+      "occurrences": [
+        {
+          "line": 12,
+          "text": "m = await import(\"kaal-testing/verifiers\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/red.test.mjs",
+      "gitBlob": "9eb985abecc82d1db1f74912073e325643001add",
+      "occurrences": [
+        {
+          "line": 222,
+          "text": "const source = readFileSync(new URL(import.meta.resolve(\"kaal-testing/red\")), \"utf8\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/redesign.test.mjs",
+      "gitBlob": "7af87384af20385661286f665cd5a310fc88a714",
+      "occurrences": [
+        {
+          "line": 13,
+          "text": "m = await import(\"kaal-testing/redesign\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/release.test.mjs",
+      "gitBlob": "765338203c60c923e8d526f191e902d5be76bbde",
+      "occurrences": [
+        {
+          "line": 12,
+          "text": "import { execute } from \"kaal-hosting\";"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/timing.test.mjs",
+      "gitBlob": "cd620c9a9951f665c26c6d85c1afdc0c7dab1e0d",
+      "occurrences": [
+        {
+          "line": 13,
+          "text": "m = await import(\"kaal-testing/timing\");"
+        }
+      ]
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/verifiers.test.mjs",
+      "gitBlob": "448bd74198d7ef8d7057896a23d688be9babf2df",
+      "occurrences": [
+        {
+          "line": 12,
+          "text": "m = await import(\"kaal-testing/verifiers\");"
+        }
+      ]
+    }
+  ],
+  "preserve": [
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/redesign-acceptance-evidence.json",
+      "gitBlob": "72474b3238a3a547eea77227ff5626161959466b",
+      "sample": [
+        "\"kaal-testing\","
+      ],
+      "reason": "Historical observed package names. Retain original receipt bytes; this is not an active importer."
+    },
+    {
+      "kind": "host-fact identity",
+      "values": [
+        "kaal-hosting/special-entries",
+        "kaal-hosting/other"
+      ],
+      "reason": "Opaque contract/test-data identities; npm namespace migration grants no semantic rename."
+    },
+    {
+      "kind": "Skill path component",
+      "value": "skills/kaal-testing/",
+      "reason": "Agent Skill directory/name; not an npm module specifier."
+    }
+  ],
+  "externalExamples": [
+    {
+      "path": "packages/kaal-core/test/plan/registration.test.mjs",
+      "gitBlob": "de94c79713431be20ed8f38af2b9723d44fd1a21",
+      "owner": "Core",
+      "classification": "Structured registration/holder test data, not demonstrated npm import. Core must validate its meaning; Testing does not edit it."
+    },
+    {
+      "path": "packages/kaal-core/test/embed/intent.test.mjs",
+      "gitBlob": "4b028a16871832f4e553330964d2c61dbaa26d86",
+      "owner": "Core",
+      "classification": "Structured registration/holder test data, not demonstrated npm import. Core must validate its meaning; Testing does not edit it."
+    }
+  ],
+  "remainingInventory": "Before DO, inventory all active repository module/dependency/workspace/acquisition references and all broad T74 matches on the then-current candidate. This 16-file planned-source inventory is not a whole-repository closure or trust attestation.",
+  "invariants": [
+    "Existing Case ids and target traces remain unchanged.",
+    "Only reviewed npm identity expectations/display names change.",
+    "No assertion, input shape, expected verdict, applicability, fixture behavior, byte-identity rule or import-free module boundary is weakened.",
+    "Unclassified matches remain a finding; no broad directory or file-type exemption.",
+    "Do not rewrite historical receipts to imply different observed artifacts.",
+    "No runtime dependency or export addition; c8@12.0.0 plus @kaihacksai/kaal-hosting@0.0.1 remains the accepted F59 set."
+  ]
+}
