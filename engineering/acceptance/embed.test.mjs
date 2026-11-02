@@ -1,8 +1,8 @@
 // Acceptance: Engineering -> Package -> Embed.
 //
 // Inspects the kaal-core tarball the Acceptance lane packed as npm would
-// publish it, installs it with its runtime dependencies kaal-graph and
-// kaal-hosting, packed the same way, into a fresh, otherwise empty host outside this repository, and
+// publish it, installs it with its runtime dependencies kaal-foundation and
+// kaal-hosting, packed the same way, and yaml, but no kaal-graph (core/C32), into a fresh, otherwise empty host outside this repository, and
 // operates the Engine there through the installed packages alone.
 import assert from "node:assert/strict";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -20,12 +20,16 @@ const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
 const EXPECTED_TARBALL = [
   "package/LICENSE",
   "package/README.md",
+  "package/dist/admitted.d.ts",
+  "package/dist/admitted.js",
   "package/dist/agent.d.ts",
   "package/dist/agent.js",
   "package/dist/bootstrap.d.ts",
   "package/dist/bootstrap.js",
   "package/dist/cli.d.ts",
   "package/dist/cli.js",
+  "package/dist/conformance.d.ts",
+  "package/dist/conformance.js",
   "package/dist/engine.d.ts",
   "package/dist/engine.js",
   "package/dist/frontmatter.d.ts",
@@ -38,6 +42,11 @@ const EXPECTED_TARBALL = [
   "package/dist/lifecycle.js",
   "package/dist/node.d.ts",
   "package/dist/node.js",
+  "package/dist/node/form.d.ts",
+  "package/dist/node/form.mjs",
+  "package/dist/node/node.d.ts",
+  "package/dist/node/node.mjs",
+  "package/dist/node/provenance.json",
   "package/dist/payload.d.ts",
   "package/dist/payload.js",
   "package/dist/realization.d.ts",
@@ -46,8 +55,14 @@ const EXPECTED_TARBALL = [
   "package/dist/records.js",
   "package/dist/register.d.ts",
   "package/dist/register.js",
-  "package/dist/sha256.d.ts",
-  "package/dist/sha256.js",
+  "package/dist/registration.d.ts",
+  "package/dist/registration.js",
+  "package/docs/architecture.md",
+  "package/docs/intent.md",
+  "package/docs/limitations.md",
+  "package/docs/operations.md",
+  "package/docs/requirements.md",
+  "package/docs/testing.md",
   "package/installation.kaal.json",
   "package/package.json",
   "package/payload/AGENTS.md",
@@ -62,6 +77,13 @@ const EXPECTED_TARBALL = [
   "package/payload/core/KAAL-Skill.md",
   "package/payload/core/LOVE.md",
   "package/payload/core/Node.md",
+  "package/test/embed/architecture.test.mjs",
+  "package/test/embed/code.test.mjs",
+  "package/test/embed/intent.test.mjs",
+  "package/test/embed/requirements.test.mjs",
+  "package/test/run.mjs",
+  "package/test/verify.json",
+  "package/test/verify.mjs",
 ];
 
 // Commands run through Hosting, which owns how the host realizes them.
@@ -116,7 +138,7 @@ let kaal;
 before(async () => {
   tarball = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"))["kaal-core"].tarball;
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-graph", "kaal-hosting"]);
+  host = await install(["kaal-core", "@kaihacksai/kaal-foundation", "kaal-hosting"]);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -134,14 +156,15 @@ describe("package", () => {
     assert.match(readFileSync(join(installed, "LICENSE"), "utf8"), /^MIT License/);
   });
 
-  it("depends at runtime on kaal-graph and kaal-hosting, neither of which depends on kaal-core", () => {
+  it("depends at runtime on kaal-foundation, kaal-hosting and yaml, not on kaal-graph, and no workspace dependency depends on kaal-core", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "kaal-graph": "0.0.1", "kaal-hosting": "0.0.1" });
-    for (const dependency of ["kaal-graph", "kaal-hosting"]) {
+    assert.deepEqual(core.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    for (const graph of ["kaal-graph", "@kaihacksai/kaal-graph"]) assert.ok(!existsSync(join(host, "node_modules", graph)), `the host holds no ${graph}`);
+    for (const dependency of ["@kaihacksai/kaal-foundation", "kaal-hosting"]) {
       const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));
       for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `${dependency} ${field}`);
     }
-    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-graph and one kaal-hosting, not copies inside kaal-core");
+    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-foundation, one kaal-hosting and one yaml, not copies inside kaal-core");
   });
 });
 
