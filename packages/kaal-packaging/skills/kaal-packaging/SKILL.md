@@ -49,6 +49,20 @@ Measure only artifacts whose producer you trust (packaging/N5). If `measure` ref
 
 5. The overall result and each finding's result are Testing's (testing/F13). Report an `unknown` as unknown, with its cause. Never round it to verified, and never call a failed finding a pass because the package's own `npm test` passed: that is its specific contract, reported beside the generic one, not instead of it.
 
+## Assess a package's boundaries
+
+Use this when asked whether a package's boundary account and tests are adequate, before you call it ready (packaging/F25). The scripts above give you observations. You make the judgment, and you say it is a judgment: reasoned, recorded and open to being wrong, never a proof that nothing is missing.
+
+1. **Gather observations.** Read the package's six documents and `test/verify.json`. Run `conform` on the installed copy and note each finding. List what the package declares: `bin`, exports, scripts it starts, files it reads or writes, and dependencies. Work from the package's own account, not from your guess of what it should be.
+2. **Inventory the boundaries yourself, then compare.** A boundary is an interaction entering or leaving the package: its API and commands coming in, and the tools, files and other packages it calls going out. A dependency can be incoming for one contract and outgoing for another, so record the actual obligation, not the field it came from. For each, find the owner and the contract identifier. Say which boundaries the account omits.
+3. **Check each obligation against the package's own Cases.** For every obligation, find a Case that exercises the success and a Case that exercises each refusal the contract promises, and one that shows state preserved where it is promised. Read the Case's fixture and expectation, not only its title. A Case that cannot fail on the obligation does not exercise it.
+4. **Check the evidence against the claim.** Match the claim to the candidate (its digest or version), the Node and npm used, the host, and whether the installed verification or only the source suite ran. A run on another artifact, another runtime or a log that stops early does not support the claim. Leave it unresolved and say what would resolve it.
+5. **Report in four parts**, kept apart: what the scripts observed; what you judged and why, with the obligations and evidence you relied on; what stays unknown; and what only the Owner can decide or authorize, such as a release.
+
+Do not accept an account because it has headings, links, Cases and passing scripts. Do not take over another package's contracts, tests or product choices: name the gap and leave it with its owner. Do not infer another package's correctness from this package's result.
+
+**Worked example, Packaging's own `measure`.** Incoming: `measure(artifact)` and the `measure` command. Outgoing: npm, run through Hosting, and the artifact's bytes read for the SHA-256. The obligations are in packaging/F1–F6 and N4–N6. The Cases that exercise them are packaging/T1–T14. Judge by asking, for the npm boundary: is there a Case where npm is too old (packaging/T13), one where npm prints something that is not one package description (packaging/T9, packaging/T10), and one that shows nothing was written outside the working directory (packaging/T14)? Read what each fixture does before you accept the title. If a refusal obligation had no such Case, you would report that the account is incomplete at that boundary, the consequence being that a broken refusal would still leave the suite passing, and you would leave it with Packaging to add the Case.
+
 ## Whose question is it
 
 - What a package's own guarantees are, and what its own cases must assert: the delivering capability's.

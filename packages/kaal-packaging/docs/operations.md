@@ -63,6 +63,10 @@ The README states each function. `measure` and `conform` take an optional `npm`,
 
 Run `npm test` in the installed package's directory. It runs `test:embedded` only, against that copy, and ends on `kaal-packaging-verification {json}`: `verified` (exit 0), `failed` (1) or `cannot verify` (2). It writes only in the system's temporary directory, in directories it creates (packaging/N7).
 
+## Assess a package's boundaries
+
+The skill (`skills/kaal-packaging/SKILL.md`) is the procedure. Without an Engine, read the package's six documents and its `test/verify.json`, run `node <package>/bin/kaal-packaging.mjs conform <installed-dir>` for observations, and then judge (packaging/F25): is every material incoming and outgoing boundary named with its owner and contract, does the package's own Test Plan exercise each obligation including refusals, and does the evidence name the candidate and conditions that support the claim? Record what the scripts observed, what you judged and why, what stays unknown, and what the Owner must authorize. The judgment is yours and is not a proof.
+
 ## Files
 
 Every delivered file and its SHA-256 are listed in `test/verify.json`, with the delivered cases and their Testing model (packaging/F11, packaging/F13):
