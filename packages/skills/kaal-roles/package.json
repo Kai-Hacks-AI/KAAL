@@ -1,0 +1,27 @@
+{
+  "name": "kaal-roles",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Roles: provisional home for the CTO Advisor and CPO Advisor definitions, until their owners take them.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "capability"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "test": "node --test test/roles.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}

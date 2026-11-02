@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Roles", "id": "abea1d81f99a337d9455586fad62c8ad3bbc384710af7de987e46c13b4b23b6c" },
+  "paths": ["packages/skills/kaal-roles/"]
+}
