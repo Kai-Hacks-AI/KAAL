@@ -75,8 +75,9 @@ the capabilities that serve it, by their Capability Nodes.
   suited to; that is documentation, never a requirement.
 - Replaceable: swapping the capability that serves an Activity changes the
   design only, never the capability. That is the Lego property.
-- A visible gap: an Activity with no serving capability is a finding, not an
-  error. Nothing is mandatory, so a gap blocks nothing.
+- A finding, not a defect: an Activity with no serving capability is shown as a
+  finding that needs interpretation. It may be manual, operated externally, or
+  intentionally unallocated. Nothing is mandatory, so a gap blocks nothing.
 - Nesting: an Activity may itself be a process design (PDCA inside a DevOps
   stage). An inner process contributes facts to the enclosing Exit condition and
   never substitutes for it, the rule PDCA already states for Check.
@@ -85,6 +86,19 @@ Unchanged on purpose: Process keeps no registry (a design lives with its owner,
 and a registry would make Process a dependency of every consumer); a design
 authorizes and mandates nothing; a Role is fulfilled by an actor and is not an
 Agent; States stay derived from facts.
+
+### Serving is accountability, not realization
+
+Serving says which Capability is accountable for, or provides, an Activity's
+responsibility. It is not a claim about who or what performs the Activity, and
+Capabilities are not the only CASE elements relevant to executing a process. An
+Activity may be performed by an Agent, guided by a Skill, realized through an
+Extension, or done by hand. A design may describe such realizations in its own
+words, next to the Serving it names. This PLAN adds no second formal relation
+for realization and does not redesign the metamodel: the room is left open, and
+whether a realization relation is ever warranted is decided later, on evidence
+from real designs. Serving stays one-way (design to Capability) and ownership
+stays independent.
 
 ### Where designs live
 
@@ -109,9 +123,11 @@ onto the concept:
 | Serving | Plan: Change, Intent, Requirements, Architecture, Product. Code: Engineer Skill, Hosting, Foundation, Core. Build: Packaging, Engineering, Foundation. Test: Testing, Guard, Graph, Engineering. Release: Engineering, Packaging, Change. Deploy: Core, Hosting. Operate: none. Monitor: Review, Learning, Controls, Graph, Guard. |
 | Nesting | Each Change inside Plan..Deploy is a PDCA instance; Monitor feeds the next Plan through PDCA's Act |
 
-Operate having no serving capability is the first thing the design shows. That
-is the intended use: the design makes gaps visible without creating a capability
-to fill them. Whether Operate gets an owner remains Kai's decision (#851).
+Operate having no serving capability is the first finding the design shows. It
+needs interpretation: Operate may be external to KAAL, manual, or intentionally
+unallocated. The design makes it visible without creating a capability to fill
+it, and DevOps Activities may equally be performed by Agents, guided by Skills
+or realized through Extensions alongside the Capabilities that serve them. Whether Operate gets an owner remains Kai's decision (#851).
 
 ### Check of #851 against Process's concepts
 
