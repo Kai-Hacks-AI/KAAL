@@ -22,8 +22,13 @@ only in the Hosting name:
 
 At the step 3 SYNC those four are add/add conflicts, each resolved as keep this version.
 Any other difference from 9a9e896 would be a silent edit. No assertion, inactive-adapter
-status or evidence is changed; inspection.json still parses. `.gitattributes`, which also
-changes in 9a9e896, arrives cleanly and is not touched.
+status or evidence is changed; inspection.json still parses.
+
+`.gitattributes` also changes in 9a9e896 (two lines: `engineering/execution/** -text`, so Git never
+rewrites the committed bytes the boundary and its evidence hash). This Change takes that same
+change, byte-identical to 9a9e896, so the arriving merge is clean for it. Without it the
+acceptance scenario fails on Windows, where checkout rewrites line endings (observed on this
+Change's first CI run: adoption-contract.md hashed differently on the Windows runner).
 
 Order: this Change lands after SYNC step 2, because the orchestration tests consume Testing's
 `kaal-testing/duplicates` export, which arrives with step 2.
