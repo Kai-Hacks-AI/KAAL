@@ -23,7 +23,7 @@ describe("packaging/C13 boundary assurance guidance and its independent trial", 
     const skill = read("skills", "kaal-packaging", "SKILL.md");
     const section = /## Assess a package's boundaries([\s\S]*?)\n## /.exec(skill)?.[1];
     assert.ok(section, "the skill has the boundary-assurance section");
-    for (const part of [/what the scripts observed/, /what you judged and why/, /what stays unknown/, /only the Owner can/, /headings, links, Cases and passing scripts/, /refusal/, /not a proof/]) assert.match(section, part);
+    for (const part of [/what the scripts observed/, /what you judged and why/, /what stays unknown/, /only the Owner can/, /headings, links, Cases and passing scripts/, /refusal/, /never a proof/]) assert.match(section, part);
     assert.match(read("README.md"), /packaging\/F25/);
     assert.match(read("..", "..", "AGENTS.md"), /Assess a package's boundaries/);
   });
