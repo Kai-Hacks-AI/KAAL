@@ -791,14 +791,7 @@
     "guard/D2": "its case, guard/T39, was retired with `0.0.1` and no longer runs; its RED is recorded in the publisher's evidence"
   },
   "applicability": {
-    "cases": {
-      "test/unit/lifecycle.test.mjs > pre-push template > supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks": {
-        "notOn": [
-          "win32"
-        ],
-        "why": "it starts the hook template with `sh` and a POSIX shim made executable by its file mode, which Windows does not give a Node process; on Windows, Git runs the shipped hook in guard/T9 and guard/T10"
-      }
-    },
+    "cases": {},
     "identifiers": {}
   },
   "files": {
@@ -810,7 +803,7 @@
     "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
     "docs/limitations.md": "77bda8d9877a077b89802b6c37dd6e921fd2f1b536817e8731455c1fc3094c56",
     "docs/requirements.md": "64ef8fac09b96b88461763be835011d404903480cfa86871d4884b81ce427165",
-    "docs/testing.md": "3865ba7469e39d7c892d8f01d48618fdddf5e20ea0aa9612176423eeb4f3fcb2",
+    "docs/testing.md": "0a94253b8ab608b89e9efe53699c051a6302a8ad4a1976cc1af3cb9e886b9a0f",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -833,7 +826,7 @@
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
     "test/acceptance/requirements.test.mjs": "6855229bab3df63631feaaee03e47baad3bd6933f302d8411b3d190bf1c38e0a",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
-    "test/unit/lifecycle.test.mjs": "e906425230fabe15a210857651673e9b7e462147bb9c8899224cadbf6962b5fb",
+    "test/unit/lifecycle.test.mjs": "dffad6006a0972ef0fee23b08d01db256afd66fe0ee01e19cbf6430235e6394c",
     "test/unit/runner.test.mjs": "4ce170100ed2064a83fd6e3af57263aafa7388542ecabab8ef330609d1f8a235",
     "test/verify.mjs": "be21b2637287143624ccc6707fe33a3e8cb15b0d9b185c6eb702c110f5025549"
   }

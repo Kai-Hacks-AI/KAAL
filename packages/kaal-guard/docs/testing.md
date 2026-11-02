@@ -59,7 +59,6 @@ A case may declare the platforms where it does not apply (guard/F40). There it i
 <!-- applicability: read by the publisher into the manifest -->
 | Case | Not applicable on | Why |
 | --- | --- | --- |
-| `test/unit/lifecycle.test.mjs > pre-push template > supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks` | win32 | it starts the hook template with `sh` and a POSIX shim made executable by its file mode, which Windows does not give a Node process; on Windows, Git runs the shipped hook in guard/T9 and guard/T10 |
 <!-- end of applicability -->
 
 No identifier is declared not applicable on any platform.

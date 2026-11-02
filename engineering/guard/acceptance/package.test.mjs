@@ -172,6 +172,26 @@ function reduce(c, source, cases, declare = {}) {
 const MINI = "test/acceptance/mini.test.mjs";
 const PASSING = `import { it } from "node:test";\nit("guard/T0 passes", () => {});\n`;
 
+/**
+ * The retired 0.0.1 suite (guard/D17), by the SHA-256 of each of its files: packages/kaal-guard/test/ as
+ * the source held it when 0.0.1 was carved (a4102c6, #317) and when 0.0.2 was promoted (1ef1b30, #451),
+ * where the package's npm test still ran it. Taken from Git once and fixed here, so the check needs no history.
+ */
+const RETIRED = new Set([
+  "7da90150bd38375faa3a305686d45d295808597547da14ae342b79db14d5f62b", // test/acceptance/architecture.test.mjs (a4102c6)
+  "c233428836aba6b98724178a00832be8a7d592a2bf8c0019ce8b133e41e251d8", // test/acceptance/harness.mjs (a4102c6, 1ef1b30)
+  "b50bc79edc171e5fc8a4c7838ebdf098dd1762a5ca4880a8ee4dc69150bcb327", // test/acceptance/intent.test.mjs (a4102c6)
+  "e49a6f06f1b9f33255222089fdc356d8b755d62fa8db36f9b8c8f202f0a4d991", // test/acceptance/requirements.test.mjs (a4102c6)
+  "eca12d96f50eb2e319da95812e9a9adda501d7eeae90abf8e6036c38c11d036f", // test/lifecycle.test.mjs (a4102c6)
+  "8500a050e54608feed0ebdbb3dc96d5099f7cef6615bb31c5cd8b4799c7a5059", // test/runner.test.mjs (a4102c6)
+  "7705c25a50b595d40e7edb3575daa4b776d3b72ed974b50a90ab1ecb0e6919ee", // test/acceptance/architecture.test.mjs (1ef1b30)
+  "6004a7ff96394511332cab5150fee42dd4d32dbe39b09640cf0505dacd59206e", // test/acceptance/intent.test.mjs (1ef1b30)
+  "40b07404d830e45ef05b4200eaf68cda0e028ce69cf3df946be781b6b9fb02d3", // test/acceptance/requirements.test.mjs (1ef1b30)
+  "5b13a247e78e50746e5ebf70fed54cba83909e1bbb353e100eee6b015aa368b3", // test/config.test.mjs (1ef1b30)
+  "764576b8138ff5172acee917edb387940015ed073710fd7e333109c6201fcf8c", // test/lifecycle.test.mjs (1ef1b30)
+  "d0aa67f37c36adfeac7356469a85207a4b8ea684cbda2fe34c2db5f18778772c", // test/runner.test.mjs (1ef1b30)
+]);
+
 let full;
 
 /** A child's temporary directory, by each name an operating system reads it under. */
@@ -184,18 +204,34 @@ const temporary = (dir) => ({ TMPDIR: dir, TEMP: dir, TMP: dir });
 const left = (dir) => readdirSync(dir).filter((name) => name !== "node-compile-cache").sort();
 
 /**
- * One consumer verified twice with the whole delivered suite, and its content before, between and after.
- * Each run has a fresh, empty temporary directory of its own, and what each leaves there is recorded.
+ * One consumer verified once with the whole delivered suite, and its content before and after, in a fresh,
+ * empty temporary directory of its own, with what the run leaves there (guard/C136: one full run, not two).
  */
-function twice() {
+function whole() {
   if (full) return full;
   const c = consumer();
   const before = snapshot(c.dir);
+  const tmp = scratch("kaal-guard-verify-tmp-");
+  const first = c.verify(temporary(tmp));
+  return (full = { c, before, first, after: snapshot(c.dir), leftover: left(tmp) });
+}
+
+let small;
+
+/**
+ * One consumer reduced to a single passing delivered case, verified twice, each run in a fresh, empty
+ * temporary directory of its own: its content between and after the runs, and what each run leaves.
+ * What a second run against the same installation must show needs no more than this (guard/C136).
+ */
+function repeated() {
+  if (small) return small;
+  const c = consumer();
+  reduce(c, PASSING, [`${MINI} > guard/T0 passes`]);
   const tmp = [scratch("kaal-guard-verify-tmp-"), scratch("kaal-guard-verify-tmp-")];
   const first = c.verify(temporary(tmp[0]));
   const between = snapshot(c.dir);
   const second = c.verify(temporary(tmp[1]));
-  return (full = { c, before, first, between, second, after: snapshot(c.dir), leftover: tmp.map(left) });
+  return (small = { c, first, between, second, after: snapshot(c.dir), leftover: tmp.map(left) });
 }
 
 /** The paths npm packs for a package directory and the publisher material among them (guard/T116). */
@@ -212,16 +248,20 @@ function publisher(dir) {
 
 describe("guard/N6 [guard/I5] the package's own tests", () => {
   it("guard/T98 [guard/N6, guard/D17]: the package's own test files pass on Node 24, run from packages/kaal-guard, and none of the retired 0.0.1 suite runs; there, npm test is cannot verify, never a pass", (t) => {
-    // `npm test` is the consumer's verification of the installed copy (guard/F32), so the package's own
-    // tests are run by their files.
-    const r = spawnSync(process.execPath, ["--test", "test/unit/*.test.mjs", "test/acceptance/*.test.mjs"], { cwd: PACKAGE, env: clean(), encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-    const output = `${r.stdout ?? ""}${r.stderr ?? ""}`;
-    /** The last summary count node --test printed for `name` (pass or fail), in either reporter's form. */
-    const count = (name) => Number([...output.matchAll(new RegExp(`^(?:ℹ|#) ${name} (\\d+)$`, "gm"))].pop()?.[1]);
-    assert.ok(count("pass") > 0, `the package's tests ran no test:\n${output.slice(-4000)}`);
-    // The retired suite fails on 0.0.2 by design, so a run with no failure runs none of its files.
-    assert.equal(count("fail"), 0, `the package's tests failed:\n${output.slice(-4000)}`);
-    assert.equal(r.status, 0, `the package's tests exited ${r.status}:\n${output.slice(-4000)}`);
+    // The package's own test files are the Embedded suite, which the same Guard job runs directly, so
+    // their passing on Node 24 is that run's evidence and is not run a second time here (guard/C136).
+    // What stays here is checked without running them: no file of the retired 0.0.1 suite is among the
+    // package's files or in its manifest, and every test file it holds is a case file of a declared loop.
+    const manifest = JSON.parse(readFileSync(join(PACKAGE, MANIFEST), "utf8"));
+    const files = tree(PACKAGE).filter((f) => !f.startsWith("node_modules/"));
+    const back = files.filter((f) => RETIRED.has(sha256(readFileSync(join(PACKAGE, f)))));
+    assert.deepEqual(back, [], `a file of the retired 0.0.1 suite is among the package's files: ${back.join(", ")}`);
+    const listed = Object.entries(manifest.files ?? {}).filter(([, h]) => RETIRED.has(h)).map(([f]) => f);
+    assert.deepEqual(listed, [], `test/verify.json lists a file of the retired 0.0.1 suite: ${listed.join(", ")}`);
+    const looped = new Set(Object.values(manifest.loops ?? {}).flat());
+    const unlooped = files.filter((f) => /\.test\.m?js$/.test(f) && !looped.has(f));
+    assert.deepEqual(unlooped, [], `a test file is in no loop of test/verify.json, so the package holds a suite it does not run: ${unlooped.join(", ")}`);
+    t.diagnostic(`observed on ${process.platform}: ${looped.size} case files in ${Object.keys(manifest.loops ?? {}).length} loops; none of the ${RETIRED.size} retired 0.0.1 suite files is among the package's ${files.length} files`);
     // The package's npm test is the installed copy's verification. A source checkout is not an
     // installed copy, so there it runs no case and can never report a pass.
     const own = exec(PACKAGE, "npm", ["test"], clean());
@@ -234,7 +274,7 @@ describe("guard/N6 [guard/I5] the package's own tests", () => {
 
 describe("guard/I8 consumer verification of the installed package", { timeout: 30 * 60 * 1000 }, () => {
   it("guard/T101 [guard/F31, guard/F32, guard/F33]: the documented command executes the delivered cases, more than zero of them, and a passing run gives verified, exit 0", (t) => {
-    const { first } = twice();
+    const { first } = whole();
     const s = observed(t, "the whole delivered suite, first run", first);
     assert.ok(s.cases.executed > 0, `the run executed no delivered case:\n${first.output.slice(-4000)}`);
     // A case declared not applicable on this platform is not run (guard/F40); every other declared case is.
@@ -247,7 +287,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
   });
 
   it("guard/T102 [guard/F34]: the output and its summary line name the package, the candidate's version, its install location and the installed files' hashes, and these equal the candidate's", (t) => {
-    const { c, first } = twice();
+    const { c, first } = whole();
     const s = observed(t, "the whole delivered suite, first run", first);
     t.diagnostic(`observed on ${process.platform}: ${s.package.name}@${s.package.version} at ${s.package.location}; ${Object.keys(s.files.sha256).length} files, digest ${s.files.digest}; lockfile integrity ${s.lockfile.integrity ?? `unknown (${s.lockfile.unknown})`}`);
     const location = realpathSync(c.installed);
@@ -316,8 +356,8 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
   });
 
   it("guard/T105 [guard/F35]: after a run, the consumer's working tree, .git, npm configuration and the installed package are as they were, and the output says so", (t) => {
-    const { before, between, first } = twice();
-    assert.deepEqual(between, before, "the run changed the consumer");
+    const { before, after, first } = whole();
+    assert.deepEqual(after, before, "the run changed the consumer");
     t.diagnostic(`observed on ${process.platform}: the consumer's ${Object.keys(before).length} files, .git and the installed copy included, are byte for byte the same after the run`);
     const s = observed(t, "the whole delivered suite, first run", first);
     assert.equal(s.consumer.unchanged, true, "the summary does not say the consumer is unchanged");
@@ -325,8 +365,10 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
   });
 
   it("guard/T106 [guard/F32, guard/F36]: a second run against the same installation gives the same result, and the output names kaal-guard verify for integration", (t) => {
-    const { first, second, between, after } = twice();
-    const [a, b] = [summary(first), observed(t, "the whole delivered suite, second run", second)];
+    // A consumer reduced to one passing delivered case: the claim is about a second run, not the suite (guard/C136).
+    const { first, second, between, after } = repeated();
+    const [a, b] = [observed(t, "one delivered case, first run", first), observed(t, "one delivered case, second run", second)];
+    assert.equal(a.result, "verified", `the first run gave ${a.result}: ${JSON.stringify(a.causes)}`);
     assert.equal(second.status, first.status, `the second run exited otherwise: ${JSON.stringify(b.causes)}`);
     assert.equal(b.result, a.result, "the second run gave another result");
     assert.deepEqual(b.cases, a.cases, "the second run accounted for the cases otherwise");
@@ -374,7 +416,7 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
   });
 
   it("guard/T109 [guard/F39]: npm test runs the outer and the inner loop and accounts for each case under its loop; a candidate with the inner loop emptied is cannot verify, naming the loop", (t) => {
-    const { first } = twice();
+    const { first } = whole();
     const s = observed(t, "the whole delivered suite, first run", first);
     assert.equal(s.result, "verified", `the whole suite gave ${s.result}: ${JSON.stringify(s.causes)}`);
     assert.deepEqual(Object.keys(s.loops ?? {}).sort(), ["Architecture", "Code", "Intent", "Requirements"], `the summary does not account for the four loops: ${JSON.stringify(Object.keys(s.loops ?? {}))}`);
@@ -388,12 +430,14 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
     assert.equal(named.length, s.cases.declared, "a declared case is accounted for under no loop");
     assert.ok(s.loops.Code.cases.every((n) => n.startsWith("test/unit/")), "the Code loop names a case outside test/unit/");
 
+    // A consumer reduced to one passing case in the Requirements loop, with the Code loop's case files
+    // removed and the loop still declared: the run must still name the Code loop (guard/C136).
     const emptied = consumer();
-    rmSync(join(emptied.installed, "test", "unit"), { recursive: true, force: true });
+    const code = JSON.parse(readFileSync(join(emptied.installed, MANIFEST), "utf8")).loops.Code;
+    assert.ok(code?.length > 0, "the installed manifest declares no Code loop to empty");
+    reduce(emptied, PASSING, [`${MINI} > guard/T0 passes`], { loops: { Requirements: [MINI], Code: code } });
     mkdirSync(join(emptied.installed, "test", "unit"));
-    rewrite(emptied, (m) => {
-      m.cases = (m.cases ?? []).filter((n) => !n.startsWith("test/unit/"));
-    });
+    rewrite(emptied, () => {});
     const r = emptied.verify();
     const u = observed(t, "the inner loop emptied", r);
     assert.equal(u.result, "cannot verify", `an emptied inner loop gave ${u.result}:\n${r.output.slice(-4000)}`);
@@ -447,8 +491,9 @@ describe("guard/I8 consumer verification of the installed package", { timeout: 3
   });
 
   it("guard/T113 [guard/F35]: two runs of the documented command, one passing and one with a planted failing case, each with the child's temporary directory set to a fresh empty directory, leave that directory empty", (t) => {
-    const { leftover } = twice();
-    t.diagnostic(`observed on ${process.platform}: the whole delivered suite left ${leftover.map((l) => l.length).join(" and ")} entries in its temporary directory over two runs: ${JSON.stringify(leftover.map((l) => l.slice(0, 8)))}`);
+    // The passing runs: the whole delivered suite once, and the reduced consumer's first run (guard/C136).
+    const leftover = [whole().leftover, repeated().leftover[0]];
+    t.diagnostic(`observed on ${process.platform}: the whole delivered suite and one delivered case left ${leftover.map((l) => l.length).join(" and ")} entries in their temporary directories: ${JSON.stringify(leftover.map((l) => l.slice(0, 8)))}`);
     assert.deepEqual(leftover, [[], []], "a passing run left entries in its temporary directory");
 
     // A delivered case that makes a fixture with the delivered harness, then fails.
