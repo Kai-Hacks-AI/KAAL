@@ -20,10 +20,11 @@ How the two are packaged and delivered is not part of this Skill.
 
 1. **Find Core's `KAAL Skill` Node** with `kaal resolve "KAAL Skill"`. Its id is the type every Skill Node names.
 2. **Write the Skill Node** in the Form from [references/kaal-skill.md](references/kaal-skill.md). Keep it concise: meaning and scope, no paths, commands or implementation. Its id is the SHA-256 of its exact bytes, so keep line endings untouched.
-3. **Write the Agent Skill**, following [references/agent-skills.md](references/agent-skills.md). Its directory name is its `name`. The `description` is what makes it discoverable: say what it does and when to use it, in the words a task would use.
-4. **Check the Agent Skill**: run this skill's `scripts/check-skill.mjs` with `<skill-dir>`, the directory of the skill to check. Resolve the script from this skill's own directory, not from the working directory, or use the `kaal-engineer-skill` command when the package is installed.
-5. **Let Core decide the Node**: `kaal identify <node-file>` shows its id and type, and `kaal register skill <capability> <dir>` admits it into an Engine or says why not.
-6. **Demonstrate the Skill's contracts**: a Skill is not done until tests show that it meets the contracts it states. Design those tests, and read and report their findings, with the KAAL Skill `Testing` and its `kaal-testing` Agent Skill. This skill does not restate that guidance.
+3. **Decide judgment or script for each behavior** the Skill asks of an agent, with [references/bass-decisions.md](references/bass-decisions.md). Look for an existing tool first, and keep the meaning, ownership and permission decisions with the agent or the owner.
+4. **Write the Agent Skill**, following [references/agent-skills.md](references/agent-skills.md). Its directory name is its `name`. The `description` is what makes it discoverable: say what it does and when to use it, in the words a task would use.
+5. **Check the Agent Skill**: run this skill's `scripts/check-skill.mjs` with `<skill-dir>`, the directory of the skill to check. Resolve the script from this skill's own directory, not from the working directory, or use the `kaal-engineer-skill` command when the package is installed.
+6. **Let Core decide the Node**: `kaal identify <node-file>` shows its id and type, and `kaal register skill <capability> <dir>` admits it into an Engine or says why not.
+7. **Demonstrate the Skill's contracts**: a Skill is not done until tests show that it meets the contracts it states. Design those tests, and read and report their findings, with the KAAL Skill `Testing` and its `kaal-testing` Agent Skill. This skill does not restate that guidance.
 
 ## Reading the checker
 
