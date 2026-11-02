@@ -72,12 +72,15 @@ const closing = (server: Server) => (): Promise<void> => new Promise((done) => s
 async function attempt(dir: string): Promise<SpecialEntries | { failed: string }> {
   const fifo = join(dir, "fifo");
   const socket = join(dir, "socket");
+  // These names belong to the caller until this attempt creates them. In
+  // particular, a failed mkfifo/listen is never authority to unlink them.
+  for (const path of [fifo, socket]) if (look(path)) return { failed: `${path} already exists` };
   const made = await execute("mkfifo", [fifo], { cwd: tmpdir() }).then(
     (r) => (r.status === 0 ? undefined : `mkfifo exited ${r.status}: ${r.stderr.trim()}`),
     (e: unknown) => `mkfifo could not run: ${e instanceof Error ? e.message : String(e)}`,
   );
   if (made !== undefined || !look(fifo)?.isFIFO()) {
-    remove(fifo);
+    if (made === undefined) remove(fifo);
     return { failed: made ?? `${fifo} is not a FIFO` };
   }
   const server = createServer();
@@ -88,7 +91,7 @@ async function attempt(dir: string): Promise<SpecialEntries | { failed: string }
   if (listening !== undefined || !look(socket)?.isSocket()) {
     if (listening === undefined) await closing(server)();
     remove(fifo);
-    remove(socket);
+    if (listening === undefined) remove(socket);
     return { failed: listening ?? `${socket} is not a socket` };
   }
   return { holds: true, fifo, socket, close: closing(server) };

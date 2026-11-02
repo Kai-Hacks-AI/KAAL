@@ -184,13 +184,59 @@ function titles(code: string): { index: number; title: string }[] {
   return [...code.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/g)].map((m) => ({ index: m.index!, title: m[2] }));
 }
 
-/** The title of the test a finding at `line` decides or sits in: one registered on that line, else the nearest before it. */
-function enclosing(code: string, line: number): string | undefined {
-  const lines = code.split("\n");
-  const start = lines.slice(0, line - 1).reduce((n, l) => n + l.length + 1, 0);
-  const end = start + (lines[line - 1]?.length ?? 0);
-  const all = titles(code);
-  return (all.find((t) => t.index >= start && t.index <= end) ?? all.filter((t) => t.index < start).at(-1))?.title;
+/** Preserve offsets while hiding comments and quoted text from structural scans. */
+function structure(code: string): string {
+  return code.replace(/\/\*[^]*?\*\/|\/\/[^\n]*|"(?:\\[^]|[^"\\])*"|'(?:\\[^]|[^'\\])*'|`(?:\\[^]|[^`\\])*`/g,
+    (text) => text.replace(/[^\n\r]/g, " "));
+}
+
+/** Literal cases containing a finding or registered by its controlling condition. */
+function affected(code: string, line: number, column: number): string[] {
+  const mask = structure(code);
+  const pairs = new Map<number, number>();
+  const stack: number[] = [];
+  for (let i = 0; i < mask.length; i++) {
+    if ("({[".includes(mask[i])) stack.push(i);
+    else if (")}]".includes(mask[i]) && stack.length) pairs.set(stack.pop()!, i);
+  }
+  const space = (from: number): number => {
+    while (/\s/.test(mask[from] ?? "") && from < mask.length) from++;
+    return from;
+  };
+  const statementEnd = (from: number): number => {
+    const start = space(from);
+    if (mask[start] === "{") return (pairs.get(start) ?? mask.length - 1) + 1;
+    for (let i = start; i < mask.length; i++) {
+      if (pairs.has(i)) i = pairs.get(i)!;
+      else if (mask[i] === ";") return i + 1;
+      else if (mask[i] === "}") return i;
+    }
+    return mask.length;
+  };
+  const at = code.split("\n").slice(0, line - 1).reduce((n, text) => n + text.length + 1, 0) + column - 1;
+  const calls: { start: number; end: number; title: string }[] = [];
+  for (const match of mask.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
+    const open = match.index! + match[0].lastIndexOf("(");
+    const end = pairs.get(open);
+    const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
+    if (end === undefined || !title) continue;
+    // A conditional selecting it/test is wrapped before its argument list.
+    const wrapper = [...pairs].find(([start, close]) => start < match.index! && close >= match.index! && close < open && mask.slice(close + 1, open).trim() === "");
+    calls.push({ start: wrapper?.[0] ?? match.index!, end, title: title[2] });
+  }
+  const result = new Set<string>();
+  const containing = calls.filter((call) => call.start <= at && at <= call.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
+  if (containing.length) result.add(containing[0].title);
+  for (const match of mask.matchAll(/\bif\s*\(/g)) {
+    const open = match.index! + match[0].lastIndexOf("(");
+    const close = pairs.get(open);
+    if (close === undefined || !(open < at && at < close)) continue;
+    let end = statementEnd(close + 1);
+    const otherwise = space(end);
+    if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
+    for (const call of calls) if (close < call.start && call.start < end) result.add(call.title);
+  }
+  return [...result];
 }
 
 /**
@@ -236,8 +282,7 @@ export async function portability({ applicability = {}, ...options }: Portabilit
   const challenged = new Set(found.filter((f) => f.case !== "package.json").map((f) => f.case));
   for (const f of base.findings) {
     if (f.kind !== "registration" && f.kind !== "dilution") continue;
-    const title = enclosing(tests.find(([file]) => file === f.file)?.[1] ?? "", f.line);
-    if (title !== undefined) challenged.add(title);
+    for (const title of affected(tests.find(([file]) => file === f.file)?.[1] ?? "", f.line, f.column)) challenged.add(title);
   }
   const reviews = [...base.reviews, ...requests];
   return {
