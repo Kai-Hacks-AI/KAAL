@@ -1,63 +1,72 @@
 # Packaging distribution — decision PLAN (packaging/C12 amendment)
 
-Decides one question for the Owner: does `kaal-packaging` go to npmjs, or does it stay with Engineering as a private workspace package? It changes no runtime file. It amends no identifier. It authorizes no merge, SYNC, promotion or publication.
+Decides one question for the Owner: how is Packaging distributed? It changes no runtime file. It amends no identifier. It authorizes no merge, SYNC, promotion or publication, and keeps F7's registry-dependency conformance intact (A2) unless a separately reviewed contract change justifies otherwise.
 
-## The Owner's test
+## The Owner's criterion (revised after review on #850)
 
-A package goes to npmjs only if a non-KAAL target repository can benefit from it for non-KAAL work. Otherwise it stays with Engineering. The two shapes are:
+The criterion is **generally reusable engineering knowledge and capability**, not whether Packaging has a non-KAAL importer today. Internal KAAL orchestration does not justify its own published package. General engineering knowledge delivered as a capability deserves independent distribution consideration. A lack of JS imports is not a lack of agent-facing utility.
 
-1. **Engineering and external use, no package needed:** run from the repository's workspace or a packed tarball, by path.
-2. **Embedding, package needed:** another package or repository installs it by name and imports or runs it.
+The question is therefore whether an external, non-KAAL repository can meaningfully use Packaging's installed Skill and deterministic tools for its own package, without importing KAAL's internal orchestration or joining the KAAL repository.
 
-## Who consumes Packaging today
+## What Packaging holds, in three layers
 
-| Consumer | How | Needs a registry package? |
+| Layer | Content today | General? |
 | --- | --- | --- |
-| Engineering's release engine | Runs `conform` (and `measure`) from outside on a packed-and-installed candidate, in this repository's CI (packaging/A3, A7; engineering/F32). `run.mjs` shows Packaging as "not run" until `kaal-packaging` is on `main`. | No. A workspace on `main` suffices. |
-| Agents working in this repository | Run `node packages/kaal-packaging/bin/kaal-packaging.mjs` by path, guided by the Skill and root `AGENTS.md`. | No. |
-| Other KAAL packages | None import it. packaging/A3 and A7: "no product imports Packaging". | No. |
-| A non-KAAL repository, for non-KAAL work | None exists today. `conform` decides the **KAAL Package** contract, so it has no meaning outside KAAL. `measure` is ecosystem-neutral and could size any npm tarball, but it is one of two commands and shares the package with `conform`. | Only for `measure`, and only as a possibility. |
+| **1. General package-engineering practice and BASS-guided agent judgment** | Measure the artifact, never the source directory (I1). Verify an *installed* package in a fresh consumer. Hash-check the installed files against a manifest. Count exact declared Cases. Resolve dependencies from the install record, with the registry distinguished from provenance (F19). Pin exact versions (F7). Leave the consumer unchanged (N7). Prove a verifier tests behavior, not presence (N9). Inspect boundaries and judge test adequacy (F25, planned in C13). | **Yes.** None of these needs KAAL. |
+| **2. Reusable technical APIs and scripts** | `measure`, `attribute`, `compare`, `write`, `read`, `report` (ecosystem-neutral, npm first). The `conform` engine's mechanics: install-record reading, hash comparison, scratch-directory behavior probe. | **Partly.** `measure` is general. `conform`'s mechanics are general, but its findings are bound to layer 3. |
+| **3. KAAL-specific contracts, identities and release governance** | F8's six named documents and README link. F11's `test/verify.json` shape. F13's Testing model through Testing's `check`/`tested`. F12's Hosting OS boundary. F10's shared verifier result line. KAAL identifiers (`packaging/F…`) throughout the Skill. The Capability Node, ownership claim, and Engineering's release engine consuming `conform`. | **No.** |
 
-Nothing embeds Packaging. Under the Owner's test the package fails as a unit: its only demonstrated consumers are KAAL's own.
+## What is usable today by an external repository
 
-## Cost of publishing
+I ran the collector's own commands, unmodified, against a non-KAAL package, `is-number@7.0.0`, with Node 24.22.1 and npm 11.21.0.
 
-- Packaging depends on `kaal-hosting` and `@kaihacksai/kaal-foundation`. Publishing Packaging makes Hosting's scoped publication a hard prerequisite (completion.md, dependency table).
-- It adds a public surface to maintain, plus a first publication by the Owner's hand and a Trusted Publishing binding.
+- **`measure` works as is.** It printed `is-number@7.0.0 (npm), described by npm 11.21.0`, packed 3730 bytes, unpacked 9615, four files, exit 0. This is layer 2 and meaningful to anyone.
+- **`conform` runs but judges the KAAL contract, not a general one.** It verified F7, F12, F13, N7 and N8, which are layer 1 practices. It failed F8 ("docs/intent.md is not shipped" for six KAAL documents) and F9 and F10 (the package has no KAAL Embedded verifier, so the installed `npm test` printed nothing). F11 and N9 were unknown. Overall: `failed`, exit 1. An external author would read that as "my package is bad", when most of it means "not a KAAL package". That is misleading, not useful.
+- **The Skill is not usable outside KAAL as written.** It is addressed to KAAL packages, cites KAAL identifiers and owners (Testing, Hosting, Engineering), tells the reader to supply Testing's model functions, and says the package is private and must be run by path.
+- **Packaging cannot be installed alone.** It depends on `kaal-hosting` and `@kaihacksai/kaal-foundation` for process execution, file reading and SHA-256. Both would need to be public first. Hosting's scoped publication is not done.
+
+So the general value is real, but it is only partly deliverable today, and what is deliverable (`measure`) is a small part.
+
+## What would need a separate Change
+
+None of these is assumed to exist. Each needs its own PLAN and Owner review.
+
+1. **A general conformance profile.** Split `conform`'s findings into those a non-KAAL package can meet (layer 1) and those that apply only to KAAL packages (layer 3), with a result that says which profile was judged. F8, F11 and F13 would stay KAAL-only. Does not weaken the KAAL contract.
+2. **A general Skill.** Layer 1 guidance (and C13's F25 judgment procedure) written without KAAL identifiers, plus a separate KAAL layer pointing at the KAAL contract.
+3. **Shedding or publishing the coupling.** Either publish Hosting and Foundation, or make the general commands independent of them.
+4. **A package boundary.** Either publish Packaging with both profiles, or move layer 1 and `measure` into a distinct general package and leave `kaal-packaging` as the KAAL-specific one. That choice is for the Owner after items 1 to 3 exist.
 
 ## Options
 
-### Option A (recommended): stay private with Engineering
+### Option A (recommended): private workspace delivery for 0.0.1, and a separate PLAN for the general capability
 
-Packaging remains `private`, unscoped and a workspace package. It reaches `main` by promotion (#686, refreshed), where Engineering's release engine consumes it. If a non-KAAL consumer for `measure` appears, a separate Change can split or publish `measure` alone, on its own PLAN.
+`kaal-packaging` 0.0.1 stays `private`, unscoped, with Engineering and agents in this repository. It is the KAAL-contract package. Its general content (layers 1 and 2) is recognized as worth independent distribution, and a separate PLAN, opened after the Owner decides, defines items 1 to 4 above.
 
-Why: it passes the Owner's test, and nothing demonstrates a consumer that needs a package. It also removes the Hosting-publication dependency from Packaging's critical path.
+Why: publishing the current package would present a mixed package. An external author gets a working `measure`, a misleading `conform` verdict, and a KAAL-addressed Skill. Distribution decided on what is usable today fails the criterion for the package as a whole, though not for its general content.
 
-### Option B: publish `@kaihacksai/kaal-packaging@0.0.1` as planned in C12
+### Option B: publish `@kaihacksai/kaal-packaging@0.0.1` as C12 planned
 
-Follows completion.md as written. Its value is speculative: `measure` for outside repositories, and an installable `conform` for KAAL-adjacent users.
+Delivers `measure` and the KAAL `conform` to outside users as they are. Requires Hosting's scoped publication first. The misleading verdict above ships with it unless items 1 and 2 are done first, which makes B a larger Change than C12 describes.
+
+### Option C: hold 0.0.1 private now, and make the general split the next Change before any publication
+
+Same delivery as A, but names the split (items 1 to 4) as the required next Change before Packaging is considered for npmjs. This is A with the follow-up pre-committed, instead of left to a later decision.
 
 ## What changes under each option
 
-| Step | Option A (stay private) | Option B (publish) |
+| Step | Option A or C (private) | Option B (publish) |
 | --- | --- | --- |
-| C13 guidance | Unchanged. | Unchanged. |
-| C14 verification | Unchanged. | Unchanged. |
-| C15 scoped delivery | **Replaced** by a small compatibility Change: keep the name and `private: true`. Migrate only what Hosting's own scoping forces (self-imports, dependency pin), through the owners and Engineering's admitted route. No public metadata. | As written: set `@kaihacksai/kaal-packaging@0.0.1`, public metadata, scoped Hosting dependency, self-imports and owner-reviewed workspace/lock. |
-| C16 acceptance | Source, normal pack, exact inventory, clean consumer, negatives and three-host acceptance stay. The registry-resolved final self-conformance is **open**, see below. | As written, including registry-resolved final self-conformance with real Testing functions. |
-| SYNC and promotion | Unchanged: governed SYNC, then promotion to `main`. This is the end of the path. | Unchanged. |
-| Step 7, npmjs | **Dropped.** No Pack-and-publish run, no Trusted Publishing, no registry acceptance. | As written: Engineering's Pack on `main`, the tested tarball published by the Owner's first-name route, and registry acceptance. |
-| #686 hold | Its hold on full F7 conformance must be re-decided, see below. | Unchanged. |
+| C13, C14 | Unchanged. C13's F25 judgment guidance is written so its layer 1 content can later lift out. | Unchanged. |
+| C15 scoped delivery | **Replaced** by a small compatibility Change: keep the name and `private: true`, and migrate only what Hosting's own scoping forces, through the owners and Engineering's admitted route. | As written: scoped name, public metadata, scoped Hosting dependency. |
+| C16 acceptance | Source, normal pack, inventory, clean consumer, negatives and three hosts stay. F7 self-conformance still waits for Hosting on a registry (A2). | As written, with registry-resolved F7. |
+| SYNC and promotion | Unchanged. This ends the 0.0.1 path. | Unchanged. |
+| Step 7, npmjs | **Dropped for 0.0.1.** Reconsidered after the general-split PLAN. | As written. |
+| #686 hold | Its full-F7 hold stays, since F7 is not relaxed. Packaging promotes once Hosting is on a registry. | Unchanged. |
 
-## Open question that Option A raises
+## Recommendation
 
-packaging/F7 requires every runtime dependency to install from its registry, and packaging/F15 says "being private is no exemption". Packaging's own `conform` therefore fails F7 against local tarballs until Hosting and Foundation resolve from a registry. Under Option A the Owner must choose one of:
-
-- A1: Packaging's self-conformance is accepted with F7 stated as not applicable to a package that is never installed from a registry. This needs an explicit planned amendment to F7/F15, and it must not weaken the contract for other packages.
-- A2: Packaging's self-conformance still waits for Hosting's registry publication, and only Packaging's own publication is dropped. This keeps F7 intact and keeps the Hosting dependency, but not the Packaging one.
-
-I recommend A2 for 0.0.1, since it weakens nothing. Packaging is then promoted with its F7 acceptance recorded as pending Hosting's publication, or promoted after it.
+Option C. It follows the revised criterion: the general capability deserves distribution consideration, but today's package is not the right artifact to publish, and it is not yet usable outside KAAL beyond `measure`. F7 stays intact. C13 and C14 continue and are not affected.
 
 ## Not decided here
 
-Whether a future `measure`-only package exists, Hosting's publication, Engineering's trusted migration admission, and any dependency-traceability work (#746).
+Whether the general capability becomes a separate package or a profile of this one, Hosting's publication, Engineering's trusted migration admission, and dependency traceability (#746).
