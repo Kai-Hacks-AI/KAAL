@@ -9,6 +9,7 @@ The repository never mentions DevOps. This document proposes how to read it.
 DevOps is a **Process**, like PDCA: a repeatable way of working in which KAAL Capabilities are delivered. It is not a Capability, so it has no thread, collector, package or version of its own. A Capability is delivered *into* it and *by* it.
 
 - **Owner of the description.** If described in KAAL, the description belongs where the delivery engine lives: Engineering (verification lanes, Change isolation, release engine). The metamodel (Process, Activity, Role, State, Transition, Entry and Exit conditions) belongs to the Process capability. Process keeps no registry, and describing a process as a Process makes nothing mandatory.
+- **Registry state** was read from registry.npmjs.org on the evidence date and goes stale; re-check before relying on it.
 - **Not a new count.** The "8" is eight stages of the loop. The capabilities serving them are many-to-many with stages.
 
 ## 2. How it relates to PDCA and GLUE
