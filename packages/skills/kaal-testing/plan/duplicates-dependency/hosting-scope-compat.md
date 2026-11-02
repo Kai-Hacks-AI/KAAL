@@ -8,3 +8,5 @@ The packed scenario `test/acceptance/duplicates.test.mjs` arrived from main byte
 - `install(["kaal-testing", "kaal-hosting"])` becomes `install(["kaal-testing", "@kaihacksai/kaal-hosting"])`.
 
 The scenario on this collector has SHA-256 `c35d4b2b9bfb5eab8f9b12da9480eb308aa9bb36da28857089b256bb2b4872de`. No assertion, fixture, script text or helper changes. After Hosting's promotion and the Testing scoped rename (C36) the scenario is governed by that Change; nothing here pre-empts it. The `kaal-testing` name is unchanged here.
+
+Verification on this collector: Testing's `npm test` passes 78 of 78 with the edit. The packed scenario itself runs in the Engineering acceptance lane's CI on this branch; this record does not claim a local run of it.
