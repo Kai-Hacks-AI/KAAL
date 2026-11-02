@@ -105,7 +105,7 @@ Foundation SHA-256 of the baseline/live files:
 | `test/plan/lifecycle.test.mjs` | `2b0d5159e64c1e27a6874948361c95554b28501345480cd6e68e174af5617fa3` |
 | `test/plan/release.test.mjs` | `388a5e239a04fe7d67b6ab48e205d6fe7c940551f8efba6a57124c872530edce` |
 | Unchanged C40 `test/plan/initialization.test.mjs` | `ce4c4d36406b8605f500c153177329ebd6a5d60ed24783f46842655de87b6f79` |
-| `proposed-tests.patch` | `a601ac7519a0506c9130b3496dfbb1f042fde7edff821f83acce9e099ad2684f` |
+| `proposed-tests.patch` | `ca805835e2ebe738933396fa58e48bff557fec46ce5cc9b98288b165c74a5c2d` |
 
 The immutable-test rule is C40 requirements.md's explicit amendment boundary:
 "require a reviewed PLAN amendment before DO." This proposal makes that review

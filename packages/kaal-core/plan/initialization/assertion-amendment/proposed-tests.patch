@@ -14,11 +14,11 @@
 +const afterCoreRemoval = (repo) => Object.fromEntries(Object.entries(snapshot(join(repo, ".kaal"))).filter(([p]) => ![...corePaths(), RECORD].includes(`.kaal/${p}`)));
 +
  const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
- 
+
  const made = [];
 @@ -71,7 +80,7 @@
  }
- 
+
  describe("Core's own Installation Contract (core/C18)", () => {
 -  it("core/T43 [core/F42, core/A20]: kaal-core delivers a conforming Installation Contract of its own, for exactly its payload", () => {
 +  it("core/T43 [core/F42, core/A20]: kaal-core delivers a conforming Installation Contract of its own, for exactly its payload and two Core-owned initialization contributions", () => {
@@ -45,7 +45,7 @@
      for (const p of Object.keys(carried)) assert.ok(contract.catalogue[`.kaal/${p}`]?.includes(sha256(carried[p])), `the catalogue lists the current bytes of .kaal/${p}`);
      assert.ok(pkg.files.includes("installation.kaal.json"), "the contract is delivered");
 @@ -167,9 +179,12 @@
- 
+
    it("core/T47 [core/F45, core/N12]: remove removes only Core's unmodified files and its record, and keeps and reports everything else", () => {
      const empty = initialized();
 +    assert.deepEqual(Object.keys(record(empty).assets).sort(), corePaths(), "init's Core record claims only Core-owned files");
@@ -55,7 +55,7 @@
 -    assert.ok(!existsSync(join(empty, ".kaal")), "with nothing kept, the Engine directory is gone");
 +    assert.deepEqual(snapshot(join(empty, ".kaal")), dependencies, "only Core's unmodified footprint and record are removed; dependency and consumer bytes remain");
 +    if (Object.keys(dependencies).length === 0) assert.ok(!existsSync(join(empty, ".kaal")), "with nothing kept, the Engine directory is gone");
- 
+
      const repo = initialized();
      const changed = Buffer.from("# Our own entry point\n");
 @@ -178,13 +193,16 @@
@@ -75,12 +75,12 @@
 +    assert.deepEqual(readFileSync(join(repo, ".kaal/state/guard/installation.json")), other, "the other owner's record is preserved");
      assert.match(r.out, /\.kaal\/AGENTS\.md/, "the modified file is reported");
    });
- 
+
 --- a/packages/kaal-core/test/plan/release.test.mjs
 +++ b/packages/kaal-core/test/plan/release.test.mjs
 @@ -242,7 +242,7 @@
    });
- 
+
    // Added by core/C36: the shipped verifier decides on the declared inventory, never on counts (core/F70, core/A43).
 -  it("core/T91 [core/F70, core/F85, core/F87, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each run emits one execution record naming its candidate and each required case's outcome, each result names its candidate, evidence and cause, and the fixture is left as it was", { timeout: 300_000 }, async () => {
 +  it("core/T91 [core/F70, core/F85, core/F87, core/N23, core/A43]: on fixture packages, the shipped verifier gives verified only when the files match the manifest and exactly the declared cases ran and passed; a missing, skipped, todo or undeclared case, a changed or missing file, a file added to an installation, a missing manifest and an empty inventory are each cannot verify, while a source workspace's unshipped files are not added files, a declared failing case is failed, each run emits one final normalized report naming its candidate, every exact required case and its outcome, result, exit and causes, and the fixture is left as it was", { timeout: 300_000 }, async () => {
@@ -127,7 +127,7 @@
 +        if (status === 0) assert.deepEqual(r.record.causes, [], "a verified run has no cause");
          return r;
        };
- 
+
        const good = fixture();
        const before = Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))]));
        const ok = await expect(good, 0, "verified", "an intact fixture whose declared cases all pass");
@@ -138,7 +138,7 @@
 -      assert.deepEqual(outcomes(ok), { "S > a": "passed", b: "passed", c: "passed", d: "passed" }, "every required case executed successfully");
 +      assert.deepEqual(outcomes(ok), { "S > a": "pass", b: "pass", c: "pass", d: "pass" }, "every required case executed successfully");
        assert.deepEqual(Object.fromEntries(listed(good).map((path) => [path, sha(join(good, path))])), before, "verification leaves the package as it was (core/N23)");
- 
+
 -      await expect(fixture({ cases: [...DECLARED, { file: "test/embed/code.test.mjs", name: "e" }] }), 2, "cannot verify", "a declared case that never ran", "e");
 +      const withMissing = [...DECLARED, { file: "test/embed/code.test.mjs", name: "e" }];
 +      const missing = await expect(fixture({ cases: withMissing }), 2, "cannot verify", "a declared case that never ran", "e", withMissing);
