@@ -106,3 +106,42 @@ is counted as behavior evidence. The evidence-only amendment changes no product,
 Skill, runtime, example, test, manifest or dependency bytes. Independent DO/Owner
 approval, required CI, refresh after #831/#832 and combined C27 T81 assurance remain
 open; the semantic trial is not approval or integration authority.
+
+## Refresh after accepted C27 integration, 2026-11-02
+
+Owner content approvals were inspected on #831, #832, #834 and #835. #831 is now
+integrated at f8a8c91dde20ee0f008a8deb458433c4e276be0e, whose tree exactly equals
+the independently reviewed/tested C27 candidate. #834 is also integrated into
+Engineering; its focused main delivery and trusted migration admission remain
+separate Engineering responsibilities. #832's refreshed PLAN is still open at
+0b0ab9365193324cb2dfa13f32c7cb9dfc91a5f7. This DO refresh starts only from accepted
+C27 and does not import that unintegrated PLAN or synchronize another collector.
+
+All C27 runtime, verifier, manifest generator, frozen regressions and mutation
+files are byte-identical to the accepted collector. C28's approved Skill/resources,
+T88/T89, authority wording and retained validation artifacts remain byte-identical
+to approved b4291d5. Only the publisher command and Testing documentation need
+composition: include both C27/C29/new attribution and sibling-footprint suites,
+retain every mutation group, retain C27's allocation prose, add A2's publisher
+allocation and remove its former unverified placement. No assertion is changed.
+
+Local combined verifier/defect/C29/attribution/footprint/Skill selection passes
+34/34; recovery T12/T13/T16 passes 3/3. Usage4, defect5 and attribution6 mutations
+are assertion-killed sequentially and restore exact bytes. Full normal source
+first group reports 164/166, with only the existing sandbox socket T43/T66 failures,
+zero skips/todos. Normal npm11.21.0 prepack fails closed at T66. No local normal
+packed artifact, installed acceptance or waiver is claimed. Prior native runs
+qualify their original heads, not this combined candidate; fresh native source,
+normal prepack, inventory, installed/negative and mandatory CI remain required.
+
+The refreshed history retains unchanged T88/T89 in a test-first characterization
+commit before the authoritative-doc/Skill delivery. They characterize existing
+behavior and do not claim behavioral RED. The previously approved Skill bytes and
+qualitative trial remain applicable to that unchanged artifact; they do not prove
+arbitrary agent behavior or replace Owner judgment of the combined candidate.
+
+#835 was returned to draft/unarmed before replacing its old head. A refreshed
+head may require renewed independent approval. No merge, SYNC, promotion,
+publication, auto-merge activation, gate relaxation or promotion-order exception
+is performed. #832 must integrate before this DO; refresh again against the exact
+accepted collector if required, retaining all combined evidence and contracts.
