@@ -227,7 +227,7 @@ async function conform(files, options) {
   const { conform } = await suite();
   const { dir, consumer } = await install(files, options);
   const testing = options && "testing" in options ? options.testing : TESTING;
-  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe"), testing });
+  const report = await conform(dir, { consumer, env: ENV, work: options?.work === null ? undefined : fresh("probe"), testing, profile: options?.profile });
   return { report, by: Object.fromEntries(report.findings.map((f) => [f.requirement, f])), dir, consumer };
 }
 
@@ -237,6 +237,64 @@ function expect(by, requirement, result, cause) {
   assert.equal(f.result, result, `${requirement}: ${f.cause}`);
   if (cause) assert.match(f.cause, cause);
 }
+
+describe("packaging/C17 the general conformance profile, one judgment engine", () => {
+  /** A package from outside KAAL: no KAAL documents, no manifest, a test script that would fail if it were run. */
+  const plain = (extra = {}) => ({
+    "package.json": JSON.stringify({ name: "plain-pkg", version: "1.2.3", type: "module", main: "index.mjs", scripts: { test: 'node -e "process.exit(1)"' }, ...extra }, null, 2) + "\n",
+    "index.mjs": "export const x = 1;\n",
+    "README.md": "# plain-pkg\n",
+  });
+
+  it("packaging/T55 [packaging/F26, packaging/A20]: the kaal profile is the default and its findings and result do not change", async () => {
+    const files = conforming();
+    const implicit = await conform(files);
+    const explicit = await conform(files, { profile: "kaal" });
+    assert.equal(implicit.report.profile, "kaal");
+    assert.deepEqual(implicit.report.notJudged, []);
+    assert.deepEqual(explicit.report.findings.map((f) => [f.requirement, f.result]), implicit.report.findings.map((f) => [f.requirement, f.result]));
+    assert.deepEqual(implicit.report.findings.map((f) => f.requirement), ["packaging/F7", "packaging/F8", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/F12", "packaging/F13", "packaging/N7", "packaging/N8", "packaging/N9"]);
+    assert.equal(implicit.report.result, "verified");
+    // A package from outside KAAL still fails the KAAL contract, as before.
+    const outside = await conform(plain());
+    expect(outside.by, "packaging/F8", "failed", /docs\/intent\.md is not shipped/);
+    assert.equal(outside.report.result, "failed");
+    await assert.rejects(() => conform(files, { profile: "other" }), /profile "other" is not one of kaal, general/);
+  });
+
+  it("packaging/T56 [packaging/F26, packaging/A20]: the general profile does not fail a package for KAAL-only findings, names them, and runs nothing the package did not declare", async () => {
+    const r = await conform(plain(), { profile: "general" });
+    assert.equal(r.report.profile, "general");
+    assert.deepEqual(r.report.findings.map((f) => f.requirement), ["packaging/F7", "packaging/N7", "packaging/N8"]);
+    assert.ok(r.report.findings.every((f) => f.result === "verified"), JSON.stringify(r.report.findings));
+    assert.equal(r.report.result, "verified");
+    assert.deepEqual(r.report.notJudged.map((n) => n.requirement), ["packaging/F8", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/F12", "packaging/F13", "packaging/N9"]);
+    assert.match(r.report.notJudged.find((n) => n.requirement === "packaging/F11").reason, /absent optional evidence, not a defect/);
+    assert.match(r.report.notJudged.find((n) => n.requirement === "packaging/F8").reason, /KAAL-only/);
+    assert.equal(r.report.reported, null, "the package's test script was not run: it declared no verification contract");
+    // A KAAL package is also judged under the general profile, for what it declares.
+    const kaal = await conform(conforming(), { profile: "general" });
+    assert.deepEqual(kaal.report.findings.map((f) => f.requirement), ["packaging/F7", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/N7", "packaging/N8", "packaging/N9"]);
+    assert.equal(kaal.report.result, "verified");
+  });
+
+  it("packaging/T57 [packaging/F26, packaging/A20]: a real defect still fails the general profile; a broken declared manifest fails, a changed file is unknown, and an absent manifest is neither", async () => {
+    const dep = fresh("file-dep");
+    writeAll(dep, { "package.json": JSON.stringify({ name: "kaal-dep", version: "1.2.3" }) });
+    const file = await conform(plain({ dependencies: { "kaal-dep": `file:${dep}` } }), { profile: "general", deps: { "kaal-dep": "1.2.3" } });
+    expect(file.by, "packaging/F7", "failed", /kaal-dep is "file:.*not one exact registry version/);
+    assert.equal(file.report.result, "failed");
+
+    const garbled = await conform(conforming({ manifest: null, files: { "test/verify.json": "{ not json" } }), { profile: "general" });
+    expect(garbled.by, "packaging/F11", "failed", /ships test\/verify\.json, but it is not a manifest/);
+    assert.equal(garbled.report.result, "failed");
+
+    const changed = await conform(conforming(), { profile: "general", tamper: { "lib/add.mjs": "export const add = (a, b) => a - b;\n" } });
+    expect(changed.by, "packaging/F11", "unknown", /lib\/add\.mjs differs from the manifest/);
+    assert.notEqual(changed.report.result, "verified");
+    assert.notEqual(changed.report.result, "failed", "a changed file makes the evidence unknown, not the contract broken");
+  });
+});
 
 describe("packaging/C5 the KAAL Package conformance suite", () => {
   it("packaging/T15 [packaging/F7]: name, exact version and exact registry dependencies", async () => {
