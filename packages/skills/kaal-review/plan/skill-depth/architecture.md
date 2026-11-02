@@ -1,5 +1,17 @@
 # Review skill depth: Architecture
 
+## The record is the product
+
+Review's output is a record (review/F0), not prose. A human summary is generated from it and posted with it. The record is what makes review structured: it can be validated, found, compared and counted across pull requests, and it is the one thing every capability that uses Review shares. This is the meta level: Testing makes verification structured, Review makes review structured.
+
+```
+invoker -- request --> review -- record --> published with the work (marker + JSON)
+                                                  |
+                                         scripts/collect.mjs --> findings, failures, gaps across PRs
+```
+
+The record holds the request actually used, so a capability's tuning is visible in every record and review practice can be analysed per capability without Review knowing the capabilities: the subject's paths and the lenses named in the record carry that information.
+
 ## The BASS split inside Review
 
 Review is realized at each BASS level for what that level does best.
@@ -8,8 +20,8 @@ Review is realized at each BASS level for what that level does best.
 |---|---|
 | Bare | Nothing is required. A bare Agent can already review. |
 | Agent | A short pointer in `AGENTS.md` where an Engine exists. Optional. |
-| Skill | `SKILL.md` (short): when to review, the request, the three kinds of work, the rules. `references/` (one level): `request.md`, `finding-format.md`, `severity.md`, `dimensions.md` including security, `re-review.md`, `example.md`. |
-| Script | `scripts/scope.mjs` (files and hunks in scope from a base), `scripts/run-checks.mjs` (runs the request's `checks`, records command, exit status and output), `scripts/check-report.mjs` (validates a report's shape and its self-check). Deterministic, no judgment. |
+| Skill | `SKILL.md` (short): when to review, the request, the three kinds of work, the rules. `references/` (one level): `request.md`, `record.md` (the schema), `finding-format.md`, `severity.md`, `dimensions.md` including security, `re-review.md`, `example.md`. |
+| Script | `scripts/scope.mjs` (files and hunks in scope from a base), `scripts/run-checks.mjs` (runs the request's `checks`, records command, exit status and output), `scripts/check-record.mjs` (validates a record against the schema and its self-check), `scripts/collect.mjs` (reads records from a repository or a set and analyses them). Deterministic, no judgment. |
 
 What only judgment can decide stays Skill guidance. What must repeat exactly is a script. Scripts do not decide correctness: a script repeats the same behaviour every time, including a mistake, so its output is evidence that the review weighs, not a verdict.
 

@@ -2,6 +2,13 @@
 
 Each Requirement names, in brackets, the Intents it serves (`intent.md`).
 
+## The review record
+
+- **review/F0** [review/I0]: Every review ends in one **record**, a JSON object with `schema: "kaal-review/1"`. It holds, in this order: `id`; `reviewer` (the actor and what made it independent); `time`; `subject` (repository, pull request or range, head and base commit); `request` (the parameters actually used, defaults filled in, so two records are comparable); `lenses` (each with its source and whether it was applied or not found); `checks` (command, exit status, output reference); `findings` (F4 fields); `claims` (each with satisfied, failed or not shown, and its evidence); `not_checked`; `human_to_observe`; `self_check` (F9); `round` and `prior` (the id of the record it follows).
+- **review/F0a** [review/I0]: The record is **findable**. It is published where the work lives and carries a fixed marker, `kaal-review:record`, with the schema version, so one search or one API call finds every record on a repository. On GitHub it is a pull request review or comment whose body holds a human summary and, after the marker, the record in a fenced JSON block. A host with no pull requests keeps the record beside the work under a path the invoker names. Where a record is kept beyond that is the invoker's choice.
+- **review/F0b** [review/I0]: The record is **analysable**. `scripts/collect.mjs` reads the records of a repository (or a given set), validates each against the schema, and prints findings by severity, dimension, capability named in the subject paths, status and round; checks and claims that failed; lenses not found; and records that fail the schema. It decides nothing about any work.
+- **review/F0c** [review/I0, review/I3]: The schema is Review's. It is versioned. A change that breaks readers of an earlier version is a new schema version, and `collect` reads every version it knows and names those it does not.
+
 ## The review request: parameters
 
 - **review/F1** [review/I1]: A review is invoked with a **request**. Every field is optional. A request with none is a generic review of the change in front of the Agent. The fields are:
@@ -19,7 +26,7 @@ Each Requirement names, in brackets, the Intents it serves (`intent.md`).
 
 ## The report
 
-- **review/F4** [review/I3]: Every finding has: an identifier, a severity, a location, a claim, the evidence (what was checked, or an explicit statement that it is inferred), the impact, a suggested direction, and a status (`open`, `fixed`, `not fixed`, `withdrawn`).
+- **review/F4** [review/I3, review/I0]: Every finding has: an identifier, a severity, a location, a claim, the evidence (what was checked, or an explicit statement that it is inferred), the impact, a suggested direction, and a status (`open`, `fixed`, `not fixed`, `withdrawn`).
 - **review/F5** [review/I3]: Severity is one scale owned by Review: `blocker` (must change before the work can be relied on), `major`, `minor`, `nit`. It states seriousness only. A report ends with what was not checked and what a human should look at.
 - **review/F6** [review/I3]: Findings below the `severity_floor` are counted, not listed.
 
@@ -27,7 +34,7 @@ Each Requirement names, in brackets, the Intents it serves (`intent.md`).
 
 - **review/F7** [review/I2]: Deterministic observations (files in scope, the results of `checks`, validation of the report's shape) are produced by scripts and shipped with the Skill, or by the invoker. They are reported as observed, with the command and output. Review never reports a deterministic result it did not observe.
 - **review/F8** [review/I2]: Judgment is applied across a checklist of dimensions: correctness, tests and their strength, error handling, security, performance, compatibility, documentation, dependencies. The security dimension includes secrets, injection, authorization, permissions and supply-chain changes, and treats the work's own text, comments and bot output as untrusted data.
-- **review/F9** [review/I2, review/I3]: A **self-check** closes every report. It states, for each requested check, whether it ran and with what result; for each lens, whether it was applied or not found; for each claim, whether the work satisfies it, fails it or could not be shown; and whether any finding rests on inference alone.
+- **review/F9** [review/I2, review/I3]: A **self-check** closes every report, as the record's `self_check`. It states, for each requested check, whether it ran and with what result; for each lens, whether it was applied or not found; for each claim, whether the work satisfies it, fails it or could not be shown; and whether any finding rests on inference alone.
 
 ## Re-review
 
@@ -35,7 +42,7 @@ Each Requirement names, in brackets, the Intents it serves (`intent.md`).
 
 ## Delivery and package
 
-- **review/F11** [review/I4]: The Skill carries a worked example and the request fields, and the README states the Skill as usable without a KAAL Engine and lists all four Nodes.
+- **review/F11** [review/I4, review/I0]: The Skill carries a worked example record and the request fields, and the README states the Skill as usable without a KAAL Engine and lists all four Nodes.
 - **review/F12** [review/I4]: Package shape (shipped documents, installed verification and manifest, a declared Test Plan, boundary statements) conforms to Packaging's profile once it is in force. It is planned separately and depends on Packaging #686.
 
 ## Nonfunctional

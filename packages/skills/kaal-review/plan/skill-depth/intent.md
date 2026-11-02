@@ -6,6 +6,7 @@ Review today (kaal-review 0.0.1 on main) is a short instruction card: read the w
 
 The design follows BASS (Bare < Agent < Skill < Script). A bare Agent can review. Instructions such as `AGENTS.md` guide it. A Skill guides it better. Scripts add deterministic support. Every piece of skilled work has three parts: deterministic work, non-deterministic work, and a review of whether those two did what they should. Review is that third part, offered to every capability.
 
+- **review/I0.** The core of Review is a **structured review record**. All KAAL review going forward produces one, so that reviews can be found and analysed across pull requests, not only read. Review is a meta-level capability, like Testing: other capabilities use it, and the record is what it gives them.
 - **review/I1.** Any capability can invoke Review with parameters that tune it to that capability, and Review needs no knowledge of the capability, its roles or its documents. The dependency points from the invoker to Review, never back.
 - **review/I2.** Review keeps the three kinds of work apart. Deterministic work is done by scripts or by the invoker's checks and is reported as observed. Judgment is guidance and is reported with its evidence and its uncertainty. The self-check says whether both were done as asked.
 - **review/I3.** A review reports what was observed and the evidence for it, in a form another Agent or a human can act on and a script can validate. It grants no authority: severity says how serious a finding is, never who may merge or decide.
