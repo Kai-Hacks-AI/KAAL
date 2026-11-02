@@ -22,12 +22,13 @@ Definition, Node, package or Guard check names a CTO, a CPO or an advisor.
 What exists is the practice, run informally:
 
 - The project coordinator acts as CTO / Head of Delivery. It sets the review
-  sequence from dependencies and reviews promotion PRs from an engineering and
+  sequence from dependencies and reviews PRs from an engineering and
   dependency viewpoint.
-- A separate session acts as CPO and reviews the same PRs from the product and
-  Owner viewpoint.
-- Kai is the Owner and gives the formal approvals. Advisor findings become
-  their own PRs.
+- A separate session acts as CPO and reviews PRs from the product and Owner
+  viewpoint.
+- Kai is the Owner and gives the Owner decisions (authorizing SYNC, promotion,
+  merge and publish where separately required). Advisor findings become their
+  own PRs.
 
 Related capabilities:
 
@@ -69,11 +70,15 @@ separate discussion and is not part of either role here.
 ### Common rules
 
 - An Advisor reviews and recommends. The Owner decides.
-- The review is a PR review on a promotion PR (kaal/X to main). A finding that
-  needs a change becomes its own PR, never a silent edit to the reviewed PR.
-- An Advisor never approves for the Owner, merges, or authorizes SYNC,
-  promotion or publish. Those need the Owner's explicit go. A CTO or CPO
-  approval is a formal review outcome, not an authorization.
+- Advisors review the PLAN, DO, SYNC and promotion PRs that are relevant to
+  their own lens. Promotion (kaal/X to main) is an important joint checkpoint,
+  not the definition or the exclusive location of the advisory role. A finding
+  that needs a change becomes its own PR, never a silent edit to the reviewed PR.
+- Review outcome and Owner decision are distinct. An Advisor may submit a formal
+  APPROVED PR review within its responsibility when instructed, and that
+  approval is a review outcome. It never authorizes SYNC, promotion, merge or
+  publish. Those remain Owner decisions wherever separately required, and an
+  Advisor never makes them or implies it has.
 - An Advisor never weakens a test, a check or a Guard rule, and never advises
   doing so silently.
 - Independence: an actor does not advise on a PR it authored.
@@ -90,8 +95,8 @@ separate discussion and is not part of either role here.
 | Scope | Engineering feasibility, technical architecture and design review, test implementation correctness, engineering integration and delivery: dependency order, review sequence and queue, release and change plan, architecture admission, risk, CI integrity. |
 | Review lens | Does it work, and can it be landed safely? Dependencies satisfied, blast radius, reversibility, tests that are correctly built and actually prove the claim, SYNC then promotion order. |
 | May decide | The review sequence and the queue; which findings are raised as PRs; when to recommend a hold. |
-| May recommend | Approve, hold or request changes on a promotion on technical grounds; admission of a capability; the order of publication. |
-| May not decide | Product intent, requirements, scope or priority; package roadmap or release fitness; whether something is published; any Owner approval; npm publication (an Owner 2FA act). |
+| May recommend | Approve, hold or request changes on technical grounds; admission of a capability; the order of publication. |
+| May not decide | Product intent, requirements, scope or priority; package roadmap or release fitness; whether something is published; any Owner decision; npm publication (an Owner 2FA act). |
 
 ### CPO Advisor
 
@@ -101,7 +106,7 @@ separate discussion and is not part of either role here.
 | Review lens | Is it the right product, and is it fit to release? Does it serve the stated intent, avoid duplicating a capability, read clearly to someone new, fit the roadmap, and do its tests cover what the product means. |
 | May decide | Which product-fit findings are raised as PRs; when to recommend a hold on product grounds. |
 | May recommend | Priority and launch of an increment (Product's Prioritize and Launch), scope cuts, renames, release fitness of a package. |
-| May not decide | Engineering feasibility, architecture or order; test implementation; the Product Owner's priorities (the Owner's authority); any approval, SYNC, promotion or publish. |
+| May not decide | Engineering feasibility, architecture or order; test implementation; the Product Owner's priorities (the Owner's authority); any Owner decision, nor SYNC, promotion, merge or publish. |
 
 ### Interim exchange between the Advisors
 
@@ -109,9 +114,9 @@ Kai's direction: the exchange of information between CTO and CPO has to be
 aligned through the Roles and Process work over time. For now it stays simple
 and runs through the PR, which is already the shared, auditable record.
 
-- **Where each review is recorded.** Each Advisor records its review on the
-  promotion PR (kaal/X to main) as a PR review, stating its outcome and the
-  lens it applied. Each reads the other's review there. No side channel carries
+- **Where each review is recorded.** Each Advisor records its review on the PR
+  it reviews (PLAN, DO, SYNC or promotion, according to its lens) as a PR
+  review, stating its outcome and the lens it applied. Each reads the other's review there. No side channel carries
   a decision.
 - **How findings become PRs.** A finding that needs a change is raised as its
   own PR, linked from the review that raised it. The finding's owner is the
@@ -131,7 +136,7 @@ and runs through the PR, which is already the shared, auditable record.
   exit conditions for when a review is due, and States read from facts (PR
   reviews recorded, findings as PRs). It lives with the accountable owner, so not
   in Process and not in Roles. Suggested owner for now: Engineering, since the
-  interim exchange runs through the promotion PR. Process and Roles need not know
+  interim exchange runs through the PR. Process and Roles need not know
   each other; only the design refers to both, one way. It is not designed here.
   Proposed timing: its own PLAN after #560 reaches `main` and the Process
   amendment lands, if Kai wants it.
@@ -184,7 +189,7 @@ Process designs            e.g. DevOps (Engineering): Review and Release name th
 
 The rule: package only if a non-KAAL repo benefits for non-KAAL work. Applied:
 
-- The Advisors govern review of KAAL promotion PRs. That is KAAL-internal
+- The Advisors govern review of KAAL's own PRs. That is KAAL-internal
   orchestration, which the rule says does not justify a package.
 - **Recommendation: no npm publication.** The package stays unpublished and
   private to the repo.
