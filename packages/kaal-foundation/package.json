@@ -33,7 +33,7 @@
     "test": "npm run test:all",
     "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
-    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs test/publisher/release.test.mjs",
+    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs test/publisher/release.test.mjs test/publisher/ownership.test.mjs",
     "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {
