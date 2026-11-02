@@ -10,9 +10,11 @@ publication is requested or authorized by this PR.
 ## 1. Intent
 
 The CPO handover of 2 Nov names Architecture as a capability with no owning thread, and #886 (C2)
-finds that Intent, Requirements, Architecture, Code, Tests and Evidence are not one traceable chain.
-This PLAN establishes who owns what at the Architecture end of that chain, so the other owners and
-Engineering can coordinate against stated boundaries instead of conventions.
+finds traceability between the disciplines is not yet connected. This PLAN establishes who owns what
+at Architecture's end of it, so the other owners and Engineering can coordinate against stated
+boundaries instead of conventions. Traceability is not a linear chain. Test Cases trace independently
+to Intent, Requirements, Architecture and Defects. A GREEN Case reflects current knowledge. Learning
+may add a Case that is RED, and implementation answers it with GREEN.
 
 ## 2. What exists (inspected on `origin/kaal/architecture` at 7b85d04, 10 ahead and 19 behind main; not run)
 
@@ -34,16 +36,16 @@ Engineering can coordinate against stated boundaries instead of conventions.
   its own architecture documents and any `Placement` Nodes it writes.
 - **A3 Traces are outgoing only.** Architecture states `Placement` from its own elements and never
   declares incoming traces. Reverse views are derived (`engineering/research/owned-trees.md`, Option B).
-- **A4 Coordination of the chain is not ownership of it.** Engineering coordinates cross-capability
-  traceability and impact (C2, `engineering/C11`). Each hop is owned by the capability its source belongs to.
+- **A4 Coordination of traceability is not ownership of it.** Engineering coordinates cross-capability
+  traceability and impact (C2, `engineering/C11`). Each relationship is owned by the capability its
+  source belongs to. This PLAN requires no Code to Architecture relationship and invents none.
 
-| Hop | Owner of the relationship | State |
+| Relationship | Owner | State |
 | --- | --- | --- |
 | Requirement serves Intent | Requirements (`Serves`, `requirements/C10`, #741) | PLAN on collector |
 | Intent element as Node | Intent (`intent/C1`, `C2`, #740, #748) | DO on collector |
 | Decision places Requirement | **Architecture** (`Placement`, `architecture/C8`) | PLAN on collector |
-| Code to Architecture | Engineering and Change (not defined) | Open, section 5 |
-| Test Case to Defect | Testing (`testing/C48`, #745) | PLAN open |
+| Test Case to Intent, Requirement, Architecture or Defect, each independent | Testing (`testing/C48`, #745) | PLAN open |
 | Trace rule registration | Core (`core/C24`, `core/C30` #600) | Later Change per owner |
 
 ## 4. Proposed Changes (not authorized; order by dependency)
@@ -57,8 +59,8 @@ Engineering can coordinate against stated boundaries instead of conventions.
 ## 5. Cross-capability needs (go to the owning thread)
 
 - **Intent and Requirements:** no owning threads yet. Needed for the bracket-citation to Edge move and to confirm `Placement` targets `<cap>/F<n>` Requirement Nodes. Ask: arrange owners (CPO handover item 4).
-- **Engineering:** owns the chain-level coordination. Ask: record which hop covers Code to Architecture. GLUE names `kaal-coding`, which does not exist (#851), so no owner exists for it today.
-- **Testing:** confirm Architecture's boundary check (`architecture/F4`) stays Testing's judgment.
+- **Engineering:** coordinates cross-capability traceability and impact. No ask beyond that.
+- **Testing:** owns Test Cases' traces to Architecture, among others. Confirm Architecture's boundary check (`architecture/F4`) stays Testing's judgment.
 - **Core:** none until `Placement` exists.
 
 ## 6. Decisions for Kai
