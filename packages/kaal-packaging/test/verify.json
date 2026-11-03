@@ -4,15 +4,15 @@
     "README.md": "6451c465a1dc3ddc5a1fcf3ff68003778e1f7ebaecc313a56d4bd938b893d729",
     "bin/kaal-packaging.mjs": "3a02fa6e87a5f92627c48b50b74bfd23371d17e82ce762c088431167e2150337",
     "capability/Packaging.md": "7bb7f9eeba38848847af8043265c4f07ffcc07bb1a0a0c6e635431c740309eae",
-    "docs/architecture.md": "22a4c0dcbdc7cbfc89c7472ff819d5ccc1cf9f0de5ef50c9fcd90bc6b175b58d",
+    "docs/architecture.md": "afe6e5df162509be548550aa567c60afdf364d4777088668e8f5a45f43d91d1c",
     "docs/intent.md": "5dee9dfa7a988c5e04a0610b52b9f7a64f78c699b749117ce8092800906b0f36",
-    "docs/limitations.md": "bef84175e8628f92f92ce75801de04a0c1567c41d7083d939237012a5ceb5ec5",
+    "docs/limitations.md": "f4e62fa23be9637afb37fe1abc1d3e0bcace431bf89f64aa11779d2cbccf943e",
     "docs/operations.md": "f216dbebf528b1ff7148ccb188106ee7975cb27175f85618c95196df738bcf4e",
-    "docs/requirements.md": "ea4dff510cd8a7152d93e54ccb13d3b6c92766a37d6fe8ff54b1473a29f1a42d",
-    "docs/testing.md": "369e1cbe6cbfc06b692a37de5aa4794a8bcef3e0dfc3bf91a12f05c871041ed0",
+    "docs/requirements.md": "28bda45d35651741fc7a160415c7d482ee68d7a3b95db210be3365dc2d740402",
+    "docs/testing.md": "5cdc3f7adf4180c2859547b27288e04152ccbf22c423bb935613dfe105bd13f8",
     "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
-    "lib/conformance.d.ts": "cd7faf3a1b49ad3a566c29d884513f84f03c605b0b70a98fd5563006d00b5000",
-    "lib/conformance.mjs": "ab90bdd8ad20df354de28766453af7b8be5401e3e2b1b2567eaa6cf6268d8ffd",
+    "lib/conformance.d.ts": "098e74665674f245c582181e4a125107a16f1c5a3c1ac2f6b639463c0918ba65",
+    "lib/conformance.mjs": "c7219d0febf1196d1242d14c5433f5a70ac44a4b854f479e23162dcb1c5c30de",
     "lib/npm/realization.mjs": "6ae31f68e81be5f64a234f7fb3d43d647e08da45701708e8c202134685d386d3",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",
@@ -20,7 +20,7 @@
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
     "test/embed/measurement.test.mjs": "af12b3ec9b93da4e76c00ce9bb6b75bfa471fecada1fc91801221d2091a963ed",
-    "test/embed/package.test.mjs": "fb0f47eaabef39afb933792691aab4c7768bd7a18cd5bdc18a99a31438e3442d",
+    "test/embed/package.test.mjs": "4152296fd3bcda4a7d07ffe25dad81e7001bdffc2dcf78f992758dbb11186797",
     "test/run.mjs": "3bcbe53925a60d761812e6660a61a245298f51e51b2439018c9ae89f864ff04a",
     "test/verify.mjs": "39b001e63c00736fcb34e098cdae2af2ee26a316aa9470822873357221378f33"
   },
@@ -56,7 +56,13 @@
     "packaging/T32",
     "packaging/T34",
     "packaging/T35",
-    "packaging/T64"
+    "packaging/T61",
+    "packaging/T62",
+    "packaging/T63",
+    "packaging/T64",
+    "packaging/T65",
+    "packaging/T66",
+    "packaging/T67"
   ],
   "model": {
     "cases": [
@@ -261,9 +267,46 @@
         ]
       },
       {
+        "id": "packaging/T61",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T62",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T63",
+        "tests": [
+          "packaging/F29",
+          "packaging/A22"
+        ]
+      },
+      {
         "id": "packaging/T64",
         "tests": [
           "packaging/N8"
+        ]
+      },
+      {
+        "id": "packaging/T65",
+        "tests": [
+          "packaging/F30"
+        ]
+      },
+      {
+        "id": "packaging/T66",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T67",
+        "tests": [
+          "packaging/F29"
         ]
       }
     ]
