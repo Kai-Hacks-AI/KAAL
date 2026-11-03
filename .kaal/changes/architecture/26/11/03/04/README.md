@@ -38,7 +38,7 @@ contract holds. A Hosting Defect exists only when Hosting's own contract is brok
   by Architecture on request, never required to open a Defect and never a gate. Placement can change
   as learning changes the reading; the Defect is the same Defect.
 - **What it enables:** PREACH escalation, Defect Plans and FAR can address the owning capability by
-  its placement instead of by guesswork (CODEX rule, #929).
+  its placement instead of by guesswork (Defect Plan, #929).
 
 ## 4. Ownership
 
