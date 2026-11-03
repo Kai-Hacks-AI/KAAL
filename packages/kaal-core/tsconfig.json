@@ -12,5 +12,5 @@
     "skipLibCheck": true
   },
   "include": ["src"],
-  "references": [{ "path": "../extensions/kaal-hosting" }]
+  "references": [{ "path": "../kaal-hosting" }]
 }
