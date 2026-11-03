@@ -57,7 +57,7 @@ say whether a Skill does more than one job. Scripts are counted two ways: files 
 Every other package that has a Skill has exactly one. The other packages on collectors, Slack under Communication
 and the duplicate Guard Skill copy under `engineering/guard/external/templates`, are not additional Skills of one Capability.
 
-## 4. Skills that may be big
+## 4. Skill size: a signal, with evaluation criteria
 
 | Skill | Lines | References | Skill-level scripts | Package-level scripts |
 | --- | --- | --- | --- | --- |
@@ -69,8 +69,22 @@ and the duplicate Guard Skill copy under `engineering/guard/external/templates`,
 | `kaal-packaging` | 74 | 0 | 0 | 5 |
 | all others | 23 to 69 | | | |
 
-Only `kaal-testing` passes 100 lines. A threshold is a Kai decision: this inventory does not set one. Whether any of these
-does several jobs, which is the better reason to split, needs each owner's reading, not a line count.
+The line count is a signal, not a threshold. This record sets no 100-line mandate, and Testing's 107 lines is not
+evidence that `kaal-testing` should be split. It only shows where an owner might look. Nothing here authorizes
+structural churn.
+
+Evaluation criteria (CPO review, 3 Nov). Split a Skill only where one of these is demonstrated:
+- distinct user intent,
+- distinct invocation,
+- an independently testable responsibility, or
+- cognitive overload.
+
+Use `references/` for detail before introducing more Skills. Several Skills in one Capability are legitimate where each has
+a coherent job, and Hosting and Learning may be exactly that.
+
+Package-level scripts move under a Skill only with an explicit consumer or discovery benefit and regression evidence, not
+as a mechanical migration. The CASE kinds stay four parallel kinds, Hosting stays a Capability, and the C-to-A and C-to-E
+relations stay open.
 
 ## 5. Observations against the model
 
@@ -86,8 +100,8 @@ does several jobs, which is the better reason to split, needs each owner's readi
 ## 6. Questions for the owners and Kai (no action implied)
 
 1. Hosting and Learning, both Capabilities: one Skill or two each? (Owners, then Kai if it changes the model.)
-2. A size threshold for "big", or a judgement per Skill? Testing is the first candidate either way.
-3. Where should a Skill's scripts live, under the Skill or under the package? The model says Skill. Most packages say package.
+2. Which of the four criteria above, if any, does a given Skill meet? Owners judge each Skill, with no line-count trigger.
+3. Where a Skill's scripts should live: the model says Skill, most packages say package. A move needs a consumer or discovery benefit and regression evidence, per section 4.
 4. The Owner's explanations of C to A and C to E are outstanding (so far: an Extension is the adapter to external things, and Hosting is a shared Capability of A, S and E elements, a worked example). This record is to be revised when they arrive.
 5. Packages as a separate, Skill-oriented discussion: when does it open? It would also cover the possible builder package (Engineering plus Packages) above.
 
