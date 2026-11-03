@@ -28,7 +28,7 @@ describe("the Capability Node", () => {
 
   it("declares what it provides and what admission requires, apart from what it uses", () => {
     const text = readFileSync(join(CAPABILITY, "Change.md"), "utf8");
-    assert.match(text, /^It provides the Change Definition, the Change Record Definition, the Change Lifecycle Definition, the Change Classification Definition and the CHAOS Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text, /^It provides the Change Definition, the Change Record Definition, the Change Lifecycle Definition, the Change Classification Definition and the CHAOS Definition\. It also provides the Change Isolation Definition, the Change Practice Skill and the isolation assessment API\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
     assert.match(text, /^Its functional relationships are uses, not ownership\./m);
     assert.match(text, /It uses Testing for verification and Review for validation/);
   });
@@ -90,16 +90,37 @@ describe("the package", () => {
       "capability/CHAOS.md",
       "capability/Change-Classification.md",
       "capability/Change-Definition.md",
+      "capability/Change-Isolation.md",
       "capability/Change-Lifecycle.md",
       "capability/Change-Record.md",
       "capability/Change.md",
       "capability/Delivers.md",
       "capability/Succeeds.md",
+      "docs/architecture.md",
+      "docs/intent.md",
+      "docs/limitations.md",
+      "docs/operations.md",
+      "docs/requirements.md",
+      "docs/testing.md",
       "lib/definitions.mjs",
       "lib/delivery.mjs",
+      "lib/isolation.d.ts",
+      "lib/isolation.mjs",
       "lib/lifecycle.mjs",
       "lib/record.mjs",
       "package.json",
+      "payload/Change-Practice.md",
+      "skills/kaal-change/SKILL.md",
+      "skills/kaal-change/references/isolation.md",
+      "skills/kaal-change/references/worksheet.md",
+      "skills/kaal-change/scripts/example-model.mjs",
+      "skills/kaal-change/scripts/example.mjs",
+      "test/embed/isolation.test.mjs",
+      "test/embed/skill.test.mjs",
+      "test/fixtures/model.mjs",
+      "test/observe.mjs",
+      "test/verify.json",
+      "test/verify.mjs",
     ]);
   });
 });
