@@ -20,6 +20,8 @@ Testing accepts the incubation. Incubation means the concept and the record defi
 | The Test Cases that answer a Defect (a Case added by learning starts RED until implementation answers it GREEN) | The Cases' owning capability, judged by Testing's existing semantics |
 | Each Defect instance, its identity and its lifecycle | The context that raised it |
 
+**The agreed model is a four-way split:** definition (`kaal-defect`, incubated in Testing), evidence (Testing), obligation (Requirements) and instance (the raising context). A Defect is therefore not a Requirement kind: the obligation it gives rise to is a Requirement, traced with `Serves`, and `requirements/F10` and `T11` stand unweakened. This PLAN relies on #893 being amended to the obligation side only (dropping F23/F24 wording that makes Defect a Requirement kind) and citing this PLAN; if #893 states otherwise, the two PLANs are not settled and the conflict returns to the Owner.
+
 The concept does not define requirement text, does not decide whether a Defect is accepted as an obligation, and does not execute Cases outside Testing's existing acceptance and verification mechanisms. It adds no linear chain between loops: Test Cases trace independently to Intent, Requirements, Architecture and Defects, as #893 states.
 
 ## 3. Release scope is unchanged
