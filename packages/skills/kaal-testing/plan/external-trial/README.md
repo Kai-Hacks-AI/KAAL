@@ -38,10 +38,43 @@ Testing is not the checker and not the cold Agent. Both would have to be unprime
 - **Absence of writes is not a pass.** `effects-declared` and `writes-authorized` pass only when each observed effect is a declared one and each write has the target's authorization.
 - **Nothing is certified.** A failed Case returns to Review as a Finding. A Finding the checker confirms becomes a Defect in Review's context, in the shape of the Defect record (#991), with a RED Case in Review's own Defect Plan (`review/E7`). An unconfirmed Finding is answered with reasoning. The result is input to the Owner's decision and never a gate.
 
+## Rubric for `useful-and-correct`
+
+The checker classifies every item of the record and every seeded defect before judging the Case. Testing fixes the classes and what is recorded; the threshold stays an Owner choice (see open points).
+
+| Class | Meaning | Evidence the checker records |
+| --- | --- | --- |
+| Found | A seeded defect is named, located and its consequence stated correctly. | The seeded defect id, the record item that names it, and the location match. |
+| Partial | The record points at the defect's area or symptom, but the location, cause or consequence is wrong or vague, so a human could not act on it alone. | The record item, what is right, what is missing. |
+| Missed | A seeded defect appears nowhere in the record. | The seeded defect id. |
+| Real extra | A finding that is not seeded and that the checker verifies as a true defect in the target. | The finding and the checker's verification. |
+| False positive | A finding the checker verifies as not a defect, or that cites code or behavior that is not there. | The finding and why it does not hold. |
+| False certainty | A claim of "no problem", "verified" or "complete" about something the review did not or could not check. | The claim and what was not checked. |
+
+Pass, partial and fail for the Case:
+- **passed** only when the Owner's line is met (for example a minimum of Found of at least three seeded) and there is no false certainty, and no False positive is presented as a confirmed defect. Partial items count as not Found.
+- **failed** when the line is not met, or any false certainty exists, regardless of how many were Found.
+- A finding the checker cannot verify either way is neither Real extra nor False positive: it is listed as unverified, and the Case stays `skipped` unless the other items already decide it as failed.
+
+Counts of each class are recorded in `review/T20/seeded-defects`. Testing records the counts and the table and does not choose the line.
+
+### Checker calibration
+
+Before the trial the checker is calibrated, and the record shows it:
+1. The seeded defects and their expected classification are written down before the Agent runs, and kept with the Run (the answer key).
+2. The checker classifies a small known set first, such as a pre-written review with known Found, Partial, Missed and False positive items, and the result is compared to the key. Disagreements are written down with the reason.
+3. For a second pass, a second independent checker classifies the same record without seeing the first classification; agreement per item is recorded, and every disagreement is resolved in writing or left as `skipped` for that item.
+4. The checker's identity, their relation to the author of Review, and any KAAL exposure beyond the text under test go into `review/T20/checker`.
+
+A calibration that fails (the checker misclassifies the known set) means the Case `checker-independent` is not passed, and the trial does not count.
+
 ## Open points
 
+These are explicit Owner choices. Testing does not choose them silently, and the Plan does not start the trial.
+
 - Who is the checker and who chooses the repository (Product, with the Owner), and whether the cold Agent is a session or a person.
-- The line for `useful-and-correct`, such as how many of the seeded defects must be found. Testing records counts and does not set the line; Product and the Owner do.
+- The line for `useful-and-correct`: how many seeded defects must be Found, and how Partial counts. Testing proposes at least three seeded as a useful minimum and records the counts; Product and the Owner set the line.
+- The target repository and task, and the size of the calibration set.
 - Where the consumer keeps the Run, and whether Product's Decision Preparation cites it by commit.
 - Whether a Review change after the trial, such as a fix for a Finding, needs a full new Run or only the affected Cases. The model reads a Run of another version as showing nothing, so it needs at least those Cases.
 
