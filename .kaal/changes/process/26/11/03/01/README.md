@@ -78,7 +78,11 @@ ships; and named `test:<suite>` scripts including `test:embedded`.
    use. Recommendation, for the CTO and Owner to confirm on this PR: depend on
    Foundation, since the independence guide rules out duplicating a technical
    answer and the dependency is one small package with no transitive tree. It is
-   a genuine conflict between two owners' guidance, so it is not decided here.
+   a genuine conflict between two owners' guidance.
+   **CTO decision (3 Nov): use Foundation.** AGENTS.md names manifests as
+   Foundation's job, and the independence guide forbids a duplicated technical
+   answer, which justifies this one small hard dependency. The CPO may still
+   challenge it in review.
 3. **N9 trap.** Behaviour-not-presence needs a shipped module outside `test/`
    that the verifier exercises; with none, N9 is `unknown` and so is the overall
    result. Recommendation: do not add code only to satisfy N9. Record the
@@ -102,8 +106,8 @@ each needs enduring consumer value and its own authorization.
 
 ## Open questions
 
-1. **The manifest digest** (finding 2): Foundation dependency or `node:crypto`?
-   A conflict between two owners' guidance; recommendation is Foundation.
+1. **The manifest digest** (finding 2): decided by the CTO as a Foundation
+   dependency; open to CPO challenge in review.
 2. **N9** (finding 3): accept the openly recorded `unknown`, or ship a module that
    earns its place?
 3. **Sequencing.** C5 and C14 (#873) are moving; the DO starts after C5 so the
