@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { createNode, identify } from "kaal-graph";
-import { assess } from "kaal-change/delivery";
+import { assess } from "@kaihacksai/kaal-change/delivery";
 import { CHANGE, DELIVERS, SUCCEEDS } from "../lib/definitions.mjs";
 
 const PACKAGE = fileURLToPath(new URL("../", import.meta.url));

@@ -14,7 +14,7 @@ const CAPABILITY = fileURLToPath(new URL("../../capability/", import.meta.url));
 async function assessor() {
   let mod;
   try {
-    mod = await import("kaal-change/delivery");
+    mod = await import("@kaihacksai/kaal-change/delivery");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-change exports no ./delivery (${e.code ?? e.message})`);
   }

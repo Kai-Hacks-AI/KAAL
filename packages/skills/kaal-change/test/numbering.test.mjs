@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { checkClaim, nextRecordPath, recordOf } from "kaal-change/record";
+import { checkClaim, nextRecordPath, recordOf } from "@kaihacksai/kaal-change/record";
 
 const DAY = { capability: "change", date: "2026-10-19" };
 const files = (record) => [`${record}README.md`, `${record}evidence.md`];

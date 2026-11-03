@@ -10,7 +10,7 @@ import { describe, it } from "node:test";
 async function far() {
   let mod;
   try {
-    mod = await import("kaal-change/far");
+    mod = await import("@kaihacksai/kaal-change/far");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-change exports no ./far (${e.code ?? e.message})`);
   }

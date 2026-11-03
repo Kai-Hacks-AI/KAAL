@@ -17,7 +17,7 @@ const ref = (node) => ({ name: node.name, id: node.id });
 async function assessor() {
   let mod;
   try {
-    mod = await import("kaal-change/delivery");
+    mod = await import("@kaihacksai/kaal-change/delivery");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-change exports no ./delivery (${e.code ?? e.message})`);
   }
