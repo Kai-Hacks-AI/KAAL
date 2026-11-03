@@ -1,0 +1,667 @@
+{
+  "kind": "read-only CI qualification inspection; not execution receipts or performance measurements",
+  "run": {
+    "id": 41321727424,
+    "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424",
+    "workflow": ".github/workflows/ci.yml",
+    "head": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+    "branch": "main",
+    "event": "push",
+    "attempt": 1,
+    "conclusion": "success"
+  },
+  "coverage": "All 11 logs of this one completed CI run. Visible output/structured summaries and matching source only; nested child streams, loaded-byte binding, complete per-Case occurrence inventories and owner-approved equivalence are not established.",
+  "jobs": [
+    {
+      "id": 124893197254,
+      "name": "Guard",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197254",
+      "conclusion": "success",
+      "checkout": {
+        "line": 101,
+        "text": "2026-11-01T15:32:24.7960426Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 161",
+        "ℹ pass 161",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 93505.837013"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197442,
+      "name": "Guard (macOS)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197442",
+      "conclusion": "success",
+      "checkout": {
+        "line": 102,
+        "text": "2026-11-01T15:32:26.4275900Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 152",
+        "ℹ pass 152",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 189516.456333"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197454,
+      "name": "Guard (Windows)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197454",
+      "conclusion": "success",
+      "checkout": {
+        "line": 88,
+        "text": "2026-11-01T15:32:27.2961652Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 151",
+        "ℹ pass 150",
+        "ℹ fail 0",
+        "ℹ skipped 1",
+        "ℹ duration_ms 537765.4561"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": [
+        {
+          "line": 382,
+          "text": "  ﹣ supplies no changed paths when Git cannot compute them, so a check that needs them cannot judge and blocks (0.0681ms) # SKIP"
+        }
+      ]
+    },
+    {
+      "id": 124893197458,
+      "name": "Workspaces",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197458",
+      "conclusion": "success",
+      "checkout": {
+        "line": 101,
+        "text": "2026-11-01T15:32:24.4181409Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 32",
+        "ℹ pass 32",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 13486.149733",
+        "ℹ tests 172",
+        "ℹ pass 172",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 5359.142473",
+        "ℹ tests 9",
+        "ℹ pass 9",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 85.389186",
+        "ℹ tests 8",
+        "ℹ pass 8",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 26361.133643",
+        "ℹ tests 5",
+        "ℹ pass 5",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 7156.798589",
+        "ℹ tests 5",
+        "ℹ pass 5",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 136.817845",
+        "ℹ tests 36",
+        "ℹ pass 36",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 1435.96632",
+        "ℹ tests 48",
+        "ℹ pass 48",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 1493.399463",
+        "ℹ tests 78",
+        "ℹ pass 78",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 2395.519627"
+      ],
+      "visibleRepeatedLabels": [
+        {
+          "label": "permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its other imports are Graph's Node support delivered inside kaal-core, for Node mechanics and for reading frontmatter, and Foundation, for SHA-256",
+          "count": 2,
+          "lines": [
+            247,
+            544
+          ]
+        },
+        {
+          "label": "prohibited: a host builtin Core does not declare fails verification, with its location",
+          "count": 2,
+          "lines": [
+            248,
+            545
+          ]
+        },
+        {
+          "label": "undecidable: host access the inspection cannot decide is reported for validation, never as a pass or a violation",
+          "count": 3,
+          "lines": [
+            249,
+            546,
+            770
+          ]
+        },
+        {
+          "label": "takes what a path is from Hosting's kind: no Core source reads it from a refusal or a host error code",
+          "count": 2,
+          "lines": [
+            250,
+            547
+          ]
+        },
+        {
+          "label": "depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build",
+          "count": 2,
+          "lines": [
+            251,
+            548
+          ]
+        },
+        {
+          "label": "Core's Hosting boundary",
+          "count": 2,
+          "lines": [
+            252,
+            549
+          ]
+        },
+        {
+          "label": "reads the Form strictly",
+          "count": 2,
+          "lines": [
+            258,
+            649
+          ]
+        },
+        {
+          "label": "reads reserved fields as written, whatever YAML would type them",
+          "count": 2,
+          "lines": [
+            259,
+            650
+          ]
+        },
+        {
+          "label": "reads frontmatter keys in any order and any YAML spelling, while identity stays the exact bytes",
+          "count": 2,
+          "lines": [
+            261,
+            653
+          ]
+        }
+      ],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197462,
+      "name": "Hosting (macOS)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197462",
+      "conclusion": "success",
+      "checkout": {
+        "line": 102,
+        "text": "2026-11-01T15:32:27.4957480Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 91",
+        "ℹ pass 91",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 2421.592125"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197463,
+      "name": "Hosting (Linux)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197463",
+      "conclusion": "success",
+      "checkout": {
+        "line": 101,
+        "text": "2026-11-01T15:32:26.0362665Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 91",
+        "ℹ pass 91",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 1333.62099"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197475,
+      "name": "Hosting (Windows)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197475",
+      "conclusion": "success",
+      "checkout": {
+        "line": 88,
+        "text": "2026-11-01T15:32:27.1526116Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 91",
+        "ℹ pass 89",
+        "ℹ fail 0",
+        "ℹ skipped 2",
+        "ℹ duration_ms 2251.7628"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": [
+        {
+          "line": 183,
+          "text": "  ﹣ reports a socket as other (0.3224ms) # no socket can be placed in a directory on Windows"
+        },
+        {
+          "line": 185,
+          "text": "  ﹣ throws a permission the host denies (0.1543ms) # the host does not deny this permission here"
+        }
+      ]
+    },
+    {
+      "id": 124893197513,
+      "name": "Acceptance",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197513",
+      "conclusion": "success",
+      "checkout": {
+        "line": 101,
+        "text": "2026-11-01T15:32:24.7764814Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 33",
+        "ℹ pass 33",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 8294.317356"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197541,
+      "name": "Engineering",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197541",
+      "conclusion": "success",
+      "checkout": {
+        "line": 101,
+        "text": "2026-11-01T15:32:24.4742705Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 231",
+        "ℹ pass 231",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 16982.467862"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": []
+    },
+    {
+      "id": 124893197543,
+      "name": "Acceptance (Windows)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197543",
+      "conclusion": "success",
+      "checkout": {
+        "line": 88,
+        "text": "2026-11-01T15:32:28.8798737Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 33",
+        "ℹ pass 32",
+        "ℹ fail 0",
+        "ℹ skipped 1",
+        "ℹ duration_ms 38218.4776"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": [
+        {
+          "line": 159,
+          "text": "  ﹣ refuses a contribution not portable to every host: case (1.7344ms) # this host cannot hold Greeting.md and greeting.md as written"
+        }
+      ]
+    },
+    {
+      "id": 124893197956,
+      "name": "Acceptance (macOS)",
+      "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41321727424/job/124893197956",
+      "conclusion": "success",
+      "checkout": {
+        "line": 102,
+        "text": "2026-11-01T15:32:28.2678400Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44:refs/remotes/origin/main"
+      },
+      "reportedSummaries": [
+        "ℹ tests 33",
+        "ℹ pass 31",
+        "ℹ fail 0",
+        "ℹ skipped 2",
+        "ℹ duration_ms 12927.673583"
+      ],
+      "visibleRepeatedLabels": [],
+      "skippedOutput": [
+        {
+          "line": 173,
+          "text": "  ﹣ refuses a contribution not portable to every host: case (1.937417ms) # this host cannot hold Greeting.md and greeting.md as written"
+        },
+        {
+          "line": 174,
+          "text": "  ﹣ refuses a contribution not portable to every host: Unicode normalization (1.23575ms) # this host cannot hold Café.md and Café.md as written"
+        }
+      ]
+    }
+  ],
+  "sourceBindings": [
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": ".github/workflows/ci.yml",
+      "blob": "be1ce885bacc4c8ef5b73c1fecad1d06941fbf48",
+      "sha256": "fb8fcb438f9caa3479f5fb6e0cdd47dd0ecd086bf5013565426f0f5adbe79976"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "package.json",
+      "blob": "c20be58721ed4917cda724a7d4ea0d1418d99483",
+      "sha256": "27dc31584061bc9d266fe82a9b3345e144315c6992e8759d5828c17fd8a758df"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "package-lock.json",
+      "blob": "9b476a8b8a00ec9131989c88686b95d485f3d7e1",
+      "sha256": "3cf8f270c63086d608ab32c010e8882ab3317d5989d6bebbb8677090761f8f3d"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "engineering/lanes/workspaces.mjs",
+      "blob": "3972f3b85105c907ad2ec7d5383f2c32fa0fe3a5",
+      "sha256": "67e82e600c9e4ab9a637ef586cb14d62386ad7ba5bf9c1fdb7a98e9bad951c24"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "engineering/lanes/evidence.mjs",
+      "blob": "90a1ff8ec0f48ef30f516532d7a6b2c12034ca7f",
+      "sha256": "b9c36fd0ac24870e8d4b67598712206eeca698ae694c1325d8069ee636df3164"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "engineering/lanes/acceptance.mjs",
+      "blob": "439eb2234cd69c0d2ffba0814bf21ef7ee21e84a",
+      "sha256": "b597c9a1021495d1e32bf2faa2562019b0176bf2e87aacf8606c6780c553b5d0"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "engineering/delivery/pack.mjs",
+      "blob": "f5470ef73da1c0e9c76cb3761806312d890fd75c",
+      "sha256": "c161b68a403c51f6f14f43474ec28e24de0652597a996660107dea18a2348631"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "engineering/guard/acceptance/package.test.mjs",
+      "blob": "c90367c868b783c9db14f5ca309aae4c51f2ea88",
+      "sha256": "cde0cbbd65bb0f1ddf0ca7bd0b2ceec407e4f249ae35f62f77ec41aa057c7fd1"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-guard/package.json",
+      "blob": "67191870eb9031a0f47e95a480eecf5fa6034889",
+      "sha256": "6b4bc2770c6085b47db171a94709225aa5a8587050c7567e15603748a3fcecce"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-guard/lib/runner.mjs",
+      "blob": "3c7873be04dfb61cc367b182028582e9920e561d",
+      "sha256": "46057c71dec99b55c2ccaa3b3f0d1dcbebff6290fdf541f77b29f46dafe60727"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-core/package.json",
+      "blob": "32551bfc47805720d2d8188a86a592d970150be3",
+      "sha256": "596cf2264b9728491cdecb9098ebaa60d40b22cc970f5dea4c31c2a754cecf1c"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-core/test/run.mjs",
+      "blob": "bebf3972e6f9375170e2ad11d083ab5f745e50d8",
+      "sha256": "db74692743ba08c5c787b6f53bde72ec3b12a7e24a94f2ab82f18a9c3686c4f4"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-core/test/verify.mjs",
+      "blob": "64295bfbf10085b5658e30f40f74bcef6d91515e",
+      "sha256": "7dc455ef74eed518493b1f48ff299d0614faa374c160b9200bec26a75adbb991"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-core/test/boundary.test.ts",
+      "blob": "cc225e69c300d0481fe2e1e42a0800a8caa84486",
+      "sha256": "7559d955ff10b79bd31cf58b4c7814e247e6a2b3d30c7bc65a85bc099ae14c07"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-core/test/core.test.ts",
+      "blob": "bcc557ae02a3707d75fffea2a10abdfc14ec5a10",
+      "sha256": "fbe898bae1e8e49f5a17b7eb51a16a1f69aff253d0a9eb6c4dc5e000399661c0"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-foundation/package.json",
+      "blob": "d2f768acb6f97acdde468b6ccf0d419189bd4700",
+      "sha256": "2f716c29fe0605d7e960bfcb3fc91954981b24ef062bf37d2061d1bfcb306a3b"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-foundation/test/run.mjs",
+      "blob": "1398a83b0f7728377365f5a1c58b3c8d13d7c14e",
+      "sha256": "6d1f14afd86281d02f137a1165de49e8d7bffedc352716d540d86e707f816c6b"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/kaal-foundation/test/verify.mjs",
+      "blob": "93111ec9b7bf8a7a1ba3a5d5828c395bb77d6e65",
+      "sha256": "dc887377f6bc5e0856b0ce99b422322ff28423790389510dbe6a9711abb55cb0"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/skills/kaal-graph/test/graph.test.mjs",
+      "blob": "71d3e33444ee3ef1be757ef9f3f7390adaf3489f",
+      "sha256": "87327d4914dc3274335a4654b6e0cc389fcf7b5a4e124ae47f40b21407930d1e"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/skills/kaal-testing/package.json",
+      "blob": "fd24404e1b3654130b70b92aa83780278e65366f",
+      "sha256": "546c91b256db03e5d1b5fca99a3ff2b1cd2b0673056fd4dc590b1eefd0374b0e"
+    },
+    {
+      "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "path": "packages/skills/kaal-testing/test/boundary.test.mjs",
+      "blob": "47e06c95916b4253f176c4cd84a86c90c143e348",
+      "sha256": "f8a6b1af4519c42be986592124167a1470972aed1fe2392326da09f5ad2b4cce"
+    },
+    {
+      "ref": "8ec786f0bc6126c2d1c0ec84aba8d1ae04cfb69f",
+      "path": "engineering/execution/adopt.mjs",
+      "blob": "a3c86faa3854eaf21a180e9e46e9198c4ee9a7d3",
+      "sha256": "3e15b54e084f96f8599da8b3f337e62d969d0f3341dc8fd96a58c41abd1b4826"
+    },
+    {
+      "ref": "8ec786f0bc6126c2d1c0ec84aba8d1ae04cfb69f",
+      "path": "engineering/execution/plan/boundary.json",
+      "blob": "78fffa31d81b536798072b4588d39a3a2c9f2616",
+      "sha256": "b3e134325fdef1bb7aebe1f0c4b394cb266b2055d0c7169a6e951fe586b5bfe2"
+    }
+  ],
+  "qualifiedGroups": [],
+  "measurements": [],
+  "demonstratedExecutionReduction": 0,
+  "demonstratedWallClockSavingsMs": 0,
+  "demonstratedSummedCaseSavingsMs": 0,
+  "qualification": "No eligible live reuse group established in this inspection. This is not proof that all hidden or future CI execution is irredundant.",
+  "excludedSavings": "C136 already promoted; excluded entirely.",
+  "dependencies": {
+    "approvedAdapter": {
+      "pr": 799,
+      "collector": "kaal/ci-execution",
+      "commit": "8ec786f0bc6126c2d1c0ec84aba8d1ae04cfb69f",
+      "activation": false
+    },
+    "promotedTesting": {
+      "pr": 796,
+      "commit": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
+      "package": "kaal-testing",
+      "version": "0.0.1",
+      "publicModule": "kaal-testing/duplicates"
+    },
+    "existingPackages": [
+      {
+        "name": "kaal-hosting",
+        "version": "0.0.1"
+      },
+      {
+        "name": "@kaihacksai/kaal-foundation",
+        "version": "0.0.1",
+        "publicModule": "@kaihacksai/kaal-foundation/sha256"
+      },
+      {
+        "name": "@kaihacksai/kaal-guard",
+        "version": "0.0.4"
+      }
+    ],
+    "guardProducerPlan": {
+      "pr": 780,
+      "head": "40c9be5415131632f86de4e393865ce0b1e19140",
+      "merge": "f241e4485f72f45c4690889cfe36a54ddcb3cb7a",
+      "state": "merged PLAN into kaal/guard-release; not admitted producer code on main",
+      "schema": "guard-run-timing/1",
+      "path": "engineering/guard/plan/timing-producer/README.md"
+    },
+    "pendingProducer": {
+      "pr": 663,
+      "head": "5a961d16de0611db6d608246f5f5596697d80612",
+      "state": "open; not imported"
+    },
+    "pendingLane": {
+      "pr": 665,
+      "head": "a127ba0ade640fbd6e4fce55dfefc9dc5059f8f3",
+      "state": "open; not imported"
+    },
+    "requiredButNotEstablished": [
+      "owner-approved live group and entrypoint/lifecycle equivalence",
+      "supported final-loader/source-consistency receipts and approved producer authority",
+      "accepted original-observation transport and actual CLI exit preservation",
+      "independently retained real-run Case population and event occurrences"
+    ]
+  },
+  "visibleOutputMethod": "For inspection only, strip log timestamp/ANSI and count exact spec/TAP success/failure/skip label text within each job, ignoring displayed duration and retaining one-based raw log line locators. These are presentation rows, including suite rows; no count is a Case identity or an execution receipt. Separately inspect structured Foundation/Core records and Guard diagnostics. Do not add JSON outcomes, suite aggregates and presentation rows together.",
+  "findings": [
+    {
+      "kind": "potential defect",
+      "subject": "Core publisher/boundary repeated visible labels",
+      "job": 124893197458,
+      "lines": [
+        247,
+        248,
+        249,
+        250,
+        251,
+        544,
+        545,
+        546,
+        547,
+        548
+      ],
+      "disposition": "not eligible under accepted D1 on #787; retain both owner-required invocations; no defect established by this inspection"
+    },
+    {
+      "kind": "unknown",
+      "subject": "Core/Graph Form labels",
+      "job": 124893197458,
+      "lines": [
+        258,
+        259,
+        261,
+        649,
+        650,
+        653
+      ],
+      "disposition": "distinct test files/package subjects; equal text does not establish an equivalent execution",
+      "sources": [
+        "packages/kaal-core/test/core.test.ts",
+        "packages/skills/kaal-graph/test/graph.test.mjs"
+      ]
+    },
+    {
+      "kind": "unknown",
+      "subject": "generic undecidable boundary text",
+      "job": 124893197458,
+      "lines": [
+        249,
+        546,
+        770
+      ],
+      "disposition": "Core boundary twice under D1 and Testing boundary once; different inspected package/module populations",
+      "sources": [
+        "packages/kaal-core/test/boundary.test.ts",
+        "packages/skills/kaal-testing/test/boundary.test.mjs"
+      ]
+    },
+    {
+      "kind": "unknown",
+      "subject": "Core boundary suite title",
+      "job": 124893197458,
+      "lines": [
+        252,
+        549
+      ],
+      "disposition": "suite aggregate output, not a sixth repeated Case"
+    },
+    {
+      "kind": "unknown",
+      "subject": "Foundation/Core execution summary output",
+      "job": 124893197458,
+      "lines": [
+        173,
+        183,
+        558
+      ],
+      "disposition": "structured records and presentation rows can describe the same observation; retain manifest/outcome records; do not count each representation as an extra execution"
+    },
+    {
+      "kind": "unknown",
+      "subject": "Guard clean-consumer diagnostics and repeatability",
+      "sources": [
+        "engineering/guard/acceptance/package.test.mjs"
+      ],
+      "disposition": "whole() already returns one retained full observation (C136); repeated() intentionally makes two reduced-consumer runs for T106. Other failure/mutation consumers remain distinct; no C136 saving claimed"
+    },
+    {
+      "kind": "unknown",
+      "subject": "cross-job/host and fresh consumer repetitions",
+      "disposition": "independent checks, platforms and installations; all retained, no cross-job cache"
+    },
+    {
+      "kind": "architectural concern",
+      "status": "suspected; no new competing implementation introduced",
+      "subject": "parallel event recorder or equality algorithm",
+      "disposition": "use existing owner record/producer and Testing public APIs; any alternative needs separate justification/review, not copying pending code"
+    },
+    {
+      "kind": "unknown",
+      "subject": "hidden child executions, runtime-loaded source and wider-condition equivalence",
+      "disposition": "not established by these logs/source bindings. No eligible group or savings is inferred from their absence."
+    }
+  ]
+}
