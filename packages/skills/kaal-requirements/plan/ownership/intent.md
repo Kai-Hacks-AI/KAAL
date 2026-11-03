@@ -1,6 +1,6 @@
 # Requirements ownership: Intent
 
-This is `requirements/C11`, a PLAN Change. It ships no code and no test file. It establishes one owning thread for the Requirements capability, maps the Requirements and traceability work that already exists across the portfolio, and says which part of it Requirements owns, which parts it coordinates, and in what order. It follows the CPO handover of 2 November 2026 and the portfolio assessment (#886, gap C2). No new capability implementation is authorized by it.
+This is `requirements/C13` (provisional; `requirements/C11` and `C12` are reserved by the traceability PLAN for its tests and DO), a PLAN Change. It ships no code and no test file. It establishes one owning thread for the Requirements capability, maps the Requirements and traceability work that already exists across the portfolio, and says which part of it Requirements owns, which parts it coordinates, and in what order. It follows the CPO handover of 2 November 2026 and the portfolio assessment (#886, gap C2). No new capability implementation is authorized by it.
 
 What exists today:
 
