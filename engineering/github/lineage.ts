@@ -503,7 +503,7 @@ export type CheckClaim = (files: { kind: ChangeKind; changed: string[]; collecto
 export type ChangeKind = "substantive" | "synchronization";
 
 /** Where the default branch holds Change's numbering rule. */
-export const RULES = "packages/skills/kaal-change/lib/record.mjs";
+export const RULES = "packages/kaal-change/lib/record.mjs";
 
 export interface ClaimFacts {
   defaultBranch: string;
