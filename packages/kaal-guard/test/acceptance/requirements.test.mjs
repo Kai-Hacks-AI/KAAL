@@ -856,6 +856,72 @@ describe("guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, uncha
   });
 });
 
+describe("guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI", () => {
+  /** The lines a run adds about the pre-push hook, whatever else it prints; an annotation is a workflow command, not a line. */
+  const hookLines = (text) => text.split(/\r?\n/).filter((l) => /pre-push hook/i.test(l) && !l.startsWith("::"));
+  /** What the line must never claim: that the hook was missing, absent, not installed, skipped or did not run. */
+  const CLAIM = /missing|absent|not installed|skipped|did not run|was not run|never ran/i;
+
+  /** A consumer with one check, declared to run on the given surfaces, that exits with the given status. */
+  const one = (runs, status, outcomes) => {
+    const c = consumer();
+    c.write("checks/loud.mjs", LOUD);
+    c.checks({ x: { command: `node checks/loud.mjs ${status}`, runs, ...(outcomes ? { outcomes } : {}) } });
+    c.commit("one");
+    return c;
+  };
+
+  it("guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes", () => {
+    const c = one(["hook", "ci"], 1);
+    const summary = join(c.root, "summary.md");
+    writeFileSync(summary, "");
+    const r = c.guard(["run", "--ci", "--github"], { GITHUB_STEP_SUMMARY: summary });
+    assert.equal(r.status, 1, "the exit status changed");
+    assert.equal(verdicts(r.stdout).x?.verdict, "fail", "the verdict changed");
+    const lines = hookLines(r.stdout);
+    assert.equal(lines.length, 1, `not exactly one earlier-opportunity line: ${JSON.stringify(lines)}`);
+    const [line] = lines;
+    assert.match(line, /\bx\b/, "the line does not name the check");
+    assert.match(line, /npx kaal-guard init --hook/, "the line does not give init --hook");
+    assert.match(line, /npx kaal-guard run --check x\b/, "the line does not give the local rerun");
+    assert.match(line, /\bif\b/i, "the line does not give the next step as a condition");
+    assert.doesNotMatch(line, CLAIM, "the line claims the hook was missing or did not run");
+    const all = r.stdout.split(/\r?\n/).filter((l) => l.trim());
+    assert.ok(all.indexOf(line) > all.findIndex((l) => verdicts(l).x), "the line does not follow the verdict lines");
+    const annotation = r.stdout.split(/\r?\n/).filter((l) => l.startsWith("::error") && l.includes("fail%3A x"));
+    assert.equal(annotation.length, 1, "no error annotation for the failing check");
+    assert.match(annotation[0], /pre-push hook/i, "the fail annotation does not carry the line");
+    assert.doesNotMatch(annotation[0], CLAIM, "the annotation claims the hook was missing or did not run");
+    const text = readFileSync(summary, "utf8");
+    assert.equal(hookLines(text).length, 1, "the step summary does not carry the line exactly once");
+    assert.doesNotMatch(hookLines(text)[0], CLAIM, "the summary claims the hook was missing or did not run");
+
+    // Nothing but that line is added: the same check declared for CI only prints the same output otherwise.
+    const only = one(["ci"], 1).guard(["run", "--ci", "--github"]);
+    assert.equal(only.status, r.status, "the exit status differs from the ci-only check");
+    assert.deepEqual(r.stdout.split(/\r?\n/).filter((l) => !/^kaal-guard: x also runs in the pre-push hook/.test(l)).map((l) => l.replace(/; kaal-guard: x also runs in the pre-push hook.*$/, "")), only.stdout.split(/\r?\n/), "the output other than the line differs from the ci-only check");
+  });
+
+  it("guard/T135 [guard/F43]: a failing ci-only check, the same failing check run in the hook, and a pass, a held, a not applicable and a cannot judge in CI get no line, annotation or summary entry", () => {
+    const quiet = (c, args, step) => {
+      const summary = join(c.root, "summary.md");
+      writeFileSync(summary, "");
+      const r = c.guard(args, { GITHUB_STEP_SUMMARY: summary });
+      assert.deepEqual(hookLines(r.output), [], `${step}: an earlier-opportunity line appeared`);
+      assert.deepEqual(hookLines(readFileSync(summary, "utf8")), [], `${step}: the step summary carries the line`);
+      return r;
+    };
+    quiet(one(["ci"], 1), ["run", "--ci", "--github"], "a failing ci-only check");
+    quiet(one(["hook", "ci"], 1), ["run", "--hook"], "the same failing check in the hook");
+    quiet(one(["hook", "ci"], 1), ["run", "--check", "x"], "the same failing check run locally by name");
+    quiet(one(["hook", "ci"], 0), ["run", "--ci", "--github"], "a pass");
+    quiet(one(["hook", "ci"], 3), ["run", "--ci", "--github"], "a not applicable");
+    quiet(one(["hook", "ci"], 4, { 4: "held" }), ["run", "--ci", "--github"], "a held");
+    const cannot = quiet(one(["hook", "ci"], 2), ["run", "--ci", "--github"], "a cannot judge");
+    assert.equal(cannot.status, 2, "a cannot judge changed its exit status");
+  });
+});
+
 describe("guard/F23 [guard/I5, guard/I7] standalone installation", () => {
   /** What lies under .agents/ and the like: every file whose path starts with one of these. */
   const under = (c, ...prefixes) => c.files().filter((p) => prefixes.some((x) => p.startsWith(x)));

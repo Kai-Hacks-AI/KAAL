@@ -1,6 +1,7 @@
 // The reminder (F21, A15): after the verdict lines of a run that has a fail or cannot judge, one line
-// naming where the kaal-guard Skill is. It is reporting only: it changes no verdict, no exit status and
-// no verdict line (F22), and the runner and the hook know nothing of it.
+// naming where the kaal-guard Skill is. In a CI run it also names, for each failing check that the
+// hook runs too, the hook as an earlier opportunity (F43). It is reporting only: it changes no verdict,
+// no exit status and no verdict line (F22), and the runner and the hook know nothing of it.
 import { existsSync } from "node:fs";
 import { isAbsolute, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,4 +32,22 @@ export function line({ path, deployed }) {
   return deployed
     ? `kaal-guard: to resolve a fail or cannot judge, read the kaal-guard Skill at ${path}`
     : `kaal-guard: to resolve a fail or cannot judge, read the kaal-guard Skill; none is deployed in this repository, so read the package's copy at ${path}`;
+}
+
+/**
+ * The checks of a CI run that earn the earlier-opportunity line (F43): each one that ends fail and whose
+ * declaration's `runs` holds both hook and ci. A run in the hook, a check that runs only in CI and any
+ * other verdict earn none. `list` is the repository's declarations as the run read them.
+ */
+export function earlier(results, list, ci) {
+  if (!ci) return [];
+  return results.filter((r) => r.verdict === "fail" && list.checks?.[r.name]?.runs?.includes("hook") && list.checks[r.name].runs.includes("ci")).map((r) => r.name);
+}
+
+/**
+ * The earlier-opportunity line for one check (F43). It is a condition and a next step, never a claim: Guard
+ * does not know why the hook did not catch the failure, so the line never says that the hook was missing.
+ */
+export function earlierLine(name) {
+  return `kaal-guard: ${name} also runs in the pre-push hook, so the hook was an earlier opportunity to catch this failure; check whether the hook is active in your clone, and if it is not active, run \`npx kaal-guard init --hook\`, then run \`npx kaal-guard run --check ${name}\` locally`;
 }
