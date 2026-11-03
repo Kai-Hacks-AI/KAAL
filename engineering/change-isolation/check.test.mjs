@@ -350,6 +350,20 @@ describe("transition ledger", () => {
     assert.deepEqual(check(PATHS, { ledger: ledgerOf(entry()), facts: facts() }), []);
   });
 
+  it("admits the matching entry when the ledger also holds a spent entry over the same paths (Codex on #952)", () => {
+    // t0 was adopted earlier: the target now holds its post blobs. t1 is the next transition over the same
+    // paths. An entry that does not match must not veto one that does.
+    const spent = entry({ id: "t0", pre: Object.fromEntries(PATHS.map((p) => [p, blob(0)])), post: Object.fromEntries(PATHS.map((p) => [p, blob(1)])) });
+    assert.deepEqual(check(PATHS, { ledger: ledgerOf(spent, entry()), facts: facts() }), []);
+    assert.deepEqual(check(PATHS, { ledger: ledgerOf(entry(), spent), facts: facts() }), []);
+  });
+
+  it("still names every broken commitment when no entry over the paths matches", () => {
+    const spent = entry({ id: "t0", pre: Object.fromEntries(PATHS.map((p) => [p, blob(0)])), post: Object.fromEntries(PATHS.map((p) => [p, blob(1)])) });
+    const v = check(PATHS, { ledger: ledgerOf(spent, entry()), facts: facts(blob(4), blob(2)) });
+    assert.ok(v.some((x) => x.startsWith("transition t0:")) && v.some((x) => x.startsWith("transition t1:")), v.join("\n"));
+  });
+
   it("refuses a path the ledger does not name, and a missing path", () => {
     const extra = check([...PATHS, "README.md"], { ledger: ledgerOf(entry()), facts: facts() });
     assert.ok(extra.some((v) => v.startsWith("core travels alone: README.md")));
