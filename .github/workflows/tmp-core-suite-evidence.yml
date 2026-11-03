@@ -8,22 +8,16 @@ permissions:
   contents: read
 
 jobs:
-  core:
-    name: Core suite (${{ matrix.host }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { host: Windows, os: windows-latest }
-          - { host: macOS, os: macos-latest }
+  core-main-windows:
+    name: Core suite at main (Windows)
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 17c2173afda891e9f77ab52ef79f88cca7c270b3
+          ref: 7fa02ac6153802301785900139b3196b32c7982f
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - run: npm ci
-      - run: npm run build -w @kaihacksai/kaal-hosting
+      - run: npm run build -w kaal-hosting
       - run: npm test -w kaal-core
