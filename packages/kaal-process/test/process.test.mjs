@@ -155,10 +155,10 @@ describe("admission", () => {
 describe("Process's own claim", () => {
   it("names the Capability Node by its kind and exact name and id, and claims Process's tree", () => {
     const capability = node("Process.md");
-    const { claim, finding } = readClaim(`packages/skills/kaal-process/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
+    const { claim, finding } = readClaim(`packages/kaal-process/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
     assert.equal(finding, undefined);
     assert.deepEqual(claim.owner, { kind: "capability", name: capability.name, id: capability.id });
-    assert.deepEqual(claim.paths, ["packages/skills/kaal-process/"]);
+    assert.deepEqual(claim.paths, ["packages/kaal-process/"]);
   });
 });
 
