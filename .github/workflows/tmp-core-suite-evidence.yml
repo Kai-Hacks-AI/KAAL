@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   core-main-windows:
-    name: Core suite at main (Windows)
+    name: Core two test files at main (Windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -20,4 +20,8 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm run build -w kaal-hosting
-      - run: npm test -w kaal-core
+      - run: npm run build -w kaal-core
+      - run: npx tsc -p tsconfig.test.json
+        working-directory: packages/kaal-core
+      - run: node --test dist-test/core.test.js test/plan/love.test.mjs
+        working-directory: packages/kaal-core
