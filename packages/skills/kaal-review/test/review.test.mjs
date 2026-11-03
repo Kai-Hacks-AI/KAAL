@@ -40,7 +40,7 @@ describe("kaal-review", () => {
 
   it("is self-contained: the Agent Skill states its rules and needs no Engine, Node or other file", () => {
     const skill = readFileSync(join(PACKAGE, "skills", "kaal-review", "SKILL.md"), "utf8");
-    assert.match(skill, /needs no KAAL Engine and no other file/);
+    assert.match(skill, /needs no KAAL Engine/);
     assert.doesNotMatch(skill, /read them there|starting from the Engine/);
     for (const rule of [
       /Read the work itself and its evidence/,
@@ -86,6 +86,15 @@ describe("kaal-review", () => {
       "payload/Review.md",
       "payload/TOGETHER-WE-CAN-GO-FAR.md",
       "skills/kaal-review/SKILL.md",
+      "skills/kaal-review/references/dimensions.md",
+      "skills/kaal-review/references/example.md",
+      "skills/kaal-review/references/finding-format.md",
+      "skills/kaal-review/references/re-review.md",
+      "skills/kaal-review/references/record.md",
+      "skills/kaal-review/references/request.md",
+      "skills/kaal-review/scripts/check-record.mjs",
+      "skills/kaal-review/scripts/collect.mjs",
+      "skills/kaal-review/scripts/record.mjs",
     ]);
   });
 });

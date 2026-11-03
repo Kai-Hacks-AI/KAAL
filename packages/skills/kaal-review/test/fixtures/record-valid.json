@@ -1,0 +1,26 @@
+{
+  "schema": "kaal-review/1",
+  "id": "r-0001",
+  "reviewer": { "actor": "agent-b", "independence": "fresh context, not the author" },
+  "time": "2026-11-02T22:00:00Z",
+  "subject": { "repository": "example/repo", "pull_request": 7, "head": "a1b2c3d", "base": "9f8e7d6", "paths": ["packages/skills/kaal-foo/lib/a.mjs", "docs/x.md"] },
+  "request": { "severity_floor": "minor", "checks": [{ "command": "npm test", "expected_status": 0 }], "claims": ["foo/F1"], "lenses": ["foo lens"] },
+  "lenses": [{ "source": "foo lens", "applied": true }],
+  "checks": [{ "command": "npm test", "exit_status": 0, "expected_status": 0, "output": "12 passed" }],
+  "findings": [
+    { "id": "F1", "severity": "major", "dimension": "correctness", "location": "lib/a.mjs:40", "claim": "drops the last record", "evidence": { "kind": "observed", "detail": "ran parse on two lines without newline, got one record" }, "impact": "data loss", "direction": "flush the buffer at end of input", "status": "open" },
+    { "id": "F2", "severity": "minor", "dimension": "security", "location": "lib/a.mjs:55", "claim": "path from input joined unchecked", "evidence": { "kind": "inferred", "detail": "reading only" }, "impact": "possible traversal", "direction": "resolve and check containment", "status": "open" }
+  ],
+  "below_floor": 3,
+  "claims": [{ "claim": "foo/F1", "outcome": "failed", "evidence": "see F1" }],
+  "not_checked": ["Windows path handling"],
+  "human_to_observe": ["the default changes from 30 s to 5 s"],
+  "self_check": {
+    "checks": [{ "command": "npm test", "ran": true, "result": "exit 0" }],
+    "lenses": [{ "source": "foo lens", "applied": true }],
+    "claims": [{ "claim": "foo/F1", "outcome": "failed" }],
+    "inference_only": ["F2"]
+  },
+  "round": 1,
+  "prior": null
+}
