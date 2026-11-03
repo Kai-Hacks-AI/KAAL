@@ -62,4 +62,14 @@ describe("packaging/C18 the general package-engineering skill", () => {
     assert.match(read("docs", "requirements.md"), /\*\*packaging\/F27\*\*/);
     assert.match(read("docs", "architecture.md"), /\*\*packaging\/A21\*\*/);
   });
+  it("packaging/T59 [packaging/F27]: the independent trial of the general skill is recorded with its accounts and expectations set beforehand, and names its inputs, independence, observations, judgments, unknowns, the Owner decision and its limits", () => {
+    const TRIAL = ["plan", "general", "trial"];
+    for (const f of ["expected.md", "record-agent-report.md", "neutral/account-D.md", "neutral/account-E.md", "neutral/account-F.md"]) assert.ok(existsSync(join(ROOT, ...TRIAL, ...f.split("/"))), f);
+    // The neutral accounts carry no outcome hint.
+    for (const x of ["D", "E", "F"]) assert.doesNotMatch(read(...TRIAL, "neutral", `account-${x}.md`), /scenario|adequate|omission|unsupported|conflict|looks complete/i);
+    const text = read(...TRIAL, "record.md");
+    for (const heading of ["Candidate and inputs", "Independence", "Inspection choices and tool observations", "Agent judgments", "Unresolved unknowns", "Owner decision", "Limits"]) assert.match(text, new RegExp(`## ${heading}`), heading);
+    assert.match(text, /not a proof/i);
+    assert.match(text, /Hints\./, "the record states the hint limit");
+  });
 });
