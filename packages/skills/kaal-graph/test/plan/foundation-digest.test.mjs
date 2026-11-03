@@ -19,17 +19,11 @@ describe("one SHA-256 for Graph", () => {
     assert.equal(identify(bytes).id, sha256(bytes));
   });
 
-  it("graph/T20 [graph/F16, graph/N7]: Graph computes no digest of its own", () => {
+  it("graph/T20 [graph/F16]: Graph computes no digest of its own", () => {
     for (const file of readdirSync(SCRIPTS).filter((f) => f.endsWith(".mjs"))) {
       assert.ok(!/node:crypto|createHash/.test(readFileSync(join(SCRIPTS, file), "utf8")), `${file} computes a digest itself`);
     }
     const node = readFileSync(join(SCRIPTS, "node.mjs"), "utf8");
     assert.ok(specifiers(node).includes(FOUNDATION), "node.mjs imports sha256 from Foundation");
-    const allowed = { "form.mjs": [], "node.mjs": ["./form.mjs", FOUNDATION], "form.d.ts": [], "node.d.ts": ["./form.js"] };
-    for (const [file, local] of Object.entries(allowed)) {
-      for (const spec of specifiers(readFileSync(join(SCRIPTS, file), "utf8"))) {
-        assert.ok(spec === "yaml" || spec.startsWith("node:") || local.includes(spec), `${file} imports ${spec}`);
-      }
-    }
   });
 });

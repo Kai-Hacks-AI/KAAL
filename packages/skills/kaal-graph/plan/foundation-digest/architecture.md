@@ -8,6 +8,6 @@
 
 | Change | Owner | Waits on |
 | --- | --- | --- |
-| `graph/C16` PLAN (this): graph/F16, F17, N11 planned, T20 observed RED, T19 GREEN | Graph | Owner confirmation of graph/Q3 |
+| `graph/C16` PLAN (this): graph/F16, F17, N11 planned, T20 observed RED, T19 GREEN, N7 amended and T14 revised | Graph | — (graph/Q3 answered) |
 | Core's byte copy carries the specifier (core/C32 follow-up) | Core | `graph/C17` |
-| `graph/C17` DO: graph/A15, T20 GREEN, T14 superseded by T20 | Graph | `graph/C16`; Foundation on a registry or a pin for the lock |
+| `graph/C17` DO: graph/A15, T20 GREEN (T14 stays GREEN) | Graph | `graph/C16`; Foundation on a registry or a pin for the lock |

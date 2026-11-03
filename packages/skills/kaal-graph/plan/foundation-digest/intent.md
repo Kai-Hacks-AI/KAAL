@@ -6,6 +6,12 @@ This is `graph/C16`, a PLAN Change. It ships no code. `graph/C17` is the DO Chan
 
 - **graph/I12. Graph has no SHA-256 of its own.** Every Node id comes from Foundation's `sha256`, and no Node id changes.
 
-## A conflict this PLAN returns rather than decides
+## The conflict, and the Owner's answer
 
-`node.mjs` is copied byte for byte by Core (core/C32), and graph/N7, graph/T14 and graph/A-copy say it may import only `yaml`, `node:` built-ins and `form.mjs`. Importing Foundation breaks that sentence, though not the purpose behind it: Core already depends on Foundation, so a copy of `node.mjs` works there. The PLAN therefore proposes amending graph/N7 to name one more allowed import, and asks the Owner to confirm (graph/Q3). It does not weaken T14 silently: graph/T20 below replaces it only if the Owner confirms.
+`node.mjs` is copied byte for byte by Core (core/C32), and graph/N7 and graph/T14 said it may import only `yaml`, `node:` built-ins and `form.mjs`. Importing Foundation broke that sentence. The Owner answered graph/Q3 (3 Nov): Graph can of course use Foundation's `sha256`, so N7 may be void.
+
+I checked what N7 still protects. It has two parts:
+- **Which external packages the copied files may import.** The EEE rule now covers this: Embedded code takes only Foundation and Hosting as hard dependencies. This part of N7 is retired as a Graph-specific list. Of the four copied files only Foundation's `sha256` (and the declared `yaml`) is allowed, and never Hosting, which only the CLI uses.
+- **No other Graph file beside them.** The EEE rule does not cover this: it limits a package's dependencies, not how its files depend on each other. A copy of `node.mjs` that imported `edges.mjs` or `structure.mjs` would break in Core. This part stays.
+
+So N7 is amended, not voided, and T14 is revised in place to test exactly that, with the Owner's confirmation recorded in its title. graph/T20 still turns RED to GREEN with the DO.
