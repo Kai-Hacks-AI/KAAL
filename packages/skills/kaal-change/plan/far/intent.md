@@ -1,23 +1,34 @@
-# FAR, Features Accepted Regression: Intent
+# FAR, Features Accept Regression: Intent
 
 This is `change/C2`, a PLAN Change. It ships no code. A later DO Change turns the planned tests GREEN.
 
-The Owner decided on #558 (2026-10-28) that FAR is Change's composition for integrating a source into a target. FAR is exactly three artifacts: a Features Test Plan, an Accept list and a Regression Test Plan. It is the FAR of Review's TOGETHER WE CAN GO FAR (#270), Features Accepted Regression.
+The Owner decided on #558 (2026-10-28) that FAR is Change's composition for integrating a source into a target. FAR is exactly three artifacts: a Features Test Plan, an Accept List and a Regression Test Plan. It is the FAR of Review's TOGETHER WE CAN GO FAR (#270). This amendment follows the Owner's ruling of 2026-11-03 and the CPO handover of the same day, which name it Features Accept Regression: **FAR is a Change concept that uses Testing and Guard. kaal-change drives it and owns all three artifacts and the gate. Testing owns testing semantics, Guard owns guard semantics, and Change owns change semantics.**
 
 The capabilities divide FAR as follows:
 - **Testing** evaluates ordinary Test Plans generically and knows nothing of FAR. That evaluation is `testing/C4` (#385) and Testing's Test Plan PLAN.
-- **Engineering** selects the revisions and runs the integration gates.
+- **Guard** owns guard semantics. FAR is wired up in Guard's setup as a configured check that Guard executes and reports generically. Guard does not interpret FAR and does not decide whether a regression is acceptable.
+- **Engineering** supplies the immutable revision evidence for the named integration and the Git semantics Change does not have.
 - **Review** supplies the authorization evidence.
 
 - **change/I5.** FAR is Change's composition for one named integration of a source into a target, at the target's protected baseline. Engineering names the integration and supplies its immutable revision evidence. Change compares that evidence and gives it no Git semantics.
-- **change/I6.** Features and Regression are ordinary Test Plans, each owned by its own capability:
-  - **Features** is the incoming Change's Plan. It protects what the source promises, and it is never excepted.
-  - **Regression** is the target's Plan at the protected baseline. It protects what the target already delivers.
+- **change/I6.** Features and Regression are Test Plans that kaal-change drives and owns as FAR concepts. Their form and evaluation are Testing's: they are ordinary Test Plans using Testing's concepts.
+  - **Features** is the incoming Change's Plan, read at the source's revision. It protects what the source promises, and it is never excepted.
+  - **Regression** is the target's Plan, read at the protected baseline. It protects what the target already delivers. The source cannot weaken it by changing its own tests, because it is read at the baseline and not at the source.
 
-  Change selects both and edits neither, nor any of their Cases.
-- **change/I7.** Accept is Change's separately negotiated and authorized list of individual Regression Cases that may stay RED.
+  Change owns the selection and the FAR meaning of both. Testing owns what a Test Plan and a Case mean.
+- **change/I7.** The Accept List is Change's separately negotiated, versioned and authorized list of individual Regression Cases proposed for acceptance as RED. It travels with the source Change.
   - **Justification.** Each Case is justified by Features Cases.
   - **Scope.** It applies only to the integration it names, and it never transfers to another.
   - **Evidence.** Accepted Cases stay observed RED, while the Regression Plan's evaluation succeeds under the authorized exceptions.
   - **No waiver.** There is no standing waiver.
-- **change/I8.** Change decides and composes. Testing evaluates the Plans, Engineering gates, and Review evidences the authority.
+- **change/I8.** Change drives the gate, judges and composes. Testing evaluates the Plans, Guard reports what it observes, Engineering supplies revision evidence, and Review evidences the authority. Where Change cannot establish acceptance within its authority, PREACH is the escalation to the accountable human (see the questions below).
+
+## Open questions
+
+These stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO.
+
+1. **Guard's reporting outputs.** What exactly does Guard report for a FAR check: GREEN and RED per Case, accept-list coverage, and unresolved conditions? Guard owns the output format. Change consumes it, judges it, and defines no Guard type.
+2. **PREACH.** How does Change escalate through PREACH when acceptance is beyond its authority? PREACH is not in Change's contracts today, only in Core's and Engineering's documents. Who owns the escalation contract?
+3. **Entry-point visibility.** Does FAR deserve its own visible entry point in the UI, or does it sit below the collector's single entry point?
+4. **The expansion.** Review's #270 still says Features Accepted Regression. Is the name Features Accept Regression (this PLAN, the CPO handover)? Name only; it affects no contract.
+5. **#662.** Delivery counts allowed failed Cases as unmet. An accepted Case that stays RED must remain consistent with that.

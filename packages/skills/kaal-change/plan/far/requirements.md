@@ -1,4 +1,4 @@
-# FAR, Features Accepted Regression: Requirements
+# FAR, Features Accept Regression: Requirements
 
 Each Requirement names, in brackets, the Intents it serves.
 
@@ -8,7 +8,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - It reads nothing from the host and writes nothing.
   - It does not read the clock.
   - It never changes its input.
-- **change/N4** [change/I7]: A record without an Accept yields no exceptions, and its FAR composes from the two Plans alone.
+- **change/N4** [change/I7]: A record without an Accept List yields no exceptions, and its FAR composes from the two Plans alone.
 
 ## Functional
 
@@ -21,7 +21,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - **`accept`** is optional, and holds `{ proposal, decision }`.
 
   A Plan reference is a Plan identity in its owner's namespace. A missing or malformed member, or an `at` that is not the revision its Plan must be read at, is a finding.
-- **change/F8** [change/I6, change/I7]: An Accept proposal holds these members:
+- **change/F8** [change/I6, change/I7]: An Accept List proposal holds these members:
   - `intent`: the Intent the incoming Change realizes;
   - `entries`: at least one, each `{ case, justifiedBy, protects }`;
   - `reason`;

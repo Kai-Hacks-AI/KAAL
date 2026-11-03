@@ -1,4 +1,4 @@
-# FAR, Features Accepted Regression: Testing
+# FAR, Features Accept Regression: Testing
 
 The planned outer tests live in `packages/skills/kaal-change/test/plan/far.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK.
 
