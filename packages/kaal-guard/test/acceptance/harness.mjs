@@ -49,13 +49,13 @@ export const TYPE = "Guard/Check";
 
 /**
  * One declaration's file: typed frontmatter in guard/F1's strict YAML subset, then a body of guidance
- * Guard never reads. Strings are double-quoted, lists and the outcomes map are flow-style, and each
- * outcome's exit status is a double-quoted key (guard/F1, `guard/C38`).
+ * Guard never reads. Strings are double-quoted, and lists are flow-style (guard/F1). `outcomes` is written only to show it is refused (guard/C130).
  */
 export function declaration(check, body = "Guidance for people and agents; Guard never reads it.\n") {
   const lines = [`type: ${TYPE}`, `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
   if (check.facts) lines.push(`facts: [${check.facts.join(", ")}]`);
   if (check.trusted) lines.push(`trusted: ${JSON.stringify(check.trusted)}`);
+  if (check.held) lines.push(`held: [${check.held.join(", ")}]`);
   if (check.outcomes) lines.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${JSON.stringify(String(k))}: ${v}`).join(", ")}}`);
   return `---\n${lines.join("\n")}\n---\n\n${body}`;
 }

@@ -254,6 +254,8 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.guard("init", "--hook", "--ci").status, 0);
     m.write(".githooks/pre-push", `${m.read(".githooks/pre-push")}# the consumer's own line\n`);
     m.write("README.md", "the consumer's own file\n");
+    const heldFile = ".kaal/config/guard/hold.md";
+    m.write(heldFile, '---\ntype: Guard/Check\ncommand: "node -e process.exit(4)"\nruns: [hook]\noutcomes: {"4": held}\n---\n\nHeld by the consumer.\n');
     m.git("add", "-A");
     m.git("commit", "-q", "-m", "older");
     const hook = m.read(".githooks/pre-push");
@@ -373,6 +375,8 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     if (path.verdict === "legacy") t.diagnostic(`${newer.version} predates guard/F42 and declares no upgrade paths`);
     else t.diagnostic(`${newer.version} declares upgrade paths to ${pair.to.paths.target} from: ${pair.to.paths.sources.join(", ")}`);
     if (!applies(t, path.verdict !== "undeclared", `${newer.version} declares no upgrade path from ${older.version}`)) return;
+    // From 0.0.5 a declaration says held: [N], not outcomes: {"N": held} (guard/C130); the migration is the consumer's step.
+    const migrates = /^0\.0\.(?:[5-9]|\d{2,})(?:[-+].*)?$/.test(newer.version);
     const hook = ".githooks/pre-push";
     const managed = Object.values(pair.to.assets).filter((a) => a.surface !== undefined && (a.target ?? a.path) !== hook);
 
@@ -405,6 +409,15 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read(hook), kept.hook, "upgrade changed a modified managed asset");
     assert.equal(m.read("README.md"), kept.readme, "upgrade changed a file Guard did not write");
     assert.deepEqual(declarations(m), kept.declarations, "upgrade changed a declaration");
+    if (migrates) {
+      // guard/C130: the target refuses the 0.0.4 form, naming the line to write, and gives held once the consumer writes it.
+      const refused = m.guard("run", "--check", "hold");
+      assert.equal(refused.status, 2, `the newer candidate did not refuse outcomes as cannot judge:\n${refused.output}`);
+      assert.ok(refused.output.includes("held: [4]"), `the refusal does not name held: [4]:\n${refused.output}`);
+      m.write(heldFile, m.read(heldFile).replace('outcomes: {"4": held}', "held: [4]"));
+      const held = m.guard("run", "--check", "hold");
+      assert.match(held.output, /^held: hold:/m, `the migrated declaration is not held:\n${held.output}`);
+    }
 
     const registered = record(m);
     for (const target of managed.map((a) => a.target ?? a.path).filter((target) => registered[target])) {

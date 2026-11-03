@@ -31,7 +31,7 @@ Every identifier is written Capability-qualified, as `<capability>/<id>`, in def
 | guard/T66: between two candidates, a managed asset the newer one manages, missing from the repository, is installed by `upgrade`, and only for a surface the consumer activated; `upgrade` activates none. Corrected in `guard/C35` to the hook, because `upgrade` never installs Guard's workflow (guard/F17), and to the activated surface (guard/F30) | guard/F13, guard/F30 | Requirements | Engineering |
 | guard/T67: between two candidates, the installation record registers each unmodified asset's new version and hash, `upgrade` reports the versions it moved between, and a modified asset is reported as modified and kept with its registered version | guard/F14 | Requirements | Engineering |
 | guard/T68: between two candidates, back and forward again, each unmodified managed asset returns to that version's content, and modified, consumer-owned and declaration files are untouched | guard/I5, guard/F16 | Requirements | Engineering |
-| guard/T80: every key in the frontmatter of KAAL's own declarations is a string to YAML 1.2's core schema: each `outcomes` status is double-quoted. Added in `guard/C38` | guard/F1, guard/A11 | Architecture | Engineering |
+| guard/T80: KAAL's own declarations say `held`, a flow list of integers, and none says `outcomes`. Added in `guard/C38`, revised in `guard/C130` | guard/F1, guard/A11 | Architecture | Engineering |
 
 | guard/T46: `kaal-engineer-skill` finds no standard or KAAL violation in the Embed Skill or the External variant. It needs KAAL's workspace installed and built, so it runs only in the Guard lane on the host that installs it, and turns GREEN only with `guard/C14` and `guard/C17` (restated in `guard/C46`) | guard/F19, guard/A13, guard/A16 | Architecture | Engineering |
 | guard/T55: a consumer of `0.0.1` moves to the candidate, runs `upgrade`, and gains the Skill at the canonical location. Retired in `guard/C30`: `0.0.2` offers no upgrade from `0.0.1` (`guard/C23`); a fresh `0.0.2` setup gains the Skill (guard/T50), and a later version's new asset is installed by `upgrade` (guard/T66) | guard/I5, guard/F13, guard/F23, guard/A12 | Requirements | Engineering |
@@ -461,6 +461,14 @@ guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-gu
 | Test | Checks | Written in | Evidence before the DO | Evidence after the DO |
 | --- | --- | --- | --- | --- |
 | guard/T138: Guard's two ownership claims each read through Testing's reader (`kaal-testing/attribution`), name `{ kind: "capability", name: "Guard", id }` with the id Graph's `identify()` gives for `engineering/guard/Guard.md`, and claim exactly their own tree; `npm pack --dry-run` lists no claim. In `engineering/guard/acceptance/workspace.test.mjs`, with the cases that need KAAL's workspace | guard/A20, guard/N6 | `guard/C137` | RED: a claim whose id is one byte off is refused as not naming Guard's Node; a package whose `files` list adds the claim is refused as carrying a KAAL element | GREEN on Linux with Node 24 |
+
+## `Guard/Check` in Core's value kinds (`guard/C130`)
+
+guard/T128 is the delivered Requirements case, defined in the package's `docs/testing.md`. guard/T129 is the publisher's: it needs KAAL's workspace, so it sits with the cases that do, in `engineering/guard/acceptance/workspace.test.mjs`. guard/T118 also holds, in each consumer, a declaration written the `0.0.4` way, and guard/T80 now checks that KAAL's own declarations say `held`.
+
+| Test | Checks | Written in | Evidence before the DO | Evidence after the DO |
+| --- | --- | --- | --- | --- |
+| guard/T129: over a corpus of declarations, Guard's validator accepts none that `kaal-core/frontmatter` refuses, given `Guard/Check` stated in `core/F1` kinds (`command` a `parameter`, `held` a list of `number`); each declaration only Guard refuses is listed as semantic. In `engineering/guard/acceptance/workspace.test.mjs` | guard/F1, guard/F2, guard/A8 | `guard/C130` | RED against the collector's `lib/`: "outcomes, the 0.0.4 map: Guard accepts what Core refuses (invalid)" | GREEN on Linux with Node 24 |
 
 ## Defects
 
