@@ -15,12 +15,13 @@ KAAL 1..n Capability 1..n Skill 1..n Script.
 - In a given repository, the Capability is its instance.
 - Engineering and Packages are KAAL-only extras. A KAAL-enabled consumer does not get them.
 
-## 1b. The layering rule (Owner, 3 Nov)
+## 1b. A possible layering principle (Owner, 3 Nov; open, optional)
 
-Where an element has an underlying model, as Skill does, the model goes a layer deeper. That is why the Owner's
-model has Skill 1..n Script. The cardinality goes one layer deeper only where that element has its own underlying
-model. Agents and Extensions get a deeper layer only once their model is defined, and this record does not
-invent one for either. It also does not assume that Capability has the same kind of layer beneath it as Skill does.
+Where an element has an underlying model, as Skill does, the model could go a layer deeper. That is the thought behind
+Skill 1..n Script. The Owner's wording is "if necessary, unsure atm", so this is an open, optional principle and not a
+rule. Nothing in this record depends on it. Agents and Extensions would get a deeper layer only once their model is
+defined, and this record does not invent one for either. It also does not assume Capability has a layer beneath it
+of the same kind.
 
 ## 1a. Framed under CASE
 
