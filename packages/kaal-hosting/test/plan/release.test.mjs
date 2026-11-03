@@ -67,7 +67,7 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     assert.equal(p.name, NAME);
     assert.equal(p.version, "0.0.1");
     assert.deepEqual(p.publishConfig, { access: "public" });
-    assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/extensions/kaal-hosting" });
+    assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/kaal-hosting" });
     // Its exports, commands and files are the declared interface's, which hosting/T41 checks (hosting/C15).
     assert.deepEqual(p.engines, { node: ">=24" });
     assert.equal(p.license, "MIT");

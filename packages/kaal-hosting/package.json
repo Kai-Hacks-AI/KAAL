@@ -6,7 +6,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
-    "directory": "packages/extensions/kaal-hosting"
+    "directory": "packages/kaal-hosting"
   },
   "type": "module",
   "main": "./dist/index.js",
