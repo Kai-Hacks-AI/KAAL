@@ -900,9 +900,8 @@ describe("guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI", (
     const only = one(["ci"], 1).guard(["run", "--ci", "--github"]);
     assert.equal(only.status, r.status, "the exit status differs from the ci-only check");
     assert.deepEqual(r.stdout.split(/\r?\n/).filter((l) => !/^kaal-guard: x also runs in the pre-push hook/.test(l)).map((l) => l.replace(/; kaal-guard: x also runs in the pre-push hook.*$/, "")), only.stdout.split(/\r?\n/), "the output other than the line differs from the ci-only check");
-  });
 
-  it("guard/T135 [guard/F43]: a failing ci-only check, the same failing check run in the hook, and a pass, a held, a not applicable and a cannot judge in CI get no line, annotation or summary entry", () => {
+    // Negatives: the same ask, where no line belongs.
     const quiet = (c, args, step) => {
       const summary = join(c.root, "summary.md");
       writeFileSync(summary, "");

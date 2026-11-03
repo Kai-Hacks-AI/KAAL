@@ -55,7 +55,6 @@
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T9 [guard/F4, guard/A4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify",
     "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
     "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes",
-    "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43]: a failing ci-only check, the same failing check run in the hook, and a pass, a held, a not applicable and a cannot judge in CI get no line, annotation or summary entry",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T12 [guard/F5, guard/A5]: reports not applicable as not applicable, never as a pass",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T13 [guard/F5, guard/A5]: reports held as a warning, never as a pass, with the check's own explanation visible",
@@ -520,7 +519,6 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
         "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes",
-        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43]: a failing ci-only check, the same failing check run in the hook, and a pass, a held, a not applicable and a cannot judge in CI get no line, annotation or summary entry",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
@@ -585,8 +583,7 @@
         "test/acceptance/requirements.test.mjs > guard/F23 [guard/I5, guard/I7] standalone installation > guard/T53 [guard/F23, guard/N10, guard/N12, guard/A14]: the standalone lifecycle writes no supplier-specific location, even where such directories exist, and its report names the canonical path",
         "test/acceptance/requirements.test.mjs > guard/F23 [guard/I5, guard/I7] standalone installation > guard/T57 [guard/F23, guard/F8]: a modified deployment is kept and reported while the others move forward, and remove leaves it",
         "test/acceptance/requirements.test.mjs > guard/F26 [guard/I1, guard/I7] agent instruction files > guard/T54 [guard/F26]: init, upgrade and remove create, edit and remove no AGENTS.md, CLAUDE.md or other instruction file; init reports the canonical path and how an agent reaches it, and proposes no supplier-specific pointer",
-        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes",
-        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43]: a failing ci-only check, the same failing check run in the hook, and a pass, a held, a not applicable and a cannot judge in CI get no line, annotation or summary entry"
+        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes"
       ]
     },
     "guard/A13": {
@@ -686,8 +683,7 @@
     },
     "guard/F43": {
       "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes",
-        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43]: a failing ci-only check, the same failing check run in the hook, and a pass, a held, a not applicable and a cannot judge in CI get no line, annotation or summary entry"
+        "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes"
       ]
     },
     "guard/F5": {
@@ -817,7 +813,7 @@
     "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
     "docs/limitations.md": "77bda8d9877a077b89802b6c37dd6e921fd2f1b536817e8731455c1fc3094c56",
     "docs/requirements.md": "7f8d9fc11cb846dd339c0649a56bb8f342f53c5c04762819de99bccf33312067",
-    "docs/testing.md": "db42ac2bfdfc868cdfdbedff9c354e5701ee62fe64952620db385243b18a2132",
+    "docs/testing.md": "06da0b12b502dba39fd2dfd0e6ab8361f1b373f4c45f99df58a7a3e08ee9c131",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
@@ -838,7 +834,7 @@
     "test/acceptance/architecture.test.mjs": "2e251e7371394e7e1595e65e0e571fd530e0fe9ad4347f9ae8b4103b21534b57",
     "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "9cf224d832e7cbf8137a129c4f74e305e488be177a0385e9fcda9bba3cf11ef0",
+    "test/acceptance/requirements.test.mjs": "1210c7201a7c8a604e62cb5b8509ac2747edbc03c466938a095b022eac3eab4a",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
     "test/unit/lifecycle.test.mjs": "dffad6006a0972ef0fee23b08d01db256afd66fe0ee01e19cbf6430235e6394c",
     "test/unit/runner.test.mjs": "4ce170100ed2064a83fd6e3af57263aafa7388542ecabab8ef330609d1f8a235",
