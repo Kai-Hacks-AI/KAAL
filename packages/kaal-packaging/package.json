@@ -1,0 +1,46 @@
+{
+  "name": "kaal-packaging",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Packaging: how KAAL's deliverables become packages. It measures a package artifact's delivered size, and decides the generic KAAL Package contract against an installed package.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/packaging.d.ts",
+      "default": "./lib/packaging.mjs"
+    },
+    "./conformance": {
+      "types": "./lib/conformance.d.ts",
+      "default": "./lib/conformance.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kaal-packaging": "bin/kaal-packaging.mjs"
+  },
+  "files": [
+    "bin",
+    "capability",
+    "docs",
+    "lib",
+    "skills",
+    "test/embed",
+    "test/run.mjs",
+    "test/verify.mjs",
+    "test/verify.json"
+  ],
+  "scripts": {
+    "test": "npm run test:all",
+    "test:all": "node test/run.mjs",
+    "test:embedded": "node test/verify.mjs",
+    "test:publisher": "node --test test/publisher/capability.test.mjs test/publisher/verifier.test.mjs test/publisher/release-guidance.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@kaihacksai/kaal-foundation": "0.0.1",
+    "kaal-hosting": "0.0.1"
+  }
+}
