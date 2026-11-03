@@ -1,5 +1,14 @@
 // engineering/T83: the pre-push check must judge a ledger-admitted change as CI does.
 //
+// Identities in this file, one per leaf test: engineering/T83 is the RED Case and the only Case D2 names
+// in `tests`. engineering/T87 (the checker admits the fixture's change with the target's ledger) and
+// engineering/T88 (the checker refuses the same change without a ledger) are its controls, each with an
+// identity of its own.
+//
+// Applicability: Linux and macOS, with git, node and a POSIX sh. Inapplicable on Windows, because
+// push-check.sh is a POSIX shell script that the pre-push hook runs under sh. On Windows the file reports
+// that and exits 3, the repository's "does not apply" status; it neither skips a leaf nor passes one.
+//
 // Proves engineering/D2 (see D2-push-check-ledger.md). The Case builds a scratch repository whose target
 // branch holds a transition ledger entry for one exact multi-owner change, and a head that is exactly
 // that change. It then runs `engineering/github/push-check.sh`, the pre-push hook's check, as the hook
@@ -17,7 +26,8 @@
 //   node --test engineering/github/defects/push-check-ledger.red.mjs
 //
 // It is answered when this file is GREEN, unchanged, in the Change that makes the hook pass the target's
-// ledger. Do not edit it to pass, and do not close D2 before then. Needs git and a POSIX shell.
+// ledger. Do not edit it to pass, and do not close D2 before then. The identity, version and confirming
+// Run of this Case are recorded in D2-push-check-ledger.md.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -25,6 +35,11 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+
+if (process.platform === "win32") {
+  console.log("engineering/T83: inapplicable on win32: push-check.sh is a POSIX sh script run by the pre-push hook");
+  process.exit(3);
+}
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const SCRIPT = join(ROOT, "engineering", "github", "push-check.sh");
@@ -100,14 +115,14 @@ function pushCheck({ dir, target, head }) {
   return { status: r.status, output: `${r.stdout}${r.stderr}`.trim() };
 }
 
-test("engineering/T83 control: the checker admits the fixture's change with the target's ledger", () => {
+test("engineering/T87 control: the checker admits the fixture's change with the target's ledger", () => {
   withFixture((f) => {
     const r = checker(f, true);
     assert.equal(r.status, 0, r.output);
   });
 });
 
-test("engineering/T83 control: the checker refuses the same change without a ledger", () => {
+test("engineering/T88 control: the checker refuses the same change without a ledger", () => {
   withFixture((f) => {
     const r = checker(f, false);
     assert.equal(r.status, 1, r.output);
