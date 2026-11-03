@@ -15,6 +15,13 @@ KAAL 1..n Capability 1..n Skill 1..n Script.
 - In a given repository, the Capability is its instance.
 - Engineering and Packages are KAAL-only extras. A KAAL-enabled consumer does not get them.
 
+## 1b. The layering rule (Owner, 3 Nov)
+
+Where an element has an underlying model, as Skill does, the model goes a layer deeper. That is why the Owner's
+model has Skill 1..n Script. The cardinality goes one layer deeper only where that element has its own underlying
+model. Agents and Extensions get a deeper layer only once their model is defined, and this record does not
+invent one for either. It also does not assume that Capability has the same kind of layer beneath it as Skill does.
+
 ## 1a. Framed under CASE
 
 CASE is defined in the repository (`packages/kaal-core/payload/core/CASE.md`, a KAAL Definition): it names the four
