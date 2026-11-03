@@ -1,0 +1,108 @@
+# Architecture: structural model inventory (findings only)
+
+Owner: Architecture. Target: kaal/architecture. Ordinary working Change (documentation only);
+record numbering is provisional until integration.
+
+Findings only. Nothing is split, moved, renamed, implemented, synchronized, promoted or published.
+
+## 1. The Owner's model (3 Nov)
+
+KAAL 1..n Capability 1..n Skill 1..n Script.
+
+- When a Skill gets big, it should be split.
+- When a Capability has multiple Skills, we discuss it.
+- Packages are a separate discussion, but in general Skill oriented.
+- In a given repository, the Capability is its instance.
+- Engineering and Packages are KAAL-only extras. A KAAL-enabled consumer does not get them.
+
+## 1b. A possible layering principle (Owner, 3 Nov; open, optional)
+
+Where an element has an underlying model, as Skill does, the model could go a layer deeper. That is the thought behind
+Skill 1..n Script. The Owner's wording is "if necessary, unsure atm", so this is an open, optional principle and not a
+rule. Nothing in this record depends on it. Agents and Extensions would get a deeper layer only once their model is
+defined, and this record does not invent one for either. It also does not assume Capability has a layer beneath it
+of the same kind.
+
+## 1a. Framed under CASE
+
+CASE is defined in the repository (`packages/kaal-core/payload/core/CASE.md`, a KAAL Definition): it names the four
+parallel concepts KAAL is built from, **C**apabilities, **A**gents, **S**kills and **E**xtensions. Each has its own
+Definition and none is a kind of another. Core identifies, admits, registers and discovers all four by one mechanism.
+
+Kai has detailed only C versus S so far (Capability 1..n Skill 1..n Script). **The relationships of C to A and of C to E
+are open Owner explanations (3 Nov). They are not inferred here.** What follows states only what the Definitions in the
+repository say about A and E themselves:
+
+- **Agent** (`KAAL Agent`): acts within KAAL by applying Capabilities, Skills and Extensions. The package `kaal-agents` is the Capability named Agents (its ownership claim says `capability`), not the Agent concept.
+- **Extension** (`KAAL Extension`): enables KAAL to interact with external systems, or they with KAAL. Crossing that boundary is what distinguishes it from a Skill. Per the Owner (3 Nov), an Extension is the adapter to external things. `kaal-slack` sits under `packages/extensions/`.
+
+**Hosting is a Capability (Owner, 3 Nov),** with Agent, Skill and Extension elements provided once for many Capabilities. See the classification note in section 5.
+
+Hosting and Learning are the multi-Skill Capabilities (section 3).
+
+## 2. Method and limits
+
+Read from `origin/main` and every `origin/kaal/*` collector on 3 Nov 2026. Each `SKILL.md` is counted on the
+capability's own collector, or on main when it has none. Size is `SKILL.md` lines, a proxy only: it does not
+say whether a Skill does more than one job. Scripts are counted two ways: files under the Skill's own
+`scripts/`, and package-level `bin/`, `lib/` and `scripts/`. I did not run any test or read every Skill in full.
+
+## 3. Capabilities with several Skills
+
+| Capability (package) | Skills | Note |
+| --- | --- | --- |
+| Hosting (`kaal-hosting`), a Capability (C) | `kaal-hosting` (64 lines), `kaal-hosting-boundary` (49) | Two Skills, one Capability. The second is the boundary guidance. Discuss: one Skill with a section, or two? |
+| Learning (`kaal-learning`), a Capability (C) | `kaal-learning` (39), `kaal-retro` (59) | Two Skills, one Capability. Collector only (`kaal/learning`), not on main. Discuss |
+
+Every other package that has a Skill has exactly one. The other packages on collectors, Slack under Communication
+and the duplicate Guard Skill copy under `engineering/guard/external/templates`, are not additional Skills of one Capability.
+
+## 4. Skill size: a signal, with evaluation criteria
+
+| Skill | Lines | References | Skill-level scripts | Package-level scripts |
+| --- | --- | --- | --- | --- |
+| `kaal-testing` | 107 | 3 | 0 | 15 |
+| `kaal-controls` | 84 | 0 | 0 | 0 |
+| `kaal-core` | 83 | 0 | 0 | 2 |
+| `kaal-guard` | 77 | 0 | 0 | 11 |
+| `kaal-agents` | 76 | 0 | 0 | 5 |
+| `kaal-packaging` | 74 | 0 | 0 | 5 |
+| all others | 23 to 69 | | | |
+
+The line count is a signal, not a threshold. This record sets no 100-line mandate, and Testing's 107 lines is not
+evidence that `kaal-testing` should be split. It only shows where an owner might look. Nothing here authorizes
+structural churn.
+
+Evaluation criteria (CPO review, 3 Nov). Split a Skill only where one of these is demonstrated:
+- distinct user intent,
+- distinct invocation,
+- an independently testable responsibility, or
+- cognitive overload.
+
+Use `references/` for detail before introducing more Skills. Several Skills in one Capability are legitimate where each has
+a coherent job, and Hosting and Learning may be exactly that.
+
+Package-level scripts move under a Skill only with an explicit consumer or discovery benefit and regression evidence, not
+as a mechanical migration. The CASE kinds stay four parallel kinds, Hosting stays a Capability, and the C-to-A and C-to-E
+relations stay open.
+
+## 5. Observations against the model
+
+- **Scripts sit mostly at package level, not under a Skill.** Testing has 15 package scripts and no Skill script, Guard 11 and none, Foundation 3 and none.
+  Only Graph (8), Review (3), Change (2), Branching (2) and Engineer Skill (2) keep scripts inside a Skill directory. "Capability 1..n Skill 1..n Script" matches the second pattern. The first is what most packages do.
+- **Seven Capabilities have no Skill yet:** Process, Requirements, Product, Roles, Service, Data and Project. They are Nodes and Definitions only on their collectors. This is consistent with the model, but their Agent-facing surface does not exist.
+- **Classification note: Hosting as a shared Capability (Owner, 3 Nov).** Hosting is a Capability made of Agent, Skill and Extension elements. It is special because it provides them once for many Capabilities, so they are not redone. It is a worked example for the open C-to-A and C-to-E explanations, and this record does not generalize from it. What the repository shows on `kaal/hosting`: the Node `Hosting` is typed `KAAL Extension` (`packages/extensions/kaal-hosting/payload/Hosting.md`), the package sits under `packages/extensions/`, and it carries two Skills (`kaal-hosting`, `kaal-hosting-boundary`). Its boundary guidance says no other Capability names an operating system, which is the "provided once for many" property. I did not find an Agent-typed Node in its `payload/`: its Agent elements, per the Owner, are not visible there to me. The Extension typing is therefore a partial classification of a Capability, not a plain defect. No Defect is placed, and the Hosting owner holds one until the C-to-A and C-to-E explanation lands. CTO call: no retyping or move before Hosting 0.0.1 ships. This record changes nothing.
+- **Hosting's cardinality example (the coordinator's reading, pending the Owner's C-to-A and C-to-E explanation).** The Owner said Hosting also shows the cardinality. The reading offered, not confirmed: one Capability can hold several Agent, Skill and Extension elements, and one shared Capability can serve many other Capabilities. From the repository I can only confirm one part, that Hosting holds two Skills and that its boundary guidance says other Capabilities name no operating system and go through Hosting. The multiple Agent and Extension elements are not visible to me, and the "serves many" direction is a reading of that guidance, not a stated relationship. This record does not generalize it.
+- **A repository's Capability is its instance** (ownership claim in `ownership.kaal.json`). Core's registration already works that way. Nothing in this inventory contradicts it.
+- **A possible future builder package (Owner, 3 Nov, for discussion only).** A repository that builds Capabilities or packages starts empty with only Engineering and Packages. Together they could be a package of their own, for builders and not for consumers. This inventory does not authorize it. It touches the open question below on what a consumer sees of `packages/`, and Engineering and Packaging own what would go into it.
+- **KAAL-only extras:** `engineering/` holds Engineering's machinery, and `packages/` holds the distributable packages. Hosting, Core and Foundation are packages a consumer receives, so the `packages/` extra is distribution, not capability content. Whether a consumer ever sees `packages/` structure is the packaging discussion, not settled here.
+
+## 6. Questions for the owners and Kai (no action implied)
+
+1. Hosting and Learning, both Capabilities: one Skill or two each? (Owners, then Kai if it changes the model.)
+2. Which of the four criteria above, if any, does a given Skill meet? Owners judge each Skill, with no line-count trigger.
+3. Where a Skill's scripts should live: the model says Skill, most packages say package. A move needs a consumer or discovery benefit and regression evidence, per section 4.
+4. The Owner's explanations of C to A and C to E are outstanding (so far: an Extension is the adapter to external things, and Hosting is a shared Capability of A, S and E elements, a worked example). This record is to be revised when they arrive.
+5. Packages as a separate, Skill-oriented discussion: when does it open? It would also cover the possible builder package (Engineering plus Packages) above.
+
+Auto-merge is enabled; approval and required checks govern.
