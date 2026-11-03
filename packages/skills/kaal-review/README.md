@@ -14,7 +14,7 @@ skills/kaal-review/                     the Agent Skill: SKILL.md
 
 ## Use the Skill
 
-Install `skills/kaal-review/` as an Agent Skill in any repository, and ask an Agent to review a change, a pull request, a plan or another Agent's result.
+What the Skill needs, and what it does and does not do in a target repository, is declared in `skills/kaal-review/references/standalone.md`. Install `skills/kaal-review/` as an Agent Skill in any repository, and ask an Agent to review a change, a pull request, a plan or another Agent's result.
 
 ## Register the Nodes (optional, with a KAAL Engine)
 
