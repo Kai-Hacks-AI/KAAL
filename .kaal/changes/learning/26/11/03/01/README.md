@@ -42,8 +42,9 @@ instruction to Process:
   optional retrospective, an adopted lesson only once the owning capability
   accepts it through a Change, and a later PLAN citing the learning it actually
   uses, with its classification and provenance. This is guidance for whoever
-  writes the PLAN, not a rule: it does not require citing every retro entry, and
-  it is not a mandatory Process or Change rule. Any such rule would be Process's
+  writes the PLAN, not a rule: it does not require citing every retro entry, it
+  creates no mandatory ACT record or retrospective, and it is not a mandatory
+  Process or Change rule. Any such rule would be Process's
   or Change's to decide, not Learning's.
 - Learning prescribes **no mandatory ACT note** and no taxonomy of outcomes, and
   keeps no central store. Retention stays in the context that owns the knowledge.
