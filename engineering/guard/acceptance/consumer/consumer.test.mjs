@@ -147,12 +147,14 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const k = h.kaalClone();
     k.install(RELEASE);
+    k.dialect("published");
     assert.equal(k.lockIntegrity(), h.registryIntegrity(RELEASE), "the lockfile does not hold the registry's integrity for 0.0.2");
     assert.equal(json(readFileSync(join(KAAL, "package.json"), "utf8")).devDependencies["@kaihacksai/kaal-guard"], "file:packages/kaal-guard", "N8: KAAL's own development dependency changed");
     const verify = k.guard("verify");
     assert.equal(verify.status, 0, verify.output);
     const facts = ["--head", "HEAD", "--base", "HEAD", "--base-ref", "main"];
     const published = k.guard("run", "--hook", ...facts);
+    k.dialect("development");
     const development = k.development("run", "--hook", ...facts);
     assert.equal(published.status, development.status, `the published Guard's verdict differs from the development Guard's:\n${published.output}\n${development.output}`);
   });
@@ -183,6 +185,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const k = h.kaalClone();
     k.install(RELEASE);
+    k.dialect("published");
     k.git("add", "-A");
     k.git("commit", "-q", "-m", "consume the published Guard");
     const push = k.push();
