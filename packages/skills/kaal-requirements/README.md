@@ -6,12 +6,13 @@ KAAL Requirements: the capability for stating what must hold, the functional and
 capability/Requirements.md   the Capability Node, typed by Core's KAAL Capability
 capability/Requirement.md    the Requirement Definition, typed by Core's KAAL Definition
 capability/Serves.md         the Serves Definition: the Edge from a Requirement to the Intent it serves, typed by Core's KAAL Definition
+contract.json                the Installation Contract: each Node delivered as a file into the Engine
 ownership.kaal.json          Requirements' own ownership claim (repository data, not delivered)
 ```
 
 ## Responsibilities
 
-This package establishes the capability and defines what a Requirement is. It keeps no requirements, store, registry or traceability, and adds no workflow. A Requirement states what must hold, and only that: why is Intent's, where is Architecture's, how is Code's, and whether it holds is Testing's. It may trace to an Intent where one is represented, without depending on it. What prompts a Requirement is its trigger, which is neither the Requirement nor an Intent.
+This package establishes the capability and defines what a Requirement is. It keeps no requirements, store, registry or traceability, and adds no workflow. A Requirement states what must hold, and only that: why is Intent's, where is Architecture's, how is Code's, and whether it holds is Testing's. It may trace to an Intent where one is represented, without depending on it. What prompts a Requirement is its trigger, which is neither the Requirement nor an Intent. A condition that must not hold is still a Requirement; a Defect, the record that prohibited behaviour was observed, is its owner's, and neither defines the other's terms.
 
 ## Readiness
 
