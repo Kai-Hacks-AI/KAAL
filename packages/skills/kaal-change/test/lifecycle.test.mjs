@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { foundation } from "kaal-core";
 import { identify } from "kaal-graph";
-import { STATES, canMove, readLifecycle } from "kaal-change/lifecycle";
+import { STATES, canMove, readLifecycle } from "@kaihacksai/kaal-change/lifecycle";
 
 const FILE = new URL("../capability/Change-Lifecycle.md", import.meta.url);
 

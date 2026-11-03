@@ -1,0 +1,40 @@
+{
+  "status": "proposed; independent review required",
+  "sourcePlan": "7e2e4dd7d80a5383910850bb6fbab40d376739fd",
+  "cases": [
+    "E-D01",
+    "E-D02",
+    "E-D03",
+    "E-D04",
+    "E-D05",
+    "E-D06",
+    "E-D07",
+    "E-D08",
+    "E-D09",
+    "E-D10",
+    "E-D11",
+    "E-D12",
+    "E-D13",
+    "E-D14",
+    "E-D15",
+    "E-D16"
+  ],
+  "files": [
+    {
+      "path": "engineering/execution/plan/adoption-contract.md",
+      "sha256": "1f75a027db072206b6c96dda9985d70ec05abdc173fca6290e8195de3e454c7e"
+    },
+    {
+      "path": "engineering/execution/test/plan/adoption.case.mjs",
+      "sha256": "351de21261ac3f22b5f2c0b3c8d1df88ea7a2f1850d5a3131e83dc5a453e8446"
+    },
+    {
+      "path": "engineering/execution/test/plan/fixtures.mjs",
+      "sha256": "3609e9168ac46b23cfa5f107b4f2f681640e5cf864a2c651175a8f9b4566e2c9"
+    }
+  ],
+  "authority": "byte inventory only; no self-attestation, Seal or approval",
+  "excluded": [
+    "candidates.json is observational evidence, not a fixture or authority input"
+  ]
+}

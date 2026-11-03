@@ -1,29 +1,59 @@
 {
-  "name": "kaal-change",
+  "name": "@kaihacksai/kaal-change",
   "version": "0.0.1",
-  "description": "KAAL Change: orchestrating the work around a Change: what a Change is and what makes it self-contained, independent of the technology that carries it.",
+  "description": "Change practice skill and model-scoped semantic isolation.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
+    "directory": "packages/skills/kaal-change"
+  },
   "exports": {
+    "./isolation": {
+      "types": "./lib/isolation.d.ts",
+      "default": "./lib/isolation.mjs"
+    },
     "./lifecycle": "./lib/lifecycle.mjs",
     "./record": "./lib/record.mjs",
     "./package.json": "./package.json"
   },
   "files": [
+    "payload",
+    "skills",
     "capability",
-    "lib"
+    "lib",
+    "docs",
+    "test/embed",
+    "test/fixtures",
+    "test/verify.mjs",
+    "test/verify.json",
+    "test/observe.mjs"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/change.test.mjs test/record.test.mjs test/numbering.test.mjs test/lifecycle.test.mjs test/chaos.test.mjs test/classification.test.mjs"
+    "test": "npm run test:embedded",
+    "test:embedded": "node test/verify.mjs",
+    "test:publisher": "node --test test/publisher/*.test.mjs",
+    "manifest": "node test/publisher/manifest.mjs",
+    "prepack": "node test/publisher/manifest.mjs",
+    "mutations": "node test/publisher/mutations.mjs",
+    "test:package-only": "node test/publisher/package-only.mjs",
+    "test:collector": "node --test test/change.test.mjs test/record.test.mjs test/numbering.test.mjs test/lifecycle.test.mjs test/chaos.test.mjs test/classification.test.mjs"
   },
   "engines": {
     "node": ">=24"
   },
-  "devDependencies": {
-    "kaal-core": "0.0.1",
+  "dependencies": {
+    "@kaihacksai/kaal-foundation": "0.0.1",
     "kaal-graph": "0.0.1",
-    "kaal-hosting": "0.0.1",
-    "kaal-testing": "0.0.1"
+    "kaal-hosting": "0.0.1"
+  },
+  "devDependencies": {
+    "kaal-testing": "0.0.1",
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -7,7 +7,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation } from "kaal-core";
 import { identify } from "kaal-graph";
-import { ROOT, readRecordPath, recordPath } from "kaal-change/record";
+import { ROOT, readRecordPath, recordPath } from "@kaihacksai/kaal-change/record";
 
 const CAPABILITY = fileURLToPath(new URL("../capability/", import.meta.url));
 
