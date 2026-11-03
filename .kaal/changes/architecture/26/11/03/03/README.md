@@ -25,7 +25,7 @@ Kai has detailed only C versus S so far (Capability 1..n Skill 1..n Script). **T
 are open Owner explanations (3 Nov). They are not inferred here.** What follows states only what the Definitions in the
 repository say about A and E themselves:
 
-- **Agent** (`KAAL Agent`): acts within KAAL by applying Capabilities, Skills and Extensions. It is not a Skill container. The package `kaal-agents` is the Capability named Agents (its ownership claim says `capability`), not the Agent concept.
+- **Agent** (`KAAL Agent`): acts within KAAL by applying Capabilities, Skills and Extensions. The package `kaal-agents` is the Capability named Agents (its ownership claim says `capability`), not the Agent concept.
 - **Extension** (`KAAL Extension`): enables KAAL to interact with external systems, or they with KAAL. Crossing that boundary is what distinguishes it from a Skill. Hosting is typed as an Extension (`payload/Hosting.md`) and sits under `packages/extensions/`. `kaal-slack` does too.
 
 Hosting's `kaal-hosting` and `kaal-hosting-boundary` are two Skills in a package typed as an Extension. How an
