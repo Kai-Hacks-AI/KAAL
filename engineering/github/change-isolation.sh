@@ -43,6 +43,12 @@ if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
   node "$T/check.mjs" < "$T/resolved"
 else
+  # The transition ledger is the target's own, read from its tip. A target without it has no ledger
+  # entry to match and a checker that does not accept the arguments, so it is judged as before.
+  LEDGER=()
+  if git show "$BASE:engineering/change-isolation/transitions.json" > "$T/transitions.json" 2>/dev/null; then
+    LEDGER=(--ledger "$T/transitions.json" --git "$BASE" "$HEAD")
+  fi
   git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
-    | node "$T/check.mjs"
+    | node "$T/check.mjs" "${LEDGER[@]}"
 fi
