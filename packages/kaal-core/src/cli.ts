@@ -1,14 +1,23 @@
 #!/usr/bin/env node
-import { resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Admitted } from "./admitted.js";
-import { readFile } from "kaal-hosting";
+import { kind, readFile } from "kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
 import { CORE_VERSION, ENGINE, initEngine, remove, upgrade, versions, type Applied } from "./lifecycle.js";
 import { FormError, KaalError, readNode } from "./node.js";
+import { record as RECORD } from "./realization.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
 
 const USAGE = `usage: kaal <command> [--engine <dir>]
+
+Installed is not registered: installing a package is not registering it. Two transactions, in this order:
+  1. kaal init                              install the instance: materialize ./.kaal from the kaal-core payload
+  2. kaal register capability core <dir>    register Core itself like any package, <dir> being the installed
+                                            package's own capability/ directory (node_modules/<package>/capability)
+Core's features that depend on its registration, such as the Registration Type Definition, are active only after step 2.
+kaal init never registers. docs/operations.md in the package describes both.
 
   init                                     materialize the Engine from the kaal-core payload
   verify                                   verify the Engine
@@ -54,6 +63,16 @@ async function main(argv: string[]): Promise<number> {
       const v = await verify(engine);
       for (const p of v.problems) console.error(p);
       if (v.ok) console.log(`ok: ${v.engine.nodes.length} Nodes admitted`);
+      // Installed is not registered (core/C52): Core says so only when its installation is established by its own record,
+      // and registered means the Engine admits the very Node this package ships as capability/Core.md, not any Node named Core.
+      const shipped = join(dirname(fileURLToPath(import.meta.url)), "..", "capability");
+      if (recorded && (await kind(join(engine, RECORD.slice(ENGINE.length + 1)))) === "file" && (await kind(join(shipped, "Core.md"))) === "file") {
+        const core = readNode(await readFile(join(shipped, "Core.md")));
+        if (!v.engine.nodes.some((n) => n.id === core.id)) {
+          const path = relative(process.cwd(), shipped).split("\\").join("/");
+          console.log(`Core is installed but not registered in this Engine. Register it with: kaal register capability core ${/\s/.test(path) ? `"${path}"` : path}`);
+        }
+      }
       for (const a of v.engine.artifacts) console.log(`${a.path}\t${a.type}\t${a.state}${a.findings.length ? `\t${a.findings.map((f) => f.rule).join("; ")}` : ""}`);
       if (v.registrations) {
         // The assembled registrations beside the Nodes and artifacts (core/F56): reports, never failures.
