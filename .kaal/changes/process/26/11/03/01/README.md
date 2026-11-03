@@ -95,8 +95,25 @@ ships; and named `test:<suite>` scripts including `test:embedded`.
    definition-only product must have an attainable, honest verification result
    from its actual delivered contract, without inventing behaviour for a generic
    checker. So `unknown` is not accepted as the expected result. Packaging's
-   explicit resolution for definition-only packages is requested on this PR; the
-   acceptance expectation is revised once it answers.
+   explicit resolution for definition-only packages was requested.
+   **Packaging's answer (PLAN #941, C21, head after the CPO findings, not yet
+   merged):** `test/verify.json` may declare `behaviour: [paths]`; the
+   declaration is checked, not trusted. The N9 probe runs the installed
+   `npm test` on two corrupted copies of each declared file (unreadable; emptied
+   to the file's own empty document), digests rewritten to match, and N9 is
+   `verified` only if neither copy still reports `verified`. Presence-only,
+   digest-only and syntax-only verifiers fail; with no module and no declaration
+   N9 stays `unknown`. **Expectation revised:** kaal-process declares its
+   Definition files as `behaviour` and its verifier asserts their content, so the
+   expected result is `verified`, with no invented module. This holds only once
+   C21 lands; until then the DO may not start, and `unknown` remains the honest
+   interim result. Whether Process's assertions are adequate is Process's to
+   state, not the probe's.
+5. **No KAAL-only support in the consumer install.** #941 adds F30/T65 (draft):
+   the packed artifact and the installed tree hold nothing beyond the package and
+   its declared runtime dependencies. kaal-process ships no workspace, lock,
+   `.kaal/` record or other capability's file, and the DO checks the pack list
+   against this.
 4. **F7 interim.** `failed` while a dependency is a local tarball, so a Foundation
    dependency needs its registry resolution (0.0.1 is published).
 
@@ -117,8 +134,9 @@ each needs enduring consumer value and its own authorization.
 
 1. **The manifest digest** (finding 2): decided by the CTO as a Foundation
    dependency; open to CPO challenge in review.
-2. **N9** (finding 3): accept the openly recorded `unknown`, or ship a module that
-   earns its place?
+2. **N9** (finding 3): resolved in direction by Packaging's C21 (#941): declared
+   `behaviour` files plus the two-copy probe. The DO waits for C21 to land, and
+   the exact identifiers (F29, F30, T61 to T65) are re-checked then.
 3. **Sequencing.** C5 and C14 (#873) are moving; the DO starts after C5 so the
    contract it implements is fixed. #620 lands first; it is the base of the
    verification and is CPO-approved.
