@@ -24,21 +24,51 @@ this Change.
 - **Core's npm publication is not a prerequisite** for Process's conceptual
   readiness, and promotion is not used to unblock this.
 
-## Gaps against the generic contract
+## Gaps against the generic contract, pinned
 
-The gap list comes from the readiness table on #560 (30 Oct). The wording of
-each requirement is Packaging's and is **to be confirmed against its text** before
-the DO; this record names the Process-side obligation only.
+Source: `packages/kaal-packaging/docs/requirements.md` on kaal/packaging at
+`080db83` (3 Nov), the authoritative Requirements. Wording below is quoted or
+closely paraphrased from it, each with the Process-side obligation. Nothing is
+taken from the earlier readiness note.
 
-| Gap | Obligation for Process |
-|---|---|
-| F8 documents | The package ships the set of documents Packaging requires (intent, requirements, architecture, testing, operations, limitations), each short and true for a definition-only package. |
-| F9 installed `npm test` | `npm test` in the installed copy runs the embedded verification against that copy, with no source checkout. Today it is `npm run verify`. |
-| F10 result line | The embedded verification ends on one result line in Packaging's form: `verified`, `failed` or `cannot verify`, with the exit codes it defines. *cannot verify* without Core is the honest result and not a failure of Process. |
-| F11 full manifest | `test/verify.json` lists every delivered file with its SHA-256 and the delivered cases. Today `test/nodes.json` covers the Nodes only. |
-| F12 platforms | The platforms the verification claims, stated, and proved where claimed (Windows applicability follows Testing's work). |
-| F13 coverage | The cases are modelled in Testing's model so the claim of what is covered can be checked, passed in by the caller, as Packaging takes no dependency on Testing. |
-| F14 declared suites | The suites the package declares are named and match what runs. |
+**Already authoritative** (in Requirements at `080db83`, including the Owner
+corrections C6 and C7 from the review on #686): F7 to F14, F19, F25, N7 to N9, N11.
+
+**Moving, not relied on:** Packaging's suite (C5) and its verifier (C14, #873).
+They may change how conformance is run and reported, but they do not change the
+Requirements above. The DO is checked again against whatever has landed.
+
+| Req | What it says (`080db83`) | Obligation for Process |
+|---|---|---|
+| F7 identity | One name, one exact version, every runtime dependency exact and installable from its registry; no workspace, file or Git dependency. Namespace is the Owner's per-package decision (#622). | Process has no runtime dependency, so the dependency part holds. The name and namespace stay an Owner decision. |
+| F8 documents | Ships `docs/intent.md`, `requirements.md`, `architecture.md`, `testing.md`, `limitations.md`, `operations.md`, content the package's own; README links each, Operations included. | Add the six documents, short and true for a definition-only package. Today only a README ships. |
+| F9 installed `npm test` | Once installed, `npm test` runs the Embedded verification against the installed copy; no checkout, no Engineering test. | Make installed `npm test` run the verification. Today it is `npm run verify`. |
+| F10 result | One line with Testing's result, cause and evidence, in the shared verifier contract's form (testing/C29, #639). Packaging defines no result of its own. | Conform to that line form. |
+| F11 manifest | Ships a manifest of every delivered file with its SHA-256 and every declared Embedded Test Case; verification compares installed files with it and runs exactly the declared cases. | Extend `test/nodes.json` (Nodes only) to every delivered file and the declared cases. |
+| F12 runtime and platforms | Declares its runtime (`engines.node`); does not restrict hosts; no `os`/`cpu` restriction; portable and declaring none conforms. | Already holds (`engines.node` only). No platform claim is added. |
+| F13 traceability | Traces are Testing's model, read through model functions the caller hands in; no dependency on Testing; a package that defines identifiers and ships no model is `unknown`. | Process defines identifiers in its documents, so it either ships a Testing model of its cases or stays `unknown`. |
+| F14 declared Test Plan | Source `npm test` follows named scripts; the Embedded verification is one declared suite. | Declare `test:embedded` and `test:publisher`. |
+| F25 boundary assurance | Material boundaries, owners and contract ids, plus how the plan exercises them, in the six documents, skill and Testing model. | Name Process's boundaries: Core admission (optional), the Node bytes. |
+| N8 self-contained verifier | Installed verification needs only the runtime and the package's own declared runtime dependencies; neither Testing nor Guard at runtime. | **Tension, see below.** |
+| N9 behaviour, not presence | Every case decides from the installed package's behaviour or bytes. | Cases check bytes and contract statements, not mere presence. |
+
+### Tension found by pinning: N8 against the current smoke test
+
+N8 says the installed verification needs only the runtime and the package's
+**declared runtime dependencies**. Today the smoke test imports `kaal-core`
+(optional, not declared) and ends in *cannot verify* without it. Two things
+follow, and neither is decided here:
+
+- A conforming Embedded verification must be able to reach `verified` or
+  `failed` on its own for what it can decide (the manifest comparison and the
+  contract statements). It needs a SHA-256 for the manifest comparison. A KAAL
+  digest comes from Foundation (the one SHA-256), not `node:crypto`, so even
+  this small step implies either a declared Foundation dependency or a decision
+  that the comparison is out of scope for the installed run.
+- Core-admission then becomes an optional extra check (reported separately and
+  not required for the result), which keeps Core optional as the Owner wants.
+
+This is the question to settle with Packaging and Foundation before the DO.
 
 ## Decisions already taken (no Owner go needed)
 
@@ -47,16 +77,19 @@ the DO; this record names the Process-side obligation only.
 
 ## Entry condition for the DO
 
-Before the DO starts, each F8 to F14 obligation is confirmed against Packaging's
-actual current contract (its `docs/operations.md` and requirements on
-kaal/packaging), not against the readiness table above. Filling the checklist
-does not make promotion or npm publication follow: each needs enduring consumer
-value and its own authorization.
+The pinned table above is checked once more against kaal/packaging's
+Requirements at the then-current revision, and against whatever C5 and C14 have
+landed. Filling the checklist does not make promotion or npm publication follow:
+each needs enduring consumer value and its own authorization.
 
 ## Open questions
 
-1. **Sequencing.** Packaging's suite (C5) and its verifier (C14, #873) are still
-   moving. The DO should start after C5 so the contract it implements is fixed.
+1. **N8 against the smoke test** (above): may the installed verification depend
+   on Foundation for the manifest digest, and is Core-admission an optional extra
+   reported apart from the result? Needs Packaging's and Foundation's answer.
+   Core stays optional either way.
+1a. **Sequencing.** C5 and C14 (#873) are moving; the DO starts after C5 so the
+   contract it implements is fixed.
 2. **#620 first.** The smoke test it adds is the base the embedded verification
    builds on. This PLAN assumes #620 lands first.
 3. **Weight.** A definition-only package should not carry a heavier verification
