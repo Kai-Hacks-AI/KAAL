@@ -36,7 +36,7 @@ The capabilities divide FAR as follows:
 
 ## Open questions
 
-Questions 1, 2, 4, 5, 6 and 7 stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO. Question 3 is settled.
+Questions 1, 2, 4, 5 and 6 stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO. Question 3 is settled. Questions 7 and 8 are constrained, as stated below, and name what remains open.
 
 1. **Guard's reporting outputs.** What exactly does Guard report for a FAR check: GREEN and RED per Case, accept-list coverage, and unresolved conditions? Guard owns the output format. Change consumes it, judges it, and defines no Guard type.
 2. **PREACH.** How does Change escalate through PREACH when acceptance is beyond its authority? PREACH is not in Change's contracts today, only in Core's and Engineering's documents. Who owns the escalation contract?
@@ -44,5 +44,14 @@ Questions 1, 2, 4, 5, 6 and 7 stay open in this PLAN and are for the Owner, CPO 
 4. **The expansion.** Review's #270 still says Features Accepted Regression. Is the name Features Accept Regression (this PLAN, the CPO handover)? Name only; it affects no contract.
 5. **#662.** Delivery counts allowed failed Cases as unmet. An accepted Case that stays RED must remain consistent with that.
 6. **Defect Plan (change/I9).** The CTO proposed carrying known-RED Defect Cases as known-red entries on the Accept List. This PLAN recommends a separate report-only Defect Plan instead (reasons in change/I9). Which does the Owner and CPO choose? Testing has confirmed that a Defect Plan is an ordinary Test Plan (the Defect concept is `kaal-defect`, incubated in Testing), and Guard has confirmed that a check can be report-only through the `held` outcome. The CTO withdrew the Accept List option.
-7. **Age limits.** Should a known-RED Defect Case that stays RED beyond some age escalate (PREACH, question 2)? Change would judge it; the limit is not yet defined. CTO view: yes, through PREACH once a Case passes an age threshold that the plan sets. Guard is not involved. The CPO judges.
-8. **The claim's input to Guard.** Is `answers` read from the Change's FAR record at the source's revision (this PLAN's proposal), or declared elsewhere, such as the PR? Guard owns how its setup receives an input. CTO view: read it from the FAR record the PLAN writes. The claim is part of the PLAN, and one source keeps the gate deterministic; the PR body may quote it but is not the source. The CPO judges. Requirements and planned tests for `answers` follow once questions 6 and 8 are settled.
+7. **Constrained: long-lived known-RED (CPO review on #929, 2026-11-03).** This PLAN constrains the question and leaves the numbers to a product decision:
+   - **Escalation, not failure.** A known-RED Defect Case that stays RED may be escalated through PREACH. The escalation is a report to a human. It never turns a report-only Case into a failing CI check, and it never changes the `held` outcome (exit 4) for unclaimed Cases.
+   - **An objective trigger and a named owner.** Escalation needs a trigger that can be read from facts, and an owner who receives it. Both belong to the Defect record and to PREACH's owner (question 2), not to Guard and not to Testing's Case semantics. Change judges whether the trigger holds.
+   - **No universal age limit.** This PLAN sets none. Whether a limit exists, and what it is, is a product decision for the CPO and Owner, and it can differ by Defect.
+   - **Still open:** the trigger, the owner and PREACH's contract, until questions 2 and the product decision are made. No DO depends on them, because they change nothing the gate enforces.
+8. **Constrained: the claim (CPO review on #929, 2026-11-03).** `answers` is an immutable, versioned claim in the Change's FAR record at the source revision:
+   - **Immutable and versioned.** The claim is read from the FAR record at the source's immutable revision, and a changed claim is a new revision of the record. The PR body may quote it and is never the source.
+   - **Only named Cases are obligated.** Exactly the baseline Defect Cases the claim names must be GREEN at the head, and must have moved into the Regression Plan. A claim that names a Case not in the Defect Plan at the baseline, or one already GREEN there, is a finding.
+   - **Unclaimed known-RED stay report-only.** They are reported and never gate.
+   - **Owners unchanged.** Guard's setup receives the claim as input and reports claimed outcomes (gating) and unclaimed ones (`held`) without judging the claim. Testing's Case semantics are untouched. Change judges the claim.
+   - **Still open:** the claim's exact record schema and version field, which the Requirements will state. Requirements and planned tests for `answers` follow with that schema and question 6.
