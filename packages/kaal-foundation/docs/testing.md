@@ -15,6 +15,8 @@ Each delivered case is titled `foundation/T<n> [<targets>]: <what it checks>`. I
 | foundation/T31 | `test/embed/architecture.test.mjs` | foundation/F15 | the skill's frontmatter, its commands, and that it cites only identifiers defined here |
 | foundation/T29 | `test/embed/commands.test.mjs` | foundation/F14 | `kaal-foundation sha256` prints the library's digest for a file and for standard input |
 | foundation/T30 | `test/embed/commands.test.mjs` | foundation/F14 | an unreadable file, an unknown command or option, and no command exit 2 with a usage line |
+| foundation/T43 | `test/embed/boundary.test.mjs` | foundation/F22 | `check` on a list `sha256` printed is `verified`, and on a changed file is `failed` |
+| foundation/T44 | `test/embed/boundary.test.mjs` | foundation/F23 | `boundary` on a package without the dependency is `cannot verify` (`not a consumer`), and on a consumer whose dependency is not installed is `cannot verify` (`unresolved`); neither runs a resolved copy, so it cannot recurse |
 
 `test/verify.mjs` runs them and decides the result of foundation/F12. `test/verify.json` lists them as `cases`, and again as `model`, Testing's form `{ cases: [{ id, tests }] }`. Which identifiers are evidenced is derived from that model and a run. Nothing here declares coverage.
 
@@ -28,4 +30,5 @@ The publisher's tests under `test/publisher/` are not delivered and never run in
 - check that every documented way to run the command runs the scoped package's own bin by its path, and that another package's `kaal-foundation` can never stand in for it (foundation/F18);
 - check that the package publishes publicly, names its repository, and that `verify` never crashes on a changed library;
 - check that Foundation's Capability Node and ownership claim, which are repository data and never ship, claim `packages/kaal-foundation/` alone (foundation/C11);
+- check the consumer boundary commands on fixture consumers: digest agreement, resolution of the consumer's own copy, the outer loop only (it never runs consumer code), separate observations, and the limits of `verified` (foundation/T37–T42, T45);
 - check that the manifest is current: `test/publisher/manifest.mjs --check` is part of `test:publisher`.

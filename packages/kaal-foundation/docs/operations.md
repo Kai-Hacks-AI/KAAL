@@ -36,6 +36,19 @@ node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs verify
 
 Both check the installed copy against its manifest and run the shipped cases. They end in `verified`, `failed` or `cannot verify`, and the last line is `kaal-foundation-verification {json}` ([Testing](testing.md)). `npm test` refuses, as `cannot verify`, a layout it cannot tell apart from a source checkout.
 
+## Check a consumer's boundary
+
+A consumer, or a lane that judges one, can ask Foundation two outer-loop questions without Foundation knowing anything about the consumer (foundation/I9). Both run the scoped package's own bin and end in `verified` (0), `failed` (1) or `cannot verify` (2):
+
+```sh
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs check list.txt        # each line "<digest>  <file>", as `sha256` prints; no list or - reads standard input
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs boundary <consumer-directory> [list.txt]
+```
+
+`check` recomputes each stated digest with Foundation's own SHA-256 (foundation/F22). `boundary` reads the consumer's `package.json`, requires `@kaihacksai/kaal-foundation` in `dependencies` (otherwise `cannot verify`, `not a consumer`), resolves it by Node's own resolution, runs that resolved copy's own `verify`, and runs `check` on any lists (foundation/F23). It reports the two observations separately, and `digest agreement: not checked` when no list is given.
+
+A `verified` answer covers only what ran. A matching list shows the supplied digests equal Foundation's for the same bytes. It does not show the list covers every digest the consumer states, that the consumer conforms to anything, or that it uses Foundation in its code. It never imports, runs or judges the consumer's code.
+
 ## Remove
 
 ```sh
@@ -56,11 +69,13 @@ docs/limitations.md
 docs/operations.md
 docs/requirements.md
 docs/testing.md
+lib/boundary.mjs
 lib/sha256.d.ts
 lib/sha256.mjs
 package.json
 skills/kaal-foundation/SKILL.md
 test/embed/architecture.test.mjs
+test/embed/boundary.test.mjs
 test/embed/commands.test.mjs
 test/embed/requirements.test.mjs
 test/run.mjs

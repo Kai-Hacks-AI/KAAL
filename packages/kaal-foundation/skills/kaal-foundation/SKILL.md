@@ -29,7 +29,7 @@ sha256(new TextEncoder().encode(text));
 
 ## Check a digest from a shell
 
-The bin `kaal-foundation` has two commands, `kaal-foundation sha256` and `kaal-foundation verify`. Install the scoped package first, then run its own bin by its path, from the directory where it is installed. Never run `npx kaal-foundation` or `npm exec … kaal-foundation`: `kaal-foundation` is only the bin's name, so they run whichever installed package owns `node_modules/.bin/kaal-foundation`, and where the scoped package is not installed npx may fetch an unrelated unscoped package of that name (foundation/F18).
+The bin `kaal-foundation` has four commands: `kaal-foundation sha256`, `kaal-foundation verify`, `kaal-foundation check` and `kaal-foundation boundary`. Install the scoped package first, then run its own bin by its path, from the directory where it is installed. Never run `npx kaal-foundation` or `npm exec … kaal-foundation`: `kaal-foundation` is only the bin's name, so they run whichever installed package owns `node_modules/.bin/kaal-foundation`, and where the scoped package is not installed npx may fetch an unrelated unscoped package of that name (foundation/F18).
 
 ```sh
 npm install @kaihacksai/kaal-foundation
@@ -40,6 +40,17 @@ printf %s "$text" | node node_modules/@kaihacksai/kaal-foundation/bin/kaal-found
 Nothing is downloaded and nothing on `PATH` is consulted: without the scoped package installed, the command fails instead of guessing.
 
 Exit status 0 means every file was hashed. Exit 2 means a file could not be read, or a command or option is unknown. The cause and a usage line are on standard error (foundation/F14). The digests are the library's, byte for byte.
+
+## Check a consumer's digests and its Foundation
+
+Two more commands judge a consumer from the outside, run by the same scoped bin (foundation/F22, foundation/F23):
+
+```sh
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs check list.txt
+node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs boundary <consumer-directory> [list.txt]
+```
+
+`check` compares each `<digest>  <file>` line with Foundation's own digest of the file. `boundary` resolves the Foundation the consumer declares, runs that copy's own `verify`, and runs `check` on any lists. A `verified` result covers only the observations that ran: it does not prove the lists cover every digest, or that the consumer conforms or uses Foundation in its code. A package without the dependency is `cannot verify` (`not a consumer`).
 
 ## Verify an installation
 
