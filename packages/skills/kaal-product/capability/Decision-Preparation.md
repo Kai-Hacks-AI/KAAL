@@ -12,12 +12,12 @@ A Decision Preparation is how Product puts one product decision to the Product O
 A preparation has these parts:
 
 - **Question**: the one decision to be made, stated so that it can be answered by choosing an Option. A wanted increment, a priority, a roadmap order or a launch each give a Question.
-- **Options**: at least two Options, each stating what choosing it would mean. Not deciding is an Option when it is a real one.
+- **Options**: what the Decider can choose, each stating what choosing it would mean. Either at least two Options, or, when the genuine decision is a single proposal, accept and reject: two outcomes, with no alternative manufactured to make up the number. Not deciding is an Option when it is a real one.
 - **Evidence**: what supports the choice. It refers to the Owner View's readiness and evidence and does not copy, re-run or re-judge it. The Intent and Requirements concerned are named, not restated.
 - **Recommendation**: Product's advice, when it has one, with its reason. A Recommendation is advice, never the decision.
 - **Decider**: who decides. By default the Product Owner; some decisions are the Owner's alone (promotion, npm publication, a new package or capability) and are marked so. The Decider is never Product.
 - **Recorded choice**: once decided, it records the chosen Option, who decided and when, and the reason as given, exactly as the Decider made it. Nothing is recorded before the Decider has chosen.
-- **Hand-over**: when the choice selects an increment, the hand-over to Change, and to Project where several related Changes are warranted. Selecting authorizes the increment and Product does not deliver it.
+- **Hand-over**: when the choice selects or prioritizes an increment, the hand-over to Change, and to Project where several related Changes are warranted. Product does not deliver it. Selecting or prioritizing an increment is a product choice and is not itself the authorization of a governed action: engineering work, promotion, npm publication, a new package or capability each need the separate authorization that governs them, and a Recorded choice neither grants nor implies one.
 
 A preparation is in one state at a time:
 

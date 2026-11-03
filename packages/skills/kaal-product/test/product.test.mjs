@@ -189,8 +189,10 @@ describe("the Decision Preparation Definition", () => {
     }
   });
 
-  it("puts at least two options, each with what choosing it would mean", () => {
-    assert.match(text("Decision-Preparation.md"), /at least two Options, each stating what choosing it would mean/);
+  it("puts at least two outcomes to the Decider without manufacturing alternatives", () => {
+    const definition = text("Decision-Preparation.md");
+    assert.match(definition, /Either at least two Options, or, when the genuine decision is a single proposal, accept and reject: two outcomes, with no alternative manufactured to make up the number\./);
+    assert.match(definition, /each stating what choosing it would mean/);
   });
 
   it("refers to evidence and does not copy or re-judge it", () => {
@@ -212,7 +214,14 @@ describe("the Decision Preparation Definition", () => {
   });
 
   it("hands a selected increment over without delivering it", () => {
-    assert.match(text("Decision-Preparation.md"), /Hand-over\*\*: .*Product does not deliver it\./);
+    assert.match(text("Decision-Preparation.md"), /Hand-over\*\*: when the choice selects or prioritizes an increment, the hand-over to Change.* Product does not deliver it\./);
+  });
+
+  it("does not treat selecting or prioritizing an increment as authorizing a governed action", () => {
+    const definition = text("Decision-Preparation.md");
+    assert.match(definition, /Selecting or prioritizing an increment is a product choice and is not itself the authorization of a governed action/);
+    assert.match(definition, /engineering work, promotion, npm publication, a new package or capability each need the separate authorization that governs them, and a Recorded choice neither grants nor implies one/);
+    assert.doesNotMatch(definition, /Selecting authorizes the increment/);
   });
 
   it("leaves technical decisions to Engineering", () => {

@@ -5,7 +5,7 @@ Implements item 2 of the Product PLAN (#860, 26/11/02/01): the shape in which on
 ## Change
 
 - RED first: the tests for the Definition were committed failing (10 failures), then the Definition made them pass.
-- `capability/Decision-Preparation.md`: a KAAL Definition. A preparation has a Question, at least two Options (each with what choosing it would mean), Evidence (referred to from the Owner View, never copied or re-judged), an optional Recommendation (advice only), a Decider (never Product; some decisions are the Owner's alone), a Recorded choice (as the Decider made it) and a Hand-over (to Change, and Project where warranted; Product does not deliver). A preparation is Prepared, Decided or Withdrawn. Technical decisions are Engineering's.
+- `capability/Decision-Preparation.md`: a KAAL Definition. A preparation has a Question, Options (either at least two, each with what choosing it would mean, or accept and reject for a single proposal, with no manufactured alternatives), Evidence (referred to from the Owner View, never copied or re-judged), an optional Recommendation (advice only), a Decider (never Product; some decisions are the Owner's alone), a Recorded choice (as the Decider made it) and a Hand-over (to Change, and Project where warranted; Product does not deliver; selecting or prioritizing an increment is not itself the authorization of a governed action such as engineering work, promotion, publication or a new package or capability). A preparation is Prepared, Decided or Withdrawn. Technical decisions are Engineering's.
 - `Product.md` lists the new Definition among those Product provides. README, the ownership claim's Capability Node id (it follows the Node's content) and tests follow.
 
 ## Not changed
