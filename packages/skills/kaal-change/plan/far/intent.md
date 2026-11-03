@@ -22,13 +22,20 @@ The capabilities divide FAR as follows:
   - **Evidence.** Accepted Cases stay observed RED, while the Regression Plan's evaluation succeeds under the authorized exceptions.
   - **No waiver.** There is no standing waiver.
 - **change/I8.** Change drives the gate, judges and composes. Testing evaluates the Plans, Guard reports what it observes, Engineering supplies revision evidence, and Review evidences the authority. Where Change cannot establish acceptance within its authority, PREACH is the escalation to the accountable human (see the questions below).
+- **change/I9.** A confirmed Defect is not an accepted regression. A review finding (for example Codex's) can be valid yet outside the PR it was found on. Judging that is Change's. Once confirmed through a RED Test Case, it needs functional placement first, in the capability that owns the behaviour, which Change Isolation determines.
+  - **Where the RED Case lives.** In the owning capability's Defect Plan, a Test Plan kept apart from its Regression Plan. The Regression Plan holds only Cases that are GREEN at the baseline, so a Defect Case never makes Guard or CI fail an unrelated PR.
+  - **How Guard shows it.** As a third, report-only group beside Features and Regression: known-RED Defect Cases, with their count and age. Guard reports them and never fails on them. Guard's setup, not the Case, makes a plan report-only.
+  - **How it turns GREEN.** The fixing Change turns the Case GREEN and moves it from the Defect Plan into the Regression Plan, where FAR now protects it. A Defect Case leaves the Defect Plan only that way, so deleting or weakening one without a fix is a finding that Change judges.
+  - **Why not the Accept List.** Entries there are per integration, justified by Features Cases, and never standing (change/I7). A Defect Case was never GREEN, no source Change justifies it, and it must outlive any one integration. Carrying it as a standing entry would be the standing waiver I7 forbids and would let a source weaken the target's protection.
 
 ## Open questions
 
-Questions 1, 2, 4 and 5 stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO. Question 3 is settled.
+Questions 1, 2, 4, 5, 6 and 7 stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO. Question 3 is settled.
 
 1. **Guard's reporting outputs.** What exactly does Guard report for a FAR check: GREEN and RED per Case, accept-list coverage, and unresolved conditions? Guard owns the output format. Change consumes it, judges it, and defines no Guard type.
 2. **PREACH.** How does Change escalate through PREACH when acceptance is beyond its authority? PREACH is not in Change's contracts today, only in Core's and Engineering's documents. Who owns the escalation contract?
 3. **Settled: entry-point visibility.** FAR sits under kaal-change's single entry point, with no separate entry point and no separate package. Its visibility is a storytelling question, answered by naming FAR prominently in kaal-change's README and docs. That writing belongs to the DO, not to this PLAN. (Owner, 2026-11-03.)
 4. **The expansion.** Review's #270 still says Features Accepted Regression. Is the name Features Accept Regression (this PLAN, the CPO handover)? Name only; it affects no contract.
 5. **#662.** Delivery counts allowed failed Cases as unmet. An accepted Case that stays RED must remain consistent with that.
+6. **Defect Plan (change/I9).** The CTO proposed carrying known-RED Defect Cases as known-red entries on the Accept List. This PLAN recommends a separate report-only Defect Plan instead (reasons in change/I9). Which does the Owner and CPO choose? Testing must confirm that a Defect Plan is an ordinary Test Plan (the Defect concept is `kaal-defect`, incubated in Testing), and Guard must confirm that a plan can be configured as report-only.
+7. **Age limits.** Should a known-RED Defect Case that stays RED beyond some age escalate (PREACH, question 2)? Change would judge it; the limit is not yet defined.

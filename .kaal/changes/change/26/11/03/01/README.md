@@ -16,7 +16,7 @@ This is a PLAN Change. It ships no code and changes no planned test.
 
 ## Open questions (for the Owner and named capabilities)
 
-Guard's reporting outputs, PREACH escalation, the name's expansion against Review's #270, and consistency with #662. The Intent lists them.
+Guard's reporting outputs, PREACH escalation, the name's expansion against Review's #270, consistency with #662, the Defect Plan option for known-RED Defect Cases (change/I9: a report-only plan separate from the Regression Plan, recommended over standing Accept List entries), and an age limit for them. The Intent lists them.
 
 ## Verified by
 

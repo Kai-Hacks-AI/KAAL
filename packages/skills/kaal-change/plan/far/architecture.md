@@ -23,7 +23,7 @@ Each element names, in brackets, the Requirements it answers.
 | Testing | Test Plan and Case semantics, generic evaluation, results and evidence, with no FAR type |
 | Engineering | the integration and its immutable revision evidence, and the observed runs |
 | Review | authorization evidence |
-| Guard | executing the check configured in its setup and reporting its observations, without interpreting FAR or deciding acceptability (its reporting outputs are open question 1 in the Intent) |
+| Guard | executing the check configured in its setup and reporting its observations, without interpreting FAR or deciding acceptability (its reporting outputs are open question 1 in the Intent). It reports a Defect Plan as a report-only group beside Features and Regression (change/I9, open question 6) |
 
 ## Change graph
 
