@@ -11,7 +11,7 @@
     "dist/bootstrap.d.ts": "ebe88738b2c60677c129e7b9bdde097331c4b6c30b8b20df399b2e476f2426ae",
     "dist/bootstrap.js": "9f8e9ddc869b9c25f07395d0ffef7bc7458dc755993b48bfe08881a5f93becdb",
     "dist/cli.d.ts": "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012",
-    "dist/cli.js": "f4e3747c5ba9f18b8a568a61dbc9301e9b9e295ea6eb387fd9afe5bbf949ab2d",
+    "dist/cli.js": "d1208cb77dcc48163e12b21abc6a1ccfa22850a2078295d994bd86b5b167350e",
     "dist/conformance.d.ts": "76fa97ba257cded80d2a8ff7eeda2a481953e0be13b96b4d098c8d4489600160",
     "dist/conformance.js": "8290376a17f61acf108d073daa8c63e4e70b8bf07ff19f22c5fb59567195951c",
     "dist/contribution.d.ts": "c9c581ed0cb7798d934eb164346869d6d6ea66325a6ca340a9e2a0aa96531bf1",

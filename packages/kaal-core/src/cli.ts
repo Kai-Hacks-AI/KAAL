@@ -63,10 +63,15 @@ async function main(argv: string[]): Promise<number> {
       const v = await verify(engine);
       for (const p of v.problems) console.error(p);
       if (v.ok) console.log(`ok: ${v.engine.nodes.length} Nodes admitted`);
-      // Installed is not registered (core/C52): Core says so only when its installation is established by its own record.
-      if (recorded && (await kind(join(engine, RECORD.slice(ENGINE.length + 1)))) === "file" && new Admitted(v.engine.nodes).named("Core").length === 0) {
-        const capability = relative(process.cwd(), join(dirname(fileURLToPath(import.meta.url)), "..", "capability")).split("\\").join("/");
-        console.log(`Core is installed but not registered in this Engine. Register it with: kaal register capability core ${capability}`);
+      // Installed is not registered (core/C52): Core says so only when its installation is established by its own record,
+      // and registered means the Engine admits the very Node this package ships as capability/Core.md, not any Node named Core.
+      const shipped = join(dirname(fileURLToPath(import.meta.url)), "..", "capability");
+      if (recorded && (await kind(join(engine, RECORD.slice(ENGINE.length + 1)))) === "file" && (await kind(join(shipped, "Core.md"))) === "file") {
+        const core = readNode(await readFile(join(shipped, "Core.md")));
+        if (!v.engine.nodes.some((n) => n.id === core.id)) {
+          const path = relative(process.cwd(), shipped).split("\\").join("/");
+          console.log(`Core is installed but not registered in this Engine. Register it with: kaal register capability core ${/\s/.test(path) ? `"${path}"` : path}`);
+        }
       }
       for (const a of v.engine.artifacts) console.log(`${a.path}\t${a.type}\t${a.state}${a.findings.length ? `\t${a.findings.map((f) => f.rule).join("; ")}` : ""}`);
       if (v.registrations) {
