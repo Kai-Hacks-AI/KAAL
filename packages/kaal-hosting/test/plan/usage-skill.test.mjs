@@ -24,7 +24,7 @@ function contents(root) {
 
 it("hosting/T71 [hosting/I14, hosting/F57, hosting/F61, hosting/A23]: the packaged usage Skill validates after relocation; absent resources and an escaping reference are rejected", async () => {
   assert.ok(existsSync(join(SKILL, "SKILL.md")), "Hosting delivers a general usage Skill, beyond its boundary reviewer");
-  const checker = resolve(PACKAGE, "../../skills/kaal-engineer-skill/skills/kaal-engineer-skill/scripts/validate.mjs");
+  const checker = resolve(PACKAGE, "../kaal-engineer-skill/skills/kaal-engineer-skill/scripts/validate.mjs");
   const { checkSkill } = await import(pathToFileURL(checker));
   const relocated = join(mkdtempSync(join(tmpdir(), "kaal-hosting-relocated-")), skillName);
   cpSync(SKILL, relocated, { recursive: true });

@@ -40,7 +40,7 @@ uses a merge commit; promotion uses squash, as the repository judge determines.
 Baseline inspected on 2026-11-01:
 - main: `be3a2d09a386967bd5a1cd4a850f389951bc0796`.
 - existing Change collector: `66a3222d4cd677db25be99ce47f3392d3ac92ea1`.
-- main contains no `packages/skills/kaal-change` package.
+- main contains no `packages/kaal-change` package.
 
 | Concept/source | Treatment in the bridge |
 | --- | --- |

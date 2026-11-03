@@ -53,10 +53,10 @@ describe("kaal-review", () => {
 
   it("claims its own tree by Review's exact name and id", () => {
     const node = identify(readFileSync(join(PAYLOAD, "Review.md")));
-    const { claim, finding } = readClaim(`packages/skills/kaal-review/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
+    const { claim, finding } = readClaim(`packages/kaal-review/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
     assert.equal(finding, undefined);
     assert.deepEqual(claim.owner, { kind: "skill", name: node.name, id: node.id });
-    assert.deepEqual(claim.paths, ["packages/skills/kaal-review/"]);
+    assert.deepEqual(claim.paths, ["packages/kaal-review/"]);
   });
 
   it("is an Agent Skill the Engineer Skill finds conformant", async () => {

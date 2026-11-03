@@ -41,7 +41,7 @@ export const FACTS: readonly Fact[] = Object.freeze(["kaal-hosting/special-entri
 
 // The evidence per outcome, as skills/kaal-hosting-boundary/HOSTS.md states it per host (hosting/F41).
 const EVIDENCE = {
-  holds: "https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/extensions/kaal-hosting/test/plan/portability.test.mjs",
+  holds: "https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/kaal-hosting/test/plan/portability.test.mjs",
   lacks: "https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723",
 };
 

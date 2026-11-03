@@ -1,6 +1,6 @@
 # Skill Format: Testing
 
-The planned outer tests live in `packages/skills/kaal-engineer-skill/test/plan/skill-format.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `engineer-skill/C2` writes them, turns them GREEN, and adds them to the package's `npm test`. This Change writes no test code.
+The planned outer tests live in `packages/kaal-engineer-skill/test/plan/skill-format.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `engineer-skill/C2` writes them, turns them GREEN, and adds them to the package's `npm test`. This Change writes no test code.
 
 | Test | Checks | Loop |
 | --- | --- | --- |

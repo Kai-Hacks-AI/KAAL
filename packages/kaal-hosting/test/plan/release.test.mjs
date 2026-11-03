@@ -14,8 +14,8 @@ import { fileURLToPath } from "node:url";
 import { execute } from "../../dist/index.js";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const REPO = resolve(PACKAGE, "../../..");
-const SELF = "packages/extensions/kaal-hosting/test/plan/release.test.mjs";
+const REPO = resolve(PACKAGE, "../..");
+const SELF = "packages/kaal-hosting/test/plan/release.test.mjs";
 const NAME = "@kaihacksai/kaal-hosting";
 // Spelled in parts so this file never names the old package itself.
 const OLD = ["kaal", "hosting"].join("-");
@@ -66,7 +66,7 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     assert.equal(p.name, NAME);
     assert.equal(p.version, "0.0.1");
     assert.deepEqual(p.publishConfig, { access: "public" });
-    assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/extensions/kaal-hosting" });
+    assert.deepEqual(p.repository, { type: "git", url: "git+https://github.com/Kai-Hacks-AI/KAAL.git", directory: "packages/kaal-hosting" });
     // Its exports, commands and files are the declared interface's, which hosting/T41 checks (hosting/C15).
     assert.deepEqual(p.engines, { node: ">=24" });
     assert.equal(p.license, "MIT");
@@ -132,9 +132,9 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
 
   it("hosting/T23 [hosting/F16]: the lockfile links node_modules/@kaihacksai/kaal-hosting to the workspace and has no entry for the old package", () => {
     const lock = JSON.parse(readFileSync(join(REPO, "package-lock.json"), "utf8"));
-    assert.deepEqual(lock.packages[`node_modules/${NAME}`], { resolved: "packages/extensions/kaal-hosting", link: true });
+    assert.deepEqual(lock.packages[`node_modules/${NAME}`], { resolved: "packages/kaal-hosting", link: true });
     assert.equal(lock.packages[`node_modules/${OLD}`], undefined);
-    assert.equal(lock.packages["packages/extensions/kaal-hosting"]?.name, NAME);
+    assert.equal(lock.packages["packages/kaal-hosting"]?.name, NAME);
     for (const [where, entry] of Object.entries(lock.packages)) {
       for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
         assert.equal(entry[field]?.[OLD], undefined, `${where} ${field} names the old package`);

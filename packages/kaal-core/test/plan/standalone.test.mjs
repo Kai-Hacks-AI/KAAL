@@ -33,7 +33,7 @@ const run = async (cmd, args, cwd) => {
 /** The workspace directory of each package by name. */
 const workspaces = () => {
   const out = new Map();
-  for (const base of ["packages", "packages/skills", "packages/extensions"]) {
+  for (const base of ["packages"]) {
     const root = join(KAAL, base);
     if (!existsSync(root)) continue;
     for (const d of readdirSync(root)) {

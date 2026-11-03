@@ -4,10 +4,10 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional
 
-- **hosting/F56** [hosting/I13]: **Hosting's claim.** `packages/extensions/kaal-hosting/ownership.kaal.json` is Hosting's ownership claim, in the format Testing owns and #609 settled (JSON, machine-oriented; `CLAIM_FILE` and `readClaim` in `kaal-testing/attribution`):
+- **hosting/F56** [hosting/I13]: **Hosting's claim.** `packages/kaal-hosting/ownership.kaal.json` is Hosting's ownership claim, in the format Testing owns and #609 settled (JSON, machine-oriented; `CLAIM_FILE` and `readClaim` in `kaal-testing/attribution`):
   - It holds exactly `owner` and `paths`.
   - `owner` is exactly `{ kind, name, id }`: `kind` is `extension`, because Hosting's Node `payload/Hosting.md` is typed `KAAL Extension`; `name` is that Node's name, `Hosting`; `id` is that Node's identity, the lowercase hex SHA-256 of its bytes.
-  - `paths` is exactly `["packages/extensions/kaal-hosting/"]`: Hosting's whole tree, nothing outside it, and no narrower pattern.
+  - `paths` is exactly `["packages/kaal-hosting/"]`: Hosting's whole tree, nothing outside it, and no narrower pattern.
   - When `payload/Hosting.md` changes, the same Change refreshes `owner.id`, so the claim never names a Node Hosting no longer carries.
 
 ## Limits

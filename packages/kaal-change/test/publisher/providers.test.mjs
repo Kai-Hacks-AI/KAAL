@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from '@kaihacksai/kaal-hosting';
 import { fileURLToPath } from 'node:url';
-import { readiness } from '../../../../../engineering/release/release.mjs';
+import { readiness } from '../../../../engineering/release/release.mjs';
 
 test('change/T55 [change/F49]: a production installation declares every provider needed by the shipped verifier', async () => {
   const pkg = JSON.parse(await readFile(fileURLToPath(new URL('../../package.json', import.meta.url))));
@@ -17,7 +17,7 @@ test('change/T57 [change/F49, change/N13]: the existing Release gate names an un
   // Controlled registry observations, not claims of actual publication.
   const registry = { [pkg.name]: null, '@kaihacksai/kaal-foundation': ['0.0.1'],
     'kaal-graph': ['0.0.1'], '@kaihacksai/kaal-hosting': ['0.0.1'] };
-  const input = { manifest: pkg, directory: 'packages/skills/kaal-change', registry };
+  const input = { manifest: pkg, directory: 'packages/kaal-change', registry };
   assert.deepEqual(readiness(input).findings, []);
   for (const provider of ['kaal-graph', '@kaihacksai/kaal-hosting']) {
     const r = readiness({ ...input, registry: { ...registry, [provider]: null } });

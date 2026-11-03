@@ -3,7 +3,7 @@
 Each element names, in brackets, the Requirements it answers.
 
 - **engineer-skill/A1** [engineer-skill/F1–engineer-skill/F4, engineer-skill/N1]: The interpretation lives where conformance is checked, in `skills/kaal-engineer-skill/scripts/validate.mjs`. `engineer-skill/C2` brings `checkSkill` to `engineer-skill/F3` and `engineer-skill/F4`: decoding becomes fatal UTF-8 with the byte order mark ignored, the YAML options are stated rather than left to defaults, and a lone CR stays an ordinary character. It also exports the interpretation itself, the frontmatter fields with the findings, so a consumer reads fields from Engineer Skill instead of re-parsing. How Core imports it, and where that sits in the dependency order, is `core/C22`'s to plan, with Engineer Skill reviewing.
-- **engineer-skill/A2** [engineer-skill/F5–engineer-skill/F7]: Installation and placement are Core's. This Change states only what Core must keep. `engineer-skill/C2` adds `packages/skills/kaal-engineer-skill/.gitattributes` with `skills/** -text`, which the package does not have yet.
+- **engineer-skill/A2** [engineer-skill/F5–engineer-skill/F7]: Installation and placement are Core's. This Change states only what Core must keep. `engineer-skill/C2` adds `packages/kaal-engineer-skill/.gitattributes` with `skills/** -text`, which the package does not have yet.
 
 ## Assessment: Engineer Skill's frontmatter and Graph's Form
 

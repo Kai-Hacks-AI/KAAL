@@ -22,7 +22,7 @@ Evidence that `kaal-engineer-skill` conforms to the [Agent Skills specification]
 npm test -w kaal-engineer-skill        # KAAL's verdicts, as CI runs them
 
 python3 -m venv .venv && .venv/bin/pip install skills-ref==0.1.1
-node packages/skills/kaal-engineer-skill/test/conformance/compare.mjs \
+node packages/kaal-engineer-skill/test/conformance/compare.mjs \
   --skills-ref .venv/bin/agentskills --spec <path>/docs/specification.mdx --write
 ```
 

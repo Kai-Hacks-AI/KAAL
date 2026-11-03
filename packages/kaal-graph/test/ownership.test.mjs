@@ -12,9 +12,9 @@ describe("Graph's own claim", () => {
   it("names Graph's Skill Node by its kind and exact name and id, and claims Graph's tree", () => {
     const node = identify(readFileSync(join(PACKAGE, "payload", "Graph.md")));
     assert.equal(node.type.name, "KAAL Skill");
-    const { claim, finding } = readClaim(`packages/skills/kaal-graph/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
+    const { claim, finding } = readClaim(`packages/kaal-graph/${CLAIM_FILE}`, readFileSync(join(PACKAGE, CLAIM_FILE)));
     assert.equal(finding, undefined);
     assert.deepEqual(claim.owner, { kind: "skill", name: node.name, id: node.id });
-    assert.deepEqual(claim.paths, ["packages/skills/kaal-graph/"]);
+    assert.deepEqual(claim.paths, ["packages/kaal-graph/"]);
   });
 });

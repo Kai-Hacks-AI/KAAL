@@ -6,7 +6,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { readiness, verification } from "../../../../../engineering/release/release.mjs";
+import { readiness, verification } from "../../../../engineering/release/release.mjs";
 import { hashes, LOOPS, PACKAGE, PREFIX } from "../verify.mjs";
 
 const NAME = "@kaihacksai/kaal-hosting";
@@ -66,7 +66,7 @@ describe("Hosting release interoperability", () => {
     };
     assert.deepEqual(manifest.dependencies, required);
     const registry = { [NAME]: null, ...Object.fromEntries(Object.entries(required).map(([n, v]) => [n, [v]])) };
-    const judge = (facts) => readiness({ manifest, directory: "packages/extensions/kaal-hosting", registry: facts });
+    const judge = (facts) => readiness({ manifest, directory: "packages/kaal-hosting", registry: facts });
     assert.deepEqual(judge(registry), { findings: [], path: "first" });
     for (const [name, version] of Object.entries(required)) {
       assert.deepEqual(judge({ ...registry, [name]: [] }).findings,

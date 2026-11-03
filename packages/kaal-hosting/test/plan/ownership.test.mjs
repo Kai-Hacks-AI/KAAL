@@ -22,7 +22,7 @@ describe("hosting/C24: Hosting's ownership claim", () => {
     assert.match(front, /^type:\r?\n  name: KAAL Extension$/m);
     assert.deepEqual(claim.owner, { kind: "extension", name: "Hosting", id: createHash("sha256").update(node).digest("hex") });
 
-    assert.deepEqual(claim.paths, ["packages/extensions/kaal-hosting/"]);
+    assert.deepEqual(claim.paths, ["packages/kaal-hosting/"]);
     const files = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).files;
     assert.ok(!files.some((f) => f === "ownership.kaal.json" || f === "*" || f === "."), `files ships the claim: ${JSON.stringify(files)}`);
   });

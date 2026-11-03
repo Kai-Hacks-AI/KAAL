@@ -1,6 +1,6 @@
 # Portability Across Capabilities: Testing
 
-The planned outer tests live in `packages/extensions/kaal-hosting/test/plan/portability.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. Run them with `npm run build -w kaal-hosting && node --test packages/extensions/kaal-hosting/test/plan/portability.test.mjs`. `hosting/C17` turns them GREEN and moves them into Hosting's `npm test`, so they run in the Linux, Windows and macOS Hosting lanes. As the operating-system boundary, these tests may name a platform.
+The planned outer tests live in `packages/kaal-hosting/test/plan/portability.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. Run them with `npm run build -w kaal-hosting && node --test packages/kaal-hosting/test/plan/portability.test.mjs`. `hosting/C17` turns them GREEN and moves them into Hosting's `npm test`, so they run in the Linux, Windows and macOS Hosting lanes. As the operating-system boundary, these tests may name a platform.
 
 | Test | Checks | Loop |
 | --- | --- | --- |

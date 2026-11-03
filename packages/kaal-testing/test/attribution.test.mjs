@@ -203,8 +203,8 @@ describe("Testing's own claim", () => {
   it("names Testing's Capability Node, typed by Core's KAAL Capability, by its kind and exact name and id, and claims Testing's tree", async () => {
     const node = identify(await readFile(join(PACKAGE, "capability", "Testing.md")));
     assert.deepEqual(node.type, foundation().capability);
-    const { claim: own } = readClaim("packages/skills/kaal-testing/ownership.kaal.json", await readFile(join(PACKAGE, CLAIM_FILE)));
+    const { claim: own } = readClaim("packages/kaal-testing/ownership.kaal.json", await readFile(join(PACKAGE, CLAIM_FILE)));
     assert.deepEqual(own.owner, { kind: "capability", name: node.name, id: node.id });
-    assert.deepEqual(own.paths, ["packages/skills/kaal-testing/"]);
+    assert.deepEqual(own.paths, ["packages/kaal-testing/"]);
   });
 });

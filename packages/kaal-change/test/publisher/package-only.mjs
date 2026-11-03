@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { join, isAbsolute } from 'node:path';
 import { readFile, initialize, execute, kind } from '@kaihacksai/kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
-import { verification } from '../../../../../engineering/release/release.mjs';
+import { verification } from '../../../../engineering/release/release.mjs';
 
 const [manifestPath, host] = process.argv.slice(2);
 assert.ok(manifestPath && host && isAbsolute(manifestPath) && isAbsolute(host),

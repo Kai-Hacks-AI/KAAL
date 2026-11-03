@@ -9,8 +9,8 @@ Hosting is KAAL's one operating-system boundary (`OS_BOUNDARY` in `kaal-hosting/
 <!-- kaal-hosting:hosts -->
 | Fact | Platform | Holds | Evidence |
 | --- | --- | --- | --- |
-| `kaal-hosting/special-entries` | linux | yes | https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/extensions/kaal-hosting/test/plan/portability.test.mjs |
-| `kaal-hosting/special-entries` | darwin | yes | https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/extensions/kaal-hosting/test/plan/portability.test.mjs |
+| `kaal-hosting/special-entries` | linux | yes | https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/kaal-hosting/test/plan/portability.test.mjs |
+| `kaal-hosting/special-entries` | darwin | yes | https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/kaal-hosting/test/plan/portability.test.mjs |
 | `kaal-hosting/special-entries` | win32 | no | https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723 |
 <!-- /kaal-hosting:hosts -->
 

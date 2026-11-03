@@ -1,6 +1,6 @@
 # Package Interface Contract: Testing
 
-The planned outer test lives in `packages/extensions/kaal-hosting/test/plan/interface.test.mjs`. Its title names the contracts it checks, and it is immutable to DO and CHECK. Run it with `npm run build -w <Hosting's workspace> && node --test packages/extensions/kaal-hosting/test/plan/interface.test.mjs`. Once `hosting/C11` has merged, `hosting/C15` adds it to Hosting's `npm test` beside hosting/T21–T24, so it runs in the Linux, Windows and macOS Hosting lanes.
+The planned outer test lives in `packages/kaal-hosting/test/plan/interface.test.mjs`. Its title names the contracts it checks, and it is immutable to DO and CHECK. Run it with `npm run build -w <Hosting's workspace> && node --test packages/kaal-hosting/test/plan/interface.test.mjs`. Once `hosting/C11` has merged, `hosting/C15` adds it to Hosting's `npm test` beside hosting/T21–T24, so it runs in the Linux, Windows and macOS Hosting lanes.
 
 | Test | Checks | Loop |
 | --- | --- | --- |

@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { execute } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-graph-acceptance-"));
 
 // Commands run through Hosting, which owns how the host realizes them.
