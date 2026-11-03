@@ -1,0 +1,6 @@
+# Packaging readiness (LOVE): Architecture
+
+- **intent/A7. Contract beside the package.** The Installation Contract instance sits in the package root as Core's own does (`installation.kaal.json`), referencing files by package-relative source and Engine-relative target. Core reads it; Intent never reads Core's installer.
+- **intent/A8. Verifier ships, publisher cases do not.** What a consumer runs ships in the package and uses only what the package or its declared dependencies provide. `test/intent.test.mjs` stays a publisher suite, as for the other packages, and the shipped set is declared separately so a missing case reads as unverified, not as GREEN.
+- **intent/A9. Packed-artifact acceptance.** Acceptance packs the package, installs it into an empty consumer, registers the Nodes and runs the shipped verifier. It belongs to the DO that follows (`intent/C6`), with Engineering's acceptance lane as the host. Nothing here asks Hosting to land first on main.
+- **intent/A10. Order.** This PLAN, then `intent/C6` (the DO for F15, F17, F18 and F19), then the flat-layout move as its own Change, all on `kaal/intent`. The name and registry decision is the Owner's, after the Hosting → Foundation → Core publish order.
