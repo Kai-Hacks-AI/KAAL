@@ -1,0 +1,125 @@
+{
+  "format": {
+    "name": "Installation Contract",
+    "id": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
+  },
+  "capability": "core",
+  "version": "0.0.1",
+  "assets": [
+    {
+      "name": "AGENTS.md",
+      "source": "payload/AGENTS.md",
+      "target": ".kaal/AGENTS.md",
+      "kind": "file"
+    },
+    {
+      "name": "KAAL-KERNEL.md",
+      "source": "payload/KAAL-KERNEL.md",
+      "target": ".kaal/KAAL-KERNEL.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/Agent-Realization.md",
+      "source": "payload/core/Agent-Realization.md",
+      "target": ".kaal/core/Agent-Realization.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/CASE.md",
+      "source": "payload/core/CASE.md",
+      "target": ".kaal/core/CASE.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/Installation-Contract.md",
+      "source": "payload/core/Installation-Contract.md",
+      "target": ".kaal/core/Installation-Contract.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/KAAL-Agent.md",
+      "source": "payload/core/KAAL-Agent.md",
+      "target": ".kaal/core/KAAL-Agent.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/KAAL-Capability.md",
+      "source": "payload/core/KAAL-Capability.md",
+      "target": ".kaal/core/KAAL-Capability.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/KAAL-Definition.md",
+      "source": "payload/core/KAAL-Definition.md",
+      "target": ".kaal/core/KAAL-Definition.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/KAAL-Extension.md",
+      "source": "payload/core/KAAL-Extension.md",
+      "target": ".kaal/core/KAAL-Extension.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/KAAL-Skill.md",
+      "source": "payload/core/KAAL-Skill.md",
+      "target": ".kaal/core/KAAL-Skill.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/LOVE.md",
+      "source": "payload/core/LOVE.md",
+      "target": ".kaal/core/LOVE.md",
+      "kind": "file"
+    },
+    {
+      "name": "core/Node.md",
+      "source": "payload/core/Node.md",
+      "target": ".kaal/core/Node.md",
+      "kind": "file"
+    }
+  ],
+  "catalogue": {
+    ".kaal/AGENTS.md": [
+      "66cd64c78ccfc874023442db3fcfbace014aee9c5af3aeec93d9271317029d93"
+    ],
+    ".kaal/KAAL-KERNEL.md": [
+      "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc"
+    ],
+    ".kaal/core/Agent-Realization.md": [
+      "983ccaace5f9ff133eb3444e8a134e779029acae6fa0856410e9edb96b97a7d4"
+    ],
+    ".kaal/core/CASE.md": [
+      "46541b3bc4543b9021126f9e1a3a37e4542872846fcd31711b5c7f4ce5e6acc9"
+    ],
+    ".kaal/core/Installation-Contract.md": [
+      "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
+    ],
+    ".kaal/core/KAAL-Agent.md": [
+      "d632c1fb4c4201d65c7834d4af0463cd1bd3928dd0fb8cc0b503521a4d2cf447"
+    ],
+    ".kaal/core/KAAL-Capability.md": [
+      "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e"
+    ],
+    ".kaal/core/KAAL-Definition.md": [
+      "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2"
+    ],
+    ".kaal/core/KAAL-Extension.md": [
+      "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94"
+    ],
+    ".kaal/core/KAAL-Skill.md": [
+      "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933"
+    ],
+    ".kaal/core/LOVE.md": [
+      "0fbf1235d33dc43f111a506587559068ccafa49fd831aa99852e5c22b80296c4"
+    ],
+    ".kaal/core/Node.md": [
+      "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663"
+    ]
+  },
+  "record": ".kaal/state/core/installation.json",
+  "runtime": {
+    "node": 24
+  },
+  "provides": []
+}
