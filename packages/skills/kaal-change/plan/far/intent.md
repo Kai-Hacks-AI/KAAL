@@ -25,10 +25,10 @@ The capabilities divide FAR as follows:
 
 ## Open questions
 
-These stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO.
+Questions 1, 2, 4 and 5 stay open in this PLAN and are for the Owner, CPO and the named capabilities to settle before any DO. Question 3 is settled.
 
 1. **Guard's reporting outputs.** What exactly does Guard report for a FAR check: GREEN and RED per Case, accept-list coverage, and unresolved conditions? Guard owns the output format. Change consumes it, judges it, and defines no Guard type.
 2. **PREACH.** How does Change escalate through PREACH when acceptance is beyond its authority? PREACH is not in Change's contracts today, only in Core's and Engineering's documents. Who owns the escalation contract?
-3. **Entry-point visibility.** Does FAR deserve its own visible entry point in the UI, or does it sit below the collector's single entry point?
+3. **Settled: entry-point visibility.** FAR sits under kaal-change's single entry point, with no separate entry point and no separate package. Its visibility is a storytelling question, answered by naming FAR prominently in kaal-change's README and docs. That writing belongs to the DO, not to this PLAN. (Owner, 2026-11-03.)
 4. **The expansion.** Review's #270 still says Features Accepted Regression. Is the name Features Accept Regression (this PLAN, the CPO handover)? Name only; it affects no contract.
 5. **#662.** Delivery counts allowed failed Cases as unmet. An accepted Case that stays RED must remain consistent with that.
