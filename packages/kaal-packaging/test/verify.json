@@ -20,7 +20,7 @@
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
     "test/embed/measurement.test.mjs": "3b1c6f065a484113608d3ab00fd2acbb97e94da4ff4471a6a826f7c3eb30c031",
-    "test/embed/package.test.mjs": "146f1681eb1b51730ab2c9990db97a634eb0b460dc359a623b6d5218d364e523",
+    "test/embed/package.test.mjs": "4dc467d0a9c6cd94c0c397d7312688d7e79e64dece54a93f59053830645520fb",
     "test/run.mjs": "3bcbe53925a60d761812e6660a61a245298f51e51b2439018c9ae89f864ff04a",
     "test/verify.mjs": "39b001e63c00736fcb34e098cdae2af2ee26a316aa9470822873357221378f33"
   },
@@ -55,7 +55,13 @@
     "packaging/T30",
     "packaging/T32",
     "packaging/T34",
-    "packaging/T35"
+    "packaging/T35",
+    "packaging/T61",
+    "packaging/T62",
+    "packaging/T63",
+    "packaging/T65",
+    "packaging/T66",
+    "packaging/T67"
   ],
   "model": {
     "cases": [
@@ -257,6 +263,43 @@
         "id": "packaging/T35",
         "tests": [
           "packaging/A7"
+        ]
+      },
+      {
+        "id": "packaging/T61",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T62",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T63",
+        "tests": [
+          "packaging/F29",
+          "packaging/A22"
+        ]
+      },
+      {
+        "id": "packaging/T65",
+        "tests": [
+          "packaging/F30"
+        ]
+      },
+      {
+        "id": "packaging/T66",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T67",
+        "tests": [
+          "packaging/F29"
         ]
       }
     ]
