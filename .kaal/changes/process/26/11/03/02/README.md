@@ -15,10 +15,19 @@ kaal-process owns the instances is open: "maybe as start".
 | Piece | Owner | Why |
 |---|---|---|
 | The metamodel (Process, Activity, Role, State, Transition, Ordering, Entry/Exit) | Process | Process's whole scope (#275). |
-| **PDCA** as a generic, recursive template | **Process, as the first instance** | It is generic and no other capability's semantics (#526, #620 "Process Template"). This is the "as start": it incubates in Process, in the package that already holds it. No new package. |
+| **PDCA** as a generic, recursive **template** | **Process** | It is generic and no other capability's semantics (#526, #620 "Process Template"). This is the "as start": the template incubates in Process, in the package that already holds it. No new package. |
 | A capability's own lifecycle (a Change's PLAN, DO, CHECK) | That capability (Change) | Already stated in the Process Node. |
 | **DevOps** | **Open** | An instance of the metamodel, and not decided to be a capability (#851 and #852 treat it as a process, not a Capability, and only suggest Engineering describes it). Either Engineering holds the description, or DevOps incubates in Process like PDCA. Not decided here. |
 | Other instances (for example the CTO/CPO exchange) | Their accountable owner | #852: owned by whoever is accountable. |
+
+**Template and instance, defined.** A *template* is a reusable process design
+that Process owns because it is generic (PDCA). An *instance* is what a capability
+creates when it adopts a template for its own work, and the adopter owns it
+(Change's lifecycle is PDCA realized for one Change and stays Change's). The
+metamodel is neither: it is the vocabulary templates and instances are written
+in. So PDCA is a Process-owned template, never "the first instance"; DevOps is a
+process design, and whether it is held by Engineering as an adopter's instance or
+incubated in Process as a second template is the open question below.
 
 Process incubates only what is generic enough to be reused by several owners,
 and moves an instance to its owner when that owner exists to take it, the way
@@ -70,6 +79,9 @@ Change capability by pull request, not enforced from here.
    serving its Activities), or be described by Engineering? Process incubates
    only what several owners reuse; DevOps's reuse across capabilities is the
    test.
+
+These three are Owner choices. A later DO must not assume any of them; each is
+settled on a PR before it is built.
 
 ## Scope and authorization
 
