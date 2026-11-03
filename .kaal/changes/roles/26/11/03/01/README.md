@@ -98,10 +98,25 @@ with its own PR.
   unpromoted. No transient surface. The baseline stays referenceable on
   `kaal/roles` until the owners have it.
 
-Recommended: B by default, with A only if a concrete consumer on `main` is
-named. This reverses this PLAN's first draft, which recommended A, because the
-baseline is already usable on `kaal/roles` and no consumer needs it on `main`.
-Either route is Kai's choice, and nothing proceeds until it is made.
+**Route B.** The CPO's portfolio review (3 November) reached the same view:
+promotion to `main` and npm publication are scarce product decisions, not
+mechanisms for unblocking development, and a temporary Roles package promoted
+only to make the definitions available would consume `main` capacity and create
+avoidable migration work. Route A stays open only if a concrete consumer on
+`main` is named that cannot be served by continued capability-owned development.
+Approving this PLAN on the PR is the Owner decision for B; until then nothing
+proceeds on either route.
+
+Consequences of B, all owner-controlled:
+
+- `kaal/roles` is not promoted and the held SYNC (#912) is not needed. #912 stays
+  held and is closed when this PLAN is approved, unless a consumer on `main` is
+  named.
+- Engineering adopts the CTO Advisor, and Product the CPO Advisor, each by its
+  own Change on its own collector, following section 2. Roles supplies the
+  definition text and the old Node id; it does not edit the owners' collectors.
+- When both have adopted, a last Roles Change removes the definitions, then the
+  package, and `kaal/roles` is deleted.
 
 ## Scope and authorization
 
