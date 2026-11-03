@@ -475,19 +475,19 @@
     },
     {
       "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
-      "path": "packages/kaal-graph/test/graph.test.mjs",
+      "path": "packages/skills/kaal-graph/test/graph.test.mjs",
       "blob": "71d3e33444ee3ef1be757ef9f3f7390adaf3489f",
       "sha256": "87327d4914dc3274335a4654b6e0cc389fcf7b5a4e124ae47f40b21407930d1e"
     },
     {
       "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
-      "path": "packages/kaal-testing/package.json",
+      "path": "packages/skills/kaal-testing/package.json",
       "blob": "fd24404e1b3654130b70b92aa83780278e65366f",
       "sha256": "546c91b256db03e5d1b5fca99a3ff2b1cd2b0673056fd4dc590b1eefd0374b0e"
     },
     {
       "ref": "dd39d3be7b3d51b47658c7fdafa1b7b3799f3e44",
-      "path": "packages/kaal-testing/test/boundary.test.mjs",
+      "path": "packages/skills/kaal-testing/test/boundary.test.mjs",
       "blob": "47e06c95916b4253f176c4cd84a86c90c143e348",
       "sha256": "f8a6b1af4519c42be986592124167a1470972aed1fe2392326da09f5ad2b4cce"
     },
@@ -600,7 +600,7 @@
       "disposition": "distinct test files/package subjects; equal text does not establish an equivalent execution",
       "sources": [
         "packages/kaal-core/test/core.test.ts",
-        "packages/kaal-graph/test/graph.test.mjs"
+        "packages/skills/kaal-graph/test/graph.test.mjs"
       ]
     },
     {
@@ -615,7 +615,7 @@
       "disposition": "Core boundary twice under D1 and Testing boundary once; different inspected package/module populations",
       "sources": [
         "packages/kaal-core/test/boundary.test.ts",
-        "packages/kaal-testing/test/boundary.test.mjs"
+        "packages/skills/kaal-testing/test/boundary.test.mjs"
       ]
     },
     {
