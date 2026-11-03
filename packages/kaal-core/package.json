@@ -54,6 +54,7 @@
     "dist",
     "!dist/.tsbuildinfo",
     "payload",
+    "capability",
     "installation.kaal.json",
     "docs",
     "test/embed",
