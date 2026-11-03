@@ -9,23 +9,20 @@
     "docs/limitations.md": "bef84175e8628f92f92ce75801de04a0c1567c41d7083d939237012a5ceb5ec5",
     "docs/operations.md": "f216dbebf528b1ff7148ccb188106ee7975cb27175f85618c95196df738bcf4e",
     "docs/requirements.md": "ea4dff510cd8a7152d93e54ccb13d3b6c92766a37d6fe8ff54b1473a29f1a42d",
-    "docs/testing.md": "369e1cbe6cbfc06b692a37de5aa4794a8bcef3e0dfc3bf91a12f05c871041ed0",
+    "docs/testing.md": "acea93ff824c722812c05dcdd4b29832d8659bcbd60e0b0d3a7d0de1ea87ab03",
     "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
     "lib/conformance.d.ts": "cd7faf3a1b49ad3a566c29d884513f84f03c605b0b70a98fd5563006d00b5000",
-    "lib/conformance.mjs": "5ad983d56eb0614d4260e6890bedf3e3b29750ddb52cd53adbe0a5778bb87699",
-    "lib/host.mjs": "76fefb907c0c1330d84c516b9bdb52b0b3f9ad0dd7cefa6c5d95f24083cf986f",
-    "lib/installation.mjs": "73cc5016a3634120bc0ff4e3f02f8a8641420a9031923c58cc0b4837a945c8c9",
-    "lib/npm/realization.mjs": "089410df0dde44791685b4693dea58bf40244f9e8b94b7b61fe16d8f3785a734",
+    "lib/conformance.mjs": "c8bf1ae25b06d343158de2708cb9795faccabac2c1f95176f689af8a297e5300",
+    "lib/npm/realization.mjs": "6ae31f68e81be5f64a234f7fb3d43d647e08da45701708e8c202134685d386d3",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
-    "lib/packaging.mjs": "363ed1d87b30740528d57b582e7549788a8e40e9eb5479b0e83807ad4c114076",
-    "lib/structure.mjs": "9e8ea7e7787e291456484d09f4de519c11b4d369d14e78f3e6ac1e898ae464da",
-    "package.json": "f0964c16088d27d9a5ed502cc9bad5f5a361a24de62a9b7265b8eedab2e142fc",
+    "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",
+    "package.json": "4c6a1edac446c19c772330b44e3a9bea84ba5ca04bda84c708eec888e181ef32",
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
-    "test/embed/measurement.test.mjs": "6ca888abf9c118460d1041bb91cb6274123c1b525b5c91fdc5b5200ee5d8cfeb",
-    "test/embed/package.test.mjs": "e89145240a1ef09b92d532619f8962d5cde0b68d3b4a6801c217d581c03db610",
-    "test/run.mjs": "91edb472bd369555b5b6fc0d4f1d60ae888fbb544688526c5c1583cdf99b8aa4",
-    "test/verify.mjs": "714a5d5576dbdf13671415b7d7512e3bcbd1dc62f7f8a6d241a03193cb0b6488"
+    "test/embed/measurement.test.mjs": "3b1c6f065a484113608d3ab00fd2acbb97e94da4ff4471a6a826f7c3eb30c031",
+    "test/embed/package.test.mjs": "4dc467d0a9c6cd94c0c397d7312688d7e79e64dece54a93f59053830645520fb",
+    "test/run.mjs": "3bcbe53925a60d761812e6660a61a245298f51e51b2439018c9ae89f864ff04a",
+    "test/verify.mjs": "39b001e63c00736fcb34e098cdae2af2ee26a316aa9470822873357221378f33"
   },
   "cases": [
     "packaging/T1",
@@ -59,7 +56,12 @@
     "packaging/T32",
     "packaging/T34",
     "packaging/T35",
-    "packaging/T64"
+    "packaging/T61",
+    "packaging/T62",
+    "packaging/T63",
+    "packaging/T65",
+    "packaging/T66",
+    "packaging/T67"
   ],
   "model": {
     "cases": [
@@ -264,9 +266,40 @@
         ]
       },
       {
-        "id": "packaging/T64",
+        "id": "packaging/T61",
         "tests": [
-          "packaging/N8"
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T62",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T63",
+        "tests": [
+          "packaging/F29",
+          "packaging/A22"
+        ]
+      },
+      {
+        "id": "packaging/T65",
+        "tests": [
+          "packaging/F30"
+        ]
+      },
+      {
+        "id": "packaging/T66",
+        "tests": [
+          "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T67",
+        "tests": [
+          "packaging/F29"
         ]
       }
     ]

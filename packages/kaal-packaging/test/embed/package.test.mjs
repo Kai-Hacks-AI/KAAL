@@ -488,7 +488,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     assert.deepEqual(report.reported, { result: "verified", exit: 0, causes: [] });
     assert.deepEqual(
       report.findings.map((f) => f.requirement),
-      ["packaging/F7", "packaging/F8", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/F12", "packaging/F13", "packaging/N7", "packaging/N8", "packaging/N9"],
+      ["packaging/F7", "packaging/F8", "packaging/F9", "packaging/F10", "packaging/F11", "packaging/F12", "packaging/F13", "packaging/F30", "packaging/N7", "packaging/N8", "packaging/N9"],
     );
   });
 
@@ -600,5 +600,60 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     if (r.result === "unknown") assert.doesNotMatch(r.cause, /packaging\//, "every Packaging ID the skill cites exists");
     // No false GREEN: a skill that restates a Testing term is refused.
     assert.equal(references(`${skill}\n\`unknown\` means the suite could not decide.\n`, own).result, "failed");
+  });
+});
+
+describe("packaging/C21 definition-only packages and no KAAL-only leak", () => {
+  // A definition-only package ships Nodes as data and no module outside test/. Assembled so that this
+  // file's own text imports nothing undeclared.
+  const NODE = JSON.stringify({ id: "fixture/N1", text: "A Node states something." });
+  const decide = (body) => `import { readFileSync, existsSync } from "node:fs";
+const at = (p) => new URL("../" + p, import.meta.url);
+const ok = (() => { ${body} })();
+const cases = ["fixture/T1", "fixture/T2", "fixture/T3"].map((id) => ({ name: id, outcome: ok ? "pass" : "fail" }));
+console.log(ok ? "3 passed" : "0 passed");
+console.log("kaal-fixture-verification " + JSON.stringify({ result: ok ? "verified" : "failed", exit: ok ? 0 : 1, cases, causes: ok ? [] : ["a case failed"] }));
+process.exitCode = ok ? 0 : 1;
+`;
+  const ASSERTS = decide(`try { const n = JSON.parse(readFileSync(at("nodes/a.json"), "utf8")); return n.id === "fixture/N1" && typeof n.text === "string" && n.text.length > 0; } catch { return false; }`);
+  const PRESENT = decide(`return existsSync(at("nodes/a.json"));`);
+  const PARSES = decide(`try { JSON.parse(readFileSync(at("nodes/a.json"), "utf8")); return true; } catch { return false; }`);
+  const dataOnly = (verify, manifest = { behaviour: ["nodes/a.json"] }, files = {}) =>
+    conforming({ files: { "lib/add.mjs": undefined, "nodes/a.json": NODE, "test/verify.mjs": verify, ...files }, manifest });
+
+  it("packaging/T61 [packaging/F29]: a definition-only package whose verification asserts the content of its declared Node files reaches verified, N9 included", async () => {
+    const r = await conform(dataOnly(ASSERTS));
+    expect(r.by, "packaging/N9", "verified");
+    assert.equal(r.report.result, "verified", JSON.stringify(r.report.findings.filter((f) => f.result !== "verified")));
+  });
+
+  it("packaging/T62 [packaging/F29]: a presence-only verification of a definition-only package fails N9, even with the declared files unreadable and the digests rewritten", async () => {
+    expect((await conform(dataOnly(PRESENT))).by, "packaging/N9", "failed", /decides from presence/);
+  });
+
+  it("packaging/T66 [packaging/F29]: a digest-only verification fails N9 although the declared bytes are corrupted and the digests are adjusted to match", async () => {
+    expect((await conform(dataOnly(DIGESTS))).by, "packaging/N9", "failed", /decides from presence/);
+  });
+
+  it("packaging/T67 [packaging/F29]: a syntax-only verification survives the emptied copy and fails N9, naming that copy", async () => {
+    expect((await conform(dataOnly(PARSES))).by, "packaging/N9", "failed", /emptied/);
+  });
+
+  it("packaging/T63 [packaging/F29, packaging/A22]: without a module and without a declaration N9 is unknown; a bad declaration is failed; a package with modules is unchanged", async () => {
+    const none = await conform(dataOnly(ASSERTS, {}));
+    expect(none.by, "packaging/N9", "unknown", /no module outside test\//);
+    assert.equal(none.report.result, "unknown");
+    for (const [behaviour, cause] of [[[], /empty/], [["nodes/missing.json"], /not a shipped file/], [["test/verify.mjs"], /under test\//]]) {
+      expect((await conform(dataOnly(ASSERTS, { behaviour }))).by, "packaging/N9", "failed", cause);
+    }
+    expect((await conform(conforming())).by, "packaging/N9", "verified");
+  });
+
+  it("packaging/T65 [packaging/F30]: the packed artifact carries nothing of the repository's KAAL-only Engineering or Packages support, and names the first offending path", async () => {
+    expect((await conform(conforming())).by, "packaging/F30", "verified");
+    const records = await conform(conforming({ files: { ".kaal/changes/x/README.md": "# a change record\n" } }));
+    expect(records.by, "packaging/F30", "failed", /\.kaal\/changes\/x\/README\.md/);
+    const root = await conform(conforming({ pkg: { workspaces: ["packages/*"] } }));
+    expect(root.by, "packaging/F30", "failed", /workspaces/);
   });
 });
