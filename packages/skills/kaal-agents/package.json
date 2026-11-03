@@ -23,7 +23,7 @@
   "scripts": {
     "test": "node test/verify.mjs",
     "pretest:publisher": "npm run build -w kaal-core -w kaal-hosting",
-    "test:publisher": "node --test test/agents.test.mjs && node --test test/plan/release.test.mjs",
+    "test:publisher": "node --test test/agents.test.mjs && node --test test/plan/release.test.mjs && node --test test/plan/external.test.mjs",
     "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {

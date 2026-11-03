@@ -11,6 +11,10 @@ Start work in a repository from durable sources, and escalate what a program can
 
 This Skill realizes two Definitions that the package carries. NEW, Next Experience Works, is about starting from what is durable, not from memory of earlier sessions. PREACH, Program Reports Errors, Agent Consults Human, is about handling what a program cannot resolve.
 
+## Effects
+
+This Skill and the `kaal-agents` CLI only read. They write nothing in the repository and keep no state. They grant no authority: what you may do stays with the sources that state it.
+
 ## Bare: starting with no Skill
 
 Everything you need is in the repository:
@@ -47,6 +51,8 @@ When a program reports something it cannot resolve, such as two definitions that
 1. Take the program's report as facts and candidates. Do not equate, merge, choose or drop candidates, and keep each one's scope.
 2. Resolve it yourself only under an authority you can cite: an instruction, a decision or an ownership claim that already settles it.
 3. Otherwise, consult the accountable person with the facts, the candidates and one question. They decide.
+
+A package's "cannot judge" or "unresolved" result is a program report in this sense. Carry its facts and candidates unchanged, and apply these steps. How another package words its output stays with that package's owner.
 
 Not everything escalates to a person. What existing authority settles ends with you.
 

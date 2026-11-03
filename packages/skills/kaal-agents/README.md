@@ -19,6 +19,10 @@ ownership.kaal.json      Agents' own ownership claim (repository data, not deliv
 
 This package establishes the capability only. It registers no Agent, keeps no session state, and assumes nothing of a host: no host is relied on to load anything without being asked. What a KAAL Agent is and how Agents are registered and discovered stay with Core. NEW, Next Experience Works, states the readiness ambition; how an Agent finds what is registered stays a matter of realization through Core's registry. PREACH, Program Reports Errors, Agent Consults Human, states how an Agent operates when a program reports what it cannot resolve; it cites HAPTIC, which Controls owns, and authorizes nothing.
 
+## Without installing
+
+An Agent that installs nothing still has the whole External part of Agents, as plain Markdown in the repository: the NEW Definition (`capability/NEW.md`), the PREACH Definition (`capability/PREACH.md`) and the Skill (`skills/kaal-agents/SKILL.md`), whose Bare form needs only `git` and the repository's files. The CLI (`orient`, `preach check`) is optional. It makes discovery repeatable and a PREACH report checkable, and nothing in the External part depends on it.
+
 ## Register the Nodes
 
 ```sh
