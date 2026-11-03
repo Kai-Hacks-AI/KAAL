@@ -10,13 +10,25 @@ Test, on one low-risk collector, that opening the PR first (holding the PLAN) an
 
 Review is a meta-level capability off the release path (Hosting, Foundation, Core, Guard), so the scarcity rule is not at stake. Its collector is quiet. If Kai picks Roles or another collector, only the names below change.
 
+## Level model (Kai, 3 Nov)
+
+Each level is an expectation, stated in a PR and answered by the level inside it:
+
+1. **Package expectation** (a PR: what the package is to deliver) is answered by
+2. **main expectations** (what must be on `main` to deliver it), which are answered by
+3. **`kaal/*` expectations** (the collector work that provides it).
+
+The ratio is 1:n:m: one package expectation has n main expectations, each with m `kaal/*` expectations. The strength is that **any level can raise against the level above it**: a child that finds the parent's expectation unclear, wrong or impossible raises it on the parent PR (a comment or finding there), rather than working around it. Raising wakes the parent's thread, because PR comments are PR events. A parent's answer is the next version of its expectation, so the roadmap corrects itself from the inside out.
+
+In the pilot this means: the package PR states the expectation, the capability and Change PRs name it as their `Parent:` and answer it, and a child that cannot answer it raises on the parent. A raise is a finding, never a gate.
+
 ## Stages and exit criteria
 
 | Stage | What | Exit criterion |
 |---|---|---|
 | 0 | Baseline: how Review Changes start and how long a Change sits unseen | Recorded on this PR before Stage 1 |
 | 1 | **Package level (outermost, Kai 3 Nov):** one standing PR for the `kaal-review` package, `kaal/review` → `main`, opened ready at work start, listing the capability work under it, stating it is not a promotion request | PR readable through one SYNC and one promotion decision; freshness-red noise caused no wrong action; no failure criterion hit. Opening it needs Kai's answer on the auto-merge hold first |
-| 2 | **Capability level:** the Review capability's own plan PR into `kaal/review`, declaring the package PR as its parent | Declared parent matches the PR graph; owner thread woke on each child open, merge and red |
+| 2 | **Capability level:** the Review capability's own plan PR into `kaal/review`, declaring the package PR as its parent | Declared parent matches the PR graph; owner thread woke on each child open, merge and red; at least one child raised against its parent and the parent's thread woke on it |
 | 3 | **Change level and below:** each Review Change opens a ready PR into `kaal/review` first, holding its PLAN, on auto-merge, declaring its parent | Three consecutive Changes opened PR-first, no orphan, no PR stale beyond the agreed age |
 | 4 | Parent link: a `Parent: #n` line, base branch where one exists; a check reports a mismatch as a finding only | Catches a deliberately orphaned test child, no false positive across Stages 1 to 3 |
 
