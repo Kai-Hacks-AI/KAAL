@@ -11,3 +11,5 @@ test/verify.mjs -text
 test/verify.json -text
 # The CLI shebang must not acquire a CR before TypeScript emits it.
 src/cli.ts -text
+# The shipped capability/ Nodes are digested by the manifest: exact bytes on every host.
+capability/** -text
