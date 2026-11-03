@@ -192,9 +192,11 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
   // reported "unregistered: no Type Definition named Core/Registration" and its state is not "valid".
   it("core/T115 [core/C50 finding]: after `kaal init` in a clean consumer, an installed Core has registered its own Registration Type, so a consumer's Registration Node is not reported unregistered", async () => {
     const host = await consumer("type-definition");
+    assert.ok(!existsSync(join(host, ".kaal", "registrations")), "by design the package ships no registrations: .kaal/registrations is the consumer's own");
+    assert.ok(existsSync(join(host, ".kaal", "core", "KAAL-Capability.md")), "init delivers Core's Type Definitions into the instance's .kaal/core/");
     put(host, "portfolio.md", A);
     const r = await verify(host);
     assert.equal(r.status, 0, r.out);
-    assert.doesNotMatch(r.stdout, /unregistered/, "an installed Core must register its own Registration Type Definition in the Engine it initializes");
+    assert.doesNotMatch(r.stdout, /unregistered/, "init must deliver the Registration Type Definition into the instance's .kaal/, as it delivers Core's other Type Definitions");
   });
 });

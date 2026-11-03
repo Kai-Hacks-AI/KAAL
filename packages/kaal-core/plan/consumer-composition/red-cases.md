@@ -33,6 +33,13 @@ The RED output:
   AssertionError: an installed Core must register its own Registration Type Definition in the Engine it initializes
 ```
 
+How Core resolves `.kaal/` today: the Engine is `./.kaal` by default (`--engine <dir>` elsewhere). `kaal init` copies Core's
+payload into it (`.kaal/core/KAAL-Capability.md` and the other foundational Type Definitions, `.kaal/AGENTS.md`, Core's
+record). A consumer's registrations live beside its content under `.kaal/registrations/`, which init leaves empty.
+Core never looks for a definition inside the package; it reads the Engine. T115 asserts both halves of that design in a
+clean consumer: no registrations are shipped, Core's Type Definitions are delivered into `.kaal/core/`, and so the
+Registration Type Definition must be delivered there too. It is the one Type Definition of Core's that is not.
+
 What is missing is narrower. Core's built-in schema judges the Node, but `kaal init` does not register Core's own
 Capability and the Registration Type Definition in the Engine, so `kaal verify` reports every consumer Registration Node
 as `unregistered: no Type Definition named Core/Registration; register one with the Core Capability` (exit 0, state
