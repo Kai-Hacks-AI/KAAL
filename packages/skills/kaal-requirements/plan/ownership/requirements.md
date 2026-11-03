@@ -21,7 +21,7 @@ Each Requirement names, in brackets, the Intents it serves.
 - **requirements/F21** [requirements/I13]: **Sequence.** Requirements work proceeds in this order, and each step waits for the one above it:
   1. Agree the hand-offs of `requirements/F19` with the Intent and Architecture owners.
   2. DO `requirements/C10` on `kaal/requirements`: `Serves`, identification and the Definition sentence, behind the Owner's review of its PLAN.
-  3. Packaging readiness (`requirements/C7`) after `core/C29` and the Hosting scoped rename.
+  3. Packaging readiness. `requirements/C7`, its DO, needs only the Defect owner's alignment on `requirements/F10` (step 3a); `contract.json` is in Core's existing format, which Core confirmed on 29 October conforms with file assets and an empty `provides`, and `requirements/T13` stays deferred and outside `npm test`. `requirements/C8`, the SYNC, and `requirements/C9`, `requirements/T13` GREEN, wait for `core/C29` and the Hosting scoped rename (step 3b). `requirements/C14`, this amendment, makes that split.
   4. SYNC `main` → `kaal/requirements`, only when the promotion is next in line or development is blocked without main, never for freshness alone.
   5. Promotion, then the first publish as `@kaihacksai/kaal-requirements`, each on the Owner's authorization.
 - **requirements/F22** [requirements/I10]: **Rename.** The package is `kaal-requirements` today. It takes the `@kaihacksai/` scope with the same registry migration as the other capabilities. Requirements does not rename itself ahead of Hosting 0.0.1.

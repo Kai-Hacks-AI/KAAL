@@ -16,7 +16,7 @@ Each element names, in brackets, the Requirements it answers.
 | `requirements/C5` PLAN, this Change | Requirements | #553 |
 | `core/C29` (proposed) contribution lifecycle: registration recorded against a Capability's contract, replacement by version, unregister | Core | none |
 | `requirements/C6` the planned tests, written and recorded RED | Requirements | `requirements/C5` |
-| `requirements/C7` DO: `contract.json`, the Defect boundary, `files` and README; GREEN except requirements/T13 | Requirements | `requirements/C6`, the Defect owner's alignment on F10 |
+| `requirements/C7` DO: `contract.json`, the Defect boundary, `files` and README; GREEN except requirements/T13 | Requirements | `requirements/C6`, `requirements/C12`, the Defect owner's alignment on F10. It does not wait for `core/C29` or the scoped rename (`requirements/C14`) |
 | `requirements/C8` SYNC main → kaal/requirements, once `core/C29` is on main | Requirements | `requirements/C7`, `core/C29` |
 | `requirements/C9` requirements/T13 GREEN against Core's contribution lifecycle | Requirements | `requirements/C8` |
 | `engineering/C…` Core's conformance Test Cases run against Requirements' instance | Engineering | `requirements/C7` |
