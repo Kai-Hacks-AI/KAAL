@@ -21,6 +21,15 @@ A candidate may carry an entry **in its own change to `transitions.json`** when 
 
 Why this is as safe as the two-PR route: the author alone can no longer authorize anything (rule 3), the reviewed commitment is bound to the exact bytes (rule 3, the digest and the head SHA), an edit to history or to a sibling entry is refused (rule 1), and the entry cannot reach beyond what was changed (rule 2). What it gives up is the **separate merge** of the entry; what replaces it is a **separate, author-independent attestation** in the same PR.
 
+## The gate must be re-evaluated when the attestation changes
+
+`.github/workflows/change-isolation.yml` runs only on `opened`, `synchronize`, `reopened` and `edited` of the pull request. An approval is a **review** event, so as the workflow stands the check would stay failed after the attestation arrives, and would stay passed after the attestation is dismissed. Both are wrong: a late approval must admit the change, and a withdrawn one must stop admitting it. The implementation scope therefore includes trusted review-event handling:
+
+- The workflow also runs on `pull_request_review` (`submitted`, `edited`, `dismissed`), as `pull_request_target`-style trusted code from the default branch, never the candidate's. It re-reads the reviews at the current head and recomputes the same verdict, so the required check carries the latest state.
+- Only the head SHA the review was recorded against counts, as in rule 3. A review on an older head never admits a newer one.
+- Fail closed: if the reviews cannot be read, the result is "cannot judge", not "admitted", and a stale pass is not left standing.
+- This is a `.github` change. It is its own `.github`-only Change and promotion, not part of the checker Change, and it travels alone like #949.
+
 ## Consequences to decide
 
 - **The pre-push hook cannot see the attestation.** It would refuse an in-PR entry (fail closed), the same shape as D2. That is acceptable only if documented, and it must never admit more than CI does. The agreement test T83/T89 pattern applies.
@@ -46,6 +55,8 @@ Each Case is written and shown RED against today's checker before any implementa
 | R9 candidate checker | the change edits `check.mjs` | still refused | passes |
 | R10 ledger-only | a change that only appends an entry (#958 route) | unchanged | passes |
 | R11 agreement | pre-push and CI on R1 and R2 | the hook refuses wherever CI would, and never admits what CI refuses | planned |
+| R12 late approval | R1 where the attestation arrives after the first refusal | admitted after re-evaluation, with no new push | RED (stays refused) |
+| R13 withdrawn approval | R1 admitted, then the review is dismissed | refused again, the earlier pass not left standing | RED (stays passed) |
 
 R2 to R10 are controls: they pass today and must keep passing, which guards against a design that admits everything.
 
@@ -53,7 +64,7 @@ R2 to R10 are controls: they pass today and must keep passing, which guards agai
 
 1. CPO review of this PLAN, then the Owner's decision on rule 3's form.
 2. Owner enables Code Owner reviews on `main` after #1017 reaches `main`.
-3. RED Cases in Engineering's context (a separate Change), then the implementation in `check.mjs` and `change-isolation.sh`, each a separate Change to `kaal/engineering` and a normal promotion.
+3. RED Cases in Engineering's context (a separate Change), then the implementation in `check.mjs` and `change-isolation.sh` (a Change to `kaal/engineering` and a normal promotion), and the review-event trigger (a `.github`-only Change and promotion).
 4. Until it is on `main`, Hosting 0.0.1 keeps the agreed two-PR route (#1018). Nothing waits for this.
 
 No promotion or publication is authorized by this document.
