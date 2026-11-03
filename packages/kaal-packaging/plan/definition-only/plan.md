@@ -21,24 +21,41 @@ A definition-only package reaches an honest `verified` from what it actually del
 
 **C21 — behaviour-bearing files.** Generalize what the N9 probe breaks, from "shipped modules" to "behaviour-bearing files".
 
-1. The default stays as today: every shipped module outside `test/`. No result changes for a package that ships modules.
-2. A package may declare `behaviour: [paths]` in `test/verify.json`: the delivered files its Cases decide from (for a definition-only package, its Node definition files). The probe corrupts those files too (declared files are replaced by a fixed non-parsing text), rewrites the manifest digests, and runs the installed `npm test` as before.
+1. The default stays as today: every shipped module outside `test/`, broken with the same text, with the manifest digests rewritten to match. No result changes for a package that ships modules.
+2. A package may declare `behaviour: [paths]` in `test/verify.json`: the delivered files its Cases decide from (for a definition-only package, its Node definition files).
 3. The declaration is checked, not trusted. Every path must be a shipped file outside `test/`, listed in the manifest, and the list must not be empty. A bad declaration is N9 `failed` with the cause, not silently ignored.
 4. With no module **and** no declaration, N9 stays `unknown`. A package cannot dodge N9 by declaring nothing.
 5. The finding states that the probe shows the verification depends on those bytes, and that the adequacy of its assertions stays the owner's (as today).
+
+### How the probe tells a contract assertion from a digest check (no second engine, no package wording)
+
+The probe never reads the verifier's code or guesses its intent. It only runs the installed `npm test` against copies of the package and observes whether the result changes. For each declared file it makes **two corrupted copies**, in `work`, never in the consumer, each time with the manifest digests rewritten to match the corrupted bytes, so that a check of presence or digests alone sees nothing wrong:
+
+- **Copy A, unreadable.** Each declared file is replaced by a fixed non-parsing text.
+- **Copy B, emptied.** Each declared file is replaced by the empty document of its own format, chosen from its extension and nothing else: `{}` for `.json`, an empty file for any other extension. It parses, but states nothing.
+
+N9 is `verified` only if **neither** copy still reports `verified`. If either still does, the verification decides from presence, digests or syntax rather than from what the files say: N9 `failed`, naming which copy it survived. This is the same single probe run on a second copy, not a second judgment engine.
+
+What this proves and what it does not: a verifier that only checks existence or digests survives A and B and fails. A verifier that only parses the file survives B and fails. A verifier that asserts anything about the content fails on B and passes. It does not prove the assertions are adequate, and it cannot see an assertion that survives emptying by accident. Adequacy stays the owner's and is stated in the finding. The emptied copy is applied only to declared files, so packages that ship modules see no change.
 
 ## Draft identifiers (provisional, avoiding C10's reserved set and C17 to C20)
 
 | Id | Statement |
 | --- | --- |
-| packaging/F29 | The N9 probe breaks the shipped modules outside `test/` and any file the package declares as behaviour-bearing in `test/verify.json`. A bad or empty declaration is failed. With neither a module nor a declaration, N9 is unknown. |
-| packaging/A22 | One judgment engine and one probe. The declaration only widens the set of files the same probe corrupts. It adds no profile and no second path. |
+| packaging/F29 | The N9 probe breaks the shipped modules outside `test/` and any file the package declares as behaviour-bearing in `test/verify.json`. For declared files it runs two copies, unreadable and emptied, each with manifest digests rewritten to match. A bad or empty declaration is failed. With neither a module nor a declaration, N9 is unknown. |
+| packaging/A22 | One judgment engine and one probe. The declaration only widens the set of files the same probe corrupts, and the second copy only changes the text written. The probe reads no verifier code and no package-specific wording. |
 
-## Test Cases (RED first, then DO)
+## Test Cases (bounded RED first, then DO)
 
-- **T61** A data-only fixture package declaring `behaviour` whose Cases read its Node files: with the files corrupted the verifier stops reporting `verified`, so N9 is `verified` and the overall result is `verified`.
-- **T62** The same fixture with a presence-only verifier (checks that the files exist and match the digests): N9 `failed`.
-- **T63** A data-only fixture with no declaration: N9 `unknown`, overall `unknown`. A declaration with an empty list, or naming a file that is not shipped or lies under `test/`: N9 `failed`. A module-shipping package with no declaration: unchanged from today.
+All use small fixture packages in the Embedded suite. No Process file is involved.
+
+- **T61** A data-only fixture declaring `behaviour`, whose verifier asserts statements about the content of its Node files: copy A and copy B both stop reporting `verified`, N9 `verified`, overall `verified`.
+- **T62a** A presence-only verifier on the same fixture (files exist): survives A and B, N9 `failed`.
+- **T62b** A **digest-only** verifier (checks the files against the manifest digests, the fixture's `DIGESTS` form) with the declared bytes corrupted **and the digests adjusted**: survives A and B, N9 `failed`. This is the case the CPO asked to be explicit.
+- **T62c** A **syntax-only** verifier (parses each declared file, asserts nothing about it): fails A, survives B, N9 `failed`, naming copy B.
+- **T63** No declaration and no module: N9 `unknown`, overall `unknown`. An empty list, or a path that is not shipped, lies under `test/` or is missing from the manifest: N9 `failed`. A module-shipping package with no declaration: unchanged from today, and the second copy is not run.
+
+Five RED Cases, each a fixture with one cause. The DO makes them pass without changing T24 (N9 for modules).
 
 ## Sequencing and ownership
 
