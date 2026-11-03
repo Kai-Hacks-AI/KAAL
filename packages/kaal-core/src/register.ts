@@ -1,5 +1,5 @@
-import { Graph } from "kaal-graph";
-import { kind as pathKind, read, update } from "kaal-hosting";
+import { Graph } from "@kaihacksai/kaal-graph";
+import { kind as pathKind, read, update } from "@kaihacksai/kaal-hosting";
 import { check } from "./bootstrap.js";
 import { evaluate } from "./engine.js";
 import { claimsForm, compareRefs, KaalError, readNode, type Ref } from "./node.js";

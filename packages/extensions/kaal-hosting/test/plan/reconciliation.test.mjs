@@ -13,7 +13,7 @@ import gfs from "graceful-fs";
 
 /** kaal-hosting's reconcile, or the reason the tests are blocked before any behavioural assertion. */
 async function hosting() {
-  const module = await import("kaal-hosting");
+  const module = await import("@kaihacksai/kaal-hosting");
   if (typeof module.reconcile !== "function") assert.fail("blocked before behavioural assertion: kaal-hosting exports no reconcile");
   return module;
 }

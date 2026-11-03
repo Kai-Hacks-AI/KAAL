@@ -1,5 +1,5 @@
-import { Graph } from "kaal-graph";
-import { HostingError, initialize, kind, read } from "kaal-hosting";
+import { Graph } from "@kaihacksai/kaal-graph";
+import { HostingError, initialize, kind, read } from "@kaihacksai/kaal-hosting";
 import { evaluate, type Engine, type EvaluateOptions } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
 import { foundation, payload, type Files } from "./payload.js";

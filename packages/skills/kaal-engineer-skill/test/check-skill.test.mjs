@@ -5,9 +5,9 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { foundation } from "kaal-core";
-import { identify } from "kaal-graph";
+import { identify } from "@kaihacksai/kaal-graph";
 import { checkSkill } from "kaal-engineer-skill";
-import { execute, read } from "kaal-hosting";
+import { execute, read } from "@kaihacksai/kaal-hosting";
 
 const VALIDATOR = fileURLToPath(import.meta.resolve("kaal-engineer-skill"));
 
@@ -199,7 +199,7 @@ describe("responsibility boundaries", () => {
   it("reaches the host only in the entry point, and only through kaal-hosting's read()", () => {
     const entry = readFileSync(SCRIPT, "utf8");
     const imports = [...entry.matchAll(/^import (.*) from "([^"]+)";$/gm)].map((m) => `${m[1]} from ${m[2]}`);
-    assert.deepEqual(imports, ["{ read } from kaal-hosting", "{ basename, resolve } from node:path", "{ checkSkill } from ./validate.mjs"]);
+    assert.deepEqual(imports, ["{ read } from @kaihacksai/kaal-hosting", "{ basename, resolve } from node:path", "{ checkSkill } from ./validate.mjs"]);
     assert.doesNotMatch(entry, /node:fs|kaal-core|child_process|process\.platform/);
   });
 });

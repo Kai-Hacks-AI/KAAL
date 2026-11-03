@@ -11,7 +11,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within, type Files } from "kaal-hosting";
+import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within, type Files } from "@kaihacksai/kaal-hosting";
 
 const run = promisify(execFile);
 const here = fileURLToPath(new URL(".", import.meta.url));

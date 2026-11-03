@@ -8,7 +8,7 @@ The planned tests live in `packages/skills/kaal-graph/test/plan/release.test.mjs
 | graph/T9: `npm test` is `node test/verify.mjs` and builds nothing. `test:publisher` runs `test/publisher/` and the same verify, and never runs an embedded case a second time | graph/F6, graph/F7, graph/A5 | Architecture |
 | graph/T10: `files` ships `docs`, `payload`, `skills`, `test/embedded`, `test/verify.mjs` and `test/verify.json`, and not `plan`, `test/plan` or `test/publisher` | graph/F7, graph/A5 | Architecture |
 | graph/T11: the name is `@kaihacksai/kaal-graph`, and every KAAL runtime dependency is `@kaihacksai/kaal-*` | graph/F8 | Requirements |
-| graph/T12: in a copy of the package, verify is verified (0). A changed shipped file is failed (1), naming it. An empty case inventory is unknown (2) | graph/F6 | Requirements |
+| graph/T12: in a copy of the package, verify is verified (0). A changed shipped file is unknown (2), naming it (amended at `graph/C5`). An empty case inventory is unknown (2) | graph/F6 | Requirements |
 | graph/T14: `form.mjs`, `node.mjs` and their declarations import only `yaml`, `node:` built-ins and each other. Blocked until `node.d.ts` exists (`graph/C7`) | graph/N7 | Architecture |
 | graph/T15: every existing case is placed exactly once: each one that verifies shipped behaviour is embedded, each Engineering-side one stays out of the package, and no test file is left unplaced | graph/F7 | Requirements |
 | graph/T13: the packed tarball and its packed runtime dependencies install into a clean directory. There, the installed files match `docs/operations.md`, `npm test` is verified, and `kaal-graph check` passes on the shipped payload (publisher) | graph/F9, graph/I4 | Intent |
@@ -34,3 +34,7 @@ graph/T15 holds this inventory exactly, by title.
 The tests run with `node --test packages/skills/kaal-graph/test/plan/release.test.mjs`, outside `npm test`.
 - **Discriminating:** graph/T8 (no `docs/`), graph/T9 (`npm test` runs the source tests and `pretest` builds Hosting), graph/T10 (`files` is `payload`, `skills`), graph/T11 (the name is `kaal-graph`) and graph/T15 (no case is embedded yet). I checked graph/T15 both ways locally: with the placement above it is GREEN, and a case copied into `test/publisher/` as well turns it RED.
 - **Blocked:** graph/T12 and graph/T13 fail first on `blocked:`, because `test/verify.mjs` does not exist. graph/T14 fails first on `blocked:` until `graph/C7` (#651) puts `node.d.ts` on the base; with it, graph/T14 is GREEN, and adding an import of another Graph file to `node.mjs` turns it RED.
+
+## C9 carry-forward and A7 reference alignment
+
+C5 moves graph/T16 from `test/plan/composition.test.mjs` to `test/embedded/composition.test.mjs`, retaining its assertions. Its title joins T15's single-copy inventory and the shipped Testing document. Package specifiers and their case-title references use `@kaihacksai/kaal-graph`; the CLI and Skill keep `kaal-graph`. These are the already approved C9 and A7 obligations, with no weakened behavioural expectation.

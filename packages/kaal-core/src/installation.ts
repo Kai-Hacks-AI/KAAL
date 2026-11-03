@@ -2,7 +2,7 @@
 // Capability states what an installation of it is, and the conformance check Core's Test Cases
 // apply to an instance. Pure: no host access (core/N4). A Capability conforms by data alone and
 // never imports this module to do so (core/N5, core/A8).
-import { isName } from "kaal-graph/form";
+import { isName } from "@kaihacksai/kaal-graph/form";
 import type { Finding } from "./frontmatter.js";
 
 export type { Finding } from "./frontmatter.js";

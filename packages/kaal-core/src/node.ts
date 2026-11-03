@@ -1,7 +1,7 @@
 // A Node's Form and identity are Graph's: Core reads Nodes through kaal-graph
 // and keeps only what is its own, its error and the order of references.
-export { claimsForm, FormError, identify, identifyRoot, sha256, type Frontmatter, type FrontmatterValue, type Identity } from "kaal-graph";
-import { FormError, identify, identifyRoot, type Identity } from "kaal-graph";
+export { claimsForm, FormError, identify, identifyRoot, sha256, type Frontmatter, type FrontmatterValue, type Identity } from "@kaihacksai/kaal-graph";
+import { FormError, identify, identifyRoot, type Identity } from "@kaihacksai/kaal-graph";
 
 /**
  * Read a Node's identity from its exact bytes, as Core reads every Node of an

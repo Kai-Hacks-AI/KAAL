@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
-import { Graph } from "kaal-graph";
-import { readFile } from "kaal-hosting";
+import { Graph } from "@kaihacksai/kaal-graph";
+import { readFile } from "@kaihacksai/kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
 import { CORE_VERSION, ENGINE, initEngine, remove, upgrade, versions, type Applied } from "./lifecycle.js";

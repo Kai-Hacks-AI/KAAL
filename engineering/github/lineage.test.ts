@@ -374,7 +374,7 @@ function repo() {
 
 const pkg = (scripts: string[], name = "Engineering repository for KAAL") =>
   `{\n  "description": "${name}",\n  "scripts": {\n${scripts.map((s) => `    ${s},`).join("\n")}\n    "build": "tsc"\n  },\n  "engines": { "node": ">=24" }\n}\n`;
-const MAIN_SCRIPTS = ['"test:hosting": "npm test -w kaal-hosting"'];
+const MAIN_SCRIPTS = ['"test:hosting": "npm test -w @kaihacksai/kaal-hosting"'];
 const KAAL_SCRIPTS = ['"test": "npm run test:hosting && npm run test:kaal"', ...MAIN_SCRIPTS, '"test:kaal": "node lanes/kaal.mjs"'];
 
 describe("acceptance: synchronizing a divergent lineage", () => {
@@ -498,7 +498,7 @@ describe("acceptance: stepwise synchronization", () => {
   r.land("kaal/l", { ".github/workflows/ci.yml": "uses: checkout@v5\n" }, "lineage .github Change");
   r.land("kaal/l", { "package.json": pkg(KAAL_SCRIPTS) }, "lineage root Change");
   const github = r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4.2\n" }, "main .github Change");
-  const root = r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace kaal-hosting"']) }, "main root Change");
+  const root = r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace @kaihacksai/kaal-hosting"']) }, "main root Change");
   const keepLineage = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("show", `kaal/l:${p}`) + "\n"]));
 
   it("a synchronization straight to main's tip mixes .github and root resolutions, which Change Isolation rejects", () => {
@@ -924,7 +924,7 @@ describe("acceptance: resolutions adopted from main", () => {
   r.land("kaal/l", { "package.json": pkg(KAAL_SCRIPTS) }, "lineage root Change");
   r.land("kaal/l", { "old.md": "lineage edit\n" }, "lineage edits a file main deletes");
   r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4.2\n" }, "main .github Change");
-  r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace kaal-hosting"']), "old.md": null }, "main root Change");
+  r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace @kaihacksai/kaal-hosting"']), "old.md": null }, "main root Change");
   const main = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("ls-tree", "main", "--", p) ? r.g("show", `main:${p}`) + "\n" : null]));
   const lineage = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("show", `kaal/l:${p}`) + "\n"]));
 

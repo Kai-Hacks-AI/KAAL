@@ -5,8 +5,8 @@ import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { describe, it } from "node:test";
 import { promisify } from "node:util";
-import type { Files } from "kaal-hosting";
-import { COVERAGE, EXCLUSIONS, inspect } from "kaal-hosting/conformance";
+import type { Files } from "@kaihacksai/kaal-hosting";
+import { COVERAGE, EXCLUSIONS, inspect } from "@kaihacksai/kaal-hosting/conformance";
 
 const run = promisify(execFile);
 
@@ -40,7 +40,7 @@ describe("inspect", () => {
   it("compliant: finds no violation and nothing to validate when only declared builtins are imported, and lists what lies outside", async () => {
     const report = await inspect(
       files({
-        "index.js": 'import { read } from "kaal-hosting";\nimport { join } from "node:path";\nimport { helper } from "./lib/helper.js";\nexport { helper };\n',
+        "index.js": 'import { read } from "@kaihacksai/kaal-hosting";\nimport { join } from "node:path";\nimport { helper } from "./lib/helper.js";\nexport { helper };\n',
         "lib/helper.mjs": 'export const helper = () => import.meta.url;\n',
       }),
       { builtins: ["node:path"] },
@@ -48,7 +48,7 @@ describe("inspect", () => {
     assert.deepEqual(report.inspected, ["index.js", "lib/helper.mjs"]);
     assert.deepEqual(report.violations, []);
     assert.deepEqual(report.validation, []);
-    assert.deepEqual(report.outside, [{ file: "index.js", line: 1, column: 23, specifier: "kaal-hosting" }]);
+    assert.deepEqual(report.outside, [{ file: "index.js", line: 1, column: 23, specifier: "@kaihacksai/kaal-hosting" }]);
   });
 
   it("detectable violation: reports each undeclared host module with file, line, column, specifier and its node: name", async () => {
@@ -132,12 +132,12 @@ describe("inspect", () => {
       'import { registerHooks } from "node:module";',
       "const seen = [];",
       "registerHooks({ resolve(s, c, next) { seen.push(s); return next(s, c); } });",
-      'await import("kaal-hosting");',
+      'await import("@kaihacksai/kaal-hosting");',
       "process.stdout.write(JSON.stringify(seen));",
     ].join("\n");
     const { stdout } = await run(process.execPath, ["--input-type=module", "-e", probe], { cwd: new URL(".", import.meta.url) });
     const seen: string[] = JSON.parse(stdout);
-    assert.ok(seen.includes("kaal-hosting"));
+    assert.ok(seen.includes("@kaihacksai/kaal-hosting"));
     assert.ok(!seen.some((s) => s.includes("es-module-lexer") || s.includes("conformance")), seen.join(", "));
   });
 });

@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { describe, it } from "node:test";
 import gfs from "graceful-fs";
-import { reconcile } from "kaal-hosting";
+import { reconcile } from "@kaihacksai/kaal-hosting";
 
 const sha = (text) => createHash("sha256").update(Buffer.from(text)).digest("hex");
 const bytes = (text) => Buffer.from(text);

@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { identify } from "kaal-graph";
+import { identify } from "@kaihacksai/kaal-graph";
 
 const PACKAGE = new URL("../../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, PACKAGE));
@@ -28,7 +28,7 @@ const FOUNDATION = {
 };
 
 /** The KAAL packages Core may depend on (core/N11). */
-const ALLOWED = ["kaal-graph", "kaal-hosting", "@kaihacksai/kaal-foundation"];
+const ALLOWED = ["@kaihacksai/kaal-graph", "@kaihacksai/kaal-hosting", "@kaihacksai/kaal-foundation"];
 const isKaal = (name) => /^(@kaihacksai\/)?kaal-/.test(name) && name !== "kaal-core";
 
 function files(dir) {
