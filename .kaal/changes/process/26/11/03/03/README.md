@@ -22,6 +22,12 @@ The ratio is 1:n:m: one package expectation has n main expectations, each with m
 
 In the pilot this means: the package PR states the expectation, the capability and Change PRs name it as their `Parent:` and answer it, and a child that cannot answer it raises on the parent. A raise is a finding, never a gate.
 
+## Every PR runs the full PDCA, red to green (Kai, 3 Nov)
+
+Every PR at every level does the full cycle, not a part of it: PLAN (the expectation, stated in the PR before the work), DO (the work that answers it), CHECK (Test Cases), ACT (what was learned feeds the next PLAN; persistence is Learning's, not a mandated record). The expectation is made checkable the same way at each level. Intent, Requirements, Architecture and Defects are all answered by Test Cases, so a PR goes **cleanly from red to green**: the expectation is first written as a RED Test Case, and the PR's work turns it GREEN. A PR whose expectation cannot be stated as a Test Case is a finding on its parent (raised, per the level model), not a PR to start. This is how the existing rule (Intent and Requirements become RED Test Cases, then RED to GREEN) is applied at the package and capability levels as well as the Change level.
+
+Pilot measure: the share of pilot PRs whose expectation was a RED Test Case before the work began, and PRs that reached green without the expectation changing.
+
 ## Stages and exit criteria
 
 | Stage | What | Exit criterion |
