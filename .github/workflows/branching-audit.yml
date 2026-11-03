@@ -1,0 +1,76 @@
+# Branching audit: runs KAAL's Branching-audit check (guard.json, engineering/github/branching-audit.sh)
+# through kaal-guard, which runs the branching checker, engineering/github/lineage.ts, after the fact,
+# on what no pull request check can gate. The verdicts and their guidance live only in the checker and
+# engineering/github/branching.md. The check only reads facts from Git and GitHub, and kaal-guard
+# reports the outcome. Nothing here deletes, synchronizes or merges: a failing audit says what is due, and the
+# Owner acts.
+#
+#   Landing        each landing on main or a collector: it is attributable to one merged pull request
+#                  and landed in the shape its flow names.
+#   Establishment  each collector: it was created at main's tip as it was at that moment.
+#   Lifecycle      every collector and working branch: a fully promoted collector is due for deletion
+#                  unless an evidenced Owner hold in engineering/github/holds.json keeps it (reported as
+#                  a warning, never as a pass), and a working branch whose Change merged is due for
+#                  deletion and must not be reused.
+#
+# A push runs this from the pushed branch's own copy of this file, so a collector established before
+# it existed sends no push audits. The daily run, from main, therefore audits every collector's
+# establishment and every landing of the last two days on all of them.
+#
+# Facts are complete or the audit cannot judge, which fails it: every GitHub list is read to its last
+# page, and a merge GitHub's activity records that no merged pull request accounts for fails the
+# audit. The checker and holds.json are always read from the default branch's tip. The job checks out
+# and installs the commit this workflow runs from (kaal-guard and KAAL's scripts), which is no more
+# than the workflow itself already trusts; nothing else of a pushed branch is run.
+name: KAAL
+
+on:
+  push:
+    branches: [main, "kaal/**"]
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  audit:
+    name: Branching audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Read the default branch's tip
+        env:
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          git fetch -q --no-tags --depth=1 origin "+refs/heads/$KAAL_DEFAULT:refs/remotes/origin/$KAAL_DEFAULT"
+          echo "BASE=$(git rev-parse "refs/remotes/origin/$KAAL_DEFAULT")" >> "$GITHUB_ENV"
+
+      - name: Audit with the default branch's checker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KAAL_SERVER: ${{ github.server_url }}
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_EVENT: ${{ github.event_name }}
+          KAAL_REF: ${{ github.ref_name }}
+          KAAL_CREATED: ${{ github.event.created }}
+          KAAL_DELETED: ${{ github.event.deleted }}
+          KAAL_BEFORE: ${{ github.event.before }}
+          KAAL_AFTER: ${{ github.event.after }}
+        run: npx --no kaal-guard run --check Branching-audit --github --base "$BASE"
