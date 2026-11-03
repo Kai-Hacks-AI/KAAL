@@ -5,7 +5,7 @@ Implements item 1 of the Product PLAN (#860, 26/11/02/01): a defined Owner-facin
 ## Change
 
 - `capability/Owner-View.md`: a KAAL Definition. For each wanted increment it shows Intent, Requirements, place (priority and roadmap), decisions, and readiness (verification status and evidence). Evidence is reused from Testing's multi-loop Test Case traces and Graph's trace semantics; Product adds no second model, verifier or consumer content.
-- Work states (Owner work rule, Kai, 3 Nov): a capability is Working on a PR, Waiting for review, or Blocked; Blocked only when every possible change in its product plan is blocked.
+- Work states (Owner work rule, Kai, 3 Nov), modelled per Change/PR (Working, Waiting, Blocked, Planned); a capability's availability is derived from them (Actionable, Waiting only, Blocked, No work planned). Blocked only when planned work exists and every possible Change in it is blocked; no work planned is not Blocked.
 - `Product.md` lists the new Definition among those it provides. README and tests updated.
 
 ## Products and portfolios (CPO handover, 3 Nov)

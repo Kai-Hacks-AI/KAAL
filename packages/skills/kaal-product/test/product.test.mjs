@@ -154,12 +154,20 @@ describe("the Owner View Definition", () => {
     assert.match(text("Owner-View.md"), /is portfolio-level and is not Product's: Product Portfolio Management \(products\) and Project Portfolio Management \(projects\) are separate concerns whose ownership is not decided here, and Product defines neither\./);
   });
 
-  it("calls a capability blocked only when every possible change in its plan is blocked", () => {
+  it("models activity per Change and derives a capability's availability from it", () => {
     const definition = text("Owner-View.md");
-    for (const state of ["Working", "Waiting", "Blocked"]) {
+    assert.match(definition, /Activity is modelled per Change \(per pull request\), and a capability's availability is derived from its Changes\. It is not a single state of the capability/);
+    for (const state of ["Working", "Waiting", "Blocked", "Planned"]) {
       assert.match(definition, new RegExp(`^\\d\\. \\*\\*${state}\\*\\*`, "m"), state);
     }
-    assert.match(definition, /it is blocked only when every possible change in that plan is blocked\. A single blocked pull request does not make the capability blocked/);
+    assert.match(definition, /Working and Waiting can hold at the same time for different Changes of the same capability\./);
+  });
+
+  it("calls a capability blocked only when all its planned work is blocked, and separates no work planned", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /^- \*\*Blocked\*\*: the plan holds planned work and every possible Change in it is Blocked\. One blocked pull request does not make the capability blocked\./m);
+    assert.match(definition, /^- \*\*No work planned\*\*: .* This is not Blocked and is shown separately\./m);
+    assert.match(definition, /^- \*\*Actionable\*\*: .*Waiting Changes do not make the capability unavailable\./m);
   });
 
   it("leaves the decision with the Product Owner and delivery with Engineering", () => {
