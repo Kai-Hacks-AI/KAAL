@@ -224,7 +224,8 @@ describe("identity", () => {
         .filter((b) => b.subarray(0, 4).toString() === "---\n" && /^---\nname: /.test(b.toString())),
     );
     assert.ok(nodes.length >= 6);
-    const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n)?---\n/;
+    // A Type Definition's further frontmatter, such as its owning capability, follows its type (core/C9, core/C26).
+    const legacy = /^---\nname: (\S(?:[^\n]*\S)?)\n(?:type:\n {2}name: (\S(?:[^\n]*\S)?)\n {2}id: ([0-9a-f]{64})\n(?:[a-z][^\n]*\n(?: {2}[^\n]*\n)*)*)?---\n/;
     for (const bytes of nodes) {
       const [, name, typeName, typeId] = legacy.exec(bytes.toString())!;
       // The one Node without a type is Core's genesis; every other Node is read by identify().
