@@ -6,7 +6,7 @@ license: MIT
 
 # Reviewing another Agent's work
 
-This Skill needs no KAAL Engine. Where one is present, the Nodes `Review` and `HOW ARE WE DOING?` state the same meaning in full and are a deeper reference, never a prerequisite. Detail lives one level down in `references/`.
+This Skill needs no KAAL Engine. Where one is present, the Nodes `Review` and `HOW ARE WE DOING?` state the same meaning in full and are a deeper reference, never a prerequisite. Detail lives one level down in `references/`. What it needs and what it does in a target repository are declared in `references/standalone.md`.
 
 Review enhances agent leverage: a human observes and steers where human judgment or authority matters, and Agents other than the one that produced the work challenge it. Testing gives executable evidence; a review gives findings. The scope holder reads the findings and decides what to do with them.
 

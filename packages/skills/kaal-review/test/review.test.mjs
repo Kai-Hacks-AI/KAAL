@@ -92,6 +92,7 @@ describe("kaal-review", () => {
       "skills/kaal-review/references/re-review.md",
       "skills/kaal-review/references/record.md",
       "skills/kaal-review/references/request.md",
+      "skills/kaal-review/references/standalone.md",
       "skills/kaal-review/scripts/check-record.mjs",
       "skills/kaal-review/scripts/collect.mjs",
       "skills/kaal-review/scripts/record.mjs",
