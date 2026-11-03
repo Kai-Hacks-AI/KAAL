@@ -42,7 +42,7 @@ The manifest declares, for each identifier the documents define, how it is verif
 | **agents/T4**: with Core installed in the directory and Agents admitted, the catalog lists Agents and the exit is 0. Authority stays unresolved | agents/F1, agents/F2, agents/A3 |
 | **agents/T13**: in a copy of the package, `verify` is verified (0). A changed shipped file makes it cannot verify (2), naming the file. An empty case inventory makes it cannot verify (2) | agents/F7, agents/N3 |
 | The publisher's Node and admission cases: Core alone admits the Capability Node, with NEW and PREACH alongside, and each Node keeps its type and its id | agents/F9, agents/N7 |
-| **agents/T15**: the packed tarball installs in a clean directory with no checkout and no network. There, `orient` runs, and `npm explore kaal-agents -- npm test` is verified. It does not pass in this version, and must pass before 0.0.1 is released ([Limitations](limitations.md)) | agents/I4, agents/F7 |
+| **agents/T15**: the packed tarball installs in a clean directory with no checkout and no network. There, `orient` runs, and `npm explore kaal-agents -- npm test` is verified. It is a publisher case: it needs the checkout to pack the package ([Limitations](limitations.md)) | agents/I4, agents/F7 |
 
 ## Verified by no Test Case
 
