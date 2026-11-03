@@ -17,6 +17,8 @@ Not decided here and not built by this PLAN; it belongs to the in-depth Defect m
 - **Accepted defect.** The structured way a Defect and its RED Case enter `main`: a record that a known Defect (`testing/F98`, confirmed under `testing/F99`) is accepted for now. It is not a skip. The Case stays RED and visible.
 - **Ratchet.** The accepted set can only shrink. A new entry needs explicit acceptance; removal needs no approval and is the goal. A Defect leaves the set only when its Case turns GREEN at the same version (`testing/F99`, `F100`), and nothing re-enters without the same explicit acceptance.
 
+**FAR's sibling under Change management.** The Owner sees accepted defects as correlated to Change management and similar to FAR (Features Accept Regression, owned by Change). Both are a governed, explicit acceptance of a RED that stays RED and visible; both belong to Change's judgment, not Testing's. They differ in what is accepted: FAR a deliberate regression of established behaviour by a Feature, an accepted defect a known failure not yet fixed. The name is left open; the Owner has not settled a mnemonic, and this PLAN does not coin one.
+
 **Mechanisms under that model**, to be weighed together, not as alternatives:
 
 1. **Strict, exact admission.** An entry is pinned to the Defect's `id` and the Case's identity and version. If the Case passes unexpectedly, CI fails, which forces the entry out (strict xfail). A RED Case with no entry, or at another version, is an ordinary failure.
