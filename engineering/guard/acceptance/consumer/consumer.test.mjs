@@ -254,8 +254,6 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.guard("init", "--hook", "--ci").status, 0);
     m.write(".githooks/pre-push", `${m.read(".githooks/pre-push")}# the consumer's own line\n`);
     m.write("README.md", "the consumer's own file\n");
-    const heldFile = ".kaal/config/guard/hold.md";
-    m.write(heldFile, '---\ntype: Guard/Check\ncommand: "node -e process.exit(4)"\nruns: [hook]\noutcomes: {"4": held}\n---\n\nHeld by the consumer.\n');
     m.git("add", "-A");
     m.git("commit", "-q", "-m", "older");
     const hook = m.read(".githooks/pre-push");
@@ -386,6 +384,8 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(init.status, 0, init.output);
     m.write(hook, `${m.read(hook)}# the consumer's own line\n`);
     m.write("README.md", "the consumer's own file\n");
+    const heldFile = ".kaal/config/guard/hold.md";
+    m.write(heldFile, '---\ntype: Guard/Check\ncommand: "node -e process.exit(4)"\nruns: [hook]\noutcomes: {"4": held}\n---\n\nHeld by the consumer.\n');
     m.git("add", "-A");
     m.git("commit", "-q", "-m", "older");
     const kept = { hook: m.read(hook), readme: m.read("README.md"), declarations: declarations(m) };
