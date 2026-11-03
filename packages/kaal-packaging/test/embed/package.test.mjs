@@ -643,7 +643,7 @@ process.exitCode = ok ? 0 : 1;
     const none = await conform(dataOnly(ASSERTS, {}));
     expect(none.by, "packaging/N9", "unknown", /no module outside test\//);
     assert.equal(none.report.result, "unknown");
-    for (const [behaviour, cause] of [[[], /empty/], [["nodes/missing.json"], /not a shipped file/], [["test/verify.mjs"], /under test\//]]) {
+    for (const [behaviour, cause] of [[[], /empty/], [["nodes/missing.json"], /not a shipped file/], [["test/verify.mjs"], /under test\//], [["package.json", "nodes/a.json"], /package\.json/]]) {
       expect((await conform(dataOnly(ASSERTS, { behaviour }))).by, "packaging/N9", "failed", cause);
     }
     expect((await conform(conforming())).by, "packaging/N9", "verified");

@@ -373,6 +373,7 @@ function declaredBehaviour(files, verify) {
   if (!Array.isArray(list) || list.length === 0) return { bad: "its declared behaviour list is empty, so it declares no file for the probe to corrupt" };
   for (const p of list) {
     if (typeof p !== "string" || !(p in files)) return { bad: `${JSON.stringify(p)} in its declared behaviour list is not a shipped file` };
+    if (p === "package.json") return { bad: `${p} in its declared behaviour list launches the verification (its test script), so corrupting it proves nothing about the verification's assertions` };
     if (p.startsWith("test/")) return { bad: `${p} in its declared behaviour list is under test/, which is the verification itself` };
     if (verify.files && typeof verify.files === "object" && !(p in verify.files)) return { bad: `${p} in its declared behaviour list is not in the manifest` };
   }
