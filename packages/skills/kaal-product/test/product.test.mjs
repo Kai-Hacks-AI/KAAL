@@ -27,7 +27,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires", () => {
-    assert.match(text("Product.md"), /^It provides the Product Direction Definition and the PLAN Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text("Product.md"), /^It provides the Product Direction Definition, the PLAN Definition and the Owner View Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("states where its responsibility starts and ends", () => {
@@ -124,6 +124,57 @@ describe("the PLAN Definition", () => {
   });
 });
 
+describe("the Owner View Definition", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const definition = node("Owner-View.md");
+    assert.equal(definition.name, "Owner View");
+    assert.deepEqual(definition.type, foundation().definition);
+  });
+
+  it("shows, for each wanted increment, its Intent, Requirements, place, decisions and readiness", () => {
+    const definition = text("Owner-View.md");
+    for (const item of ["Intent", "Requirements", "Place", "Decisions", "Readiness"]) {
+      assert.match(definition, new RegExp(`^- \\*\\*${item}\\*\\*: `, "m"), item);
+    }
+  });
+
+  it("reuses Testing's and Graph's evidence and adds no second model", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /Test Case traces across the loops \(Intent, Requirements, Architecture and Defects\) are Testing's, and trace and reach semantics are Graph's\./);
+    assert.match(definition, /it adds no second traceability model, no verifier and no consumer content, and it does not re-run or re-judge verification/);
+  });
+
+  it("is kept per product, the repository and each npm package being products with their own PDCA", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /The Owner View is kept per product\. The KAAL repository is a product, and each independently managed npm package is a product in its own right, each with its own product PDCA/);
+    assert.match(definition, /npm publication is one step in a package's cycle, not all of it/);
+  });
+
+  it("leaves portfolio-level decisions to the portfolio concerns and defines neither", () => {
+    assert.match(text("Owner-View.md"), /is portfolio-level and is not Product's: Product Portfolio Management \(products\) and Project Portfolio Management \(projects\) are separate concerns whose ownership is not decided here, and Product defines neither\./);
+  });
+
+  it("models activity per Change and derives a capability's availability from it", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /Activity is modelled per Change \(per pull request\), and a capability's availability is derived from its Changes\. It is not a single state of the capability/);
+    for (const state of ["Working", "Waiting", "Blocked", "Planned"]) {
+      assert.match(definition, new RegExp(`^\\d\\. \\*\\*${state}\\*\\*`, "m"), state);
+    }
+    assert.match(definition, /Working and Waiting can hold at the same time for different Changes of the same capability\./);
+  });
+
+  it("calls a capability blocked only when all its planned work is blocked, and separates no work planned", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /^- \*\*Blocked\*\*: the plan holds planned work and every possible Change in it is Blocked\. One blocked pull request does not make the capability blocked\./m);
+    assert.match(definition, /^- \*\*No work planned\*\*: .* This is not Blocked and is shown separately\./m);
+    assert.match(definition, /^- \*\*Actionable\*\*: .*Waiting Changes do not make the capability unavailable\./m);
+  });
+
+  it("leaves the decision with the Product Owner and delivery with Engineering", () => {
+    assert.match(text("Owner-View.md"), /The Product Owner decides\. Product prepares each decision, and Engineering retains delivery responsibility\./);
+  });
+});
+
 describe("admission", () => {
   it("is admitted as a Capability by Core alone", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-product-")), "engine");
@@ -152,6 +203,7 @@ describe("the package", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/Owner-View.md",
       "capability/PLAN.md",
       "capability/Product-Direction.md",
       "capability/Product.md",

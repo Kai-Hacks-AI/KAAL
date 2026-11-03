@@ -5,6 +5,7 @@ KAAL Product: the capability for Product Management, supporting the Product Owne
 ```
 capability/Product.md             the Capability Node, typed by Core's KAAL Capability
 capability/Product-Direction.md   the Product Direction Definition, typed by KAAL Definition: wanted increments, backlog, roadmap, priority and decision preparation
+capability/Owner-View.md           the Owner View Definition, typed by KAAL Definition: how Product presents direction, Intent, Requirements, decisions, verification evidence and work states to the Product Owner
 capability/PLAN.md                the PLAN Definition, typed by KAAL Definition: Prioritize, Launch, Adaption, Now, turning the backlog into a roadmap
 ownership.kaal.json               Product's own ownership claim (repository data, not delivered)
 ```
