@@ -45,6 +45,14 @@ the DO; this record names the Process-side obligation only.
 - Core stays an optional complement. The smoke test's *cannot verify* wording is
   already clarified (#620, 5ab8df3).
 
+## Entry condition for the DO
+
+Before the DO starts, each F8 to F14 obligation is confirmed against Packaging's
+actual current contract (its `docs/operations.md` and requirements on
+kaal/packaging), not against the readiness table above. Filling the checklist
+does not make promotion or npm publication follow: each needs enduring consumer
+value and its own authorization.
+
 ## Open questions
 
 1. **Sequencing.** Packaging's suite (C5) and its verifier (C14, #873) are still
