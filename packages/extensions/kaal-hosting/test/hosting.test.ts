@@ -2,6 +2,7 @@
 // runs this suite. CI runs it on Linux, Windows and macOS.
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -10,7 +11,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, kind, read, readFile, update, type Files } from "kaal-hosting";
+import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within, type Files } from "kaal-hosting";
 
 const run = promisify(execFile);
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -225,6 +226,161 @@ describe("kind", () => {
     } finally {
       chmodSync(join(dir, "closed"), 0o700);
     }
+  });
+});
+
+describe("within", () => {
+  /** A root and a sibling whose name starts with the root's, in a parent of their own. */
+  function tree(): { parent: string; root: string; sibling: string } {
+    const parent = tmp();
+    const root = join(parent, "repo");
+    const sibling = join(parent, "repo2");
+    mkdirSync(join(root, "a", "b"), { recursive: true });
+    mkdirSync(sibling);
+    writeFileSync(join(root, "a", "file.md"), "f");
+    return { parent, root, sibling };
+  }
+
+  it("holds the root itself and everything below it, a file included", async () => {
+    const { root } = tree();
+    assert.equal(await within(root, root), true);
+    assert.equal(await within(root, join(root, "a", "b")), true);
+    assert.equal(await within(root, join(root, "a", "file.md")), true);
+  });
+
+  it("compares whole segments: a sibling sharing the root's name as a prefix is outside", async () => {
+    const { root, sibling, parent } = tree();
+    assert.equal(await within(root, sibling), false);
+    assert.equal(await within(root, parent), false);
+  });
+
+  it("resolves .. before comparing", async () => {
+    const { root, sibling } = tree();
+    assert.equal(await within(root, join(root, "a", "..", "a", "b")), true);
+    assert.equal(await within(root, join(root, "..", "repo2")), false);
+    assert.equal(await within(root, join(sibling, "..", "repo", "a")), true);
+  });
+
+  it("follows links: one inside pointing out is outside, one outside pointing in is inside", async () => {
+    const { root, parent } = tree();
+    const outside = tmp();
+    writeFileSync(join(outside, "real.md"), "r");
+    symlinkSync(outside, join(root, "escape"), "junction");
+    symlinkSync(join(outside, "real.md"), join(root, "a", "linked.md"), "file");
+    symlinkSync(root, join(parent, "alias"), "junction");
+    assert.equal(await within(root, join(root, "escape")), false);
+    assert.equal(await within(root, join(root, "a", "linked.md")), false);
+    assert.equal(await within(root, join(parent, "alias", "a")), true);
+    assert.equal(await within(join(parent, "alias"), join(root, "a")), true);
+  });
+
+  it("refuses a missing path, a dangling link and a cycle of links, root or candidate", async () => {
+    const { root } = tree();
+    writeFileSync(join(root, "gone.md"), "g");
+    symlinkSync(join(root, "gone.md"), join(root, "dangling.md"), "file");
+    rmSync(join(root, "gone.md"));
+    symlinkSync(join(root, "y"), join(root, "x"), "file");
+    symlinkSync(join(root, "x"), join(root, "y"), "file");
+    for (const path of [join(root, "missing"), join(root, "a", "file.md", "below"), join(root, "dangling.md"), join(root, "x")]) {
+      await assert.rejects(within(root, path), code("MISSING"), path);
+      await assert.rejects(within(path, root), code("MISSING"), path);
+    }
+  });
+
+  it("throws a failure to resolve, never taking it for an answer", async () => {
+    const { root } = tree();
+    const original = gfs.realpath.native;
+    gfs.realpath.native = ((_path: string, cb: (e: Error) => void) =>
+      cb(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }))) as typeof gfs.realpath.native;
+    try {
+      await assert.rejects(within(root, root), (e) => (e as NodeJS.ErrnoException).code === "EACCES");
+    } finally {
+      gfs.realpath.native = original;
+    }
+  });
+});
+
+// The outer tests of reconcile are hosting/C1's, in test/plan/reconciliation.test.mjs.
+// These are its Code tests.
+describe("reconcile", () => {
+  it("refuses a path that is both a file and a directory of one reconciliation", async () => {
+    const { dir } = alone();
+    const before = await snapshot(dir);
+    const write = (path: string) => ({ path, expect: "absent", bytes: Buffer.from("x") });
+    await assert.rejects(reconcile(dir, { write: [write("a"), write("a/b.md")], remove: [] }), code("INVALID_PATH"));
+    assert.equal(await snapshot(dir), before);
+  });
+
+  it("refuses a kind change whose write does not expect \"absent\", before looking at the host", async () => {
+    const sha = (text: string) => createHash("sha256").update(text).digest("hex");
+    const { dir } = alone();
+    writeFileSync(join(dir, "tool"), "a tool");
+    mkdirSync(join(dir, "lib"));
+    writeFileSync(join(dir, "lib", "a.md"), "a");
+    writeFileSync(join(dir, "old"), "old");
+    const before = await snapshot(dir);
+    const cases = [
+      // File to directory, with a write under the removed file that expects bytes.
+      { write: [{ path: "tool/run", expect: sha("run"), bytes: Buffer.from("run") }], remove: [{ path: "tool", expect: sha("a tool") }] },
+      // Directory to file, with the write expecting bytes where the directory is.
+      { write: [{ path: "lib", expect: sha("lib"), bytes: Buffer.from("lib") }], remove: [{ path: "lib/a.md", expect: sha("a") }] },
+      // Directory to file, where the write's expectation holds but a file is no directory.
+      { write: [{ path: "old", expect: sha("old"), bytes: Buffer.from("new") }], remove: [{ path: "old/a.md", expect: sha("a") }] },
+    ];
+    for (const reconciliation of cases) await assert.rejects(reconcile(dir, reconciliation), code("INVALID_PATH"), JSON.stringify(reconciliation));
+    assert.equal(await snapshot(dir), before);
+  });
+
+  it("refuses with a HostingError that carries every failed precondition", async () => {
+    const { dir } = alone();
+    await assert.rejects(reconcile(dir, { write: [], remove: [{ path: "x.md", expect: "0".repeat(64) }] }), (e) => {
+      assert.ok(e instanceof HostingError && e.code === "STALE");
+      assert.deepEqual(e.findings, [{ path: "x.md", expected: "0".repeat(64), found: "absent" }]);
+      return true;
+    });
+  });
+
+  it("changes nothing when the host does not hold the staged bytes exactly", async () => {
+    const { parent, dir } = alone();
+    writeFileSync(join(dir, "a.md"), "a");
+    const before = await snapshot(dir);
+    const original = gfs.readFile;
+    gfs.readFile = ((path: string, ...rest: unknown[]) => {
+      const cb = rest.at(-1) as (e: Error | null, b?: Buffer) => void;
+      if (String(path).includes(".staging-")) return cb(null, Buffer.from("not what was written"));
+      return (original as (...a: unknown[]) => void)(path, ...rest);
+    }) as typeof gfs.readFile;
+    try {
+      await assert.rejects(reconcile(dir, { write: [{ path: "a.md", expect: createHash("sha256").update("a").digest("hex"), bytes: Buffer.from("b") }], remove: [] }), code("UNFAITHFUL"));
+    } finally {
+      gfs.readFile = original;
+    }
+    assert.equal(await snapshot(dir), before);
+    assert.deepEqual(readdirSync(parent), ["d"]);
+  });
+
+  it("keeps what it moved aside, never deleting it, when even the restore fails", async () => {
+    const { parent, dir } = alone();
+    writeFileSync(join(dir, "precious.md"), "precious");
+    const original = gfs.rename;
+    let calls = 0;
+    gfs.rename = ((from: string, to: string, cb: (e: Error | null) => void) =>
+      ++calls === 1 ? original(from, to, cb) : cb(Object.assign(new Error("EPERM: refused"), { code: "EPERM" }))) as typeof gfs.rename;
+    try {
+      await assert.rejects(
+        reconcile(dir, {
+          write: [{ path: "new.md", expect: "absent", bytes: Buffer.from("new") }],
+          remove: [{ path: "precious.md", expect: createHash("sha256").update("precious").digest("hex") }],
+        }),
+        (e: unknown) => e instanceof HostingError && e.code === "UNRESTORED" && (e.cause as { code?: string }).code === "EPERM",
+      );
+    } finally {
+      gfs.rename = original;
+    }
+    const aside = readdirSync(parent).filter((name) => name.startsWith("d.aside-"));
+    assert.equal(aside.length, 1);
+    assert.deepEqual(readdirSync(join(parent, aside[0])), ["precious.md"]);
+    assert.equal(readFileSync(join(parent, aside[0], "precious.md"), "utf8"), "precious");
   });
 });
 
