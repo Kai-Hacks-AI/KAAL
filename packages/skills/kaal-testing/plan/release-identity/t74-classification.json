@@ -1,0 +1,632 @@
+{
+  "collector": "0588eaa33aa133fac94eb650573e23f73a6df972",
+  "predicate": "git grep -n -I -E \"[\\\"'`]kaal-testing(/[a-z.]+)?[\\\"'`]\" -- '*.mjs' '*.js' '*.ts' '*.json' (T74's own search)",
+  "note": "Mechanical first-pass classification for review, not authority. Every row not marked reviewed stays a finding or unknown. 'unclassified' never counts as GREEN. Owner-decided rows (core, engineering, other skills) are observations for their owners.",
+  "summary": [
+    {
+      "owner": "engineering",
+      "class": "active-module-specifier",
+      "count": 10
+    },
+    {
+      "owner": "engineering",
+      "class": "allowed-specifier-list",
+      "count": 1
+    },
+    {
+      "owner": "root",
+      "class": "manifest-entry",
+      "count": 1
+    },
+    {
+      "owner": "skills",
+      "class": "active-module-specifier",
+      "count": 3
+    },
+    {
+      "owner": "skills",
+      "class": "manifest-entry",
+      "count": 1
+    },
+    {
+      "owner": "testing",
+      "class": "acquisition-selector",
+      "count": 2
+    },
+    {
+      "owner": "testing",
+      "class": "active-module-specifier",
+      "count": 39
+    },
+    {
+      "owner": "testing",
+      "class": "deferred-composed-plan-export-name",
+      "count": 1
+    },
+    {
+      "owner": "testing",
+      "class": "historical-evidence",
+      "count": 1
+    },
+    {
+      "owner": "testing",
+      "class": "manifest-entry",
+      "count": 1
+    },
+    {
+      "owner": "testing",
+      "class": "planning-record-of-this-migration",
+      "count": 2
+    },
+    {
+      "owner": "testing",
+      "class": "skill-identifier",
+      "count": 2
+    },
+    {
+      "owner": "testing",
+      "class": "skill-path-component",
+      "count": 2
+    },
+    {
+      "owner": "testing",
+      "class": "test-title-prose",
+      "count": 3
+    }
+  ],
+  "rows": [
+    {
+      "path": "engineering/acceptance/embed.test.mjs",
+      "line": 15,
+      "class": "active-module-specifier",
+      "text": "import { install } from \"kaal-testing/acceptance\";",
+      "owner": "engineering",
+      "blob": "ec212acc2d63a4a34aae550342bdecf511f0efc1"
+    },
+    {
+      "path": "engineering/boundary.test.mjs",
+      "line": 23,
+      "class": "allowed-specifier-list",
+      "text": "const OUTSIDE = [\"kaal-core\", \"kaal-graph\", \"kaal-hosting\", \"kaal-testing/acceptance\", \"kaal-testing/attribution\", \"kaal-testing/contracts\", \"kaal-testing/coverage\", \"kaal-testing/inventory\", \"kaal-te",
+      "owner": "engineering",
+      "blob": "fea8f178b659dba85aa3b51ad6aaff49d7a39898"
+    },
+    {
+      "path": "engineering/contracts/measure.mjs",
+      "line": 27,
+      "class": "active-module-specifier",
+      "text": "import { classify, problems } from \"kaal-testing/contracts\";",
+      "owner": "engineering",
+      "blob": "7aa5d1cc50db1ca32fd2a27779c3c7bb5fae14aa"
+    },
+    {
+      "path": "engineering/coverage/measure.mjs",
+      "line": 30,
+      "class": "active-module-specifier",
+      "text": "import { cover } from \"kaal-testing/coverage\";",
+      "owner": "engineering",
+      "blob": "34ba31fbb940fe2b10ff924b77492131dc5e21c5"
+    },
+    {
+      "path": "engineering/delivery/pack.mjs",
+      "line": 11,
+      "class": "active-module-specifier",
+      "text": "import { accept, integrity, sha256 } from \"kaal-testing/acceptance\";",
+      "owner": "engineering",
+      "blob": "f5470ef73da1c0e9c76cb3761806312d890fd75c"
+    },
+    {
+      "path": "engineering/delivery/pack.test.mjs",
+      "line": 13,
+      "class": "active-module-specifier",
+      "text": "const TESTING = import.meta.resolve(\"kaal-testing/acceptance\");",
+      "owner": "engineering",
+      "blob": "98b2157bc47870d43fc6aee9d47a86fc5b551595"
+    },
+    {
+      "path": "engineering/inventory/attribute.mjs",
+      "line": 21,
+      "class": "active-module-specifier",
+      "text": "import { attribute, isClaimFile, KINDS } from \"kaal-testing/attribution\";",
+      "owner": "engineering",
+      "blob": "02565b5e25e85eb441761b9c21abf573ec3e4d39"
+    },
+    {
+      "path": "engineering/inventory/attribute.mjs",
+      "line": 22,
+      "class": "active-module-specifier",
+      "text": "import { inventory } from \"kaal-testing/inventory\";",
+      "owner": "engineering",
+      "blob": "02565b5e25e85eb441761b9c21abf573ec3e4d39"
+    },
+    {
+      "path": "engineering/inventory/measure.mjs",
+      "line": 17,
+      "class": "active-module-specifier",
+      "text": "import { inventory } from \"kaal-testing/inventory\";",
+      "owner": "engineering",
+      "blob": "e2b6c6eceef72533ae4ffdf84925f9aa9af3c7a2"
+    },
+    {
+      "path": "engineering/lanes/acceptance.mjs",
+      "line": 16,
+      "class": "active-module-specifier",
+      "text": "import { discover } from \"kaal-testing/acceptance\";",
+      "owner": "engineering",
+      "blob": "439eb2234cd69c0d2ffba0814bf21ef7ee21e84a"
+    },
+    {
+      "path": "engineering/report/measure.mjs",
+      "line": 26,
+      "class": "active-module-specifier",
+      "text": "import { markdown, report } from \"kaal-testing/report\";",
+      "owner": "engineering",
+      "blob": "e86631af0f5495087d9d28c27d1c76a0b4c75d77"
+    },
+    {
+      "path": "package-lock.json",
+      "line": 1007,
+      "class": "manifest-entry",
+      "text": "\"kaal-testing\": \"0.0.1\"",
+      "owner": "root",
+      "blob": "dd5d8e141e5f76bc051a1e6b880f568fc3c9227c"
+    },
+    {
+      "path": "packages/skills/kaal-engineer-skill/test/acceptance/engineer-skill.test.mjs",
+      "line": 18,
+      "class": "active-module-specifier",
+      "text": "import { install } from \"kaal-testing/acceptance\";",
+      "owner": "skills",
+      "blob": "7b582a8cac0a95767bc342f26c044cfbb27550a8"
+    },
+    {
+      "path": "packages/skills/kaal-graph/package.json",
+      "line": 38,
+      "class": "manifest-entry",
+      "text": "\"kaal-testing\": \"0.0.1\"",
+      "owner": "skills",
+      "blob": "e8b738f927ed386a484c34cd2044b472fc6761e0"
+    },
+    {
+      "path": "packages/skills/kaal-graph/test/acceptance/graph.test.mjs",
+      "line": 15,
+      "class": "active-module-specifier",
+      "text": "import { install } from \"kaal-testing/acceptance\";",
+      "owner": "skills",
+      "blob": "a069bcf40dea262024e3bb34349807bbdf2d2c86"
+    },
+    {
+      "path": "packages/skills/kaal-graph/test/ownership.test.mjs",
+      "line": 7,
+      "class": "active-module-specifier",
+      "text": "import { CLAIM_FILE, readClaim } from \"kaal-testing/attribution\";",
+      "owner": "skills",
+      "blob": "823391a4d8708bc3eacf85d9cb3893e03fc82ae9"
+    },
+    {
+      "path": "packages/skills/kaal-testing/package.json",
+      "line": 2,
+      "class": "manifest-entry",
+      "text": "\"name\": \"kaal-testing\",",
+      "owner": "testing",
+      "blob": "9eb8575bfc354fea687cdeffded8df574fd2aaf8"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/composed-plan/boundary.json",
+      "line": 6,
+      "class": "deferred-composed-plan-export-name",
+      "text": "\"proposedPublicExport\": \"kaal-testing/plan\",",
+      "owner": "testing",
+      "blob": "86f6ec9eff7b295a704d7fe2acc02c278936cb85"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/release-identity/inventory.json",
+      "line": 8,
+      "class": "planning-record-of-this-migration",
+      "text": "\"kaal-testing\": \"@kaihacksai/kaal-testing\",",
+      "owner": "testing",
+      "blob": "553403e3dea38d6f5d761832b6510ccbfce048a8"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/release-identity/inventory.json",
+      "line": 155,
+      "class": "planning-record-of-this-migration",
+      "text": "\"text\": \"it(\\\"testing/T35 [testing/A12]: `kaal-testing/model` is one module that imports nothing and names no other capability's kind\\\", async () => {\"",
+      "owner": "testing",
+      "blob": "553403e3dea38d6f5d761832b6510ccbfce048a8"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/acceptance.test.mjs",
+      "line": 8,
+      "class": "active-module-specifier",
+      "text": "import { accept, discover, findings, integrity, sha256 } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "84e01133db8589c9e9da3ee036631f0b6a43d62b"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/attribution.test.mjs",
+      "line": 8,
+      "class": "active-module-specifier",
+      "text": "import { attribute, CLAIM_FILE, isClaimFile, KINDS, readClaim, scopeOf } from \"kaal-testing/attribution\";",
+      "owner": "testing",
+      "blob": "24dba16ee556de1579e1d969b45c3fbe011c6c15"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/attribution.test.mjs",
+      "line": 9,
+      "class": "active-module-specifier",
+      "text": "import { inventory } from \"kaal-testing/inventory\";",
+      "owner": "testing",
+      "blob": "24dba16ee556de1579e1d969b45c3fbe011c6c15"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/contracts.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { sha256 } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "85189c8bb0d6d1dcf7e9c0005067c3142774fdfd"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/contracts.test.mjs",
+      "line": 6,
+      "class": "active-module-specifier",
+      "text": "import { classify, LOOPS, problems } from \"kaal-testing/contracts\";",
+      "owner": "testing",
+      "blob": "85189c8bb0d6d1dcf7e9c0005067c3142774fdfd"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/coverage.test.mjs",
+      "line": 6,
+      "class": "active-module-specifier",
+      "text": "import { cover, evidence } from \"kaal-testing/coverage\";",
+      "owner": "testing",
+      "blob": "532b53c24067a702d72a3ec961d9040c27c26289"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/duplicates-inputs.test.mjs",
+      "line": 4,
+      "class": "active-module-specifier",
+      "text": "import { duplicates, schedule } from \"kaal-testing/duplicates\";",
+      "owner": "testing",
+      "blob": "f859e67d2b2168d2088138f9fc8316215be4327a"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/embed/boundary.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { interpret } from \"kaal-testing/boundary\";",
+      "owner": "testing",
+      "blob": "49bb21295a5f4aae3ff4dcf302e4546ee8fc72c1"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/embed/model.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { check, current, evaluate, results, tested } from \"kaal-testing/model\";",
+      "owner": "testing",
+      "blob": "5db370c09e95fb5915e7b7c708009174bec829bc"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/embed/verifiers.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { judge, observe, parity, SCENARIOS } from \"kaal-testing/verifiers\";",
+      "owner": "testing",
+      "blob": "0bbb54e377de4249c4949fc765217b925507d325"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { install } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "c4f738ec85a4314fd46bc863595f719e88dbb807"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates.test.mjs",
+      "line": 8,
+      "class": "acquisition-selector",
+      "text": "const host = await install([\"kaal-testing\", \"kaal-hosting\"]);",
+      "owner": "testing",
+      "blob": "c4f738ec85a4314fd46bc863595f719e88dbb807"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates.test.mjs",
+      "line": 11,
+      "class": "active-module-specifier",
+      "text": "import { duplicates, schedule } from \"kaal-testing/duplicates\";",
+      "owner": "testing",
+      "blob": "c4f738ec85a4314fd46bc863595f719e88dbb807"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/redesign-acceptance-evidence.json",
+      "line": 27,
+      "class": "historical-evidence",
+      "text": "\"kaal-testing\",",
+      "owner": "testing",
+      "blob": "72474b3238a3a547eea77227ff5626161959466b"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/timing-redesign.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { install } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "5ecd3f9a860095d1893f73ad5c2453159e4b88f4"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/timing-redesign.test.mjs",
+      "line": 8,
+      "class": "acquisition-selector",
+      "text": "const host = await install([\"kaal-testing\", \"kaal-hosting\"]);",
+      "owner": "testing",
+      "blob": "5ecd3f9a860095d1893f73ad5c2453159e4b88f4"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/timing-redesign.test.mjs",
+      "line": 11,
+      "class": "active-module-specifier",
+      "text": "import { profile, skew } from \"kaal-testing/timing\";",
+      "owner": "testing",
+      "blob": "5ecd3f9a860095d1893f73ad5c2453159e4b88f4"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/timing-redesign.test.mjs",
+      "line": 12,
+      "class": "active-module-specifier",
+      "text": "import { candidates, refactored } from \"kaal-testing/redesign\";",
+      "owner": "testing",
+      "blob": "5ecd3f9a860095d1893f73ad5c2453159e4b88f4"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/interpret.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { interpret, problems } from \"kaal-testing/boundary\";",
+      "owner": "testing",
+      "blob": "9366c11b6acd3db3a5f0d98f5f3408c73cb757ad"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/inventory.test.mjs",
+      "line": 3,
+      "class": "active-module-specifier",
+      "text": "import { inventory, textLines } from \"kaal-testing/inventory\";",
+      "owner": "testing",
+      "blob": "11a95f9a1325daf3b72db50602a58389853028ed"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/model.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { check, current, data, evaluate, results, tested } from \"kaal-testing/model\";",
+      "owner": "testing",
+      "blob": "ba6816e24202ec5822fee23a3944cfee454998b0"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/observed.test.mjs",
+      "line": 8,
+      "class": "active-module-specifier",
+      "text": "import { accept, sha256 } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "211ce83c360791f7410189e915cdc04c888648ae"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/boundary.test.mjs",
+      "line": 22,
+      "class": "active-module-specifier",
+      "text": "mod = await import(\"kaal-testing/boundary\");",
+      "owner": "testing",
+      "blob": "0db5dac641890a9c7b02f4e60a14728c28bca545"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/brittle.test.mjs",
+      "line": 9,
+      "class": "active-module-specifier",
+      "text": "import { current, tested } from \"kaal-testing/model\";",
+      "owner": "testing",
+      "blob": "2c1d37ceb26d6815d32cc8ad35a15dfc50f63b3e"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/composed-plan/consumer.cases.mjs",
+      "line": 15,
+      "class": "active-module-specifier",
+      "text": "try { m = await import(pathToFileURL(createRequire(join(root, \"package.json\")).resolve(\"kaal-testing/plan\")).href); }",
+      "owner": "testing",
+      "blob": "af764748f6f236a243de1c42240a2cf0c2eb3935"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/composed-plan/consumer.cases.mjs",
+      "line": 39,
+      "class": "skill-path-component",
+      "text": "const command = join(root, \"skills\", \"kaal-testing\", \"scripts\", \"run-plan.mjs\");",
+      "owner": "testing",
+      "blob": "af764748f6f236a243de1c42240a2cf0c2eb3935"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/current.test.mjs",
+      "line": 12,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/model\");",
+      "owner": "testing",
+      "blob": "348914b881816d581151babfc44694c691db224b"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/duplicates.test.mjs",
+      "line": 17,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/duplicates\");",
+      "owner": "testing",
+      "blob": "90e5012c9b55a812945309357bfe333075b63af3"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/evidence.test.mjs",
+      "line": 12,
+      "class": "active-module-specifier",
+      "text": "import { accept, integrity, sha256 } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "0ac09d030b6b609cf29d48c2bdb32b9dd7edb7b5"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/evidence.test.mjs",
+      "line": 13,
+      "class": "active-module-specifier",
+      "text": "import { classify } from \"kaal-testing/contracts\";",
+      "owner": "testing",
+      "blob": "0ac09d030b6b609cf29d48c2bdb32b9dd7edb7b5"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/host.test.mjs",
+      "line": 8,
+      "class": "active-module-specifier",
+      "text": "import { judge, observe, SCENARIOS } from \"kaal-testing/verifiers\";",
+      "owner": "testing",
+      "blob": "2779cd117602b1e610d41f00d1fa93435d1315e8"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/locations.test.mjs",
+      "line": 11,
+      "class": "active-module-specifier",
+      "text": "import { discover } from \"kaal-testing/acceptance\";",
+      "owner": "testing",
+      "blob": "29a6a0da24e82c63962dd49181b75cc41c6349e0"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/model.test.mjs",
+      "line": 13,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/model\");",
+      "owner": "testing",
+      "blob": "6e6f16bdea79643bce392b224533460f803ee47c"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/model.test.mjs",
+      "line": 297,
+      "class": "test-title-prose",
+      "text": "it(\"testing/T35 [testing/A12]: `kaal-testing/model` is one module that imports nothing and names no other capability's kind\", async () => {",
+      "owner": "testing",
+      "blob": "6e6f16bdea79643bce392b224533460f803ee47c"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/parity.test.mjs",
+      "line": 12,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/verifiers\");",
+      "owner": "testing",
+      "blob": "9ab70235a49f05fb3d21ace9bc77aba38ee5cdbf"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/red.test.mjs",
+      "line": 222,
+      "class": "active-module-specifier",
+      "text": "const source = readFileSync(new URL(import.meta.resolve(\"kaal-testing/red\")), \"utf8\");",
+      "owner": "testing",
+      "blob": "9eb985abecc82d1db1f74912073e325643001add"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/redesign.test.mjs",
+      "line": 13,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/redesign\");",
+      "owner": "testing",
+      "blob": "7af87384af20385661286f665cd5a310fc88a714"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/timing.test.mjs",
+      "line": 13,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/timing\");",
+      "owner": "testing",
+      "blob": "cd620c9a9951f665c26c6d85c1afdc0c7dab1e0d"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/verifiers.test.mjs",
+      "line": 12,
+      "class": "active-module-specifier",
+      "text": "m = await import(\"kaal-testing/verifiers\");",
+      "owner": "testing",
+      "blob": "448bd74198d7ef8d7057896a23d688be9babf2df"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/redesign-inputs.test.mjs",
+      "line": 3,
+      "class": "active-module-specifier",
+      "text": "import { candidates, refactored } from \"kaal-testing/redesign\";",
+      "owner": "testing",
+      "blob": "f7e836e27fa3ac569d051065756eb31df8a6f55b"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/report.test.mjs",
+      "line": 3,
+      "class": "active-module-specifier",
+      "text": "import { attribute } from \"kaal-testing/attribution\";",
+      "owner": "testing",
+      "blob": "1361aa7c92b9477dec6614d050272387065152d7"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/report.test.mjs",
+      "line": 4,
+      "class": "active-module-specifier",
+      "text": "import { inventory } from \"kaal-testing/inventory\";",
+      "owner": "testing",
+      "blob": "1361aa7c92b9477dec6614d050272387065152d7"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/report.test.mjs",
+      "line": 5,
+      "class": "active-module-specifier",
+      "text": "import { markdown, report, STATUSES } from \"kaal-testing/report\";",
+      "owner": "testing",
+      "blob": "1361aa7c92b9477dec6614d050272387065152d7"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/run.test.mjs",
+      "line": 36,
+      "class": "test-title-prose",
+      "text": "describe(\"kaal-testing's npm test in the source workspace\", () => {",
+      "owner": "testing",
+      "blob": "e1ad10be8373dae2858c1efb4e580dc89faea14a"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/testing.test.mjs",
+      "line": 21,
+      "class": "skill-path-component",
+      "text": "const SKILL = join(PACKAGE, \"skills\", \"kaal-testing\");",
+      "owner": "testing",
+      "blob": "4d2a5f4dea8d8cb695b1fc9d88f19668a9254688"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/testing.test.mjs",
+      "line": 23,
+      "class": "test-title-prose",
+      "text": "describe(\"kaal-testing\", () => {",
+      "owner": "testing",
+      "blob": "4d2a5f4dea8d8cb695b1fc9d88f19668a9254688"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/testing.test.mjs",
+      "line": 37,
+      "class": "skill-identifier",
+      "text": "assert.deepEqual(checkSkill(\"kaal-testing\", await read(SKILL)), { standard: [], kaal: [], warnings: [] });",
+      "owner": "testing",
+      "blob": "4d2a5f4dea8d8cb695b1fc9d88f19668a9254688"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/testing.test.mjs",
+      "line": 44,
+      "class": "skill-identifier",
+      "text": "await register(dir, \"skill\", \"kaal-testing\", await readContribution(PAYLOAD));",
+      "owner": "testing",
+      "blob": "4d2a5f4dea8d8cb695b1fc9d88f19668a9254688"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/verifiers.test.mjs",
+      "line": 6,
+      "class": "active-module-specifier",
+      "text": "import { judge, observe, parity, SCENARIOS } from \"kaal-testing/verifiers\";",
+      "owner": "testing",
+      "blob": "4a23eba7ddafbb411082f440c4361ab8b31e20d1"
+    }
+  ],
+  "reviewed": false
+}
