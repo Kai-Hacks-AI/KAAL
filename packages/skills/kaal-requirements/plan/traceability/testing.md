@@ -34,3 +34,9 @@ The test logic of T16 to T18 was checked once against a throwaway `Serves.md`, w
 
 - **Not proven:** that a `Serves` Edge reaches Intent's own Node as Intent ships it. T16 and T17 prove Requirements' side against a byte-identical copy, not the end-to-end link.
 - **Re-pin obligation:** when Intent reaches `main`, the fixture is compared with Intent's file there. If the bytes and id match, the fixture is replaced by the real Definition. If they differ, the id and the tests are re-pinned in a Change of their own. Until then no readiness or release judgement may count the Requirement → Intent link as proven end to end.
+
+## GREEN evidence
+
+At `requirements/C12`, T15 to T20 are GREEN, unchanged from `requirements/C11`, and the package's `npm test` now runs them with its other tests (17 tests, all passing). T16 and T17 pass against the pinned fixture only: the end-to-end link to Intent's own Definition is still **not proven**, and the re-pin obligation above stands until Intent reaches `main`.
+
+The package's own tests changed in two places, both consequences of the planned text and neither weakening a check: the admission sentence now reads "It provides the Requirement Definition and the `Serves` Definition. For admission it requires Core's KAAL Capability, and nothing else.", and the packed-file list gains `capability/Serves.md`. The ownership claim names the Capability Node's new id.
