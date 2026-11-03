@@ -98,6 +98,7 @@ describe("the package", () => {
       "capability/Requirement.md",
       "capability/Requirements.md",
       "capability/Serves.md",
+      "contract.json",
       "package.json",
     ]);
   });

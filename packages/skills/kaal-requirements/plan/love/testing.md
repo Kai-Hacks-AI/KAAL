@@ -27,3 +27,7 @@ At `requirements/C6`, four tests are RED and requirements/T14 is GREEN, as plann
 | requirements/T13 | **DEFERRED, a coverage gap**: not written, not passing and not complete. It depends on `core/C29` (proposed) and is written in `requirements/C9` |
 
 requirements/T13 is not written at `requirements/C6`. Its install, upgrade and remove steps call Core's contribution lifecycle, and `core/C29` has not named that interface yet. A test written against a guessed interface would fabricate its RED. It is written, and recorded, in `requirements/C9`, once `core/C29` is on `kaal/requirements`. Until then, Requirements' lifecycle has no independent evidence: no readiness or release judgement may count requirements/F9 as covered, and the README states the gap to consumers.
+
+## GREEN evidence
+
+At `requirements/C7`, requirements/T9, T10, T11, T12 and T14 are GREEN, unchanged from `requirements/C6`, and run in the package's `npm test` (22 tests with the traceability tests, all passing). requirements/T13 is not written and stays deferred to `requirements/C9`, behind `core/C29` and the Hosting scoped rename: lifecycle through the contract is **not proven**. Testing confirmed on #987 that the F10 sentence is consistent with `kaal-defect`, so T11's wording is unchanged. The Capability Node's id changed, and `ownership.kaal.json` names the new one.
