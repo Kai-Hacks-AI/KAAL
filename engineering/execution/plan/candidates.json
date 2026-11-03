@@ -41,7 +41,7 @@
     },
     {
       "candidate": "Graph/Core Form labels",
-      "disposition": "different files and package subjects: packages/skills/kaal-graph/test/graph.test.mjs and packages/kaal-core/test/core.test.ts",
+      "disposition": "different files and package subjects: packages/kaal-graph/test/graph.test.mjs and packages/kaal-core/test/core.test.ts",
       "eligible": false
     },
     {
