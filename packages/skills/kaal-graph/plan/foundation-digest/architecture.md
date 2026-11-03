@@ -1,7 +1,7 @@
 # One SHA-256 for Graph: Architecture
 
-- **graph/A15** [graph/F16, graph/F17]: In `node.mjs`, `import { createHash } from "node:crypto"` becomes `import { sha256 } from "@kaihacksai/kaal-foundation/sha256"`, and Graph's own `sha256` function is replaced by `export { sha256 }`. `node.d.ts` keeps its `sha256` declaration. Nothing else in `node.mjs`, `form.mjs`, `edges.mjs` or `structure.mjs` changes.
-- Foundation's `sha256` accepts a `Uint8Array` and throws a `TypeError` otherwise. `identify` already passes a `Buffer` (a `Uint8Array`), so its behaviour does not change; the one visible difference is the error type for a non-bytes argument to the public `sha256`, which graph/C17 records if it shows.
+- **graph/A15** [graph/F16, graph/F17]: In `node.mjs`, `import { createHash } from "node:crypto"` becomes `import { sha256 } from "@kaihacksai/kaal-foundation/sha256"`, and Graph's own `sha256` becomes a thin adapter: `export const sha256 = (input) => foundation(typeof input === "string" ? Buffer.from(input) : ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : input)`. It computes nothing. `node.d.ts` keeps its `sha256` declaration. Nothing else in `node.mjs`, `form.mjs`, `edges.mjs` or `structure.mjs` changes.
+- Foundation's `sha256` accepts a `Uint8Array` and throws a `TypeError` otherwise. The adapter exists because Graph's public `sha256` also accepts strings and other `ArrayBufferView`s (graph/F18). `identify` passes a `Buffer`, so it is unaffected.
 - Documents: `package.json`, the shipped Architecture and Operations documents of C5 name the dependency once C5 has landed. Until then `graph/C17` changes only the source, `package.json` and the lock.
 
 ## Change graph

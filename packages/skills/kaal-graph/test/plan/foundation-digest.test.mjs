@@ -1,5 +1,5 @@
 // graph/C16 planned test: one SHA-256 for Graph (plan/foundation-digest/testing.md).
-// Immutable to DO and CHECK. graph/T19 is GREEN now and must stay GREEN; graph/C17 turns graph/T20 GREEN.
+// Immutable to DO and CHECK. graph/T19 and graph/T21 are GREEN now and must stay GREEN; graph/C17 turns graph/T20 GREEN.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -17,6 +17,18 @@ describe("one SHA-256 for Graph", () => {
     assert.equal(sha256(Buffer.from("abc")), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
     const bytes = Buffer.from("---\nname: A\ntype:\n  name: Node\n  id: " + "c".repeat(64) + "\n---\n");
     assert.equal(identify(bytes).id, sha256(bytes));
+  });
+
+  it("graph/T21 [graph/F18]: public sha256 accepts what it accepts today and rejects what it rejects today", () => {
+    const abc = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+    assert.equal(sha256("abc"), abc);
+    assert.equal(sha256(Buffer.from("abc")), abc);
+    assert.equal(sha256(new Uint8Array(Buffer.from("abc"))), abc);
+    const two = sha256(new Uint8Array([1, 2, 3, 4]));
+    assert.equal(sha256(new Uint16Array(new Uint8Array([1, 2, 3, 4]).buffer)), two, "a typed array is hashed as the bytes it views");
+    assert.equal(sha256(new DataView(new Uint8Array([1, 2, 3, 4]).buffer)), two);
+    assert.equal(sha256("é"), sha256(Buffer.from("é", "utf8")), "a string is hashed as UTF-8");
+    for (const bad of [1, null, undefined, {}, [1], new ArrayBuffer(2)]) assert.throws(() => sha256(bad), TypeError, String(bad));
   });
 
   it("graph/T20 [graph/F16]: Graph computes no digest of its own", () => {

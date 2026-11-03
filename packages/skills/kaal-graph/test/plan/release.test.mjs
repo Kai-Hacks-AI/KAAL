@@ -195,14 +195,16 @@ describe("Graph 0.0.1 consumer contract", () => {
     assert.equal(cli.status, 0, output(cli));
   });
 
-  it("graph/T14 [graph/N7]: form.mjs, node.mjs and their declarations import no other Graph file, and from outside only yaml, node: built-ins and Foundation's sha256, so a byte-for-byte copy of the four files works wherever the EEE-permitted dependencies are installed (amended by graph/C16, Owner-confirmed)", () => {
+  it("graph/T14 [graph/N7]: form.mjs, node.mjs and their declarations import no other Graph file, and from outside only node: built-ins and packages that package.json declares as dependencies, so a byte-for-byte copy of the four files works wherever those are installed (amended by graph/C16, Owner-confirmed; the EEE rule limits what may be declared)", () => {
     const scripts = join(PACKAGE, "skills", "kaal-graph", "scripts");
     blocked(join(scripts, "node.d.ts"), "scripts/node.d.ts");
+    const declared = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).dependencies ?? {};
     const allowed = { "form.mjs": [], "node.mjs": ["./form.mjs"], "form.d.ts": [], "node.d.ts": ["./form.js"] };
     for (const [file, local] of Object.entries(allowed)) {
       const text = readFileSync(join(scripts, file), "utf8");
       for (const [, spec] of text.matchAll(/(?:^|\n)\s*(?:import|export)\b[^;]*?from\s*["']([^"']+)["']/g)) {
-        assert.ok(spec === "yaml" || spec.startsWith("node:") || spec === "@kaihacksai/kaal-foundation/sha256" || local.includes(spec), `${file} imports ${spec}`);
+        const name = spec.startsWith("@") ? spec.split("/").slice(0, 2).join("/") : spec.split("/")[0];
+        assert.ok(spec.startsWith("node:") || local.includes(spec) || name in declared, `${file} imports ${spec}`);
       }
     }
   });

@@ -11,7 +11,7 @@ This is `graph/C16`, a PLAN Change. It ships no code. `graph/C17` is the DO Chan
 `node.mjs` is copied byte for byte by Core (core/C32), and graph/N7 and graph/T14 said it may import only `yaml`, `node:` built-ins and `form.mjs`. Importing Foundation broke that sentence. The Owner answered graph/Q3 (3 Nov): Graph can of course use Foundation's `sha256`, so N7 may be void.
 
 I checked what N7 still protects. It has two parts:
-- **Which external packages the copied files may import.** The EEE rule now covers this: Embedded code takes only Foundation and Hosting as hard dependencies. This part of N7 is retired as a Graph-specific list. Of the four copied files only Foundation's `sha256` (and the declared `yaml`) is allowed, and never Hosting, which only the CLI uses.
+- **Which external packages the copied files may import.** The EEE rule now covers this: Embedded code takes only Foundation and Hosting as hard dependencies. This part of N7 is retired. N7 no longer lists externals, so there is no second policy to diverge; T14 checks only that an external import is a declared dependency or a `node:` built-in.
 - **No other Graph file beside them.** The EEE rule does not cover this: it limits a package's dependencies, not how its files depend on each other. A copy of `node.mjs` that imported `edges.mjs` or `structure.mjs` would break in Core. This part stays.
 
 So N7 is amended, not voided, and T14 is revised in place to test exactly that, with the Owner's confirmation recorded in its title. graph/T20 still turns RED to GREEN with the DO.
