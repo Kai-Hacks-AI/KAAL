@@ -50,7 +50,7 @@ let engine;
 
 before(async () => {
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
+  host = await install(["@kaihacksai/kaal-foundation", "kaal-core", "kaal-graph", "kaal-hosting", "kaal-engineer-skill"]);
   installed = join(host, "node_modules", "kaal-engineer-skill");
   kaal = join(host, "node_modules", ".bin", "kaal");
   checker = join(host, "node_modules", ".bin", "kaal-engineer-skill");
@@ -67,7 +67,8 @@ async function state(dir) {
  * Register the shipped Engineer Skill into a fresh Engine, optionally after
  * `prepare` has changed that Engine, and check what Engineer Skill requires:
  * the Engine verifies before and after, registration admits exactly the
- * Skill's own Node, and that Node is a Skill, typed by Core's KAAL Skill.
+ * Skill's own Nodes, its Skill Node and BASS, and the Skill Node is a Skill,
+ * typed by Core's KAAL Skill.
  */
 async function embeds(dir, prepare) {
   assert.match(await run(kaal, ["init", "--engine", dir], host), /bootstrapped/);
@@ -78,7 +79,8 @@ async function embeds(dir, prepare) {
   const after = await state(dir);
   assert.ok(after.ok, after.problems.join("\n"));
   const id = (await run(kaal, ["identify", join(installed, "payload", "Engineer-Skill.md")], host)).split("\t")[0];
-  assert.deepEqual(after.ids, [...before.ids, id].sort(), "registration admits exactly the Skill's own Node");
+  const bass = (await run(kaal, ["identify", join(installed, "payload", "BASS.md")], host)).split("\t")[0];
+  assert.deepEqual(after.ids, [...before.ids, id, bass].sort(), "registration admits exactly the Skill's own Nodes");
   const listed = (await run(kaal, ["list", "--engine", dir], host)).trim().split("\n").map((l) => l.split("\t"));
   assert.deepEqual(listed.filter(([, , name]) => name === "Engineer Skill"), [["skill", id, "Engineer Skill"]]);
   const [resolved, , type] = (await run(kaal, ["resolve", "Engineer Skill", id, "--engine", dir], host)).trim().split("\t");

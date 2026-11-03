@@ -6,7 +6,8 @@ KAAL Graph: the capability for the general mechanics of Nodes, their Form and id
 payload/Graph.md                         the Skill Node, typed by Core's KAAL Skill
 skills/kaal-graph/                       the Agent Skill: SKILL.md, references/edges.md,
                                          scripts/edges.mjs (the API, typed by edges.d.ts),
-                                         scripts/node.mjs (Form and identity) and scripts/graph.mjs
+                                         scripts/form.mjs (reading frontmatter), scripts/node.mjs
+                                         (Form and identity) and scripts/graph.mjs
 ```
 
 ## Edges
@@ -18,6 +19,7 @@ An Edge is embedded in the Node it goes out from, in the `edges` key of its fron
 `scripts/edges.mjs` is the package's API, and touches no host.
 
 - `identify(bytes)` reads an ordinary Node's identity from its exact bytes, `{ id, name, type, frontmatter }`, or throws a `FormError` if they are not in Form or declare no type: an ordinary Node always references its type. The id is `sha256(bytes)`, the frontmatter is the complete YAML 1.2 mapping, and only `name` and `type` are interpreted. The identity is frozen throughout, sequences included. `identifyRoot(bytes)` reads a root the same way: the one Node of a foundation that declares no type, such as Core's genesis Node `Node`. It refuses bytes that declare a type, which are an ordinary Node for `identify`. Which Node is a root is the foundation owner's decision, never Graph's. `claimsForm(bytes)` says whether bytes begin like frontmatter and so claim to be a Node; `isName` and `isId` say whether a value is a valid name or id.
+- `readFrontmatter(bytes)` reads the frontmatter of any Markdown file in Form, a Node or not, exactly as `identify` reads it: the complete YAML 1.2 mapping, frozen throughout, with nothing interpreted and the body never read. It throws a `FormError` if the bytes are not UTF-8 or not in Form. It is also offered alone as `kaal-graph/form`, with `FormError`, `isName` and `isId`, importing no host module, for callers that must stay pure.
 
 - `createNode({ name, type, edges, frontmatter, body })` constructs an ordinary Node's exact bytes and returns `{ bytes, node }`. `type` is required: it constructs no root. The frontmatter is canonical: `name`, `type`, `edges` with groups sorted by type and targets by reference, then the other keys sorted, with every name and id double-quoted so an id of digits stays a string. Identical input gives identical bytes and id. It refuses anything that would not read back as given or whose Edges are malformed. That is all it guarantees: not that a reference resolves to a Node, nor that a relationship is permitted. It writes nothing and gives nothing a meaning: publishing the bytes is the caller's, through Hosting or Core's `register`.
 - `edgesOf(node)` gives a Node's outgoing Edges, sorted, or the problems that make them unusable.
