@@ -289,7 +289,7 @@ describe("claim", () => {
   it("does not apply while the default branch holds no numbering rule", () => {
     const v = claim({ ...f, rules: null });
     assert.equal(v.kind, "not-applicable");
-    assert.match(v.message, /not in force: main holds no packages\/skills\/kaal-change\/lib\/record\.mjs/);
+    assert.match(v.message, /not in force: main holds no packages\/kaal-change\/lib\/record\.mjs/);
   });
   it("hands Change's rule exactly the files it read", () => {
     let seen: unknown;
