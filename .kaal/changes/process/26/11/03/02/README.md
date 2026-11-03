@@ -17,7 +17,7 @@ kaal-process owns the instances is open: "maybe as start".
 | The metamodel (Process, Activity, Role, State, Transition, Ordering, Entry/Exit) | Process | Process's whole scope (#275). |
 | **PDCA** as a generic, recursive template | **Process, as the first instance** | It is generic and no other capability's semantics (#526, #620 "Process Template"). This is the "as start": it incubates in Process, in the package that already holds it. No new package. |
 | A capability's own lifecycle (a Change's PLAN, DO, CHECK) | That capability (Change) | Already stated in the Process Node. |
-| **DevOps** | **Engineering**, as a process design on the metamodel | Approved in #852 and drafted in #851: DevOps is not a capability and has no package. It is the delivery route Engineering owns. |
+| **DevOps** | **Open** | An instance of the metamodel, and not decided to be a capability (#851 and #852 treat it as a process, not a Capability, and only suggest Engineering describes it). Either Engineering holds the description, or DevOps incubates in Process like PDCA. Not decided here. |
 | Other instances (for example the CTO/CPO exchange) | Their accountable owner | #852: owned by whoever is accountable. |
 
 Process incubates only what is generic enough to be reused by several owners,
@@ -25,9 +25,9 @@ and moves an instance to its owner when that owner exists to take it, the way
 Defect incubates in Testing. Today only PDCA qualifies. Process keeps no
 registry of instances and dictates no instance's semantics.
 
-Where this differs from a first reading ("DevOps stays its own capability"):
-DevOps is an instance, as the Owner said, and by #851/#852 it is described by
-Engineering and is not a Capability. No change to #852 is proposed.
+DevOps's owner is an open question and nothing here assumes it is a separate
+capability. It is an instance, and it may later be incubated in Process the way
+PDCA is. No change to #852 is proposed.
 
 ## 2. Making ACT explicit, and light
 
@@ -66,8 +66,10 @@ Change capability by pull request, not enforced from here.
 1. Is "Drop" wanted as a named response, or is "no action" enough?
 2. Should the ACT note live in the Change record, or on the realizing PR?
    (Learning's open decision D1 from #526.)
-3. Which instance, after PDCA, is the next candidate to incubate in Process
-   rather than go straight to its owner?
+3. Should DevOps be the next instance to incubate in Process (with Engineering
+   serving its Activities), or be described by Engineering? Process incubates
+   only what several owners reuse; DevOps's reuse across capabilities is the
+   test.
 
 ## Scope and authorization
 
