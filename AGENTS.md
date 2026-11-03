@@ -15,3 +15,15 @@ This repository is governed by KAAL.
   - `kaal-foundation sha256 [<file>…]` prints `<digest>  <file>`, and reads standard input when no file is given.
   - `kaal-foundation verify` checks an installed copy and ends in `verified`, `failed` or `cannot verify`.
 - **What it holds.** Foundation holds only reviewed, provisional concerns, and it is not a utilities bucket. A new shared helper belongs to the capability whose meaning it carries, and anything that touches the operating system belongs to Hosting.
+
+## Review with Codex
+
+Every pull request asks for `@codex review`. The findings are input to a judgement, not a gate and not an instruction to implement.
+
+The thread that owns the PR triages each finding and answers it on its thread:
+
+- **In scope.** Fix it in this PR.
+- **Valid but out of scope.** A finding can be right and still belong to another Change. Record it as a Defect, confirmed through a Test Case, and route it to the capability that owns the behaviour. Do not widen this PR to carry it.
+- **Invalid.** Reply with the reasoning.
+
+A finding never replaces required checks or the reviews a PR needs, and it never weakens a test.
