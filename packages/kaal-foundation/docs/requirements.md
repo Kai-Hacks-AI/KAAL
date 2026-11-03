@@ -35,3 +35,37 @@
   - `cannot verify` (2): the manifest is missing, a listed file is missing or differs, a declared case did not run, an undeclared case ran, or nothing ran.
 
 [Testing](testing.md) says which case checks which Requirement.
+
+## Foundation's own Capability declaration
+
+- **foundation/F25** The public data export
+  `@kaihacksai/kaal-foundation/capability` resolves to the delivered
+  `capability/Foundation.md`. Read its exact UTF-8 Markdown bytes, rather than
+  importing it as JavaScript. It is Foundation's authoritative Capability Node,
+  named `Foundation`, typed by Core's existing `KAAL Capability` reference
+  `56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e`.
+  Its content ID is
+  `649fbafb81a8d976b65a4e8c0db7228a194ec515385820d489e4a74041dc27c5`.
+  Core owns explicit binding to CASE kind Capability and admission/registration;
+  package metadata is never a substitute for the owner declaration.
+- **foundation/F26** The committed manifest lists the declaration. Verification
+  first checks its bytes independently against that manifest. A delivered Case
+  then checks its accepted identity, name and type. Missing/changed bytes give
+  `cannot verify`; a wrong declaration hidden behind a refreshed manifest fails
+  the Case. Neither result establishes admission, registration or use.
+- **foundation/F27** Declaration delivery performs no Engine lifecycle action.
+  Install, resolution, read, upgrade and removal of the npm package neither
+  initialize an Engine nor register, replace or remove an Engine contribution.
+  Core owns its explicitly requested registration operation and Engine lifecycle;
+  Foundation supplies no installation contract or Foundation-owned state record
+  for Core to invent or write. npm removal leaves an already registered snapshot
+  alone. Changes to such a snapshot require an explicit Core lifecycle operation
+  under Core's preservation and refusal guarantees.
+- **foundation/N15** Normal packing ships committed bytes without repair. There
+  is no build/prepack/install hook, generated declaration or runtime dependency.
+  The publisher explicitly regenerates the manifest for review and checks it
+  before release. Git never rewrites the authoritative declaration's bytes.
+- **foundation/N16** The repository ownership claim does not ship and claims only
+  `packages/kaal-foundation/`. The Node's identity is its exact content, independent
+  of npm version. Foundation 0.0.2 preserves the existing SHA-256 API and CLI;
+  published 0.0.1 remains immutable.

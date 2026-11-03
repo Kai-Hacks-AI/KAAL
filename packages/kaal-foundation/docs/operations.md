@@ -27,6 +27,30 @@ Nothing on `PATH` can stand in for it: where the scoped package is not installed
 
 An agent's guide is the shipped skill, `skills/kaal-foundation/SKILL.md`.
 
+## Read the Capability declaration
+
+The public `@kaihacksai/kaal-foundation/capability` export is a Markdown data
+file. In Node, resolve it through the scoped package's public export, then read
+the exact bytes with your environment's approved reader. For example:
+
+```js
+import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+const require = createRequire(import.meta.url);
+const bytes = readFileSync(require.resolve("@kaihacksai/kaal-foundation/capability"));
+```
+
+The example shows Node's data-file acquisition. KAAL consumers that already use
+Hosting read the resolved path through Hosting's `readFile`. Do not import the
+Markdown as JavaScript, infer a Node from package metadata, or fall back to an
+unscoped package. Missing Foundation or a missing export is an error.
+
+The Node is named `Foundation` and has CASE kind Capability. Its content ID,
+type reference and lifecycle boundary are specified in [Requirements](requirements.md).
+Installing or reading the package registers nothing. An explicit Core operation
+validates and registers the owner bytes; npm upgrade/removal leaves any existing
+Engine snapshot alone. No Foundation installation record is supplied or created.
+
 ## Verify
 
 ```sh
@@ -50,6 +74,7 @@ Foundation keeps no state outside its package directory.
 LICENSE
 README.md
 bin/kaal-foundation.mjs
+capability/Foundation.md
 docs/architecture.md
 docs/intent.md
 docs/limitations.md
@@ -62,6 +87,7 @@ package.json
 skills/kaal-foundation/SKILL.md
 test/embed/architecture.test.mjs
 test/embed/commands.test.mjs
+test/embed/declaration-embedded.test.mjs
 test/embed/requirements.test.mjs
 test/run.mjs
 test/verify.json

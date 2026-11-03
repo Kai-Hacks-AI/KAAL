@@ -15,6 +15,7 @@ Each delivered case is titled `foundation/T<n> [<targets>]: <what it checks>`. I
 | foundation/T31 | `test/embed/architecture.test.mjs` | foundation/F15 | the skill's frontmatter, its commands, and that it cites only identifiers defined here |
 | foundation/T29 | `test/embed/commands.test.mjs` | foundation/F14 | `kaal-foundation sha256` prints the library's digest for a file and for standard input |
 | foundation/T30 | `test/embed/commands.test.mjs` | foundation/F14 | an unreadable file, an unknown command or option, and no command exit 2 with a usage line |
+| foundation/T50 | `test/embed/declaration-embedded.test.mjs` | foundation/F25, foundation/F26 | the public data export holds Foundation's accepted Node identity, name and type |
 
 `test/verify.mjs` runs them and decides the result of foundation/F12. `test/verify.json` lists them as `cases`, and again as `model`, Testing's form `{ cases: [{ id, tests }] }`. Which identifiers are evidenced is derived from that model and a run. Nothing here declares coverage.
 
@@ -27,5 +28,13 @@ The publisher's tests under `test/publisher/` are not delivered and never run in
 - challenge the verification with changed, missing and undeclared files and cases;
 - check that every documented way to run the command runs the scoped package's own bin by its path, and that another package's `kaal-foundation` can never stand in for it (foundation/F18);
 - check that the package publishes publicly, names its repository, and that `verify` never crashes on a changed library;
-- check that Foundation's Capability Node and ownership claim, which are repository data and never ship, claim `packages/kaal-foundation/` alone (foundation/C11);
+- check that the owner declaration ships while the ownership claim remains repository-only and claims `packages/kaal-foundation/` alone (foundation/C11, amended by C15);
+- check public declaration resolution, normal pack and exact inventory, isolated installed verification, altered/missing bytes and wrong owner/name/type behind refreshed digests, preserved author Engine/configuration and refusal of an unscoped substitute (foundation/T46–T49);
 - check that the manifest is current: `test/publisher/manifest.mjs --check` is part of `test:publisher`.
+
+The repository's separate `test/acceptance/declaration-acceptance.test.mjs`
+(foundation/T51) runs through the existing pack-once, ledger-recorded Acceptance
+lane on Linux/macOS/Windows. It installs the candidate alone, resolves the public
+declaration and executes installed verification with each Case accounted for.
+It does not ship or run in a consumer's installation. Native host results are
+separate acceptance evidence; a source suite on one host proves no other host.
