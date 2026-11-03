@@ -2,9 +2,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check, facts, HOSTING_C11 } from "./check.mjs";
+import { check, readLedger, CannotJudge, LEDGER, gitBlob } from "./check.mjs";
 
 const CLI = join(dirname(fileURLToPath(import.meta.url)), "check.mjs");
 
@@ -108,77 +110,6 @@ describe("aggregate changes", () => {
   });
 });
 
-describe("the interim hosting/C11 allowance (engineering/C11 amendment, Option A)", () => {
-  const core = ["packages/kaal-core/package.json", "packages/kaal-core/src/hosting.ts", "package.json", "package-lock.json"];
-  // hosting/C11's unspent rename: the target still names Hosting kaal-hosting, the candidate renames it.
-  const old = ["kaal", "hosting"].join("-"); // the old, unscoped name, never a quoted reference (hosting/T22)
-  const c11 = { target: old, candidate: "@kaihacksai/kaal-hosting" };
-  const fault = (paths, f = c11) => check(paths, f).map((v) => v.split(": ")[1]);
-  const all = [...core, ...HOSTING_C11];
-
-  it("engineering/T57: hosting/C11's unspent rename with its exact path set and Core passes, in any order", () => {
-    assert.equal(HOSTING_C11.length, 44);
-    assert.ok(Object.isFrozen(HOSTING_C11));
-    assert.deepEqual(check(all, c11), []);
-    assert.deepEqual(check([...HOSTING_C11].reverse().concat(core), c11), []);
-  });
-
-  it("engineering/T58: a superset fails, naming each extra path and only those", () => {
-    const extra = ["packages/kaal-sealing/src/seal.ts", "README.md"];
-    assert.deepEqual(fault([...all, ...extra]), extra.map((p) => `${p} is extra to hosting/C11's allowed set`));
-    // The path the correction removed is now extra too: the set narrowed, it did not widen.
-    const removed = "packages/extensions/kaal-hosting/.gitattributes";
-    assert.ok(!HOSTING_C11.includes(removed));
-    assert.deepEqual(fault([...all, removed]), [`${removed} is extra to hosting/C11's allowed set`]);
-  });
-
-  it("engineering/T59: a subset or a swap fails, naming each missing and extra path", () => {
-    const missing = [HOSTING_C11[0], HOSTING_C11[43]];
-    const part = HOSTING_C11.filter((p) => !missing.includes(p));
-    assert.deepEqual(fault([...core, ...part]), missing.map((p) => `${p} is missing from hosting/C11's allowed set`));
-    assert.equal(check([...core, HOSTING_C11[3]], c11).length, 43, "a single path of the set does not carry the allowance");
-    const swapped = [...HOSTING_C11.slice(1), "packages/skills/kaal-graph/README.md"];
-    assert.deepEqual(fault([...core, ...swapped]), [
-      "packages/skills/kaal-graph/README.md is extra to hosting/C11's allowed set",
-      `${HOSTING_C11[0]} is missing from hosting/C11's allowed set`,
-    ]);
-  });
-
-  it("engineering/T60: a .github path beside the exact set fails .github travels alone", () => {
-    const v = check([...all, ".github/workflows/ci.yml"], c11);
-    assert.ok(v.includes("core travels alone: .github/workflows/ci.yml is extra to hosting/C11's allowed set"), v.join("\n"));
-    assert.equal(v.filter((x) => x.startsWith(".github travels alone: ")).length, all.length, v.join("\n"));
-  });
-
-  it("engineering/T61: Core beside paths outside the set fails rule 1 as before, whatever the facts", () => {
-    for (const f of [c11, {}]) {
-      assert.deepEqual(fault([...core, "packages/skills/kaal-graph/README.md", "engineering/lanes/README.md"], f), [
-        "packages/skills/kaal-graph/README.md is not Core or its supporting files",
-        "engineering/lanes/README.md is not Core or its supporting files",
-      ]);
-    }
-  });
-
-  it("engineering/T71: an unrelated Change carrying hosting/C11's exact paths, without its rename, gets no allowance", () => {
-    for (const f of [{ target: old, candidate: old }, { target: old, candidate: "@kaihacksai/kaal-hosting-x" }, { target: old }]) {
-      assert.deepEqual(fault(all, f), HOSTING_C11.map((p) => `${p} is not Core or its supporting files`), JSON.stringify(f));
-    }
-  });
-
-  it("engineering/T72: once hosting/C11 has landed on the target, its exact paths cannot reuse the allowance", () => {
-    const spent = { target: "@kaihacksai/kaal-hosting", candidate: "@kaihacksai/kaal-hosting" };
-    assert.deepEqual(fault(all, spent), HOSTING_C11.map((p) => `${p} is not Core or its supporting files`));
-  });
-
-  it("engineering/T73: without the runner's target and candidate commits, the allowance does not apply", () => {
-    assert.deepEqual(facts({}), { target: undefined, candidate: undefined });
-    assert.deepEqual(facts({ GUARD_BASE: "HEAD; rm -rf /", GUARD_HEAD: "not-a-commit" }), { target: undefined, candidate: undefined });
-    assert.equal(check(all).length, HOSTING_C11.length, "check without facts applies rule 1");
-    const cli = spawnSync(process.execPath, [CLI], { input: all.join("\n"), encoding: "utf8", env: { PATH: process.env.PATH } });
-    assert.equal(cli.status, 1, cli.stderr);
-  });
-});
-
 describe("the CLI", () => {
   const run = (args, input) => spawnSync(process.execPath, [CLI, ...args], { input, encoding: "utf8" });
 
@@ -204,5 +135,239 @@ describe("the CLI", () => {
     for (const p of ["./packages/kaal-core/x", "/packages/kaal-core/x", "a//b", "a/../packages/kaal-core/x"]) {
       assert.equal(run([], `README.md\n${p}\n`).status, 2, p);
     }
+  });
+});
+
+// Transition ledger: a target-held, exact admission for one multi-owner change. The ledger commits to
+// the path set and to every path's blob before and after, so these cases use fake blob ids for the rule
+// and a real temporary Git repository for the CLI that reads them.
+describe("transition ledger", () => {
+  const blob = (n) => String(n).repeat(40).slice(0, 40);
+  const PATHS = [
+    "packages/kaal-foundation/package.json",
+    "packages/kaal-core/package.json",
+    "packages/skills/kaal-change/package.json",
+    "package-lock.json",
+  ];
+  const entry = (over = {}) => ({
+    id: "t1",
+    paths: PATHS,
+    pre: Object.fromEntries(PATHS.map((p) => [p, blob(1)])),
+    post: Object.fromEntries(PATHS.map((p) => [p, blob(2)])),
+    ...over,
+  });
+  const facts = (base = blob(1), head = blob(2), overrides = {}) => (p) => ({ base, head, ...(overrides[p] ?? {}) });
+  const ledgerOf = (...e) => readLedger(JSON.stringify({ version: 1, transitions: e }));
+
+  it("is inert: no ledger and an empty ledger judge every existing case identically", () => {
+    const cases = [
+      PATHS,
+      ["packages/kaal-core/src/cli.ts", "package-lock.json"],
+      [".github/workflows/x.yml", "README.md"],
+      ["README.md"],
+    ];
+    for (const paths of cases) {
+      assert.deepEqual(check(paths, { ledger: readLedger('{"version":1,"transitions":[]}') }), check(paths));
+    }
+  });
+
+  it("refuses the multi-owner change without a matching entry", () => {
+    assert.ok(check(PATHS).some((v) => v.startsWith("core travels alone: packages/kaal-foundation/package.json")));
+  });
+
+  it("admits exactly the committed change: path set, pre and post blobs all equal", () => {
+    assert.deepEqual(check(PATHS, { ledger: ledgerOf(entry()), facts: facts() }), []);
+  });
+
+  it("refuses a path the ledger does not name, and a missing path", () => {
+    const extra = check([...PATHS, "README.md"], { ledger: ledgerOf(entry()), facts: facts() });
+    assert.ok(extra.some((v) => v.startsWith("core travels alone: README.md")));
+    const missing = check(PATHS.slice(1), { ledger: ledgerOf(entry()), facts: facts() });
+    assert.ok(missing.some((v) => v.startsWith("core travels alone: ")));
+  });
+
+  it("refuses a changed byte in any path (forged lock, altered pin, changed Core)", () => {
+    for (const p of PATHS) {
+      const v = check(PATHS, { ledger: ledgerOf(entry()), facts: facts(blob(1), blob(2), { [p]: { head: blob(3) } }) });
+      assert.ok(v.some((x) => x.includes(`${p} in the change is ${blob(3)}`)), p);
+    }
+  });
+
+  it("refuses a stale or already adopted target and replay", () => {
+    const stale = check(PATHS, { ledger: ledgerOf(entry()), facts: facts(blob(4), blob(2)) });
+    assert.ok(stale.some((v) => v.includes("stale or already adopted")));
+    const adopted = check(PATHS, { ledger: ledgerOf(entry()), facts: facts(blob(2), blob(2)) });
+    assert.ok(adopted.some((v) => v.includes("stale or already adopted")));
+  });
+
+  it("does not let an entry lift the .github rule", () => {
+    const withGithub = check([...PATHS, ".github/workflows/x.yml"], { ledger: ledgerOf(entry()), facts: facts() });
+    assert.ok(withGithub.some((v) => v.startsWith(".github travels alone")));
+  });
+
+  it("cannot judge a matching change when no Git facts are supplied", () => {
+    assert.throws(() => check(PATHS, { ledger: ledgerOf(entry()) }), CannotJudge);
+  });
+
+  it("cannot judge a malformed ledger", () => {
+    const bad = (e) => assert.throws(() => ledgerOf(e), CannotJudge);
+    assert.throws(() => readLedger("{"), CannotJudge);
+    assert.throws(() => readLedger('{"version":2,"transitions":[]}'), CannotJudge);
+    bad(entry({ id: "" }));
+    bad(entry({ paths: [] }));
+    bad(entry({ paths: [...PATHS, PATHS[0]] }));
+    bad(entry({ paths: [...PATHS, "a/../b"] }));
+    bad(entry({ pre: { ...entry().pre, "package-lock.json": "xyz" } }));
+    bad(entry({ post: Object.fromEntries(PATHS.slice(1).map((p) => [p, blob(2)])) }));
+    assert.throws(() => readLedger(JSON.stringify({ version: 1, transitions: [entry(), entry()] })), CannotJudge);
+  });
+
+  it("never admits .github, the ledger or the checker through an entry", () => {
+    for (const forbidden of [".github/workflows/ci.yml", LEDGER, "engineering/change-isolation/check.mjs"]) {
+      const paths = [...PATHS, forbidden];
+      assert.throws(() => ledgerOf(entry({ paths,
+        pre: Object.fromEntries(paths.map((p) => [p, blob(1)])), post: Object.fromEntries(paths.map((p) => [p, blob(2)])) })), CannotJudge, forbidden);
+    }
+  });
+
+  describe("the CLI, against a real repository", () => {
+    const git = (cwd, ...args) => {
+      const r = spawnSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd, encoding: "utf8" });
+      assert.equal(r.status, 0, r.stderr);
+      return r.stdout.trim();
+    };
+    const setup = (tamper) => {
+      const dir = mkdtempSync(join(tmpdir(), "transition-"));
+      git(dir, "init", "-q", "-b", "main");
+      const write = (p, text) => { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), text); };
+      for (const p of PATHS) write(p, "before\n");
+      git(dir, "add", "-A"); git(dir, "commit", "-qm", "base");
+      const base = git(dir, "rev-parse", "HEAD");
+      git(dir, "checkout", "-qb", "candidate");
+      for (const p of PATHS) write(p, "after\n");
+      if (tamper) write(tamper, "tampered\n");
+      git(dir, "add", "-A"); git(dir, "commit", "-qm", "candidate");
+      const head = git(dir, "rev-parse", "HEAD");
+      const blobAt = (rev, p) => git(dir, "rev-parse", `${rev}:${p}`);
+      const ledger = join(dir, "..", `ledger-${Date.now()}-${Math.random()}.json`);
+      writeFileSync(ledger, JSON.stringify({ version: 1, transitions: [{ id: "t1", paths: PATHS,
+        pre: Object.fromEntries(PATHS.map((p) => [p, blobAt(base, p)])),
+        post: Object.fromEntries(PATHS.map((p) => [p, blobAt("candidate~0", p)])) }] }));
+      return { dir, base, head, ledger };
+    };
+    const run = (s, paths) => spawnSync(process.execPath, [CLI, "--ledger", s.ledger, "--git", s.base, s.head],
+      { cwd: s.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+
+    it("admits the exact change, refuses the same paths with one altered byte, and refuses replay", () => {
+      const good = setup();
+      try {
+        const ok = run(good, PATHS);
+        assert.equal(ok.status, 0, ok.stderr);
+        // Replay: the target already holds the post state.
+        const replay = spawnSync(process.execPath, [CLI, "--ledger", good.ledger, "--git", good.head, good.head],
+          { cwd: good.dir, input: PATHS.join("\n") + "\n", encoding: "utf8" });
+        assert.equal(replay.status, 1);
+        assert.match(replay.stderr, /stale or already adopted/);
+      } finally { rmSync(good.dir, { recursive: true, force: true }); rmSync(good.ledger, { force: true }); }
+      const altered = setup();
+      try {
+        // The ledger commits to the "after" blobs; the candidate then differs in one path.
+        writeFileSync(join(altered.dir, PATHS[3]), "other\n");
+        git(altered.dir, "commit", "-qam", "alter");
+        const head = git(altered.dir, "rev-parse", "HEAD");
+        const r = spawnSync(process.execPath, [CLI, "--ledger", altered.ledger, "--git", altered.base, head],
+          { cwd: altered.dir, input: PATHS.join("\n") + "\n", encoding: "utf8" });
+        assert.equal(r.status, 1);
+        assert.match(r.stderr, /package-lock\.json in the change is/);
+      } finally { rmSync(altered.dir, { recursive: true, force: true }); rmSync(altered.ledger, { force: true }); }
+    });
+
+    it("exits 2 for a malformed ledger and for partial arguments", () => {
+      const s = setup();
+      try {
+        writeFileSync(s.ledger, "{");
+        assert.equal(run(s, PATHS).status, 2);
+        assert.equal(spawnSync(process.execPath, [CLI, "--ledger", s.ledger], { input: "", encoding: "utf8" }).status, 2);
+        assert.equal(spawnSync(process.execPath, [CLI, "--git", s.base, s.head], { input: "", encoding: "utf8" }).status, 2);
+      } finally { rmSync(s.dir, { recursive: true, force: true }); rmSync(s.ledger, { force: true }); }
+    });
+  });
+});
+
+// Git evidence: an absent path is null in the ledger; missing, invalid or unavailable evidence is
+// cannot-judge. These run against a real repository, since the difference is Git's own behavior.
+describe("transition ledger git evidence", () => {
+  const git = (cwd, ...args) => {
+    const r = spawnSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    return r.stdout.trim();
+  };
+  const repo = () => {
+    const dir = mkdtempSync(join(tmpdir(), "gitblob-"));
+    git(dir, "init", "-q", "-b", "main");
+    const write = (p, text) => { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), text); };
+    write("packages/kaal-core/old.txt", "old\n");
+    write("packages/kaal-core/keep.txt", "keep\n");
+    git(dir, "add", "-A"); git(dir, "commit", "-qm", "base");
+    const base = git(dir, "rev-parse", "HEAD");
+    git(dir, "checkout", "-qb", "candidate");
+    git(dir, "rm", "-q", "packages/kaal-core/old.txt");
+    write("packages/kaal-core/new.txt", "new\n");
+    git(dir, "add", "-A"); git(dir, "commit", "-qm", "candidate");
+    return { dir, base, head: git(dir, "rev-parse", "HEAD") };
+  };
+  const ledgerFile = (dir, paths, pre, post) => {
+    const file = join(dir, "..", `ledger-${Date.now()}-${Math.random()}.json`);
+    writeFileSync(file, JSON.stringify({ version: 1, transitions: [{ id: "t", paths, pre, post }] }));
+    return file;
+  };
+
+  it("returns null for an absent path and a blob id for a present one", () => {
+    const r = repo();
+    try {
+      assert.equal(gitBlob(r.base, "packages/kaal-core/new.txt", { cwd: r.dir }), null);
+      assert.equal(gitBlob(r.head, "packages/kaal-core/old.txt", { cwd: r.dir }), null);
+      assert.match(gitBlob(r.head, "packages/kaal-core/new.txt", { cwd: r.dir }), /^[0-9a-f]{40,64}$/);
+    } finally { rmSync(r.dir, { recursive: true, force: true }); }
+  });
+
+  it("cannot judge an unresolvable revision, a non-commit, a directory or a missing repository", () => {
+    const r = repo();
+    try {
+      for (const rev of ["0".repeat(40), "no-such-branch", "HEAD:packages"]) {
+        assert.throws(() => gitBlob(rev, "packages/kaal-core/keep.txt", { cwd: r.dir }), CannotJudge, rev);
+      }
+      assert.throws(() => gitBlob(r.base, "packages/kaal-core", { cwd: r.dir }), CannotJudge);
+      // A prefix of a file name is a different, absent path.
+      assert.equal(gitBlob(r.base, "packages/kaal-core/kee", { cwd: r.dir }), null);
+      assert.throws(() => gitBlob(r.base, "x", { cwd: join(r.dir, "does-not-exist") }), CannotJudge);
+    } finally { rmSync(r.dir, { recursive: true, force: true }); }
+  });
+
+  it("admits an addition and a deletion in one transition, with null on the absent side", () => {
+    const r = repo();
+    const paths = ["packages/kaal-core/new.txt", "packages/kaal-core/old.txt"];
+    const blob = (rev, p) => gitBlob(rev, p, { cwd: r.dir });
+    const file = ledgerFile(r.dir, paths,
+      { "packages/kaal-core/new.txt": blob(r.base, paths[0]), "packages/kaal-core/old.txt": blob(r.base, paths[1]) },
+      { "packages/kaal-core/new.txt": blob(r.head, paths[0]), "packages/kaal-core/old.txt": blob(r.head, paths[1]) });
+    try {
+      assert.equal(blob(r.base, paths[0]), null);
+      assert.equal(blob(r.head, paths[1]), null);
+      const ok = spawnSync(process.execPath, [CLI, "--ledger", file, "--git", r.base, r.head], { cwd: r.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+      assert.equal(ok.status, 0, ok.stderr);
+      // Unavailable evidence is not absence: an unresolvable head is exit 2, never a null match.
+      const bad = spawnSync(process.execPath, [CLI, "--ledger", file, "--git", r.base, "0".repeat(40)], { cwd: r.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+      assert.equal(bad.status, 2);
+      assert.match(bad.stderr, /cannot resolve/);
+      // A ledger that wrongly commits a present path as null is refused, not matched.
+      const wrong = ledgerFile(r.dir, paths,
+        { "packages/kaal-core/new.txt": null, "packages/kaal-core/old.txt": blob(r.base, paths[1]) },
+        { "packages/kaal-core/new.txt": null, "packages/kaal-core/old.txt": null });
+      const refused = spawnSync(process.execPath, [CLI, "--ledger", wrong, "--git", r.base, r.head], { cwd: r.dir, input: paths.join("\n") + "\n", encoding: "utf8" });
+      assert.equal(refused.status, 1);
+      assert.match(refused.stderr, /new\.txt in the change is/);
+      rmSync(wrong, { force: true });
+    } finally { rmSync(r.dir, { recursive: true, force: true }); rmSync(file, { force: true }); }
   });
 });
