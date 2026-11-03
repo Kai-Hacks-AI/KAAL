@@ -19,4 +19,8 @@ So Foundation's boundary check stays at Intent level. It checks a consumer only 
 
 `testing.md` derives every boundary case from a Foundation identifier this way.
 
+**Release scope (CPO guidance on this PLAN).** Foundation 0.0.2's release objective is the authoritative installed declaration (foundation/C16, #838). C14, the `check` and `boundary` commands, stays off the 0.0.2 critical path unless a separately approved release-scope decision changes that. Foundation 0.0.2 publication does not depend on these commands, on this PLAN's acceptance, or on C14.
+
+**What a `verified` digest answer does not prove.** A list `check` that matches shows only that the digests the consumer supplied equal the digests Foundation computes for the same bytes. It does not prove that those lists cover all of the consumer's digests, or that the consumer actually adopted Foundation. Adoption and coverage stay with the consumer's own Requirements, Architecture and tests.
+
 This PLAN changes nothing a consumer computes. `lib/sha256.mjs` and `lib/sha256.d.ts` stay byte for byte the same (foundation/N5, foundation/N9).
