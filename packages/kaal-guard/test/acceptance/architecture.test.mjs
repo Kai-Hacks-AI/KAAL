@@ -57,9 +57,16 @@ const marked = (testing, begin, end) => {
  */
 function defects(limitations, testing, titles) {
   const findings = [];
-  const { header, body } = rows(limitations, "Defect");
+  // Two tables, by heading: Defects in published versions, and Defects found before a release (guard/C132).
+  const split = limitations.search(/^## Defects found before a release\b/m);
+  const publishedText = split < 0 ? limitations : limitations.slice(0, split);
+  const earlyText = split < 0 ? "" : limitations.slice(split);
+  const tables = [["published", rows(publishedText, "Defect")], ["early", rows(earlyText, "Defect")]];
   const columns = ["Defect", "Prohibited behaviour", "Tested by", "Observed in Test Runs"];
-  if (header.join("|") !== columns.join("|")) findings.push(`the Defect table's columns are ${header.join(", ") || "missing"}, not ${columns.join(", ")}`);
+  for (const [kind, { header }] of tables) {
+    if (kind === "early" && split < 0) continue;
+    if (header.join("|") !== columns.join("|")) findings.push(`the ${kind === "early" ? "found before a release" : "published"} Defect table's columns are ${header.join(", ") || "missing"}, not ${columns.join(", ")}`);
+  }
   const derived = {};
   const add = (d, realization, t) => (((derived[d] ??= {})[realization] ??= new Set()).add(t));
   for (const title of titles) {
@@ -74,17 +81,28 @@ function defects(limitations, testing, titles) {
     }
   }
   const view = (d) => ["delivered", "publisher", "retired"].filter((r) => derived[d]?.[r]).map((r) => `${r}: ${[...derived[d][r]].sort((a, b) => Number(a.slice(7)) - Number(b.slice(7))).join(", ")}`).join("; ");
-  const listed = new Set();
-  for (const [d, behaviour, testedBy, observed] of body) {
-    listed.add(d);
-    if (!/^guard\/D\d+$/.test(d)) findings.push(`${d}: not a Defect identifier`);
-    if (!behaviour) findings.push(`${d}: states no prohibited behaviour`);
-    if (!derived[d]) findings.push(`${d}: no Test Case traces to it`);
-    else if (testedBy !== view(d)) findings.push(`${d}: Tested by is "${testedBy}", not the view derived from the traces, "${view(d)}"`);
-    for (const part of (observed ?? "").split(";")) {
-      if (/\b(RED|GREEN)\b/.test(part) && !/`\d+\.\d+\.\d+`/.test(part)) findings.push(`${d}: an observation names no version: ${part.trim()}`);
+  const listed = new Map();
+  for (const [kind, { body }] of tables) {
+    for (const [d, behaviour, testedBy, observed] of body) {
+      if (listed.has(d)) findings.push(`${d}: defined in both Defect tables, or twice in one`);
+      listed.set(d, kind);
+      if (!/^guard\/D\d+$/.test(d)) findings.push(`${d}: not a Defect identifier`);
+      if (!behaviour) findings.push(`${d}: states no prohibited behaviour`);
+      if (!derived[d]) findings.push(`${d}: no Test Case traces to it`);
+      else if (testedBy !== view(d)) findings.push(`${d}: Tested by is "${testedBy}", not the view derived from the traces, "${view(d)}"`);
+      const parts = (observed ?? "").split(";");
+      for (const part of parts) {
+        if (/\b(RED|GREEN)\b/.test(part) && !/`\d+\.\d+\.\d+`/.test(part)) findings.push(`${d}: an observation names no version: ${part.trim()}`);
+      }
+      if (!/\bRED\b/.test(observed ?? "")) findings.push(`${d}: records no observed RED`);
+      if (kind === "early") {
+        // Observations are scoped by candidate and tied to the run that made them; none claims a published version.
+        for (const part of parts) {
+          if (/\bRED\b/.test(part) && !/\bRED in the `\d+\.\d+\.\d+` candidate\b/.test(part)) findings.push(`${d}: a RED that names no candidate, or claims a published version: ${part.trim()}`);
+          if (!/guard\/C\d+/.test(part) || !/#\d+/.test(part)) findings.push(`${d}: an observation names no Test Run (its Change and pull request): ${part.trim()}`);
+        }
+      }
     }
-    if (!/\bRED\b/.test(observed ?? "")) findings.push(`${d}: records no observed RED`);
   }
   for (const d of Object.keys(derived)) if (!listed.has(d)) findings.push(`${d}: a case traces to it, but the Defect table does not define it`);
   return findings;
@@ -269,6 +287,28 @@ describe("Architecture conformance", () => {
     const wrong = limitations.replace(/^(\| guard\/D5 \|[^|]*\| )delivered: guard\/T81( \|)/m, "$1delivered: guard/T94$2");
     assert.notEqual(wrong, limitations, "the fixture did not change the copy");
     assert.ok(defects(wrong, testing, titles).some((f) => f.startsWith("guard/D5: Tested by")), "a Tested by that names a case not citing its Defect is not refused");
+    // guard/C132: the Defects found before a release are defined by the product, in a table of their own.
+    const early = ["guard/D6", "guard/D7", "guard/D8", "guard/D9", "guard/D10", "guard/D11", "guard/D12", "guard/D13", "guard/D14", "guard/D18"];
+    const heading = limitations.search(/^## Defects found before a release\b/m);
+    assert.ok(heading >= 0, "docs/limitations.md has no section \"Defects found before a release\"");
+    for (const d of early) assert.ok(new RegExp(`^\\| ${d.replace("/", "\\/")} \\|`, "m").test(limitations.slice(heading)), `${d} is not defined in the section Defects found before a release`);
+    const first = early[0];
+    const fixture = (pattern, replacement) => {
+      const copy = limitations.replace(pattern, replacement);
+      assert.notEqual(copy, limitations, "the fixture did not change the copy");
+      return defects(copy, testing, titles);
+    };
+    const row = (d) => new RegExp(`^\\| ${d.replace("/", "\\/")} \\|.*$`, "m");
+    const line = limitations.match(row(first))[0];
+    const cells = line.slice(1, -1).split(/(?<!\\)\|/).map((c) => c.trim());
+    const withObserved = (observed) => `| ${cells.slice(0, 3).join(" | ")} | ${observed} |`;
+    assert.ok(fixture(row(first), withObserved(cells[3].replace(/RED in the `(\d+\.\d+\.\d+)` candidate/, "RED in `$1`"))).some((f) => f.startsWith(`${first}: a RED that names no candidate`)), "a RED in a published version is not refused");
+    assert.ok(fixture(row(first), withObserved(cells[3].replace(/guard\/C\d+/g, "").replace(/#\d+/g, ""))).some((f) => f.startsWith(`${first}: an observation names no Test Run`)), "an observation that names no Test Run is not refused");
+    assert.ok(fixture(row(first), withObserved("GREEN in `0.0.2` (guard/C64, #451)")).some((f) => f.startsWith(`${first}: records no observed RED`)), "a Defect with a GREEN only is not refused");
+    const inBoth = limitations.replace(/^(\| guard\/D5 \|.*)$/m, `$1\n${line}`);
+    assert.ok(defects(inBoth, testing, titles).some((f) => f.startsWith(`${first}: defined in both`)), "a Defect defined in both tables is not refused");
+    const stale = fixture(row(first), withObserved(cells[3]).replace(cells[2], "delivered: guard/T99"));
+    assert.ok(stale.some((f) => f.startsWith(`${first}: Tested by`)), "a Tested by that differs from the derived one is not refused");
   });
 
   it("guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it", () => {
