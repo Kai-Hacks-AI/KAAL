@@ -8,20 +8,23 @@ permissions:
   contents: read
 
 jobs:
-  core-main-windows:
-    name: Core two test files at main (Windows)
+  manifest:
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: ["7fa02ac6153802301785900139b3196b32c7982f", "ed83ae7a245de1079c0facd585f2ae7ea5a5a0e6"]
+    name: Core manifest check on Windows at ${{ matrix.ref }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 7fa02ac6153802301785900139b3196b32c7982f
+          ref: ${{ matrix.ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - run: npm ci
       - run: npm run build -w kaal-hosting
       - run: npm run build -w kaal-core
-      - run: npx tsc -p tsconfig.test.json
-        working-directory: packages/kaal-core
-      - run: node --test dist-test/core.test.js test/plan/love.test.mjs
+      - run: git ls-files --eol packages/kaal-core/LICENSE packages/kaal-core/test/verify.json
+      - run: npm run manifest -- --check
         working-directory: packages/kaal-core
