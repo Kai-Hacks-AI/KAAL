@@ -18,11 +18,14 @@ async function defect() {
 
 const record = (over = {}) => ({ id: "ctx/D1", context: "ctx", expected: "x holds", observed: "x did not hold", where: "ctx/lib", status: "reported", ...over });
 /** Testing's own model (testing/F24, F25) and Runs of it (testing/F30, F31); a Run's place in the list is its time, oldest first. */
-const model = { plans: [{ id: "P", suites: ["S"] }], suites: [{ id: "S", cases: ["ctx/T1", "ctx/T2"] }], cases: [{ id: "ctx/T1", tests: ["ctx/D1"] }, { id: "ctx/T2", tests: ["ctx/D1"] }] };
-const PROV = { P: null, S: null, "ctx/T1": null, "ctx/T2": null };
+const model = { plans: [{ id: "P", suites: ["S"] }], suites: [{ id: "S", cases: ["ctx/T1", "ctx/T2"] }], cases: [{ id: "ctx/T1", version: "1", tests: ["ctx/D1"] }, { id: "ctx/T2", version: "1", tests: ["ctx/D1"] }] };
+const PROV = { P: null, S: null, "ctx/T1": "1", "ctx/T2": "1" };
 let n = 0;
-const run = (outcomes) => ({ id: `r${++n}`, of: "P", provenance: { ...PROV }, outcomes });
+/** A Run of the model; `prov` overrides what its provenance identifies. */
+const run = (outcomes, prov = {}) => ({ id: `r${++n}`, of: "P", provenance: { ...PROV, ...prov }, outcomes });
 const evidence = (...runs) => ({ model, runs });
+const FAIL = { "ctx/T1": "failed", "ctx/T2": "failed" };
+const PASS = { "ctx/T1": "passed", "ctx/T2": "passed" };
 const text = (f) => JSON.stringify(f);
 
 describe("kaal-defect record", () => {
@@ -44,25 +47,48 @@ describe("kaal-defect record", () => {
     assert.deepEqual(check(record({ status: "confirmed", tests: ["ctx/T1"] })), []);
   });
 
-  it("testing/T118 [testing/F100]: confirmed stands only with a Run where each named Case failed; a passing, unknown or absent Case is a finding", async () => {
+  it("testing/T118 [testing/F99, testing/F100]: confirmed stands only with one common Run where every named Case failed; a passing, unknown or absent Case, Cases failing only in separate Runs, or a Run with model findings is a finding", async () => {
     const { state } = await defect();
     const r = record({ status: "confirmed", tests: ["ctx/T1", "ctx/T2"] });
-    assert.deepEqual(state(r, evidence(run({ "ctx/T1": "failed", "ctx/T2": "failed" }))).findings, []);
+    assert.deepEqual(state(r, evidence(run(FAIL))).findings, []);
     for (const bad of ["passed", "unknown"]) assert.ok(state(r, evidence(run({ "ctx/T1": "failed", "ctx/T2": bad }))).findings.length > 0, bad);
     assert.ok(state(r, evidence(run({ "ctx/T1": "failed" }))).findings.length > 0, "absent");
     assert.ok(state(r, evidence()).findings.length > 0, "no Run");
-    const bad = { ...run({ "ctx/T1": "failed", "ctx/T2": "failed" }), extra: 1 };
+    assert.ok(state(r, evidence(run({ "ctx/T1": "failed", "ctx/T2": "passed" }), run({ "ctx/T1": "passed", "ctx/T2": "failed" }))).findings.length > 0, "separate Runs do not confirm");
+    const bad = { ...run(FAIL), extra: 1 };
     assert.ok(state(r, evidence(bad)).findings.length > 0, "a Run with model findings shows nothing");
   });
 
-  it("testing/T119 [testing/F100]: answered stands only with a later Run where each named Case passed; an earlier or missing passing Run is a finding", async () => {
+  it("testing/T119 [testing/F99, testing/F100]: answered stands only with, for each named Case, a later Run where it passed; an earlier or missing pass, or a later failed or unknown as its latest observation, is a finding", async () => {
     const { state } = await defect();
     const r = record({ status: "answered", tests: ["ctx/T1"] });
-    const red = run({ "ctx/T1": "failed", "ctx/T2": "failed" });
-    assert.deepEqual(state(r, evidence(red, run({ "ctx/T1": "passed", "ctx/T2": "passed" }))).findings, []);
-    assert.ok(state(r, evidence(run({ "ctx/T1": "passed", "ctx/T2": "passed" }), red)).findings.length > 0, "passing Run before the confirming Run");
+    const red = run(FAIL);
+    assert.deepEqual(state(r, evidence(red, run(PASS))).findings, []);
+    assert.ok(state(r, evidence(run(PASS), red)).findings.length > 0, "passing Run before the confirming Run");
     assert.ok(state(r, evidence(red)).findings.length > 0, "no passing Run");
     assert.ok(state(r, evidence(red, run({ "ctx/T1": "unknown", "ctx/T2": "passed" }))).findings.length > 0, "unknown is not passed");
+    assert.ok(state(r, evidence(red, run(PASS), run({ "ctx/T1": "failed", "ctx/T2": "passed" }))).findings.length > 0, "a later failure withdraws the answer");
+  });
+
+  it("testing/T121 [testing/F99, testing/F100]: provenance that does not identify a named Case, or identifies it at different versions in the confirming and answering Run, or a pass of a different Case version, answers or confirms nothing", async () => {
+    const { state } = await defect();
+    const confirmed = record({ status: "confirmed", tests: ["ctx/T1"] });
+    const answered = record({ status: "answered", tests: ["ctx/T1"] });
+    const noProv = run(FAIL); delete noProv.provenance["ctx/T1"];
+    assert.ok(state(confirmed, evidence(noProv)).findings.length > 0, "missing provenance for the Case");
+    assert.ok(state(confirmed, evidence(run(FAIL, { "ctx/T1": "2" }))).findings.length > 0, "provenance contradicts the model's Case version");
+    assert.ok(state(answered, evidence(run(FAIL), run(PASS, { "ctx/T1": "2" }))).findings.length > 0, "a pass of another Case version answers nothing");
+    assert.ok(state(answered, evidence(run(FAIL, { "ctx/T1": "2" }), run(PASS))).findings.length > 0, "confirming and answering Runs identify different versions");
+    const noPass = run(PASS); delete noPass.provenance["ctx/T1"];
+    assert.ok(state(answered, evidence(run(FAIL), noPass)).findings.length > 0, "a pass without provenance answers nothing");
+  });
+
+  it("testing/T122 [testing/F99]: passing Runs for different Cases may differ, each tied to the confirming Run's Case version; one Case's pass does not answer another's", async () => {
+    const { state } = await defect();
+    const r = record({ status: "answered", tests: ["ctx/T1", "ctx/T2"] });
+    const red = run(FAIL);
+    assert.deepEqual(state(r, evidence(red, run({ "ctx/T1": "passed" }), run({ "ctx/T2": "passed" }))).findings, []);
+    assert.ok(state(r, evidence(red, run({ "ctx/T1": "passed" }))).findings.length > 0, "T2 was never observed passing");
   });
 
   it("testing/T120 [testing/N21, testing/A29]: the same record and Runs give the same result, and kaal-testing/defect imports no host module and no other capability", async () => {
