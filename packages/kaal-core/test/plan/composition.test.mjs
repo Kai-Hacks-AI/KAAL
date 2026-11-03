@@ -7,12 +7,12 @@
 // "removing" a capability here is the consumer deleting the files it registered; the tests say so and assert
 // what Core reports afterwards. npm runs as its CLI script under this Node (npm_execpath): run through npm.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 const CORE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPOSITORY = join(CORE, "..", "..");
@@ -56,13 +56,13 @@ const kaal = async (host, args) => {
   return { status: r.status, stdout: r.stdout, out: `${r.stdout}${r.stderr}` };
 };
 
-/** Every byte of the installed Core package, as one digest over sorted relative paths and contents. */
+/** Every byte of the installed Core package, as one Foundation SHA-256 over sorted relative paths and contents. */
 function digest(dir) {
-  const h = createHash("sha256");
+  const parts = [];
   for (const p of readdirSync(dir, { recursive: true, encoding: "utf8" }).sort()) {
-    if (statSync(join(dir, p)).isFile()) h.update(`${p.split("\\").join("/")}\0`).update(readFileSync(join(dir, p))).update("\0");
+    if (statSync(join(dir, p)).isFile()) parts.push(Buffer.from(`${p.split("\\").join("/")}\0`), readFileSync(join(dir, p)), Buffer.from("\0"));
   }
-  return h.digest("hex");
+  return sha256(Buffer.concat(parts));
 }
 
 /** Registers a fixture capability: a KAAL Capability Node, by the type Core resolves in this Engine. */
@@ -90,6 +90,9 @@ const put = (host, file, text) => {
 const drop = (host, file) => rmSync(join(host, ".kaal", "registrations", file), { force: true });
 const verify = (host) => kaal(host, ["verify"]);
 const lines = (r) => r.stdout.split(/\r?\n/);
+/** What one scope's assembly reports: its holder line and any untraced instances, so a peer's presence can be compared. */
+const found = (r) => r.out.split(/\r?\n/).filter((l) => l.startsWith("registration:")).join("\n");
+const of = (r, scope) => lines(r).filter((l) => l.startsWith(`scope\t${scope}\t`) || l.startsWith(`untraced\t${scope}\t`));
 
 before(async () => {
   work = mkdtempSync(join(tmpdir(), "kaal-core-composition-"));
@@ -115,6 +118,8 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
     const both = await verify(host);
     assert.equal(both.status, 0, both.out);
     assert.ok(lines(both).includes("registration\t2 kinds, 2 instances, 0 findings"), both.out);
+    assert.deepEqual(of(both, "portfolio"), of(alone, "portfolio"), "A's own scope result is the same beside B as alone");
+    assert.equal(of(both, "project").length > 0, true, "B's scope is reported beside A");
 
     unregister(host, "project-like");
     drop(host, "project.md");
@@ -134,6 +139,11 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
     assert.equal(r.status, 0, r.out);
     assert.ok(lines(r).includes("registration\t1 kinds, 1 instances, 0 findings"), r.out);
     assert.ok(lines(r).includes("scope\tproject\tproject-like"), r.out);
+    await register(host, "portfolio-like", "Portfolio");
+    put(host, "portfolio.md", A);
+    const beside = await verify(host);
+    assert.equal(beside.status, 0, beside.out);
+    assert.deepEqual(of(beside, "project"), of(r, "project"), "B's own scope result is the same beside A as alone");
   });
 
   it("core/T114 [core/C50 composition result]: a consumer-owned scope tracing to A's and B's instances resolves with both present; with B absent the trace to B is a reported unresolved target naming B, never a crash or a silent pass", async () => {
@@ -148,13 +158,23 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
     assert.ok(lines(composed).includes("registration\t3 kinds, 3 instances, 0 findings"), composed.out);
     for (const scope of ["portfolio", "project", "composition"]) assert.ok(lines(composed).some((l) => l.startsWith(`scope\t${scope}\t`)), `${scope} in ${composed.out}`);
 
+    // Both outgoing traces are live: removing either peer alone is reported, naming that peer's instance and only that one.
+    drop(host, "portfolio.md");
+    const noA = await verify(host);
+    assert.equal(noA.status, 1, noA.out);
+    assert.match(found(noA), /PF-1/, "the finding names A's instance when A is absent");
+    assert.doesNotMatch(found(noA), /PJ-1/, "B's trace still resolves when only A is absent");
+    put(host, "portfolio.md", A);
+    assert.ok(!lines(composed).some((l) => l.startsWith("untraced\tcomposition\t")), "the composition instance is traced");
+
     unregister(host, "project-like");
     drop(host, "project.md");
     const missing = await verify(host);
     assert.notEqual(missing.status, null, "Core ran; it did not crash");
     assert.equal(missing.status, 1, missing.out);
     assert.match(missing.out, /unclaimed scope|unresolved/, "the report says the target does not resolve");
-    assert.match(missing.out, /PJ-1/, "the report names B's instance");
+    assert.match(found(missing), /PJ-1/, "the finding names B's instance");
+    assert.doesNotMatch(found(missing), /PF-1/, "A's trace still resolves when only B is absent");
     assert.ok(!lines(missing).some((l) => /^registration\t.* 0 findings$/.test(l)), "never a silent pass");
 
     // A's own standalone result is unaffected by the composition scope's being present or not.
