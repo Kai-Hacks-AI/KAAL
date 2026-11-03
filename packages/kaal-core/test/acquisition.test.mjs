@@ -21,11 +21,14 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 const CORE = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPOSITORY = join(CORE, "..", "..");
+// Hosting is imported by the name its own workspace package declares, so this test holds before and after
+// that name is scoped.
+const { name: HOSTING } = JSON.parse(readFileSync(join(REPOSITORY, "packages", "extensions", "kaal-hosting", "package.json"), "utf8"));
+const { execute } = await import(HOSTING);
 const SCOPED = "@kaihacksai/kaal-core";
 const DOCUMENTED = `node node_modules/${SCOPED}/dist/cli.js`;
 const DEPENDENCIES = [join(REPOSITORY, "packages", "kaal-foundation"), join(REPOSITORY, "packages", "extensions", "kaal-hosting")];
