@@ -46,28 +46,39 @@ An ambiguous selection fails the step and builds neither workspace.
 
 | Identity | Role | File |
 | --- | --- | --- |
-| engineering/T82 | the RED Case: a tree holding every name the selector accepts is refused, and nothing is built | [selector-ambiguity.red.mjs](selector-ambiguity.red.mjs) |
+| engineering/T82 | the RED Case: a tree with more than one workspace the selector could take is refused, and nothing is built | [selector-ambiguity.red.mjs](selector-ambiguity.red.mjs) |
 | engineering/T84 | precondition: the workflow has three Hosting build steps to judge | same file |
 | engineering/T85 | control: a workspace the selector accepts is built, and only that one | same file |
 | engineering/T86 | control: no matching workspace stops the build | same file |
 
-**Case version:** the Git blob id of `selector-ambiguity.red.mjs`, `a6b39a0dcbddc1f7210392057722e3c0a0143a17`.
+**Case version:** the Git blob id of `selector-ambiguity.red.mjs`, `4d488412a07ce496c90310bf5357945b32144d63`.
 
-**Confirming Run** (one Run observed all four Cases; Node v22.23.4, Linux; subject `.github/workflows/release.yml` blob `f6a9f12dbbef`, collector head 3bac7e4 plus this file):
+**Confirming Run** (one Run observed all four Cases; Node v22.23.4, Linux; subject `.github/workflows/release.yml` blob `f6a9f12dbbef`, collector head 5557578 plus this change):
 
 ```
 ok 1 - engineering/T84 the workflow has three Hosting build steps to judge
 ok 2 - engineering/T85 control: a workspace the selector accepts is built, and only that one
 ok 3 - engineering/T86 control: no matching workspace stops the build
-not ok 4 - engineering/T82 RED (engineering/D1): a tree holding every name the selector accepts is refused, and nothing is built
-  error: 'the step succeeded and built ["kaal-hosting"] instead of refusing the ambiguity'
+not ok 4 - engineering/T82 RED (engineering/D1): a tree with more than one workspace the selector could take is refused, and nothing is built
+  error: '["kaal-hosting","@kaihacksai/kaal-hosting"]: the step succeeded and built ["kaal-hosting"] instead of refusing the ambiguity'
 ```
 
 T82 is `failed` on an assertion, after its three preconditions and controls passed, so the failure is the ambiguity and not a broken fixture. The Case reads the real workflow and runs the build lines it contains against a scratch repo.
 
-**Answered** only by a later Run in which engineering/T82 passes at this same Case version (blob `a6b39a0d...`), as its latest observation. If the correction needs a different Case version, that version needs its own confirming RED against the old `release.yml` before it can answer D1; an edited Case alone answers nothing.
+**Answered** only by a later Run in which engineering/T82 passes at this same Case version (blob `4d488412...`), as its latest observation. If the correction needs a different Case version, that version needs its own confirming RED against the old `release.yml` before it can answer D1; an edited Case alone answers nothing.
 
-**Why the Case should not need editing:** it finds the Hosting build steps by what they do (a `run:` step that runs `npm`, builds, selects a workspace with `--workspace` or `-w`, and names kaal-hosting) and reads the package names each line accepts from the line itself. Checked on local, uncommitted edits of `release.yml`, then restored, all 4 pass: an assert-one selector; scoped-only `--workspace=@kaihacksai/kaal-hosting`; scoped-only `npm -w @kaihacksai/kaal-hosting run build`. A selector by path, or a workflow with no recognizable Hosting build step, fails T84 or stops the Case loudly; it never passes by accident.
+**Why the Case should not need editing, and why it cannot pass vacuously:** it finds the Hosting build steps by what they do (a `run:` step that runs `npm`, builds, selects a workspace with `--workspace` or `-w`, and names kaal-hosting) and reads the package names each line accepts from the line itself. Its ambiguity case builds every tree in which the selector has two candidates: one workspace of each accepted name, when it accepts more than one, and two workspaces of the same accepted name, which npm itself refuses (`EDUPLICATEWORKSPACE`). A selector that accepts a single name is therefore still tested for rejection of an actual two-workspace tree, and does not pass because its list of names shrank. The separate controls guard the positive case (T85) and the zero case (T86).
+
+Checked on local, uncommitted edits of `release.yml`, each restored afterwards:
+
+| `release.yml` edit | Result |
+| --- | --- |
+| assert-one selector (throw unless `npm query` returns one) | 4 pass |
+| scoped-only `npm run build --workspace=@kaihacksai/kaal-hosting` | 4 pass |
+| scoped-only `npm -w @kaihacksai/kaal-hosting run build` | 4 pass |
+| negative control: scoped-only with `|| true` swallowing the failure | T86 and T82 fail (the Case is not vacuous) |
+
+A selector by path, or a workflow with no recognizable Hosting build step, fails T84 or stops the Case loudly; it never passes by accident.
 
 **How it is run:** by hand, `node --test engineering/release/defects/selector-ambiguity.red.mjs`. No suite, lane or script names it, so required CI does not run it, deliberately, until the open question of how a Defect Case lives in `main` without hiding regression (raised on #991) is settled. Until then Engineering runs it before each Engineering promotion or publication and records the Run here; a Case that cannot be found or read fails T84, so rot is visible when it is run.
 

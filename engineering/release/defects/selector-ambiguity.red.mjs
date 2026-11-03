@@ -14,8 +14,8 @@
 // `.github/workflows/release.yml` really contains, byte for byte, against a scratch workspace repo,
 // so a change to the selector changes what is judged. It reads no other copy of the selector.
 //
-//   expected (the contract):  two workspaces matching `kaal-hosting` or `@kaihacksai/kaal-hosting`
-//                             stop the build and build neither;
+//   expected (the contract):  two workspaces the selector could take (one of each accepted name, or two
+//                             of the same name) stop the build and build neither;
 //   observed today (RED):     the first match is built and the step succeeds.
 //
 // The two controls below pass today. They show that the harness runs the real command, so the RED
@@ -26,8 +26,10 @@
 //
 // It is answered when this file is GREEN, unchanged, in the Change that corrects the selector after the
 // scoped Hosting transition. The Case reads the names the selector accepts from the selector itself, so
-// it holds for either remedy: a selector that still accepts two names must refuse a tree that holds both,
-// and a selector that accepts one name cannot be ambiguous, and must still build exactly that workspace.
+// it holds for either remedy: a selector that accepts two names must refuse a tree that holds both, and
+// every selector must refuse a tree that holds two workspaces of one accepted name. A selector that accepts
+// a single name is therefore still tested for ambiguity (npm refuses duplicate workspace names), and cannot
+// pass because its list of names shrank.
 // Do not edit it to pass, and do not close D1 before then.
 //
 // The identity, version and confirming Run of this Case are recorded in D1-selector-ambiguity.md.
@@ -119,15 +121,17 @@ test("engineering/T86 control: no matching workspace stops the build", () => {
   }
 });
 
-test("engineering/T82 RED (engineering/D1): a tree holding every name the selector accepts is refused, and nothing is built", (t) => {
+test("engineering/T82 RED (engineering/D1): a tree with more than one workspace the selector could take is refused, and nothing is built", () => {
   for (const command of selectors()) {
     const names = accepts(command);
-    if (names.length < 2) {
-      t.diagnostic(`the selector accepts one name (${names[0]}); it cannot choose between names`);
-      continue;
+    // Every tree in which the selector has two candidates: one workspace for each accepted name, when it
+    // accepts more than one name, and two workspaces of the same accepted name (npm itself refuses those).
+    // A selector that accepts a single name is judged on the second kind, so it cannot pass vacuously.
+    const trees = [...(names.length > 1 ? [names] : []), ...names.map((name) => [name, name])];
+    for (const tree of trees) {
+      const r = run(command, tree);
+      assert.notEqual(r.status, 0, `${JSON.stringify(tree)}: the step succeeded and built ${JSON.stringify(r.built)} instead of refusing the ambiguity`);
+      assert.deepEqual(r.built, [], `${JSON.stringify(tree)}: an ambiguous selection must not build any workspace`);
     }
-    const r = run(command, names);
-    assert.notEqual(r.status, 0, `the step succeeded and built ${JSON.stringify(r.built)} instead of refusing the ambiguity`);
-    assert.deepEqual(r.built, [], "an ambiguous selection must not build any workspace");
   }
 });
