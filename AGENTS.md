@@ -16,3 +16,13 @@ Run the commands by their path, never through a registry lookup such as a bare `
 - `node packages/kaal-packaging/bin/kaal-packaging.mjs conform <consumer>/node_modules/<name> --testing <module>` decides packaging/F7–F13 and N7–N9 against an installed package, and exits 0 (verified), 1 (failed) or 2 (unknown). `--testing` names a module file that exports Testing's model functions, `check` and `tested`. Without it, packaging/F13 is not judged for a package that ships a model, and the run is not a complete conformance judgement.
 
 To judge whether a package's boundaries, own Test Plan and evidence are adequate, follow the "Assess a package's boundaries" section of the same skill: scripts supply observations, and you record your judgment, unknowns and what needs the Owner separately. Packaging decides the generic contract and measures bytes, and nothing else. A package's own guarantees are its capability's, results are Testing's, hosts are Hosting's, and whether anything gates a release is Engineering's and the Owner's.
+
+## Foundation
+
+`@kaihacksai/kaal-foundation` (`packages/kaal-foundation/`) is KAAL's one SHA-256.
+- **When to use it.** Use it whenever KAAL code needs a SHA-256: Node ids, Seals, records and manifests. Never use `node:crypto` or a copied implementation for a KAAL digest.
+- **The skill.** Read `packages/kaal-foundation/skills/kaal-foundation/SKILL.md`, which also ships as `skills/kaal-foundation/SKILL.md` in the package.
+- **The commands.** Run them by the scoped package's own bin, as `node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs …`, from the directory where the package is installed. Never use `npx kaal-foundation` or `npm exec … kaal-foundation`: those run whichever installed package owns `node_modules/.bin/kaal-foundation`, and npx may fetch an unrelated unscoped package.
+  - `kaal-foundation sha256 [<file>…]` prints `<digest>  <file>`, and reads standard input when no file is given.
+  - `kaal-foundation verify` checks an installed copy and ends in `verified`, `failed` or `cannot verify`.
+- **What it holds.** Foundation holds only reviewed, provisional concerns, and it is not a utilities bucket. A new shared helper belongs to the capability whose meaning it carries, and anything that touches the operating system belongs to Hosting.

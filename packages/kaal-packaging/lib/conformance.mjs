@@ -323,7 +323,7 @@ const packageOf = (specifier) => specifier.split("/").slice(0, specifier.startsW
 
 /** packaging/N8: every shipped module imports only Node's own modules, the package, and its declared dependencies. */
 function selfContained(pkg, files) {
-  const declared = new Set([pkg.name, ...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.optionalDependencies ?? {})]);
+  const declared = new Set([pkg.name, ...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.optionalDependencies ?? {}), ...Object.keys(pkg.peerDependencies ?? {})]);
   const undeclared = new Set();
   for (const { path, specifier: s } of imports(files)) {
     if (s.startsWith(".") || s.startsWith("/") || s.startsWith("node:") || s.startsWith("#")) continue;

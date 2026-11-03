@@ -9,10 +9,10 @@
     "docs/limitations.md": "bef84175e8628f92f92ce75801de04a0c1567c41d7083d939237012a5ceb5ec5",
     "docs/operations.md": "f216dbebf528b1ff7148ccb188106ee7975cb27175f85618c95196df738bcf4e",
     "docs/requirements.md": "43b5eb8350f4aa49c2b2c7436784ebd0e47cf685cf2d853d2566cb98ab50d7d3",
-    "docs/testing.md": "22e88cba17ffa7d3d28f26a47c1c1c3a79c4358efe9d77a838032cc403e9d91b",
+    "docs/testing.md": "85c4a4ec903c4a804a8d030ff718bcd417100675ed6123813594f16fdbafa701",
     "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
     "lib/conformance.d.ts": "cd7faf3a1b49ad3a566c29d884513f84f03c605b0b70a98fd5563006d00b5000",
-    "lib/conformance.mjs": "c8bf1ae25b06d343158de2708cb9795faccabac2c1f95176f689af8a297e5300",
+    "lib/conformance.mjs": "ab90bdd8ad20df354de28766453af7b8be5401e3e2b1b2567eaa6cf6268d8ffd",
     "lib/npm/realization.mjs": "6ae31f68e81be5f64a234f7fb3d43d647e08da45701708e8c202134685d386d3",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",
@@ -20,8 +20,8 @@
     "skills/kaal-packaging/SKILL.md": "712ca57e4a21fc0e0cf58a9d84d141f16cbf97714c715c7df902e553356618b4",
     "skills/package-engineering/SKILL.md": "1e6f416d788d63908dec509fefb14daafcd79b95eef82ecd6af036e9292f934f",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
-    "test/embed/measurement.test.mjs": "3b1c6f065a484113608d3ab00fd2acbb97e94da4ff4471a6a826f7c3eb30c031",
-    "test/embed/package.test.mjs": "146f1681eb1b51730ab2c9990db97a634eb0b460dc359a623b6d5218d364e523",
+    "test/embed/measurement.test.mjs": "af12b3ec9b93da4e76c00ce9bb6b75bfa471fecada1fc91801221d2091a963ed",
+    "test/embed/package.test.mjs": "fb0f47eaabef39afb933792691aab4c7768bd7a18cd5bdc18a99a31438e3442d",
     "test/run.mjs": "3bcbe53925a60d761812e6660a61a245298f51e51b2439018c9ae89f864ff04a",
     "test/verify.mjs": "39b001e63c00736fcb34e098cdae2af2ee26a316aa9470822873357221378f33"
   },
@@ -56,7 +56,8 @@
     "packaging/T30",
     "packaging/T32",
     "packaging/T34",
-    "packaging/T35"
+    "packaging/T35",
+    "packaging/T64"
   ],
   "model": {
     "cases": [
@@ -258,6 +259,12 @@
         "id": "packaging/T35",
         "tests": [
           "packaging/A7"
+        ]
+      },
+      {
+        "id": "packaging/T64",
+        "tests": [
+          "packaging/N8"
         ]
       }
     ]
