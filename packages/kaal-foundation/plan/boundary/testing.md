@@ -38,10 +38,12 @@ T37, T39 and T45 are Intent-level. They assert only outcomes a consumer sees, an
 
 The DO adds these to `test/embed/`. They ship and run in every installation, on fixtures they create in a temporary directory.
 
+An embedded case never makes `boundary` run a resolved copy's `verify`. Every installation's verification runs all embedded cases, so a case that resolved this installed copy would run itself again without end. The full self-resolution case, `verified` on a copy the consumer resolves, is foundation/T39 in `test/publisher/`, which does not ship.
+
 | Test | Targets | Checks |
 | --- | --- | --- |
 | foundation/T43 | foundation/F22 | `check` on its own `sha256` output is `verified`, and on a changed file is `failed` |
-| foundation/T44 | foundation/F23 | `boundary` on a fixture consumer that resolves this installed copy is `verified`, and on a package without the dependency is `cannot verify` |
+| foundation/T44 | foundation/F23 | `boundary` on a package without the dependency is `cannot verify` with cause `not a consumer`, and on a consumer whose declared dependency is not installed is `cannot verify` with cause `unresolved`. Both branches end before any resolved copy runs, so the case cannot recurse |
 
 ## First consumer: Guard (measured 2026-10-31, before this PLAN)
 

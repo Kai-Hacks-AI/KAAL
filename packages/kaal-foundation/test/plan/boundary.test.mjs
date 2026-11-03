@@ -157,7 +157,8 @@ test("foundation/T42 [foundation/F24, foundation/N14]: documents, skill and AGEN
   for (const [where, text] of [["docs/operations.md", readFileSync(join(PACKAGE, "docs", "operations.md"), "utf8")], ["skill", readFileSync(join(PACKAGE, "skills", "kaal-foundation", "SKILL.md"), "utf8")], ["AGENTS.md", section]]) {
     const named = new Set([...text.matchAll(scoped)].map((m) => m[1]));
     assert.deepEqual([...named].sort(), ["boundary", "check"], `${where} must name both commands by the scoped bin`);
-    assert.doesNotMatch(text, /npx kaal-foundation/, where);
+    const invoked = text.split("\n").filter((line) => /\b(npx|npm\s+(exec|x))\b[^\n]*\bkaal-foundation\b/.test(line) && !/\bnever\b/i.test(line));
+    assert.deepEqual(invoked, [], `${where}: no invocation through npx or npm exec (a line that warns with "never" is guidance, not an invocation)`);
   }
   const boundary = readFileSync(join(PACKAGE, "lib", "boundary.mjs"), "utf8");
   for (const [, from] of boundary.matchAll(/(?:^|\n)\s*import[^"'`]*["'`]([^"'`]+)["'`]/g)) assert.ok(from.startsWith("node:") || from === "./sha256.mjs", `lib/boundary.mjs imports ${from}`);
