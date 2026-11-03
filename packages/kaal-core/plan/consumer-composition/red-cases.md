@@ -9,7 +9,8 @@ and Hosting once and installing them into a clean consumer per test, Node 24, Li
 | core/T112 | A alone discovered and verifying; B added afterwards discovered beside it; B's files removed; A's result identical to before B; Core's installed bytes identical throughout | GREEN |
 | core/T113 | B alone in a clean consumer is discovered, verifies, and needs nothing from A | GREEN |
 | core/T114 | A consumer-owned scope tracing to A's and B's instances resolves with both present (3 kinds, 3 instances, 0 findings); with B absent verify fails with a finding that names B's instance and the scope with no holder, never a crash or a silent pass; A's standalone result is unaffected | GREEN |
-| core/T115 | In a clean consumer from the packed Core, a Registration Node is admitted as its Type | **RED** |
+| core/T115 | The packed Core carries its own contribution; registering it into `.kaal/` like any package makes the Registration Type active, so a consumer's Registration Node is admitted | **RED** |
+| core/T116 | An installed but unregistered Core says so plainly | **RED** |
 
 ## What this shows
 
@@ -20,31 +21,24 @@ and Hosting once and installing them into a clean consumer per test, Node 24, Li
 - The unresolved-trace finding is worded `unclaimed scope: the target's scope has no holder` when B's whole scope is gone;
   the PLAN's "unresolved target" holds in meaning, and T114 accepts either rule text.
 
-## Finding: T115, a Defect to be planned separately
+## Findings: T115 and T116, Defects planned separately (core/C52)
 
-By the Owner's ruling the package contains no registrations: a consumer's registrations are its own, and an installed
-Core, an instance in a target repo, has the capability to register them. T115 asks for no registration to be shipped.
-Installed Core can register: T112 to T114 show assembly, discovery and findings working in a clean consumer.
+By the Owner's rulings the package contains no registrations, and **package installed is not package registered**: Core is
+registered into the instance's `.kaal/` like any other package, and its registration-dependent features, such as the
+Registration Type Definition, are active only once it is registered. A consumer's own registrations stay its own.
+Installed Core can register what a consumer brings: T112 to T114 show assembly, discovery and findings working.
 
-The RED output:
+How Core resolves `.kaal/` today: the Engine is `./.kaal` by default (`--engine <dir>` elsewhere). `kaal init` copies
+Core's payload into it. `kaal register capability <name> <dir>` registers a package's contribution under
+`.kaal/capabilities/<name>`. Core reads the Engine, never the package, for definitions.
 
-```
-✖ core/T115 [core/C50 finding]: after `kaal init` in a clean consumer, an installed Core has registered its own Registration Type, so a consumer's Registration Node is not reported unregistered
-  AssertionError: an installed Core must register its own Registration Type Definition in the Engine it initializes
-```
+- **T115 (RED):** Core's own contribution (`capability/Core.md`, `capability/Registration.md`) is not in the package
+  `files`, so the installed Core has nothing to register itself with. Core's own tests pass only because they use the
+  source tree's copy. Checked: with the source `capability/` registered in the same clean consumer, the rest of T115
+  passes, so the only missing piece is that the package does not carry its contribution.
+- **T116 (RED):** an installed but unregistered Core reports each Registration Node as
+  `unregistered: no Type Definition named Core/Registration; register one with the Core Capability` (exit 0). It does not
+  say that Core itself is not registered in this Engine. The wording asserted is the PLAN's proposal for the CPO to settle.
 
-How Core resolves `.kaal/` today: the Engine is `./.kaal` by default (`--engine <dir>` elsewhere). `kaal init` copies Core's
-payload into it (`.kaal/core/KAAL-Capability.md` and the other foundational Type Definitions, `.kaal/AGENTS.md`, Core's
-record). A consumer's registrations live beside its content under `.kaal/registrations/`, which init leaves empty.
-Core never looks for a definition inside the package; it reads the Engine. T115 asserts both halves of that design in a
-clean consumer: no registrations are shipped, Core's Type Definitions are delivered into `.kaal/core/`, and so the
-Registration Type Definition must be delivered there too. It is the one Type Definition of Core's that is not.
-
-What is missing is narrower. Core's built-in schema judges the Node, but `kaal init` does not register Core's own
-Capability and the Registration Type Definition in the Engine, so `kaal verify` reports every consumer Registration Node
-as `unregistered: no Type Definition named Core/Registration; register one with the Core Capability` (exit 0, state
-not valid). Core's own tests pass only because they copy `capability/Core.md` and `capability/Registration.md` from the
-source tree; neither is in the package `files` list or the `init` payload. Whether `init` should register them for 0.0.1
-is a scope question for a separate Core PLAN (numbered when opened), not decided or fixed here.
-
-No existing test is amended. No promotion, SYNC or publication is part of this.
+Scope for 0.0.1 is core/C52's, not fixed here. No existing test is amended. No promotion, SYNC or publication is part of
+this.

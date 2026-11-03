@@ -184,19 +184,27 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
     assert.ok(lines(aOnly).includes("registration\t1 kinds, 1 instances, 0 findings"), aOnly.out);
   });
 
-  // A finding of this PLAN's RED Cases, recorded RED and raised as its own PLAN, never fixed in passing. By design the
-  // package contains no registrations: a consumer's own are the consumer's to write, and an installed Core has the
-  // capability to register them. This Case therefore does not ask for any registration to be shipped. The scenario
-  // above works: Core's built-in schema judges and assembles a consumer's Registration Nodes. But `kaal init` does not
-  // register Core's own Capability and the Registration Type Definition in the Engine, so each Registration Node is
-  // reported "unregistered: no Type Definition named Core/Registration" and its state is not "valid".
-  it("core/T115 [core/C50 finding]: after `kaal init` in a clean consumer, an installed Core has registered its own Registration Type, so a consumer's Registration Node is not reported unregistered", async () => {
+  // Findings of this PLAN's RED Cases, recorded RED and raised as their own PLAN (core/C52), never fixed in passing.
+  // By design the package contains no registrations and installed != registered: Core, like any package, is registered
+  // into the instance's .kaal/ (`kaal register capability`), and its registration-dependent features, such as the
+  // Registration Type Definition, are active only then. What a consumer registers itself stays its own.
+  it("core/T115 [core/C50 finding]: the packed Core carries its own contribution; registering it into .kaal/ like any package makes the Registration Type active, so a consumer's Registration Node is not reported unregistered", async () => {
     const host = await consumer("type-definition");
     assert.ok(!existsSync(join(host, ".kaal", "registrations")), "by design the package ships no registrations: .kaal/registrations is the consumer's own");
-    assert.ok(existsSync(join(host, ".kaal", "core", "KAAL-Capability.md")), "init delivers Core's Type Definitions into the instance's .kaal/core/");
-    put(host, "portfolio.md", A);
-    const r = await verify(host);
+    const contribution = join(installed(host), "capability");
+    assert.ok(existsSync(join(contribution, "Registration.md")), "the package carries Core's own contribution (Core.md, Registration.md) so that it can be registered like any package");
+    const r = await kaal(host, ["register", "capability", "core", contribution]);
     assert.equal(r.status, 0, r.out);
-    assert.doesNotMatch(r.stdout, /unregistered/, "init must deliver the Registration Type Definition into the instance's .kaal/, as it delivers Core's other Type Definitions");
+    put(host, "portfolio.md", A);
+    const v = await verify(host);
+    assert.equal(v.status, 0, v.out);
+    assert.doesNotMatch(v.stdout, /unregistered/, "with Core registered, the Registration Type Definition is in the Engine");
+  });
+
+  it("core/T116 [core/C50 finding]: an installed but unregistered Core says so plainly, rather than only that a Type has no Definition", async () => {
+    const host = await consumer("installed-not-registered");
+    put(host, "portfolio.md", A);
+    const v = await verify(host);
+    assert.match(v.stdout, /Core is installed but not registered/, "installed != registered: the report names the state and the remedy");
   });
 });
