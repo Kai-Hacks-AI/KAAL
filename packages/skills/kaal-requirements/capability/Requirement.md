@@ -13,7 +13,7 @@ It answers what, and only that. It does not say why (Intent), where (Architectur
 
 It may name an Intent it traces to, where one is represented. That trace is a reference, not a dependency, and it transfers no ownership.
 
-A Requirement Node is named `<capability>/F<n>` for a functional Requirement and `<capability>/N<n>` for a non-functional one, where `<capability>` is the capability whose context holds it and `<n>` is its number there. A Requirement Node states the Intents it serves as `Serves` Edges, where they are represented, and none where none is.
+A Requirement Node is named `<capability>/F<n>` for a functional Requirement and `<capability>/N<n>` for a non-functional one, where `<capability>` is the capability whose context holds it and `<n>` is a positive integer that the capability assigns once and never reuses, so a name never comes to mean another condition. A Requirement Node states the Intents it serves as `Serves` Edges, where they are represented, and none where none is.
 
 What prompted it to be identified, its trigger, may be recorded beside it. The trigger is neither the Requirement nor its Intent.
 
