@@ -33,8 +33,10 @@ review is Review's, the course of a Change is Change's.
 ## 3. Answer to Process on ACT persistence
 
 Process #932 asks whether Learning should own persistence and retrieval of what
-ACT produces. Learning's position, offered as a recommendation and not an
-instruction to Process:
+ACT produces. Under the Owner's clarification (section 3A), Learning's role is
+**retrieval and learning practices**, not persistence: the originating context
+persists what ACT produces. Learning's position, offered as a recommendation and
+not an instruction to Process:
 
 - ACT is learning that feeds the next PLAN. Learning accepts that framing and adds
   no second learning model.
@@ -112,7 +114,7 @@ nothing here argues for promotion.
    exists. A DO would only be needed if that changes.
 2. If a clearer statement of retrieval would help, a small DO adds a `kaal-retro`
    or `kaal-learning` line on retrieving ACT output from its originating context,
-   with a RED test first. If Process decides on persistence in #932, a small DO amends `WORK.md` or
+   with a RED test first. If Process settles how ACT persists in #932, a small DO amends `WORK.md` or
    `kaal-retro` wording to match, with a RED test first.
 3. A Learning Agent definition is a BASS gap. It is not proposed until a consumer
    needs it.
