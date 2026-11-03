@@ -44,25 +44,29 @@ The dependency declaration is decided by the concept above. These options only d
 | **C. Each package carries its own lock, outside workspaces** | Remove the shared workspace list. Each package is installed on its own | None between packages | Best for developing one package alone | High: Hosting and Foundation would have to come from a registry or packed tarball, which the unpublished state does not allow yet (packaging/F7 interim) |
 | **D. Staged hybrid (recommended)** | 1. Glob the list (B) and let each package declare its own repository tests, so the root `test:engineering` stops naming other owners' files. 2. Add a standing "install alone" lane: for each package, pack it and its hard dependencies, install into a scratch consumer, run the installed verification. 3. Decide the per-package lock once Hosting and Foundation are on a registry | Falls in step 1 except the lock. The lock is rewritten by `npm install`, never merged by hand | Proved per package by the lane in step 2 | Low to medium; step 3 waits on the critical path (Hosting, Foundation) |
 
-## Recommendation
+## Recommendation (amended after CPO guidance on #924)
 
-Option D. It fixes the observed conflicts first (step 1), proves independence for consumers by the check that matters to them (step 2), and delays the per-package lock until a registry makes it meaningful (step 3). Step 2 reuses what Packaging already does in `conform` and what Engineering's acceptance lane already does with packed artifacts.
+**Step 1 only, as the next bounded Engineering investigation.** That is: workspace globs, and root test ownership (each package declares its repository tests instead of the root `test:engineering` script naming other owners' files). It must preserve reproducibility and the Hosting, Foundation, Core release path. It is not a way to unblock dependencies: structural churn is not used as a shortcut around a dependency, and any hard-dependency reclassification needs each package owner's own evidence and Change.
 
-## Proposed Changes (provisional)
+The "install alone" lane (step 2) and per-package locks (step 3) stay as options in this plan. They are not recommended or approved now. They are revisited after step 1 shows what the conflicts look like, and after Hosting and Foundation are on a registry.
 
-1. **Packaging C20:** F29 to F31, the independence check as a mode of `conform` (one judgment engine; a profile or a finding set, as in the general plan), the shipped documents and a Skill paragraph. No change to F7.
-2. **Engineering:** glob the root `workspaces`; move per-package test paths into each package; add the "install alone" lane; document that the shared lock is regenerated, not hand-merged. Each owner's own `package.json` change travels through its own Change.
-3. **Owners:** classify their dependencies by the three kinds and record a reason for each hard one. Hosting's role as a hard dependency is the first case to be decided with its owner.
+The staged hybrid (Option D) remains the analysis of the whole problem. Only its step 1 is proposed.
+
+## Proposed Changes (amended)
+
+1. **Engineering, investigation and then a Change (executor):** step 1 only. First an investigation note on how workspace globs and per-package test declarations interact with the Change Isolation checker, the `workspaces` lane and the lock, then the Change if the note supports it. Each package owner moves their own test declarations in their own Change.
+2. **Packaging C20 (concept, later):** F29 to F31 and the independence check as a mode of `conform`, only after step 1 and not as part of it.
+3. **Owners (later, separate):** classify their dependencies by the three kinds with evidence. Hosting's role as a hard dependency is a decision for its owner, not part of this PLAN.
 
 ## Dependencies and sequencing
 
-- Step 1 of the Engineering change needs nothing from a registry.
-- The "install alone" lane needs a pack of each package, which exists today. Packages whose hard dependencies are unpublished are verified with packed tarballs and reported interim, as Packaging's own F7 is.
-- The per-package lock waits on Hosting and Foundation being on a registry.
+- Step 1 needs nothing from a registry.
+- The "install alone" lane (not proposed now) needs a pack of each package, which exists today. Packages whose hard dependencies are unpublished would be verified with packed tarballs and reported interim, as Packaging's own F7 is.
+- The per-package lock (not proposed now) waits on Hosting and Foundation being on a registry.
 
 ## Open points for the Owner
 
-- Whether Option D is the order you want, or whether step 1 alone is wanted now.
+- Resolved by CPO guidance: step 1 only.
 - Whether Hosting should stay a hard dependency of Core, Graph, Testing, Change and Packaging, or become an enrichment or handed-in boundary for any of them.
 - Whether the per-package lock should be committed at all, given that a consumer never receives it.
 
