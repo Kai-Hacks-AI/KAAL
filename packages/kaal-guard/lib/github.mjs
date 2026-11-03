@@ -13,25 +13,31 @@ const escapeProperty = (s) => escapeData(s).replace(/:/g, "%3A").replace(/,/g, "
  * The workflow command for one result, if it needs one: fail and cannot judge are errors, held a warning,
  * not applicable a notice. An error names the Skill's path when one is given (F21).
  */
-function annotation(r, skill) {
+function annotation(r, skill, earlier) {
   const kind = { fail: "error", "cannot judge": "error", held: "warning", "not applicable": "notice" }[r.verdict];
   if (!kind) return undefined;
-  const message = (r.do ? `${r.evidence} (do: ${r.do})` : r.evidence) + (kind === "error" && skill ? `; to resolve it, read the kaal-guard Skill at ${skill}` : "");
+  const message = (r.do ? `${r.evidence} (do: ${r.do})` : r.evidence) + (kind === "error" && skill ? `; to resolve it, read the kaal-guard Skill at ${skill}` : "") + (earlier?.[r.name] ? `; ${earlier[r.name]}` : "");
   return `::${kind} title=${escapeProperty(`${r.verdict}: ${r.name}`)}::${escapeData(message)}`;
 }
 
-/** The annotation lines for a run, its errors naming the Skill's path when one is given. */
-export function annotations(results, skill) {
-  return results.map((r) => annotation(r, skill)).filter(Boolean);
+/**
+ * The annotation lines for a run, its errors naming the Skill's path when one is given. `earlier` maps a
+ * failing check's name to its earlier-opportunity line (F43), which that check's annotation also carries.
+ */
+export function annotations(results, skill, earlier) {
+  return results.map((r) => annotation(r, skill, earlier)).filter(Boolean);
 }
 
 const cell = (s) => s.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 
-/** Appends the run's verdicts, each by its own name, to the step summary file, if there is one, and the reminder line when one is given (F21). */
-export function summarize(results, file, reminder) {
+/**
+ * Appends the run's verdicts, each by its own name, to the step summary file, if there is one, and the
+ * reminder line when one is given (F21), then each earlier-opportunity line (F43).
+ */
+export function summarize(results, file, reminder, earlier = []) {
   if (!file) return;
   const rows = results.map((r) => `| ${cell(r.name)} | ${r.verdict} | ${cell(r.evidence)} |`);
-  appendFileSync(file, ["### kaal-guard", "", "| Check | Verdict | Evidence |", "| --- | --- | --- |", ...rows, "", ...(reminder ? [reminder, ""] : [])].join("\n") + "\n");
+  appendFileSync(file, ["### kaal-guard", "", "| Check | Verdict | Evidence |", "| --- | --- | --- |", ...rows, "", ...(reminder ? [reminder, ""] : []), ...earlier.flatMap((l) => [l, ""])].join("\n") + "\n");
 }
 
 /**
