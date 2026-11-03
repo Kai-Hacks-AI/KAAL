@@ -27,7 +27,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires", () => {
-    assert.match(text("Product.md"), /^It provides the Product Direction Definition, the PLAN Definition and the Owner View Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text("Product.md"), /^It provides the Product Direction Definition, the PLAN Definition, the Owner View Definition and the Decision Preparation Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("states where its responsibility starts and ends", () => {
@@ -175,6 +175,60 @@ describe("the Owner View Definition", () => {
   });
 });
 
+describe("the Decision Preparation Definition", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const definition = node("Decision-Preparation.md");
+    assert.equal(definition.name, "Decision Preparation");
+    assert.deepEqual(definition.type, foundation().definition);
+  });
+
+  it("names the parts of a preparation", () => {
+    const definition = text("Decision-Preparation.md");
+    for (const part of ["Question", "Options", "Evidence", "Recommendation", "Decider", "Recorded choice", "Hand-over"]) {
+      assert.match(definition, new RegExp(`^- \\*\\*${part}\\*\\*: `, "m"), part);
+    }
+  });
+
+  it("puts at least two outcomes to the Decider without manufacturing alternatives", () => {
+    const definition = text("Decision-Preparation.md");
+    assert.match(definition, /Either at least two Options, or, when the genuine decision is a single proposal, accept and reject: two outcomes, with no alternative manufactured to make up the number\./);
+    assert.match(definition, /each stating what choosing it would mean/);
+  });
+
+  it("refers to evidence and does not copy or re-judge it", () => {
+    assert.match(text("Decision-Preparation.md"), /refers to the Owner View's readiness and evidence and does not copy, re-run or re-judge it/);
+  });
+
+  it("makes a recommendation advice only and decides nothing", () => {
+    const definition = text("Decision-Preparation.md");
+    assert.match(definition, /A Recommendation is advice, never the decision\./);
+    assert.match(definition, /Preparing a decision decides nothing, and no priority, order or authorization is valid until the Decider has given it\./);
+  });
+
+  it("records the choice as the Decider made it, and a preparation moves Prepared, Decided or Withdrawn", () => {
+    const definition = text("Decision-Preparation.md");
+    assert.match(definition, /records the chosen Option, who decided and when, and the reason as given, exactly as the Decider made it/);
+    for (const state of ["Prepared", "Decided", "Withdrawn"]) {
+      assert.match(definition, new RegExp(`^\\d\\. \\*\\*${state}\\*\\*`, "m"), state);
+    }
+  });
+
+  it("hands a selected increment over without delivering it", () => {
+    assert.match(text("Decision-Preparation.md"), /Hand-over\*\*: when the choice selects or prioritizes an increment, the hand-over to Change.* Product does not deliver it\./);
+  });
+
+  it("does not treat selecting or prioritizing an increment as authorizing a governed action", () => {
+    const definition = text("Decision-Preparation.md");
+    assert.match(definition, /Selecting or prioritizing an increment is a product choice and is not itself the authorization of a governed action/);
+    assert.match(definition, /engineering work, promotion, npm publication, a new package or capability each need the separate authorization that governs them, and a Recorded choice neither grants nor implies one/);
+    assert.doesNotMatch(definition, /Selecting authorizes the increment/);
+  });
+
+  it("leaves technical decisions to Engineering", () => {
+    assert.match(text("Decision-Preparation.md"), /Technical decisions are Engineering's and are not prepared here\./);
+  });
+});
+
 describe("admission", () => {
   it("is admitted as a Capability by Core alone", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-product-")), "engine");
@@ -203,6 +257,7 @@ describe("the package", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/Decision-Preparation.md",
       "capability/Owner-View.md",
       "capability/PLAN.md",
       "capability/Product-Direction.md",
