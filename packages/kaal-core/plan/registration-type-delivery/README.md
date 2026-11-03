@@ -34,25 +34,36 @@ Core 0.0.1, on the CTO's view; the CPO confirms the scope on this PLAN.
    package `files` add `capability/`, so Core carries its own contribution, one source and no copy under `payload/`.
    The Installation Contract does not catalogue these two files under `.kaal/`, because delivery is registration, not
    copying.
-2. **Transaction 2, register.** Core registers itself as any package does, from the installed package's own
-   `capability/`. No new mechanism: the existing registration, its admission and its record apply.
+2. **Transaction 2, register.** Core registers itself with the existing `kaal register capability core <dir>`, from the
+   installed package's own `capability/`. No new mechanism: the existing registration, its admission and its record apply.
 3. **Unregistered state.** `verify` names the state when Core's own Capability is not registered in the Engine: that
    Core is installed but not registered, and the remedy command. The finding for a Registration Node without its
    Definition keeps its current meaning. The exact wording is proposed in T116 for the CPO to settle.
 4. `test/verify.json` is regenerated with `npm run manifest`; nothing else generated changes.
 
-## Command surface (proposal; final name an open Owner question)
+## Command inventory: the commands already exist
 
-Registration is already covered by the existing command, so no new command is required:
+| Package | Command | Does |
+|---|---|---|
+| Core | `kaal init` | Transaction 1: installs the instance in `./.kaal` (payload and Core's record). |
+| Core | `kaal register <capability\|agent\|skill\|extension> <name> <dir>` | Transaction 2: registers a package's contribution, all or nothing; the identical contribution again is a no-op. Documented in `docs/operations.md`. |
+| Core | `kaal list`, `resolve`, `identify`, `verify` | Read the Engine; `list` shows what is registered. |
+| Core | `kaal export <out-dir>`, `upgrade`, `remove` | Foundational payload out; bring the installation to the contract; remove Core's installation. |
+| Foundation | `kaal-foundation sha256`, `verify` | Digests and its own verification. No install or register. |
+| Hosting | none (a library: `execute`, file and process operations) | Core writes through it; no command. |
 
-- **Option A, no new surface:** document `kaal register capability core node_modules/<core-package>/capability`.
-  Smallest change; the path is long and package-name-dependent (the scoped rename is pending).
-- **Option B, a convenience form:** `kaal register core`, which registers Core's own bundled `capability/` and nothing
-  else. It adds one CLI form, so it is a new interface and needs the Owner. It resolves the package location itself, so it
-  survives the scoped rename.
+So both transactions are covered: `kaal init`, then `kaal register capability core <dir>` with `<dir>` being the package's
+own `capability/`. What is missing is not a command but the input: the package does not carry `capability/` (T115), and
+the unregistered state is not named (T116).
 
-Recommendation: B for usability, kept as sugar over the existing registration so the two forms cannot differ. **Open
-Owner question: A or B, and the name.**
+## Command surface
+
+Reuse. No new command or flag in this Change. The documented registration line becomes
+`kaal register capability core node_modules/<core-package>/capability` (the scoped rename changes only the path).
+
+**Open Owner question, only if wanted:** a convenience form `kaal register core` that defaults `<dir>` to the running
+package's own `capability/`. It would be one added CLI form, sugar over the same registration, and is not needed by T115 or
+T116. It is not planned unless the Owner asks, and the name is the Owner's.
 
 ## What changes for a consumer
 
@@ -65,7 +76,7 @@ Owner question: A or B, and the name.**
 ## Cases
 
 - core/T115 (RED in #970): the packed Core carries its contribution, and registering it makes the Registration Type active.
-  GREEN with Change items 1 and 2, assertion unchanged. If Option B is chosen its form is covered by a further Case.
+  GREEN with Change items 1 and 2, assertion unchanged. 
 - core/T116 (RED in #970): the unregistered state is named plainly. GREEN with Change item 3.
 - To add as RED before DO, in `test/plan/`: registering twice is refused or idempotent, as the existing registration rules
   say; `remove` leaves a consumer's registrations; registered Core survives `upgrade`. No existing test is amended.
