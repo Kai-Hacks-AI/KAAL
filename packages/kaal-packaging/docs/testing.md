@@ -65,6 +65,7 @@ These run in the source workspace only, in `test/publisher/capability.test.mjs`,
 | packaging/T33 | packaging/N11 | no file of the package names the running platform, a launcher for one, or a shell chosen by platform |
 | packaging/T53 | packaging/F11 | the installed verifier checks the manifest before it runs any case: an intact copy verifies, and a changed, removed, added or escaping file, or a malformed manifest, cannot verify, naming the file and running no case |
 | packaging/T54 | packaging/F10, packaging/F11 | each declared case runs exactly once: a missing, duplicate, undeclared, skipped or todo case cannot verify, and a declared failure on an intact copy is failed |
+| packaging/T64 | packaging/N8 | a declared peer dependency counts as declared, as F7 reads it | `test/embed/package.test.mjs` |
 | packaging/T61 | packaging/F29 | a definition-only package whose verification asserts the content of its declared Node files reaches verified, N9 included | `test/embed/package.test.mjs` |
 | packaging/T62 | packaging/F29 | a presence-only verification fails N9 (the plan's T62a) | `test/embed/package.test.mjs` |
 | packaging/T63 | packaging/F29, packaging/A22 | no module and no declaration is unknown; a bad declaration is failed; a package with modules is unchanged | `test/embed/package.test.mjs` |
