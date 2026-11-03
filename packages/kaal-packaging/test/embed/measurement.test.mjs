@@ -9,6 +9,7 @@
 // `execute`, which owns how a command starts on a host (packaging/N11).
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
@@ -225,7 +226,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     const m = await measured(artifact);
     const back = read(write(m));
     assert.deepEqual(back, m);
-    assert.equal(back.package.sha256, createHash("sha256").update(artifact).digest("hex"));
+    assert.equal(back.package.sha256, sha256(artifact));
     assert.deepEqual([back.package.name, back.package.version], ["@kaal/fixture", "1.0.0"]);
     const printed = (await execute("npm", ["--version"], { cwd: fresh("work") })).stdout.trim();
     assert.deepEqual(back.tool, { name: "npm", version: printed });
