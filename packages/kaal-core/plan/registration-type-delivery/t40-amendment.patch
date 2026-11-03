@@ -1,0 +1,26 @@
+diff --git a/packages/kaal-core/test/plan/love.test.mjs b/packages/kaal-core/test/plan/love.test.mjs
+index 9109c97..cf98f18 100644
+--- a/packages/kaal-core/test/plan/love.test.mjs
++++ b/packages/kaal-core/test/plan/love.test.mjs
+@@ -54,16 +54,17 @@ describe("LOVE (core/C16)", () => {
+ });
+ 
+ describe("Core as a package (core/C16)", () => {
+-  it("core/T40 [core/F40, core/A18]: Core is a Capability Node of its own and claims its tree, neither delivered", () => {
++  it("core/T40 [core/F40, core/A18]: Core is a Capability Node of its own and claims its tree; the claim is repository data, and the Node ships as content only, never registered by init", () => {
+     const bytes = needed("capability/Core.md", "Core Capability Node");
+     const core = identify(bytes);
+     assert.equal(core.name, "Core");
+     assert.deepEqual(core.type, FOUNDATION.capability, "Core is typed by KAAL Capability");
+     const claim = JSON.parse(needed("ownership.kaal.json", "ownership claim"));
+     assert.deepEqual(claim, { owner: { kind: "capability", name: "Core", id: core.id }, paths: ["packages/kaal-core/"] });
+-    for (const path of ["capability", "ownership.kaal.json"]) {
+-      assert.ok(!pkg.files.some((f) => f === path || f.startsWith(`${path}/`)), `${path} is repository data, not delivered`);
+-    }
++    assert.ok(!pkg.files.some((f) => f === "ownership.kaal.json"), "ownership.kaal.json is repository data, not delivered");
++    // core/C52: the package carries Core's own contribution as content, to be registered explicitly; init never registers it.
++    assert.ok(pkg.files.includes("capability"), "capability/ is delivered as package content");
++    assert.ok(!(JSON.parse(read("installation.kaal.json").toString("utf8")).assets ?? []).some((a) => String(a.source).startsWith("capability/") || String(a.target).includes("/capabilities/")), "the Installation Contract does not deliver it into .kaal");
+   });
+ 
+   it("core/T41 [core/F41, core/A19]: every entry point and every value it exports is named in the README, and nothing else resolves", async () => {
