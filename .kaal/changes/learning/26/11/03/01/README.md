@@ -54,35 +54,43 @@ instruction to Process:
 - Anything beyond this (a shared retrieval mechanism, an index) would be a new
   Change with its own justification, and is not proposed here.
 
-## 3A. Owner direction on ACT and BRAIN, and how Learning would collect
+## 3A. Owner direction on ACT, persistence and Learning
 
-The Owner said on 3 Nov 2026: "ACT might feed BRAIN, so learning owns it. PDCA
-is a structured approach to make sure to persist it. Learning likely needs to
-collect it." This PLAN reads it as follows.
+The Owner clarified on 3 Nov 2026 (superseding the earlier reading in this
+section that Learning might hold what ACT produces):
 
-- **Ownership.** Learning owns persisted learning, which is BRAIN. ACT is the
-  PDCA step in which learning arises, and its output may feed BRAIN. This refines
-  section 3: ACT is not Learning's, but what ACT produces and that persists is.
-- **PDCA.** Process owns PDCA as the structured way to make sure learning is
-  persisted. Process says when a cycle reaches ACT. Learning says how persisted
-  learning is kept and found. Neither takes over the other's semantics.
-- **Collect.** Learning needs a way to gather what ACT produced, so a later PLAN
-  can use it. "Collect" is open, because BRAIN and Learning say Learning keeps no
-  central store. Two readings:
-  1. *By reference (recommended start).* Learning collects by discovering and
-     referring: a CICERO overview names where ACT output lives (the realizing
-     pull request, a record the repository declares, an adopted text) with
-     classification and provenance. The content stays in its owning context.
-     This needs no new store, and it matches what `kaal-retro` already does.
-  2. *By holding.* Learning keeps the collected learning itself. This would change
-     the "no central store" statement in `Learning.md` and `kaal-learning`, and
-     it needs its own Change and Owner decision. It is not proposed here.
-- **No obligation.** Collecting adds no mandatory ACT note, no mandatory
-  retrospective, no second learning model and no gate. A cycle that produces
+- PDCA's ACT persists learning **in the context where it occurred**. The context
+  owns the knowledge it persists.
+- Learning **retrieves** that knowledge without creating a duplicate
+  authoritative store.
+- Analysis and decision-making are further learning activities. New learning is
+  persisted in its appropriate owning context, and later PLANs can consume it.
+- **Process owns PDCA semantics. Learning owns retrieval and learning practices.**
+  The context owns its persisted knowledge.
+
+What this PLAN takes from it:
+
+- **Ownership.** BRAIN stays in Learning as the practice of keeping knowledge
+  identifiable and connected in its owning context, and of retrieving it. It is
+  not a store. Learning does not own the knowledge, only how it is retrieved and
+  how learning is practised.
+- **No holding.** The earlier reading in which Learning might "hold" collected
+  learning is withdrawn. It would contradict the Owner's direction and the
+  existing "no central store" statement in `Learning.md` and `kaal-learning`.
+- **Collecting means retrieving.** A later PLAN finds ACT output through
+  CICERO's overviews, which refer to where it lives (the realizing pull request,
+  a record the repository declares, an adopted text) with classification and
+  provenance. This is what `kaal-retro` and CICERO already do; nothing new is
+  proposed.
+- **No obligation.** No mandatory central ACT record, no duplicate storage, no
+  new capability, no second learning model, no gate. A cycle that produces
   nothing worth keeping persists nothing.
+- **Process plans.** #932 and the Process plans should state PDCA's ACT as
+  persisting in the originating context, and leave retrieval to Learning. Whether
+  to adjust them is Process's decision; this PLAN only states Learning's side.
 
-**For the Owner to confirm:** reading 1 as the first step, with reading 2 left
-open. Until then, nothing changes in the Nodes or Skills.
+Nothing changes in the Nodes or Skills, and nothing here authorizes
+implementation.
 
 ## 4. BASS, stated honestly
 
@@ -102,9 +110,9 @@ nothing here argues for promotion.
 1. Check Learning against the Package Independence guide: its dev dependencies are
    at 0.0.1 and it has no runtime dependency, so no release-critical dependency
    exists. A DO would only be needed if that changes.
-2. If the Owner confirms reading 1 of section 3A, a small DO adds a `kaal-retro`
-   or `kaal-learning` line on collecting ACT output by reference, with a RED test
-   first. If Process decides on persistence in #932, a small DO amends `WORK.md` or
+2. If a clearer statement of retrieval would help, a small DO adds a `kaal-retro`
+   or `kaal-learning` line on retrieving ACT output from its originating context,
+   with a RED test first. If Process decides on persistence in #932, a small DO amends `WORK.md` or
    `kaal-retro` wording to match, with a RED test first.
 3. A Learning Agent definition is a BASS gap. It is not proposed until a consumer
    needs it.
