@@ -7,12 +7,23 @@
   "exports": {
     "./package.json": "./package.json"
   },
+  "bin": {
+    "kaal-agents": "bin/kaal-agents.mjs"
+  },
   "files": [
-    "capability"
+    "bin",
+    "lib",
+    "skills",
+    "docs",
+    "capability",
+    "test/consumer",
+    "test/verify.mjs",
+    "test/verify.json"
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/agents.test.mjs && node --test --test-name-pattern=\"^agents/T([1-9]|10|14|16|17|18) \" test/plan/release.test.mjs"
+    "test": "node --test test/agents.test.mjs && node --test --test-name-pattern=\"^agents/T([1-9]|1[0-4]|1[6-8]) \" test/plan/release.test.mjs && node test/verify.mjs",
+    "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"

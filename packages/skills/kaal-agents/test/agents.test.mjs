@@ -4,10 +4,9 @@
 // Whether the Node says the right thing is validation, by independent Agent
 // or human review.
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { bootstrap, catalog, foundation, readContribution, register, verify } from "kaal-core";
@@ -123,78 +122,13 @@ describe("Agents' own claim", () => {
 });
 
 describe("the package", () => {
-  it("packs its Node and nothing else beyond its metadata", async () => {
+  it("packs exactly what its shipped manifest lists, plus the manifest, and nothing of the checkout", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
     assert.equal(r.status, 0, r.stderr);
-    assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
-      "LICENSE",
-      "README.md",
-      "capability/Agents.md",
-      "capability/NEW.md",
-      "capability/PREACH.md",
-      "package.json",
-    ]);
-  });
-});
-
-/** A repository on branch main with one commit, and what orient --json reports for it. */
-function repository() {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), "kaal-agents-git-")));
-  const git = (...args) => {
-    const r = spawnSync("git", ["-c", "user.email=fixture@example.invalid", "-c", "user.name=Fixture", "-c", "commit.gpgsign=false", ...args], { cwd: dir, encoding: "utf8" });
-    assert.equal(r.status, 0, r.stderr);
-    return r.stdout.trim();
-  };
-  git("init", "-q", "-b", "main");
-  return { dir, git };
-}
-
-const orient = (dir) => {
-  const r = spawnSync(process.execPath, [join(PACKAGE, "bin", "kaal-agents.mjs"), "orient", dir, "--json"], { encoding: "utf8" });
-  assert.ok(r.status === 0 || r.status === 2, r.stderr);
-  return { status: r.status, report: JSON.parse(r.stdout) };
-};
-
-describe("orient when Git fails", () => {
-  it("reports a status Git cannot read as unresolved, not as a clean tree, exits 2, and writes nothing", () => {
-    const { dir, git } = repository();
-    git("commit", "-q", "--allow-empty", "-m", "fixture");
-    const head = git("rev-parse", "HEAD");
-    writeFileSync(join(dir, ".git", "index"), "not an index");
-    const r = orient(dir);
-    assert.equal(r.status, 2);
-    assert.equal(r.report.inFlight, null);
-    assert.ok(r.report.unresolved.some((u) => u.what === "inFlight" && /the status cannot be read: .*index/.test(u.reason)));
-    assert.equal(r.report.repository.head, head);
-    assert.equal(readFileSync(join(dir, ".git", "index"), "utf8"), "not an index");
-  });
-
-  it("reports a HEAD Git cannot read as unresolved, and a branch with no commit yet as absent", () => {
-    const { dir, git } = repository();
-    const unborn = orient(dir);
-    assert.equal(unborn.status, 0);
-    assert.equal(unborn.report.repository.head, null);
-    assert.equal(unborn.report.repository.branch, "main");
-    assert.deepEqual(unborn.report.unresolved, []);
-    git("commit", "-q", "--allow-empty", "-m", "fixture");
-    writeFileSync(join(dir, ".git", "refs", "heads", "main"), "not a commit\n");
-    const r = orient(dir);
-    assert.equal(r.status, 2);
-    assert.equal(r.report.repository.head, null);
-    assert.ok(r.report.unresolved.some((u) => u.what === "repository" && /HEAD cannot be read/.test(u.reason)));
-  });
-
-  it("reports ahead and behind it cannot count as unresolved, and no upstream as absent", () => {
-    const { dir, git } = repository();
-    git("commit", "-q", "--allow-empty", "-m", "fixture");
-    assert.deepEqual(orient(dir).report.unresolved, []);
-    git("config", "branch.main.remote", ".");
-    git("config", "branch.main.merge", "refs/heads/gone");
-    const r = orient(dir);
-    assert.equal(r.status, 2);
-    assert.equal(r.report.repository.upstream, "gone");
-    assert.equal(r.report.repository.ahead, null);
-    assert.equal(r.report.repository.behind, null);
-    assert.ok(r.report.unresolved.some((u) => u.what === "repository" && /ahead and behind gone cannot be counted/.test(u.reason)));
+    const manifest = JSON.parse(readFileSync(join(PACKAGE, "test", "verify.json"), "utf8"));
+    const packed = JSON.parse(r.stdout)[0].files.map((f) => f.path).sort();
+    assert.deepEqual(packed, [...Object.keys(manifest.files), "test/verify.json"].sort());
+    for (const f of ["capability/Agents.md", "capability/NEW.md", "capability/PREACH.md", "LICENSE", "README.md"]) assert.ok(packed.includes(f), f);
+    assert.ok(!packed.some((f) => f.startsWith("plan/") || f.startsWith("test/plan/") || f.startsWith("test/publisher/") || f === "test/agents.test.mjs" || f === "ownership.kaal.json"));
   });
 });

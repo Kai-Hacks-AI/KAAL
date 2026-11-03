@@ -315,7 +315,7 @@ describe("the package", () => {
     assert.deepEqual([...pkg().files].sort(), ["bin", "capability", "docs", "lib", "skills", "test/consumer", "test/verify.json", "test/verify.mjs"]);
   });
 
-  it("agents/T13 [agents/F7, agents/N3]: in a copy of the package, verify is verified (0); a changed shipped file makes it failed (1), naming the file; an empty case inventory makes it cannot verify (2)", () => {
+  it("agents/T13 [agents/F7, agents/N3]: in a copy of the package, verify is verified (0); a changed shipped file makes it cannot verify (2), naming the file; an empty case inventory makes it cannot verify (2)", () => {
     blocked(VERIFY, "test/verify.mjs");
     const copy = () => {
       const dir = join(tmp(), "package");
@@ -332,7 +332,7 @@ describe("the package", () => {
     const changed = copy();
     appendFileSync(join(changed, "capability", "PREACH.md"), "\n");
     const c = verify(changed);
-    assert.equal(c.status, 1, output(c));
+    assert.equal(c.status, 2, output(c));
     assert.match(output(c), /capability\/PREACH\.md/);
     const empty = copy();
     const manifest = JSON.parse(readFileSync(join(empty, "test", "verify.json"), "utf8"));

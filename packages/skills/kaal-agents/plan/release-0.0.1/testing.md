@@ -18,7 +18,7 @@ The 18 planned tests live in `packages/skills/kaal-agents/test/plan/release.test
 | agents/T10: the package carries the Skill, named `kaal-agents`, and it names `orient` and PREACH | agents/F5 | Requirements |
 | agents/T11: the package carries the six documents. Every identifier the consumer cases cite is defined there, and none cites an Engineering path | agents/F6 | Requirements |
 | agents/T12: `files` ships `bin`, `lib`, `skills`, `docs`, `capability`, `test/consumer`, `test/verify.mjs` and `test/verify.json`, and not `test/publisher` or `test/plan` | agents/F8, agents/A1 | Architecture |
-| agents/T13: in a copy of the package, `verify` is verified (0). A changed shipped file makes it failed (1), naming the file. An empty case inventory makes it cannot verify (2) | agents/F7, agents/N3 | Requirements |
+| agents/T13: in a copy of the package, `verify` is verified (0). A changed shipped file makes it cannot verify (2), naming the file (amended at `agents/C6`). An empty case inventory makes it cannot verify (2) | agents/F7, agents/N3 | Requirements |
 | agents/T14: `bin/` and `lib/` import only `node:` built-ins and relative files, and only `lib/catalog.mjs` names `kaal-core` | agents/N1, agents/N6 | Architecture |
 | agents/T15: the packed tarball installs in a clean directory with no checkout and no network. There, `orient` runs and `npm explore <name> -- npm test` is verified (publisher) | agents/I4, agents/F7 | Intent |
 | agents/T16: something installed as `kaal-core` that does not export Core's `catalog` leaves the catalog unresolved, naming `catalog`, and the exit is 2 | agents/F1, agents/A3, agents/N3 | Architecture |

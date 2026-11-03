@@ -69,7 +69,7 @@ Each Requirement names, in brackets, the Intents it serves.
 - **agents/F7** [agents/I4]: `npm explore <package> -- npm test` runs `test/verify.mjs`.
   - It checks the installed files against the shipped manifest, `test/verify.json`, and runs every delivered consumer case.
   - It ends in exactly one result: verified (exit 0), failed (exit 1) or cannot verify (exit 2).
-  - A changed or missing shipped file is failed, and so is a failing case.
+  - A failing case is failed. A changed, missing or added installed file is cannot verify: it shows only that the bytes under test are not the shipped bytes (amended at `agents/C6`, following testing/F43 and testing/F50, #639).
   - A manifest with no cases is cannot verify.
 
   It realizes Testing's consumer-verification semantics in Agents' own code.

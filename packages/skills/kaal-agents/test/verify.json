@@ -1,0 +1,215 @@
+{
+  "cases": [
+    "test/consumer/orient.test.mjs > orient > agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line",
+    "test/consumer/orient.test.mjs > orient > agents/T16 [agents/F1, agents/A3, agents/N3]: something installed as Core that does not export Core's catalog leaves the catalog unresolved, naming catalog, and the exit is 2",
+    "test/consumer/orient.test.mjs > orient > agents/T17 [agents/F1, agents/N3]: an AGENTS.md that cannot be read as a file and an ownership claim that is not JSON are each unresolved, naming their paths, neither is a source, and the exit is 2",
+    "test/consumer/orient.test.mjs > orient > agents/T2 [agents/F1]: a changed and an untracked file are in flight, sorted",
+    "test/consumer/orient.test.mjs > orient > agents/T3 [agents/F1, agents/N1, agents/N3]: with a .kaal/ Engine and no Core installed, the setting is embedded, the catalog is unresolved naming kaal-core, and the exit is 2; with KAAL's own source as well, the setting is engineered",
+    "test/consumer/orient.test.mjs > orient > agents/T5 [agents/N2, agents/N4]: two runs give byte-identical output, and every file under the directory, .git/ included, is unchanged",
+    "test/consumer/orient.test.mjs > orient > agents/T6 [agents/F2, agents/N3, agents/I2]: with neither an instruction file nor a claim, authority is unresolved with no sources; with both and work in flight, it is still unresolved; no value in the report reads authorized, verified or granted",
+    "test/consumer/orient.test.mjs > orient > agents/T7 [agents/F3, agents/N3]: outside any repository, the repository and what is in flight are unresolved and the exit is 2; a missing directory exits 1, naming it, with no stack trace",
+    "test/consumer/orient.test.mjs > orient when Git fails > agents/T19 [agents/F1, agents/A2, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written",
+    "test/consumer/orient.test.mjs > orient when Git fails > agents/T20 [agents/F1, agents/A2, agents/N3]: a branch with no commit yet reports HEAD as absent, with nothing unresolved; a HEAD Git cannot read is unresolved",
+    "test/consumer/orient.test.mjs > orient when Git fails > agents/T21 [agents/F1, agents/A2, agents/N3]: no upstream is absent, with nothing unresolved; an upstream whose ahead and behind cannot be counted is unresolved, naming it",
+    "test/consumer/package.test.mjs > the package > agents/T10 [agents/F5]: the package carries the Skill, named kaal-agents, and it names orient and PREACH",
+    "test/consumer/package.test.mjs > the package > agents/T11 [agents/F6]: the package carries the six documents; every identifier the consumer cases cite is defined there, and none cites an Engineering path or a Change",
+    "test/consumer/package.test.mjs > the package > agents/T12 [agents/F8, agents/A1]: files ships bin, lib, skills, docs, capability, test/consumer, test/verify.mjs and test/verify.json, and not test/publisher or test/plan",
+    "test/consumer/package.test.mjs > the package > agents/T14 [agents/N1, agents/N6]: bin/, lib/ and the consumer's verification import only node: built-ins and relative files, and only lib/catalog.mjs names Core's package",
+    "test/consumer/preach.test.mjs > preach check > agents/T18 [agents/F4, agents/I3]: an ambiguous choice, without a scope while two candidates share the term, and an empty authority are each invalid, naming the problem",
+    "test/consumer/preach.test.mjs > preach check > agents/T8 [agents/F4, agents/A4, agents/I3]: a valid unresolved report and a valid claimed resolution each exit 0 with their one line, which says structurally valid, and the claimed one says the authority is not verified; two candidates sharing a term in different scopes stay distinct",
+    "test/consumer/preach.test.mjs > preach check > agents/T9 [agents/F4, agents/N3]: each invalid report exits 1, naming its problem; non-JSON and a missing file exit 2"
+  ],
+  "coverage": {
+    "agents/A1": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/package.test.mjs > the package > agents/T12 [agents/F8, agents/A1]: files ships bin, lib, skills, docs, capability, test/consumer, test/verify.mjs and test/verify.json, and not test/publisher or test/plan"
+      ]
+    },
+    "agents/A2": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T19 [agents/F1, agents/A2, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T20 [agents/F1, agents/A2, agents/N3]: a branch with no commit yet reports HEAD as absent, with nothing unresolved; a HEAD Git cannot read is unresolved",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T21 [agents/F1, agents/A2, agents/N3]: no upstream is absent, with nothing unresolved; an upstream whose ahead and behind cannot be counted is unresolved, naming it"
+      ]
+    },
+    "agents/A3": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T16 [agents/F1, agents/A3, agents/N3]: something installed as Core that does not export Core's catalog leaves the catalog unresolved, naming catalog, and the exit is 2"
+      ]
+    },
+    "agents/A4": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/preach.test.mjs > preach check > agents/T8 [agents/F4, agents/A4, agents/I3]: a valid unresolved report and a valid claimed resolution each exit 0 with their one line, which says structurally valid, and the claimed one says the authority is not verified; two candidates sharing a term in different scopes stay distinct"
+      ]
+    },
+    "agents/A5": {
+      "status": "unverified"
+    },
+    "agents/A6": {
+      "status": "unverified"
+    },
+    "agents/A7": {
+      "status": "unverified"
+    },
+    "agents/F1": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line",
+        "test/consumer/orient.test.mjs > orient > agents/T16 [agents/F1, agents/A3, agents/N3]: something installed as Core that does not export Core's catalog leaves the catalog unresolved, naming catalog, and the exit is 2",
+        "test/consumer/orient.test.mjs > orient > agents/T17 [agents/F1, agents/N3]: an AGENTS.md that cannot be read as a file and an ownership claim that is not JSON are each unresolved, naming their paths, neither is a source, and the exit is 2",
+        "test/consumer/orient.test.mjs > orient > agents/T2 [agents/F1]: a changed and an untracked file are in flight, sorted",
+        "test/consumer/orient.test.mjs > orient > agents/T3 [agents/F1, agents/N1, agents/N3]: with a .kaal/ Engine and no Core installed, the setting is embedded, the catalog is unresolved naming kaal-core, and the exit is 2; with KAAL's own source as well, the setting is engineered",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T19 [agents/F1, agents/A2, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T20 [agents/F1, agents/A2, agents/N3]: a branch with no commit yet reports HEAD as absent, with nothing unresolved; a HEAD Git cannot read is unresolved",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T21 [agents/F1, agents/A2, agents/N3]: no upstream is absent, with nothing unresolved; an upstream whose ahead and behind cannot be counted is unresolved, naming it"
+      ]
+    },
+    "agents/F2": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line",
+        "test/consumer/orient.test.mjs > orient > agents/T6 [agents/F2, agents/N3, agents/I2]: with neither an instruction file nor a claim, authority is unresolved with no sources; with both and work in flight, it is still unresolved; no value in the report reads authorized, verified or granted"
+      ]
+    },
+    "agents/F3": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line",
+        "test/consumer/orient.test.mjs > orient > agents/T7 [agents/F3, agents/N3]: outside any repository, the repository and what is in flight are unresolved and the exit is 2; a missing directory exits 1, naming it, with no stack trace"
+      ]
+    },
+    "agents/F4": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/preach.test.mjs > preach check > agents/T18 [agents/F4, agents/I3]: an ambiguous choice, without a scope while two candidates share the term, and an empty authority are each invalid, naming the problem",
+        "test/consumer/preach.test.mjs > preach check > agents/T8 [agents/F4, agents/A4, agents/I3]: a valid unresolved report and a valid claimed resolution each exit 0 with their one line, which says structurally valid, and the claimed one says the authority is not verified; two candidates sharing a term in different scopes stay distinct",
+        "test/consumer/preach.test.mjs > preach check > agents/T9 [agents/F4, agents/N3]: each invalid report exits 1, naming its problem; non-JSON and a missing file exit 2"
+      ]
+    },
+    "agents/F5": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/package.test.mjs > the package > agents/T10 [agents/F5]: the package carries the Skill, named kaal-agents, and it names orient and PREACH"
+      ]
+    },
+    "agents/F6": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/package.test.mjs > the package > agents/T11 [agents/F6]: the package carries the six documents; every identifier the consumer cases cite is defined there, and none cites an Engineering path or a Change"
+      ]
+    },
+    "agents/F7": {
+      "status": "allocated"
+    },
+    "agents/F8": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/package.test.mjs > the package > agents/T12 [agents/F8, agents/A1]: files ships bin, lib, skills, docs, capability, test/consumer, test/verify.mjs and test/verify.json, and not test/publisher or test/plan"
+      ]
+    },
+    "agents/F9": {
+      "status": "allocated"
+    },
+    "agents/I1": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line"
+      ]
+    },
+    "agents/I2": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T1 [agents/F1, agents/F2, agents/F3, agents/I1, agents/I2]: in a fresh repository with an AGENTS.md and an ownership claim, orient --json reports the setting outside, HEAD, the branch, the instruction file and the claim, and exits 0; authority is still unresolved, with both as sources, and the text output opens with the authority line",
+        "test/consumer/orient.test.mjs > orient > agents/T6 [agents/F2, agents/N3, agents/I2]: with neither an instruction file nor a claim, authority is unresolved with no sources; with both and work in flight, it is still unresolved; no value in the report reads authorized, verified or granted"
+      ]
+    },
+    "agents/I3": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/preach.test.mjs > preach check > agents/T18 [agents/F4, agents/I3]: an ambiguous choice, without a scope while two candidates share the term, and an empty authority are each invalid, naming the problem",
+        "test/consumer/preach.test.mjs > preach check > agents/T8 [agents/F4, agents/A4, agents/I3]: a valid unresolved report and a valid claimed resolution each exit 0 with their one line, which says structurally valid, and the claimed one says the authority is not verified; two candidates sharing a term in different scopes stay distinct"
+      ]
+    },
+    "agents/I4": {
+      "status": "allocated"
+    },
+    "agents/I5": {
+      "status": "unverified"
+    },
+    "agents/N1": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T3 [agents/F1, agents/N1, agents/N3]: with a .kaal/ Engine and no Core installed, the setting is embedded, the catalog is unresolved naming kaal-core, and the exit is 2; with KAAL's own source as well, the setting is engineered",
+        "test/consumer/package.test.mjs > the package > agents/T14 [agents/N1, agents/N6]: bin/, lib/ and the consumer's verification import only node: built-ins and relative files, and only lib/catalog.mjs names Core's package"
+      ]
+    },
+    "agents/N2": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T5 [agents/N2, agents/N4]: two runs give byte-identical output, and every file under the directory, .git/ included, is unchanged"
+      ]
+    },
+    "agents/N3": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T16 [agents/F1, agents/A3, agents/N3]: something installed as Core that does not export Core's catalog leaves the catalog unresolved, naming catalog, and the exit is 2",
+        "test/consumer/orient.test.mjs > orient > agents/T17 [agents/F1, agents/N3]: an AGENTS.md that cannot be read as a file and an ownership claim that is not JSON are each unresolved, naming their paths, neither is a source, and the exit is 2",
+        "test/consumer/orient.test.mjs > orient > agents/T3 [agents/F1, agents/N1, agents/N3]: with a .kaal/ Engine and no Core installed, the setting is embedded, the catalog is unresolved naming kaal-core, and the exit is 2; with KAAL's own source as well, the setting is engineered",
+        "test/consumer/orient.test.mjs > orient > agents/T6 [agents/F2, agents/N3, agents/I2]: with neither an instruction file nor a claim, authority is unresolved with no sources; with both and work in flight, it is still unresolved; no value in the report reads authorized, verified or granted",
+        "test/consumer/orient.test.mjs > orient > agents/T7 [agents/F3, agents/N3]: outside any repository, the repository and what is in flight are unresolved and the exit is 2; a missing directory exits 1, naming it, with no stack trace",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T19 [agents/F1, agents/A2, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T20 [agents/F1, agents/A2, agents/N3]: a branch with no commit yet reports HEAD as absent, with nothing unresolved; a HEAD Git cannot read is unresolved",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T21 [agents/F1, agents/A2, agents/N3]: no upstream is absent, with nothing unresolved; an upstream whose ahead and behind cannot be counted is unresolved, naming it",
+        "test/consumer/preach.test.mjs > preach check > agents/T9 [agents/F4, agents/N3]: each invalid report exits 1, naming its problem; non-JSON and a missing file exit 2"
+      ]
+    },
+    "agents/N4": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/orient.test.mjs > orient > agents/T5 [agents/N2, agents/N4]: two runs give byte-identical output, and every file under the directory, .git/ included, is unchanged",
+        "test/consumer/orient.test.mjs > orient when Git fails > agents/T19 [agents/F1, agents/A2, agents/N3, agents/N4]: a status Git cannot read is unresolved, not a clean tree: what is in flight is null, HEAD is still reported, the exit is 2, and nothing is written"
+      ]
+    },
+    "agents/N5": {
+      "status": "unverified"
+    },
+    "agents/N6": {
+      "status": "covered",
+      "cases": [
+        "test/consumer/package.test.mjs > the package > agents/T14 [agents/N1, agents/N6]: bin/, lib/ and the consumer's verification import only node: built-ins and relative files, and only lib/catalog.mjs names Core's package"
+      ]
+    },
+    "agents/N7": {
+      "status": "allocated"
+    }
+  },
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "4684c436835809c1c7b44d7f9a0cdfa6621287c5417f9b381827905ad11db71f",
+    "bin/kaal-agents.mjs": "a84d68933b14098c01557d94fca05729558e563f90a27cf07e6729c5cca9ab51",
+    "capability/Agents.md": "0a6f46bcf33e5907bba4f0360a61cbd1ee15217aa860e8f1e1d3ad0a4273d912",
+    "capability/NEW.md": "9df30e63af8f8fc3117ddb60742c9784347da172cbabc7127d3b24606e00461a",
+    "capability/PREACH.md": "b289dc7e33c117f5f55ec8e6b521c656e27b3584b8590b57408e5c23580c2dd2",
+    "docs/architecture.md": "a0c1cbec979b5cd99d0d85624b9dd196246bacb14c9303800adfe1f3816a9fd7",
+    "docs/intent.md": "d7221a47c16c38ab770d513052ad94b0efd7d9454d1edd01c49e4dfa8a6c2811",
+    "docs/limitations.md": "40644395ceaf768d46bd5b9dee25705ddb55f24a12dc7f3ea212b519957529fc",
+    "docs/operations.md": "9749ccc32e22a0e4d9453a2a1fc9071a76e3f640612195b1f4248585d04df6d5",
+    "docs/requirements.md": "34b1c50be93d66d4a3b99874512ffc430102b9b900f1f87bdf15ffd96453ef9c",
+    "docs/testing.md": "8e3f5c35c105778a704773a8a1ee36fd0faed031e67faf53bc72d79011269c17",
+    "lib/catalog.mjs": "543fa99fa54a50e1e2e97053a5554e35211904f20aea151a5541bae0e7ecfbbb",
+    "lib/git.mjs": "ae0539808b0cf15bad267c3ca68be11600ab9b3f40472fbed912de19aef3c065",
+    "lib/orient.mjs": "9d7829e1f6f814b6f9c3de3d1267a9f7dbfea4eb35021d246040b970242b0d84",
+    "lib/preach.mjs": "369a1063cabc859aec7d1080951149aab459c07bca93a6c36b0f8a294a25aa45",
+    "package.json": "904d17c4194da5426842a5745d718442855ffc172e38c19d6d1f401d234bbac7",
+    "skills/kaal-agents/SKILL.md": "1e4065e6d76f12c026d466fd4d5fa7e8aaa41fed3cdf60043017fa08930d53a8",
+    "test/consumer/fixture.mjs": "24c80c48acd200d6257bc1134dd160fa44345a12f60c6831cf383878decbc608",
+    "test/consumer/orient.test.mjs": "6720c715df7fc879546aba5e6bbf9ef3748ef461c8d6b9b886cf4e34b1d32273",
+    "test/consumer/package.test.mjs": "895576fd6b3b970669c5a42135a0fc10ce444992ec2e75a2d01b28ef92e5ce07",
+    "test/consumer/preach.test.mjs": "2da17b288cb9c407d883b28f16582d7fbcc3ffec9b05a418b61b33d5a68abb7f",
+    "test/verify.mjs": "a5066eeddd3303f0f6f572f461dfbe6de8fd4d0e9f8118cb6d92f47433c9c89a"
+  }
+}
