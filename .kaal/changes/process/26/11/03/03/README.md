@@ -29,9 +29,21 @@ GitHub refuses auto-merge on a draft, and Branching requires it, so a draft woul
 - **Promotions into main** (collector or milestone) are Owner-reserved: they need Kai, and the thread asks on the PR, which stays on auto-merge, as the MERGE RULE says. A standing collector PR states in its body that it is not a promotion request.
 - **Not a gate:** a failing required check. A standing PR that is red for freshness is fixed at its promotion turn, not by closing it.
 
-Open point: whether withheld approval alone is enough, or a required checklist check is worth a Guard finding later (out of scope here).
+Withheld approval is **not the only safeguard** for a standing PR into `main` (CPO review of 3 Nov). Hold and cancellation, defined before any pilot starts:
 
-Stages run one at a time. Widening past Stage 2 needs the earlier exit criteria met and Kai's pick.
+- **Hold (reversible, at any time).** The owner thread disables auto-merge on the standing PR. Disabling is the safe default whenever the PR is not in its promotion turn, and a standing collector PR is held this way from the start of Stage 2: it is opened ready, with auto-merge **off** until Kai authorizes that promotion, then enabled. This keeps the ready-PR rule (no drafts) for change-level PRs, where an early merge is harmless, and applies the stricter hold only to PRs targeting `main`, where an early merge is a promotion. **This departs from Kai's MERGE RULE (always on auto-merge, promotions included), so it is proposed for the pilot only and needs Kai's decision before Stage 2.**
+- **Cancel.** Closing the PR cancels the intent without merging. It is always available to the owner thread, the CPO and Kai.
+- **Accidental approval or merge.** An approval cannot merge a held PR (auto-merge is off). If one ever merges early, or an approval lands while a hold should apply, the pilot **stops** at once and the event is recorded as a failure.
+
+Failure criteria, any one of which stops the pilot and returns to Kai:
+
+1. A standing PR into `main` merges, or becomes mergeable with auto-merge on, without Kai's authorization.
+2. A promotion jumps the release queue (Hosting, Foundation, Core, Guard) or is read as a request to.
+3. An approval is given on a standing PR that was not meant to carry one.
+4. A stale standing PR is mistaken for live intent and acted on.
+5. The pilot's own PRs add noticeable load to the release queue's reviews or CI.
+
+Stages run one at a time. Widening past Stage 2 needs the earlier exit criteria met, no failure criterion hit, and Kai's pick.
 
 ## What is measured
 
@@ -39,6 +51,7 @@ Stages run one at a time. Widening past Stage 2 needs the earlier exit criteria 
 - Wakes: child open, merge, red, per level.
 - Order slips: Changes where work started before the PR.
 - CI noise on standing PRs and whether it caused a wrong action.
+- Accidental approval or merge events (target zero), time to hold or cancel when asked, and extra review and CI load on the release queue.
 
 ## Out of scope
 
