@@ -13,7 +13,7 @@ Plain data, in the shape of the Defect record definition under review in #991 (`
   "expected": "The pre-push check passes the target's transition ledger to the Change Isolation checker, exactly as CI does, so it admits a change the ledger admits.",
   "observed": "The pre-push check runs the checker with no ledger and refuses a ledger-admitted change that CI admits.",
   "where": "engineering/github/push-check.sh@b6a32f4 (the two checker calls in the Change Isolation judgment)",
-  "status": "confirmed",
+  "status": "answered",
   "tests": ["engineering/T83"]
 }
 ```
@@ -72,6 +72,8 @@ T83 is `failed` on an assertion after its three controls passed, so the fixture 
 **Agreement with CI on both sides:** T83 is the admitted side (the hook must admit what the ledger admits) and T89 is the rejected side (the hook must still refuse what the ledger does not admit, as CI does). T89 passes today and must keep passing after the correction, so a fix that admits everything does not answer D2. Checked on a local, uncommitted edit of `push-check.sh` that passes the target's ledger as CI does, then restored: all 4 pass.
 
 **Answered** only by a later Run in which engineering/T83 passes at this same Case version (blob `97275c17...`), as its latest observation. A different Case version needs its own confirming RED against the old `push-check.sh` before it can answer D2; an edited Case alone answers nothing.
+
+**Answering Run** (the correction, Change `engineering/D2-push-check-ledger-fix`; Node v22.23.4, Linux): the Case file is unchanged, blob `97275c175605b3eae47511eb24c8fe9a5106880a`, and all four Cases pass: T87, T88, T89 and T83. `push-check.sh` now reads the target's `transitions.json` from `$base` and passes `--ledger <file> --git <base> <head>` for an ordinary change, as `change-isolation.sh` does; a target without a ledger is judged as before. A synchronization's explicit resolutions stay judged without a ledger, as in CI. T89 still passes, so the correction does not admit everything.
 
 **How it is run:** by hand, `node --test engineering/github/defects/push-check-ledger.red.mjs`. No suite, lane or script names it, so required CI does not run it, deliberately, until the open question of how a Defect Case lives in `main` without hiding regression (raised on #991) is settled. Until then Engineering runs it before each Engineering promotion or publication and records the Run here. The Case reads the real `push-check.sh`, `check.mjs` and `lineage.ts` from the working tree, so a missing or renamed file fails it loudly instead of passing.
 

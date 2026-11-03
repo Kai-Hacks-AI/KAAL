@@ -64,8 +64,18 @@ if ! git show "$base:engineering/change-isolation/check.mjs" >"$tmp/check.mjs" 2
 elif [ -n "$change" ] && git merge-base --is-ancestor "$head" "$default_ref" 2>/dev/null; then
   say "Change Isolation: not applicable: $head is already admitted on $default."
 elif [ -n "$change" ]; then
+  # The transition ledger is the target's own, read from its tip, as CI's adapter reads it
+  # (change-isolation.sh). A target without it is judged as before.
+  ledger=
+  if git show "$base:engineering/change-isolation/transitions.json" >"$tmp/transitions.json" 2>/dev/null; then
+    ledger=1
+  fi
   if git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$change" >"$tmp/paths"; then
-    run "Change Isolation" "$tmp/check.mjs" <"$tmp/paths"
+    if [ -n "$ledger" ]; then
+      run "Change Isolation" "$tmp/check.mjs" --ledger "$tmp/transitions.json" --git "$base" "$head" <"$tmp/paths"
+    else
+      run "Change Isolation" "$tmp/check.mjs" <"$tmp/paths"
+    fi
   else
     fail "Change Isolation: cannot judge: no complete change between $target and $head"
   fi
