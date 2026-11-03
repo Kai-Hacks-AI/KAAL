@@ -40,8 +40,11 @@ instruction to Process:
   no second learning model.
 - What Learning already offers is enough as a starting point: `kaal-retro` for an
   optional retrospective, an adopted lesson only once the owning capability
-  accepts it through a Change, and a later PLAN citing each entry it used with its
-  classification and provenance.
+  accepts it through a Change, and a later PLAN citing the learning it actually
+  uses, with its classification and provenance. This is guidance for whoever
+  writes the PLAN, not a rule: it does not require citing every retro entry, and
+  it is not a mandatory Process or Change rule. Any such rule would be Process's
+  or Change's to decide, not Learning's.
 - Learning prescribes **no mandatory ACT note** and no taxonomy of outcomes, and
   keeps no central store. Retention stays in the context that owns the knowledge.
 - Retrieval is only as durable as its source. A retro in a pull request is
