@@ -1,41 +1,49 @@
-# Change across levels and boundaries (PLAN)
+# Change across PDCA cycles and integration transitions (PLAN)
 
-A PLAN note. It ships no code and creates no capability, package or publication. It records how Change's existing Definitions and PLANs relate to the multi-level PDCA model the Owner clarified on 3 Nov, and what that leaves open.
+A PLAN note. It ships no code and creates no capability, package, Definition or Change state. It records how Change's existing Definitions and PLANs relate to the multi-level PDCA model the Owner clarified on 3 Nov, and what that leaves open.
 
 ## Intent
 
-- **Two kinds of cycle, kept apart.** Every individual PR is one bounded Change with its own PLAN, DO/CHECK and ACT. That cycle needs no separate PLAN PR. Collector (`kaal/*`), repository (`main`) and package (npm) cycles are larger, can span many PRs and planning horizons, and may have their own PLANs. A larger cycle never replaces a PR's own cycle, and a PR's cycle never stands in for a larger one.
-- **Five levels.** Individual PR, `kaal/*` collector, `main` repository product, npm package product, `hotfix/*` emergency path. The repository and each npm package are products in their own right. Publication is not the whole package cycle: consumer feedback and evolution belong to it.
+Two things are kept apart: PDCA cycles, and the integration transitions between the places where work lives.
 
-## What Change owns, and what it does not
+- **PDCA cycles.** Four things have a cycle of their own:
+  - **An individual PR**: one bounded Change with its own PLAN, DO/CHECK and ACT. It needs no separate PLAN PR. A hotfix PR is such a PR, with the same cycle.
+  - **A `kaal/*` collector**: a capability-oriented cycle, for which distinct PLAN PRs make sense.
+  - **The `main` repository product**: a larger cycle. Emergency correction through `hotfix/*` is part of this cycle.
+  - **An npm package product**: its own cycle, including consumer feedback and evolution.
 
-Change owns the semantics of a Change at each integration boundary. Each boundary has its own acceptance criteria and its own learning opportunity (the ACT input to the next PLAN).
+  Collector, repository and package cycles can span many PRs and planning horizons. A larger cycle never replaces a PR's cycle, and a PR's cycle never stands in for a larger one.
+- **Integration transitions.** These move work between those places. They are not cycles. Each has its own acceptance criteria and its own learning opportunity, which is an input to the next PLAN of the cycle it serves.
 
-| Boundary | Change semantics (existing Definition) | Realization |
+`hotfix/*` is therefore not a level beside the four. It is an expedited route into `main`. Likewise `main → npm` is publication within a package's wider cycle, not a cycle.
+
+## Transitions and what Change already says of them
+
+| Transition | Change's existing text | Realization |
 | --- | --- | --- |
 | Change PR → `kaal/*` | Accepted (Change Lifecycle) | Engineering's Branching: squash |
 | `kaal/*` → `main` | Promoted (Change Lifecycle) | Branching: squash; Owner decision |
-| `main` → `kaal/*` | a synchronization claims no record number (Change Record, Lifecycle) | Branching: merge commit |
-| `hotfix/*` → `main` | Emergency class (Change Classification) | Branching, expedited |
-| `main` → npm | not a Change state | Release PLAN (`plan/release`); Owner decision |
+| `main` → `kaal/*` | a synchronization claims no record number (Change Record) | Branching: merge commit |
+| `hotfix/*` → `main` | the Emergency class (Change Classification) | Engineering's route; Owner and Engineering to settle |
+| `main` → npm | none, by design: Change's Lifecycle has no publication state and this note adds none | Release PLAN (`plan/release`); Owner decision |
 
-Not Change's: the generic process metamodel and the reusable PDCA template (Process); product direction and product planning (Product); portfolio decisions (the two Portfolio Management concepts); technical integration and delivery assurance (Engineering). Change references their plans and decisions and does not repeat them.
+Change owns the semantics of a Change. The owners of everything else stay as they are: the generic process metamodel and the reusable PDCA template (Process); product direction and product planning (Product); portfolio decisions (the two Portfolio Management concepts); technical integration and delivery assurance (Engineering). Change references their plans and decisions and does not repeat them.
 
 ## Findings against the current plans
 
-1. **Covered.** Lifecycle (Accepted, Promoted, Withdrawn), Classification (Emergency) and Record (synchronizations claim no number) already state the semantics for four of the five boundaries. `plan/far` is a PR-level and integration-gate concern and needs no change.
-2. **Gap A.** No Change text says that a PR's PDCA and the larger cycles are distinct, or that `kaal/*`, `main` and a package each have their own PLANs. This note states it; whether a Definition should carry it, or Process's template, is Process's call (open question 1).
-3. **Gap B.** `main → npm` is outside the Lifecycle's four states by design. `plan/release` covers `@kaihacksai/kaal-change` 0.0.1 only. Whether Change should name publication as a boundary of its own, or leave it wholly to Release and Product, is open (question 2).
-4. **Gap C.** `hotfix/*` has a class (Emergency) but no stated PDCA shape for the expedited PR-level cycle. Change can state it once Engineering's hotfix route is settled (question 3).
-5. **No conflict found.** Nothing here contradicts the CPO/CTO split or the ownership boundaries in the 3 Nov handover.
+1. **Covered.** Lifecycle, Classification and Record already carry Change's semantics for the PR, promotion, synchronization and emergency transitions. `plan/far` is an integration-gate concern and needs no change.
+2. **Gap A.** No Change text says that a PR's PDCA is distinct from the collector, repository and package cycles, or that each of those can have its own PLANs. This note states it. Whether a Definition carries it, or Process's template, is Process's call (question 1).
+3. **Gap B.** Publication is outside Change's Lifecycle by design. `plan/release` covers `@kaihacksai/kaal-change` 0.0.1 only. What a package cycle's acceptance for publication looks like is Product's and Release's to say (question 2).
+4. **Gap C.** The `hotfix/*` route has no stated acceptance criteria in Change's text. Change can reference them once Engineering's route is settled (question 3).
+5. **No conflict found** with the CPO/CTO split or the ownership boundaries in the 3 Nov handover.
 
-## Open questions, routed
+## Open owner interfaces
 
-1. **Process:** does the multi-level model become part of the reusable PDCA template (Process #932 instances PLAN)? If so, Change references it rather than restating it.
-2. **Product / Release:** is publication a Change boundary, or Product's and Release's alone?
+1. **Process:** whether the cycle/transition distinction becomes part of the reusable PDCA template (Process #932). If so, Change references it rather than restating it.
+2. **Product / Release:** acceptance criteria for publication within a package cycle, and the consumer-feedback loop. No Change state is proposed for it.
 3. **Engineering:** the `hotfix/*` → `main` route and its acceptance criteria.
-4. **Portfolio concepts:** whether either already has ownership or Definitions is a question for the Portfolio inventory thread. Change proposes nothing there.
+4. **Portfolio concepts:** whether either Portfolio Management concept already has ownership or Definitions is a question for the Portfolio inventory thread. Change proposes nothing there.
 
 ## Out of scope
 
-No new capability, package, Definition, implementation, promotion or publication. Any Definition amendment follows from the answers above through its own PR.
+No new capability, package, Definition, state, implementation, promotion or publication. Any Definition amendment follows from the answers above through its own PR.
