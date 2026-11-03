@@ -21,6 +21,8 @@ const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
 const EXPECTED_TARBALL = [
   "package/LICENSE",
   "package/README.md",
+  "package/capability/Core.md",
+  "package/capability/Registration.md",
   "package/dist/admitted.d.ts",
   "package/dist/admitted.js",
   "package/dist/agent.d.ts",
