@@ -24,7 +24,9 @@ Core 0.0.1, on the CTO's view; the CPO confirms the scope on this PLAN.
 3. The package does not carry that directory. `capability/Core.md` and `capability/Registration.md` are not in the
    package `files`, so an installed Core has nothing to register itself with. Core's own tests pass only by using the
    source tree's copy. (T115, RED.)
-4. An installed but unregistered Core reports each Registration Node as `unregistered: no Type Definition named
+4. `kaal help` is a command list: it names `init` and `register` but not that they are two transactions, that installed is
+   not registered, or how Core registers itself. (T117, RED.)
+5. An installed but unregistered Core reports each Registration Node as `unregistered: no Type Definition named
    Core/Registration; register one with the Core Capability`. It does not say that Core itself is not registered in this
    Engine. (T116, RED.)
 
@@ -36,10 +38,12 @@ Core 0.0.1, on the CTO's view; the CPO confirms the scope on this PLAN.
    copying.
 2. **Transaction 2, register.** Core registers itself with the existing `kaal register capability core <dir>`, from the
    installed package's own `capability/`. No new mechanism: the existing registration, its admission and its record apply.
-3. **Unregistered state.** `verify` names the state when Core's own Capability is not registered in the Engine: that
+3. **Help.** `kaal help` states the sequence: `kaal init` installs the instance, `kaal register capability core <dir>`
+   registers Core itself, installed is not registered, and it points to `docs/operations.md`. Text only, no new command.
+4. **Unregistered state.** `verify` names the state when Core's own Capability is not registered in the Engine: that
    Core is installed but not registered, and the remedy command. The finding for a Registration Node without its
    Definition keeps its current meaning. The exact wording is proposed in T116 for the CPO to settle.
-4. `test/verify.json` is regenerated with `npm run manifest`; nothing else generated changes.
+5. `test/verify.json` is regenerated with `npm run manifest`; nothing else generated changes.
 
 ## Command inventory: the commands already exist
 
@@ -77,7 +81,8 @@ T116. It is not planned unless the Owner asks, and the name is the Owner's.
 
 - core/T115 (RED in #970): the packed Core carries its contribution, and registering it makes the Registration Type active.
   GREEN with Change items 1 and 2, assertion unchanged. 
-- core/T116 (RED in #970): the unregistered state is named plainly. GREEN with Change item 3.
+- core/T116 (RED in #970): the unregistered state is named plainly. GREEN with Change item 4.
+- core/T117 (RED in #970): `kaal help` explains the sequence. GREEN with Change item 3.
 - To add as RED before DO, in `test/plan/`: registering twice is refused or idempotent, as the existing registration rules
   say; `remove` leaves a consumer's registrations; registered Core survives `upgrade`. No existing test is amended.
 
