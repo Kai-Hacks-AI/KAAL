@@ -144,6 +144,16 @@ describe("the Owner View Definition", () => {
     assert.match(definition, /it adds no second traceability model, no verifier and no consumer content, and it does not re-run or re-judge verification/);
   });
 
+  it("is kept per product, the repository and each npm package being products with their own PDCA", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /The Owner View is kept per product\. The KAAL repository is a product, and each independently managed npm package is a product in its own right, each with its own product PDCA/);
+    assert.match(definition, /npm publication is one step in a package's cycle, not all of it/);
+  });
+
+  it("leaves portfolio-level decisions to the portfolio concerns and defines neither", () => {
+    assert.match(text("Owner-View.md"), /is portfolio-level and is not Product's: Product Portfolio Management \(products\) and Project Portfolio Management \(projects\) are separate concerns whose ownership is not decided here, and Product defines neither\./);
+  });
+
   it("calls a capability blocked only when every possible change in its plan is blocked", () => {
     const definition = text("Owner-View.md");
     for (const state of ["Working", "Waiting", "Blocked"]) {
