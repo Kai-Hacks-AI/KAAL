@@ -1,87 +1,96 @@
-# Process: metamodel, PDCA as first template, instances with their owners, explicit ACT (PLAN)
+# Process: metamodel, PDCA as a template, ACT as learning, ESSA as a separate candidate (PLAN)
 
 Capability: Process. Target: kaal/process at `0033510`. Record number is
 provisional until integration. Markdown only: no Node, Definition, claim,
 package, workflow or policy changes.
 
-Owner direction (3 Nov): the core concept is PLAN -> DO/CHECK -> ACT. In
-practice PLAN PRs drive, DO PRs go red to green, and ACT is implicit, mostly
-feeding new PLAN PRs. kaal-process holds the core concepts of process
-management. PDCA, DevOps and possibly others are instances of it. Whether
-kaal-process owns the instances is open: "maybe as start".
+Owner direction (3 Nov): the core concept is PLAN -> DO/CHECK -> ACT.
+kaal-process holds the core concepts of process management. PDCA, DevOps and
+possibly others are instances of it. Revised after the CPO handover: ACT is
+learning, not a closure status, and ESSA is a separate concept.
 
 ## 1. Who owns what
 
 | Piece | Owner | Why |
 |---|---|---|
 | The metamodel (Process, Activity, Role, State, Transition, Ordering, Entry/Exit) | Process | Process's whole scope (#275). |
-| **PDCA** as a generic, recursive **template** | **Process** | It is generic and no other capability's semantics (#526, #620 "Process Template"). This is the "as start": the template incubates in Process, in the package that already holds it. No new package. |
-| A capability's own lifecycle (a Change's PLAN, DO, CHECK) | That capability (Change) | Already stated in the Process Node. |
-| **DevOps** | **Open** | An instance of the metamodel, and not decided to be a capability (#851 and #852 treat it as a process, not a Capability, and only suggest Engineering describes it). Either Engineering holds the description, or DevOps incubates in Process like PDCA. Not decided here. |
-| Other instances (for example the CTO/CPO exchange) | Their accountable owner | #852: owned by whoever is accountable. |
+| **PDCA**, the generic learning and improvement cycle, as a reusable **template** | **Process** (incubated) | Generic, and no other capability's semantics (#526, #620). It lives in the package that already holds it. No new package. |
+| A capability's own lifecycle and records (a Change's PLAN, DO, CHECK) | That capability (Change) | Already stated in the Process Node. Change owns its lifecycle records, not the generic meaning of ACT. |
+| Evidence and verification semantics | Testing | Unchanged. |
+| Persistence and retrieval of learning | **Undecided**; Learning is a candidate | Considered separately (section 3). |
+| **DevOps** | **Undecided** | An instance of the metamodel. Nothing here infers that it belongs in Process or in Engineering. #851 and #852 treat it as a process, not a capability, and are not changed. |
+| **ESSA** | **Undecided** | A candidate optimization method (section 4). |
 
 **Template and instance, defined.** A *template* is a reusable process design
 that Process owns because it is generic (PDCA). An *instance* is what a capability
-creates when it adopts a template for its own work, and the adopter owns it
-(Change's lifecycle is PDCA realized for one Change and stays Change's). The
-metamodel is neither: it is the vocabulary templates and instances are written
-in. So PDCA is a Process-owned template, never "the first instance"; DevOps is a
-process design, and whether it is held by Engineering as an adopter's instance or
-incubated in Process as a second template is the open question below.
+creates when it adopts a template for its own work, and the adopter owns it. The
+metamodel is the vocabulary both are written in. Concrete processes and their
+learning stay in their own contexts. Process keeps no registry of instances and
+dictates no instance's semantics.
 
-Process incubates only what is generic enough to be reused by several owners,
-and moves an instance to its owner when that owner exists to take it, the way
-Defect incubates in Testing. Today only PDCA qualifies. Process keeps no
-registry of instances and dictates no instance's semantics.
+## 2. ACT is learning
 
-DevOps's owner is an open question and nothing here assumes it is a separate
-capability. It is an instance, and it may later be incubated in Process the way
-PDCA is. No change to #852 is proposed.
+ACT is learning based on what happened. Some of that learning needs persistence,
+and it feeds another PLAN. So:
 
-## 2. Making ACT explicit, and light
+- ACT is about learning, retention and feedback. It is **not** a closure-status
+  mechanism, and no taxonomy of outcomes (Standardize, Adapt, Drop) is proposed.
+  The earlier proposal of that taxonomy is withdrawn.
+- **No mandatory ACT note** in every Change record is prescribed. Its purpose,
+  ownership and relation to Learning are not established, so it is not asked of
+  Change either.
+- Persistence should be sufficient for a later PLAN to find and use the relevant
+  learning. How, and where it is kept, is open.
+- What PDCA.md says today stands: Act preserves knowledge for a later Plan and
+  changes nothing by itself. A later wording change to PDCA.md, if any, would
+  only sharpen "learning that persists and feeds the next Plan", and is a separate
+  Change after #560.
 
-Today PDCA.md already defines Act: preserve the knowledge, then respond to what
-Check found (adopt, adjust, or begin a new Plan), changing nothing by itself.
-What is missing is practice: a finished Change records no ACT, so Act happens
-only when a finding happens to feed a later PLAN.
+## 3. Learning's possible role
 
-Proposal, in two parts so ownership stays clean:
+Learning may own reusable persistence and retrieval of what ACT produces, since
+retrospectives and retrievable learning are already Learning's concern. No
+decision is made here. This PLAN raises the question with the Learning capability
+by pull request and does not assume the answer.
 
-1. **Vocabulary, owned by Process (a later small Change to PDCA.md).** Name the
-   three responses Act can take: **Standardize** (the result becomes the way
-   from now on, with its owner's authorization), **Adapt** (change the approach
-   and start a new Plan, linked), **Drop** (stop, with the reason kept). These
-   restate "adopt, adjust, or begin a new Plan" and add Drop. Act still changes
-   nothing by itself; each response needs its owner's authorization.
-2. **Practice, owned by Change (a request, not a Process rule).** Each finished
-   Change closes with a short ACT note in its record: Standardize, Adapt (with
-   links to follow-up PLANs) or Drop, and "nothing" when nothing follows. This
-   is Change's lifecycle, so Process does not mandate it. This PLAN asks the
-   Change capability to consider it, and Learning for where retrievable
-   knowledge goes (retrospectives are Learning's).
+## 4. ESSA, a separate candidate
 
-The note stays one short paragraph. Where a Change has no lesson, "no action" is
-a valid ACT, and a failure is not manufactured to fill it (PDCA already says so).
+The Owner favours **Eliminate -> Standardize -> Simplify -> Automate** as a process
+optimization method:
 
-## 3. What this record changes
+1. Eliminate work that is unnecessary.
+2. Standardize what remains so repeated executions produce the same data
+   structure by design (comparable structure and meaning; values may differ).
+3. Simplify using comparable evidence, including deterministic calculation.
+4. Automate only after the process is understood and optimized.
+
+ESSA is **not** ACT and not part of PDCA's learning cycle. It is a candidate
+method within process management. Ownership and implementation are undecided, and
+**no ESSA capability, Definition or package is proposed** without a separate
+product justification.
+
+## 5. Maturity as context only
+
+Process maturity models (CMM/CMMI: managed/repeatable, defined, quantitatively
+managed, optimizing) are context. The useful principle is that standardized
+execution and consistent evidence enable quantitative comparison, which supports
+systematic optimization. When the metamodel evolves, repeatability, consistent
+evidence structure and quantitative comparability are considerations. **No CMMI
+implementation is proposed.** CMMI does not prescribe ESSA, and automation is not
+itself a maturity level.
+
+## 6. What this record changes
 
 Nothing is implemented. The metamodel promoted by #560 stays the unamended text.
-The vocabulary change (part 1) and the Serving amendment of #852 are separate
-later Changes, after #560 lands. The Change request (part 2) is raised with the
-Change capability by pull request, not enforced from here.
+The Serving amendment of #852 and any PDCA wording change are separate later
+Changes, after #560. Package independence holds, and no other capability's
+technical answer is duplicated.
 
-## Open questions
+## Open questions (Owner choices; a later DO must not assume any)
 
-1. Is "Drop" wanted as a named response, or is "no action" enough?
-2. Should the ACT note live in the Change record, or on the realizing PR?
-   (Learning's open decision D1 from #526.)
-3. Should DevOps be the next instance to incubate in Process (with Engineering
-   serving its Activities), or be described by Engineering? Process incubates
-   only what several owners reuse; DevOps's reuse across capabilities is the
-   test.
-
-These three are Owner choices. A later DO must not assume any of them; each is
-settled on a PR before it is built.
+1. Where and how learning persists, and whether Learning owns retrieval.
+2. Who holds DevOps's description.
+3. Where ESSA lives, if it is adopted at all.
 
 ## Scope and authorization
 
