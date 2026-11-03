@@ -52,34 +52,46 @@ Requirements above. The DO is checked again against whatever has landed.
 | N8 self-contained verifier | Installed verification needs only the runtime and the package's own declared runtime dependencies; neither Testing nor Guard at runtime. | **Tension, see below.** |
 | N9 behaviour, not presence | Every case decides from the installed package's behaviour or bytes. | Cases check bytes and contract statements, not mere presence. |
 
-### Tension found by pinning: N8 against the current smoke test
+### Findings from pinning, with the owners' answers (3 Nov, on this PR)
 
-N8 says the installed verification needs only the runtime and the package's
-**declared runtime dependencies**. Today the smoke test imports `kaal-core`
-(optional, not declared) and ends in *cannot verify* without it. Two things
-follow, and neither is decided here:
+All of F8 to F14 apply to a definition-only package, in a small form (Packaging:
+none is waived for lacking JavaScript). The minimal forms Packaging gave, which
+the DO follows: six non-empty `docs/*.md` and a README linking Operations;
+`scripts.test` running a verifier against the installed copy; a last line
+`<name>-verification {"result","exit","cases","causes"}` with verified 0, failed
+1, cannot verify 2; `test/verify.json` with every shipped file's SHA-256 and the
+declared Case ids; `engines.node` and no `os` or `cpu`; a Testing `model` if one
+ships; and named `test:<suite>` scripts including `test:embedded`.
 
-- A conforming Embedded verification must be able to reach `verified` or
-  `failed` on its own for what it can decide (the manifest comparison and the
-  contract statements). It needs a SHA-256 for the manifest comparison. A KAAL
-  digest comes from Foundation (the one SHA-256), not `node:crypto`, so even
-  this small step implies either a declared Foundation dependency or a decision
-  that the comparison is out of scope for the installed run.
-- Core-admission then becomes an optional extra check (reported separately and
-  not required for the result), which keeps Core optional as the Owner wants.
-
-**Foundation's answer (3 Nov, on this PR):** a declared exact-pin runtime
-dependency on `@kaihacksai/kaal-foundation` (0.0.1 today), importing only its
-public `./sha256` subpath, is the intended route. There is no lighter way that
-keeps one KAAL SHA-256. This is a small, shared hard dependency chosen to avoid
-duplicating a technical answer, and it leaves Core optional. Packaging's answer
-on whether the installed verification may rely on it, with Core-admission as an
-optional extra reported apart from the result, is still to come.
+1. **Core is an optional extra, not part of the result.** Agreed by Packaging: the
+   verifier runs the same with or without Core. If Core is present it may add a
+   separate `admission` line, which must not feed the result, must not be a Case
+   in `test/verify.json`, and must not make the verifier fail or become `unknown`
+   when Core is absent. This changes today's smoke test, which ends in *cannot
+   verify* without Core and so does not conform to N8 as it stands.
+2. **The manifest SHA-256: the two owners differ.** Foundation: a declared exact
+   `dependencies` pin on `@kaihacksai/kaal-foundation` (0.0.1), importing only
+   `@kaihacksai/kaal-foundation/sha256`, is the intended route, and `node:crypto`
+   must not produce a KAAL digest. Packaging: N8 allows it, but a one-line hash
+   is not a good enough reason for a hard dependency, and its own verifier uses
+   `node:crypto`. The repository rule (AGENTS.md) names manifests as a Foundation
+   use. Recommendation, for the CTO and Owner to confirm on this PR: depend on
+   Foundation, since the independence guide rules out duplicating a technical
+   answer and the dependency is one small package with no transitive tree. It is
+   a genuine conflict between two owners' guidance, so it is not decided here.
+3. **N9 trap.** Behaviour-not-presence needs a shipped module outside `test/`
+   that the verifier exercises; with none, N9 is `unknown` and so is the overall
+   result. Recommendation: do not add code only to satisfy N9. Record the
+   `unknown` openly in `docs/limitations.md`, unless a real module (for example a
+   Definition loader) earns its place for consumers.
+4. **F7 interim.** `failed` while a dependency is a local tarball, so a Foundation
+   dependency needs its registry resolution (0.0.1 is published).
 
 ## Decisions already taken (no Owner go needed)
 
-- Core stays an optional complement. The smoke test's *cannot verify* wording is
-  already clarified (#620, 5ab8df3).
+- Core stays an optional complement. #620 (CPO-approved) clarified the smoke
+  test's *cannot verify* wording; the DO then moves Core-admission out of the
+  result (finding 1).
 
 ## Entry condition for the DO
 
@@ -90,15 +102,14 @@ each needs enduring consumer value and its own authorization.
 
 ## Open questions
 
-1. **N8 against the smoke test** (above): Foundation says yes to the dependency
-   for the manifest digest. Open with Packaging: is Core-admission an optional
-   extra reported apart from the result?
-   Core stays optional either way.
-1a. **Sequencing.** C5 and C14 (#873) are moving; the DO starts after C5 so the
-   contract it implements is fixed.
-2. **#620 first.** The smoke test it adds is the base the embedded verification
-   builds on. This PLAN assumes #620 lands first.
-3. **Weight.** A definition-only package should not carry a heavier verification
+1. **The manifest digest** (finding 2): Foundation dependency or `node:crypto`?
+   A conflict between two owners' guidance; recommendation is Foundation.
+2. **N9** (finding 3): accept the openly recorded `unknown`, or ship a module that
+   earns its place?
+3. **Sequencing.** C5 and C14 (#873) are moving; the DO starts after C5 so the
+   contract it implements is fixed. #620 lands first; it is the base of the
+   verification and is CPO-approved.
+4. **Weight.** A definition-only package should not carry a heavier verification
    than its risk justifies. The DO keeps the six documents and the manifest
    minimal, and says so in `limitations`.
 
