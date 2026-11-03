@@ -1,0 +1,8 @@
+# The Intent Skill stands alone (External use): Requirements
+
+- **intent/F20. Meaning inside the Skill** [intent/I10]. The Skill states, in its own text, what an Intent is and is not, taken from the Node `Intent` and not paraphrased differently: what is wanted and why, complete enough to be understood alone; not a requirement, a Change, a decision to act or a conversation; capturing authorizes nothing. The Node is cited as the fuller source for a reader who has an Engine.
+- **intent/F21. Engine optional** [intent/I10]. No instruction in the Skill or its reference requires an Engine, an installed package or a command to capture an Intent. Where a step is Embedded only, such as getting a Node's id with `kaal identify`, it is marked as such and is not a precondition for capturing the text.
+- **intent/F22. Effects declared** [intent/I10]. The Skill states what it writes. Capturing produces text for the person or Agent that asked, and writes into a repository only where that person has said where Intents are kept. It never decides storage (`intent/F8`) and never takes authority from being installed or absent.
+- **intent/F23. Two forms, one meaning** [intent/I11]. A plain captured Intent (name, what is wanted, why) and an Intent Node (the same plus `type` by name and id) mean the same. The reference says so, so an External agent does not need the Definition id.
+- **intent/N6. No second source** [intent/I11]. The Skill's statement of meaning is checked against the Node, so the two cannot drift: one is derived from the other, or a check fails on a difference.
+- **intent/N7. Measured, not asserted** [intent/I10]. "Stands alone" is a claim with a test, not a reading of the text. Until the test exists, the README says it is untested.
