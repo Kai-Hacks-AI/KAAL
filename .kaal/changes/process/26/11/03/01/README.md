@@ -82,12 +82,21 @@ ships; and named `test:<suite>` scripts including `test:embedded`.
    **CTO decision (3 Nov): use Foundation.** AGENTS.md names manifests as
    Foundation's job, and the independence guide forbids a duplicated technical
    answer, which justifies this one small hard dependency. The CPO may still
-   challenge it in review.
+   challenge it in review. Exact justification: the manifest digest is a KAAL
+   digest (AGENTS.md: Foundation is the one SHA-256, used for "Node ids, Seals,
+   records and manifests"); the dependency is one exact-pinned package in
+   `dependencies` (0.0.1, published, no transitive tree), imported only through
+   `@kaihacksai/kaal-foundation/sha256`; and it avoids a second SHA-256.
 3. **N9 trap.** Behaviour-not-presence needs a shipped module outside `test/`
    that the verifier exercises; with none, N9 is `unknown` and so is the overall
    result. Recommendation: do not add code only to satisfy N9. Record the
    `unknown` openly in `docs/limitations.md`, unless a real module (for example a
-   Definition loader) earns its place for consumers.
+   Definition loader) earns its place for consumers. **Under CPO challenge:** a
+   definition-only product must have an attainable, honest verification result
+   from its actual delivered contract, without inventing behaviour for a generic
+   checker. So `unknown` is not accepted as the expected result. Packaging's
+   explicit resolution for definition-only packages is requested on this PR; the
+   acceptance expectation is revised once it answers.
 4. **F7 interim.** `failed` while a dependency is a local tarball, so a Foundation
    dependency needs its registry resolution (0.0.1 is published).
 
