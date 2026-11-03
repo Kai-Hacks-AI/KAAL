@@ -462,6 +462,16 @@ guard/T124 is planned in `guard/C113`. It is a product case in `packages/kaal-gu
 | --- | --- | --- | --- | --- |
 | guard/T138: Guard's two ownership claims each read through Testing's reader (`kaal-testing/attribution`), name `{ kind: "capability", name: "Guard", id }` with the id Graph's `identify()` gives for `engineering/guard/Guard.md`, and claim exactly their own tree; `npm pack --dry-run` lists no claim. In `engineering/guard/acceptance/workspace.test.mjs`, with the cases that need KAAL's workspace | guard/A20, guard/N6 | `guard/C137` | RED: a claim whose id is one byte off is refused as not naming Guard's Node; a package whose `files` list adds the claim is refused as carrying a KAAL element | GREEN on Linux with Node 24 |
 
+## Defects found before a release, defined by the product (`guard/C132`)
+
+The package's `docs/limitations.md` defines guard/D6–guard/D14 and guard/D18 in a section of their own, "Defects found before a release". guard/T84–guard/T92 cite guard/D6–guard/D14 in their titles, and guard/T100 cites guard/D18. The rows below, in the register, cite them as `| guard/Dn (product) |`; `engineering/C8` removes the traces and Status this register still authors.
+
+| Test Case | Verifies | Place | Evidence |
+| --- | --- | --- | --- |
+| The widened guard/T127: the section exists and defines the ten Defects; a RED that names no candidate or claims a published version, an observation that names no Test Run, a Defect with GREEN only, a Defect defined in both tables, and a Tested by that differs from the derived one are each refused, naming the Defect | guard/I9, guard/F37, guard/A19 | `packages/kaal-guard/test/acceptance/architecture.test.mjs` | RED in c155d2f, before the section existed: `docs/limitations.md has no section "Defects found before a release"`. GREEN in the commit that adds it |
+
+The observations in the section come only from runs the register and the Change table record: guard/C63 (#433), guard/C64–guard/C68 shipped in #451, and guard/C92 (#505). No environment or commit is claimed where none was recorded.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
@@ -485,15 +495,15 @@ guard/D6–guard/D14 are suspected defects in the `0.0.2` candidate, found by th
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D6 | guard/T84 | a declaration that is not a regular file is skipped, so a failing check vanishes and the run passes | suspected (`guard/C61`) |
-| guard/D7 | guard/T85 | Git rewrites Guard's files to CRLF under `core.autocrlf=true`: the hook fails under `sh`, and `upgrade` and `remove` call Guard's own files modified | suspected (`guard/C61`) |
-| guard/D8 | guard/T86 | where `core.fileMode` is `false`, the hook is committed without its executable bit, and other clones never run it | suspected (`guard/C61`) |
-| guard/D9 | guard/T87 | Guard's workflow uses unpinned actions built for Node 20, and puts `github.base_ref` into a `run:` line as shell | suspected (`guard/C61`) |
-| guard/D10 | guard/T88 | a registered asset the repository lost is never reinstalled; `core.hooksPath` stays set, and no hook runs | suspected (`guard/C61`) |
-| guard/D11 | guard/T89 | an unreadable workflow entry makes `verify` fail (exit 1) with a stack trace instead of cannot judge | suspected (`guard/C61`) |
-| guard/D12 | guard/T90 | `remove --config <dir>` deletes that directory when it is empty, even outside the repository | suspected (`guard/C61`) |
-| guard/D13 | guard/T91 | an `outcomes` key with a leading zero is accepted and never matches its exit status | suspected (`guard/C61`) |
-| guard/D14 | guard/T92 | an older Git is not refused; without `--show-scope`, `init --hook` may set a local `core.hooksPath` over a global one | suspected (`guard/C61`) |
+| guard/D6 (product) | guard/T84 | a declaration that is not a regular file is skipped, so a failing check vanishes and the run passes | suspected (`guard/C61`) |
+| guard/D7 (product) | guard/T85 | Git rewrites Guard's files to CRLF under `core.autocrlf=true`: the hook fails under `sh`, and `upgrade` and `remove` call Guard's own files modified | suspected (`guard/C61`) |
+| guard/D8 (product) | guard/T86 | where `core.fileMode` is `false`, the hook is committed without its executable bit, and other clones never run it | suspected (`guard/C61`) |
+| guard/D9 (product) | guard/T87 | Guard's workflow uses unpinned actions built for Node 20, and puts `github.base_ref` into a `run:` line as shell | suspected (`guard/C61`) |
+| guard/D10 (product) | guard/T88 | a registered asset the repository lost is never reinstalled; `core.hooksPath` stays set, and no hook runs | suspected (`guard/C61`) |
+| guard/D11 (product) | guard/T89 | an unreadable workflow entry makes `verify` fail (exit 1) with a stack trace instead of cannot judge | suspected (`guard/C61`) |
+| guard/D12 (product) | guard/T90 | `remove --config <dir>` deletes that directory when it is empty, even outside the repository | suspected (`guard/C61`) |
+| guard/D13 (product) | guard/T91 | an `outcomes` key with a leading zero is accepted and never matches its exit status | suspected (`guard/C61`) |
+| guard/D14 (product) | guard/T92 | an older Git is not refused; without `--show-scope`, `init --hook` may set a local `core.hooksPath` over a global one | suspected (`guard/C61`) |
 
 guard/D15 is a suspected defect of the same kind in the External delivery's workflow, outside the package, found while correcting guard/D9 (`guard/C71`). It is established only when guard/T93 is recorded RED in `guard/C73`.
 
@@ -514,7 +524,7 @@ guard/D18 was a defect in `0.0.3` before its Release, found by the pre-release r
 
 | Defect | Traces to | Gap | Status |
 | --- | --- | --- | --- |
-| guard/D18 | guard/T100 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so it no longer names that surface removes the check from the run, unjudged, and the run can pass | established: guard/T100 recorded RED on the uncorrected runner in `guard/C92`'s pull request (#505); corrected by `guard/C92` (#505), where guard/T100 is GREEN |
+| guard/D18 (product) | guard/T100 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so it no longer names that surface removes the check from the run, unjudged, and the run can pass | established: guard/T100 recorded RED on the uncorrected runner in `guard/C92`'s pull request (#505); corrected by `guard/C92` (#505), where guard/T100 is GREEN |
 
 **Compatibility with `0.0.1` retracted.** The Owner ruled on #336 (6384215003) that `0.0.2` may break `0.0.1`, with no migration, no dual format and no rollback to it. The consumer Test Cases written against `0.0.1` are reassessed under `guard/C23`, and their K2b evidence stays recorded above:
 - guard/T37, guard/T38, guard/T39 and guard/T41 run an upgrade or a rollback between `0.0.1` and a candidate, a path `0.0.2` no longer offers. Their obligations (guard/F12–guard/F14 and guard/F16) still hold from `0.0.2` on. They are superseded by guard/T65–guard/T68, which run between two candidates of the planned configuration. `guard/C24` writes them, and the harness builds the two candidates.

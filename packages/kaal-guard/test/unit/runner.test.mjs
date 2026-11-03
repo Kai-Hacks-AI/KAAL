@@ -174,7 +174,7 @@ describe("trusted checker", () => {
     assert.match(verdict(dir, base).evidence, /does not name its trusted checker/);
   });
 
-  it("guard/T100 [guard/F7, guard/N4]: a candidate that changes a trusted check's runs so it leaves the surface being run is cannot judge there, and its checker never runs", () => {
+  it("guard/T100 [guard/F7, guard/N4, guard/D18]: a candidate that changes a trusted check's runs so it leaves the surface being run is cannot judge there, and its checker never runs", () => {
     for (const [surface, from, to] of [["ci", ["ci"], ["hook"]], ["hook", ["hook", "ci"], ["ci"]]]) {
       const checker = (status) => `require("fs").writeFileSync("judge-ran", ""); process.exit(${status});\n`;
       const { dir, base, git } = based({ j: { command: "node checks/judge.cjs", runs: from, trusted: "checks/judge.cjs" } }, { "checks/judge.cjs": checker(1) });

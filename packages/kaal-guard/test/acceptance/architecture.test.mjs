@@ -99,7 +99,7 @@ function defects(limitations, testing, titles) {
         // Observations are scoped by candidate and tied to the run that made them; none claims a published version.
         for (const part of parts) {
           if (/\bRED\b/.test(part) && !/\bRED in the `\d+\.\d+\.\d+` candidate\b/.test(part)) findings.push(`${d}: a RED that names no candidate, or claims a published version: ${part.trim()}`);
-          if (!/guard\/C\d+/.test(part) || !/#\d+/.test(part)) findings.push(`${d}: an observation names no Test Run (its Change and pull request): ${part.trim()}`);
+          if (!/#\d+/.test(part)) findings.push(`${d}: an observation names no Test Run (the pull request that recorded it): ${part.trim()}`);
         }
       }
     }
@@ -303,8 +303,8 @@ describe("Architecture conformance", () => {
     const cells = line.slice(1, -1).split(/(?<!\\)\|/).map((c) => c.trim());
     const withObserved = (observed) => `| ${cells.slice(0, 3).join(" | ")} | ${observed} |`;
     assert.ok(fixture(row(first), withObserved(cells[3].replace(/RED in the `(\d+\.\d+\.\d+)` candidate/, "RED in `$1`"))).some((f) => f.startsWith(`${first}: a RED that names no candidate`)), "a RED in a published version is not refused");
-    assert.ok(fixture(row(first), withObserved(cells[3].replace(/guard\/C\d+/g, "").replace(/#\d+/g, ""))).some((f) => f.startsWith(`${first}: an observation names no Test Run`)), "an observation that names no Test Run is not refused");
-    assert.ok(fixture(row(first), withObserved("GREEN in `0.0.2` (guard/C64, #451)")).some((f) => f.startsWith(`${first}: records no observed RED`)), "a Defect with a GREEN only is not refused");
+    assert.ok(fixture(row(first), withObserved(cells[3].replace(/#\d+/g, ""))).some((f) => f.startsWith(`${first}: an observation names no Test Run`)), "an observation that names no Test Run is not refused");
+    assert.ok(fixture(row(first), withObserved("GREEN in `0.0.2` (guard/T84, #451)")).some((f) => f.startsWith(`${first}: records no observed RED`)), "a Defect with a GREEN only is not refused");
     const inBoth = limitations.replace(/^(\| guard\/D5 \|.*)$/m, `$1\n${line}`);
     assert.ok(defects(inBoth, testing, titles).some((f) => f.startsWith(`${first}: defined in both`)), "a Defect defined in both tables is not refused");
     const stale = fixture(row(first), withObserved(cells[3]).replace(cells[2], "delivered: guard/T99"));
