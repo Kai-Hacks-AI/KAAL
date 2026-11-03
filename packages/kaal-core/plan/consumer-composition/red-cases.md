@@ -11,6 +11,7 @@ and Hosting once and installing them into a clean consumer per test, Node 24, Li
 | core/T114 | A consumer-owned scope tracing to A's and B's instances resolves with both present (3 kinds, 3 instances, 0 findings); with B absent verify fails with a finding that names B's instance and the scope with no holder, never a crash or a silent pass; A's standalone result is unaffected | GREEN |
 | core/T115 | The packed Core carries its own contribution; registering it into `.kaal/` like any package makes the Registration Type active, so a consumer's Registration Node is admitted | **RED** |
 | core/T116 | An installed but unregistered Core says so plainly | **RED** |
+| core/T117 | `kaal help` explains the sequence: init, then register Core like any package | **RED** |
 
 ## What this shows
 
@@ -21,7 +22,7 @@ and Hosting once and installing them into a clean consumer per test, Node 24, Li
 - The unresolved-trace finding is worded `unclaimed scope: the target's scope has no holder` when B's whole scope is gone;
   the PLAN's "unresolved target" holds in meaning, and T114 accepts either rule text.
 
-## Findings: T115 and T116, Defects planned separately (core/C52)
+## Findings: T115, T116 and T117, Defects planned separately (core/C52)
 
 By the Owner's rulings the package contains no registrations, and **package installed is not package registered**: Core is
 registered into the instance's `.kaal/` like any other package, and its registration-dependent features, such as the
@@ -39,6 +40,10 @@ Core's payload into it. `kaal register capability <name> <dir>` registers a pack
 - **T116 (RED):** an installed but unregistered Core reports each Registration Node as
   `unregistered: no Type Definition named Core/Registration; register one with the Core Capability` (exit 0). It does not
   say that Core itself is not registered in this Engine. The wording asserted is the PLAN's proposal for the CPO to settle.
+
+- **T117 (RED):** `kaal help` is a command list. Per Kai it should carry the information: it names `init` and `register`
+  separately but not that they are two transactions, that installed is not registered, nor that Core registers itself with
+  `kaal register capability core <dir>`.
 
 Scope for 0.0.1 is core/C52's, not fixed here. No existing test is amended. No promotion, SYNC or publication is part of
 this.

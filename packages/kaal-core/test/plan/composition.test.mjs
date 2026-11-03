@@ -207,4 +207,13 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
     const v = await verify(host);
     assert.match(v.stdout, /Core is installed but not registered/, "installed != registered: the report names the state and the remedy");
   });
+
+  it("core/T117 [core/C50 finding]: `kaal help` explains the sequence, install the instance with init, then register Core itself like any package", async () => {
+    const host = await consumer("help");
+    const h = await kaal(host, ["help"]);
+    assert.equal(h.status, 0, h.out);
+    assert.match(h.out, /kaal init/, "help names the install step");
+    assert.match(h.out, /kaal register capability core/, "help names the registration step for Core itself");
+    assert.match(h.out, /installed.*not.*registered/is, "help says that installed is not registered");
+  });
 });
