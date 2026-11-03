@@ -6,57 +6,57 @@
   "transfers": [
     {
       "source": "79524490a219b9f622052047d891f2bd30e631b6",
-      "path": "packages/kaal-testing/lib/duplicates.mjs",
-      "target": "packages/kaal-testing/lib/duplicates.mjs",
+      "path": "packages/skills/kaal-testing/lib/duplicates.mjs",
+      "target": "packages/skills/kaal-testing/lib/duplicates.mjs",
       "sha256": "e670157307233521dee93c72ea64b0cdf4a05103bf7830c50cfcd9176ffb9ec4",
       "identical": true
     },
     {
       "source": "79524490a219b9f622052047d891f2bd30e631b6",
-      "path": "packages/kaal-testing/test/duplicates-inputs.test.mjs",
-      "target": "packages/kaal-testing/test/duplicates-inputs.test.mjs",
+      "path": "packages/skills/kaal-testing/test/duplicates-inputs.test.mjs",
+      "target": "packages/skills/kaal-testing/test/duplicates-inputs.test.mjs",
       "sha256": "3255c91a7753b5f2547405609ec7e8d134c196a1fb1ed66684333107c277c98c",
       "identical": true
     },
     {
       "source": "79524490a219b9f622052047d891f2bd30e631b6",
-      "path": "packages/kaal-testing/test/engineer/duplicates.test.mjs",
-      "target": "packages/kaal-testing/test/acceptance/duplicates.test.mjs",
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates.test.mjs",
+      "target": "packages/skills/kaal-testing/test/acceptance/duplicates.test.mjs",
       "sha256": "7219a41d182c0ba9f33b272fc6509371c59e7b3409d09ea1f4806f26ca4e0829",
       "identical": true
     },
     {
       "source": "79524490a219b9f622052047d891f2bd30e631b6",
-      "path": "packages/kaal-testing/test/engineer/duplicates-mutations.mjs",
-      "target": "packages/kaal-testing/test/engineer/duplicates-mutations.mjs",
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates-mutations.mjs",
+      "target": "packages/skills/kaal-testing/test/engineer/duplicates-mutations.mjs",
       "sha256": "3472e9623ea3a5d984a30ba9f86083f9575b4c63d34385497ffe082d86d5e9d9",
       "identical": true
     },
     {
       "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
-      "path": "packages/kaal-testing/plan/duplicates/intent.md",
-      "target": "packages/kaal-testing/plan/duplicates/intent.md",
+      "path": "packages/skills/kaal-testing/plan/duplicates/intent.md",
+      "target": "packages/skills/kaal-testing/plan/duplicates/intent.md",
       "sha256": "6312af9c098b3a5021c5b84cdba7bb1387e765a3185de270fa47ff535b727e5c",
       "identical": true
     },
     {
       "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
-      "path": "packages/kaal-testing/plan/duplicates/requirements.md",
-      "target": "packages/kaal-testing/plan/duplicates/requirements.md",
+      "path": "packages/skills/kaal-testing/plan/duplicates/requirements.md",
+      "target": "packages/skills/kaal-testing/plan/duplicates/requirements.md",
       "sha256": "6c7553284b90ca6ce8c36961c7f58030f504b69ca3a0504c9939ede02d7fd48c",
       "identical": true
     },
     {
       "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
-      "path": "packages/kaal-testing/plan/duplicates/architecture.md",
-      "target": "packages/kaal-testing/plan/duplicates/architecture.md",
+      "path": "packages/skills/kaal-testing/plan/duplicates/architecture.md",
+      "target": "packages/skills/kaal-testing/plan/duplicates/architecture.md",
       "sha256": "78864c307b2af8b4743543a90d0ed3893d1191124e939bf042ed952dde7a0bcd",
       "identical": true
     },
     {
       "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
-      "path": "packages/kaal-testing/plan/duplicates/testing.md",
-      "target": "packages/kaal-testing/plan/duplicates/testing.md",
+      "path": "packages/skills/kaal-testing/plan/duplicates/testing.md",
+      "target": "packages/skills/kaal-testing/plan/duplicates/testing.md",
       "sha256": "dbebe4d7b1bb0baca04478371a0ba0050b7acdbf1b378ce00a5bc25c5133a482",
       "identical": true
     }
