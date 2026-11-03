@@ -321,6 +321,20 @@ function escapes(path, specifier) {
 /** The package a bare specifier names: `@scope/name` or `name`. */
 const packageOf = (specifier) => specifier.split("/").slice(0, specifier.startsWith("@") ? 2 : 1).join("/");
 
+/**
+ * packaging/F30: the packed artifact carries nothing of the repository's KAAL-only Engineering or
+ * Packages support. It reads the delivered files and package.json, never the consumer: a consumer's
+ * transitive dependencies are legitimate and cannot be told from a leak here.
+ */
+function leak(pkg, files) {
+  const paths = Object.keys(files).sort();
+  const nested = paths.find((p) => /^packages\/[^/]+\/package\.json$/.test(p));
+  const found = paths.find((p) => p.startsWith(".kaal/") || p.startsWith("engineering/")) ?? nested;
+  if (found !== undefined) return finding("packaging/F30", "failed", `the artifact carries ${found}, which belongs to the repository's KAAL-only Engineering or Packages support and not to a consumer's install`);
+  if (pkg.workspaces !== undefined) return finding("packaging/F30", "failed", "its package.json declares workspaces, which is the repository's root manifest and not a package's");
+  return finding("packaging/F30", "verified", `none of its ${paths.length} delivered files belongs to the repository's KAAL-only support, and its package.json is no workspace root`);
+}
+
 /** packaging/N8: every shipped module imports only Node's own modules, the package, and its declared dependencies. */
 function selfContained(pkg, files) {
   const declared = new Set([pkg.name, ...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.optionalDependencies ?? {})]);
@@ -342,34 +356,56 @@ function projectOf(dir) {
   return at.length ? dir.slice(0, Math.min(...at)) : dir;
 }
 
-/** The text that replaces every shipped module in the behaviour probe. */
+/** The text that replaces every shipped module, and every declared behaviour-bearing file in the unreadable copy, in the behaviour probe. */
 const BROKEN = 'throw new Error("kaal-packaging N9 probe: this module was broken on purpose");\n';
+
+/** The empty document of a declared file's own format, chosen from its extension and nothing else (packaging/F29). */
+const emptied = (path) => (/\.json$/i.test(path) ? "{}\n" : "");
+
+/**
+ * The files a package declares as behaviour-bearing in its shipped manifest (packaging/F29): the
+ * delivered files its verification decides from. `null` when it declares none; otherwise the
+ * paths, or the cause the declaration is bad. A declaration is checked, never trusted.
+ */
+function declaredBehaviour(files, verify) {
+  if (verify === null || typeof verify !== "object" || !("behaviour" in verify)) return null;
+  const list = verify.behaviour;
+  if (!Array.isArray(list) || list.length === 0) return { bad: "its declared behaviour list is empty, so it declares no file for the probe to corrupt" };
+  for (const p of list) {
+    if (typeof p !== "string" || !(p in files)) return { bad: `${JSON.stringify(p)} in its declared behaviour list is not a shipped file` };
+    if (p.startsWith("test/")) return { bad: `${p} in its declared behaviour list is under test/, which is the verification itself` };
+    if (verify.files && typeof verify.files === "object" && !(p in verify.files)) return { bad: `${p} in its declared behaviour list is not in the manifest` };
+  }
+  return { paths: [...new Set(list)] };
+}
 
 /**
  * packaging/N9's behaviour probe. In `work`, never in the consumer, it installs a copy of the
- * package beside the consumer's dependencies with every shipped module outside test/ broken, and
- * the shipped manifest's digests rewritten to match, so that a verification that checks only
- * presence or digests cannot tell the difference. It runs that copy's `npm test` once. A
- * verification that still reports verified decides from presence, not behaviour: failed. One that
- * no longer does depends on the modules' behaviour; whether its assertions are adequate stays its
- * owner's, and the finding says so.
+ * package beside the consumer's dependencies with the manifest's digests rewritten to match, so that
+ * a verification that checks only presence or digests cannot tell the difference, and runs that
+ * copy's `npm test` once. The first copy breaks every shipped module outside test/ and every file the
+ * package declares as behaviour-bearing (packaging/F29) as unreadable. When files are declared, a
+ * second copy replaces only those files with the empty document of their own format: it parses and
+ * states nothing, so a verification that only checks the syntax of what it reads still reports
+ * verified. A verification that still reports verified on either copy decides from presence,
+ * digests or syntax, not from behaviour: failed. One that reports verified on neither depends on
+ * the behaviour; whether its assertions are adequate stays its owner's, and the finding says so.
  */
 async function probe(pkg, files, root, { work, env, npm }) {
   if (work === undefined) return finding("packaging/N9", "unknown", "no working directory was given for the behaviour probe, so behaviour was not checked");
   const modules = Object.keys(files).filter((p) => /\.(mjs|cjs|js)$/.test(p) && !p.startsWith("test/"));
-  if (modules.length === 0) return finding("packaging/N9", "unknown", "the package ships no module outside test/ to break, so behaviour cannot be told from presence here");
-  const copy = { ...files };
-  for (const p of modules) copy[p] = Buffer.from(BROKEN);
-  if ("test/verify.json" in copy) {
+  let verify = null;
+  if ("test/verify.json" in files) {
     try {
-      const v = JSON.parse(copy["test/verify.json"].toString("utf8"));
-      if (v.files && typeof v.files === "object") for (const p of modules) if (p in v.files) v.files[p] = sha256(copy[p]);
-      copy["test/verify.json"] = Buffer.from(JSON.stringify(v, null, 2) + "\n");
+      verify = JSON.parse(files["test/verify.json"].toString("utf8"));
     } catch {
       // An unreadable manifest is F11's finding; the probe runs with it as shipped.
     }
   }
-  const tree = { "package.json": Buffer.from(JSON.stringify({ name: "kaal-packaging-probe", private: true }) + "\n") };
+  const declared = declaredBehaviour(files, verify);
+  if (declared?.bad) return finding("packaging/N9", "failed", declared.bad);
+  const paths = declared?.paths ?? [];
+  if (modules.length === 0 && paths.length === 0) return finding("packaging/N9", "unknown", "the package ships no module outside test/ to break and declares no behaviour-bearing file, so behaviour cannot be told from presence here");
   let dependencies = {};
   try {
     dependencies = await read(join(root, "node_modules"));
@@ -377,23 +413,39 @@ async function probe(pkg, files, root, { work, env, npm }) {
     return finding("packaging/N9", "unknown", `the behaviour probe could not copy the consumer's dependencies: ${e.message}`);
   }
   const own = `${pkg.name}/`;
-  for (const [p, bytes] of Object.entries(dependencies)) if (!p.startsWith(own) && !p.startsWith(".")) tree[`node_modules/${p}`] = bytes;
-  for (const [p, bytes] of Object.entries(copy)) tree[`node_modules/${own}${p}`] = bytes;
-  let r;
+  const run = async (changes, dir) => {
+    const copy = { ...files, ...changes };
+    if (verify !== null && verify.files && typeof verify.files === "object") {
+      const v = { ...verify, files: { ...verify.files } };
+      for (const p of Object.keys(changes)) if (p in v.files) v.files[p] = sha256(copy[p]);
+      copy["test/verify.json"] = Buffer.from(JSON.stringify(v, null, 2) + "\n");
+    }
+    const tree = { "package.json": Buffer.from(JSON.stringify({ name: "kaal-packaging-probe", private: true }) + "\n") };
+    for (const [p, bytes] of Object.entries(dependencies)) if (!p.startsWith(own) && !p.startsWith(".")) tree[`node_modules/${p}`] = bytes;
+    for (const [p, bytes] of Object.entries(copy)) tree[`node_modules/${own}${p}`] = bytes;
+    await initialize(dir, tree);
+    const r = await npmTest(join(dir, `node_modules/${pkg.name}`), { env, npm });
+    return { parsed: resultLine(r.stdout), status: r.status };
+  };
+  const unreadable = Object.fromEntries([...modules, ...paths].map((p) => [p, Buffer.from(BROKEN)]));
+  const blank = Object.fromEntries(paths.map((p) => [p, Buffer.from(emptied(p))]));
+  const still = (r) => !r.parsed.error && r.parsed.result === "verified" && r.status === 0;
+  const broken = `${modules.length} shipped modules outside test/ and ${paths.length} declared behaviour-bearing files`;
+  let a, b;
   try {
-    await initialize(work, tree);
-    r = await npmTest(join(work, `node_modules/${pkg.name}`), { env, npm });
+    a = await run(unreadable, work);
+    if (paths.length > 0 && !still(a)) b = await run(blank, join(work, "emptied"));
   } catch (e) {
     return finding("packaging/N9", "unknown", `the behaviour probe could not run: ${e.message}`);
   }
-  const parsed = resultLine(r.stdout);
-  if (!parsed.error && parsed.result === "verified" && r.status === 0) {
-    return finding("packaging/N9", "failed", `with all ${modules.length} shipped modules outside test/ broken, its verification still reports verified: it decides from presence, not behaviour`);
+  if (still(a)) return finding("packaging/N9", "failed", `with all ${broken} unreadable, its verification still reports verified: it decides from presence, not behaviour`);
+  if (b !== undefined && still(b)) {
+    return finding("packaging/N9", "failed", `with its ${paths.length} declared behaviour-bearing files emptied to a document of the same format, its verification still reports verified: it decides from presence, digests or syntax, not from what the files state`);
   }
   return finding(
     "packaging/N9",
     "verified",
-    `with its ${modules.length} shipped modules broken, its verification no longer reports verified (${parsed.error ? "no result" : parsed.result}): it depends on their behaviour. Whether its assertions are adequate is its owner's to show`,
+    `with ${broken} broken${b === undefined ? "" : " and the declared files emptied"}, its verification no longer reports verified (${a.parsed.error ? "no result" : a.parsed.result}): it depends on their behaviour. Whether its assertions are adequate is its owner's to show`,
   );
 }
 
@@ -448,6 +500,7 @@ export async function conform(dir, { consumer, env, work, testing, npm } = {}) {
     manifest(files, verify, checked.run),
     platforms(pkg),
     traceability(files, verify, { testing }),
+    leak(pkg, files),
     intact(before, after),
     selfContained(pkg, files),
     n9,

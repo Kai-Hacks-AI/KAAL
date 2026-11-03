@@ -65,6 +65,12 @@ These run in the source workspace only, in `test/publisher/capability.test.mjs`,
 | packaging/T33 | packaging/N11 | no file of the package names the running platform, a launcher for one, or a shell chosen by platform |
 | packaging/T53 | packaging/F11 | the installed verifier checks the manifest before it runs any case: an intact copy verifies, and a changed, removed, added or escaping file, or a malformed manifest, cannot verify, naming the file and running no case |
 | packaging/T54 | packaging/F10, packaging/F11 | each declared case runs exactly once: a missing, duplicate, undeclared, skipped or todo case cannot verify, and a declared failure on an intact copy is failed |
+| packaging/T61 | packaging/F29 | a definition-only package whose verification asserts the content of its declared Node files reaches verified, N9 included | `test/embed/package.test.mjs` |
+| packaging/T62 | packaging/F29 | a presence-only verification fails N9 (the plan's T62a) | `test/embed/package.test.mjs` |
+| packaging/T63 | packaging/F29, packaging/A22 | no module and no declaration is unknown; a bad declaration is failed; a package with modules is unchanged | `test/embed/package.test.mjs` |
+| packaging/T65 | packaging/F30 | the packed artifact carries nothing of the repository's KAAL-only support, and names the first offending path | `test/embed/package.test.mjs` |
+| packaging/T66 | packaging/F29 | a digest-only verification fails N9 with the declared bytes corrupted and the digests adjusted (the plan's T62b) | `test/embed/package.test.mjs` |
+| packaging/T67 | packaging/F29 | a syntax-only verification survives the emptied copy and fails N9, naming it (the plan's T62c) | `test/embed/package.test.mjs` |
 | packaging/T51 | packaging/F25 | an agent using the shipped skill judges an adequate boundary account adequate, finds the material omission in an account whose headings, links and passing scripts look complete (an outgoing obligation whose refusals no Case exercises), and keeps unsupported evidence unresolved. A recorded independent trial, with its scenarios and expectations set before it ran |
 | packaging/T52 | packaging/F17 | the same trial run without an Engine, from the shipped skill alone: the agent chooses its inspections, interprets the script observations and records judgments, unknowns and Owner authorization separately, without proving completeness mechanically or taking another package's content |
 

@@ -14,7 +14,7 @@ export interface Conformance {
   package: { name: string; version: string; location: string };
   /** failed when any finding failed, unknown when any is unknown, else verified. */
   result: Result;
-  /** One finding for each of packaging/F7–F13 and N7–N9, in that order. */
+  /** One finding for each of packaging/F7–F13, F30 and N7–N9, in that order. */
   findings: Finding[];
   /** What the package's own verification reported. That is its specific contract, not Packaging's to judge. */
   reported: { result: string; exit: number; causes: string[] } | null;
