@@ -53,6 +53,7 @@ does several jobs, which is the better reason to split, needs each owner's readi
   Only Graph (8), Review (3), Change (2), Branching (2) and Engineer Skill (2) keep scripts inside a Skill directory. "Capability 1..n Skill 1..n Script" matches the second pattern. The first is what most packages do.
 - **Seven Capabilities have no Skill yet:** Process, Requirements, Product, Roles, Service, Data and Project. They are Nodes and Definitions only on their collectors. This is consistent with the model, but their Agent-facing surface does not exist.
 - **A repository's Capability is its instance** (ownership claim in `ownership.kaal.json`). Core's registration already works that way. Nothing in this inventory contradicts it.
+- **A possible future builder package (Owner, 3 Nov, for discussion only).** A repository that builds Capabilities or packages starts empty with only Engineering and Packages. Together they could be a package of their own, for builders and not for consumers. This inventory does not authorize it. It touches the open question below on what a consumer sees of `packages/`, and Engineering and Packaging own what would go into it.
 - **KAAL-only extras:** `engineering/` holds Engineering's machinery, and `packages/` holds the distributable packages. Hosting, Core and Foundation are packages a consumer receives, so the `packages/` extra is distribution, not capability content. Whether a consumer ever sees `packages/` structure is the packaging discussion, not settled here.
 
 ## 6. Questions for the owners and Kai (no action implied)
@@ -60,6 +61,6 @@ does several jobs, which is the better reason to split, needs each owner's readi
 1. Hosting and Learning: one Skill or two? (Owners, then Kai if it changes the model.)
 2. A size threshold for "big", or a judgement per Skill? Testing is the first candidate either way.
 3. Where should a Skill's scripts live, under the Skill or under the package? The model says Skill. Most packages say package.
-4. Packages as a separate, Skill-oriented discussion: when does it open?
+4. Packages as a separate, Skill-oriented discussion: when does it open? It would also cover the possible builder package (Engineering plus Packages) above.
 
 Auto-merge is enabled; approval and required checks govern.
