@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Foundation", "id": "649fbafb81a8d976b65a4e8c0db7228a194ec515385820d489e4a74041dc27c5" },
+  "paths": ["packages/kaal-foundation/"]
+}
