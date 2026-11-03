@@ -1,5 +1,15 @@
 // engineering/T82: the Release workflow's Hosting selector must not choose between two workspaces.
 //
+// Identities in this file, one per leaf test: engineering/T82 is the RED Case and the only Case D1 names
+// in `tests`. engineering/T84 (the workflow has three Hosting build steps to judge), engineering/T85 (a
+// workspace the selector accepts is built, alone) and engineering/T86 (an absent workspace stops the
+// build) are its preconditions and controls, each with an identity of its own.
+//
+// Applicability: Linux and macOS, with bash, npm and git. Inapplicable on Windows, because the release
+// workflow's build steps run on ubuntu-latest in bash and this Case judges those steps as they run. On
+// Windows the file reports that and exits 3, the repository's "does not apply" status; it neither skips
+// a leaf nor passes one.
+//
 // Proves engineering/D1 (see D1-selector-ambiguity.md). The Case runs the selector command lines that
 // `.github/workflows/release.yml` really contains, byte for byte, against a scratch workspace repo,
 // so a change to the selector changes what is judged. It reads no other copy of the selector.
@@ -20,7 +30,7 @@
 // and a selector that accepts one name cannot be ambiguous, and must still build exactly that workspace.
 // Do not edit it to pass, and do not close D1 before then.
 //
-// Needs a POSIX shell and npm, like the workflow's ubuntu steps.
+// The identity, version and confirming Run of this Case are recorded in D1-selector-ambiguity.md.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -29,14 +39,23 @@ import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
+if (process.platform === "win32") {
+  console.log("engineering/T82: inapplicable on win32: the release workflow's build steps run on ubuntu in bash");
+  process.exit(3);
+}
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const WORKFLOW = join(ROOT, ".github", "workflows", "release.yml");
 
-/** Every `run:` step of the workflow that builds the Hosting workspace, however it selects it. */
+/**
+ * Every `run:` step of the workflow that builds the Hosting workspace, found by what it does and not by
+ * the shape of today's selector: a `run:` step that runs `npm`, builds, selects a workspace with
+ * `--workspace` or `-w`, and names kaal-hosting (directly or in an `npm query`).
+ */
 function selectors() {
   return readFileSync(WORKFLOW, "utf8")
     .split("\n")
-    .filter((line) => /^\s*-\s+run:\s+npm run build\b/.test(line) && /(--workspace|-w\b)/.test(line) && /kaal-hosting/.test(line))
+    .filter((line) => /^\s*-\s+run:\s+/.test(line) && /\bnpm\b/.test(line) && /\bbuild\b/.test(line) && /(--workspace\b|\s-w\s)/.test(line) && /kaal-hosting/.test(line))
     .map((line) => line.replace(/^\s*-\s+run:\s+/, ""));
 }
 
@@ -81,18 +100,18 @@ function run(command, names) {
   }
 }
 
-test("engineering/T82 the workflow has three selector steps to judge", () => {
+test("engineering/T84 the workflow has three Hosting build steps to judge", () => {
   assert.equal(selectors().length, 3, "Pack, Publish and Accept each select the Hosting workspace");
 });
 
-test("engineering/T82 control: a workspace the selector accepts is built, and only that one", () => {
+test("engineering/T85 control: a workspace the selector accepts is built, and only that one", () => {
   for (const command of selectors()) for (const name of accepts(command)) {
     const r = run(command, [name]);
     assert.deepEqual([r.status, r.built], [0, [name]], `${name}: ${r.output}`);
   }
 });
 
-test("engineering/T82 control: no matching workspace stops the build", () => {
+test("engineering/T86 control: no matching workspace stops the build", () => {
   for (const command of selectors()) {
     const r = run(command, ["something-else"]);
     assert.notEqual(r.status, 0, "an absent Hosting workspace must fail");
