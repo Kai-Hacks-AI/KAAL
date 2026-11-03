@@ -17,6 +17,19 @@ export async function readTargetSnapshot(root, revision) {
   for (const path of paths) sources[path] = await git(root, ['show', `${revision}:${path}`]);
   return { revision, sources };
 }
+export async function readCommittedFile(root,revision,path) {
+  if(!sha(revision)||typeof path!=='string'||path.startsWith('/')||path.includes('..')||!/^[-A-Za-z0-9_./]+$/.test(path))
+    throw new TypeError('immutable source revision and repository path required');
+  return git(root,['show',`${revision}:${path}`]);
+}
+export async function readCommitObject(root,revision) {
+  if(!sha(revision))throw new TypeError('immutable commit revision required');
+  const headers=(await git(root,['cat-file','commit',revision])).split('\n\n')[0].split('\n');
+  const trees=headers.filter(line=>line.startsWith('tree ')).map(line=>line.slice(5));
+  const parents=headers.filter(line=>line.startsWith('parent ')).map(line=>line.slice(7));
+  if(trees.length!==1||!sha(trees[0])||parents.some(parent=>!sha(parent)))throw new Error('invalid Git commit headers');
+  return {treeSha:trees[0],parents};
+}
 export async function authorityFromGit(root, context) {
   if (!context || !['baseSha', 'headSha', 'testedSha', 'governanceSha'].every(k => sha(context[k])))
     throw new TypeError('independently supplied immutable evaluation context required');
@@ -27,11 +40,8 @@ export async function authorityFromGit(root, context) {
       throw new Error(`unknown ${key}`);
   // Pretty-printed %P follows Git's shallow boundary and can hide real parents.
   // The commit object's headers retain their exact IDs even without the objects.
-  const headers = (await git(root, ['cat-file', 'commit', context.testedSha])).split('\n\n')[0].split('\n');
-  const trees = headers.filter(line => line.startsWith('tree ')).map(line => line.slice(5));
-  const parents = headers.filter(line => line.startsWith('parent ')).map(line => line.slice(7));
-  if (trees.length !== 1 || trees[0] !== context.testedTreeSha || !sha(trees[0]) ||
-      parents.some(parent => !sha(parent)) || JSON.stringify(parents) !== JSON.stringify(context.parents))
+  const {treeSha,parents}=await readCommitObject(root,context.testedSha);
+  if (treeSha !== context.testedTreeSha || JSON.stringify(parents) !== JSON.stringify(context.parents))
     throw new Error('tested tree/parent proof differs from trusted context');
   return establishFullMatrix(context, await readTargetSnapshot(root, context.baseSha));
 }

@@ -21,11 +21,11 @@ export async function signedBody(payload) {
   const signature = 'sha256=' + Buffer.from(await subtle.sign('HMAC', webhookKey, bytes)).toString('hex');
   return { bytes, headers: { signature, deliveryId: 'delivery-1' } };
 }
-export function authFixture() {
+export function authFixture(options = {}) {
   const used = new Set();
   return createAuthenticator({ subtle, webhookKey, issuerKeys: { fixture: pair.publicKey },
     audience: 'kaal-ci-shadow', attestorRef, attestorSha, installationId: 777,
-    replay: { async claim(id) { if (used.has(id)) return false; used.add(id); return true; } } });
+    replay: { async claim(id) { if (used.has(id)) return false; used.add(id); return true; } }, ...options });
 }
 export function claimsFor(f, w, p) {
   const sec = Math.floor(f.now / 1000);
