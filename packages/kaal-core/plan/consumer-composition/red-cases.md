@@ -22,18 +22,22 @@ and Hosting once and installing them into a clean consumer per test, Node 24, Li
 
 ## Finding: T115, a Defect to be planned separately
 
+By the Owner's ruling the package contains no registrations: a consumer's registrations are its own, and an installed
+Core, an instance in a target repo, has the capability to register them. T115 asks for no registration to be shipped.
+Installed Core can register: T112 to T114 show assembly, discovery and findings working in a clean consumer.
+
 The RED output:
 
 ```
-✖ core/T115 [core/C50 finding]: in a clean consumer from the packed Core, a Registration Node is admitted as its Type, not reported unregistered
-  AssertionError: the packed Core must carry the Registration Type Definition
+✖ core/T115 [core/C50 finding]: after `kaal init` in a clean consumer, an installed Core has registered its own Registration Type, so a consumer's Registration Node is not reported unregistered
+  AssertionError: an installed Core must register its own Registration Type Definition in the Engine it initializes
 ```
 
-In the installed consumer, `kaal verify` assembles Registration Nodes (code carries the schema) but reports each as
-`unregistered: no Type Definition named Core/Registration; register one with the Core Capability`. Core's own tests pass
-only because they copy `capability/Core.md` and `capability/Registration.md` from the source tree; those two files are not
-in the package's `files` list and not in the `init` payload. So in a consumer the Registration Type's schema does not judge
-its Nodes. Whether the packed Core must carry that Definition for 0.0.1 is a scope question for a separate Core PLAN
-(numbered when it is opened), not decided or fixed here, as the C50 PLAN requires.
+What is missing is narrower. Core's built-in schema judges the Node, but `kaal init` does not register Core's own
+Capability and the Registration Type Definition in the Engine, so `kaal verify` reports every consumer Registration Node
+as `unregistered: no Type Definition named Core/Registration; register one with the Core Capability` (exit 0, state
+not valid). Core's own tests pass only because they copy `capability/Core.md` and `capability/Registration.md` from the
+source tree; neither is in the package `files` list or the `init` payload. Whether `init` should register them for 0.0.1
+is a scope question for a separate Core PLAN (numbered when opened), not decided or fixed here.
 
 No existing test is amended. No promotion, SYNC or publication is part of this.

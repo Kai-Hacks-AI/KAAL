@@ -184,15 +184,17 @@ describe("kaal-core's independent discovery and optional composition (core/C50)"
     assert.ok(lines(aOnly).includes("registration\t1 kinds, 1 instances, 0 findings"), aOnly.out);
   });
 
-  // A finding of this PLAN's RED Cases, recorded RED and raised as its own PLAN, never fixed in passing: the
-  // scenario above assembles because Core's code carries the Registration schema, but in a clean consumer every
-  // Registration Node is reported "unregistered: no Type Definition named Core/Registration", so the Node is not
-  // admitted as its Type and the Type's schema is not what judges it.
-  it("core/T115 [core/C50 finding]: in a clean consumer from the packed Core, a Registration Node is admitted as its Type, not reported unregistered", async () => {
+  // A finding of this PLAN's RED Cases, recorded RED and raised as its own PLAN, never fixed in passing. By design the
+  // package contains no registrations: a consumer's own are the consumer's to write, and an installed Core has the
+  // capability to register them. This Case therefore does not ask for any registration to be shipped. The scenario
+  // above works: Core's built-in schema judges and assembles a consumer's Registration Nodes. But `kaal init` does not
+  // register Core's own Capability and the Registration Type Definition in the Engine, so each Registration Node is
+  // reported "unregistered: no Type Definition named Core/Registration" and its state is not "valid".
+  it("core/T115 [core/C50 finding]: after `kaal init` in a clean consumer, an installed Core has registered its own Registration Type, so a consumer's Registration Node is not reported unregistered", async () => {
     const host = await consumer("type-definition");
     put(host, "portfolio.md", A);
     const r = await verify(host);
     assert.equal(r.status, 0, r.out);
-    assert.doesNotMatch(r.stdout, /unregistered/, "the packed Core must carry the Registration Type Definition");
+    assert.doesNotMatch(r.stdout, /unregistered/, "an installed Core must register its own Registration Type Definition in the Engine it initializes");
   });
 });
