@@ -1,7 +1,7 @@
 {
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "b574d912fb1c01148489af0227de1a950f7bac88b4cffe59b3582aa21de485e9",
+    "README.md": "d6e1da6662cd27e888237651a48a9050ed2bd3affc93cecea28d0e081e943631",
     "bin/kaal-packaging.mjs": "3a02fa6e87a5f92627c48b50b74bfd23371d17e82ce762c088431167e2150337",
     "capability/Packaging.md": "7bb7f9eeba38848847af8043265c4f07ffcc07bb1a0a0c6e635431c740309eae",
     "docs/architecture.md": "10609e1f155feb37ee4bd711781b8182c1ff7d99fbfda2c2ab13000c86166a77",
