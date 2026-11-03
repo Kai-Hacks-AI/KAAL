@@ -21,12 +21,12 @@ The planned tests are `packages/skills/kaal-requirements/test/plan/external.test
 | Test | Checks | Recorded |
 | --- | --- | --- |
 | requirements/T27 | Skill present, provided by the contract as a directory asset into `.agents/skills/kaal-requirements`, catalogued, packed, listed in `files` | RED, **blocked before behavioural assertion**: `skills/kaal-requirements/SKILL.md` does not exist |
-| requirements/T28 | No Engine, `kaal` command or install as a precondition | RED, blocked before behavioural assertion: no Skill |
-| requirements/T29 | The Skill's what-it-is statements are present verbatim in the Node `Requirement` | RED, blocked before behavioural assertion: no Skill |
+| requirements/T28 | No `kaal` command or install instruction, and no Engine as a precondition. An explicit independence statement or an optional reference to the Nodes may mention an Engine | RED, blocked before behavioural assertion: no Skill |
+| requirements/T29 | The Skill's what-it-is statements, including the definition sentence (one condition, held by the responsible business context, verifiable by test or other evidence), are present verbatim in the Node `Requirement` | RED, blocked before behavioural assertion: no Skill |
 | requirements/T30 | Plain form: `<capability>/F<n>` or `N<n>`, condition, Intent where known, same meaning as a Node, no id required | RED, blocked before behavioural assertion: no Skill |
 | requirements/T31 | A check for "verifiable" naming an observable result, with Testing as the judge | RED, blocked before behavioural assertion: no Skill |
-| requirements/T32 | Effects: what it writes, and that it authorizes nothing | RED, blocked before behavioural assertion: no Skill |
+| requirements/T32 | Effects: text returned to the requester by default, a repository file only where the requester has said Requirements are kept, no "any file", and that it authorizes nothing | RED, blocked before behavioural assertion: no Skill |
 
-All six are RED, and none yet exercises its behavioural assertion. The logic of T28 to T32 was checked once against a throwaway Skill, which was then removed: with it T28 to T32 pass and only T27, which needs the contract, stays RED. The External trial row above is not a test here, so "stands alone" remains **untested**.
+All six are RED, and none yet exercises its behavioural assertion. The logic of T28 to T32 was checked against throwaway Skills, which were then removed: a compliant one (with an independence statement and an optional Node reference) passes T28 to T32 and only T27, which needs the contract, stays RED, and "Read the Node in a KAAL Engine first" fails T28. The External trial row above is not a test here, so "stands alone" remains **untested**.
 
 Fixed by the tests for the DO: the Skill is `skills/kaal-requirements/SKILL.md` with `## Plain form` and `## Effects` sections, and the contract asset follows Guard's shape (`kind: directory`, `provides: [{ "skill": "kaal-requirements" }]`).

@@ -43,21 +43,25 @@ describe("kaal-requirements: stands alone (External use)", () => {
     assert.ok(pkg().files.includes("skills"), "package.json files lists skills");
   });
 
-  it("requirements/T28: the Skill gives no instruction to read an Engine, run a kaal command or install a package as a precondition; a step marked Embedded only is not a precondition [requirements/F28, requirements/I15]", () => {
+  it("requirements/T28: the Skill gives no instruction to run a kaal command or install a package, and does not make an Engine a precondition; an explicit independence statement or an optional reference to the Nodes may mention one; a step marked Embedded only is not a precondition [requirements/F28, requirements/I15]", () => {
     const text = skill()
       .split("\n")
       .filter((line) => !/Embedded only/.test(line))
       .join("\n");
-    assert.doesNotMatch(text, /\bKAAL Engine\b/);
     assert.doesNotMatch(text, /\bkaal (verify|list|register|identify|install)\b/);
     assert.doesNotMatch(text, /\bnpx\b|\bnpm (install|i)\b/);
+    // A sentence that mentions an Engine must state independence ("no", "not", "without") or an optional reference ("if", "optional", "fuller", "may").
+    const sentences = text.split(/(?<=[.!?])\s+|\n+/);
+    for (const sentence of sentences.filter((x) => /\bEngine\b/.test(x))) {
+      assert.match(sentence, /\b(no|not|without|never|if|optional|fuller|deeper|may)\b/i, `an Engine is mentioned as a precondition: ${sentence}`);
+    }
   });
 
   it("requirements/T29: each statement of what a Requirement is and is not in the Skill is present, verbatim, in the Node Requirement [requirements/F25, requirements/N9]", () => {
     const node = read(join(PACKAGE, "capability", "Requirement.md"));
     const text = skill();
     const statements = [
-      "A Requirement states what must hold.",
+      "A Requirement states what must hold. It is one functional or non-functional condition that what is built is to satisfy, held by the business context responsible for it, and stated precisely enough to be verified by test or other evidence.",
       "It answers what, and only that. It does not say why (Intent), where (Architecture), how (Code), or whether it holds (Testing).",
       "A condition that cannot be verified is not yet a Requirement.",
     ];
@@ -83,9 +87,11 @@ describe("kaal-requirements: stands alone (External use)", () => {
     assert.match(text, /Testing(?:'s| decides| judges)/);
   });
 
-  it("requirements/T32: the Skill states what it writes and where, and takes no authority from being installed or absent [requirements/F29]", () => {
+  it("requirements/T32: the Skill states what it writes and where: text returned to the requester by default, a repository file only where the requester has said Requirements are kept; it takes no authority from being installed or absent [requirements/F29]", () => {
     const effects = section(skill(), "Effects");
-    assert.match(effects, /writes?/i);
+    assert.match(effects, /returns?\b[^.\n]*\bto the (requester|person|agent that asked)/i);
+    assert.match(effects, /only where the (requester|person|agent that asked) has (said|specified|named|told)/i);
+    assert.doesNotMatch(effects, /\bany (repository )?file\b/i);
     assert.match(effects, /authori[sz]es nothing|takes no authority/i);
   });
 });
