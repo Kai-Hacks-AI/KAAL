@@ -50,23 +50,58 @@ Owner-led, so each step belongs to the capability named.
 - The general discovery of Roles through a Capability's documents is future work
   and is not a precondition. A definition is found where its owner ships it.
 
-## 4. Decision for Kai
+## 4. Identity and references through the migration
 
-Roles waits behind Hosting, Foundation and Core, then #328 and #560, to promote.
-The definitions are to be taken by their owners anyway. Two routes:
+A Definition's Node identity is the id of its exact content. A reference that
+must survive is therefore a name, and a name plus id when it must be exact.
 
-- **A. Promote `kaal-roles` first, migrate later.** The CTO and CPO Advisor
-  definitions are on `main` early as the referenceable baseline both sessions
-  point at, and are then moved and the package deleted. More churn on `main`;
-  the baseline is available from the day Roles promotes.
-- **B. Migrate before `kaal-roles` ever reaches `main`.** Engineering and
-  Product take their definitions into their own collectors, and `kaal/roles` is
-  deleted unpromoted. No transient package on `main`, but the baseline waits for
-  two owner Changes and their own promotions.
+- **First move is byte-identical.** The owner's first Change copies the
+  definition unchanged, so the Node id does not change. Wording changes (such as
+  dropping "provisional") come in the owner's own later Change, and the id then
+  changes as it does for any edit.
+- **The Change records the mapping.** The owner's Change states the old and new
+  location and, where the id changed, the old id and the new id, so a reference
+  by name and id can be followed.
+- **Nothing resolves by path.** A reference to a Role from a PLAN, README or
+  review lens uses its name (and id where exact), not the `kaal-roles` path.
+  That is the only way a reference stays valid across the move.
 
-Recommended: A, since the baseline is wanted now and `kaal-roles` is private and
-unpublished, so the churn is contained to the repository. This is Kai's decision;
-nothing proceeds on either route until it is given.
+## 5. Does the baseline need to reach `main` first?
+
+The CPO asked for the product tradeoff to be explicit. The facts today:
+
+- The baseline already exists and is referenceable. Both definitions are merged
+  on `kaal/roles` and CPO-approved (#867, #876), and the CTO and CPO sessions
+  point at them there.
+- No consumer on `main` or npm depends on them. `kaal-roles` is private and
+  unpublished, `kaal-review` and Process declare no dependency on it, and
+  nothing in the repository fetches a Role from `main`.
+- Promoting a deliberately temporary package adds product surface on `main`
+  (a workspace, a Capability Node, two Definitions) that is then removed again.
+
+A concrete consumer would change that: for example a Capability on `main` whose
+shipped documents must name the CTO or CPO Advisor, or a review lens on `main`
+that must resolve one before Engineering and Product can host their own copy.
+None exists today.
+
+## 6. Decision for Kai
+
+This PLAN is separable from promotion authorization. It describes the transfer
+and authorizes nothing, and promotion of `kaal-roles` remains its own decision
+with its own PR.
+
+- **A. Promote `kaal-roles` first, migrate later.** The baseline is on `main`
+  early. Costs transient product surface and a later removal. Justified only if a
+  consumer on `main` needs it before the owners can host their definitions.
+- **B. Migrate before `kaal-roles` reaches `main`.** Engineering and Product take
+  their definitions into their own collectors and `kaal/roles` is deleted
+  unpromoted. No transient surface. The baseline stays referenceable on
+  `kaal/roles` until the owners have it.
+
+Recommended: B by default, with A only if a concrete consumer on `main` is
+named. This reverses this PLAN's first draft, which recommended A, because the
+baseline is already usable on `kaal/roles` and no consumer needs it on `main`.
+Either route is Kai's choice, and nothing proceeds until it is made.
 
 ## Scope and authorization
 
