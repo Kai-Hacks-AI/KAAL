@@ -27,7 +27,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires", () => {
-    assert.match(text("Product.md"), /^It provides the Product Direction Definition and the PLAN Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text("Product.md"), /^It provides the Product Direction Definition, the PLAN Definition and the Owner View Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("states where its responsibility starts and ends", () => {
@@ -124,6 +124,39 @@ describe("the PLAN Definition", () => {
   });
 });
 
+describe("the Owner View Definition", () => {
+  it("is typed by Core's KAAL Definition", () => {
+    const definition = node("Owner-View.md");
+    assert.equal(definition.name, "Owner View");
+    assert.deepEqual(definition.type, foundation().definition);
+  });
+
+  it("shows, for each wanted increment, its Intent, Requirements, place, decisions and readiness", () => {
+    const definition = text("Owner-View.md");
+    for (const item of ["Intent", "Requirements", "Place", "Decisions", "Readiness"]) {
+      assert.match(definition, new RegExp(`^- \\*\\*${item}\\*\\*: `, "m"), item);
+    }
+  });
+
+  it("reuses Testing's and Graph's evidence and adds no second model", () => {
+    const definition = text("Owner-View.md");
+    assert.match(definition, /Test Case traces across the loops \(Intent, Requirements, Architecture and Defects\) are Testing's, and trace and reach semantics are Graph's\./);
+    assert.match(definition, /it adds no second traceability model, no verifier and no consumer content, and it does not re-run or re-judge verification/);
+  });
+
+  it("calls a capability blocked only when every possible change in its plan is blocked", () => {
+    const definition = text("Owner-View.md");
+    for (const state of ["Working", "Waiting", "Blocked"]) {
+      assert.match(definition, new RegExp(`^\\d\\. \\*\\*${state}\\*\\*`, "m"), state);
+    }
+    assert.match(definition, /it is blocked only when every possible change in that plan is blocked\. A single blocked pull request does not make the capability blocked/);
+  });
+
+  it("leaves the decision with the Product Owner and delivery with Engineering", () => {
+    assert.match(text("Owner-View.md"), /The Product Owner decides\. Product prepares each decision, and Engineering retains delivery responsibility\./);
+  });
+});
+
 describe("admission", () => {
   it("is admitted as a Capability by Core alone", async () => {
     const engine = join(mkdtempSync(join(tmpdir(), "kaal-product-")), "engine");
@@ -152,6 +185,7 @@ describe("the package", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "capability/Owner-View.md",
       "capability/PLAN.md",
       "capability/Product-Direction.md",
       "capability/Product.md",
