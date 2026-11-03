@@ -41,6 +41,7 @@ Each case's title begins with its identifier and names, in brackets, the identif
 | packaging/T21 | packaging/F13 | the traces a package ships are Testing's model, Case tests Target, and they resolve | `test/embed/package.test.mjs` |
 | packaging/T22 | packaging/N7 | the consumer's project is byte-identical after verification | `test/embed/package.test.mjs` |
 | packaging/T23 | packaging/N8 | the installed verification needs only its declared runtime dependencies | `test/embed/package.test.mjs` |
+| packaging/T23b | packaging/N8 | a declared peer dependency counts as declared, as F7 reads it | `test/embed/package.test.mjs` |
 | packaging/T24 | packaging/N9 | a verification that passes on presence, whatever the package does, is detected; a count never certifies behaviour | `test/embed/package.test.mjs` |
 | packaging/T25 | packaging/N10 | every cited ID exists in its owner's plan, and no Testing term is restated | `test/embed/package.test.mjs` |
 | packaging/T26 | packaging/F14 | the source workspace declares its Test Plan, with the Embedded verification, and npm test follows it | `test/embed/package.test.mjs` |

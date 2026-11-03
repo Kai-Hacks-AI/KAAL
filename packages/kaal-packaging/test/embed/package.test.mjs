@@ -10,7 +10,7 @@
 // the conformance suite against a conforming package and against fixtures that break one
 // Requirement, and checks that the suite names that Requirement and its cause.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { sha256 as foundationSha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
@@ -61,7 +61,7 @@ async function npm(args, cwd) {
   return r.stdout;
 }
 
-const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const sha256 = (bytes) => foundationSha256(bytes);
 
 /** Every file under `dir`, by path relative to it with forward slashes. */
 function walk(dir, base = dir) {
@@ -410,6 +410,15 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     const r = await conform(conforming({ files: { "test/verify.mjs": testing } }));
     expect(r.by, "packaging/N8", "failed", /test\/verify\.mjs imports kaal-testing/);
     assert.equal(r.report.result, "failed");
+  });
+
+  it("packaging/T23b [packaging/N8]: a declared peer dependency counts as declared, the same as F7 reads it", async () => {
+    // Assembled like T23, so that this file's own text imports nothing undeclared.
+    const peer = `import peer from ${JSON.stringify("kaal-peer/package.json")} with { type: "json" };\nvoid peer;\n${verifier("kaal-fixture", 3)}`;
+    const r = await conform(conforming({ pkg: { peerDependencies: { "kaal-peer": "1.2.3" } }, files: { "test/verify.mjs": peer } }), { deps: { "kaal-peer": "1.2.3" }, lock: { "node_modules/kaal-peer": fromRegistry("kaal-peer", "1.2.3") } });
+    expect(r.by, "packaging/N8", "verified");
+    const undeclared = await conform(conforming({ files: { "test/verify.mjs": peer } }), { deps: { "kaal-peer": "1.2.3" } });
+    expect(undeclared.by, "packaging/N8", "failed", /test\/verify\.mjs imports kaal-peer/);
   });
 
   it("packaging/T24 [packaging/N9]: a verification that passes on presence, whatever the package does, is detected; a count never certifies behaviour", async () => {
