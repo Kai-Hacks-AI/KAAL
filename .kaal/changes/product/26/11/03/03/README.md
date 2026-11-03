@@ -35,7 +35,7 @@ An Embedded user is not an External consumer. A KAAL agent already primed with K
 |---|---|---|
 | J1 | **Discover** | Land on the repository's default branch, find where KAAL knowledge is and which task each part serves, without being routed to the Embedded path first. |
 | J2 | **Apply** | Take one task, follow one Skill or Definition as text, and complete the work, with the knowledge standing alone or stating exactly what it assumes. |
-| J3 | **Know the boundary** | Tell before acting whether a piece of knowledge is advice only, a procedure to follow in plain text, a command to run, or something that writes into the consumer's repository, and what authority applying it does and does not grant. |
+| J3 | **Know the boundary** | Tell before acting what a piece of knowledge is (advice, a procedure to follow in plain text, a command to run) and what effects it intends, including any write to the target repository, and whose authority governs those effects: the target's owner or context, never KAAL. |
 | J4 | **Resolve dependencies** | See which other knowledge a piece relies on, and read those without the Engine. |
 | J5 | **Pin and cite** | Refer to a specific version of the knowledge and get the same text again later. |
 | J6 | **Escalate to Embedded** | Know when the task needs the Engine or a package, and what that step would add, without being required to take it. |
@@ -50,7 +50,7 @@ Each requirement names the direction point it serves (D1 to D6, in section 1 ord
 | R2 | A single entry point is discoverable from where an outside consumer first lands, and lists, for each task, which knowledge serves it and what it assumes. It points to knowledge before it points to the Engine. | D2, D6 | X1 |
 | R3 | Knowledge an External consumer is expected to use is reachable from the same place an outside consumer first looks, not only on development branches. How it becomes reachable is not decided here. | D2 | X2, X7 |
 | R4 | Each piece of knowledge declares whether it stands alone, and if not, exactly what it needs: the Engine, another piece of knowledge, or a command. | D3, D6 | X3 |
-| R5 | Each piece of knowledge declares its effect: read-only advice, a procedure followed in plain text, a command to run, or a write into the consumer's repository. External application implies no installation, no registration and no write authority unless the consumer chooses an Embedded step. | D3, D6 | X4 |
+| R5 | Each piece of knowledge declares its intended effects: advice only, a procedure followed in plain text, a command to run, or writes into the target repository. Three things are kept apart: **knowledge access** (reading KAAL knowledge needs no installation, registration or Engine), **intended effects** (declared by the knowledge), and **target authority** (what the target repository's owner or context authorizes). External KAAL does not imply read-only operation, and it does not require escalation to Embedded before an authorized write: an agent may read KAAL knowledge and write to a target repository when that target's owner or context authorizes it. KAAL knowledge grants no authority of its own. | D3, D6 | X4 |
 | R6 | A consumer can cite and obtain a specific version of the knowledge reproducibly. | D5 | X6 |
 | R7 | External readiness is accepted by an independent consumer test, not by internal use. | D4 | X5, §6A |
 | R8 | Dependencies between pieces of knowledge are explicit and resolvable as text, so a consumer is never sent to the Engine to find out what a piece relies on. | D3, D6 | X3 |
@@ -61,10 +61,10 @@ Each requirement names the direction point it serves (D1 to D6, in section 1 ord
 
 - The consumer is an unrelated repository with no KAAL workspace, no installation, no registration and no Engine.
 - The artifact is exactly what an external consumer receives: plain text, at a stated version.
-- The task is a real task in that repository, chosen by someone other than the author of the knowledge.
+- The task is a real task in that repository, chosen by someone other than the author of the knowledge. Where the knowledge declares writes, the task is a real write-capable task and the target's owner or context authorizes the writes.
 - The checker is not the author of the knowledge and is not primed by KAAL beyond the text under test.
 - The result is measured against the knowledge's own stated claims (what it says it enables), not against a new standard.
-- No write into the consumer's repository occurs that the knowledge did not declare (R5).
+- Every effect on the target repository is checked against the effects the knowledge declared and the authorization the target gave. An undeclared or unauthorized effect fails; the mere absence of writes is not a pass.
 
 **Per requirement (each is a statement a checker can decide):**
 
@@ -74,7 +74,7 @@ Each requirement names the direction point it serves (D1 to D6, in section 1 ord
 | R2 | A cold agent, given only the repository's default branch, finds the entry point and, for a stated task, reaches the right knowledge without being routed through the Engine first. |
 | R3 | The knowledge listed at the entry point is readable at the place an outside consumer lands, at the version cited. |
 | R4 | Every listed piece states whether it stands alone and, if not, what it needs. A piece that says it stands alone is applied by a cold agent with no other file and no Engine. |
-| R5 | Every listed piece states its effect in the vocabulary of R5. Applying any listed piece as declared makes no undeclared write and requires no installation or registration. |
+| R5 | Every listed piece declares its intended effects in the vocabulary of R5. Applying it requires no installation or registration; every write to the target occurs only under authorization from the target's owner or context; every observed effect is a declared effect. For a piece that declares writes, the acceptance run includes an authorized write and checks the effects it caused; for a piece that declares none, it checks that none occurred. |
 | R6 | A stated version can be named in a citation, and obtaining it later yields the same text. |
 | R7 | The six conditions above hold for each piece of knowledge claimed External. |
 | R8 | For a stated piece, every dependency is listed and every listed dependency is readable as text. |
