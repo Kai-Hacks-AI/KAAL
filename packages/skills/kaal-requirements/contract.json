@@ -1,0 +1,44 @@
+{
+  "format": {
+    "name": "Installation Contract",
+    "id": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
+  },
+  "capability": "requirements",
+  "version": "0.0.1",
+  "assets": [
+    {
+      "name": "Requirement",
+      "source": "capability/Requirement.md",
+      "target": ".kaal/capabilities/requirements/Requirement.md",
+      "kind": "file"
+    },
+    {
+      "name": "Requirements",
+      "source": "capability/Requirements.md",
+      "target": ".kaal/capabilities/requirements/Requirements.md",
+      "kind": "file"
+    },
+    {
+      "name": "Serves",
+      "source": "capability/Serves.md",
+      "target": ".kaal/capabilities/requirements/Serves.md",
+      "kind": "file"
+    }
+  ],
+  "catalogue": {
+    ".kaal/capabilities/requirements/Requirement.md": [
+      "b226b2cedcd899c3ef98fceb4afcabe0a71498c24c6e3c4a4e53794399d01c32"
+    ],
+    ".kaal/capabilities/requirements/Requirements.md": [
+      "b29196303a51090f066f5939ddc48dce4b72b9426f448e327bc983ec078ec94d"
+    ],
+    ".kaal/capabilities/requirements/Serves.md": [
+      "74e2287ee56477c340a0a34477719a0214800e3442dc852d07ebd8dabfdcf298"
+    ]
+  },
+  "record": ".kaal/state/requirements/installation.json",
+  "runtime": {
+    "node": 24
+  },
+  "provides": []
+}
