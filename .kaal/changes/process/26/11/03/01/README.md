@@ -68,7 +68,13 @@ follow, and neither is decided here:
 - Core-admission then becomes an optional extra check (reported separately and
   not required for the result), which keeps Core optional as the Owner wants.
 
-This is the question to settle with Packaging and Foundation before the DO.
+**Foundation's answer (3 Nov, on this PR):** a declared exact-pin runtime
+dependency on `@kaihacksai/kaal-foundation` (0.0.1 today), importing only its
+public `./sha256` subpath, is the intended route. There is no lighter way that
+keeps one KAAL SHA-256. This is a small, shared hard dependency chosen to avoid
+duplicating a technical answer, and it leaves Core optional. Packaging's answer
+on whether the installed verification may rely on it, with Core-admission as an
+optional extra reported apart from the result, is still to come.
 
 ## Decisions already taken (no Owner go needed)
 
@@ -84,9 +90,9 @@ each needs enduring consumer value and its own authorization.
 
 ## Open questions
 
-1. **N8 against the smoke test** (above): may the installed verification depend
-   on Foundation for the manifest digest, and is Core-admission an optional extra
-   reported apart from the result? Needs Packaging's and Foundation's answer.
+1. **N8 against the smoke test** (above): Foundation says yes to the dependency
+   for the manifest digest. Open with Packaging: is Core-admission an optional
+   extra reported apart from the result?
    Core stays optional either way.
 1a. **Sequencing.** C5 and C14 (#873) are moving; the DO starts after C5 so the
    contract it implements is fixed.
