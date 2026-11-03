@@ -15,6 +15,21 @@ KAAL 1..n Capability 1..n Skill 1..n Script.
 - In a given repository, the Capability is its instance.
 - Engineering and Packages are KAAL-only extras. A KAAL-enabled consumer does not get them.
 
+## 1a. Framed under CASE
+
+CASE is defined in the repository (`packages/kaal-core/payload/core/CASE.md`, a KAAL Definition): it names the four
+parallel concepts KAAL is built from, **C**apabilities, **A**gents, **S**kills and **E**xtensions. Each has its own
+Definition and none is a kind of another. Core identifies, admits, registers and discovers all four by one mechanism.
+
+Kai has detailed only C versus S so far (Capability 1..n Skill 1..n Script). A and E are extra to that model, and this
+inventory leaves them there:
+
+- **Agent** (`KAAL Agent`): acts within KAAL by applying Capabilities, Skills and Extensions. It is not a Skill container. The package `kaal-agents` is the Capability named Agents (its ownership claim says `capability`), not the Agent concept.
+- **Extension** (`KAAL Extension`): enables KAAL to interact with external systems, or they with KAAL. Crossing that boundary is what distinguishes it from a Skill. Hosting is typed as an Extension (`payload/Hosting.md`) and sits under `packages/extensions/`. `kaal-slack` does too.
+
+Consequence for section 3: Hosting's two Skills belong to an **Extension**, not a Capability. The multi-Skill question
+therefore arises for Hosting as an Extension and for Learning as a Capability, and may not be the same discussion.
+
 ## 2. Method and limits
 
 Read from `origin/main` and every `origin/kaal/*` collector on 3 Nov 2026. Each `SKILL.md` is counted on the
@@ -26,8 +41,8 @@ say whether a Skill does more than one job. Scripts are counted two ways: files 
 
 | Capability (package) | Skills | Note |
 | --- | --- | --- |
-| Hosting (`kaal-hosting`) | `kaal-hosting` (64 lines), `kaal-hosting-boundary` (49) | Two Skills, one Capability. The second is the boundary guidance. Discuss: one Skill with a section, or two? |
-| Learning (`kaal-learning`) | `kaal-learning` (39), `kaal-retro` (59) | Two Skills, one Capability. Collector only (`kaal/learning`), not on main. Discuss |
+| Hosting (`kaal-hosting`), an **Extension** (E) | `kaal-hosting` (64 lines), `kaal-hosting-boundary` (49) | Two Skills, one Extension. The second is the boundary guidance. Discuss: one Skill with a section, or two? |
+| Learning (`kaal-learning`), a Capability (C) | `kaal-learning` (39), `kaal-retro` (59) | Two Skills, one Capability. Collector only (`kaal/learning`), not on main. Discuss |
 
 Every other package that has a Skill has exactly one. The other packages on collectors, Slack under Communication
 and the duplicate Guard Skill copy under `engineering/guard/external/templates`, are not additional Skills of one Capability.
@@ -58,7 +73,7 @@ does several jobs, which is the better reason to split, needs each owner's readi
 
 ## 6. Questions for the owners and Kai (no action implied)
 
-1. Hosting and Learning: one Skill or two? (Owners, then Kai if it changes the model.)
+1. Hosting (an Extension) and Learning (a Capability): one Skill or two? Does the C 1..n S rule apply to Extensions the same way? (Owners, then Kai if it changes the model.)
 2. A size threshold for "big", or a judgement per Skill? Testing is the first candidate either way.
 3. Where should a Skill's scripts live, under the Skill or under the package? The model says Skill. Most packages say package.
 4. Packages as a separate, Skill-oriented discussion: when does it open? It would also cover the possible builder package (Engineering plus Packages) above.
