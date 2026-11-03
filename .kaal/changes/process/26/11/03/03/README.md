@@ -1,6 +1,10 @@
 # Process PLAN: pilot "PR first, work second" on the Review collector
 
-Status: PLAN. Kai agreed the pilot on Review (3 Nov), starting at the outermost level, the package. The standing package PR into `main` waits for Kai's answer on the auto-merge hold. Provisional number 03/03.
+Status: PLAN. Kai agreed the pilot on Review (3 Nov), starting at the outermost level, the package, with auto-merge on for every PR. The standing package PR is opened once this PLAN is approved. Review notes that `kaal/review` still uses the old package layout, so it needs a SYNC first (Review's own call under the SYNC policy). Provisional number 03/03.
+
+## Framing: backwards thinking, not forward coding (Kai)
+
+Start from the expected outcome and work back. The package PR states what the package is to deliver and its **RED Test Cases**. The `main` and `kaal/*` expectations beneath it are derived from those, and the Changes are the work that turns them GREEN. We do not code forward and hope it adds up: if the Changes do not add up to the package's red Test Cases going green, the gap shows on the package PR before the work is finished.
 
 ## Intent
 
@@ -28,12 +32,23 @@ Every PR at every level does the full cycle, not a part of it: PLAN (the expecta
 
 Pilot measure: the share of pilot PRs whose expectation was a RED Test Case before the work began, and PRs that reached green without the expectation changing.
 
+## Extra attention and review rounds (Kai, 3 Nov)
+
+This is an experiment, so it gets more review than ordinary work, not less. At each level (package, main, `kaal/*`):
+
+1. **Checkpoint before the level starts.** The CPO reviews the level's expectation (its PR text and its RED Test Cases) before any work answers it.
+2. **Checkpoint before the level advances.** A CPO round on the level's evidence (the exit criterion, the findings log, the failure criteria) precedes moving one level inward. No level advances on the owner thread's say-so.
+3. **Review thread in the loop.** The Review thread observes each checkpoint and adds its findings; Review keeps driving its own work.
+4. **Findings log.** One running log on the package PR, kept by Process: each finding with its level, who raised it, what it affects and its disposition (fixed, deferred to a Defect with a RED Test Case, or invalid with reasons). Raises against a parent level (see the level model) are entered there too. Nothing is dropped silently.
+
+These rounds are review, not a new gate: a finding never blocks by itself, and approval stays the CPO's.
+
 ## Stages and exit criteria
 
 | Stage | What | Exit criterion |
 |---|---|---|
 | 0 | Baseline: how Review Changes start and how long a Change sits unseen | Recorded on this PR before Stage 1 |
-| 1 | **Package level (outermost, Kai 3 Nov):** one standing PR for the `kaal-review` package, `kaal/review` → `main`, opened ready at work start, listing the capability work under it, stating it is not a promotion request | PR readable through one SYNC and one promotion decision; freshness-red noise caused no wrong action; no failure criterion hit. Opening it needs Kai's answer on the auto-merge hold first |
+| 1 | **Package level (outermost, Kai 3 Nov):** one standing PR for the `kaal-review` package, `kaal/review` → `main`, opened ready at work start, listing the capability work under it, stating it is not a promotion request | PR readable through one SYNC and one promotion decision; freshness-red noise caused no wrong action; no failure criterion hit. Opens after this PLAN is approved |
 | 2 | **Capability level:** the Review capability's own plan PR into `kaal/review`, declaring the package PR as its parent | Declared parent matches the PR graph; owner thread woke on each child open, merge and red; at least one child raised against its parent and the parent's thread woke on it |
 | 3 | **Change level and below:** each Review Change opens a ready PR into `kaal/review` first, holding its PLAN, on auto-merge, declaring its parent | Three consecutive Changes opened PR-first, no orphan, no PR stale beyond the agreed age |
 | 4 | Parent link: a `Parent: #n` line, base branch where one exists; a check reports a mismatch as a finding only | Catches a deliberately orphaned test child, no false positive across Stages 1 to 3 |
@@ -49,15 +64,15 @@ GitHub refuses auto-merge on a draft, and Branching requires it, so a draft woul
 - **Promotions into main** (package or collector) are Owner-reserved: they need Kai, and the thread asks on the PR, which stays on auto-merge, as the MERGE RULE says. A standing package PR states in its body that it is not a promotion request.
 - **Not a gate:** a failing required check. A standing PR that is red for freshness is fixed at its promotion turn, not by closing it.
 
-Withheld approval is **not the only safeguard** for a standing PR into `main` (CPO review of 3 Nov). Hold and cancellation, defined before any pilot starts:
+**Auto-merge is on for every PR, the standing package PR into `main` included, with no hold (Kai, 3 Nov: "it's supposed to be on, on all PRs").** The CPO's safety concern (3 Nov review) is met without turning auto-merge off:
 
-- **Hold (reversible, at any time).** The owner thread disables auto-merge on the standing PR. Disabling is the safe default whenever the PR is not in its promotion turn, and a standing package PR is held this way from the start of Stage 1: it is opened ready, with auto-merge **off** until Kai authorizes that promotion, then enabled. This keeps the ready-PR rule (no drafts) for change-level PRs, where an early merge is harmless, and applies the stricter hold only to PRs targeting `main`, where an early merge is a promotion. **This departs from Kai's MERGE RULE (always on auto-merge, promotions included), so it is proposed for the pilot only and needs Kai's decision before Stage 1 opens the package PR.**
+- **The promotion gate is required review.** A promotion into `main` needs Kai's go plus the CPO's formal approval **at the head SHA**, enforced through required review. A new push dismisses the approval, so a standing PR cannot merge on a stale approval. Auto-merge only fires once that approval exists on the current head.
 - **Cancel.** Closing the PR cancels the intent without merging. It is always available to the owner thread, the CPO and Kai.
-- **Accidental approval or merge.** An approval cannot merge a held PR (auto-merge is off). If one ever merges early, or an approval lands while a hold should apply, the pilot **stops** at once and the event is recorded as a failure.
+- **Accidental approval or merge.** An approval not meant to carry a promotion is a failure of the pilot (below), recorded and returned to Kai.
 
 Failure criteria, any one of which stops the pilot and returns to Kai:
 
-1. A standing PR into `main` merges, or becomes mergeable with auto-merge on, without Kai's authorization.
+1. A standing PR into `main` merges without Kai's go and the CPO's approval at its head SHA.
 2. A promotion jumps the release queue (Hosting, Foundation, Core, Guard) or is read as a request to.
 3. An approval is given on a standing PR that was not meant to carry one.
 4. A stale standing PR is mistaken for live intent and acted on.
@@ -71,16 +86,16 @@ Stages run one at a time. Moving inward past Stage 1 needs the earlier exit crit
 - Wakes: child open, merge, red, per level.
 - Order slips: Changes where work started before the PR.
 - CI noise on standing PRs and whether it caused a wrong action.
-- Accidental approval or merge events (target zero), time to hold or cancel when asked, and extra review and CI load on the release queue.
+- Accidental approval or merge events (target zero), time to cancel when asked, and extra review and CI load on the release queue.
 
 ## Out of scope
 
-Hosting, Foundation, Core and Guard. Changes to Branching, Change Isolation or any workflow (`.github` travels alone). Any SYNC, promotion or publication.
+Hosting, Foundation, Core and Guard. Changes to Branching, Change Isolation or any workflow (`.github` travels alone). Any promotion or publication. The SYNC Review needs for the new layout is Review's own Change under the standing SYNC policy, not part of this PLAN.
 
 ## Open points for Kai
 
 1. Which capability to pilot (Review recommended).
-2. Whether the standing package PR opens with auto-merge off (the hold above).
+2. (Decided: auto-merge on for all PRs, no hold.)
 3. The agreed stale age for a standing PR.
 
 ## Scope
