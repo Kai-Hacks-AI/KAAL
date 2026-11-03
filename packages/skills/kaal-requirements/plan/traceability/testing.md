@@ -15,15 +15,22 @@ The fixture Intent Node is typed by Intent's Definition `Intent` as `kaal/intent
 
 ## RED evidence
 
-At `requirements/C11`, three tests are RED and requirements/T20 is GREEN, as planned. They run with `npm run build -w kaal-hosting -w kaal-core && node --test packages/skills/kaal-requirements/test/plan/traceability.test.mjs`, outside the package's `npm test` until `requirements/C12`, so the collector's lanes stay green.
+At `requirements/C11`, five tests are RED and requirements/T20 is GREEN, as planned. They run with `npm run build -w kaal-hosting -w kaal-core && node --test packages/skills/kaal-requirements/test/plan/traceability.test.mjs`, outside the package's `npm test` until `requirements/C12`, so the collector's lanes stay green.
 
 | Test | Result at `requirements/C11` |
 | --- | --- |
 | requirements/T15 | RED, **blocked before behavioural assertion**: `capability/Serves.md` does not exist |
+| requirements/T16 | RED, **blocked before behavioural assertion**: `capability/Serves.md` does not exist. Written against the fixture Intent Definition below |
+| requirements/T17 | RED, **blocked before behavioural assertion**: `capability/Serves.md` does not exist. Written against the same fixture |
 | requirements/T18 | RED on its behavioural assertion: a bracket-citation capability is admitted beside Requirements' contribution and the Engine verifies, but `Serves` is not admitted with the contribution |
 | requirements/T19 | RED on its behavioural assertion: the Definition `Requirement` states no identification rule and no `Serves` sentence, and the Capability Node does not name `Serves` |
 | requirements/T20 | GREEN: it guards `requirements/N5` through the DO Change |
-| requirements/T16 | **DEFERRED, a coverage gap**: not written, not passing and not complete. Its fixture Intent Node is typed by Intent's Definition `Intent`, which `kaal/requirements` does not carry. A fixture typed by a stand-in would fabricate the RED |
-| requirements/T17 | **DEFERRED, a coverage gap**, for the same reason as T16 |
 
-T16 and T17 are written, and recorded, once Intent's Definition `Intent` is on `kaal/requirements`, by a SYNC or by `kaal/intent`'s promotion, each on the Owner's authorization. Until then no readiness or release judgement may count requirements/F12, F13 or F14 as covered by traversal.
+The test logic of T16 to T18 was checked once against a throwaway `Serves.md`, which was then removed: with it, T16, T17 and T18 pass and only T15 and T19, which need the real text, stay RED.
+
+## The fixture Intent Definition, and what it does not prove
+
+`kaal/requirements` does not carry Intent's Definition `Intent`, and promoting Intent to `main` only to unblock this is not planned. T16 and T17 therefore use `test/fixtures/Intent-Definition.md`, a verbatim copy of `packages/skills/kaal-intent/payload/Intent-Definition.md` on `kaal/intent` at `d1d08f7` (#748). The tests pin its id, `f86d4e30bf200b59da174c7fee0b73e61b2d87e209e34c1ce7938929d3b260ae`, and fail if the copy changes.
+
+- **Not proven:** that a `Serves` Edge reaches Intent's own Node as Intent ships it. T16 and T17 prove Requirements' side against a byte-identical copy, not the end-to-end link.
+- **Re-pin obligation:** when Intent reaches `main`, the fixture is compared with Intent's file there. If the bytes and id match, the fixture is replaced by the real Definition. If they differ, the id and the tests are re-pinned in a Change of their own. Until then no readiness or release judgement may count the Requirement → Intent link as proven end to end.
