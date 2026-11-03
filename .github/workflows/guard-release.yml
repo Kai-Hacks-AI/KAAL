@@ -1,0 +1,130 @@
+# Guard Release (engineering/guard/change.md, R1): publishes @kaihacksai/kaal-guard to npm from the
+# default branch, through npm Trusted Publishing. npm accepts the job's GitHub OIDC identity for this
+# repository and this workflow file, so no npm token exists in the repository, and npm attaches
+# provenance on its own.
+#
+# Only the Owner starts it, by hand. The Pack job tests the package, shows the tarball's contents
+# and SHA-256, and keeps the tarball's exact bytes as a run artifact. With `publish`, the Publish job then waits for the `npm` environment's approval, packs
+# the same commit again and publishes only a tarball with that SHA-256.
+#
+# Owner prerequisites, outside this file: the `npm` environment with the Owner as required reviewer,
+# restricted to the default branch; the package existing on npm; and its trusted publisher set to
+# Kai-Hacks-AI/KAAL, workflow guard-release.yml, environment npm.
+#
+# What a release proves stays apart: this job tests the packed package on Linux; the commit's CI
+# already ran the same tests on Linux, Windows and macOS.
+name: Guard Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to npm (otherwise pack and show only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  # One npm for both packs and the publish, so the SHA-256 compares like with like. 11.21.0 supports
+  # Trusted Publishing (>= 11.5.1) and `npm trust` (>= 11.15); the Owner packs 0.0.1 with the same.
+  NPM_VERSION: 11.21.0
+
+jobs:
+  pack:
+    name: Pack
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    outputs:
+      sha256: ${{ steps.pack.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm install --global "npm@$NPM_VERSION"
+      - run: npm ci
+      - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs
+      - name: The version is not on npm yet
+        working-directory: packages/kaal-guard
+        run: |
+          id="$(node -p 'const m=require("./package.json"); m.name+"@"+m.version')"
+          if [ -n "$(npm view "$id" version 2>/dev/null)" ]; then
+            echo "::error title=Guard Release: fail::$id is already on npm; raise the version"; exit 1
+          fi
+      - id: pack
+        name: Pack
+        working-directory: packages/kaal-guard
+        run: |
+          tgz=$(npm pack --pack-destination "$RUNNER_TEMP" --silent)
+          sha=$(sha256sum "$RUNNER_TEMP/$tgz" | cut -d' ' -f1)
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "path=$RUNNER_TEMP/$tgz" >> "$GITHUB_OUTPUT"
+          {
+            echo "### $tgz from $GITHUB_SHA"
+            echo
+            echo "SHA-256 \`$sha\`"
+            echo
+            echo '```'
+            tar -tzvf "$RUNNER_TEMP/$tgz"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      # The tarball's exact bytes, unzipped, so anyone can fetch and check them against the SHA-256 above.
+      - id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: ${{ steps.pack.outputs.path }}
+          archive: false
+          if-no-files-found: error
+      - name: The artifact holds the tarball Pack showed
+        env:
+          SHOWN: ${{ steps.pack.outputs.sha256 }}
+          DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          [ "$DIGEST" = "$SHOWN" ] || {
+            echo "::error title=Guard Release: cannot judge::the uploaded artifact ($DIGEST) is not the tarball Pack showed ($SHOWN)"; exit 2; }
+          {
+            echo
+            echo "Artifact (the exact bytes): $URL"
+            echo
+            echo 'Verify after download: `sha256sum <file>.tgz` must print the SHA-256 above.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish
+    needs: pack
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install --global "npm@$NPM_VERSION"
+      - name: npm supports Trusted Publishing
+        run: |
+          v=$(npm --version)
+          node -e 'const [a,b,c]=process.argv[1].split(".").map(Number); process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)' "$v" || {
+            echo "::error title=Guard Release: cannot judge::npm $v predates Trusted Publishing (11.5.1)"; exit 2; }
+      - name: Pack again, the tarball Pack showed
+        working-directory: packages/kaal-guard
+        env:
+          SHOWN: ${{ needs.pack.outputs.sha256 }}
+        run: |
+          tgz=$(npm pack --pack-destination "$RUNNER_TEMP" --silent)
+          sha=$(sha256sum "$RUNNER_TEMP/$tgz" | cut -d' ' -f1)
+          [ "$sha" = "$SHOWN" ] || {
+            echo "::error title=Guard Release: cannot judge::the tarball packed here ($sha) is not the one Pack showed ($SHOWN)"; exit 2; }
+          echo "tgz=$RUNNER_TEMP/$tgz" >> "$GITHUB_ENV"
+      - run: npm publish "$tgz" --access public
