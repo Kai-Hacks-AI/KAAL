@@ -24,6 +24,13 @@ A claim that no adequate Rent or Buy exists names the sources checked and how wi
 
 Record the decision and its grounds in the Change it belongs to. The parts that are Adapt or New are Engineering's to realize; the decision does not realize them.
 
+## Independence
+
+- Keep each package independently usable. A consumer must be able to operate with one only.
+- Make a hard dependency the exception, and state its grounds in the decision.
+- Place composition as optional enrichment: find the other package by name in the same Engine, behave correctly when it is absent, and do more when it is present. Plan no pinned pair, composition registry or integration package.
+- Do not duplicate another owner's technical answer to avoid a dependency. Use the owner's answer through its contract when it is present. When the answer must work without the owner, record Adapt or New explicitly and say why a shared answer is not used.
+
 ## Rules
 
 - Do not keep a catalogue, ranking or registry of options. Each decision carries its own grounds.
