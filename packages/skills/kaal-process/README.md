@@ -39,7 +39,7 @@ It checks four things, and fails on any:
 - the delivered Nodes are the published bytes: each file's SHA-256 is its id in `test/nodes.json`;
 - Core admits them, as one Capability contribution, into a fresh Engine of the test's own, each with its name and type;
 - the delivered Process contract says what it promises: Process's scope and Process Templates, each specific process left to its owner, the metamodel's concepts, a Role apart from its actor, and PDCA as a recursive template that mandates nothing;
-- without `kaal-core`, it fails as *cannot verify* and names what is missing. It never passes without Core.
+- without `kaal-core`, it fails as *cannot verify* and names what is missing. It never passes without Core. This is not a defect of the package: kaal-process has no runtime dependency and is fully usable alone, since its Nodes are plain files. Only this verification needs Core, because admission is Core's answer and is not copied here.
 
 `kaal verify` is not a substitute for it: Core verifies an Engine's admission, not what the Process contract says. The ids, for comparison with `npx kaal identify node_modules/kaal-process/capability/*.md`:
 

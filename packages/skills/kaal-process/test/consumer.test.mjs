@@ -23,7 +23,7 @@ async function core() {
   try {
     return await import("kaal-core");
   } catch (e) {
-    assert.fail(`cannot verify: kaal-core is not installed beside kaal-process (npm install kaal-core) (${e.code ?? e.message})`);
+    assert.fail(`cannot verify: kaal-core is not installed beside kaal-process (npm install kaal-core). kaal-process itself needs no Core to be used; only this verification does (${e.code ?? e.message})`);
   }
 }
 
