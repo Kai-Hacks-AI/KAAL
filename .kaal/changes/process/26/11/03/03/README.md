@@ -10,6 +10,17 @@ Start from the expected outcome and work back. The package PR states what the pa
 
 Test, on one low-risk collector, that opening the PR first (holding the PLAN) and working second gives a live roadmap that wakes the owning thread. The aim is evidence, not a rule: no process changes, no new gate, no new package. Source: Kai's ask of 3 Nov and the analysis document "PR first, work second: analysis and staged pilot".
 
+## Before Stage 0 to 1 (CPO review of 3 Nov at 5cfd1c8)
+
+Kai's GO authorizes the pilot, not an unreviewed promotion to `main`, and one trial does not make a general policy. Identified before Stage 1 starts:
+
+- **Exact standing package PR.** Head `kaal/review`, base `main`, title prefixed `PILOT:`. Its increment is what `kaal/review` holds beyond `main`: at 3 Nov, 4 commits ahead (#899 skill depth, #917 README Nodes, DO-1 structured record and scripts, #984 External acceptance PLAN) and 5 behind (kaal-review 0.0.1 is already on `main` via the earlier promotion). It opens only after Review's own SYNC onto the new layout. The PR number is recorded here and on #962 when it opens.
+- **Child linkage.** Each child PR declares `Parent: #<package PR>` (the capability plan PR and each Change into `kaal/review`); the base branch is the structural link where one exists. The package PR's body carries the children checklist.
+- **Measurable baseline** (Stage 0, recorded on #962 before Stage 1): open PRs on `kaal/review` (0 at 3 Nov); commits ahead of and behind `main`; for the last three Review Changes (#899, #917, DO-1), the time from work start to the first visible PR; and the share whose expectation was a RED Test Case before the work began.
+- **Accidental promotion risk, auto-merge ON at every level.** The package PR's body and title say it is a pilot and not a promotion request. The gate is Kai's go plus the CPO's formal approval at the head SHA; the CPO does not approve it before Kai's go, and any push dismisses an earlier approval. Assumption to confirm with Engineering before Stage 1 (not verified here): required review is enforced on `main` with stale approvals dismissed on push. If that cannot be confirmed, the pilot does not open the package PR.
+- **CPO checkpoints and findings log:** as in "Extra attention and review rounds" above. The log starts empty when the package PR opens and is kept on it.
+- **No general policy.** Nothing in this PLAN changes MERGE RULE, SYNC policy or promotion scarcity. Results are reported back to Kai; any rule change is a separate decision.
+
 ## Why Review
 
 Review is a meta-level capability off the release path (Hosting, Foundation, Core, Guard), so the scarcity rule is not at stake. Its collector is quiet. If Kai picks Roles or another collector, only the names below change.
