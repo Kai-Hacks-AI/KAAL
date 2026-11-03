@@ -237,6 +237,7 @@ export function check(paths, { ledger = [], facts } = {}) {
   const violations = [];
   const set = [...new Set(paths)].sort();
   let admitted = false;
+  const mismatches = [];
   for (const entry of ledger) {
     const same = [...entry.paths].sort();
     if (same.length !== set.length || same.some((q, i) => q !== set[i])) continue;
@@ -248,8 +249,10 @@ export function check(paths, { ledger = [], facts } = {}) {
       if (f.head !== entry.post[q]) off.push(`transition ${entry.id}: ${q} in the change is ${f.head}, not the ledger's ${entry.post[q]}`);
     }
     if (off.length === 0) admitted = true;
-    else violations.push(...off);
+    else mismatches.push(...off);
   }
+  // An entry that does not match must not veto one that does; its diagnostics matter only when none admits.
+  if (!admitted) violations.push(...mismatches);
   if (!admitted && paths.some((p) => any(CORE, p))) {
     for (const p of paths) {
       if (!any(CORE, p) && !any(CORE_SUPPORT, p)) violations.push(`core travels alone: ${p} is not Core or its supporting files`);
