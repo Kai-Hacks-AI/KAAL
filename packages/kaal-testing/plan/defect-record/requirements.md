@@ -9,7 +9,7 @@ Each Requirement names, in brackets, the Intents it serves.
   - `reported` carries no `tests`.
   - `confirmed` names at least one Case in `tests`, and needs a Run in which each named Case is `failed`.
   - `answered` needs, for each named Case, a Run in which it is `passed`, observed after the confirming Run.
-- **testing/F100** [testing/I26]: `state(record, evidence)` derives what the evidence shows: the status the record can claim. A claim without its evidence is unknown, never accepted: a `confirmed` record whose Case is `passed`, `unknown` or absent from the given Runs, or an `answered` record without a later passing Run, is a finding. Evidence is data, given as Runs of Testing's model (`testing/F30`).
+- **testing/F100** [testing/I26]: `state(record, evidence)` derives what the evidence shows: the status the record can claim. A claim without its evidence is unknown, never accepted: a `confirmed` record whose Case is `passed`, `unknown` or absent from the given Runs, or an `answered` record without a later passing Run, is a finding. Evidence is data in Testing's own format: `state(record, { model, runs })` takes a model and Runs of it exactly as `kaal-testing/model` defines them (`id`, `of`, `outcomes`, `provenance`; `testing/F30`, `F31`), listed oldest first, and reads each Case's result through the model's `results`. A Run with model findings shows nothing: its Cases are not counted as `failed` or `passed`. There is no second evidence format.
 - **testing/F101** [testing/I27]: The record carries no Plan membership. Where the Case lives, the Defect Plan before the answer and the Regression Plan after, is Change's wiring; a Case keeps its identity across Plans and its evidence stays with the Runs (`testing/F25`, `F30`).
 
 ## Nonfunctional
