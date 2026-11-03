@@ -58,4 +58,4 @@ Its last line is the summary, `kaal-agents-verification ` followed by JSON, for 
 
 The verification needs no network and no KAAL source checkout.
 
-**Not yet: `npm explore kaal-agents -- npm test`.** In this version, the package's `npm test` script is still the publisher's: it runs tests that need the KAAL checkout and do not ship. So `npm explore kaal-agents -- npm test` fails in an installation. Use the direct command above. Before `kaal-agents` 0.0.1 is released, `npm test` becomes the consumer's entry and runs exactly this verifier (see [Limitations](limitations.md)).
+**`npm explore kaal-agents -- npm test`.** The package's `npm test` script runs exactly this verifier, so the command works from an installation and gives the same result as the direct command. The publisher's suites, which need the KAAL checkout, run as `test:publisher` and do not ship.

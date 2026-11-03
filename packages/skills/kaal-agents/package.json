@@ -21,8 +21,9 @@
     "test/verify.json"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/agents.test.mjs && node --test --test-name-pattern=\"^agents/T([1-9]|1[0-4]|1[6-8]) \" test/plan/release.test.mjs && node test/verify.mjs",
+    "test": "node test/verify.mjs",
+    "pretest:publisher": "npm run build -w kaal-core -w kaal-hosting",
+    "test:publisher": "node --test test/agents.test.mjs && node --test test/plan/release.test.mjs",
     "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {

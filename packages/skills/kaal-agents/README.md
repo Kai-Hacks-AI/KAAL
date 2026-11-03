@@ -40,7 +40,7 @@ npx kaal register capability agents node_modules/kaal-agents/capability    # Cor
 node node_modules/kaal-agents/test/verify.mjs
 ```
 
-It ends in verified, failed or cannot verify, with a summary line a program can read. In this version the package's own `npm test` is still the publisher's suite, so `npm explore kaal-agents -- npm test` does not work in an installation yet. See [Operations](docs/operations.md) and [Limitations](docs/limitations.md).
+It ends in verified, failed or cannot verify, with a summary line a program can read. Run it from an installation with `npm explore kaal-agents -- npm test`, which runs exactly this verifier. See [Operations](docs/operations.md) and [Limitations](docs/limitations.md).
 
 ## License
 
