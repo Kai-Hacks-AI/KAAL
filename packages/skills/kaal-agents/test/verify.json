@@ -204,7 +204,7 @@
     "lib/git.mjs": "ae0539808b0cf15bad267c3ca68be11600ab9b3f40472fbed912de19aef3c065",
     "lib/orient.mjs": "9d7829e1f6f814b6f9c3de3d1267a9f7dbfea4eb35021d246040b970242b0d84",
     "lib/preach.mjs": "369a1063cabc859aec7d1080951149aab459c07bca93a6c36b0f8a294a25aa45",
-    "package.json": "3c286fc7e2109f0bf863027d110c47a70d4fa1c7a0e71f327c049498d0669356",
+    "package.json": "ca72c408af4db5d403419bb245334f4bc074144aa892721d22d4c8518c5997e5",
     "skills/kaal-agents/SKILL.md": "7b1647ced0796f9871625079d5aafa5f7e6975773f9f9b1de61c6aecf516c29b",
     "test/consumer/fixture.mjs": "24c80c48acd200d6257bc1134dd160fa44345a12f60c6831cf383878decbc608",
     "test/consumer/orient.test.mjs": "6720c715df7fc879546aba5e6bbf9ef3748ef461c8d6b9b886cf4e34b1d32273",
