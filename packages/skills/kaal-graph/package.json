@@ -9,6 +9,10 @@
       "types": "./skills/kaal-graph/scripts/edges.d.ts",
       "default": "./skills/kaal-graph/scripts/edges.mjs"
     },
+    "./form": {
+      "types": "./skills/kaal-graph/scripts/form.d.ts",
+      "default": "./skills/kaal-graph/scripts/form.mjs"
+    },
     "./package.json": "./package.json"
   },
   "bin": {

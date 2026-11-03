@@ -111,10 +111,10 @@ describe("methodFor", () => {
 describe("autoMerge", () => {
   const f = { baseRef: "kaal/x", head: A, expected: "merge" as const, enabled: "merge" as const };
   it("passes auto-merge set to the method the flow names", () => assert.equal(autoMerge(f).kind, "pass"));
-  it("does not apply while auto-merge is off, and names the method", () => {
+  it("fails when auto-merge is off and names the repair", () => {
     const v = autoMerge({ ...f, enabled: null });
-    assert.equal(v.kind, "not-applicable");
-    assert.match(v.message, /uses a merge commit\.$/);
+    assert.equal(v.kind, "fail");
+    assert.match(v.message, /Enable auto-merge with a merge commit before integration/);
   });
   it("fails auto-merge set to another method, and says how to fix it", () => {
     const v = autoMerge({ ...f, enabled: "squash" });
@@ -124,6 +124,16 @@ describe("autoMerge", () => {
     assert.equal(autoMerge({ ...f, expected: "squash", enabled: "rebase" }).kind, "fail");
   });
   it("fails any method when the Branching verdict fails", () => assert.equal(autoMerge({ ...f, expected: null }).kind, "fail"));
+  it("fails unresolved classification even when auto-merge is off", () => assert.equal(autoMerge({ ...f, expected: null, enabled: null }).kind, "fail"));
+  it("reverses a prior GREEN when auto-merge is disabled for the same head", () => {
+    assert.equal(autoMerge(f).kind, "pass");
+    assert.equal(autoMerge({ ...f, enabled: null }).kind, "fail");
+  });
+  it("requires squash for promotion and ordinary Changes", () => {
+    assert.equal(autoMerge({ ...f, expected: "squash", enabled: "squash" }).kind, "pass");
+    assert.equal(autoMerge({ ...f, expected: "squash", enabled: "merge" }).kind, "fail");
+    assert.equal(autoMerge({ ...f, expected: "squash", enabled: null }).kind, "fail");
+  });
 });
 
 describe("landing", () => {
