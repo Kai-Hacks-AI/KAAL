@@ -412,7 +412,7 @@ console.log(JSON.stringify([foundation.result, model.result]));`;
     assert.equal(r.report.result, "failed");
   });
 
-  it("packaging/T23b [packaging/N8]: a declared peer dependency counts as declared, the same as F7 reads it", async () => {
+  it("packaging/T64 [packaging/N8]: a declared peer dependency counts as declared, the same as F7 reads it", async () => {
     // Assembled like T23, so that this file's own text imports nothing undeclared.
     const peer = `import peer from ${JSON.stringify("kaal-peer/package.json")} with { type: "json" };\nvoid peer;\n${verifier("kaal-fixture", 3)}`;
     const r = await conform(conforming({ pkg: { peerDependencies: { "kaal-peer": "1.2.3" } }, files: { "test/verify.mjs": peer } }), { deps: { "kaal-peer": "1.2.3" }, lock: { "node_modules/kaal-peer": fromRegistry("kaal-peer", "1.2.3") } });

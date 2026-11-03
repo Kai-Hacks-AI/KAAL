@@ -41,7 +41,6 @@ Each case's title begins with its identifier and names, in brackets, the identif
 | packaging/T21 | packaging/F13 | the traces a package ships are Testing's model, Case tests Target, and they resolve | `test/embed/package.test.mjs` |
 | packaging/T22 | packaging/N7 | the consumer's project is byte-identical after verification | `test/embed/package.test.mjs` |
 | packaging/T23 | packaging/N8 | the installed verification needs only its declared runtime dependencies | `test/embed/package.test.mjs` |
-| packaging/T23b | packaging/N8 | a declared peer dependency counts as declared, as F7 reads it | `test/embed/package.test.mjs` |
 | packaging/T24 | packaging/N9 | a verification that passes on presence, whatever the package does, is detected; a count never certifies behaviour | `test/embed/package.test.mjs` |
 | packaging/T25 | packaging/N10 | every cited ID exists in its owner's plan, and no Testing term is restated | `test/embed/package.test.mjs` |
 | packaging/T26 | packaging/F14 | the source workspace declares its Test Plan, with the Embedded verification, and npm test follows it | `test/embed/package.test.mjs` |
@@ -66,6 +65,7 @@ These run in the source workspace only, in `test/publisher/capability.test.mjs`,
 | packaging/T33 | packaging/N11 | no file of the package names the running platform, a launcher for one, or a shell chosen by platform |
 | packaging/T53 | packaging/F11 | the installed verifier checks the manifest before it runs any case: an intact copy verifies, and a changed, removed, added or escaping file, or a malformed manifest, cannot verify, naming the file and running no case |
 | packaging/T54 | packaging/F10, packaging/F11 | each declared case runs exactly once: a missing, duplicate, undeclared, skipped or todo case cannot verify, and a declared failure on an intact copy is failed |
+| packaging/T64 | packaging/N8 | a declared peer dependency counts as declared, as F7 reads it | `test/embed/package.test.mjs` |
 | packaging/T51 | packaging/F25 | an agent using the shipped skill judges an adequate boundary account adequate, finds the material omission in an account whose headings, links and passing scripts look complete (an outgoing obligation whose refusals no Case exercises), and keeps unsupported evidence unresolved. A recorded independent trial, with its scenarios and expectations set before it ran |
 | packaging/T52 | packaging/F17 | the same trial run without an Engine, from the shipped skill alone: the agent chooses its inspections, interprets the script observations and records judgments, unknowns and Owner authorization separately, without proving completeness mechanically or taking another package's content |
 
