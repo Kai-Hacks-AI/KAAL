@@ -36,10 +36,37 @@ example a portfolio-like scope and a project-like scope):
    and B and exposes the ingredients their composition needs. Core did not
    implement the composed function.
 3. Remove B. Discovery again lists only A and states the absence honestly.
-4. Throughout, Core's installed files and their manifest digest are byte
+4. Register B alone, in a second clean consumer (or after removing A in the
+   same one). Discovery lists B, verify succeeds, and B's own result is the same
+   as when A is present. A fixture B that secretly needs A fails here.
+5. Throughout, Core's installed files and their manifest digest are byte
    identical: adding or removing a capability changed nothing in Core.
-5. Each capability is useful alone: A's own verify result is the same with and
-   without B.
+6. Each capability is useful alone: A's own verify result is the same with and
+   without B, and B's is the same with and without A (states 1, 3 and 4).
+
+### The composition result the scenario consumes
+
+Coexisting in discovery is not yet composition. The scenario therefore also runs
+one minimal, deterministic fixture-consumer operation through Core's existing
+registration assembly (no new interface, no domain meaning). A third fixture
+scope, owned by the consumer and registered only for this operation, has one
+instance whose trace targets one fixture instance owned by A and one owned by B,
+which the trace rule permits. A and B themselves state no trace to each other, so
+states 1, 3 and 4 above are unaffected.
+
+- With A, B and the consumer's scope present, the assembly resolves both traces:
+  the result lists all three scopes, reports zero findings and shows the two
+  resolved traces.
+- With B absent (A and the consumer's scope present), the trace to B is a
+  reported unresolved target that names B, not a crash and not a silent pass;
+  A's own result is unchanged.
+- With the consumer's scope removed, A's and B's results are the standalone
+  results of states 1, 3 and 4.
+
+The exact result fields are fixed when the RED Cases are written, from the
+assembly result Core already returns. What this PLAN fixes is that the results
+with and without B differ in the resolved trace and nothing else, and that no
+Core file is touched to make them differ.
 
 The five levels stay distinct in what is asserted: installation, registration,
 admission and discovery are checked deterministically. Actual use by an agent is
