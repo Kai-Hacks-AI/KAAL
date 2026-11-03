@@ -64,7 +64,7 @@ Before the trial the checker is calibrated, and the record shows it:
 1. The seeded defects and their expected classification are written down before the Agent runs, and kept with the Run (the answer key).
 2. The checker classifies a small known set first, such as a pre-written review with known Found, Partial, Missed and False positive items, and the result is compared to the key. Disagreements are written down with the reason.
 3. For a second pass, a second independent checker classifies the same record without seeing the first classification; agreement per item is recorded, and every disagreement is resolved in writing or left as `skipped` for that item.
-4. The checker's identity, their relation to the author of Review, and any KAAL exposure beyond the text under test go into `review/T20/checker`.
+4. The checker's identity (a fresh Claude session: its model and the context it was given), its relation to the author of Review, and any KAAL exposure beyond the text under test go into `review/T20/checker`. The Owner or CPO reviews the checker's verdict and the review is recorded beside the Run; it does not replace the checker's classification.
 
 A calibration that fails (the checker misclassifies the known set) means the Case `checker-independent` is not passed, and the trial does not count.
 
@@ -72,7 +72,7 @@ A calibration that fails (the checker misclassifies the known set) means the Cas
 
 These are explicit Owner choices. Testing does not choose them silently, and the Plan does not start the trial.
 
-- Who is the checker and who chooses the repository (Product, with the Owner), and whether the cold Agent is a session or a person.
+- Decided by the Owner (3 Nov): the independent checker is a fresh Claude session with no KAAL context beyond the text under test, and Kai or the CPO reviews its verdict. The review of the verdict is recorded in the trial record. Still open: who chooses the repository (Product, with the Owner), and whether the cold Agent is a session or a person.
 - The line for `useful-and-correct`: how many seeded defects must be Found, and how Partial counts. Testing proposes at least three seeded as a useful minimum and records the counts; Product and the Owner set the line.
 - The target repository and task, and the size of the calibration set.
 - Where the consumer keeps the Run, and whether Product's Decision Preparation cites it by commit.
