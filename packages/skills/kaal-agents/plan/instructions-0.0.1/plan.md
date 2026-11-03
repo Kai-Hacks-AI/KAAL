@@ -17,20 +17,19 @@ Added after the paragraph that begins "It starts where Core ends", and in place 
 
 > Agents also holds the model of the instructions an Agent works under, and how they compose. An instruction guides an Agent. It never authorizes one. Instructions live in layers: the instruction files of a deployment instance, such as a repository's `AGENTS.md`, the Skills a package ships, and the Nodes a capability keeps. Agents says what each layer may state and how the layers combine into one working context. It owns no layer's content and writes no instruction file. A deployment instance owns its own instruction files, and the owner of a matter owns what is said about it there.
 
-The sentence that says it ends "where the work an Agent takes up begins" stays. In its list, "where content goes is Communication's" becomes "channels and carriers are Communication's", as finding 2 below proposes.
+The sentence that says it ends "where the work an Agent takes up begins" stays, with its list unchanged, Communication's clause included. This PLAN does not narrow Communication's line. Finding 2 below keeps that overlap open.
 
 ## Requirements
 
 - **agents/F13** [agents/I2]: The charter states the instruction model and its composition as Agents' own, and states that an instruction guides and never authorizes.
 - **agents/F14** [agents/I2]: The charter states that a deployment instance owns its own instruction files, that Agents writes none, and that the owner of a matter owns what is said about it.
-- **agents/F15** [agents/I3]: The charter's reference to Communication reads consistently with F13 and F14 and does not leave the placement of instruction content to two capabilities. Its exact wording is settled by the finding on Communication below.
 
 ## Findings (overlaps, recorded and not decided here)
 
 | # | With | Finding | Proposed handling |
 | --- | --- | --- | --- |
 | 1 | **Core** | Agent Realization deploys Skills and proposes a pointer "for the instruction file's owner to adopt", and core/F20 says Core never writes an instruction file. The instruction file's owner is undefined today. | Under this PLAN the owner is the deployment instance. Core's text and core/F20 stand unchanged. Core keeps what an Agent is, and its registration, admission and catalog. Core's owner confirms. |
-| 2 | **Communication** | The charter says "where content goes is Communication's". Read broadly it covers where instruction content lives, which F13 and F14 give to the model and to the instance. | Clarify the charter's clause to channels and carriers: Communication places content between people and Agents, and Agents places no content. Communication's owner confirms, since the capability is dormant (last change 19 Oct). |
+| 2 | **Communication** | The charter says "where content goes is Communication's". Read broadly it could cover where instruction content lives, which F13 and F14 give to the model and to the instance. Communication is dormant (last change 19 Oct). | **Open.** This PLAN leaves the clause as it is. A proposal to narrow it to channels and carriers needs Communication's owner to confirm, or an explicit Owner decision, and would be its own Change. Until then F13 and F14 are read as the model and the instance's files, not as a placement rule for content in general. |
 | 3 | **Engineer Skill** | BASS names its Agent level after `AGENTS.md`-style instructions. | Agents uses BASS and does not redefine it. No change. |
 | 4 | **Engineering** | The repository's root `AGENTS.md` is the instance's file and today holds engineering rules such as the Foundation and Hosting dependency rule. | Engineering keeps that content. The model tells it where the rules sit relative to the other layers, and nothing more. |
 | 5 | **Change** | Changing an instruction file is an ordinary Change. | No change. |
@@ -42,12 +41,11 @@ Any content in any instruction file, a template for instruction files, a new che
 
 ## Testing
 
-The three planned tests are in `test/plan/instructions.test.mjs` and run with `node --test test/plan/instructions.test.mjs`, outside `test:publisher`, so CI is not red. Each fails today on the charter's text, not on a missing file. agents/C12 turns them GREEN without changing them.
+The two planned tests are in `test/plan/instructions.test.mjs` and run with `node --test test/plan/instructions.test.mjs`, outside `test:publisher`, so CI is not red. Each fails today on the charter's text, not on a missing file. agents/C12 turns them GREEN without changing them.
 
 | Test | Checks | Loop |
 | --- | --- | --- |
 | agents/T25: the charter states the instruction model and its composition, and that an instruction guides and never authorizes | agents/F13 | Intent |
 | agents/T26: the charter states that a deployment instance owns its instruction files, that Agents writes none, and that the owner of a matter owns what is said about it | agents/F14 | Requirements |
-| agents/T27: the charter's text no longer leaves instruction placement to Communication: it names Communication's part as channels and carriers | agents/F15 | Architecture |
 
-Validated by review: the wording, and the confirmations the findings ask of Core's and Communication's owners.
+Validated by review: the wording, and the confirmations the findings ask of Core's and Communication's owners. The Communication clause is covered by no test, because this PLAN does not change it.

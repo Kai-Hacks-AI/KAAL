@@ -23,8 +23,4 @@ describe("agents/C11 instruction model", () => {
     assert.match(charter, /owner of a matter owns what is said about it/i, "the matter's owner owns the content");
   });
 
-  it("agents/T27 [agents/F15]: the charter's text does not leave instruction placement to Communication: it names Communication's part as channels and carriers", () => {
-    assert.doesNotMatch(charter, /where content goes is Communication's/i, "the broad clause is gone");
-    assert.match(charter, /Communication[^.]*channels?[^.]*carriers?|channels? and carriers?[^.]*Communication/i, "Communication's part is channels and carriers");
-  });
 });
