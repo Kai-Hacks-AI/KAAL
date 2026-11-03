@@ -15,7 +15,7 @@ Product direction given by the CPO:
 5. Reproducible knowledge versions.
 6. No mandatory Engine for external consumption.
 
-This PLAN turns that direction into consumer journeys, requirements and acceptance criteria. Product owns what External KAAL means to its consumers and when it is accepted. It does not own how any of it is built, verified or distributed (section 7).
+This PLAN turns that direction into consumer journeys, requirements and acceptance criteria. Product owns what External KAAL means to its consumers and what accepted means. It does not own how any of it is built, verified or distributed (section 7).
 
 ## 2. Evidence and limits
 
@@ -85,8 +85,10 @@ A piece of knowledge that fails any of these is not External-ready. It may still
 
 | Question | Owner |
 |---|---|
-| What External KAAL means to consumers; which journeys, requirements and acceptance criteria; when a capability may be called External-ready | **Product** (this PLAN; the Owner decides) |
-| Running independent consumer acceptance and recording its evidence | **Testing** (evidence and verification semantics); the checker is not the author |
+| What External KAAL means to consumers; which journeys, requirements and acceptance criteria; what pass means | **Product** (this PLAN) |
+| The judgment of a trial: a real task done by a cold agent, checked by someone who is not the author | **Validation**, a reasoned judgment, not Testing's deterministic verification. It is performed by an independent checker (Review is the natural home for the judgment) and must not be presented as verified |
+| Recording a trial as evidence: a Run of an ordinary Plan with a Case per decidable criterion, provenance naming the knowledge version, the consumer repository and the checker; results passed, failed or unknown, unknown never counted as passed; retention stays with the consumer | **Testing** (its existing model, Run and provenance contracts; nothing new is needed for a first trial) |
+| Calling a capability External-ready | **The Owner decides.** Product prepares the decision as a Decision Preparation from the recorded trial; it does not decide |
 | A reusable "stands alone" conformance profile (does a piece need the Engine, a command, or a write) | **Packaging** may provide the mechanism (see section 8); Packaging is not given External product semantics |
 | The content of each piece of knowledge | the owning capability |
 | Where and how knowledge is made reachable and versioned (branch, tag, release, page) | open; Engineering and Packaging to be consulted before any proposal. **Promotion routes are the Owner's** and are out of scope |
@@ -111,7 +113,7 @@ Packaging's general conformance profile (#907, a draft DO) is the natural place 
 ## 10. Cross-capability requests (proposals, nothing started)
 
 - **Packaging**: can #907's profile express R4 and R5 as written? Asked through the Packaging thread.
-- **Testing**: would an External acceptance scenario (section 6) sit with Testing, and what does it need? Asked through the Testing thread.
+- **Testing** (answered, findings only): Testing can hold the evidence side of a trial (a Run with provenance; section 7) and needs nothing new for a first trial. The judgment stays outside Testing as validation. Hosting is not a dependency, since a trial uses plain text and no installation. The shipped installed verifier covers installed-package conformance, a different scope from External. Testing would add a small PLAN for a validation-trial record only if Product wants one, to be proposed after these criteria settle. Not started.
 - **Engineering**: how can an entry point and a citable version be offered without changing promotion policy? Engineering owns the branching and release mechanics; any answer that touches promotion returns to the Owner.
 - **Review**: the one capability the portfolio view marks as explicitly standing alone; a candidate first subject for acceptance.
 
