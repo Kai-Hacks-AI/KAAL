@@ -39,7 +39,7 @@ Rule: a capability gets an npm package only if a non-KAAL repo can benefit for n
 
 ## 5. SYNC need
 
-`kaal/product` needs main merged in (merge commit) before any DO, then promotion to main (squash), in the usual order after Core/Hosting. SYNC, promotion and publish each need Kai's explicit authorization; this PR authorizes none.
+`kaal/product` needed main merged in (merge commit) before further work. Under the standing SYNC policy (SYNC main → kaal/* when it unblocks development or is next for promotion) that needs no Owner ask, and it has been done (#909). Promotion to main (squash) and npm publication remain separate Owner decisions, judged on their own; this PLAN authorizes neither.
 
 ## 6. Cross-capability needs
 
@@ -54,7 +54,8 @@ Rule: a capability gets an npm package only if a non-KAAL repo can benefit for n
 
 1. Confirm the scope in section 3 (which of items 1-4 become DO work, in what order).
 2. Confirm internal-only (section 4).
-3. Authorize the SYNC of main into `kaal/product` (section 5).
+
+These are proposals. Approving this PLAN as a review outcome does not settle the scope (1) or internal-only distribution (2); they stay open until the Owner decides them.
 
 ## 8. Not covered
 
