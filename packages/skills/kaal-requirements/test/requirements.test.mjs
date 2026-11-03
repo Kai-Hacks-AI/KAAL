@@ -40,7 +40,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires, apart from what it uses", () => {
-    assert.match(text(), /^It provides the Requirement Definition\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
+    assert.match(text(), /^It provides the Requirement Definition and the `Serves` Definition\. For admission it requires Core's KAAL Capability, and nothing else\.$/m);
     assert.match(text(), /^Its functional relationships are uses, not ownership\./m);
     assert.match(text(), /Stating a Requirement authorizes nothing\.$/m);
   });
@@ -97,6 +97,7 @@ describe("the package", () => {
       "README.md",
       "capability/Requirement.md",
       "capability/Requirements.md",
+      "capability/Serves.md",
       "package.json",
     ]);
   });

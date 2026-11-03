@@ -5,6 +5,7 @@ KAAL Requirements: the capability for stating what must hold, the functional and
 ```
 capability/Requirements.md   the Capability Node, typed by Core's KAAL Capability
 capability/Requirement.md    the Requirement Definition, typed by Core's KAAL Definition
+capability/Serves.md         the Serves Definition: the Edge from a Requirement to the Intent it serves, typed by Core's KAAL Definition
 ownership.kaal.json          Requirements' own ownership claim (repository data, not delivered)
 ```
 
