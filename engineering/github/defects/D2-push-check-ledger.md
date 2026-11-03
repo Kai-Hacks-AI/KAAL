@@ -18,7 +18,7 @@ Plain data, in the shape of the Defect record definition under review in #991 (`
 }
 ```
 
-`tests` names only the RED Case. Its two controls have identities of their own (engineering/T87, T88) and are not Cases that expose the Defect.
+`tests` names only the RED Case. Its three controls have identities of their own (engineering/T87, T88, T89) and are not Cases that expose the Defect.
 
 ## Location
 
@@ -52,22 +52,26 @@ The pre-push check passes the target's ledger exactly as CI does, so it judges a
 | engineering/T83 | the RED Case: the pre-push check admits a change the target's ledger admits | [push-check-ledger.red.mjs](push-check-ledger.red.mjs) |
 | engineering/T87 | control: the checker admits the fixture's change with the target's ledger | same file |
 | engineering/T88 | control: the checker refuses the same change without a ledger | same file |
+| engineering/T89 | control, the rejected side of the agreement with CI: a change the ledger does not admit is refused by the checker and by the pre-push check | same file |
 
-**Case version:** the Git blob id of `push-check-ledger.red.mjs`, `f12d8a45c45f4a37985949d3e899981ad2cbf5d5`.
+**Case version:** the Git blob id of `push-check-ledger.red.mjs`, `97275c175605b3eae47511eb24c8fe9a5106880a`.
 
-**Confirming Run** (one Run observed all three Cases; Node v22.23.4, Linux; subject `engineering/github/push-check.sh` blob `b6a32f4bf0dff5d01b7e98efcfc3917396f55d6a` with `engineering/change-isolation/check.mjs` blob `aa62ca67e605897649f4d2647a7ad803afd41b9f`):
+**Confirming Run** (one Run observed all four Cases; Node v22.23.4, Linux; subject `engineering/github/push-check.sh` blob `b6a32f4bf0dff5d01b7e98efcfc3917396f55d6a` with `engineering/change-isolation/check.mjs` blob `aa62ca67e605897649f4d2647a7ad803afd41b9f`):
 
 ```
 ok 1 - engineering/T87 control: the checker admits the fixture's change with the target's ledger
 ok 2 - engineering/T88 control: the checker refuses the same change without a ledger
-not ok 3 - engineering/T83 RED (engineering/D2): the pre-push check admits a change the target's ledger admits
+ok 3 - engineering/T89 control: a change the ledger does not admit is refused by the checker and by the pre-push check
+not ok 4 - engineering/T83 RED (engineering/D2): the pre-push check admits a change the target's ledger admits
   error: the pre-push check refused a ledger-admitted change:
     Change Isolation: core travels alone: other/y.txt is not Core or its supporting files
 ```
 
-T83 is `failed` on an assertion after both controls passed, so the fixture is a real ledger-admitted change and the failure is the hook. The Case builds a scratch repo whose target holds a ledger entry for one exact multi-owner change, and runs the real `push-check.sh` with the facts the hook supplies.
+T83 is `failed` on an assertion after its three controls passed, so the fixture is a real ledger-admitted change and the failure is the hook. The Case builds a scratch repo whose target holds a ledger entry for one exact multi-owner change, and runs the real `push-check.sh` with the facts the hook supplies.
 
-**Answered** only by a later Run in which engineering/T83 passes at this same Case version (blob `f12d8a45...`), as its latest observation. A different Case version needs its own confirming RED against the old `push-check.sh` before it can answer D2; an edited Case alone answers nothing.
+**Agreement with CI on both sides:** T83 is the admitted side (the hook must admit what the ledger admits) and T89 is the rejected side (the hook must still refuse what the ledger does not admit, as CI does). T89 passes today and must keep passing after the correction, so a fix that admits everything does not answer D2. Checked on a local, uncommitted edit of `push-check.sh` that passes the target's ledger as CI does, then restored: all 4 pass.
+
+**Answered** only by a later Run in which engineering/T83 passes at this same Case version (blob `97275c17...`), as its latest observation. A different Case version needs its own confirming RED against the old `push-check.sh` before it can answer D2; an edited Case alone answers nothing.
 
 **How it is run:** by hand, `node --test engineering/github/defects/push-check-ledger.red.mjs`. No suite, lane or script names it, so required CI does not run it, deliberately, until the open question of how a Defect Case lives in `main` without hiding regression (raised on #991) is settled. Until then Engineering runs it before each Engineering promotion or publication and records the Run here. The Case reads the real `push-check.sh`, `check.mjs` and `lineage.ts` from the working tree, so a missing or renamed file fails it loudly instead of passing.
 
@@ -81,5 +85,5 @@ Not a blocker for Hosting 0.0.1. CI is the authority and admits the change; a de
 
 1. Read the target's `engineering/change-isolation/transitions.json` from `$base` and pass `--ledger <file> --git <base> <head>` for an ordinary change, as `change-isolation.sh` does; a target without a ledger is judged as before.
 2. `push-check.sh` is under `engineering/`, not `.github`, so the correction travels through `kaal/engineering` to `main` in the usual way.
-3. **Answered when** engineering/T83 passes at the same Case version as its confirming Run, as its latest observation (see above). A synchronization's explicit resolutions are judged by the checker without a ledger in CI as well, so only the ordinary-change path needs the ledger.
+3. **Answered when** engineering/T83 passes, with engineering/T89 still passing, at the same Case version as its confirming Run, as its latest observation (see above). A synchronization's explicit resolutions are judged by the checker without a ledger in CI as well, so only the ordinary-change path needs the ledger.
 4. This record changes no script, test or package. It authorizes no promotion or publication.

@@ -1,9 +1,11 @@
 // engineering/T83: the pre-push check must judge a ledger-admitted change as CI does.
 //
 // Identities in this file, one per leaf test: engineering/T83 is the RED Case and the only Case D2 names
-// in `tests`. engineering/T87 (the checker admits the fixture's change with the target's ledger) and
-// engineering/T88 (the checker refuses the same change without a ledger) are its controls, each with an
-// identity of its own.
+// in `tests`. engineering/T87 (the checker admits the fixture's change with the target's ledger),
+// engineering/T88 (the checker refuses the same change without a ledger) and engineering/T89 (the checker
+// and the pre-push check both refuse a change the ledger does not admit) are its controls, each with an
+// identity of its own. T89 is the rejected side of the agreement with CI, and must keep passing after the
+// correction, so a fix that admits everything does not turn D2 answered.
 //
 // Applicability: Linux and macOS, with git, node and a POSIX sh. Inapplicable on Windows, because
 // push-check.sh is a POSIX shell script that the pre-push hook runs under sh. On Windows the file reports
@@ -56,7 +58,7 @@ const git = (cwd, args, input) => {
 const blob = (cwd, text) => git(cwd, ["hash-object", "--stdin"], text);
 
 /** A scratch repo: origin/main (the tooling), origin/kaal/x (the target, holding the ledger) and a head that is the admitted change. */
-function fixture() {
+function fixture({ tamper = false } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "pushcheck-"));
   git(dir, ["init", "-q", "-b", "work"]);
   git(dir, ["config", "user.email", "t@example.com"]);
@@ -91,13 +93,14 @@ function fixture() {
   git(dir, ["update-ref", "refs/remotes/origin/kaal/x", target]);
 
   // head: exactly the admitted change.
-  for (const p of paths) put(p, after[p]);
-  const head = commit("the admitted change");
+  // tamper: one path differs from the ledger's post blob, so the ledger does not admit the change.
+  for (const p of paths) put(p, tamper && p === "other/y.txt" ? "y3\n" : after[p]);
+  const head = commit(tamper ? "a change the ledger does not admit" : "the admitted change");
   return { dir, target, head, paths, ledger: join(dir, LEDGER) };
 }
 
-const withFixture = (body) => {
-  const f = fixture();
+const withFixture = (body, options) => {
+  const f = fixture(options);
   try { return body(f); } finally { rmSync(f.dir, { recursive: true, force: true }); }
 };
 
@@ -128,6 +131,16 @@ test("engineering/T88 control: the checker refuses the same change without a led
     assert.equal(r.status, 1, r.output);
     assert.match(r.output, /Core/);
   });
+});
+
+test("engineering/T89 control: a change the ledger does not admit is refused by the checker and by the pre-push check", () => {
+  withFixture((f) => {
+    const c = checker(f, true);
+    assert.equal(c.status, 1, `the checker, with the ledger: ${c.output}`);
+    const r = pushCheck(f);
+    assert.equal(r.status, 1, `the pre-push check: ${r.output}`);
+    assert.match(r.output, /Core/);
+  }, { tamper: true });
 });
 
 test("engineering/T83 RED (engineering/D2): the pre-push check admits a change the target's ledger admits", () => {
