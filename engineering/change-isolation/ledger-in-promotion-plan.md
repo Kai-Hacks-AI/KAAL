@@ -1,6 +1,6 @@
 # PLAN: a promotion carries its own transition ledger entry
 
-Date: 2026-11-03. Engineering PLAN for CPO review and an Owner decision. It is Markdown only. It changes no checker, workflow, ruleset or ledger, and authorizes no promotion or publication. Inspected on `main` 7fa02ac and `kaal/engineering` a487139; reacquire before use.
+Date: 2026-11-03, revised 2026-11-04 for the CPO's review (trusted attestation, canonical digest, fail-closed re-evaluation). Engineering PLAN for CPO review and an Owner decision. It is Markdown only. It changes no checker, workflow, ruleset or ledger, and authorizes no promotion or publication. Inspected on `main` 7fa02ac and `kaal/engineering` a487139; reacquire before use.
 
 ## Intent
 
@@ -30,6 +30,37 @@ Why this is as safe as the two-PR route: the author alone can no longer authoriz
 - Fail closed: if the reviews cannot be read, the result is "cannot judge", not "admitted", and a stale pass is not left standing.
 - This is a `.github` change. It is its own `.github`-only Change and promotion, not part of the checker Change, and it travels alone like #949.
 
+## Trusted attestation: who, at which head, and what counts
+
+Revised 2026-11-04 after the CPO's review of this PLAN (trust of review identity and exact head SHA, canonical digest, fail-closed re-evaluation). Everything below is judged by trusted code from the target's tip, with the candidate treated as data.
+
+**Who counts.** A review is an attestation only when all of these hold at the moment of judging:
+
+1. It is read from the GitHub reviews API (never from a comment, never from the candidate's files), and its `state` is `APPROVED`. A `COMMENTED` review carrying the line counts for nothing.
+2. Its `commit_id` equals the pull request's **current** head SHA, read from the API in the same run, and equals the commit the job checked out. If the head moved while the job ran, the verdict is "cannot judge" (exit 2) and is not attached as a pass.
+3. The reviewer is a code owner. The owner list is read from `.github/CODEOWNERS` **at the target's tip**, never the candidate's, so a candidate cannot add itself as an owner. Reviewers are compared by numeric GitHub user id (resolved at judging time), not by login string, so a renamed or recycled login does not inherit trust. Only a plain user entry is understood; a team entry, a pattern other than `*`, or an unreadable file is "cannot judge".
+4. The reviewer is not the pull request's author (author id read from the API). Self-approval counts for nothing.
+5. It is that reviewer's **latest** review on the pull request. A later review by the same person (approval without the line, a changes-requested review, a dismissal) supersedes it. GitHub's own per-user latest state is used, not an earlier approval found by scanning.
+6. Its body holds exactly one line that matches `^ledger-entry: ([a-z0-9][a-z0-9-]*) sha256:([0-9a-f]{64})$`. Zero lines, two lines or a line that does not match fully means no attestation. The body is read as it is now, so an edited review body is judged as edited.
+
+The attested id must equal the id of the single appended entry, and the digest must equal the one the checker computes itself (below). The checker never accepts a digest from the author or from the workflow's inputs.
+
+**Canonical digest.** One byte form per entry, so two honest implementations cannot disagree:
+
+- The entry has exactly the keys `id`, `paths`, `pre`, `post`. Any other key, a duplicate key at any level, or a non-string value where a string belongs is refused, not normalized.
+- `id` matches `^[a-z0-9][a-z0-9-]*$`. `paths` is an array of unique strings, already in ascending order of their UTF-8 bytes (the checker refuses an unsorted or duplicated list instead of sorting it, so there is no second spelling of the same entry). `pre` and `post` map each path in `paths` to a lowercase 40-hex Git blob id or to `null`, and have no other keys.
+- Serialization is JSON Canonicalization Scheme (RFC 8785): keys sorted by UTF-16 code unit, no whitespace, minimal string escapes, encoded as UTF-8 with no byte order mark and no trailing newline.
+- The digest is the lowercase hex SHA-256 of those bytes. Engineering tooling may use `node:crypto` here as an independent reference (it is not Embedded code). The Case pins published test vectors: a fixed entry, its canonical bytes and its digest, so a change in the algorithm turns a Case RED.
+
+**Fail closed on a withdrawn approval, without trusting a stale pass.** A successful check is a status on a head SHA and a dismissal does not remove it, so the design never relies on the old pass:
+
+- Ordering inside the job: the first step sets the check to `in_progress` (not success) for the head SHA, before any reading. Every review event (`submitted`, `edited`, `dismissed`) therefore revokes any earlier pass immediately, and the job then completes it with the verdict from a read taken **at the end** of the run, after the checkout and the computation. If any read fails, the job ends "cannot judge", and the check is never left green.
+- Runs for one pull request share a concurrency group and are not cancelled mid-flight, and each run reads current state itself, so the last run to finish never reports an older state than an earlier one.
+- Ruleset as the second line: with "Require review from Code Owners" on, a withdrawn or replaced approval also leaves the pull request without the code-owner approval it needs, independent of this check.
+- **Residual window, stated plainly.** Between a review event and the job's first step (the seconds GitHub takes to start the workflow) the earlier pass can still stand. To exploit it the code owner would have to withdraw the very approval that authorizes the merge while auto-merge fires in the same seconds. The Owner may accept that window or ask for more (for example: no auto-merge on a pull request that carries an in-PR entry, so a person presses merge after the check is current). This is an Owner decision, not one I make.
+
+**Scope and gating.** The checker and adapter Change and the review-event trigger stay two separate Changes. The trigger is a `.github`-only Change and promotion that travels alone (like #949) and is explicitly Owner-gated. Nothing in this section is implemented, and the attestation line is a proposal, not an Owner-authorized form.
+
 ## Consequences to decide
 
 - **The pre-push hook cannot see the attestation.** It would refuse an in-PR entry (fail closed), the same shape as D2. That is acceptable only if documented, and it must never admit more than CI does. The agreement test T83/T89 pattern applies.
@@ -57,8 +88,15 @@ Each Case is written and shown RED against today's checker before any implementa
 | R11 agreement | pre-push and CI on R1 and R2 | the hook refuses wherever CI would, and never admits what CI refuses | planned |
 | R12 late approval | R1 where the attestation arrives after the first refusal | admitted after re-evaluation, with no new push | RED (stays refused) |
 | R13 withdrawn approval | R1 admitted, then the review is dismissed | refused again, the earlier pass not left standing | RED (stays passed) |
+| R14 canonical digest | published vectors: key order, whitespace, unsorted or duplicate paths, duplicate key, extra key, non-ASCII path | one digest per entry; every non-canonical spelling refused | RED (no digest exists) |
+| R15 wrong reviewer | the author's own approval; an approval by a non-owner; a candidate that adds itself to CODEOWNERS; a login that changed id | refused | passes |
+| R16 not an approval | a `COMMENTED` or `CHANGES_REQUESTED` review carrying the line; the line in a plain comment | refused | passes |
+| R17 superseded | owner approves with the line, then approves again without it | refused | RED (stays passed) |
+| R18 two lines or edited body | two attestation lines; a body edited to another digest | refused | passes |
+| R19 cannot read | reviews API fails, rate limited, or the head moves during the run | cannot judge (exit 2), no pass left standing | RED |
+| R20 pending first | the workflow's first step on any review event | the check is `in_progress` before anything is read | RED |
 
-R2 to R10 are controls: they pass today and must keep passing, which guards against a design that admits everything.
+R2 to R10 and R15, R16, R18 are controls: they pass today and must keep passing, which guards against a design that admits everything.
 
 ## Order
 
