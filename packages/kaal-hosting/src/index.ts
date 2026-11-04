@@ -443,7 +443,13 @@ export interface Reconciled {
 // Path order: by UTF-16 code unit, the same on every host.
 const byPath = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+/**
+ * The SHA-256 of the bytes a view covers, as 64 lowercase hexadecimal digits: the host's own digest, the one
+ * `reconcile` compares and reports. A `Buffer` is a `Uint8Array`, and the empty input is valid.
+ */
+export function digest(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
 
 // Whether a mode is executable, where the host has an executable mode at all.
 const modes = process.platform !== "win32";
@@ -489,7 +495,7 @@ async function present(root: string, path: string, removed: Set<string>): Promis
     }
     if (entry.isDirectory() && (await emptied(join(root, ...segments), path, removed))) return { found: "absent", executable: false };
     if (!entry.isFile()) return { found: "not a file", executable: false };
-    return { found: sha256(await readBytes(join(root, ...segments))), executable: executable(entry.mode) };
+    return { found: digest(await readBytes(join(root, ...segments))), executable: executable(entry.mode) };
   }
   throw new HostingError(`${path} is not a relative path`, "INVALID_PATH");
 }
@@ -570,7 +576,7 @@ export async function reconcile(root: string, reconciliation: Reconciliation): P
     const outcomes = entries.map((e) => {
       const was = now.get(e.path)!;
       if (e.remove) return { path: e.path, outcome: was.found === "absent" ? ("unchanged" as const) : ("removed" as const) };
-      const same = was.found === sha256(e.bytes!) && (!modes || was.executable === !!e.executable);
+      const same = was.found === digest(e.bytes!) && (!modes || was.executable === !!e.executable);
       return { path: e.path, outcome: same ? ("unchanged" as const) : ("written" as const) };
     });
     const writes = entries.filter((e, i) => !e.remove && outcomes[i].outcome === "written");
