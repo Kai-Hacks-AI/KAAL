@@ -146,8 +146,7 @@ export async function scan({ targets, base = process.cwd(), name }: ScanOptions)
   const findings = new Map<string, ScanFinding & { _hits: Hit[] }>();
   const references = new Map<string, Reference[]>();
   for (const hit of report.findings) {
-    const own = byLine.get(`${hit.file}\u0000${hit.line}`)!;
-    if (!isReferenceLine(own)) continue;
+    // A use is a reference even when its line is also a finding for another construct.
     for (const target of origins(hit)) {
       const key = `${hit.file}\u0000${target}`;
       references.set(key, [...(references.get(key) ?? []), { file: hit.file, line: hit.line, column: hit.column, construct: hit.construct }]);

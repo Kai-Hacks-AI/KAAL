@@ -53,4 +53,12 @@ describe("hosting/C102: scan regressions", () => {
     assert.equal(result.findings[0].references.length, 121);
     assert.ok(Date.now() - started < 20000, "the scan did not finish in reasonable time");
   });
+
+  it("hosting/T128 [hosting/F66]: a use of a bound identifier on a line that also holds an independent finding stays a reference of its binding", () => {
+    const root = tree({ "src/a.mjs": ["const a = process.platform;", "console.log(a, process.arch);"].join("\n") });
+    const { result } = run(["--target", "src"], root);
+    assert.deepEqual(result.findings.map((f) => f.line), [1, 2]);
+    assert.deepEqual(result.findings[0].references.map((r) => r.line), [2]);
+    assert.equal(result.counts.references, 1);
+  });
 });
