@@ -56,6 +56,7 @@ it("hosting/T111 [hosting/F29, hosting/F40]: a return in the platform branch its
   assert.deepEqual(await challenged("{const o={return:1};use(o);}"), []);
   assert.deepEqual(await challenged("{const keyword=/return/;use(keyword);}"), []);
   assert.deepEqual(await challenged("{const k=/[/]return/g;use(k);}"), []);
+  assert.deepEqual(await challenged("{const f=()=>{log('\u{1F600}');return 1;};f();}"), []);
   assert.deepEqual(await challenged("{const half=a/2;return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const q=x / 2 / 3;use(q);return;}"), ["c1"]);
 });

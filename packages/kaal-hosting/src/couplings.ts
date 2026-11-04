@@ -183,7 +183,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
  * begin (after an operator, an opening bracket, a separator or a keyword) and is a division after an operand.
  */
 function maskLiterals(text: string): string {
-  const out = [...text];
+  const out = text.split("");
   const blank = (from: number, to: number) => {
     for (let k = from; k < to; k++) if (out[k] !== "\n") out[k] = " ";
   };
@@ -227,7 +227,7 @@ const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with", "case"
 function returnsFromBranch(text: string): boolean {
   const masked = maskLiterals(text);
   const parens = groups(masked, "(", ")");
-  const chars = [...masked];
+  const chars = masked.split("");
   for (const [open, close] of groups(masked, "{", "}")) {
     const before = masked.slice(0, open).trimEnd();
     let fn = before.endsWith("=>");
