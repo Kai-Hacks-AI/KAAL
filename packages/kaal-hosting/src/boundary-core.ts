@@ -174,7 +174,7 @@ export interface PortabilityResult extends Omit<BoundaryResult, "cases" | "revie
 /** The deterministic cases the audit adds to hosting/F33's. */
 export const PORTABILITY_CASES = Object.freeze(["applicability is not scoped by platform", "host exceptions are well-formed"]);
 
-/** Facts that hold on every host in skills/kaal-hosting-boundary/HOSTS.md: an exception needing only these is stale. */
+/** Facts that hold on every host in skills/kaal-hosting/references/hosts.md: an exception needing only these is stale. */
 const EVERYWHERE: readonly string[] = [];
 const LINK = /^https:\/\/\S+$/;
 const HOST_QUESTION = "Is this case genuinely inapplicable where the fact does not hold, with its assertions intact where it does, and does the evidence show it?";

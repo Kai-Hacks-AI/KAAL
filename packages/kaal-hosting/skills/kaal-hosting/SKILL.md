@@ -61,4 +61,12 @@ The final `kaal-hosting-verification` JSON and actual process exit must agree:
 
 An undeclared skip, missing case, changed installed file or malformed/missing summary is not a pass. The shipped manifest establishes consistency, not provenance. A repository test pass, installed verification, promotion and npm publication are separate facts.
 
-For a boundary inspection, use the installed `kaal-hosting-boundary` command or `/boundary` export according to the installed contract. Its exits have a separate meaning: 0 is deterministic verified with no review requested; 1 failed; 2 unknown; 3 deterministic verified with review requested. A verified deterministic result with `review: requested` leaves the request open. Find the `kaal-hosting-boundary` Agent Skill by name for review guidance; an acknowledgement is evidence, not approval. Do not assume that sibling Skill is installed at a relative path.
+For the gating boundary inspection, use the installed `kaal-hosting-boundary` command or `/boundary` export according to the installed contract. Its exits have a separate meaning: 0 is deterministic verified with no review requested; 1 failed; 2 unknown; 3 deterministic verified with review requested. A verified deterministic result with `review: requested` leaves the request open. Read `references/boundary-result.md` for what each case and kind asks; an acknowledgement is evidence, not approval. The per-host facts and applicability rules are in `references/hosts.md`.
+
+## Boundary Check
+
+The Boundary Check lists where a file or folder decides by platform. Hosting is the one KAAL capability that realizes host differences, so platform logic anywhere else, in production code or in tests, is a finding.
+
+Run it on any file or folder, recursively: `kaal-hosting-boundary --target <path>` (repeat `--target` for several). It reports findings and never fails: one finding per source line, with every rule and class that line hits; a later use of a name bound on a finding line is a reference under that finding, not a finding of its own.
+
+The result is evidence, not a verdict. A finding is a question put to the owner of the code, not a defect and not an approval. Deciding is the owner's: the owner of the target records the decision (Package or Engineering) by finding id and line-text digest in their own Boundary Check record. Hosting stores and judges no decision. A decision that matches no finding is stale; a finding with no decision is undecided.
