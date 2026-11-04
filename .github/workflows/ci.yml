@@ -10,7 +10,7 @@
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
 # Everything else is checked once, on a reference host.
-name: KAAL
+name: KAAL CI
 
 on:
   push:

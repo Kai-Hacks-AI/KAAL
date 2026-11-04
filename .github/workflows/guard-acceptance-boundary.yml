@@ -22,7 +22,7 @@
 # each admitted there, so the check does not apply to its aggregate. This exemption is KAAL's
 # branching and Change policy, held in this KAAL workflow only; it is not part of the kaal-guard
 # package.
-name: Guard
+name: Guard Acceptance Boundary
 
 on:
   pull_request:

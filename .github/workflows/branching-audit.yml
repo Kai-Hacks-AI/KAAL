@@ -22,7 +22,7 @@
 # audit. The checker and holds.json are always read from the default branch's tip. The job checks out
 # and installs the commit this workflow runs from (kaal-guard and KAAL's scripts), which is no more
 # than the workflow itself already trusts; nothing else of a pushed branch is run.
-name: KAAL
+name: Branching Audit
 
 on:
   push:

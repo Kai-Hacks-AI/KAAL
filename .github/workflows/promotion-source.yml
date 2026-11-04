@@ -9,7 +9,7 @@
 # kaal-guard takes the checker from its tip (trusted). Only the event's refs are judged: nothing of
 # the candidate is fetched, checked out or run. It runs on every pull request so that, once required,
 # it reports on every one.
-name: KAAL
+name: Promotion Source
 
 on:
   pull_request_target:
