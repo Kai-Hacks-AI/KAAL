@@ -114,13 +114,13 @@ describe("Testing's own mapping", () => {
   it("reads, under Testing's own claim, and pins only statements and tests inside Testing's tree", () => {
     assert.deepEqual(problems(own, claim.owner), []);
     for (const s of own.statements) {
-      assert.ok(s.source.startsWith("packages/skills/kaal-testing/"), s.source);
-      for (const e of s.evidence) assert.ok(e.file.startsWith("packages/skills/kaal-testing/test/"), e.file);
+      assert.ok(s.source.startsWith("packages/kaal-testing/"), s.source);
+      for (const e of s.evidence) assert.ok(e.file.startsWith("packages/kaal-testing/test/"), e.file);
     }
   });
 
   it("classifies every statement as unknown: stale pins also read as unknown, never as a failure of this suite", async () => {
-    const root = fileURLToPath(new URL("../../../../", import.meta.url));
+    const root = fileURLToPath(new URL("../../../", import.meta.url));
     const files = {};
     for (const p of new Set(own.statements.flatMap((s) => [s.source, ...s.evidence.map((e) => e.file)]))) if (existsSync(root + p)) files[p] = readFileSync(root + p);
     const classified = await classify(own, files);
