@@ -180,7 +180,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
 }
 
 /**
- * The controlled statement of an unbraced branch: `text` up to the first semicolon outside any bracket, continuing
+ * The controlled statement of an unbraced branch: `text` up to the first semicolon outside any bracket or the closing brace of a compound statement, continuing
  * through an `else` so the alternative branch is still included, and no further, so a statement after the branch is not
  * taken for part of it. `text` has its literals masked.
  */
@@ -189,7 +189,11 @@ function firstStatement(text: string): string {
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (c === "(" || c === "{" || c === "[") depth++;
-    else if (c === ")" || c === "}" || c === "]") depth--;
+    else if (c === ")" || c === "}" || c === "]") {
+      depth--;
+      // A compound statement ends at its closing brace, unless an else follows.
+      if (c === "}" && depth <= 0 && !/^\s*else\b/.test(text.slice(i + 1))) return text.slice(0, i + 1);
+    }
     else if (c === ";" && depth <= 0 && !/^\s*else\b/.test(text.slice(i + 1))) return text.slice(0, i + 1);
   }
   return text;
