@@ -257,36 +257,35 @@ function maskLiterals(text: string): string {
   return out.join("");
 }
 
-const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with", "case"]);
+const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with"]);
 
 /**
- * Whether `text` returns from the code around it: a `return` statement outside the bodies of the functions
- * declared in it (callbacks, arrow functions, helpers, methods and accessors), and outside string literals and
- * property names.
+ * Whether `text` returns from the code around it. Only a `return` that no function can enclose counts: it must sit
+ * directly in the branch or in nested control-flow blocks (if, else, for, while, do, switch, try, catch, finally, a
+ * case clause or a bare block). Every other brace, whatever it is (a function, method, accessor, class, object
+ * literal or type, in any syntax), is not control flow and is blanked with its contents, so no function signature
+ * has to be recognised. String and regular-expression literals are blanked first.
  */
 function returnsFromBranch(text: string, unbraced = false): boolean {
   let masked = maskLiterals(text);
   if (unbraced) masked = firstStatement(masked);
   const parens = groups(masked, "(", ")");
   const chars = masked.split("");
-  for (const [open, close] of groups(masked, "{", "}")) {
+  // A brace group that follows the close of a non-control group (an object type before a function body, for example)
+  // continues an expression, not a statement.
+  const expression = new Set<number>();
+  for (const [open, close] of groups(masked, "{", "}").sort((x, y) => x[0] - y[0])) {
     const before = masked.slice(0, open).trimEnd();
-    let fn = before.endsWith("=>");
-    // A parameter list, optionally followed by a TypeScript return type, ends the text before a function body.
-    const signature = fn ? undefined : /\)\s*(?::\s*[\w$.<>[\]|&?\s,]+)?$/.exec(before);
-    if (signature) {
-      const at = parens.find(([, c]) => c === before.length - signature[0].length);
-      // Skip a TypeScript type-parameter list between the name and the parameters.
-      const head = at ? masked.slice(0, at[0]).replace(/<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>\s*$/, "") : "";
-      const name = at && /([\w$]+)\s*$/.exec(head);
-      fn = (!!name && !CONTROL.has(name[1])) || /\]\s*$/.test(head) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(head));
+    let control = before === "" || /[;{]$/.test(before) || (before.endsWith("}") && !expression.has(before.length - 1)) || /(?<![\w$.])(else|try|finally|do)$/.test(before) || /\b(case\b[^;{}]*|default)\s*:$/.test(before);
+    if (!control && before.endsWith(")")) {
+      const at = parens.find(([, c]) => c === before.length - 1);
+      const name = at && /([\w$]+)\s*$/.exec(masked.slice(0, at[0]));
+      control = !!name && CONTROL.has(name[1]);
     }
-    // A function whose return type is an object type: `): { value: number } {`.
-    if (!fn && before.endsWith("}")) {
-      const type = groups(masked, "{", "}").find(([, c]) => c === before.length - 1);
-      fn = !!type && /\)\s*:\s*[\w$.<>[\]|&?\s,]*$/.test(masked.slice(0, type[0]));
+    if (!control) {
+      expression.add(close);
+      for (let i = open; i <= close; i++) chars[i] = " ";
     }
-    if (fn) for (let i = open; i <= close; i++) chars[i] = " ";
   }
   return /(?<![.\w$])return\b(?!\s*:)/.test(chars.join(""));
 }

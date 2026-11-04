@@ -54,6 +54,10 @@ it("hosting/T111 [hosting/F29, hosting/F40]: a return in the platform branch its
   assert.deepEqual(await challenged("{const f=()=>{log('}');return 1;};f();}"), []);
   assert.deepEqual(await challenged("{const f=()=>{log('{');return 1;};f();return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const o={return:1};use(o);}"), []);
+  assert.deepEqual(await challenged("{const iterator={return(){return {done:true};}};use(iterator);}"), []);
+  assert.deepEqual(await challenged("{class Box{get v(){return 1;}} use(new Box());}"), []);
+  assert.deepEqual(await challenged("{try{cleanup();}finally{return;}}"), ["c1"]);
+  assert.deepEqual(await challenged("{do{cleanup();}while(retry());return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const keyword=/return/;use(keyword);}"), []);
   assert.deepEqual(await challenged("{const k=/[/]return/g;use(k);}"), []);
   assert.deepEqual(await challenged("{const f=()=>{log('\u{1F600}');return 1;};f();}"), []);
@@ -91,6 +95,8 @@ it("hosting/T112 [hosting/F29, hosting/F40]: a return inside a TypeScript functi
   assert.deepEqual(await challenged("{function helper(): {value:number} {return {value:1};} helper();}"), []);
   assert.deepEqual(await challenged("{function helper(): {value:number} {return {value:1};} helper(); return;}"), ["c1"]);
   assert.deepEqual(await challenged("{function identity<T>(value: T): T {return value;} identity(1);}"), []);
+  assert.deepEqual(await challenged("{function helper(): Promise<{value:number}> {return Promise.resolve({value:1});} helper();}"), []);
+  assert.deepEqual(await challenged("{function helper(): Promise<{value:number}> {return Promise.resolve({value:1});} helper(); return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const o={pick<K extends string>(k: K): K {return k;}};o.pick('a');}"), []);
   assert.deepEqual(await challenged("{function identity<T>(value: T): T {return value;} identity(1); return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const o={value(): number {return 1;}};o.value();}"), []);
