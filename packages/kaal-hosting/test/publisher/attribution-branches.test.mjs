@@ -55,3 +55,19 @@ it("hosting/T111 [hosting/F29, hosting/F40]: a return in the platform branch its
   assert.deepEqual(await challenged("{const f=()=>{log('{');return 1;};f();return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const o={return:1};use(o);}"), []);
 });
+
+it("hosting/T112 [hosting/F29, hosting/F40]: a return inside a TypeScript function, method or accessor with a return type is not a return from the test", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "hosting-attribution-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, "test"));
+  writeFileSync(join(root, "package.json"), JSON.stringify({ name: "portable-fixture", type: "module" }));
+  const challenged = async (branch) => {
+    writeFileSync(join(root, "test/sample.test.mts"), `import {it} from 'node:test';\nit('c1',()=>{\nif(process.platform==='win32')${branch}\nassertSomething();\n});\n`);
+    return (await portability({ name: "portable-fixture", root, builtins: ["node:test"] })).challenged;
+  };
+  assert.deepEqual(await challenged("{function helper(): number {return 1;} helper();}"), []);
+  assert.deepEqual(await challenged("{const o={value(): number {return 1;}};o.value();}"), []);
+  assert.deepEqual(await challenged("{const o={get v(): number {return 1;}};o.v;}"), []);
+  assert.deepEqual(await challenged("{function helper(): Array<string> | undefined {return undefined;} helper(); return;}"), ["c1"]);
+  assert.deepEqual(await challenged("{switch(x){case (1): {return;}}}"), ["c1"]);
+});

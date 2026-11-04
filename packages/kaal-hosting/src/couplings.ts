@@ -177,7 +177,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
   return "setup";
 }
 
-const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with"]);
+const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with", "case"]);
 
 /**
  * Whether `text` returns from the code around it: a `return` statement outside the bodies of the functions
@@ -192,8 +192,10 @@ function returnsFromBranch(text: string): boolean {
   for (const [open, close] of groups(masked, "{", "}")) {
     const before = masked.slice(0, open).trimEnd();
     let fn = before.endsWith("=>");
-    if (!fn && before.endsWith(")")) {
-      const at = parens.find(([, c]) => c === before.length - 1);
+    // A parameter list, optionally followed by a TypeScript return type, ends the text before a function body.
+    const signature = fn ? undefined : /\)\s*(?::\s*[\w$.<>[\]|&?\s,]+)?$/.exec(before);
+    if (signature) {
+      const at = parens.find(([, c]) => c === before.length - signature[0].length);
       const name = at && /([\w$]+)\s*$/.exec(masked.slice(0, at[0]));
       fn = !!name && !CONTROL.has(name[1]);
     }
