@@ -10,18 +10,17 @@ Under the instruction model of agents/C11, the root file is a deployment instanc
 
 Kai's Decision 1 (A) changes the dependency picture the Skills describe. Hosting owns the external crypto primitives, and other packages depend on Hosting or Foundation for them, not on `node:crypto` directly.
 
+## The model
+
+Kai (4 Nov): picture any non-KAAL repository with KAAL enabled. Its root `AGENTS.md` gets a pointer to `.kaal/`, and from there the Agent uses `kaal` commands. KAAL's own root file follows the same pattern. It is a repository like any other that has KAAL enabled, and it holds nothing a consumer's root file would not.
+
 ## What the root file keeps
 
-Awareness only, as pointers and no rules:
+1. A pointer to the Engine: "This repository is governed by KAAL. The KAAL Engine is `.kaal/`. Start with `.kaal/AGENTS.md`, and use the `kaal` command from there."
+2. What the repository itself needs. For KAAL's own repository that is what `packages/` and `engineering/` hold, which is the repository's content and not a rule about a package.
+3. That these notes guide an Agent and never authorize one.
 
-1. This repository is governed by KAAL, and these notes guide an Agent and never authorize one.
-2. `packages/` holds distributable capabilities, `engineering/` holds engineering and acceptance work.
-3. The Engine is `.kaal/`. Start with `.kaal/AGENTS.md`.
-4. To see what is registered, run `kaal list --engine .kaal` (Core). "Installed" is not "registered", so the list can be partial.
-5. A package carries its own rules in its `AGENTS.md`, at `packages/<package>/AGENTS.md`, and its how-to in its Skill. Read the `AGENTS.md` of the package whose work you do. A rule about a package is not stated here.
-6. To start from durable sources, or to escalate what a program cannot resolve, use `kaal-agents` (`orient`, `preach check`) once it is on `main`. Until then the root file does not point at it, since it must not point at what `main` lacks.
-
-It names no package by version and copies no capability map. The `## Foundation` section goes.
+From `.kaal/AGENTS.md` (Core's payload, already on `main`) the Agent runs `kaal verify --engine .kaal` and `kaal list --engine .kaal`. A package's own rules sit in `packages/<package>/AGENTS.md`, reached from what `kaal list` shows, and are not repeated at the root. The root file names no package, no version, no command beyond the pointer, and copies no capability map. The `## Foundation` section goes.
 
 ## Where each specific rule goes
 
@@ -62,13 +61,17 @@ Not here either: whether `node:crypto` stays allowed in installed verifiers (Eng
 2. Hosting's `AGENTS.md` in its own Change and release.
 3. Then the root file in its own Change, after both are on `main`. Removing the section earlier would leave a rule with no home.
 
-The root file's own Change is not part of any package promotion or ledger entry. Its route (Engineering, or a collector Change as for #728) is for Kai to name, because the owner of the root file is not settled (Engineering's reconciliation note).
+The root file's own Change is not part of any package promotion or ledger entry. It is an ordinary Change on the repository's own instruction file.
+
+## Who owns the root file
+
+Core never writes, edits or removes an instruction file (core/F20). Where a provider needs a pointer, Core returns it for the instruction file's owner to adopt. The root `AGENTS.md` is therefore not an install concern of Core's. Core proposes the pointer, and the deployment instance owns the file, as agents/F14 states. For any consumer repository that is the repository's own owner. For KAAL's own repository the instance is the repository itself, so Engineering, which keeps the repository's engineering rules, adopts the pointer and owns the file. That settles the root-ownership question as an application of C11, with the one remaining check below.
 
 ## Findings
 
 - **Foundation.** Its Skill already carries the how-to behind the rules the root file repeats, so the root section duplicates it and can drift. The rules need their own `AGENTS.md`, which does not exist yet.
 - **Hosting.** Neither its README nor its Skill says that Hosting owns the external crypto primitives. It needs that statement in its own `AGENTS.md`, in Hosting's wording.
-- **Core.** `kaal list` is the capability map's authority once the repository registers its capabilities. Until then the root file says "run it" and claims no completeness.
+- **Core.** `kaal list` is the capability map's authority once the repository registers its capabilities. Until then it can be partial, so the root file points at `.kaal/` and the Agent runs the commands from there. Whether `kaal list` surfaces a package's `AGENTS.md`, so that the Agent reaches it by a command, is Core's to say. Until it does, the package's own path is the way.
 - **Agents.** The root file points at `kaal-agents` only after promotion.
 
 ## Testing
@@ -78,7 +81,7 @@ Two planned tests, in `test/plan/root-instructions.test.mjs`. They read the repo
 | Test | Checks | Loop |
 | --- | --- | --- |
 | agents/T27: the root file holds no package rule: it does not name `node:crypto`, `npx` or `sha256`, and has no section for a single package | agents/F13 | Requirements |
-| agents/T28: the root file makes an Agent aware: it names `.kaal/AGENTS.md`, `kaal list`, and says a package's rules are in its own `AGENTS.md` | agents/F13 | Intent |
+| agents/T28: the root file is a pointer: it names the Engine `.kaal/` and `.kaal/AGENTS.md`, says it guides and never authorizes, and stays within ten lines | agents/F13 | Intent |
 
 The root edit is a later DO. These tests turn GREEN there, and the Foundation and Hosting statements ride their own packages' tests.
 

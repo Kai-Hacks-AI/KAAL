@@ -17,10 +17,10 @@ describe("agents/C13 root instruction file", () => {
     assert.doesNotMatch(root, /^##\s+(?:Foundation|Hosting|Guard|Graph)\b/m, "no section for a single package");
   });
 
-  it("agents/T28 [agents/F13]: the root file makes an Agent KAAL aware and points at the package Skills", () => {
+  it("agents/T28 [agents/F13]: the root file is a pointer to the Engine, says it guides and never authorizes, and stays short", () => {
     assert.match(root, /\.kaal\/AGENTS\.md/, "points at the Engine's notes");
-    assert.match(root, /kaal list/, "points at Core's list");
-    assert.match(root, /packages\/<package>\/AGENTS\.md|package.{0,40}own `?AGENTS\.md/i, "points at each package's own AGENTS.md");
+    assert.match(root, /\.kaal\//, "points at the Engine");
+    assert.ok(root.split("\n").length <= 10, "stays a pointer, not a rulebook");
     assert.match(root, /never authoriz|no authority/i, "guides and does not authorize");
   });
 });
