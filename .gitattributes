@@ -4,3 +4,5 @@ packages/**/payload/** -text
 # Preserve exact reviewed composed-Plan contracts and fixtures on every host.
 packages/kaal-testing/plan/composed-plan/** -text
 packages/kaal-testing/test/plan/composed-plan/** -text
+# The reviewed execution boundary and its evidence bind exact committed bytes.
+engineering/execution/** -text
