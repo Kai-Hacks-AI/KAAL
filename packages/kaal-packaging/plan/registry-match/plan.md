@@ -80,14 +80,12 @@ Fixtures only, with a fake `release` function. No test touches the network.
 - **T76** `registryMatchAll` over a fixture workspace with a missing folder and a duplicated entry: both reported.
 - **T77** A hostile tarball path in the release is refused as `packaging/N4` requires, and is reported as unknown, not as a mismatch.
 
-## Questions for Kai (A or B)
+## Decisions (Kai, 4 Nov)
 
-1. **Does an unpublished package count in the Ratchet's accepted set?**
-   - **A (recommended):** yes. `unpublished` is a finding like any other, so the set can only shrink as releases ship, and we see every folder that is not yet a release.
-   - **B:** no. Unpublished folders are listed as a separate state outside the Ratchet, and only mismatches of published packages are counted.
-2. **Where is the claim of "which npm name this folder is" kept?**
-   - **A (recommended):** the folder's own `package.json` `name` is the claim, and an Owner namespace decision (#622) changes that file. A folder whose name was never meant to be published is `private`.
-   - **B:** Engineering keeps a table of expected npm names per folder, and Packaging reads it. This catches a folder named wrongly on both sides, at the cost of a second source of truth.
+1. **Unpublished packages count in the Ratchet's accepted set (A).** `unpublished` is a finding like any other, so the accepted set can only shrink as releases ship, and every folder that is not yet a release stays visible.
+2. **The folder's own `package.json` name is the claim (A).** An Owner namespace decision (#622) changes that file. A folder never meant for npm is `private`. There is no second table of expected names.
+
+Both are now part of the definition above and need no further question.
 
 ## Sequencing and ownership
 
