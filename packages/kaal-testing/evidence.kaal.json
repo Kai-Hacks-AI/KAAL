@@ -6,13 +6,13 @@
   },
   "statements": [
     {
-      "source": "packages/skills/kaal-testing/README.md",
+      "source": "packages/kaal-testing/README.md",
       "quote": "Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests.",
       "sha256": "7abd8bd0c7a87cb334eeef18e14dc9133edb46855b8f824d10872a0e8019735c",
       "loop": "conformance",
       "evidence": [
         {
-          "file": "packages/skills/kaal-testing/test/boundary.test.mjs",
+          "file": "packages/kaal-testing/test/boundary.test.mjs",
           "sha256": "f8a6b1af4519c42be986592124167a1470972aed1fe2392326da09f5ad2b4cce",
           "test": [
             "Testing's Hosting boundary",
@@ -25,13 +25,13 @@
       "review": null
     },
     {
-      "source": "packages/skills/kaal-testing/README.md",
+      "source": "packages/kaal-testing/README.md",
       "quote": "An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.",
       "sha256": "d575e356ea9574ba38ccf15e4edc7b835259dd8aaf68a53044cdafcc1b861faf",
       "loop": "acceptance",
       "evidence": [
         {
-          "file": "packages/skills/kaal-testing/test/acceptance.test.mjs",
+          "file": "packages/kaal-testing/test/acceptance.test.mjs",
           "sha256": "4def46e9cef9911d16d66389286c36342b39657d051404dce5dd6debc009c69b",
           "test": [
             "running acceptance",
@@ -44,13 +44,13 @@
       "review": null
     },
     {
-      "source": "packages/skills/kaal-testing/README.md",
+      "source": "packages/kaal-testing/README.md",
       "quote": "An ownership file with a pattern outside its scope is a verified failure and claims nothing.",
       "sha256": "39fd9688c94ea622103ffb0f22bdd5f5f6911548d57ebd3713a6acade1985817",
       "loop": "acceptance",
       "evidence": [
         {
-          "file": "packages/skills/kaal-testing/test/attribution.test.mjs",
+          "file": "packages/kaal-testing/test/attribution.test.mjs",
           "sha256": "1132584521073102d1f3e7019c9c3f9af9a94c835bfa798a90452a7b79db8dad",
           "test": [
             "ownership files",
@@ -63,7 +63,7 @@
       "review": null
     },
     {
-      "source": "packages/skills/kaal-testing/capability/Testing.md",
+      "source": "packages/kaal-testing/capability/Testing.md",
       "quote": "It does not own any other capability's contracts, cases, tests or ownership claims.",
       "sha256": "15115541668981c2f8a91fa372b476f7ca7b64d264a70e9d8efd393f995467bc",
       "loop": "conformance",
@@ -71,7 +71,7 @@
       "review": null
     },
     {
-      "source": "packages/skills/kaal-testing/payload/Testing.md",
+      "source": "packages/kaal-testing/payload/Testing.md",
       "quote": "A PLAN-established test is immutable to DO and CHECK, whatever the motivation: neither changes it, nor the fixtures, expectations, configuration and helpers that give it its meaning.",
       "sha256": "838cc7d8e849e9e5d9aaa1121f0c2ac074002a042f74ff9eea58749a4e46964b",
       "loop": "conformance",
