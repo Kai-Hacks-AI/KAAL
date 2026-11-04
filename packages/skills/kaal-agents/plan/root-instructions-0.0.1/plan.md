@@ -65,7 +65,7 @@ The root file's own Change is not part of any package promotion or ledger entry.
 
 ## Who owns the root file
 
-Core never writes, edits or removes an instruction file (core/F20). Where a provider needs a pointer, Core returns it for the instruction file's owner to adopt. The root `AGENTS.md` is therefore not an install concern of Core's. Core proposes the pointer, and the deployment instance owns the file, as agents/F14 states. For any consumer repository that is the repository's own owner. For KAAL's own repository the instance is the repository itself, so Engineering, which keeps the repository's engineering rules, adopts the pointer and owns the file. That settles the root-ownership question as an application of C11, with the one remaining check below.
+Core never writes, edits or removes an instruction file (core/F20). Where a provider needs a pointer, Core returns it for the instruction file's owner to adopt. The root `AGENTS.md` is therefore not an install concern of Core's. Core proposes the pointer, and the deployment instance owns the file, as agents/F14 states. For any consumer repository that is the repository's own owner. For KAAL's own repository the instance is the repository itself, so Engineering, which keeps the repository's engineering rules, adopts the pointer and owns the file. Kai confirmed it (4 Nov): the consumer owns the root `AGENTS.md`, so in KAAL's own repository Engineering is the owner. The root-ownership question is closed as an application of C11.
 
 ## Findings
 
