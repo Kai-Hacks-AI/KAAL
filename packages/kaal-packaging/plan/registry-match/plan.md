@@ -47,7 +47,7 @@ Engineering owns what happens next: a Defect record per finding (or per collapse
 
 **C22: registry match.**
 
-1. `registryMatch(packageDir, { work, release })` judges **one** package and returns its state and findings. `release(name, version)` is a caller-supplied function that fetches a published tarball into `work` (default: `npm pack N@V` through Hosting, with the same cache and log isolation as `measure`), or reports not-found, or reports unreadable. The caller-supplied function is how tests and offline runs avoid the network, and keeps Packaging free of a registry client.
+1. `registryMatch(packageDir, { work, release })` judges **one** package and returns its state and findings. `release(name, version)` is a caller-supplied function that resolves to `{ versions, tarball }`: `versions` is **every published version of `N`** (empty when the name was never published), and `tarball` is the path of `N@V` fetched into `work` when `V` is among them. It may instead report unreadable. Name-level status is separate from `N@V`, so the report can tell `unpublished` (no versions) from `unreleased-version` (versions exist, `V` absent), and a private folder with any release is `private-published` even when `V` is not one of them. The default fetches through Hosting (`npm view N versions`, then `npm pack N@V`, with the same cache and log isolation as `measure`). The caller-supplied function is how tests and offline runs avoid the network, and keeps Packaging free of a registry client.
 2. File bytes are read from both tarballs with Packaging's existing bounded tarball reading (`packaging/N4` path refusals apply) and digested with Foundation's SHA-256. No new hard dependency: Packaging already uses Hosting for the OS boundary and Foundation for KAAL digests.
 3. `registryMatchAll(root, { work, release })` sweeps the workspace folders listed in the root `package.json`, one result per folder, and a folder listed twice or unreadable is reported, not skipped. The sweep reads folders only to know where packages are; the judgment never rests on the folder.
 4. Command: `kaal-packaging registry-match [dir | --all] [--json]`. Exit status separates "in line or private" from "findings" from "unknown".
@@ -72,9 +72,9 @@ Fixtures only, with a fake `release` function. No test touches the network.
 - **T68** A folder whose packed files equal the release's: in line.
 - **T69** One file's bytes differ, one path added, one removed: out of line `content-differs`, evidence naming each path and both digests.
 - **T70** Same files, differently repacked tarball (different compression and entry order): still in line. This is the case that rules out comparing tarball digests.
-- **T71** No release of the name: `unpublished`. Releases exist but not `V`: `unreleased-version`.
+- **T71** No release of the name: `unpublished`. Releases exist but not `V`: `unreleased-version`. The fixture `release` returns `versions` for both, so the two are told apart by the lookup, not guessed.
 - **T72** Folder named unscoped, release published under a scope: `name-differs`.
-- **T73** `private` package, no release: `private`. `private` package with a release: `private-published`.
+- **T73** `private` package, no release: `private`. `private` package with a release: `private-published`, including when the releases exist but `V` is not among them.
 - **T74** `release` reports unreadable or the tool is missing: `unknown`, never in line.
 - **T75** The report is byte-identical across runs and orders; `compareReports` returns added, removed and unchanged ids and flags a grown set. A folder renamed to a scoped name, or bumped in version, keeps its finding id for the same kind.
 - **T76** `registryMatchAll` over a fixture workspace with a missing folder and a duplicated entry: both reported.
