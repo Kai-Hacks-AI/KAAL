@@ -164,7 +164,12 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
       if (otherwise) {
         const s = end + otherwise[0].length;
         const next = braces.find(([o]) => o === s);
-        body += next ? code.slice(s, next[1] + 1) : rest(code, s);
+        if (next) body += code.slice(s, next[1] + 1);
+        else {
+          // An unbraced alternative is bounded to its own statement.
+          const alternative = rest(code, s);
+          body += alternative.slice(0, firstStatement(maskLiterals(alternative)).length);
+        }
       }
     } else {
       body = rest(code, k);
@@ -230,7 +235,8 @@ function maskLiterals(text: string): string {
       const before = text.slice(0, i).trimEnd();
       const word = /([\w$]+)$/.exec(before)?.[1];
       // A slash after the closing parenthesis of an if, while, for or with condition starts a statement, so it opens a regular expression.
-      const afterCondition = before.endsWith(")") && closesCondition(before);
+      const maskedBefore = out.slice(0, i).join("").trimEnd();
+      const afterCondition = maskedBefore.endsWith(")") && closesCondition(maskedBefore);
       const begins = afterCondition || before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await)$/.test(word));
       if (!begins) {
         i++;
