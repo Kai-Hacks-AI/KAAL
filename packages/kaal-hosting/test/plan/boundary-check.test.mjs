@@ -6,7 +6,6 @@
 // own, built in a temporary directory: never another package's content.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
@@ -36,7 +35,9 @@ function run(args, cwd) {
   return { status: out.status, stderr: out.stderr, result: line ? JSON.parse(line.slice(LINE.length + 1)) : undefined };
 }
 
-const sha256 = (text) => createHash("sha256").update(Buffer.from(text, "utf8")).digest("hex");
+// Fixed SHA-256 digests (lowercase hex, UTF-8 bytes, no trailing newline) of the two fixture lines. They are fixed values so this test needs neither node:crypto nor a package dependency.
+const DIGEST_LINE = "fd27804a4ecdf54db71cd13c64341993babb81e9324136e89effdeba1959795d"; // export const w = process.platform;
+const DIGEST_EDITED = "fa95403d38ce3eca461eb13c64d27eafcab67d3a1f57d62efb0ebf75d6a7f431"; // export const w = process.platform + 1;
 const walk = (dir) => readdirSync(dir).flatMap((n) => (statSync(join(dir, n)).isDirectory() ? walk(join(dir, n)) : [join(dir, n)]));
 
 describe("hosting/C100: the Boundary Check per package", () => {
@@ -133,7 +134,7 @@ describe("hosting/C100: the Boundary Check per package", () => {
     const ids = first.result.findings.map((f) => f.id).sort();
     assert.deepEqual(ids, ["kaal-hosting/src/index.mjs:1", "kaal-hosting/test/index.mjs:1"]);
     for (const f of first.result.findings) {
-      assert.equal(f.digest, sha256(text));
+      assert.equal(f.digest, DIGEST_LINE);
       assert.equal(typeof f.question, "string");
       assert.ok(f.question.length > 0);
       assert.equal(f.decision, undefined);
@@ -143,9 +144,9 @@ describe("hosting/C100: the Boundary Check per package", () => {
     writeFileSync(join(root, "src/index.mjs"), `// inserted above\n${text}\n`);
     const moved = run(["--target", "src"], root).result.findings[0];
     assert.equal(moved.id, "kaal-hosting/src/index.mjs:2");
-    assert.equal(moved.digest, sha256(text));
+    assert.equal(moved.digest, DIGEST_LINE);
     writeFileSync(join(root, "src/index.mjs"), "export const w = process.platform + 1;\n");
-    assert.equal(run(["--target", "src"], root).result.findings[0].digest, sha256("export const w = process.platform + 1;"));
+    assert.equal(run(["--target", "src"], root).result.findings[0].digest, DIGEST_EDITED);
     const outside = run(["--target", "src", "--base", join(root, "test")], root);
     assert.equal(outside.status, 2);
   });
