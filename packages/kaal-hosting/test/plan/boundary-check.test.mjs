@@ -113,6 +113,15 @@ describe("hosting/C100: the Boundary Check per package", () => {
     assert.equal(first.references[0].decision, undefined);
   });
 
+  it("hosting/T124 [hosting/F67, hosting/F66]: a string literal that quotes a platform query, such as \"process.platform\", in production code is a finding on its line and is not suppressed because it is not executable; a mention in a comment is still not a finding", () => {
+    const root = tree({
+      "src/help.mjs": 'export const help = "Do not use process.platform here";\n// process.platform in a comment\nexport const ok = 1;\n',
+    });
+    const { result } = run(["--target", "src"], root);
+    assert.deepEqual(result.findings.map((f) => [f.file, f.line]), [["src/help.mjs", 1]]);
+    assert.equal(result.findings[0].scope, "production");
+  });
+
   it("hosting/T118 [hosting/F67, hosting/F30]: platform logic in the production and the test files of a non-Hosting target is a finding whatever its class, and an acknowledgement leaves it in the list", () => {
     const root = tree({
       "src/a.mjs": "export const w = process.platform;\n",
