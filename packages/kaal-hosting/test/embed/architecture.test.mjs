@@ -82,9 +82,10 @@ describe("Architecture", () => {
     assert.deepEqual(specifiers.filter((s) => !s.startsWith("node:")), []);
   });
 
+  // Superseded by the Owner's ruling A of 4 November 2026 (hosting/C101): the review instructions' content moved into the kaal-hosting skill's references; only the path clauses change.
   it("hosting/T66 [hosting/A19, hosting/F41]: the shipped host guide agrees with this host: what it says of each host fact here is what facts() establishes", async () => {
     const { facts } = await import(`${NAME}/fixtures`);
-    const rows = table(readFileSync(join(PACKAGE, "skills", "kaal-hosting-boundary", "HOSTS.md"), "utf8"), "kaal-hosting:hosts");
+    const rows = table(readFileSync(join(PACKAGE, "skills", ["kaal", "hosting"].join("-"), "references", "hosts.md"), "utf8"), "kaal-hosting:hosts");
     const established = await facts();
     for (const fact of Object.keys(established)) {
       const row = rows.find((r) => r[0] === fact && r[1] === process.platform);

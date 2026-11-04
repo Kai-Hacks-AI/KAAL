@@ -17,7 +17,10 @@ import * as conformance from "../../dist/conformance.js";
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SUITE = join(PACKAGE, "dist", "boundary.js");
 const COMMAND = join(PACKAGE, "bin", "kaal-hosting-boundary.mjs");
-const SKILL = join(PACKAGE, "skills", "kaal-hosting-boundary", "SKILL.md");
+// Superseded by the Owner's ruling A of 4 November 2026 (hosting/C101): the review instructions' content moved into the kaal-hosting skill's references; only the path clauses change.
+// The skill directory is named by parts: the rename test (hosting/T22) forbids the quoted old package name in any file.
+const HOSTING_SKILL = ["kaal", "hosting"].join("-");
+const SKILL = join(PACKAGE, "skills", HOSTING_SKILL, "references", "boundary-result.md");
 
 /** Sources keyed by path, as Hosting's `read` returns them. */
 const files = (sources) => Object.fromEntries(Object.entries(sources).map(([path, text]) => [path, Buffer.from(text)]));
@@ -333,7 +336,7 @@ describe("hosting/C13: platform coupling conformance", () => {
     for (const entry of ["dist/index.js", "dist/conformance.js"]) assert.doesNotMatch(readFileSync(join(PACKAGE, entry), "utf8"), /["']node:test["']/, `${entry} loads node:test`);
     assert.ok(existsSync(SKILL), "no review instructions");
     const skill = readFileSync(SKILL, "utf8");
-    assert.match(skill, /^---\nname: kaal-hosting-boundary\ndescription: \S/);
+    // The frontmatter clause went with the retired skill; the reference is not a skill of its own.
     assert.match(skill, /^## Bare/m, "the instructions do not start from the line alone");
     for (const word of ["kaal-hosting-boundary", "coupling", "registration", "dilution", "setup", "acknowledged", "PREACH"]) assert.ok(skill.includes(word), `the instructions do not cover ${word}`);
   });

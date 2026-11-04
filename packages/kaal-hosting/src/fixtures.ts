@@ -39,7 +39,7 @@ export interface Unavailable {
 /** The facts Hosting establishes, in order. */
 export const FACTS: readonly Fact[] = Object.freeze(["kaal-hosting/special-entries"]);
 
-// The evidence per outcome, as skills/kaal-hosting-boundary/HOSTS.md states it per host (hosting/F41).
+// The evidence per outcome, as skills/kaal-hosting/references/hosts.md states it per host (hosting/F41).
 const EVIDENCE = {
   holds: "https://github.com/Kai-Hacks-AI/KAAL/blob/kaal/hosting/packages/kaal-hosting/test/plan/portability.test.mjs",
   lacks: "https://github.com/Kai-Hacks-AI/KAAL/pull/650#issuecomment-6517684723",

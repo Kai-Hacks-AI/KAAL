@@ -1,13 +1,10 @@
----
-name: kaal-hosting-boundary
-description: Review a kaal-hosting-boundary result, the platform coupling conformance of a KAAL capability. Use when the command or boundarySuite fails, exits 3 with review requested, or reports a coupling, registration, dilution or setup finding to judge.
----
+# Reading a Hosting boundary result
 
-# Reviewing a Hosting boundary result
+This reference belongs to the `kaal-hosting` skill (hosting/F70). It is not a skill of its own: the separate boundary skill was retired.
 
 ## Description
 
-Review a kaal-hosting-boundary result, the platform coupling conformance of a KAAL capability. Use when the command or `boundarySuite` fails, exits 3 with review requested, or reports a coupling, registration, dilution or setup finding to judge.
+Read a kaal-hosting-boundary result, the platform coupling conformance of a KAAL capability. Use when the command or `boundarySuite` fails, exits 3 with review requested, or reports a coupling, registration, dilution or setup finding to judge.
 
 Hosting is the one KAAL capability that realizes host differences. Every other capability leaves the host to Hosting, in its production code and in its tests. The suite tests what can be decided, and asks a reviewer about the rest. The rules and the questions are Hosting's; the judgment and its record are Review's.
 
@@ -46,4 +43,4 @@ An agent records its judgment through Review, citing the request's `id`. When an
 
 ## Hosts and applicability
 
-For host facts, the fixtures that need them, the applicability rules, the portability audit and the `host-applicability` review, read `HOSTS.md` beside this Skill.
+For host facts, the fixtures that need them, the applicability rules, the portability audit and the `host-applicability` review, read `hosts.md` beside this file.

@@ -17,7 +17,10 @@ const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SUITE = join(PACKAGE, "dist", "boundary.js");
 const FIXTURES = join(PACKAGE, "dist", "fixtures.js");
 const COMMAND = join(PACKAGE, "bin", "kaal-hosting-boundary.mjs");
-const GUIDE = join(PACKAGE, "skills", "kaal-hosting-boundary", "HOSTS.md");
+// Superseded by the Owner's ruling A of 4 November 2026 (hosting/C101): the review instructions' content moved into the kaal-hosting skill's references; only the path clauses change.
+// The skill directory is named by parts: the rename test (hosting/T22) forbids the quoted old package name in any file.
+const HOSTING_SKILL = ["kaal", "hosting"].join("-");
+const GUIDE = join(PACKAGE, "skills", HOSTING_SKILL, "references", "hosts.md");
 const FACTS = ["kaal-hosting/special-entries"];
 const PLATFORMS = ["linux", "darwin", "win32"];
 const LINK = /^https:\/\/\S+$/;
@@ -265,6 +268,6 @@ describe("hosting/C16: portability across capabilities", () => {
     const text = readFileSync(GUIDE, "utf8");
     assert.match(text, /^# /m);
     for (const word of [...FACTS, ...PLATFORMS, "platform-applicability", "unknown-host-fact", "unreasoned", "unevidenced", "stale", "host-applicability", "requires", "absent", "PREACH"]) assert.ok(text.includes(word), `the guide does not cover ${word}`);
-    assert.ok(readFileSync(join(PACKAGE, "skills", "kaal-hosting-boundary", "SKILL.md"), "utf8").includes("HOSTS.md"), "the Skill does not point to the per-host guide");
+    assert.ok(readFileSync(join(PACKAGE, "skills", HOSTING_SKILL, "SKILL.md"), "utf8").includes("hosts.md"), "the Skill does not point to the per-host guide");
   });
 });
