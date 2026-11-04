@@ -19,7 +19,7 @@ Each element names, in brackets, the Requirements it answers.
 
 | Change | Owner | Depends on |
 | --- | --- | --- |
-| `hosting/C100` PLAN: I15, F64–F71, N9, A27–A31; hosting/T114–T123 | Hosting | the Owner's rulings of 4 Nov |
+| `hosting/C100` PLAN: I15, F64–F71, N9, A27–A31; hosting/T114–T124 | Hosting | the Owner's rulings of 4 Nov |
 | `hosting/C101` DO: retire the boundary skill, move reading guidance into the `kaal-hosting` skill (hosting/F70) | Hosting | C100; Architecture review |
 | `hosting/C102` DO: `--target` scan, one finding per line, references (hosting/F64–F69) | Hosting | C100, C101 |
 | `hosting/C103` DO: Hosting's two Test Plans (hosting/F71) | Hosting | C100 only (hard gate); the declaration is aligned to Packaging's shape (#667) when that lands, as a follow-up edit, not a wait |

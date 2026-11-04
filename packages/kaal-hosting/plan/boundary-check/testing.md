@@ -4,6 +4,7 @@ The planned outer tests will live in `packages/kaal-hosting/test/plan/boundary-c
 
 | Test | Checks | Loop |
 | --- | --- | --- |
+| hosting/T124: a string literal that quotes a platform query, such as `"process.platform"`, in production code is a finding on its line, as one finding per line with its references; it is not suppressed because it is not executable | hosting/F67, hosting/F66 | Intent |
 | hosting/T114: `--target` accepts a folder (recursive), a single file and several targets; a missing target makes the result `unknown` and exits 2; an empty list carries `coverage` (files read, files not readable with reason, rules applied), so exit 0 with no finding is not a pass; two targets holding the same relative file name (`src/index.ts` and `test/index.ts`) give distinct ids under the one base, an overlapping target reads a file once, and a target outside the base is refused; `--root` still gives the gating run with `mode: "gate"`, and `--target` gives `mode: "scan"`; both together are refused | hosting/F64 | Requirements |
 | hosting/T115: with `--target` the line has `findings`, never `failures` or `result: failed`; it exits 0 with findings, exits 0 with an empty list, exits 2 when nothing was read, and never exits 1 | hosting/F65 | Requirements |
 | hosting/T116: a line that hits `platform-query` and `platform-literal` is one finding listing both rules and its classes; the same line is never reported twice | hosting/F66 | Intent |
