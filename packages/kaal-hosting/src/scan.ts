@@ -118,16 +118,29 @@ export async function scan({ targets, base = process.cwd(), name }: ScanOptions)
   }
   // The emitted origin lines a hit leads back to. A hit is a use of a bound identifier when it has a binding line; it leads back to that
   // line's origins. A line none of whose hits leads anywhere is an origin itself, so a use whose binding holds no finding stays a finding.
-  const lead = (hit: Hit, seen: Set<number>): number[] => {
-    if (hit.via === undefined || hit.via === hit.line || seen.has(hit.via)) return [];
-    const hits = byLine.get(`${hit.file}\u0000${hit.via}`);
-    if (!hits) return [];
-    const next = new Set(seen).add(hit.via);
-    const each = hits.map((h) => lead(h, next));
-    // An origin line is its own origin; a reference-only line stands for the origins of all its hits.
-    return each.some((o) => o.length === 0) ? [hit.via] : [...new Set(each.flat())];
+  // Each line is resolved once (a cycle of bindings leads nowhere), so bindings that share dependencies stay linear.
+  const resolved = new Map<string, { origin: boolean; leads: number[] } | "pending">();
+  const settle = (file: string, line: number): { origin: boolean; leads: number[] } | undefined => {
+    const key = `${file}\u0000${line}`;
+    const known = resolved.get(key);
+    if (known === "pending") return { origin: false, leads: [] };
+    if (known) return known;
+    const hits = byLine.get(key);
+    if (!hits) return undefined;
+    resolved.set(key, "pending");
+    const each = hits.map((h) => leadOf(h));
+    const done = { origin: each.some((o) => o.length === 0), leads: [...new Set(each.flat())] };
+    resolved.set(key, done);
+    return done;
   };
-  const origins = (hit: Hit): number[] => lead(hit, new Set([hit.line]));
+  const leadOf = (hit: Hit): number[] => {
+    if (hit.via === undefined || hit.via === hit.line) return [];
+    const via = settle(hit.file, hit.via);
+    if (!via) return [];
+    // An origin line is its own origin; a reference-only line stands for the origins of all its hits.
+    return via.origin ? [hit.via] : via.leads;
+  };
+  const origins = leadOf;
   const isReferenceLine = (hits: Hit[]): boolean => hits.every((h) => origins(h).length > 0);
 
   const findings = new Map<string, ScanFinding & { _hits: Hit[] }>();

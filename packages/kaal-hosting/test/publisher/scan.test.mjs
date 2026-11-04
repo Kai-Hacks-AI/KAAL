@@ -43,4 +43,14 @@ describe("hosting/C102: scan regressions", () => {
     assert.deepEqual(result.findings.map((f) => f.references.map((r) => r.line)), [[3, 4], [3, 4]]);
     assert.equal(result.counts.references, 3);
   });
+
+  it("hosting/T127 [hosting/F66]: bindings that reuse the preceding identifier twice are resolved once each, so a long chain scans in linear time", () => {
+    const chain = ["const a0 = process.platform;", ...Array.from({ length: 60 }, (_, i) => `const a${i + 1} = [a${i}, a${i}];`), "console.log(a60);"].join("\n");
+    const started = Date.now();
+    const { status, result } = run(["--target", "src"], tree({ "src/a.mjs": chain }));
+    assert.equal(status, 0);
+    assert.deepEqual(result.findings.map((f) => f.line), [1]);
+    assert.equal(result.findings[0].references.length, 121);
+    assert.ok(Date.now() - started < 20000, "the scan did not finish in reasonable time");
+  });
 });
