@@ -1,6 +1,6 @@
 # No Duplicate Runs: Testing
 
-The planned outer tests live in `packages/skills/kaal-testing/test/plan/duplicates.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `testing/C51` turns them GREEN and adds them to Testing's `npm test`. Runs and requests are given as plain data, and the tests own every expected challenge, run and read.
+The planned outer tests live in `packages/kaal-testing/test/plan/duplicates.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. `testing/C51` turns them GREEN and adds them to Testing's `npm test`. Runs and requests are given as plain data, and the tests own every expected challenge, run and read.
 
 | Case | Checks | Loop |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ The planned outer tests live in `packages/skills/kaal-testing/test/plan/duplicat
 
 ## RED evidence
 
-The tests run with `node --test packages/skills/kaal-testing/test/plan/duplicates.test.mjs`, outside Testing's `npm test` until `testing/C51`. At `testing/C50`, all six are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./duplicates`.
+The tests run with `node --test packages/kaal-testing/test/plan/duplicates.test.mjs`, outside Testing's `npm test` until `testing/C51`. At `testing/C50`, all six are RED, each **blocked before behavioural assertion**, because kaal-testing exports no `./duplicates`.
 
 **Checked against a throwaway implementation.** A27 was implemented outside the repository, and all six pass against it. testing/T109 also passes on `testing/C38`'s layout (#718), where `test:consumer` runs `test/verify.mjs` over `test/embed/`. It fails there when a delivered case file is also named in `test:publisher`. All 30 mutants fail at least one test. The mutants cover:
 - each part of a run's identity dropped;
