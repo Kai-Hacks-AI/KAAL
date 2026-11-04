@@ -287,7 +287,7 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
       for (let i = open; i <= close; i++) chars[i] = " ";
     }
   }
-  return /(?<![.\w$])return\b(?!\s*:)/.test(chars.join(""));
+  return /(?<![\w$])(?<!\.\s*)return\b(?!\s*:)/.test(chars.join(""));
 }
 
 interface Raw {
