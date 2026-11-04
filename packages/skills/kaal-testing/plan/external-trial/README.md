@@ -72,6 +72,8 @@ Each seeded defect carries a severity set when it is seeded: critical (wrong res
 
 Under A and B the Case is `failed` when the line is missed, and each confirmed miss returns to Review as a Finding. Under C the Case is recorded `skipped` with the counts, so it never reads as passed.
 
+The compact decision comparison for the Owner, with the definitions, consequences and target safety, is in `decision-comparison.md`. Neither option is accepted by default.
+
 ### Selecting the repository and task
 
 The repository and task are selected by Product or the Owner, never by the author of Review or by Testing. The selection, who made it and when are recorded in `review/T20/consumer-repository` and `review/T20/task` before the Agent runs. Options: (1) a real pending change in one of the Owner's own non-KAAL repositories, with the seeded defects in a throwaway copy of the branch; (2) a recent merged pull request of a public repository, with the seeds in a fork. A synthetic repository does not meet the bar of a real task.
