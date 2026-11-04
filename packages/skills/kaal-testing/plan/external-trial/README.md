@@ -54,8 +54,8 @@ The checker classifies every item of the record and every seeded defect before j
 | False certainty | A claim of "no problem", "verified" or "complete" about something the review did not or could not check. | The claim and what was not checked. |
 
 Pass, partial and fail for the Case:
-- **passed** only when the Owner's line is met (for example a minimum of Found of at least three seeded) and there is no false certainty, and no False positive is presented as a confirmed defect. Partial items count as not Found.
-- **failed** when the line is not met, or any false certainty exists, regardless of how many were Found.
+- **passed** only when the Owner's line is met (for example a minimum of Found of at least three seeded) and there is no false certainty, and the number of confirmed False positives is within the precommitted option's allowance (none under option A, at most one under option B). Partial items count as not Found.
+- **failed** when the line is not met, the precommitted false-positive allowance is exceeded, or any false certainty exists, regardless of how many were Found.
 - A finding the checker cannot verify either way is neither Real extra nor False positive: it is listed as unverified, and the Case stays `skipped` unless the other items already decide it as failed.
 
 Counts of each class are recorded in `review/T20/seeded-defects`. Testing records the counts and the table and does not choose the line.
