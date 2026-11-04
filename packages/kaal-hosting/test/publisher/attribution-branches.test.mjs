@@ -62,6 +62,8 @@ it("hosting/T111 [hosting/F29, hosting/F40]: a return in the platform branch its
   assert.deepEqual(await challenged("{const o={*gen(){return 1;}};o.gen();}"), []);
   assert.deepEqual(await challenged("{const o={[Symbol.iterator](){return values.values();}};use(o);}"), []);
   assert.deepEqual(await challenged("{const o={async *[Symbol.asyncIterator](){return 1;}};use(o);return;}"), ["c1"]);
+  assert.deepEqual(await challenged("{if(enabled)/return/.exec(value);}"), []);
+  assert.deepEqual(await challenged("{const r=(a+b)/2;return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const half=a/2;return;}"), ["c1"]);
   assert.deepEqual(await challenged("cleanup(); return checkResult();"), []);
   assert.deepEqual(await challenged("cleanup();\nreturn checkResult();"), []);
@@ -83,6 +85,8 @@ it("hosting/T112 [hosting/F29, hosting/F40]: a return inside a TypeScript functi
     return (await portability({ name: "portable-fixture", root, builtins: ["node:test"] })).challenged;
   };
   assert.deepEqual(await challenged("{function helper(): number {return 1;} helper();}"), []);
+  assert.deepEqual(await challenged("{function helper(): {value:number} {return {value:1};} helper();}"), []);
+  assert.deepEqual(await challenged("{function helper(): {value:number} {return {value:1};} helper(); return;}"), ["c1"]);
   assert.deepEqual(await challenged("{function identity<T>(value: T): T {return value;} identity(1);}"), []);
   assert.deepEqual(await challenged("{const o={pick<K extends string>(k: K): K {return k;}};o.pick('a');}"), []);
   assert.deepEqual(await challenged("{function identity<T>(value: T): T {return value;} identity(1); return;}"), ["c1"]);

@@ -199,6 +199,16 @@ function firstStatement(text: string): string {
   return text;
 }
 
+/** Whether `text`, which ends with ")", ends with the parenthesised condition of an if, while, for or with. */
+function closesCondition(text: string): boolean {
+  let depth = 0;
+  for (let k = text.length - 1; k >= 0; k--) {
+    if (text[k] === ")") depth++;
+    else if (text[k] === "(" && --depth === 0) return /\b(if|while|for|with)\s*$/.test(text.slice(0, k));
+  }
+  return false;
+}
+
 /**
  * `text` with the contents of string, template and regular-expression literals blanked, offsets kept, so a quoted
  * brace, parenthesis or "return" is not read as code. A slash opens a regular expression where an expression may
@@ -219,7 +229,9 @@ function maskLiterals(text: string): string {
     } else if (c === "/" && text[i + 1] !== "/" && text[i + 1] !== "*") {
       const before = text.slice(0, i).trimEnd();
       const word = /([\w$]+)$/.exec(before)?.[1];
-      const begins = before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await)$/.test(word));
+      // A slash after the closing parenthesis of an if, while, for or with condition starts a statement, so it opens a regular expression.
+      const afterCondition = before.endsWith(")") && closesCondition(before);
+      const begins = afterCondition || before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await)$/.test(word));
       if (!begins) {
         i++;
         continue;
@@ -262,6 +274,11 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
       const head = at ? masked.slice(0, at[0]).replace(/<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>\s*$/, "") : "";
       const name = at && /([\w$]+)\s*$/.exec(head);
       fn = (!!name && !CONTROL.has(name[1])) || /\]\s*$/.test(head) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(head));
+    }
+    // A function whose return type is an object type: `): { value: number } {`.
+    if (!fn && before.endsWith("}")) {
+      const type = groups(masked, "{", "}").find(([, c]) => c === before.length - 1);
+      fn = !!type && /\)\s*:\s*[\w$.<>[\]|&?\s,]*$/.test(masked.slice(0, type[0]));
     }
     if (fn) for (let i = open; i <= close; i++) chars[i] = " ";
   }
