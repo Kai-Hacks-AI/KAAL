@@ -39,7 +39,7 @@ Finding kinds (each is one stable finding, carrying evidence):
 
 ## Report format (aligned with Engineering's Defect and Ratchet)
 
-The report is an **observation list, not a verdict**, the same shape as Hosting's boundary findings: no severity, and a question for whoever decides. Each finding has a stable id `kaal-packaging/<kind>@<package>@<version>` and the fields `package`, `folder`, `name`, `version`, `kind`, `evidence`, and `question`. The report as a whole is deterministic JSON (sorted by id) with a text rendering.
+The report is an **observation list, not a verdict**, the same shape as Hosting's boundary findings: no severity, and a question for whoever decides. Each finding has a stable id `kaal-packaging/<kind>@<folder>`, keyed on the **folder** (its path under `packages/`) and the kind, and the fields `folder`, `name`, `version`, `kind`, `evidence`, and `question`. The id carries neither the package name nor the version, so a rename to a scoped name or a version bump leaves the same finding the same finding, and the Ratchet does not see one removed and another added. A folder has at most one finding of each kind; what differs (names, versions, paths, digests) is evidence. The report as a whole is deterministic JSON (sorted by id) with a text rendering.
 
 Engineering owns what happens next: a Defect record per finding (or per collapsed pattern), and the Ratchet that lets the accepted set only shrink. To serve the Ratchet, Packaging also supplies `compareReports(before, after)`: findings added, removed and unchanged by id. A grown set is what the Ratchet rejects. Packaging does not decide acceptance and does not rank findings. **I have not seen Engineering's defect-record format (#991).** The field names above are a proposal to be aligned with it before the DO, not a claim that they already fit.
 
@@ -76,7 +76,7 @@ Fixtures only, with a fake `release` function. No test touches the network.
 - **T72** Folder named unscoped, release published under a scope: `name-differs`.
 - **T73** `private` package, no release: `private`. `private` package with a release: `private-published`.
 - **T74** `release` reports unreadable or the tool is missing: `unknown`, never in line.
-- **T75** The report is byte-identical across runs and orders; `compareReports` returns added, removed and unchanged ids and flags a grown set.
+- **T75** The report is byte-identical across runs and orders; `compareReports` returns added, removed and unchanged ids and flags a grown set. A folder renamed to a scoped name, or bumped in version, keeps its finding id for the same kind.
 - **T76** `registryMatchAll` over a fixture workspace with a missing folder and a duplicated entry: both reported.
 - **T77** A hostile tarball path in the release is refused as `packaging/N4` requires, and is reported as unknown, not as a mismatch.
 
