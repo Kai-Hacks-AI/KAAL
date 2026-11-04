@@ -168,7 +168,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
     } else {
       body = rest(code, k);
     }
-    if (REGISTRATION.test(body) || /\breturn\b/.test(withoutFunctions(body))) return "registration";
+    if (REGISTRATION.test(body) || returnsFromBranch(body)) return "registration";
     if (/\bassert\b|\bexpect\s*\(/.test(body)) return "dilution";
     return "setup";
   }
@@ -177,27 +177,29 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
   return "setup";
 }
 
+const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with"]);
+
 /**
- * `text` without the bodies of the functions declared in it, so a `return` that belongs to a nested function
- * (a callback, an arrow function, a helper) is not taken for a return from the code around it.
+ * Whether `text` returns from the code around it: a `return` statement outside the bodies of the functions
+ * declared in it (callbacks, arrow functions, helpers, methods and accessors), and outside string literals and
+ * property names.
  */
-function withoutFunctions(text: string): string {
-  let out = text;
-  for (;;) {
-    const m = /=>\s*\{|\bfunction\b[^{;]*\{/.exec(out);
-    if (!m) return out;
-    const open = m.index + m[0].length - 1;
-    let depth = 0;
-    let close = out.length - 1;
-    for (let i = open; i < out.length; i++) {
-      if (out[i] === "{") depth++;
-      else if (out[i] === "}" && --depth === 0) {
-        close = i;
-        break;
-      }
+function returnsFromBranch(text: string): boolean {
+  // Literal contents are blanked, offsets kept, so a quoted brace, parenthesis or "return" is not read as code.
+  const masked = text.replace(/(["'`])(?:\\.|(?!\1)[^\\])*\1/gs, (m) => m[0] + " ".repeat(m.length - 2) + m[0]);
+  const parens = groups(masked, "(", ")");
+  const chars = [...masked];
+  for (const [open, close] of groups(masked, "{", "}")) {
+    const before = masked.slice(0, open).trimEnd();
+    let fn = before.endsWith("=>");
+    if (!fn && before.endsWith(")")) {
+      const at = parens.find(([, c]) => c === before.length - 1);
+      const name = at && /([\w$]+)\s*$/.exec(masked.slice(0, at[0]));
+      fn = !!name && !CONTROL.has(name[1]);
     }
-    out = out.slice(0, m.index) + " " + out.slice(close + 1);
+    if (fn) for (let i = open; i <= close; i++) chars[i] = " ";
   }
+  return /(?<![.\w$])return\b(?!\s*:)/.test(chars.join(""));
 }
 
 interface Raw {

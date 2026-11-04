@@ -40,3 +40,18 @@ it("hosting/T93 [hosting/F40, hosting/N6]: nested unbraced else-if and multiline
   assert.deepEqual(result.challenged, ["first", "otherwise", "otherwise-if"]);
   assert.equal(result.review, "requested");
 });
+
+it("hosting/T111 [hosting/F29, hosting/F40]: a return in the platform branch itself challenges the case, and a return inside a nested function, method, accessor or string does not", async (t) => {
+  const W = "if(process.platform==='win32')";
+  const challenged = async (branch) => (await audit(t, `it('c1',()=>{\n${W}${branch}\nassertSomething();\n});`)).challenged;
+  assert.deepEqual(await challenged("{cleanup();return;}"), ["c1"]);
+  assert.deepEqual(await challenged("return;"), ["c1"]);
+  assert.deepEqual(await challenged("{if(x){return;}}"), ["c1"]);
+  assert.deepEqual(await challenged("{const f=()=>{return 1;};f();}"), []);
+  assert.deepEqual(await challenged("{const o={value(){return 1;}};o.value();}"), []);
+  assert.deepEqual(await challenged("{const o={get v(){return 1;}};o.v;}"), []);
+  assert.deepEqual(await challenged("{log('return');}"), []);
+  assert.deepEqual(await challenged("{const f=()=>{log('}');return 1;};f();}"), []);
+  assert.deepEqual(await challenged("{const f=()=>{log('{');return 1;};f();return;}"), ["c1"]);
+  assert.deepEqual(await challenged("{const o={return:1};use(o);}"), []);
+});
