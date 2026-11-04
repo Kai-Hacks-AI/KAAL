@@ -70,7 +70,7 @@ Each seeded defect carries a severity set when it is seeded: critical (wrong res
 | B. Four of five (proposed) | 5, at least 1 critical | at least 4 Found, and every critical one Found | any fails the Case | at most 1 confirmed |
 | C. Record only | at least 3 | no line; counts recorded and judged by the Owner or CPO | recorded; the Owner decides | recorded; the Owner decides |
 
-Under A and B the Case is `failed` when the line is missed, and each confirmed miss returns to Review as a Finding. Under C the Case is recorded `skipped` with the counts, so it never reads as passed.
+Under A and B the Case is `failed` when the line is missed, and each confirmed miss returns to Review as a Finding. Under C only `useful-and-correct` is recorded `skipped` with the counts, so it never reads as passed; every other Case keeps its observed outcome, so an unrelated failure still fails the trial.
 
 The compact decision comparison for the Owner, with the definitions, consequences and target safety, is in `decision-comparison.md`. Neither option is accepted by default.
 

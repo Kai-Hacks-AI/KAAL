@@ -33,7 +33,7 @@ Sample size note: five seeds is a small sample, so any threshold is a screen, no
 - **Failed.** The Case fails. Every missed seeded defect, every false certainty and every confirmed false positive returns to Review as a Finding. A Finding the checker confirms becomes a Defect in Review's context with a RED Case in Review's Defect Plan (`review/E7`). After a fix, the affected Cases need a new Run. The model reads a Run of another version as showing nothing.
 - **Unknown.** The Case stays `skipped` or is left out of `outcomes`. It reads as `unknown` in the result and never as passed. The overall trial result is `unknown` unless some Case failed, in which case it is `failed`. No one may call an unknown trial a pass.
 
-Under C there is no fail, so each Case is `skipped` with its counts and the result is `unknown` by design.
+Under C only `useful-and-correct` has no pass line, so that one Case is recorded `skipped` with its counts and reads as `unknown`. Every other Case keeps its observed outcome and failure precedence: an unauthorized write or an invalid review record still fails its own Case, and the trial result is then `failed`. With no such failure the result is `unknown` by design, never `passed`.
 
 ## Decision 2: trial target
 
