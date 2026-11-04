@@ -168,13 +168,36 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
     } else {
       body = rest(code, k);
     }
-    if (REGISTRATION.test(body) || /^\s*\{?\s*return\b/.test(body)) return "registration";
+    if (REGISTRATION.test(body) || /\breturn\b/.test(withoutFunctions(body))) return "registration";
     if (/\bassert\b|\bexpect\s*\(/.test(body)) return "dilution";
     return "setup";
   }
   // In an assertion's arguments.
   for (const [open, close] of parens) if (open < at && at < close && ASSERTION.test(code.slice(Math.max(0, open - 200), open))) return "dilution";
   return "setup";
+}
+
+/**
+ * `text` without the bodies of the functions declared in it, so a `return` that belongs to a nested function
+ * (a callback, an arrow function, a helper) is not taken for a return from the code around it.
+ */
+function withoutFunctions(text: string): string {
+  let out = text;
+  for (;;) {
+    const m = /=>\s*\{|\bfunction\b[^{;]*\{/.exec(out);
+    if (!m) return out;
+    const open = m.index + m[0].length - 1;
+    let depth = 0;
+    let close = out.length - 1;
+    for (let i = open; i < out.length; i++) {
+      if (out[i] === "{") depth++;
+      else if (out[i] === "}" && --depth === 0) {
+        close = i;
+        break;
+      }
+    }
+    out = out.slice(0, m.index) + " " + out.slice(close + 1);
+  }
 }
 
 interface Raw {
@@ -192,6 +215,18 @@ function find(code: string): Raw[] {
   const queries = new Map<string, string>();
   for (const m of code.matchAll(/import\s+(?:\*\s+as\s+)?([\w$]+)\s+from\s+["'](node:)?(os|path)["']/g)) (m[3] === "os" ? osNames : pathNames).add(m[1]);
   for (const m of code.matchAll(/(?:const|let|var)\s+([\w$]+)\s*=\s*require\(\s*["'](node:)?(os|path)["']\s*\)/g)) (m[3] === "os" ? osNames : pathNames).add(m[1]);
+  // A destructuring binds the same queries as a named import: from the module itself, or from a name bound to it above.
+  const destructured = (parts: string, module: "os" | "path") => {
+    for (const part of parts.split(",")) {
+      const [name, alias] = part.trim().split(/\s*:\s*/);
+      if ((module === "os" ? OS_QUERIES : PATH_QUERIES).includes(name)) queries.set(alias ?? name, `${module}.${name}`);
+    }
+  };
+  for (const m of code.matchAll(/(?:const|let|var)\s*\{([^}]*)\}\s*=\s*require\(\s*["'](node:)?(os|path)["']\s*\)/g)) destructured(m[1], m[3] as "os" | "path");
+  for (const m of code.matchAll(/(?:const|let|var)\s*\{([^}]*)\}\s*=\s*([\w$]+)\s*[;\n]/g)) {
+    if (osNames.has(m[2])) destructured(m[1], "os");
+    if (pathNames.has(m[2])) destructured(m[1], "path");
+  }
   for (const m of code.matchAll(/import\s*\{([^}]*)\}\s*from\s*["'](node:)?(os|path)["']/g)) {
     for (const part of m[1].split(",")) {
       const [name, alias] = part.trim().split(/\s+as\s+/);
