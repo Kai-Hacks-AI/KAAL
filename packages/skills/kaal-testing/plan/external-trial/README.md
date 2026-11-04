@@ -60,6 +60,22 @@ Pass, partial and fail for the Case:
 
 Counts of each class are recorded in `review/T20/seeded-defects`. Testing records the counts and the table and does not choose the line.
 
+### Acceptance threshold options (Owner chooses and precommits before the trial)
+
+Each seeded defect carries a severity set when it is seeded: critical (wrong result or data loss a human would be harmed by) or ordinary. The threshold, its severity weights and the repository and task are written into the Run's Test Data before the Agent starts, and are not changed after the first record is seen. Testing offers these options and chooses none.
+
+| Option | Seeded | Pass line for `useful-and-correct` | False certainty | False positive |
+| --- | --- | --- | --- | --- |
+| A. Strict | 5 | all 5 Found, Partial counts as not Found | any fails the Case | any confirmed one fails the Case |
+| B. Four of five (proposed) | 5, at least 1 critical | at least 4 Found, and every critical one Found | any fails the Case | at most 1 confirmed |
+| C. Record only | at least 3 | no line; counts recorded and judged by the Owner or CPO | recorded; the Owner decides | recorded; the Owner decides |
+
+Under A and B the Case is `failed` when the line is missed, and each confirmed miss returns to Review as a Finding. Under C the Case is recorded `skipped` with the counts, so it never reads as passed.
+
+### Selecting the repository and task
+
+The repository and task are selected by Product or the Owner, never by the author of Review or by Testing. The selection, who made it and when are recorded in `review/T20/consumer-repository` and `review/T20/task` before the Agent runs. Options: (1) a real pending change in one of the Owner's own non-KAAL repositories, with the seeded defects in a throwaway copy of the branch; (2) a recent merged pull request of a public repository, with the seeds in a fork. A synthetic repository does not meet the bar of a real task.
+
 ### Checker calibration
 
 Before the trial the checker is calibrated, and the record shows it:
