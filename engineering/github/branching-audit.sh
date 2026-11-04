@@ -1,6 +1,6 @@
 #!/bin/bash
 # KAAL's Branching audit, as a KAAL-owned check that the Branching audit job runs through kaal-guard
-# (guard.json: Branching-audit). The job's former two steps, moved: it reads the facts from Git and
+# (.kaal/config/guard/Branching-audit.md). The job's former two steps, moved: it reads the facts from Git and
 # GitHub, then judges them. The rules and verdicts live in engineering/github/lineage.ts and the
 # Owner's holds in engineering/github/holds.json. The first argument is lineage.ts, which Guard takes
 # from the base revision KAAL's job supplies: the default branch's tip (trusted); holds.json is read

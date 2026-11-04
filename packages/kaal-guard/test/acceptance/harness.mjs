@@ -4,9 +4,10 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
+import { after } from "node:test";
 import { fileURLToPath } from "node:url";
 
 /** The package under test: two directories up from here. */
@@ -17,11 +18,64 @@ export const NAME = "@kaihacksai/kaal-guard";
 
 const WINDOWS = process.platform === "win32";
 
+/**
+ * Where a repository declares its checks (guard/F1, guard/F28), one `<name>.md` each. Joined, never
+ * written out: the established guard/T30 reads every file in the package for that namespace.
+ */
+export const CONFIG = [".kaal", "config", "guard"].join("/");
+
+/** The repository's installation record (guard/F29), which only Guard writes. */
+export const RECORD = [".kaal", "state", "guard", "installation.json"].join("/");
+
+/** The Skill's one standalone deployment (guard/F23, guard/N10); its one source is `skills/kaal-guard/` in the package. */
+export const SKILL = ".agents/skills/kaal-guard";
+
+/** Every file under a directory, relative to it, with forward slashes, sorted; none when it does not exist. */
+export function tree(base) {
+  const out = [];
+  const walk = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else out.push(relative(base, p).split("\\").join("/"));
+    }
+  };
+  if (existsSync(base)) walk(base);
+  return out.sort();
+}
+
+/** The Type every declaration names in its `type` member (core/F6): Guard's own Business Language name. */
+export const TYPE = "Guard/Check";
+
+/**
+ * One declaration's file: typed frontmatter in guard/F1's strict YAML subset, then a body of guidance
+ * Guard never reads. Strings are double-quoted, lists and the outcomes map are flow-style, and each
+ * outcome's exit status is a double-quoted key (guard/F1, `guard/C38`).
+ */
+export function declaration(check, body = "Guidance for people and agents; Guard never reads it.\n") {
+  const lines = [`type: ${TYPE}`, `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
+  if (check.facts) lines.push(`facts: [${check.facts.join(", ")}]`);
+  if (check.trusted) lines.push(`trusted: ${JSON.stringify(check.trusted)}`);
+  if (check.outcomes) lines.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${JSON.stringify(String(k))}: ${v}`).join(", ")}}`);
+  return `---\n${lines.join("\n")}\n---\n\n${body}`;
+}
+
 /** Runs a program; never throws, returns { status, stdout, stderr }. */
 export function exec(cwd, file, args, env = {}, input = "") {
   const r = spawnSync(file, args, { cwd, env: { ...process.env, ...env }, input, encoding: "utf8", shell: WINDOWS && file === "npm" });
   return { status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", output: `${r.stdout ?? ""}${r.stderr ?? ""}` };
 }
+
+/** Every temporary root a case of this file makes, removed when the file ends, whether its cases pass or fail. */
+const roots = [];
+export function scratch(prefix) {
+  const root = mkdtempSync(join(tmpdir(), prefix));
+  roots.push(root);
+  return root;
+}
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+});
 
 let tarball;
 
@@ -29,7 +83,7 @@ let tarball;
 export function packed() {
   if (tarball) return tarball;
   assert.ok(existsSync(join(PACKAGE, "package.json")), "blocked before behavioural assertion: there is no kaal-guard package to pack (packages/kaal-guard/package.json)");
-  const out = mkdtempSync(join(tmpdir(), "kaal-guard-pack-"));
+  const out = scratch("kaal-guard-pack-");
   const r = exec(PACKAGE, "npm", ["pack", "--pack-destination", out, "--silent"]);
   assert.equal(r.status, 0, `npm pack failed: ${r.output}`);
   tarball = join(out, r.stdout.trim().split(/\r?\n/).pop());
@@ -68,7 +122,7 @@ writeFileSync(process.argv[2], JSON.stringify({ cwd: process.cwd(), stdin, guard
  * development dependency.
  */
 export function consumer({ install = true } = {}) {
-  const root = mkdtempSync(join(tmpdir(), "kaal-guard-consumer-"));
+  const root = scratch("kaal-guard-consumer-");
   const home = join(root, "home");
   const remote = join(root, "remote.git");
   const dir = join(root, "repo");
@@ -93,10 +147,32 @@ export function consumer({ install = true } = {}) {
       must(git("commit", "-q", "--allow-empty", "-m", message), "git commit");
       return git("rev-parse", "HEAD").stdout.trim();
     },
-    /** Writes guard.json with these checks, keeping anything else in it. */
+    /** Declares exactly these checks: one `<name>.md` each in CONFIG, and no other declaration. */
     checks(checks) {
-      const current = existsSync(join(dir, "guard.json")) ? JSON.parse(readFileSync(join(dir, "guard.json"), "utf8")) : {};
-      writeFileSync(join(dir, "guard.json"), JSON.stringify({ ...current, checks }, null, 2) + "\n");
+      const config = join(dir, CONFIG);
+      if (existsSync(config)) for (const f of readdirSync(config)) if (f.endsWith(".md")) rmSync(join(config, f));
+      for (const [name, check] of Object.entries(checks)) repo.write(`${CONFIG}/${name}.md`, declaration(check));
+    },
+    /** The installation record's assets, by path: `{ sha256, version }` each. */
+    installation() {
+      assert.ok(existsSync(join(dir, RECORD)), `there is no installation record (${RECORD})`);
+      return JSON.parse(readFileSync(join(dir, RECORD), "utf8")).assets;
+    },
+    /** The version of the installed package. */
+    version() {
+      return JSON.parse(readFileSync(join(dir, "node_modules", ...NAME.split("/"), "package.json"), "utf8")).version;
+    },
+    /** The installed package's catalogue (guard/F27): every SHA-256 each asset path has had in a published version. */
+    catalogue() {
+      const contract = join(dir, "node_modules", ...NAME.split("/"), "contract.json");
+      assert.ok(existsSync(contract), "the package ships no contract.json");
+      return JSON.parse(readFileSync(contract, "utf8")).catalogue;
+    },
+    /** The installed package's Skill source (guard/F23): its directory and its files. While the package ships none, a scenario is blocked here. */
+    skill() {
+      const source = join(dir, "node_modules", ...NAME.split("/"), "skills", "kaal-guard");
+      assert.ok(existsSync(join(source, "SKILL.md")), "blocked before behavioural assertion: the package ships no skills/kaal-guard/SKILL.md");
+      return { source, files: tree(source) };
     },
     /** Runs the installed kaal-guard command. */
     guard(args, extra = {}, cwd = dir) {
