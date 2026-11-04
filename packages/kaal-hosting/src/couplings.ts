@@ -177,6 +177,46 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
   return "setup";
 }
 
+/**
+ * `text` with the contents of string, template and regular-expression literals blanked, offsets kept, so a quoted
+ * brace, parenthesis or "return" is not read as code. A slash opens a regular expression where an expression may
+ * begin (after an operator, an opening bracket, a separator or a keyword) and is a division after an operand.
+ */
+function maskLiterals(text: string): string {
+  const out = [...text];
+  const blank = (from: number, to: number) => {
+    for (let k = from; k < to; k++) if (out[k] !== "\n") out[k] = " ";
+  };
+  for (let i = 0; i < text.length; ) {
+    const c = text[i];
+    if (c === '"' || c === "'" || c === "`") {
+      let j = i + 1;
+      while (j < text.length && text[j] !== c) j += text[j] === "\\" ? 2 : 1;
+      blank(i + 1, Math.min(j, text.length));
+      i = j + 1;
+    } else if (c === "/" && text[i + 1] !== "/" && text[i + 1] !== "*") {
+      const before = text.slice(0, i).trimEnd();
+      const word = /([\w$]+)$/.exec(before)?.[1];
+      const begins = before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await)$/.test(word));
+      if (!begins) {
+        i++;
+        continue;
+      }
+      let j = i + 1;
+      let inClass = false;
+      while (j < text.length && text[j] !== "\n" && (inClass || text[j] !== "/")) {
+        if (text[j] === "\\") j++;
+        else if (text[j] === "[") inClass = true;
+        else if (text[j] === "]") inClass = false;
+        j++;
+      }
+      blank(i + 1, Math.min(j, text.length));
+      i = j + 1;
+    } else i++;
+  }
+  return out.join("");
+}
+
 const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with", "case"]);
 
 /**
@@ -185,8 +225,7 @@ const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with", "case"
  * property names.
  */
 function returnsFromBranch(text: string): boolean {
-  // Literal contents are blanked, offsets kept, so a quoted brace, parenthesis or "return" is not read as code.
-  const masked = text.replace(/(["'`])(?:\\.|(?!\1)[^\\])*\1/gs, (m) => m[0] + " ".repeat(m.length - 2) + m[0]);
+  const masked = maskLiterals(text);
   const parens = groups(masked, "(", ")");
   const chars = [...masked];
   for (const [open, close] of groups(masked, "{", "}")) {
