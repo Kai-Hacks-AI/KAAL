@@ -6,6 +6,9 @@ import { FACTS } from "./fixtures.js";
 import type { CouplingReport, Finding, FindingKind, Source } from "./couplings.js";
 import type { Outside, Skipped, Validation, Violation } from "./conformance.js";
 
+export { scan, SCAN_QUESTION } from "./scan.js";
+export type { Reference, ScanFinding, ScanOptions, ScanResult } from "./scan.js";
+
 /** What a capability is inspected with. */
 export interface BoundaryOptions {
   /** The capability's name, as reported. */

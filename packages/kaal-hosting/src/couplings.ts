@@ -294,15 +294,19 @@ interface Raw {
   index: number;
   rule: Rule;
   construct: string;
+  /** The offset of the declaration that binds the identifier this hit is a later use of (scan only). */
+  via?: number;
 }
 
 /** Every platform finding in `code`, unclassified. */
-function find(code: string): Raw[] {
+function find(code: string, scanning: boolean): Raw[] {
   const raw: Raw[] = [];
-  const add = (index: number, rule: Rule, construct: string) => raw.push({ index, rule, construct });
+  const add = (index: number, rule: Rule, construct: string, via?: number) => raw.push({ index, rule, construct, ...(via === undefined ? {} : { via }) });
   const osNames = new Set(["os"]);
   const pathNames = new Set(["path"]);
   const queries = new Map<string, string>();
+  // Where a name bound by destructuring `process` is declared, so a later use can be a reference to that finding (scan only).
+  const declared = new Map<string, number>();
   for (const m of code.matchAll(/import\s+(?:\*\s+as\s+)?([\w$]+)\s+from\s+["'](node:)?(os|path)["']/g)) (m[3] === "os" ? osNames : pathNames).add(m[1]);
   for (const m of code.matchAll(/(?:const|let|var)\s+([\w$]+)\s*=\s*require\(\s*["'](node:)?(os|path)["']\s*\)/g)) (m[3] === "os" ? osNames : pathNames).add(m[1]);
   // A destructuring binds the same queries as a named import: from the module itself, or from a name bound to it above.
@@ -329,6 +333,7 @@ function find(code: string): Raw[] {
       const [name, alias] = part.trim().split(/\s*:\s*/);
       if (name !== "platform" && name !== "arch") continue;
       queries.set(alias ?? name, `process.${name}`);
+      declared.set(alias ?? name, m.index! + m[0].indexOf(name));
       add(m.index! + m[0].indexOf(name), "platform-query", `process.${name}`);
     }
   }
@@ -341,19 +346,20 @@ function find(code: string): Raw[] {
     for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
       const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
       const inPattern = /\{[^}]*$/.test(code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, ""));
-      if (!inImport && !inPattern) add(m.index!, "platform-query", what);
+      if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
     }
   }
   for (const m of code.matchAll(/(["'`])([a-z0-9]+)\1/g)) if (PLATFORMS.has(m[2])) add(m.index!, "platform-literal", m[0]);
   // An identifier bound to a platform query or literal is found wherever it is used.
   let offset = 0;
   for (const line of code.split("\n")) {
-    const m = /^\s*(?:const|let|var)\s+([\w$]+)\s*=\s*(.*)$/.exec(line);
+    // A scan also follows a binding that is exported; the gating consumers keep the narrower reading.
+    const m = (scanning ? /^\s*(?:export\s+)?(?:const|let|var)\s+([\w$]+)\s*=\s*(.*)$/ : /^\s*(?:const|let|var)\s+([\w$]+)\s*=\s*(.*)$/).exec(line);
     if (m) {
       const from = offset + line.indexOf(m[2]);
       if (raw.some((r) => r.index >= from && r.index < offset + line.length)) {
         const bound = offset + line.indexOf(m[1]);
-        for (const u of code.matchAll(new RegExp(`(?<![.\\w$])${escape(m[1])}\\b`, "g"))) if (u.index !== bound) add(u.index!, "platform-query", m[1]);
+        for (const u of code.matchAll(new RegExp(`(?<![.\\w$])${escape(m[1])}\\b`, "g"))) if (u.index !== bound) add(u.index!, "platform-query", m[1], scanning ? bound : undefined);
       }
     }
     offset += line.length + 1;
@@ -380,8 +386,31 @@ function find(code: string): Raw[] {
  * yields the same report.
  */
 export async function couplings(files: Files, options: CouplingOptions = {}): Promise<CouplingReport> {
+  return collect(files, options, false);
+}
+
+/** A finding with, in a scan, the line of the declaration whose bound identifier it is a later use of. */
+export interface Hit extends Finding {
+  via?: number;
+}
+
+/** The report of `scanHits`: findings that carry `via`. */
+export interface HitReport extends Omit<CouplingReport, "findings"> {
+  findings: Hit[];
+}
+
+/**
+ * The hits a Boundary Check scan groups (hosting/F66, hosting/A28): the findings of `couplings`, plus the
+ * binding line of each later use of a bound identifier, and a binding that is exported. `couplings` itself
+ * never changes: the gating consumers keep every raw finding at every use site.
+ */
+export async function scanHits(files: Files, options: CouplingOptions = {}): Promise<HitReport> {
+  return collect(files, options, true);
+}
+
+async function collect(files: Files, options: CouplingOptions, scanning: boolean): Promise<HitReport> {
   const test = options.test ?? isTest;
-  const report: CouplingReport = { coverage: COUPLING_COVERAGE, exclusions: COUPLING_EXCLUSIONS, sources: [], skipped: [], findings: [] };
+  const report: HitReport = { coverage: COUPLING_COVERAGE, exclusions: COUPLING_EXCLUSIONS, sources: [], skipped: [], findings: [] };
   for (const file of Object.keys(files).sort()) {
     if (DECLARATION.test(file)) {
       report.skipped.push({ file, reason: "a TypeScript declaration file" });
@@ -397,7 +426,7 @@ export async function couplings(files: Files, options: CouplingOptions = {}): Pr
     const parens = groups(code, "(", ")");
     const braces = groups(code, "{", "}");
     const seen = new Set<string>();
-    for (const r of find(code)) {
+    for (const r of find(code, scanning)) {
       const key = `${r.index}:${r.rule}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -405,7 +434,7 @@ export async function couplings(files: Files, options: CouplingOptions = {}): Pr
       const kind = scope === "production" ? "coupling" : classify(code, r.index, parens, braces);
       const comment = comments.find((c) => (c.line === line && c.trailing) || (c.line === line - 1 && !c.trailing));
       const reason = comment && /^\s*kaal-hosting:\s*platform\s+(\S.*?)\s*$/.exec(comment.text)?.[1];
-      report.findings.push({ file, line, column, scope, rule: r.rule, kind, construct: r.construct, ...(reason ? { acknowledged: reason } : {}) });
+      report.findings.push({ file, line, column, scope, rule: r.rule, kind, construct: r.construct, ...(reason ? { acknowledged: reason } : {}), ...(r.via === undefined ? {} : { via: position(code, r.via).line }) });
     }
   }
   return report;
