@@ -167,3 +167,14 @@ describe("running acceptance", () => {
     await assert.rejects(accept({ manifest: {}, scenarios: [join(dir, "left-over")], run: dir, cwd: dir }), /not empty/);
   });
 });
+
+describe("installation host names", () => {
+  it("stay unique when an operating system reuses a process id for a later scenario process", async () => {
+    // A second module instance in this process models the next process that gets the same pid.
+    const first = await import(`${LIB}?first`);
+    const second = await import(`${LIB}?second`);
+    assert.equal(typeof first.hostId, "function");
+    assert.notEqual(first.hostId(), second.hostId());
+    assert.notEqual(first.hostId(), first.hostId());
+  });
+});
