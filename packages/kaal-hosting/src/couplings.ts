@@ -237,7 +237,7 @@ function maskLiterals(text: string): string {
       // A slash after the closing parenthesis of an if, while, for or with condition starts a statement, so it opens a regular expression.
       const maskedBefore = out.slice(0, i).join("").trimEnd();
       const afterCondition = maskedBefore.endsWith(")") && closesCondition(maskedBefore);
-      const begins = afterCondition || before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await)$/.test(word));
+      const begins = afterCondition || before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await|else|do)$/.test(word));
       if (!begins) {
         i++;
         continue;
