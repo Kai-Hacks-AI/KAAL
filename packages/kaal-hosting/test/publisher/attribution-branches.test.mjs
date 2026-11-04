@@ -105,3 +105,14 @@ it("hosting/T112 [hosting/F29, hosting/F40]: a return inside a TypeScript functi
   assert.deepEqual(await challenged("{function helper(): Array<string> | undefined {return undefined;} helper(); return;}"), ["c1"]);
   assert.deepEqual(await challenged("{switch(x){case (1): {return;}}}"), ["c1"]);
 });
+
+it("hosting/T113 [hosting/F28]: a destructured platform query with a default initializer is still a finding", async () => {
+  const { couplings } = await import("@kaihacksai/kaal-hosting/conformance");
+  const found = async (source) => {
+    const r = await couplings({ "lib/a.cjs": source });
+    return r.findings.filter((f) => f.scope === "production" && (f.rule === "platform-query" || f.rule === "host-api"));
+  };
+  assert.equal((await found('const { sep: separator = "/" } = require("node:path");\nmodule.exports = separator;\n')).length > 0, true);
+  assert.equal((await found('const { sep = "/" } = require("node:path");\nmodule.exports = sep;\n')).length > 0, true);
+  assert.equal((await found('const { platform: host = () => "x" } = require("node:os");\nmodule.exports = host();\n')).length > 0, true);
+});

@@ -308,7 +308,8 @@ function find(code: string): Raw[] {
   // A destructuring binds the same queries as a named import: from the module itself, or from a name bound to it above.
   const destructured = (parts: string, module: "os" | "path") => {
     for (const part of parts.split(",")) {
-      const [name, alias] = part.trim().split(/\s*:\s*/);
+      // A default initializer (`sep = "/"`, `sep: separator = "/"`) is not part of the name or the local binding.
+      const [name, alias] = part.replace(/=[^]*$/, "").trim().split(/\s*:\s*/);
       if ((module === "os" ? OS_QUERIES : PATH_QUERIES).includes(name)) queries.set(alias ?? name, `${module}.${name}`);
     }
   };
