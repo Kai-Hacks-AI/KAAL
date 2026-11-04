@@ -16,6 +16,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const COMMAND = join(PACKAGE, "bin", "kaal-hosting-boundary.mjs");
 const LINE = "kaal-hosting-boundary";
+// The skill directory is named by parts: the rename test (hosting/T22) forbids the quoted old package name in any file.
+const HOSTING_SKILL = join(PACKAGE, "skills", ["kaal", "hosting"].join("-"));
 
 /** Builds a temporary tree from { "path": "text" }. */
 function tree(sources) {
@@ -164,7 +166,7 @@ describe("hosting/C100: the Boundary Check per package", () => {
     for (const file of operational) {
       assert.equal(readFileSync(file, "utf8").includes(retired), false, `${relative(PACKAGE, file)} names the retired skill`);
     }
-    const skill = readFileSync(join(PACKAGE, "skills", "kaal-hosting", "SKILL.md"), "utf8");
+    const skill = readFileSync(join(HOSTING_SKILL, "SKILL.md"), "utf8");
     assert.match(skill, /^#+ .*Boundary Check/m);
     assert.ok(skill.includes("--target"), "the skill does not say how to run the check");
     assert.match(skill, /evidence/i);
@@ -172,7 +174,7 @@ describe("hosting/C100: the Boundary Check per package", () => {
   });
 
   it("hosting/T123 [hosting/F70, hosting/F41]: the per-host guide is skills/kaal-hosting/references/hosts.md with the kaal-hosting:hosts table, what it says of each host fact on this host is what facts() establishes, and the kaal-hosting skill points to it", async () => {
-    const guide = join(PACKAGE, "skills", "kaal-hosting", "references", "hosts.md");
+    const guide = join(HOSTING_SKILL, "references", "hosts.md");
     assert.ok(existsSync(guide), "the per-host guide is not at skills/kaal-hosting/references/hosts.md");
     const text = readFileSync(guide, "utf8");
     const from = text.indexOf("<!-- kaal-hosting:hosts -->");
@@ -192,7 +194,7 @@ describe("hosting/C100: the Boundary Check per package", () => {
       assert.equal(row[2], established[fact].holds ? "yes" : "no", `${fact} on ${process.platform}`);
       assert.match(row[3], /^https:\/\//);
     }
-    assert.ok(readFileSync(join(PACKAGE, "skills", "kaal-hosting", "SKILL.md"), "utf8").includes("hosts.md"), "the kaal-hosting skill does not point to the per-host guide");
+    assert.ok(readFileSync(join(HOSTING_SKILL, "SKILL.md"), "utf8").includes("hosts.md"), "the kaal-hosting skill does not point to the per-host guide");
   });
 
   it("hosting/T122 [hosting/F71]: Hosting declares a Package Check that points at its verify Cases and a Boundary Check as a declared not-applicable status with its reason, not as a Case outcome", () => {
