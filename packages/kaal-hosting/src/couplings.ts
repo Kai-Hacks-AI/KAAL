@@ -257,7 +257,7 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
       // Skip a TypeScript type-parameter list between the name and the parameters.
       const head = at ? masked.slice(0, at[0]).replace(/<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>\s*$/, "") : "";
       const name = at && /([\w$]+)\s*$/.exec(head);
-      fn = (!!name && !CONTROL.has(name[1])) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(head));
+      fn = (!!name && !CONTROL.has(name[1])) || /\]\s*$/.test(head) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(head));
     }
     if (fn) for (let i = open; i <= close; i++) chars[i] = " ";
   }
