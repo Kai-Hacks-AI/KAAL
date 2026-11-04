@@ -155,6 +155,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
     let k = close + 1;
     while (/\s/.test(code[k] ?? "")) k++;
     let body: string;
+    let controlled = false;
     if (code[k] === "{") {
       const group = braces.find(([s]) => s === k);
       const end = group ? group[1] + 1 : code.length;
@@ -167,14 +168,31 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
       }
     } else {
       body = rest(code, k);
+      controlled = true;
     }
-    if (REGISTRATION.test(body) || returnsFromBranch(body)) return "registration";
+    if (REGISTRATION.test(body) || returnsFromBranch(body, controlled)) return "registration";
     if (/\bassert\b|\bexpect\s*\(/.test(body)) return "dilution";
     return "setup";
   }
   // In an assertion's arguments.
   for (const [open, close] of parens) if (open < at && at < close && ASSERTION.test(code.slice(Math.max(0, open - 200), open))) return "dilution";
   return "setup";
+}
+
+/**
+ * The controlled statement of an unbraced branch: `text` up to the first semicolon outside any bracket, continuing
+ * through an `else` so the alternative branch is still included, and no further, so a statement after the branch is not
+ * taken for part of it. `text` has its literals masked.
+ */
+function firstStatement(text: string): string {
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === "(" || c === "{" || c === "[") depth++;
+    else if (c === ")" || c === "}" || c === "]") depth--;
+    else if (c === ";" && depth <= 0 && !/^\s*else\b/.test(text.slice(i + 1))) return text.slice(0, i + 1);
+  }
+  return text;
 }
 
 /**
@@ -224,8 +242,9 @@ const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with", "case"
  * declared in it (callbacks, arrow functions, helpers, methods and accessors), and outside string literals and
  * property names.
  */
-function returnsFromBranch(text: string): boolean {
-  const masked = maskLiterals(text);
+function returnsFromBranch(text: string, unbraced = false): boolean {
+  let masked = maskLiterals(text);
+  if (unbraced) masked = firstStatement(masked);
   const parens = groups(masked, "(", ")");
   const chars = masked.split("");
   for (const [open, close] of groups(masked, "{", "}")) {
