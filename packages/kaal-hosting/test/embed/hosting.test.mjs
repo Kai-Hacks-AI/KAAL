@@ -10,7 +10,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import gfs from "graceful-fs";
-import { contribution, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within } from "@kaihacksai/kaal-hosting";
+import { contribution, digest, execute, HostingError, initialize, kind, read, readFile, reconcile, update, within } from "@kaihacksai/kaal-hosting";
 import { facts, specialEntries } from "@kaihacksai/kaal-hosting/fixtures";
 
 const run = promisify(execFile);
@@ -604,5 +604,34 @@ describe("Hosting's Extension Node [hosting/F52]", () => {
     const text = c["Hosting.md"].toString("utf8");
     assert.match(text, /^---\nname: Hosting\ntype:\n  name: KAAL Extension\n  id: [0-9a-f]{64}\n---\n/);
     assert.equal(text, readFileSync(join(installed, "payload", "Hosting.md"), "utf8"));
+  });
+});
+
+describe("digest [hosting/F63]", () => {
+  it("hosting/T110 [hosting/F63, hosting/A26]: digest is the host's SHA-256 as 64 lowercase hexadecimal digits for the FIPS 180-4 examples and every length across the padding boundaries, counts only the bytes a view covers, and equals what reconcile reports", async () => {
+    const vectors = [
+      ["", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+      ["abc", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"],
+      ["abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"],
+    ];
+    for (const [text, hex] of vectors) assert.equal(digest(Buffer.from(text)), hex);
+    for (let n = 0; n <= 300; n++) {
+      const bytes = Buffer.alloc(n, n);
+      const got = digest(bytes);
+      assert.match(got, /^[0-9a-f]{64}$/);
+      assert.equal(got, createHash("sha256").update(bytes).digest("hex"), `${n} bytes`);
+    }
+    const whole = Buffer.from("xxabcxx");
+    assert.equal(digest(whole.subarray(2, 5)), digest(Buffer.from("abc")));
+    assert.equal(digest(new Uint8Array(Buffer.from("abc"))), digest(Buffer.from("abc")));
+    const dir = tmp();
+    try {
+      writeFileSync(join(dir, "f"), "abc");
+      const r = await reconcile(dir, { write: [{ path: "f", bytes: Buffer.from("other"), expect: "0".repeat(64) }], remove: [] }).catch((e) => e);
+      assert.equal(r.code, "STALE");
+      assert.deepEqual(r.findings.map((f) => f.found), [digest(Buffer.from("abc"))]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

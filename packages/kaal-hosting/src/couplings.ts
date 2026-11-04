@@ -155,6 +155,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
     let k = close + 1;
     while (/\s/.test(code[k] ?? "")) k++;
     let body: string;
+    let controlled = false;
     if (code[k] === "{") {
       const group = braces.find(([s]) => s === k);
       const end = group ? group[1] + 1 : code.length;
@@ -163,18 +164,130 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
       if (otherwise) {
         const s = end + otherwise[0].length;
         const next = braces.find(([o]) => o === s);
-        body += next ? code.slice(s, next[1] + 1) : rest(code, s);
+        if (next) body += code.slice(s, next[1] + 1);
+        else {
+          // An unbraced alternative is bounded to its own statement.
+          const alternative = rest(code, s);
+          body += alternative.slice(0, firstStatement(maskLiterals(alternative)).length);
+        }
       }
     } else {
       body = rest(code, k);
+      controlled = true;
     }
-    if (REGISTRATION.test(body) || /^\s*\{?\s*return\b/.test(body)) return "registration";
+    if (REGISTRATION.test(body) || returnsFromBranch(body, controlled)) return "registration";
     if (/\bassert\b|\bexpect\s*\(/.test(body)) return "dilution";
     return "setup";
   }
   // In an assertion's arguments.
   for (const [open, close] of parens) if (open < at && at < close && ASSERTION.test(code.slice(Math.max(0, open - 200), open))) return "dilution";
   return "setup";
+}
+
+/**
+ * The controlled statement of an unbraced branch: `text` up to the first semicolon outside any bracket or the closing brace of a compound statement, continuing
+ * through an `else` so the alternative branch is still included, and no further, so a statement after the branch is not
+ * taken for part of it. `text` has its literals masked.
+ */
+function firstStatement(text: string): string {
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === "(" || c === "{" || c === "[") depth++;
+    else if (c === ")" || c === "}" || c === "]") {
+      depth--;
+      // A compound statement ends at its closing brace, unless an else follows.
+      if (c === "}" && depth <= 0 && !/^\s*else\b/.test(text.slice(i + 1))) return text.slice(0, i + 1);
+    }
+    else if (c === ";" && depth <= 0 && !/^\s*else\b/.test(text.slice(i + 1))) return text.slice(0, i + 1);
+  }
+  return text;
+}
+
+/** Whether `text`, which ends with ")", ends with the parenthesised condition of an if, while, for or with. */
+function closesCondition(text: string): boolean {
+  let depth = 0;
+  for (let k = text.length - 1; k >= 0; k--) {
+    if (text[k] === ")") depth++;
+    else if (text[k] === "(" && --depth === 0) return /\b(if|while|for|with)\s*$/.test(text.slice(0, k));
+  }
+  return false;
+}
+
+/**
+ * `text` with the contents of string, template and regular-expression literals blanked, offsets kept, so a quoted
+ * brace, parenthesis or "return" is not read as code. A slash opens a regular expression where an expression may
+ * begin (after an operator, an opening bracket, a separator or a keyword) and is a division after an operand.
+ */
+function maskLiterals(text: string): string {
+  const out = text.split("");
+  const blank = (from: number, to: number) => {
+    for (let k = from; k < to; k++) if (out[k] !== "\n") out[k] = " ";
+  };
+  for (let i = 0; i < text.length; ) {
+    const c = text[i];
+    if (c === '"' || c === "'" || c === "`") {
+      let j = i + 1;
+      while (j < text.length && text[j] !== c) j += text[j] === "\\" ? 2 : 1;
+      blank(i + 1, Math.min(j, text.length));
+      i = j + 1;
+    } else if (c === "/" && text[i + 1] !== "/" && text[i + 1] !== "*") {
+      const before = text.slice(0, i).trimEnd();
+      const word = /([\w$]+)$/.exec(before)?.[1];
+      // A slash after the closing parenthesis of an if, while, for or with condition starts a statement, so it opens a regular expression.
+      const maskedBefore = out.slice(0, i).join("").trimEnd();
+      const afterCondition = maskedBefore.endsWith(")") && closesCondition(maskedBefore);
+      const begins = afterCondition || before === "" || /[(,=:[!&|?{};+\-*%<>~^]$/.test(before) || (word !== undefined && /^(return|typeof|case|in|of|void|delete|throw|new|yield|await|else|do)$/.test(word));
+      if (!begins) {
+        i++;
+        continue;
+      }
+      let j = i + 1;
+      let inClass = false;
+      while (j < text.length && text[j] !== "\n" && (inClass || text[j] !== "/")) {
+        if (text[j] === "\\") j++;
+        else if (text[j] === "[") inClass = true;
+        else if (text[j] === "]") inClass = false;
+        j++;
+      }
+      blank(i + 1, Math.min(j, text.length));
+      i = j + 1;
+    } else i++;
+  }
+  return out.join("");
+}
+
+const CONTROL = new Set(["if", "for", "while", "switch", "catch", "with"]);
+
+/**
+ * Whether `text` returns from the code around it. Only a `return` that no function can enclose counts: it must sit
+ * directly in the branch or in nested control-flow blocks (if, else, for, while, do, switch, try, catch, finally, a
+ * case clause or a bare block). Every other brace, whatever it is (a function, method, accessor, class, object
+ * literal or type, in any syntax), is not control flow and is blanked with its contents, so no function signature
+ * has to be recognised. String and regular-expression literals are blanked first.
+ */
+function returnsFromBranch(text: string, unbraced = false): boolean {
+  let masked = maskLiterals(text);
+  if (unbraced) masked = firstStatement(masked);
+  const parens = groups(masked, "(", ")");
+  const chars = masked.split("");
+  // A brace group that follows the close of a non-control group (an object type before a function body, for example)
+  // continues an expression, not a statement.
+  const expression = new Set<number>();
+  for (const [open, close] of groups(masked, "{", "}").sort((x, y) => x[0] - y[0])) {
+    const before = masked.slice(0, open).trimEnd();
+    let control = before === "" || /[;{]$/.test(before) || (before.endsWith("}") && !expression.has(before.length - 1)) || /(?<![\w$.])(else|try|finally|do)$/.test(before) || /\b(case\b[^;{}]*|default)\s*:$/.test(before);
+    if (!control && before.endsWith(")")) {
+      const at = parens.find(([, c]) => c === before.length - 1);
+      const name = at && /([\w$]+)\s*$/.exec(masked.slice(0, at[0]));
+      control = !!name && CONTROL.has(name[1]);
+    }
+    if (!control) {
+      expression.add(close);
+      for (let i = open; i <= close; i++) chars[i] = " ";
+    }
+  }
+  return /(?<![\w$])(?<!\.\s*)return\b(?!\s*:)/.test(chars.join(""));
 }
 
 interface Raw {
@@ -192,6 +305,19 @@ function find(code: string): Raw[] {
   const queries = new Map<string, string>();
   for (const m of code.matchAll(/import\s+(?:\*\s+as\s+)?([\w$]+)\s+from\s+["'](node:)?(os|path)["']/g)) (m[3] === "os" ? osNames : pathNames).add(m[1]);
   for (const m of code.matchAll(/(?:const|let|var)\s+([\w$]+)\s*=\s*require\(\s*["'](node:)?(os|path)["']\s*\)/g)) (m[3] === "os" ? osNames : pathNames).add(m[1]);
+  // A destructuring binds the same queries as a named import: from the module itself, or from a name bound to it above.
+  const destructured = (parts: string, module: "os" | "path") => {
+    for (const part of parts.split(",")) {
+      // A default initializer (`sep = "/"`, `sep: separator = "/"`) is not part of the name or the local binding.
+      const [name, alias] = part.replace(/=[^]*$/, "").trim().split(/\s*:\s*/);
+      if ((module === "os" ? OS_QUERIES : PATH_QUERIES).includes(name)) queries.set(alias ?? name, `${module}.${name}`);
+    }
+  };
+  for (const m of code.matchAll(/(?:const|let|var)\s*\{([^}]*)\}\s*=\s*require\(\s*["'](node:)?(os|path)["']\s*\)/g)) destructured(m[1], m[3] as "os" | "path");
+  for (const m of code.matchAll(/(?:const|let|var)\s*\{([^}]*)\}\s*=\s*([\w$]+)\s*[;\n]/g)) {
+    if (osNames.has(m[2])) destructured(m[1], "os");
+    if (pathNames.has(m[2])) destructured(m[1], "path");
+  }
   for (const m of code.matchAll(/import\s*\{([^}]*)\}\s*from\s*["'](node:)?(os|path)["']/g)) {
     for (const part of m[1].split(",")) {
       const [name, alias] = part.trim().split(/\s+as\s+/);

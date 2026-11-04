@@ -1,10 +1,10 @@
 # Hosts: facts, applicability and review
 
-Hosting is KAAL's one operating-system boundary (`OS_BOUNDARY` in `kaal-hosting/conformance`). No other capability names an operating system, in its code, its tests or its applicability. When a case genuinely needs something only some hosts have, it names a host fact that Hosting defines, and Hosting establishes on each run whether that fact holds. This guide states each fact per host, the applicability rules, and what a reviewer checks.
+Hosting is KAAL's one operating-system boundary (`OS_BOUNDARY` in `@kaihacksai/kaal-hosting/conformance`). No other capability names an operating system, in its code, its tests or its applicability. When a case genuinely needs something only some hosts have, it names a host fact that Hosting defines, and Hosting establishes on each run whether that fact holds. This guide states each fact per host, the applicability rules, and what a reviewer checks.
 
 ## Facts per host
 
-`facts()`, from `kaal-hosting/fixtures`, establishes each fact by trying it in a temporary directory, never by reading the platform's name. Hosting's own tests check, in every Hosting lane, that what `facts()` establishes there agrees with that host's row below.
+`facts()`, from `@kaihacksai/kaal-hosting/fixtures`, establishes each fact by trying it in a temporary directory, never by reading the platform's name. Hosting's own tests check, in every Hosting lane, that what `facts()` establishes there agrees with that host's row below.
 
 <!-- kaal-hosting:hosts -->
 | Fact | Platform | Holds | Evidence |
@@ -26,7 +26,7 @@ For every package but the boundary:
 
 ## The portability audit
 
-`portability({ name, root, builtins, applicability })` from `kaal-hosting/boundary`, `portabilitySuite(options)`, or `kaal-hosting-boundary --name <name> --root <dir> --applicability <file>`, extends the boundary suite with two deterministic cases and these findings, each naming its case:
+`portability({ name, root, builtins, applicability })` from `@kaihacksai/kaal-hosting/boundary`, `portabilitySuite(options)`, or `kaal-hosting-boundary --name <name> --root <dir> --applicability <file>`, extends the boundary suite with two deterministic cases and these findings, each naming its case:
 
 | Rule | Found when | Case it fails |
 | --- | --- | --- |
