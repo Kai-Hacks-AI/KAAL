@@ -25,7 +25,7 @@ Why this is as safe as the two-PR route: the author alone can no longer authoriz
 
 `.github/workflows/change-isolation.yml` runs only on `opened`, `synchronize`, `reopened` and `edited` of the pull request. An approval is a **review** event, so as the workflow stands the check would stay failed after the attestation arrives, and would stay passed after the attestation is dismissed. Both are wrong: a late approval must admit the change, and a withdrawn one must stop admitting it. The implementation scope therefore includes trusted review-event handling:
 
-- The workflow also runs on `pull_request_review` (`submitted`, `edited`, `dismissed`), as `pull_request_target`-style trusted code from the default branch, never the candidate's. It re-reads the reviews at the current head and recomputes the same verdict, so the required check carries the latest state.
+- **Trusted dispatch path.** A `pull_request_review` workflow runs the definition found on the pull request's merge ref, so a candidate that edits workflow YAML could change or remove its steps; adding the trigger to `change-isolation.yml` would not keep today's trusted-execution model. Instead: (1) an untrusted **relay** on `pull_request_review` (`submitted`, `edited`, `dismissed`) does nothing but upload the event's identifiers (PR number, review id) as an artifact and is trusted for nothing; (2) a **`workflow_run` handler** triggered by the relay's completion runs the definition from the default branch, which a candidate cannot change, and independently reacquires every fact from the API (PR, current head, reviews, author, the target's CODEOWNERS, `attesters.json` and ledger) before recomputing the verdict. It ignores the relay's payload beyond the PR number, and it reports the required check on the PR's head SHA. Review events from a fork or an unexpected repository are ignored.
 - Only the head SHA the review was recorded against counts, as in rule 3. A review on an older head never admits a newer one.
 - Fail closed: if the reviews cannot be read, the result is "cannot judge", not "admitted", and a stale pass is not left standing.
 - This is a `.github` change. It is its own `.github`-only Change and promotion, not part of the checker Change, and it travels alone like #949.
@@ -95,6 +95,7 @@ Each Case is written and shown RED against today's checker before any implementa
 | R18 two lines or edited body | two attestation lines; a body edited to another digest | refused | passes |
 | R19 cannot read | reviews API fails, rate limited, or the head moves during the run | cannot judge (exit 2), no pass left standing | RED |
 | R20 pending first | the workflow's first step on any review event | the check is `in_progress` before anything is read | RED |
+| R21 trusted dispatch | a candidate that edits or removes the relay or handler workflow steps, or forges the relay artifact's payload | the verdict is unchanged: the handler runs from the default branch and reacquires every fact | RED |
 
 R2 to R10 and R15, R16, R18 are controls: they pass today and must keep passing, which guards against a design that admits everything.
 
