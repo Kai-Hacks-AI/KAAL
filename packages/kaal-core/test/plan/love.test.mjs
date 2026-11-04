@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 import { identify } from "kaal-graph";
 
 const PACKAGE = new URL("../../", import.meta.url);
@@ -36,7 +37,7 @@ function files(dir) {
   if (!existsSync(url)) return [];
   return readdirSync(url, { recursive: true, withFileTypes: true })
     .filter((e) => e.isFile() && /\.(ts|mts|mjs|js)$/.test(e.name))
-    .map((e) => `${e.parentPath.slice(new URL(PACKAGE).pathname.length)}/${e.name}`);
+    .map((e) => `${e.parentPath.slice(fileURLToPath(PACKAGE).length)}/${e.name}`);
 }
 
 describe("LOVE (core/C16)", () => {
