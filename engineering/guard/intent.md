@@ -1,25 +1,16 @@
-# Guard: Intent (why)
+# Guard: Intent, Engineering's part (why)
 
-## Purpose
+Guard's product contract, its Intent, Requirements, Architecture, Testing and Limitations, is authoritative in the package: [`packages/kaal-guard/docs/`](../../packages/kaal-guard/docs/intent.md). The product's outcomes are guard/I1–guard/I3, guard/I5 and guard/I7–guard/I9. This page holds only what KAAL Engineering adds: how KAAL itself uses Guard, and how it delivers Guard into a target without the package.
 
-Guard connects a repository's own tests and checks to local Git hooks and to remote GitHub CI enforcement, so that a check means the same thing before a push and before a merge. It is not a general verification or policy framework.
+## Engineering's outcomes
 
-## Intended outcomes
+- **guard/I4 Engineer.** KAAL's own checks run through Guard, locally and in KAAL's existing CI, with no loss of check identity, OS matrix or coverage. The product obligations it relies on are guard/F10 and guard/N1.
+- **guard/I6 External.** KAAL Engineering delivers Guard naked into a target as an actual Change: working hooks, working CI and local docs, adding neither the package nor any KAAL element. guard/I7 holds for an External delivery too (guard/F25), and so does guard/F8's rule for the target's existing files.
 
-Requirements trace back to these identifiers.
-
-- **I1 The repository owns its checks.** Guard runs what the repository names. It adds no tests and judges no evidence.
-- **I2 One meaning per check.** For equivalent facts and execution conditions, a check gives the same verdict locally and in CI. Locally it is early feedback; CI is the authority.
-- **I3 Narrow adapters.** Git's hook and GitHub's workflow jobs pass facts to Guard and act on its verdict. Neither contains a rule.
-- **I4 Engineer.** KAAL's own checks run through Guard, locally and in KAAL's existing CI, with no loss of check identity, OS matrix or coverage.
-- **I5 Embed.** The self-contained `kaal-guard` package has no dependency on any other KAAL element. Packed, it installs into, operates in and removes cleanly from an unrelated repository, and its own tests pass there. An existing consumer moves from one published version to the next, and back, safely: package code arrives through its dependency and lockfile, managed hook and CI assets through `upgrade`, and what the consumer owns or has changed stays as it is.
-- **I6 External.** KAAL Engineering delivers Guard naked into a target as an actual Change: working hooks, working CI and local docs, adding neither the package nor any KAAL element.
-
-The mission is met only when I1 to I6 all hold. Reaching some of them is a checkpoint, not completion ([Change](change.md#stopping-conditions)).
+The mission is met only when guard/I1 to guard/I6 all hold. guard/I7 is the separately scoped `0.0.2` improvement ([Change](change.md#agent-guidance)). guard/I8 and guard/I9 are the separately scoped `0.0.4` increment ([Change](change.md#consumer-verification-004)). Reaching some of them is a checkpoint, not completion ([Change](change.md#stopping-conditions)).
 
 ## Boundaries
 
 - Guard carries no branching policy. KAAL's branching checks are ordinary KAAL checks that Guard runs, like any consumer's checks.
-- Guard does not replace GitHub's required reviews, required checks or auto-merge. It supplies required checks to them.
-- Guard contains an Agent, Skill, Extension or sub-Capability only where a distinct responsibility justifies one. None is needed now.
+- Guard's Agent Skill, `kaal-guard`, is shipped with Guard and delivered by it. It is not a CASE registration, which stays with #331 and #258.
 - Testing owns what evidence means. The repository owns its test content.

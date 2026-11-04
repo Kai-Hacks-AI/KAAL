@@ -1,0 +1,75 @@
+{
+  "target": "ef78dcadf11007fb5826b41f47814299ebe8ddb9",
+  "sources": [
+    {
+      "path": "packages/skills/kaal-testing/lib/duplicates.mjs",
+      "source": "79524490a219b9f622052047d891f2bd30e631b6",
+      "gitBlob": "d44c7110993158b2a3fc339607d1ea5f6aac754e",
+      "action": "DO exact",
+      "sha256": "e670157307233521dee93c72ea64b0cdf4a05103bf7830c50cfcd9176ffb9ec4"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/plan/duplicates.test.mjs",
+      "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
+      "gitBlob": "90e5012c9b55a812945309357bfe333075b63af3",
+      "action": "PLAN helper-version correction",
+      "sha256": "d0cf0d208b706d22b836126e7cbb18fd86ff3f9f41022f7d28fe227e0bb5a335"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/duplicates-inputs.test.mjs",
+      "source": "79524490a219b9f622052047d891f2bd30e631b6",
+      "gitBlob": "f859e67d2b2168d2088138f9fc8316215be4327a",
+      "action": "DO exact",
+      "sha256": "3255c91a7753b5f2547405609ec7e8d134c196a1fb1ed66684333107c277c98c"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates.test.mjs",
+      "source": "79524490a219b9f622052047d891f2bd30e631b6",
+      "gitBlob": "c4f738ec85a4314fd46bc863595f719e88dbb807",
+      "action": "DO relocate unchanged to test/acceptance/duplicates.test.mjs",
+      "sha256": "7219a41d182c0ba9f33b272fc6509371c59e7b3409d09ea1f4806f26ca4e0829"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates-mutations.mjs",
+      "source": "79524490a219b9f622052047d891f2bd30e631b6",
+      "gitBlob": "2cccd6f19bf4b8579423c5e0538aae660b69447e",
+      "action": "DO exact",
+      "sha256": "3472e9623ea3a5d984a30ba9f86083f9575b4c63d34385497ffe082d86d5e9d9"
+    },
+    {
+      "path": "packages/skills/kaal-testing/test/engineer/duplicates-evidence.json",
+      "source": "79524490a219b9f622052047d891f2bd30e631b6",
+      "gitBlob": "5e0192cc08df74afc95ac0daf69e46e5e7fc0ea6",
+      "action": "historical receipt only; regenerate target evidence",
+      "sha256": "322de5461c1c52a475ca6a1ac2449e6f0aa5d8a0e9e6c1272849fb91c383eb40"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/duplicates/intent.md",
+      "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
+      "gitBlob": "9c7777098f77969fe7112a1f7edfca6466dfd806",
+      "action": "DO retain historical contract source unchanged",
+      "sha256": "6312af9c098b3a5021c5b84cdba7bb1387e765a3185de270fa47ff535b727e5c"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/duplicates/requirements.md",
+      "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
+      "gitBlob": "c0b8af32467c579c8ef270dfc826e6e5df48bc12",
+      "action": "DO retain historical contract source unchanged",
+      "sha256": "6c7553284b90ca6ce8c36961c7f58030f504b69ca3a0504c9939ede02d7fd48c"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/duplicates/architecture.md",
+      "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
+      "gitBlob": "d7472b08878b0473d2a8562ff257f2e31cfd632b",
+      "action": "DO retain historical contract source unchanged",
+      "sha256": "78864c307b2af8b4743543a90d0ed3893d1191124e939bf042ed952dde7a0bcd"
+    },
+    {
+      "path": "packages/skills/kaal-testing/plan/duplicates/testing.md",
+      "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
+      "gitBlob": "1da61d70f0dc36e5121678e5de0fec2cf275537a",
+      "action": "DO retain historical contract source unchanged",
+      "sha256": "dbebe4d7b1bb0baca04478371a0ba0050b7acdbf1b378ce00a5bc25c5133a482"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "format": {
+    "name": "Installation Contract",
+    "id": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
+  },
+  "capability": "guard",
+  "version": "0.0.4",
+  "assets": [
+    {
+      "name": "hook",
+      "source": "templates/pre-push",
+      "target": ".githooks/pre-push",
+      "kind": "file",
+      "executable": true,
+      "surface": "hook"
+    },
+    {
+      "name": "hook-attributes",
+      "source": "templates/hook.gitattributes",
+      "target": ".githooks/.gitattributes",
+      "kind": "file",
+      "surface": "hook"
+    },
+    {
+      "name": "workflow",
+      "source": "templates/guard.yml",
+      "target": ".github/workflows/guard.yml",
+      "kind": "file",
+      "surface": "ci"
+    },
+    {
+      "name": "workflow-attributes",
+      "source": "templates/workflow.gitattributes",
+      "target": ".github/workflows/.gitattributes",
+      "kind": "file",
+      "surface": "ci"
+    },
+    {
+      "name": "skill",
+      "source": "skills/kaal-guard",
+      "target": ".agents/skills/kaal-guard",
+      "kind": "directory"
+    }
+  ],
+  "catalogue": {
+    ".githooks/pre-push": [
+      "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95"
+    ],
+    ".githooks/.gitattributes": [
+      "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9"
+    ],
+    ".github/workflows/guard.yml": [
+      "832be35f6d149493adfcb171fc159d707f762915f2e2cd57a159b2aeb8e14acf",
+      "3635321ec5949c64b7a03206f5958a65d1351662b43baeb4efccb75131c59070"
+    ],
+    ".github/workflows/.gitattributes": [
+      "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee"
+    ],
+    ".agents/skills/kaal-guard/SKILL.md": [
+      "bc856bb457dede8b4a7c5302d2c6977e056e79064d41b9284e7c4afa04a69ed0"
+    ],
+    ".agents/skills/kaal-guard/.gitattributes": [
+      "1c6803649686447b5a771e3eb8639d30fee8725a269fa78fdd6fca1ff5e190a6"
+    ]
+  },
+  "record": ".kaal/state/guard/installation.json",
+  "runtime": {
+    "node": 24
+  },
+  "provides": [
+    {
+      "skill": "kaal-guard"
+    }
+  ]
+}

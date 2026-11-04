@@ -4,7 +4,7 @@
 // Each title names the contracts it checks (plan/duplicates/*.md). Runs and requests are given as plain data, as a
 // harness observed or intends them: Testing runs nothing and reads no clock to judge them.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
@@ -144,7 +144,7 @@ describe("No case runs twice in one execution (testing/C50)", () => {
   it("testing/T109 [testing/F91, testing/F62]: Testing's own npm test runs each of its files once: no case file is in two of its test scripts, nor twice in one", async () => {
     const { schedule } = await dedup();
     const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-    const sha = (p) => createHash("sha256").update(readFileSync(join(PACKAGE, p))).digest("hex");
+    const sha = (p) => sha256(readFileSync(join(PACKAGE, p)));
     let embed = [];
     try {
       embed = readdirSync(join(PACKAGE, "test/embed")).filter((f) => f.endsWith(".test.mjs")).map((f) => `test/embed/${f}`);

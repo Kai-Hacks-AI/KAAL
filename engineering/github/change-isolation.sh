@@ -1,6 +1,6 @@
 #!/bin/bash
 # KAAL's Change Isolation judgment of one pull request, as a KAAL-owned check that the Change
-# Isolation job runs through kaal-guard (guard.json: Change-Isolation). The job's former body, moved:
+# Isolation job runs through kaal-guard (.kaal/config/guard/Change-Isolation.md). The job's former body, moved:
 # the rule and its verdict live in engineering/change-isolation/check.mjs as the target commit holds it
 # (read from Git, so the job may run from any checkout, such as the default branch's), and
 # a verified synchronization of a collector is judged by engineering/github/lineage.ts as the default
@@ -43,6 +43,12 @@ if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
   node "$T/check.mjs" < "$T/resolved"
 else
+  # The transition ledger is the target's own, read from its tip. A target without it has no ledger
+  # entry to match and a checker that does not accept the arguments, so it is judged as before.
+  LEDGER=()
+  if git show "$BASE:engineering/change-isolation/transitions.json" > "$T/transitions.json" 2>/dev/null; then
+    LEDGER=(--ledger "$T/transitions.json" --git "$BASE" "$HEAD")
+  fi
   git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
-    | node "$T/check.mjs"
+    | node "$T/check.mjs" "${LEDGER[@]}"
 fi

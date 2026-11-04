@@ -38,14 +38,21 @@ judge() {
   return 0
 }
 
+# After a fail or cannot judge: where to read how to resolve it.
+remind() {
+  echo "guard: to resolve a fail or cannot judge, read the Skill at .agents/skills/kaal-guard/SKILL.md"
+}
+
 root=$(git rev-parse --show-toplevel) || exit 2
 status=0
 case $1 in
   --local)
-    for c in $LOCAL; do judge "$c" || status=1; done ;;
+    for c in $LOCAL; do judge "$c" || status=1; done
+    [ $status = 0 ] || remind ;;
   --check)
     [ -n "$2" ] || { echo "cannot judge: guard: --check needs a check name"; exit 2; }
-    judge "$2" || status=1 ;;
+    judge "$2" || status=1
+    [ $status = 0 ] || remind ;;
   pre-push)
     # For each pushed ref: the base is the remote's default branch; the facts go to the checks as
     # GUARD_HEAD, GUARD_BASE, GUARD_BASE_REF and GUARD_CHANGED (a file of changed paths, NUL-separated).
@@ -73,7 +80,7 @@ case $1 in
       fi
       for c in $LOCAL; do judge "$c" >&2 || status=1; done
     done
-    [ $status = 0 ] || echo "Local feedback only; CI decides. Fix and push again, or skip once with git push --no-verify." >&2 ;;
+    [ $status = 0 ] || { remind >&2; echo "Local feedback only; CI decides. Fix and push again, or skip once with git push --no-verify." >&2; } ;;
   *)
     echo "usage: sh .githooks/guard.sh (--local | --check <name> | pre-push <remote>)"; exit 2 ;;
 esac

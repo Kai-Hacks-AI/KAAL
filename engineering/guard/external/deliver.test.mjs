@@ -9,6 +9,8 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { render } from "./deliver.mjs";
 
+const SKILL = ".agents/skills/kaal-guard/SKILL.md";
+
 const DELIVER = resolve(dirname(fileURLToPath(import.meta.url)), "deliver.mjs");
 const POSIX = process.platform !== "win32";
 
@@ -26,20 +28,29 @@ function target(files = {}) {
   return { dir, git };
 }
 
-function deliver(dir, checks, branch = "guard") {
+function deliver(dir, checks, branch = "guard", ...more) {
   const file = join(dir, "..", `${branch}-checks.json`);
   writeFileSync(file, JSON.stringify(checks));
-  const r = spawnSync(process.execPath, [DELIVER, "--target", dir, "--checks", file, "--branch", branch], { encoding: "utf8", env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" } });
+  const r = spawnSync(process.execPath, [DELIVER, "--target", dir, "--checks", file, "--branch", branch, ...more], { encoding: "utf8", env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" } });
   return { status: r.status, output: `${r.stdout}${r.stderr}` };
 }
 
 describe("render", () => {
   it("delivers no workflow when no check runs in CI, and lists every check in the runner and the docs", () => {
     const files = render({ fast: { command: "npm test", runs: ["local"] } }, mkdtempSync(join(tmpdir(), "guard-render-")));
-    assert.deepEqual(Object.keys(files).sort(), [".githooks/guard.sh", ".githooks/pre-push", "GUARD.md"]);
+    assert.deepEqual(Object.keys(files).sort(), [".agents/skills/kaal-guard/SKILL.md", ".githooks/guard.sh", ".githooks/pre-push", "GUARD.md"]);
     assert.match(files[".githooks/guard.sh"], /^LOCAL="fast"$/m);
     assert.match(files[".githooks/guard.sh"], /^ {4}fast\) npm test ;;$/m);
     assert.match(files["GUARD.md"], /`fast`: `npm test`, runs in the hook/);
+  });
+
+  it("lists the further deployments and pointers it is given in the docs, and delivers each deployment", () => {
+    const agents = { write: [{ path: ".claude/skills/kaal-guard/SKILL.md", text: "copy\n" }], pointers: [{ provider: "other", skill: "kaal-guard", target: SKILL }] };
+    const files = render({ fast: { command: "npm test", runs: ["local"] } }, mkdtempSync(join(tmpdir(), "guard-render-")), agents);
+    assert.equal(files[".claude/skills/kaal-guard/SKILL.md"], "copy\n");
+    assert.match(files["GUARD.md"], /^- `\.claude\/skills\/kaal-guard\/`: a copy of the Skill/m);
+    assert.match(files["GUARD.md"], /^- other: add a line to its instruction file naming `\.agents\/skills\/kaal-guard\/SKILL\.md`\.$/m);
+    assert.doesNotMatch(render({ fast: { command: "npm test", runs: ["local"] } }, mkdtempSync(join(tmpdir(), "guard-render-")))["GUARD.md"], /For the agents/);
   });
 
   it("sets up Node only for a target with a package.json, and installs locked dependencies only with a lockfile", () => {
@@ -62,6 +73,26 @@ describe("deliver", () => {
     assert.match(r.output, /kept \.githooks\/pre-push/);
     assert.match(r.output, /sh \.githooks\/guard\.sh pre-push "\$@" \|\| exit 1/);
     assert.equal(t.git("show", "guard:.githooks/pre-push").stdout, "#!/bin/sh\necho mine\n");
+  });
+
+  it("keeps a Skill the target already has at the canonical location, and reports it", () => {
+    const t = target({ [SKILL]: "mine\n" });
+    const r = deliver(t.dir, { unit: { command: "true", runs: ["local"] } });
+    assert.equal(r.status, 0, r.output);
+    assert.match(r.output, /kept \.agents\/skills\/kaal-guard\/SKILL\.md/);
+    assert.equal(t.git("show", `guard:${SKILL}`).stdout, "mine\n");
+  });
+
+  it("refuses --agents without providers, writing nothing", () => {
+    const t = target();
+    const agents = join(t.dir, "..", "agents.json");
+    writeFileSync(agents, JSON.stringify({ providers: [] }));
+    const before = t.git("rev-parse", "HEAD").stdout;
+    const r = deliver(t.dir, { unit: { command: "true", runs: ["local"] } }, "guard", "--agents", agents);
+    assert.equal(r.status, 2, r.output);
+    assert.match(r.output, /declares no providers/);
+    assert.equal(t.git("rev-parse", "HEAD").stdout, before);
+    assert.equal(t.git("branch", "--list", "guard").stdout, "");
   });
 
   it("refuses, writing nothing, when the target has a runner of its own, uncommitted changes or the branch already", () => {
@@ -99,7 +130,10 @@ describe("the delivered runner", { skip: !POSIX }, () => {
     for (const line of ["pass: s0: exit status 0", "fail: s1: exit status 1", "cannot judge: s2: exit status 2", "not applicable: s3: exit status 3", "cannot judge: s7: exit status 7 is not a verdict"]) {
       assert.ok(local.stdout.includes(line), `missing "${line}" in:\n${local.stdout}`);
     }
-    assert.equal(run("--check", "s3").status, 0);
+    assert.ok(local.stdout.trimEnd().endsWith(`guard: to resolve a fail or cannot judge, read the Skill at ${SKILL}`), local.stdout);
+    const passed = run("--check", "s3");
+    assert.equal(passed.status, 0);
+    assert.doesNotMatch(passed.stdout, /read the Skill/);
     assert.equal(run("--check", "unknown").status, 1);
   });
 
@@ -118,7 +152,9 @@ describe("the delivered runner", { skip: !POSIX }, () => {
   });
 });
 
-it("delivers nothing that names KAAL", () => {
+it("delivers nothing that names KAAL but the Skill's own name and canonical path", () => {
   const files = render({ unit: { command: "npm test", runs: ["local", "ci"] } }, mkdtempSync(join(tmpdir(), "guard-render-")));
-  for (const [path, text] of Object.entries(files)) assert.doesNotMatch(text, /kaal/i, path);
+  const own = (text) => text.replaceAll(".agents/skills/kaal-guard", "").replace(/^name: kaal-guard$/m, "");
+  for (const [path, text] of Object.entries(files)) assert.doesNotMatch(own(text), /kaal/i, path);
+  assert.doesNotMatch(files[SKILL], /\bnpm\b|\bnpx\b/, "the Skill names npm");
 });
