@@ -23,7 +23,7 @@ It needs Node 24 or later.
 
 ## Agent guidance
 
-The package ships `skills/kaal-hosting/`: a general Agent Skill for selecting operations, preserving failures and recovery evidence, and interpreting installed verification. Its references carry executable examples exercised by the delivered Cases. It accompanies Hosting as an Extension; Core continues to consume the existing API. The separate `kaal-hosting-boundary` Skill handles boundary review.
+The package ships `skills/kaal-hosting/`: a general Agent Skill for selecting operations, preserving failures and recovery evidence, and interpreting installed verification. Its references carry executable examples exercised by the delivered Cases. It accompanies Hosting as an Extension; Core continues to consume the existing API. Boundary review is in the same Skill: its Boundary Check section, and its `references/boundary-result.md` and `references/hosts.md`.
 
 ## The product contract
 
