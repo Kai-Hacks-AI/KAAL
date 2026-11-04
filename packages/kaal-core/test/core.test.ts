@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSy
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   bootstrap,
   capabilities,
@@ -216,7 +217,7 @@ describe("identity", () => {
   });
 
   it("keeps the id, name and type of every Node in this repository, and only the genesis has no type", () => {
-    const root = join(dirname(new URL(import.meta.url).pathname), "..", "..", "..");
+    const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
     const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
       readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
         .filter((p) => p.endsWith(".md") && !p.includes("node_modules") && !p.includes("/skills/") && statSync(join(root, top, p)).isFile())
