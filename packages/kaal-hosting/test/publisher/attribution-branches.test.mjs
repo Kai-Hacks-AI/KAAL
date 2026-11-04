@@ -74,6 +74,9 @@ it("hosting/T112 [hosting/F29, hosting/F40]: a return inside a TypeScript functi
     return (await portability({ name: "portable-fixture", root, builtins: ["node:test"] })).challenged;
   };
   assert.deepEqual(await challenged("{function helper(): number {return 1;} helper();}"), []);
+  assert.deepEqual(await challenged("{function identity<T>(value: T): T {return value;} identity(1);}"), []);
+  assert.deepEqual(await challenged("{const o={pick<K extends string>(k: K): K {return k;}};o.pick('a');}"), []);
+  assert.deepEqual(await challenged("{function identity<T>(value: T): T {return value;} identity(1); return;}"), ["c1"]);
   assert.deepEqual(await challenged("{const o={value(): number {return 1;}};o.value();}"), []);
   assert.deepEqual(await challenged("{const o={get v(): number {return 1;}};o.v;}"), []);
   assert.deepEqual(await challenged("{function helper(): Array<string> | undefined {return undefined;} helper(); return;}"), ["c1"]);

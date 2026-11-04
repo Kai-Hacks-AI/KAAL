@@ -235,8 +235,10 @@ function returnsFromBranch(text: string): boolean {
     const signature = fn ? undefined : /\)\s*(?::\s*[\w$.<>[\]|&?\s,]+)?$/.exec(before);
     if (signature) {
       const at = parens.find(([, c]) => c === before.length - signature[0].length);
-      const name = at && /([\w$]+)\s*$/.exec(masked.slice(0, at[0]));
-      fn = (!!name && !CONTROL.has(name[1])) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(masked.slice(0, at[0])));
+      // Skip a TypeScript type-parameter list between the name and the parameters.
+      const head = at ? masked.slice(0, at[0]).replace(/<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>\s*$/, "") : "";
+      const name = at && /([\w$]+)\s*$/.exec(head);
+      fn = (!!name && !CONTROL.has(name[1])) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(head));
     }
     if (fn) for (let i = open; i <= close; i++) chars[i] = " ";
   }
