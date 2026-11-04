@@ -25,7 +25,7 @@ Owner: Hosting. Raised on 4 November 2026 from the CPO/Owner's finding 5 (legacy
 
 Host-fact and request identifiers such as `kaal-hosting/special-entries` and `kaal-hosting/<rule>@…` are not export subpaths and are not matched.
 
-**Case version:** the Git blob id of `unscoped-specifiers.red.mjs`, `8cd5c5c007184123a20518eccf59ec76e1e98292`. Run by hand from the repository root: `node --test packages/kaal-hosting/defects/unscoped-specifiers.red.mjs`. **Confirming Run (4 Nov, Node 22 sandbox, 35df842):** hosting/T109 passes; hosting/T108 fails naming `HOSTS.md:3`, `:7` and `:29`.
+**Case version:** the Git blob id of `unscoped-specifiers.red.mjs`, `6e9ba6d112db6985920ae49b5323a4c76b21f9a6`. Run by hand from the repository root: `node --test packages/kaal-hosting/defects/unscoped-specifiers.red.mjs`. **Confirming Run (4 Nov, Node 22 sandbox, 35df842):** hosting/T109 passes; hosting/T108 fails naming `HOSTS.md:3`, `:7` and `:29`.
 
 **Answered** only by a later Run in which hosting/T108 passes, at this Case version, in the Change that corrects HOSTS.md, with hosting/T109 still passing.
 

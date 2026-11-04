@@ -2,7 +2,7 @@
 //
 // hosting/T108 is the RED Case of hosting/D7. hosting/T109 is its control and passes today. The Cases read the
 // package's own `exports` and every shipped Markdown file under `skills/`, `docs/` and the README. A specifier a
-// reader would import must be written `@kaihacksai/kaal-hosting/<subpath>`: the unscoped `kaal-hosting` is the
+// reader would import must be written `@kaihacksai/kaal-hosting/<subpath>`: the unscoped legacy name is the
 // legacy identity (hosting/F15). Host-fact and request identifiers such as `kaal-hosting/special-entries` are not
 // export subpaths and are not matched.
 //
