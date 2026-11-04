@@ -12,7 +12,9 @@ The text of `kaal/review` at a named commit, as an outside consumer receives it:
 | --- | --- |
 | The claims under test (`review/E6`) and the Skill text | Review |
 | The bar: unrelated repository, plain text at a version, real task, independent checker, effects checked (#978 section 6) | Product |
-| The judgment: a real task done by a cold Agent, checked by someone who is not the author | an independent checker (validation, reasoned judgment) |
+| The task: a real task done by the cold performing Agent, a fresh Claude session given only the Review text and the task | the performing Agent (session A) |
+| The judgment: the performing Agent's work checked against the claims | the independent checker, chosen by the Owner (3 Nov) as a fresh Claude session with no KAAL context (session B, never session A and never the Testing thread); validation, reasoned judgment |
+| Review of the checker's verdict | Kai or the CPO; recorded beside the Run, never replacing the checker's classification |
 | The Plan and the Run as evidence: Cases, three results, provenance, Test Data | Testing (this PLAN) |
 | Calling Review External-ready | the Owner |
 
@@ -72,10 +74,10 @@ A calibration that fails (the checker misclassifies the known set) means the Cas
 
 These are explicit Owner choices. Testing does not choose them silently, and the Plan does not start the trial.
 
-- Decided by the Owner (3 Nov): the independent checker is a fresh Claude session with no KAAL context beyond the text under test, and Kai or the CPO reviews its verdict. The review of the verdict is recorded in the trial record. Still open: who chooses the repository (Product, with the Owner), and whether the cold Agent is a session or a person.
+- Decided by the Owner (3 Nov): the independent checker is a fresh Claude session with no KAAL context, and Kai or the CPO reviews its verdict. The performing Agent and the checker are separate sessions: the checker is not told how the Agent was prompted beyond the recorded task and does not share its context. The verdict review is recorded in the trial record, and the Run is kept in the consumer context (`testing/F33`). Still open: who chooses the repository and task (Product, with the Owner).
 - The line for `useful-and-correct`: how many seeded defects must be Found, and how Partial counts. Testing proposes at least three seeded as a useful minimum and records the counts; Product and the Owner set the line.
 - The target repository and task, and the size of the calibration set.
-- Where the consumer keeps the Run, and whether Product's Decision Preparation cites it by commit.
+- Whether Product's Decision Preparation cites the Run by commit (the Run itself is kept in the consumer context).
 - Whether a Review change after the trial, such as a fix for a Finding, needs a full new Run or only the affected Cases. The model reads a Run of another version as showing nothing, so it needs at least those Cases.
 
 No promotion or publication is authorized.
