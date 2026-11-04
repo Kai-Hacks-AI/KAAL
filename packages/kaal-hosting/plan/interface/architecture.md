@@ -20,6 +20,7 @@ Each element names, in brackets, the Requirements it answers.
 | files | `test/embed` |  | delivered |
 | files | `test/verify.mjs` |  | delivered |
 | files | `test/verify.json` |  | delivered |
+| files | `test/boundary-check.md` |  | delivered |
 | files | `bin` |  | delivered |
 | files | `skills` |  | delivered |
 <!-- /kaal-hosting:interface -->

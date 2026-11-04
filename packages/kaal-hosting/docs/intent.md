@@ -49,3 +49,5 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Agent-facing use
 
 - **hosting/I14.** A consumer, human or agent, can discover and use the installed Hosting product to read, initialize, update and reconcile files, execute installed commands, and interpret verification and boundary findings without a KAAL checkout. The agent-facing Skill guides use of the same public contracts as the Bare API. It neither reimplements host operations nor grants authority to change the consumer's files.
+
+- **hosting/I15.** Anyone can aim Hosting's Boundary Check at any file or folder and get, with no framework and no dependency on the inspected code, one finding for each source line that holds platform logic, with the place, the rules and classes it hit, and the question a decider must answer. The check reports and never decides. A decision on each finding is recorded by its owner, outside Hosting. Hosting's own Boundary Check is not applicable, because Hosting is the boundary, and that is declared, not silent.
