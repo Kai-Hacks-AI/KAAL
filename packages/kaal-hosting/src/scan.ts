@@ -76,7 +76,7 @@ export const SCAN_QUESTION = "Can this platform logic move to Hosting or be remo
 const slash = (path: string): string => path.split(sep).join("/");
 const within = (base: string, path: string): boolean => {
   const to = relative(base, path);
-  return to === "" || (!to.startsWith("..") && !isAbsolute(to));
+  return to === "" || (to !== ".." && !to.startsWith(`..${sep}`) && !isAbsolute(to));
 };
 
 /**
@@ -116,29 +116,32 @@ export async function scan({ targets, base = process.cwd(), name }: ScanOptions)
     const key = `${hit.file}\u0000${hit.line}`;
     byLine.set(key, [...(byLine.get(key) ?? []), hit]);
   }
-  const isUse = (hit: Hit): boolean => hit.via !== undefined;
-  // Where a line's references point: a line is an origin unless all its hits are uses of a binding whose line holds hits.
-  const origin = (file: string, line: number, seen = new Set<number>()): number | undefined => {
-    const hits = byLine.get(`${file}\u0000${line}`);
-    if (!hits || seen.has(line)) return undefined;
-    seen.add(line);
-    if (!hits.every(isUse)) return line;
-    const via = hits[0].via!;
-    return hits.every((h) => h.via === via) ? origin(file, via, seen) : line;
+  // The emitted origin lines a hit leads back to. A hit is a use of a bound identifier when it has a binding line; it leads back to that
+  // line's origins. A line none of whose hits leads anywhere is an origin itself, so a use whose binding holds no finding stays a finding.
+  const lead = (hit: Hit, seen: Set<number>): number[] => {
+    if (hit.via === undefined || hit.via === hit.line || seen.has(hit.via)) return [];
+    const hits = byLine.get(`${hit.file}\u0000${hit.via}`);
+    if (!hits) return [];
+    const next = new Set(seen).add(hit.via);
+    const each = hits.map((h) => lead(h, next));
+    // An origin line is its own origin; a reference-only line stands for the origins of all its hits.
+    return each.some((o) => o.length === 0) ? [hit.via] : [...new Set(each.flat())];
   };
-  const referenceOf = (hit: Hit): number | undefined => (isUse(hit) && hit.via !== hit.line ? origin(hit.file, hit.via!) : undefined);
+  const origins = (hit: Hit): number[] => lead(hit, new Set([hit.line]));
+  const isReferenceLine = (hits: Hit[]): boolean => hits.every((h) => origins(h).length > 0);
 
   const findings = new Map<string, ScanFinding & { _hits: Hit[] }>();
   const references = new Map<string, Reference[]>();
   for (const hit of report.findings) {
-    const target = referenceOf(hit);
-    if (target !== undefined && byLine.get(`${hit.file}\u0000${hit.line}`)!.every((h) => referenceOf(h) !== undefined)) {
+    const own = byLine.get(`${hit.file}\u0000${hit.line}`)!;
+    if (!isReferenceLine(own)) continue;
+    for (const target of origins(hit)) {
       const key = `${hit.file}\u0000${target}`;
       references.set(key, [...(references.get(key) ?? []), { file: hit.file, line: hit.line, column: hit.column, construct: hit.construct }]);
     }
   }
   for (const [key, hits] of byLine) {
-    if (hits.every((h) => referenceOf(h) !== undefined)) continue;
+    if (isReferenceLine(hits)) continue;
     const { file, line } = hits[0];
     const text = (lines(file)[line - 1] ?? "").replace(/\r$/, "");
     const acknowledged = hits.find((h) => h.acknowledged)?.acknowledged;
@@ -168,7 +171,7 @@ export async function scan({ targets, base = process.cwd(), name }: ScanOptions)
     out.push({ ...finding, references: (references.get(key) ?? []).sort((a, b) => a.line - b.line || a.column - b.column) });
   }
 
-  const counts = { findings: out.length, references: out.reduce((n, f) => n + f.references.length, 0), rules: {} as Record<string, number>, classes: {} as Record<string, number> };
+  const counts = { findings: out.length, references: new Set(out.flatMap((f) => f.references.map((r) => `${r.file}:${r.line}:${r.column}`))).size, rules: {} as Record<string, number>, classes: {} as Record<string, number> };
   for (const rule of RULES) counts.rules[rule] = out.filter((f) => f.rules.includes(rule)).length;
   for (const klass of CLASSES) counts.classes[klass] = out.filter((f) => f.classes.includes(klass)).length;
   return {
