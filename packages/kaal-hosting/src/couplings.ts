@@ -236,7 +236,7 @@ function returnsFromBranch(text: string): boolean {
     if (signature) {
       const at = parens.find(([, c]) => c === before.length - signature[0].length);
       const name = at && /([\w$]+)\s*$/.exec(masked.slice(0, at[0]));
-      fn = !!name && !CONTROL.has(name[1]);
+      fn = (!!name && !CONTROL.has(name[1])) || (!!at && /\bfunction\s*\*?\s*[\w$]*\s*$/.test(masked.slice(0, at[0])));
     }
     if (fn) for (let i = open; i <= close; i++) chars[i] = " ";
   }
