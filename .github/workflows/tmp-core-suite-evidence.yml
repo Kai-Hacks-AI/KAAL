@@ -8,23 +8,16 @@ permissions:
   contents: read
 
 jobs:
-  manifest:
-    strategy:
-      fail-fast: false
-      matrix:
-        ref: ["7fa02ac6153802301785900139b3196b32c7982f", "ed83ae7a245de1079c0facd585f2ae7ea5a5a0e6"]
-    name: Core manifest check on Windows at ${{ matrix.ref }}
+  suite:
+    name: Core full source suite on Windows at the D1/D2 fix head
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ matrix.ref }}
+          ref: 1b17be1e8646c78374d460377ad01bda5de07624
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - run: npm ci
       - run: npm run build -w kaal-hosting
-      - run: npm run build -w kaal-core
-      - run: git ls-files --eol packages/kaal-core/LICENSE packages/kaal-core/test/verify.json
-      - run: npm run manifest -- --check
-        working-directory: packages/kaal-core
+      - run: npm test -w kaal-core
