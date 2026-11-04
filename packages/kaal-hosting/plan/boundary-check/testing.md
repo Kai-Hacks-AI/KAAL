@@ -18,6 +18,8 @@ The planned outer tests will live in `packages/kaal-hosting/test/plan/boundary-c
 
 **Superseded Cases.** Retiring the boundary skill supersedes the parts of hosting/T40, the portability guide Case and hosting/T66 that name `skills/kaal-hosting-boundary/`. Their behaviour clauses are unchanged; their path clauses move to hosting/T121 and hosting/T123. The edit to those immutable Cases happens only in the Change that retires the skill, with a comment in each file naming this supersession and its Owner ruling (4 Nov: no boundary skill in Hosting).
 
+The gating mode is unchanged: `couplings()`, `boundary()` and `portability()` return raw use-site findings, and the existing planned Cases (`test/plan/boundary.test.mjs`, `test/plan/portability.test.mjs`) keep passing without edit, except for the path clauses named under Superseded Cases. hosting/T117 checks the grouping on `scan` output only.
+
 hosting/A27–hosting/A31 are placements, validated by review. hosting/T116 to T118 use Hosting-owned fixtures, committed under `test/`, never another package's content. The scan of Core, Testing, Guard and Foundation (173 lines in 12 patterns) is an evidence run recorded by C102, not a Case.
 
 ## RED evidence
