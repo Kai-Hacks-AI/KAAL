@@ -56,7 +56,7 @@ describe("Intent", () => {
     const pkg = manifest();
     assert.equal(pkg.name, NAME);
     const main = await import(NAME);
-    for (const f of ["read", "readFile", "kind", "within", "digest", "update", "reconcile", "initialize", "execute", "contribution", "HostingError"]) assert.equal(typeof main[f], "function", `${NAME} exports no ${f}`);
+    for (const f of ["read", "list", "scratch", "readFile", "kind", "within", "digest", "update", "reconcile", "initialize", "execute", "contribution", "HostingError"]) assert.equal(typeof main[f], "function", `${NAME} exports no ${f}`);
     const conformance = await import(`${NAME}/conformance`);
     for (const f of ["inspect", "couplings", "osBoundary"]) assert.equal(typeof conformance[f], "function", `${NAME}/conformance exports no ${f}`);
     const boundary = await import(`${NAME}/boundary`);
