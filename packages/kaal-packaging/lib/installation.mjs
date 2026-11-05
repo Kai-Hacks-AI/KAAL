@@ -7,7 +7,8 @@
 //
 //   run       async (command, args, { cwd }) => { status, stdout, stderr }   runs the package's own self check
 //             (Hosting's `execute` has this shape; the caller supplies it)
-//   resolve   (dir, name) => version | undefined   reads the install record for a prerequisite
+//   resolve   (dir, name) => version | { version, resolved, integrity, link } | undefined   reads the install record for a
+//             prerequisite; the object form is also judged for where it came from
 //   verifier  optional { dir, version }: a separately installed verifier that must be at the exact pinned
 //             version and pass its own installation check before it judges anything
 //
@@ -43,7 +44,32 @@ const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]
 const OWN_SPECIFIER = new RegExp(`(^|/)${OWN_NAME}(/|$)`);
 /** Only a bare package specifier can name a package: relative and absolute paths never do. */
 const packageOf = (specifier) => (specifier.startsWith("@") ? specifier.split("/").slice(0, 2) : specifier.split("/").slice(0, 1)).join("/");
-const importsOwn = (code) => [...code.matchAll(SPECIFIER)].some((m) => !/^[./\\]/.test(m[1]) && !/^[A-Za-z]:/.test(m[1]) && OWN_SPECIFIER.test(packageOf(m[1])));
+/** `code` with its comments blanked and its strings kept, so a commented-out import is not code and a comment inside an import does not hide it. */
+function withoutComments(code) {
+  let out = "";
+  for (let i = 0; i < code.length; ) {
+    const c = code[i];
+    if (c === "/" && code[i + 1] === "/") {
+      while (i < code.length && code[i] !== "\n") i++;
+    } else if (c === "/" && code[i + 1] === "*") {
+      const end = code.indexOf("*/", i + 2);
+      i = end === -1 ? code.length : end + 2;
+      out += " ";
+    } else if (c === '"' || c === "'" || c === "`") {
+      let j = i + 1;
+      while (j < code.length && code[j] !== c) j += code[j] === "\\" ? 2 : 1;
+      out += code.slice(i, j + 1);
+      i = j + 1;
+    } else {
+      out += c;
+      i++;
+    }
+  }
+  return out;
+}
+const importsOwn = (code) => [...withoutComments(code).matchAll(SPECIFIER)].some((m) => !/^[./\\]/.test(m[1]) && !/^[A-Za-z]:/.test(m[1]) && OWN_SPECIFIER.test(packageOf(m[1])));
+/** A registry tarball: an http(s) URL to a `.tgz`, as npm records a package it fetched from a registry. */
+const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\.tgz$/;
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 
@@ -164,7 +190,19 @@ async function installation(dir, { resolve }) {
           observed = false;
           findings.push({ kind: "prerequisite-unresolved", path: name });
         }
-      } else if (have !== spec) add("prerequisite-version", name);
+      } else {
+        // A bare version is the install record's version only. A record object also carries where it came from and
+        // is judged by the same rules as the conformance check (packaging/F19): a registry tarball with an integrity.
+        const record = typeof have === "object" && have !== null ? have : { version: have };
+        if (record.version !== spec) add("prerequisite-version", name);
+        else if (typeof have === "object") {
+          if (record.link === true || (typeof record.resolved === "string" && !REGISTRY_TARBALL.test(record.resolved))) add("prerequisite-not-registry", name);
+          else if (typeof record.resolved !== "string" || typeof record.integrity !== "string" || record.integrity === "") {
+            observed = false;
+            findings.push({ kind: "prerequisite-origin-unknown", path: name });
+          }
+        }
+      }
     }
   }
   // Packaging may refer to itself; only another package importing Packaging is a boundary finding.

@@ -256,7 +256,7 @@ describe("packaging/C26: one installation check for every package", () => {
   });
 
   it("T125b only an import of Packaging is a boundary finding; its name in a string or message is not (Codex, #1063)", async () => {
-    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nimport { h } from "./kaal-packaging/helper.mjs";\nimport { a } from "other-package/kaal-packaging/helper.mjs";\nimport { b } from "@other/tools/kaal-packaging";\nconst why = "kaal-packaging is not installed";\n' } });
+    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nimport { h } from "./kaal-packaging/helper.mjs";\nimport { a } from "other-package/kaal-packaging/helper.mjs";\nimport { b } from "@other/tools/kaal-packaging";\n// import "kaal-packaging";\n/* import "kaal-packaging"; */\nconst why = "kaal-packaging is not installed";\n' } });
     const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
     assert.ok(!kinds(r).includes("imports-packaging"));
     for (const code of ['export * from "@kaihacksai/kaal-packaging/lib";\n', 'const m = await import("kaal-packaging");\n', 'const m = require("kaal-packaging");\n']) {
@@ -339,6 +339,22 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.notEqual(r.result, "verified");
     const failed = 'kaal-fixture-verification {"result":"failed","exit":1,"cases":[],"causes":["x"]}\n';
     assert.equal((await verifyInstalled(layout(), { run: runner(1, failed), resolve: noRecord })).result, "failed");
+  });
+
+  it("T125c a commented-out import is not an import, and a comment inside an import does not hide it (Codex, #1063)", async () => {
+    const commented = layout({ extra: { "dist/skills/fixture/scripts/c.mjs": '// import "kaal-packaging";\n/* import "kaal-packaging"; */\n' } });
+    assert.ok(!kinds(await verifyInstalled(commented, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+    const hidden = layout({ extra: { "dist/skills/fixture/scripts/h.mjs": 'import /* why */ "kaal-packaging";\n' } });
+    assert.ok(kinds(await verifyInstalled(hidden, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+  });
+
+  it("T122d a prerequisite record that shows a local, linked or unrecorded origin is not verified (Codex, #1063)", async () => {
+    const dir = layout({ deps: { dep: "1.0.0" } });
+    const at = (record) => verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: () => record });
+    assert.equal((await at({ version: "1.0.0", resolved: "https://registry.npmjs.org/dep/-/dep-1.0.0.tgz", integrity: "sha512-x" })).installation, "verified");
+    assert.equal((await at({ version: "1.0.0", resolved: "file:../dep.tgz", integrity: "sha512-x" })).installation, "failed");
+    assert.equal((await at({ version: "1.0.0", link: true, resolved: "../dep" })).installation, "failed");
+    assert.equal((await at({ version: "1.0.0", resolved: "https://registry.npmjs.org/dep/-/dep-1.0.0.tgz" })).installation, "unknown");
   });
 
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
