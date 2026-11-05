@@ -142,6 +142,42 @@ const ASSERTION = /(\bassert(\s*\.\s*\w+)*|\bt\s*\.\s*assert\s*\.\s*\w+|\bexpect
 /** The rest of the line from `from`. */
 const rest = (code: string, from: number): string => code.slice(from, code.indexOf("\n", from) === -1 ? code.length : code.indexOf("\n", from));
 
+let parsedCode: string | undefined;
+let parsedFile: ts.SourceFile | undefined;
+
+/** The source parsed once for a run of findings in the same file. */
+function parsedSource(code: string): ts.SourceFile {
+  if (parsedCode !== code || !parsedFile) {
+    parsedFile = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    parsedCode = code;
+  }
+  return parsedFile;
+}
+
+/** Whether a branch of a conditional is a test registration: `it`, `test`, `describe` or `suite`, or a member of one such as `it.skip`. */
+function isRegistration(node: ts.Expression): boolean {
+  let e: ts.Expression = node;
+  for (;;) {
+    if (ts.isParenthesizedExpression(e) || ts.isNonNullExpression(e)) e = e.expression;
+    else if (ts.isPropertyAccessExpression(e) || ts.isElementAccessExpression(e)) e = e.expression;
+    else break;
+  }
+  return ts.isIdentifier(e) && /^(it|test|describe|suite)$/.test(e.text);
+}
+
+/** Whether the offset lies in the condition of a conditional expression that picks a test registration on either branch. */
+function picksRegistration(code: string, at: number): boolean {
+  const file = parsedSource(code);
+  let found = false;
+  const visit = (node: ts.Node): void => {
+    if (found || at < node.pos || at > node.end) return;
+    if (ts.isConditionalExpression(node) && at >= node.condition.getStart(file) && at < node.condition.end && (isRegistration(node.whenTrue) || isRegistration(node.whenFalse))) found = true;
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return found;
+}
+
 /** What a platform finding in test code decides (hosting/F29). */
 function classify(code: string, at: number, parens: [number, number][], braces: [number, number][]): FindingKind {
   // In a skip, todo or only option.
@@ -150,6 +186,8 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
   // such as `(WINDOWS ? () => {} : it)(…)` (hosting/F40).
   const start = Math.max(code.lastIndexOf(";", at), code.lastIndexOf("\n", at)) + 1;
   if (/\?\s*(it|test|describe|suite)\b[^:]*:|\?[^:]*:\s*(it|test|describe|suite)\b/.test(rest(code, start))) return "registration";
+  // The same, however the expression is laid out: its branches may sit on lines after the condition (hosting/D10).
+  if (picksRegistration(code, at)) return "registration";
   // In an if condition: what its branches do.
   for (const [open, close] of parens) {
     if (!(open < at && at < close && /\bif\s*$/.test(code.slice(Math.max(0, open - 6), open)))) continue;
