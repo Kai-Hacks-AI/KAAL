@@ -40,6 +40,10 @@ const SUBFOLDERS = {
   "02-requirements": ["functional", "non-functional"],
   "04-test": ["package-check", "boundary-check"]
 };
+/** Subfolders that are allowed and optional. engineering-check holds non-shipped Engineering Cases and never reaches dist/ (packaging/F52). */
+const OPTIONAL_SUBFOLDERS = {
+  "04-test": ["engineering-check"]
+};
 /** Root folders that are not part of the numbered set but belong in the layout. */
 const ROOT_FOLDERS = new Set(["kaal", "dist", "node_modules"]);
 /** What npm delivers from the root whatever `files` says. */
@@ -129,6 +133,10 @@ export async function checkStructure(dir, { packed, build } = {}) {
     }
     for (const [top, subs] of Object.entries(SUBFOLDERS)) {
       if (numbered.includes(top)) for (const s of subs) if (!dirs.has(`${top}/${s}`)) add("missing-folder", `${top}/${s}`);
+    }
+    for (const [top, subs] of Object.entries(SUBFOLDERS)) {
+      const known = new Set([...subs, ...(OPTIONAL_SUBFOLDERS[top] ?? [])]);
+      for (const d of dirs) if (d.startsWith(`${top}/`) && !d.slice(top.length + 1).includes("/") && !known.has(d.slice(top.length + 1))) add("unknown-folder", d);
     }
     if (root.some((e) => e.dir && e.name === "scripts")) add("misplaced-script", "scripts");
     for (const e of root) if (!e.dir && !e.link && SCRIPT.test(e.name)) add("misplaced-script", e.name);
