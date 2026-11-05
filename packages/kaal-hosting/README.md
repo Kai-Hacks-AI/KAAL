@@ -19,6 +19,7 @@ It needs Node 24 or later.
 | `@kaihacksai/kaal-hosting/boundary` | `boundary`, `boundarySuite`, `portability` and `portabilitySuite`: the conformance suite, the only entry that loads `node:test` |
 | `@kaihacksai/kaal-hosting/fixtures` | `facts` and `specialEntries`: host facts established by trying them, and the fixture that needs one |
 | `kaal-hosting-boundary` | the suite as a command: `kaal-hosting-boundary --name <name> --root <dir> [--builtin <module>]… [--applicability <file>]` |
+| `kaal-hosting-boundary --target` | the Boundary Check scan: `kaal-hosting-boundary --target <path>… [--base <dir>] [--name <name>]` lists where a file or folder decides by platform, one finding per source line, as evidence and never as a verdict |
 | `skills/kaal-hosting/references/` | `boundary-result.md`, the reading instructions for what the suite puts to judgment, and `hosts.md`, the per-host guide |
 
 ## Agent guidance

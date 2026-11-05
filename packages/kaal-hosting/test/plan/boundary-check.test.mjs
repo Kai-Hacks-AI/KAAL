@@ -208,8 +208,9 @@ describe("hosting/C100: the Boundary Check per package", () => {
   });
 
   it("hosting/T122 [hosting/F71]: Hosting declares a Package Check that points at its verify Cases and a Boundary Check as a declared not-applicable status with its reason, not as a Case outcome", () => {
-    const file = join(PACKAGE, "docs", "boundary-check.md");
-    assert.ok(existsSync(file), "docs/boundary-check.md is missing");
+    // Path clause superseded by the Owner's rulings of 4 November 2026 (hosting/C103): the Boundary Check record is one shipped file, test/boundary-check.md, beside test/verify.json. Its behaviour clauses are unchanged.
+    const file = join(PACKAGE, "test", "boundary-check.md");
+    assert.ok(existsSync(file), "test/boundary-check.md is missing");
     const text = readFileSync(file, "utf8");
     assert.match(text, /Package Check/);
     assert.match(text, /test\/verify\.json/);
