@@ -18,3 +18,8 @@ Two Cases were added first and failed on the code at 0f19426, then the code chan
 ✖ hosting/T215 (npm_config_userconfig inherited from the base still pointed at the user's file; a variable of another case was kept)
 ℹ pass 7   ℹ fail 2
 ```
+
+## Codex findings at 2d2e46d
+
+- P2, a relative `dir` gave paths that mean something else in a child with another working directory: `hosting/T216` was added first and failed (`ℹ pass 9, ℹ fail 1`); `dir` is now resolved first.
+- P1, the installed-package Cases hosting/T24 to hosting/T31 and hosting/T75 are immutable planned Cases and must not be edited: `plan/release.test.mjs` is restored to the collector's version, and the prepared installation lives in successors, `publisher/prepared-release.test.mjs` (hosting/T217 to hosting/T225), with the originals' assertions unchanged. The originals are skipped by name in `test:publisher`, as the Cases superseded by hosting/T173 to hosting/T175 are.

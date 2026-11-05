@@ -887,9 +887,11 @@ export function executeSync(command: string, args: string[], options: ExecuteSyn
  * created inside `dir`; `dir` itself must exist.
  */
 export function isolatedEnvironment(dir: string, base: Record<string, string | undefined> = process.env): Record<string, string | undefined> {
-  const home = join(dir, "home");
-  const config = join(dir, "config");
-  const cache = join(dir, "npm-cache");
+  // Absolute, so each path stays valid in a child whose working directory is another.
+  const root = resolve(dir);
+  const home = join(root, "home");
+  const config = join(root, "config");
+  const cache = join(root, "npm-cache");
   for (const path of [home, config, cache]) gfs.mkdirSync(path, { recursive: true });
   const set: Record<string, string> = {
     HOME: home,

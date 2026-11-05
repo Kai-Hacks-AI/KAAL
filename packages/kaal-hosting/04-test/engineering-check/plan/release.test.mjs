@@ -9,9 +9,9 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { after, before, describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute, prepare } from "../../../dist/skills/kaal-hosting/scripts/index.js";
+import { execute } from "../../../dist/skills/kaal-hosting/scripts/index.js";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const REPO = resolve(PACKAGE, "../..");
@@ -30,24 +30,6 @@ async function run(cmd, args, cwd) {
   assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stderr}`);
   return r.stdout;
 }
-
-let installation;
-/**
- * The candidate, packed once and installed alone into one consumer once (hosting/C108): every Case that needs a fresh
- * consumer takes an independent copy of it, so the suite runs one npm install, not one per Case.
- * Hosting's runtime dependencies come from the registry; the cache is preferred but not required.
- */
-const installedCandidate = () =>
-  (installation ??= prepare(async (dir) => {
-    const out = mkdtempSync(join(tmpdir(), "kaal-hosting-pack-"));
-    const packed = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", out], PACKAGE));
-    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "consumer", private: true, type: "module" }));
-    await run("npm", ["install", "--prefer-offline", "--no-package-lock", join(out, packed[0].filename)], dir);
-    rmSync(out, { recursive: true, force: true });
-  }));
-after(async () => {
-  if (installation) await (await installation).dispose();
-});
 
 /** Every file under `dir`, `/`-separated and relative to `base`. */
 function files(dir, base) {
@@ -164,10 +146,17 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
   });
 
   describe("hosting/T24 [hosting/I5, hosting/F17]: packed and installed alone into a fresh consumer", () => {
+    let tarball;
     let consumer;
 
     before(async () => {
-      consumer = await (await installedCandidate()).copy();
+      const out = mkdtempSync(join(tmpdir(), "kaal-hosting-pack-"));
+      const packed = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", out], PACKAGE));
+      tarball = join(out, packed[0].filename);
+      consumer = mkdtempSync(join(tmpdir(), "kaal-hosting-consumer-"));
+      writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "consumer", private: true, type: "module" }));
+      // Hosting's runtime dependencies come from the registry; the cache is preferred but not required.
+      await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball], consumer);
     });
 
     // What the tarball may hold is the declared interface's, which hosting/T41 checks (hosting/C15).
@@ -201,10 +190,13 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
 describe("hosting/C10: the installed package is a complete product its consumer can verify", () => {
   const ID = /\bhosting\/[IFNAT]\d+\b/g;
   const PREFIX = "kaal-hosting-verification ";
+  let tarball;
 
   /** A fresh consumer outside the repository with the candidate installed alone, shipping `needs`. */
   async function consumer(needs = ["dist/test/package-check/verify.mjs", "dist/test/package-check/verify.json"]) {
-    const dir = await (await installedCandidate()).copy();
+    const dir = mkdtempSync(join(tmpdir(), "kaal-hosting-verify-"));
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "consumer", private: true, type: "module" }));
+    await run("npm", ["install", "--prefer-offline", "--no-package-lock", tarball], dir);
     const installed = join(dir, "node_modules", ...NAME.split("/"));
     assert.ok(existsSync(join(installed, "package.json")), `${NAME} is not installed in the consumer`);
     for (const path of needs) assert.ok(existsSync(join(installed, path)), `the installed package ships no ${path}`);
@@ -252,6 +244,12 @@ describe("hosting/C10: the installed package is a complete product its consumer 
     walk(installed);
     return out;
   }
+
+  before(async () => {
+    const out = mkdtempSync(join(tmpdir(), "kaal-hosting-pack-"));
+    const packed = JSON.parse(await run("npm", ["pack", "--json", "--pack-destination", out], PACKAGE));
+    tarball = join(out, packed[0].filename);
+  });
 
   it("hosting/T25 [hosting/I7, hosting/F18]: the installed package carries docs/ with Intent, Requirements, Architecture, Testing and Limitations, defining each identifier a shipped case cites exactly once, citing no Engineering path, plan/ path or Change, and the README points to them and to the verification", async () => {
     const { installed } = await consumer([]);

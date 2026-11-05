@@ -1,6 +1,6 @@
 # Process facility: DO record (hosting/C109)
 
-Implements the approved plan (`plan.md`, #1097, CPO review 5793456282): `execute` and `executeSync` start `npm` and `npx` without `cmd.exe`, `startPlan`, `isolatedEnvironment` and `prepare`. Requirements hosting/F75–hosting/F79 and hosting/N11, intent hosting/I17, architecture hosting/A35–hosting/A37, Cases hosting/T206–hosting/T215.
+Implements the approved plan (`plan.md`, #1097, CPO review 5793456282): `execute` and `executeSync` start `npm` and `npx` without `cmd.exe`, `startPlan`, `isolatedEnvironment` and `prepare`. Requirements hosting/F75–hosting/F79 and hosting/N11, intent hosting/I17, architecture hosting/A35–hosting/A37, Cases hosting/T206–hosting/T216.
 
 ## Where the DO differs from the plan, and why
 
@@ -13,7 +13,7 @@ Implements the approved plan (`plan.md`, #1097, CPO review 5793456282): `execute
 | Where | Before | After |
 | --- | --- | --- |
 | `04-test/package-check/hosting.test.mjs`, "reports a failing command's status and output" | `{ status: 3, stdout: "out", stderr: "err" }` | the same plus `output: "outerr"` |
-| `04-test/engineering-check/plan/release.test.mjs` (hosting/T24–hosting/T31, hosting/T75 and the C10 group) | each Case packs and runs `npm install` into its own consumer (13 installs) | one pack and one install in `installedCandidate()` through `prepare`; each Case takes `copy()`; titles and assertions unchanged |
+| `04-test/engineering-check/plan/release.test.mjs` (hosting/T24 to hosting/T31, hosting/T75) | each Case packs and runs `npm install` into its own consumer (13 installs) | unedited; `test:publisher` skips these nine by name. Successors hosting/T217 to hosting/T225 in `04-test/engineering-check/publisher/prepared-release.test.mjs` carry the same assertions on a copy of one prepared installation (one install). hosting/T22, hosting/T23, hosting/T48, hosting/T53 and hosting/T54 still run from the original file |
 
 ## Evidence
 

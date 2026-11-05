@@ -1,12 +1,12 @@
 // hosting/C109 planned outer tests: starting processes without cmd.exe and preparing a fixture once
-// (hosting/F75–hosting/F79, hosting/N11; hosting/T206–hosting/T215). Immutable to DO and CHECK;
+// (hosting/F75–hosting/F79, hosting/N11; hosting/T206–hosting/T216). Immutable to DO and CHECK;
 // the DO turns them GREEN. They reach Hosting through its build by path, never through the package
 // name. Fixtures are built in a temporary directory, and cost is asserted by what can be counted
 // (starts, installs, builds), never by the clock.
 import assert from "node:assert/strict";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, rmSync, statSync, symlinkSync, lstatSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve, win32 } from "node:path";
+import { dirname, isAbsolute, join, relative as pathRelative, resolve, win32 } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import * as hosting from "../../../dist/skills/kaal-hosting/scripts/index.js";
@@ -148,6 +148,18 @@ describe("hosting/F77 isolatedEnvironment, npm's own configuration files", () =>
     assert.equal(r.status, 0, r.output);
     assert.equal(readFileSync(env.npm_config_userconfig, "utf8").includes("Isolated"), true);
   });
+  it("hosting/T216: a relative directory is resolved before the paths are derived, so every path stays valid in a child whose working directory is another", () => {
+    const dir = tmp();
+    const relative = pathRelative(process.cwd(), dir);
+    const env = hosting.isolatedEnvironment(relative, { ...process.env });
+    for (const name of ["HOME", "USERPROFILE", "XDG_CONFIG_HOME", "npm_config_cache", "npm_config_userconfig", "npm_config_globalconfig", "GIT_CONFIG_GLOBAL"]) {
+      assert.ok(isAbsolute(env[name]), `${name} is not absolute: ${env[name]}`);
+      assert.ok(resolve(env[name]).startsWith(resolve(dir)), `${name} is outside the directory: ${env[name]}`);
+    }
+    const r = hosting.executeSync("git", ["config", "--global", "user.name", "Relative"], { cwd: tmp(), env });
+    assert.equal(r.status, 0, r.output);
+    assert.equal(readFileSync(env.GIT_CONFIG_GLOBAL, "utf8").includes("Relative"), true);
+  });
 });
 
 describe("hosting/F78 prepare", () => {
@@ -213,8 +225,8 @@ describe("hosting/F79 and hosting/N11 the facility is Hosting's", () => {
     assert.doesNotMatch(source, /kaal-packaging/);
   });
 
-  it("hosting/T213: Hosting's own installed-package Cases install once and copy per Case: the release suite has exactly one npm install and builds its consumer through prepare", () => {
-    const text = readFileSync(join(PACKAGE, "04-test", "engineering-check", "plan", "release.test.mjs"), "utf8");
+  it("hosting/T213: Hosting's own installed-package Cases install once and copy per Case (the successors of hosting/T24 to hosting/T31 and hosting/T75): the successor suite of the installed-package Cases has exactly one npm install and builds its consumer through prepare", () => {
+    const text = readFileSync(join(PACKAGE, "04-test", "engineering-check", "publisher", "prepared-release.test.mjs"), "utf8");
     const installs = [...text.matchAll(/run\("npm", \["install"/g)].length;
     assert.equal(installs, 1, `the suite runs npm install at ${installs} places`);
     assert.match(text, /\bprepare\(/);
