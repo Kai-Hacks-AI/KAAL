@@ -309,6 +309,13 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.equal(r.self, "unknown");
   });
 
+  it("T119d a summary-object self check with no executed case is never verified (Codex, #1063)", async () => {
+    const zero = 'kaal-fixture-verification {"result":"verified","exit":0,"cases":{"declared":0,"executed":0,"passed":0,"failed":0},"causes":[]}\n';
+    const some = 'kaal-fixture-verification {"result":"verified","exit":0,"cases":{"declared":2,"executed":2,"passed":2,"failed":0},"causes":[]}\n';
+    assert.notEqual((await verifyInstalled(layout(), { run: runner(0, zero), resolve: noRecord })).result, "verified");
+    assert.equal((await verifyInstalled(layout(), { run: runner(0, some), resolve: noRecord })).result, "verified");
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");

@@ -201,8 +201,10 @@ function readSelf(name, execution) {
       try {
         const body = JSON.parse(j[2]);
         printed = body.result;
-        // `cases` is a count in some verifiers and an array of outcomes in others; either way none executed is zero.
-        const ran = Array.isArray(body.cases) ? body.cases.filter((c) => c?.outcome === "pass" || c?.outcome === "fail").length : body.cases;
+        // `cases` is a count, an array of outcomes, or a summary object ({ executed, passed, failed, ... }) depending on the
+        // verifier; in every shape, no executed case is zero, and a shape that says nothing about execution is not verified.
+        const c = body.cases;
+        const ran = Array.isArray(c) ? c.filter((x) => x?.outcome === "pass" || x?.outcome === "fail").length : c !== null && typeof c === "object" ? (typeof c.executed === "number" ? c.executed : Number(c.passed ?? 0) + Number(c.failed ?? 0)) : c;
         zero = ran === 0 || body.executed === 0;
       } catch {
         printed = undefined;
