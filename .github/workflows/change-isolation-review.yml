@@ -59,6 +59,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: pull-request
+          path: ${{ runner.temp }}/relay
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
@@ -67,7 +68,8 @@ jobs:
         env:
           NUMBER: ${{ steps.pending.outputs.number }}
         run: |
-          RELAYED=$(cat pull-request.txt)
+          # The artifact is untrusted: it lives outside the checkout and only this one file is read.
+          RELAYED=$(cat "$RUNNER_TEMP/relay/pull-request.txt")
           [ "$RELAYED" = "$NUMBER" ] || { echo "::error::the relayed number ($RELAYED) differs from the event's ($NUMBER)"; exit 2; }
 
       - if: github.event.workflow_run.conclusion == 'success'
