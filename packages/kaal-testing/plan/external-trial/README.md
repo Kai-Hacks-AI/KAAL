@@ -38,7 +38,7 @@ CPO review (5 Nov): the External product model is wider than this trial. A KAAL-
 | The bar: unrelated repository, plain text at a version, real task, independent checker, effects checked (#978 section 6) | Product |
 | The change and Intent: a real pending change in an Owner non-KAAL repository, through the CPO | the CPO, for the Owner |
 | The three runs: each a fresh Claude session given only its arm's input and the task | the performing Agents (sessions A1, A2, A3), one per arm |
-| Experiencing the three arms' output, and the judgment of "improves" | the Owner (Kai, 5 Nov: the CPO and CTO observe, they do not judge); the basis is open question 2 |
+| Discussing each seat's argument with that seat, and the shared plan | the Owner (Kai, 5 Nov): the Owner does not score or pick records. The CPO and CTO argue from their own seats and observe and steer; they are not judges and need not agree |
 | The checklist and the facts: applying the checklist to each record, and running the neutral script | the checker, a fresh Claude session with no KAAL context (Owner, 3 Nov); never a performing Agent, never the Testing thread. Its readings are its own judgment |
 | Observing and steering | the CPO and the CTO: they observe the experiment and steer it, and steer the Owner toward results. They are observers and steerers, not judges. Each steer (who, when, what) is recorded in `review/T20/observers`. A view of theirs on which record is better is recorded as theirs, beside the Owner's, and never replaces it |
 | The Plan and the Run as evidence: Cases, three results, provenance, Test Data | Testing (this PLAN) |
@@ -48,7 +48,7 @@ Testing is not the judge and not a performing Agent, and does not choose the rep
 
 ## The Plan
 
-`trial-plan.json` is an ordinary Plan of Testing's own model, with nothing new: Plan `review/T20` (version 5), five Suites (independence, arms, claims, effects, pin) and seventeen Cases. `check` over it gives no findings, and a dry Run over it behaves as the model says (all passed, one skipped gives unknown, one failed gives failed). The Plan holds seven Test Data items (subject commit, consumer repository, judge, task, arm inputs, comparison, observers), recorded as the Run's effective Test Data (`testing/F31`, `F32`).
+`trial-plan.json` is an ordinary Plan of Testing's own model, with nothing new: Plan `review/T20` (version 6), five Suites (independence, arms, claims, effects, pin) and fifteen Cases. `check` over it gives no findings, and a dry Run over it behaves as the model says (all passed, one skipped gives unknown, one failed gives failed). The Plan holds seven Test Data items (subject commit, consumer repository, judge, task, arm inputs, comparison, observers), recorded as the Run's effective Test Data (`testing/F31`, `F32`).
 
 ## Two complete runs, recorded in this PR (Owner, 5 Nov)
 
@@ -59,7 +59,7 @@ There are two complete runs of the trial, each over all three arms: one steered 
 | `arm-1-bare.md`, `arm-2-instructions.md`, `arm-3-skill.md` | the record each arm produced, unchanged, and its arm input hash | the performing Agent |
 | `facts.md` | the neutral script's output per record, and the inputs it ran on | the script (fact) |
 | `checklist.md` | the checker's readings per record, with reasons | the checker (judgment) |
-| `owner.md` | the Owner's judgment: which record is more useful, whether arm 3 improves over bare and over instructions, with reasons | the Owner (judgment) |
+| `discussion.md` | what the Owner raised with this seat about its argument and what followed, in brief | the Owner and the seat |
 | `argument.md` | the seat's own argument on bare agent vs Agent instructions vs Skill with its scripts: what each arm showed from that seat, and why, as the seat's own judgment | the CTO or the CPO (own seat) |
 | `steering.md` | every steer: who, when, what, and any view of the observer's own | the CTO or the CPO (observer) |
 | `run.json` | the Run of `review/T20`: outcomes, provenance, Test Data | the checker, for the Owner |
@@ -74,8 +74,8 @@ This PLAN adds none of these files, and nothing runs until the Owner authorizes 
 2. **One snapshot, one task.** The target is a throwaway copy of the pending branch, captured by tree and refs. All three arms get a fresh copy of the same snapshot and the same task text. The only difference is the arm's input. No arm sees another arm's output.
 3. **Authorize.** The target's owner states in writing what writes any Agent may make (by default none outside the copy).
 4. **Run the three arms.** Each in its own fresh session. The target is captured again after each. An order that could favour an arm is randomized and recorded.
-5. **Label the arm for the Owner; hide it from the checker.** The Owner sees the three records labelled by arm (Owner, 5 Nov: blinding is artificial, since the Owner helps the runs succeed, and a blind judgment would need a second human). The checker, a fresh session, gets them anonymous and in random order, which costs no second human. The Owner's judgment is therefore not blind, and is recorded as such; it is the Owner's, not a measurement free of the arm.
-6. **Experience and judge.** The checker records, per record, the checklist below, each reading as its own judgment with its reason. The Owner experiences the three outputs and records which is more useful and whether arm 3 is better than both, as the Owner's judgment with its reason. The CPO and the CTO observe and steer; they record their steers and any view as theirs. Facts are recorded by script (see Evidence rules). One outcome per Case is recorded in the model's own outcomes, `passed` or `failed`, attributed to who decided it. A Case nobody can decide is `skipped` or left out of `outcomes`, never a literal `unknown`: `unknown` is derived by the model (`testing/F26`).
+5. **Label the arm for the Owner; hide it from the checker.** The Owner and the seat see the three records labelled by arm (Owner, 5 Nov: blinding is artificial, since the Owner helps the runs succeed, and a blind judgment would need a second human). The checker, a fresh session, gets them anonymous and in random order, which costs no second human.
+6. **Read, argue, discuss.** The checker records, per record, the checklist below, each reading as its own judgment with its reason. The seat (CTO or CPO) argues from its own seat bare agent vs Agent instructions vs Skill with its scripts, in `argument.md`. The Owner then discusses it with that seat. Nobody scores or picks a record. Facts are recorded by script (see Evidence rules). One outcome per Case is recorded in the model's own outcomes, `passed` or `failed`, attributed to who decided it. A Case nobody can decide is `skipped` or left out of `outcomes`, never a literal `unknown`: `unknown` is derived by the model (`testing/F26`).
 7. **Record.** One Run of `review/T20`, with provenance naming the Plan, its Suites and the Cases at their versions, and the Test Data as recorded. The consumer keeps the Run; Testing keeps none (`testing/F33`).
 
 ## Evidence rules
@@ -88,7 +88,7 @@ This PLAN adds none of these files, and nothing runs until the Owner authorizes 
 - **Nothing is certified.** A failed Case returns to Review as a Finding. A Finding the CPO confirms becomes a Defect in Review's context, in the shape of the Defect record (#991), with a RED Case in Review's own Defect Plan (`review/E7`). An unconfirmed Finding is answered with reasoning. The result is input to the Owner's decision and never a gate.
 - **Small sample.** Two runs over one change and one commit show what six agents produced on it. The result is a screen, not a rate.
 
-## Checklist and rating
+## Checklist
 
 Review validates: it helps decide whether the change serves its Intent. "Useful" can be managed where "correct" cannot. The checker applies a four-item checklist to each record. Each item has a **deterministic part** (a fact a script re-derives) and a **judged part** (judgment).
 
@@ -99,16 +99,11 @@ Review validates: it helps decide whether the change serves its Intent. "Useful"
 | U3 What to observe | The record leaves the person what to look at or decide next. | none for free text; arm 3 also by `check-record`. | That the items help. |
 | U4 Limits stated | The record says what it did not examine, and claims nothing of "served", "not served" or "complete" about anything it did not examine. | none for free text; arm 3 also by `check-record`. | That no claim covers what was not examined (false certainty). |
 
-The Owner rates each record, and may use the checker's readings, **useful**, **partly useful** or **not useful** for deciding whether the change serves its Intent, with a reason. Defects a record happens to find are recorded as input for Testing and the owning capability. They are neither credit nor penalty.
+The checker's readings are inputs to each seat's argument. There is no rating, no ranking and no pick of a record. A record's usefulness is argued by a seat and discussed with the Owner. Defects a record happens to find are recorded as input for Testing and the owning capability. They are neither credit nor penalty.
 
 ## What "improves" means
 
-Decided by the Owner: Review passes validation if the Skill-based run improves the result over the other two, and the Owner experiences and judges the output; the CPO and CTO observe and steer (5 Nov). Testing records, and the Owner decides the rest (open questions 2 and 3):
-
-- The comparison is of arm 3 against arm 1 and against arm 2, each separately.
-- **improves** is recorded only when the Owner rates arm 3's record more useful than the arm's record, on the stated basis, with the reason; the facts above are recorded beside it and do not decide it alone.
-- `improves-over-bare` and `improves-over-instructions` are separate Cases, so a pass over one and not the other is visible. Each is decided per run, on the Owner's judgment after discussing that run's findings with its seat; Testing combines the two runs into no verdict.
-- A tie, or an arm 3 that is worse, is `failed` for that Case and returns to Review as a Finding. If the Owner does not decide, the Case stays `skipped`, which reads as `unknown`.
+Review passes validation if the Skill-based run improves the result over the other two (Owner, 5 Nov). Whether it does is not scored or picked: each seat, CTO and CPO, argues it from its own seat, they need not agree, and the Owner discusses each argument with that seat; the shared plan comes out of those discussions. This Plan therefore has no Case for "improves" and no pass line, and the Run's result says nothing about whether Review improved the result. The Run records the facts and the independence of the trial, and the arguments are beside it as judgment. A judging basis is not technically needed: an argument is not a measurement, and the Owner's discussion is not a Case.
 
 ## Selecting the repository and task
 
@@ -117,7 +112,7 @@ Decided by the Owner (5 Nov): the target is **a real pending change in one of th
 ## Checker calibration
 
 Before the trial the checker is calibrated, and the record shows it:
-1. The Intent, the checklist, the basis of "improves" and the arm inputs are written down before the arms run, and kept with the Run.
+1. The Intent, the checklist and the arm inputs are written down before the arms run, and kept with the Run.
 2. The checker applies the checklist to a small known set first, such as pre-written records with a known item met, an item not met, a false certainty and a known better record, and the result is compared with the expected one. Disagreements are written down with the reason.
 3. The checker's identity (a fresh Claude session: model and context given), its relation to the author of Review, and any KAAL exposure beyond the text under test go into `review/T20/judge`.
 
@@ -127,8 +122,8 @@ A calibration that fails means `judge-independent` is not passed, and the trial 
 
 Testing does not choose these silently, and the Plan does not start the trial. They go to the Owner one at a time.
 
-1. *Who judges "improves": decided (5 Nov).* The Owner experiences and judges. The CPO and CTO observe and steer the experiment and the Owner toward results; they are not judges.
-2. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and the rating above). B: only which record the Owner would rather have, with a reason.
+1. *Who judges "improves": superseded (5 Nov).* Nobody scores. The CTO and the CPO argue from their own seats, and the Owner discusses each with that seat.
+2. *On what the Owner judges: superseded (5 Nov, cmsg_01Rm7j7LZSnurdg3KFfnH5czEW72KMd6VWBMwvqDRot2Pt).* The Owner does not score or pick records. Each seat argues the comparison from its own seat, and the Owner discusses it with that seat.
 3. *What the Owner sees: decided (5 Nov).* B: the records labelled by arm from the start. Reason: the Owner helps the runs succeed, so a blind judgment is artificial and would need a second human.
 4. *How the two runs combine: not combined (5 Nov).* Each seat argues from its own seat, they need not agree, and the Owner discusses each with that seat; the shared plan follows from that.
 5. The repository, the change and its Intent, and the size of the calibration set. (Decided: through the CPO.)

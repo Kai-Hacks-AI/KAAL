@@ -5,17 +5,17 @@ The Owner redefined the trial (5 Nov): compare a bare agent, an agent with Agent
 ## Already decided
 
 - Review is validation, Testing is verification. "Correct" is not a manageable bar; "useful" is.
-- Truth rests on deterministic facts. Records, ratings and rankings are judgment, recorded as judgment, attributed to whoever gives it.
+- Truth rests on deterministic facts. Records, readings and arguments are judgment, recorded as judgment, attributed to whoever gives it.
 - kaal-review judges, kaal-testing proves. Review's record sits on the Skill side of BASS and claims no proof.
 - Target: a real pending change in an Owner non-KAAL repository, in a throwaway copy, through the CPO.
-- Who judges "improves" (5 Nov): the Owner experiences the three arms' output and judges. The CPO and CTO observe and steer the experiment and the Owner toward results. They are observers and steerers, not judges, and each steer is recorded.
+- Who judges "improves" (5 Nov): nobody scores or picks. The CTO and CPO each argue the comparison from their own seat and need not agree; they also observe and steer. The Owner discusses each argument with that seat, and the shared plan is the outcome.
 - What the Owner sees (5 Nov): the records labelled by arm. Blinding is artificial because the Owner helps the runs succeed, and a blind judgment would need a second human. The checker still reads them anonymous.
 - Runs (5 Nov): two complete runs over all three arms, one steered and observed by the CTO and one by the CPO, each recorded in this PR as markdown files (`records/cto/`, `records/cpo/`).
 - The checklist and the neutral script are applied by a fresh Claude session with no KAAL context (3 Nov), as its own recorded judgment.
 
 ## Open, one at a time
 
-1. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and a useful, partly useful or not useful rating, each with a reason). B: only which record the Owner would rather have, with a reason. Recommended: A.
+1. *On what the Owner judges: superseded (5 Nov, cmsg_01Rm7j7LZSnurdg3KFfnH5czEW72KMd6VWBMwvqDRot2Pt).* The Owner does not score or pick records. Each seat argues the comparison from its own seat, they need not agree, and the Owner discusses each with that seat; the shared plan is the outcome. There is no judging basis to choose.
 2. *How the two runs combine: decided (5 Nov), they are not combined.* Each seat argues the comparison from its own seat in its own run record, and they need not agree. The Owner discusses each seat's findings with that seat, and the shared plan comes out of that.
 3. The repository, the change and its Intent, and when the trial may start. The Owner says.
 
@@ -25,6 +25,6 @@ Facts, by the same neutral script on all three records: every `path:line` pointe
 
 ## Consequences
 
-- **Improves over both.** The two comparison Cases pass for this commit, change and Intent only. It is input to the Owner's decision and never a gate, and it does not grant External readiness.
+- **Whether Review improved the result** is not a Case and has no pass line. It is argued by each seat and discussed with the Owner, and it never grants External readiness.
 - **Not over one or both.** The Case fails and returns to Review as a Finding. A Finding the CPO confirms becomes a Defect in Review's context with a RED Case in `review/E7`.
 - **Undecided.** The Case stays `skipped`, reads as `unknown`, and is never a pass.

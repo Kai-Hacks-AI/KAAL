@@ -10,7 +10,7 @@
   "plans": [
     {
       "id": "review/T20",
-      "version": "5",
+      "version": "6",
       "suites": [
         "review/T20/independence",
         "review/T20/arms",
@@ -29,7 +29,7 @@
         },
         {
           "id": "review/T20/judge",
-          "external": "who judged what: the checker's model and context, and the Owner as judge of improves, recorded by the checker"
+          "external": "who judged what: the checker's model and context, recorded by the checker"
         },
         {
           "id": "review/T20/task",
@@ -41,7 +41,7 @@
         },
         {
           "id": "review/T20/comparison",
-          "external": "the three records, the facts a script derived for each, the checker's readings, the Owner's judgment, and each seat's own argument, recorded per run by the checker"
+          "external": "the three records, the facts a script derived for each, the checker's readings, and each seat's own argument, recorded per run by the checker"
         },
         {
           "id": "review/T20/observers",
@@ -75,9 +75,7 @@
       "cases": [
         "review/T20/record-valid",
         "review/T20/human-can-observe",
-        "review/T20/no-authority",
-        "review/T20/improves-over-bare",
-        "review/T20/improves-over-instructions"
+        "review/T20/no-authority"
       ]
     },
     {
@@ -141,14 +139,14 @@
       "id": "review/T20/arms-labelled",
       "version": "1",
       "tests": [
-        "review/T20: the checker saw the three records anonymously and in random order, and the Owner saw them labelled by arm (Owner, 5 Nov); the Owner's judgment is recorded as not blind"
+        "review/T20: the checker saw the three records anonymously and in random order, and the Owner and the seat saw them labelled by arm (Owner, 5 Nov); nothing is scored"
       ]
     },
     {
       "id": "review/T20/steering-recorded",
       "version": "1",
       "tests": [
-        "review/T20: the CPO and the CTO observed and steered and judged nothing as the Owner: every steer is recorded with who, when and what, and no view of theirs stands in for the Owner's judgment"
+        "review/T20: the CPO and the CTO observed and steered and scored nothing: every steer is recorded with who, when and what, and a view of theirs is recorded as theirs"
       ]
     },
     {
@@ -170,20 +168,6 @@
       "version": "1",
       "tests": [
         "review/E2, review/E6: Review grants no authority and the review claims none, and claims no proof"
-      ]
-    },
-    {
-      "id": "review/T20/improves-over-bare",
-      "version": "2",
-      "tests": [
-        "review/T20: the Skill arm's record is judged by the Owner more useful for validating the change against its Intent than the bare agent's (judgment, recorded as judgment, with the facts beside it)"
-      ]
-    },
-    {
-      "id": "review/T20/improves-over-instructions",
-      "version": "2",
-      "tests": [
-        "review/T20: the Skill arm's record is judged by the Owner more useful for validating the change against its Intent than the Agent-instructions arm's (judgment, recorded as judgment, with the facts beside it)"
       ]
     },
     {
