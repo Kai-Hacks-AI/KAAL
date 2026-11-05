@@ -44,3 +44,7 @@ A brace character inside a quoted default (`({ host = "}" }) => {}`) was counted
 ## Fifth Codex finding: TypeScript annotations on patterns
 
 A type annotation between a pattern's closing brace and the parameter list's end (`({ host = "d" }: Options): void {}`) or before an assignment (`const { host }: Options = x`) hid the binding pattern. Both pattern tests now allow annotations. Verified ad hoc (typed parameter, return type, arrow, declaration excluded; a typed literal holding a real query is a finding); T137 to T139, D5, D6 and the publisher suite pass.
+
+## Sixth and seventh Codex findings: regular-expression literals and default-argument objects
+
+A regular-expression default containing a brace (`({ host = /}/ }) => {}`) was counted as syntax, and an object literal in a parameter default (`f(options = { metadata: {}, platform: host() }) {}`) ended before `) {` and so looked like a parameter pattern. Both brace scans now share one literal skipper (strings, templates, regular expressions), and a top-level brace that follows `=` is an object literal in value position, never a pattern. Verified ad hoc: the regex default is excluded, the default-argument literal and a literal after a division are findings; T137 to T139, D5, D6 and the publisher suite (192 pass, 1 skipped, 0 fail; release 15 pass) pass.

@@ -355,26 +355,26 @@ function find(code: string, scanning: boolean): Raw[] {
       const closeOf = (open: number): number => {
         let depth = 0;
         for (let i = open; i < code.length; i++) {
-          if (code[i] === '"' || code[i] === "'" || code[i] === "`") {
-            const q = code[i];
-            for (i++; i < code.length && code[i] !== q && code[i] !== "\n"; i++) if (code[i] === "\\") i++;
-          } else if (code[i] === "{") depth++;
+          const skipped = skipLiteral(code, i);
+          if (skipped > i) i = skipped;
+          else if (code[i] === "{") depth++;
           else if (code[i] === "}" && --depth === 0) return i;
         }
         return -1;
       };
       const stack: boolean[] = [];
       for (let i = 0; i < before.length; i++) {
-        if (before[i] === '"' || before[i] === "'" || before[i] === "`") {
-          const q = before[i];
-          for (i++; i < before.length && before[i] !== q; i++) if (before[i] === "\\") i++;
-        } else if (before[i] === "{") {
+        const skipped = skipLiteral(before, i);
+        if (skipped > i) i = skipped;
+        else if (before[i] === "{") {
           const head = before.slice(0, i);
           const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
           const close = closeOf(base + i);
           const after = close < 0 ? "" : code.slice(close + 1, close + 200);
           const declared = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || /^\s*(?::[^=,(){}]*)?(?:=[^,(){}]*)?\s*(?:,[^(){}]*)?\)\s*(?::[^=(){}]*)?(?:=>|\{)/.test(after);
-          const pattern = !block && (declared || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
+          // A brace right after `=` (not `==`, `=>`) is an object literal in value position, whatever follows it.
+          const value = stack.length === 0 && /(?:^|[^=!<>])=\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
+          const pattern = !block && !value && (declared || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
           stack.push(pattern);
         } else if (before[i] === "}") stack.pop();
       }
@@ -471,4 +471,31 @@ async function collect(files: Files, options: CouplingOptions, scanning: boolean
     }
   }
   return report;
+}
+
+/**
+ * When a quoted string, template or regular-expression literal starts at `i`, the index of its last character;
+ * otherwise `i`. A slash starts a regular expression only where an operand cannot precede it.
+ */
+function skipLiteral(text: string, i: number): number {
+  const c = text[i];
+  if (c === '"' || c === "'" || c === "`") {
+    let j = i + 1;
+    for (; j < text.length && text[j] !== c && (c === "`" || text[j] !== "\n"); j++) if (text[j] === "\\") j++;
+    return j;
+  }
+  if (c === "/" && text[i + 1] !== "/" && text[i + 1] !== "*") {
+    let k = i - 1;
+    while (k >= 0 && /\s/.test(text[k])) k--;
+    if (k >= 0 && !/[=(,:\[!&|?{};+\-*%<>~^]/.test(text[k])) return i;
+    let j = i + 1;
+    let inClass = false;
+    for (; j < text.length && text[j] !== "\n"; j++) {
+      if (text[j] === "\\") j++;
+      else if (text[j] === "[") inClass = true;
+      else if (text[j] === "]") inClass = false;
+      else if (text[j] === "/" && !inClass) return j;
+    }
+  }
+  return i;
 }
