@@ -100,3 +100,7 @@ An ordinary declaration of the same name (`const host = "default"`, `function ho
 ## Third Codex finding on the parser: type declarations and annotations
 
 A local type alias and an annotation that uses it (`type host = string; let value: host[];`) were read as uses. Any identifier inside a type node, a type alias or an interface is now excluded, since erased types never run; a class heritage clause, which is an expression, still counts. Regression Case hosting/T178 added. The boundary scan comparison still adds no finding.
+
+## Fourth Codex finding on the parser: implements clauses
+
+An `implements` clause is erased, but it shares a syntax node with `extends`, which runs. Only a class `extends` expression now counts; `implements` and interface `extends` are excluded. Regression Case hosting/T179 added.

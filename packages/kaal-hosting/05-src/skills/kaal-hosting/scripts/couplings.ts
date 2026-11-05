@@ -447,10 +447,12 @@ function declaresOrNames(node: ts.Identifier): boolean {
   // An import binds the name; a binding pattern in a declaration or a parameter declares a local one, and its
   // property name is a key.
   for (let n: ts.Node | undefined = parent; n; n = n.parent) {
-    // A type position never runs: a type annotation, a type alias, an interface, `typeof host` in a type. The heritage
-    // clause of a class is an expression and does run.
+    // A type position never runs: a type annotation, a type alias, an interface, `typeof host` in a type. A class `extends` clause is an
+    // expression and does run; an `implements` clause is erased.
     if (ts.isImportDeclaration(n) || ts.isImportEqualsDeclaration(n) || ts.isTypeAliasDeclaration(n) || ts.isInterfaceDeclaration(n)) return true;
-    if (ts.isTypeNode(n) && !ts.isExpressionWithTypeArguments(n)) return true;
+    if (ts.isExpressionWithTypeArguments(n)) {
+      if (ts.isHeritageClause(n.parent) && n.parent.token === ts.SyntaxKind.ImplementsKeyword) return true;
+    } else if (ts.isTypeNode(n)) return true;
   }
   if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return true;
   // An ordinary declaration of the same name (a variable, parameter, function or class) declares; it does not query.

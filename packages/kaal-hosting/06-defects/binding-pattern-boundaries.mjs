@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T178: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T179: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -63,6 +63,7 @@ const local = [
   ["T172", "a type query that names the binding", "let x: typeof host;"],
   ["T176", "an ordinary local declaration of the same name", 'function f() { const host = "default"; }'],
   ["T178", "a local type alias and an annotation that uses it", "function f() { type host = string; let value: host[]; }"],
+  ["T179", "an implements clause naming the same name", "function f() { interface host {} function g() { class C implements host {} } }"],
   ["T177", "a nested function and a simple parameter of the same name", "function outer() { function host() {} }\nfunction g(host) {}"],
 ];
 for (const [id, what, body] of local) {
