@@ -256,7 +256,7 @@ describe("packaging/C26: one installation check for every package", () => {
   });
 
   it("T125b only an import of Packaging is a boundary finding; its name in a string or message is not (Codex, #1063)", async () => {
-    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nimport { h } from "./kaal-packaging/helper.mjs";\nconst why = "kaal-packaging is not installed";\n' } });
+    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nimport { h } from "./kaal-packaging/helper.mjs";\nimport { a } from "other-package/kaal-packaging/helper.mjs";\nimport { b } from "@other/tools/kaal-packaging";\nconst why = "kaal-packaging is not installed";\n' } });
     const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
     assert.ok(!kinds(r).includes("imports-packaging"));
     for (const code of ['export * from "@kaihacksai/kaal-packaging/lib";\n', 'const m = await import("kaal-packaging");\n', 'const m = require("kaal-packaging");\n']) {
@@ -330,6 +330,15 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.equal(absent.result, "verified", JSON.stringify(absent.findings));
     const wrong = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: (d, n) => (n === "optional-addon" ? "9.9.9" : undefined) });
     assert.equal(wrong.installation, "failed");
+  });
+
+  it("T119e a verified self check that shows no execution evidence is unknown; failed stands on its own (Codex, #1063)", async () => {
+    const bare = 'kaal-fixture-verification {"result":"verified","exit":0}\n';
+    const r = await verifyInstalled(layout(), { run: runner(0, bare), resolve: noRecord });
+    assert.equal(r.self, "unknown");
+    assert.notEqual(r.result, "verified");
+    const failed = 'kaal-fixture-verification {"result":"failed","exit":1,"cases":[],"causes":["x"]}\n';
+    assert.equal((await verifyInstalled(layout(), { run: runner(1, failed), resolve: noRecord })).result, "failed");
   });
 
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {

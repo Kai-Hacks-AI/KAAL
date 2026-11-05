@@ -42,7 +42,8 @@ const OWN_NAME = ["kaal", "packaging"].join("-");
 const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/g;
 const OWN_SPECIFIER = new RegExp(`(^|/)${OWN_NAME}(/|$)`);
 /** Only a bare package specifier can name a package: relative and absolute paths never do. */
-const importsOwn = (code) => [...code.matchAll(SPECIFIER)].some((m) => !/^[./\\]/.test(m[1]) && !/^[A-Za-z]:/.test(m[1]) && OWN_SPECIFIER.test(m[1]));
+const packageOf = (specifier) => (specifier.startsWith("@") ? specifier.split("/").slice(0, 2) : specifier.split("/").slice(0, 1)).join("/");
+const importsOwn = (code) => [...code.matchAll(SPECIFIER)].some((m) => !/^[./\\]/.test(m[1]) && !/^[A-Za-z]:/.test(m[1]) && OWN_SPECIFIER.test(packageOf(m[1])));
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 
@@ -200,7 +201,7 @@ function readSelf(name, execution) {
   const exit = Object.entries(EXIT).find(([, code]) => code === execution.status)?.[0];
   if (exit === undefined) return { self: "unknown", why: "no result exit code" };
   let printed;
-  let zero = false;
+  let evidence = false;
   for (const line of String(execution.stdout).split(/\r?\n/)) {
     const j = /^(\S+)-verification (\{.*\})$/.exec(line);
     if (j && (j[1] === name || j[1] === name.split("/").pop())) {
@@ -211,7 +212,8 @@ function readSelf(name, execution) {
         // verifier; in every shape, no executed case is zero, and a shape that says nothing about execution is not verified.
         const c = body.cases;
         const ran = Array.isArray(c) ? c.filter((x) => x?.outcome === "pass" || x?.outcome === "fail").length : c !== null && typeof c === "object" ? (typeof c.executed === "number" ? c.executed : Number(c.passed ?? 0) + Number(c.failed ?? 0)) : c;
-        zero = ran === 0 || body.executed === 0;
+        // Evidence that a case ran: a positive executed count, and no zero count anywhere.
+        evidence = typeof ran === "number" && ran > 0 && body.executed !== 0;
       } catch {
         printed = undefined;
       }
@@ -220,12 +222,13 @@ function readSelf(name, execution) {
     const legacy = /^(\S+): (verified|failed|unknown): .*?(?:(\d+) declared, (\d+) executed)?$/.exec(line);
     if (legacy && legacy[1] === name) {
       printed = legacy[2];
-      zero = legacy[4] !== undefined && Number(legacy[4]) === 0;
+      evidence = legacy[4] !== undefined && Number(legacy[4]) > 0;
     }
   }
   if (printed === undefined) return { self: "unknown", why: "no result line" };
   if (printed !== exit) return { self: "unknown", why: "exit status and printed verdict disagree" };
-  if (zero) return { self: "unknown", why: "no case ran" };
+  // Only a verified verdict needs evidence that a case ran; a failed or unknown verdict stands on its own.
+  if (exit === "verified" && !evidence) return { self: "unknown", why: "no evidence that a case ran" };
   return { self: exit };
 }
 
