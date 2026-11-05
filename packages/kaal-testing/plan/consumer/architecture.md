@@ -23,6 +23,7 @@ Each element names, in brackets, the Requirements it answers.
     | `./redesign` | recurring timing signals and independent Case-preservation evidence | `testing/C53` | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
     | `./timing` | given-duration concentration, outlier and platform-skew evidence | testing/C47 | no |
+    | `./traces` | each Case's `tests →` relationship derived from the Case's own declaration | testing/C48 | no |
     | `./verifiers` | the shared observable result contract for consumer verifiers: its scenarios, `observe` and `judge` | `testing/C30` | no |
 - **testing/A9** [testing/F12, testing/F13]: **npm, the first realization.** Testing records it here without making it the definition.
   - **The entry point.** `npm explore <package> -- npm test` runs the installed package's own `test` script. The product's script runs one small entry file of its own.

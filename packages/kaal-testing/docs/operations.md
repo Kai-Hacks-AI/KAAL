@@ -38,6 +38,7 @@ The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evalu
 | `./package.json` | Discover the installed package metadata and location |
 | `./redesign` | Read timing history and independent behavioral-preservation evidence |
 | `./report` | Reconcile the package and ownership evidence |
+| `./traces` | Derive which Cases test a target from the Cases' own declarations |
 | `./timing` | Profile supplied Case durations and cross-platform skew |
 | `./verifiers` | Read and judge consumer-verifier summaries and platform parity |
 
