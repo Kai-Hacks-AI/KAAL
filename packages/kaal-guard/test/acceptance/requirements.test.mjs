@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
-import { CONFIG, consumer, declaration, exec, NAME, RECORD, sha256, SKILL, tree, verdicts } from "./harness.mjs";
+import { CONFIG, consumer, declaration, exec, NAME, PACKAGE, RECORD, sha256, SKILL, tree, verdicts } from "./harness.mjs";
 
 const exit = (status, message = `exit ${status}`) => `node checks/exit.mjs ${status} ${message}`;
 
@@ -1386,5 +1386,58 @@ describe("guard/F41 [guard/I5] the version and the usage", () => {
     } finally {
       rmSync(outside, { recursive: true, force: true });
     }
+  });
+});
+
+describe("guard/F42 [guard/I5] upgrade refuses a source version the release does not declare", () => {
+  /** The source versions guard/F42 declares in the package's docs/requirements.md. */
+  const declared = () => {
+    const text = readFileSync(join(PACKAGE, "docs", "requirements.md"), "utf8");
+    const at = text.indexOf("**guard/F42 ");
+    const rows = text.slice(at).split("\n").filter((l) => /^\| `\d+\.\d+\.\d+` \|/.test(l));
+    return rows.map((l) => l.match(/^\| `([^`]+)`/)[1]);
+  };
+  /** An initialized, committed consumer whose record names `versions` (one per asset, in the record's order, the last repeated). */
+  const recorded = (versions) => {
+    const c = consumer();
+    c.checks({ unit: { command: exit(0), runs: ["ci"] } });
+    assert.equal(c.guard(["init", "--hook", "--ci"]).status, 0, "init");
+    const record = JSON.parse(c.read(RECORD));
+    const paths = Object.keys(record.assets);
+    paths.forEach((path, i) => { record.assets[path].version = versions[Math.min(i, versions.length - 1)]; });
+    c.write(RECORD, `${JSON.stringify(record, null, 2)}\n`);
+    c.commit("record");
+    return c;
+  };
+
+  it("guard/T139 [guard/F42, guard/F18]: upgrade is cannot judge before it writes anything when the record names an earlier version the release does not declare, naming the version, the declared sources and a next step; a declared source, a later version and a mix of declared sources are moved, and a mix with an undeclared one is refused whole", () => {
+    const sources = declared();
+    assert.ok(sources.length >= 3, `guard/F42 declares ${sources.join(", ") || "no"} sources`);
+    for (const version of ["0.0.1", "0.0.3.1", "0.0.0"]) {
+      const c = recorded([version]);
+      const before = { record: c.read(RECORD), status: c.git("status", "--porcelain").stdout };
+      const up = c.guard(["upgrade"]);
+      assert.equal(up.status, 2, `upgrade from a record naming ${version} was not cannot judge:\n${up.output}`);
+      assert.match(up.output, /cannot judge/, up.output);
+      assert.ok(up.output.includes(version), `the refusal does not name ${version}:\n${up.output}`);
+      for (const source of sources) assert.ok(up.output.includes(source), `the refusal does not name the declared source ${source}:\n${up.output}`);
+      assert.match(up.output, /^\s+do: /m, "the refusal does not say what to do next");
+      assert.equal(c.read(RECORD), before.record, `the refused upgrade from ${version} rewrote the record`);
+      assert.equal(c.git("status", "--porcelain").stdout, before.status, `the refused upgrade from ${version} wrote something`);
+    }
+    for (const version of sources) {
+      const up = recorded([version]).guard(["upgrade"]);
+      assert.equal(up.status, 0, `upgrade from the declared source ${version}:\n${up.output}`);
+    }
+    const rollback = recorded(["9.9.9"]).guard(["upgrade"]);
+    assert.equal(rollback.status, 0, `a record naming a later version is a rollback and proceeds:\n${rollback.output}`);
+    const mixed = recorded([sources[0], sources[1]]).guard(["upgrade"]);
+    assert.equal(mixed.status, 0, `a mix of declared sources:\n${mixed.output}`);
+    const bad = recorded([sources[0], "0.0.1"]);
+    const record = bad.read(RECORD);
+    const refused = bad.guard(["upgrade"]);
+    assert.equal(refused.status, 2, `a mix with an undeclared version was not refused:\n${refused.output}`);
+    assert.equal(bad.read(RECORD), record, "the refused mixed upgrade rewrote the record");
+    assert.equal(bad.git("status", "--porcelain").stdout, "", "the refused mixed upgrade wrote something");
   });
 });

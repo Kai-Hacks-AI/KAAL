@@ -271,6 +271,24 @@ describe("Architecture conformance", () => {
     assert.ok(defects(wrong, testing, titles).some((f) => f.startsWith("guard/D5: Tested by")), "a Tested by that names a case not citing its Defect is not refused");
   });
 
+  it("guard/T140 [guard/F42, guard/A8]: the source versions lib/lifecycle.mjs accepts for upgrade are exactly the versions guard/F42 declares, and a copy of either with one more or one fewer is refused", () => {
+    const code = source("lib/lifecycle.mjs");
+    const list = /export const SOURCES = \[([^\]]*)\];/.exec(code);
+    assert.ok(list, "lib/lifecycle.mjs exports no SOURCES");
+    const accepted = [...list[1].matchAll(/"(\d+\.\d+\.\d+)"/g)].map((m) => m[1]);
+    const requirements = source("docs/requirements.md");
+    const at = requirements.indexOf("**guard/F42 ");
+    assert.ok(at >= 0, "docs/requirements.md defines no guard/F42");
+    const declaredIn = (text) => text.slice(text.indexOf("**guard/F42 ")).split("\n").filter((l) => /^\| `\d+\.\d+\.\d+` \|/.test(l)).map((l) => l.match(/^\| `([^`]+)`/)[1]);
+    const differs = (a, b) => JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort());
+    assert.deepEqual([...accepted].sort(), declaredIn(requirements).sort(), "the accepted sources are not the declared ones");
+    // The negative fixtures: the declaration with one source fewer, and the code's list with one more.
+    const fewer = requirements.replace(/^\| `0\.0\.3` \|.*\n/m, "");
+    assert.notEqual(fewer, requirements, "the fixture did not change the copy");
+    assert.ok(differs(accepted, declaredIn(fewer)), "a declaration with one source fewer is not refused");
+    assert.ok(differs([...accepted, "0.0.9"], declaredIn(requirements)), "a code list with one source more is not refused");
+  });
+
   it("guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it", () => {
     const requirements = source("docs/requirements.md");
     const at = requirements.indexOf("**guard/F42 ");
