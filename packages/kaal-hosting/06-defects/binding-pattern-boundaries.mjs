@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T192: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T194: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -74,6 +74,10 @@ test("hosting/T192: a query destructured in a block beneath a same-named paramet
   assert.equal(await found('function f(host) { { const { platform: host } = require("node:os"); return host(); } }'), 1);
 });
 
+test("hosting/T193: a function declaration and a var that destructures the query share one binding", async () => {
+  assert.equal(await found('function f() { function host() {} var { platform: host } = require("node:os"); return host(); }'), 1);
+});
+
 const local = [
   ["T151", "a destructured parameter followed by another destructured parameter", 'function f({ host = "default" }, {}) {}'],
   ["T152", "a destructured parameter followed by a callback default", 'function f({ host = "default" }, cb = () => {}) {}'],
@@ -100,6 +104,7 @@ const local = [
   ["T183", "a reference to a loop binding and to a named function expression", "for (const host of list) { host(); }\nconst k = function host() { return host; };"],
   ["T188", "a var and its call inside a class static block", "class C { static { var host = () => 1; host(); } }"],
   ["T190", "a statement label and a break to it", "host: while (true) { break host; }"],
+  ["T194", "a nested namespace and an enum named like the query", "namespace N { export namespace host { export const value = 1; } }\nenum Mode { A }\nenum host { B }"],
   ["T177", "a nested function and a simple parameter of the same name", "function outer() { function host() {} }\nfunction g(host) {}"],
 ];
 for (const [id, what, body] of local) {

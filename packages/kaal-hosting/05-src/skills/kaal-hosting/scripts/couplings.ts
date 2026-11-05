@@ -456,7 +456,7 @@ function declaresOrNames(node: ts.Identifier): boolean {
   }
   if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return true;
   // An ordinary declaration of the same name (a variable, parameter, function or class) declares; it does not query.
-  if ((ts.isVariableDeclaration(parent) || ts.isParameter(parent) || ts.isFunctionDeclaration(parent) || ts.isFunctionExpression(parent) || ts.isClassDeclaration(parent) || ts.isClassExpression(parent)) && parent.name === node) return true;
+  if ((ts.isVariableDeclaration(parent) || ts.isParameter(parent) || ts.isFunctionDeclaration(parent) || ts.isFunctionExpression(parent) || ts.isClassDeclaration(parent) || ts.isClassExpression(parent) || ts.isModuleDeclaration(parent) || ts.isEnumDeclaration(parent)) && parent.name === node) return true;
   // A property name is not a reference to the binding: `a.host`, `{ host: 1 }`, a method or member name.
   if (ts.isPropertyAccessExpression(parent) && parent.name === node) return true;
   if (ts.isQualifiedName(parent) && parent.right === node) return true;
@@ -522,6 +522,8 @@ function scopeDeclares(n: ts.Node, node: ts.Identifier, name: string, mode: Decl
     const body = (n as ts.FunctionLikeDeclaration).body;
     return !!body && inside(body) && hoistsVar(body, name, mode);
   }
+  // A function declaration and a `var` of one name in a function body are one binding: the query destructured into it wins.
+  if (ts.isBlock(n) && mode === "query" && ts.isFunctionLike(n.parent) && hoistsVar(n, name, mode)) return true;
   if (ts.isBlock(n) || ts.isModuleBlock(n)) return declaresInBlock(n.statements, name, mode);
   if (ts.isCaseBlock(n)) return n.clauses.some((c) => declaresInBlock(c.statements, name, mode));
   if (ts.isForStatement(n) || ts.isForInStatement(n) || ts.isForOfStatement(n)) {
