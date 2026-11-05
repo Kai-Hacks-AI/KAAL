@@ -34,7 +34,7 @@
     "test": "npm run test:all",
     "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
-    "test:pending": "node --test --test-name-pattern=\"T134 \" test/publisher/installation.test.mjs",
+    "pending:t134": "node --test --test-name-pattern=\"T134 \" test/publisher/installation.test.mjs",
     "test:publisher": "node --test --test-skip-pattern=\"T134 \" test/publisher/capability.test.mjs test/publisher/verifier.test.mjs test/publisher/release-guidance.test.mjs test/publisher/structure.test.mjs test/publisher/installation.test.mjs"
   },
   "engines": {

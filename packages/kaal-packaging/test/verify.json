@@ -19,7 +19,7 @@
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",
     "lib/structure.mjs": "bbd30fa497c7db67d65cbbdc4e1e653d4daa44885d76a265c3b454fd45f224e4",
-    "package.json": "7366b1d6ec2ed632075818e1620398ed8d826823b46f84b56f539729da0b24bd",
+    "package.json": "f3e34b2927305cc42281a97a90b75613bcd41c68a45d46698a87ceecf25aa221",
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
     "test/embed/measurement.test.mjs": "af12b3ec9b93da4e76c00ce9bb6b75bfa471fecada1fc91801221d2091a963ed",
