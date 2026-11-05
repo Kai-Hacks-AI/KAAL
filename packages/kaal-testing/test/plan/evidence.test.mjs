@@ -188,10 +188,11 @@ describe("Contract evidence with an observed run (testing/C7)", () => {
 });
 
 describe("Testing judges what it does not own (testing/C7)", () => {
-  it("testing/T13 [testing/N3, testing/A6]: kaal-testing's runtime depends on c8 and Hosting only, and nothing it delivers imports a package it judges", () => {
+  it("testing/T13 [testing/N3, testing/A6]: kaal-testing's runtime depends on Hosting only (c8 is an optional, exactly pinned peer: the c8 Defect), and nothing it delivers imports a package it judges", () => {
     const pkg = JSON.parse(readFileSync(new URL("package.json", PACKAGE), "utf8"));
-    assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), ["c8", "kaal-hosting"]);
-    assert.deepEqual(Object.keys(pkg.peerDependencies ?? {}), []);
+    assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), ["kaal-hosting"]);
+    assert.deepEqual(pkg.peerDependencies, { c8: "12.0.0" });
+    assert.deepEqual(pkg.peerDependenciesMeta, { c8: { optional: true } });
     assert.deepEqual(Object.keys(pkg.optionalDependencies ?? {}), []);
     const lib = new URL("lib/", PACKAGE);
     const imports = [];

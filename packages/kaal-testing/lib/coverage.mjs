@@ -6,7 +6,16 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execute, kind, readFile } from "kaal-hosting";
 
-const C8 = fileURLToPath(import.meta.resolve("c8/bin/c8.js"));
+// c8 is an optional peer of kaal-testing, not a dependency: a consumer that
+// does not measure coverage installs nothing. It is looked up when a run
+// starts, so importing this module never needs it.
+const c8 = (resolve) => {
+  try {
+    return fileURLToPath(resolve("c8/bin/c8.js"));
+  } catch {
+    return undefined;
+  }
+};
 
 // Reading one c8 json-summary into coverage evidence. A summary that is
 // missing, unreadable or not a c8 summary is a failure of measurement for that
@@ -48,9 +57,14 @@ export function evidence(workspace, root, text) {
  * hold no coverage summary yet: the caller provides a fresh one. Resolves to
  * { tests: "pass"|"fail", lines, branches, functions, unexecuted, files, output } or,
  * when coverage cannot be measured, { tests, failed, output } naming the
- * workspace and what is missing. It removes nothing.
+ * workspace and what is missing. When c8 is not installed it resolves to
+ * { unknown, output }: nothing was measured, so nothing is covered or passed,
+ * and `unknown` names the step (install c8). `resolve` is a seam for tests.
+ * It removes nothing.
  */
-export async function cover(name, delivered, { root, dir }) {
+export async function cover(name, delivered, { root, dir, resolve = import.meta.resolve }) {
+  const C8 = c8(resolve);
+  if (C8 === undefined) return { unknown: `${name}: c8 is not installed, so coverage was not measured; install c8 12.0.0 (npm install --save-dev c8@12.0.0) and run it again`, output: "" };
   // A report left by an earlier run is never evidence for this one.
   if ((await kind(join(dir, "coverage-summary.json"))) !== "missing") return { failed: `${name}: ${dir} already holds a coverage summary; measurement needs a fresh report directory`, output: "" };
   const args = ["--all", "--exclude-node-modules=false", "--reporter=json-summary", `--report-dir=${dir}`, `--temp-directory=${join(dir, "tmp")}`, "--clean"];
