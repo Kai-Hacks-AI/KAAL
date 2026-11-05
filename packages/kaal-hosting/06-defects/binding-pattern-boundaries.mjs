@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T162: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -35,6 +35,8 @@ const finding = [
   ["T150", "a call in a block after a call with two arguments", "while (g({ a: host() }, x)) { y(); }"],
   ["T159", "an object literal used as a control-flow condition", "if ({ metadata: {}, platform: host() }) {}"],
   ["T160", "an object in an array literal", "const a = [{ p: host() }];"],
+  ["T163", "an object literal after a default-expression operator", "function f(options = fallback || { metadata: {}, platform: host() }) {}"],
+  ["T164", "an object literal in a conditional default", "function f(options = flag ? { metadata: {}, platform: host() } : {}) {}"],
 ];
 for (const [id, what, body] of finding) {
   test(`hosting/${id}: ${what} is a finding`, async () => {
@@ -53,6 +55,7 @@ const local = [
   ["T158", "a destructuring declaration inside a one-line block", 'function f() { const { host = "default" } = settings; }'],
   ["T161", "an object binding nested in an array pattern", 'const [{ host = "default" }] = settings;'],
   ["T162", "an object binding nested in an array parameter", 'function f([{ host = "default" }]) {}'],
+  ["T165", "a destructured parameter followed by a callback default whose body has statements", 'function f({ host = "default" }, cb = () => { return 1; }) {}'],
 ];
 for (const [id, what, body] of local) {
   test(`hosting/${id}: ${what} declares a local binding and is not a finding`, async () => {

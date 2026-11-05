@@ -373,8 +373,9 @@ function find(code: string, scanning: boolean): Raw[] {
           const close = closeOf(base + i);
           const after = close < 0 ? "" : code.slice(close + 1);
           const binding = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || endsParameterList(after, head);
-          // A brace right after `=` (not `==`, `=>`) is an object literal in value position, whatever follows it.
-          const value = !(stack.length > 0 && stack[stack.length - 1]) && /(?:^|[^=!<>])=\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
+          // A brace right after `=` (not `==`, `=>`) or a default-expression operator (`||`, `&&`, `??`, `?`, `:`) is an
+          // object literal in value position, whatever follows it.
+          const value = !(stack.length > 0 && stack[stack.length - 1]) && /(?:(?:^|[^=!<>])=|\|\||&&|\?\?|\?|:)\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
           const pattern = !block && !value && (binding || (stack.length > 0 && stack[stack.length - 1] && /[:,[]\s*$/.test(head)));
           stack.push(pattern);
         } else if (before[i] === "}" || before[i] === "]") stack.pop();
@@ -529,7 +530,7 @@ function endsParameterList(after: string, head: string): boolean {
       if (--depth < 0) return false;
     } else if (c === ")") {
       if (--depth < 0) return /^\s*(?::[^={};]*)?(?:=>|\{)/.test(after.slice(i + 1));
-    } else if (c === ";") return false;
+    } else if (c === ";" && depth === 0) return false;
   }
   return false;
 }

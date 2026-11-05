@@ -67,3 +67,7 @@ Alternatives: (A) accept both limits for 0.0.1 and list them in the README Limit
 ## Tenth and eleventh Codex findings: control-flow conditions and array patterns
 
 An object literal used as a control-flow condition (`if ({ …, platform: host() }) {}`) satisfied the parameter-list test and was dropped; an object binding inside an array pattern (`const [{ host = "d" }] = x`, `function f([{ host = "d" }]) {}`) was not recognised. The parameter-list test now refuses a parenthesis that opens `if`, `while`, `for`, `switch` or `with`, and square brackets are tracked like braces. Regression Cases T159 to T162 are added to `binding-pattern-boundaries.mjs`. T137 to T139, D5, D6 and the publisher suite pass.
+
+## Twelfth and thirteenth Codex findings: statements in callback defaults and default-expression operators
+
+A semicolon inside a callback default (`cb = () => { return 1; }`) stopped the parameter-list walk even though it was nested; it now stops only at depth zero. An object literal after `||`, `&&`, `??`, `?` or `:` in a default is now in value position like one after `=`. Regression Cases T163 to T165 added to `binding-pattern-boundaries.mjs` (now T143 to T165). T137 to T139, D5, D6 and the publisher suite (192 pass, 1 skipped, 0 fail; release 15 pass) pass.
