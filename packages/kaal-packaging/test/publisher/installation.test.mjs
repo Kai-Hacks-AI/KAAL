@@ -11,6 +11,8 @@
 //   resolve  (dir, name) => version | undefined  reads the install record for a prerequisite; never fetches.
 // checkShippedPayload(packed) judges the file list `npm pack` would deliver (T134).
 // checkShippedPayload returns { result, findings } like the others.
+//   verifier  optional { dir, version }: a separately installed verifier that must be at the exact pinned
+//             version and pass its own installation check before it judges; else unknown, `verifier-untrusted`.
 // verifyInstalled resolves to { result, installation, self, profile, findings, line, exitCode }:
 //   result / installation / self  "verified" | "failed" | "unknown" (self may also be "not run")
 //   profile   "layout" | "legacy" | undefined
@@ -281,14 +283,31 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.equal(json.result, "verified", "the old `result` field is kept");
   });
 
-  it("T129 the consumer journey: a verifier from an exact pinned registry version judges a separately installed package", async () => {
-    // The verifier is a package installed on its own; the package under test is a different folder.
+  it("T129 the consumer journey: the verifier is a separately installed, exactly pinned package that must itself pass before it judges anything", async () => {
+    // The verifier is installed on its own (tools); the package under test is a different folder.
     const tools = layout({ name: "kaal-packaging" });
     const subject = layout({ name: "kaal-subject" });
     assert.notEqual(tools, subject);
-    const r = await verifyInstalled(subject, { run: ok("kaal-subject"), resolve: noRecord });
-    assert.equal(r.result, "verified");
-    assert.match(r.line, /^kaal-subject-verification /, "the line names the package under test, not the verifier");
+    const run = ok("kaal-subject");
+    const pinned = { dir: tools, version: "0.0.1" };
+    // The pinned verifier is itself consistent and at the pinned exact version: it judges the subject.
+    const good = await verifyInstalled(subject, { run, resolve: noRecord, verifier: pinned });
+    assert.equal(good.result, "verified");
+    assert.match(good.line, /^kaal-subject-verification /, "the line names the package under test, not the verifier");
+    // A verifier at another version than the pin, or a range as the pin, is refused before it judges.
+    for (const bad of [{ dir: tools, version: "0.0.2" }, { dir: tools, version: "^0.0.1" }]) {
+      const calls = [];
+      const r = await verifyInstalled(subject, { run: runner(0, verifiedLine("kaal-subject"), calls), resolve: noRecord, verifier: bad });
+      assert.equal(r.result, "unknown", `refuses a verifier pinned ${bad.version}`);
+      assert.ok(kinds(r).includes("verifier-untrusted"));
+      assert.equal(calls.length, 0, "the subject's self check is not run");
+    }
+    // A tampered verifier (a changed shipped file) is refused the same way: its own installation check is failed.
+    const tampered = layout({ name: "kaal-packaging" });
+    write(tampered, "dist/AGENTS.md", "tampered\n");
+    const rt = await verifyInstalled(subject, { run, resolve: noRecord, verifier: { dir: tampered, version: "0.0.1" } });
+    assert.equal(rt.result, "unknown");
+    assert.ok(kinds(rt).includes("verifier-untrusted"));
   });
 
   it("T130 a package's standalone self check states that the installation was not checked and never prints a combined verified", async () => {
