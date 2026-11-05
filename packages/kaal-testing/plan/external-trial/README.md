@@ -71,7 +71,7 @@ This PLAN adds none of these files, and nothing runs until the Owner authorizes 
 2. **One snapshot, one task.** The target is a throwaway copy of the pending branch, captured by tree and refs. All three arms get a fresh copy of the same snapshot and the same task text. The only difference is the arm's input. No arm sees another arm's output.
 3. **Authorize.** The target's owner states in writing what writes any Agent may make (by default none outside the copy).
 4. **Run the three arms.** Each in its own fresh session. The target is captured again after each. An order that could favour an arm is randomized and recorded.
-5. **Hide the arm.** The records are given to the checker and the Owner as three anonymous records in random order. Neither knows which arm made which (open question 3 asks whether the Owner sees them so).
+5. **Label the arm for the Owner; hide it from the checker.** The Owner sees the three records labelled by arm (Owner, 5 Nov: blinding is artificial, since the Owner helps the runs succeed, and a blind judgment would need a second human). The checker, a fresh session, gets them anonymous and in random order, which costs no second human. The Owner's judgment is therefore not blind, and is recorded as such; it is the Owner's, not a measurement free of the arm.
 6. **Experience and judge.** The checker records, per record, the checklist below, each reading as its own judgment with its reason. The Owner experiences the three outputs and records which is more useful and whether arm 3 is better than both, as the Owner's judgment with its reason. The CPO and the CTO observe and steer; they record their steers and any view as theirs. Facts are recorded by script (see Evidence rules). One outcome per Case is recorded in the model's own outcomes, `passed` or `failed`, attributed to who decided it. A Case nobody can decide is `skipped` or left out of `outcomes`, never a literal `unknown`: `unknown` is derived by the model (`testing/F26`).
 7. **Record.** One Run of `review/T20`, with provenance naming the Plan, its Suites and the Cases at their versions, and the Test Data as recorded. The consumer keeps the Run; Testing keeps none (`testing/F33`).
 
@@ -126,7 +126,7 @@ Testing does not choose these silently, and the Plan does not start the trial. T
 
 1. *Who judges "improves": decided (5 Nov).* The Owner experiences and judges. The CPO and CTO observe and steer the experiment and the Owner toward results; they are not judges.
 2. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and the rating above). B: only which record the Owner would rather have, with a reason.
-3. **What the Owner sees.** A: the three records anonymous and in random order, then the arms revealed. B: the records labelled by arm from the start.
+3. *What the Owner sees: decided (5 Nov).* B: the records labelled by arm from the start. Reason: the Owner helps the runs succeed, so a blind judgment is artificial and would need a second human.
 4. **How the two runs combine.** A: Review passes validation only if arm 3 improves over both other arms in both runs. B: in at least one run, with the other recorded beside it.
 5. The repository, the change and its Intent, and the size of the calibration set. (Decided: through the CPO.)
 6. When the trial may start. Not before the Owner says so.

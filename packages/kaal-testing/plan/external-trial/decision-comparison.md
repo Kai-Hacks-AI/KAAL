@@ -9,15 +9,15 @@ The Owner redefined the trial (5 Nov): compare a bare agent, an agent with Agent
 - kaal-review judges, kaal-testing proves. Review's record sits on the Skill side of BASS and claims no proof.
 - Target: a real pending change in an Owner non-KAAL repository, in a throwaway copy, through the CPO.
 - Who judges "improves" (5 Nov): the Owner experiences the three arms' output and judges. The CPO and CTO observe and steer the experiment and the Owner toward results. They are observers and steerers, not judges, and each steer is recorded.
+- What the Owner sees (5 Nov): the records labelled by arm. Blinding is artificial because the Owner helps the runs succeed, and a blind judgment would need a second human. The checker still reads them anonymous.
 - Runs (5 Nov): two complete runs over all three arms, one steered and observed by the CTO and one by the CPO, each recorded in this PR as markdown files (`records/cto/`, `records/cpo/`).
 - The checklist and the neutral script are applied by a fresh Claude session with no KAAL context (3 Nov), as its own recorded judgment.
 
 ## Open, one at a time
 
-1. **What the Owner sees.** A: the three records anonymous and in random order, then the arms revealed. B: the records labelled by arm from the start. Recommended: A, so the Owner's first judgment is not steered by the label, which also keeps steering by the CPO and CTO from tilting it.
-2. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and a useful, partly useful or not useful rating, each with a reason). B: only which record the Owner would rather have, with a reason. Recommended: A.
-3. **How the two runs combine.** A: arm 3 must improve over both other arms in both runs. B: in at least one run, with the other recorded beside it. Recommended: A, since a pass that depends on which observer steered it says little.
-4. The repository, the change and its Intent, and when the trial may start. The Owner says.
+1. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and a useful, partly useful or not useful rating, each with a reason). B: only which record the Owner would rather have, with a reason. Recommended: A.
+2. **How the two runs combine.** A: arm 3 must improve over both other arms in both runs. B: in at least one run, with the other recorded beside it. Recommended: A, since a pass that depends on which observer steered it says little.
+3. The repository, the change and its Intent, and when the trial may start. The Owner says.
 
 ## What every arm is measured by
 

@@ -65,7 +65,7 @@
       "id": "review/T20/arms",
       "cases": [
         "review/T20/arm-inputs-pinned",
-        "review/T20/arms-blind",
+        "review/T20/arms-labelled",
         "review/T20/steering-recorded"
       ]
     },
@@ -137,10 +137,10 @@
       ]
     },
     {
-      "id": "review/T20/arms-blind",
+      "id": "review/T20/arms-labelled",
       "version": "1",
       "tests": [
-        "review/T20: the checker saw the three records anonymously and in random order, and the Owner saw them as the Owner decided"
+        "review/T20: the checker saw the three records anonymously and in random order, and the Owner saw them labelled by arm (Owner, 5 Nov); the Owner's judgment is recorded as not blind"
       ]
     },
     {
