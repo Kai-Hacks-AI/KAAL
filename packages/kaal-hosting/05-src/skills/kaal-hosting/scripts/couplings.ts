@@ -505,7 +505,9 @@ function declaresInBlock(statements: ts.NodeArray<ts.Statement>, name: string): 
 function shadowed(node: ts.Identifier): boolean {
   const name = node.text;
   for (let n: ts.Node | undefined = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
-    if (ts.isFunctionLike(n)) {
+    // A computed method name runs in the enclosing scope, before the method's own parameters apply.
+    const named = (n as ts.NamedDeclaration).name;
+    if (ts.isFunctionLike(n) && !(named && ts.isComputedPropertyName(named) && node.pos >= named.pos && node.end <= named.end)) {
       if (n.parameters.some((p) => bindsName(p.name, name))) return true;
       if (ts.isFunctionExpression(n) && n.name?.text === name) return true;
       // A body-level `var` does not reach a parameter default: only a use inside the body resolves to it.

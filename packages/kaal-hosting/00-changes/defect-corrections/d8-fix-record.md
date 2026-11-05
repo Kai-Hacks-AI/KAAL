@@ -110,3 +110,5 @@ An `implements` clause is erased, but it shares a syntax node with `extends`, wh
 A local binding of the same name as a query import (a `const`, a parameter, a hoisted `var`, a catch or loop binding, a named function expression) is a different binding, so its references are not the import. The scanner now checks the lexical scopes between a use and the top of the source before attributing it. Regression Cases hosting/T180 to hosting/T184 (T184 keeps a use beside a shadowing scope a finding). Scope resolution is syntactic: it does not follow `with`, `eval` or computed access.
 
 A query binding declared inside a function (destructured from a module, `process` or a name bound to one) is the query itself, not a shadow of it, and a body-level `var` does not reach a parameter default. Regression Case hosting/T185.
+
+A computed method name runs in the enclosing scope, so a same-named parameter of that method does not shadow a query called in the name. Regression Case hosting/T186.
