@@ -4,7 +4,7 @@ Answers hosting/D8 (see `06-defects/D8-one-line-function-body.md`). Separate Cha
 
 ## Change
 
-`05-src/skills/kaal-hosting/scripts/couplings.ts`: the `inPattern` exclusion treated any unclosed `{` before a use as a destructuring pattern. It now excludes a use only when that brace is a binding brace, and not when it opens a block (after `)`, `=>`, `else`, `try`, `finally` or `do`). Nothing else in the scan changes.
+`05-src/skills/kaal-hosting/scripts/couplings.ts`: the `inPattern` exclusion treated any unclosed `{` before a use as a destructuring pattern. It now looks at the innermost unclosed brace: that brace excludes the use only when it is a binding brace, and not when it opens a block (after `)`, `=>`, `else`, `try`, `finally` or `do`). A binding pattern nested inside a one-line block stays excluded (Codex P2 on #1079). Nothing else in the scan changes.
 
 ## Run
 

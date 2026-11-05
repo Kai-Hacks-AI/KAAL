@@ -346,8 +346,16 @@ function find(code: string, scanning: boolean): Raw[] {
     for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
       const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
       const before = code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, "");
-      // An unclosed brace is a binding pattern, unless it opens a block: a function or arrow body, else, try, do.
-      const inPattern = /\{[^}]*$/.test(before) && !/(?:\)|=>|\b(?:else|try|finally|do))\s*\{[^}]*$/.test(before);
+      // The innermost unclosed brace decides: a binding pattern excludes the use, a block (a function or arrow
+      // body, else, try, finally, do) does not.
+      let open = -1;
+      const stack: number[] = [];
+      for (let i = 0; i < before.length; i++) {
+        if (before[i] === "{") stack.push(i);
+        else if (before[i] === "}") stack.pop();
+      }
+      if (stack.length > 0) open = stack[stack.length - 1];
+      const inPattern = open >= 0 && !/(?:\)|=>|\b(?:else|try|finally|do))\s*$/.test(before.slice(0, open));
       if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
     }
   }
