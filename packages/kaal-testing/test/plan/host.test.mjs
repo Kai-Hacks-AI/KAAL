@@ -92,12 +92,14 @@ describe("Applicability by host fact (testing/C39)", () => {
     assert.equal(verdict("not-applicable", counted).conforms, false, "an established inapplicable case counted as passed");
   });
 
-  it("testing/T83 [testing/F71, testing/N14]: the C29 contract stands: no scenario is added, the platform way is unchanged, and the module still imports nothing", async () => {
+  it("testing/T83 [testing/F71, testing/N14]: the C29 contract stands: no scenario is added, the platform way is unchanged, and the module reads no host and imports only Testing's own model (superseded by testing/C34, plan/accounting/supersession.md)", async () => {
     assert.equal(SCENARIOS.length, 19, "testing/F43's nineteen scenarios, none added");
     const scope = { platforms: ["win32"], reason: "acme/T2 checks Windows ACLs" };
     const facts = { ...FACTS, platform: "linux", applicability: { "acme/T2": scope }, hostFacts: undefined };
     assert.deepEqual(verdict("not-applicable", { ...summary("not applicable", structuredClone(scope)), platform: "linux" }, facts).differences, [], "the platform way is judged as testing/C29 planned; its legitimacy is Hosting's audit and testing/F67");
     const source = await readFile(new URL("../../lib/verifiers.mjs", import.meta.url), "utf8");
-    assert.doesNotMatch(source, /^\s*import\b|\bimport\s*\(|\brequire\s*\(/m, "host facts arrive as data; the module reads no host");
+    // Superseded by testing/C34: the one sibling import of Testing's model, for coverage accounting (testing/N10), and nothing else.
+    assert.deepEqual([...source.matchAll(/^\s*import\b[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]), ["./model.mjs"], "the module imports only Testing's own model");
+    assert.doesNotMatch(source, /\bimport\s*\(|\brequire\s*\(/, "host facts arrive as data; the module reads no host");
   });
 });
