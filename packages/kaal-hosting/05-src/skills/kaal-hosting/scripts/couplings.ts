@@ -1,3 +1,4 @@
+import ts from "typescript";
 import type { Files } from "./index.js";
 import type { Location, Skipped } from "./conformance.js";
 
@@ -342,12 +343,12 @@ function find(code: string, scanning: boolean): Raw[] {
     for (const m of code.matchAll(new RegExp(`\\b${escape(name)}\\s*\\.\\s*(platform|type|arch|release|version)\\s*\\(|\\b${escape(name)}\\s*\\.\\s*EOL\\b`, "g"))) add(m.index!, "platform-query", m[0].replace(/\s*\($/, "()"));
   }
   for (const name of pathNames) for (const m of code.matchAll(new RegExp(`\\b${escape(name)}\\s*\\.\\s*(sep|delimiter|win32|posix)\\b`, "g"))) add(m.index!, "platform-query", m[0]);
+  // A use of a bound query is an identifier that is not a declaration. The source is parsed, so what counts as a
+  // declaration (an import, a binding pattern in a declaration or a parameter, a property name) does not depend on
+  // how the source is laid out, and a default value inside a pattern is read as the use it is (hosting/D8).
+  const uses = queries.size > 0 ? identifierUses(code, [...queries.keys()]) : new Map<string, number[]>();
   for (const [name, what] of queries) {
-    for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
-      const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
-      const inPattern = /\{[^}]*$/.test(code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, ""));
-      if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
-    }
+    for (const at of uses.get(name) ?? []) add(at, "platform-query", what, scanning ? declared.get(name) : undefined);
   }
   for (const m of code.matchAll(/(["'`])([a-z0-9]+)\1/g)) if (PLATFORMS.has(m[2])) add(m.index!, "platform-literal", m[0]);
   // An identifier bound to a platform query or literal is found wherever it is used.
@@ -438,4 +439,129 @@ async function collect(files: Files, options: CouplingOptions, scanning: boolean
     }
   }
   return report;
+}
+
+/** Whether an identifier is a name the source declares, or a name that is not a reference at all. */
+function declaresOrNames(node: ts.Identifier): boolean {
+  const parent = node.parent;
+  // An import binds the name; a binding pattern in a declaration or a parameter declares a local one, and its
+  // property name is a key.
+  for (let n: ts.Node | undefined = parent; n; n = n.parent) {
+    // A type position never runs: a type annotation, a type alias, an interface, `typeof host` in a type. A class `extends` clause is an
+    // expression and does run; an `implements` clause is erased.
+    if (ts.isImportDeclaration(n) || ts.isImportEqualsDeclaration(n) || ts.isTypeAliasDeclaration(n) || ts.isInterfaceDeclaration(n)) return true;
+    if (ts.isExpressionWithTypeArguments(n)) {
+      if (ts.isHeritageClause(n.parent) && n.parent.token === ts.SyntaxKind.ImplementsKeyword) return true;
+    } else if (ts.isTypeNode(n)) return true;
+  }
+  if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return true;
+  // An ordinary declaration of the same name (a variable, parameter, function or class) declares; it does not query.
+  if ((ts.isVariableDeclaration(parent) || ts.isParameter(parent) || ts.isFunctionDeclaration(parent) || ts.isFunctionExpression(parent) || ts.isClassDeclaration(parent) || ts.isClassExpression(parent) || ts.isModuleDeclaration(parent) || ts.isEnumDeclaration(parent)) && parent.name === node) return true;
+  // A property name is not a reference to the binding: `a.host`, `{ host: 1 }`, a method or member name.
+  if (ts.isPropertyAccessExpression(parent) && parent.name === node) return true;
+  if (ts.isQualifiedName(parent) && parent.right === node) return true;
+  if ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent) || ts.isPropertyDeclaration(parent) || ts.isPropertySignature(parent) || ts.isMethodSignature(parent) || ts.isGetAccessorDeclaration(parent) || ts.isSetAccessorDeclaration(parent) || ts.isEnumMember(parent)) && parent.name === node) return true;
+  if ((ts.isLabeledStatement(parent) || ts.isBreakOrContinueStatement(parent)) && parent.label === node) return true;
+  if (ts.isExportSpecifier(parent) || ts.isNamespaceExport(parent) || ts.isNamespaceImport(parent)) return true;
+  return false;
+}
+
+/** Which declarations of a name a scope check looks for: a local one that shadows a query, or the query binding itself. */
+type Declares = "local" | "query";
+
+/** Whether a binding name or pattern declares `name`, as a local binding or as the query binding itself. */
+function bindsName(target: ts.BindingName, name: string, mode: Declares): boolean {
+  if (ts.isIdentifier(target)) return mode === "local" && target.text === name;
+  return target.elements.some((e) => {
+    if (ts.isOmittedExpression(e)) return false;
+    if (bindsQuery(e)) return mode === "query" && ts.isIdentifier(e.name) && e.name.text === name;
+    return bindsName(e.name, name, mode);
+  });
+}
+
+/** Whether a binding element is itself a query binding: a platform query destructured from a module, `process` or a name bound to one. */
+function bindsQuery(element: ts.BindingElement): boolean {
+  const pattern = element.parent;
+  if (!ts.isObjectBindingPattern(pattern) || !ts.isVariableDeclaration(pattern.parent)) return false;
+  const key = element.propertyName ?? element.name;
+  if (!ts.isIdentifier(key) || ![...OS_QUERIES, ...PATH_QUERIES].includes(key.text)) return false;
+  const init = pattern.parent.initializer;
+  if (!init) return false;
+  return ts.isIdentifier(init) || (ts.isCallExpression(init) && ts.isIdentifier(init.expression) && init.expression.text === "require");
+}
+
+/** Whether a `var` declaration of `name` sits in a function body, outside nested functions (it hoists to the function). */
+function hoistsVar(node: ts.Node, name: string, mode: Declares): boolean {
+  if (ts.isVariableDeclarationList(node) && !(node.flags & ts.NodeFlags.BlockScoped) && node.declarations.some((d) => bindsName(d.name, name, mode))) return true;
+  let found = false;
+  ts.forEachChild(node, (child) => {
+    if (!found && !ts.isFunctionLike(child) && !ts.isClassLike(child)) found = hoistsVar(child, name, mode);
+  });
+  return found;
+}
+
+/** Whether a statement list declares `name` in block scope: let, const, a function, a class or an enum. */
+function declaresInBlock(statements: ts.NodeArray<ts.Statement>, name: string, mode: Declares): boolean {
+  return statements.some((st) => {
+    if (ts.isVariableStatement(st)) return !!(st.declarationList.flags & ts.NodeFlags.BlockScoped) && st.declarationList.declarations.some((d) => bindsName(d.name, name, mode));
+    if (ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st) || ts.isEnumDeclaration(st)) return mode === "local" && st.name?.text === name;
+    return false;
+  });
+}
+
+/** Whether one lexical scope `n` declares `name` for a use at `node`. `skip` is the declaration whose decorator the use sits in. */
+function scopeDeclares(n: ts.Node, node: ts.Identifier, name: string, mode: Declares, skip: ts.Node | undefined): boolean {
+  // Only the parameters and the body see a function's own bindings; a computed name or a decorator runs in the enclosing scope.
+  const inside = (part: ts.Node | undefined) => !!part && node.pos >= part.pos && node.end <= part.end;
+  if (ts.isClassStaticBlockDeclaration(n)) return inside(n.body) && hoistsVar(n.body, name, mode);
+  if (ts.isFunctionLike(n)) {
+    if (n === skip || !(inside((n as ts.FunctionLikeDeclaration).body) || n.parameters.some(inside))) return false;
+    if (n.parameters.some((p) => bindsName(p.name, name, mode))) return true;
+    if (mode === "local" && ts.isFunctionExpression(n) && n.name?.text === name) return true;
+    // A body-level `var` does not reach a parameter default: only a use inside the body resolves to it.
+    const body = (n as ts.FunctionLikeDeclaration).body;
+    return !!body && inside(body) && hoistsVar(body, name, mode);
+  }
+  // A function declaration and a `var` of one name in a function body are one binding: the query destructured into it wins.
+  if (ts.isBlock(n) && mode === "query" && ts.isFunctionLike(n.parent) && hoistsVar(n, name, mode)) return true;
+  if (ts.isBlock(n) || ts.isModuleBlock(n)) return declaresInBlock(n.statements, name, mode);
+  if (ts.isCaseBlock(n)) return n.clauses.some((c) => declaresInBlock(c.statements, name, mode));
+  if (ts.isForStatement(n) || ts.isForInStatement(n) || ts.isForOfStatement(n)) {
+    const init = n.initializer;
+    return !!init && ts.isVariableDeclarationList(init) && !!(init.flags & ts.NodeFlags.BlockScoped) && init.declarations.some((d) => bindsName(d.name, name, mode));
+  }
+  // An enum's members are in scope inside the enum, so an initializer naming one refers to it.
+  if (ts.isEnumDeclaration(n)) return mode === "local" && inside(n) && n.members.some((m) => (ts.isIdentifier(m.name) || ts.isStringLiteral(m.name)) && m.name.text === name && !inside(m.name));
+  if (ts.isCatchClause(n)) return !!n.variableDeclaration && bindsName(n.variableDeclaration.name, name, mode);
+  return mode === "local" && ts.isClassExpression(n) && n.name?.text === name;
+}
+
+/** Whether the nearest lexical scope that declares `name` between a use and the top of the source declares something other than the query. */
+function shadowed(node: ts.Identifier): boolean {
+  const name = node.text;
+  // A decorator expression runs in the scope around the declaration it decorates: that declaration's own bindings do not apply to it.
+  let skip: ts.Node | undefined;
+  for (let n: ts.Node | undefined = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+    if (ts.isDecorator(n) && skip === undefined) skip = ts.isParameter(n.parent) ? n.parent.parent : n.parent;
+    if (scopeDeclares(n, node, name, "query", skip)) return false;
+    if (scopeDeclares(n, node, name, "local", skip)) return true;
+  }
+  return false;
+}
+
+/** The offsets of each name's uses in a source: every identifier of that name that is neither a declaration nor a property name. */
+function identifierUses(code: string, names: string[]): Map<string, number[]> {
+  const wanted = new Set(names);
+  const out = new Map<string, number[]>();
+  const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const visit = (node: ts.Node): void => {
+    if (ts.isIdentifier(node) && wanted.has(node.text) && !declaresOrNames(node) && !shadowed(node)) {
+      // A name followed by `:`, `,` or `}` is a key, a listed name or a shorthand entry, and `as` renames it (hosting/F28).
+      const next = /^\s*(?:[:,}]|as\b)/.test(code.slice(node.end, node.end + 12));
+      if (!next) (out.get(node.text) ?? out.set(node.text, []).get(node.text)!).push(node.getStart(file));
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return out;
 }
