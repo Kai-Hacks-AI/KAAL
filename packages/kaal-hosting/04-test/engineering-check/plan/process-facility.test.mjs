@@ -186,7 +186,7 @@ describe("hosting/F79 and hosting/N11 the facility is Hosting's", () => {
     for (const name of ["execute", "executeSync", "startPlan", "isolatedEnvironment", "prepare"]) assert.equal(typeof hosting[name], "function", `${name} is not exported`);
     const manifest = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
     assert.deepEqual(Object.keys(manifest.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile", "typescript"]);
-    const source = readFileSync(join(PACKAGE, "05-src", "skills", "kaal-hosting", "scripts", "index.ts"), "utf8");
+    const source = readFileSync(new URL("../../../05-src/skills/kaal-hosting/scripts/index.ts", import.meta.url), "utf8");
     assert.doesNotMatch(source, /kaal-packaging/);
   });
 
