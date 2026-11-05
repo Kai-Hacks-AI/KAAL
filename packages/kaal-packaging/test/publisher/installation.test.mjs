@@ -281,15 +281,20 @@ describe("packaging/C26: one installation check for every package", () => {
     const r = await verifyInstalled(self, { run: ok("@kaihacksai/kaal-packaging"), resolve: noRecord });
     assert.ok(!kinds(r).includes("imports-packaging"), "a package may import itself");
     assert.equal(r.result, "verified");
+    // Kai chose the strict root rule (5 Nov): the only root files that ship are package.json, README.md and LICENSE.
     const dir = layout();
-    write(dir, "README.txt", "readme\n");
-    write(dir, "LICENSE.md", "licence\n");
     const { generateManifest } = await import(INSTALLATION);
     const manifest = JSON.parse(await generateManifest(dir));
-    assert.ok("README.txt" in manifest.files && "LICENSE.md" in manifest.files, "the generator lists every root file npm delivers");
+    assert.ok("README.md" in manifest.files && "LICENSE" in manifest.files, "the generator lists the root files npm delivers");
     write(dir, "dist/test/package-check/manifest.json", JSON.stringify(manifest));
     const after = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
     assert.equal(after.installation, "verified", JSON.stringify(after.findings));
+    for (const stray of ["README.txt", "LICENSE.md", "NOTICE"]) {
+      write(dir, stray, "extra\n");
+      const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+      assert.equal(r.installation, "failed", `${stray} is not one of the delivered root files`);
+      rmSync(join(dir, stray));
+    }
   });
 
   it("T122b an exact pin with build metadata is exact, for a prerequisite and for the pinned verifier (Codex, #1063)", async () => {
