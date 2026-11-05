@@ -18,8 +18,9 @@ const scripts = join(dist, "skills/kaal-hosting/scripts");
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(scripts, { recursive: true });
 
+// tsconfig.json is composite so kaal-core can reference it; this build is not incremental, so a stale build-info file can never skip the emit into a dist/ that was just removed.
 const tsc = createRequire(join(PACKAGE, "package.json")).resolve("typescript/bin/tsc");
-const compiled = spawnSync(process.execPath, [tsc, "-p", join(PACKAGE, "tsconfig.json"), "--outDir", scripts], { cwd: PACKAGE, stdio: "inherit" });
+const compiled = spawnSync(process.execPath, [tsc, "-p", join(PACKAGE, "tsconfig.json"), "--outDir", scripts, "--composite", "false"], { cwd: PACKAGE, stdio: "inherit" });
 if (compiled.status !== 0) process.exit(compiled.status ?? 1);
 
 /** [source folder or file in the package, where it lands under dist/] */
