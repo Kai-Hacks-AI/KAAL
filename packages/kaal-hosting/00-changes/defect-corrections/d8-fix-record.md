@@ -52,3 +52,14 @@ A regular-expression default containing a brace (`({ host = /}/ }) => {}`) was c
 ## Eighth and ninth Codex findings: parameter boundaries and nesting
 
 A binding pattern followed by another pattern or a callback default (`({ host = "d" }, {}) {}`, `(…, cb = () => {}) {}`) was not recognised, because the suffix test refused braces and parentheses in the rest of the parameter list. The test now walks the rest of the list with balanced brackets and literals to the `)` that closes it, then requires a body or `=>`, with an optional return-type annotation. The value-position rule no longer depends on the enclosing braces: a brace after `=` is an object literal unless it sits directly inside a binding pattern. Verified ad hoc: both parameter cases and a method parameter are excluded; a default-argument literal nested in another function and a call with two arguments are findings; T137 to T139, D5, D6 and the publisher suite (192 pass, 1 skipped, 0 fail; release 15 pass) pass.
+
+## Regression Cases and known limits
+
+Under the CPO's review of f958dff, the boundary between a use of a platform query and a same-named local binding now has its own regression Cases: hosting/T143 to hosting/T158 in `06-defects/binding-pattern-boundaries.mjs`, GREEN at this Change. T143 to T150 are findings (nested literal, default-argument object at top level and nested in a function, one-line arrow body, literal holding an arrow function, call argument, object after a quoted brace, block after a two-argument call). T151 to T158 are local bindings and not findings (second destructured parameter, callback default, arrow parameter, later parameter, quoted-brace default, regular-expression default, type annotations, destructuring declaration in a one-line block). T137 to T139, D5 and D6 are unchanged.
+
+The scan is a lexical heuristic over one line of context, not a parser. Two limits remain and are surfaced for the Owner and CPO to decide before 0.0.1:
+
+1. A destructured parameter or pattern that spans several lines is not recognised, so a local binding that shares an import's name is reported as a query (false positive). Seen on `function f({\n  host = "d",\n}) {}`. This predates D8.
+2. A platform query written as a default inside a destructuring pattern (`const { a = host() } = x;`) is not reported (false negative). This predates D8.
+
+Alternatives: (A) accept both limits for 0.0.1 and list them in the README Limitations; (B) replace the heuristic with a real parser (the package already depends on `es-module-lexer`, which gives imports and exports only, so a parser dependency such as a TypeScript or acorn-class parser would be new); (C) accept limit 2, fix limit 1 by reading the full statement. Recommendation: A for 0.0.1 and B as a separate Change, because a parser is a dependency decision and every further heuristic round has produced new false positives.
