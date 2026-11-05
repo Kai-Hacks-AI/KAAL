@@ -22,7 +22,7 @@
     "lib/report.mjs": "1e442b1d01560701b4bba1f787b0a6c5096a44d668e6f62e0dc3996720b18f73",
     "lib/reporter.mjs": "c26b158ae336569e438be7ed7a51730928ac2c3285c5fa755052a44becac2705",
     "lib/timing.mjs": "1564228da70beb39f3882b62170a85c284a001b43688018e7de07d3cf9368ac6",
-    "lib/traces.mjs": "38d58d3e2f94c9909ae87a85386d7a7a65b6d1e9d5bbc0a5c642b42a69c04857",
+    "lib/traces.mjs": "e93c84ca457c07daddab2fba3015a4e1b3b25458957d0cd523c4f3d9acce63fc",
     "lib/verifiers.mjs": "dc8cef90663f0d2bbf8cef4f6e6947a2e07bf2b3f15a2a51f241b248c30f76e1",
     "package.json": "7f6e88d913e885b380e8191b2034915397df9f4e75cb65163451677e76fded5a",
     "payload/Testing.md": "89e300cafdc01612b94112c7b6adbc7b4c97d31a8207473ec1327c8c1f7572be",

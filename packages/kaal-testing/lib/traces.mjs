@@ -162,7 +162,9 @@ export function derive(files, { owner } = {}) {
       if (!call.literal) { findings.push(`${f.path}: a case title is not a static string`); continue; }
       const title = call.title;
       const m = /^((?:[\w-]+\/)?T\d+)(?=[\s\[:])/.exec(title);
-      const bracket = /\[([^\]]*)\]/.exec(title);
+      const open = title.indexOf("[");
+      const close = open < 0 ? -1 : title.indexOf("]", open);
+      const bracket = close < 0 ? null : [null, title.slice(open + 1, close)];
       if (!bracket) { untraced.push(`${f.path} > ${title}`); continue; }
       const own = m && m[1].includes("/") ? m[1].split("/")[0] : undefined;
       const scope = own ?? (nonempty(owner) ? owner : undefined);
