@@ -276,6 +276,22 @@ describe("packaging/C26: one installation check for every package", () => {
   // T126 supersession (documented, packaging/C26 DO): the RED text called generateManifest synchronously.
   // Every Hosting operation is async, and lib/ may not use node:fs (T6), so the generator is async. Only `await`
   // was added; the assertions (same bytes twice, a hand-edited manifest is failed) are unchanged.
+  it("T127b Packaging's own self-references are not a boundary finding, and a root file npm delivers is listed by the generator and accepted by the checker (Codex, #1063)", async () => {
+    const self = layout({ name: "@kaihacksai/kaal-packaging", extra: { "dist/bin/own.mjs": 'import { x } from "@kaihacksai/kaal-packaging/lib";\n' } });
+    const r = await verifyInstalled(self, { run: ok("@kaihacksai/kaal-packaging"), resolve: noRecord });
+    assert.ok(!kinds(r).includes("imports-packaging"), "a package may import itself");
+    assert.equal(r.result, "verified");
+    const dir = layout();
+    write(dir, "README.txt", "readme\n");
+    write(dir, "LICENSE.md", "licence\n");
+    const { generateManifest } = await import(INSTALLATION);
+    const manifest = JSON.parse(await generateManifest(dir));
+    assert.ok("README.txt" in manifest.files && "LICENSE.md" in manifest.files, "the generator lists every root file npm delivers");
+    write(dir, "dist/test/package-check/manifest.json", JSON.stringify(manifest));
+    const after = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+    assert.equal(after.installation, "verified", JSON.stringify(after.findings));
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");

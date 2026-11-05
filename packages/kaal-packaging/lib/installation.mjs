@@ -28,7 +28,8 @@ import { execute, readFile, sha256 } from "./host.mjs";
 const join = (...parts) => parts.join("/");
 
 /** The fixed files npm delivers from the package root whatever `files` says. */
-const ROOT_FILES = new Set(["package.json", "LICENSE", "README.md"]);
+/** The files npm delivers from the package root whatever `files` says: one predicate for the generator, the checker and the payload check. */
+const isRootFile = (path) => !path.includes("/") && (path === "package.json" || /^README(\..*)?$/i.test(path) || /^LICEN[CS]E(\..*)?$/i.test(path));
 const LAYOUT_MANIFEST = "dist/test/package-check/manifest.json";
 const LAYOUT_MARKER_DIR = "dist/test/package-check";
 const LEGACY_MANIFEST = "test/verify.json";
@@ -121,9 +122,9 @@ async function installation(dir, { resolve }) {
   // Listed paths: well formed, and inside the delivered payload.
   const listed = Object.entries(manifest.files);
   for (const [path] of listed) {
-    if (hostile(path) || (profile === "layout" && !path.startsWith("dist/") && !ROOT_FILES.has(path))) add("refused-path", String(path));
+    if (hostile(path) || (profile === "layout" && !path.startsWith("dist/") && !isRootFile(path))) add("refused-path", String(path));
   }
-  const accepted = listed.filter(([path]) => !hostile(path) && (profile === "legacy" || path.startsWith("dist/") || ROOT_FILES.has(path)));
+  const accepted = listed.filter(([path]) => !hostile(path) && (profile === "legacy" || path.startsWith("dist/") || isRootFile(path)));
   const wanted = new Set(accepted.map(([path]) => path));
   for (const [path, expected] of accepted) {
     const type = at.get(path);
@@ -158,12 +159,14 @@ async function installation(dir, { resolve }) {
       findings.push({ kind: "prerequisite-unresolved", path: name });
     } else if (have !== spec) add("prerequisite-version", name);
   }
+  // Packaging may refer to itself; only another package importing Packaging is a boundary finding.
+  const selfPackaging = OWN_SPECIFIER.test(String(pkg.name ?? ""));
   // A package that imports Packaging in its own code is a boundary finding (packaging/A26).
   for (const [path] of accepted) {
     if (!CODE.test(path) || at.get(path) !== "file") continue;
     try {
       const code = await text(join(dir, path));
-      if (importsOwn(code)) add("imports-packaging", path);
+      if (!selfPackaging && importsOwn(code)) add("imports-packaging", path);
     } catch {
       // Already reported as unreadable above.
     }
@@ -254,7 +257,7 @@ export async function verifyInstalled(dir, { run, resolve = () => undefined, ver
 
 /** The manifest the generator writes for an installed-layout package: dist/ and npm's fixed root files, sorted, with the declared self check kept. */
 export async function generateManifest(dir) {
-  const listing = (await walk(dir)).filter((e) => e.type === "file" && (e.path.startsWith("dist/") || ROOT_FILES.has(e.path)) && e.path !== LAYOUT_MANIFEST);
+  const listing = (await walk(dir)).filter((e) => e.type === "file" && (e.path.startsWith("dist/") || isRootFile(e.path)) && e.path !== LAYOUT_MANIFEST);
   const files = {};
   for (const e of listing.sort((a, b) => (a.path < b.path ? -1 : 1))) files[e.path] = await digest(join(dir, e.path));
   let self;
@@ -273,7 +276,7 @@ const PUBLISHER_SIDE = /(^|\/)(registry-match|boundary-check|structure)(\.|\/|$)
 export function checkShippedPayload(packed) {
   const findings = [];
   for (const path of packed) {
-    const root = ROOT_FILES.has(path) || /^README(\..*)?$/i.test(path) || /^LICEN[CS]E(\..*)?$/i.test(path);
+    const root = isRootFile(path);
     if (!root && !path.startsWith("dist/")) findings.push({ kind: "outside-dist", path });
     else if (PUBLISHER_SIDE.test(path)) findings.push({ kind: "publisher-side", path });
   }
