@@ -14,7 +14,7 @@ It needs Node 24 or later.
 
 | Entry | What it gives you |
 | --- | --- |
-| `@kaihacksai/kaal-hosting` | `read`, `readFile`, `kind`, `within`, `digest`, `update`, `reconcile`, `initialize`, `execute`, `contribution` and `HostingError` |
+| `@kaihacksai/kaal-hosting` | `read`, `list`, `scratch`, `readFile`, `kind`, `within`, `digest`, `update`, `reconcile`, `initialize`, `execute`, `contribution` and `HostingError` |
 | `@kaihacksai/kaal-hosting/conformance` | `inspect`, `couplings`, `OS_BOUNDARY` and `osBoundary`: inspections of another capability's sources. Importing the main entry does not load it. |
 | `@kaihacksai/kaal-hosting/boundary` | `boundary`, `boundarySuite`, `portability` and `portabilitySuite`: the conformance suite, the only entry that loads `node:test` |
 | `@kaihacksai/kaal-hosting/fixtures` | `facts` and `specialEntries`: host facts established by trying them, and the fixture that needs one |

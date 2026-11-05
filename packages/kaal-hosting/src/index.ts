@@ -3,6 +3,7 @@ import gfs from "graceful-fs";
 import lockfile from "proper-lockfile";
 import { createHash } from "node:crypto";
 import type { Dirent, Stats } from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -38,7 +39,7 @@ export interface Leftover {
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER",
     /** For `STALE`, every failed precondition, in path order. */
     readonly findings: Stale[] = [],
     /** For `UNRESTORED`, the failure that started the rollback, and where the displaced files are kept. */
@@ -98,7 +99,7 @@ async function exists(path: string): Promise<boolean> {
  * file reads as that file; a link to a directory is refused, since Hosting
  * neither reads nor writes through one.
  */
-async function walk(root: string, rel: string, files: Files, dirs: string[] = []): Promise<void> {
+async function walk(root: string, rel: string, files: Files, dirs: string[] = [], listing?: Listed[]): Promise<void> {
   let entries: Dirent[];
   try {
     entries = await readdir(rel ? join(root, rel) : root);
@@ -106,11 +107,14 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
     if (missing(e)) return;
     throw e;
   }
+  // A listing is in UTF-16 order, a directory before what it holds; a read has no order to keep.
+  if (listing) entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   for (const entry of entries) {
     const path = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
       dirs.push(path);
-      await walk(root, path, files, dirs);
+      listing?.push({ path, kind: "directory" });
+      await walk(root, path, files, dirs, listing);
       continue;
     }
     let target: Stats;
@@ -122,6 +126,10 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
     }
     if (target.isDirectory()) throw new HostingError(`${path} is a link to a directory; Hosting does not follow one`, "INVALID_PATH");
     // Defined, not assigned: a file named `__proto__` is a file like any other.
+    if (target.isFile() && listing) {
+      listing.push({ path, kind: "file" });
+      continue;
+    }
     if (target.isFile()) Object.defineProperty(files, path, { value: await readBytes(join(root, path)), enumerable: true, writable: true, configurable: true });
   }
 }
@@ -134,6 +142,67 @@ export async function read(dir: string): Promise<Files> {
   const files: Files = {};
   await walk(resolve(dir), "", files);
   return files;
+}
+
+/** One entry of a listing: a path relative to the listed directory, and what it is. */
+export interface Listed {
+  path: string;
+  kind: "file" | "directory";
+}
+
+/**
+ * List a directory tree: every file and every directory, empty ones included,
+ * by `/`-separated relative path in UTF-16 order, a directory before what it
+ * holds. The directory itself is not listed. It shares `read`'s walk, so a link
+ * to a directory is refused with `INVALID_PATH` here exactly as there; a link
+ * to a file lists as a file. Names and kinds only: no file is opened, so no
+ * bytes are read, and no lock is taken. A missing directory lists as empty; a
+ * path that is a file is refused with `NOT_DIRECTORY`.
+ */
+export async function list(dir: string): Promise<Listed[]> {
+  const root = resolve(dir);
+  try {
+    if ((await stat(root)).isFile()) throw new HostingError(`${dir} is a file, not a directory`, "NOT_DIRECTORY");
+  } catch (e) {
+    if (e instanceof HostingError) throw e;
+    if (!absent(e)) throw e;
+  }
+  const listing: Listed[] = [];
+  await walk(root, "", {}, [], listing);
+  return listing;
+}
+
+/**
+ * Give `use` a fresh, empty directory under the host's temporary directory, as
+ * an absolute path, and remove the whole tree when `use` settles, whether it
+ * resolved or rejected. Resolves with what `use` resolved with, and rejects with
+ * what `use` rejected with. A failure to remove is `SCRATCH_LEFTOVER`, naming the
+ * path; when `use` itself failed its error is the one thrown, with the leftover
+ * reported on it as `leftover`, never in its place. Concurrent calls get
+ * different directories.
+ */
+export async function scratch<T>(use: (dir: string) => T | Promise<T>): Promise<T> {
+  const dir = resolve(await mkdtemp(join(tmpdir(), "hosting-scratch-")));
+  let outcome: { ok: true; value: T } | { ok: false; error: unknown };
+  try {
+    outcome = { ok: true, value: await use(dir) };
+  } catch (error) {
+    outcome = { ok: false, error };
+  }
+  let leftover: HostingError | undefined;
+  try {
+    await rm(dir, { maxRetries: 3 });
+  } catch (cause) {
+    leftover = new HostingError(`${dir} could not be removed: ${(cause as Error).message}`, "SCRATCH_LEFTOVER", [], { cause, kept: dir });
+  }
+  if (!outcome.ok) {
+    if (leftover && typeof outcome.error === "object" && outcome.error !== null) {
+      Object.defineProperty(outcome.error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
+    }
+    throw outcome.error;
+  }
+  if (leftover) throw leftover;
+  return outcome.value;
 }
 
 /**

@@ -4,6 +4,8 @@ Each element names, in brackets, the Requirements it answers.
 
 - **hosting/A15** [hosting/F35]: Hosting's package interface is the table below, between the `kaal-hosting:interface` markers. It is the one authoritative declaration, and hosting/T41 reads it from this file. An entry is added only by an approved Architecture: hosting/A1–hosting/A11 for the delivered and `hosting/C12` entries, hosting/A13 (#650) for the `hosting/C14` entries, and hosting/A17 (#674) for `./fixtures`, delivered by `hosting/C17`. `Target` is the default condition of an export or the path of a command; an export may also name `types`, which must then ship as well.
 
+The main entry `.` also exports the operations `list` and `scratch`, which hosting/A34 declares; the table lists subpaths, so they need no row.
+
 <!-- kaal-hosting:interface -->
 | Kind | Entry | Target | Status |
 | --- | --- | --- | --- |
