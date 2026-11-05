@@ -355,14 +355,20 @@ function find(code: string, scanning: boolean): Raw[] {
       const closeOf = (open: number): number => {
         let depth = 0;
         for (let i = open; i < code.length; i++) {
-          if (code[i] === "{") depth++;
+          if (code[i] === '"' || code[i] === "'" || code[i] === "`") {
+            const q = code[i];
+            for (i++; i < code.length && code[i] !== q && code[i] !== "\n"; i++) if (code[i] === "\\") i++;
+          } else if (code[i] === "{") depth++;
           else if (code[i] === "}" && --depth === 0) return i;
         }
         return -1;
       };
       const stack: boolean[] = [];
       for (let i = 0; i < before.length; i++) {
-        if (before[i] === "{") {
+        if (before[i] === '"' || before[i] === "'" || before[i] === "`") {
+          const q = before[i];
+          for (i++; i < before.length && before[i] !== q; i++) if (before[i] === "\\") i++;
+        } else if (before[i] === "{") {
           const head = before.slice(0, i);
           const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
           const close = closeOf(base + i);

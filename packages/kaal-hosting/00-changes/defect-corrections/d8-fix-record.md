@@ -36,3 +36,7 @@ A completed nested object before a query (`const config = { metadata: {}, platfo
 ## Third Codex finding: destructured parameters
 
 A destructured parameter that shadows an imported alias (`({ host = "d" }) => {}`, or a second parameter) was reported as a query. A brace now also counts as a binding pattern when its closing brace is followed by an assignment or by the end of a parameter list (`) =>` or `) {`). Verified ad hoc: arrow parameter, second parameter and one-line-body parameter are excluded; nested literal, arrow body, call argument, call in `if` and literal-held arrow body are findings. T137 to T139, D5, D6 and the publisher suite (192 pass, 1 skipped, 0 fail; release 15 pass) pass.
+
+## Fourth Codex finding: braces inside string literals
+
+A brace character inside a quoted default (`({ host = "}" }) => {}`) was counted as syntax when locating a pattern's closing brace. Both brace scans now skip quoted literals. Verified ad hoc (`"}"` and `'{'` defaults excluded; a literal holding `"}"` before a real query is still a finding); T137 to T139, D5, D6 and the publisher suite pass.
