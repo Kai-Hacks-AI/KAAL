@@ -67,7 +67,7 @@ function tokens(code) {
   }
   return out;
 }
-/** The specifier of every `from "x"`, `import "x"`, `import("x")` and `require("x")`, read from tokens, never from inside a string. */
+/** The specifier of every static import, dynamic import and require call, read from tokens, never from inside a string. */
 function specifiers(code) {
   const t = tokens(code);
   const found = [];
@@ -75,16 +75,16 @@ function specifiers(code) {
     const at = (k) => t[i + k];
     if (at(0).type !== "word") continue;
     const word = at(0).value;
-    if ((word === "from" || word === "import") && at(1)?.type === "string") found.push(at(1).value);
-    else if ((word === "import" || word === "require") && at(1)?.value === "(" && at(2)?.type === "string") found.push(at(2).value);
+    if (/^(?:from|import)$/.test(word) && at(1)?.type === "string") found.push(at(1).value);
+    else if (/^(?:import|require)$/.test(word) && at(1)?.value === "(" && at(2)?.type === "string") found.push(at(2).value);
   }
   return found;
 }
 /** Only a bare package specifier can name a package: relative and absolute paths never do. */
 const packageOf = (specifier) => (specifier.startsWith("@") ? specifier.split("/").slice(0, 2) : specifier.split("/").slice(0, 1)).join("/");
 const importsOwn = (code) => specifiers(code).some((x) => !/^[./\\]/.test(x) && !/^[A-Za-z]:/.test(x) && OWN_SPECIFIER.test(packageOf(x)));
-/** A registry tarball: an http(s) URL to a `.tgz`, as npm records a package it fetched from a registry. */
-const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\.tgz$/;
+/** A registry archive: an http(s) URL under a registry's `/-/` path, as npm records a package it fetched from a registry. */
+const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\/-\/[^\s/]+$/;
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 
