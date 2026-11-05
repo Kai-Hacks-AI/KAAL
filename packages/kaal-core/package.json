@@ -73,7 +73,8 @@
     "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build",
     "bench": "npm run build && node bench/admission.mjs",
     "test:skill": "node --test --test-name-pattern=\"core/T98 \" test/plan/initialization.test.mjs",
-    "test:navigation": "node --test --test-name-pattern=\"core/T99 \" test/plan/initialization.test.mjs"
+    "test:navigation": "node --test --test-name-pattern=\"core/T99 \" test/plan/initialization.test.mjs",
+    "test:composition": "node --test --test-name-pattern=\"core/T11[234] \" test/plan/composition.test.mjs"
   },
   "engines": {
     "node": ">=24"
