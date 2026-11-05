@@ -28,3 +28,7 @@ Case titles, assertions and identities are unchanged. These two files could no l
 ## Not fixed here
 
 `06-defects/unscoped-specifiers.red.mjs` (hosting/T108, hosting/D7) also fails to run after the layout move, and a path change alone does not repair it: the shipped D7 record under `dist/docs/defects` itself quotes the unscoped names the Case forbids. Repairing it changes the Case's meaning, so it is left for an Owner ruling.
+
+## Second Codex finding: object literal versus binding pattern
+
+A completed nested object before a query (`const config = { metadata: {}, platform: host() };`) kept the outer brace on the stack and was read as a binding pattern, which dropped a real query. The scan now classifies each brace: a binding pattern follows `const`, `let`, `var` or a function's opening parenthesis, or sits inside one; blocks (function and arrow bodies, else, try, finally, do) and object literals are not patterns. Verified ad hoc (nested literal, arrow body, call argument: findings kept; destructuring default: excluded), T137 to T139, D5, D6 and the publisher suite pass.

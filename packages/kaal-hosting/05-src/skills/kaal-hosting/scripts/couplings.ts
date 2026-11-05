@@ -346,16 +346,19 @@ function find(code: string, scanning: boolean): Raw[] {
     for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
       const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
       const before = code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, "");
-      // The innermost unclosed brace decides: a binding pattern excludes the use, a block (a function or arrow
-      // body, else, try, finally, do) does not.
-      let open = -1;
-      const stack: number[] = [];
+      // The innermost unclosed brace decides. A brace is a binding pattern when it follows const, let, var or a
+      // function's opening parenthesis, or sits inside such a pattern; a block (a function or arrow body, else,
+      // try, finally, do) and an object literal are not patterns, so a use inside them is a real query.
+      const stack: boolean[] = [];
       for (let i = 0; i < before.length; i++) {
-        if (before[i] === "{") stack.push(i);
-        else if (before[i] === "}") stack.pop();
+        if (before[i] === "{") {
+          const head = before.slice(0, i);
+          const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
+          const pattern = !block && (/\b(?:const|let|var)\s*$|\bfunction\s*[\w$]*\s*\(\s*$/.test(head) || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
+          stack.push(pattern);
+        } else if (before[i] === "}") stack.pop();
       }
-      if (stack.length > 0) open = stack[stack.length - 1];
-      const inPattern = open >= 0 && !/(?:\)|=>|\b(?:else|try|finally|do))\s*$/.test(before.slice(0, open));
+      const inPattern = stack.length > 0 && stack[stack.length - 1];
       if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
     }
   }
