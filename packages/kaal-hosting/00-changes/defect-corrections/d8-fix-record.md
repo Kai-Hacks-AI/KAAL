@@ -63,3 +63,7 @@ The scan is a lexical heuristic over one line of context, not a parser. Two limi
 2. A platform query written as a default inside a destructuring pattern (`const { a = host() } = x;`) is not reported (false negative). This predates D8.
 
 Alternatives: (A) accept both limits for 0.0.1 and list them in the README Limitations; (B) replace the heuristic with a real parser (the package already depends on `es-module-lexer`, which gives imports and exports only, so a parser dependency such as a TypeScript or acorn-class parser would be new); (C) accept limit 2, fix limit 1 by reading the full statement. Recommendation: A for 0.0.1 and B as a separate Change, because a parser is a dependency decision and every further heuristic round has produced new false positives.
+
+## Tenth and eleventh Codex findings: control-flow conditions and array patterns
+
+An object literal used as a control-flow condition (`if ({ …, platform: host() }) {}`) satisfied the parameter-list test and was dropped; an object binding inside an array pattern (`const [{ host = "d" }] = x`, `function f([{ host = "d" }]) {}`) was not recognised. The parameter-list test now refuses a parenthesis that opens `if`, `while`, `for`, `switch` or `with`, and square brackets are tracked like braces. Regression Cases T159 to T162 are added to `binding-pattern-boundaries.mjs`. T137 to T139, D5, D6 and the publisher suite pass.

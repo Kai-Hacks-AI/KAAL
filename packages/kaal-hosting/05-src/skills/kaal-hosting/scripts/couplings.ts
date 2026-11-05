@@ -353,12 +353,13 @@ function find(code: string, scanning: boolean): Raw[] {
       const start = code.lastIndexOf("\n", m.index!);
       const base = start + (code.slice(start, m.index).length - before.length);
       const closeOf = (open: number): number => {
+        const [up, down] = code[open] === "[" ? ["[", "]"] : ["{", "}"];
         let depth = 0;
         for (let i = open; i < code.length; i++) {
           const skipped = skipLiteral(code, i);
           if (skipped > i) i = skipped;
-          else if (code[i] === "{") depth++;
-          else if (code[i] === "}" && --depth === 0) return i;
+          else if (code[i] === up) depth++;
+          else if (code[i] === down && --depth === 0) return i;
         }
         return -1;
       };
@@ -366,17 +367,17 @@ function find(code: string, scanning: boolean): Raw[] {
       for (let i = 0; i < before.length; i++) {
         const skipped = skipLiteral(before, i);
         if (skipped > i) i = skipped;
-        else if (before[i] === "{") {
+        else if (before[i] === "{" || before[i] === "[") {
           const head = before.slice(0, i);
-          const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
+          const block = before[i] === "{" && /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
           const close = closeOf(base + i);
           const after = close < 0 ? "" : code.slice(close + 1);
-          const binding = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || endsParameterList(after);
+          const binding = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || endsParameterList(after, head);
           // A brace right after `=` (not `==`, `=>`) is an object literal in value position, whatever follows it.
           const value = !(stack.length > 0 && stack[stack.length - 1]) && /(?:^|[^=!<>])=\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
-          const pattern = !block && !value && (binding || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
+          const pattern = !block && !value && (binding || (stack.length > 0 && stack[stack.length - 1] && /[:,[]\s*$/.test(head)));
           stack.push(pattern);
-        } else if (before[i] === "}") stack.pop();
+        } else if (before[i] === "}" || before[i] === "]") stack.pop();
       }
       const inPattern = stack.length > 0 && stack[stack.length - 1];
       if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
@@ -505,7 +506,16 @@ function skipLiteral(text: string, i: number): number {
  * across other parameters, defaults and annotations, and a function body or `=>` follows, with an optional
  * return-type annotation between.
  */
-function endsParameterList(after: string): boolean {
+function endsParameterList(after: string, head: string): boolean {
+  // An enclosing parenthesis that opens a control-flow condition is not a parameter list.
+  const opens: number[] = [];
+  for (let i = 0; i < head.length; i++) {
+    const skipped = skipLiteral(head, i);
+    if (skipped > i) i = skipped;
+    else if (head[i] === "(") opens.push(i);
+    else if (head[i] === ")") opens.pop();
+  }
+  if (opens.length > 0 && /\b(?:if|while|for|switch|with)\s*$/.test(head.slice(0, opens[opens.length - 1]))) return false;
   let depth = 0;
   for (let i = 0; i < after.length; i++) {
     const skipped = skipLiteral(after, i);
