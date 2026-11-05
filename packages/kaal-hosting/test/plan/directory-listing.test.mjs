@@ -30,10 +30,11 @@ const fails = (promise, code) =>
 
 describe("hosting/F72 list", () => {
   it("hosting/T129: lists files and directories with / paths in UTF-16 order, a directory before what it holds, empty directories included", async () => {
-    const root = fixture({ "b.txt": "b", "a/z.txt": "z", "a/y/k.txt": "k", "B.txt": "B" }, ["empty", "a/hollow"]);
+    // The upper-case name is A.txt, not B.txt: on a case-insensitive host (Windows, macOS) B.txt and b.txt are one file, so the fixture itself could not hold both.
+    const root = fixture({ "b.txt": "b", "a/z.txt": "z", "a/y/k.txt": "k", "A.txt": "A" }, ["empty", "a/hollow"]);
     const listed = await hosting.list(root);
     assert.deepEqual(listed, [
-      { path: "B.txt", kind: "file" },
+      { path: "A.txt", kind: "file" },
       { path: "a", kind: "directory" },
       { path: "a/hollow", kind: "directory" },
       { path: "a/y", kind: "directory" },
