@@ -256,7 +256,7 @@ describe("packaging/C26: one installation check for every package", () => {
   });
 
   it("T125b only an import of Packaging is a boundary finding; its name in a string or message is not (Codex, #1063)", async () => {
-    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nconst why = "kaal-packaging is not installed";\n' } });
+    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nimport { h } from "./kaal-packaging/helper.mjs";\nconst why = "kaal-packaging is not installed";\n' } });
     const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
     assert.ok(!kinds(r).includes("imports-packaging"));
     for (const code of ['export * from "@kaihacksai/kaal-packaging/lib";\n', 'const m = await import("kaal-packaging");\n', 'const m = require("kaal-packaging");\n']) {

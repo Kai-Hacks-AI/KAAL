@@ -41,7 +41,8 @@ const OWN_NAME = ["kaal", "packaging"].join("-");
 /** The specifier of every static import, re-export, dynamic import and require in a source text. */
 const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/g;
 const OWN_SPECIFIER = new RegExp(`(^|/)${OWN_NAME}(/|$)`);
-const importsOwn = (code) => [...code.matchAll(SPECIFIER)].some((m) => OWN_SPECIFIER.test(m[1]));
+/** Only a bare package specifier can name a package: relative and absolute paths never do. */
+const importsOwn = (code) => [...code.matchAll(SPECIFIER)].some((m) => !/^[./\\]/.test(m[1]) && !/^[A-Za-z]:/.test(m[1]) && OWN_SPECIFIER.test(m[1]));
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 
