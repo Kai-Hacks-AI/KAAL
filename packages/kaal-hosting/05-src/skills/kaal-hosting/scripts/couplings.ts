@@ -346,15 +346,29 @@ function find(code: string, scanning: boolean): Raw[] {
     for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
       const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
       const before = code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, "");
-      // The innermost unclosed brace decides. A brace is a binding pattern when it follows const, let, var or a
-      // function's opening parenthesis, or sits inside such a pattern; a block (a function or arrow body, else,
-      // try, finally, do) and an object literal are not patterns, so a use inside them is a real query.
+      // The innermost unclosed brace decides. A brace is a binding pattern when it follows const, let or var, when
+      // what follows its closing brace is an assignment or the end of a parameter list (`) =>` or `) {`), or when it
+      // sits inside such a pattern. A block (a function or arrow body, else, try, finally, do) and an object
+      // literal are not patterns, so a use inside them is a real query.
+      const start = code.lastIndexOf("\n", m.index!);
+      const base = start + (code.slice(start, m.index).length - before.length);
+      const closeOf = (open: number): number => {
+        let depth = 0;
+        for (let i = open; i < code.length; i++) {
+          if (code[i] === "{") depth++;
+          else if (code[i] === "}" && --depth === 0) return i;
+        }
+        return -1;
+      };
       const stack: boolean[] = [];
       for (let i = 0; i < before.length; i++) {
         if (before[i] === "{") {
           const head = before.slice(0, i);
           const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
-          const pattern = !block && (/\b(?:const|let|var)\s*$|\bfunction\s*[\w$]*\s*\(\s*$/.test(head) || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
+          const close = closeOf(base + i);
+          const after = close < 0 ? "" : code.slice(close + 1, close + 200);
+          const declared = /\b(?:const|let|var)\s*$/.test(head) || /^\s*=(?![=>])/.test(after) || /^\s*(?:=[^,(){}]*)?\s*(?:,[^(){}]*)?\)\s*(?:=>|\{)/.test(after);
+          const pattern = !block && (declared || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
           stack.push(pattern);
         } else if (before[i] === "}") stack.pop();
       }
