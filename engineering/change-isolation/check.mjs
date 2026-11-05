@@ -283,13 +283,13 @@ function parseStrict(text) {
     ws();
     const c = text[i];
     if (c === "{") {
-      i++; const o = {}; ws();
+      i++; const o = Object.create(null); ws();
       if (text[i] === "}") { i++; return o; }
       for (;;) {
         ws(); if (text[i] !== '"') fail("expected a key");
         const k = string(); ws(); if (text[i++] !== ":") fail("expected ':'");
-        if (Object.hasOwn(o, k)) fail(`duplicate key ${JSON.stringify(k)}`);
-        o[k] = value(); ws();
+        if (Object.prototype.hasOwnProperty.call(o, k)) fail(`duplicate key ${JSON.stringify(k)}`);
+        Object.defineProperty(o, k, { value: value(), enumerable: true, writable: true, configurable: true }); ws();
         if (text[i] === ",") { i++; continue; }
         if (text[i++] === "}") return o;
         fail("expected ',' or '}'");

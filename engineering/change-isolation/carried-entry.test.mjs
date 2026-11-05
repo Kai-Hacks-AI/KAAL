@@ -86,3 +86,13 @@ test("run as a lone copy beside Foundation's SHA-256, as the wrapper scripts do"
     assert.equal(without.status, 2, without.stderr);
   } finally { s.done(); rmSync(lone, { recursive: true, force: true }); }
 });
+
+test("a __proto__ key is kept as an own property, never smuggled through the prototype", async () => {
+  const { appendedEntry } = await import("./check.mjs");
+  const base = JSON.stringify({ version: 1, transitions: [] });
+  const smuggled = '{"__proto__":{"version":1,"transitions":[{"id":"x","paths":[],"pre":{},"post":{}}]},"a":1,"b":2}';
+  const r = appendedEntry(base, smuggled);
+  assert.ok(r.violation, "a document with a __proto__ key must not pass as a ledger");
+  const dup = appendedEntry(base, '{"__proto__":1,"__proto__":2}');
+  assert.ok(dup.violation && /duplicate/.test(dup.violation));
+});
