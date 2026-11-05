@@ -357,6 +357,11 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.equal((await at({ version: "1.0.0", resolved: "https://registry.npmjs.org/dep/-/dep-1.0.0.tgz" })).installation, "unknown");
   });
 
+  it("T125d the text of a string or template literal is not an import (Codex, #1063)", async () => {
+    const strings = layout({ extra: { "dist/skills/fixture/scripts/s.mjs": 'const example = "import \'kaal-packaging\'";\nconst t = `require("kaal-packaging")`;\n' } });
+    assert.ok(!kinds(await verifyInstalled(strings, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");

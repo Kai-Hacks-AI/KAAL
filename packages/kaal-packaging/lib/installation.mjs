@@ -39,14 +39,10 @@ const EXACT = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\
 const CODE = /\.(mjs|cjs|js|ts)$/;
 /** The one name this module exists to find in another package's code, composed so no package name is a literal here. */
 const OWN_NAME = ["kaal", "packaging"].join("-");
-/** The specifier of every static import, re-export, dynamic import and require in a source text. */
-const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/g;
 const OWN_SPECIFIER = new RegExp(`(^|/)${OWN_NAME}(/|$)`);
-/** Only a bare package specifier can name a package: relative and absolute paths never do. */
-const packageOf = (specifier) => (specifier.startsWith("@") ? specifier.split("/").slice(0, 2) : specifier.split("/").slice(0, 1)).join("/");
-/** `code` with its comments blanked and its strings kept, so a commented-out import is not code and a comment inside an import does not hide it. */
-function withoutComments(code) {
-  let out = "";
+/** Splits a source text into words, strings (quotes and template literals kept whole) and punctuation; comments are dropped. */
+function tokens(code) {
+  const out = [];
   for (let i = 0; i < code.length; ) {
     const c = code[i];
     if (c === "/" && code[i + 1] === "/") {
@@ -54,20 +50,39 @@ function withoutComments(code) {
     } else if (c === "/" && code[i + 1] === "*") {
       const end = code.indexOf("*/", i + 2);
       i = end === -1 ? code.length : end + 2;
-      out += " ";
     } else if (c === '"' || c === "'" || c === "`") {
       let j = i + 1;
       while (j < code.length && code[j] !== c) j += code[j] === "\\" ? 2 : 1;
-      out += code.slice(i, j + 1);
+      out.push({ type: "string", value: code.slice(i + 1, j) });
       i = j + 1;
+    } else if (/[A-Za-z0-9_$]/.test(c)) {
+      let j = i;
+      while (j < code.length && /[A-Za-z0-9_$]/.test(code[j])) j++;
+      out.push({ type: "word", value: code.slice(i, j) });
+      i = j;
     } else {
-      out += c;
+      if (!/\s/.test(c)) out.push({ type: "punct", value: c });
       i++;
     }
   }
   return out;
 }
-const importsOwn = (code) => [...withoutComments(code).matchAll(SPECIFIER)].some((m) => !/^[./\\]/.test(m[1]) && !/^[A-Za-z]:/.test(m[1]) && OWN_SPECIFIER.test(packageOf(m[1])));
+/** The specifier of every `from "x"`, `import "x"`, `import("x")` and `require("x")`, read from tokens, never from inside a string. */
+function specifiers(code) {
+  const t = tokens(code);
+  const found = [];
+  for (let i = 0; i < t.length; i++) {
+    const at = (k) => t[i + k];
+    if (at(0).type !== "word") continue;
+    const word = at(0).value;
+    if ((word === "from" || word === "import") && at(1)?.type === "string") found.push(at(1).value);
+    else if ((word === "import" || word === "require") && at(1)?.value === "(" && at(2)?.type === "string") found.push(at(2).value);
+  }
+  return found;
+}
+/** Only a bare package specifier can name a package: relative and absolute paths never do. */
+const packageOf = (specifier) => (specifier.startsWith("@") ? specifier.split("/").slice(0, 2) : specifier.split("/").slice(0, 1)).join("/");
+const importsOwn = (code) => specifiers(code).some((x) => !/^[./\\]/.test(x) && !/^[A-Za-z]:/.test(x) && OWN_SPECIFIER.test(packageOf(x)));
 /** A registry tarball: an http(s) URL to a `.tgz`, as npm records a package it fetched from a registry. */
 const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\.tgz$/;
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
