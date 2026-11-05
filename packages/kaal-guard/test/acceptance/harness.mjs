@@ -4,9 +4,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { after } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -123,17 +123,38 @@ writeFileSync(process.argv[2], JSON.stringify({ cwd: process.cwd(), stdin, guard
  */
 export function consumer({ install = true } = {}) {
   const root = scratch("kaal-guard-consumer-");
+  // Without the install, a consumer is built from nothing, as it always was.
+  if (!install) return assemble(root, { fresh: true, install: false });
+  // With it, the first consumer of this file is built the long way (guard/C142): a bare remote, `git init`,
+  // its configuration, the first commit and push, and one `npm install` of the packed tarball. Every later one
+  // is a byte-for-byte copy of that starting consumer in a root of its own, with only the remote's absolute
+  // path pointed at its own copy. No case changes the installed package, so a copy of it is the same install,
+  // and each case still has a repository, a home and a remote that no other case shares.
+  starting ??= assemble(scratch("kaal-guard-starting-"), { fresh: true, install: true });
+  cpSync(starting.root, root, { recursive: true, verbatimSymlinks: true, filter: (from) => basename(from) !== "npm-cache" });
+  const repo = assemble(root, { fresh: false });
+  must(repo.git("remote", "set-url", "origin", repo.remote), "git remote set-url");
+  return repo;
+}
+
+let starting;
+
+const must = (r, what) => (assert.equal(r.status, 0, `${what}: ${r.output}`), r);
+
+/** The repository object for a consumer root: laid out from nothing when `fresh`, already in place when copied. */
+function assemble(root, { fresh, install }) {
   const home = join(root, "home");
   const remote = join(root, "remote.git");
   const dir = join(root, "repo");
-  mkdirSync(home);
-  mkdirSync(dir);
   const env = { HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: join(home, ".config"), GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: join(home, ".gitconfig"), npm_config_cache: join(root, "npm-cache") };
   const git = (...args) => exec(dir, "git", args, env);
-  const must = (r, what) => (assert.equal(r.status, 0, `${what}: ${r.output}`), r);
-  must(exec(root, "git", ["init", "-q", "--bare", remote], env), "git init --bare");
-  must(git("init", "-q", "-b", "main"), "git init");
-  for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"]]) must(git("config", k, v), "git config");
+  if (fresh) {
+    mkdirSync(home);
+    mkdirSync(dir);
+    must(exec(root, "git", ["init", "-q", "--bare", remote], env), "git init --bare");
+    must(git("init", "-q", "-b", "main"), "git init");
+    for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"]]) must(git("config", k, v), "git config");
+  }
   const repo = {
     root, home, remote, dir, env, git,
     write(path, content) {
@@ -198,6 +219,7 @@ export function consumer({ install = true } = {}) {
       return out.sort();
     },
   };
+  if (!fresh) return repo;
   repo.write("package.json", JSON.stringify({ name: "consumer", version: "1.0.0", private: true, type: "module" }, null, 2) + "\n");
   repo.write(".gitignore", "node_modules/\n");
   repo.write("checks/exit.mjs", EXIT);

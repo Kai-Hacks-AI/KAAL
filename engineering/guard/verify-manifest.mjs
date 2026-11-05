@@ -22,11 +22,13 @@ const shipped = JSON.parse(pack.stdout)[0].files.map((f) => f.path).filter((f) =
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 // The loops: each outer file is its own loop; every file in test/unit/ is the inner Code loop.
-const OUTER = { "intent.test.mjs": "Intent", "requirements.test.mjs": "Requirements", "architecture.test.mjs": "Architecture" };
+// The Requirements loop is four files since guard/C142: requirements-1.test.mjs to requirements-4.test.mjs.
+const OUTER = { "intent.test.mjs": "Intent", "architecture.test.mjs": "Architecture" };
+const loopNamed = (name) => OUTER[name] ?? (/^requirements-[1-4]\.test\.mjs$/.test(name) ? "Requirements" : undefined);
 const caseFiles = (dir) => files(join(PACKAGE, dir)).filter((f) => f.endsWith(".test.mjs")).map((f) => `${dir}/${f}`);
 const loops = { Intent: [], Requirements: [], Architecture: [], Code: caseFiles("test/unit") };
 for (const file of caseFiles("test/acceptance")) {
-  const loop = OUTER[file.split("/").pop()];
+  const loop = loopNamed(file.split("/").pop());
   if (!loop) throw new Error(`no loop is named for ${file}`);
   loops[loop].push(file);
 }
@@ -126,6 +128,12 @@ if (both.length) throw new Error(`covered, and allocated or unverified, at once:
 const neither = identifiers.filter((id) => !(id in coverage) && !declared.has(id));
 if (neither.length) throw new Error(`neither covered by a delivered case, nor allocated, nor declared unverified: ${neither.join(", ")}`);
 
+// Where guard/C142 moved the Requirements cases from: test/acceptance/requirements.test.mjs. Each case keeps its
+// identity, its title and its assertions; only the file in its key changed, so the old key and the new one are
+// recorded here, one for one.
+const MOVED_FROM = "test/acceptance/requirements.test.mjs";
+const relocated = Object.fromEntries(cases.filter((c) => /^test\/acceptance\/requirements-[1-4]\.test\.mjs > /.test(c)).map((c) => [c.replace(/^[^>]*/, MOVED_FROM + " "), c]));
+
 const manifest = {
   cases,
   loops,
@@ -134,6 +142,7 @@ const manifest = {
   allocated,
   unverified,
   applicability,
+  relocated,
   files: Object.fromEntries(shipped.map((f) => [f, sha256(readFileSync(join(PACKAGE, f)))])),
 };
 writeFileSync(join(PACKAGE, MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`);
