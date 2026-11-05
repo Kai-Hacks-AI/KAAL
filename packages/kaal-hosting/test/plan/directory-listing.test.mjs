@@ -78,6 +78,7 @@ describe("hosting/F73 scratch", () => {
     const value = await hosting.scratch(async (dir) => {
       seen = dir;
       assert.ok(isAbsolute(dir), "the path is absolute");
+      assert.ok(statSync(dir).isDirectory(), "the directory already exists when use is called");
       assert.deepEqual(await hosting.list(dir), [], "the directory is fresh and empty");
       mkdirSync(join(dir, "nested", "deeper"), { recursive: true });
       writeFileSync(join(dir, "nested", "deeper", "f.txt"), "f");
@@ -135,7 +136,16 @@ describe("hosting/F73 scratch", () => {
           chmodSync(join(dir, "locked"), 0o500);
           throw kept;
         }),
-        (e) => e === kept,
+        (e) => {
+          assert.equal(e, kept, "use's own error is the one thrown");
+          // The leftover is reported on it, never in its place. The plan fixes no property name, so any of the usual carriers is accepted, but one must carry SCRATCH_LEFTOVER and the path.
+          const carried = [e.leftover, e.cause, e.suppressed, ...(Array.isArray(e.errors) ? e.errors : [])].flat().filter(Boolean);
+          assert.ok(
+            carried.some((c) => c?.code === "SCRATCH_LEFTOVER" && String(c.message).includes(left2)),
+            "the removal failure is reported on use's error, naming the path",
+          );
+          return true;
+        },
       );
       chmodSync(join(left2, "locked"), 0o700);
       rmSync(left2, { recursive: true, force: true });
