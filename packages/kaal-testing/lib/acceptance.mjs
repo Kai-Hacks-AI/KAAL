@@ -60,6 +60,14 @@ export async function discover(workspaces) {
 }
 
 let installations = 0;
+// A process id alone is not unique across a run: an operating system reuses it
+// once a scenario process exits (Windows does so within seconds), and the next
+// process would meet the previous one's host and find it not empty. Each
+// module instance therefore carries its own nonce.
+const NONCE = globalThis.crypto.randomUUID().slice(0, 8);
+
+/** The name of an installation's host directory, unique within a run even when a process id is reused. */
+export const hostId = () => `${process.pid}-${NONCE}-${++installations}`;
 
 /**
  * Install the run's packed tarballs of `names` into a fresh host of this
@@ -82,7 +90,7 @@ export async function install(names, { offline = false } = {}) {
     consumed[name] = hash;
     tarballs.push(packed.tarball);
   }
-  const id = `${process.pid}-${++installations}`;
+  const id = hostId();
   const host = join(run, "hosts", id);
   await initialize(host, { "package.json": json({ name: "fresh-host", version: "1.0.0", private: true }) });
   const env = { ...process.env, npm_config_audit: "false", npm_config_fund: "false" };
