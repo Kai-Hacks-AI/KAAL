@@ -316,6 +316,22 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.equal((await verifyInstalled(layout(), { run: runner(0, some), resolve: noRecord })).result, "verified");
   });
 
+  it("T122c an optional or peer prerequisite the install did not record may be absent; a present one must be exact (Codex, #1063)", async () => {
+    const dir = layout();
+    const pkgPath = join(dir, "package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+    pkg.optionalDependencies = { "optional-addon": "1.0.0" };
+    pkg.peerDependencies = { "peer-addon": "2.0.0" };
+    write(dir, "package.json", JSON.stringify(pkg, null, 2));
+    const m = JSON.parse(readFileSync(join(dir, "dist/test/package-check/manifest.json"), "utf8"));
+    m.files["package.json"] = sha(readFileSync(pkgPath, "utf8"));
+    write(dir, "dist/test/package-check/manifest.json", JSON.stringify(m));
+    const absent = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+    assert.equal(absent.result, "verified", JSON.stringify(absent.findings));
+    const wrong = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: (d, n) => (n === "optional-addon" ? "9.9.9" : undefined) });
+    assert.equal(wrong.installation, "failed");
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");

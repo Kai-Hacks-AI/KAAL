@@ -148,17 +148,22 @@ async function installation(dir, { resolve }) {
     add(e.type === "link" ? "link" : "unlisted", e.path);
   }
   // Prerequisites: exact versions only (F7), read from the install record.
-  const declared = { ...pkg.dependencies, ...pkg.optionalDependencies, ...pkg.peerDependencies };
-  for (const [name, spec] of Object.entries(declared)) {
-    if (typeof spec !== "string" || !EXACT.test(spec)) {
-      add("prerequisite-not-exact", name);
-      continue;
+  // An optional or peer dependency the install did not record may simply be absent (the same rule as the conformance
+  // check); when it is present it must be at the exact version. A dependency that is absent cannot be judged.
+  for (const field of ["dependencies", "optionalDependencies", "peerDependencies"]) {
+    for (const [name, spec] of Object.entries(pkg[field] ?? {})) {
+      if (typeof spec !== "string" || !EXACT.test(spec)) {
+        add("prerequisite-not-exact", name);
+        continue;
+      }
+      const have = await resolve(dir, name);
+      if (have === undefined) {
+        if (field === "dependencies") {
+          observed = false;
+          findings.push({ kind: "prerequisite-unresolved", path: name });
+        }
+      } else if (have !== spec) add("prerequisite-version", name);
     }
-    const have = await resolve(dir, name);
-    if (have === undefined) {
-      observed = false;
-      findings.push({ kind: "prerequisite-unresolved", path: name });
-    } else if (have !== spec) add("prerequisite-version", name);
   }
   // Packaging may refer to itself; only another package importing Packaging is a boundary finding.
   const selfPackaging = OWN_SPECIFIER.test(String(pkg.name ?? ""));
