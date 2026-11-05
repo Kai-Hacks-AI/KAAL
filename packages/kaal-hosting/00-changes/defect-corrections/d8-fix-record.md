@@ -112,3 +112,5 @@ A local binding of the same name as a query import (a `const`, a parameter, a ho
 A query binding declared inside a function (destructured from a module, `process` or a name bound to one) is the query itself, not a shadow of it, and a body-level `var` does not reach a parameter default. Regression Case hosting/T185.
 
 A computed method name runs in the enclosing scope, so a same-named parameter of that method does not shadow a query called in the name. Regression Case hosting/T186.
+
+Only a function's parameters and body see its own bindings, so a decorator or a computed name beside a same-named parameter is still a use (hosting/T187), and a `var` in a class static block is local to it (hosting/T188).
