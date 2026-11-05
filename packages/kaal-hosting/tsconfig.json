@@ -5,6 +5,8 @@
     "moduleResolution": "NodeNext",
     "strict": true,
     "declaration": true,
+    "composite": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
     "rootDir": "05-src/skills/kaal-hosting/scripts",
     "outDir": "dist/skills/kaal-hosting/scripts",
     "types": ["node"],
