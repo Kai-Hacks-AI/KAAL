@@ -1,15 +1,20 @@
 // kaal-graph: a Node's Form and identity, as the Kernel in Core's payload states them.
 // A Node is a Markdown file in UTF-8: a line `---`, frontmatter, a line `---`, LF line
 // endings. Its id is the SHA-256 of its exact bytes. Pure: it touches no host.
-import { createHash } from "node:crypto";
+import { sha256 as foundation } from "@kaihacksai/kaal-foundation/sha256";
 import { isMap, isScalar } from "yaml";
 import { convert, decode, FormError, isId, isName, mappingOf } from "./form.mjs";
 
 export { FormError, isId, isName };
 
-/** SHA-256, hex, of exact bytes. No normalization of any kind. */
-export function sha256(bytes) {
-  return createHash("sha256").update(bytes).digest("hex");
+/**
+ * SHA-256, hex, of exact bytes. No normalization of any kind. The digest is Foundation's,
+ * KAAL's one SHA-256; this only adapts the input Graph has always accepted: a string is
+ * its UTF-8 bytes, and any other ArrayBufferView is the bytes it views.
+ */
+export function sha256(input) {
+  const bytes = typeof input === "string" ? Buffer.from(input) : ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : input;
+  return foundation(bytes);
 }
 
 /** Whether the bytes begin like frontmatter, i.e. claim to be a Node. */
