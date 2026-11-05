@@ -273,6 +273,9 @@ describe("packaging/C26: one installation check for every package", () => {
     }
   });
 
+  // T126 supersession (documented, packaging/C26 DO): the RED text called generateManifest synchronously.
+  // Every Hosting operation is async, and lib/ may not use node:fs (T6), so the generator is async. Only `await`
+  // was added; the assertions (same bytes twice, a hand-edited manifest is failed) are unchanged.
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");
