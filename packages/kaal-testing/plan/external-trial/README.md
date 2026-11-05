@@ -50,13 +50,28 @@ Testing is not the judge and not a performing Agent, and does not choose the rep
 
 `trial-plan.json` is an ordinary Plan of Testing's own model, with nothing new: Plan `review/T20` (version 4), five Suites (independence, arms, claims, effects, pin) and sixteen Cases. `check` over it gives no findings, and a dry Run over it behaves as the model says (all passed, one skipped gives unknown, one failed gives failed). The Plan holds seven Test Data items (subject commit, consumer repository, judge, task, arm inputs, comparison, observers), recorded as the Run's effective Test Data (`testing/F31`, `F32`).
 
+## Two complete runs, recorded in this PR (Owner, 5 Nov)
+
+There are two complete runs of the trial, each over all three arms: one steered and observed by the CTO, one by the CPO. Each run is a Run of `review/T20` (`review/T20/run-cto` and `review/T20/run-cpo`), with its own session per arm and its own copy of the snapshot. They are independent: the two do not see each other's records until both are complete. Each is recorded against the PR as markdown files inside it, under `plan/external-trial/records/<run>/` where `<run>` is `cto` or `cpo`:
+
+| File | Holds | Attributed to |
+| --- | --- | --- |
+| `arm-1-bare.md`, `arm-2-instructions.md`, `arm-3-skill.md` | the record each arm produced, unchanged, and its arm input hash | the performing Agent |
+| `facts.md` | the neutral script's output per record, and the inputs it ran on | the script (fact) |
+| `checklist.md` | the checker's readings per record, with reasons | the checker (judgment) |
+| `owner.md` | the Owner's judgment: which record is more useful, whether arm 3 improves over bare and over instructions, with reasons | the Owner (judgment) |
+| `steering.md` | every steer: who, when, what, and any view of the observer's own | the CTO or the CPO (observer) |
+| `run.json` | the Run of `review/T20`: outcomes, provenance, Test Data | the checker, for the Owner |
+
+This PLAN adds none of these files, and nothing runs until the Owner authorizes it. Each run's results are added to this PR as those files. Review passes validation only if the Owner's judgment is that arm 3 improves over both other arms; how the two runs combine is open question 4.
+
 ## Running it
 
 1. **Choose and state the Intent.** The CPO, for the Owner, chooses an unrelated repository and a real pending change in it, and the Owner states in writing the Intent the change is for, with what would show it is served. The Intent, the checklist, the way "improves" is decided and the three arm inputs (with hashes) are recorded before any arm runs. Choosing is Product's or the Owner's, not Testing's.
 2. **One snapshot, one task.** The target is a throwaway copy of the pending branch, captured by tree and refs. All three arms get a fresh copy of the same snapshot and the same task text. The only difference is the arm's input. No arm sees another arm's output.
 3. **Authorize.** The target's owner states in writing what writes any Agent may make (by default none outside the copy).
 4. **Run the three arms.** Each in its own fresh session. The target is captured again after each. An order that could favour an arm is randomized and recorded.
-5. **Hide the arm.** The records are given to the checker and the Owner as three anonymous records in random order. Neither knows which arm made which (the open question 3 asks whether the Owner sees them so).
+5. **Hide the arm.** The records are given to the checker and the Owner as three anonymous records in random order. Neither knows which arm made which (open question 3 asks whether the Owner sees them so).
 6. **Experience and judge.** The checker records, per record, the checklist below, each reading as its own judgment with its reason. The Owner experiences the three outputs and records which is more useful and whether arm 3 is better than both, as the Owner's judgment with its reason. The CPO and the CTO observe and steer; they record their steers and any view as theirs. Facts are recorded by script (see Evidence rules). One outcome per Case is recorded in the model's own outcomes, `passed` or `failed`, attributed to who decided it. A Case nobody can decide is `skipped` or left out of `outcomes`, never a literal `unknown`: `unknown` is derived by the model (`testing/F26`).
 7. **Record.** One Run of `review/T20`, with provenance naming the Plan, its Suites and the Cases at their versions, and the Test Data as recorded. The consumer keeps the Run; Testing keeps none (`testing/F33`).
 
@@ -68,7 +83,7 @@ Testing is not the judge and not a performing Agent, and does not choose the rep
 - **The same facts for every arm.** The deterministic checks are applied by the same neutral script to all three records, so no arm is measured by its own tools. They are: every `path:line` pointer in the record resolves in the snapshot; the Intent text is quoted unchanged; the effect diff of the copy against the declared effects; and the arm input hashes match the recorded ones. For arm 3 the Skill's own `check-record` is a further fact, recorded as that arm's, and it is not used to compare arms.
 - **Absence of writes is not a pass.** `effects-declared` and `writes-authorized` pass only when each observed effect is a declared one and each write has the target's authorization, in every arm.
 - **Nothing is certified.** A failed Case returns to Review as a Finding. A Finding the CPO confirms becomes a Defect in Review's context, in the shape of the Defect record (#991), with a RED Case in Review's own Defect Plan (`review/E7`). An unconfirmed Finding is answered with reasoning. The result is input to the Owner's decision and never a gate.
-- **Small sample.** One change and one run per arm show what three agents produced on one change at one commit. The result is a screen, not a rate.
+- **Small sample.** Two runs over one change and one commit show what six agents produced on it. The result is a screen, not a rate.
 
 ## Checklist and rating
 
@@ -112,7 +127,7 @@ Testing does not choose these silently, and the Plan does not start the trial. T
 1. *Who judges "improves": decided (5 Nov).* The Owner experiences and judges. The CPO and CTO observe and steer the experiment and the Owner toward results; they are not judges.
 2. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and the rating above). B: only which record the Owner would rather have, with a reason.
 3. **What the Owner sees.** A: the three records anonymous and in random order, then the arms revealed. B: the records labelled by arm from the start.
-4. **How many runs per arm.** A: one run per arm. B: three per arm, with "improves" meaning arm 3 is ahead in most.
+4. **How the two runs combine.** A: Review passes validation only if arm 3 improves over both other arms in both runs. B: in at least one run, with the other recorded beside it.
 5. The repository, the change and its Intent, and the size of the calibration set. (Decided: through the CPO.)
 6. When the trial may start. Not before the Owner says so.
 
