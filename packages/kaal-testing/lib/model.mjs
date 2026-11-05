@@ -1,6 +1,7 @@
 // kaal-testing/model: Testing's kinds (Strategy, Plan, Suite, Case), their identities and
 // relationships, Test Data ownership, each Run's results and Plan evaluation (testing/C14), and the
 // current evidenced quality over a consumer's retained Runs (testing/C27).
+// A model's `targets` are the entries (testing/F51) that allocate or leave unverified an identifier no Case traces.
 // Models and Runs are plain data handed in; the module keeps none and imports nothing.
 const DATUM = ["id", "version", "content", "external"];
 const KEYS = {
@@ -8,11 +9,12 @@ const KEYS = {
   plans: ["id", "version", "suites", "inapplicable", "data", "uses"],
   suites: ["id", "version", "cases", "data", "uses"],
   cases: ["id", "version", "tests", "data", "uses", "retired"],
+  targets: ["id", "allocated", "unverified"],
 };
 const REF = { strategies: ["plans", "plans"], plans: ["suites", "suites"], suites: ["cases", "cases"] };
 const RUN = ["id", "of", "outcomes", "provenance", "data", "runs"];
 const OUTCOMES = ["passed", "failed", "skipped", "todo"];
-const LISTS = { strategies: ["plans"], plans: ["suites", "uses"], suites: ["cases", "uses"], cases: ["tests", "uses"] };
+const LISTS = { strategies: ["plans"], plans: ["suites", "uses"], suites: ["cases", "uses"], cases: ["tests", "uses"], targets: [] };
 const nonempty = (s) => typeof s === "string" && s !== "";
 const object = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
 /** A value as a finding names it, whatever it is: never coerced, so formatting cannot throw. */
@@ -75,6 +77,7 @@ function shapeRun(run, f) {
 function index(m) {
   const f = [], seen = new Set(), ids = { strategies: new Map(), plans: new Map(), suites: new Map(), cases: new Map() }, data = new Map();
   for (const [kind, keys] of Object.entries(KEYS)) {
+    if (kind === "targets") continue;
     for (const e of m[kind] ?? []) {
       for (const k of Object.keys(e)) if (!keys.includes(k)) f.push(`${name(e.id)}: unknown key ${name(k)}`);
       if (!nonempty(e.id)) f.push(`${name(e.id)}: not a valid identity`);
@@ -92,7 +95,35 @@ function index(m) {
       }
     }
   }
+  // A target entry names a shipped identifier, not a definition: its identity is its own namespace (testing/F51).
+  const entered = new Set();
+  for (const e of m.targets ?? []) {
+    for (const k of Object.keys(e)) if (!KEYS.targets.includes(k)) f.push(`target ${name(e.id)}: unknown key ${name(k)}`);
+    if (!nonempty(e.id)) f.push(`target ${name(e.id)}: not a valid identity`);
+    else if (entered.has(e.id)) f.push(`target ${name(e.id)}: more than one entry`);
+    else entered.add(e.id);
+    const forms = ["allocated", "unverified"].filter((k) => e[k] !== undefined);
+    if (forms.length !== 1) f.push(`target ${name(e.id)}: exactly one of allocated or unverified`);
+    for (const k of forms) if (!nonempty(e[k])) f.push(`target ${name(e.id)}: ${k} must be a nonempty statement`);
+  }
+  // An entry never stands beside a Case's trace of the same identifier (testing/F51).
+  const traced = new Set((m.cases ?? []).filter((c) => !c.retired).flatMap((c) => c.tests ?? []));
+  for (const id of entered) if (traced.has(id)) f.push(`target ${name(id)}: a Case already traces it, so an entry restates the trace`);
   return { f, ids, data };
+}
+
+/** The target entries that stand: one entry for its identifier, with exactly one nonempty form and no other key. */
+export function entries(model) {
+  const { m } = shape(model);
+  const count = new Map();
+  for (const e of m.targets ?? []) if (nonempty(e.id)) count.set(e.id, (count.get(e.id) ?? 0) + 1);
+  const out = new Map();
+  for (const e of m.targets ?? []) {
+    if (!nonempty(e.id) || count.get(e.id) !== 1 || !Object.keys(e).every((k) => KEYS.targets.includes(k))) continue;
+    const forms = ["allocated", "unverified"].filter((k) => e[k] !== undefined);
+    if (forms.length === 1 && nonempty(e[forms[0]])) out.set(e.id, { form: forms[0], statement: e[forms[0]] });
+  }
+  return out;
 }
 
 export function check(model) {

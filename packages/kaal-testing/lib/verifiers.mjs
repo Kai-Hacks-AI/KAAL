@@ -1,10 +1,13 @@
 // kaal-testing/verifiers: the shared observable result contract every consumer verifier is held to
 // (testing/C29, testing/F43–testing/F50). A publisher's harness makes each scenario's change in a fresh
 // consumer, runs the package's own verifier, and judges what it showed against what it established itself.
-// Pure: it reads nothing from a host, runs nothing, keeps nothing and imports nothing (testing/N9).
+// Pure: it reads nothing from a host, runs nothing and keeps nothing. It imports only Testing's own model
+// (`check`, `tested`, `entries`), for coverage accounting (testing/N9, testing/N10).
+import { check, entries, tested } from "./model.mjs";
 const RESULTS = ["verified", "failed", "unknown"];
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 const NEXT = ["precise", "diagnostic", "exploratory"];
+const STATES = ["covered", "allocated", "unverified", "not applicable", "uncovered", "failed", "not shipped", "traced"];
 const OUTCOMES = ["pass", "fail", "skipped", "todo", "not applicable", "not run"];
 const plain = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
 const nonempty = (s) => typeof s === "string" && s !== "";
@@ -75,7 +78,7 @@ export function observe({ exit, stdout } = {}, { prefix, words } = {}) {
   if (!plain(s)) return { observation: null, findings: ["the summary is not an object"] };
   const result = RESULTS.find((r) => words[r] === s.result);
   if (!result) findings.push(`the summary's result ${JSON.stringify(s.result)} is none of the verifier's words`);
-  return { observation: { exit, result: result ?? null, cause: s.cause, evidence: s.evidence, uncertainty: s.uncertainty, next: s.next, package: s.package, platform: s.platform, node: s.node, digest: s.digest, cases: s.cases }, findings };
+  return { observation: { exit, result: result ?? null, cause: s.cause, evidence: s.evidence, uncertainty: s.uncertainty, next: s.next, package: s.package, platform: s.platform, node: s.node, digest: s.digest, cases: s.cases, coverage: s.coverage }, findings };
 }
 
 /**
@@ -107,8 +110,13 @@ function diagnosis(result, o) {
  */
 export function judge(scenarioId, observed, facts) {
   const s = SCENARIOS.find((x) => x.id === scenarioId);
-  const differences = [];
   if (!s) return { scenario: scenarioId, conforms: false, differences: [`${JSON.stringify(scenarioId)} is not a scenario of the contract`] };
+  return compare(s, observed, facts);
+}
+
+/** Every observable testing/F45 compares, for one scenario of either list. */
+function compare(s, observed, facts) {
+  const differences = [];
   const o = observed?.observation;
   if (!o) return { scenario: s.id, conforms: false, differences: ["no observation", ...(Array.isArray(observed?.findings) ? observed.findings : [])] };
   if (Array.isArray(observed.findings)) differences.push(...observed.findings);
@@ -213,4 +221,119 @@ export function parity(runs, { supported, osBoundary = false, challenged = [] } 
   const failed = results.includes("failed");
   const verified = findings.length === 0 && results.length === list.length && results.every((x) => x === "verified") && cases.every((c) => Object.values(c.outcomes).every((x) => x === "pass" || x === "not applicable"));
   return { result: failed ? "failed" : verified ? "verified" : "unknown", cases, findings };
+}
+
+/** Each coverage scenario: the change a harness makes to the delivered model or run, the state it realizes and the result every conforming verifier shows (testing/F54). */
+export const COVERAGE_SCENARIOS = Object.freeze([
+  { id: "coverage-complete", change: "nothing: every case traces identifiers and every shipped identifier is traced by a passing case", state: "covered", result: "verified", cases: "pass" },
+  { id: "coverage-allocated", change: "a shipped identifier is traced by no case, and the model names an allocation for it", state: "allocated", result: "verified", cases: "pass" },
+  { id: "coverage-unverified", change: "a shipped identifier is traced by no case, and the model states a reason it is left unverified", state: "unverified", result: "verified", cases: "pass" },
+  { id: "coverage-not-applicable", change: "the only case that traces a shipped identifier is not applicable here, by an applicability the harness established", state: "not applicable", result: "verified", cases: "pass", target: "not applicable" },
+  { id: "coverage-missing", change: "a shipped identifier has no case that traces it and no target entry", state: "uncovered", result: "unknown", cases: "pass" },
+  { id: "coverage-undeclared-case", change: "the only case that traces a shipped identifier is not declared by the manifest", state: "uncovered", result: "unknown", cases: "pass" },
+  { id: "coverage-allocated-and-traced", change: "a target entry restates the trace of an identifier a case already traces", state: "uncovered", result: "unknown", cases: "pass" },
+  { id: "coverage-not-shipped", change: "a case traces an identifier the package does not ship", state: "not shipped", result: "unknown", cases: "pass" },
+  { id: "coverage-failing", change: "a case that traces a shipped identifier fails", state: "failed", result: "failed", cases: "pass", target: "fail" },
+].map(Object.freeze));
+
+/**
+ * What each shipped identifier's coverage is, from facts the harness established itself: `identifiers`, the
+ * delivered `model`, the declared `cases` and, with `outcomes` (a declared case's outcome in one run), the run
+ * (testing/F51–testing/F53). Without `outcomes` it is the static trace. Failed is established by a failing case;
+ * otherwise any uncovered or not shipped identifier, or a finding, makes the result unknown.
+ */
+export function account(facts, outcomes) {
+  const findings = [];
+  const ids = facts?.identifiers;
+  const listed = Array.isArray(ids) && ids.length > 0 && ids.every(nonempty);
+  if (!listed) findings.push("the harness established no identifiers the package ships");
+  else if (new Set(ids).size !== ids.length) findings.push("the harness established an identifier twice");
+  const shipped = listed ? [...new Set(ids)] : [];
+  findings.push(...check(facts?.model));
+  const model = plain(facts?.model) ? facts.model : {};
+  const declared = new Set(Array.isArray(facts?.cases) ? facts.cases.filter(nonempty) : []);
+  if (!Array.isArray(facts?.cases)) findings.push("the harness established no declared cases");
+  if (outcomes !== undefined && !plain(outcomes)) findings.push("outcomes is not an object of case outcomes");
+  const run = outcomes !== undefined && plain(outcomes);
+  const trace = tested(model);
+  const stands = entries(model);
+  // An identifier with an entry that does not stand (malformed or repeated) is unresolved, even where a Case traces it (testing/F51).
+  const named = new Set((Array.isArray(model.targets) ? model.targets : []).filter((e) => plain(e) && nonempty(e.id)).map((e) => e.id));
+  const by = (id) => (Object.hasOwn(trace, id) ? trace[id].filter((c) => declared.has(c)) : []);
+  const result = [];
+  const state = (id) => {
+    const cases = by(id);
+    const entry = stands.get(id);
+    if (!entry && named.has(id)) { findings.push(`${id} has a target entry that does not stand`); return "uncovered"; }
+    const active = Object.hasOwn(trace, id) ? trace[id] : [];
+    if (active.length > 0 && entry) { findings.push(`${id} has a target entry beside the trace of ${active.join(", ")}`); return "uncovered"; }
+    if (cases.length === 0) {
+      if (entry) return entry.form;
+      findings.push(`${id} is traced by no declared case and has no target entry`);
+      return "uncovered";
+    }
+    if (!run) return "traced";
+    const outs = cases.map((c) => (Object.hasOwn(outcomes, c) ? outcomes[c] : "not run"));
+    if (outs.includes("fail")) return "failed";
+    if (outs.includes("pass")) return "covered";
+    if (outs.every((o) => o === "not applicable") && cases.every((c) => established(facts, c) !== null)) return "not applicable";
+    findings.push(`${id} is traced by cases that did not pass in this run`);
+    return "uncovered";
+  };
+  for (const id of shipped) result.push({ id, state: state(id) });
+  const extra = new Set();
+  for (const [id, cs] of Object.entries(trace)) if (!shipped.includes(id) && cs.some((c) => declared.has(c))) extra.add(id);
+  for (const id of named) if (!shipped.includes(id)) extra.add(id);
+  for (const id of [...extra].sort()) {
+    result.push({ id, state: "not shipped" });
+    findings.push(`${id} is not shipped by the package`);
+  }
+  const states = result.map((e) => e.state);
+  const verdict = states.includes("failed") ? "failed" : findings.length > 0 || states.includes("uncovered") || states.includes("not shipped") ? "unknown" : "verified";
+  return { entries: result, result: verdict, findings };
+}
+
+/**
+ * Whether one observation conforms to a coverage scenario: everything `judge` compares, the facts realizing
+ * the scenario's state, and the reported coverage against `account(facts, outcomes)` with the outcomes the
+ * scenario shows (testing/F55). A label alone never conforms.
+ */
+export function judgeCoverage(scenarioId, observed, facts) {
+  const s = COVERAGE_SCENARIOS.find((x) => x.id === scenarioId);
+  if (!s) return { scenario: scenarioId, conforms: false, differences: [`${JSON.stringify(scenarioId)} is not a coverage scenario of the contract`] };
+  const base = compare(s, observed, facts);
+  const o = observed?.observation;
+  if (!o) return base;
+  const differences = [...base.differences];
+  const declared = Array.isArray(facts?.cases) ? facts.cases : [];
+  const shown = Object.fromEntries(declared.map((c) => [c, s.target && c === facts?.target ? s.target : "pass"]));
+  const accounted = account(facts, shown);
+  if (accounted.result !== s.result) differences.push(`the facts account for a ${accounted.result} run, the scenario expects ${s.result}: ${accounted.findings.join("; ") || "no finding"}`);
+  // Each uncovered scenario is told apart by the model condition that defines it, not by the state alone (testing/F54).
+  const model = plain(facts?.model) ? facts.model : {};
+  const traced = tested(model), stands = entries(model), declaredSet = new Set(declared);
+  const shipped = Array.isArray(facts?.identifiers) ? facts.identifiers : [];
+  const any = (cond) => shipped.some((id) => cond(Object.hasOwn(traced, id) ? traced[id] : [], stands.get(id)));
+  const defining = {
+    "coverage-missing": [any((cs, e) => cs.length === 0 && !e), "a shipped identifier is traced by no case and has no target entry"],
+    "coverage-undeclared-case": [any((cs, e) => cs.length > 0 && !cs.some((c) => declaredSet.has(c)) && !e), "a shipped identifier is traced only by cases the manifest does not declare"],
+    "coverage-allocated-and-traced": [any((cs, e) => e && cs.some((c) => declaredSet.has(c))), "a target entry restates the trace of an identifier a declared case traces"],
+    "coverage-not-shipped": [Object.entries(traced).some(([id, cs]) => !shipped.includes(id) && cs.some((c) => declaredSet.has(c))), "a declared case traces an identifier the package does not ship"],
+  }[s.id];
+  if (defining && !defining[0]) differences.push(`the facts do not make the scenario's change: ${defining[1]} is not so`);
+  const have = accounted.entries.map((e) => e.state);
+  if (s.state === "covered" ? !have.every((x) => x === "covered") : !have.includes(s.state)) differences.push(`the facts leave no identifier ${s.state}, which the scenario realizes`);
+  const reported = o.coverage;
+  if (!Array.isArray(reported) || !reported.every((e) => plain(e) && nonempty(e.id) && STATES.includes(e.state))) differences.push("coverage is not a list of { id, state }");
+  else {
+    const ids = reported.map((e) => e.id);
+    if (new Set(ids).size !== ids.length) differences.push("an identifier is reported twice");
+    for (const e of accounted.entries) {
+      const got = reported.find((x) => x.id === e.id);
+      if (!got) differences.push(`identifier ${e.id} is not reported`);
+      else if (got.state !== e.state) differences.push(`identifier ${e.id} is reported ${got.state}, the facts account for it as ${e.state}`);
+    }
+    for (const id of ids) if (!accounted.entries.some((e) => e.id === id)) differences.push(`identifier ${id} is reported, and the harness established none such`);
+  }
+  return { scenario: s.id, conforms: differences.length === 0, differences };
 }

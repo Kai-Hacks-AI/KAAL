@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
-import { judge, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
+import { account, COVERAGE_SCENARIOS, judge, judgeCoverage, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
 
 const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", failed: "failed", unknown: "cannot verify" } };
 const FACTS = {
@@ -154,8 +154,45 @@ describe("verifiers", () => {
     assert.ok(none.findings.some((f) => /exercised on none/.test(f)));
   });
 
-  it("imports nothing (testing/N9)", async () => {
+  it("imports only Testing's own model (testing/N9, testing/N10)", async () => {
     const source = await readFile(new URL("../lib/verifiers.mjs", import.meta.url), "utf8");
-    assert.doesNotMatch(source, /^\s*import\b|\bimport\s*\(|\brequire\s*\(/m);
+    const imports = [...source.matchAll(/^\s*import\b[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]);
+    assert.deepEqual(imports, ["./model.mjs"]);
+    assert.doesNotMatch(source, /\bimport\s*\(|\brequire\s*\(/);
+  });
+});
+
+describe("coverage scenarios are told apart by their defining model condition (testing/F54)", () => {
+  const VERIFIER = { prefix: "v ", words: { verified: "verified", failed: "failed", unknown: "unknown" } };
+  const facts = { package: { name: "p", version: "1", location: "/p" }, platform: "linux", node: "v24", digest: "d".repeat(64), cases: ["T1"], target: "T1", applicability: {}, dependencies: [], complements: {}, identifiers: ["F1", "F2"], model: { cases: [{ id: "T1", tests: ["F1"] }] } };
+  const summary = { result: "unknown", cause: "c", evidence: ["e"], next: { kind: "diagnostic", step: "s" }, package: facts.package, platform: "linux", node: "v24", digest: facts.digest, cases: [{ name: "T1", outcome: "pass" }], coverage: [{ id: "F1", state: "covered" }, { id: "F2", state: "uncovered" }] };
+  const judged = (id) => judgeCoverage(id, observe({ exit: 2, stdout: `v ${JSON.stringify(summary)}\n` }, VERIFIER), facts);
+  it("one unknown observation conforms to coverage-missing only, not to the scenarios that need an undeclared case or a restating entry", () => {
+    assert.equal(judged("coverage-missing").conforms, true);
+    assert.equal(judged("coverage-undeclared-case").conforms, false);
+    assert.equal(judged("coverage-allocated-and-traced").conforms, false);
+    assert.ok(COVERAGE_SCENARIOS.some((s) => s.id === "coverage-missing"));
+  });
+  it("an identifier a Case traces stays uncovered while its target entry is malformed or repeated", () => {
+    for (const targets of [[{ id: "F1", allocated: "" }], [{ id: "F1", allocated: "a" }, { id: "F1", unverified: "u" }]]) {
+      const a = account({ ...facts, identifiers: ["F1"], model: { cases: [{ id: "T1", tests: ["F1"] }], targets } }, { T1: "pass" });
+      assert.equal(a.entries[0].state, "uncovered");
+      assert.equal(a.result, "unknown");
+    }
+  });
+  it("coverage-not-shipped needs a declared case that traces an unshipped identifier, not only a dangling target entry", () => {
+    const f = { ...facts, identifiers: ["F1"], model: { cases: [{ id: "T1", tests: ["F1"] }], targets: [{ id: "F9", allocated: "release lane" }] } };
+    const s = { ...summary, coverage: [{ id: "F1", state: "covered" }, { id: "F9", state: "not shipped" }] };
+    assert.equal(judgeCoverage("coverage-not-shipped", observe({ exit: 2, stdout: `v ${JSON.stringify(s)}\n` }, VERIFIER), f).conforms, false);
+  });
+  it("an identifier an undeclared case traces stays uncovered beside a target entry", () => {
+    const a = account({ ...facts, identifiers: ["F1", "F2"], model: { cases: [{ id: "T1", tests: ["F1"] }, { id: "T9", tests: ["F2"] }], targets: [{ id: "F2", allocated: "release lane" }] } });
+    assert.equal(a.entries.find((e) => e.id === "F2").state, "uncovered");
+    assert.equal(a.result, "unknown");
+  });
+  it("a malformed target entry for an unshipped identifier is still reported not shipped", () => {
+    const a = account({ ...facts, identifiers: ["F1"], model: { cases: [{ id: "T1", tests: ["F1"] }], targets: [{ id: "F9", allocated: "" }] } }, { T1: "pass" });
+    assert.deepEqual(a.entries, [{ id: "F1", state: "covered" }, { id: "F9", state: "not shipped" }]);
+    assert.equal(a.result, "unknown");
   });
 });
