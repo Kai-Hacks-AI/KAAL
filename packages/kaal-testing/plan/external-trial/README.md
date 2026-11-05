@@ -42,13 +42,14 @@ Testing is not the checker and not the cold Agent. Both would have to be unprime
 ## Evidence rules
 
 - **Three results, unknown never passed.** The trial's result is the model's: failed if any Case failed, otherwise unknown if any is unknown, otherwise passed (`testing/F27`). A Case recorded as `skipped` or left out is `unknown` in the result, and never counts as passed.
+- **Truth is only deterministic.** Owner's principle (5 Nov): truth must rest on hard deterministic facts, and an argument that is not deterministic is not truth. In this trial a **fact** is something anyone can re-derive from recorded inputs by a script or a test. Everything else is a **judgment**: it is recorded as judgment, with its reason and who made it, and is never worded as truth. Review's record and the checker's and CPO's assessments are judgments about usefulness. A Case that passes on judgment means "judged met by this person", not "true".
 - **Verification and validation stay apart.** Three Cases are deterministic and are re-run by anyone from the recorded inputs: `record-valid` (run `check-record` on the record), `cited-version` (the recorded hashes match the commit) and the effect diff behind `effects-declared`. The rest are the checker's judgment, recorded as judgment with the reason. `useful-for-validation` is judged by the checklist and the CPO's rating of usefulness, not by whether the record validated or no write occurred, not by how many defects Review found, and not by whether its verdict is right.
 - **Absence of writes is not a pass.** `effects-declared` and `writes-authorized` pass only when each observed effect is a declared one and each write has the target's authorization.
 - **Nothing is certified.** A failed Case returns to Review as a Finding. A Finding the checker confirms becomes a Defect in Review's context, in the shape of the Defect record (#991), with a RED Case in Review's own Defect Plan (`review/E7`). An unconfirmed Finding is answered with reasoning. The result is input to the Owner's decision and never a gate.
 
 ## Rubric for `useful-for-validation`
 
-Review validates: it helps decide whether the change serves its Intent. "Correct" is semantic judgment and is not a bar this trial can manage, so it is not scored. "Useful" can be: the checker applies a four-item checklist to the record, and the CPO, who would use the record, rates it. Testing fixes the checklist and what is recorded; the bar stays an Owner choice (see below).
+Review validates: it helps decide whether the change serves its Intent. "Correct" is semantic judgment and is not a bar this trial can manage, so it is not scored. "Useful" can be: the checker applies a four-item checklist to the record, and the CPO, who would use the record, rates it. Each item has a **deterministic part**, a fact a script re-derives (listed in the last column), and a **judged part**, recorded as judgment and never as truth. Testing fixes the checklist and what is recorded; the bar stays an Owner choice (see below).
 
 | Checklist item | Met when | Evidence the checker records |
 | --- | --- | --- |
@@ -57,7 +58,14 @@ Review validates: it helps decide whether the change serves its Intent. "Correct
 | U3 What to observe | The record leaves the person what to look at or decide next (`review/E6`). | The items. |
 | U4 Limits stated | The record says what it did not examine or could not judge, and makes no claim of "served", "not served" or "complete" about anything it did not examine. | The stated limits, and any claim made about something not examined (false certainty). |
 
-The CPO then rates the record: **useful** (it made the decision easier or showed something the CPO would not have had), **partly useful** (some of it did), or **not useful**. The rating comes with a reason. It is the CPO's, never the checker's, and it is not a judgment that Review's verdict is correct.
+| Item | Deterministic part (a fact; script or test) | Judged part (recorded as judgment) |
+| --- | --- | --- |
+| U1 | The record has an Intent section and quotes the Owner's stated Intent text unchanged. | The Owner recognizes the restatement. |
+| U2 | Every pointer in the record resolves to an existing path and line in the change; every Intent clause has at least one pointer or is listed as unaddressed. | That the pointers bear on the clause. |
+| U3 | The record has a non-empty to-observe list (`check-record`). | That the items help. |
+| U4 | The record has a non-empty limits list. | That no claim covers what was not examined. |
+
+The CPO then rates the record: **useful** (it made the decision easier or showed something the CPO would not have had), **partly useful** (some of it did), or **not useful**. The rating comes with a reason. It is the CPO's, never the checker's. It is a judgment of usefulness, recorded as judgment with its reason, and it is not a claim that Review's verdict is correct or true.
 
 Pass, fail and undecided for the Case:
 - **passed** only when every checklist item is met and the CPO's rating meets the precommitted option's line.

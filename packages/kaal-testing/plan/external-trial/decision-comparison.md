@@ -8,8 +8,10 @@ Review is validation and Testing is verification (Owner, 5 Nov). Judgment is sem
 
 ### Definitions used by every option
 
+- **Fact and judgment (Owner, 5 Nov).** Truth must rest on hard deterministic facts, and an argument that is not deterministic is not truth. A fact is what anyone can re-derive from recorded inputs by a script or a test. Everything else, including Review's record, the checker's reading and the CPO's rating, is a judgment, recorded as judgment with its reason and never worded as truth. A pass on judgment means "judged met by this person".
+
 - **Intent.** What the change is for, written by the Owner before Review runs, with what would show it is served.
-- **Checklist.** U1 the Intent is restated and the Owner recognizes it. U2 each Intent clause is traced to where the change bears on it. U3 the person is left what to observe or decide. U4 limits are stated, and nothing is claimed about what was not examined (false certainty fails U4).
+- **Checklist.** Each item has a deterministic part that a script re-derives (the Intent is quoted unchanged; every pointer resolves to a real path and line, and every Intent clause has a pointer or is listed as unaddressed; the to-observe and limits lists are non-empty) and a judged part. U1 the Intent is restated and the Owner recognizes it. U2 each Intent clause is traced to where the change bears on it. U3 the person is left what to observe or decide. U4 limits are stated, and nothing is claimed about what was not examined (false certainty fails U4).
 - **CPO rating.** Useful (it made the decision easier or showed something the CPO would not have had), partly useful, or not useful, with a reason. It is the CPO's rating, since the CPO would use the record, and it says nothing about whether the verdict is correct.
 - **Verification drift.** Defects or test results offered as the substance. Returned to Testing or the owning capability as input and never scored here.
 
