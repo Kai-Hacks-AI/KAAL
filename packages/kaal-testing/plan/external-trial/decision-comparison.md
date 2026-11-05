@@ -26,5 +26,5 @@ Facts, by the same neutral script on all three records: every `path:line` pointe
 ## Consequences
 
 - **Whether Review improved the result** is not a Case and has no pass line. It is argued by each seat and discussed with the Owner, and it never grants External readiness.
-- **Not over one or both.** The Case fails and returns to Review as a Finding. A Finding the CPO confirms becomes a Defect in Review's context with a RED Case in `review/E7`.
+- **A failed Case** (independence, arms, facts or effects) returns to Review as a Finding. A Finding the CPO confirms becomes a Defect in Review's context with a RED Case in `review/E7`.
 - **Undecided.** The Case stays `skipped`, reads as `unknown`, and is never a pass.
