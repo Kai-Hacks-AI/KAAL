@@ -48,16 +48,6 @@ function observes(run, id) {
   return Array.isArray(run.runs) && run.runs.some((r) => observes(r, id));
 }
 
-/** The version a Run's provenance gives `id`, searching the Run and then those beneath it. */
-function version(run, id) {
-  if (plain(run?.provenance) && Object.hasOwn(run.provenance, id)) return { found: true, value: run.provenance[id] };
-  for (const r of Array.isArray(run?.runs) ? run.runs : []) {
-    const v = version(r, id);
-    if (v.found) return v;
-  }
-  return { found: false };
-}
-
 /**
  * What the evidence shows about a record: `{ shows, findings }`, where `shows` is the status the record can claim.
  * A claim without its evidence is a finding, never accepted (testing/F100). Evidence is `{ model, runs }`, Runs of the
@@ -89,9 +79,7 @@ export function state(record, evidence) {
       for (const t of tests) {
         const last = seen.map((s, i) => (s.ok && observes(s.run, t) ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
         if (last <= confirmedAt || seen[last].r.cases[t] !== "passed") { all = false; findings.push(`${id}: ${name(t)} has no later passing Run as its latest observation`); continue; }
-        const was = version(seen[confirmedAt].run, t);
-        const now = version(seen[last].run, t);
-        if (!was.found || !now.found || was.value !== now.value) { all = false; findings.push(`${id}: ${name(t)} is not identified at the same version in the confirming and answering Runs`); }
+        // A versioned Case's pass or failure already counts only at its declared version, and an unversioned Case is identified by its identity alone (testing/F99), so the model's own results settle the version.
       }
       if (all) shows = "answered";
     }

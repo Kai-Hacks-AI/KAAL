@@ -14,7 +14,7 @@
     "lib/boundary.mjs": "e9b1f76d2e4c9fd8906a1db23f93f097a1fc9bf0f8a31b0cdd4e04caea7beff6",
     "lib/contracts.mjs": "3bcbfb30a8ab584bca3c878c21e311b6c63b9ed89721bf0d736e46742a4d0079",
     "lib/coverage.mjs": "62019496c99cf6348007d18b04fa7d29f102a0d11da61d29fd2d45b793428d19",
-    "lib/defect.mjs": "f2a523f86744be1cd557631915c8c4d16bfb43a3afefa25ef0cb8f99a5115c75",
+    "lib/defect.mjs": "27ddee8eb5fe224c846b641b5235c40a42bb13f6a579a035cfe65eccf02fc8dc",
     "lib/duplicates.mjs": "e670157307233521dee93c72ea64b0cdf4a05103bf7830c50cfcd9176ffb9ec4",
     "lib/inventory.mjs": "d644597786867e354c5fd954c2e8c71ba0477b4a39eb108624130f8ccf283b9f",
     "lib/model.mjs": "2a164079f041018bade86fb6f8e8b86bd5a1802f9c058f236af137c38d2007b1",

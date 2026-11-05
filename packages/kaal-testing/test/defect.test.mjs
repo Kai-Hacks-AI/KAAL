@@ -26,3 +26,18 @@ describe("defect (implementation)", () => {
     assert.ok(check(rec({ status: "confirmed", tests: ["c/T1", "c/T1"] })).length > 0);
   });
 });
+
+describe("defect versions (implementation)", () => {
+  it("answers across a nested Run whose child overrides inherited provenance", () => {
+    const answered = rec({ status: "answered", tests: ["c/T1"] });
+    const nested = { id: "r2", of: "P", provenance: { P: null, "c/T1": "old" }, runs: [{ id: "r3", of: "S", provenance: { S: null, "c/T1": "1" }, outcomes: { "c/T1": "passed" } }] };
+    assert.equal(state(answered, { model, runs: [run("r1", "failed"), nested] }).shows, "answered");
+  });
+
+  it("identifies an unversioned Case by identity alone", () => {
+    const plain = { ...model, cases: [{ id: "c/T1", tests: ["c/D1"] }] };
+    const at = (id, v, outcome) => ({ id, of: "P", provenance: { P: null, S: null, "c/T1": v }, outcomes: { "c/T1": outcome } });
+    const answered = rec({ status: "answered", tests: ["c/T1"] });
+    assert.equal(state(answered, { model: plain, runs: [at("r1", "1", "failed"), at("r2", "2", "passed")] }).shows, "answered");
+  });
+});
