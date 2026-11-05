@@ -17,6 +17,16 @@ const unknown = (reason) => {
   process.exit(2);
 };
 
+// A run never re-enters itself (testing/F103): the run entry is level 1, and its children inherit the marker.
+try {
+  const { guard } = await import("../lib/reentry.mjs");
+  const entry = guard(process.env, 1);
+  if (!entry.entered) unknown(entry.findings.join("; "));
+  Object.assign(process.env, entry.env);
+} catch (e) {
+  unknown(`the re-entry guard cannot be applied (${e.code ?? e.message})`);
+}
+
 let scripts;
 try {
   scripts = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts ?? {};

@@ -11,6 +11,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "kaal-hosting";
 
+const REENTRY = readFileSync(join(resolve(dirname(fileURLToPath(import.meta.url))), "..", "lib", "reentry.mjs"));
 const VERIFY = readFileSync(join(resolve(dirname(fileURLToPath(import.meta.url))), "verify.mjs"));
 const PREFIX = "kaal-testing-verification ";
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -41,6 +42,8 @@ async function verify(embed, declared) {
     mkdirSync(join(pkg, "test", "embed"), { recursive: true });
     writeFileSync(join(pkg, "package.json"), JSON.stringify({ name: "fx", version: "0.0.1", type: "module" }));
     writeFileSync(join(pkg, "test", "verify.mjs"), VERIFY);
+    mkdirSync(join(pkg, "lib"), { recursive: true });
+    writeFileSync(join(pkg, "lib", "reentry.mjs"), REENTRY);
     for (const [name, source] of Object.entries(embed)) writeFileSync(join(pkg, "test", "embed", name), source);
     const hashes = Object.fromEntries(files(pkg).map((p) => [p, sha256(readFileSync(join(pkg, p)))]));
     const model = { cases: declared.map((id) => ({ id, tests: ["fx/F1"] })) };

@@ -24,9 +24,13 @@ async function runWith({ scripts, packageJson, args = [] }) {
     mkdirSync(join(root, "node_modules"));
     symlinkSync(HOSTING, join(root, "node_modules", "kaal-hosting"), "junction");
     cpSync(join(PACKAGE, "test", "run.mjs"), join(root, "test", "run.mjs"));
+    mkdirSync(join(root, "lib"), { recursive: true });
+    cpSync(join(PACKAGE, "lib", "reentry.mjs"), join(root, "lib", "reentry.mjs"));
     if (packageJson !== undefined) writeFileSync(join(root, "package.json"), packageJson);
     else if (scripts) writeFileSync(join(root, "package.json"), JSON.stringify({ name: "fixture", private: true, scripts }));
-    const r = await execute("node", [join(root, "test", "run.mjs"), ...args], { cwd: root });
+    // The fixture is a fresh top-level run, not a re-entry of the run that is testing it (testing/F103).
+    const { KAAL_TESTING_RUN, ...env } = process.env;
+    const r = await execute("node", [join(root, "test", "run.mjs"), ...args], { cwd: root, env });
     return { status: r.status, out: `${r.stdout}${r.stderr}` };
   } finally {
     rmSync(root, { recursive: true, force: true });

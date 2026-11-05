@@ -79,6 +79,7 @@ describe("kaal-testing", () => {
       "lib/model.mjs",
       "lib/observed.mjs",
       "lib/redesign.mjs",
+      "lib/reentry.mjs",
       "lib/report.mjs",
       "lib/reporter.mjs",
       "lib/timing.mjs",
