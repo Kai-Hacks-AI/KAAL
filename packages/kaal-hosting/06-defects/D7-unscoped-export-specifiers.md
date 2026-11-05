@@ -32,3 +32,7 @@ Host-fact and request identifiers such as `kaal-hosting/special-entries` and `ka
 ## Bounds and correction
 
 Nothing is fixed here. The correction is the three specifiers in HOSTS.md, in the one separate Hosting Change with hosting/D5, hosting/D6 and the digest interface; it changes a committed path, so the ledger is refreshed once. Engineering owns the overarching migration Defect and the remaining capabilities' inner-loop corrections; this record is only Hosting's own piece.
+
+## Successor Cases
+
+Under the Owner's ruling of 5 November 2026, hosting/T108 and hosting/T109 are superseded by hosting/T140 to hosting/T142 in [unscoped-specifiers.successor.mjs](unscoped-specifiers.successor.mjs). A Defect record, this one included, may quote the unscoped names as evidence; shipped guidance may not. The old file is unchanged; see `00-changes/defect-corrections/d7-successor-record.md` for the old and new wording side by side.
