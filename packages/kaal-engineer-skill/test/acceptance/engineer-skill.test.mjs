@@ -120,7 +120,10 @@ describe("the shipped Agent Skill", () => {
   it("reads through the installed kaal-hosting", () => {
     const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
     assert.deepEqual(pkg.dependencies, { commonmark: "0.31.2", "@kaihacksai/kaal-hosting": "0.0.1", yaml: "2.9.1" });
-    assert.ok(existsSync(join(host, "node_modules", "@kaihacksai/kaal-hosting", "dist", "index.js")));
+    // Through the package's own declared entry, so the Hosting layout is not hard-coded here.
+    const hosting = join(host, "node_modules", "@kaihacksai", "kaal-hosting");
+    const entry = JSON.parse(readFileSync(join(hosting, "package.json"), "utf8")).exports["."].default;
+    assert.ok(existsSync(join(hosting, entry)), `the installed Hosting ships no ${entry}`);
   });
 
   it("names no host skills location", () => {
