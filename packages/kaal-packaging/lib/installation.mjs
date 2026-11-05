@@ -35,8 +35,11 @@ const LEGACY_MANIFEST = "test/verify.json";
 const EXACT = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const CODE = /\.(mjs|cjs|js|ts)$/;
 /** The one name this module exists to find in another package's code, composed so no package name is a literal here. */
-const OWN_IMPORT = new RegExp(`from\\s+["']|import\\(\\s*["']|require\\(\\s*["']`);
 const OWN_NAME = ["kaal", "packaging"].join("-");
+/** The specifier of every static import, re-export, dynamic import and require in a source text. */
+const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/g;
+const OWN_SPECIFIER = new RegExp(`(^|/)${OWN_NAME}(/|$)`);
+const importsOwn = (code) => [...code.matchAll(SPECIFIER)].some((m) => OWN_SPECIFIER.test(m[1]));
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 
@@ -160,7 +163,7 @@ async function installation(dir, { resolve }) {
     if (!CODE.test(path) || at.get(path) !== "file") continue;
     try {
       const code = await text(join(dir, path));
-      if (code.includes(OWN_NAME) && OWN_IMPORT.test(code) && new RegExp(`["'][^"']*${OWN_NAME}[^"']*["']`).test(code)) add("imports-packaging", path);
+      if (importsOwn(code)) add("imports-packaging", path);
     } catch {
       // Already reported as unreadable above.
     }
@@ -194,7 +197,9 @@ function readSelf(name, execution) {
       try {
         const body = JSON.parse(j[1]);
         printed = body.result;
-        zero = body.cases === 0 || body.executed === 0;
+        // `cases` is a count in some verifiers and an array of outcomes in others; either way none executed is zero.
+        const ran = Array.isArray(body.cases) ? body.cases.filter((c) => c?.outcome === "pass" || c?.outcome === "fail").length : body.cases;
+        zero = ran === 0 || body.executed === 0;
       } catch {
         printed = undefined;
       }

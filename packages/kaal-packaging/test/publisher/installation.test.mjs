@@ -255,6 +255,24 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.notEqual(r.result, "verified");
   });
 
+  it("T125b only an import of Packaging is a boundary finding; its name in a string or message is not (Codex, #1063)", async () => {
+    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nconst why = "kaal-packaging is not installed";\n' } });
+    const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+    assert.ok(!kinds(r).includes("imports-packaging"));
+    for (const code of ['export * from "@kaihacksai/kaal-packaging/lib";\n', 'const m = await import("kaal-packaging");\n', 'const m = require("kaal-packaging");\n']) {
+      const bad = layout({ extra: { "dist/skills/fixture/scripts/own.mjs": code } });
+      assert.ok(kinds(await verifyInstalled(bad, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"), code);
+    }
+  });
+
+  it("T119b a self check whose cases array is empty, or has no executed case, is never verified (Codex, #1063)", async () => {
+    for (const cases of ["[]", '[{"name":"a","outcome":"todo"}]']) {
+      const out = `kaal-fixture-verification {"result":"verified","exit":0,"cases":${cases},"causes":[]}\n`;
+      const r = await verifyInstalled(layout(), { run: runner(0, out), resolve: noRecord });
+      assert.notEqual(r.result, "verified", cases);
+    }
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");
