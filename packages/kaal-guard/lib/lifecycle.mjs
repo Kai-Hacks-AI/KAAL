@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CONFIG, shown, SURFACES } from "./config.mjs";
+import { CONFIG, Refusal, shown, SURFACES } from "./config.mjs";
 import { declarations, step, uncovered } from "./github.mjs";
 import { deleteRecord, deleteState, git, prune, RECORD, writeRecord, writeState } from "./state.mjs";
 
@@ -231,12 +231,44 @@ function hooksPath(root, { assets, state, at, installed, untouched, todo }) {
   }
 }
 
+/** The earlier versions this release declares it supports moving from (F42), checked against the declaration by guard/T140. */
+export const SOURCES = ["0.0.2", "0.0.3", "0.0.4"];
+
+/** A version's number as an array, or undefined where it is not major.minor.patch (a pre-release suffix is ignored). */
+const numbers = (version) => (/^\d+\.\d+\.\d+$/.test(String(version).split("-")[0]) ? String(version).split("-")[0].split(".").map(Number) : undefined);
+const before = (a, b) => {
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i];
+  return false;
+};
+
+/**
+ * The versions the record registers that this release does not support moving from (F42): an earlier
+ * version it does not declare, or one that is not a version at all. The installed one, a later one
+ * (a rollback, F16) and each declared source are supported.
+ */
+function unsupported(record) {
+  const own = numbers(VERSION);
+  return [...new Set(Object.values(record.assets).map((entry) => entry.version))].filter((version) => {
+    const n = numbers(version);
+    if (!n) return true;
+    return before(n, own) && !SOURCES.includes(n.join("."));
+  });
+}
+
 /**
  * Moves each registered, unmodified asset to this version's content and registers this version for it;
  * installs an asset this version adds only to a surface the record shows activated (F13), and never
  * activates one (F30); reports and keeps everything else. Returns { lines }, one per managed path.
  */
 export function upgrade(root, { record, declared }) {
+  // F42: before anything is written, a source version this release does not declare is cannot judge.
+  const refused = unsupported(record);
+  if (refused.length) {
+    throw new Refusal(
+      `the installation record names Guard ${refused.join(", ")}, and ${VERSION} declares no upgrade path from ${refused.length === 1 ? "it" : "them"}; it declares ${SOURCES.join(", ")}`,
+      `install one of ${SOURCES.join(", ")} of @kaihacksai/kaal-guard, run kaal-guard upgrade, then install ${VERSION} and run it again; or set up Guard fresh as the release notes describe (guard/F42)`,
+    );
+  }
   const assets = { ...record.assets };
   const own = theirs(declared, assets);
   const lines = [];
