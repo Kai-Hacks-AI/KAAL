@@ -40,17 +40,50 @@ const CODE = /\.(mjs|cjs|js|ts)$/;
 /** The one name this module exists to find in another package's code, composed so no package name is a literal here. */
 const OWN_NAME = ["kaal", "packaging"].join("-");
 const OWN_SPECIFIER = new RegExp(`(^|/)${OWN_NAME}(/|$)`);
-/** Splits a source text into words, strings (quotes and template literals kept whole) and punctuation; comments are dropped. */
-function tokens(code) {
+/** Words after which a slash begins a regular expression rather than a division. */
+const BEFORE_REGEX = /^(?:return|typeof|instanceof|in|of|new|delete|void|throw|case|do|else|yield|await)$/;
+/**
+ * Splits a source text into words, strings and punctuation. Comments and regular expression literals are dropped, quoted
+ * strings are kept whole, and the executable expressions inside a template literal are tokenized in place while its
+ * literal text is ignored. Returns the tokens and where reading stopped (after the closing brace when `inBraces`).
+ */
+function scan(code, start = 0, inBraces = false) {
   const out = [];
-  for (let i = 0; i < code.length; ) {
+  let depth = 0;
+  let i = start;
+  while (i < code.length) {
     const c = code[i];
+    const last = out[out.length - 1];
     if (c === "/" && code[i + 1] === "/") {
       while (i < code.length && code[i] !== "\n") i++;
     } else if (c === "/" && code[i + 1] === "*") {
       const end = code.indexOf("*/", i + 2);
       i = end === -1 ? code.length : end + 2;
-    } else if (c === '"' || c === "'" || c === "`") {
+    } else if (c === "/" && (!last || (last.type === "punct" && !")]}".includes(last.value)) || (last.type === "word" && BEFORE_REGEX.test(last.value)))) {
+      let j = i + 1;
+      let inClass = false;
+      while (j < code.length && code[j] !== "\n" && (inClass || code[j] !== "/")) {
+        if (code[j] === "\\") j++;
+        else if (code[j] === "[") inClass = true;
+        else if (code[j] === "]") inClass = false;
+        j++;
+      }
+      i = j + 1;
+      while (i < code.length && /[A-Za-z]/.test(code[i])) i++;
+      out.push({ type: "punct", value: "/" });
+    } else if (c === "`") {
+      let j = i + 1;
+      while (j < code.length && code[j] !== "`") {
+        if (code[j] === "\\") j += 2;
+        else if (code[j] === "$" && code[j + 1] === "{") {
+          const inner = scan(code, j + 2, true);
+          out.push(...inner.tokens);
+          j = inner.end;
+        } else j++;
+      }
+      out.push({ type: "string", value: "" });
+      i = j + 1;
+    } else if (c === '"' || c === "'") {
       let j = i + 1;
       while (j < code.length && code[j] !== c) j += code[j] === "\\" ? 2 : 1;
       out.push({ type: "string", value: code.slice(i + 1, j) });
@@ -61,12 +94,16 @@ function tokens(code) {
       out.push({ type: "word", value: code.slice(i, j) });
       i = j;
     } else {
+      if (inBraces && c === "}" && depth === 0) return { tokens: out, end: i + 1 };
+      if (c === "{") depth++;
+      if (c === "}") depth--;
       if (!/\s/.test(c)) out.push({ type: "punct", value: c });
       i++;
     }
   }
-  return out;
+  return { tokens: out, end: i };
 }
+const tokens = (code) => scan(code).tokens;
 /** The specifier of every static import, dynamic import and require call, read from tokens, never from inside a string. */
 function specifiers(code) {
   const t = tokens(code);

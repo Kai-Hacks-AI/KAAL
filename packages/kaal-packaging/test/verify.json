@@ -14,7 +14,7 @@
     "lib/conformance.d.ts": "cd7faf3a1b49ad3a566c29d884513f84f03c605b0b70a98fd5563006d00b5000",
     "lib/conformance.mjs": "ab90bdd8ad20df354de28766453af7b8be5401e3e2b1b2567eaa6cf6268d8ffd",
     "lib/host.mjs": "078658b4b964139b39a6f5e7e8ef7c7bcf31c21ae3d67f5286a92d1df2b46657",
-    "lib/installation.mjs": "afeb07e67a36cd303791e5bea77872fab7f7f7b16bfc5faf4ab2a9d38db1d7fa",
+    "lib/installation.mjs": "9d980a7103d7a54696fff2e07a7a534d1783cf77f8d0818c63e9233aecadb628",
     "lib/npm/realization.mjs": "6ae31f68e81be5f64a234f7fb3d43d647e08da45701708e8c202134685d386d3",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",

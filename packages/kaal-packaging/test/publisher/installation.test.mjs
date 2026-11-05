@@ -362,6 +362,14 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.ok(!kinds(await verifyInstalled(strings, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
   });
 
+  it("T125e a regular expression literal is not an import, and an import inside a template interpolation is (Codex, #1063)", async () => {
+    const own = ["kaal", "packaging"].join("-");
+    const regex = layout({ extra: { "dist/skills/fixture/scripts/s.mjs": `const re = /import "${own}"/;\nconst r2 = /[/]import "${own}"/g;\n` } });
+    assert.ok(!kinds(await verifyInstalled(regex, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+    const tmpl = layout({ extra: { "dist/skills/fixture/scripts/s.mjs": "const text = `${await import(\"" + own + "\")}`;\n" } });
+    assert.ok(kinds(await verifyInstalled(tmpl, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");
