@@ -302,6 +302,13 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.ok(!kinds(bad).includes("prerequisite-not-exact"), "metadata is not a range");
   });
 
+  it("T119c only the package's own result line counts: another package's verification output is not its self check (Codex, #1063)", async () => {
+    const other = 'other-package-verification {"result":"verified","exit":0,"cases":[{"name":"a","outcome":"pass"}],"causes":[]}\n';
+    const r = await verifyInstalled(layout(), { run: runner(0, other), resolve: noRecord });
+    assert.notEqual(r.result, "verified");
+    assert.equal(r.self, "unknown");
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");

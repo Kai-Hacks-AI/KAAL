@@ -196,10 +196,10 @@ function readSelf(name, execution) {
   let printed;
   let zero = false;
   for (const line of String(execution.stdout).split(/\r?\n/)) {
-    const j = /^\S+-verification (\{.*\})$/.exec(line);
-    if (j) {
+    const j = /^(\S+)-verification (\{.*\})$/.exec(line);
+    if (j && (j[1] === name || j[1] === name.split("/").pop())) {
       try {
-        const body = JSON.parse(j[1]);
+        const body = JSON.parse(j[2]);
         printed = body.result;
         // `cases` is a count in some verifiers and an array of outcomes in others; either way none executed is zero.
         const ran = Array.isArray(body.cases) ? body.cases.filter((c) => c?.outcome === "pass" || c?.outcome === "fail").length : body.cases;
