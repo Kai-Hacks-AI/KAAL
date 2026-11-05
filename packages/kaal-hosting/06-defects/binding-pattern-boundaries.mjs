@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T179: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T183: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -44,6 +44,11 @@ for (const [id, what, body] of finding) {
   });
 }
 
+// A use outside the shadowing scope is still the import.
+test("hosting/T184: a use beside a shadowing scope is still a finding", async () => {
+  assert.equal(await found("function f() { const host = 1; }\nconst x = host();"), 1);
+});
+
 const local = [
   ["T151", "a destructured parameter followed by another destructured parameter", 'function f({ host = "default" }, {}) {}'],
   ["T152", "a destructured parameter followed by a callback default", 'function f({ host = "default" }, cb = () => {}) {}'],
@@ -64,6 +69,10 @@ const local = [
   ["T176", "an ordinary local declaration of the same name", 'function f() { const host = "default"; }'],
   ["T178", "a local type alias and an annotation that uses it", "function f() { type host = string; let value: host[]; }"],
   ["T179", "an implements clause naming the same name", "function f() { interface host {} function g() { class C implements host {} } }"],
+  ["T180", "a call to a local function of the same name", "function f() { const host = () => 1; return host(); }"],
+  ["T181", "a reference to a parameter of the same name", "function f(host) { return host(); }"],
+  ["T182", "a reference to a hoisted var and to a catch binding", "function f() { host(); var host = () => 1; }\nfunction g() { try {} catch (host) { host(); } }"],
+  ["T183", "a reference to a loop binding and to a named function expression", "for (const host of list) { host(); }\nconst k = function host() { return host; };"],
   ["T177", "a nested function and a simple parameter of the same name", "function outer() { function host() {} }\nfunction g(host) {}"],
 ];
 for (const [id, what, body] of local) {

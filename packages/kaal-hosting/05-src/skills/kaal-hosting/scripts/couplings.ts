@@ -465,13 +465,61 @@ function declaresOrNames(node: ts.Identifier): boolean {
   return false;
 }
 
+/** Whether a binding name or pattern declares `name`. */
+function bindsName(target: ts.BindingName, name: string): boolean {
+  if (ts.isIdentifier(target)) return target.text === name;
+  return target.elements.some((e) => !ts.isOmittedExpression(e) && bindsName(e.name, name));
+}
+
+/** Whether a `var` declaration of `name` sits in a function body, outside nested functions (it hoists to the function). */
+function hoistsVar(node: ts.Node, name: string): boolean {
+  if (ts.isVariableDeclarationList(node) && !(node.flags & ts.NodeFlags.BlockScoped) && node.declarations.some((d) => bindsName(d.name, name))) return true;
+  let found = false;
+  ts.forEachChild(node, (child) => {
+    if (!found && !ts.isFunctionLike(child) && !ts.isClassLike(child)) found = hoistsVar(child, name);
+  });
+  return found;
+}
+
+/** Whether a statement list declares `name` in block scope: let, const, a function, a class or an enum. */
+function declaresInBlock(statements: ts.NodeArray<ts.Statement>, name: string): boolean {
+  return statements.some((st) => {
+    if (ts.isVariableStatement(st)) return !!(st.declarationList.flags & ts.NodeFlags.BlockScoped) && st.declarationList.declarations.some((d) => bindsName(d.name, name));
+    if (ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st) || ts.isEnumDeclaration(st)) return st.name?.text === name;
+    return false;
+  });
+}
+
+/** Whether a lexical scope between a use and the top of the source declares `name` itself, so the use is not the import. */
+function shadowed(node: ts.Identifier): boolean {
+  const name = node.text;
+  for (let n: ts.Node | undefined = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+    if (ts.isFunctionLike(n)) {
+      if (n.parameters.some((p) => bindsName(p.name, name))) return true;
+      if (ts.isFunctionExpression(n) && n.name?.text === name) return true;
+      const body = (n as ts.FunctionLikeDeclaration).body;
+      if (body && hoistsVar(body, name)) return true;
+    } else if (ts.isBlock(n) || ts.isModuleBlock(n)) {
+      if (declaresInBlock(n.statements, name)) return true;
+    } else if (ts.isCaseBlock(n)) {
+      if (n.clauses.some((c) => declaresInBlock(c.statements, name))) return true;
+    } else if (ts.isForStatement(n) || ts.isForInStatement(n) || ts.isForOfStatement(n)) {
+      const init = n.initializer;
+      if (init && ts.isVariableDeclarationList(init) && (init.flags & ts.NodeFlags.BlockScoped) && init.declarations.some((d) => bindsName(d.name, name))) return true;
+    } else if (ts.isCatchClause(n)) {
+      if (n.variableDeclaration && bindsName(n.variableDeclaration.name, name)) return true;
+    } else if (ts.isClassExpression(n) && n.name?.text === name) return true;
+  }
+  return false;
+}
+
 /** The offsets of each name's uses in a source: every identifier of that name that is neither a declaration nor a property name. */
 function identifierUses(code: string, names: string[]): Map<string, number[]> {
   const wanted = new Set(names);
   const out = new Map<string, number[]>();
   const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const visit = (node: ts.Node): void => {
-    if (ts.isIdentifier(node) && wanted.has(node.text) && !declaresOrNames(node)) {
+    if (ts.isIdentifier(node) && wanted.has(node.text) && !declaresOrNames(node) && !shadowed(node)) {
       // A name followed by `:`, `,` or `}` is a key, a listed name or a shorthand entry, and `as` renames it (hosting/F28).
       const next = /^\s*(?:[:,}]|as\b)/.test(code.slice(node.end, node.end + 12));
       if (!next) (out.get(node.text) ?? out.set(node.text, []).get(node.text)!).push(node.getStart(file));
