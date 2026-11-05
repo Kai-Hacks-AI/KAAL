@@ -172,7 +172,7 @@ export function frontmatter(text, file) {
     if (key in members) throw new Refusal(`${file}: ${key}: declared twice`, `keep one ${key} line`);
     if (raw.trim() === "") throw new Refusal(`${file}: ${key}: has no value on its line; block-style YAML is outside Guard's subset`, `write ${key}'s whole value on its own line, such as ${key}: [a, b]`);
     const v = value(raw.trim());
-    if (v.problem) throw new Refusal(`${file}: ${key}: ${v.problem}`, 'write the value as a plain or double-quoted string, an integer, [a, b] or {"4": held}');
+    if (v.problem) throw new Refusal(`${file}: ${key}: ${v.problem}`, 'write the value as a plain or double-quoted string, an integer, or a list such as [a, b] or held: [4]');
     members[key] = v.value;
   }
   return members;
@@ -208,13 +208,24 @@ const SCHEMA = {
   trusted: (v, at) => {
     if (!safePath(v)) throw new Refusal(`${at}: trusted: must be a string naming a file or directory inside the repository`, "name the checker's path from the repository root, without ..");
   },
-  outcomes: (v, at) => {
-    const ok = v && typeof v === "object" && !Array.isArray(v) && Object.entries(v).every(([s, o]) => /^\d+$/.test(s) && Number(s) <= 255 && !OWN.has(Number(s)) && o === "held");
-    if (!ok) throw new Refusal(`${at}: outcomes: may only name a further exit status, "4" to "255", as held`, 'write outcomes: {"4": held}');
-    // A key is an exit status in canonical decimal (F2): "04" or "+4" would never match exit 4.
-    for (const s of Object.keys(v)) {
-      if (String(Number(s)) !== s) throw new Refusal(`${at}: outcomes: "${s}" is not an exit status in canonical decimal; did you mean "${Number(s)}"?`, `write outcomes: {"${Number(s)}": held}`);
+  held: (v, at) => {
+    const bad = (why) => new Refusal(`${at}: held: ${why}`, "write held: [4], a list of further exit statuses, 4 to 255, each once");
+    if (!Array.isArray(v) || !v.length) throw bad("must be a list of integers, such as held: [4]");
+    for (const s of v) {
+      if (!Number.isInteger(s)) throw bad(`${JSON.stringify(s)} is not an integer exit status`);
+      if (OWN.has(s)) throw bad(`${s} is a status Guard reserves for its own verdicts; name 4 to 255`);
+      if (s < 4 || s > 255) throw bad(`${s} is not an exit status from 4 to 255`);
     }
+    if (new Set(v).size !== v.length) throw bad("names a status twice");
+  },
+  // Not a member of Guard/Check from 0.0.5 (guard/C130): kept in the schema only to be refused, with the line to write.
+  outcomes: (v, at) => {
+    const statuses = v && typeof v === "object" && !Array.isArray(v) && Object.values(v).every((o) => o === "held")
+      ? Object.keys(v).filter((s) => INTEGER.test(s)).map(Number).filter((n) => n >= 4 && n <= 255)
+      : [];
+    const unique = [...new Set(statuses)].sort((a, b) => a - b);
+    const write = unique.length && unique.length === Object.keys(v).length ? `held: [${unique.join(", ")}]` : "held: [4]";
+    throw new Refusal(`${at}: outcomes: is not a member of ${TYPE}; held replaces it`, `replace the outcomes line with ${write}, a list of the further exit statuses that are held`);
   },
 };
 const REQUIRED = ["type", "command", "runs"];
@@ -223,6 +234,9 @@ const REQUIRED = ["type", "command", "runs"];
 export function check(members, at) {
   for (const member of Object.keys(members)) if (!(member in SCHEMA)) throw undefinedMember(at, member, Object.keys(SCHEMA), TYPE);
   for (const member of REQUIRED) if (!(member in members)) throw new Refusal(`${at}: ${member}: missing; ${TYPE} requires ${REQUIRED.join(", ")}`, `add a ${member} line to the frontmatter`);
+  if ("outcomes" in members && "held" in members) {
+    throw new Refusal(`${at}: outcomes: and held: are both declared; ${TYPE} has held only, even when the two agree`, "delete the outcomes line and keep held: [4], a list of the further exit statuses that are held");
+  }
   for (const [member, v] of Object.entries(members)) SCHEMA[member](v, at);
   const { type, ...rest } = members;
   return rest;

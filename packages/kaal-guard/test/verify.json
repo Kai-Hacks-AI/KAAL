@@ -24,10 +24,11 @@
     "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T74 [guard/F17, guard/F10, guard/F30, guard/N4]: without --hook or --ci, init activates neither integration, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step",
     "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T75 [guard/F17, guard/F8]: init --ci installs Guard's workflow only where no workflow of the consumer's declares a check or verify, and never changes one",
     "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
-    "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
+    "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
     "test/acceptance/requirements.test.mjs > guard/F19 [guard/I7] Guard's Skill > guard/T45 [guard/F19, guard/A13, guard/N11]: the packed package carries skills/kaal-guard/SKILL.md, named kaal-guard, with BASS sections and no script, and names no consumer",
-    "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
-    "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: an outcomes key 04, +4 or 256 is refused as cannot judge, naming the canonical form, and 4 names exit 4 as held",
+    "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: a held status 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
+    "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused",
+    "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: a held status written 04, +4 or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held",
     "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] verdicts > guard/T7 [guard/F2]: names every exit status by its own verdict and never collapses one into another",
     "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
     "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T48 [guard/F21]: a run of only pass, not applicable or held adds no reminder",
@@ -61,7 +62,7 @@
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] Guard's workflow > guard/T87 [guard/F5, guard/N1, guard/D9]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line",
     "test/acceptance/requirements.test.mjs > guard/F6 [guard/I3] narrow adapters > guard/T14 [guard/F6, guard/A4]: the hook follows the declarations without being changed, and names no check",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+    "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
     "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
@@ -296,6 +297,9 @@
     "guard/F42": {
       "Architecture": [
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it"
+      ],
+      "Requirements": [
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused"
       ]
     },
     "guard/A21": {
@@ -370,9 +374,10 @@
         "test/acceptance/requirements.test.mjs > guard/F10 [guard/I2] no silent gate > guard/T24 [guard/F10]: verify fails on a ci check that no workflow job names (static configuration coverage only)",
         "test/acceptance/requirements.test.mjs > guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows > guard/T89 [guard/F10, guard/F17, guard/N4, guard/D11]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace",
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
-        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: an outcomes key 04, +4 or 256 is refused as cannot judge, naming the canonical form, and 4 names exit 4 as held",
+        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: a held status 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: a held status written 04, +4 or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] verdicts > guard/T7 [guard/F2]: names every exit status by its own verdict and never collapses one into another",
         "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
         "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T48 [guard/F21]: a run of only pass, not applicable or held adds no reminder",
@@ -387,7 +392,7 @@
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T13 [guard/F5, guard/A5]: reports held as a warning, never as a pass, with the check's own explanation visible",
         "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] Guard's workflow > guard/T87 [guard/F5, guard/N1, guard/D9]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
@@ -427,7 +432,7 @@
         "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T74 [guard/F17, guard/F10, guard/F30, guard/N4]: without --hook or --ci, init activates neither integration, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step",
         "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T75 [guard/F17, guard/F8]: init --ci installs Guard's workflow only where no workflow of the consumer's declares a check or verify, and never changes one",
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
-        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
+        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
         "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
         "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T48 [guard/F21]: a run of only pass, not applicable or held adds no reminder",
         "test/acceptance/requirements.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T82 [guard/F21, guard/F23, guard/A15]: after a standalone init deploys the Skill, a failing and a cannot-judge local run's reminder names the deployed .agents/skills/kaal-guard/SKILL.md, not the package's copy, and with --github so do the annotations and the step summary",
@@ -436,7 +441,7 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
@@ -454,7 +459,7 @@
         "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T74 [guard/F17, guard/F10, guard/F30, guard/N4]: without --hook or --ci, init activates neither integration, reports each ci check no job declares with the step to add and init --ci, and verify fails on it with the same step",
         "test/acceptance/requirements.test.mjs > guard/F17 [guard/I1, guard/I5] CI responsibility > guard/T75 [guard/F17, guard/F8]: init --ci installs Guard's workflow only where no workflow of the consumer's declares a check or verify, and never changes one",
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
-        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
+        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
         "test/acceptance/requirements.test.mjs > guard/F23 [guard/I5, guard/I7] standalone installation > guard/T50 [guard/F23, guard/F24, guard/N10, guard/A14]: standalone init in a fresh repository installs the Skill only at .agents/skills/kaal-guard/, byte-identical to its catalogued content and equal to the package's source",
         "test/acceptance/requirements.test.mjs > guard/F23 [guard/I5, guard/I7] standalone installation > guard/T51 [guard/F23, guard/F8, guard/A14]: init keeps a pre-existing .agents/skills/kaal-guard/SKILL.md, reports it, and installs no other Skill file",
         "test/acceptance/requirements.test.mjs > guard/F23 [guard/I5, guard/I7] standalone installation > guard/T52 [guard/F23, guard/F12, guard/A14]: upgrade moves unmodified Skill files forward and keeps a modified one; remove deletes only unmodified Skill files and the directories it emptied, and leaves other skills in .agents/skills/ untouched",
@@ -487,7 +492,8 @@
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F1 [guard/I1] check list > guard/T6 [guard/F1]: runs the hook checks for the hook and only the named check for CI",
         "test/acceptance/requirements.test.mjs > guard/F1 [guard/I1] declarations > guard/T61 [guard/F1, guard/A1, guard/A2]: a check declared as <name>.md in its configuration directory runs with the meaning of its frontmatter, and its body changes no verdict and no order",
-        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}"
+        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused"
       ]
     },
     "guard/A1": {
@@ -530,7 +536,7 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
         "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
         "test/acceptance/requirements.test.mjs > guard/N2 to guard/N4 > guard/T25 [guard/N2]: the same run twice prints the same verdicts",
@@ -566,17 +572,19 @@
     "guard/F18": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T62 [guard/F18, guard/F10, guard/N4]: an undefined member, a wrong type or frontmatter outside the subset, in a declaration or in Guard's state, is cannot judge, named, and nothing is written",
-        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: an outcomes key 04, +4 or 256 is refused as cannot judge, naming the canonical form, and 4 names exit 4 as held",
+        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: a held status 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: a held status written 04, +4 or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook"
       ]
     },
     "guard/F2": {
       "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {\"4\": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {\"4\": held}",
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: an outcomes key 04, +4 or 256 is refused as cannot judge, naming the canonical form, and 4 names exit 4 as held",
+        "test/acceptance/requirements.test.mjs > guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract > guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: a held status 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused",
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: a held status written 04, +4 or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] verdicts > guard/T7 [guard/F2]: names every exit status by its own verdict and never collapses one into another"
       ]
     },
@@ -613,7 +621,7 @@
     },
     "guard/D13": {
       "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: an outcomes key 04, +4 or 256 is refused as cannot judge, naming the canonical form, and 4 names exit 4 as held"
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18, guard/D13]: a held status written 04, +4 or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held"
       ]
     },
     "guard/F22": {
@@ -756,7 +764,7 @@
     "guard/F7": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T97 [guard/F7]: a check the base does not declare, and a changed check the base declares without trusted, run as the candidate declares them; an unchanged trusted check runs its base checker",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T99 [guard/F7, guard/F10, guard/N4]: a base that resolves to no commit here is cannot judge for every check, naming the base, and nothing runs",
@@ -770,7 +778,7 @@
     "guard/D16": {
       "Requirements": [
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T94 [guard/F7, guard/N4, guard/D16]: a candidate that drops trusted from a trusted check's declaration is cannot judge, names the check, says to land the declaration change on its own, and its checker never runs",
-        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs",
+        "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs",
         "test/acceptance/requirements.test.mjs > guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the base (guard/C76) > guard/T96 [guard/F7, guard/N4, guard/D16]: a candidate that deletes a trusted check's declaration is cannot judge, naming the check, and the run does not pass"
       ]
     },
@@ -866,22 +874,22 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "21761d1672d8fb8262d79e3919a16b8cb626b67780bb5d3af94180e764423e43",
+    "README.md": "6700b51720b9c003a873846008c0a6f2de1000d370451ea3a6b9d544b05af8d4",
     "bin/kaal-guard.mjs": "f1b4d4d02097db6e4cb99f594dc6d8b7499c94ad52f2afbc6ffda947101d4e70",
     "contract.json": "6f334cc83897094a4a234c841a87abc8d87a7816c5ded8aeb5a55d0af2ac823e",
     "docs/architecture.md": "5b928d1b6be389ae250e392a521ba4c27c7b95ab008b826ac584df0c69e5c062",
     "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
-    "docs/limitations.md": "4a71dd12331270c3dccec5f6baf794c11d7dc78fd750a0d7dc50a64da89da948",
-    "docs/requirements.md": "7f8d9fc11cb846dd339c0649a56bb8f342f53c5c04762819de99bccf33312067",
-    "docs/testing.md": "6b668597447f39e4b6b41c673585650de59717f6902c1206524d9ff475eed6c4",
+    "docs/limitations.md": "8b5aec0203f32b387850067df8799f6ae2b966f7107468af02f1a4a5ff461234",
+    "docs/requirements.md": "2749507a32ce3c6630ba42ebeb80bd7565f014714f63abf630cf60fecfe9152d",
+    "docs/testing.md": "cabb64eeed7607f36cf020a587175000176bcf14960bfd5aaf758f2f12870b35",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
-    "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
+    "lib/config.mjs": "8586e506b765cd49784453c4c4f80daa999d44e5c6231fdaadf50a82dc9326fa",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
     "lib/github.mjs": "5cbd85bd69bf6b7427212c81d0c20743ac47ef5fbf40c02847d4b3bb099cfa2e",
     "lib/lifecycle.mjs": "e0afd58bc4a80aaace991255fd39ce024ac83832aca844dd0f17d6f80a8a5b4d",
     "lib/node.mjs": "722efb5b27ccfeedf48e36d1f82246a38d75c78969b156f508498079c210bc4b",
     "lib/reminder.mjs": "e8e81d9924af5da9f4dc2c48a935a2919bbd7af8fefa8f7daae0be277eda24b8",
-    "lib/runner.mjs": "46057c71dec99b55c2ccaa3b3f0d1dcbebff6290fdf541f77b29f46dafe60727",
+    "lib/runner.mjs": "76aa46ff0f685fe63bd912e512feb94d07c6b5c188536c5c90a285ea1aa156bb",
     "lib/state.mjs": "0c785c2bc4ad892cfdf47a865088f0373cb93ce11fcf299f7d2196d708545836",
     "lib/trusted.mjs": "d216f081085ce1a3b202ddb8bec09ecd3993d1acfc5bbe5f62e6947c9d9ccdb7",
     "package.json": "9aac42dc5ddebd911f3c2670b63db37f06d11f2136b6db7abb21964958abae7c",
@@ -892,12 +900,12 @@
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
     "test/acceptance/architecture.test.mjs": "a9981e550a4491f2dca73d7d2bdf7a4f7b9868b50ac50f84e8eac2390b2e4c91",
-    "test/acceptance/harness.mjs": "fd3df82ae698721c0118c9fdf46d8ad4627cd7e0540a441d4593d1d4ba414774",
+    "test/acceptance/harness.mjs": "b1c67641ed3a84fea34ae3d3664f1dec7b79c3ca79476c0d88f5f13225180f9c",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "647530b5cc085e29e93ad5964dda5a059e60cf51035d76f7be71278663f3aa7b",
-    "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",
+    "test/acceptance/requirements.test.mjs": "43f01bffa21691c7b16b09a769eeb545da8c3df0b045b07d2f62dd5de7e3e446",
+    "test/unit/config.test.mjs": "0f7b50e02945a30dde552f80d1dca8890f4c6c9d09b92b8ef6f8ab1a1022006e",
     "test/unit/lifecycle.test.mjs": "dffad6006a0972ef0fee23b08d01db256afd66fe0ee01e19cbf6430235e6394c",
-    "test/unit/runner.test.mjs": "56ce6a694a7fe1d3fd6311d58cda900268445c3df317d3d74ab5b9d15a7570b2",
+    "test/unit/runner.test.mjs": "52763b98b7f2f44368196b90008c0c8ab043a7820e66b3f09d2ef53d026bd10d",
     "test/verify.mjs": "be21b2637287143624ccc6707fe33a3e8cb15b0d9b185c6eb702c110f5025549"
   }
 }

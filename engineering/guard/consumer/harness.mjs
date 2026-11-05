@@ -240,6 +240,23 @@ export function kaalClone() {
     /** Runs the development Guard of the clone's own tree, packages/kaal-guard. */
     development: (...args) => exec(dir, process.execPath, [join(dir, "packages", "kaal-guard", "bin", "kaal-guard.mjs"), ...args]),
   });
+  /**
+   * KAAL's own declarations are written for the development Guard (`held: [4]`, guard/C130). A Guard published
+   * before 0.0.5 reads the same statuses as `outcomes: {"4": held}`, so the cases that run such a Guard on KAAL's checks
+   * put the declarations in that dialect first, and back before the development Guard reads them. Only the
+   * spelling of the held statuses changes, never a check's command, surface or trusted file.
+   */
+  c.dialect = (which) => {
+    const dir_ = join(dir, ".kaal", "config", "guard");
+    for (const f of readdirSync(dir_).filter((n) => n.endsWith(".md"))) {
+      const path = join(dir_, f);
+      const text = readFileSync(path, "utf8");
+      const next = which === "published"
+        ? text.replace(/^held: \[([\d, ]+)\]$/m, (_, list) => `outcomes: {${list.split(",").map((n) => `"${n.trim()}": held`).join(", ")}}`)
+        : text.replace(/^outcomes: \{(.+)\}$/m, (_, map) => `held: [${[...map.matchAll(/"(\d+)": held/g)].map((m) => m[1]).join(", ")}]`);
+      if (next !== text) writeFileSync(path, next);
+    }
+  };
   identify(c);
   c.git("config", "core.hooksPath", ".githooks");
   c.git("checkout", "-q", "-b", "kaal/consumer");

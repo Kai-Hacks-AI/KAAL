@@ -58,11 +58,11 @@ export function runCheck(root, list, name, facts) {
       return result(name, "cannot judge", `the command cannot start: ${r.error?.message ?? `ended by ${r.signal}`}`, `make "${check.command}" start from the repository root`);
     }
     const evidence = provenance ? `exit status ${r.status} (${provenance})` : `exit status ${r.status}`;
-    const verdict = VERDICTS[r.status] ?? check.outcomes?.[r.status];
+    const verdict = VERDICTS[r.status] ?? (check.held?.includes(r.status) ? "held" : undefined);
     if (verdict === "fail") return result(name, verdict, evidence, `fix what ${name} reports, then run kaal-guard run --check ${name}`);
     if (verdict === "cannot judge") return result(name, verdict, evidence, `fix the cause ${name} names; it blocks until ${name} can judge`);
     if (verdict) return result(name, verdict, evidence);
-    return result(name, "cannot judge", `exit status ${r.status} is not a verdict${provenance ? ` (${provenance})` : ""}`, `make "${check.command}" start and exit 0 to 3, or name status ${r.status} under outcomes`);
+    return result(name, "cannot judge", `exit status ${r.status} is not a verdict${provenance ? ` (${provenance})` : ""}`, `make "${check.command}" start and exit 0 to 3, or list status ${r.status} under held`);
   } finally {
     if (scratch) rmSync(scratch, { recursive: true, force: true });
   }

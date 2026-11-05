@@ -6,6 +6,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, it } from "node:test";
 import { CHECK_SKILL, deliver, REPO, run, SKILL, target } from "./delivery.mjs";
 
@@ -53,5 +54,72 @@ describe("guard/C137 [guard/A20] Guard's ownership claims", () => {
     assert.equal(packed.status, 0, `npm pack --dry-run failed: ${packed.stderr}`);
     const listed = JSON.parse(packed.stdout)[0].files.map((f) => f.path);
     assert.ok(!listed.includes(CLAIM_FILE), "the packed package carries Guard's ownership claim, a KAAL element");
+  });
+});
+
+// guard/T129 (guard/C130): the conformance check guard/F1 promises. Guard's validator never accepts what Core's
+// refuses. Core's validator is `kaal-core/frontmatter`, which needs KAAL's workspace, so this case is the
+// publisher's and never runs in the installed package (guard/A8).
+describe("guard/C130 [guard/F1] Guard/Check against Core's validator", () => {
+  it("guard/T129 [guard/F1, guard/F2, guard/A8]: over a corpus of declarations, Guard's validator accepts none that Core's validator, given Guard/Check stated in core/F1 kinds, refuses; each declaration only Guard refuses is listed as semantic", async () => {
+    const core = await import("kaal-core/frontmatter");
+    const { FACTS, check, frontmatter } = await import(pathToFileURL(join(REPO, "packages", "kaal-guard", "lib", "config.mjs")).href);
+    // Guard/Check in core/F1 kinds: `command` a parameter, `held` a list of numbers (guard/C130).
+    const types = {
+      "Guard/Check": {
+        keys: {
+          command: { value: "parameter", pattern: "^[^\\r\\n]*\\S[^\\r\\n]*$", required: true },
+          runs: { value: "enum", values: ["hook", "ci"], list: true, required: true },
+          facts: { value: "enum", values: Object.keys(FACTS), list: true },
+          trusted: { value: "path" },
+          held: { value: "number", list: true },
+        },
+      },
+    };
+    const head = 'type: Guard/Check\ncommand: "node x.mjs"\nruns: [hook]\n';
+    const doc = (extra, text = head) => `---\n${text}${extra}---\n\nBody.\n`;
+    const corpus = [
+      ["a minimal check", doc("")],
+      ["held", doc("held: [4]\n")],
+      ["held with two statuses", doc("held: [4, 7]\n")],
+      ["facts and trusted", doc(`facts: [${Object.keys(FACTS)[0]}]\ntrusted: checks/x.mjs\n`)],
+      ["outcomes, the 0.0.4 map", doc('outcomes: {"4": held}\n')],
+      ["a member nothing defines", doc("owner: me\n")],
+      ["a prose member", doc("description: what it does\n")],
+      ["runs naming local", doc("", head.replace("[hook]", "[local]"))],
+      ["runs empty", doc("", head.replace("[hook]", "[]"))],
+      ["command a list", doc("", head.replace('"node x.mjs"', "[node, x]"))],
+      ["command blank", doc("", head.replace('"node x.mjs"', '"  "'))],
+      ["held a string", doc('held: "4"\n')],
+      ["held a map", doc('held: {"4": held}\n')],
+      ["held holding a string", doc('held: ["4"]\n')],
+      ["trusted a number", doc("trusted: 4\n")],
+      ["no frontmatter", "Body only.\n"],
+    ];
+    // Where Guard alone refuses, the reason is Guard's own semantic rule (core/F8): the listed set must match exactly.
+    const semantic = new Set(["runs naming local", "runs empty", "command blank"]);
+    const guardRefuses = (text) => {
+      try {
+        const members = frontmatter(text, "x.md");
+        check(members, "x.md");
+        return false;
+      } catch (e) {
+        if (e?.name === "Refusal" || e?.constructor?.name === "Refusal") return true;
+        throw e;
+      }
+    };
+    const onlyGuard = [];
+    for (const [name, text] of corpus) {
+      const coreVerdict = core.validate(Buffer.from(text), types).verdict;
+      const refused = guardRefuses(text);
+      if (coreVerdict !== "valid") assert.ok(refused, `${name}: Guard accepts what Core refuses (${coreVerdict})`);
+      if (refused && coreVerdict === "valid") onlyGuard.push(name);
+    }
+    for (const name of onlyGuard) assert.ok(semantic.has(name), `${name}: only Guard refuses it, and it is not listed as a semantic rule`);
+    assert.ok(onlyGuard.length > 0, "the corpus has no declaration only Guard refuses, so it shows no semantic layer");
+    // The valid core declarations Guard accepts, to show the layers agree on them.
+    for (const name of ["a minimal check", "held", "held with two statuses", "facts and trusted"]) {
+      assert.ok(!guardRefuses(corpus.find(([n]) => n === name)[1]), `${name}: Guard refuses what Core accepts`);
+    }
   });
 });
