@@ -305,6 +305,17 @@ export function judgeCoverage(scenarioId, observed, facts) {
   const shown = Object.fromEntries(declared.map((c) => [c, s.target && c === facts?.target ? s.target : "pass"]));
   const accounted = account(facts, shown);
   if (accounted.result !== s.result) differences.push(`the facts account for a ${accounted.result} run, the scenario expects ${s.result}: ${accounted.findings.join("; ") || "no finding"}`);
+  // Each uncovered scenario is told apart by the model condition that defines it, not by the state alone (testing/F54).
+  const model = plain(facts?.model) ? facts.model : {};
+  const traced = tested(model), stands = entries(model), declaredSet = new Set(declared);
+  const shipped = Array.isArray(facts?.identifiers) ? facts.identifiers : [];
+  const any = (cond) => shipped.some((id) => cond(Object.hasOwn(traced, id) ? traced[id] : [], stands.get(id)));
+  const defining = {
+    "coverage-missing": [any((cs, e) => cs.length === 0 && !e), "a shipped identifier is traced by no case and has no target entry"],
+    "coverage-undeclared-case": [any((cs, e) => cs.length > 0 && !cs.some((c) => declaredSet.has(c)) && !e), "a shipped identifier is traced only by cases the manifest does not declare"],
+    "coverage-allocated-and-traced": [any((cs, e) => e && cs.some((c) => declaredSet.has(c))), "a target entry restates the trace of an identifier a declared case traces"],
+  }[s.id];
+  if (defining && !defining[0]) differences.push(`the facts do not make the scenario's change: ${defining[1]} is not so`);
   const have = accounted.entries.map((e) => e.state);
   if (s.state === "covered" ? !have.every((x) => x === "covered") : !have.includes(s.state)) differences.push(`the facts leave no identifier ${s.state}, which the scenario realizes`);
   const reported = o.coverage;

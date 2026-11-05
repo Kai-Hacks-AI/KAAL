@@ -106,6 +106,9 @@ function index(m) {
     if (forms.length !== 1) f.push(`target ${name(e.id)}: exactly one of allocated or unverified`);
     for (const k of forms) if (!nonempty(e[k])) f.push(`target ${name(e.id)}: ${k} must be a nonempty statement`);
   }
+  // An entry never stands beside a Case's trace of the same identifier (testing/F51).
+  const traced = new Set((m.cases ?? []).filter((c) => !c.retired).flatMap((c) => c.tests ?? []));
+  for (const id of entered) if (traced.has(id)) f.push(`target ${name(id)}: a Case already traces it, so an entry restates the trace`);
   return { f, ids, data };
 }
 

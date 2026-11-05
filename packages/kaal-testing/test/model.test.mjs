@@ -230,3 +230,12 @@ describe("model", () => {
     });
   });
 });
+
+describe("target entries (testing/F51)", () => {
+  it("an entry that restates the trace of an unretired Case is a finding of the model, and a retired Case's trace is not", () => {
+    const entry = { id: "F1", allocated: "release lane" };
+    assert.ok(check({ cases: [{ id: "T1", tests: ["F1"] }], targets: [entry] }).some((f) => /already traces/.test(f)));
+    assert.deepEqual(check({ cases: [{ id: "T1", tests: ["F1"], retired: true }], targets: [entry] }), []);
+    assert.deepEqual(check({ cases: [{ id: "T1", tests: ["F2"] }], targets: [entry] }), []);
+  });
+});

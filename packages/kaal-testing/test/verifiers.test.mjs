@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
-import { judge, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
+import { COVERAGE_SCENARIOS, judge, judgeCoverage, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
 
 const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", failed: "failed", unknown: "cannot verify" } };
 const FACTS = {
@@ -159,5 +159,18 @@ describe("verifiers", () => {
     const imports = [...source.matchAll(/^\s*import\b[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]);
     assert.deepEqual(imports, ["./model.mjs"]);
     assert.doesNotMatch(source, /\bimport\s*\(|\brequire\s*\(/);
+  });
+});
+
+describe("coverage scenarios are told apart by their defining model condition (testing/F54)", () => {
+  const VERIFIER = { prefix: "v ", words: { verified: "verified", failed: "failed", unknown: "unknown" } };
+  const facts = { package: { name: "p", version: "1", location: "/p" }, platform: "linux", node: "v24", digest: "d".repeat(64), cases: ["T1"], target: "T1", applicability: {}, dependencies: [], complements: {}, identifiers: ["F1", "F2"], model: { cases: [{ id: "T1", tests: ["F1"] }] } };
+  const summary = { result: "unknown", cause: "c", evidence: ["e"], next: { kind: "diagnostic", step: "s" }, package: facts.package, platform: "linux", node: "v24", digest: facts.digest, cases: [{ name: "T1", outcome: "pass" }], coverage: [{ id: "F1", state: "covered" }, { id: "F2", state: "uncovered" }] };
+  const judged = (id) => judgeCoverage(id, observe({ exit: 2, stdout: `v ${JSON.stringify(summary)}\n` }, VERIFIER), facts);
+  it("one unknown observation conforms to coverage-missing only, not to the scenarios that need an undeclared case or a restating entry", () => {
+    assert.equal(judged("coverage-missing").conforms, true);
+    assert.equal(judged("coverage-undeclared-case").conforms, false);
+    assert.equal(judged("coverage-allocated-and-traced").conforms, false);
+    assert.ok(COVERAGE_SCENARIOS.some((s) => s.id === "coverage-missing"));
   });
 });
