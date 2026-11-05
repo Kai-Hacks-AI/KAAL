@@ -1,6 +1,6 @@
 # One installation check for every package (packaging/C26)
 
-PLAN only. It changes no runtime file, publishes nothing and authorizes no merge, SYNC, promotion or publication. It records the Owner's ruling of 4 Nov ("B: installation check by kaal-package, self check by each package. Self check arguably fails if installation failed") and the Owner's choice that C26 ships inside Packaging 0.0.1, alongside C22, C23 and C24.
+PLAN only. It changes no runtime file, publishes nothing and authorizes no merge, SYNC, promotion or publication. It records the Owner's ruling of 4 Nov ("B: installation check by kaal-package, self check by each package. Self check arguably fails if installation failed") and the Owner's choice that C26 ships inside Packaging 0.0.1, alongside C22, C23 and C24. **Decided (Kai A, 5 Nov): Packaging goes public on npm, its `dist/` holds only the installation checker, `dist/docs` holds only the docs relevant to what ships, and there is no split into a second package.** This reverses the earlier "Packaging stays private" ruling, which was about a paid plan (public is free). No publication is authorized by this PLAN.
 
 ## The ruling, in two checks
 
@@ -25,7 +25,7 @@ Guard, Foundation, Core and Packaging each ship their own `test/verify.mjs` (abo
 ## The contract
 
 1. **Input.** One installed package folder. Never the source workspace unless the caller says so (the structure check, C24, is the source-side check).
-2. **Installation check.** Two profiles, chosen from what survives packing, never from the source folders (an installed layout package holds only `dist/` and npm's fixed root files): a folder with a `dist/` directory holding `dist/test/package-check/` is in the layout; one with no `dist/` is legacy; one with a `dist/` but no `dist/test/package-check/` is `failed` as a layout package missing its Package Check, never silently judged as legacy. The steps below are written for the layout profile; the **legacy profile** differs only in two places: the manifest is `test/verify.json` and may list shipped files anywhere inside the package (not only `dist/`), and the self check is the script the package declares in its `package.json` (`test:embedded` or `test`) instead of a `dist/test/package-check/` record. Every other rule, the inventory exceptions and the combined result, is the same. Each step's result is three-valued:
+2. **Installation check.** Two profiles, chosen by an explicit marker that survives packing, never by the mere presence of `dist/` and never from the source folders: the **layout marker** is the layout manifest `dist/test/package-check/manifest.json`. Marker present: layout profile. Marker absent and the legacy manifest `test/verify.json` present: legacy profile (this includes an unmigrated package such as Core that already ships compiled output under `dist/`). A `dist/test/package-check/` folder without its manifest is `failed` (a layout package missing its Package Check), never silently judged as legacy. Neither manifest: `unknown`, naming both paths. The steps below are written for the layout profile; the **legacy profile** differs only in two places: the manifest is `test/verify.json` and may list shipped files anywhere inside the package (not only `dist/`), and the self check is the script the package declares in its `package.json` (`test:embedded` or `test`) instead of a `dist/test/package-check/` record. Every other rule, the inventory exceptions and the combined result, is the same. Each step's result is three-valued:
    - The manifest is present, parses and lists only paths inside `dist/`, plus npm's fixed root files.
    - Every listed file is present, a regular file, with the listed SHA-256 (Foundation). No link is followed.
    - On an installed copy no file exists that the manifest does not list.
@@ -54,7 +54,7 @@ Each package deletes its `test/verify.mjs` and keeps its cases and its manifest 
 | packaging/A26 | No package imports Packaging; a package states how to run its self check and nothing more. |
 | packaging/A27 | The installation check reads the install record and the installed bytes only; it never fetches. |
 
-Test Case ids T113 to T133 are reserved (T129 to T131 added with the consumer journey, T132 and T133 with the two profiles).
+Test Case ids T113 to T134 are reserved (T129 to T131 added with the consumer journey, T132 and T133 with the two profiles, T134 with the checker-only dist).
 
 ## Test Cases (RED first, then DO)
 
@@ -75,30 +75,35 @@ Fixtures only. No network.
 - **T125** A package that imports Packaging in its own code: a boundary finding, not a pass.
 - **T129** The consumer journey on a clean fixture: a tarball whose SHA-256 differs from the release record is refused before it is installed; the matching tarball installs into a tools folder and `verify` runs against a separately installed package.
 - **T130** A package's standalone self check states that the installation was not checked, and never prints a combined `verified`.
-- **T132** A legacy-layout fixture (manifest `test/verify.json` listing `lib/`, `docs/` and `test/` files, a declared `test:embedded`): the legacy profile gives `verified` when sound and `failed` on a changed file, and is never judged against the `dist/`-only rules. A package in the layout is never judged by the legacy profile.
-- **T133** A packed-and-installed layout fixture (made by packing a layout fixture and installing the tarball, so no `01-intent/` or other source folder exists): selected as the layout profile and verified. A `dist/` without `dist/test/package-check/` is `failed`, not legacy.
+- **T132** A legacy-layout fixture (manifest `test/verify.json` listing `lib/`, `docs/` and `test/` files, a declared `test:embedded`): the legacy profile gives `verified` when sound and `failed` on a changed file, and is never judged against the `dist/`-only rules. A second legacy fixture that ships compiled output under `dist/` (Core's shape, `dist/index.js`, `dist/cli.js`, no `dist/test/package-check/`) is also judged by the legacy profile, never as a layout package. A package in the layout is never judged by the legacy profile.
+- **T133** A packed-and-installed layout fixture (made by packing a layout fixture and installing the tarball, so no `01-intent/` or other source folder exists): selected as the layout profile by its marker and verified. A `dist/test/package-check/` without its manifest is `failed`, not legacy. Neither manifest is `unknown`.
+- **T134** A checker-only public `dist/`: the packed tarball holds only the installer-side checker, its Skill, its shipped-docs list and the docs it names; no publisher code (registry match, Boundary Check record, layout checker) is present.
 - **T131** Packaging applied to its own installed copy reports consistency, not provenance, and says so.
 - **T126** The manifest generator produces the same bytes from the same files twice, and a hand-edited manifest is `failed` by the integrity check.
 - **T127** Packaging's own installed copy passes the shared check (the self-application Case).
 - **T128** The old per-package output still parses with the new reader, so Engineering needs no change to read results.
 
-## The consumer journey (Packaging stays private)
+## The consumer journey (Packaging is public, checker-only)
 
-Packaging 0.0.1 is repository-only (C12, decided on the C25 PLAN), so it is never fetched from the registry by name. The journey needs no registry entry for Packaging and no `npx` of a private package:
-
-1. Engineering's release workflow packs Packaging once and records the tarball's SHA-256 in the release record (`release.json`), bound to the run and the commit, and attaches both to a GitHub Release of the public repository.
-2. The consumer (or Engineering, in CI) downloads the tarball and `release.json`, compares the tarball's SHA-256 with the record, and installs it into a tools folder of its own, away from the packages it will check: `npm install ./kaal-packaging-0.0.1.tgz`. A workspace install or a Git URL with `#path:/packages/kaal-packaging` reaches the same bytes inside the repository.
+1. Engineering's release engine publishes `@kaihacksai/kaal-packaging` to npm with registry provenance, after Kai's go and the CPO's approval at the head SHA. Nothing here publishes.
+2. The consumer installs it into a tools folder of its own, away from the packages it will check, at an exact pinned version: `npm install @kaihacksai/kaal-packaging@<exact>`. A workspace install or a Git URL with `#path:/packages/kaal-packaging` reaches the same source inside the repository.
 3. The consumer installs the packages it uses from the registry as usual.
 4. `kaal-packaging verify <path to an installed package>` prints the one result line. Nothing is imported by the package under test, and Packaging needs nothing but the installed folder.
 
-A package published to the registry therefore does not depend on Packaging at install time, run time or test time. Only the act of verifying an installation needs the tool, and the tool is obtained from the repository, not from the package it checks.
+A package published to the registry does not depend on Packaging at install, run or test time. Only the act of verifying an installation needs the tool.
+
+## What the public `dist/` ships, and what stays in the repository
+
+- **Ships (the installation checker only):** the `kaal-packaging verify` command and the Skill scripts it needs (manifest generator and integrity check, installed-package verdict, self-check runner), the Agent layer file, `dist/test/package-check/` with its manifest, and the docs listed below.
+- **Stays repository-only, never in `dist/`:** the C22 registry match, the C23 Boundary Check record and the C24 layout checker (publisher-side tooling, run from the workspace). The `files: ["dist"]` rule and C24's packed-set check are what keep it out; T134 pins it.
+- **Shipped docs are listed, not copied wholesale (Kai, 5 Nov).** `dist/docs/{intent,requirements,architecture,defects}` holds only the documents relevant to what ships, named in an explicit shipped-docs list in the package (not guessed from the folders). C24 today requires full copies of those folders, so a checker-only `dist/` would fail it. C27 carries the rule: each listed doc exists and is byte-equal to its source, and nothing else is in `dist/docs`. That changes the immutable Cases T98 to T112 where they assume whole-folder copies, under Kai's blanket supersession ruling, listed before and after in C27. It does not block #1053.
 
 ## The independent trust root, and no self-attestation
 
-- **What is trusted is a digest from outside Packaging.** Packaging's own installed bytes are never vouched for by Packaging. The consumer's trust root for the verifier is the release record's SHA-256 of the Packaging tarball, produced by Engineering's release engine (a different component, with the registry's own provenance for any package that is published). The consumer compares it before installing, so a changed Packaging fails before it can judge anything.
+- **What is trusted is outside Packaging.** Packaging's own installed bytes are never vouched for by Packaging. The consumer's trust root for the verifier is the registry: the package's integrity hash and provenance attestation for the exact pinned version, checked by Engineering's Accept step, plus the release record's digest from the release engine (a different component).
 - **T127 shows consistency only.** Packaging's check applied to Packaging proves the installed copy matches its own manifest, which is consistency and not provenance (testing/F14). It is reported as that, and is never the basis of trust.
-- **Bootstrap.** The first Packaging 0.0.1 is checked by Engineering's release engine against the tarball digest, not by itself. Later releases are checked by the previous accepted release of Packaging, then by the same digest comparison. This breaks the circle: the verifier of a release is a previous release plus an outside digest.
-- **Limit, stated.** A manifest shipped inside the thing it describes detects an accidental or partial change, not a malicious replacement of both. Provenance of a published package is the registry's attestation, checked by Engineering's Accept step, not by this check.
+- **Bootstrap.** The first public Packaging 0.0.1 is checked by Engineering's release engine against the registry record, not by itself. Later releases are checked by the previous accepted release of Packaging, then by the same registry comparison. The verifier of a release is a previous release plus an outside record, which breaks the circle.
+- **Limit, stated.** A manifest shipped inside the thing it describes detects an accidental or partial change, not a malicious replacement of both. Provenance is the registry's attestation, not this check.
 
 ## How Foundation, Core and Guard migrate, with no hard dependency on Packaging
 
@@ -111,12 +116,12 @@ A package published to the registry therefore does not depend on Packaging at in
 
 - Guard's consumer-verification semantics (guard/A18) are Testing's model (testing/C9). Whether Guard 0.0.5 keeps its two-loop run as its self check is Guard's call, on its own Change.
 - Any change to F7, N8, N9 or the result vocabulary.
-- Whether a later, general split makes Packaging public. Nothing here depends on it.
+- A split into a second public package (Packaging plus a separate package-check) was assessed and declined by Kai (5 Nov): no real advantage over one public Packaging with a checker-only `dist/`.
 
 ## Effect on the 0.0.1 scope (#1050)
 
-#1050 (CPO-approved at `665726d`) lists C22, C23 and C24 for Packaging 0.0.1. With the Owner's choice, 0.0.1 also includes C26. #1050 itself is not changed by this PLAN; its scope line is amended in the release Change that carries the 0.0.1 layout. **For fresh CPO approval:** this PLAN; the scope line of 0.0.1 with C26 added; and the consumer journey and trust root above, which are the one design choice that is not forced by the Owner's earlier rulings: consumers obtain the verifier from the repository's release, not from the package they check (the alternative, a small verifier bundled in each package, is the copy-and-drift problem the ruling removes).
+#1050 (CPO-approved at `665726d`) lists C22, C23 and C24 for Packaging 0.0.1. With the Owner's choice, 0.0.1 also includes C26. #1050 itself is not changed by this PLAN; its scope line is amended in the release Change that carries the 0.0.1 layout. **For fresh CPO approval:** this PLAN; the scope line of 0.0.1 with C26 added; and the public checker-only `dist/` with its npm journey and registry trust root above, which follow Kai's A of 5 Nov (reversing "Packaging stays private", which was about a paid plan). The shipped-docs rule is carried by C27. The first publication still needs its own Kai go and CPO approval at the head SHA; none is authorized.
 
 ## Sequencing
 
-This PLAN, then RED (T113 to T133), then DO, inside Packaging 0.0.1 and after the C24 structure checker (#1053), because the verifier ships from the Skill's `scripts/` in the C24 layout. Each other package adopts it in its own later Change.
+This PLAN, then RED (T113 to T134), then DO, inside Packaging 0.0.1 and after the C24 structure checker (#1053), because the verifier ships from the Skill's `scripts/` in the C24 layout. Each other package adopts it in its own later Change.
