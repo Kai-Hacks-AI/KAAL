@@ -172,6 +172,16 @@ export async function list(dir: string): Promise<Listed[]> {
   return listing.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 }
 
+/** Attach a cleanup failure to the error that is thrown in its place, as `leftover`; an error that cannot carry it is still the one thrown. */
+function reportLeftover(error: unknown, leftover: HostingError): void {
+  if (typeof error !== "object" || error === null) return;
+  try {
+    Object.defineProperty(error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
+  } catch {
+    // A frozen error, or one with a locked `leftover`, cannot carry the report; the original error is still the one thrown.
+  }
+}
+
 /**
  * Give `use` a fresh, empty directory under the host's temporary directory, as
  * an absolute path, and remove the whole tree when `use` settles, whether it
@@ -196,13 +206,7 @@ export async function scratch<T>(use: (dir: string) => T | Promise<T>): Promise<
     leftover = new HostingError(`${dir} could not be removed: ${(cause as Error).message}`, "SCRATCH_LEFTOVER", [], { cause, kept: dir });
   }
   if (!outcome.ok) {
-    if (leftover && typeof outcome.error === "object" && outcome.error !== null) {
-      try {
-        Object.defineProperty(outcome.error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
-      } catch {
-        // A frozen error, or one with a locked `leftover`, cannot carry the report; use's own error is still the one thrown.
-      }
-    }
+    if (leftover) reportLeftover(outcome.error, leftover);
     throw outcome.error;
   }
   if (leftover) throw leftover;
@@ -925,7 +929,8 @@ export interface Prepared {
  * keeps file modes, keeps a symbolic link as the link it is (never following it
  * out of the tree) and leaves out every file or directory whose name is in
  * `exclude`. Copies may be made concurrently. When `build` rejects, the directory
- * is removed and its error is the one thrown.
+ * is removed and its error is the one thrown, with a removal that fails reported on it as
+ * `leftover` (`SCRATCH_LEFTOVER`), as `scratch` reports it.
  */
 export async function prepare(build: (dir: string) => void | Promise<void>, options: { exclude?: string[] } = {}): Promise<Prepared> {
   const exclude = new Set(options.exclude ?? []);
@@ -933,7 +938,11 @@ export async function prepare(build: (dir: string) => void | Promise<void>, opti
   try {
     await build(root);
   } catch (error) {
-    await rm(root, { maxRetries: 3 }).catch(() => undefined);
+    try {
+      await rm(root, { maxRetries: 3 });
+    } catch (cause) {
+      reportLeftover(error, new HostingError(`${root} could not be removed: ${(cause as Error).message}`, "SCRATCH_LEFTOVER", [], { cause, kept: root }));
+    }
     throw error;
   }
   const made = new Set<string>();

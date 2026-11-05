@@ -23,3 +23,7 @@ Two Cases were added first and failed on the code at 0f19426, then the code chan
 
 - P2, a relative `dir` gave paths that mean something else in a child with another working directory: `hosting/T216` was added first and failed (`ℹ pass 9, ℹ fail 1`); `dir` is now resolved first.
 - P1, the installed-package Cases hosting/T24 to hosting/T31 and hosting/T75 are immutable planned Cases and must not be edited: `plan/release.test.mjs` is restored to the collector's version, and the prepared installation lives in successors, `publisher/prepared-release.test.mjs` (hosting/T217 to hosting/T225), with the originals' assertions unchanged. The originals are skipped by name in `test:publisher`, as the Cases superseded by hosting/T173 to hosting/T175 are.
+
+## Codex finding at bad1a36
+
+P2, a `prepare` whose build rejected swallowed a failed removal. `hosting/T226` was added first and failed on the code at bad1a36, run as an unprivileged user (a host that enforces read-only directories is needed, as for hosting/T135; it skips as root and on Windows): `ℹ pass 0, ℹ fail 1`. The failed removal is now reported on build's own error as `leftover` (`SCRATCH_LEFTOVER`), through the helper `scratch` now shares.

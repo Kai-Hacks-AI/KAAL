@@ -1,5 +1,5 @@
 // hosting/C109 planned outer tests: starting processes without cmd.exe and preparing a fixture once
-// (hosting/F75–hosting/F79, hosting/N11; hosting/T206–hosting/T216). Immutable to DO and CHECK;
+// (hosting/F75–hosting/F79, hosting/N11; hosting/T206–hosting/T216 and hosting/T226). Immutable to DO and CHECK;
 // the DO turns them GREEN. They reach Hosting through its build by path, never through the package
 // name. Fixtures are built in a temporary directory, and cost is asserted by what can be counted
 // (starts, installs, builds), never by the clock.
@@ -213,6 +213,28 @@ describe("hosting/F78 prepare", () => {
     const boom = new Error("build failed");
     await assert.rejects(hosting.prepare((dir) => { before.add(dir); throw boom; }), (e) => e === boom);
     assert.equal(existsSync([...before][0]), false, "a failed build left its directory");
+  });
+  it("hosting/T226: when build rejects and its directory cannot be removed, build's own error is still the one thrown and the failed removal is reported on it as leftover, SCRATCH_LEFTOVER naming the directory", async (t) => {
+    if (process.platform === "win32" || process.getuid?.() === 0) return t.skip("needs a host that enforces read-only directories");
+    const boom = new Error("build failed");
+    let made;
+    await assert.rejects(
+      hosting.prepare((dir) => {
+        made = dir;
+        mkdirSync(join(dir, "locked"));
+        writeFileSync(join(dir, "locked", "f"), "f");
+        chmodSync(join(dir, "locked"), 0o500);
+        throw boom;
+      }),
+      (e) => {
+        assert.equal(e, boom);
+        assert.equal(e.leftover?.code, "SCRATCH_LEFTOVER");
+        assert.ok(e.leftover.message.includes(made), "the leftover names the directory");
+        return true;
+      },
+    );
+    chmodSync(join(made, "locked"), 0o700);
+    rmSync(made, { recursive: true, force: true });
   });
 });
 

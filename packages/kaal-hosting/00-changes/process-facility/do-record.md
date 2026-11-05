@@ -1,6 +1,6 @@
 # Process facility: DO record (hosting/C109)
 
-Implements the approved plan (`plan.md`, #1097, CPO review 5793456282): `execute` and `executeSync` start `npm` and `npx` without `cmd.exe`, `startPlan`, `isolatedEnvironment` and `prepare`. Requirements hosting/F75–hosting/F79 and hosting/N11, intent hosting/I17, architecture hosting/A35–hosting/A37, Cases hosting/T206–hosting/T216.
+Implements the approved plan (`plan.md`, #1097, CPO review 5793456282): `execute` and `executeSync` start `npm` and `npx` without `cmd.exe`, `startPlan`, `isolatedEnvironment` and `prepare`. Requirements hosting/F75–hosting/F79 and hosting/N11, intent hosting/I17, architecture hosting/A35–hosting/A37, Cases hosting/T206–hosting/T216 and hosting/T226.
 
 ## Where the DO differs from the plan, and why
 
