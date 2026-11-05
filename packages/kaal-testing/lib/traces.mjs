@@ -119,6 +119,18 @@ function calls(text) {
   return out;
 }
 
+/** Whether the argument ends at `i`: only whitespace and comments, then `,` or `)`. Anything else continues an expression. */
+function ends(text, i) {
+  let j = i;
+  while (j < text.length) {
+    if (/\s/.test(text[j])) j++;
+    else if (text[j] === "/" && text[j + 1] === "/") { const n = text.indexOf("\n", j); j = n < 0 ? text.length : n; }
+    else if (text[j] === "/" && text[j + 1] === "*") { const n = text.indexOf("*/", j + 2); j = n < 0 ? text.length : n + 2; }
+    else break;
+  }
+  return text[j] === "," || text[j] === ")";
+}
+
 /** The first argument of the call whose parenthesis ends just before `i`, as a static title or not. */
 function argument(text, i) {
   let j = i;
@@ -126,11 +138,11 @@ function argument(text, i) {
   const c = text[j];
   if (c === '"' || c === "'") {
     const s = readString(text, j);
-    return s.broken ? { literal: false } : { literal: true, title: s.value };
+    return s.broken || !ends(text, s.end) ? { literal: false } : { literal: true, title: s.value };
   }
   if (c === "`") {
     const t = skipTemplate(text, j);
-    return t.substituted ? { literal: false } : { literal: true, title: readString(text, j).value };
+    return t.substituted || !ends(text, t.end) ? { literal: false } : { literal: true, title: readString(text, j).value };
   }
   return { literal: false };
 }
