@@ -1,6 +1,6 @@
 # Defect: kaal-testing's runtime dependency c8 brings in moderate advisories
 
-**Status:** open, proven RED. Not answered until the Case below goes GREEN.
+**Status:** answered by #1059 (c8 is an exactly pinned optional peer and a devDependency; coverage is `unknown` without it). The Case below is GREEN and is part of the separate `test:defects` suite (it runs after `test:publisher` and not inside it, because packing Hosting rebuilds its `dist`), so a later regression fails `npm test`. An unreachable npm registry is reported as UNKNOWN, never as an advisory or a new Defect.
 
 ## Finding
 
@@ -21,7 +21,7 @@ Owner: Testing (the only declarer of `c8`). Related: Packaging (embedded package
 
 ## Proof
 
-`packages/kaal-testing/test/defects/c8-audit.red.test.mjs`: the installed consumer tree of `kaal-testing` has no moderate-or-worse `npm audit` finding. RED today; deliberately not wired into `npm test` until the fix Change.
+`packages/kaal-testing/test/defects/c8-audit.test.mjs`: the installed consumer tree of `kaal-testing` has no `c8` and no moderate-or-worse `npm audit` finding. It was RED before #1059. It needs the npm registry.
 
 ## Fix routes (a separate Change)
 
