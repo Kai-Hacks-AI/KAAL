@@ -68,7 +68,8 @@ describe("Consumer verification (testing/C9)", () => {
     const rows = inventory();
     assert.deepEqual(Object.keys(rows).sort(), Object.keys(pkg.exports).sort(), "testing/A8's export inventory declares exactly the package's exports");
     for (const [exported, serves] of Object.entries(rows)) assert.equal(serves, "no", `${exported} is declared to serve consumer verification`);
-    assert.deepEqual(pkg.dependencies, { c8: "12.0.0", "kaal-hosting": "0.0.1" });
+    assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1" });
+    assert.deepEqual(pkg.peerDependencies, { c8: "12.0.0" });
   });
 
   it("testing/T19 [testing/A8]: the Agent Skill and the README carry the section, and the Skill points to the Node", () => {

@@ -82,7 +82,7 @@ for (const { name, location } of workspaces.filter((w) => wanted.length === 0 ||
   results.push({ workspace: name, ...result });
 }
 
-const failed = results.some((r) => r.failed || r.tests === "fail");
+const failed = results.some((r) => r.failed || r.unknown || r.tests === "fail");
 if (json) {
   console.log(JSON.stringify(results, null, 2));
   process.exit(failed ? 1 : 0);
@@ -91,11 +91,12 @@ if (json) {
 const show = (v) => (v === undefined ? "-" : `${v}%`);
 console.log("workspace | tests | delivered JS files | lines | branches | functions");
 for (const r of results) {
-  const figures = r.failed ? "not measured | - | -" : r.note ? "N/A | N/A | N/A" : `${show(r.lines)} | ${show(r.branches)} | ${show(r.functions)}`;
+  const figures = r.failed || r.unknown ? "not measured | - | -" : r.note ? "N/A | N/A | N/A" : `${show(r.lines)} | ${show(r.branches)} | ${show(r.functions)}`;
   console.log(`${r.workspace} | ${r.tests ?? "-"} | ${r.delivered?.length ?? "-"} | ${figures}${r.note ? ` | ${r.note}` : ""}`);
 }
 for (const r of results) for (const f of r.unexecuted ?? []) console.log(`${r.workspace}: ${f} is delivered but not executed by its own tests`);
 for (const r of results) if (r.failed) console.error(`failed: ${r.failed}`);
+for (const r of results) if (r.unknown) console.error(`unknown: ${r.unknown}`);
 for (const r of results) if (r.tests === "fail") console.error(`failed: ${r.workspace}: its tests failed`);
 console.log("scope: delivered JavaScript of each npm workspace, executed by that workspace's own tests, on this host; not per-capability coverage");
 if (failed) process.exitCode = 1;

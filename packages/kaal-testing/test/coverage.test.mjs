@@ -51,4 +51,16 @@ describe("running coverage", () => {
     assert.equal(r.failed, `w: ${dir} already holds a coverage summary; measurement needs a fresh report directory`);
     assert.equal(r.lines, undefined);
   });
+
+  it("is unknown, never covered or passed, when c8 is not installed, and says to install it", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-testing-cover-"));
+    const missing = () => {
+      throw new Error("Cannot find package 'c8'");
+    };
+    const r = await cover("w", ["w/a.js"], { root: dir, dir, resolve: missing });
+    assert.match(r.unknown, /^w: c8 is not installed, so coverage was not measured; install c8 /);
+    assert.equal(r.tests, undefined);
+    assert.equal(r.lines, undefined);
+    assert.equal(r.failed, undefined);
+  });
 });
