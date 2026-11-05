@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
@@ -220,7 +220,7 @@ describe("identity", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
     const nodes = [".kaal", "packages", "engineering"].flatMap((top) =>
       readdirSync(join(root, top), { recursive: true, encoding: "utf8" })
-        .filter((p) => p.endsWith(".md") && !p.includes("node_modules") && !p.includes("/skills/") && statSync(join(root, top, p)).isFile())
+        .filter((p) => p.endsWith(".md") && !p.includes("node_modules") && !p.split(sep).includes("skills") && statSync(join(root, top, p)).isFile())
         .map((p) => readFileSync(join(root, top, p)))
         .filter((b) => b.subarray(0, 4).toString() === "---\n" && /^---\nname: /.test(b.toString())),
     );
