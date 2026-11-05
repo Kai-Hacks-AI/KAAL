@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
-import { COVERAGE_SCENARIOS, judge, judgeCoverage, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
+import { account, COVERAGE_SCENARIOS, judge, judgeCoverage, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
 
 const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", failed: "failed", unknown: "cannot verify" } };
 const FACTS = {
@@ -172,5 +172,12 @@ describe("coverage scenarios are told apart by their defining model condition (t
     assert.equal(judged("coverage-undeclared-case").conforms, false);
     assert.equal(judged("coverage-allocated-and-traced").conforms, false);
     assert.ok(COVERAGE_SCENARIOS.some((s) => s.id === "coverage-missing"));
+  });
+  it("an identifier a Case traces stays uncovered while its target entry is malformed or repeated", () => {
+    for (const targets of [[{ id: "F1", allocated: "" }], [{ id: "F1", allocated: "a" }, { id: "F1", unverified: "u" }]]) {
+      const a = account({ ...facts, identifiers: ["F1"], model: { cases: [{ id: "T1", tests: ["F1"] }], targets } }, { T1: "pass" });
+      assert.equal(a.entries[0].state, "uncovered");
+      assert.equal(a.result, "unknown");
+    }
   });
 });

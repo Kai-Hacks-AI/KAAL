@@ -257,11 +257,14 @@ export function account(facts, outcomes) {
   const run = outcomes !== undefined && plain(outcomes);
   const trace = tested(model);
   const stands = entries(model);
+  // An identifier with an entry that does not stand (malformed or repeated) is unresolved, even where a Case traces it (testing/F51).
+  const named = new Set((Array.isArray(model.targets) ? model.targets : []).filter((e) => plain(e) && nonempty(e.id)).map((e) => e.id));
   const by = (id) => (Object.hasOwn(trace, id) ? trace[id].filter((c) => declared.has(c)) : []);
   const result = [];
   const state = (id) => {
     const cases = by(id);
     const entry = stands.get(id);
+    if (!entry && named.has(id)) { findings.push(`${id} has a target entry that does not stand`); return "uncovered"; }
     if (cases.length > 0 && entry) { findings.push(`${id} has a target entry beside the trace of ${cases.join(", ")}`); return "uncovered"; }
     if (cases.length === 0) {
       if (entry) return entry.form;
