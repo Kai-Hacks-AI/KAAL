@@ -40,3 +40,7 @@ A destructured parameter that shadows an imported alias (`({ host = "d" }) => {}
 ## Fourth Codex finding: braces inside string literals
 
 A brace character inside a quoted default (`({ host = "}" }) => {}`) was counted as syntax when locating a pattern's closing brace. Both brace scans now skip quoted literals. Verified ad hoc (`"}"` and `'{'` defaults excluded; a literal holding `"}"` before a real query is still a finding); T137 to T139, D5, D6 and the publisher suite pass.
+
+## Fifth Codex finding: TypeScript annotations on patterns
+
+A type annotation between a pattern's closing brace and the parameter list's end (`({ host = "d" }: Options): void {}`) or before an assignment (`const { host }: Options = x`) hid the binding pattern. Both pattern tests now allow annotations. Verified ad hoc (typed parameter, return type, arrow, declaration excluded; a typed literal holding a real query is a finding); T137 to T139, D5, D6 and the publisher suite pass.

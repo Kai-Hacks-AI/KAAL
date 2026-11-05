@@ -373,7 +373,7 @@ function find(code: string, scanning: boolean): Raw[] {
           const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
           const close = closeOf(base + i);
           const after = close < 0 ? "" : code.slice(close + 1, close + 200);
-          const declared = /\b(?:const|let|var)\s*$/.test(head) || /^\s*=(?![=>])/.test(after) || /^\s*(?:=[^,(){}]*)?\s*(?:,[^(){}]*)?\)\s*(?:=>|\{)/.test(after);
+          const declared = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || /^\s*(?::[^=,(){}]*)?(?:=[^,(){}]*)?\s*(?:,[^(){}]*)?\)\s*(?::[^=(){}]*)?(?:=>|\{)/.test(after);
           const pattern = !block && (declared || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
           stack.push(pattern);
         } else if (before[i] === "}") stack.pop();
