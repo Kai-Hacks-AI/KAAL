@@ -13,18 +13,19 @@
     "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
     "lib/conformance.d.ts": "cd7faf3a1b49ad3a566c29d884513f84f03c605b0b70a98fd5563006d00b5000",
     "lib/conformance.mjs": "ab90bdd8ad20df354de28766453af7b8be5401e3e2b1b2567eaa6cf6268d8ffd",
-    "lib/host.mjs": "4cd0417df2e946f229bcf883fa6870f98a251891e73d5dc14f40e74114e0ba2a",
+    "lib/host.mjs": "078658b4b964139b39a6f5e7e8ef7c7bcf31c21ae3d67f5286a92d1df2b46657",
+    "lib/installation.mjs": "8a4322d5f699c84e7efc580983ec6c066f88b04af984091a63f13a003ed78269",
     "lib/npm/realization.mjs": "6ae31f68e81be5f64a234f7fb3d43d647e08da45701708e8c202134685d386d3",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",
-    "lib/structure.mjs": "0d785e45bb2972fef8712da3980ac40d03d42e64ea41d7d0e9700496762fd25c",
-    "package.json": "6198e4c8c2a47b601704d29cddbb6b5cf219aaf028325ecf307f34b29675f7d5",
+    "lib/structure.mjs": "bbd30fa497c7db67d65cbbdc4e1e653d4daa44885d76a265c3b454fd45f224e4",
+    "package.json": "66fd2a8a6ae8c7f642a04732ceb80ccbacb6445c1211542d668a219872d550bb",
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
     "test/embed/measurement.test.mjs": "af12b3ec9b93da4e76c00ce9bb6b75bfa471fecada1fc91801221d2091a963ed",
     "test/embed/package.test.mjs": "fb0f47eaabef39afb933792691aab4c7768bd7a18cd5bdc18a99a31438e3442d",
     "test/run.mjs": "3bcbe53925a60d761812e6660a61a245298f51e51b2439018c9ae89f864ff04a",
-    "test/verify.mjs": "39b001e63c00736fcb34e098cdae2af2ee26a316aa9470822873357221378f33"
+    "test/verify.mjs": "53f5216e8104b7bf99b8c2d807dc7f6c664933745e55ece6570c3d5a7e3ee840"
   },
   "cases": [
     "packaging/T1",

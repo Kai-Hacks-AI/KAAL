@@ -22,6 +22,10 @@ function finish(result, cases, causes) {
   process.exit(EXIT[result]);
 }
 
+// This is the self check only. The installation (whole, unaltered, with its prerequisites) is judged by the
+// shared installation check, not here (packaging/C26): a standalone run never reports a combined verified.
+console.log(`${NAME}: installation not checked by this run; this is the self check only`);
+
 let manifest;
 try {
   manifest = JSON.parse(readFileSync(join(ROOT, "test", "verify.json"), "utf8"));

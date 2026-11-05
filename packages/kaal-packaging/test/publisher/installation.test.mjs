@@ -4,7 +4,7 @@
 //   node --test test/publisher/installation.test.mjs
 // The DO makes them GREEN and wires them into test:publisher.
 //
-// Contract under test: await await verifyInstalled(dir, { run, resolve }) judges ONE installed package folder.
+// Contract under test: await verifyInstalled(dir, { run, resolve }) judges ONE installed package folder.
 //   run      async (command, args, { cwd }) => { status, stdout, stderr }  runs the package's own self check;
 //            it has the shape of Hosting's `execute` (the DO passes it as it is). Never called when the
 //            installation check failed.
@@ -259,8 +259,8 @@ describe("packaging/C26: one installation check for every package", () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");
     const dir = layout();
-    const first = generateManifest(dir);
-    const second = generateManifest(dir);
+    const first = await generateManifest(dir);
+    const second = await generateManifest(dir);
     assert.equal(first, second);
     const edited = JSON.parse(first);
     edited.files["dist/AGENTS.md"] = sha("not the file\n");

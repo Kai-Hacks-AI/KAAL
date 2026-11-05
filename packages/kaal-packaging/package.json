@@ -34,7 +34,8 @@
     "test": "npm run test:all",
     "test:all": "node test/run.mjs",
     "test:embedded": "node test/verify.mjs",
-    "test:publisher": "node --test test/publisher/capability.test.mjs test/publisher/verifier.test.mjs test/publisher/release-guidance.test.mjs test/publisher/structure.test.mjs"
+    "test:pending": "node --test --test-name-pattern=\"^(T134 |packaging/C26)\" test/publisher/installation.test.mjs",
+    "test:publisher": "node --test test/publisher/capability.test.mjs test/publisher/verifier.test.mjs test/publisher/release-guidance.test.mjs test/publisher/structure.test.mjs test/publisher/installation.test.mjs --test-name-pattern=\"^(?!T134 )\""
   },
   "engines": {
     "node": ">=24"
