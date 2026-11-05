@@ -37,9 +37,24 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      # A relay run that failed or was cancelled still reaches this job: an earlier pass must be revoked even
-      # then. Only a successful relay has an artifact; otherwise the number comes from the event payload and
-      # the check is completed as failed without judging anything.
+      # The check is set in_progress first, from the event payload alone, so nothing that can fail later
+      # (the relay itself, its artifact, a download) can leave an earlier pass standing. A relay run that
+      # failed or was cancelled still reaches this job and ends with the check completed as failed.
+      - name: Set the check in_progress for the current head
+        id: pending
+        env:
+          PAYLOAD_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          set -e
+          NUMBER="$PAYLOAD_NUMBER"
+          case "$NUMBER" in ''|*[!0-9]*) echo "::error::the pull request number cannot be read from the event"; exit 2;; esac
+          HEAD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha)
+          [[ "$HEAD" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::the head cannot be read"; exit 2; }
+          ID=$(gh api -X POST "repos/$GITHUB_REPOSITORY/check-runs" -f name="Change Isolation" -f head_sha="$HEAD" \
+            -f status=in_progress -f "output[title]=Change Isolation: re-evaluating" \
+            -f "output[summary]=An approval changed; the change is being judged again." --jq .id)
+          { echo "number=$NUMBER"; echo "head=$HEAD"; echo "check=$ID"; } >> "$GITHUB_OUTPUT"
+
       - if: github.event.workflow_run.conclusion == 'success'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -47,20 +62,13 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
-      - name: Set the check in_progress for the current head
-        id: pending
+      - name: The relayed number must agree with the event
+        if: github.event.workflow_run.conclusion == 'success'
         env:
-          PAYLOAD_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          NUMBER: ${{ steps.pending.outputs.number }}
         run: |
-          set -e
-          if [ -f pull-request.txt ]; then NUMBER=$(cat pull-request.txt); else NUMBER="$PAYLOAD_NUMBER"; fi
-          case "$NUMBER" in ''|*[!0-9]*) echo "::error::the relayed pull request number is not a number"; exit 2;; esac
-          HEAD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha)
-          [[ "$HEAD" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::the head cannot be read"; exit 2; }
-          ID=$(gh api -X POST "repos/$GITHUB_REPOSITORY/check-runs" -f name="Change Isolation" -f head_sha="$HEAD" \
-            -f status=in_progress -f "output[title]=Change Isolation: re-evaluating" \
-            -f "output[summary]=An approval changed; the change is being judged again." --jq .id)
-          { echo "number=$NUMBER"; echo "head=$HEAD"; echo "check=$ID"; } >> "$GITHUB_OUTPUT"
+          RELAYED=$(cat pull-request.txt)
+          [ "$RELAYED" = "$NUMBER" ] || { echo "::error::the relayed number ($RELAYED) differs from the event's ($NUMBER)"; exit 2; }
 
       - if: github.event.workflow_run.conclusion == 'success'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
