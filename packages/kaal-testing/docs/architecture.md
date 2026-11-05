@@ -79,6 +79,7 @@ The export inventory in testing/A8 and `package.json` identifies the implemented
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | no |
     | `./package.json` | the package manifest | no |
     | `./redesign` | recurring timing signals and independent Case-preservation evidence | no |
+    | `./reentry` | a test run never re-enters itself: the marker and the guard | no |
     | `./report` | the reconciled package and ownership report | no |
     | `./traces` | each Case's `tests →` relationship derived from the Case's own declaration | no |
     | `./timing` | given-duration concentration, outlier and platform-skew evidence | no |

@@ -37,6 +37,7 @@ The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evalu
 | `./model` | Check definitions, derive traces, evaluate Runs and read current evidence |
 | `./package.json` | Discover the installed package metadata and location |
 | `./redesign` | Read timing history and independent behavioral-preservation evidence |
+| `./reentry` | Refuse a test run that is entered while it is already running |
 | `./report` | Reconcile the package and ownership evidence |
 | `./traces` | Derive which Cases test a target from the Cases' own declarations |
 | `./timing` | Profile supplied Case durations and cross-platform skew |

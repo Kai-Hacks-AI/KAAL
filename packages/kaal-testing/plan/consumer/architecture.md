@@ -21,6 +21,7 @@ Each element names, in brackets, the Requirements it answers.
     | `./model` | the Testing model: Strategies, Plans, Suites, Cases, Test Data and Runs, their results and Plan evaluation | `testing/C15` | no |
     | `./package.json` | the package manifest | Testing | no |
     | `./redesign` | recurring timing signals and independent Case-preservation evidence | `testing/C53` | no |
+    | `./reentry` | a test run never re-enters itself: the marker and the guard | testing/C55 | no |
     | `./report` | the reconciled package and ownership report | Testing | no |
     | `./timing` | given-duration concentration, outlier and platform-skew evidence | testing/C47 | no |
     | `./traces` | each Case's `tests →` relationship derived from the Case's own declaration | testing/C48 | no |

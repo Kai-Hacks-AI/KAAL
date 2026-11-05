@@ -145,6 +145,17 @@ function end(result, diagnosis) {
 }
 const unknown = (cause, evidence, step = "inspect the evidence", kind = "diagnostic") => end("unknown", { cause, evidence, next: { kind, step } });
 
+// A run never re-enters itself (testing/F103, testing/F104): the verification is level 2, so it enters under the run
+// entry's marker and when started directly, and its case processes inherit level 2.
+try {
+  const { guard } = await import("../lib/reentry.mjs");
+  const entry = guard(process.env, 2);
+  if (!entry.entered) unknown(entry.findings.join("; "), entry.findings);
+  Object.assign(process.env, entry.env);
+} catch (e) {
+  unknown("the re-entry guard cannot be applied", [String(e.code ?? e.message)]);
+}
+
 // The candidate: the manifest, and every other file against it.
 let manifest;
 try {
