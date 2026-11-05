@@ -3,7 +3,7 @@
 // consumer, runs the package's own verifier, and judges what it showed against what it established itself.
 // Pure: it reads nothing from a host, runs nothing and keeps nothing. It imports only Testing's own model
 // (`check`, `tested`, `entries`), for coverage accounting (testing/N9, testing/N10).
-import { check, entries, tested } from "kaal-testing/model";
+import { check, entries, tested } from "./model.mjs";
 const RESULTS = ["verified", "failed", "unknown"];
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 const NEXT = ["precise", "diagnostic", "exploratory"];
