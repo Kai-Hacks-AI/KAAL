@@ -466,10 +466,17 @@ function declaresOrNames(node: ts.Identifier): boolean {
   return false;
 }
 
-/** Whether a binding name or pattern declares `name`. */
-function bindsName(target: ts.BindingName, name: string): boolean {
-  if (ts.isIdentifier(target)) return target.text === name;
-  return target.elements.some((e) => !ts.isOmittedExpression(e) && !bindsQuery(e) && bindsName(e.name, name));
+/** Which declarations of a name a scope check looks for: a local one that shadows a query, or the query binding itself. */
+type Declares = "local" | "query";
+
+/** Whether a binding name or pattern declares `name`, as a local binding or as the query binding itself. */
+function bindsName(target: ts.BindingName, name: string, mode: Declares): boolean {
+  if (ts.isIdentifier(target)) return mode === "local" && target.text === name;
+  return target.elements.some((e) => {
+    if (ts.isOmittedExpression(e)) return false;
+    if (bindsQuery(e)) return mode === "query" && ts.isIdentifier(e.name) && e.name.text === name;
+    return bindsName(e.name, name, mode);
+  });
 }
 
 /** Whether a binding element is itself a query binding: a platform query destructured from a module, `process` or a name bound to one. */
@@ -484,51 +491,56 @@ function bindsQuery(element: ts.BindingElement): boolean {
 }
 
 /** Whether a `var` declaration of `name` sits in a function body, outside nested functions (it hoists to the function). */
-function hoistsVar(node: ts.Node, name: string): boolean {
-  if (ts.isVariableDeclarationList(node) && !(node.flags & ts.NodeFlags.BlockScoped) && node.declarations.some((d) => bindsName(d.name, name))) return true;
+function hoistsVar(node: ts.Node, name: string, mode: Declares): boolean {
+  if (ts.isVariableDeclarationList(node) && !(node.flags & ts.NodeFlags.BlockScoped) && node.declarations.some((d) => bindsName(d.name, name, mode))) return true;
   let found = false;
   ts.forEachChild(node, (child) => {
-    if (!found && !ts.isFunctionLike(child) && !ts.isClassLike(child)) found = hoistsVar(child, name);
+    if (!found && !ts.isFunctionLike(child) && !ts.isClassLike(child)) found = hoistsVar(child, name, mode);
   });
   return found;
 }
 
 /** Whether a statement list declares `name` in block scope: let, const, a function, a class or an enum. */
-function declaresInBlock(statements: ts.NodeArray<ts.Statement>, name: string): boolean {
+function declaresInBlock(statements: ts.NodeArray<ts.Statement>, name: string, mode: Declares): boolean {
   return statements.some((st) => {
-    if (ts.isVariableStatement(st)) return !!(st.declarationList.flags & ts.NodeFlags.BlockScoped) && st.declarationList.declarations.some((d) => bindsName(d.name, name));
-    if (ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st) || ts.isEnumDeclaration(st)) return st.name?.text === name;
+    if (ts.isVariableStatement(st)) return !!(st.declarationList.flags & ts.NodeFlags.BlockScoped) && st.declarationList.declarations.some((d) => bindsName(d.name, name, mode));
+    if (ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st) || ts.isEnumDeclaration(st)) return mode === "local" && st.name?.text === name;
     return false;
   });
 }
 
-/** Whether a lexical scope between a use and the top of the source declares `name` itself, so the use is not the import. */
+/** Whether one lexical scope `n` declares `name` for a use at `node`. `skip` is the declaration whose decorator the use sits in. */
+function scopeDeclares(n: ts.Node, node: ts.Identifier, name: string, mode: Declares, skip: ts.Node | undefined): boolean {
+  // Only the parameters and the body see a function's own bindings; a computed name or a decorator runs in the enclosing scope.
+  const inside = (part: ts.Node | undefined) => !!part && node.pos >= part.pos && node.end <= part.end;
+  if (ts.isClassStaticBlockDeclaration(n)) return inside(n.body) && hoistsVar(n.body, name, mode);
+  if (ts.isFunctionLike(n)) {
+    if (n === skip || !(inside((n as ts.FunctionLikeDeclaration).body) || n.parameters.some(inside))) return false;
+    if (n.parameters.some((p) => bindsName(p.name, name, mode))) return true;
+    if (mode === "local" && ts.isFunctionExpression(n) && n.name?.text === name) return true;
+    // A body-level `var` does not reach a parameter default: only a use inside the body resolves to it.
+    const body = (n as ts.FunctionLikeDeclaration).body;
+    return !!body && inside(body) && hoistsVar(body, name, mode);
+  }
+  if (ts.isBlock(n) || ts.isModuleBlock(n)) return declaresInBlock(n.statements, name, mode);
+  if (ts.isCaseBlock(n)) return n.clauses.some((c) => declaresInBlock(c.statements, name, mode));
+  if (ts.isForStatement(n) || ts.isForInStatement(n) || ts.isForOfStatement(n)) {
+    const init = n.initializer;
+    return !!init && ts.isVariableDeclarationList(init) && !!(init.flags & ts.NodeFlags.BlockScoped) && init.declarations.some((d) => bindsName(d.name, name, mode));
+  }
+  if (ts.isCatchClause(n)) return !!n.variableDeclaration && bindsName(n.variableDeclaration.name, name, mode);
+  return mode === "local" && ts.isClassExpression(n) && n.name?.text === name;
+}
+
+/** Whether the nearest lexical scope that declares `name` between a use and the top of the source declares something other than the query. */
 function shadowed(node: ts.Identifier): boolean {
   const name = node.text;
-  // A decorator expression runs in the scope around the declaration it decorates, so the function's own bindings never apply to it.
-  let decorated = false;
+  // A decorator expression runs in the scope around the declaration it decorates: that declaration's own bindings do not apply to it.
+  let skip: ts.Node | undefined;
   for (let n: ts.Node | undefined = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
-    if (ts.isDecorator(n)) decorated = true;
-    // Only the parameters and the body see a function's own bindings; a computed name or a decorator runs in the enclosing scope.
-    const inside = (part: ts.Node | undefined) => !!part && node.pos >= part.pos && node.end <= part.end;
-    if (ts.isClassStaticBlockDeclaration(n)) {
-      if (inside(n.body) && hoistsVar(n.body, name)) return true;
-    } else if (ts.isFunctionLike(n) && !decorated && (inside((n as ts.FunctionLikeDeclaration).body) || n.parameters.some(inside))) {
-      if (n.parameters.some((p) => bindsName(p.name, name))) return true;
-      if (ts.isFunctionExpression(n) && n.name?.text === name) return true;
-      // A body-level `var` does not reach a parameter default: only a use inside the body resolves to it.
-      const body = (n as ts.FunctionLikeDeclaration).body;
-      if (body && node.pos >= body.pos && node.end <= body.end && hoistsVar(body, name)) return true;
-    } else if (ts.isBlock(n) || ts.isModuleBlock(n)) {
-      if (declaresInBlock(n.statements, name)) return true;
-    } else if (ts.isCaseBlock(n)) {
-      if (n.clauses.some((c) => declaresInBlock(c.statements, name))) return true;
-    } else if (ts.isForStatement(n) || ts.isForInStatement(n) || ts.isForOfStatement(n)) {
-      const init = n.initializer;
-      if (init && ts.isVariableDeclarationList(init) && (init.flags & ts.NodeFlags.BlockScoped) && init.declarations.some((d) => bindsName(d.name, name))) return true;
-    } else if (ts.isCatchClause(n)) {
-      if (n.variableDeclaration && bindsName(n.variableDeclaration.name, name)) return true;
-    } else if (ts.isClassExpression(n) && n.name?.text === name) return true;
+    if (ts.isDecorator(n) && skip === undefined) skip = ts.isParameter(n.parent) ? n.parent.parent : n.parent;
+    if (scopeDeclares(n, node, name, "query", skip)) return false;
+    if (scopeDeclares(n, node, name, "local", skip)) return true;
   }
   return false;
 }

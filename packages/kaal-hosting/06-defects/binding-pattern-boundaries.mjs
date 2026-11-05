@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T190: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T192: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -64,6 +64,14 @@ test("hosting/T187: a method decorator beside a same-named parameter is a findin
 
 test("hosting/T189: a parameter decorator beside a same-named parameter is a finding", async () => {
   assert.equal(await found("class C { m(@decorate(host()) host: string) {} }"), 1);
+});
+
+test("hosting/T191: a decorator in a function that has a same-named parameter is local", async () => {
+  assert.equal(await found("function f(host) { class C { @decorate(host()) m() {} } }"), 0);
+});
+
+test("hosting/T192: a query destructured in a block beneath a same-named parameter is a finding", async () => {
+  assert.equal(await found('function f(host) { { const { platform: host } = require("node:os"); return host(); } }'), 1);
 });
 
 const local = [

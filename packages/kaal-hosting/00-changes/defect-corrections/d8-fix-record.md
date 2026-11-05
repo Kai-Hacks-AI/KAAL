@@ -116,3 +116,5 @@ A computed method name runs in the enclosing scope, so a same-named parameter of
 Only a function's parameters and body see its own bindings, so a decorator or a computed name beside a same-named parameter is still a use (hosting/T187), and a `var` in a class static block is local to it (hosting/T188).
 
 A decorator expression, including a parameter decorator, runs in the scope around its declaration (hosting/T189). A statement label and the `break` or `continue` that names it are not references (hosting/T190).
+
+Scope resolution stops at the nearest scope that declares the name, and when that declaration is the query binding itself the use is the query, even beneath a same-named outer parameter (hosting/T192). The decorator exception applies to the decorated declaration only, so outer function bindings still resolve (hosting/T191).
