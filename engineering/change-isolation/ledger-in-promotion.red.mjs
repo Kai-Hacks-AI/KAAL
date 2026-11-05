@@ -35,6 +35,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { check, LEDGER } from "./check.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -73,12 +74,18 @@ test("engineering/T94 R5 (control): blobs that do not match the change are refus
   const v = check(CHANGE, { ledger: [], facts: facts(ENTRY, { head: { "a/x": "9".repeat(40) } }), carried: ENTRY, attested: attest });
   assert.ok(v.some((x) => x.includes("a/x")), v.join("\n"));
 });
-test("engineering/T96 R7 (control): an entry that reaches .github, the checker or an extra path is refused", () => {
-  for (const extra of [".github/workflows/x.yml", CHECKER, "packages/other/z"]) {
-    const reach = { ...ENTRY, paths: [...ENTRY.paths, extra], pre: { ...ENTRY.pre, [extra]: null }, post: { ...ENTRY.post, [extra]: "4".repeat(40) } };
-    const v = check([...CHANGE, extra], { ledger: [], facts: facts(reach), carried: reach, attested: { id: "v1", digest: DIGEST } });
+test("engineering/T96 R7 (control): an entry that reaches .github or the checker is refused even when correctly attested; an extra changed path is refused", () => {
+  // The digest is that of the variant entry itself, so only the reach restriction can refuse it. Computed with
+  // Foundation SHA-256 over the canonical bytes built here (keys sorted, no whitespace), not from the checker.
+  const canon = (e) => JSON.stringify({ id: e.id, paths: e.paths, post: e.post, pre: e.pre });
+  for (const extra of [".github/workflows/x.yml", CHECKER]) {
+    const reach = { ...ENTRY, paths: [...ENTRY.paths, extra].sort(), pre: { ...ENTRY.pre, [extra]: null }, post: { ...ENTRY.post, [extra]: "4".repeat(40) } };
+    const digest = sha256(Buffer.from(canon(reach)));
+    const v = check([...CHANGE, extra], { ledger: [], facts: facts(reach), carried: reach, attested: { id: "v1", digest } });
     assert.ok(v.length > 0, extra);
   }
+  // An extra changed path outside the unchanged, correctly attested entry.
+  assert.ok(check([...CHANGE, "packages/other/z"], { ledger: [], facts: facts(), carried: ENTRY, attested: attest }).length > 0);
 });
 test("engineering/T97 R8 (control): an entry already adopted by the target (its post is the target's blob) is refused", () => {
   const v = check(CHANGE, { ledger: [], facts: facts(ENTRY, { base: ENTRY.post }), carried: ENTRY, attested: attest });
