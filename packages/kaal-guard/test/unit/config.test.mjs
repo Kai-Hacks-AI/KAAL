@@ -75,7 +75,7 @@ describe("Guard/Check", () => {
   const valid = { type: "Guard/Check", command: "node x.mjs", runs: ["hook"] };
 
   it("is the members of a check, without its type", () => {
-    const full = { ...valid, facts: ["base", "changed"], trusted: "checks", outcomes: { 4: "held" } };
+    const full = { ...valid, facts: ["base", "changed"], trusted: "checks", held: [4, 7] };
     const { type, ...rest } = full;
     assert.deepEqual(check(full, "c.md"), rest);
   });
@@ -101,10 +101,14 @@ describe("Guard/Check", () => {
       [{ ...valid, facts: ["time"] }, /c\.md: facts: must be a list/],
       [{ ...valid, trusted: "../x.mjs" }, /c\.md: trusted: must be a string naming a file or directory inside the repository/],
       [{ ...valid, trusted: 4 }, /c\.md: trusted: must be a string/],
-      [{ ...valid, outcomes: { 1: "held" } }, /c\.md: outcomes:/],
-      [{ ...valid, outcomes: { 4: "ignored" } }, /c\.md: outcomes:/],
-      [{ ...valid, outcomes: { 256: "held" } }, /c\.md: outcomes:/],
-      [{ ...valid, outcomes: ["held"] }, /c\.md: outcomes:/],
+      [{ ...valid, held: [] }, /c\.md: held: must be a list of integers/],
+      [{ ...valid, held: 4 }, /c\.md: held: must be a list of integers/],
+      [{ ...valid, held: ["4"] }, /c\.md: held: "4" is not an integer/],
+      [{ ...valid, held: [1] }, /c\.md: held: 1 is a status Guard reserves/],
+      [{ ...valid, held: [256] }, /c\.md: held: 256 is not an exit status from 4 to 255/],
+      [{ ...valid, held: [4, 4] }, /c\.md: held: names a status twice/],
+      [{ ...valid, outcomes: { 4: "held" } }, /c\.md: outcomes: is not a member of Guard\/Check; held replaces it/],
+      [{ ...valid, outcomes: { 4: "held" }, held: [4] }, /c\.md: outcomes: and held: are both declared/],
     ]) assert.match(refusal(() => check(members, "c.md")), said);
   });
 });

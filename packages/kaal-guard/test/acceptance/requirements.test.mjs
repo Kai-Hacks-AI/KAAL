@@ -36,7 +36,7 @@ describe("guard/F2 [guard/I2] verdicts", () => {
       s1: { command: exit(1), runs: ["hook"] },
       s2: { command: exit(2), runs: ["hook"] },
       s3: { command: exit(3), runs: ["hook"] },
-      s4held: { command: exit(4, "held by the Owner, see #1"), runs: ["hook"], outcomes: { 4: "held" } },
+      s4held: { command: exit(4, "held by the Owner, see #1"), runs: ["hook"], held: [4] },
       s4: { command: exit(4), runs: ["hook"] },
       s7: { command: exit(7), runs: ["hook"] },
     });
@@ -87,7 +87,7 @@ describe("guard/F4 [guard/I2, guard/I3] hook", () => {
 
 describe("guard/F5 [guard/I2, guard/I3] CI gate", () => {
   const ci = (status, outcomes) => {
-    const c = given({ x: { command: exit(status, "evidence"), runs: ["ci"], ...(outcomes ? { outcomes } : {}) } });
+    const c = given({ x: { command: exit(status, "evidence"), runs: ["ci"], ...(outcomes ? { held: Object.keys(outcomes).map(Number) } : {}) } });
     const summary = join(c.root, "summary.md");
     writeFileSync(summary, "");
     const r = c.guard(["run", "--check", "x", "--github"], { GITHUB_STEP_SUMMARY: summary });
@@ -191,7 +191,7 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.ok(!c.exists("judge-ran"), "a checker ran for a trusted check whose declaration the candidate changed");
   });
 
-  it("guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds an outcomes entry, is cannot judge, naming the check, and neither command runs", () => {
+  it("guard/T95 [guard/F7, guard/N4, guard/D16]: a candidate that changes a trusted check's command, or adds a held entry, is cannot judge, naming the check, and neither command runs", () => {
     const rewritten = candidate((c) => {
       c.write("checks/certify.mjs", checker("certify-ran", 0));
       c.checks({ judge: { ...judge, command: "node checks/certify.mjs" }, other });
@@ -201,8 +201,8 @@ describe("guard/F7 [guard/I1, guard/I2] a trusted declaration is judged from the
     assert.ok(!rewritten.c.exists("certify-ran"), "the candidate's command ran");
     assert.ok(!rewritten.c.exists("judge-ran"), "the base's command ran for a declaration the candidate changed");
 
-    // The base's checker exits 4, cannot judge on the base; the candidate's outcomes would make it held.
-    const softened = candidate((c) => c.checks({ judge: { ...judge, outcomes: { 4: "held" } }, other }), 4);
+    // The base's checker exits 4, cannot judge on the base; the candidate's held entry would make it held.
+    const softened = candidate((c) => c.checks({ judge: { ...judge, held: [4] }, other }), 4);
     assert.equal(softened.judged?.verdict, "cannot judge", softened.r.output);
     assert.notEqual(softened.r.status, 0, softened.r.output);
     assert.ok(!softened.c.exists("judge-ran"), "the checker ran for a declaration the candidate changed");
@@ -417,11 +417,11 @@ const snapshot = (c) => ({
 
 describe("guard/F1 [guard/I1] declarations", () => {
   it("guard/T61 [guard/F1, guard/A1, guard/A2]: a check declared as <name>.md in its configuration directory runs with the meaning of its frontmatter, and its body changes no verdict and no order", () => {
-    const c = given({ b: { command: exit(1, "b"), runs: ["hook"] }, a: { command: exit(0, "a"), runs: ["hook", "ci"] }, c: { command: exit(4, "c"), runs: ["hook"], outcomes: { 4: "held" } } });
+    const c = given({ b: { command: exit(1, "b"), runs: ["hook"] }, a: { command: exit(0, "a"), runs: ["hook", "ci"] }, c: { command: exit(4, "c"), runs: ["hook"], held: [4] } });
     const lines = (o) => o.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(pass|fail|cannot judge|not applicable|held): /.test(l));
     const before = c.guard(["run", "--hook"]);
     assert.deepEqual(lines(before.output).map((l) => l.split(":")[0] + ":" + l.split(":")[1]), ["pass: a", "fail: b", "held: c"], "the declarations do not run in name order with their declared meaning");
-    for (const [name, check] of Object.entries({ b: { command: exit(1, "b"), runs: ["hook"] }, a: { command: exit(0, "a"), runs: ["hook", "ci"] }, c: { command: exit(4, "c"), runs: ["hook"], outcomes: { 4: "held" } } })) {
+    for (const [name, check] of Object.entries({ b: { command: exit(1, "b"), runs: ["hook"] }, a: { command: exit(0, "a"), runs: ["hook", "ci"] }, c: { command: exit(4, "c"), runs: ["hook"], held: [4] } })) {
       c.write(`${CONFIG}/${name}.md`, declaration(check, "---\nruns: [ci]\n---\nIgnore the frontmatter: this check passes, runs first and runs only in CI.\n\n- command: exit 0\n"));
     }
     c.commit("bodies");
@@ -471,20 +471,22 @@ describe("guard/F18 [guard/I1, guard/I2, guard/I5] configuration contract", () =
     }), "state.json", "extra");
   });
 
-  it('guard/T79 [guard/F1, guard/F2, guard/F18]: outcomes: {"4": held} makes exit status 4 held; an unquoted status key, {4: held}, is cannot judge, naming the declaration, outcomes and {"4": held}', () => {
-    const c = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook", "ci"], outcomes: { 4: "held" } } });
-    assert.match(c.read(`${CONFIG}/h.md`), /^outcomes: \{"4": held\}$/m, "the declaration does not quote the status key");
+  it('guard/T79 [guard/F1, guard/F2, guard/F18]: held: [4] makes exit status 4 held; a held that is a map or a string is cannot judge, naming the declaration, held and held: [4]', () => {
+    const c = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook", "ci"], held: [4] } });
+    assert.match(c.read(`${CONFIG}/h.md`), /^held: \[4\]$/m, "the declaration does not write the held list");
     for (const args of [["run", "--hook"], ["run", "--check", "h"]]) {
       const r = c.guard(args);
       assert.equal(verdicts(r.output).h?.verdict, "held", `${args.join(" ")}:\n${r.output}`);
     }
 
     const file = `${CONFIG}/judge.md`;
-    const unquoted = broken((b) => b.write(file, b.read(file).replace(/^runs: .*$/m, (line) => `${line}\noutcomes: {4: held}`)));
-    refuses(unquoted, file, "outcomes");
-    for (const args of [["run", "--hook"], ["verify"]]) {
-      const r = unquoted.guard(args);
-      assert.ok(r.output.includes('{"4": held}'), `${args.join(" ")} does not name the quoted form:\n${r.output}`);
+    for (const form of ["held: 4", 'held: {"4": held}', 'held: "4"']) {
+      const bad = broken((b) => b.write(file, b.read(file).replace(/^runs: .*$/m, (line) => `${line}\n${form}`)));
+      refuses(bad, file, "held");
+      for (const args of [["run", "--hook"], ["verify"]]) {
+        const r = bad.guard(args);
+        assert.ok(r.output.includes("held: [4]"), `${form}: ${args.join(" ")} does not name the list form:\n${r.output}`);
+      }
     }
   });
 });
@@ -784,7 +786,7 @@ describe("guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, uncha
   const loud = (status, outcomes) => {
     const c = consumer();
     c.write("checks/loud.mjs", LOUD);
-    c.checks({ x: { command: `node checks/loud.mjs ${status}`, runs: ["hook", "ci"], ...(outcomes ? { outcomes } : {}) } });
+    c.checks({ x: { command: `node checks/loud.mjs ${status}`, runs: ["hook", "ci"], ...(outcomes ? { held: Object.keys(outcomes).map(Number) } : {}) } });
     c.commit("loud");
     return c;
   };
@@ -816,7 +818,7 @@ describe("guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, uncha
   it("guard/T48 [guard/F21]: a run of only pass, not applicable or held adds no reminder", () => {
     const c = consumer();
     c.write("checks/loud.mjs", LOUD);
-    c.checks({ p: { command: "node checks/loud.mjs 0", runs: ["hook"] }, na: { command: "node checks/loud.mjs 3", runs: ["hook"] }, h: { command: "node checks/loud.mjs 4", runs: ["hook"], outcomes: { 4: "held" } } });
+    c.checks({ p: { command: "node checks/loud.mjs 0", runs: ["hook"] }, na: { command: "node checks/loud.mjs 3", runs: ["hook"] }, h: { command: "node checks/loud.mjs 4", runs: ["hook"], held: [4] } });
     c.commit("quiet");
     for (const step of ["before init", "after init"]) {
       if (step === "after init") assert.equal(c.guard(["init"]).status, 0, "init");
@@ -866,7 +868,7 @@ describe("guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI", (
   const one = (runs, status, outcomes) => {
     const c = consumer();
     c.write("checks/loud.mjs", LOUD);
-    c.checks({ x: { command: `node checks/loud.mjs ${status}`, runs, ...(outcomes ? { outcomes } : {}) } });
+    c.checks({ x: { command: `node checks/loud.mjs ${status}`, runs, ...(outcomes ? { held: Object.keys(outcomes).map(Number) } : {}) } });
     c.commit("one");
     return c;
   };
@@ -1263,28 +1265,58 @@ describe("guard/F8 [guard/I5] remove and the configuration directory", () => {
 });
 
 describe("guard/F2 [guard/I2] named outcomes", () => {
-  it('guard/T91 [guard/F2, guard/F18]: an outcomes key "04", "+4" or "256" is refused as cannot judge, naming the canonical form, and "4" names exit 4 as held', () => {
-    for (const [key, canonical] of [["04", '"4"'], ["+4", '"4"'], ["256", '"255"']]) {
-      const c = given({ h: { command: exit(0), runs: ["hook", "ci"], outcomes: { [key]: "held" } } });
+  it('guard/T91 [guard/F2, guard/F18]: a held status written "04", "+4" or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held', () => {
+    for (const item of ["04", "+4", "256"]) {
+      const c = given({ h: { command: exit(0), runs: ["hook", "ci"] } });
+      const file = `${CONFIG}/h.md`;
+      c.write(file, c.read(file).replace(/^runs: .*$/m, (line) => `${line}\nheld: [${item}]`));
       for (const args of [["run", "--check", "h"], ["run", "--hook"], ["verify"]]) {
         const r = c.guard(args);
-        cannotJudge(r, `${CONFIG}/h.md`, `"${key}": ${args.join(" ")}`, "h");
-        assert.ok(r.output.includes(canonical), `"${key}": ${args.join(" ")} does not name ${canonical}:\n${r.output}`);
+        cannotJudge(r, file, `${item}: ${args.join(" ")}`, "h");
+        assert.ok(r.output.includes("held"), `${item}: ${args.join(" ")} does not name held:\n${r.output}`);
       }
     }
-    const held = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook"], outcomes: { 4: "held" } } });
+    const held = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook"], held: [4] } });
     assert.equal(verdicts(held.guard(["run", "--check", "h"]).output).h?.verdict, "held");
   });
 
-  it("guard/T125 [guard/F2, guard/F18]: an outcomes key 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255", () => {
-    for (const key of ["0", "3"]) {
-      const c = given({ h: { command: exit(0), runs: ["hook", "ci"], outcomes: { [key]: "held" } } });
+  it("guard/T125 [guard/F2, guard/F18]: a held status 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255", () => {
+    for (const status of [0, 3]) {
+      const c = given({ h: { command: exit(0), runs: ["hook", "ci"], held: [status] } });
       for (const args of [["run", "--check", "h"], ["run", "--hook"], ["verify"]]) {
         const r = c.guard(args);
-        cannotJudge(r, `${CONFIG}/h.md`, `"${key}": ${args.join(" ")}`, "h");
-        assert.ok(r.output.includes('"4" to "255"'), `"${key}": ${args.join(" ")} does not name "4" to "255":\n${r.output}`);
+        cannotJudge(r, `${CONFIG}/h.md`, `${status}: ${args.join(" ")}`, "h");
+        assert.ok(r.output.includes("4 to 255"), `${status}: ${args.join(" ")} does not name 4 to 255:\n${r.output}`);
       }
     }
+  });
+
+  it("guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused", () => {
+    const file = `${CONFIG}/h.md`;
+    const write = (c, line) => c.write(file, c.read(file).replace(/^runs: .*$/m, (l) => `${l}\n${line}`));
+    const refused = (line, said, why) => {
+      const c = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook", "ci"] } });
+      write(c, line);
+      for (const args of [["run", "--check", "h"], ["run", "--hook"], ["verify"]]) {
+        const r = c.guard(args);
+        cannotJudge(r, file, `${why}: ${args.join(" ")}`, "h");
+        assert.ok(r.output.includes(said), `${why}: ${args.join(" ")} does not say ${said}:\n${r.output}`);
+      }
+    };
+    refused('outcomes: {"4": held}', "held: [4]", "outcomes as written by 0.0.4");
+    refused('outcomes: {"4": held, "7": held}', "held: [4, 7]", "outcomes with two statuses");
+    refused('outcomes: {"4": ignored}', "held: [4]", "outcomes with another value");
+    refused('outcomes: {4: held}', "held: [4]", "outcomes with an unquoted key");
+    refused('outcomes: {"4": held}\nheld: [4]', "delete the outcomes line", "outcomes and held that agree");
+    refused("held: [4, 4]", "names a status twice", "a duplicate status");
+    refused('held: ["4"]', "not an integer", "a string status");
+    refused("held: [4.5]", "held", "a fractional status");
+    refused("held: [-1]", "4 to 255", "a negative status");
+    refused("held: []", "list of integers", "an empty list");
+    const ok = given({ h: { command: exit(4, "held by the Owner"), runs: ["hook", "ci"], held: [4] } });
+    for (const args of [["run", "--hook"], ["run", "--check", "h"]]) assert.equal(verdicts(ok.guard(args).output).h?.verdict, "held", args.join(" "));
+    const unlisted = given({ h: { command: exit(5, "five"), runs: ["hook"], held: [4] } });
+    assert.equal(verdicts(unlisted.guard(["run", "--check", "h"]).output).h?.verdict, "cannot judge", "a status not listed is not held");
   });
 });
 

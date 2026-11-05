@@ -147,12 +147,14 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const k = h.kaalClone();
     k.install(RELEASE);
+    k.dialect("published");
     assert.equal(k.lockIntegrity(), h.registryIntegrity(RELEASE), "the lockfile does not hold the registry's integrity for 0.0.2");
     assert.equal(json(readFileSync(join(KAAL, "package.json"), "utf8")).devDependencies["@kaihacksai/kaal-guard"], "file:packages/kaal-guard", "N8: KAAL's own development dependency changed");
     const verify = k.guard("verify");
     assert.equal(verify.status, 0, verify.output);
     const facts = ["--head", "HEAD", "--base", "HEAD", "--base-ref", "main"];
     const published = k.guard("run", "--hook", ...facts);
+    k.dialect("development");
     const development = k.development("run", "--hook", ...facts);
     assert.equal(published.status, development.status, `the published Guard's verdict differs from the development Guard's:\n${published.output}\n${development.output}`);
   });
@@ -183,6 +185,7 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     const h = await a12();
     const k = h.kaalClone();
     k.install(RELEASE);
+    k.dialect("published");
     k.git("add", "-A");
     k.git("commit", "-q", "-m", "consume the published Guard");
     const push = k.push();
@@ -373,6 +376,9 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     if (path.verdict === "legacy") t.diagnostic(`${newer.version} predates guard/F42 and declares no upgrade paths`);
     else t.diagnostic(`${newer.version} declares upgrade paths to ${pair.to.paths.target} from: ${pair.to.paths.sources.join(", ")}`);
     if (!applies(t, path.verdict !== "undeclared", `${newer.version} declares no upgrade path from ${older.version}`)) return;
+    // From 0.0.5 a declaration says held: [N], not outcomes: {"N": held} (guard/C130); the migration is the consumer's step.
+    // The target is the release its own guard/F42 declaration names, since the package carries 0.0.4 until the bump.
+    const migrates = /^0\.0\.(?:[5-9]|\d{2,})$/.test(pair.to.paths?.target ?? "");
     const hook = ".githooks/pre-push";
     const managed = Object.values(pair.to.assets).filter((a) => a.surface !== undefined && (a.target ?? a.path) !== hook);
 
@@ -382,6 +388,8 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(init.status, 0, init.output);
     m.write(hook, `${m.read(hook)}# the consumer's own line\n`);
     m.write("README.md", "the consumer's own file\n");
+    const heldFile = ".kaal/config/guard/hold.md";
+    if (migrates) m.write(heldFile, '---\ntype: Guard/Check\ncommand: "node -e process.exit(4)"\nruns: [hook]\noutcomes: {"4": held}\n---\n\nHeld by the consumer.\n');
     m.git("add", "-A");
     m.git("commit", "-q", "-m", "older");
     const kept = { hook: m.read(hook), readme: m.read("README.md"), declarations: declarations(m) };
@@ -389,6 +397,19 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
 
     m.install(newer.spec);
     assert.deepEqual(changedFiles(m), ["package-lock.json", "package.json"], "guard/F11: the dependency change changed more than the dependency and the lockfile");
+    if (migrates) {
+      // guard/C130: Guard refuses a declaration it cannot read before it writes anything (guard/F18). The 0.0.4 form is
+      // cannot judge, naming the line to write; the consumer's step is the rewrite, and the upgrade follows it.
+      const refused = m.guard("upgrade");
+      assert.equal(refused.status, 2, `the newer candidate did not refuse outcomes as cannot judge:\n${refused.output}`);
+      assert.ok(refused.output.includes("held: [4]"), `the refusal does not name held: [4]:\n${refused.output}`);
+      assert.deepEqual(changedFiles(m), ["package-lock.json", "package.json"], "the refused upgrade wrote something");
+      assert.deepEqual(declarations(m), kept.declarations, "the refused upgrade changed a declaration");
+      m.write(heldFile, m.read(heldFile).replace('outcomes: {"4": held}', "held: [4]"));
+      m.git("add", heldFile);
+      m.git("commit", "-q", "-m", "migrate outcomes to held", "--", heldFile);
+      kept.declarations = declarations(m);
+    }
     const up = m.guard("upgrade");
     assert.equal(up.status, 0, up.output);
 
@@ -405,6 +426,10 @@ describe("guard/I5 a consumer moves between published versions safely", () => {
     assert.equal(m.read(hook), kept.hook, "upgrade changed a modified managed asset");
     assert.equal(m.read("README.md"), kept.readme, "upgrade changed a file Guard did not write");
     assert.deepEqual(declarations(m), kept.declarations, "upgrade changed a declaration");
+    if (migrates) {
+      const held = m.guard("run", "--check", "hold");
+      assert.match(held.output, /^held: hold:/m, `the migrated declaration is not held:\n${held.output}`);
+    }
 
     const registered = record(m);
     for (const target of managed.map((a) => a.target ?? a.path).filter((target) => registered[target])) {

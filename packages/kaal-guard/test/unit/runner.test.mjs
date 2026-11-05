@@ -27,7 +27,7 @@ function declare(check) {
   const l = ["type: Guard/Check", `command: ${JSON.stringify(check.command)}`, `runs: [${check.runs.join(", ")}]`];
   if (check.facts) l.push(`facts: [${check.facts.join(", ")}]`);
   if (check.trusted !== undefined) l.push(`trusted: ${JSON.stringify(check.trusted)}`);
-  if (check.outcomes) l.push(`outcomes: {${Object.entries(check.outcomes).map(([k, v]) => `${JSON.stringify(String(k))}: ${v}`).join(", ")}}`);
+  if (check.held) l.push(`held: [${check.held.join(", ")}]`);
   return `---\n${l.join("\n")}\n---\n`;
 }
 
@@ -62,7 +62,7 @@ describe("run", () => {
     const dir = repo({
       p: { command: node("process.exit(0)"), runs: ["hook"] },
       n: { command: node("process.exit(3)"), runs: ["hook"] },
-      h: { command: node("console.log('on hold');process.exit(4)"), runs: ["hook"], outcomes: { 4: "held" } },
+      h: { command: node("console.log('on hold');process.exit(4)"), runs: ["hook"], held: [4] },
     });
     const { results } = run(dir, declared(dir), { hook: true }, {});
     assert.deepEqual(results.map((r) => [r.name, r.verdict]), [["h", "held"], ["n", "not applicable"], ["p", "pass"]], "not in name order");

@@ -83,22 +83,20 @@ describe("KAAL's own checks run through Guard", () => {
     assert.ok(branching.length > 0, "KAAL declares no branching check");
     for (const [name, c] of branching) {
       assert.match(c.trusted ?? "", /engineering\/github\/lineage\.ts$/, `${name} is not run from the target ref`);
-      assert.equal(c.outcomes?.["4"], "held", `${name} does not declare 4 as held`);
+      assert.deepEqual(c.held, [4], `${name} does not declare 4 as held`);
     }
   });
 
-  it("guard/T80 [guard/F1, guard/A11]: every key in the frontmatter of KAAL's declarations is a string: each outcomes status is double-quoted", () => {
+  it("guard/T80 [guard/F1, guard/A11]: KAAL's declarations say held, a list of integers, and none says outcomes (guard/C130)", () => {
     const dir = join(REPO, ".kaal", "config", "guard");
     const files = readdirSync(dir).filter((f) => f.endsWith(".md"));
     assert.ok(files.length > 0, "KAAL declares no check");
     for (const f of files) {
       const front = /^---\n([\s\S]*?)\n---\n/.exec(read(`.kaal/config/guard/${f}`).replace(/\r\n/g, "\n"));
       assert.ok(front, `${f} has no frontmatter`);
-      for (const line of front[1].split("\n").filter((l) => /^outcomes:/.test(l))) {
-        const keys = [...line.slice(line.indexOf("{") + 1, line.lastIndexOf("}")).matchAll(/(?:^|,)\s*("[^"]*"|[^:,]+?)\s*:/g)].map((m) => m[1]);
-        assert.ok(keys.length > 0, `${f}: outcomes names no status`);
-        for (const k of keys) assert.match(k, /^"\d+"$/, `${f}: outcomes key ${k} is not a double-quoted exit status`);
-      }
+      const lines = front[1].split("\n");
+      assert.deepEqual(lines.filter((l) => /^outcomes:/.test(l)), [], `${f}: outcomes is not a member of Guard/Check; write held: [4]`);
+      for (const line of lines.filter((l) => /^held:/.test(l))) assert.match(line, /^held: \[\d+(?:, \d+)*\]$/, `${f}: held is not a flow list of integers`);
     }
   });
 
