@@ -47,7 +47,7 @@ const OPTIONAL_SUBFOLDERS = {
 /** Root folders that are not part of the numbered set but belong in the layout. */
 const ROOT_FOLDERS = new Set(["kaal", "dist", "node_modules"]);
 /** What npm delivers from the root whatever `files` says. */
-const NPM_ROOT = /^(package\.json|README(\..*)?|LICEN[CS]E(\..*)?)$/i;
+const NPM_ROOT = /^(package\.json|README\.md|LICENSE)$/;
 
 /** The licences a LICENSE text can be recognised as. A text naming none is not judged. */
 const FAMILIES = [

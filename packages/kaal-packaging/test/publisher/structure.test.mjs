@@ -135,6 +135,14 @@ describe("packaging/C24: the package folder structure", () => {
     }
   });
 
+  it("T102b the root files that ship are exactly package.json, README.md and LICENSE; any other root file in the pack fails (Kai, strict rule)", async () => {
+    const dir = layout();
+    for (const stray of ["README.txt", "LICENSE.md", "NOTICE", "AGENTS.md"]) {
+      const r = await checkStructure(dir, { packed: [...packedOf(dir), stray], build });
+      assert.ok(r.findings.some((f) => f.kind === "packed-outside-dist" && f.path === stray), `${stray} is not a delivered root file`);
+    }
+  });
+
   it("T102 a packed file outside dist/ fails, npm's fixed root files do not", async () => {
     const dir = layout();
     const ok = await checkStructure(dir, { packed: packedOf(dir), build });

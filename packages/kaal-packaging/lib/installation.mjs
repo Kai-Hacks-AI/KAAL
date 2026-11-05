@@ -30,7 +30,7 @@ const join = (...parts) => parts.join("/");
 
 /** The fixed files npm delivers from the package root whatever `files` says. */
 /** The files npm delivers from the package root whatever `files` says: one predicate for the generator, the checker and the payload check. */
-const isRootFile = (path) => !path.includes("/") && (path === "package.json" || /^README(\..*)?$/i.test(path) || /^LICEN[CS]E(\..*)?$/i.test(path));
+const isRootFile = (path) => !path.includes("/") && (path === "package.json" || path === "README.md" || path === "LICENSE");
 const LAYOUT_MANIFEST = "dist/test/package-check/manifest.json";
 const LAYOUT_MARKER_DIR = "dist/test/package-check";
 const LEGACY_MANIFEST = "test/verify.json";
