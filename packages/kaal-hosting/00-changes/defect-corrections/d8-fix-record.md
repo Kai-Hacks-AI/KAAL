@@ -96,3 +96,7 @@ Codex found that an optional member named like a bound query (`type Options = { 
 ## Second Codex finding on the parser: ordinary declarations
 
 An ordinary declaration of the same name (`const host = "default"`, `function host() {}`, a simple parameter) was read as a use. Variable, parameter, function and class names are now declarations. Regression Cases hosting/T176 and hosting/T177 added. The boundary scan comparison still adds no finding.
+
+## Third Codex finding on the parser: type declarations and annotations
+
+A local type alias and an annotation that uses it (`type host = string; let value: host[];`) were read as uses. Any identifier inside a type node, a type alias or an interface is now excluded, since erased types never run; a class heritage clause, which is an expression, still counts. Regression Case hosting/T178 added. The boundary scan comparison still adds no finding.
