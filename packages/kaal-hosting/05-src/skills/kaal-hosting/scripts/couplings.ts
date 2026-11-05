@@ -447,13 +447,14 @@ function declaresOrNames(node: ts.Identifier): boolean {
   // An import binds the name; a binding pattern in a declaration or a parameter declares a local one, and its
   // property name is a key.
   for (let n: ts.Node | undefined = parent; n; n = n.parent) {
-    if (ts.isImportDeclaration(n) || ts.isImportEqualsDeclaration(n)) return true;
+    // A type position never runs: `typeof host` in a type names the binding without querying the platform.
+    if (ts.isImportDeclaration(n) || ts.isImportEqualsDeclaration(n) || ts.isTypeQueryNode(n)) return true;
   }
   if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return true;
   // A property name is not a reference to the binding: `a.host`, `{ host: 1 }`, a method or member name.
   if (ts.isPropertyAccessExpression(parent) && parent.name === node) return true;
   if (ts.isQualifiedName(parent) && parent.right === node) return true;
-  if ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent) || ts.isPropertyDeclaration(parent) || ts.isPropertySignature(parent) || ts.isEnumMember(parent)) && parent.name === node) return true;
+  if ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent) || ts.isPropertyDeclaration(parent) || ts.isPropertySignature(parent) || ts.isMethodSignature(parent) || ts.isGetAccessorDeclaration(parent) || ts.isSetAccessorDeclaration(parent) || ts.isEnumMember(parent)) && parent.name === node) return true;
   if (ts.isExportSpecifier(parent) || ts.isNamespaceExport(parent) || ts.isNamespaceImport(parent)) return true;
   return false;
 }

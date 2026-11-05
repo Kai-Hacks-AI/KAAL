@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T169: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -58,6 +58,9 @@ const local = [
   ["T165", "a destructured parameter followed by a callback default whose body has statements", 'function f({ host = "default" }, cb = () => { return 1; }) {}'],
   ["T167", "a destructured parameter that spans several lines", 'function f({\n  host = "default",\n}) {}'],
   ["T169", "the name inside a string literal", 'const mode = "host";'],
+  ["T170", "an optional member of a type alias", "type Options = { host?: string };"],
+  ["T171", "an optional member of an interface and of an inline parameter type", "interface O { host?: string; run?(): void }\nfunction f(o: { host?: string }) {}"],
+  ["T172", "a type query that names the binding", "let x: typeof host;"],
 ];
 for (const [id, what, body] of local) {
   test(`hosting/${id}: ${what} declares a local binding and is not a finding`, async () => {
