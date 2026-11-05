@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T188: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T190: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -62,6 +62,10 @@ test("hosting/T187: a method decorator beside a same-named parameter is a findin
   assert.equal(await found("class C {\n  @decorate(host())\n  m(host: string) {}\n}"), 1);
 });
 
+test("hosting/T189: a parameter decorator beside a same-named parameter is a finding", async () => {
+  assert.equal(await found("class C { m(@decorate(host()) host: string) {} }"), 1);
+});
+
 const local = [
   ["T151", "a destructured parameter followed by another destructured parameter", 'function f({ host = "default" }, {}) {}'],
   ["T152", "a destructured parameter followed by a callback default", 'function f({ host = "default" }, cb = () => {}) {}'],
@@ -87,6 +91,7 @@ const local = [
   ["T182", "a reference to a hoisted var and to a catch binding", "function f() { host(); var host = () => 1; }\nfunction g() { try {} catch (host) { host(); } }"],
   ["T183", "a reference to a loop binding and to a named function expression", "for (const host of list) { host(); }\nconst k = function host() { return host; };"],
   ["T188", "a var and its call inside a class static block", "class C { static { var host = () => 1; host(); } }"],
+  ["T190", "a statement label and a break to it", "host: while (true) { break host; }"],
   ["T177", "a nested function and a simple parameter of the same name", "function outer() { function host() {} }\nfunction g(host) {}"],
 ];
 for (const [id, what, body] of local) {

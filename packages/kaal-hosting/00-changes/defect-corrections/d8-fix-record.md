@@ -114,3 +114,5 @@ A query binding declared inside a function (destructured from a module, `process
 A computed method name runs in the enclosing scope, so a same-named parameter of that method does not shadow a query called in the name. Regression Case hosting/T186.
 
 Only a function's parameters and body see its own bindings, so a decorator or a computed name beside a same-named parameter is still a use (hosting/T187), and a `var` in a class static block is local to it (hosting/T188).
+
+A decorator expression, including a parameter decorator, runs in the scope around its declaration (hosting/T189). A statement label and the `break` or `continue` that names it are not references (hosting/T190).

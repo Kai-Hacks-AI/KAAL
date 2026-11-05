@@ -461,6 +461,7 @@ function declaresOrNames(node: ts.Identifier): boolean {
   if (ts.isPropertyAccessExpression(parent) && parent.name === node) return true;
   if (ts.isQualifiedName(parent) && parent.right === node) return true;
   if ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent) || ts.isPropertyDeclaration(parent) || ts.isPropertySignature(parent) || ts.isMethodSignature(parent) || ts.isGetAccessorDeclaration(parent) || ts.isSetAccessorDeclaration(parent) || ts.isEnumMember(parent)) && parent.name === node) return true;
+  if ((ts.isLabeledStatement(parent) || ts.isBreakOrContinueStatement(parent)) && parent.label === node) return true;
   if (ts.isExportSpecifier(parent) || ts.isNamespaceExport(parent) || ts.isNamespaceImport(parent)) return true;
   return false;
 }
@@ -504,12 +505,15 @@ function declaresInBlock(statements: ts.NodeArray<ts.Statement>, name: string): 
 /** Whether a lexical scope between a use and the top of the source declares `name` itself, so the use is not the import. */
 function shadowed(node: ts.Identifier): boolean {
   const name = node.text;
+  // A decorator expression runs in the scope around the declaration it decorates, so the function's own bindings never apply to it.
+  let decorated = false;
   for (let n: ts.Node | undefined = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+    if (ts.isDecorator(n)) decorated = true;
     // Only the parameters and the body see a function's own bindings; a computed name or a decorator runs in the enclosing scope.
     const inside = (part: ts.Node | undefined) => !!part && node.pos >= part.pos && node.end <= part.end;
     if (ts.isClassStaticBlockDeclaration(n)) {
       if (inside(n.body) && hoistsVar(n.body, name)) return true;
-    } else if (ts.isFunctionLike(n) && (inside((n as ts.FunctionLikeDeclaration).body) || n.parameters.some(inside))) {
+    } else if (ts.isFunctionLike(n) && !decorated && (inside((n as ts.FunctionLikeDeclaration).body) || n.parameters.some(inside))) {
       if (n.parameters.some((p) => bindsName(p.name, name))) return true;
       if (ts.isFunctionExpression(n) && n.name?.text === name) return true;
       // A body-level `var` does not reach a parameter default: only a use inside the body resolves to it.
