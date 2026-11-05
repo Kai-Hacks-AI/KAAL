@@ -23,7 +23,7 @@ Hosting 0.0.1 is the first package in the layout Packaging owns (`packaging/F39`
 | `docs/limitations.md` | a Limitations section of `README.md` (Kai F8 = A), deduplicated | `README.md` (npm root file) |
 | `test/embed/**`, `test/verify.mjs`, `test/verify.json` | `04-test/package-check/` | `dist/test/package-check/` |
 | `test/boundary-check.md` | `04-test/boundary-check/` | `dist/test/boundary-check/` |
-| `test/plan/**`, `test/publisher/**` (planned outer Cases and publisher-only Cases) | `04-test/development/plan/`, `04-test/development/publisher/` | does not ship |
+| `test/plan/**`, `test/publisher/**` (planned outer Cases and publisher-only Cases) | `04-test/engineering-check/plan/`, `04-test/engineering-check/publisher/` | does not ship |
 | `plan/<topic>/` | `00-changes/<topic>/` | does not ship |
 | `defects/` (D5 to D7 and their RED files) | `06-defects/` | `dist/docs/defects/` (accepted ones) |
 | root `README.md`, `LICENSE`, `package.json`, `tsconfig.json`, `.gitignore`, `.gitattributes` | stay | `README.md`, `LICENSE`, `package.json` (npm's fixed root files) |
@@ -40,10 +40,10 @@ Decided here (no owner-level choice; reversible in review):
 - `plan/<topic>` keeps its topic name under `00-changes/`; each document already names its Change id.
 - `dist/` is not committed. It is built by `npm run build` (twice, byte-identical, as `packaging/F42` requires) and is what the checker and `npm pack` see.
 
-Needs a decision (Packaging owns the layout; recommendation first):
+Decided by the Owner (Kai, 5 Nov, via the CPO's formal comment on #1064; Packaging owns the shared layout convention):
 
-1. **Where the non-shipped Cases live.** Packaging's layout has only `04-test/package-check/` and `04-test/boundary-check/`, and both ship. Hosting also has planned outer Cases (`test/plan`) and publisher-only Cases (`test/publisher`) that must not ship. The structure checker already tolerates other subfolders of `04-test/` and copies only the two named ones into `dist/`. *Recommended:* `04-test/development/` (not shipped), and Packaging states that in its PLAN so the layout names it. Alternative: ship them (wrong: publisher-only adversaries are not a consumer's evidence).
-2. **Where the standing guard that Hosting passes the checker lives.** Hosting is the lowest layer (External infra -> Hosting -> Foundation -> others), so a Hosting Case must not import Packaging's checker. *Recommended:* this Change records one run of Packaging's checker on Hosting's folder as evidence, and Packaging's own Case (T110, same checker on Hosting's folder) becomes the standing guard once both are on main. Hosting adds no duplicate of the checker. Alternative: a Hosting-local shape Case, which would duplicate Packaging's rules.
+1. **Non-shipped Cases** live in `04-test/engineering-check/` (planned outer Cases, publisher-only adversaries, regression and development Cases). `04-test/package-check/` is the shipped package verification and `04-test/boundary-check/` the shipped boundary verification.
+2. **Layout conformance** belongs exclusively to Packaging's standing checker. Hosting does not duplicate it and takes no runtime dependency on Packaging. For Hosting 0.0.1 a soft conformance assessment with retained evidence is sufficient: this Change records a run of Packaging's checker on Hosting's folder. **Enforcement transition:** once Packaging's checker is integrated into the Engineering process, layout conformance becomes a hard, enforced check. Packaging prepares that integration; it is not enforced against Hosting's own transition before then.
 
 ## Immutable Cases: path clauses superseded (Kai's blanket ruling A, 4 Nov)
 
