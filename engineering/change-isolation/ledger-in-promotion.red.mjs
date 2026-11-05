@@ -146,6 +146,8 @@ test("engineering/T101 R4: an approval recorded for another head SHA counts for 
 });
 test("engineering/T102 R15 (negative): author, non-owner, recycled login and unpinned owner do not attest", async () => {
   const { judgeAttestation } = await attestation();
+  // Self-approval, isolated: the pinned code owner is also the PR author, and every other input is valid.
+  assert.equal(judgeAttestation(input([review()], { pr: { user: OWNER, head: { sha: SHA } } })).attested, null);
   assert.equal(judgeAttestation(input([review({ user: AUTHOR })])).attested, null);
   assert.equal(judgeAttestation(input([review({ user: { login: "someone", id: 333 } })])).attested, null);
   assert.equal(judgeAttestation(input([review({ user: { login: "kaihacksai", id: 999 } })])).attested, null);
