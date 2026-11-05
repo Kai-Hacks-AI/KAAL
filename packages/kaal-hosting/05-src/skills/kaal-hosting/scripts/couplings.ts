@@ -451,6 +451,8 @@ function declaresOrNames(node: ts.Identifier): boolean {
     if (ts.isImportDeclaration(n) || ts.isImportEqualsDeclaration(n) || ts.isTypeQueryNode(n)) return true;
   }
   if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return true;
+  // An ordinary declaration of the same name (a variable, parameter, function or class) declares; it does not query.
+  if ((ts.isVariableDeclaration(parent) || ts.isParameter(parent) || ts.isFunctionDeclaration(parent) || ts.isFunctionExpression(parent) || ts.isClassDeclaration(parent) || ts.isClassExpression(parent)) && parent.name === node) return true;
   // A property name is not a reference to the binding: `a.host`, `{ host: 1 }`, a method or member name.
   if (ts.isPropertyAccessExpression(parent) && parent.name === node) return true;
   if (ts.isQualifiedName(parent) && parent.right === node) return true;

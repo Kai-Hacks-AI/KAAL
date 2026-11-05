@@ -84,7 +84,7 @@ describe("Hosting release interoperability", () => {
     const manifest = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
     const required = {
       "cross-spawn": "7.0.6", "es-module-lexer": "3.0.3",
-      "graceful-fs": "4.2.11", "proper-lockfile": "4.1.2", "typescript": "5.9.3",
+      "graceful-fs": "4.2.11", "proper-lockfile": "4.1.2",
     };
     assert.deepEqual(manifest.dependencies, required);
     const registry = { [NAME]: null, ...Object.fromEntries(Object.entries(required).map(([n, v]) => [n, [v]])) };

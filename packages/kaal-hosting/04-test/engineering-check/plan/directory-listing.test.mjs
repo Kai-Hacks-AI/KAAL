@@ -162,7 +162,7 @@ describe("hosting/F74 interface and hosting/N10 footprint", () => {
     assert.match(contract, /`list`/, "the interface declares list");
     assert.match(contract, /`scratch`/, "the interface declares scratch");
     const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-    assert.deepEqual(Object.keys(pkg.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile", "typescript"]);
+    assert.deepEqual(Object.keys(pkg.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile"]);
     assert.equal(statSync(join(PACKAGE, "dist/skills/kaal-hosting/scripts", "index.js")).isFile(), true);
     assert.ok(!/node:test/.test(readFileSync(join(PACKAGE, "dist/skills/kaal-hosting/scripts", "index.js"), "utf8")), "the main entry does not load node:test");
   });
