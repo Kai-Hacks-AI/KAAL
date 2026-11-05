@@ -119,6 +119,23 @@ Fixtures only. No network. Reserved: T98 to T112 (T97 belongs to C23; identifier
 
 Immutable Cases name paths (for example Hosting's T122 names `test/boundary-check.md`). Moving a package into the layout changes those paths and nothing else. **Ruling:** a layout move may supersede **only the path clause** of an immutable Case, never its behaviour clause. The move's Change lists each superseded Case with its before and after path. This is one blanket rule; the layout move needs no per-Case ruling. Packaging's check does not decide it; it only reports a Case whose path no longer exists in the folder.
 
+## Transitional use of Hosting in the DO (#1053), and the route off it
+
+The DO (`lib/structure.mjs`, `lib/host.mjs`) is **temporary collector work**. Two things in it are transitional, both because Hosting 0.0.1 had no directory listing or scratch directory when it was written:
+
+1. `lib/host.mjs` imports the legacy unscoped `kaal-hosting`, which is what Packaging's `package.json` still depends on (`"kaal-hosting": "0.0.1"`).
+2. `lib/structure.mjs` lists directories and makes its scratch directory by running a one-line Node script through Hosting's `execute` (`node()`, `entries`, `scratch`). Immutable T6 forbids `node:` imports in `lib/`, so a script run through Hosting was the only way to list empty directories.
+
+**It cannot be promoted or published as it is.** Promotion of Packaging, and Packaging 0.0.1 itself, wait for the follow-up Change below.
+
+**Follow-up Change (packaging/C27), bounded:**
+
+- Depends on the Hosting Change that lands `list` and `scratch` (`hosting/C106`, planned in #1054) in the scoped package `@kaihacksai/kaal-hosting`, at the exact version Hosting 0.0.1 carries. `package.json` changes `"kaal-hosting": "0.0.1"` to `"@kaihacksai/kaal-hosting": "<that exact version>"` (F7: one exact registry version, no range).
+- `lib/host.mjs` re-exports `list`, `scratch`, `kind`, `read`, `readFile` from the scoped package and nothing else; `execute` and `process.execPath` leave `lib/structure.mjs`. `entries` becomes `list(dir)` (a `directory` entry for a directory, a refused tree for a link), and `scratch(use)` is Hosting's. No `node:` module, no `process`, no shell, no assumption that a runtime other than the one Hosting runs is on the PATH.
+- The imports elsewhere in `lib/` move to the scoped name in the same Change. T6 names the specifier `kaal-hosting`; moving it to the scoped name supersedes only that name clause of T6 (the same kind of ruling as the path-only supersession below), and is listed before and after in the Change. **Decided (Kai A, 5 Nov):** one blanket ruling allows a change to the name clause only, listed before and after in the Change, like the path-only ruling.
+- **Shipped docs are listed, not copied wholesale (Kai, 5 Nov).** `dist/docs/{intent,requirements,architecture,defects}` holds only the documents relevant to what ships, named in an explicit shipped-docs list in the package. C27 changes the whole-folder copy check: each listed doc exists and is byte-equal to its source, and nothing else is in `dist/docs`. This changes the Cases that assume whole-folder copies (the `dist-copy-missing` and `dist-copy-extra` findings), under the same blanket ruling, listed before and after in the Change. It is required by the public checker-only Packaging `dist/` (packaging/C26).
+- **Verified on the actual Hosting candidate, not only fixtures.** The Change's acceptance step installs the Hosting candidate (the packed tarball of `kaal/hosting` at its head, not a stub), runs T98 to T112 against it, and runs `checkStructure` on Hosting's own folder once Hosting has taken the layout. That last run is Hosting's layout acceptance; it must be `verified`.
+
 ## Held, not proposed
 
 - Which skills a package has, and what its Agent says (the owner's).
