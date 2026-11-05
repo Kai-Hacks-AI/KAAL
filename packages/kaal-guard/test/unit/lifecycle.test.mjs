@@ -168,11 +168,11 @@ describe("lifecycle", () => {
     const dir = tree({ a: ci });
     step(init, dir, { hook: true, ci: true });
     const record = assets(dir);
-    write(dir, RECORD, JSON.stringify({ activated: ["hook", "ci"], assets: { ...record, [WORKFLOW]: { sha256: record[WORKFLOW].sha256, version: "0.0.0-older" } } }));
+    write(dir, RECORD, JSON.stringify({ activated: ["hook", "ci"], assets: { ...record, [WORKFLOW]: { sha256: record[WORKFLOW].sha256, version: "0.0.3" } } }));
     write(dir, HOOK, "#!/bin/sh\n# mine\n");
     const out = step(upgrade, dir);
     assert.match(out, /kept \.githooks\/pre-push: modified since Guard [^ ]+ wrote it, so it keeps that registered version/);
-    assert.ok(out.includes(`current ${WORKFLOW}: unchanged from 0.0.0-older to ${VERSION}`), out);
+    assert.ok(out.includes(`current ${WORKFLOW}: unchanged from 0.0.3 to ${VERSION}`), out);
     assert.deepEqual(assets(dir)[HOOK], record[HOOK]);
     assert.equal(assets(dir)[WORKFLOW].version, VERSION);
   });
@@ -182,8 +182,8 @@ describe("lifecycle", () => {
     step(init, dir, { hook: true, ci: true });
     const older = "name: Guard\njobs: {}\n";
     write(dir, WORKFLOW, older);
-    write(dir, RECORD, JSON.stringify({ activated: ["hook", "ci"], assets: { ...assets(dir), [WORKFLOW]: { sha256: sha256(Buffer.from(older)), version: "0.0.0-older" } } }));
-    assert.ok(step(upgrade, dir).includes(`upgraded ${WORKFLOW}: from 0.0.0-older to ${VERSION}`));
+    write(dir, RECORD, JSON.stringify({ activated: ["hook", "ci"], assets: { ...assets(dir), [WORKFLOW]: { sha256: sha256(Buffer.from(older)), version: "0.0.3" } } }));
+    assert.ok(step(upgrade, dir).includes(`upgraded ${WORKFLOW}: from 0.0.3 to ${VERSION}`));
     assert.equal(readFileSync(join(dir, WORKFLOW), "utf8"), sources()[WORKFLOW]);
   });
 

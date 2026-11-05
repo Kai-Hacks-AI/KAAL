@@ -5,6 +5,7 @@
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T127 [guard/I9, guard/F37, guard/A19]: every Defect states a prohibited behaviour, has no status, records each observed RED and GREEN with its version, is tested by at least one case, and its Tested by is the view derived from the cases' traces by realization; a Tested by that names a case not citing its Defect is refused",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T140 [guard/F42, guard/A8]: the source versions lib/lifecycle.mjs accepts for upgrade are exactly the versions guard/F42 declares, and a copy of either with one more or one fewer is refused",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T29 [guard/A7]: nothing depends on an adapter",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
@@ -55,6 +56,7 @@
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T10 [guard/F4, guard/A4]: lets a push through when every hook check passes or is not applicable",
     "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T9 [guard/F4, guard/A4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify",
     "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
+    "test/acceptance/requirements.test.mjs > guard/F42 [guard/I5] upgrade refuses a source version the release does not declare > guard/T139 [guard/F42, guard/F18]: upgrade is cannot judge before it writes anything when the record names an earlier version the release does not declare, naming the version, the declared sources and a next step; a declared source, a later version and a mix of declared sources are moved, and a mix with an undeclared one is refused whole",
     "test/acceptance/requirements.test.mjs > guard/F43 [guard/I7, guard/N4] an earlier opportunity, named in CI > guard/T135 [guard/F43, guard/F22]: in CI a failing check that runs in the hook and in CI gets one conditional line naming it, the hook, init --hook and the local rerun, in the output, the annotation and the step summary, and it never claims the hook was missing; other checks and verdicts get none, and nothing else changes",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T11 [guard/F5, guard/A5]: fails the job on fail and on cannot judge",
     "test/acceptance/requirements.test.mjs > guard/F5 [guard/I2, guard/I3] CI gate > guard/T12 [guard/F5, guard/A5]: reports not applicable as not applicable, never as a pass",
@@ -286,15 +288,24 @@
     },
     "guard/F42": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T124 [guard/F42]: docs/requirements.md declares, under guard/F42, the upgrade paths to this release or the one being prepared: each source an earlier published version from 0.0.2 on, with its path, prerequisites, changes and kept files, failure and recovery, and verification, and the README's release notes point to it",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T140 [guard/F42, guard/A8]: the source versions lib/lifecycle.mjs accepts for upgrade are exactly the versions guard/F42 declares, and a copy of either with one more or one fewer is refused"
       ],
       "Requirements": [
-        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused"
+        "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused",
+        "test/acceptance/requirements.test.mjs > guard/F42 [guard/I5] upgrade refuses a source version the release does not declare > guard/T139 [guard/F42, guard/F18]: upgrade is cannot judge before it writes anything when the record names an earlier version the release does not declare, naming the version, the declared sources and a next step; a declared source, a later version and a mix of declared sources are moved, and a mix with an undeclared one is refused whole"
       ]
     },
     "guard/A21": {
       "Architecture": [
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T126 [guard/F37, guard/A19, guard/A21]: every Requirement is cited by an Architecture element, every module in lib/ is named by exactly one element, a module that two elements name is refused, and the runner, the lifecycle and the GitHub adapter all read declarations through lib/config.mjs"
+      ]
+    },
+    "guard/A8": {
+      "Architecture": [
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T140 [guard/F42, guard/A8]: the source versions lib/lifecycle.mjs accepts for upgrade are exactly the versions guard/F42 declares, and a copy of either with one more or one fewer is refused",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T31 [guard/A8, guard/N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it"
       ]
     },
     "guard/A3": {
@@ -306,12 +317,6 @@
       "Architecture": [
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T28 [guard/A3, guard/A7]: the runner knows nothing of the adapters or GitHub",
         "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T29 [guard/A7]: nothing depends on an adapter"
-      ]
-    },
-    "guard/A8": {
-      "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T31 [guard/A8, guard/N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it"
       ]
     },
     "guard/N6": {
@@ -468,6 +473,7 @@
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
         "test/acceptance/requirements.test.mjs > guard/F41 [guard/I5] the version and the usage > guard/T122 [guard/F41]: kaal-guard --version prints the installed version and kaal-guard --help prints the usage, each with exit 0, in a directory that is not a repository, which stays unchanged",
+        "test/acceptance/requirements.test.mjs > guard/F42 [guard/I5] upgrade refuses a source version the release does not declare > guard/T139 [guard/F42, guard/F18]: upgrade is cannot judge before it writes anything when the record names an earlier version the release does not declare, naming the version, the declared sources and a next step; a declared source, a later version and a mix of declared sources are moved, and a mix with an undeclared one is refused whole",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] remove and the configuration directory > guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T16 [guard/F8, guard/F29, guard/A6]: registers every file init writes in the installation record, with its SHA-256 and the version that wrote it",
         "test/acceptance/requirements.test.mjs > guard/F8 [guard/I5] safe lifecycle > guard/T17 [guard/F8, guard/A6]: never overwrites a pre-existing hook, workflow or core.hooksPath, and prints the line to add",
@@ -561,7 +567,8 @@
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T125 [guard/F2, guard/F18]: a held status 0 or 3, a status Guard reserves for its own verdicts, is refused as cannot judge, naming 4 to 255",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T128 [guard/F1, guard/F2, guard/F18, guard/F42]: outcomes is refused as cannot judge, naming held and the exact line to write, in every form; held: [4] is accepted and gives held on exit 4; a declaration with both, or a duplicate or non-integer status, is refused",
         "test/acceptance/requirements.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18]: a held status written \"04\", \"+4\" or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held",
-        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook"
+        "test/acceptance/requirements.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
+        "test/acceptance/requirements.test.mjs > guard/F42 [guard/I5] upgrade refuses a source version the release does not declare > guard/T139 [guard/F42, guard/F18]: upgrade is cannot judge before it writes anything when the record names an earlier version the release does not declare, naming the version, the declared sources and a next step; a declared source, a later version and a mix of declared sources are moved, and a mix with an undeclared one is refused whole"
       ]
     },
     "guard/F2": {
@@ -820,13 +827,13 @@
     "docs/architecture.md": "5b928d1b6be389ae250e392a521ba4c27c7b95ab008b826ac584df0c69e5c062",
     "docs/intent.md": "58a383b5377a54a4b3551d4df707c9811b0e9d14908616fded89f92356fee77f",
     "docs/limitations.md": "77bda8d9877a077b89802b6c37dd6e921fd2f1b536817e8731455c1fc3094c56",
-    "docs/requirements.md": "2749507a32ce3c6630ba42ebeb80bd7565f014714f63abf630cf60fecfe9152d",
-    "docs/testing.md": "04fba9ffc172081864a6a1c5edff5071d5fc682b326ecda446a40c226a5415e9",
+    "docs/requirements.md": "e1ea6f177f2949201c8661a6d4b5d58815c80c01c7736c84bce89e46fb88d4f1",
+    "docs/testing.md": "c6096c9974d92a5566fbe8c7d7ba92968d05db2a2033696d4288760acf261ee8",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "8586e506b765cd49784453c4c4f80daa999d44e5c6231fdaadf50a82dc9326fa",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
     "lib/github.mjs": "5cbd85bd69bf6b7427212c81d0c20743ac47ef5fbf40c02847d4b3bb099cfa2e",
-    "lib/lifecycle.mjs": "e0afd58bc4a80aaace991255fd39ce024ac83832aca844dd0f17d6f80a8a5b4d",
+    "lib/lifecycle.mjs": "fd4094a706912c8d3a721678d8ad7642ea365bce350f1dcfbdc1ba90eceae04e",
     "lib/node.mjs": "722efb5b27ccfeedf48e36d1f82246a38d75c78969b156f508498079c210bc4b",
     "lib/reminder.mjs": "e8e81d9924af5da9f4dc2c48a935a2919bbd7af8fefa8f7daae0be277eda24b8",
     "lib/runner.mjs": "76aa46ff0f685fe63bd912e512feb94d07c6b5c188536c5c90a285ea1aa156bb",
@@ -839,12 +846,12 @@
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "2e251e7371394e7e1595e65e0e571fd530e0fe9ad4347f9ae8b4103b21534b57",
+    "test/acceptance/architecture.test.mjs": "a444cf3735b65f8c7ddf3dc79430f8906983e77e5cd42506a9d4f0be8f7f20f8",
     "test/acceptance/harness.mjs": "b1c67641ed3a84fea34ae3d3664f1dec7b79c3ca79476c0d88f5f13225180f9c",
     "test/acceptance/intent.test.mjs": "c91f5f9602f4a60975856183c8ab20cf9f11eda52f8191bf9a025586519476bf",
-    "test/acceptance/requirements.test.mjs": "6df6dc91d1f6983022c92d14c29a0a6868330b13fcf45922c5e47c35d192b4b4",
+    "test/acceptance/requirements.test.mjs": "55c4e4324aa8fd65eebc213f55b21d255f1ba45552f4215f3d722ee663e10787",
     "test/unit/config.test.mjs": "0f7b50e02945a30dde552f80d1dca8890f4c6c9d09b92b8ef6f8ab1a1022006e",
-    "test/unit/lifecycle.test.mjs": "dffad6006a0972ef0fee23b08d01db256afd66fe0ee01e19cbf6430235e6394c",
+    "test/unit/lifecycle.test.mjs": "060f8ae401fbaa2e49ed762922ac0f5c2abc3d5d3f7e63ae25851638a23418ef",
     "test/unit/runner.test.mjs": "ef426e3705d4c638cc1c4c37eed435020f7485ab55c53ed5bb84ec39d1e3aeb4",
     "test/verify.mjs": "be21b2637287143624ccc6707fe33a3e8cb15b0d9b185c6eb702c110f5025549"
   }

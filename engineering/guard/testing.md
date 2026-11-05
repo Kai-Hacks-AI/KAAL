@@ -470,6 +470,19 @@ guard/T128 is the delivered Requirements case, defined in the package's `docs/te
 | --- | --- | --- | --- | --- |
 | guard/T129: over a corpus of declarations, Guard's validator accepts none that `kaal-core/frontmatter` refuses, given `Guard/Check` stated in `core/F1` kinds (`command` a `parameter`, `held` a list of `number`); each declaration only Guard refuses is listed as semantic. In `engineering/guard/acceptance/workspace.test.mjs` | guard/F1, guard/F2, guard/A8 | `guard/C130` | RED against the collector's `lib/`: "outcomes, the 0.0.4 map: Guard accepts what Core refuses (invalid)" | GREEN on Linux with Node 24 |
 
+## `upgrade` refuses an undeclared source version (`guard/C141`)
+
+guard/T139 (behaviour) is in `test/acceptance/requirements.test.mjs` and guard/T140 (the accepted sources against guard/F42, both ways) is in `test/acceptance/architecture.test.mjs`. Both are delivered cases, defined in the package's `docs/testing.md`.
+
+| Test Case | Verifies | Evidence |
+| --- | --- | --- |
+| The behaviour case: a record naming `0.0.1`, `0.0.3.1` or `0.0.0` is cannot judge, naming the version and the declared sources and a next step, and writes nothing; each declared source, a later version and a mix of declared sources are moved; a mix with an undeclared one is refused whole | guard/F42, guard/F18 | RED first against `0.0.4`'s `upgrade`: `upgrade from a record naming 0.0.1 was not cannot judge`. GREEN after the DO |
+| The drift case: the sources `lib/lifecycle.mjs` exports equal the ones guard/F42 declares, and a copy of either with one more or one fewer is refused | guard/F42, guard/A8 | RED first: `lib/lifecycle.mjs exports no SOURCES`. GREEN after the DO |
+
+**A deviation from the PLAN.** The PLAN planned a publisher-side consumer case on the real published `0.0.1`. It was written and run, and it was not kept. `0.0.1` writes `guard.json`, not an installation record, so the candidate's `upgrade` already refuses it as cannot judge under guard/F15 before the new rule is reached. The case was GREEN without the change and so shows nothing about it. No published version writes a record and is undeclared, since every version from `0.0.2` is a declared source. The real-installation evidence for the new rule is therefore the published `0.0.2`, `0.0.3` and `0.0.4` moving (guard/T118), and the refusal itself is shown on a record whose version the case sets.
+
+One existing unit fixture changed: `test/unit/lifecycle.test.mjs` registered a made-up `0.0.0-older` as the version a workflow was written by. It now registers `0.0.3`, a declared source, since an undeclared one is refused by design.
+
 ## Defects
 
 A suspected Defect (D) names an observed or suspected gap. It is established only by a Test Case (T) that proves the deviation as an exercised behavioural RED, and it traces to that T alone. The T keeps its own traces to I, F, N and A, and D does not repeat them. A GREEN test refutes the suspicion, and no D is recorded for it. When a corrective Change turns the T GREEN, the D is corrected. These records are Guard's own. Shared Defect semantics are outside Guard's scope.
