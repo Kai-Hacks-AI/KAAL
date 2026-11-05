@@ -16,7 +16,7 @@ The Owner redefined the trial (5 Nov): compare a bare agent, an agent with Agent
 ## Open, one at a time
 
 1. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and a useful, partly useful or not useful rating, each with a reason). B: only which record the Owner would rather have, with a reason. Recommended: A.
-2. **How the two runs combine.** A: arm 3 must improve over both other arms in both runs. B: in at least one run, with the other recorded beside it. Recommended: A, since a pass that depends on which observer steered it says little.
+2. *How the two runs combine: decided (5 Nov), they are not combined.* Each seat argues the comparison from its own seat in its own run record, and they need not agree. The Owner discusses each seat's findings with that seat, and the shared plan comes out of that.
 3. The repository, the change and its Intent, and when the trial may start. The Owner says.
 
 ## What every arm is measured by

@@ -48,7 +48,7 @@ Testing is not the judge and not a performing Agent, and does not choose the rep
 
 ## The Plan
 
-`trial-plan.json` is an ordinary Plan of Testing's own model, with nothing new: Plan `review/T20` (version 4), five Suites (independence, arms, claims, effects, pin) and sixteen Cases. `check` over it gives no findings, and a dry Run over it behaves as the model says (all passed, one skipped gives unknown, one failed gives failed). The Plan holds seven Test Data items (subject commit, consumer repository, judge, task, arm inputs, comparison, observers), recorded as the Run's effective Test Data (`testing/F31`, `F32`).
+`trial-plan.json` is an ordinary Plan of Testing's own model, with nothing new: Plan `review/T20` (version 5), five Suites (independence, arms, claims, effects, pin) and seventeen Cases. `check` over it gives no findings, and a dry Run over it behaves as the model says (all passed, one skipped gives unknown, one failed gives failed). The Plan holds seven Test Data items (subject commit, consumer repository, judge, task, arm inputs, comparison, observers), recorded as the Run's effective Test Data (`testing/F31`, `F32`).
 
 ## Two complete runs, recorded in this PR (Owner, 5 Nov)
 
@@ -60,10 +60,13 @@ There are two complete runs of the trial, each over all three arms: one steered 
 | `facts.md` | the neutral script's output per record, and the inputs it ran on | the script (fact) |
 | `checklist.md` | the checker's readings per record, with reasons | the checker (judgment) |
 | `owner.md` | the Owner's judgment: which record is more useful, whether arm 3 improves over bare and over instructions, with reasons | the Owner (judgment) |
+| `argument.md` | the seat's own argument on bare agent vs Agent instructions vs Skill with its scripts: what each arm showed from that seat, and why, as the seat's own judgment | the CTO or the CPO (own seat) |
 | `steering.md` | every steer: who, when, what, and any view of the observer's own | the CTO or the CPO (observer) |
 | `run.json` | the Run of `review/T20`: outcomes, provenance, Test Data | the checker, for the Owner |
 
-This PLAN adds none of these files, and nothing runs until the Owner authorizes it. Each run's results are added to this PR as those files. Review passes validation only if the Owner's judgment is that arm 3 improves over both other arms; how the two runs combine is open question 4.
+This PLAN adds none of these files, and nothing runs until the Owner authorizes it. Each run's results are added to this PR as those files.
+
+**Each seat argues from its own seat, and they need not agree (Owner, 5 Nov).** The CTO argues the comparison in `records/cto/argument.md` and the CPO in `records/cpo/argument.md`, each in their own words and from their own seat. There is no shared or consensus section, no merged verdict, and the record does not reconcile them: where they differ, both stand. The Owner then discusses each seat's findings with that seat, and the shared plan comes out of those discussions. That plan is the Owner's, is made after this trial's record, and is not a Case of this Plan. Testing records what each run shows and what each seat argued, and combines nothing.
 
 ## Running it
 
@@ -104,7 +107,7 @@ Decided by the Owner: Review passes validation if the Skill-based run improves t
 
 - The comparison is of arm 3 against arm 1 and against arm 2, each separately.
 - **improves** is recorded only when the Owner rates arm 3's record more useful than the arm's record, on the stated basis, with the reason; the facts above are recorded beside it and do not decide it alone.
-- `improves-over-bare` and `improves-over-instructions` are separate Cases, so a pass over one and not the other is visible. Review passes validation only when both pass.
+- `improves-over-bare` and `improves-over-instructions` are separate Cases, so a pass over one and not the other is visible. Each is decided per run, on the Owner's judgment after discussing that run's findings with its seat; Testing combines the two runs into no verdict.
 - A tie, or an arm 3 that is worse, is `failed` for that Case and returns to Review as a Finding. If the Owner does not decide, the Case stays `skipped`, which reads as `unknown`.
 
 ## Selecting the repository and task
@@ -127,7 +130,7 @@ Testing does not choose these silently, and the Plan does not start the trial. T
 1. *Who judges "improves": decided (5 Nov).* The Owner experiences and judges. The CPO and CTO observe and steer the experiment and the Owner toward results; they are not judges.
 2. **On what the Owner judges.** A: usefulness for validating the change against its Intent (the checklist and the rating above). B: only which record the Owner would rather have, with a reason.
 3. *What the Owner sees: decided (5 Nov).* B: the records labelled by arm from the start. Reason: the Owner helps the runs succeed, so a blind judgment is artificial and would need a second human.
-4. **How the two runs combine.** A: Review passes validation only if arm 3 improves over both other arms in both runs. B: in at least one run, with the other recorded beside it.
+4. *How the two runs combine: not combined (5 Nov).* Each seat argues from its own seat, they need not agree, and the Owner discusses each with that seat; the shared plan follows from that.
 5. The repository, the change and its Intent, and the size of the calibration set. (Decided: through the CPO.)
 6. When the trial may start. Not before the Owner says so.
 

@@ -10,7 +10,7 @@
   "plans": [
     {
       "id": "review/T20",
-      "version": "4",
+      "version": "5",
       "suites": [
         "review/T20/independence",
         "review/T20/arms",
@@ -41,7 +41,7 @@
         },
         {
           "id": "review/T20/comparison",
-          "external": "the three records, the facts a script derived for each, the judge's ratings and ranking with reasons, and the CPO's review, recorded by the judge"
+          "external": "the three records, the facts a script derived for each, the checker's readings, the Owner's judgment, and each seat's own argument, recorded per run by the checker"
         },
         {
           "id": "review/T20/observers",
@@ -66,7 +66,8 @@
       "cases": [
         "review/T20/arm-inputs-pinned",
         "review/T20/arms-labelled",
-        "review/T20/steering-recorded"
+        "review/T20/steering-recorded",
+        "review/T20/arguments-recorded"
       ]
     },
     {
@@ -204,6 +205,13 @@
       "version": "1",
       "tests": [
         "#978 R6: the version is named in the citation and obtaining it later yields the same text"
+      ]
+    },
+    {
+      "id": "review/T20/arguments-recorded",
+      "version": "1",
+      "tests": [
+        "review/T20: each run carries its own seat's argument (CTO or CPO) in that seat's own words, with no consensus section and no merged verdict, and where the two differ both stand"
       ]
     }
   ]
