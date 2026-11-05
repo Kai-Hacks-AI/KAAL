@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T195: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T200: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -37,6 +37,9 @@ const finding = [
   ["T168", "a platform query written as a default inside a destructuring pattern", "const { a = host() } = x;"],
   ["T163", "an object literal after a default-expression operator", "function f(options = fallback || { metadata: {}, platform: host() }) {}"],
   ["T164", "an object literal in a conditional default", "function f(options = flag ? { metadata: {}, platform: host() } : {}) {}"],
+  ["T196", "the bound query read as an array element before a comma", "export const a = [host, 1];"],
+  ["T197", "the bound query read as the true branch before a colon", 'export const a = flag ? host : "/";'],
+  ["T198", "the bound query read as a shorthand property", "export const a = { host };"],
 ];
 for (const [id, what, body] of finding) {
   test(`hosting/${id}: ${what} is a finding`, async () => {
@@ -106,6 +109,7 @@ const local = [
   ["T190", "a statement label and a break to it", "host: while (true) { break host; }"],
   ["T194", "a nested namespace and an enum named like the query", "namespace N { export namespace host { export const value = 1; } }\nenum Mode { A }\nenum host { B }"],
   ["T195", "an enum initializer that names a member of the same name", "enum E { host = 1, value = host + 1 }"],
+  ["T199", "an object key and an import rename that only share the name", 'export const a = { host: 1 };\nexport { host as other };'],
   ["T177", "a nested function and a simple parameter of the same name", "function outer() { function host() {} }\nfunction g(host) {}"],
 ];
 for (const [id, what, body] of local) {
@@ -113,3 +117,10 @@ for (const [id, what, body] of local) {
     assert.equal(await found(body), 0);
   });
 }
+
+test("hosting/T200: a CommonJS destructured query read before a comma or a colon is a finding", async () => {
+  for (const tail of ['module.exports = [sep, "x"];', 'module.exports = flag ? sep : "/";']) {
+    const r = await couplings({ "lib/a.cjs": `const { sep } = require("node:path");\n${tail}\n` });
+    assert.equal(r.findings.filter((f) => f.scope === "production" && f.rule === "platform-query").length, 1, tail);
+  }
+});

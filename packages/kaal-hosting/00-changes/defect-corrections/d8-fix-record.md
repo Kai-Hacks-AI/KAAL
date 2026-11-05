@@ -122,3 +122,9 @@ Scope resolution stops at the nearest scope that declares the name, and when tha
 A namespace or enum declaration name declares; it is not a use (hosting/T194). A function declaration and a `var` of the same name in one function body are one binding, so a query destructured into the `var` stays the query (hosting/T193).
 
 An enum's members are in scope inside the enum, so an initializer that names one refers to it (hosting/T195).
+
+## Fifth Codex finding on #1030 at 29981d4 (hosting/D9): a read before punctuation
+
+`identifierUses` still dropped any identifier whose next characters were `:`, `,`, `}` or `as`, a text test left from the heuristic scanner. A bound query read as an array element, as the true branch of a conditional or as a shorthand property (`[sep, "x"]`, `flag ? sep : "/"`, `{ sep }`) was therefore not a finding, in ESM and in CommonJS. Reproduced on 29981d4 (Node 24). Keys, listed names and renames are already excluded by their parent node in `declaresOrNames`, so the text test is removed and every other identifier is a read. RED Cases hosting/T196 to hosting/T198 and hosting/T200 failed on 29981d4 and pass now; hosting/T199 (an object key and an export rename that share the name) is the control and passes before and after. The boundary scan comparison over seven packages adds no finding in a package other than Hosting's own test sources (two lines, scope test).
+
+Defect record: `06-defects/D9-read-before-punctuation.md`.
