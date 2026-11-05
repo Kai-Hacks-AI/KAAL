@@ -190,4 +190,9 @@ describe("coverage scenarios are told apart by their defining model condition (t
     assert.equal(a.entries.find((e) => e.id === "F2").state, "uncovered");
     assert.equal(a.result, "unknown");
   });
+  it("a malformed target entry for an unshipped identifier is still reported not shipped", () => {
+    const a = account({ ...facts, identifiers: ["F1"], model: { cases: [{ id: "T1", tests: ["F1"] }], targets: [{ id: "F9", allocated: "" }] } }, { T1: "pass" });
+    assert.deepEqual(a.entries, [{ id: "F1", state: "covered" }, { id: "F9", state: "not shipped" }]);
+    assert.equal(a.result, "unknown");
+  });
 });

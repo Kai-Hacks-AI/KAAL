@@ -283,7 +283,7 @@ export function account(facts, outcomes) {
   for (const id of shipped) result.push({ id, state: state(id) });
   const extra = new Set();
   for (const [id, cs] of Object.entries(trace)) if (!shipped.includes(id) && cs.some((c) => declared.has(c))) extra.add(id);
-  for (const id of stands.keys()) if (!shipped.includes(id)) extra.add(id);
+  for (const id of named) if (!shipped.includes(id)) extra.add(id);
   for (const id of [...extra].sort()) {
     result.push({ id, state: "not shipped" });
     findings.push(`${id} is not shipped by the package`);
