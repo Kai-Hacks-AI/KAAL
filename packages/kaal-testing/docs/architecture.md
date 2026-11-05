@@ -80,6 +80,7 @@ The export inventory in testing/A8 and `package.json` identifies the implemented
     | `./package.json` | the package manifest | no |
     | `./redesign` | recurring timing signals and independent Case-preservation evidence | no |
     | `./report` | the reconciled package and ownership report | no |
+    | `./traces` | each Case's `tests →` relationship derived from the Case's own declaration | no |
     | `./timing` | given-duration concentration, outlier and platform-skew evidence | no |
     | `./verifiers` | the shared observable result contract for consumer verifiers: its scenarios, `observe` and `judge` | no |
 
