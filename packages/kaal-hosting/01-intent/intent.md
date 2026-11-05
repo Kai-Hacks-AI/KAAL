@@ -55,3 +55,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Seeing a directory tree and working in a throwaway directory
 
 - **hosting/I16.** KAAL code that needs to see what a directory tree holds, which directories exist even when they are empty, and to work in a throwaway directory, does so through Hosting alone, with one meaning on every supported host and no cleanup left to the caller.
+
+## Starting processes cheaply and preparing a fixture once
+
+- **hosting/I17.** KAAL code and its tests that start `npm`, `git` or `node`, and that need a disposable fixture for each Case, do so through Hosting alone: a process start that does not pay for a command shell where the host would add one, an environment that cannot touch the user's own configuration, and a fixture built once and copied, independently, for each Case. The saving is stated by what can be counted (starts, installs, builds), and a start that cannot be made cheaply is refused, never degraded in silence.

@@ -16,6 +16,10 @@ Read the installed Hosting contract for exact inputs, errors and limits. These e
 | Publish a whole directory | `update(dir, plan)` | The callback sees current files under Hosting's writer lock; this is not per-file reconciliation. |
 | Guard changes in an existing directory | `reconcile(root, plan)` | Supply expected bytes' digest or `absent`; preserve stale/rollback/recovery outcomes. |
 | Run an installed command | `execute(command, args, { cwd, env })` | Arguments are an array, no shell interpretation; preserve status and streams. |
+| Run an installed command, synchronously | `executeSync(command, args, { cwd, env, input, timeout })` | As `execute`; a signal or timeout is `status: null`; standard input is closed unless `input` is given. |
+| Decide how a command starts | `startPlan(command, args)` | `npm` and `npx` start without `cmd.exe` on Windows; `NO_DIRECT_START` when that is impossible, `viaShim` to accept the shim openly. |
+| Isolate a process from the user's configuration | `isolatedEnvironment(dir)` | Private home, config and npm cache under `dir`, set over `base`; pass the result as `env`, which is the child's whole environment. |
+| Build a disposable fixture once | `prepare(build, { exclude })` | `copy()` gives each Case an independent copy; `dispose()` removes all. |
 | Obtain Hosting's Extension Node | `contribution()` | Core owns meaning and admission; this only supplies the payload. |
 
 `read(dir)` currently has no exclusion option. Filtering `node_modules` after a read cannot prevent a directory link there from being refused. Report the resulting limitation; do not promise linked-dependency verification or implement traversal in the consumer to conceal it.
