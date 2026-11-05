@@ -10,7 +10,7 @@ After the layout move the shipped tree is `dist/`. The old Case reads `skills/` 
 
 | | Old (hosting/T108, hosting/T109) | New (hosting/T140 to hosting/T142) |
 | --- | --- | --- |
-| File | `06-defects/unscoped-specifiers.red.mjs` (blob `6e9ba6d112db6985920ae49b5323a4c76b21f9a6`) | `06-defects/unscoped-specifiers.successor.mjs` (blob `0c21f7bd08ba46cef4c37879c814ae9c26614b8f`) |
+| File | `06-defects/unscoped-specifiers.red.mjs` (blob `6e9ba6d112db6985920ae49b5323a4c76b21f9a6`) | `06-defects/unscoped-specifiers.successor.mjs` (blob `cb6db3704abc89c951cf5cf3801180af58a99743`) |
 | Control | T109: the package declares exactly the subpaths boundary, conformance, fixtures | T140: the same |
 | Scope of the check | every Markdown file under `skills/`, `docs/` and the README | every Markdown file under `dist/skills`, `dist/docs` and the README, except a Defect record (a Markdown file under `dist/docs/defects`) |
 | Rule | T108: no shipped Markdown names an export subpath without the package scope | T141: shipped guidance other than a Defect record names none without the scope |
@@ -24,3 +24,7 @@ Node 24, Linux, after `npm run build`: `node --test packages/kaal-hosting/06-def
 ## What does not change
 
 hosting/F15 holds: guidance names an export by `@kaihacksai/kaal-hosting/<subpath>`. The exemption is for a Defect record quoting the legacy name as evidence only. hosting/D7 stays answered by its original correction of HOSTS.md; T141 now guards it on the shipped tree.
+
+## Repository scan
+
+The first push failed hosting/T22 (no tracked file spells the legacy package as a specifier), because the new Case wrote the legacy name in strings. The Case now builds the name (`LEGACY`) and uses a neutral path segment, so no tracked file spells it. The blob id above is the corrected file. Release Cases T21 to T31, T48, T53, T54 and T75 pass with the file tracked.

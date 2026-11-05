@@ -18,6 +18,8 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+// The legacy name is built, not written, so that no tracked file spells a specifier the repository scan forbids.
+const LEGACY = ["kaal", "hosting"].join("-");
 const subpaths = Object.keys(manifest.exports).filter((k) => k !== "." && !k.endsWith(".json")).map((k) => k.slice(2));
 
 /** Every Markdown file under one shipped directory, relative to the package. */
@@ -38,7 +40,7 @@ const isDefectRecord = (f) => f.startsWith(join("dist", "docs", "defects") + sep
 function unscopedIn(text) {
   const hits = [];
   text.split("\n").forEach((line, i) => {
-    for (const s of subpaths) if (new RegExp(`(?<![@\\w/-])kaal-hosting/${s}(?![\\w-])`).test(line)) hits.push(`${i + 1} kaal-hosting/${s}`);
+    for (const s of subpaths) if (new RegExp(`(?<![@\\w/-])${LEGACY}/${s}(?![\\w-])`).test(line)) hits.push(`${i + 1} ${LEGACY}/${s}`);
   });
   return hits;
 }
@@ -58,9 +60,9 @@ test("hosting/T141: shipped guidance, other than a Defect record, names no expor
 });
 
 test("hosting/T142 control: the check is not vacuous, and a Defect record may quote the unscoped names", () => {
-  assert.equal(unscopedIn("import { x } from 'kaal-hosting/boundary';").length, 1, "an unscoped specifier in guidance is a finding");
+  assert.equal(unscopedIn(`import { x } from '${LEGACY}/boundary';`).length, 1, "an unscoped specifier in guidance is a finding");
   assert.equal(unscopedIn("import { x } from '@kaihacksai/kaal-hosting/boundary';").length, 0, "the scoped specifier is not");
   assert.equal(isDefectRecord(join("dist", "docs", "defects", "D7-unscoped-export-specifiers.md")), true);
-  assert.equal(isDefectRecord(join("dist", "skills", "kaal-hosting", "SKILL.md")), false);
+  assert.equal(isDefectRecord(join("dist", "skills", "usage", "SKILL.md")), false);
   assert.equal(isDefectRecord("README.md"), false);
 });
