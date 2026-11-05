@@ -202,9 +202,16 @@ test("engineering/T109 R21: the relay trusts nothing; the handler runs from the 
   assert.match(handler, /default_branch/);
   assert.doesNotMatch(handler, /github\.event\.workflow_run\.head_(sha|branch)/, "the handler must not use the relay's head");
 });
-test("engineering/T110 R21b: the handler fails closed and the concurrency group is per pull request", () => {
+test("engineering/T110 R21b: the handler's concurrency group is per pull request, and a failed judgment leaves the check unsuccessful", () => {
   assert.ok(existsSync(HANDLER), "the handler workflow does not exist");
   const text = readFileSync(HANDLER, "utf8");
   assert.match(text, /concurrency:/);
   assert.match(text, /cancel-in-progress:\s*false/);
+  // The group must include the pull request's identity, so one pull request's runs queue and different ones do not.
+  const group = /group:\s*(.+)/.exec(text)?.[1] ?? "";
+  assert.match(group, /\$\{\{[^}]*(pull_request|pr_number|pull-request)[^}]*\}\}/i, "the concurrency group must name the pull request");
+  // A step that runs when judging fails (or is cancelled) must complete the check as failed or neutral, never success.
+  const onFailure = /if:\s*(?:\$\{\{\s*)?(failure\(\)|always\(\)|cancelled\(\))[\s\S]*?conclusion[:=]\s*["']?(failure|cancelled|neutral|action_required)/.exec(text);
+  assert.ok(onFailure, "an error path must set the check's conclusion to a non-success value");
+  assert.doesNotMatch(text, /continue-on-error:\s*true/, "the judgment step must not swallow its own failure");
 });
