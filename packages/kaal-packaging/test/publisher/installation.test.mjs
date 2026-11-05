@@ -4,7 +4,7 @@
 //   node --test test/publisher/installation.test.mjs
 // The DO makes them GREEN and wires them into test:publisher.
 //
-// Contract under test: await await verifyInstalled(dir, { run, resolve }) judges ONE installed package folder.
+// Contract under test: await verifyInstalled(dir, { run, resolve }) judges ONE installed package folder.
 //   run      async (command, args, { cwd }) => { status, stdout, stderr }  runs the package's own self check;
 //            it has the shape of Hosting's `execute` (the DO passes it as it is). Never called when the
 //            installation check failed.
@@ -255,12 +255,127 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.notEqual(r.result, "verified");
   });
 
+  it("T125b only an import of Packaging is a boundary finding; its name in a string or message is not (Codex, #1063)", async () => {
+    const dir = layout({ extra: { "dist/skills/fixture/scripts/probe.mjs": 'import { x } from "./local.mjs";\nimport { h } from "./kaal-packaging/helper.mjs";\nimport { a } from "other-package/kaal-packaging/helper.mjs";\nimport { b } from "@other/tools/kaal-packaging";\n// import "kaal-packaging";\n/* import "kaal-packaging"; */\nconst why = "kaal-packaging is not installed";\n' } });
+    const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+    assert.ok(!kinds(r).includes("imports-packaging"));
+    for (const code of ['export * from "@kaihacksai/kaal-packaging/lib";\n', 'const m = await import("kaal-packaging");\n', 'const m = require("kaal-packaging");\n']) {
+      const bad = layout({ extra: { "dist/skills/fixture/scripts/own.mjs": code } });
+      assert.ok(kinds(await verifyInstalled(bad, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"), code);
+    }
+  });
+
+  it("T119b a self check whose cases array is empty, or has no executed case, is never verified (Codex, #1063)", async () => {
+    for (const cases of ["[]", '[{"name":"a","outcome":"todo"}]']) {
+      const out = `kaal-fixture-verification {"result":"verified","exit":0,"cases":${cases},"causes":[]}\n`;
+      const r = await verifyInstalled(layout(), { run: runner(0, out), resolve: noRecord });
+      assert.notEqual(r.result, "verified", cases);
+    }
+  });
+
+  // T126 supersession (documented, packaging/C26 DO): the RED text called generateManifest synchronously.
+  // Every Hosting operation is async, and lib/ may not use node:fs (T6), so the generator is async. Only `await`
+  // was added; the assertions (same bytes twice, a hand-edited manifest is failed) are unchanged.
+  it("T127b Packaging's own self-references are not a boundary finding, and a root file npm delivers is listed by the generator and accepted by the checker (Codex, #1063)", async () => {
+    const self = layout({ name: "@kaihacksai/kaal-packaging", extra: { "dist/bin/own.mjs": 'import { x } from "@kaihacksai/kaal-packaging/lib";\n' } });
+    const r = await verifyInstalled(self, { run: ok("@kaihacksai/kaal-packaging"), resolve: noRecord });
+    assert.ok(!kinds(r).includes("imports-packaging"), "a package may import itself");
+    assert.equal(r.result, "verified");
+    const dir = layout();
+    write(dir, "README.txt", "readme\n");
+    write(dir, "LICENSE.md", "licence\n");
+    const { generateManifest } = await import(INSTALLATION);
+    const manifest = JSON.parse(await generateManifest(dir));
+    assert.ok("README.txt" in manifest.files && "LICENSE.md" in manifest.files, "the generator lists every root file npm delivers");
+    write(dir, "dist/test/package-check/manifest.json", JSON.stringify(manifest));
+    const after = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+    assert.equal(after.installation, "verified", JSON.stringify(after.findings));
+  });
+
+  it("T122b an exact pin with build metadata is exact, for a prerequisite and for the pinned verifier (Codex, #1063)", async () => {
+    const dir = layout({ deps: { dep: "1.2.3+build.7" } });
+    const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: () => "1.2.3+build.7" });
+    assert.equal(r.installation, "verified", JSON.stringify(r.findings));
+    const tools = layout({ name: "kaal-packaging" });
+    const subject = layout({ name: "kaal-subject" });
+    const bad = await verifyInstalled(subject, { run: ok("kaal-subject"), resolve: noRecord, verifier: { dir: tools, version: "0.0.1+build.7" } });
+    assert.ok(!kinds(bad).includes("prerequisite-not-exact"), "metadata is not a range");
+  });
+
+  it("T119c only the package's own result line counts: another package's verification output is not its self check (Codex, #1063)", async () => {
+    const other = 'other-package-verification {"result":"verified","exit":0,"cases":[{"name":"a","outcome":"pass"}],"causes":[]}\n';
+    const r = await verifyInstalled(layout(), { run: runner(0, other), resolve: noRecord });
+    assert.notEqual(r.result, "verified");
+    assert.equal(r.self, "unknown");
+  });
+
+  it("T119d a summary-object self check with no executed case is never verified (Codex, #1063)", async () => {
+    const zero = 'kaal-fixture-verification {"result":"verified","exit":0,"cases":{"declared":0,"executed":0,"passed":0,"failed":0},"causes":[]}\n';
+    const some = 'kaal-fixture-verification {"result":"verified","exit":0,"cases":{"declared":2,"executed":2,"passed":2,"failed":0},"causes":[]}\n';
+    assert.notEqual((await verifyInstalled(layout(), { run: runner(0, zero), resolve: noRecord })).result, "verified");
+    assert.equal((await verifyInstalled(layout(), { run: runner(0, some), resolve: noRecord })).result, "verified");
+  });
+
+  it("T122c an optional or peer prerequisite the install did not record may be absent; a present one must be exact (Codex, #1063)", async () => {
+    const dir = layout();
+    const pkgPath = join(dir, "package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+    pkg.optionalDependencies = { "optional-addon": "1.0.0" };
+    pkg.peerDependencies = { "peer-addon": "2.0.0" };
+    write(dir, "package.json", JSON.stringify(pkg, null, 2));
+    const m = JSON.parse(readFileSync(join(dir, "dist/test/package-check/manifest.json"), "utf8"));
+    m.files["package.json"] = sha(readFileSync(pkgPath, "utf8"));
+    write(dir, "dist/test/package-check/manifest.json", JSON.stringify(m));
+    const absent = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: noRecord });
+    assert.equal(absent.result, "verified", JSON.stringify(absent.findings));
+    const wrong = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: (d, n) => (n === "optional-addon" ? "9.9.9" : undefined) });
+    assert.equal(wrong.installation, "failed");
+  });
+
+  it("T119e a verified self check that shows no execution evidence is unknown; failed stands on its own (Codex, #1063)", async () => {
+    const bare = 'kaal-fixture-verification {"result":"verified","exit":0}\n';
+    const r = await verifyInstalled(layout(), { run: runner(0, bare), resolve: noRecord });
+    assert.equal(r.self, "unknown");
+    assert.notEqual(r.result, "verified");
+    const failed = 'kaal-fixture-verification {"result":"failed","exit":1,"cases":[],"causes":["x"]}\n';
+    assert.equal((await verifyInstalled(layout(), { run: runner(1, failed), resolve: noRecord })).result, "failed");
+  });
+
+  it("T125c a commented-out import is not an import, and a comment inside an import does not hide it (Codex, #1063)", async () => {
+    const commented = layout({ extra: { "dist/skills/fixture/scripts/c.mjs": '// import "kaal-packaging";\n/* import "kaal-packaging"; */\n' } });
+    assert.ok(!kinds(await verifyInstalled(commented, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+    const hidden = layout({ extra: { "dist/skills/fixture/scripts/h.mjs": 'import /* why */ "kaal-packaging";\n' } });
+    assert.ok(kinds(await verifyInstalled(hidden, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+  });
+
+  it("T122d a prerequisite record that shows a local, linked or unrecorded origin is not verified (Codex, #1063)", async () => {
+    const dir = layout({ deps: { dep: "1.0.0" } });
+    const at = (record) => verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: () => record });
+    assert.equal((await at({ version: "1.0.0", resolved: "https://registry.npmjs.org/dep/-/dep-1.0.0.tgz", integrity: "sha512-x" })).installation, "verified");
+    assert.equal((await at({ version: "1.0.0", resolved: "file:../dep.tgz", integrity: "sha512-x" })).installation, "failed");
+    assert.equal((await at({ version: "1.0.0", link: true, resolved: "../dep" })).installation, "failed");
+    assert.equal((await at({ version: "1.0.0", resolved: "https://registry.npmjs.org/dep/-/dep-1.0.0.tgz" })).installation, "unknown");
+  });
+
+  it("T125d the text of a string or template literal is not an import (Codex, #1063)", async () => {
+    const strings = layout({ extra: { "dist/skills/fixture/scripts/s.mjs": 'const example = "import \'kaal-packaging\'";\nconst t = `require("kaal-packaging")`;\n' } });
+    assert.ok(!kinds(await verifyInstalled(strings, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+  });
+
+  it("T125e a regular expression literal is not an import, and an import inside a template interpolation is (Codex, #1063)", async () => {
+    const own = ["kaal", "packaging"].join("-");
+    const regex = layout({ extra: { "dist/skills/fixture/scripts/s.mjs": `const re = /import "${own}"/;\nconst r2 = /[/]import "${own}"/g;\n` } });
+    assert.ok(!kinds(await verifyInstalled(regex, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+    const tmpl = layout({ extra: { "dist/skills/fixture/scripts/s.mjs": "const text = `${await import(\"" + own + "\")}`;\n" } });
+    assert.ok(kinds(await verifyInstalled(tmpl, { run: ok("kaal-fixture"), resolve: noRecord })).includes("imports-packaging"));
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");
     const dir = layout();
-    const first = generateManifest(dir);
-    const second = generateManifest(dir);
+    const first = await generateManifest(dir);
+    const second = await generateManifest(dir);
     assert.equal(first, second);
     const edited = JSON.parse(first);
     edited.files["dist/AGENTS.md"] = sha("not the file\n");
