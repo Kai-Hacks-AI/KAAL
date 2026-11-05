@@ -370,11 +370,11 @@ function find(code: string, scanning: boolean): Raw[] {
           const head = before.slice(0, i);
           const block = /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
           const close = closeOf(base + i);
-          const after = close < 0 ? "" : code.slice(close + 1, close + 200);
-          const declared = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || /^\s*(?::[^=,(){}]*)?(?:=[^,(){}]*)?\s*(?:,[^(){}]*)?\)\s*(?::[^=(){}]*)?(?:=>|\{)/.test(after);
+          const after = close < 0 ? "" : code.slice(close + 1);
+          const binding = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || endsParameterList(after);
           // A brace right after `=` (not `==`, `=>`) is an object literal in value position, whatever follows it.
-          const value = stack.length === 0 && /(?:^|[^=!<>])=\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
-          const pattern = !block && !value && (declared || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
+          const value = !(stack.length > 0 && stack[stack.length - 1]) && /(?:^|[^=!<>])=\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
+          const pattern = !block && !value && (binding || (stack.length > 0 && stack[stack.length - 1] && /[:,]\s*$/.test(head)));
           stack.push(pattern);
         } else if (before[i] === "}") stack.pop();
       }
@@ -498,4 +498,28 @@ function skipLiteral(text: string, i: number): number {
     }
   }
   return i;
+}
+
+/**
+ * Whether the text after a closing brace finishes a parameter list: it runs to the `)` that closes the list,
+ * across other parameters, defaults and annotations, and a function body or `=>` follows, with an optional
+ * return-type annotation between.
+ */
+function endsParameterList(after: string): boolean {
+  let depth = 0;
+  for (let i = 0; i < after.length; i++) {
+    const skipped = skipLiteral(after, i);
+    if (skipped > i) {
+      i = skipped;
+      continue;
+    }
+    const c = after[i];
+    if (c === "(" || c === "{" || c === "[") depth++;
+    else if (c === "}" || c === "]") {
+      if (--depth < 0) return false;
+    } else if (c === ")") {
+      if (--depth < 0) return /^\s*(?::[^={};]*)?(?:=>|\{)/.test(after.slice(i + 1));
+    } else if (c === ";") return false;
+  }
+  return false;
 }
