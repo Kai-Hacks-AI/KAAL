@@ -108,6 +108,15 @@ Fixtures only. No network. Reserved: T98 to T112 (T97 belongs to C23; identifier
 - **T111** `kaal/Hosting.md`, `kaal/core/README.md` and `kaal/core/register.md` with their copies at `dist/kaal/Hosting.md` and `dist/kaal/core/`: verified. A capability folder with no `README.md`, a non-`.md` file in it, a non-`.md` file directly in `kaal/`, an uppercase or nested capability folder, or a shipped copy that differs or is missing: failed. A capability, command or Node unknown to Packaging is fine (no lists), and a leftover `payload/` or `docs/kaal/` folder is reported as not in the layout.
 - **T112** A `kaal/` doc names another KAAL capability: the package does not gain a `package.json` dependency on it, and a `package.json` that lists a KAAL package only because of a `kaal/` file is not required.
 
+## Amendment, 5 November: `04-test/engineering-check/` and the enforcement transition (packaging/F52)
+
+The Owner decided (CPO round, 5 Nov) that non-shipped development, regression and publisher-only Test Cases live in `04-test/engineering-check/`, beside `04-test/package-check/` (shipped package verification) and `04-test/boundary-check/` (shipped boundary verification). Packaging owns this layout convention and exclusively owns the standing layout-conformance checker. Hosting does not duplicate the checker and takes no runtime dependency on Packaging.
+
+- **F52** `04-test/engineering-check/` is an allowed, optional subfolder of `04-test`. It is never copied into `dist/`, so a `dist/test/engineering-check/` is `dist-copy-extra`. Any other subfolder of `04-test` is `unknown-folder`.
+- **Enforcement transition (recorded explicitly).** For Hosting 0.0.1, layout conformance is a **soft assessment**: the checker is run against Hosting's tree and its output is kept as evidence, and Hosting 0.0.1 is not blocked by it. Once this checker is integrated into the Engineering process, layout conformance becomes a **hard, enforced check**. Packaging prepares the checker for that integration and does not enforce it against Hosting's transition.
+- **T135** `04-test/engineering-check/` present or absent: verified; it is not copied into `dist/`; any other `04-test` subfolder: `unknown-folder`.
+- **T136** A copy of `engineering-check` inside `dist/`: failed as `dist-copy-extra`.
+
 ## Effects on Changes in flight
 
 - **C23 (#1047):** the Boundary Check record moves from `test/boundary-check.md` to `04-test/boundary-check/` in the new layout, and ships as a generated copy under `dist/`. Hosting's C103 may keep `test/boundary-check.md` until Hosting takes the layout; C23's DO reads the path from the package's layout. I will amend C23 only after this PLAN merges.

@@ -212,6 +212,28 @@ describe("packaging/C24: the package folder structure", () => {
     assert.ok(kinds(await check(noDefects)).includes("dist-copy-missing"), "accepted defects not shipped");
   });
 
+  it("T135 04-test/engineering-check/ is allowed and optional, is not shipped, and an unknown 04-test folder fails (Owner decision, 5 Nov)", async () => {
+    const without = layout();
+    assert.equal((await check(without)).result, "verified", "optional: a package may have none");
+    const withEng = layout();
+    write(withEng, "04-test/engineering-check/regression.test.mjs", "export {};\n");
+    const r = await check(withEng);
+    assert.equal(r.result, "verified", JSON.stringify(r.findings));
+    assert.ok(!packedOf(withEng).some((p) => p.includes("engineering-check")), "it is not copied into dist/");
+    const unknown = layout();
+    write(unknown, "04-test/misc/x.md");
+    assert.ok(kinds(await check(unknown)).includes("unknown-folder"), "04-test allows only package-check, boundary-check and engineering-check");
+  });
+
+  it("T136 a copy of engineering-check inside dist/ is shipped by mistake and fails", async () => {
+    const dir = layout();
+    write(dir, "04-test/engineering-check/regression.test.mjs", "export {};\n");
+    write(dir, "dist/test/engineering-check/regression.test.mjs", "export {};\n");
+    const r = await check(dir);
+    assert.equal(r.result, "failed");
+    assert.ok(kinds(r).includes("dist-copy-extra"), kinds(r).join());
+  });
+
   it("T108 empty numbered folders and a package with no skill are verified", async () => {
     const dir = layout({ skills: [], withKaal: false });
     for (const f of ["01-intent", "02-requirements/functional", "02-requirements/non-functional", "03-architecture", "06-defects", "04-test/package-check", "04-test/boundary-check"]) {

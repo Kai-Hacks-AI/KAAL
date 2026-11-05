@@ -17,7 +17,7 @@
     "lib/npm/realization.mjs": "6ae31f68e81be5f64a234f7fb3d43d647e08da45701708e8c202134685d386d3",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "e4065f42972cb68ffbad0ca6ed0b9a1dd26a88fa457f7d0f9d57836d6094fa2e",
-    "lib/structure.mjs": "bbd30fa497c7db67d65cbbdc4e1e653d4daa44885d76a265c3b454fd45f224e4",
+    "lib/structure.mjs": "0d785e45bb2972fef8712da3980ac40d03d42e64ea41d7d0e9700496762fd25c",
     "package.json": "6198e4c8c2a47b601704d29cddbb6b5cf219aaf028325ecf307f34b29675f7d5",
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
