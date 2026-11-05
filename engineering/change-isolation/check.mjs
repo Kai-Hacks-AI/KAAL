@@ -354,6 +354,7 @@ export function check(paths, { ledger = [], facts, carried, attested } = {}) {
   let admitted = false;
   const entries = ledger.map((entry) => ({ entry, set }));
   if (carried && attested) {
+    if (typeof sha256Impl !== "function") throw new CannotJudge("Foundation SHA-256 is not reachable from the checker, so the carried entry cannot be judged");
     // The carried entry covers the change minus the ledger file itself, and only with a matching attestation.
     try {
       validateEntry(carried);
