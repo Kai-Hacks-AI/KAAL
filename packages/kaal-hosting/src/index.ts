@@ -107,8 +107,6 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
     if (missing(e)) return;
     throw e;
   }
-  // A listing is in UTF-16 order, a directory before what it holds; a read has no order to keep.
-  if (listing) entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   for (const entry of entries) {
     const path = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
@@ -169,7 +167,8 @@ export async function list(dir: string): Promise<Listed[]> {
   }
   const listing: Listed[] = [];
   await walk(root, "", {}, [], listing);
-  return listing;
+  // UTF-16 order of the whole relative path, not of each name: `.` sorts before `/`, so `a.txt` precedes `a/z`. A directory still precedes what it holds, since a path is a prefix of its descendants'.
+  return listing.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 }
 
 /**
@@ -197,7 +196,11 @@ export async function scratch<T>(use: (dir: string) => T | Promise<T>): Promise<
   }
   if (!outcome.ok) {
     if (leftover && typeof outcome.error === "object" && outcome.error !== null) {
-      Object.defineProperty(outcome.error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
+      try {
+        Object.defineProperty(outcome.error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
+      } catch {
+        // A frozen error, or one with a locked `leftover`, cannot carry the report; use's own error is still the one thrown.
+      }
     }
     throw outcome.error;
   }
