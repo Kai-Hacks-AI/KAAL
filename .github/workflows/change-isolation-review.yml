@@ -115,13 +115,14 @@ jobs:
           NUMBER: ${{ steps.pending.outputs.number }}
           CHECK: ${{ steps.pending.outputs.check }}
           JUDGED: ${{ steps.attest.outputs.head }}
+          PENDING_HEAD: ${{ steps.pending.outputs.head }}
           VERDICT: ${{ steps.judge.outcome }}
         run: |
           [ -n "$CHECK" ] || exit 0
           conclusion=failure
           summary="Change Isolation could not be established; the check is left unsuccessful."
           NOW=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha || true)
-          if [ "$VERDICT" = success ] && [ -n "$JUDGED" ] && [ "$NOW" = "$JUDGED" ]; then
+          if [ "$VERDICT" = success ] && [ -n "$JUDGED" ] && [ "$NOW" = "$JUDGED" ] && [ "$JUDGED" = "$PENDING_HEAD" ]; then
             conclusion=success
             summary="The change conforms."
           elif [ "$VERDICT" = success ]; then
