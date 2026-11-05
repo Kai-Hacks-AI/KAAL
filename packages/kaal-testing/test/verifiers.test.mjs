@@ -185,4 +185,9 @@ describe("coverage scenarios are told apart by their defining model condition (t
     const s = { ...summary, coverage: [{ id: "F1", state: "covered" }, { id: "F9", state: "not shipped" }] };
     assert.equal(judgeCoverage("coverage-not-shipped", observe({ exit: 2, stdout: `v ${JSON.stringify(s)}\n` }, VERIFIER), f).conforms, false);
   });
+  it("an identifier an undeclared case traces stays uncovered beside a target entry", () => {
+    const a = account({ ...facts, identifiers: ["F1", "F2"], model: { cases: [{ id: "T1", tests: ["F1"] }, { id: "T9", tests: ["F2"] }], targets: [{ id: "F2", allocated: "release lane" }] } });
+    assert.equal(a.entries.find((e) => e.id === "F2").state, "uncovered");
+    assert.equal(a.result, "unknown");
+  });
 });

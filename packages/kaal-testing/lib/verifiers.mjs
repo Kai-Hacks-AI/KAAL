@@ -265,7 +265,8 @@ export function account(facts, outcomes) {
     const cases = by(id);
     const entry = stands.get(id);
     if (!entry && named.has(id)) { findings.push(`${id} has a target entry that does not stand`); return "uncovered"; }
-    if (cases.length > 0 && entry) { findings.push(`${id} has a target entry beside the trace of ${cases.join(", ")}`); return "uncovered"; }
+    const active = Object.hasOwn(trace, id) ? trace[id] : [];
+    if (active.length > 0 && entry) { findings.push(`${id} has a target entry beside the trace of ${active.join(", ")}`); return "uncovered"; }
     if (cases.length === 0) {
       if (entry) return entry.form;
       findings.push(`${id} is traced by no declared case and has no target entry`);
