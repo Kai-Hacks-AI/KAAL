@@ -71,7 +71,7 @@ describe("hosting/C10: Hosting publishes as @kaihacksai/kaal-hosting", () => {
     // Its exports, commands and files are the declared interface's, which hosting/T41 checks (hosting/C15).
     assert.deepEqual(p.engines, { node: ">=24" });
     assert.equal(p.license, "MIT");
-    assert.deepEqual(Object.keys(p.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile"]);
+    assert.deepEqual(Object.keys(p.dependencies).sort(), ["cross-spawn", "es-module-lexer", "graceful-fs", "proper-lockfile", "typescript"]);
     const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
     assert.equal(readme.split("\n")[0], `# ${NAME}`);
     assert.match(readme, new RegExp(`npm install ${NAME}`));

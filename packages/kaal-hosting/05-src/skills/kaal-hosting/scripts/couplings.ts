@@ -1,3 +1,4 @@
+import ts from "typescript";
 import type { Files } from "./index.js";
 import type { Location, Skipped } from "./conformance.js";
 
@@ -342,47 +343,12 @@ function find(code: string, scanning: boolean): Raw[] {
     for (const m of code.matchAll(new RegExp(`\\b${escape(name)}\\s*\\.\\s*(platform|type|arch|release|version)\\s*\\(|\\b${escape(name)}\\s*\\.\\s*EOL\\b`, "g"))) add(m.index!, "platform-query", m[0].replace(/\s*\($/, "()"));
   }
   for (const name of pathNames) for (const m of code.matchAll(new RegExp(`\\b${escape(name)}\\s*\\.\\s*(sep|delimiter|win32|posix)\\b`, "g"))) add(m.index!, "platform-query", m[0]);
+  // A use of a bound query is an identifier that is not a declaration. The source is parsed, so what counts as a
+  // declaration (an import, a binding pattern in a declaration or a parameter, a property name) does not depend on
+  // how the source is laid out, and a default value inside a pattern is read as the use it is (hosting/D8).
+  const uses = queries.size > 0 ? identifierUses(code, [...queries.keys()]) : new Map<string, number[]>();
   for (const [name, what] of queries) {
-    for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
-      const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
-      const before = code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, "");
-      // The innermost unclosed brace decides. A brace is a binding pattern when it follows const, let or var, when
-      // what follows its closing brace is an assignment or the end of a parameter list (`) =>` or `) {`), or when it
-      // sits inside such a pattern. A block (a function or arrow body, else, try, finally, do) and an object
-      // literal are not patterns, so a use inside them is a real query.
-      const start = code.lastIndexOf("\n", m.index!);
-      const base = start + (code.slice(start, m.index).length - before.length);
-      const closeOf = (open: number): number => {
-        const [up, down] = code[open] === "[" ? ["[", "]"] : ["{", "}"];
-        let depth = 0;
-        for (let i = open; i < code.length; i++) {
-          const skipped = skipLiteral(code, i);
-          if (skipped > i) i = skipped;
-          else if (code[i] === up) depth++;
-          else if (code[i] === down && --depth === 0) return i;
-        }
-        return -1;
-      };
-      const stack: boolean[] = [];
-      for (let i = 0; i < before.length; i++) {
-        const skipped = skipLiteral(before, i);
-        if (skipped > i) i = skipped;
-        else if (before[i] === "{" || before[i] === "[") {
-          const head = before.slice(0, i);
-          const block = before[i] === "{" && /(?:\)|>|\b(?:else|try|finally|do))\s*$/.test(head);
-          const close = closeOf(base + i);
-          const after = close < 0 ? "" : code.slice(close + 1);
-          const binding = /\b(?:const|let|var)\s*$/.test(head) || /^\s*(?::[^=(){}]*)?=(?![=>])/.test(after) || endsParameterList(after, head);
-          // A brace right after `=` (not `==`, `=>`) or a default-expression operator (`||`, `&&`, `??`, `?`, `:`) is an
-          // object literal in value position, whatever follows it.
-          const value = !(stack.length > 0 && stack[stack.length - 1]) && /(?:(?:^|[^=!<>])=|\|\||&&|\?\?|\?|:)\s*$/.test(code.slice(Math.max(0, base + i - 200), base + i));
-          const pattern = !block && !value && (binding || (stack.length > 0 && stack[stack.length - 1] && /[:,[]\s*$/.test(head)));
-          stack.push(pattern);
-        } else if (before[i] === "}" || before[i] === "]") stack.pop();
-      }
-      const inPattern = stack.length > 0 && stack[stack.length - 1];
-      if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
-    }
+    for (const at of uses.get(name) ?? []) add(at, "platform-query", what, scanning ? declared.get(name) : undefined);
   }
   for (const m of code.matchAll(/(["'`])([a-z0-9]+)\1/g)) if (PLATFORMS.has(m[2])) add(m.index!, "platform-literal", m[0]);
   // An identifier bound to a platform query or literal is found wherever it is used.
@@ -475,62 +441,36 @@ async function collect(files: Files, options: CouplingOptions, scanning: boolean
   return report;
 }
 
-/**
- * When a quoted string, template or regular-expression literal starts at `i`, the index of its last character;
- * otherwise `i`. A slash starts a regular expression only where an operand cannot precede it.
- */
-function skipLiteral(text: string, i: number): number {
-  const c = text[i];
-  if (c === '"' || c === "'" || c === "`") {
-    let j = i + 1;
-    for (; j < text.length && text[j] !== c && (c === "`" || text[j] !== "\n"); j++) if (text[j] === "\\") j++;
-    return j;
+/** Whether an identifier is a name the source declares, or a name that is not a reference at all. */
+function declaresOrNames(node: ts.Identifier): boolean {
+  const parent = node.parent;
+  // An import binds the name; a binding pattern in a declaration or a parameter declares a local one, and its
+  // property name is a key.
+  for (let n: ts.Node | undefined = parent; n; n = n.parent) {
+    if (ts.isImportDeclaration(n) || ts.isImportEqualsDeclaration(n)) return true;
   }
-  if (c === "/" && text[i + 1] !== "/" && text[i + 1] !== "*") {
-    let k = i - 1;
-    while (k >= 0 && /\s/.test(text[k])) k--;
-    if (k >= 0 && !/[=(,:\[!&|?{};+\-*%<>~^]/.test(text[k])) return i;
-    let j = i + 1;
-    let inClass = false;
-    for (; j < text.length && text[j] !== "\n"; j++) {
-      if (text[j] === "\\") j++;
-      else if (text[j] === "[") inClass = true;
-      else if (text[j] === "]") inClass = false;
-      else if (text[j] === "/" && !inClass) return j;
-    }
-  }
-  return i;
+  if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return true;
+  // A property name is not a reference to the binding: `a.host`, `{ host: 1 }`, a method or member name.
+  if (ts.isPropertyAccessExpression(parent) && parent.name === node) return true;
+  if (ts.isQualifiedName(parent) && parent.right === node) return true;
+  if ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent) || ts.isPropertyDeclaration(parent) || ts.isPropertySignature(parent) || ts.isEnumMember(parent)) && parent.name === node) return true;
+  if (ts.isExportSpecifier(parent) || ts.isNamespaceExport(parent) || ts.isNamespaceImport(parent)) return true;
+  return false;
 }
 
-/**
- * Whether the text after a closing brace finishes a parameter list: it runs to the `)` that closes the list,
- * across other parameters, defaults and annotations, and a function body or `=>` follows, with an optional
- * return-type annotation between.
- */
-function endsParameterList(after: string, head: string): boolean {
-  // An enclosing parenthesis that opens a control-flow condition is not a parameter list.
-  const opens: number[] = [];
-  for (let i = 0; i < head.length; i++) {
-    const skipped = skipLiteral(head, i);
-    if (skipped > i) i = skipped;
-    else if (head[i] === "(") opens.push(i);
-    else if (head[i] === ")") opens.pop();
-  }
-  if (opens.length > 0 && /\b(?:if|while|for|switch|with)\s*$/.test(head.slice(0, opens[opens.length - 1]))) return false;
-  let depth = 0;
-  for (let i = 0; i < after.length; i++) {
-    const skipped = skipLiteral(after, i);
-    if (skipped > i) {
-      i = skipped;
-      continue;
+/** The offsets of each name's uses in a source: every identifier of that name that is neither a declaration nor a property name. */
+function identifierUses(code: string, names: string[]): Map<string, number[]> {
+  const wanted = new Set(names);
+  const out = new Map<string, number[]>();
+  const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const visit = (node: ts.Node): void => {
+    if (ts.isIdentifier(node) && wanted.has(node.text) && !declaresOrNames(node)) {
+      // A name followed by `:`, `,` or `}` is a key, a listed name or a shorthand entry, and `as` renames it (hosting/F28).
+      const next = /^\s*(?:[:,}]|as\b)/.test(code.slice(node.end, node.end + 12));
+      if (!next) (out.get(node.text) ?? out.set(node.text, []).get(node.text)!).push(node.getStart(file));
     }
-    const c = after[i];
-    if (c === "(" || c === "{" || c === "[") depth++;
-    else if (c === "}" || c === "]") {
-      if (--depth < 0) return false;
-    } else if (c === ")") {
-      if (--depth < 0) return /^\s*(?::[^={};]*)?(?:=>|\{)/.test(after.slice(i + 1));
-    } else if (c === ";" && depth === 0) return false;
-  }
-  return false;
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return out;
 }

@@ -19,6 +19,13 @@ console.log(JSON.stringify(seen));`;
 }
 
 describe("Architecture", () => {
+  it("hosting/T166 [hosting/A12, hosting/D8]: the main entry and the fixtures load no source parser, and only the conformance entry loads typescript, which couplings parses sources with", async () => {
+    const loadsTypescript = (seen) => seen.includes("typescript");
+    assert.ok(!loadsTypescript(await loads(NAME)), "the main entry loads typescript");
+    assert.ok(!loadsTypescript(await loads(`${NAME}/fixtures`)), "the fixtures load typescript");
+    assert.ok(loadsTypescript(await loads(`${NAME}/conformance`)), "the conformance entry does not load typescript");
+  });
+
   it("hosting/T60 [hosting/I9, hosting/F35, hosting/A15]: the installed package exposes exactly the interface its Architecture declares, and every declared target ships", async () => {
     const rows = table(readFileSync(join(PACKAGE, "dist", "docs", "architecture", "architecture.md"), "utf8"), "kaal-hosting:interface");
     assert.ok(rows.length > 0, "the Architecture declares no interface");
