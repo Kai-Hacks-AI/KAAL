@@ -317,6 +317,7 @@ export function judgeCoverage(scenarioId, observed, facts) {
     "coverage-missing": [any((cs, e) => cs.length === 0 && !e), "a shipped identifier is traced by no case and has no target entry"],
     "coverage-undeclared-case": [any((cs, e) => cs.length > 0 && !cs.some((c) => declaredSet.has(c)) && !e), "a shipped identifier is traced only by cases the manifest does not declare"],
     "coverage-allocated-and-traced": [any((cs, e) => e && cs.some((c) => declaredSet.has(c))), "a target entry restates the trace of an identifier a declared case traces"],
+    "coverage-not-shipped": [Object.entries(traced).some(([id, cs]) => !shipped.includes(id) && cs.some((c) => declaredSet.has(c))), "a declared case traces an identifier the package does not ship"],
   }[s.id];
   if (defining && !defining[0]) differences.push(`the facts do not make the scenario's change: ${defining[1]} is not so`);
   const have = accounted.entries.map((e) => e.state);

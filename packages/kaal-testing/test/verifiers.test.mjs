@@ -180,4 +180,9 @@ describe("coverage scenarios are told apart by their defining model condition (t
       assert.equal(a.result, "unknown");
     }
   });
+  it("coverage-not-shipped needs a declared case that traces an unshipped identifier, not only a dangling target entry", () => {
+    const f = { ...facts, identifiers: ["F1"], model: { cases: [{ id: "T1", tests: ["F1"] }], targets: [{ id: "F9", allocated: "release lane" }] } };
+    const s = { ...summary, coverage: [{ id: "F1", state: "covered" }, { id: "F9", state: "not shipped" }] };
+    assert.equal(judgeCoverage("coverage-not-shipped", observe({ exit: 2, stdout: `v ${JSON.stringify(s)}\n` }, VERIFIER), f).conforms, false);
+  });
 });
