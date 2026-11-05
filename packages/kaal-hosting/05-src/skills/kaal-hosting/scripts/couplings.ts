@@ -556,9 +556,8 @@ function identifierUses(code: string, names: string[]): Map<string, number[]> {
   const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const visit = (node: ts.Node): void => {
     if (ts.isIdentifier(node) && wanted.has(node.text) && !declaresOrNames(node) && !shadowed(node)) {
-      // A name followed by `:`, `,` or `}` is a key, a listed name or a shorthand entry, and `as` renames it (hosting/F28).
-      const next = /^\s*(?:[:,}]|as\b)/.test(code.slice(node.end, node.end + 12));
-      if (!next) (out.get(node.text) ?? out.set(node.text, []).get(node.text)!).push(node.getStart(file));
+      // A key, a listed name or a rename is a declaration or a property name and `declaresOrNames` has dropped it; every other identifier is a read.
+      (out.get(node.text) ?? out.set(node.text, []).get(node.text)!).push(node.getStart(file));
     }
     ts.forEachChild(node, visit);
   };
