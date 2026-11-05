@@ -12,7 +12,7 @@
         { "id": "review/T20/consumer-repository", "external": "locator of the unrelated repository, recorded by the checker" },
         { "id": "review/T20/checker", "external": "who judged, recorded by the checker" },
         { "id": "review/T20/task", "external": "the real task and who chose it, recorded by the checker" },
-        { "id": "review/T20/intent-and-key", "external": "the Intent, the Owner's blind judgment, Review's judgment and, if run, the control, recorded by the checker" }
+        { "id": "review/T20/intent-and-usefulness", "external": "the Intent, Review's record, the checklist results and the CPO's usefulness rating, recorded by the checker" }
       ]
     }
   ],
@@ -23,7 +23,7 @@
     },
     {
       "id": "review/T20/claims",
-      "cases": ["review/T20/reviews", "review/T20/record-valid", "review/T20/human-can-observe", "review/T20/no-authority", "review/T20/validates-intent"]
+      "cases": ["review/T20/reviews", "review/T20/record-valid", "review/T20/human-can-observe", "review/T20/no-authority", "review/T20/useful-for-validation"]
     },
     {
       "id": "review/T20/effects",
@@ -43,7 +43,7 @@
     { "id": "review/T20/record-valid", "version": "1", "tests": ["review/E6: it leaves a record that validates against schema kaal-review/1"] },
     { "id": "review/T20/human-can-observe", "version": "1", "tests": ["review/E6: it leaves the human what to observe"] },
     { "id": "review/T20/no-authority", "version": "1", "tests": ["review/E2, review/E6: Review grants no authority and the review claims none"] },
-    { "id": "review/T20/validates-intent", "version": "2", "tests": ["review/T20: Review judges whether the change serves the Intent its Owner stated, matching the Owner's blind judgment for reasons that trace to the Intent, with no false certainty"] },
+    { "id": "review/T20/useful-for-validation", "version": "2", "tests": ["review/T20: Review's record is useful for validating that the change serves its Intent: Intent restated, traced to the change, what to observe, limits stated, and rated useful by the CPO"] },
     { "id": "review/T20/effects-declared", "version": "1", "tests": ["#978 R5: every observed effect on the target is a declared effect; an undeclared effect fails"] },
     { "id": "review/T20/writes-authorized", "version": "1", "tests": ["#978 R5: every write occurred only under the target's authorization; absence of writes alone is not a pass"] },
     { "id": "review/T20/cited-version", "version": "1", "tests": ["#978 R6: the version is named in the citation and obtaining it later yields the same text"] }
