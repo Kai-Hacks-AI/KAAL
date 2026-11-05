@@ -5,25 +5,30 @@
   "plans": [
     {
       "id": "review/T20",
-      "version": "2",
-      "suites": ["review/T20/independence", "review/T20/claims", "review/T20/effects", "review/T20/pin"],
+      "version": "3",
+      "suites": ["review/T20/independence", "review/T20/arms", "review/T20/claims", "review/T20/effects", "review/T20/pin"],
       "data": [
-        { "id": "review/T20/subject-commit", "external": "commit of kaal/review under test, recorded by the checker" },
-        { "id": "review/T20/consumer-repository", "external": "locator of the unrelated repository, recorded by the checker" },
-        { "id": "review/T20/checker", "external": "who judged, recorded by the checker" },
-        { "id": "review/T20/task", "external": "the real task and who chose it, recorded by the checker" },
-        { "id": "review/T20/intent-and-usefulness", "external": "the Intent, Review's record, the checklist results and the CPO's usefulness rating, recorded by the checker" }
+        { "id": "review/T20/subject-commit", "external": "commit of kaal/review under test, recorded by the judge" },
+        { "id": "review/T20/consumer-repository", "external": "locator of the unrelated repository and the snapshot of the change, recorded by the judge" },
+        { "id": "review/T20/judge", "external": "who judged, with model and context given, recorded by the judge" },
+        { "id": "review/T20/task", "external": "the real task, the Intent and who chose them, recorded by the judge" },
+        { "id": "review/T20/arm-inputs", "external": "the exact input of each of the three arms with its hash, recorded before any arm runs" },
+        { "id": "review/T20/comparison", "external": "the three records, the facts a script derived for each, the judge's ratings and ranking with reasons, and the CPO's review, recorded by the judge" }
       ]
     }
   ],
   "suites": [
     {
       "id": "review/T20/independence",
-      "cases": ["review/T20/unrelated", "review/T20/plain-text", "review/T20/real-task", "review/T20/checker-independent"]
+      "cases": ["review/T20/unrelated", "review/T20/plain-text", "review/T20/real-task", "review/T20/judge-independent", "review/T20/same-task"]
+    },
+    {
+      "id": "review/T20/arms",
+      "cases": ["review/T20/arm-inputs-pinned", "review/T20/arms-blind"]
     },
     {
       "id": "review/T20/claims",
-      "cases": ["review/T20/reviews", "review/T20/record-valid", "review/T20/human-can-observe", "review/T20/no-authority", "review/T20/useful-for-validation"]
+      "cases": ["review/T20/record-valid", "review/T20/human-can-observe", "review/T20/no-authority", "review/T20/improves-over-bare", "review/T20/improves-over-instructions"]
     },
     {
       "id": "review/T20/effects",
@@ -36,16 +41,19 @@
   ],
   "cases": [
     { "id": "review/T20/unrelated", "version": "1", "tests": ["#978 section 6: unrelated repository, no KAAL workspace, installation, registration or Engine"] },
-    { "id": "review/T20/plain-text", "version": "1", "tests": ["#978 section 6: the artifact is exactly what an outside consumer receives, plain text at a stated commit"] },
+    { "id": "review/T20/plain-text", "version": "1", "tests": ["#978 section 6: the Review input is exactly what an outside consumer receives, plain text at a stated commit"] },
     { "id": "review/T20/real-task", "version": "1", "tests": ["#978 section 6: a real task chosen by someone other than the author of the knowledge"] },
-    { "id": "review/T20/checker-independent", "version": "1", "tests": ["#978 section 6: a checker who is not the author and is not primed by KAAL beyond the text under test"] },
-    { "id": "review/T20/reviews", "version": "1", "tests": ["review/E6: an Agent following the Skill reviews work in any repository"] },
-    { "id": "review/T20/record-valid", "version": "1", "tests": ["review/E6: it leaves a record that validates against schema kaal-review/1"] },
-    { "id": "review/T20/human-can-observe", "version": "1", "tests": ["review/E6: it leaves the human what to observe"] },
-    { "id": "review/T20/no-authority", "version": "1", "tests": ["review/E2, review/E6: Review grants no authority and the review claims none"] },
-    { "id": "review/T20/useful-for-validation", "version": "2", "tests": ["review/T20: Review's record is useful for validating that the change serves its Intent: Intent restated, traced to the change, what to observe, limits stated, and rated useful by the CPO"] },
-    { "id": "review/T20/effects-declared", "version": "1", "tests": ["#978 R5: every observed effect on the target is a declared effect; an undeclared effect fails"] },
-    { "id": "review/T20/writes-authorized", "version": "1", "tests": ["#978 R5: every write occurred only under the target's authorization; absence of writes alone is not a pass"] },
+    { "id": "review/T20/judge-independent", "version": "2", "tests": ["#978 section 6: a judge who is not the author and is not primed by KAAL beyond the text under test, calibrated on a known set"] },
+    { "id": "review/T20/same-task", "version": "1", "tests": ["review/T20: all three arms get the same task text, the same Intent and a fresh copy of the same snapshot, and see no other arm's output"] },
+    { "id": "review/T20/arm-inputs-pinned", "version": "1", "tests": ["review/T20: each arm received exactly its recorded input (bare, Agent instructions, Skill with scripts), and the recorded hashes match"] },
+    { "id": "review/T20/arms-blind", "version": "1", "tests": ["review/T20: the judge saw the three records anonymously and in random order"] },
+    { "id": "review/T20/record-valid", "version": "2", "tests": ["review/E6: the Skill arm's record validates against schema kaal-review/1 (a fact by the Skill's check-record; not used to compare arms)"] },
+    { "id": "review/T20/human-can-observe", "version": "1", "tests": ["review/E6: the Skill arm leaves the human what to observe"] },
+    { "id": "review/T20/no-authority", "version": "1", "tests": ["review/E2, review/E6: Review grants no authority and the review claims none, and claims no proof"] },
+    { "id": "review/T20/improves-over-bare", "version": "1", "tests": ["review/T20: the Skill arm's record is judged more useful for validating the change against its Intent than the bare agent's (judgment, recorded as judgment, with the facts beside it)"] },
+    { "id": "review/T20/improves-over-instructions", "version": "1", "tests": ["review/T20: the Skill arm's record is judged more useful for validating the change against its Intent than the Agent-instructions arm's (judgment, recorded as judgment, with the facts beside it)"] },
+    { "id": "review/T20/effects-declared", "version": "1", "tests": ["#978 R5: in every arm, every observed effect on the target is a declared effect; an undeclared effect fails"] },
+    { "id": "review/T20/writes-authorized", "version": "1", "tests": ["#978 R5: in every arm, every write occurred only under the target's authorization; absence of writes alone is not a pass"] },
     { "id": "review/T20/cited-version", "version": "1", "tests": ["#978 R6: the version is named in the citation and obtaining it later yields the same text"] }
   ]
 }
