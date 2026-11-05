@@ -823,7 +823,7 @@ export function startPlan(command: string, args: string[], options: { viaShim?: 
   const script = `${command}-cli.js`;
   const searched: string[] = [];
   const named = (options.env ?? process.env).npm_execpath;
-  if (command === "npm" && named && win32.basename(named).toLowerCase() === script) searched.push(named);
+  if (named && win32.basename(named).toLowerCase() === "npm-cli.js") searched.push(command === "npm" ? named : win32.join(win32.dirname(named), script));
   searched.push(win32.join(win32.dirname(execPath), "node_modules", "npm", "bin", script));
   for (const candidate of searched) if (exists(candidate)) return { command: execPath, args: [candidate, ...args], viaShim: false };
   if (options.viaShim) return { command, args, viaShim: true };
@@ -880,9 +880,10 @@ export function executeSync(command: string, args: string[], options: ExecuteSyn
 
 /**
  * The environment for a process that must neither read nor write the user's
- * configuration: `HOME`, `USERPROFILE`, `XDG_CONFIG_HOME`, `npm_config_cache`
- * and `GIT_CONFIG_GLOBAL` under `dir`, and `GIT_CONFIG_NOSYSTEM=1`, set over
- * `base` (by default the caller's own environment). The directories it names are
+ * configuration: `HOME`, `USERPROFILE`, `XDG_CONFIG_HOME`, `npm_config_cache`,
+ * `npm_config_userconfig`, `npm_config_globalconfig` and `GIT_CONFIG_GLOBAL` under
+ * `dir`, and `GIT_CONFIG_NOSYSTEM=1`, set over `base` (by default the caller's own
+ * environment) with any variable of those names in another case removed. The directories it names are
  * created inside `dir`; `dir` itself must exist.
  */
 export function isolatedEnvironment(dir: string, base: Record<string, string | undefined> = process.env): Record<string, string | undefined> {
@@ -890,15 +891,20 @@ export function isolatedEnvironment(dir: string, base: Record<string, string | u
   const config = join(dir, "config");
   const cache = join(dir, "npm-cache");
   for (const path of [home, config, cache]) gfs.mkdirSync(path, { recursive: true });
-  return {
-    ...base,
+  const set: Record<string, string> = {
     HOME: home,
     USERPROFILE: home,
     XDG_CONFIG_HOME: config,
     npm_config_cache: cache,
+    npm_config_userconfig: join(home, ".npmrc"),
+    npm_config_globalconfig: join(home, "npmrc-global"),
     GIT_CONFIG_NOSYSTEM: "1",
     GIT_CONFIG_GLOBAL: join(home, ".gitconfig"),
   };
+  // A variable of the same name in another case would still reach the user's own files (npm reads its configuration variables without regard to case), so it is dropped.
+  const names = new Set(Object.keys(set).map((name) => name.toLowerCase()));
+  const kept = Object.fromEntries(Object.entries(base).filter(([name]) => !names.has(name.toLowerCase())));
+  return { ...kept, ...set };
 }
 
 /** A fixture built once, and independent copies of it. */

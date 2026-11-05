@@ -8,3 +8,13 @@
 ```
 
 The first GREEN run exposed one error in the Cases themselves, corrected before the Cases were committed: hosting/T206 built its Windows script path with the running host's path rules, so it could not pass on Linux or macOS; it now uses the Windows path rules, and `startPlan` does too whenever the platform is `win32`.
+
+## Codex findings at 0f19426 (both P2, both reproduced)
+
+Two Cases were added first and failed on the code at 0f19426, then the code changed:
+
+```
+✖ hosting/T214 (npx was resolved only beside Node, though npm_execpath named an installation holding npx-cli.js)
+✖ hosting/T215 (npm_config_userconfig inherited from the base still pointed at the user's file; a variable of another case was kept)
+ℹ pass 7   ℹ fail 2
+```

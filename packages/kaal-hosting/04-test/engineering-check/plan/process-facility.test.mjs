@@ -1,5 +1,5 @@
 // hosting/C109 planned outer tests: starting processes without cmd.exe and preparing a fixture once
-// (hosting/F75–hosting/F79, hosting/N11; hosting/T206–hosting/T213). Immutable to DO and CHECK;
+// (hosting/F75–hosting/F79, hosting/N11; hosting/T206–hosting/T215). Immutable to DO and CHECK;
 // the DO turns them GREEN. They reach Hosting through its build by path, never through the package
 // name. Fixtures are built in a temporary directory, and cost is asserted by what can be counted
 // (starts, installs, builds), never by the clock.
@@ -50,6 +50,14 @@ describe("hosting/F75 a process start without cmd.exe", () => {
     // On this host, a start that needs no shim does not say viaShim.
     const r = await hosting.execute(NODE, ["-e", "process.stdout.write('x')"], { cwd: tmp() });
     assert.equal("viaShim" in r, false);
+  });
+
+  it("hosting/T214: npx is resolved beside the npm script the environment names, as npm is, and not only beside Node", () => {
+    const named = "D:\\nodejs\\node_modules\\npm\\bin\\npm-cli.js";
+    const sibling = "D:\\nodejs\\node_modules\\npm\\bin\\npx-cli.js";
+    const plan = hosting.startPlan("npx", ["x"], { ...win, env: { npm_execpath: named }, exists: (p) => p === sibling });
+    assert.deepEqual(plan, { command: win.execPath, args: [sibling, "x"], viaShim: false });
+    fails(() => hosting.startPlan("npx", [], { ...win, env: { npm_execpath: named }, exists: () => false }), "NO_DIRECT_START");
   });
 
   it("hosting/T208: where the host uses shims, execute('npm') runs the package manager and leaves a recording npm.cmd first on PATH unstarted", { skip: process.platform !== "win32" && "applies where the host realizes npm as a shim" }, async () => {
@@ -124,6 +132,21 @@ describe("hosting/F77 isolatedEnvironment", () => {
     const r = hosting.executeSync("git", ["config", "--global", "user.name", "Isolated"], { cwd: dir, env });
     assert.equal(r.status, 0, r.output);
     assert.equal(readFileSync(env.GIT_CONFIG_GLOBAL, "utf8").includes("Isolated"), true);
+  });
+});
+
+describe("hosting/F77 isolatedEnvironment, npm's own configuration files", () => {
+  it("hosting/T215: npm's user and global configuration files are redirected into the directory whatever the case of the inherited variable names, and an inherited variable of another case cannot reach outside", () => {
+    const dir = tmp();
+    const base = { ...process.env, npm_config_userconfig: "/home/real/.npmrc", NPM_CONFIG_GLOBALCONFIG: "/etc/npmrc", NPM_CONFIG_CACHE: "/home/real/.npm", Home: "/home/real" };
+    const env = hosting.isolatedEnvironment(dir, base);
+    const inside = (v) => resolve(v).startsWith(resolve(dir));
+    for (const name of ["npm_config_userconfig", "npm_config_globalconfig", "npm_config_cache"]) assert.ok(inside(env[name]), `${name} is outside the directory: ${env[name]}`);
+    const reaching = Object.entries(env).filter(([k, v]) => /^(npm_config_(userconfig|globalconfig|cache)|home)$/i.test(k) && v !== undefined && !inside(v));
+    assert.deepEqual(reaching, [], "a variable of another case still points outside");
+    const r = hosting.executeSync("npm", ["config", "set", "init-author-name=Isolated", "--location=user"], { cwd: dir, env });
+    assert.equal(r.status, 0, r.output);
+    assert.equal(readFileSync(env.npm_config_userconfig, "utf8").includes("Isolated"), true);
   });
 });
 
