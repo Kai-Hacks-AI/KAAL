@@ -1,6 +1,6 @@
 # Guard: Limitations
 
-What Guard does not establish, and the Defects that reached a published version. The obligations they concern are in [Requirements](requirements.md).
+What Guard does not establish, the Defects that reached a published version, and the Defects found before a release. The obligations they concern are in [Requirements](requirements.md).
 
 ## What Guard does not establish
 
@@ -34,3 +34,22 @@ An observed RED established the Defect in the version named. An observed GREEN e
 `0.0.2` is a deliberate breaking change from `0.0.1`, not a defect: there is no migration, no dual format and no rollback across it (guard/I5). The release notes in the README say how a `0.0.1` repository sets `0.0.2` up.
 
 Up to `0.0.3`, `npm explore @kaihacksai/kaal-guard -- npm test` ran no tests and exited 0. Consumer verification (guard/F31–guard/F36) replaces it from `0.0.4`.
+
+## Defects found before a release
+
+These Defects were found by the publisher's release review in a candidate, and corrected before that version was published. No published version shipped them, so a consumer could not have installed them. Each is a Defect all the same: a durable prohibition, tested by a case that cites it in its title, with its RED kept as the evidence that established it. "Tested by" is derived as above.
+
+An observation names its result, the candidate it concerns, and the Test Run that made it: the pull request that recorded it. It claims no published version for a RED. It claims an environment or a commit only where the publisher recorded one, and for these it recorded none. A later GREEN is added beside a RED and never replaces it, and a Defect has no status.
+
+| Defect | Prohibited behaviour | Tested by | Observed in Test Runs |
+| --- | --- | --- | --- |
+| guard/D6 | a declaration that is a symbolic link, or a directory named `<name>.md`, in the configuration directory must not be skipped, so that a failing check vanishes and the run passes (guard/F28) | delivered: guard/T84 | RED in the `0.0.2` candidate (guard/T84, #433); GREEN from `0.0.2` (guard/T84, #451) |
+| guard/D7 | Git must not rewrite the hook, the workflow and the Skill Guard installed to CRLF under `core.autocrlf=true`, so that the hook fails under `sh` and `upgrade` and `remove` call Guard's own files modified (guard/F27, guard/F29) | delivered: guard/T85 | RED in the `0.0.2` candidate (guard/T85, #433); GREEN from `0.0.2` (guard/T85, #451) |
+| guard/D8 | where `core.fileMode` is `false`, the hook must not be committed without its executable bit, so that other clones never run it (guard/F4) | delivered: guard/T86 | RED in the `0.0.2` candidate (guard/T86, #433); GREEN from `0.0.2` (guard/T86, #451) |
+| guard/D9 | Guard's workflow must not use unpinned actions built for Node 20, and must not put `github.base_ref` into a `run:` line as shell (guard/F5) | delivered: guard/T87 | RED in the `0.0.2` candidate (guard/T87, #433); GREEN from `0.0.2` (guard/T87, #451) |
+| guard/D10 | a registered asset the repository lost must not stay lost: `init --hook` must reinstall the hook and `upgrade` the Skill, and `core.hooksPath` must not stay set with no hook to run (guard/F8, guard/F13) | delivered: guard/T88 | RED in the `0.0.2` candidate (guard/T88, #433); GREEN from `0.0.2` (guard/T88, #451) |
+| guard/D11 | an unreadable workflow entry must not make `verify` fail (exit 1) with a stack trace instead of cannot judge (guard/F10, guard/F17) | delivered: guard/T89 | RED in the `0.0.2` candidate (guard/T89, #433); GREEN from `0.0.2` (guard/T89, #451) |
+| guard/D12 | `remove --config <dir>` must not delete that directory when it is empty, inside or outside the repository (guard/F8) | delivered: guard/T90 | RED in the `0.0.2` candidate (guard/T90, #433); GREEN from `0.0.2` (guard/T90, #451) |
+| guard/D13 | a `held` status written with a leading zero, a sign or above 255 must not be accepted as a number it does not name (guard/F2, guard/F18). The Defect was found in the `0.0.2` candidate as an `outcomes` key with a leading zero, which never matched its exit status | delivered: guard/T91 | RED in the `0.0.2` candidate (guard/T91, #433); GREEN from `0.0.2` (guard/T91, #451) |
+| guard/D14 | an older Git must not be accepted: without `--show-scope`, `init --hook` may set a local `core.hooksPath` over a global one (guard/N1) | delivered: guard/T92 | RED in the `0.0.2` candidate (guard/T92, #433); GREEN from `0.0.2` (guard/T92, #451) |
+| guard/D18 | with `run --ci` or `run --hook`, a candidate that changes a trusted check's `runs` so that it no longer names that surface must not remove the check from the run unjudged, so that the run can pass (guard/F7) | delivered: guard/T100 | RED in the `0.0.3` candidate (guard/T100, #505); GREEN from `0.0.3` (guard/T100, #505) |
