@@ -39,6 +39,11 @@ if ! git show "$BASE:engineering/change-isolation/check.mjs" > "$T/check.mjs" 2>
   echo "not verified: the target does not hold engineering/change-isolation/check.mjs"
   exit 2
 fi
+# Foundation's one SHA-256, verbatim from the target's tip, beside the checker (the checker digests a carried
+# ledger entry with it, never with node:crypto). A target without it can still judge every change that
+# carries no entry of its own.
+git show "$BASE:packages/kaal-foundation/lib/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
+  || rm -f "$T/kaal-foundation-sha256.mjs"
 if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
   node "$T/check.mjs" < "$T/resolved"
@@ -48,6 +53,14 @@ else
   LEDGER=()
   if git show "$BASE:engineering/change-isolation/transitions.json" > "$T/transitions.json" 2>/dev/null; then
     LEDGER=(--ledger "$T/transitions.json" --git "$BASE" "$HEAD")
+    # An entry the candidate carries is admitted only with KAAL_ATTESTED (<id>:<sha256>), which only the trusted
+    # review-event handler sets, from an author-independent code-owner approval at this head. Unset, the
+    # candidate's ledger is ignored here and the change is judged by the default rules.
+    if [ -n "$KAAL_ATTESTED" ]; then
+      git show "$HEAD:engineering/change-isolation/transitions.json" > "$T/candidate-transitions.json" 2>/dev/null || {
+        echo "the candidate does not hold the ledger it was attested for"; exit 2; }
+      LEDGER+=(--candidate-ledger "$T/candidate-transitions.json" --attested "$KAAL_ATTESTED")
+    fi
   fi
   git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
     | node "$T/check.mjs" "${LEDGER[@]}"
