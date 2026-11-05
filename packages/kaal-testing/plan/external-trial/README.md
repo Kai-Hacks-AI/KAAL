@@ -6,6 +6,12 @@ This is a PLAN Change for Testing. It ships no code, export, package or promotio
 
 The text of `kaal/review` at a named commit, as an outside consumer receives it: `skills/kaal-review/SKILL.md`, its `references/` (including `standalone.md`) and the two optional scripts. At this writing the head is `abdb905065052ec04cfc3c9eb3ecc20f46e9320b` (after #1012). The trial names the commit it used; if `kaal/review` moves, the earlier trial shows nothing about the new text and a new Run is needed (`testing/F31`).
 
+## Scope of this trial
+
+CPO review (5 Nov): the External product model is wider than this trial. A KAAL-primed Agent may use Review as the work, and other capabilities (for example Architecture) as lenses on an unrelated target, with writes when the target's owner authorizes and the capability declares them. A standalone, read-only review is one case of that model, not its definition.
+
+This plan therefore measures one narrow thing: whether Review's own text, given to an Agent as plain text, produces a useful and correct record on a target, with its effects declared and any writes authorized. It does not test lenses, composition or other capabilities, and whatever it shows about Review says nothing about them (testing/F31: a Run of one text shows nothing about another). It states no acceptance bar and no External readiness. A later trial that adds a lens or an authorized write is a separate Plan and a separate Run.
+
 ## Who does what
 
 | Part | Owner |
