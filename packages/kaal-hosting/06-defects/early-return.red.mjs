@@ -18,7 +18,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { portability } from "../dist/boundary-core.js";
+import { portability } from "../dist/skills/kaal-hosting/scripts/boundary-core.js";
 
 /** The `challenged` cases and request ids of `portability` over one test file in a temporary capability. */
 async function audit(body) {

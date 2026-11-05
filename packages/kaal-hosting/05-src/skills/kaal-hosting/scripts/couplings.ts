@@ -345,7 +345,9 @@ function find(code: string, scanning: boolean): Raw[] {
   for (const [name, what] of queries) {
     for (const m of code.matchAll(new RegExp(`(?<![.\\w$])${escape(name)}\\b(?!\\s*[:,}]|\\s+as\\b)`, "g"))) {
       const inImport = /import\s*\{[^}]*$/.test(code.slice(0, m.index));
-      const inPattern = /\{[^}]*$/.test(code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, ""));
+      const before = code.slice(code.lastIndexOf("\n", m.index!), m.index).replace(/^.*=\s*/, "");
+      // An unclosed brace is a binding pattern, unless it opens a block: a function or arrow body, else, try, do.
+      const inPattern = /\{[^}]*$/.test(before) && !/(?:\)|=>|\b(?:else|try|finally|do))\s*\{[^}]*$/.test(before);
       if (!inImport && !inPattern) add(m.index!, "platform-query", what, scanning ? declared.get(name) : undefined);
     }
   }
