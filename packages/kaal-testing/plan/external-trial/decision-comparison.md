@@ -37,6 +37,8 @@ Under C only `useful-and-correct` has no pass line, so that one Case is recorded
 
 ## Decision 2: trial target
 
+**Decided by the Owner (5 Nov): candidate 1 below, through the CPO.** The other candidates are kept for the record and are not used.
+
 ### Candidates
 
 Testing cannot see the Owner's non-KAAL repositories, so it cannot name a specific one. The Owner names the repository and the change. Candidate kinds:
@@ -72,7 +74,7 @@ If the seeded copy is deleted, the key, the counts and the record remain.
 
 ## What the Owner decides
 
-1. Threshold: A, B, C, or a changed version of one.
-2. Target: kind, repository and change, and who authorizes the copy.
-3. Who reviews the verdict (Owner or CPO).
+1. Threshold: A, B, C, or a changed version of one. **Open.**
+2. Target: **decided (5 Nov)**: a real pending change in an Owner non-KAAL repository, in a disposable copy, through the CPO. The CPO selects the repository and change and obtains the Owner's written authorization for the copy. The repository and change are still to be named.
+3. Who reviews the verdict: **decided**: the CPO (the Owner is not the judge).
 4. When the trial may start. Not before the Owner says so.

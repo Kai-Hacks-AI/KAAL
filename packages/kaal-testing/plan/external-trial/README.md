@@ -82,7 +82,7 @@ The compact decision comparison for the Owner, with the definitions, consequence
 
 ### Selecting the repository and task
 
-The repository and task are selected by Product or the Owner, never by the author of Review or by Testing. The selection, who made it and when are recorded in `review/T20/consumer-repository` and `review/T20/task` before the Agent runs. Options: (1) a real pending change in one of the Owner's own non-KAAL repositories, with the seeded defects in a throwaway copy of the branch; (2) a recent merged pull request of a public repository, with the seeds in a fork. A synthetic repository does not meet the bar of a real task.
+Decided by the Owner (5 Nov): the target kind is **a real pending change in one of the Owner's own non-KAAL repositories**, with the seeded defects in a throwaway copy of the branch, **through the CPO**. The CPO selects the repository and change, obtains the Owner's written authorization for the copy, and reviews the checker's verdict. The Owner is not the judge. The author of Review and Testing take no part in the selection. The selection, who made it and when are recorded in `review/T20/consumer-repository` and `review/T20/task` before the Agent runs. The repository and change are not chosen yet, and nothing runs until the Owner separately authorizes the start. A merged public pull request and a synthetic repository are not used.
 
 ### Checker calibration
 
@@ -98,7 +98,7 @@ A calibration that fails (the checker misclassifies the known set) means the Cas
 
 These are explicit Owner choices. Testing does not choose them silently, and the Plan does not start the trial.
 
-- Decided by the Owner (3 Nov): the independent checker is a fresh Claude session with no KAAL context, and Kai or the CPO reviews its verdict. The performing Agent and the checker are separate sessions: the checker is not told how the Agent was prompted beyond the recorded task and does not share its context. The verdict review is recorded in the trial record, and the Run is kept in the consumer context (`testing/F33`). Still open: who chooses the repository and task (Product, with the Owner).
+- Decided by the Owner (3 Nov): the independent checker is a fresh Claude session with no KAAL context, and Kai or the CPO reviews its verdict. The performing Agent and the checker are separate sessions: the checker is not told how the Agent was prompted beyond the recorded task and does not share its context. The verdict review is recorded in the trial record, and the Run is kept in the consumer context (`testing/F33`). Decided (5 Nov): the target is a real pending change in an Owner non-KAAL repository, selected and authorized through the CPO, who also reviews the verdict. Still open: the repository and change themselves.
 - The line for `useful-and-correct`: how many seeded defects must be Found, and how Partial counts. Testing proposes at least three seeded as a useful minimum and records the counts; Product and the Owner set the line.
 - The target repository and task, and the size of the calibration set.
 - Whether Product's Decision Preparation cites the Run by commit (the Run itself is kept in the consumer context).
