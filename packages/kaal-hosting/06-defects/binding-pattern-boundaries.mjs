@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T183: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T185: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -47,6 +47,11 @@ for (const [id, what, body] of finding) {
 // A use outside the shadowing scope is still the import.
 test("hosting/T184: a use beside a shadowing scope is still a finding", async () => {
   assert.equal(await found("function f() { const host = 1; }\nconst x = host();"), 1);
+});
+
+test("hosting/T185: a query destructured inside a function, and a parameter default beside a body var, are findings", async () => {
+  assert.equal(await found('function f() { const { platform: host } = require("node:os"); return host(); }'.replace("import","")), 1);
+  assert.equal(await found("function f(x = host()) { var host; }"), 1);
 });
 
 const local = [

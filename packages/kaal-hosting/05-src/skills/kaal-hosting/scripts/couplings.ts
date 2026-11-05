@@ -468,7 +468,18 @@ function declaresOrNames(node: ts.Identifier): boolean {
 /** Whether a binding name or pattern declares `name`. */
 function bindsName(target: ts.BindingName, name: string): boolean {
   if (ts.isIdentifier(target)) return target.text === name;
-  return target.elements.some((e) => !ts.isOmittedExpression(e) && bindsName(e.name, name));
+  return target.elements.some((e) => !ts.isOmittedExpression(e) && !bindsQuery(e) && bindsName(e.name, name));
+}
+
+/** Whether a binding element is itself a query binding: a platform query destructured from a module, `process` or a name bound to one. */
+function bindsQuery(element: ts.BindingElement): boolean {
+  const pattern = element.parent;
+  if (!ts.isObjectBindingPattern(pattern) || !ts.isVariableDeclaration(pattern.parent)) return false;
+  const key = element.propertyName ?? element.name;
+  if (!ts.isIdentifier(key) || ![...OS_QUERIES, ...PATH_QUERIES].includes(key.text)) return false;
+  const init = pattern.parent.initializer;
+  if (!init) return false;
+  return ts.isIdentifier(init) || (ts.isCallExpression(init) && ts.isIdentifier(init.expression) && init.expression.text === "require");
 }
 
 /** Whether a `var` declaration of `name` sits in a function body, outside nested functions (it hoists to the function). */
@@ -497,8 +508,9 @@ function shadowed(node: ts.Identifier): boolean {
     if (ts.isFunctionLike(n)) {
       if (n.parameters.some((p) => bindsName(p.name, name))) return true;
       if (ts.isFunctionExpression(n) && n.name?.text === name) return true;
+      // A body-level `var` does not reach a parameter default: only a use inside the body resolves to it.
       const body = (n as ts.FunctionLikeDeclaration).body;
-      if (body && hoistsVar(body, name)) return true;
+      if (body && node.pos >= body.pos && node.end <= body.end && hoistsVar(body, name)) return true;
     } else if (ts.isBlock(n) || ts.isModuleBlock(n)) {
       if (declaresInBlock(n.statements, name)) return true;
     } else if (ts.isCaseBlock(n)) {
