@@ -154,8 +154,10 @@ describe("verifiers", () => {
     assert.ok(none.findings.some((f) => /exercised on none/.test(f)));
   });
 
-  it("imports nothing (testing/N9)", async () => {
+  it("imports only Testing's own model (testing/N9, testing/N10)", async () => {
     const source = await readFile(new URL("../lib/verifiers.mjs", import.meta.url), "utf8");
-    assert.doesNotMatch(source, /^\s*import\b|\bimport\s*\(|\brequire\s*\(/m);
+    const imports = [...source.matchAll(/^\s*import\b[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]);
+    assert.deepEqual(imports, ["kaal-testing/model"]);
+    assert.doesNotMatch(source, /\bimport\s*\(|\brequire\s*\(/);
   });
 });

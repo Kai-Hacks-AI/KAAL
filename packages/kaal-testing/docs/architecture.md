@@ -113,7 +113,7 @@ The export inventory in testing/A8 and `package.json` identifies the implemented
   - `evaluate(model, run, { allowances })`, the evaluation of a Plan Run.
   - `current(model, runs, of, { allowances })`, the current evidenced quality of a Plan, Suite or Case from a consumer's retained Runs, oldest first: `{ of, run, result, findings, runs: [{ run, applicable, differences }] }`, where `run` is the latest applicable Run's identity, or null.
 
-  A model declares `strategies`, `plans`, `suites` and `cases`. A Plan, Suite or Case may carry a `version` and `data: [{ id, version?, content? | external? }]`, and reuse others' Test Data by `uses: [id]`. A Case may be `retired: true`.
+  A model declares `strategies`, `plans`, `suites`, `cases` and `targets`. A `targets` entry is `{ id, allocated | unverified }`: it names, by one nonempty statement, why a shipped identifier no Case traces is allocated elsewhere or left unverified (testing/F51). It restates no trace, and `tested` is unchanged by it. `entries(model)` gives the entries that stand. A Plan, Suite or Case may carry a `version` and `data: [{ id, version?, content? | external? }]`, and reuse others' Test Data by `uses: [id]`. A Case may be `retired: true`.
 
   A Run is `{ id, of, provenance: { <definition>: <version or null> }, outcomes: { <case>: passed | failed | skipped | todo }, data: { <test data>: <version or null> }, runs: [<encompassed Run>] }`. An encompassed Run inherits its parent's provenance. `outcomes` are as `outcomes` (testing/F2) gives them. `results` and `evaluate` say what that one Run shows about the definitions, and neither keeps it.
 
@@ -125,7 +125,7 @@ The export inventory in testing/A8 and `package.json` identifies the implemented
 
 ## Consumer Verifier Conformance
 
-- **testing/A18** [testing/F43–testing/F50, testing/N9]: `@kaihacksai/kaal-testing/verifiers` is one module, `lib/verifiers.mjs`, importing nothing, that exports:
+- **testing/A18** [testing/F43–testing/F50, testing/N9]: `@kaihacksai/kaal-testing/verifiers` is one module, `lib/verifiers.mjs`, importing only `check`, `entries` and `tested` from `kaal-testing/model` (testing/N10), that exports (with `account`, `COVERAGE_SCENARIOS` and `judgeCoverage` for coverage accounting, testing/A19):
   - `SCENARIOS`, the frozen list of `{ id, change, result, cases, target? }`. `cases` is `pass` where every declared case is reported, `none` where none is declared, and `any` where the scenario constrains no case. `target` is the outcome of the case the scenario targets.
   - `observe({ exit, stdout }, { prefix, words })`, which gives `{ observation, findings }`. `observation` is null when the run shows none.
   - `judge(scenario, observed, facts)`, which gives `{ scenario, conforms, differences }`. `facts` is `{ package: { name, version, location }, platform, node, digest, cases, target, applicability }`, as the harness established them. `applicability` maps a case's name to the `{ platforms?, requires?, absent?, reason }` the harness read from the installed manifest and checked itself. It is empty where no case is declared not applicable. `dependencies` names the package's required runtime dependencies. `complements` maps each optional complement the harness checked to `present` or `absent` in the consumer.
