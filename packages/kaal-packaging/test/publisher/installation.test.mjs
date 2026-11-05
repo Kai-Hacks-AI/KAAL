@@ -22,8 +22,7 @@
 // Fixtures only. No network.
 import assert from "node:assert/strict";
 import { sha256 as foundationSha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, describe, it } from "node:test";
@@ -376,9 +375,14 @@ describe("packaging/C26: one installation check for every package", () => {
       assert.equal(r.result, "failed", `refuses ${bad}`);
       assert.ok(r.findings.some((f) => f.path === bad), `names ${bad}`);
     }
-    // The real package: what `npm pack` would deliver is judged the same way.
-    const out = execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: join(HERE, "..", ".."), encoding: "utf8", shell: process.platform === "win32" });
-    const packed = JSON.parse(out)[0].files.map((f) => f.path);
+    // The real package: what `files: ["dist"]` plus npm's fixed root files would deliver is judged the same
+    // way. It is read from the folder (no package manager is run, so no platform is named, packaging/N11).
+    const root = join(HERE, "..", "..");
+    const walk = (base) =>
+      existsSync(join(root, base))
+        ? readdirSync(join(root, base), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(`${base}/${e.name}`) : [`${base}/${e.name}`]))
+        : [];
+    const packed = ["package.json", "LICENSE", "README.md", ...walk("dist")].filter((f) => existsSync(join(root, f)));
     assert.equal(checkShippedPayload(packed).result, "verified");
   });
 });
