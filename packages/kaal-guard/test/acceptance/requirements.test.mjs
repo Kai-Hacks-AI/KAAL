@@ -1099,7 +1099,7 @@ const cannotJudge = (r, entry, what, check) => {
 };
 
 describe("guard/F28 [guard/I2, guard/I3, guard/I5] declarations that are not regular files", () => {
-  it("guard/T84 [guard/F28, guard/F10]: a declaration that is a symbolic link, and a directory named <name>.md, in the configuration directory each make run --hook, run --ci and run --check cannot judge, naming the entry; neither is skipped", () => {
+  it("guard/T84 [guard/F28, guard/F10, guard/D6]: a declaration that is a symbolic link, and a directory named <name>.md, in the configuration directory each make run --hook, run --ci and run --check cannot judge, naming the entry; neither is skipped", () => {
     const entries = {
       "linked.md": (c) => {
         c.write("elsewhere/linked.md", declaration({ command: exit(1, "the linked check fails"), runs: ["hook", "ci"] }));
@@ -1117,7 +1117,7 @@ describe("guard/F28 [guard/I2, guard/I3, guard/I5] declarations that are not reg
 });
 
 describe("guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone", () => {
-  it("guard/T85 [guard/F27, guard/F29, guard/F12]: in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file", () => {
+  it("guard/T85 [guard/F27, guard/F29, guard/F12, guard/D7]: in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file", () => {
     const c = consumer();
     assert.equal(c.guard(["init", "--hook", "--ci"]).status, 0);
     c.commit("Guard installed");
@@ -1144,7 +1144,7 @@ describe("guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clo
     for (const path of Object.keys(assets)) assert.ok(!existsSync(join(clone, path)), `remove in the clone kept ${path}:\n${rm.output}`);
   });
 
-  it("guard/T86 [guard/F4, guard/F27]: where core.fileMode is false, init --hook reports git add --chmod=+x .githooks/pre-push, and after the consumer runs it a fresh clone with core.fileMode=true runs the hook on push", () => {
+  it("guard/T86 [guard/F4, guard/F27, guard/D8]: where core.fileMode is false, init --hook reports git add --chmod=+x .githooks/pre-push, and after the consumer runs it a fresh clone with core.fileMode=true runs the hook on push", () => {
     const COMMAND = "git add --chmod=+x .githooks/pre-push";
     const c = consumer();
     assert.equal(c.git("config", "core.fileMode", "false").status, 0);
@@ -1176,7 +1176,7 @@ describe("guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clo
 });
 
 describe("guard/F5 [guard/I2, guard/I3] Guard's workflow", () => {
-  it("guard/T87 [guard/F5, guard/N1]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line", () => {
+  it("guard/T87 [guard/F5, guard/N1, guard/D9]: the workflow init --ci installs pins actions/checkout and actions/setup-node by commit SHA, uses Node 24, and has no ${{ expression in any run: line", () => {
     const c = given({ build: { command: exit(0), runs: ["ci"] } });
     assert.equal(c.guard(["init", "--ci"]).status, 0);
     const lines = c.read(".github/workflows/guard.yml").split(/\r?\n/);
@@ -1199,7 +1199,7 @@ describe("guard/F5 [guard/I2, guard/I3] Guard's workflow", () => {
 });
 
 describe("guard/F8 and guard/F13 [guard/I5] a missing registered asset", () => {
-  it("guard/T88 [guard/F8, guard/F13]: after the registered hook is deleted, init --hook reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, upgrade reinstalls it", () => {
+  it("guard/T88 [guard/F8, guard/F13, guard/D10]: after the registered hook is deleted, init --hook reinstalls it and reports it reinstalled, and a push runs it; after the registered Skill is deleted, upgrade reinstalls it", () => {
     const c = consumer();
     assert.equal(c.guard(["init", "--hook"]).status, 0);
     c.commit("Guard installed");
@@ -1226,7 +1226,7 @@ describe("guard/F8 and guard/F13 [guard/I5] a missing registered asset", () => {
 });
 
 describe("guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows", () => {
-  it("guard/T89 [guard/F10, guard/F17, guard/N4]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace", () => {
+  it("guard/T89 [guard/F10, guard/F17, guard/N4, guard/D11]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace", () => {
     const entry = ".github/workflows/x.yml";
     const entries = {
       directory: (c) => (mkdirSync(join(c.dir, entry), { recursive: true }), writeFileSync(join(c.dir, entry, "inside.txt"), "not a workflow\n"), true),
@@ -1244,7 +1244,7 @@ describe("guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows", ()
 });
 
 describe("guard/F8 [guard/I5] remove and the configuration directory", () => {
-  it("guard/T90 [guard/F8]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/", () => {
+  it("guard/T90 [guard/F8, guard/D12]: remove --config <dir>, for an empty directory inside and outside the repository, leaves that directory in place; plain remove after a bare init deletes the empty default .kaal/config/guard/", () => {
     const c = consumer();
     const inside = join(c.dir, "empty-config");
     const outside = join(c.root, "outside-config");
@@ -1265,7 +1265,7 @@ describe("guard/F8 [guard/I5] remove and the configuration directory", () => {
 });
 
 describe("guard/F2 [guard/I2] named outcomes", () => {
-  it('guard/T91 [guard/F2, guard/F18]: a held status written "04", "+4" or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held', () => {
+  it("guard/T91 [guard/F2, guard/F18, guard/D13]: a held status written 04, +4 or above 255 is refused as cannot judge, naming held and 4 to 255, and 4 names exit 4 as held", () => {
     for (const item of ["04", "+4", "256"]) {
       const c = given({ h: { command: exit(0), runs: ["hook", "ci"] } });
       const file = `${CONFIG}/h.md`;
@@ -1321,7 +1321,7 @@ describe("guard/F2 [guard/I2] named outcomes", () => {
 });
 
 describe("guard/N1 [guard/I5] Git prerequisite", () => {
-  it("guard/T92 [guard/N1]: with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing", () => {
+  it("guard/T92 [guard/N1, guard/D14]: with a git that reports version 2.25, every command is cannot judge (exit 2), names Git 2.26, and changes nothing", () => {
     const c = given({ x: { command: exit(0), runs: ["hook", "ci"] } });
     // An older Git, as the running command sees it: like guard/T59's Node, the preload replaces only what
     // `git --version` reports through Node's child_process, on every host, and every other Git call is the real one.
