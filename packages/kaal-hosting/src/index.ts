@@ -155,12 +155,12 @@ export interface Listed {
  * to a directory is refused with `INVALID_PATH` here exactly as there; a link
  * to a file lists as a file. Names and kinds only: no file is opened, so no
  * bytes are read, and no lock is taken. A missing directory lists as empty; a
- * path that is a file is refused with `NOT_DIRECTORY`.
+ * path that is not a directory (a file, a pipe, a socket) is refused with `NOT_DIRECTORY`.
  */
 export async function list(dir: string): Promise<Listed[]> {
   const root = resolve(dir);
   try {
-    if ((await stat(root)).isFile()) throw new HostingError(`${dir} is a file, not a directory`, "NOT_DIRECTORY");
+    if (!(await stat(root)).isDirectory()) throw new HostingError(`${dir} is not a directory`, "NOT_DIRECTORY");
   } catch (e) {
     if (e instanceof HostingError) throw e;
     if (!absent(e)) throw e;

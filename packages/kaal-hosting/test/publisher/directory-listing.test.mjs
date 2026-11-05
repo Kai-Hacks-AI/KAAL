@@ -1,6 +1,7 @@
 // Regression Cases for the directory listing and the scratch directory, found in review of the DO
 // (hosting/F72, hosting/F73). They sit beside the planned Cases, which stay unedited.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -40,5 +41,13 @@ describe("hosting/C106: directory listing regressions", () => {
     );
     chmodSync(join(left, "locked"), 0o700);
     rmSync(left, { recursive: true, force: true });
+  });
+
+  it("hosting/T136 [hosting/F72]: a root that exists and is not a directory, a pipe included, is NOT_DIRECTORY, not a raw host error", async (t) => {
+    if (process.platform === "win32") return t.skip("no named pipe to make without privilege");
+    const root = mkdtempSync(join(tmpdir(), "hosting-pipe-"));
+    const pipe = join(root, "pipe");
+    if (spawnSync("mkfifo", [pipe]).status !== 0) return t.skip("mkfifo is not available");
+    await assert.rejects(list(pipe), (e) => e?.code === "NOT_DIRECTORY");
   });
 });
