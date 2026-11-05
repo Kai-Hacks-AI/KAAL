@@ -1,4 +1,4 @@
-// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T194: where `couplings` draws the line between a use of a platform query and a local
+// hosting/T143 to hosting/T165 and hosting/T167 to hosting/T172, hosting/T176 to hosting/T195: where `couplings` draws the line between a use of a platform query and a local
 // binding that only shares its name.
 //
 // These Cases are GREEN regression Cases for hosting/D8 and its review rounds. They run the real `couplings` from the
@@ -105,6 +105,7 @@ const local = [
   ["T188", "a var and its call inside a class static block", "class C { static { var host = () => 1; host(); } }"],
   ["T190", "a statement label and a break to it", "host: while (true) { break host; }"],
   ["T194", "a nested namespace and an enum named like the query", "namespace N { export namespace host { export const value = 1; } }\nenum Mode { A }\nenum host { B }"],
+  ["T195", "an enum initializer that names a member of the same name", "enum E { host = 1, value = host + 1 }"],
   ["T177", "a nested function and a simple parameter of the same name", "function outer() { function host() {} }\nfunction g(host) {}"],
 ];
 for (const [id, what, body] of local) {

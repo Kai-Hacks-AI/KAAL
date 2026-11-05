@@ -120,3 +120,5 @@ A decorator expression, including a parameter decorator, runs in the scope aroun
 Scope resolution stops at the nearest scope that declares the name, and when that declaration is the query binding itself the use is the query, even beneath a same-named outer parameter (hosting/T192). The decorator exception applies to the decorated declaration only, so outer function bindings still resolve (hosting/T191).
 
 A namespace or enum declaration name declares; it is not a use (hosting/T194). A function declaration and a `var` of the same name in one function body are one binding, so a query destructured into the `var` stays the query (hosting/T193).
+
+An enum's members are in scope inside the enum, so an initializer that names one refers to it (hosting/T195).

@@ -530,6 +530,8 @@ function scopeDeclares(n: ts.Node, node: ts.Identifier, name: string, mode: Decl
     const init = n.initializer;
     return !!init && ts.isVariableDeclarationList(init) && !!(init.flags & ts.NodeFlags.BlockScoped) && init.declarations.some((d) => bindsName(d.name, name, mode));
   }
+  // An enum's members are in scope inside the enum, so an initializer naming one refers to it.
+  if (ts.isEnumDeclaration(n)) return mode === "local" && inside(n) && n.members.some((m) => (ts.isIdentifier(m.name) || ts.isStringLiteral(m.name)) && m.name.text === name && !inside(m.name));
   if (ts.isCatchClause(n)) return !!n.variableDeclaration && bindsName(n.variableDeclaration.name, name, mode);
   return mode === "local" && ts.isClassExpression(n) && n.name?.text === name;
 }
