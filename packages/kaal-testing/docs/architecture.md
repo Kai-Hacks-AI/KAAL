@@ -73,6 +73,7 @@ The export inventory in testing/A8 and `package.json` identifies the implemented
     | `./boundary` | PLAN boundary integrity: interpreting a realization's verdict on one concern owner's declaration | no |
     | `./attribution` | CASE-owned file attribution | no |
     | `./contracts` | contract evidence of a capability's mapping | no |
+    | `./defect` | the Defect record: its shape and what Runs of the model show it may claim | no |
     | `./duplicates` | duplicate-execution evidence and one-run-per-file planning | no |
     | `./coverage` | execution and evidence of a capability's own tests | no |
     | `./inventory` | non-blank text lines of the listed files | no |

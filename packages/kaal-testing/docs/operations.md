@@ -32,6 +32,7 @@ The Agent Skill in `skills/kaal-testing/` tells an Agent how to design and evalu
 | `./boundary` | Interpret an attested verdict on a concern owner's PLAN boundary |
 | `./contracts` | Interpret evidence from the observed acceptance run |
 | `./coverage` | Measure executed delivered code in a workspace Run |
+| `./defect` | Check a Defect record and derive the status Runs let it claim |
 | `./duplicates` | Find duplicate execution requests and plan their shared reads |
 | `./inventory` | Count non-blank text lines of supplied files |
 | `./model` | Check definitions, derive traces, evaluate Runs and read current evidence |
