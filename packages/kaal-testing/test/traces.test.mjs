@@ -27,4 +27,15 @@ describe("traces derive (implementation)", () => {
     const r = derive(file('it("acme/T1 [acme/F1]" /* why */, () => {});\n'));
     assert.deepEqual(r.model.cases, [{ id: "acme/T1", tests: ["acme/F1"] }]);
   });
+
+  it("reads a regex after a control-flow parenthesis as a regex, so the next Case is not skipped", () => {
+    const r = derive(file('if (flag) /`/.test(value);\nit("acme/T1 [acme/F1]: x", () => {});\n'));
+    assert.deepEqual(r.model.cases, [{ id: "acme/T1", tests: ["acme/F1"] }]);
+    assert.deepEqual(r.findings, []);
+  });
+
+  it("still reads a division after a call's parenthesis as a division", () => {
+    const r = derive(file('const x = f(a) / 2;\nit("acme/T1 [acme/F1]", () => {});\n'));
+    assert.deepEqual(r.model.cases, [{ id: "acme/T1", tests: ["acme/F1"] }]);
+  });
 });

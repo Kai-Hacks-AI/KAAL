@@ -11,6 +11,7 @@ const nonempty = (s) => typeof s === "string" && s !== "";
 const before = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const ESCAPES = { n: "\n", t: "\t", r: "\r", b: "\b", f: "\f", v: "\v", 0: "\0" };
 const IDENTIFIER = /^(?:[\w-]+\/)?[A-Z]+\d+$/;
+const CONTROL = new Set(["if", "for", "while", "with"]);
 const KEYWORD_BEFORE_REGEX = new Set(["return", "typeof", "case", "in", "of", "delete", "void", "throw", "new", "instanceof", "yield", "await", "else", "do"]);
 
 /** Where the string literal opening at `i` (a quote) ends: the index after its closing quote, with its value. */
@@ -83,6 +84,7 @@ function calls(text) {
   const out = [];
   let lineStart = true;
   let previous = "";
+  const parens = [];
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (c === "\n") { lineStart = true; continue; }
@@ -114,7 +116,9 @@ function calls(text) {
       previous = word;
       continue;
     }
-    previous = c;
+    if (c === "(") parens.push(CONTROL.has(previous));
+    // A `)` that closes `if (...)`, `for (...)`, `while (...)` or `with (...)` is followed by a statement, so a `/` after it opens a regex.
+    previous = c === ")" && parens.pop() ? "(" : c;
   }
   return out;
 }
