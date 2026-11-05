@@ -33,7 +33,8 @@ const isRootFile = (path) => !path.includes("/") && (path === "package.json" || 
 const LAYOUT_MANIFEST = "dist/test/package-check/manifest.json";
 const LAYOUT_MARKER_DIR = "dist/test/package-check";
 const LEGACY_MANIFEST = "test/verify.json";
-const EXACT = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+/** An exact version, build metadata included: the same rule as the conformance check. */
+const EXACT = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const CODE = /\.(mjs|cjs|js|ts)$/;
 /** The one name this module exists to find in another package's code, composed so no package name is a literal here. */
 const OWN_NAME = ["kaal", "packaging"].join("-");

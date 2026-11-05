@@ -292,6 +292,16 @@ describe("packaging/C26: one installation check for every package", () => {
     assert.equal(after.installation, "verified", JSON.stringify(after.findings));
   });
 
+  it("T122b an exact pin with build metadata is exact, for a prerequisite and for the pinned verifier (Codex, #1063)", async () => {
+    const dir = layout({ deps: { dep: "1.2.3+build.7" } });
+    const r = await verifyInstalled(dir, { run: ok("kaal-fixture"), resolve: () => "1.2.3+build.7" });
+    assert.equal(r.installation, "verified", JSON.stringify(r.findings));
+    const tools = layout({ name: "kaal-packaging" });
+    const subject = layout({ name: "kaal-subject" });
+    const bad = await verifyInstalled(subject, { run: ok("kaal-subject"), resolve: noRecord, verifier: { dir: tools, version: "0.0.1+build.7" } });
+    assert.ok(!kinds(bad).includes("prerequisite-not-exact"), "metadata is not a range");
+  });
+
   it("T126 the manifest generator produces the same bytes twice, and a hand-edited manifest is failed", async () => {
     const { generateManifest } = await import(INSTALLATION).catch(() => ({}));
     assert.equal(typeof generateManifest, "function", "lib/installation.mjs exports generateManifest(dir)");
