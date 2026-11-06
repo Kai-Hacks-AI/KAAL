@@ -1,0 +1,3 @@
+# The Nodes are identified by the SHA-256 of their exact bytes, and the consumer's smoke test checks
+# them against test/nodes.json: Git must never rewrite the package's bytes on any host.
+* -text

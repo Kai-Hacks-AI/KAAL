@@ -8,11 +8,14 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "capability"
+    "capability",
+    "test/consumer.test.mjs",
+    "test/nodes.json"
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w kaal-hosting",
-    "test": "node --test test/process.test.mjs"
+    "test": "node --test test/process.test.mjs test/consumer.test.mjs",
+    "verify": "node --test test/consumer.test.mjs"
   },
   "engines": {
     "node": ">=24"

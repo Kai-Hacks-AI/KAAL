@@ -27,7 +27,7 @@ describe("the Capability Node", () => {
   });
 
   it("declares what it provides and what admission requires", () => {
-    assert.match(text("Process.md"), /^It provides the Process Definition and the PDCA Definition\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
+    assert.match(text("Process.md"), /^It provides the Process Definition and the PDCA Definition, which defines PDCA as a Process Template\. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else\.$/m);
   });
 
   it("states where its responsibility starts and ends, and leaves each process with its owner", () => {
@@ -36,6 +36,22 @@ describe("the Capability Node", () => {
     assert.match(capability, /Describing a process through the metamodel transfers none of that to Process\./);
     assert.match(capability, /a Change's lifecycle remains Change's/);
     assert.match(capability, /Process keeps no registry of processes/);
+  });
+});
+
+describe("Process Templates", () => {
+  it("are Process's to deliver, while each specific process and instance stays with its capability", () => {
+    const capability = text("Process.md");
+    assert.match(capability, /and for the management of processes through it\. Its scope is that alone: each specific process, and each instance of it, remains owned by the capability whose process it is\./);
+    assert.match(capability, /A Process Template is a reusable process described through the metamodel, with generic phases and expectations, for any capability to adopt\. It is not an instantiated process of any capability and not a universal mandatory workflow/);
+    assert.match(capability, /A capability that adopts a template owns its particular process: its adaptations, applicability, conditions, decisions and realization\./);
+  });
+
+  it("make PDCA a template, never an instantiated or mandatory process", () => {
+    const definition = text("PDCA.md");
+    assert.match(definition, /^As a template, PDCA is not an instantiated Change, Engineering or Learning process, and not a universal mandatory workflow\./m);
+    assert.match(definition, /dictates none of the semantics of Testing, Change, Review, Learning or Engineering\. A capability that adopts it owns its particular process/);
+    assert.match(readFileSync(join(PACKAGE, "README.md"), "utf8"), /PDCA is one: a template, not an instantiated Change, Engineering or Learning process and not a universal mandatory workflow\./);
   });
 });
 
@@ -83,7 +99,7 @@ describe("the PDCA Definition", () => {
 
   it("is a learning and improvement cycle of four Activities ordered as a loop", () => {
     const definition = text("PDCA.md");
-    assert.match(definition, /^PDCA: Plan, Do, Check, Act\. PDCA is a learning and improvement cycle for a unit of work at any level: four Activities ordered as a loop\.$/m);
+    assert.match(definition, /^PDCA: Plan, Do, Check, Act\. PDCA is a Process Template, delivered by Process for any capability to adopt\. It is a learning and improvement cycle for a unit of work at any level: four Activities ordered as a loop\.$/m);
     for (const phase of ["Plan", "Do", "Check", "Act"]) {
       assert.match(definition, new RegExp(`^- \\*\\*${phase}\\*\\*: `, "m"), phase);
     }
@@ -162,6 +178,46 @@ describe("Process's own claim", () => {
   });
 });
 
+describe("the README", () => {
+  const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
+
+  it("lists each shipped Node's exact id, so a consumer can verify the bytes", () => {
+    for (const file of ["Process.md", "Process-Definition.md", "PDCA.md"]) {
+      assert.match(readme, new RegExp(`^${node(file).id}  capability/${file.replace(".", "\\.")} `, "m"), file);
+    }
+  });
+
+  it("keeps the publisher's assurance apart from the consumer's smoke test, and Core's verify apart from both", () => {
+    assert.match(readme, /\*\*The publisher's assurance\*\* is `test\/process\.test\.mjs`, which is not shipped\./);
+    assert.match(readme, /\*\*The consumer's smoke test\*\* ships with the package and runs from the installed copy, with no KAAL source checkout\./);
+    assert.match(readme, /^npm explore kaal-process -- npm run verify$/m);
+    assert.match(readme, /`kaal verify` is not a substitute for it: Core verifies an Engine's admission, not what the Process contract says\./);
+  });
+
+  it("keeps other capabilities' roles theirs", () => {
+    assert.match(readme, /Process neither defines them nor maps them onto its Role\./);
+  });
+});
+
+describe("the consumer's smoke test", () => {
+  it("names each shipped Node by its exact name, type and id", () => {
+    const nodes = JSON.parse(readFileSync(join(PACKAGE, "test/nodes.json"), "utf8"));
+    assert.deepEqual(Object.keys(nodes).sort(), ["capability/PDCA.md", "capability/Process-Definition.md", "capability/Process.md"]);
+    for (const [path, { name, type, id }] of Object.entries(nodes)) {
+      const n = identify(readFileSync(join(PACKAGE, path)));
+      assert.deepEqual({ name, type, id }, { name: n.name, type: n.type.name, id: n.id }, path);
+    }
+  });
+
+  it("runs from the installed copy as npm run verify, importing only Node built-ins and kaal-core", () => {
+    const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
+    assert.equal(pkg.scripts.verify, "node --test test/consumer.test.mjs");
+    assert.equal(pkg.scripts.preverify, undefined);
+    const imports = [...readFileSync(join(PACKAGE, "test/consumer.test.mjs"), "utf8").matchAll(/(?:from |import\()"([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual([...new Set(imports.filter((s) => !s.startsWith("node:")))], ["kaal-core"]);
+  });
+});
+
 describe("the package", () => {
   it("packs its Nodes and nothing else beyond its metadata", async () => {
     const r = await execute("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE });
@@ -173,6 +229,8 @@ describe("the package", () => {
       "capability/Process-Definition.md",
       "capability/Process.md",
       "package.json",
+      "test/consumer.test.mjs",
+      "test/nodes.json",
     ]);
   });
 });
