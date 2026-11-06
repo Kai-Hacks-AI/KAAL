@@ -12,7 +12,7 @@
 // Each step writes summary.md into --out (publish: next to nothing) for the run's summary.
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execute, initialize, readFile } from "kaal-hosting";
+import { execute, initialize, readFile } from "@kaihacksai/kaal-hosting";
 import { integrity, sha256 } from "kaal-testing/acceptance";
 import { pack as packOnce, workspaces as listWorkspaces } from "../delivery/pack.mjs";
 import { EXIT, acceptance, bind, firstSteps, locate, publishable, readiness, record, verification, weakest } from "./release.mjs";
