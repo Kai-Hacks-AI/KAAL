@@ -19,4 +19,13 @@ Implements the approved plan (`plan.md`, #1097, CPO review 5793456282): `execute
 
 - RED then GREEN: `red-evidence.md`. `npm run test:publisher` locally (Linux, root): 201 pass, 2 skipped (hosting/T135 needs a non-root host, hosting/T208 needs a host with shims), 0 fail; the 14 release Cases pass.
 - Cost, counted: the release suite runs one `npm install` (hosting/T213); `build` runs once for any number of copies (hosting/T211); no `cmd.exe` is involved in starting `npm` where the host has shims (hosting/T206, hosting/T207, hosting/T208).
-- Cost, timed, local Linux (same machine, same Cases): release suite 63s before, 69s after. On Linux an install costs about what a copy of the installed tree costs, so no gain is expected here and none is claimed. The Windows figures, the reason for the Change, are taken from the three-host CI jobs of this Change's head against the previous head's (Hosting 155s for the installed-package suite at c761cc2); they are added to this record when the jobs finish, and reported as measured, whatever they show.
+- Cost, timed, local Linux (same machine, same Cases): release suite 63s before, 69s after. On Linux an install costs about what a copy of the installed tree costs, so no gain is expected here and none is claimed. - Cost, timed, Windows CI (`windows-latest`, Node 24.22.2), `test:publisher` Hosting job, same Cases, reported as measured:
+
+| Step | Before (c761cc2, job 127579538999) | After (307444e, job 127610877040) |
+| --- | --- | --- |
+| Installed-package release suite | 14 Cases, 155.2s (`node --test` duration_ms 155155) | 9 successor Cases on one prepared installation, 85.1s (duration_ms 85119) |
+| Remaining release Cases hosting/T22, T23, T48, T53, T54 | inside the 155.2s | 5 Cases, 4.3s (duration_ms 4278) |
+| Together | 155.2s | 89.4s |
+| Parallel part of `test:publisher` | 57.7s (193 pass, 2 skipped) | 58.2s (204 pass, 3 skipped) |
+
+  The installed-package part is 66s (43%) shorter. The parallel part is unchanged within noise. All three hosts' Hosting, Guard and Acceptance jobs are green at the same head (3 Cases skipped in the parallel part on Windows, none failing).
