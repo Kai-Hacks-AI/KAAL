@@ -18,14 +18,15 @@ const RULING = new Set(["APPROVED", "CHANGES_REQUESTED", "DISMISSED"]);
  */
 function pinnedOwnerIds(codeowners, attesters) {
   if (typeof codeowners !== "string" || !Array.isArray(attesters)) throw new CannotJudge("CODEOWNERS or the pinned attesters cannot be read");
-  const logins = new Set();
+  // GitHub assigns ownership from the LAST matching line, so each `*` line replaces the owners before it.
+  let logins = new Set();
   for (const raw of codeowners.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith("#")) continue;
     const [pattern, ...owners] = line.split(/\s+/);
     if (pattern !== "*" || owners.length === 0 || owners.some((o) => !/^@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(o)))
       throw new CannotJudge(`CODEOWNERS entry is not a plain '* @user': ${line}`);
-    for (const o of owners) logins.add(o.slice(1).toLowerCase());
+    logins = new Set(owners.map((o) => o.slice(1).toLowerCase()));
   }
   if (logins.size === 0) throw new CannotJudge("CODEOWNERS names no code owner");
   const ids = new Set();

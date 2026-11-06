@@ -52,3 +52,13 @@ test("a target without pinned attesters or CODEOWNERS cannot be judged", async (
   delete f["origin/kaal/x"]["engineering/change-isolation/attesters.json"];
   await assert.rejects(attest(io(f, { reviews: [approval()] })), (e) => e.name === "CannotJudge");
 });
+test("only the last '*' CODEOWNERS line owns: an overridden owner cannot attest", async () => {
+  const OLD = { login: "oldowner", id: 333 };
+  const f = files();
+  f["origin/kaal/x"]["engineering/change-isolation/attesters.json"] = JSON.stringify({ version: 1, attesters: [OWNER, OLD] });
+  f["origin/kaal/x"][".github/CODEOWNERS"] = "* @oldowner\n* @kaihacksai\n";
+  const byOld = await attest(io(f, { reviews: [approval({ user: OLD })] }));
+  assert.equal(byOld.attested, null);
+  const byCurrent = await attest(io(f, { reviews: [approval()] }));
+  assert.equal(byCurrent.attested, `e1:${entryDigest(ENTRY)}`);
+});
