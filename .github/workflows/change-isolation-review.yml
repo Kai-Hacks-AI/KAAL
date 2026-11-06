@@ -44,16 +44,35 @@ jobs:
         id: pending
         env:
           PAYLOAD_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PAYLOAD_HEAD: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
         run: |
           set -e
           NUMBER="$PAYLOAD_NUMBER"
           case "$NUMBER" in ''|*[!0-9]*) echo "::error::the pull request number cannot be read from the event"; exit 2;; esac
-          HEAD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha)
+          # The current head is read from the API, retried. If it still cannot be read, the head the event names
+          # takes its place so that an earlier pass on that head is revoked all the same; the run then ends
+          # unsuccessful and never judges, so an unreadable API can only fail the check, never leave a pass standing.
+          HEAD=""
+          for wait in 0 2 4; do
+            sleep "$wait"
+            HEAD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha 2>/dev/null || true)
+            [[ "$HEAD" =~ ^[0-9a-f]{40}$ ]] && break
+            HEAD=""
+          done
+          UNREAD=no
+          if [ -z "$HEAD" ]; then HEAD="$PAYLOAD_HEAD"; UNREAD=yes; fi
           [[ "$HEAD" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::the head cannot be read"; exit 2; }
-          ID=$(gh api -X POST "repos/$GITHUB_REPOSITORY/check-runs" -f name="Change Isolation" -f head_sha="$HEAD" \
-            -f status=in_progress -f "output[title]=Change Isolation: re-evaluating" \
-            -f "output[summary]=An approval changed; the change is being judged again." --jq .id)
+          ID=""
+          for wait in 0 2 4; do
+            sleep "$wait"
+            ID=$(gh api -X POST "repos/$GITHUB_REPOSITORY/check-runs" -f name="Change Isolation" -f head_sha="$HEAD" \
+              -f status=in_progress -f "output[title]=Change Isolation: re-evaluating" \
+              -f "output[summary]=An approval changed; the change is being judged again." --jq .id 2>/dev/null) && break
+            ID=""
+          done
+          [ -n "$ID" ] || { echo "::error::the check cannot be set in_progress"; exit 2; }
           { echo "number=$NUMBER"; echo "head=$HEAD"; echo "check=$ID"; } >> "$GITHUB_OUTPUT"
+          [ "$UNREAD" = no ] || { echo "::error::the pull request's current head cannot be read; the check is left unsuccessful"; exit 2; }
 
       - if: github.event.workflow_run.conclusion == 'success'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
