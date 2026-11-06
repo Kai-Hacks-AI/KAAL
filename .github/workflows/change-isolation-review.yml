@@ -1,0 +1,153 @@
+# Re-evaluates Change Isolation when an approval changes (engineering/change-isolation/ledger-in-promotion-plan.md).
+# A change that carries its own ledger entry is admitted only with an author-independent code-owner approval
+# at the exact head, and an approval can arrive, be replaced or be dismissed after the pull request job has run.
+#
+# Order, and why: the first step sets the check in_progress for the pull request's head, before anything is
+# read, so any earlier pass is revoked at once. The judgment then reacquires every fact itself and the last
+# step, which always runs, completes the check from what the judgment and a final head read show. A failed,
+# cancelled or unreadable run completes the check as failed, never as a pass.
+#
+# Trust: workflow_run runs this definition from the default branch, so a candidate cannot change it. The relay
+# (change-isolation-review-relay.yml) only hands over a pull request number, which is validated and is the
+# only thing taken from it. The candidate's commits are fetched as Git data and never checked out, built or run.
+name: Change Isolation review
+
+on:
+  workflow_run:
+    workflows: ["Change Isolation review relay"]
+    types: [completed]
+
+permissions: {}
+
+# One pull request at a time and never cancelled mid-run, so the last run to finish never reports older state.
+concurrency:
+  group: change-isolation-review-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: Change Isolation (review event)
+    if: github.event.workflow_run.event == 'pull_request_review' && github.event.workflow_run.repository.full_name == github.repository && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      # The check is set in_progress first, from the event payload alone, so nothing that can fail later
+      # (the relay itself, its artifact, a download) can leave an earlier pass standing. A relay run that
+      # failed or was cancelled still reaches this job and ends with the check completed as failed.
+      - name: Set the check in_progress for the current head
+        id: pending
+        env:
+          PAYLOAD_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PAYLOAD_HEAD: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
+        run: |
+          set -e
+          NUMBER="$PAYLOAD_NUMBER"
+          case "$NUMBER" in ''|*[!0-9]*) echo "::error::the pull request number cannot be read from the event"; exit 2;; esac
+          # The current head is read from the API, retried. If it still cannot be read, the head the event names
+          # takes its place so that an earlier pass on that head is revoked all the same; the run then ends
+          # unsuccessful and never judges, so an unreadable API can only fail the check, never leave a pass standing.
+          HEAD=""
+          for wait in 0 2 4; do
+            sleep "$wait"
+            HEAD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha 2>/dev/null || true)
+            [[ "$HEAD" =~ ^[0-9a-f]{40}$ ]] && break
+            HEAD=""
+          done
+          UNREAD=no
+          if [ -z "$HEAD" ]; then HEAD="$PAYLOAD_HEAD"; UNREAD=yes; fi
+          [[ "$HEAD" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::the head cannot be read"; exit 2; }
+          ID=""
+          for wait in 0 2 4; do
+            sleep "$wait"
+            ID=$(gh api -X POST "repos/$GITHUB_REPOSITORY/check-runs" -f name="Change Isolation" -f head_sha="$HEAD" \
+              -f status=in_progress -f "output[title]=Change Isolation: re-evaluating" \
+              -f "output[summary]=An approval changed; the change is being judged again." --jq .id 2>/dev/null) && break
+            ID=""
+          done
+          [ -n "$ID" ] || { echo "::error::the check cannot be set in_progress"; exit 2; }
+          { echo "number=$NUMBER"; echo "head=$HEAD"; echo "check=$ID"; } >> "$GITHUB_OUTPUT"
+          [ "$UNREAD" = no ] || { echo "::error::the pull request's current head cannot be read; the check is left unsuccessful"; exit 2; }
+
+      - if: github.event.workflow_run.conclusion == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pull-request
+          path: ${{ runner.temp }}/relay
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: The relayed number must agree with the event
+        if: github.event.workflow_run.conclusion == 'success'
+        env:
+          NUMBER: ${{ steps.pending.outputs.number }}
+        run: |
+          # The artifact is untrusted: it lives outside the checkout and only this one file is read.
+          RELAYED=$(cat "$RUNNER_TEMP/relay/pull-request.txt")
+          [ "$RELAYED" = "$NUMBER" ] || { echo "::error::the relayed number ($RELAYED) differs from the event's ($NUMBER)"; exit 2; }
+
+      - if: github.event.workflow_run.conclusion == 'success'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - if: github.event.workflow_run.conclusion == 'success'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - if: github.event.workflow_run.conclusion == 'success'
+        run: npm ci --ignore-scripts
+
+      - name: Read the target and the approvals, derive the attestation
+        id: attest
+        if: github.event.workflow_run.conclusion == 'success'
+        env:
+          NUMBER: ${{ steps.pending.outputs.number }}
+        run: |
+          BASE_REF=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .base.ref)
+          git fetch -q --no-tags origin "$BASE_REF"
+          node engineering/change-isolation/attest.mjs --pr "$NUMBER"
+
+      - name: Judge the complete change against the target
+        id: judge
+        if: github.event.workflow_run.conclusion == 'success'
+        env:
+          HEAD: ${{ steps.attest.outputs.head }}
+          ATTESTED: ${{ steps.attest.outputs.attested }}
+          NUMBER: ${{ steps.pending.outputs.number }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          BASE_REF=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .base.ref)
+          BASE=$(git rev-parse --verify "origin/$BASE_REF^{commit}")
+          export KAAL_ATTESTED="$ATTESTED"
+          npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
+
+      - name: Complete the check from the verdict and a final read of the head
+        if: always()
+        env:
+          NUMBER: ${{ steps.pending.outputs.number }}
+          CHECK: ${{ steps.pending.outputs.check }}
+          JUDGED: ${{ steps.attest.outputs.head }}
+          PENDING_HEAD: ${{ steps.pending.outputs.head }}
+          VERDICT: ${{ steps.judge.outcome }}
+        run: |
+          [ -n "$CHECK" ] || exit 0
+          conclusion=failure
+          summary="Change Isolation could not be established; the check is left unsuccessful."
+          NOW=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .head.sha || true)
+          if [ "$VERDICT" = success ] && [ -n "$JUDGED" ] && [ "$NOW" = "$JUDGED" ] && [ "$JUDGED" = "$PENDING_HEAD" ]; then
+            conclusion=success
+            summary="The change conforms."
+          elif [ "$VERDICT" = success ]; then
+            summary="The head moved while judging; the new head is judged by its own run."
+          fi
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/check-runs/$CHECK" -f status=completed -f conclusion="$conclusion" \
+            -f "output[title]=Change Isolation" -f "output[summary]=$summary"
