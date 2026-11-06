@@ -338,7 +338,8 @@ export function appendedEntry(targetText, candidateText) {
   if (JSON.stringify(after.slice(0, before.length)) !== JSON.stringify(before)) return { violation: "an existing ledger entry was edited, removed or reordered" };
   const entry = after[before.length];
   try { validateEntry(entry, new Set(before.map((x) => x.id))); } catch (e) { if (e instanceof CannotJudge) return { violation: e.message }; throw e; }
-  return { entry };
+  // The parser's null-prototype objects stay inside the parser: callers get an ordinary copy.
+  return { entry: JSON.parse(JSON.stringify(entry)) };
 }
 
 /**
