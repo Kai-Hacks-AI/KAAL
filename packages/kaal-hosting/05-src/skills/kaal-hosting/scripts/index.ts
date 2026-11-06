@@ -2,9 +2,10 @@ import spawn from "cross-spawn";
 import gfs from "graceful-fs";
 import lockfile from "proper-lockfile";
 import { createHash } from "node:crypto";
+import { cp } from "node:fs/promises";
 import type { Dirent, Stats } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve, sep } from "node:path";
+import { basename, dirname, join, resolve, sep, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -39,7 +40,7 @@ export interface Leftover {
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER" | "NO_DIRECT_START",
     /** For `STALE`, every failed precondition, in path order. */
     readonly findings: Stale[] = [],
     /** For `UNRESTORED`, the failure that started the rollback, and where the displaced files are kept. */
@@ -171,6 +172,16 @@ export async function list(dir: string): Promise<Listed[]> {
   return listing.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 }
 
+/** Attach a cleanup failure to the error that is thrown in its place, as `leftover`; an error that cannot carry it is still the one thrown. */
+function reportLeftover(error: unknown, leftover: HostingError): void {
+  if (typeof error !== "object" || error === null) return;
+  try {
+    Object.defineProperty(error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
+  } catch {
+    // A frozen error, or one with a locked `leftover`, cannot carry the report; the original error is still the one thrown.
+  }
+}
+
 /**
  * Give `use` a fresh, empty directory under the host's temporary directory, as
  * an absolute path, and remove the whole tree when `use` settles, whether it
@@ -195,13 +206,7 @@ export async function scratch<T>(use: (dir: string) => T | Promise<T>): Promise<
     leftover = new HostingError(`${dir} could not be removed: ${(cause as Error).message}`, "SCRATCH_LEFTOVER", [], { cause, kept: dir });
   }
   if (!outcome.ok) {
-    if (leftover && typeof outcome.error === "object" && outcome.error !== null) {
-      try {
-        Object.defineProperty(outcome.error, "leftover", { value: leftover, enumerable: false, writable: true, configurable: true });
-      } catch {
-        // A frozen error, or one with a locked `leftover`, cannot carry the report; use's own error is still the one thrown.
-      }
-    }
+    if (leftover) reportLeftover(outcome.error, leftover);
     throw outcome.error;
   }
   if (leftover) throw leftover;
@@ -759,6 +764,74 @@ export interface Execution {
   status: number;
   stdout: string;
   stderr: string;
+  /** `stdout` then `stderr`, concatenated. */
+  output: string;
+  /** `true` only when the caller accepted the host's shim and the command was started through it. */
+  viaShim?: true;
+}
+
+/** What a synchronous start did: as `Execution`, except that a child ended by a signal or by `timeout` has no status. */
+export interface SyncExecution extends Omit<Execution, "status"> {
+  status: number | null;
+  signal: NodeJS.Signals | null;
+}
+
+export interface ExecuteOptions {
+  cwd: string;
+  /** The child's whole environment; by default the caller's own (`process.env`). Hosting adds and strips nothing: a caller that wants variables set over its own composes them, as `isolatedEnvironment` does. */
+  env?: Record<string, string | undefined>;
+  /** Accept the host's shim when the package manager's own script cannot be found; the result then says `viaShim: true`. */
+  viaShim?: boolean;
+}
+
+export interface ExecuteSyncOptions extends ExecuteOptions {
+  /** Text for the child's standard input; by default the input is empty and closed, so a child that reads it sees end of input. */
+  input?: string;
+  /** Milliseconds after which the child is ended; it then resolves with `status: null`. */
+  timeout?: number;
+}
+
+/** What `startPlan` needs to know about the host; every field defaults to the running host. */
+export interface StartHost {
+  platform?: NodeJS.Platform;
+  /** The running Node's own executable. */
+  execPath?: string;
+  /** The environment the package manager's script may be named in (`npm_execpath`). */
+  env?: Record<string, string | undefined>;
+  /** Whether a file exists. */
+  exists?: (path: string) => boolean;
+}
+
+/** How a command is started: the command and arguments handed to the host. */
+export interface StartPlan {
+  command: string;
+  args: string[];
+  viaShim: boolean;
+}
+
+/**
+ * Decide how `command` is started, without starting it. On a host that
+ * installs the package manager as a shim (Windows), `npm` and `npx` are started as
+ * Node running the package manager's own script, found beside the running Node
+ * (or named by `npm_execpath`), so no `cmd.exe` is involved. If that script
+ * cannot be found the start is refused with `NO_DIRECT_START`, naming the
+ * places searched, unless the caller accepts the shim with `viaShim`, which the
+ * plan then states. Every other command, and every command on a host without
+ * the shim, is started as named.
+ */
+export function startPlan(command: string, args: string[], options: { viaShim?: boolean } & StartHost = {}): StartPlan {
+  const platform = options.platform ?? process.platform;
+  if (platform !== "win32" || (command !== "npm" && command !== "npx")) return { command, args, viaShim: false };
+  const execPath = options.execPath ?? process.execPath;
+  const exists = options.exists ?? ((path: string) => gfs.existsSync(path));
+  const script = `${command}-cli.js`;
+  const searched: string[] = [];
+  const named = (options.env ?? process.env).npm_execpath;
+  if (named && win32.basename(named).toLowerCase() === "npm-cli.js") searched.push(command === "npm" ? named : win32.join(win32.dirname(named), script));
+  searched.push(win32.join(win32.dirname(execPath), "node_modules", "npm", "bin", script));
+  for (const candidate of searched) if (exists(candidate)) return { command: execPath, args: [candidate, ...args], viaShim: false };
+  if (options.viaShim) return { command, args, viaShim: true };
+  throw new HostingError(`${command} cannot be started without the host's shim: its script was not found in ${searched.join(", ")}; pass viaShim to accept the shim`, "NO_DIRECT_START");
 }
 
 /**
@@ -766,21 +839,141 @@ export interface Execution {
  * passed exactly as given, and collect what it writes. However the host
  * realizes the command (an executable, or on Windows a `.cmd` shim such as
  * npm installs), the caller only names it: no shell interprets the
- * arguments. A command that runs and fails resolves with its status; one
+ * arguments, and `npm` and `npx` do not pass through `cmd.exe` (see
+ * `startPlan`). A command that runs and fails resolves with its status; one
  * that cannot be started rejects.
  */
-export function execute(command: string, args: string[], options: { cwd: string; env?: NodeJS.ProcessEnv }): Promise<Execution> {
+export function execute(command: string, args: string[], options: ExecuteOptions): Promise<Execution> {
   return new Promise((done, fail) => {
-    const child = spawn(command, args, { cwd: options.cwd, env: options.env ?? process.env, stdio: ["ignore", "pipe", "pipe"] });
+    const plan = startPlan(command, args, options);
+    const child = spawn(plan.command, plan.args, { cwd: options.cwd, env: options.env ?? process.env, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
     child.stdout!.setEncoding("utf8").on("data", (s: string) => (stdout += s));
     child.stderr!.setEncoding("utf8").on("data", (s: string) => (stderr += s));
     child.on("error", fail);
-    child.on("close", (status, signal) =>
-      status === null ? fail(new Error(`${command} was ended by ${signal}`)) : done({ status, stdout, stderr }),
-    );
+    child.on("close", (status, signal) => {
+      if (status === null) return fail(new Error(`${command} was ended by ${signal}`));
+      done({ status, stdout, stderr, output: stdout + stderr, ...(plan.viaShim ? { viaShim: true as const } : {}) });
+    });
   });
+}
+
+/**
+ * `execute`, synchronously, for harnesses that need it: the same start, the same
+ * environment rule, the same refusal, and the same error when the command
+ * cannot be started. The result adds `signal`; a child ended by a signal or by
+ * `timeout` resolves with `status: null`. Standard input is empty and closed
+ * unless `input` is given, and the output limit is large.
+ */
+export function executeSync(command: string, args: string[], options: ExecuteSyncOptions): SyncExecution {
+  const plan = startPlan(command, args, options);
+  const r = spawn.sync(plan.command, plan.args, {
+    cwd: options.cwd,
+    env: options.env ?? process.env,
+    input: options.input ?? "",
+    timeout: options.timeout,
+    maxBuffer: 1 << 29,
+    encoding: "utf8",
+  });
+  if (r.error && (r.error as NodeJS.ErrnoException).code !== "ETIMEDOUT") throw r.error;
+  const stdout = r.stdout ?? "";
+  const stderr = r.stderr ?? "";
+  return { status: r.status, signal: r.signal, stdout, stderr, output: stdout + stderr, ...(plan.viaShim ? { viaShim: true as const } : {}) };
+}
+
+/**
+ * The environment for a process that must neither read nor write the user's
+ * configuration: `HOME`, `USERPROFILE`, `XDG_CONFIG_HOME`, `npm_config_cache`,
+ * `npm_config_userconfig`, `npm_config_globalconfig` and `GIT_CONFIG_GLOBAL` under
+ * `dir`, and `GIT_CONFIG_NOSYSTEM=1`, set over `base` (by default the caller's own
+ * environment) with any variable of those names in another case removed. The directories it names are
+ * created inside `dir`; `dir` itself must exist.
+ */
+export function isolatedEnvironment(dir: string, base: Record<string, string | undefined> = process.env): Record<string, string | undefined> {
+  // Absolute, so each path stays valid in a child whose working directory is another.
+  const root = resolve(dir);
+  const home = join(root, "home");
+  const config = join(root, "config");
+  const cache = join(root, "npm-cache");
+  for (const path of [home, config, cache]) gfs.mkdirSync(path, { recursive: true });
+  const set: Record<string, string> = {
+    HOME: home,
+    USERPROFILE: home,
+    XDG_CONFIG_HOME: config,
+    npm_config_cache: cache,
+    npm_config_userconfig: join(home, ".npmrc"),
+    npm_config_globalconfig: join(home, "npmrc-global"),
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_CONFIG_GLOBAL: join(home, ".gitconfig"),
+  };
+  // A variable of the same name in another case would still reach the user's own files (npm reads its configuration variables without regard to case), so it is dropped.
+  const names = new Set(Object.keys(set).map((name) => name.toLowerCase()));
+  const kept = Object.fromEntries(Object.entries(base).filter(([name]) => !names.has(name.toLowerCase())));
+  return { ...kept, ...set };
+}
+
+/** A fixture built once, and independent copies of it. */
+export interface Prepared {
+  /** The prepared directory, as `build` left it. */
+  readonly dir: string;
+  /** A new directory holding a copy of `dir`, independent of it and of every other copy. */
+  copy(): Promise<string>;
+  /** Remove `dir` and every copy; a failed removal is `SCRATCH_LEFTOVER`, naming the path. */
+  dispose(): Promise<void>;
+}
+
+/**
+ * Run `build` once, in a fresh directory under the host's temporary directory,
+ * and resolve with the result and a way to make independent copies of it. A copy
+ * keeps file modes, keeps a symbolic link as the link it is (never following it
+ * out of the tree) and leaves out every file or directory whose name is in
+ * `exclude`. Copies may be made concurrently. When `build` rejects, the directory
+ * is removed and its error is the one thrown, with a removal that fails reported on it as
+ * `leftover` (`SCRATCH_LEFTOVER`), as `scratch` reports it.
+ */
+export async function prepare(build: (dir: string) => void | Promise<void>, options: { exclude?: string[] } = {}): Promise<Prepared> {
+  const exclude = new Set(options.exclude ?? []);
+  const root = resolve(await mkdtemp(join(tmpdir(), "hosting-prepared-")));
+  try {
+    await build(root);
+  } catch (error) {
+    try {
+      await rm(root, { maxRetries: 3 });
+    } catch (cause) {
+      reportLeftover(error, new HostingError(`${root} could not be removed: ${(cause as Error).message}`, "SCRATCH_LEFTOVER", [], { cause, kept: root }));
+    }
+    throw error;
+  }
+  const made = new Set<string>();
+  let disposed = false;
+  return {
+    dir: root,
+    async copy() {
+      if (disposed) throw new Error("the prepared directory was disposed");
+      const target = resolve(await mkdtemp(join(tmpdir(), "hosting-copy-")));
+      made.add(target);
+      await cp(root, target, {
+        recursive: true,
+        verbatimSymlinks: true,
+        dereference: false,
+        filter: (source) => !exclude.has(basename(source)),
+      });
+      return target;
+    },
+    async dispose() {
+      disposed = true;
+      const leftovers: string[] = [];
+      for (const path of [root, ...made]) {
+        try {
+          await rm(path, { maxRetries: 3 });
+        } catch (cause) {
+          leftovers.push(`${path}: ${(cause as Error).message}`);
+        }
+      }
+      if (leftovers.length > 0) throw new HostingError(`could not be removed: ${leftovers.join("; ")}`, "SCRATCH_LEFTOVER");
+    },
+  };
 }
 
 /** Hosting's own contribution: its Extension Node, as carried in this package. */

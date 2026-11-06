@@ -589,7 +589,7 @@ describe("execute [hosting/F51]", () => {
 
   it("reports a failing command's status and output", async () => {
     const r = await execute(process.execPath, ["-e", "process.stdout.write('out'); process.stderr.write('err'); process.exit(3)"], { cwd: tmp() });
-    assert.deepEqual(r, { status: 3, stdout: "out", stderr: "err" });
+    assert.deepEqual(r, { status: 3, stdout: "out", stderr: "err", output: "outerr" });
   });
 
   it("rejects a command that cannot be started", async () => {
