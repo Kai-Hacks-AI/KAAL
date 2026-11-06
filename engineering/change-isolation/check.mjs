@@ -185,7 +185,7 @@ export async function checkRootChange(input, { scratch } = {}) {
 }
 
 /** Raised when the checker cannot judge: a malformed ledger or missing facts. The CLI exits 2. */
-export class CannotJudge extends Error {}
+export class CannotJudge extends Error { constructor(m) { super(m); this.name = "CannotJudge"; } }
 
 // Transition ledger. One entry admits one exact change that Core-travels-alone would otherwise refuse,
 // for example a package identity or version transition that spans owners. The ledger is held by the
@@ -199,6 +199,25 @@ export const LEDGER = "engineering/change-isolation/transitions.json";
 const CHECKER = "engineering/change-isolation/check.mjs";
 const BLOB = /^[0-9a-f]{40}$/;
 
+/** Validate one ledger entry's shape and reach. Throws CannotJudge. `ids` is the set of ids already seen. */
+export function validateEntry(e, ids = new Set()) {
+  const bad = (why) => new CannotJudge(`ledger entry ${JSON.stringify(e?.id)}: ${why}`);
+  if (!e || typeof e !== "object" || typeof e.id !== "string" || !e.id || ids.has(e.id)) throw bad("id missing or duplicated");
+  ids.add(e.id);
+  if (!Array.isArray(e.paths) || e.paths.length === 0 || new Set(e.paths).size !== e.paths.length) throw bad("paths must be a non-empty list without duplicates");
+  for (const q of e.paths) {
+    if (typeof q !== "string" || q.split("/").some((x) => x === "" || x === "." || x === "..")) throw bad(`not a repository-relative path: ${q}`);
+    if (GITHUB.test(q) || q === LEDGER || q === CHECKER) throw bad(`${q} cannot be admitted by a ledger entry`);
+  }
+  for (const side of ["pre", "post"]) {
+    const m = e[side];
+    if (!m || typeof m !== "object" || Array.isArray(m)) throw bad(`${side} must map every path to a blob id or null`);
+    const keys = Object.keys(m).sort();
+    if (keys.join("\0") !== [...e.paths].sort().join("\0")) throw bad(`${side} must name exactly the entry's paths`);
+    for (const v of Object.values(m)) if (v !== null && !(typeof v === "string" && BLOB.test(v))) throw bad(`${side} holds a value that is not a blob id or null`);
+  }
+}
+
 /** @param {string} text the ledger's JSON @returns {{id: string, paths: string[], pre: object, post: object}[]} */
 export function readLedger(text) {
   let doc;
@@ -206,24 +225,120 @@ export function readLedger(text) {
   if (!doc || typeof doc !== "object" || Array.isArray(doc) || doc.version !== 1 || !Array.isArray(doc.transitions))
     throw new CannotJudge("ledger must be { version: 1, transitions: [...] }");
   const ids = new Set();
-  for (const e of doc.transitions) {
-    const bad = (why) => new CannotJudge(`ledger entry ${JSON.stringify(e?.id)}: ${why}`);
-    if (!e || typeof e !== "object" || typeof e.id !== "string" || !e.id || ids.has(e.id)) throw bad("id missing or duplicated");
-    ids.add(e.id);
-    if (!Array.isArray(e.paths) || e.paths.length === 0 || new Set(e.paths).size !== e.paths.length) throw bad("paths must be a non-empty list without duplicates");
-    for (const q of e.paths) {
-      if (typeof q !== "string" || q.split("/").some((x) => x === "" || x === "." || x === "..")) throw bad(`not a repository-relative path: ${q}`);
-      if (GITHUB.test(q) || q === LEDGER || q === CHECKER) throw bad(`${q} cannot be admitted by a ledger entry`);
-    }
-    for (const side of ["pre", "post"]) {
-      const m = e[side];
-      if (!m || typeof m !== "object" || Array.isArray(m)) throw bad(`${side} must map every path to a blob id or null`);
-      const keys = Object.keys(m).sort();
-      if (keys.join("\0") !== [...e.paths].sort().join("\0")) throw bad(`${side} must name exactly the entry's paths`);
-      for (const v of Object.values(m)) if (v !== null && !(typeof v === "string" && BLOB.test(v))) throw bad(`${side} holds a value that is not a blob id or null`);
-    }
-  }
+  for (const e of doc.transitions) validateEntry(e, ids);
   return doc.transitions;
+}
+
+// A promotion may carry its own entry (engineering/change-isolation/ledger-in-promotion-plan.md). The entry
+// is one appended element of the candidate's ledger; it admits the change only with an attestation
+// (`attested`) that a trusted adapter derived from an author-independent code-owner review at the exact head.
+// This file never reads reviews: it only compares the attested id and digest with its own canonical digest.
+
+/** Raised for an entry that has more than one spelling. */
+export class NotCanonical extends Error { constructor(m) { super(m); this.name = "NotCanonical"; } }
+
+// Foundation's one SHA-256 (AGENTS.md: no node:crypto for a KAAL digest). Resolved from the package where the
+// workspace is installed, otherwise from the verbatim copy the wrapper script places beside this file
+// (git show <target>:packages/kaal-foundation/lib/sha256.mjs). With neither, digests cannot be judged.
+let sha256Impl;
+for (const specifier of ["@kaihacksai/kaal-foundation/sha256", "./kaal-foundation-sha256.mjs"]) {
+  try { sha256Impl = (await import(specifier)).sha256; break; } catch { /* try the next */ }
+}
+
+const ID = /^[a-z0-9][a-z0-9-]*$/;
+const utf16 = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+/** RFC 8785 bytes of an entry with exactly the keys id, paths, pre, post. Throws NotCanonical. */
+export function canonicalEntry(e) {
+  const no = (why) => new NotCanonical(why);
+  if (!e || typeof e !== "object" || Array.isArray(e)) throw no("entry is not an object");
+  if (Object.keys(e).sort().join(",") !== "id,paths,post,pre") throw no("entry must have exactly the keys id, paths, pre, post");
+  if (typeof e.id !== "string" || !ID.test(e.id)) throw no("id is not [a-z0-9][a-z0-9-]*");
+  if (!Array.isArray(e.paths) || e.paths.length === 0 || e.paths.some((q) => typeof q !== "string")) throw no("paths must be a non-empty list of strings");
+  for (let i = 1; i < e.paths.length; i++)
+    if (Buffer.compare(Buffer.from(e.paths[i - 1], "utf8"), Buffer.from(e.paths[i], "utf8")) >= 0) throw no("paths must be unique and in ascending UTF-8 byte order");
+  const side = (m, name) => {
+    if (!m || typeof m !== "object" || Array.isArray(m)) throw no(`${name} must be an object`);
+    const keys = Object.keys(m);
+    if (keys.length !== e.paths.length || keys.some((k) => !e.paths.includes(k))) throw no(`${name} must name exactly the entry's paths`);
+    for (const v of Object.values(m)) if (v !== null && !(typeof v === "string" && BLOB.test(v))) throw no(`${name} holds a value that is not a blob id or null`);
+    return `{${keys.sort(utf16).map((k) => `${JSON.stringify(k)}:${m[k] === null ? "null" : JSON.stringify(m[k])}`).join(",")}}`;
+  };
+  const text = `{"id":${JSON.stringify(e.id)},"paths":[${e.paths.map((q) => JSON.stringify(q)).join(",")}],"post":${side(e.post, "post")},"pre":${side(e.pre, "pre")}}`;
+  return Buffer.from(text, "utf8");
+}
+
+/** Lowercase hex SHA-256 of the canonical bytes, via Foundation. */
+export function entryDigest(e) {
+  if (typeof sha256Impl !== "function") throw new CannotJudge("Foundation SHA-256 is not reachable from the checker");
+  return sha256Impl(canonicalEntry(e));
+}
+
+/** A strict JSON parser that refuses duplicate keys at any depth (JSON.parse would silently keep the last). */
+function parseStrict(text) {
+  let i = 0;
+  const fail = (why) => { throw new CannotJudge(`ledger is not strict JSON: ${why}`); };
+  const ws = () => { while (" \t\n\r".includes(text[i]) && i < text.length) i++; };
+  const value = () => {
+    ws();
+    const c = text[i];
+    if (c === "{") {
+      i++; const o = Object.create(null); ws();
+      if (text[i] === "}") { i++; return o; }
+      for (;;) {
+        ws(); if (text[i] !== '"') fail("expected a key");
+        const k = string(); ws(); if (text[i++] !== ":") fail("expected ':'");
+        if (Object.prototype.hasOwnProperty.call(o, k)) fail(`duplicate key ${JSON.stringify(k)}`);
+        Object.defineProperty(o, k, { value: value(), enumerable: true, writable: true, configurable: true }); ws();
+        if (text[i] === ",") { i++; continue; }
+        if (text[i++] === "}") return o;
+        fail("expected ',' or '}'");
+      }
+    }
+    if (c === "[") {
+      i++; const a = []; ws();
+      if (text[i] === "]") { i++; return a; }
+      for (;;) {
+        a.push(value()); ws();
+        if (text[i] === ",") { i++; continue; }
+        if (text[i++] === "]") return a;
+        fail("expected ',' or ']'");
+      }
+    }
+    if (c === '"') return string();
+    const m = /^(?:-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null)/.exec(text.slice(i));
+    if (!m) fail("unexpected token");
+    i += m[0].length;
+    return JSON.parse(m[0]);
+  };
+  const string = () => {
+    const start = i++;
+    while (i < text.length && text[i] !== '"') i += text[i] === "\\" ? 2 : 1;
+    if (text[i++] !== '"') fail("unterminated string");
+    return JSON.parse(text.slice(start, i));
+  };
+  const v = value(); ws();
+  if (i !== text.length) fail("trailing characters");
+  return v;
+}
+
+/**
+ * The one entry the candidate's ledger appends to the target's, or the reason it is not exactly that.
+ * @returns {{entry: object} | {violation: string}}
+ */
+export function appendedEntry(targetText, candidateText) {
+  let target, candidate;
+  try { target = parseStrict(targetText); candidate = parseStrict(candidateText); }
+  catch (e) { if (e instanceof CannotJudge) return { violation: e.message }; throw e; }
+  const list = (d) => (d && d.version === 1 && Array.isArray(d.transitions) && Object.keys(d).length === 2 ? d.transitions : null);
+  const before = list(target), after = list(candidate);
+  if (!before) throw new CannotJudge("the target's ledger must be { version: 1, transitions: [...] }");
+  if (!after) return { violation: "the candidate's ledger must be { version: 1, transitions: [...] }" };
+  if (after.length !== before.length + 1) return { violation: `the ledger must gain exactly one entry (${before.length} before, ${after.length} after)` };
+  if (JSON.stringify(after.slice(0, before.length)) !== JSON.stringify(before)) return { violation: "an existing ledger entry was edited, removed or reordered" };
+  const entry = after[before.length];
+  try { validateEntry(entry, new Set(before.map((x) => x.id))); } catch (e) { if (e instanceof CannotJudge) return { violation: e.message }; throw e; }
+  return { entry };
 }
 
 /**
@@ -233,11 +348,26 @@ export function readLedger(text) {
  *   target's tip (base) and at the candidate (head); null when the path is absent there.
  * @returns {string[]} violations
  */
-export function check(paths, { ledger = [], facts } = {}) {
+export function check(paths, { ledger = [], facts, carried, attested } = {}) {
   const violations = [];
   const set = [...new Set(paths)].sort();
   let admitted = false;
-  for (const entry of ledger) {
+  const entries = ledger.map((entry) => ({ entry, set }));
+  if (carried && attested) {
+    if (typeof sha256Impl !== "function") throw new CannotJudge("Foundation SHA-256 is not reachable from the checker, so the carried entry cannot be judged");
+    // The carried entry covers the change minus the ledger file itself, and only with a matching attestation.
+    try {
+      validateEntry(carried);
+      if (!set.includes(LEDGER)) throw new CannotJudge("the change does not touch the ledger");
+      if (attested.id !== carried.id || attested.digest !== entryDigest(carried))
+        violations.push(`carried transition ${carried.id}: the attestation does not match the entry's canonical digest`);
+      else entries.push({ entry: carried, set: set.filter((q) => q !== LEDGER) });
+    } catch (e) {
+      if (!(e instanceof CannotJudge || e instanceof NotCanonical)) throw e;
+      violations.push(`carried transition ${carried.id}: ${e.message}`);
+    }
+  }
+  for (const { entry, set } of entries) {
     const same = [...entry.paths].sort();
     if (same.length !== set.length || same.some((q, i) => q !== set[i])) continue;
     if (typeof facts !== "function") throw new CannotJudge(`transition ${entry.id}: the change matches its paths but no Git facts were supplied`);
@@ -287,22 +417,39 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(message);
     process.exit(2);
   };
-  const usage = "usage: check.mjs [--ledger <file> --git <base> <head>] < paths";
+  const usage = "usage: check.mjs [--ledger <file> --git <base> <head> [--candidate-ledger <file> --attested <id>:<sha256>]] < paths";
   const args = process.argv.slice(2);
   let ledger = [];
   let facts;
+  let carriedEntry, attestedFact;
   if (args.length) {
-    if (args.length !== 5 || args[0] !== "--ledger" || args[2] !== "--git") refuse(usage);
-    const [, file, , base, head] = args;
+    if (args.length < 5 || args[0] !== "--ledger" || args[2] !== "--git") refuse(usage);
+    const [, file, , base, head, ...rest] = args;
+    let candidateFile;
+    for (let i = 0; i < rest.length; i += 2) {
+      if (rest[i] === "--candidate-ledger" && candidateFile === undefined && rest[i + 1]) candidateFile = rest[i + 1];
+      else if (rest[i] === "--attested" && attestedFact === undefined && rest[i + 1]) attestedFact = rest[i + 1];
+      else refuse(usage);
+    }
     try { ledger = readLedger(readFileSync(file, "utf8")); } catch (e) { refuse(e instanceof CannotJudge ? e.message : `ledger unreadable: ${e.code ?? e.message}`); }
     facts = (path) => ({ base: gitBlob(base, path), head: gitBlob(head, path) });
+    if (attestedFact !== undefined) {
+      const m = /^([a-z0-9][a-z0-9-]*):([0-9a-f]{64})$/.exec(attestedFact);
+      if (!m || candidateFile === undefined) refuse(usage);
+      attestedFact = { id: m[1], digest: m[2] };
+      try {
+        const r = appendedEntry(readFileSync(file, "utf8"), readFileSync(candidateFile, "utf8"));
+        if (r.entry) carriedEntry = r.entry;
+        else { console.error(`carried ledger entry: ${r.violation}`); process.exit(1); }
+      } catch (e) { refuse(e instanceof CannotJudge ? e.message : `candidate ledger unreadable: ${e.code ?? e.message}`); }
+    }
   }
   const input = readFileSync(0, "utf8");
   const paths = input.split(input.includes("\0") ? "\0" : "\n").filter(Boolean);
   const unnormal = paths.find((p) => p.split("/").some((s) => s === "" || s === "." || s === ".."));
   if (unnormal !== undefined) refuse(`not a repository-relative path: ${unnormal}`);
   let violations;
-  try { violations = check(paths, { ledger, facts }); } catch (e) {
+  try { violations = check(paths, { ledger, facts, carried: carriedEntry, attested: attestedFact }); } catch (e) {
     if (e instanceof CannotJudge) refuse(e.message);
     throw e;
   }
