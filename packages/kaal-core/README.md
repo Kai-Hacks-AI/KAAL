@@ -267,3 +267,5 @@ Core depends on no discipline. Its only KAAL runtime dependencies are `@kaihacks
 ## License
 
 MIT. See `LICENSE`. The license covers this package's contents only.
+
+<!-- ledger-trial: never-merged acceptance trial line -->
