@@ -51,7 +51,7 @@ test("engineering/T114 C4 and C5 regression: the trusted checker stays pinned to
 });
 
 test("engineering/T115 C4 and C5: every KAAL_DEFAULT is the repository's real default branch; no workflow names a trial target", () => {
-  const files = { "merge-group.yml": 3, "change-isolation.yml": 1, "lineage-synchronization.yml": 1, "promotion-source.yml": 1 };
+  const files = { "merge-group.yml": 4, "change-isolation.yml": 1, "lineage-synchronization.yml": 1, "promotion-source.yml": 1 };
   for (const [f, n] of Object.entries(files)) {
     const hits = wf(f).match(/KAAL_DEFAULT: .+/g) ?? [];
     assert.equal(hits.length, n, `${f} sets KAAL_DEFAULT ${n} time(s)`);
@@ -86,7 +86,11 @@ test("engineering/T123 R2: the review job is exactly `Change Isolation (review)`
 });
 
 test("engineering/T124 R2: the job binds the queued pull request to the group and reads its approvals twice, the last read being the final act", () => {
-  assert.match(REVIEW, /git merge-base --is-ancestor "\$PRHEAD" "\$GROUP_HEAD"/, "the group must contain the PR head");
+  assert.match(REVIEW, /run: \.github\/scripts\/bind-group\.sh review\b/, "the job binds through the one shared script");
+  const bind = readFileSync(join(ROOT, ".github", "scripts", "bind-group.sh"), "utf8");
+  assert.match(bind, /git merge-base --is-ancestor "\$PRHEAD" "\$GROUP_HEAD"/, "a merge group must contain the PR head");
+  assert.match(bind, /git merge-tree --write-tree "\$GROUP_BASE_SHA" "\$PRHEAD"/, "a squash group must equal the PR merged into the group's base");
+  // The behaviour of that script on both group shapes is judged by T143 to T153 (engineering/github/bind-group.red.mjs).
   const reads = REVIEW.match(/engineering\/change-isolation\/attest\.mjs --pr "\$PR_NUMBER"/g) ?? [];
   assert.equal(reads.length, 2, "approvals read twice");
   const last = REVIEW.lastIndexOf("attest.mjs --pr");
