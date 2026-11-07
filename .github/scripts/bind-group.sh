@@ -67,7 +67,11 @@ case "$job" in
     {
       echo "PR_HEAD=$PRHEAD"
       echo "KAAL_HEAD_REF=$(jq -r .head.ref pull.json)"
-      echo "KAAL_AUTO_MERGE=$(jq -r '.auto_merge.merge_method // empty' pull.json)"
+      # GitHub clears a pull request's auto-merge field once it is in the queue, and under a queue the label it reports says nothing
+      # (the queue's configured method decides, see effectiveMethod). Being in the group is itself the intent to merge, so an empty
+      # field is not "auto-merge disabled": it is reported as "merge", the label GitHub gives a queued pull request. This only normalizes
+      # the input inside a merge group; it grants no method, and effectiveMethod still takes the queue's own method and fails closed.
+      echo "KAAL_AUTO_MERGE=$(jq -r '.auto_merge.merge_method // "merge"' pull.json)"
     } >> "$GITHUB_ENV"
     ;;
   review)
