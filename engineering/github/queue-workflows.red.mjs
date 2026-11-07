@@ -52,8 +52,12 @@ test("engineering/T139 F2: the admission workflow is its own file, pull_request_
 test("engineering/T140 F2: the admission job reads nothing, runs nothing of the candidate, and judges nothing", () => {
   assert.doesNotMatch(ADMIT, /\buses:|actions\/checkout|secrets\.|GH_TOKEN|github\.token|\$\{\{ *github\.(event|head_ref)/, "no action, no checkout, no secret or token, no event data interpolated");
   const steps = ADMIT.slice(ADMIT.indexOf("steps:"));
-  assert.ok(/^\s+echo "/m.test(steps), "a notice step exists");
-  assert.doesNotMatch(steps.replace(/^\s+echo "[^\n]*$/gm, ""), /node|npm|npx|git |gh |curl|attest|kaal-guard|exit /, "nothing but echo runs");
+  const runs = [...steps.matchAll(/^\s+run: \|\n((?:\s{10,}[^\n]*\n?)+)/gm)];
+  assert.equal(runs.length, 1, "exactly one run block");
+  const lines = runs[0][1].split("\n").map((l) => l.trim()).filter(Boolean);
+  assert.ok(lines.length > 0, "a notice step exists");
+  for (const l of lines) assert.match(l, /^echo "[A-Za-z0-9 .,'()_-]*"$/, `only a plain echo of literal text may run, got: ${l}`);
+  assert.equal((steps.match(/^\s+- name:/gm) ?? []).length, 1, "a single step");
   assert.match(ADMIT, /not an attestation/, "the notice says it is not an attestation");
 });
 
@@ -62,7 +66,7 @@ test("engineering/T141 F2: the merge group review workflow keeps its kind: merge
   assert.doesNotMatch(REVIEW, /pull_request/, "no pull request trigger");
   assert.match(REVIEW, /\n    name: Change Isolation \(review\)\n/, "same context name");
   assert.doesNotMatch(REVIEW, /\n\s+if:/, "no step is skipped");
-  assert.match(REVIEW, /permissions:\n      contents: read\n      pull-requests: read\n      checks: read/, "read-only permissions, as approved");
+  assert.match(REVIEW, /\n    permissions:\n      contents: read\n      pull-requests: read\n      checks: read\n    steps:/, "exactly the three read permissions, as approved, and nothing added");
   assert.match(REVIEW, /attest\.mjs/, "it still derives the attestation");
   assert.match(REVIEW, /--check Change-Isolation/, "it still judges the group");
 });
