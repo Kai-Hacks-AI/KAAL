@@ -97,7 +97,7 @@ jobs:
         env:
           BASE_REF: ${{ github.event.merge_group.base_ref }}
           KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
-        run: npx --no kaal-guard run --check Branching --github --head "$PR_HEAD" --base "$(git rev-parse "origin/${KAAL_DEFAULT}")" --base-ref "${BASE_REF#refs/heads/}"
+        run: npx --no kaal-guard run --check Branching --github --head "$PR_HEAD" --base "$(git rev-parse HEAD)" --base-ref "${BASE_REF#refs/heads/}"
 
   promotion-source:
     name: Promotion Source
