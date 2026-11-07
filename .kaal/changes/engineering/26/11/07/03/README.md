@@ -10,7 +10,7 @@ With a merge queue on `main`, GitHub reports every pull request's auto-merge met
 
 - `engineering/github/lineage.ts`: `effectiveMethod(reported, rules, baseRef, defaultBranch)`. For the default branch with rules given: a `merge_queue` rule's `merge_method` decides, when auto-merge is on; auto-merge off stays off; no queue rule leaves the reported label. A rules response that is not a list, a queue method it does not know (or none), or queue rules that disagree throw, so the verdict is unjudgeable (exit 2). A collector base keeps the reported label. `auto-merge` takes an optional trailing `<rules.json>`.
 - `engineering/github/branching.sh`: passes `KAAL_RULES` when the job sets it. Absent, behaviour is exactly as before.
-- `engineering/github/lineage.test.ts` (T128 to T136, in `test:github` and `test:engineering`): queue squash over reported merge passes; queue merge or rebase fails a promotion; no queue rule keeps today's failure; auto-merge off still fails; unreadable, unknown or disagreeing rules are unjudgeable; collector base and absent rules are unchanged; the CLI end to end (0, 1, 1, 2, 2).
+- `engineering/github/lineage.test.ts` (T128 to T136, including a supplied JSON null, in `test:github` and `test:engineering`): queue squash over reported merge passes; queue merge or rebase fails a promotion; no queue rule keeps today's failure; auto-merge off still fails; unreadable, unknown or disagreeing rules are unjudgeable; collector base and absent rules are unchanged; the CLI end to end (0, 1, 1, 2, 2, and 2 for a supplied JSON null).
 
 No ledger entry is carried; nothing here touches `.github`, the ledger or the Change Isolation checker.
 

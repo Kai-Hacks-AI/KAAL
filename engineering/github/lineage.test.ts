@@ -129,13 +129,14 @@ describe("effectiveMethod (B1 F1: the configured queue method, not GitHub's labe
   });
   it("is unjudgeable when the rules are not a list, name an unknown method, or disagree (T132, T133)", () => {
     assert.throws(() => effectiveMethod("merge", { message: "Not Found" }, "main", "main"), /not a list/);
+    assert.throws(() => effectiveMethod("squash", null, "main", "main"), /not a list/); // a supplied JSON null is not "no rules"
     assert.throws(() => effectiveMethod("merge", queue("FAST_FORWARD"), "main", "main"), /does not know/);
     assert.throws(() => effectiveMethod("merge", [...queue("SQUASH"), ...queue("MERGE")], "main", "main"), /disagree/);
     assert.throws(() => effectiveMethod("merge", [{ type: "merge_queue" }], "main", "main"), /does not know/);
   });
   it("leaves a collector base to the reported label, and no rules to today's behaviour (T134, T135)", () => {
     assert.equal(effectiveMethod("merge", queue("SQUASH"), "kaal/x", "main"), "merge");
-    for (const m of ["squash", "merge", "rebase", null] as const) assert.equal(effectiveMethod(m, null, "main", "main"), m);
+    for (const m of ["squash", "merge", "rebase", null] as const) assert.equal(effectiveMethod(m, undefined, "main", "main"), m);
   });
   it("end to end: the CLI judges with the rules file and is unjudgeable on a missing or broken one (T136)", () => {
     const dir = mkdtempSync(join(tmpdir(), "rules-"));
@@ -147,12 +148,14 @@ describe("effectiveMethod (B1 F1: the configured queue method, not GitHub's labe
       };
       writeFileSync(join(dir, "ok.json"), JSON.stringify(queue("SQUASH")));
       writeFileSync(join(dir, "bad.json"), "not json");
+      writeFileSync(join(dir, "null.json"), "null");
       writeFileSync(join(dir, "merge.json"), JSON.stringify(queue("MERGE")));
       assert.equal(run("ok.json").status, 0);
       assert.equal(run("merge.json").status, 1);
       assert.equal(run().status, 1);
       assert.equal(run("bad.json").status, 2);
       assert.equal(run("missing.json").status, 2);
+      assert.equal(run("null.json").status, 2);
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });

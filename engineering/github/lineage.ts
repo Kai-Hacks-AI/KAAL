@@ -245,11 +245,11 @@ export function methodFor(defaultBranch: string, baseRef: string, sync: Verdict 
 /** The method auto-merge effectively lands by. GitHub reports the PR's auto-merge method as "merge"
  *  whatever was asked once the base branch has a merge queue, so under a queue the reported label says
  *  nothing; the queue's own configured method, read from the trusted `rules/branches/<base>` response,
- *  decides. Without rules (`null`) the reported label stands, as before. Auto-merge off stays off.
+ *  decides. Without rules (`undefined`: none supplied; a supplied JSON `null` is not a list and throws) the reported label stands, as before. Auto-merge off stays off.
  *  Throws, so the verdict is unjudgeable, on rules that are not a list, hold more than one queue rule
  *  that disagree, or name a method this check does not know. */
-export function effectiveMethod(reported: Method | null, rules: unknown | null, baseRef: string, defaultBranch: string): Method | null {
-  if (rules === null || baseRef !== defaultBranch) return reported;
+export function effectiveMethod(reported: Method | null, rules: unknown, baseRef: string, defaultBranch: string): Method | null {
+  if (rules === undefined || baseRef !== defaultBranch) return reported;
   if (!Array.isArray(rules)) throw new Error(`the rules of ${baseRef} are not a list`);
   const methods = new Set<Method>();
   for (const r of rules) {
@@ -838,7 +838,7 @@ async function main(argv: string[]): Promise<number> {
     const h = rev(cwd, head);
     v = autoMerge({
       baseRef, head: h,
-      enabled: effectiveMethod(enabled === "none" ? null : (enabled as Method), rulesFile === undefined ? null : json(rulesFile), baseRef, def),
+      enabled: effectiveMethod(enabled === "none" ? null : (enabled as Method), rulesFile === undefined ? undefined : json(rulesFile), baseRef, def),
       expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
     });
   } else if (verdict === "landing" && args.length === 6) {
