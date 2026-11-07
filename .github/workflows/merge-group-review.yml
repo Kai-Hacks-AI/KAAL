@@ -1,0 +1,115 @@
+# R2 of the two-check design (engineering/change-isolation/ledger-b1-plan.md): the attestation of a ledger entry a
+# promotion carries, judged AT MERGE TIME for the merge group, so no earlier success can go stale. GitHub creates this
+# job's check itself; nothing here writes a check run, so there is no write whose failure could leave a success standing.
+#
+# The job is the LAST required check of the group to finish: it waits for the others, then reads the approvals, judges,
+# and reads them once more as its final act. A different answer on the second read fails the job. The queue's own
+# merge latency (and its minimum-wait setting, which the Owner sets to zero for this) is the only interval left.
+# Trusted code only: the default branch's checker and attester, as the pull request jobs. Fails closed everywhere.
+name: KAAL merge group review
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+permissions: {}
+
+jobs:
+  change-isolation-review:
+    name: Change Isolation (review)
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Find the queued pull request and bind it to the group
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GROUP_REF: ${{ github.event.merge_group.head_ref }}
+          GROUP_HEAD: ${{ github.event.merge_group.head_sha }}
+          GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+        run: |
+          fail() { echo "::error title=Change Isolation (review): cannot judge::$1"; exit 2; }
+          N=$(printf '%s' "$GROUP_REF" | sed -n 's#^.*/pr-\([0-9][0-9]*\)-[0-9a-f]\{7,\}$#\1#p')
+          [ -n "$N" ] || fail "the queued pull request cannot be read from the group's ref $GROUP_REF"
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$N" > pull.json || fail "pull request $N cannot be read"
+          BASE_REF=$(jq -r .base.ref pull.json)
+          [ "refs/heads/$BASE_REF" = "$GROUP_BASE_REF" ] || fail "pull request $N does not target the group's base"
+          PRHEAD=$(jq -r .head.sha pull.json)
+          git fetch -q --no-tags origin "$PRHEAD" "$GROUP_HEAD" "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF" || fail "the pull request's head, the group or its base cannot be fetched"
+          git merge-base --is-ancestor "$PRHEAD" "$GROUP_HEAD" || fail "the group does not contain pull request $N at its head $PRHEAD"
+          { echo "PR_NUMBER=$N"; echo "PR_HEAD=$PRHEAD"; echo "BASE_REF=$BASE_REF"; } >> "$GITHUB_ENV"
+
+      # Wait until every other context the branch requires has finished on the group, so this job is the last to answer.
+      # If any of them fails, the group cannot merge anyway, and this job fails too (nothing is ever passed on its behalf).
+      - name: Wait for the group's other required checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GROUP_HEAD: ${{ github.event.merge_group.head_sha }}
+        run: |
+          fail() { echo "::error title=Change Isolation (review): cannot judge::$1"; exit 2; }
+          gh api "repos/$GITHUB_REPOSITORY/rules/branches/$BASE_REF" > rules.json || fail "the branch's required checks cannot be read"
+          jq -r '[.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context] | unique | .[]' rules.json \
+            | grep -vx 'Change Isolation (review)' > required.txt
+          [ -s required.txt ] || fail "the branch lists no other required check to wait for"
+          for tick in $(seq 1 120); do
+            gh api "repos/$GITHUB_REPOSITORY/commits/$GROUP_HEAD/check-runs?per_page=100" --paginate --jq '.check_runs[] | [.name, .status, (.conclusion // "")] | @tsv' > runs.tsv \
+              || fail "the group's check runs cannot be read"
+            pending=0
+            while IFS= read -r name; do
+              line=$(awk -F'\t' -v n="$name" '$1 == n' runs.tsv)
+              [ -n "$line" ] || { pending=1; continue; }
+              printf '%s\n' "$line" | awk -F'\t' '$2 != "completed" { exit 1 }' || { pending=1; continue; }
+              printf '%s\n' "$line" | awk -F'\t' '$3 != "success" && $3 != "neutral" && $3 != "skipped" { exit 1 }' \
+                || fail "$name did not succeed on the group, so the group cannot merge"
+            done < required.txt
+            [ "$pending" = 0 ] && exit 0
+            sleep 20
+          done
+          fail "the group's other required checks did not finish in time"
+
+      - name: Read the approvals and derive the attestation
+        id: first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node engineering/change-isolation/attest.mjs --pr "$PR_NUMBER"
+
+      - name: Judge the group against its base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD: ${{ github.event.merge_group.head_sha }}
+          BASE: ${{ github.event.merge_group.base_sha }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          ATTESTED: ${{ steps.first.outputs.attested }}
+        run: |
+          export KAAL_ATTESTED="$ATTESTED"
+          npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
+
+      # The final act: the approvals once more. A different attestation, or a different head, fails the job.
+      - name: Read the approvals again and require the same answer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FIRST_ATTESTED: ${{ steps.first.outputs.attested }}
+          FIRST_HEAD: ${{ steps.first.outputs.head }}
+        run: |
+          fail() { echo "::error title=Change Isolation (review): the approvals changed::$1"; exit 1; }
+          GITHUB_OUTPUT=second.out node engineering/change-isolation/attest.mjs --pr "$PR_NUMBER" > /dev/null || exit 2
+          SECOND_ATTESTED=$(sed -n 's/^attested=//p' second.out)
+          SECOND_HEAD=$(sed -n 's/^head=//p' second.out)
+          [ "$SECOND_HEAD" = "$FIRST_HEAD" ] || fail "the pull request head moved while judging"
+          [ "$SECOND_ATTESTED" = "$FIRST_ATTESTED" ] || fail "the attestation changed while judging"
