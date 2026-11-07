@@ -7,7 +7,8 @@
 # branch holds it.
 #
 # Facts from Guard: GUARD_HEAD, the candidate commit; GUARD_BASE, the target branch's current tip;
-# GUARD_BASE_REF, the target branch. From KAAL's job: KAAL_DEFAULT, the default branch.
+# GUARD_BASE_REF, the target branch. From KAAL's job: KAAL_DEFAULT, the default branch; optionally KAAL_ATTESTATION=deferred
+# (judge all but the attestation of a carried entry; unset, the check is strict).
 # Exits 0 when the Change conforms, 1 when it does not, 2 when it cannot be judged, 3 when it does not
 # apply (a synchronization already admitted on the default branch).
 set -o pipefail
@@ -60,6 +61,12 @@ else
       git show "$HEAD:engineering/change-isolation/transitions.json" > "$T/candidate-transitions.json" 2>/dev/null || {
         echo "the candidate does not hold the ledger it was attested for"; exit 2; }
       LEDGER+=(--candidate-ledger "$T/candidate-transitions.json" --attested "$KAAL_ATTESTED")
+    elif [ "$KAAL_ATTESTATION" = deferred ]; then
+      # The pull request job under the two-check design: judge everything except the attestation, which the
+      # separate review check (Change Isolation (review)) judges. Set only by the activation Change.
+      git show "$HEAD:engineering/change-isolation/transitions.json" > "$T/candidate-transitions.json" 2>/dev/null || {
+        echo "the candidate does not hold the ledger"; exit 2; }
+      LEDGER+=(--candidate-ledger "$T/candidate-transitions.json" --attestation deferred)
     fi
   fi
   git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
