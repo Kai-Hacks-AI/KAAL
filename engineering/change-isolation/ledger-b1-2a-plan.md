@@ -30,6 +30,14 @@ For a `merge_group` event GitHub provides `merge_group.head_sha` (the group comm
 4. The new `merge_group` jobs carry the same contexts as today (bare job name, pinned to Actions), so the ruleset needs no new entries for them.
 5. The `.github` Change containing these triggers contains no other paths (the `.github` travels-alone rule), and its own Change Isolation, Branching and Promotion Source results at the PR are the ordinary ones.
 
+## The disposable target must exercise the same predicates as `main`
+
+Verified in `engineering/github/lineage.ts`: the lineage and promotion checks key off `KAAL_DEFAULT` (`promotionSource()` returns `not-applicable` whenever `baseRef !== defaultBranch`, before it looks at the source). On `trial/ledger-queue` the workflows still pass `KAAL_DEFAULT=main`, so a copy of the ruleset alone would let Branching and Promotion Source report `not-applicable` and prove nothing. The trial therefore treats `trial/ledger-queue` as the default branch for those checks:
+
+- The workflows compute `KAAL_DEFAULT` as the default branch, except that a run whose base ref is exactly `trial/ledger-queue` uses `trial/ledger-queue`. The mapping is one expression in the trusted workflow files, added by the 2a Change for the trial and removed by a later small Change when the trial record is committed (the record names the removal as a step). It affects only runs targeting that one branch name, and `main` is untouched. The checks that read the default branch's checker out still check out the real default branch, so no code from the trial branch runs.
+- Evidence before relying on C3 to C5: the same predicate is run by hand against the checker with `KAAL_DEFAULT=trial/ledger-queue` for an invalid source, a wrong-branch group and a stale head, and each must fail (not `not-applicable`); the live runs on the disposable target must show the same verdicts. A `not-applicable` verdict on the trial target is a failed Case, not a pass.
+- B1-0 compares effective rules; this section compares effective predicates. Both are required before any trial result counts as evidence about `main`.
+
 ## RED Cases (by hand, then live on the disposable target)
 
 Each proves a defective group is refused, per check:
