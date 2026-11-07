@@ -67,16 +67,17 @@ test("engineering/T159 B1 activation: deferred is set in the pull request job's 
   assert.equal(GROUP_JOB.match(/KAAL_ATTESTATION/g).length, 1, "merge group Change Isolation job: set in no other step");
 });
 
-test("engineering/T160 B1 activation: no other workflow or job is deferred, and the review workflows stay strict", () => {
+test("engineering/T160 B1 activation: no other workflow or job is deferred beyond F5's handler, and the merge group's review stays strict", () => {
   const holders = names.filter((n) => /KAAL_ATTESTATION/.test(strip(wf(n))));
-  assert.deepEqual(holders, ["change-isolation.yml", "merge-group.yml"], "only the two judging workflows name the flag");
+  assert.deepEqual(holders, ["change-isolation-review.yml", "change-isolation.yml", "merge-group.yml"], "only the two judging workflows and the approval-event handler (F5) name the flag");
   const groupText = strip(wf("merge-group.yml"));
   assert.equal(groupText.match(/KAAL_ATTESTATION/g).length, 1, "merge-group.yml: once, in the Change Isolation job only");
-  for (const n of ["change-isolation-review.yml", "merge-group-review.yml"]) {
-    const t = strip(wf(n));
-    assert.doesNotMatch(t, /deferred|KAAL_ATTESTATION/, `${n}: never deferred`);
-    assert.match(t, /export KAAL_ATTESTED="\$ATTESTED"/, `${n}: still judges with the attestation it read`);
-  }
+  // The approval-event handler (change-isolation-review.yml) is deferred by F5, in its judging step only, and still exports the
+  // attestation it read: handler-deferred.red.mjs (T162 to T167) holds that. The merge group's review job stays strict.
+  const t = strip(wf("merge-group-review.yml"));
+  assert.doesNotMatch(t, /deferred|KAAL_ATTESTATION/, "merge-group-review.yml: never deferred");
+  assert.match(t, /export KAAL_ATTESTED="\$ATTESTED"/, "merge-group-review.yml: still judges with the attestation it read");
+  assert.match(strip(wf("change-isolation-review.yml")), /export KAAL_ATTESTED="\$ATTESTED"/, "the handler still exports the attestation it read");
   assert.doesNotMatch(strip(wf("merge-group-admission.yml")), /deferred|KAAL_ATTESTATION/, "the admission context is not deferred");
 });
 

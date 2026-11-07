@@ -12,7 +12,7 @@ The third trial window starts only with deferred attestation inactive: the pull 
 
 - T158: the helpers return exactly the requested job and step.
 - T159: `KAAL_ATTESTATION: deferred` is a literal, set once, in the env of the pull request job's judging step and of the merge group `Change Isolation` job's judging step, and in no other step of either job.
-- T160: no other workflow names the flag; `change-isolation-review.yml` and `merge-group-review.yml` never mention deferred and still judge with the attestation they read; the admission context is not deferred.
+- T160: only the two judging workflows and, since F5, the approval-event handler (`change-isolation-review.yml`, in its judging step only; held by T162 to T167) name the flag; `merge-group-review.yml` never mentions deferred and still judges with the attestation it read; the handler still exports the attestation it read; the admission context is not deferred.
 - T161 (precondition): `change-isolation.sh` honours only the exact value `deferred`, only when no attestation is supplied, and passes the checker's deferred mode. It is RED on `main` until the ledger Change (#1119) lands, which is the order the runbook requires.
 
 No ledger entry is carried.
