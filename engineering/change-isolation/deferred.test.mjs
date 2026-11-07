@@ -95,3 +95,15 @@ test("engineering/T121 B1-10: the deferred flag and an explicit attestation are 
     assert.equal(s.run(["--attestation", "deferred"]).status, 2, "deferred without the candidate ledger is a usage error");
   } finally { s.done(); }
 });
+
+test("engineering/T122 B1-10: a pull request that predates a ledger addition on the target is judged by the default rules, not as a carried entry", () => {
+  const s = scenario({ files: { "engineering/z.txt": "1\n" }, carry: false });
+  try {
+    // The target's ledger has since gained an entry the pull request never saw; the change itself does not touch the ledger.
+    const later = { id: "later-1", paths: ["a/x"], pre: { "a/x": null }, post: { "a/x": "2".repeat(40) } };
+    writeFileSync(join(s.tmp, "base-ledger.json"), doc([later]));
+    const r = s.deferred();
+    assert.equal(r.status, 0, `an ordinary change passes as it does under the default rules: ${r.stderr}`);
+    assert.doesNotMatch(r.stdout, /attestation deferred/, "nothing is carried, so no pending line");
+  } finally { s.done(); }
+});

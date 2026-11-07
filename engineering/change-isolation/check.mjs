@@ -270,7 +270,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   let ledger = [];
   let facts;
-  let carriedEntry, attestedFact, deferred = false;
+  let carriedEntry, attestedFact, deferred = false, deferredFiles;
   if (args.length) {
     if (args.length < 5 || args[0] !== "--ledger" || args[2] !== "--git") refuse(usage);
     const [, file, , base, head, ...rest] = args;
@@ -289,25 +289,31 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       if (!m || candidateFile === undefined) refuse(usage);
       attestedFact = { id: m[1], digest: m[2] };
     }
-    if (attestedFact !== undefined || deferred) {
+    if (attestedFact !== undefined) {
       try {
-        const baseText = readFileSync(file, "utf8"), candidateText = readFileSync(candidateFile, "utf8");
-        // Deferred: a candidate whose ledger is the target's carries nothing, and is judged by the default rules.
-        if (!(deferred && candidateText === baseText)) {
-          const r = appendedEntry(baseText, candidateText);
-          if (r.entry) carriedEntry = r.entry;
-          else { console.error(`carried ledger entry: ${r.violation}`); process.exit(1); }
-        }
-        // Deferred means "judge everything except the attestation": the entry is assumed attested with its own digest, so
-        // its shape, paths, blobs and exclusions are all enforced; the pending line is printed for the review check.
-        if (deferred && carriedEntry) attestedFact = { id: carriedEntry.id, digest: entryDigest(carriedEntry) };
+        const r = appendedEntry(readFileSync(file, "utf8"), readFileSync(candidateFile, "utf8"));
+        if (r.entry) carriedEntry = r.entry;
+        else { console.error(`carried ledger entry: ${r.violation}`); process.exit(1); }
       } catch (e) { refuse(e instanceof CannotJudge ? e.message : `candidate ledger unreadable: ${e.code ?? e.message}`); }
     }
+    deferredFiles = deferred ? { file, candidateFile } : undefined;
   }
   const input = readFileSync(0, "utf8");
   const paths = input.split(input.includes("\0") ? "\0" : "\n").filter(Boolean);
   const unnormal = paths.find((p) => p.split("/").some((s) => s === "" || s === "." || s === ".."));
   if (unnormal !== undefined) refuse(`not a repository-relative path: ${unnormal}`);
+  // Deferred: the entry is the ledger's one appended entry, but only when the change itself touches the ledger. A pull
+  // request that predates a ledger addition on the target differs from it without having changed it, and is judged by the
+  // default rules like any ordinary change. Judge everything except the attestation: the entry is assumed attested with its
+  // own digest, so its shape, paths, blobs and exclusions are all enforced; the pending line is printed for the review check.
+  if (deferredFiles && paths.includes(LEDGER)) {
+    try {
+      const r = appendedEntry(readFileSync(deferredFiles.file, "utf8"), readFileSync(deferredFiles.candidateFile, "utf8"));
+      if (!r.entry) { console.error(`carried ledger entry: ${r.violation}`); process.exit(1); }
+      carriedEntry = r.entry;
+      attestedFact = { id: carriedEntry.id, digest: entryDigest(carriedEntry) };
+    } catch (e) { refuse(e instanceof CannotJudge ? e.message : `candidate ledger unreadable: ${e.code ?? e.message}`); }
+  }
   let violations;
   try { violations = check(paths, { ledger, facts, carried: carriedEntry, attested: attestedFact }); } catch (e) {
     if (e instanceof CannotJudge) refuse(e.message);
