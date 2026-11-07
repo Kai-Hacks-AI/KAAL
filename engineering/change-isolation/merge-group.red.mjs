@@ -1,10 +1,11 @@
 // engineering/T112 to T116: substantive merge_group evaluation (B1 step 2a, Cases C1 to C6 of
-// engineering/change-isolation/ledger-b1-2a-plan.md). Run by hand; no suite or lane names this file:
+// engineering/change-isolation/ledger-b1-2a-plan.md). The trial runs on main (CPO amendment of 7 November 2026), so
+// there is no disposable target and no trial-only default-branch mapping; T115 and T116 forbid one. Run by hand; no suite or lane names this file:
 //
 //   node --test engineering/change-isolation/merge-group.red.mjs
 //
 // These Cases are static and predicate-level. They do not show GitHub's merge_group behaviour; that is the
-// disposable-target trial (B1-0, C1 to C5 live). Do not edit a Case to make it pass.
+// trial on main (C1 to C5 live). Do not edit a Case to make it pass.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -17,8 +18,6 @@ const wf = (name) => readFileSync(join(ROOT, ".github", "workflows", name), "utf
 const GROUP = wf("merge-group.yml");
 const jobsOf = (text) => text.slice(text.indexOf("\njobs:"));
 const jobBlocks = (text) => jobsOf(text).split(/\n  (?=[a-z][a-z-]*:\n)/).slice(1);
-// The group jobs compare the ref ("refs/heads/trial/ledger-queue"), the pull request jobs the bare name; both map only that branch.
-const MAPPING = /^KAAL_DEFAULT: \$\{\{ github\.event\.(merge_group\.base_ref == 'refs\/heads\/trial\/ledger-queue'|pull_request\.base\.ref == 'trial\/ledger-queue') && 'trial\/ledger-queue' \|\| github\.event\.repository\.default_branch \}\}$/;
 const LINEAGE = join(ROOT, "engineering", "github", "lineage.ts");
 const lineage = (...args) => spawnSync(process.execPath, [LINEAGE, ...args], { encoding: "utf8" });
 
@@ -40,7 +39,7 @@ test("engineering/T113 C1 and C2: the ci and CodeQL workflows run their existing
   }
 });
 
-test("engineering/T114 C4 and C5 regression: the trusted checker stays pinned to the real default branch; only the logical default varies", () => {
+test("engineering/T114 C4 and C5 regression: the trusted checker stays pinned to the real default branch; the default branch is the real one", () => {
   for (const block of jobBlocks(GROUP)) {
     for (const m of block.matchAll(/--base ("[^"]*"|\S+)/g)) {
       assert.doesNotMatch(m[1], /KAAL_DEFAULT|origin\//, `--base must not name the trial target: ${m[1]}`);
@@ -51,25 +50,25 @@ test("engineering/T114 C4 and C5 regression: the trusted checker stays pinned to
   assert.match(GROUP, /ref: \$\{\{ github\.event\.repository\.default_branch \}\}/, "every group job checks out the real default branch");
 });
 
-test("engineering/T115 C4 and C5: the trial mapping is one expression, on the same five workflows, and only for that branch", () => {
+test("engineering/T115 C4 and C5: every KAAL_DEFAULT is the repository's real default branch; no workflow names a trial target", () => {
   const files = { "merge-group.yml": 3, "change-isolation.yml": 1, "lineage-synchronization.yml": 1, "promotion-source.yml": 1 };
   for (const [f, n] of Object.entries(files)) {
-    const hits = wf(f).match(/KAAL_DEFAULT: \$\{\{[^}]+\}\}/g) ?? [];
+    const hits = wf(f).match(/KAAL_DEFAULT: .+/g) ?? [];
     assert.equal(hits.length, n, `${f} sets KAAL_DEFAULT ${n} time(s)`);
-    for (const h of hits) assert.match(h, MAPPING, `${f}: ${h}`);
+    for (const h of hits) assert.equal(h, "KAAL_DEFAULT: ${{ github.event.repository.default_branch }}", `${f}: ${h}`);
   }
-  assert.doesNotMatch(wf("ci.yml") + wf("codeql.yml"), /trial\/ledger-queue/, "the mapping reaches only the lineage-type checks");
+  for (const f of ["merge-group.yml", "change-isolation.yml", "lineage-synchronization.yml", "promotion-source.yml", "ci.yml", "codeql.yml"]) {
+    assert.doesNotMatch(wf(f), /trial\/ledger-queue|trial-only/, `${f} carries no trial target mapping`);
+  }
 });
 
-test("engineering/T116 C5: with the default mapped, the promotion predicate rejects an invalid source and does not report not-applicable", () => {
-  const T = "trial/ledger-queue";
-  const fork = lineage("source", "o/r", T, T, "fork/r", "kaal/x");
-  assert.equal(fork.status, 1, `a fork source into the trial target is rejected: ${fork.stdout}${fork.stderr}`);
-  const wrong = lineage("source", "o/r", T, T, "o/r", "claude/x");
+test("engineering/T116 C5: the promotion predicate, with the real default branch, rejects an invalid source into main and accepts a kaal/* collector", () => {
+  const fork = lineage("source", "o/r", "main", "main", "fork/r", "kaal/x");
+  assert.equal(fork.status, 1, `a fork source into main is rejected: ${fork.stdout}${fork.stderr}`);
+  const wrong = lineage("source", "o/r", "main", "main", "o/r", "claude/x");
   assert.equal(wrong.status, 1, "a non-kaal branch is rejected");
-  const ok = lineage("source", "o/r", T, T, "o/r", "kaal/x");
+  const ok = lineage("source", "o/r", "main", "main", "o/r", "kaal/x");
   assert.equal(ok.status, 0, "a kaal/* collector of this repository is accepted");
-  // The failure the mapping prevents: with the default left as main, the same invalid source is not-applicable (3).
-  const unmapped = lineage("source", "o/r", "main", T, "fork/r", "kaal/x");
-  assert.equal(unmapped.status, 3, "control: unmapped, the target is not a promotion target at all");
+  const elsewhere = lineage("source", "o/r", "main", "kaal/x", "fork/r", "kaal/y");
+  assert.equal(elsewhere.status, 3, "control: a target that is not the default branch is not a promotion");
 });
