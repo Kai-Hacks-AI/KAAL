@@ -101,9 +101,9 @@ function stubGh(w, head, autoMerge = "squash") {
 
 // Runs the job's real binding step. Returns { status, out, env } where env is what the step exported to GITHUB_ENV.
 // baseSha: a commit id, a malformed string, or null for "the event carries none".
-function bind(w, j, { g, head = w.P, baseSha = w.base, groupHead = g } = {}) {
+function bind(w, j, { g, head = w.P, baseSha = w.base, groupHead = g, autoMerge } = {}) {
   const { run, env } = stepOf(j);
-  const bin = stubGh(w, head);
+  const bin = stubGh(w, head, autoMerge);
   const gh = join(w.dir, "github_env");
   writeFileSync(gh, "");
   const e = {
@@ -227,4 +227,62 @@ forEach("engineering/T152 F3: the step takes its inputs from the merge_group eve
   assert.equal(env.GH_TOKEN, "${{ github.token }}");
   assert.match(run, /bind-group\.sh (branching|review)\s*$/, "one shared implementation");
   assert.equal(run.includes(j.job === "branching" ? "bind-group.sh branching" : "bind-group.sh review"), true, "each job names its own export set");
+});
+
+// F4: GitHub clears a pull request's auto-merge field while it is queued, so the group job must not read the method from it.
+const QUEUE_RULES = (method) => [{ type: "merge_queue", parameters: { merge_method: method } }];
+
+test("engineering/T154 F4: a queued pull request (auto-merge field cleared) still gives Branching a method, and the queue's own method then decides", async () => {
+  const { effectiveMethod } = await import(join(ROOT, "engineering", "github", "lineage.ts"));
+  const j = JOBS[0];
+  const w = world();
+  const g = group(w, { parents: [w.B], tree: w.P });
+  const r = bind(w, j, { g, autoMerge: null });
+  assert.equal(r.status, 0, r.out);
+  const reported = r.env.KAAL_AUTO_MERGE || null;
+  assert.notEqual(reported, null, "a pull request in the queue is not 'auto-merge disabled'");
+  assert.equal(reported, "merge", "the label GitHub gives a queued pull request, nothing the queue did not choose");
+  assert.equal(effectiveMethod(reported, QUEUE_RULES("SQUASH"), "main", "main"), "squash", "the squash queue's method decides");
+  assert.equal(effectiveMethod(reported, QUEUE_RULES("MERGE"), "main", "main"), "merge", "a merge queue's method decides, so the flow check can still fail it");
+});
+
+test("engineering/T155 F4: a queued pull request that still reports a method keeps reporting it, and the other job exports nothing new", () => {
+  const j = JOBS[0];
+  const w = world();
+  const g = group(w, { parents: [w.B], tree: w.P });
+  const r = bind(w, j, { g, autoMerge: "squash" });
+  assert.equal(r.status, 0, r.out);
+  assert.equal(r.env.KAAL_AUTO_MERGE, "squash", "what GitHub reports is kept");
+  const rev = bind(w, JOBS[1], { g, autoMerge: null });
+  assert.equal(rev.status, 0, rev.out);
+  assert.deepEqual(Object.keys(rev.env).sort(), ["BASE_REF", "PR_HEAD", "PR_NUMBER"], "the review job exports exactly what it did");
+});
+
+test("engineering/T156 F4: the queue's method is still judged against the flow: a merge queue fails a squash flow, a squash queue passes it", async () => {
+  const { effectiveMethod, autoMerge } = await import(join(ROOT, "engineering", "github", "lineage.ts"));
+  const w = world();
+  const g = group(w, { parents: [w.B], tree: w.P });
+  const reported = bind(w, JOBS[0], { g, autoMerge: null }).env.KAAL_AUTO_MERGE || null;
+  assert.notEqual(reported, null, "the cleared field still gives a method to judge");
+  const facts = (queue) => ({ baseRef: "main", head: w.P, expected: "squash", enabled: effectiveMethod(reported, QUEUE_RULES(queue), "main", "main") });
+  assert.equal(autoMerge(facts("SQUASH")).kind, "pass", "a squash queue lands a squash flow");
+  const bad = autoMerge(facts("MERGE"));
+  assert.equal(bad.kind, "fail", "a merge queue cannot land a squash flow");
+  assert.match(bad.message, /by (a )?merge|merge commit/i, "and says which method would land it");
+  // The fallback never reaches the verdict as a method of its own: with a queue rule the queue's method alone decides.
+  assert.equal(effectiveMethod("merge", QUEUE_RULES("SQUASH"), "main", "main"), "squash");
+});
+
+test("engineering/T157 F4: unreadable or contradictory rules stay unjudgeable; the fallback does not hide them", async () => {
+  const { effectiveMethod } = await import(join(ROOT, "engineering", "github", "lineage.ts"));
+  const reported = "merge";
+  assert.throws(() => effectiveMethod(reported, null, "main", "main"), "rules that are not a list throw");
+  assert.throws(() => effectiveMethod(reported, "x", "main", "main"), "rules that are not a list throw");
+  assert.throws(() => effectiveMethod(reported, [...QUEUE_RULES("SQUASH"), ...QUEUE_RULES("MERGE")], "main", "main"), "queues that disagree throw");
+  assert.throws(() => effectiveMethod(reported, QUEUE_RULES("FAST"), "main", "main"), "an unknown method throws");
+  // The group job still reads the rules from the trusted source and fails with exit 2 when it cannot.
+  const text = strip(readFileSync(join(ROOT, ".github", "workflows", "merge-group.yml"), "utf8"));
+  const branching = jobText(text, "branching");
+  assert.match(branching, /rules\/branches\/\$BASE" > "\$RUNNER_TEMP\/rules\.json" \\\n\s+\|\| \{ echo "::error title=Branching: cannot judge::the rules of \$BASE cannot be read"; exit 2; \}/, "unreadable rules fail the job with exit 2");
+  assert.match(branching, /KAAL_RULES=\$RUNNER_TEMP\/rules\.json/, "the rules reach the checker");
 });
