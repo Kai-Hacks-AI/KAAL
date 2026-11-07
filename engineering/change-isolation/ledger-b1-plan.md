@@ -52,7 +52,9 @@ A stale success cannot survive because R2 never exists before the merge attempt 
 
 ## Acceptance Cases (live on #1109 once implemented, plus by-hand RED Cases)
 
-Each Case records the head SHA, every R1 and R2 check-run id with status, conclusion and timestamps, both Required rows on the merge box and the queue state, and run links. The trial PR is queued by hand and removed from the queue before it can merge; it is never merged (a protected requirement of the trial: the unattested cases fail the queue, and for the attested case the Owner removes it from the queue or R2 is the last check observed and the entry is dequeued by a pushed no-op to the head).
+Each Case records the head SHA, every R1 and R2 check-run id with status, conclusion and timestamps, both Required rows on the merge box and the queue state, and run links.
+
+**The trial cannot merge, by construction (not by dequeueing).** The trial PR is re-based to a disposable target branch, `trial/ledger-queue`, cut from `main`'s tip, with its own ruleset that is an exact copy of `main`'s (exported by the Owner, same required checks, code-owner review, dismissal of stale reviews, thread resolution) plus the merge queue and R2. Merging into that branch promotes nothing: `main`, the ledger on `main` and every package stay untouched, and the branch is deleted afterwards. A queue run that goes green would merge only into the throwaway. Its target tip is `main`'s tip, so the checker reads the same ledger. The copy is verified identical to `main`'s ruleset (diff of the two exports) before the first Case. #1109 keeps its evidence; the Cases run on a fresh trial PR from the same content (#1109 is not repurposed). A last confirmation on `main` itself is limited to B1-9 (an ordinary PR, which really merges) and to observing R2 required on `main`; no ledger-bearing trial is ever queued on `main`.
 
 - B1-1 baseline, no review: R1 green (deferred), queue blocked with R2 red.
 - B1-2 attest: approval with the exact line; at queue time R2 green.
@@ -77,6 +79,10 @@ Each Case records the head SHA, every R1 and R2 check-run id with status, conclu
 ## Out of scope
 
 No ruleset change, merge-queue enablement, Hosting promotion or npm publication. #1109 stays open, unmerged, auto-merge off; its branches are kept. Codex's P2 on activation order is resolved by step 2 and 3 above (thread resolved).
+
+## Merge queue: what is established and what is not
+
+Established from this repository: nothing enables or mentions a queue today. Not established: availability for `main` on this organization's plan, its interaction with the ruleset, auto-merge and required checks. The GitHub documentation could not be read from this session (docs.github.com is outside the allowed network), and nothing here is taken from memory. The Owner can establish it read-only: open the `main` ruleset in Settings, Rules; if "Require merge queue" is offered, the feature is available, and nothing is saved. Points to confirm there: it is a ruleset rule (not legacy branch protection), the required checks must also be reported for the `merge_group` event (the R2 workflow triggers on it), auto-merge enters the queue, and the squash merge method is allowed.
 
 ## Decisions
 
