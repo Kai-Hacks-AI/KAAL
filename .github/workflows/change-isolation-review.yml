@@ -124,6 +124,7 @@ jobs:
           ATTESTED: ${{ steps.attest.outputs.attested }}
           NUMBER: ${{ steps.pending.outputs.number }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_ATTESTATION: deferred
         run: |
           BASE_REF=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq .base.ref)
           BASE=$(git rev-parse --verify "origin/$BASE_REF^{commit}")
