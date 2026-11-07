@@ -75,7 +75,9 @@ test("engineering/T140 F2: the admission job reads nothing, runs nothing of the 
   const lines = runs[0][1].split("\n").map((l) => l.trim()).filter(Boolean);
   assert.ok(lines.length > 0, "a notice step exists");
   for (const l of lines) assert.match(l, /^echo "[A-Za-z0-9 .,'()_-]*"$/, `only a plain echo of literal text may run, got: ${l}`);
-  assert.equal((steps.match(/^\s+- name:/gm) ?? []).length, 1, "a single step");
+  assert.equal((steps.match(/^\s*- /gm) ?? []).length, 1, "a single step, named or not");
+  assert.equal((steps.match(/\brun:/g) ?? []).length, 1, "a single run key, block or inline");
+  assert.deepEqual([...steps.matchAll(/^\s+(?:- )?([A-Za-z-]+):/gm)].map((m) => m[1]), ["name", "run"], "the step holds only a name and a run");
   assert.match(ADMIT, /not an attestation/, "the notice says it is not an attestation");
 });
 
