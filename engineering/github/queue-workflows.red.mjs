@@ -91,8 +91,10 @@ test("engineering/T141 F2: the merge group review workflow keeps its kind: merge
 
 test("engineering/T142 F2: exactly two workflows report the context, one per event, and no other job answers to it", () => {
   const files = readdirSync(WF).filter((f) => /\.ya?ml$/.test(f));
-  const bearers = files.filter((f) => /\n    name: Change Isolation \(review\)\n/.test(strip(wf(f)))).sort();
+  const count = (f) => (strip(wf(f)).match(/\n    name: Change Isolation \(review\)\n/g) ?? []).length;
+  const bearers = files.filter((f) => count(f) > 0).sort();
   assert.deepEqual(bearers, ["merge-group-admission.yml", "merge-group-review.yml"], "only these two name the context");
+  for (const f of bearers) assert.equal(count(f), 1, `${f} declares the context exactly once`);
   assert.ok(/pull_request_target/.test(ADMIT) && !/pull_request_target/.test(REVIEW), "they answer to different events");
   assert.ok(!/merge_group/.test(ADMIT) && !/pull_request/.test(REVIEW), "neither answers to the other's event");
 });
