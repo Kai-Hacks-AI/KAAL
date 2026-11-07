@@ -15,7 +15,7 @@ On #1109, with the approval standing and handler run 128210400582 = success, the
 | Context | Producer | Question it answers |
 |---|---|---|
 | R1 `KAAL / Change Isolation (pull_request_target)` (existing) | the PR job, trusted code from the default branch | Are the rules satisfied *if* every needed attestation exists? |
-| R2 `KAAL / Change Isolation (review) (merge_group)` (new) | a GitHub-created job of a workflow triggered by `merge_group`, running at merge time | Does every needed attestation exist, at the exact head being merged, NOW? |
+| R2 context `Change Isolation (review)` (new; job name exactly this) | a GitHub-created job of a workflow triggered by `merge_group`, running at merge time | Does every needed attestation exist, at the exact head being merged, NOW? |
 
 Merge needs R1 and R2. Neither producer writes the other's context.
 
@@ -71,6 +71,7 @@ Each Case records the head SHA, every R1 and R2 check-run id with status, conclu
 ## Rollout, each step separately approved
 
 1. This PLAN reviewed by the CPO.
+2a. Make the queue safe to enable: a `.github` Change (alone) adding the `merge_group` trigger to every required-check workflow with the right merge-group behaviour, proven on the disposable target first.
 2. Deployment, activation held back. `.github` alone: the `merge_group` workflow (R2). Separately, the checker's deferred mode, shipped with R1 still STRICT (the PR job does not pass `--attestation deferred`). R2 exists but is not required and R1 behaves as today, so a carried entry still cannot pass and no gap opens.
 3. Owner enables the merge queue and requires R2 on `main`. R2 is observed blocking on a head with no attestation and green on an ordinary PR. Only then a separate small `.github` Change activates deferred mode in R1 (one flag), approved at its exact head. Rollback runs in reverse: restore strict R1, then the Owner removes the R2 requirement and the queue. R1 is never deferred while R2 is optional.
 4. Repeat the full live trial with all Cases, commit `first-use-acceptance.md` and T111.
@@ -82,10 +83,17 @@ No ruleset change, merge-queue enablement, Hosting promotion or npm publication.
 
 ## Merge queue: what is established and what is not
 
-Established from this repository: nothing enables or mentions a queue today. Not established: availability for `main` on this organization's plan, its interaction with the ruleset, auto-merge and required checks. The GitHub documentation could not be read from this session (docs.github.com is outside the allowed network), and nothing here is taken from memory. The Owner can establish it read-only: open the `main` ruleset in Settings, Rules; if "Require merge queue" is offered, the feature is available, and nothing is saved. Points to confirm there: it is a ruleset rule (not legacy branch protection), the required checks must also be reported for the `merge_group` event (the R2 workflow triggers on it), auto-merge enters the queue, and the squash merge method is allowed.
+Established on 2026-11-07 by reading the repository and the `main` ruleset (24951062) through the API, changing nothing:
+
+- The repository is public, owned by an Organization; squash is allowed. The ruleset API accepted a `merge_queue` rule on `main` (it was switched on briefly that morning and then switched off again by the Owner). The feature is therefore **available** for `main`. It is a ruleset rule (squash, `ALLGREEN`, up to 5 entries, 60-minute check timeout), not legacy branch protection.
+- Required checks on `main` are **bare context names pinned to integration 15368 (GitHub Actions)**: Change Isolation, Branching, Promotion Source, Hosting (Linux, Windows, macOS), Workspaces, Acceptance, Engineering, CodeQL (actions), CodeQL (javascript-typescript). R2's context is therefore the bare job name `Change Isolation (review)`, not a display name with the workflow and event.
+- **App pinning does not separate R2 from R1.** Every Actions-created check carries integration 15368, so pinning only excludes other apps. What separates R2 is that the `Change Isolation (review)` job exists only in the `merge_group` workflow, whose file is main's wherever attestation matters (see above).
+- **Prerequisite before the queue is switched on.** No workflow triggers on `merge_group` today, so the existing required checks would never report for a queue entry and PRs to `main` would wait for the 60-minute timeout. Before enabling the queue, every workflow that produces a required check (Branching, Promotion Source, Change Isolation, Hosting, Workspaces, Acceptance, Engineering, CodeQL) must also trigger on `merge_group` and judge the merge group correctly. That is its own `.github` Change (alone) with its own risk: each of those checks reads PR facts (head, base, PR number) that a merge-group run does not have, so each needs a merge-group mode or an explicit pass-through. It is a larger piece of work than R2 itself and is a rollout step, below.
+
+Not established: how auto-merge and the code-owner review interact with queue entry in practice. The disposable-target trial (above) finds that out without touching `main`.
 
 ## Decisions
 
-1. Owner/CPO: confirm the merge queue is available for `main` on this plan, and accept it as the revocation mechanism. If it is not available, the fallback is a promote job (trusted, `workflow_dispatch`) that re-reads the attestation and merges with the head sha pinned in one job, and R2 exists only inside that job. That fallback leaves a seconds-wide window and needs its own PLAN.
-2. Owner: pin R2 to the GitHub Actions app in the ruleset, if supported.
+1. Owner/CPO: accept the merge queue (now confirmed available) as the revocation mechanism, including the prerequisite 2a. If it is not available, the fallback is a promote job (trusted, `workflow_dispatch`) that re-reads the attestation and merges with the head sha pinned in one job, and R2 exists only inside that job. That fallback leaves a seconds-wide window and needs its own PLAN.
+2. Owner: pinning R2 to the GitHub Actions app is supported but separates nothing (see above); optional.
 3. The ruleset change and queue enablement stay separate Owner authorizations.
