@@ -8,7 +8,7 @@ The second queue window stopped at the control: once a pull request is in the qu
 
 ## Content
 
-`engineering/github/bind-group.red.mjs`, hand-run (no suite or lane names it), three new Cases beside T143 to T153:
+`engineering/github/bind-group.red.mjs`, hand-run (no suite or lane names it), four new Cases beside T143 to T153:
 
 - T154: a queued pull request with the field cleared exports `KAAL_AUTO_MERGE=merge`; `effectiveMethod` then returns the squash queue's `squash` and the merge queue's `merge`.
 - T155: a reported method is kept (`squash` stays `squash`); the review job exports exactly `PR_NUMBER`, `PR_HEAD`, `BASE_REF`.
