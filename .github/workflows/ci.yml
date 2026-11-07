@@ -16,6 +16,8 @@ on:
   push:
     branches: [main, "kaal/**"]
   pull_request:
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read

@@ -1,0 +1,142 @@
+# The merge queue's counterpart of the pull request checks, one job per context the main ruleset requires
+# of KAAL's own gates (Change Isolation, Branching, Promotion Source), each judging the MERGE GROUP, never
+# passing it through. It runs only for a merge_group event (so no job here is ever skipped and there is no
+# second, skipped run of the same name beside a pull request's run), runs the default branch's checker as the
+# pull request jobs do (nothing from the group executes), and fails closed: a fact it cannot read, a queued
+# pull request it cannot find, or a group that does not contain that pull request's head is a failure.
+# The ci and CodeQL workflows gain their merge_group trigger in their own files (same jobs, run on the group).
+# Plan: engineering/change-isolation/ledger-b1-2a-plan.md. Inert until the Owner enables a merge queue.
+name: KAAL merge group
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+permissions: {}
+
+jobs:
+  change-isolation:
+    name: Change Isolation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Fetch the group and its base
+        env:
+          GROUP_HEAD: ${{ github.event.merge_group.head_sha }}
+          GROUP_BASE: ${{ github.event.merge_group.base_sha }}
+        run: |
+          git fetch -q --no-tags origin "$GROUP_BASE" "$GROUP_HEAD" || {
+            echo "::error title=Change Isolation: cannot judge::the merge group cannot be fetched"; exit 2; }
+
+      - name: Judge the merge group against its base
+        env:
+          HEAD: ${{ github.event.merge_group.head_sha }}
+          BASE: ${{ github.event.merge_group.base_sha }}
+          BASE_REF: ${{ github.event.merge_group.base_ref }}
+          # The default branch, except the disposable trial target, which is treated as the default branch so
+          # that the trial exercises the same predicates as main. Remove with the trial record.
+          KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+        run: npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "${BASE_REF#refs/heads/}"
+
+  branching:
+    name: Branching
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Find the queued pull request and bind it to the group
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GROUP_REF: ${{ github.event.merge_group.head_ref }}
+          GROUP_HEAD: ${{ github.event.merge_group.head_sha }}
+          GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+        run: |
+          fail() { echo "::error title=Branching: cannot judge::$1"; exit 2; }
+          N=$(printf '%s' "$GROUP_REF" | sed -n 's#^.*/pr-\([0-9][0-9]*\)-[0-9a-f]\{7,\}$#\1#p')
+          [ -n "$N" ] || fail "the queued pull request cannot be read from the group's ref $GROUP_REF"
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$N" > pull.json || fail "pull request $N cannot be read"
+          [ "refs/heads/$(jq -r .base.ref pull.json)" = "$GROUP_BASE_REF" ] || fail "pull request $N does not target the group's base"
+          PRHEAD=$(jq -r .head.sha pull.json)
+          git fetch -q --no-tags origin "$PRHEAD" "$GROUP_HEAD" || fail "the pull request's head or the group cannot be fetched"
+          git merge-base --is-ancestor "$PRHEAD" "$GROUP_HEAD" || fail "the group does not contain pull request $N at its head $PRHEAD"
+          {
+            echo "PR_HEAD=$PRHEAD"
+            echo "KAAL_HEAD_REF=$(jq -r .head.ref pull.json)"
+            echo "KAAL_AUTO_MERGE=$(jq -r '.auto_merge.merge_method // empty' pull.json)"
+          } >> "$GITHUB_ENV"
+
+      - name: Judge the proposed result with the default branch's checker
+        env:
+          BASE_REF: ${{ github.event.merge_group.base_ref }}
+          KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+        run: npx --no kaal-guard run --check Branching --github --head "$PR_HEAD" --base "$(git rev-parse "origin/${KAAL_DEFAULT}")" --base-ref "${BASE_REF#refs/heads/}"
+
+  promotion-source:
+    name: Promotion Source
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Find the queued pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GROUP_REF: ${{ github.event.merge_group.head_ref }}
+          GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+        run: |
+          fail() { echo "::error title=Promotion Source: cannot judge::$1"; exit 2; }
+          N=$(printf '%s' "$GROUP_REF" | sed -n 's#^.*/pr-\([0-9][0-9]*\)-[0-9a-f]\{7,\}$#\1#p')
+          [ -n "$N" ] || fail "the queued pull request cannot be read from the group's ref $GROUP_REF"
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$N" > pull.json || fail "pull request $N cannot be read"
+          [ "refs/heads/$(jq -r .base.ref pull.json)" = "$GROUP_BASE_REF" ] || fail "pull request $N does not target the group's base"
+          {
+            echo "KAAL_HEAD_REPO=$(jq -r .head.repo.full_name pull.json)"
+            echo "KAAL_HEAD_REF=$(jq -r .head.ref pull.json)"
+          } >> "$GITHUB_ENV"
+
+      - name: Judge the source with the default branch's checker
+        env:
+          BASE_REF: ${{ github.event.merge_group.base_ref }}
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+        run: npx --no kaal-guard run --check Promotion-Source --github --base "$(git rev-parse HEAD)" --base-ref "${BASE_REF#refs/heads/}"
