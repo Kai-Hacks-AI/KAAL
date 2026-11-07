@@ -20,7 +20,25 @@ const SYNC = strip(wf("lineage-synchronization.yml"));
 const GROUP = strip(wf("merge-group.yml"));
 const ADMIT = strip(wf("merge-group-admission.yml"));
 const REVIEW = strip(wf("merge-group-review.yml"));
-const block = (text, id) => text.slice(text.indexOf(`\n  ${id}:\n`)).split(/\n  (?=[a-z][a-z-]*:\n)/)[1];
+// The text of one job: from its own header line up to (not including) the next job header, or the end. Fails if the job is absent.
+const block = (text, id) => {
+  const header = `\n  ${id}:\n`;
+  const start = text.indexOf(header);
+  assert.ok(start >= 0, `job ${id} exists`);
+  const rest = text.slice(start + header.length);
+  const next = rest.search(/\n  [a-z][a-z-]*:\n/);
+  const body = next < 0 ? rest : rest.slice(0, next);
+  assert.ok(!/\n  [a-z][a-z-]*:\n/.test(body), `job ${id} holds no other job header`);
+  return `${id}:\n${body}`;
+};
+
+test("engineering/T137 helper: block() returns exactly the requested job", () => {
+  assert.match(block(GROUP, "branching"), /^branching:\n    name: Branching\n/, "starts at the requested job");
+  assert.doesNotMatch(block(GROUP, "branching"), /name: Change Isolation|promotion-source:/, "contains neither neighbour");
+  assert.match(block(GROUP, "promotion-source"), /^promotion-source:\n/, "the last job is returned too");
+  assert.match(block(SYNC, "lineage-synchronization"), /^lineage-synchronization:\n/, "the pull request job");
+  assert.throws(() => block(GROUP, "no-such-job"), /exists/, "an absent job fails");
+});
 
 test("engineering/T137 F1b: both Branching jobs read the base branch's rules before judging, only for the default branch, and fail closed", () => {
   for (const [label, t] of [["pull request", block(SYNC, "lineage-synchronization")], ["merge group", block(GROUP, "branching")]]) {
