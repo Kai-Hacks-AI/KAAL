@@ -72,3 +72,51 @@ test("engineering/T116 C5: the promotion predicate, with the real default branch
   const elsewhere = lineage("source", "o/r", "main", "kaal/x", "fork/r", "kaal/y");
   assert.equal(elsewhere.status, 3, "control: a target that is not the default branch is not a promotion");
 });
+
+// R2, the merge-time review job (B1 step 3). Static Cases over merge-group-review.yml; its live behaviour is the trial on main.
+const REVIEW = wf("merge-group-review.yml");
+
+test("engineering/T123 R2: the review job is exactly `Change Isolation (review)`, runs only on the merge group, is never skipped and writes no check", () => {
+  assert.match(REVIEW, /^on:\n  merge_group:\n    types: \[checks_requested\]\n\npermissions: \{\}/m, "triggers only on merge_group, no default permissions");
+  assert.deepEqual([...REVIEW.matchAll(/\n    name: (.+)/g)].map((m) => m[1]), ["Change Isolation (review)"], "one job with the exact context name");
+  assert.doesNotMatch(REVIEW, /\n\s+if:/, "no job or step is skipped with if:");
+  assert.doesNotMatch(REVIEW, /continue-on-error|^\s*exit 0\s*$|run:\s*(true|exit 0)\s*$/m, "nothing swallows a failure or passes unconditionally (the wait step's `exit 0` is conditional on every required check having succeeded)");
+  assert.doesNotMatch(REVIEW, /(checks|statuses|contents|pull-requests|actions):\s*write/, "read-only permissions: no write on the safety path");
+  assert.doesNotMatch(REVIEW, /-X (POST|PATCH|PUT)|--method (POST|PATCH|PUT)|check-runs"?\s+(-f|--field|-F)/, "no API write at all");
+});
+
+test("engineering/T124 R2: the job binds the queued pull request to the group and reads its approvals twice, the last read being the final act", () => {
+  assert.match(REVIEW, /git merge-base --is-ancestor "\$PRHEAD" "\$GROUP_HEAD"/, "the group must contain the PR head");
+  const reads = REVIEW.match(/engineering\/change-isolation\/attest\.mjs --pr "\$PR_NUMBER"/g) ?? [];
+  assert.equal(reads.length, 2, "approvals read twice");
+  const last = REVIEW.lastIndexOf("attest.mjs --pr");
+  assert.equal(REVIEW.indexOf("npx --no kaal-guard run --check Change-Isolation") < last, true, "the judgment comes before the last read");
+  assert.equal(REVIEW.slice(last).includes("kaal-guard"), false, "nothing but comparisons follows the last read");
+  assert.match(REVIEW, /\[ "\$FIRST_HEAD" = "\$PR_HEAD" \]/, "the first read returns the queued head");
+  assert.match(REVIEW, /\[ "\$SECOND_HEAD" = "\$PR_HEAD" \]/, "the second read returns the queued head");
+  assert.match(REVIEW, /\[ "\$SECOND_ATTESTED" = "\$FIRST_ATTESTED" \]/, "the attestation must not change");
+});
+
+test("engineering/T125 R2: the job is the last required check to finish, fails when another required check failed, and names only itself as excluded", () => {
+  assert.match(REVIEW, /rules\/branches\/\$BASE_REF/, "the required checks are read from the branch's effective rules");
+  assert.match(REVIEW, /grep -vx 'Change Isolation \(review\)'/, "only itself is left out of the wait");
+  assert.match(REVIEW, /did not succeed on the group, so the group cannot merge/, "a failed required check fails the job");
+  assert.match(REVIEW, /\[ -s required\.txt \] \|\| fail/, "an empty list of required checks fails closed");
+  assert.match(REVIEW, /fail "the group's other required checks did not finish in time"/, "a timeout fails closed");
+});
+
+test("engineering/T126 R2: the trusted checker is the default branch's, and the group is judged against the group's own base", () => {
+  assert.match(REVIEW, /ref: \$\{\{ github\.event\.repository\.default_branch \}\}/, "checks out the real default branch");
+  assert.match(REVIEW, /KAAL_DEFAULT: \$\{\{ github\.event\.repository\.default_branch \}\}/, "the real default branch");
+  assert.match(REVIEW, /--check Change-Isolation --github --head "\$HEAD" --base "\$BASE" --base-ref "\$BASE_REF"/, "judges group head against group base");
+  assert.match(REVIEW, /BASE: \$\{\{ github\.event\.merge_group\.base_sha \}\}/, "base is the group's base sha");
+  assert.match(REVIEW, /HEAD: \$\{\{ github\.event\.merge_group\.head_sha \}\}/, "head is the group's head sha");
+  assert.match(REVIEW, /ATTESTED: \$\{\{ steps\.first\.outputs\.attested \}\}/, "the attestation judged is the one derived from the approvals");
+});
+
+test("engineering/T127 R2: the wait fits inside the queue's own timeout, so the queue never gives up first", () => {
+  const m = REVIEW.match(/timeout-minutes: (\d+)/);
+  assert.ok(m && Number(m[1]) <= 55, "timeout-minutes is below the queue's 60-minute check timeout");
+  const loop = REVIEW.match(/seq 1 (\d+)/), sleep = REVIEW.match(/sleep (\d+)/);
+  assert.ok(loop && sleep && Number(loop[1]) * Number(sleep[1]) <= Number(m[1]) * 60, "the poll loop cannot outlast the job");
+});
