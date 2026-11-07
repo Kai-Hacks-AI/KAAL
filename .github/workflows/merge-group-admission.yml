@@ -1,0 +1,32 @@
+# The pull request side of the required check `Change Isolation (review)`.
+#
+# That check only reports on merge groups (merge-group-review.yml), so as a required check it would never exist on
+# a pull request head and nothing could be enqueued. This workflow gives the pull request head the same context so
+# the pull request can ENTER the queue. It is an admission to the queue, not an attestation and not permission to
+# merge: it reads nothing, judges nothing, and a ledger-bearing promotion is authorized only by the merge group's own
+# run of merge-group-review.yml, which GitHub evaluates on the group's commit (a different SHA than this head), so
+# this success cannot satisfy it.
+#
+# Deliberately a workflow of its own, so that the pull request path and the merge group path never share a token or
+# an event: a step-level `if` would not narrow a job's token. This file holds no permission at all (`{}` here and on
+# the job), no checkout, no secret and no step that reads or runs anything of the pull request. pull_request_target
+# runs the default branch's copy of this workflow, as Branching does.
+name: KAAL merge group admission
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+jobs:
+  admission:
+    name: Change Isolation (review)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Admit to the merge queue only
+        run: |
+          echo "Admission to the merge queue only. This is not an attestation and carries no authorization."
+          echo "The merge group's own run of Change Isolation (review) judges the pull request at merge time."
