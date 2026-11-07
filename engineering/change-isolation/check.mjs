@@ -266,37 +266,54 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(message);
     process.exit(2);
   };
-  const usage = "usage: check.mjs [--ledger <file> --git <base> <head> [--candidate-ledger <file> --attested <id>:<sha256>]] < paths";
+  const usage = "usage: check.mjs [--ledger <file> --git <base> <head> [--candidate-ledger <file> (--attested <id>:<sha256> | --attestation deferred)]] < paths";
   const args = process.argv.slice(2);
   let ledger = [];
   let facts;
-  let carriedEntry, attestedFact;
+  let carriedEntry, attestedFact, deferred = false, deferredFiles;
   if (args.length) {
     if (args.length < 5 || args[0] !== "--ledger" || args[2] !== "--git") refuse(usage);
     const [, file, , base, head, ...rest] = args;
     let candidateFile;
     for (let i = 0; i < rest.length; i += 2) {
       if (rest[i] === "--candidate-ledger" && candidateFile === undefined && rest[i + 1]) candidateFile = rest[i + 1];
-      else if (rest[i] === "--attested" && attestedFact === undefined && rest[i + 1]) attestedFact = rest[i + 1];
+      else if (rest[i] === "--attested" && attestedFact === undefined && !deferred && rest[i + 1]) attestedFact = rest[i + 1];
+      else if (rest[i] === "--attestation" && rest[i + 1] === "deferred" && attestedFact === undefined && !deferred) deferred = true;
       else refuse(usage);
     }
+    if (deferred && candidateFile === undefined) refuse(usage);
     try { ledger = readLedger(readFileSync(file, "utf8")); } catch (e) { refuse(e instanceof CannotJudge ? e.message : `ledger unreadable: ${e.code ?? e.message}`); }
     facts = (path) => ({ base: gitBlob(base, path), head: gitBlob(head, path) });
     if (attestedFact !== undefined) {
       const m = /^([a-z0-9][a-z0-9-]*):([0-9a-f]{64})$/.exec(attestedFact);
       if (!m || candidateFile === undefined) refuse(usage);
       attestedFact = { id: m[1], digest: m[2] };
+    }
+    if (attestedFact !== undefined) {
       try {
         const r = appendedEntry(readFileSync(file, "utf8"), readFileSync(candidateFile, "utf8"));
         if (r.entry) carriedEntry = r.entry;
         else { console.error(`carried ledger entry: ${r.violation}`); process.exit(1); }
       } catch (e) { refuse(e instanceof CannotJudge ? e.message : `candidate ledger unreadable: ${e.code ?? e.message}`); }
     }
+    deferredFiles = deferred ? { file, candidateFile } : undefined;
   }
   const input = readFileSync(0, "utf8");
   const paths = input.split(input.includes("\0") ? "\0" : "\n").filter(Boolean);
   const unnormal = paths.find((p) => p.split("/").some((s) => s === "" || s === "." || s === ".."));
   if (unnormal !== undefined) refuse(`not a repository-relative path: ${unnormal}`);
+  // Deferred: the entry is the ledger's one appended entry, but only when the change itself touches the ledger. A pull
+  // request that predates a ledger addition on the target differs from it without having changed it, and is judged by the
+  // default rules like any ordinary change. Judge everything except the attestation: the entry is assumed attested with its
+  // own digest, so its shape, paths, blobs and exclusions are all enforced; the pending line is printed for the review check.
+  if (deferredFiles && paths.includes(LEDGER)) {
+    try {
+      const r = appendedEntry(readFileSync(deferredFiles.file, "utf8"), readFileSync(deferredFiles.candidateFile, "utf8"));
+      if (!r.entry) { console.error(`carried ledger entry: ${r.violation}`); process.exit(1); }
+      carriedEntry = r.entry;
+      attestedFact = { id: carriedEntry.id, digest: entryDigest(carriedEntry) };
+    } catch (e) { refuse(e instanceof CannotJudge ? e.message : `candidate ledger unreadable: ${e.code ?? e.message}`); }
+  }
   let violations;
   try { violations = check(paths, { ledger, facts, carried: carriedEntry, attested: attestedFact }); } catch (e) {
     if (e instanceof CannotJudge) refuse(e.message);
@@ -305,4 +322,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const v of violations) console.error(v);
   if (violations.length) process.exit(1);
   console.log(`ok: ${paths.length} changed paths conform`);
+  if (deferred && carriedEntry) console.log(`attestation deferred: ledger-entry: ${carriedEntry.id} sha256:${attestedFact.digest} (the review check judges it)`);
 }
