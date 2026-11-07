@@ -4389,6 +4389,21 @@
         "packages/kaal-testing/test/boundary.test.mjs": "9e3706e6f90023172f09a52f562dbec861471202",
         "packages/kaal-testing/test/testing.test.mjs": "688c5bdd0e8ce6e3d026a4a160d60675c0291b12"
       }
+    },
+    {
+      "id": "ledger-trial-2026-11-07",
+      "paths": [
+        "engineering/change-isolation/trial-note.md",
+        "packages/kaal-core/bench/ledger-trial-note.md"
+      ],
+      "pre": {
+        "engineering/change-isolation/trial-note.md": null,
+        "packages/kaal-core/bench/ledger-trial-note.md": null
+      },
+      "post": {
+        "engineering/change-isolation/trial-note.md": "6567ca6a9894bf95c3a285dd34cdb020a9260ac5",
+        "packages/kaal-core/bench/ledger-trial-note.md": "1380952a95da4c7b0282fdfad5c0e9fc6946e974"
+      }
     }
   ]
 }
