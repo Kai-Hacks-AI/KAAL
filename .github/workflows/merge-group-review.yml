@@ -111,5 +111,7 @@ jobs:
           GITHUB_OUTPUT=second.out node engineering/change-isolation/attest.mjs --pr "$PR_NUMBER" > /dev/null || exit 2
           SECOND_ATTESTED=$(sed -n 's/^attested=//p' second.out)
           SECOND_HEAD=$(sed -n 's/^head=//p' second.out)
+          [ "$FIRST_HEAD" = "$PR_HEAD" ] || fail "the approvals were read for $FIRST_HEAD, not the queued head $PR_HEAD"
+          [ "$SECOND_HEAD" = "$PR_HEAD" ] || fail "the pull request head moved from the queued head $PR_HEAD while judging"
           [ "$SECOND_HEAD" = "$FIRST_HEAD" ] || fail "the pull request head moved while judging"
           [ "$SECOND_ATTESTED" = "$FIRST_ATTESTED" ] || fail "the attestation changed while judging"
