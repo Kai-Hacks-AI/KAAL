@@ -48,6 +48,7 @@ jobs:
           BASE: ${{ github.event.merge_group.base_sha }}
           BASE_REF: ${{ github.event.merge_group.base_ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_ATTESTATION: deferred
         run: npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "${BASE_REF#refs/heads/}"
 
   branching:
