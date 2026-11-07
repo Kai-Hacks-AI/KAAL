@@ -242,6 +242,27 @@ export function methodFor(defaultBranch: string, baseRef: string, sync: Verdict 
   return sync.kind === "pass" ? "merge" : sync.kind === "not-applicable" ? "squash" : null;
 }
 
+/** The method auto-merge effectively lands by. GitHub reports the PR's auto-merge method as "merge"
+ *  whatever was asked once the base branch has a merge queue, so under a queue the reported label says
+ *  nothing; the queue's own configured method, read from the trusted `rules/branches/<base>` response,
+ *  decides. Without rules (`null`) the reported label stands, as before. Auto-merge off stays off.
+ *  Throws, so the verdict is unjudgeable, on rules that are not a list, hold more than one queue rule
+ *  that disagree, or name a method this check does not know. */
+export function effectiveMethod(reported: Method | null, rules: unknown | null, baseRef: string, defaultBranch: string): Method | null {
+  if (rules === null || baseRef !== defaultBranch) return reported;
+  if (!Array.isArray(rules)) throw new Error(`the rules of ${baseRef} are not a list`);
+  const methods = new Set<Method>();
+  for (const r of rules) {
+    if (r?.type !== "merge_queue") continue;
+    const m = String(r?.parameters?.merge_method ?? "").toLowerCase();
+    if (m !== "squash" && m !== "merge" && m !== "rebase") throw new Error(`the merge queue of ${baseRef} names a merge method this check does not know: ${JSON.stringify(r?.parameters?.merge_method)}`);
+    methods.add(m);
+  }
+  if (methods.size > 1) throw new Error(`the merge queues of ${baseRef} disagree on the merge method`);
+  if (methods.size === 0) return reported;
+  return reported === null ? null : [...methods][0];
+}
+
 export interface AutoMergeFacts {
   baseRef: string;
   head: string;
@@ -811,12 +832,13 @@ async function main(argv: string[]): Promise<number> {
     const s = synchronization(readSync(cwd, def, lineage, rev(cwd, defaultTip), rev(cwd, lineageTip), rev(cwd, head)));
     if (out) writeFileSync(out, s.kind === "pass" ? s.resolutions.map((p) => `${p}\0`).join("") : "");
     v = s;
-  } else if (verdict === "auto-merge" && args.length === 6) {
-    const [def, baseRef, defaultTip, baseTip, head, enabled] = args;
+  } else if (verdict === "auto-merge" && (args.length === 6 || args.length === 7)) {
+    const [def, baseRef, defaultTip, baseTip, head, enabled, rulesFile] = args;
     if (enabled !== "none" && !["squash", "merge", "rebase"].includes(enabled)) throw new Error(`not a merge method: ${enabled}`);
     const h = rev(cwd, head);
     v = autoMerge({
-      baseRef, head: h, enabled: enabled === "none" ? null : (enabled as Method),
+      baseRef, head: h,
+      enabled: effectiveMethod(enabled === "none" ? null : (enabled as Method), rulesFile === undefined ? null : json(rulesFile), baseRef, def),
       expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
     });
   } else if (verdict === "landing" && args.length === 6) {
@@ -851,7 +873,7 @@ async function main(argv: string[]): Promise<number> {
       "       lineage.ts freshness <default> <default-tip> <head-ref> <head>\n" +
       "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]\n" +
       "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
-      "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none>\n" +
+      "       lineage.ts auto-merge <default> <base-ref> <default-tip> <base-tip> <head> <enabled-method|none> [<rules.json>]\n" +
       "       lineage.ts landing <default> <base-ref> <default-tip> <before> <after> <pulls.json>\n" +
       "       lineage.ts claim <default> <base-ref> <default-tip> <base-tip> <head>\n" +
       "       lineage.ts establishment <default> <ref> <activity.json>\n" +
