@@ -91,6 +91,21 @@ jobs:
             echo "KAAL_AUTO_MERGE=$(jq -r '.auto_merge.merge_method // empty' pull.json)"
           } >> "$GITHUB_ENV"
 
+      # The queue's configured method, from the trusted rules of the group's base (see lineage-synchronization.yml).
+      # Unreadable rules fail the job.
+      - name: Read the base branch's rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          BASE="${GROUP_BASE_REF#refs/heads/}"
+          if [ "$BASE" = "$KAAL_DEFAULT" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/rules/branches/$BASE" > "$RUNNER_TEMP/rules.json" \
+              || { echo "::error title=Branching: cannot judge::the rules of $BASE cannot be read"; exit 2; }
+            echo "KAAL_RULES=$RUNNER_TEMP/rules.json" >> "$GITHUB_ENV"
+          fi
+
       - name: Judge the proposed result with the default branch's checker
         env:
           BASE_REF: ${{ github.event.merge_group.base_ref }}
