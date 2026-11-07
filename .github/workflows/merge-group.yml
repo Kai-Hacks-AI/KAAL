@@ -47,9 +47,7 @@ jobs:
           HEAD: ${{ github.event.merge_group.head_sha }}
           BASE: ${{ github.event.merge_group.base_sha }}
           BASE_REF: ${{ github.event.merge_group.base_ref }}
-          # The default branch, except the disposable trial target, which is treated as the default branch so
-          # that the trial exercises the same predicates as main. Remove with the trial record.
-          KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
         run: npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "${BASE_REF#refs/heads/}"
 
   branching:
@@ -96,7 +94,7 @@ jobs:
       - name: Judge the proposed result with the default branch's checker
         env:
           BASE_REF: ${{ github.event.merge_group.base_ref }}
-          KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
         run: npx --no kaal-guard run --check Branching --github --head "$PR_HEAD" --base "$(git rev-parse HEAD)" --base-ref "${BASE_REF#refs/heads/}"
 
   promotion-source:
@@ -138,5 +136,5 @@ jobs:
         env:
           BASE_REF: ${{ github.event.merge_group.base_ref }}
           KAAL_REPO: ${{ github.repository }}
-          KAAL_DEFAULT: ${{ github.event.merge_group.base_ref == 'refs/heads/trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
         run: npx --no kaal-guard run --check Promotion-Source --github --base "$(git rev-parse HEAD)" --base-ref "${BASE_REF#refs/heads/}"

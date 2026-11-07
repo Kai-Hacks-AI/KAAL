@@ -61,6 +61,5 @@ jobs:
         env:
           HEAD: ${{ github.event.pull_request.head.sha }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
-          # The disposable trial target counts as the default branch so the trial exercises main's predicates; remove with the trial record.
-          KAAL_DEFAULT: ${{ github.event.pull_request.base.ref == 'trial/ledger-queue' && 'trial/ledger-queue' || github.event.repository.default_branch }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
         run: npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
