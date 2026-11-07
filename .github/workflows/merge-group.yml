@@ -70,26 +70,16 @@ jobs:
 
       - run: npm ci --ignore-scripts
 
+      # One implementation for both group jobs that need the queued pull request: .github/scripts/bind-group.sh (the default
+      # branch's copy, from the checkout above). It accepts the two shapes the queue produces and fails closed on any other.
       - name: Find the queued pull request and bind it to the group
         env:
           GH_TOKEN: ${{ github.token }}
           GROUP_REF: ${{ github.event.merge_group.head_ref }}
           GROUP_HEAD: ${{ github.event.merge_group.head_sha }}
+          GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
           GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
-        run: |
-          fail() { echo "::error title=Branching: cannot judge::$1"; exit 2; }
-          N=$(printf '%s' "$GROUP_REF" | sed -n 's#^.*/pr-\([0-9][0-9]*\)-[0-9a-f]\{7,\}$#\1#p')
-          [ -n "$N" ] || fail "the queued pull request cannot be read from the group's ref $GROUP_REF"
-          gh api "repos/$GITHUB_REPOSITORY/pulls/$N" > pull.json || fail "pull request $N cannot be read"
-          [ "refs/heads/$(jq -r .base.ref pull.json)" = "$GROUP_BASE_REF" ] || fail "pull request $N does not target the group's base"
-          PRHEAD=$(jq -r .head.sha pull.json)
-          git fetch -q --no-tags origin "$PRHEAD" "$GROUP_HEAD" || fail "the pull request's head or the group cannot be fetched"
-          git merge-base --is-ancestor "$PRHEAD" "$GROUP_HEAD" || fail "the group does not contain pull request $N at its head $PRHEAD"
-          {
-            echo "PR_HEAD=$PRHEAD"
-            echo "KAAL_HEAD_REF=$(jq -r .head.ref pull.json)"
-            echo "KAAL_AUTO_MERGE=$(jq -r '.auto_merge.merge_method // empty' pull.json)"
-          } >> "$GITHUB_ENV"
+        run: .github/scripts/bind-group.sh branching
 
       # The queue's configured method, from the trusted rules of the group's base (see lineage-synchronization.yml).
       # Unreadable rules fail the job.
