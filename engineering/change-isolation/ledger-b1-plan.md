@@ -70,8 +70,9 @@ Every Case records the head SHA, every R1 and R2 check-run id with status, concl
 ## Rollout, each step separately approved
 
 1. This PLAN, reviewed by the CPO with its Cases.
-2. Implementation Change, `.github` alone (handler `workflow_run` trigger on `KAAL`; handler check named `Change Isolation (review)`), plus the checker's deferred mode as a separate non-`.github` Change. Both promote to `main` with exact-head CPO approval. Until the ruleset change, R2 exists but is not required, so ordinary PRs are unaffected.
-3. Owner authorizes the ruleset change: add `Change Isolation (review)` as a required status check on `main`. Before it, confirm R2 appears green on a harmless PR. Rollback: remove the requirement (Owner action); the checker reverts to today's behaviour by removing deferred mode.
+2. Deployment, with activation held back. Implementation Changes: `.github` alone (handler `workflow_run` trigger on `KAAL`; handler check named `Change Isolation (review)`), and the checker's deferred mode as a separate non-`.github` Change that ships with R1 still STRICT (the PR job does not pass `--attestation deferred`). Until step 3, R2 exists but is not required and R1 behaves exactly as today, so a carried entry still cannot pass and no gap opens.
+3. Owner authorizes the ruleset change: add `Change Isolation (review)` as a required status check on `main`. Before it, confirm R2 appears green on a harmless PR. Only AFTER R2 is required and observed blocking on a head with no attestation is deferred mode ACTIVATED in R1, by a separate small `.github` Change (one flag in the PR job), approved at its exact head. Deployment and activation are therefore separate steps, so R1 never relies on an R2 that is not yet mandatory.
+   Rollback runs in the reverse order: first restore strict R1 (remove the flag), then the Owner removes the R2 requirement. R1 is never deferred while R2 is optional.
 4. Repeat the full live trial on #1109 (rebased as needed) with all Cases above, then commit `first-use-acceptance.md` and T111.
 5. Only then Hosting #1030 returns for promotion assessment.
 
