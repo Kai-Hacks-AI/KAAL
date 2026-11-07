@@ -1,6 +1,6 @@
 # PLAN B1: a distinct required check for the ledger attestation
 
-Date: 2026-11-07, revised for the CPO review of head 01de708 (fail-closed revocation). Engineering PLAN for CPO review. It is Markdown only. It changes no checker, workflow, ruleset or ledger, and authorizes no ruleset change, promotion or publication. Inspected on `main` a4cfd5c; reacquire before use. Follows the CPO decision of 2026-11-07 (B1 accepted, C rejected) and the stopped live trial on #1109 (head 3cf570b).
+Date: 2026-11-07, revised for the CPO reviews of heads 01de708, bb1c8e6 and 5bd9c63 (fail-closed revocation, merge-time interval). Engineering PLAN for CPO review. It is Markdown only. It changes no checker, workflow, ruleset or ledger, and authorizes no ruleset change, promotion or publication. Inspected on `main` a4cfd5c; reacquire before use. Follows the CPO decision of 2026-11-07 (B1 accepted, C rejected) and the stopped live trial on #1109 (head 3cf570b).
 
 ## Intent
 
@@ -48,7 +48,21 @@ A `merge_group` run uses the workflow file from the merge-group commit (target p
 
 ## The stale-success contract, demonstrated
 
-A stale success cannot survive because R2 never exists before the merge attempt and is never carried over. Dismissal, replacement and head change are shown live (Cases below) by observing the queue-time R2, with the check-run history and merge-box reading recorded. The negative API-failure evidence is of two kinds, stated honestly: (a) a by-hand Case (T111) in which the R2 judging step runs against a stub `gh` failing every read, ending red, which shows the script; (b) the structural fact, checked in the workflow file by a static Case, that the R2 job has no `checks: write` permission and no step that creates a check run, so there is no write whose failure could leave a success standing. GitHub's own behaviour (a failed or missing job blocking a queue entry) is shown live by Case B1-5.
+A stale success cannot survive revocation BEFORE queue-time R2 because R2 never exists before the merge attempt and is never carried over; the interval AFTER R2 and before the merge is treated in its own section. Dismissal, replacement and head change are shown live (Cases below) by observing the queue-time R2, with the check-run history and merge-box reading recorded. The negative API-failure evidence is of two kinds, stated honestly: (a) a by-hand Case (T111) in which the R2 judging step runs against a stub `gh` failing every read, ending red, which shows the script; (b) the structural fact, checked in the workflow file by a static Case, that the R2 job has no `checks: write` permission and no step that creates a check run, so there is no write whose failure could leave a success standing. GitHub's own behaviour (a failed or missing job blocking a queue entry) is shown live by Case B1-5.
+
+## The interval between R2 success and the merge
+
+R2 is judged at queue time, but GitHub merges later, when every check of the merge group is green (and after the queue's minimum wait). Between R2 success and the merge an approval can change. Two kinds of change must be told apart.
+
+**A. Withdrawal of authority** (dismissal, changes-requested, a push that moves the head, loss of the code-owner approval). The platform enforces this at the merge decision itself and atomically, not our check: the `main` ruleset requires a code-owner approval, dismisses stale approvals on push, and requires thread resolution, and a queued PR that no longer meets the branch rules is removed from the queue. Our design adds no weaker path for these. This is demonstrated, not asserted: Cases B1-12 and B1-13 withdraw the approval AFTER R2 is green while the merge group is held in the queue's wait window, and must show the entry removed or the merge refused. If either does not hold, the design fails and the stop is recorded.
+
+**B. Replacement by an approval without the line.** The pinned code owner re-approves the same head, which still approves exactly the same bytes, entry included. Authority is not withdrawn; what is missing is the deliberate act of naming the entry. The platform cannot evaluate the line at merge, so this is the one interval where R2's success could outlive the line. Three measures bound it, none a promise of atomicity:
+
+1. **R2 is the last check to finish.** The `Change Isolation (review)` job waits (bounded, well inside the queue timeout) until every other required check of the merge group has completed and the queue's minimum wait has elapsed, then re-reads the reviews and judges. Because the group is merged when the last required check is green, the interval collapses to GitHub's merge latency, seconds, not minutes. The final read is the last act of the job; it makes no API write.
+2. **A post-merge audit** (push to `main`, `Branching audit`'s sibling): for every merge that carried a ledger entry, it verifies from the review history that a valid attestation was standing at the merge time (submitted before it, not superseded or dismissed before it). A violation fails loudly. It is detective and comes after the merge, so it is a backstop, not the control.
+3. **Case B1-14** replaces the approval without the line while the group is held and records what happens; the result decides the wording below.
+
+Stated as a limit: the line is checked at the last moment our code runs, not atomically with the merge. If the CPO holds that the line is itself the authority (not the exact-head approval of the same bytes), measure 1 leaves a window of seconds and the only way to close it completely is the promote-job design with the head sha pinned, which has the same window. No design on this platform makes a review-body line atomic with the merge. Decision 3 asks the CPO to accept this precisely.
 
 ## Acceptance Cases (live on #1109 once implemented, plus by-hand RED Cases)
 
@@ -66,12 +80,17 @@ Each Case records the head SHA, every R1 and R2 check-run id with status, conclu
 - B1-8 wrong digest or id: R2 red.
 - B1-9 an ordinary PR with no carried entry: R2 green at queue time; it does not block ordinary work.
 - B1-10 R1 deferred never over-admits: bad shape or a path set without an entry is red on R1 regardless of attestation (by-hand RED Case on the checker).
+- B1-12 withdrawal while queued: approval dismissed after R2 is green, group held in the wait window: entry removed or merge refused.
+- B1-13 changes-requested while queued, after R2 is green: entry removed or merge refused.
+- B1-14 replacement without the line while queued, after R2 is green: recorded outcome, bounded by measure 1; reported as evidence for Decision 3.
+- B1-0 equivalence: the effective rules of the disposable target (`rules/branches` for each branch, both rulesets applied) match `main`'s after normalising the branch name; the diff is committed in the record.
+- B1-15 substantive merge-group evaluation: for each existing required check, a RED Case where a defective change fails that check on the merge group commit itself (never a blanket pass).
 - B1-11 static: R2's workflow has no check-write permission and creates no check run.
 
 ## Rollout, each step separately approved
 
 1. This PLAN reviewed by the CPO.
-2a. Make the queue safe to enable: a `.github` Change (alone) adding the `merge_group` trigger to every required-check workflow with the right merge-group behaviour, proven on the disposable target first.
+2a. Make the queue safe to enable: a `.github` Change (alone) adding the `merge_group` trigger to every required-check workflow. Each check must judge the merge group commit substantively (build, test, scan, path-set and lineage on the group against its base), never pass through; a check that cannot be made substantive is not given a trigger and the queue is not enabled. Proven check by check with B1-15 on the disposable target first.
 2. Deployment, activation held back. `.github` alone: the `merge_group` workflow (R2). Separately, the checker's deferred mode, shipped with R1 still STRICT (the PR job does not pass `--attestation deferred`). R2 exists but is not required and R1 behaves as today, so a carried entry still cannot pass and no gap opens.
 3. Owner enables the merge queue and requires R2 on `main`. R2 is observed blocking on a head with no attestation and green on an ordinary PR. Only then a separate small `.github` Change activates deferred mode in R1 (one flag), approved at its exact head. Rollback runs in reverse: restore strict R1, then the Owner removes the R2 requirement and the queue. R1 is never deferred while R2 is optional.
 4. Repeat the full live trial with all Cases, commit `first-use-acceptance.md` and T111.
@@ -96,4 +115,5 @@ Not established: how auto-merge and the code-owner review interact with queue en
 
 1. Owner/CPO: accept the merge queue (now confirmed available) as the revocation mechanism, including the prerequisite 2a. If it is not available, the fallback is a promote job (trusted, `workflow_dispatch`) that re-reads the attestation and merges with the head sha pinned in one job, and R2 exists only inside that job. That fallback leaves a seconds-wide window and needs its own PLAN.
 2. Owner: pinning R2 to the GitHub Actions app is supported but separates nothing (see above); optional.
-3. The ruleset change and queue enablement stay separate Owner authorizations.
+3. CPO: accept the stated limit for kind B (replacement without the line) as bounded by measure 1 and the audit, or require the promote-job design, which has the same window.
+4. The ruleset change and queue enablement stay separate Owner authorizations.
