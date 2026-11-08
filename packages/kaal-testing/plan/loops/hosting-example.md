@@ -13,20 +13,23 @@ packages/kaal-hosting/
     defects/            D<n>-<slug>.md            Defect Nodes (from 06-defects/D*.md)
                                                   serves -> I; reveals -> F or N once it exists
   03-architecture/      A<n>-<slug>.md            realizes -> F or N
-  04-test/
-    package-check/      intent.test.mjs           Cases targeting I
-                        requirements.test.mjs     Cases targeting F, N
-                        defects.test.mjs          Cases targeting D (from 06-defects/*.mjs)
-                        architecture.test.mjs     Cases targeting A
-                        hosting.test.mjs          Cases targeting code (inner loop)
-    boundary-check/     unchanged
-    engineering-check/  loops.md                  the Loop Declaration (new)
-                        plan/ build.mjs publisher/  unchanged
+  04-test/              every suite has its own Cases in its own loop files; all of them
+                        cite items in the shared folders above
+    package-check/      intent, requirements, defects, architecture, hosting .test.mjs
+                        (Cases on the installed package; targets I, F/N, D, A, code)
+    boundary-check/     the same loop files for Cases on Hosting's boundary
+                        (mostly N and A, some F); targets in the same 01-03 folders
+    engineering-check/  the same loop files for Cases on how Hosting is built and shipped;
+                        targets are Engineering's own Nodes in Engineering's same-named
+                        folders (a cross-package outward Edge, for example
+                        hosting/T80 [engineering/N5])
+                        loops.md  the Loop Declaration (new)
+                        plan/ build.mjs publisher/  as today, moving into loop files
   05-src/               code, the innermost answer
   06-defects/           retired when the DO lands
 ```
 
-Each loop is a file, or a folder where one file would be too large (`defects/` holds ten Defects' Cases today). The declaration names locations as path prefixes, so either works.
+Suites differ in their Cases, not in their items: a loop is a file (or a folder) under each suite, and the item a Case cites always sits in a shared 01–03 folder, Hosting's or, from `engineering-check`, Engineering's. Each loop is a file, or a folder where one file would be too large (`defects/` holds ten Defects' Cases today). The declaration names locations as path prefixes, so either works.
 
 ## The declaration (proposal)
 
@@ -34,19 +37,19 @@ Each loop is a file, or a folder where one file would be too large (`defects/` h
 
 ```yaml
 levels:
-  - { name: intent,       kinds: [Intent],       locations: [04-test/package-check/intent.test.mjs] }
+  - { name: intent,       kinds: [Intent],       locations: [04-test/*/intent] }
   - { name: requirements, kinds: [Functional, Nonfunctional, Defect],
-      locations: [04-test/package-check/requirements.test.mjs, 04-test/package-check/defects.test.mjs] }
-  - { name: architecture, kinds: [Architecture], locations: [04-test/package-check/architecture.test.mjs] }
-  - { name: code,         kinds: [Code],         locations: [04-test/package-check/hosting.test.mjs] }
+      locations: [04-test/*/requirements, 04-test/*/defects] }
+  - { name: architecture, kinds: [Architecture], locations: [04-test/*/architecture] }
+  - { name: code,         kinds: [Code],         locations: [04-test/*/hosting] }
 ```
 
-Defect sits at the requirements level (it is next to Requirements, testing/F105), so a Defect's Cases may live in their own file without being a fifth level.
+A location names a loop in any suite (`*` is the suite folder), so the same levels serve `package-check`, `boundary-check` and `engineering-check`; an `engineering-check` Case may cite an Engineering item, which the Graph resolves across packages and which must still be of the Case's own level. Defect sits at the requirements level (it is next to Requirements, testing/F105), so a Defect's Cases may live in their own file without being a fifth level.
 
 ## What the parser rejects (testing/F106, testing/F107)
 
 - An Edge in `F45.md` that points at another Functional, at an Architecture element or at a Defect: same or inner level, except Defect to Requirement.
-- A Case in `requirements.test.mjs` whose title brackets cite `hosting/A26`: the target is of another level.
+- A Case in any suite's `requirements` file whose title brackets cite `hosting/A26`: the target is of another level.
 - A Case in `defects.test.mjs` citing a Requirement other than through its Defect.
 - An Architecture Node with a `realizes` Edge to a Node that is not resolved by the Graph: `unknown`.
 
