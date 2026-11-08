@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute, readFile } from "@kaihacksai/kaal-hosting";
-import { install } from "kaal-testing/acceptance";
+import { install } from "@kaihacksai/kaal-testing/acceptance";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 const root = new URL("../../", import.meta.url);
@@ -27,15 +27,15 @@ it("Engineering C51 frozen boundary, error handling and eight behavioural mutati
 });
 
 it("Engineering adapter consumes once-packed Testing and preserves real child exits and observations", async () => {
-  const host = await install(["kaal-testing", "@kaihacksai/kaal-hosting"]);
+  const host = await install(["@kaihacksai/kaal-testing", "@kaihacksai/kaal-hosting"]);
   const script = `
     import assert from "node:assert/strict";
     import { execute } from "@kaihacksai/kaal-hosting";
-    import * as testing from "kaal-testing/duplicates";
+    import * as testing from "@kaihacksai/kaal-testing/duplicates";
     import { run } from ${JSON.stringify(new URL("engineering/execution/adopt.mjs", root).href)};
     // Only the repository mechanism is imported by absolute URL. Testing and
     // Hosting resolve from this fresh installed host; no workspace fallback.
-    assert.ok(import.meta.resolve("kaal-testing/duplicates").startsWith(new URL("./node_modules/", import.meta.url).href));
+    assert.ok(import.meta.resolve("@kaihacksai/kaal-testing/duplicates").startsWith(new URL("./node_modules/", import.meta.url).href));
     const file = { path: "controlled-child", sha256: "1".repeat(64) };
     const context = { mode: "reuse", platform: process.platform, node: process.version };
     const requests = ["a", "b"].map(id => ({ id, owner: "controlled acceptance fixture", entrypoint: "controlled original child", files: [file], subject: "a".repeat(64), platform: process.platform, node: process.version }));

@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { execute } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = fileURLToPath(new URL("../..", import.meta.url));
-const REPO = join(PACKAGE, "..", "..", "..");
+const REPO = join(PACKAGE, "..", "..");
 const NAME = "@kaihacksai/kaal-testing";
 const HOSTING = "@kaihacksai/kaal-hosting";
 const DOCS = ["intent", "requirements", "architecture", "testing", "limitations", "operations"].map((d) => `docs/${d}.md`);
@@ -43,11 +43,19 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     assert.equal(pkg.name, NAME);
     assert.equal(pkg.version, "0.0.1");
     assert.equal(pkg.publishConfig?.access, "public");
-    assert.equal(pkg.repository?.directory, "packages/skills/kaal-testing");
-    assert.deepEqual(pkg.dependencies, { c8: "12.0.0", [HOSTING]: "0.0.1" }, "the runtime dependencies are exact, and Hosting is named as it publishes");
+    assert.equal(pkg.repository?.directory, "packages/kaal-testing");
+    assert.deepEqual(pkg.dependencies, { [HOSTING]: "0.0.1" }, "the runtime dependency is exact, and Hosting is named as it publishes");
+    assert.deepEqual(pkg.peerDependencies, { c8: "12.0.0" }, "c8 is an exact, optional peer");
     for (const v of Object.values({ ...pkg.dependencies, ...pkg.devDependencies })) assert.match(v, /^\d+\.\d+\.\d+$/, `${v} is an exact version, not a workspace, file or Git dependency`);
-    const r = await execute("git", ["grep", "-l", "-E", "[\"'`]kaal-testing(/[a-z.]+)?[\"'`]", "--", "*.mjs", "*.js", "*.ts", "*.json"], { cwd: REPO });
-    assert.equal(r.stdout.trim(), "", "no module specifier, dependency or workspace entry names kaal-testing by its old name");
+    const r = await execute("git", ["grep", "-n", "-I", "-E", "[\"'`]kaal-testing(/[a-z.]+)?[\"'`]", "--", "*.mjs", "*.js", "*.ts", "*.json", ":!package-lock.json"], { cwd: REPO });
+    // A match that is not an operational package reference is classified exactly: its path, its line and its owner's reason (plan/release-identity/exceptions.json).
+    const exceptions = json(join(PACKAGE, "plan/release-identity/exceptions.json")).exceptions;
+    const unclassified = r.stdout.split("\n").filter(Boolean).filter((l) => {
+      const [path, , ...rest] = l.split(":");
+      const line = rest.join(":").trim();
+      return !exceptions.some((e) => e.path === path && e.sha256 === sha256(line));
+    });
+    assert.deepEqual(unclassified, [], "no module specifier, dependency or workspace entry names kaal-testing by its old name, and every other match is classified");
   });
 
   it("testing/T75 [testing/F60]: the package ships its six documents; they cite no plan, Change or repository path as authority, and the README links each", async () => {
@@ -102,7 +110,7 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     const { observe, judge } = await import(`${NAME}/verifiers`);
     const out = mkdtempSync(join(tmpdir(), "kaal-testing-pack-"));
     const tarballs = [];
-    for (const dir of [PACKAGE, join(REPO, "packages/extensions/kaal-hosting")]) {
+    for (const dir of [PACKAGE, join(REPO, "packages/kaal-hosting")]) {
       const r = await execute("npm", ["pack", "--json", "--pack-destination", out], { cwd: dir });
       assert.equal(r.status, 0, r.stderr);
       tarballs.push(join(out, JSON.parse(r.stdout)[0].filename));

@@ -8,7 +8,7 @@
 // (Testing's run: its manifest, ledger and hosts).
 import { join } from "node:path";
 import { execute, initialize, kind, read, readFile } from "@kaihacksai/kaal-hosting";
-import { accept, integrity, sha256 } from "kaal-testing/acceptance";
+import { accept, integrity, sha256 } from "@kaihacksai/kaal-testing/acceptance";
 
 async function npm(args, cwd) {
   const r = await execute("npm", args, { cwd, env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" } });

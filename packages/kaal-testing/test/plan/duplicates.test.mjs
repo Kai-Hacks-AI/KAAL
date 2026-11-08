@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 async function dedup() {
   let m;
   try {
-    m = await import("kaal-testing/duplicates");
+    m = await import("@kaihacksai/kaal-testing/duplicates");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./duplicates (${e.code ?? e.message})`);
   }

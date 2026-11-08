@@ -18,8 +18,8 @@ import { join } from "node:path";
 import { evaluate, foundation } from "kaal-core";
 import { Graph } from "kaal-graph";
 import { execute, readFile } from "@kaihacksai/kaal-hosting";
-import { attribute, isClaimFile, KINDS } from "kaal-testing/attribution";
-import { inventory } from "kaal-testing/inventory";
+import { attribute, isClaimFile, KINDS } from "@kaihacksai/kaal-testing/attribution";
+import { inventory } from "@kaihacksai/kaal-testing/inventory";
 
 const ROOT = process.cwd();
 const json = process.argv.includes("--json");

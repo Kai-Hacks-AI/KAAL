@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { accept, sha256 } from "kaal-testing/acceptance";
+import { accept, sha256 } from "@kaihacksai/kaal-testing/acceptance";
 
 describe("observed tests", () => {
   it("names a test beneath a suite a helper module declares by its full suite path, in every scenario that uses it", async () => {

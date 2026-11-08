@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cover, evidence } from "kaal-testing/coverage";
+import { cover, evidence } from "@kaihacksai/kaal-testing/coverage";
 
 const m = (covered, total) => ({ total, covered, skipped: 0, pct: total ? Math.round((covered / total) * 10000) / 100 : 100 });
 const file = (l, b, f) => ({ lines: m(...l), statements: m(...l), branches: m(...b), functions: m(...f) });

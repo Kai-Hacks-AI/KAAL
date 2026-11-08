@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { discover } from "kaal-testing/acceptance";
+import { discover } from "@kaihacksai/kaal-testing/acceptance";
 
 const root = () => mkdtempSync(join(tmpdir(), "kaal-testing-locations-"));
 /** A workspace at `<dir>/<name>` holding `files`, each a path relative to the workspace, and the given package.json. */

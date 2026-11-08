@@ -12,7 +12,7 @@ import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { install } from "kaal-testing/acceptance";
+import { install } from "@kaihacksai/kaal-testing/acceptance";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));

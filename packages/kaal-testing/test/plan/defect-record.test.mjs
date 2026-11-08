@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 async function defect() {
   let m;
   try {
-    m = await import("kaal-testing/defect");
+    m = await import("@kaihacksai/kaal-testing/defect");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./defect (${e.code ?? e.message})`);
   }

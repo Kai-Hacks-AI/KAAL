@@ -12,8 +12,6 @@ node --input-type=module -e "console.log(import.meta.resolve('@kaihacksai/kaal-t
 
 The directory containing that resolved metadata holds `capability/Testing.md` and `payload/Testing.md`, together with the product's `docs/` and this Agent Skill. Read those shipped Nodes for meaning. Package discovery does not register them into an Engine or prove admission. Use Core's registration procedure when that is required.
 
-Before scoped release integration, a source checkout may still name this package `kaal-testing`. Use that actual installed name for local preparation; it is not an alias or evidence that the scoped package is available. Published-use instructions target `@kaihacksai/kaal-testing`.
-
 The portable Agent Skill keeps its relative links inside its own directory. Product metadata and Nodes are found through the installed package, rather than an assumed repository path.
 
 ## Start the consumer's ordinary Test Plan
@@ -39,7 +37,7 @@ Save the following block as `evaluate-example.mjs` in a temporary directory from
 node evaluate-example.mjs @kaihacksai/kaal-testing
 ```
 
-For local preparation against an unscoped installation, pass `kaal-testing` instead. The code is unchanged. This example constructs illustrative Run data; it executes no consumer Case and is not evidence that a real target passed. Its assertions check the public model API's treatment of that data.
+This example constructs illustrative Run data; it executes no consumer Case and is not evidence that a real target passed. Its assertions check the public model API's treatment of that data.
 
 ```js
 import assert from 'node:assert/strict';

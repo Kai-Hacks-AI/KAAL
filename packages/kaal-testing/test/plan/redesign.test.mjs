@@ -10,7 +10,7 @@ import { describe, it } from "node:test";
 async function redesign() {
   let m;
   try {
-    m = await import("kaal-testing/redesign");
+    m = await import("@kaihacksai/kaal-testing/redesign");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./redesign (${e.code ?? e.message})`);
   }

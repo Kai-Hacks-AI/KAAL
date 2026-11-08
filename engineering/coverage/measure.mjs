@@ -27,7 +27,7 @@
 // measures the evidence.
 import { join } from "node:path";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { cover } from "kaal-testing/coverage";
+import { cover } from "@kaihacksai/kaal-testing/coverage";
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, "engineering", "out", "coverage");

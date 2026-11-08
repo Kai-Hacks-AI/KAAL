@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { foundation } from "kaal-core";
 import { identify } from "kaal-graph";
 import { readFile } from "@kaihacksai/kaal-hosting";
-import { attribute, CLAIM_FILE, isClaimFile, KINDS, readClaim, scopeOf } from "kaal-testing/attribution";
-import { inventory } from "kaal-testing/inventory";
+import { attribute, CLAIM_FILE, isClaimFile, KINDS, readClaim, scopeOf } from "@kaihacksai/kaal-testing/attribution";
+import { inventory } from "@kaihacksai/kaal-testing/inventory";
 
 const text = (s) => new TextEncoder().encode(s);
 const json = (data) => text(JSON.stringify(data));

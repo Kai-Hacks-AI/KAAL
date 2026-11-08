@@ -9,8 +9,8 @@ import { describe, it } from "node:test";
 async function traces() {
   let m, model;
   try {
-    m = await import("kaal-testing/traces");
-    model = await import("kaal-testing/model");
+    m = await import("@kaihacksai/kaal-testing/traces");
+    model = await import("@kaihacksai/kaal-testing/model");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./traces (${e.code ?? e.message})`);
   }

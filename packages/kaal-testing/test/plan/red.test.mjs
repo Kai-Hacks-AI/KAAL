@@ -219,7 +219,7 @@ describe("Purity and one interpreter (testing/C4)", () => {
 
   it("testing/T15 [testing/N4, testing/N1]: kaal-testing/red reads runs only through Testing's own observation, and imports no host module", async () => {
     await red();
-    const source = readFileSync(new URL(import.meta.resolve("kaal-testing/red")), "utf8");
+    const source = readFileSync(new URL(import.meta.resolve("@kaihacksai/kaal-testing/red")), "utf8");
     const imports = [...source.matchAll(/\bfrom\s+["']([^"']+)["']/g)].map((x) => x[1]);
     assert.deepEqual(imports.filter((s) => s !== "./observed.mjs"), [], "red imports only Testing's own observed-run module");
     assert.doesNotMatch(source, /\bimport\s*\(/, "no dynamic import");

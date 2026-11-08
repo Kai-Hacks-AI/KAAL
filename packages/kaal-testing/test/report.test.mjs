@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { attribute } from "kaal-testing/attribution";
-import { inventory } from "kaal-testing/inventory";
-import { markdown, report, STATUSES } from "kaal-testing/report";
+import { attribute } from "@kaihacksai/kaal-testing/attribution";
+import { inventory } from "@kaihacksai/kaal-testing/inventory";
+import { markdown, report, STATUSES } from "@kaihacksai/kaal-testing/report";
 
 const ID = (c) => c.repeat(64);
 const A = { kind: "capability", name: "Alpha", id: ID("a") };

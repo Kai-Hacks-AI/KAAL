@@ -23,6 +23,6 @@
     "kaal-engineer-skill": "0.0.1",
     "kaal-graph": "0.0.1",
     "@kaihacksai/kaal-hosting": "0.0.1",
-    "kaal-testing": "0.0.1"
+    "@kaihacksai/kaal-testing": "0.0.1"
   }
 }

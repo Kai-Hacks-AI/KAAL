@@ -9,7 +9,7 @@ import { describe, it } from "node:test";
 async function contract() {
   let m;
   try {
-    m = await import("kaal-testing/verifiers");
+    m = await import("@kaihacksai/kaal-testing/verifiers");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./verifiers (${e.code ?? e.message})`);
   }

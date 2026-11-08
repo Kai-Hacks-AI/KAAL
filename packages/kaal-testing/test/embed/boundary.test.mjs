@@ -2,7 +2,7 @@
 // package by its name and decide each requirement from behaviour.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { interpret } from "kaal-testing/boundary";
+import { interpret } from "@kaihacksai/kaal-testing/boundary";
 
 const PLAN = "acme/spec/a.test.mjs";
 const DECLARATION = { concern: "Requirements", owner: { kind: "capability", name: "Acme" }, paths: [PLAN, "acme/spec/fixtures/"] };

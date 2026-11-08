@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 async function reentry() {
   let m;
   try {
-    m = await import("kaal-testing/reentry");
+    m = await import("@kaihacksai/kaal-testing/reentry");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./reentry (${e.code ?? e.message})`);
   }

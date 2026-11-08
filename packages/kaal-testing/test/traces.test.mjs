@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { derive } from "kaal-testing/traces";
+import { derive } from "@kaihacksai/kaal-testing/traces";
 
 const file = (text) => [{ path: "test/embed/a.test.mjs", text }];
 

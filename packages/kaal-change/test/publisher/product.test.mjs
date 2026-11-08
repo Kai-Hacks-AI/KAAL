@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execute, read, readFile } from '@kaihacksai/kaal-hosting';
 import { evaluate, payload, foundation } from 'kaal-core';
-import { readClaim } from 'kaal-testing/attribution';
+import { readClaim } from '@kaihacksai/kaal-testing/attribution';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 test('minimal Change foundation is Core-admitted and its narrow claim resolves exactly', async () => {
   const nodes = await read(join(root, 'capability'));

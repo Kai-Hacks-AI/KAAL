@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { check, state } from "kaal-testing/defect";
+import { check, state } from "@kaihacksai/kaal-testing/defect";
 
 const rec = (over = {}) => ({ id: "c/D1", context: "c", expected: "e", observed: "o", where: "w", status: "reported", ...over });
 const model = { plans: [{ id: "P", suites: ["S"] }], suites: [{ id: "S", cases: ["c/T1"] }], cases: [{ id: "c/T1", version: "1", tests: ["c/D1"] }] };

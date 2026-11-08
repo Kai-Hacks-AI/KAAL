@@ -1,7 +1,7 @@
 // Additional implementation checks; the C50 assertions remain untouched.
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { duplicates, schedule } from "kaal-testing/duplicates";
+import { duplicates, schedule } from "@kaihacksai/kaal-testing/duplicates";
 
 const on = { subject: "a".repeat(64), platform: "linux", node: "v24.0.0" };
 const file = { path: "cases.mjs", sha256: "b".repeat(64) };

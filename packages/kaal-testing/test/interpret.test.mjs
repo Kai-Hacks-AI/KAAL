@@ -2,7 +2,7 @@
 // planned outer tests in test/plan/boundary.test.mjs.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { interpret, problems } from "kaal-testing/boundary";
+import { interpret, problems } from "@kaihacksai/kaal-testing/boundary";
 
 const DECLARATION = { concern: "Intent", owner: { kind: "capability", name: "Y" }, paths: ["packages/y/test/plan/"] };
 const VERDICT = { realization: "git", anchor: { kind: "plan-commit", ref: "c" }, bytes: "stored", mode: true, changes: [], outside: [] };

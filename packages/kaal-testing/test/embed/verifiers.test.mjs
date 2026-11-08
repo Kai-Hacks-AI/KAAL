@@ -2,7 +2,7 @@
 // They reach the installed package by its name and decide each requirement from behaviour.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { judge, observe, parity, SCENARIOS } from "kaal-testing/verifiers";
+import { judge, observe, parity, SCENARIOS } from "@kaihacksai/kaal-testing/verifiers";
 
 const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", failed: "failed", unknown: "cannot verify" } };
 const FACTS = { package: { name: "@acme/thing", version: "1.0.0", location: "/c/node_modules/@acme/thing" }, platform: "host-a", node: "v24.1.0", digest: "d".repeat(64), cases: ["acme/T1"], applicability: {}, dependencies: [], complements: {} };

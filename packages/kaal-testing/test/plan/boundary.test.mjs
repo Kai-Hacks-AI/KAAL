@@ -19,7 +19,7 @@ const attest = (v) => ({ by: "the gate that produced and verified the verdict", 
 async function interpreter({ attested = true } = {}) {
   let mod;
   try {
-    mod = await import("kaal-testing/boundary");
+    mod = await import("@kaihacksai/kaal-testing/boundary");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./boundary (${e.code ?? e.message})`);
   }

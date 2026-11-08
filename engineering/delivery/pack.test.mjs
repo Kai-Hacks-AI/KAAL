@@ -10,7 +10,7 @@ import { describe, it } from "node:test";
 import { initialize } from "@kaihacksai/kaal-hosting";
 import { deliver } from "./pack.mjs";
 
-const TESTING = import.meta.resolve("kaal-testing/acceptance");
+const TESTING = import.meta.resolve("@kaihacksai/kaal-testing/acceptance");
 const base = join(tmpdir(), `kaal-delivery-test-${Date.now()}-${process.pid}`);
 
 /** A scenario that installs the fixture package and, after that, runs `then`. */

@@ -8,7 +8,7 @@ import { bootstrap, catalog, foundation, loadEngine, readContribution, register 
 import { checkSkill } from "kaal-engineer-skill";
 import { identify } from "kaal-graph";
 import { execute, read } from "@kaihacksai/kaal-hosting";
-import { CLAIM_FILE, readClaim } from "kaal-testing/attribution";
+import { CLAIM_FILE, readClaim } from "@kaihacksai/kaal-testing/attribution";
 
 const PACKAGE = fileURLToPath(new URL("../", import.meta.url));
 const PAYLOAD = join(PACKAGE, "payload");

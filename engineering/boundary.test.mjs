@@ -20,7 +20,7 @@ const DRIVERS = ["contracts/measure.mjs", "coverage/measure.mjs", "delivery/pack
 const BOUNDARY = { builtins: ["node:path"] };
 
 /** The modules they may reach outside themselves: Hosting for the host, Testing for measurement and acceptance runs, Core for admission, Graph for lookup. */
-const OUTSIDE = ["@kaihacksai/kaal-hosting", "kaal-core", "kaal-graph", "kaal-testing/acceptance", "kaal-testing/attribution", "kaal-testing/contracts", "kaal-testing/coverage", "kaal-testing/inventory", "kaal-testing/report"];
+const OUTSIDE = ["@kaihacksai/kaal-hosting", "@kaihacksai/kaal-testing/acceptance", "@kaihacksai/kaal-testing/attribution", "@kaihacksai/kaal-testing/contracts", "@kaihacksai/kaal-testing/coverage", "@kaihacksai/kaal-testing/inventory", "@kaihacksai/kaal-testing/report", "kaal-core", "kaal-graph"];
 
 /**
  * Findings that need validation and have been judged, each with its judgment.

@@ -2,7 +2,7 @@
 // reach the installed package by its name and decide each requirement from behaviour, never from a file.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { check, current, evaluate, results, tested } from "kaal-testing/model";
+import { check, current, evaluate, results, tested } from "@kaihacksai/kaal-testing/model";
 
 const MODEL = {
   plans: [{ id: "acme/P1", suites: ["acme/S1"] }],
